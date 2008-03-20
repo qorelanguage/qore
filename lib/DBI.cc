@@ -61,7 +61,6 @@ class DBIDriverFunctions {
       q_dbi_commit_t commit;
       q_dbi_rollback_t rollback;
       q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
-      q_dbi_auto_commit_t auto_commit;             // for DBI drivers that require an explicit commit 
       q_dbi_abort_transaction_start_t abort_transaction_start;  // for DBI drivers that require a rollback in order to use
 							        // the connection after an exception as the first statement
 							        // in a transaction
@@ -78,7 +77,6 @@ class DBIDriverFunctions {
 	 commit = 0;
 	 rollback = 0;
 	 begin_transaction = 0;
-	 auto_commit = 0;
 	 abort_transaction_start = 0;
 	 get_server_version = 0;
 	 get_client_version = 0;
@@ -176,10 +174,6 @@ struct qore_dbi_private {
 	       case QDBI_METHOD_BEGIN_TRANSACTION:
 		  assert(!f.begin_transaction);
 		  f.begin_transaction = (q_dbi_begin_transaction_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_AUTO_COMMIT:
-		  assert(!f.auto_commit);
-		  f.auto_commit = (q_dbi_auto_commit_t)(*i).second;
 		  break;
 	       case QDBI_METHOD_ABORT_TRANSACTION_START:
 		  assert(!f.abort_transaction_start);
@@ -285,8 +279,11 @@ int DBIDriver::beginTransaction(Datasource *ds, ExceptionSink *xsink)
 
 int DBIDriver::autoCommit(Datasource *ds, ExceptionSink *xsink)
 {
-   if (priv->f.auto_commit)
-      return priv->f.auto_commit(ds, xsink);
+   // if the driver does not require explicit "begin" statements to
+   // start a transaction, then we have to explicitly call "commit" here
+   if (!priv->f.begin_transaction)
+      return priv->f.commit(ds, xsink);
+
    return 0; // 0 = OK
 }
 

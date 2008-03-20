@@ -231,29 +231,22 @@ static void mysql_thread_cleanup(void *unused)
 }
 
 static MYSQL *qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
-{
-   tracein("qore_mysql_init()");
-   
+{   
    printd(5, "qore_mysql_init() datasource %08p for DB=%s\n", ds, 
 	  ds->getDBName() ? ds->getDBName() : "unknown");
    
-   if (!ds->getDBName())
-   {
+   if (!ds->getDBName()) {
       xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
-      traceout("qore_mysql_init()");
-      return NULL;
+      return 0;
    }
    
    if (ds->getDBEncoding())
       ds->setQoreEncoding(get_qore_cs((char *)ds->getDBEncoding()));
-   else
-   {
+   else {
       char *enc = get_mysql_cs(QCS_DEFAULT);
-      if (!enc)
-      {
+      if (!enc) {
 	 xsink->raiseException("DBI:MYSQL:UNKNOWN-CHARACTER-SET", "cannot find the mysql character set equivalent for '%s'", QCS_DEFAULT->getCode());
-	 traceout("qore_mysql_init()");
-	 return NULL;
+	 return 0;
       }
       
       ds->setDBEncoding(enc);
@@ -264,18 +257,14 @@ static MYSQL *qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
 	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
 
    MYSQL *db = mysql_init(NULL);
-   if (!db)
-   {
+   if (!db) {
       xsink->outOfMemory();
-      traceout("qore_mysql_init()");
-      return NULL;
+      return 0;
    }
-   if (!mysql_real_connect(db, ds->getHostName(), ds->getUsername(), ds->getPassword(), ds->getDBName(), 0, NULL, CLIENT_FOUND_ROWS))
-   {
+   if (!mysql_real_connect(db, ds->getHostName(), ds->getUsername(), ds->getPassword(), ds->getDBName(), 0, NULL, CLIENT_FOUND_ROWS)) {
       xsink->raiseException("DBI:MYSQL:CONNECT-ERROR", "%s", mysql_error(db));
       mysql_close(db);
-      traceout("qore_mysql_init()");
-      return NULL;
+      return 0;
    }
 
 #ifdef HAVE_MYSQL_SET_CHARACTER_SET
@@ -288,53 +277,51 @@ static MYSQL *qore_mysql_init(Datasource *ds, ExceptionSink *xsink)
    mysql_autocommit(db, false);
    
    // set transaction handling
-   if (mysql_query(db, "set transaction isolation level read committed"))
-   {
+   if (mysql_query(db, "set transaction isolation level read committed")) {
       xsink->raiseException("DBI:MYSQL:INIT-ERROR", (char *)mysql_error(db));
       mysql_close(db);
-      traceout("qore_mysql_init()");
       return NULL;
    }
    
 #endif
    
-   traceout("qore_mysql_init()");
    return db;
 }
 
 static int qore_mysql_commit(Datasource *ds, ExceptionSink *xsink)
 {
-   tracein("qore_mysql_commit()");
-
 #ifdef HAVE_MYSQL_COMMIT
    checkInit();
    MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
 
-   if (d_mysql->commit())
+   // calls mysql_commit() on the connection
+   if (d_mysql->commit()) {
       xsink->raiseException("DBI:MYSQL:COMMIT-ERROR", d_mysql->error());
+      return -1;
+   }
+   return 0;
 #else
    xsink->raiseException("DBI:MYSQL:NOT-IMPLEMENTED", "this version of the MySQL client API does not support transaction management");
+   return -1;
 #endif
-   traceout("qore_mysql_commit()");
-   return 0;
 }
 
 static int qore_mysql_rollback(Datasource *ds, ExceptionSink *xsink)
 {
-   tracein("qore_mysql_rollback()");
-
 #ifdef HAVE_MYSQL_COMMIT
    checkInit();
    MySQLConnection *d_mysql =(MySQLConnection *)ds->getPrivateData();
 
-   if (d_mysql->rollback())
+   // calls mysql_rollback() on the connection
+   if (d_mysql->rollback()) {
       xsink->raiseException("DBI:MYSQL:ROLLBACK-ERROR", d_mysql->error());
+      return -1;
+   }
+   return 0;
 #else
    xsink->raiseException("DBI:MYSQL:NOT-IMPLEMENTED", "this version of the MySQL client API does not support transaction management");
+   return -1;
 #endif
-
-   traceout("qore_mysql_rollback()");
-   return 0;
 }
 
 static void getLowerCaseName(class QoreString *str, const QoreEncoding *enc, const char *name)
@@ -669,7 +656,7 @@ inline class AbstractQoreNode *MyBindGroup::getOutputHash(class ExceptionSink *x
 	 }
       }
 
-      h->setKeyValue(*sli, v, NULL);
+      h->setKeyValue(*sli, v, xsink);
       sli++;
    }
    return h.release();
@@ -696,7 +683,7 @@ class AbstractQoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
       for (int i = 0; i < myres.getNumFields(); i++)
       {
 	 getLowerCaseName(&tstr, enc, myres.getFieldName(i));
-	 h->setKeyValue(&tstr, new QoreListNode(), NULL);
+	 h->setKeyValue(&tstr, new QoreListNode(), xsink);
       }
 	 
       if (mysql_stmt_affected_rows(stmt))
@@ -773,7 +760,7 @@ class AbstractQoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 	    for (int i = 0; i < myres.getNumFields(); i++)
 	    {
 	       getLowerCaseName(&tstr, enc, myres.getFieldName(i));
-	       h->setKeyValue(&tstr, myres.getBoundColumnValue(enc, i), NULL);
+	       h->setKeyValue(&tstr, myres.getBoundColumnValue(enc, i), xsink);
 	    }
 
 	    l->push(h);
@@ -884,7 +871,7 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
 }
 
 #else  // !HAVE_MYSQL_STMT
-static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res)
+static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res, ExceptionSink *xsink)
 {
    MYSQL_ROW row;
    int num_fields = mysql_num_fields(res);
@@ -897,7 +884,7 @@ static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res)
    for (int i = 0; i < num_fields; i++)
    {
       getLowerCaseName(&tstr, ds->getQoreEncoding(), field[i].name);
-      h->setKeyValue(&tstr, new QoreListNode(), NULL);
+      h->setKeyValue(&tstr, new QoreListNode(), xsink);
    }
    
    int rn = 0;
@@ -999,7 +986,7 @@ static class AbstractQoreNode *qore_mysql_do_sql(const Datasource *ds, const Qor
 	 xsink->raiseException("DBI:MYSQL:SELECT-ERROR", (char *)mysql_error(db));
 	 return NULL;
       }
-      rv = get_result_set(ds, res);
+      rv = get_result_set(ds, res, xsink);
       mysql_free_result(res);
    }
    else
@@ -1125,32 +1112,29 @@ static class AbstractQoreNode *qore_mysql_get_client_version(const Datasource *d
    return new QoreBigIntNode(mysql_get_client_version());
 }
 
-class QoreStringNode *qore_mysql_module_init()
+QoreStringNode *qore_mysql_module_init()
 {
-   tracein("qore_mysql_module_init()");
-
    // initialize thread key to test for mysql_thread_init()
    pthread_key_create(&ptk_mysql, NULL);
    tclist.push(mysql_thread_cleanup, NULL);
    my_init();
 
-   // register database functions with DBI subsystem
-   class qore_dbi_method_list methods;
-   methods.add(QDBI_METHOD_OPEN, qore_mysql_open_datasource);
-   methods.add(QDBI_METHOD_CLOSE, qore_mysql_close_datasource);
-   methods.add(QDBI_METHOD_SELECT, qore_mysql_select);
-   methods.add(QDBI_METHOD_SELECT_ROWS, qore_mysql_select_rows);
-   methods.add(QDBI_METHOD_EXEC, qore_mysql_exec);
-   methods.add(QDBI_METHOD_COMMIT, qore_mysql_commit);
-   methods.add(QDBI_METHOD_ROLLBACK, qore_mysql_rollback);
-   methods.add(QDBI_METHOD_AUTO_COMMIT, qore_mysql_commit);
+   // populate the method list structure with the method pointers
+   qore_dbi_method_list methods;
+   methods.add(QDBI_METHOD_OPEN,               qore_mysql_open_datasource);
+   methods.add(QDBI_METHOD_CLOSE,              qore_mysql_close_datasource);
+   methods.add(QDBI_METHOD_SELECT,             qore_mysql_select);
+   methods.add(QDBI_METHOD_SELECT_ROWS,        qore_mysql_select_rows);
+   methods.add(QDBI_METHOD_EXEC,               qore_mysql_exec);
+   methods.add(QDBI_METHOD_COMMIT,             qore_mysql_commit);
+   methods.add(QDBI_METHOD_ROLLBACK,           qore_mysql_rollback);
    methods.add(QDBI_METHOD_GET_SERVER_VERSION, qore_mysql_get_server_version);
    methods.add(QDBI_METHOD_GET_CLIENT_VERSION, qore_mysql_get_client_version);
    
+   // register database functions with DBI subsystem
    DBID_MYSQL = DBI.registerDriver("mysql", methods, mysql_caps);
 
-   traceout("qore_mysql_module_init()");
-   return NULL;
+   return 0;
 }
 
 void qore_mysql_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)

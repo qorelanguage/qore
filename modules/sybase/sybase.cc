@@ -98,55 +98,49 @@ AbstractQoreNode* runRecentSybaseTests(const QoreListNode *params, ExceptionSink
 }
 #endif
 
-static void set_encoding(Datasource* ds, ExceptionSink* xsink)
+static int sybase_open(Datasource *ds, ExceptionSink *xsink)
 {
+   // username is a required parameter
+   if (!ds->getUsername()) {
+      xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
+      return -1;
+   }
+
+   // DB name is a required parameter
+   if (!ds->getDBName()) {
+      xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
+      return -1;
+   }
+
+   // set the encoding for the connection
    if (ds->getDBEncoding()) {
       const QoreEncoding *enc = name_to_QoreEncoding(ds->getDBEncoding());
       ds->setQoreEncoding(enc);
-   } else  {
+   } 
+   else {
       const char *enc = QoreEncoding_to_SybaseName(QCS_DEFAULT);
+      // if the encoding cannot be mapped, throw a Qore-language exception and return
       if (!enc) {
-      xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
-      return;
+	 xsink->raiseException("DBI:SYBASE:UNKNOWN-CHARACTER-SET", "cannot find the Sybase character encoding equivalent for '%s'", QCS_DEFAULT->getCode());
+	 return -1;
       }
       ds->setDBEncoding(enc);
       ds->setQoreEncoding(QCS_DEFAULT);
    }
-}
-
-static int sybase_open(Datasource *ds, ExceptionSink *xsink)
-{
-   tracein("sybase_open()");
-
-   if (!ds->getUsername()) {
-      xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
-      traceout("oracle_open()");
-      return -1;
-   }
-   if (!ds->getDBName()) {
-      xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
-      traceout("oracle_open()");
-      return -1;
-   }
-
-   set_encoding(ds, xsink);
-   if (xsink->isException()) {
-      return -1;
-   }
   
+   // create the connection object
    std::auto_ptr<connection> sc(new connection);
   
+   // make the actual connection to the database
    sc->init(ds->getUsername(), ds->getPassword() ? ds->getPassword() : "", ds->getDBName(), ds->getDBEncoding(), ds->getQoreEncoding(), xsink);
-   if (xsink->isException()) {
+   // return with an error if it didn't work
+   if (*xsink)
       return -1;
-   }
 
-   if (xsink->isException()) {
-      return -1;
-   }
-
+   // set the private data
    ds->setPrivateData(sc.release());
-   traceout("sybase_open()");
+
+   // return 0 for OK
    return 0;
 }
 
@@ -296,7 +290,6 @@ QoreStringNode *sybase_module_init()
    methods.add(QDBI_METHOD_EXEC, sybase_exec);
    methods.add(QDBI_METHOD_COMMIT, sybase_commit);
    methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
-   methods.add(QDBI_METHOD_AUTO_COMMIT, sybase_commit);
    methods.add(QDBI_METHOD_GET_CLIENT_VERSION, sybase_get_client_version);
    methods.add(QDBI_METHOD_GET_SERVER_VERSION, sybase_get_server_version);
    

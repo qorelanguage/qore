@@ -1142,26 +1142,18 @@ static class AbstractQoreNode *oracle_select_rows(class Datasource *ds, const Qo
 
 static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 {
-   tracein("oracle_open()");
-
    printd(5, "oracle_open() datasource %08p for DB=%s open\n", ds, ds->getDBName());
 
-   if (!ds->getUsername())
-   {
+   if (!ds->getUsername()) {
       xsink->raiseException("DATASOURCE-MISSING-USERNAME", "Datasource has an empty username parameter");
-      traceout("oracle_open()");
       return -1;
    }
-   if (!ds->getPassword())
-   {
+   if (!ds->getPassword()) {
       xsink->raiseException("DATASOURCE-MISSING-PASSWORD", "Datasource has an empty password parameter");
-      traceout("oracle_open()");
       return -1;
    }
-   if (!ds->getDBName())
-   {
+   if (!ds->getDBName()) {
       xsink->raiseException("DATASOURCE-MISSING-DBNAME", "Datasource has an empty dbname parameter");
-      traceout("oracle_open()");
       return -1;
    }
    printd(5, "oracle_open(): user=%s pass=%s db=%s (oracle encoding=%s)\n",
@@ -1183,22 +1175,18 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    char nbuf[OCI_NLS_MAXBUFSZ];
    int need_to_set_charset = 0;
 
-   if (ds->getDBEncoding())
-   {
+   if (ds->getDBEncoding()) {
       charset = ds->getDBEncoding();
       need_to_set_charset = 1;
    }
-   else // get Oracle character set name from OS character set name
-   {
-      if ((OCINlsNameMap(tmpenvhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)QCS_DEFAULT->getCode(), OCI_NLS_CS_IANA_TO_ORA) != OCI_SUCCESS))
-      {
+   else { // get Oracle character set name from OS character set name
+      if ((OCINlsNameMap(tmpenvhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)QCS_DEFAULT->getCode(), OCI_NLS_CS_IANA_TO_ORA) != OCI_SUCCESS)) {
 	 OCIHandleFree(tmpenvhp, OCI_HTYPE_ENV);
 	 xsink->raiseException("DBI:ORACLE:UNKNOWN-CHARACTER-SET", 
 			"cannot map default OS encoding '%s' to Oracle character encoding",
 			QCS_DEFAULT->getCode());
 	 delete d_ora;
-	 ds->setPrivateData(NULL);
-	 traceout("oracle_open()");
+	 ds->setPrivateData(0);
 	 return -1;
       }
       ds->setDBEncoding(nbuf);
@@ -1214,23 +1202,20 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    // delete temporary environmental handle
    OCIHandleFree(tmpenvhp, OCI_HTYPE_ENV);
 
-   if (!d_ora->charsetid)
-   {
+   if (!d_ora->charsetid) {
       xsink->raiseException("DBI:ORACLE:UNKNOWN-CHARACTER-SET", "this installation of Oracle does not support the '%s' character encoding", 
 			    ds->getDBEncoding());
       delete d_ora;
       ds->setPrivateData(NULL);
-      traceout("oracle_open()");
       return -1;
    }
+
    printd(5, "Oracle character encoding '%s' has ID %d, oci_flags=%d\n", charset, d_ora->charsetid, oci_flags);
    // create environment with default character set
-   if (OCIEnvNlsCreate(&d_ora->envhp, oci_flags, 0, NULL, NULL, NULL, 0, NULL, d_ora->charsetid, d_ora->charsetid) != OCI_SUCCESS)
-   {
+   if (OCIEnvNlsCreate(&d_ora->envhp, oci_flags, 0, NULL, NULL, NULL, 0, NULL, d_ora->charsetid, d_ora->charsetid) != OCI_SUCCESS) {
       xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "error creating new environment handle with encoding '%s'", ds->getDBEncoding());
       delete d_ora;
       ds->setPrivateData(0);
-      traceout("oracle_open()");
       return -1;
    }
 
@@ -1238,17 +1223,14 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    if (need_to_set_charset)
    {
       // map Oracle character encoding name to QORE/OS character encoding name
-      if ((OCINlsNameMap(d_ora->envhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)ds->getDBEncoding(), OCI_NLS_CS_ORA_TO_IANA) == OCI_SUCCESS))
-      {
+      if ((OCINlsNameMap(d_ora->envhp, (oratext *)nbuf, OCI_NLS_MAXBUFSZ, (oratext *)ds->getDBEncoding(), OCI_NLS_CS_ORA_TO_IANA) == OCI_SUCCESS)) {
 	 printd(5, "oracle_open() Oracle character set '%s' mapped to '%s' character set\n", ds->getDBEncoding(), nbuf);
 	 ds->setQoreEncoding(nbuf);
       }
-      else
-      {
+      else {
 	 xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "error mapping Oracle encoding '%s' to a qore encoding: unknown encoding", ds->getDBEncoding());
 	 delete d_ora;
 	 ds->setPrivateData(0);
-	 traceout("oracle_open()");
 	 return -1;
       }
    }
@@ -1273,32 +1255,26 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 */
 #endif // HAVE_OCIENVNLSCREATE
 
-   if (OCIHandleAlloc(d_ora->envhp, (dvoid **) &d_ora->errhp, OCI_HTYPE_ERROR, 0, 0) != OCI_SUCCESS)
-   {
+   if (OCIHandleAlloc(d_ora->envhp, (dvoid **) &d_ora->errhp, OCI_HTYPE_ERROR, 0, 0) != OCI_SUCCESS) {
       OCIHandleFree(d_ora->envhp, OCI_HTYPE_ENV);
       xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "failed to allocate error handle for connection");
       delete d_ora;
       ds->setPrivateData(NULL);
-      traceout("oracle_open()");
       return -1;
    }
    //printd(5, "oracle_open() about to call OCILogon()\n");
    ora_checkerr(d_ora->errhp, 
 		OCILogon(d_ora->envhp, d_ora->errhp, &d_ora->svchp, (text *)ds->getUsername(), strlen(ds->getUsername()), (text *)ds->getPassword(), strlen(ds->getPassword()), (text *)ds->getDBName(), strlen(ds->getDBName())), 
 		"<open>", ds, xsink);
-   if (xsink->isEvent())
-   {
+   if (xsink->isEvent()) {
       OCIHandleFree(d_ora->errhp, OCI_HTYPE_ERROR);
       OCIHandleFree(d_ora->envhp, OCI_HTYPE_ENV);
       delete d_ora;
       ds->setPrivateData(NULL);
-      traceout("oracle_open()");
       return -1;
    }
 
    printd(5, "oracle_open() datasource %08p for DB=%s open (envhp=%08p)\n", ds, ds->getDBName(), d_ora->envhp);
-   
-   traceout("oracle_open()");
    return 0;
 }
 
@@ -1320,28 +1296,13 @@ static int oracle_close(class Datasource *ds)
    return 0;
 }
 
-#define VERSION_BUF_SIZE 512
-static class AbstractQoreNode *oracle_get_server_version(class Datasource *ds, class ExceptionSink *xsink)
-{
-   class OracleData *d_ora = (OracleData *)ds->getPrivateData();
-   char version_buf[VERSION_BUF_SIZE + 1];
-
-   ora_checkerr(d_ora->errhp, 
-		OCIServerVersion (d_ora->svchp, d_ora->errhp, (OraText *)version_buf, VERSION_BUF_SIZE, OCI_HTYPE_SVCCTX),
-		"oracle_get_server_version", ds, xsink);
-   if (xsink->isEvent())
-      return NULL;
-   
-   return new QoreStringNode(version_buf);   
-}
-
 #ifdef HAVE_OCICLIENTVERSION
-static class AbstractQoreNode *oracle_get_client_version(const Datasource *ds, class ExceptionSink *xsink)
+static AbstractQoreNode *oracle_get_client_version(const Datasource *ds, ExceptionSink *xsink)
 {
    sword major, minor, update, patch, port_update;
 
    OCIClientVersion(&major, &minor, &update, &patch, &port_update);
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("major", new QoreBigIntNode(major), NULL);
    h->setKeyValue("minor", new QoreBigIntNode(minor), NULL);
    h->setKeyValue("update", new QoreBigIntNode(update), NULL);
@@ -1364,7 +1325,6 @@ class QoreStringNode *oracle_module_init()
    methods.add(QDBI_METHOD_EXEC, oracle_exec);
    methods.add(QDBI_METHOD_COMMIT, oracle_commit);
    methods.add(QDBI_METHOD_ROLLBACK, oracle_rollback);
-   methods.add(QDBI_METHOD_AUTO_COMMIT, oracle_commit);
    methods.add(QDBI_METHOD_GET_SERVER_VERSION, oracle_get_server_version);
 #ifdef HAVE_OCICLIENTVERSION
    methods.add(QDBI_METHOD_GET_CLIENT_VERSION, oracle_get_client_version);
