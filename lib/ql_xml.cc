@@ -347,7 +347,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
 	       if (v->getType() == NT_STRING) 
 		  str->concatAndHTMLEncode(reinterpret_cast<const QoreStringNode *>(v), xsink);
 	       else { // convert to string and add
-		  QoreStringValueHelper temp(n);
+		  QoreStringValueHelper temp(v);
 		  str->concat(*temp, xsink);
 	       }
 	    }
