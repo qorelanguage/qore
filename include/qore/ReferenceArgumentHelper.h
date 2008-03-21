@@ -56,7 +56,7 @@ class ReferenceArgumentHelper {
       DLLLOCAL ReferenceArgumentHelper& operator=(const ReferenceArgumentHelper&);
 
    public:
-      //! creates the fake local variable with name "name", assigns value "val" to it, and creates a reference to the local variable
+      //! creates a fake local variable assigned to "val" and creates a reference to the local variable
       /**
 	 @param val the value to assign to the local variable
 	 @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor

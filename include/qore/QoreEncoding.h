@@ -24,6 +24,11 @@
 
 #define _QORE_CHARSET_H
 
+/** @file QoreEncoding.h
+    provides definitions related to character encoding support in Qore including the QoreEncoding class
+    and QCS_DEFAULT, the default encoding for the Qore library
+ */
+
 #include <qore/common.h>
 #include <qore/QoreThreadLock.h>
 

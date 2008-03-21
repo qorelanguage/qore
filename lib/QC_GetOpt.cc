@@ -249,18 +249,17 @@ static AbstractQoreNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreLis
    if (p0->getType() == NT_REFERENCE)
    {
       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
-      AbstractQoreNode **vp = get_var_value_ptr(r->getExpression(), &vl, xsink);
+      ReferenceHelper ref(r, xsink);
+      if (!ref)
+	 return 0;
+
+      if (ref.getType() != NT_LIST)
+	 return 0;
+
+      l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
       if (*xsink)
 	 return 0;
-      l = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(*vp));
-      if (!l)
-	 return 0;
-      if (l->reference_count() > 1)
-      {
-	 l = l->copy();
-	 (*vp)->deref(xsink);
-	 (*vp) = l;
-      }
+
       return g->parse(l, true, xsink);
    }
    else if (!(l = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(p0))))

@@ -327,15 +327,12 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       return 0;
 
    qore_type_t ntype = (*node)->getType();
-   if (ntype == NT_REFERENCE)
-   {
+   if (ntype == NT_REFERENCE) {
       // otherwise throw a parse exception if an illegal reference is used
-      if (!(current_pflag & PF_REFERENCE_OK))
-      {	 
+      if (!(current_pflag & PF_REFERENCE_OK)) {	 
 	 parse_error("the reference operator can only be used in function and method call argument lists and in foreach statements");
       }
-      else
-      {
+      else {
 	 ReferenceNode *r = reinterpret_cast<ReferenceNode *>(*node);
 	 lvids = process_node(r->getExpressionPtr(), oflag, pflag);
 	 // if a background expression is being parsed, then check that no references to local variables
@@ -353,12 +350,10 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       return lvids;
    }
    
-   if (ntype == NT_VARREF)
-   {
+   if (ntype == NT_VARREF) {
       VarRefNode *v = reinterpret_cast<VarRefNode *>(*node);
       // if it is a new variable being declared
-      if (v->type == VT_LOCAL)
-      {
+      if (v->type == VT_LOCAL) {
 	 v->ref.id = push_local_var(v->name);
 	 lvids++;
 	 //printd(5, "process_node(): local var %s declared (id=%08p)\n", v->name, v->ref.id);
@@ -371,26 +366,22 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       return lvids;
    }
 
-   if (ntype == NT_BAREWORD)
-   {
+   if (ntype == NT_BAREWORD) {
       // resolve simple constant
       printd(5, "process_node() resolving simple constant \"%s\"\n", reinterpret_cast<BarewordNode *>(*node)->str);
       getRootNS()->resolveSimpleConstant(node, 1);
       return lvids;
    }
 
-   if (ntype == NT_CONSTANT)
-   {
+   if (ntype == NT_CONSTANT) {
       printd(5, "process_node() resolving scoped constant \"%s\"\n", reinterpret_cast<ConstantNode *>(*node)->scoped_ref->ostr);
       getRootNS()->resolveScopedConstant(node, 1);
       return lvids;
    }
 
-   if (ntype == NT_COMPLEXCONTEXTREF)
-   {
+   if (ntype == NT_COMPLEXCONTEXTREF) {
       ComplexContextrefNode *c = reinterpret_cast<ComplexContextrefNode *>(*node);
-      if (!getCVarStack())
-      {
+      if (!getCVarStack()) {
 	 parse_error("complex context reference \"%s:%s\" encountered out of context", c->name, c->member);
 	 return lvids;
       }
@@ -398,10 +389,8 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       int stack_offset = 0;
       int found = 0;
       class CVNode *cvn = getCVarStack();
-      while (cvn)
-      {
-	 if (cvn->name && !strcmp(c->name, cvn->name))
-	 {
+      while (cvn) {
+	 if (cvn->name && !strcmp(c->name, cvn->name)) {
 	    found = 1;
 	    break;
 	 }
@@ -416,22 +405,19 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       return lvids;
    }
 
-   if (ntype == NT_CONTEXTREF)
-   {
+   if (ntype == NT_CONTEXTREF) {
       if (!getCVarStack())
 	 parse_error("context reference \"%s\" out of context", reinterpret_cast<ContextrefNode *>((*node))->str);
       return lvids;
    }
 
-   if (ntype == NT_CONTEXT_ROW)
-   {
+   if (ntype == NT_CONTEXT_ROW) {
       if (!getCVarStack())
 	 parse_error("context row reference \"%%\" encountered out of context");
       return lvids;
    }
 
-   if (ntype == NT_TREE)
-   {
+   if (ntype == NT_TREE) {
       QoreTreeNode *tree =reinterpret_cast<QoreTreeNode *>(*node);
 
       // set "parsing background" flag if the background operator is being parsed
@@ -455,12 +441,10 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       return lvids;
    }
 
-   if (ntype == NT_FUNCTION_CALL)
-   {
+   if (ntype == NT_FUNCTION_CALL) {
       FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(*node);
 
-      if (f->getFunctionType() == FC_SELF)
-      {
+      if (f->getFunctionType() == FC_SELF) {
 	 if (!oflag)
 	    parse_error("cannot call member function \"%s\" out of an object member function definition", 
 			f->f.sfunc->name);
@@ -471,11 +455,9 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 	 getProgram()->resolveFunction(f);
       
       if (f->args)
-	 for (unsigned i = 0; i < f->args->size(); i++)
-	 {
+	 for (unsigned i = 0; i < f->args->size(); i++) {
 	    AbstractQoreNode **n = f->args->get_entry_ptr(i);
-	    if ((*n)->getType() == NT_REFERENCE)
-	    {
+	    if ((*n)->getType() == NT_REFERENCE) {
 	       if (!f->existsUserParam(i))
 		  parse_error("not enough parameters in \"%s\" to accept reference expression", f->getName());
 	       lvids += process_node(n, oflag, pflag | PF_REFERENCE_OK);
@@ -488,12 +470,10 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
    }
 
    // for the "new" operator
-   if (ntype == NT_SCOPE_REF)
-   {
+   if (ntype == NT_SCOPE_REF) {
       ScopedObjectCallNode *c = reinterpret_cast<ScopedObjectCallNode *>(*node);
       // find object class
-      if ((c->oc = getRootNS()->parseFindScopedClass(c->name)))
-      {
+      if ((c->oc = getRootNS()->parseFindScopedClass(c->name))) {
 	 // check if parse options allow access to this class
 	 if (c->oc->getDomain() & getProgram()->getParseOptions())
 	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", c->oc->getName());
@@ -519,19 +499,16 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 	 AbstractQoreNode **value = hi.getValuePtr();
 	 
 	 // resolve constant references in keys
-	 if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
-	 {
+	 if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
 	    AbstractQoreNode *rv;
 	    if (k[0] == HE_TAG_CONST)
 	       rv = getRootNS()->findConstantValue(k + 1, 1);
-	    else
-	    {
+	    else {
 	       class NamedScope *nscope = new NamedScope(strdup(k + 1));
 	       rv = getRootNS()->findConstantValue(nscope, 1);
 	       delete nscope;
 	    }
-	    if (rv)
-	    {
+	    if (rv) {
 	       QoreStringValueHelper t(rv);
 	       
 	       // reference value for new hash key
@@ -564,8 +541,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       return lvids;
    }
 
-   if (ntype == NT_SELF_VARREF)
-   {
+   if (ntype == NT_SELF_VARREF) {
       SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>(*node);
       //printd(0, "process_node() SELF_REF '%s'  oflag=%d\n", v->str, oflag);
       if (!oflag)
@@ -594,11 +570,9 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag)
    printd(4, "StatementBlock::parseInit(b=%08p, oflag=%d)\n", this, oflag);
 
    class AbstractStatement *ret = 0;
-   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(), l = statement_list.last(); i != e; ++i)
-   {
+   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(), l = statement_list.last(); i != e; ++i) {
       lvids += (*i)->parseInit(oflag, pflag);
-      if (!ret && i != l && (*i)->endsBlock())
-      {
+      if (!ret && i != l && (*i)->endsBlock()) {
 	 // unreachable code found
 	 getProgram()->makeParseWarning(QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
 	 ret = *i;
@@ -626,8 +600,7 @@ void StatementBlock::parseInit(class Paramlist *params)
    printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
-   for (int i = 0; i < params->num_params; i++)
-   {
+   for (int i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i]);
       printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
 	     params->names[i], params->lv[i]);
@@ -666,21 +639,17 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
    printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
-   for (int i = 0; i < params->num_params; i++)
-   {
+   for (int i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i]);
       printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
 	     params->names[i], params->lv[i]);
    }
 
    // initialize base constructor arguments
-   if (bcl)
-   {
+   if (bcl) {
       int tlvids = 0;
-      for (bclist_t::iterator i = bcl->begin(); i != bcl->end(); i++)
-      {
-	 if ((*i)->args)
-	 {
+      for (bclist_t::iterator i = bcl->begin(); i != bcl->end(); i++) {
+	 if ((*i)->args) {
 	    QoreListNode *l = (*i)->args;
 	    for (unsigned j = 0; j < l->size(); j++)
 	    {
@@ -689,8 +658,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
 	    }
 	 }
       }
-      if (tlvids)
-      {
+      if (tlvids) {
 	 parse_error("illegal local variable declaration in base constructor argument");
 	 for (int i = 0; i < tlvids; i++)
 	    pop_local_var();

@@ -67,6 +67,7 @@
 #include <qore/FunctionReferenceNode.h>
 #include <qore/ReferenceNode.h>
 #include <qore/params.h>
+#include <qore/ReferenceHelper.h>
 
 //! the complete version string of the qore library
 DLLEXPORT extern char qore_version_string[];

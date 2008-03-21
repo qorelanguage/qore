@@ -28,7 +28,9 @@
 
 //! parse type: reference to a lvalue expression
 /** This type could be passed to a builtin function.  To get and set the value of the reference, 
-    use the ReferenceArgumentHelper class
+    use the ReferenceHelper class.  To create a reference argument to pass to a user or builtin
+    function, use the ReferenceArgumentHelper class.
+    @see ReferenceHelper
     @see ReferenceArgumentHelper
  */
 class ReferenceNode : public SimpleValueQoreNode

@@ -267,6 +267,7 @@ class QoreHashNode : public AbstractQoreNode
       /** Note that all keys and values of the QoreHashNode "h" are copied to this hash, values are referenced as necessary for the assigment to "this".
 	  Qore-language exceptions could be thrown if the hash keys in "this" are overwritten with new values and the old value is an object that goes out of scope when dereferenced.
 	  @param h the QoreHashNode to use to merge all keys to "this"
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
        */
       DLLEXPORT void merge(const class QoreHashNode *h, class ExceptionSink *xsink);
 

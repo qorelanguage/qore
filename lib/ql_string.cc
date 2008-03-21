@@ -559,23 +559,25 @@ static AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsin
       str->chomp();
       return str;
    } 
+
    if (ptype != NT_REFERENCE)
       return 0;
 
    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
-   class AutoVLock vl;
-   QoreStringNode **vp = get_string_var_value_ptr(r->getExpression(), &vl, xsink);
-   if (*xsink || !(*vp))
+
+   // ReferenceHelper will take care of locking any objects that need to
+   // be locked for accessing the variable (if necessary).  The locks 
+   // are released when the ReferenceHelper object goes out of scope
+   ReferenceHelper ref(r, xsink);
+   if (!ref || ref.getType() != NT_STRING)
       return 0;
-   if (!(*vp)->is_unique())
-   {
-      QoreStringNode *old = *vp;
-      (*vp) = old->copy();
-      old->deref();
-   }
-   (*vp)->chomp();
-   (*vp)->ref();
-   return *vp;
+
+   QoreStringNode *str = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   if (*xsink)
+      return 0;
+
+   str->chomp();
+   return str->refSelf();
 }
 
 static AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink)
@@ -600,19 +602,16 @@ static AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink
 
    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
 
-   class AutoVLock vl;
-   QoreStringNode **vp = get_string_var_value_ptr(r->getExpression(), &vl, xsink);
-   if (*xsink || !(*vp))
+   ReferenceHelper ref(r, xsink);
+   if (!ref || ref.getType() != NT_STRING)
       return 0;
-   if (!(*vp)->is_unique())
-   {
-      QoreStringNode *old = *vp;
-      (*vp) = old->copy();
-      old->deref();
-   }
-   (*vp)->trim(chars);
-   (*vp)->ref();
-   return *vp;
+
+   QoreStringNode *str = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   if (*xsink)
+      return 0;
+
+   str->trim(chars);
+   return str->refSelf();
 }
 
 void init_string_functions()

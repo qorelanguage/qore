@@ -95,6 +95,7 @@ libqore_la_SOURCES = \
 	DatasourcePool.cc \
 	ManagedDatasource.cc \
 	ReferenceArgumentHelper.cc \
+	ReferenceHelper.cc \
 	ConstantList.cc \
 	QoreClassList.cc \
 	ThreadResourceList.cc \
