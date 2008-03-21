@@ -24,6 +24,10 @@
 
 #define _QORE_QORE_H
 
+/** @file Qore.h
+    the main header file for the Qore library.  All code using any part of the Qore library's functionality should include this file
+*/
+
 #include <qore/common.h>
 #include <qore/QoreEncoding.h>
 #include <qore/ReferenceHolder.h>

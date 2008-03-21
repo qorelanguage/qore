@@ -259,6 +259,16 @@ class QoreStringValueHelper {
 
       //! gets the QoreString representation and ensures that it's in the desired encoding
       /** a Qore-language exception may be thrown if an encoding error occurs
+	  @code
+	  // get a QoreString value from "node" and ensure it's in UTF-8 encoding
+	  QoreStringValueHelper t(node, QCS_UTF8, xsink);
+	  // return if there was an exception converting the encoding to UTF-8
+	  if (*xsink)
+             return 0;
+
+	  // use the string value
+	  return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
+	  @endcode
        */
       DLLLOCAL QoreStringValueHelper(const AbstractQoreNode *n, const QoreEncoding *enc, ExceptionSink *xsink)
       {
