@@ -38,8 +38,10 @@ class myQHeaderView : public QHeaderView, public QoreQWidgetExtension
       friend class QoreQHeaderView;
 
 #define QOREQTYPE QHeaderView
+#define MYQOREQTYPE myQHeaderView
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

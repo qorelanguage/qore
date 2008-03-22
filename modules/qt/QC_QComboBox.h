@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQComboBoxClass(QoreClass *);
 class myQComboBox : public QComboBox, public QoreQWidgetExtension
 {
 #define QOREQTYPE QComboBox
+#define MYQOREQTYPE myQComboBox
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

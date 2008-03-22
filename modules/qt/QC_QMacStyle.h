@@ -38,8 +38,10 @@ class myQMacStyle : public QMacStyle, public QoreQStyleExtension
       friend class QoreQMacStyle;
 
 #define QOREQTYPE QMacStyle
+#define MYQOREQTYPE myQMacStyle
 #include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

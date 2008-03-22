@@ -44,8 +44,10 @@ class myQDoubleValidator : public QDoubleValidator, public QoreQValidatorExtensi
       }
 
 #define QOREQTYPE QDoubleValidator
+#define MYQOREQTYPE myQDoubleValidator
 #include "qore-qt-metacode.h"
 #include "qore-qt-qvalidator-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

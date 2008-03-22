@@ -35,8 +35,10 @@ DLLLOCAL QoreNamespace *initQDialogButtonBoxNS(QoreClass *);
 class myQDialogButtonBox : public QDialogButtonBox, public QoreQWidgetExtension
 {
 #define QOREQTYPE QDialogButtonBox
+#define MYQOREQTYPE myQDialogButtonBox
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

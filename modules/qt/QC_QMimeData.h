@@ -36,7 +36,9 @@ DLLLOCAL class QoreClass *initQMimeDataClass(QoreClass *);
 class myQMimeData : public QMimeData, public QoreQObjectExtension
 {
 #define QOREQTYPE QMimeData
+#define MYQOREQTYPE myQMimeData
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -38,8 +38,10 @@ class myQWindowsXPStyle : public QWindowsXPStyle, public QoreQStyleExtension
       friend class QoreQWindowsXPStyle;
 
 #define QOREQTYPE QWindowsXPStyle
+#define MYQOREQTYPE myQWindowsXPStyle
 #include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

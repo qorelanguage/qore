@@ -44,8 +44,10 @@ class myQIntValidator : public QIntValidator, public QoreQValidatorExtension
       }
 
 #define QOREQTYPE QIntValidator
+#define MYQOREQTYPE myQIntValidator
 #include "qore-qt-metacode.h"
 #include "qore-qt-qvalidator-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQCheckBoxClass(QoreClass *);
 class myQCheckBox : public QCheckBox, public QoreQWidgetExtension
 {
 #define QOREQTYPE QCheckBox
+#define MYQOREQTYPE myQCheckBox
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

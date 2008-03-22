@@ -170,6 +170,7 @@
 #include "QC_QListWidgetItem.h"
 #include "QC_QDialogButtonBox.h"
 #include "QC_QToolBar.h"
+#include "QC_QProgressDialog.h"
 
 #include "qore-qt.h"
 
@@ -1054,6 +1055,14 @@ class AbstractQoreNode *return_qevent(QEvent *event)
    return return_object(QC_QEvent, new QoreQEvent(*event));
 }
 
+QoreListNode *return_qstringlist(const QStringList &l)
+{
+   QoreListNode *ql = new QoreListNode();
+   for (QStringList::const_iterator i = l.begin(), e = l.end(); i != e; ++i)
+      ql->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
+   return ql;
+}
+
 static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, class ExceptionSink *xsink)
 {
    const QoreObject *p = test_object_param(params, 0);
@@ -1568,6 +1577,15 @@ static void init_namespace()
       *qabstractspinbox, *qdatetimeedit, *qabstractscrollarea, 
       *qcombobox, *qstyleoptioncomplex, *qabstractitemview, 
       *qtableview, *qdialog, *qvalidator;
+
+   QoreNamespace *qdialog_ns = new QoreNamespace("QDialog");
+
+   qdialog_ns->addSystemClass((qdialog = initQDialogClass(qwidget)));
+   qdialog_ns->addSystemClass(initQFileDialogClass(qdialog));
+   qdialog_ns->addSystemClass(initQPrintDialogClass(qdialog));
+
+   qdialog_ns->addConstant("Rejected",   new QoreBigIntNode(QDialog::Rejected));
+   qdialog_ns->addConstant("Accepted",   new QoreBigIntNode(QDialog::Accepted));
  
    qt_ns->addInitialNamespace(initQStyleNS(qobject));
 
@@ -1626,7 +1644,7 @@ static void init_namespace()
    qt_ns->addSystemClass(initQSpinBoxClass(qabstractspinbox));
    qt_ns->addSystemClass(initQTableWidgetItemClass());
    qt_ns->addSystemClass(initQStyleOptionMenuItemClass(qstyleoption));
-   qt_ns->addSystemClass(initQDirClass());
+   qt_ns->addInitialNamespace(initQDirNS());
    qt_ns->addSystemClass(initQMetaObjectClass());
    qt_ns->addSystemClass(initQMenuBarClass(qwidget));
    qt_ns->addSystemClass(initQRegExpClass());
@@ -1656,6 +1674,7 @@ static void init_namespace()
    qt_ns->addInitialNamespace(initQListWidgetItemNS());
    qt_ns->addInitialNamespace(initQDialogButtonBoxNS(qwidget));
    qt_ns->addInitialNamespace(initQToolBarNS(qwidget));
+   qdialog_ns->addSystemClass(initQProgressDialogClass(qdialog));
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");
@@ -1690,15 +1709,6 @@ static void init_namespace()
    qdatetimeedit_ns->addSystemClass(initQTimeEditClass(qdatetimeedit));
 
    qt_ns->addInitialNamespace(qdatetimeedit_ns);
-
-   QoreNamespace *qdialog_ns = new QoreNamespace("QDialog");
-
-   qdialog_ns->addSystemClass((qdialog = initQDialogClass(qwidget)));
-   qdialog_ns->addSystemClass(initQFileDialogClass(qdialog));
-   qdialog_ns->addSystemClass(initQPrintDialogClass(qdialog));
-
-   qdialog_ns->addConstant("Rejected",   new QoreBigIntNode(QDialog::Rejected));
-   qdialog_ns->addConstant("Accepted",   new QoreBigIntNode(QDialog::Accepted));
 
    qdialog_ns->addInitialNamespace(initQWizardNS(qdialog));
 
@@ -3324,6 +3334,11 @@ static void init_namespace()
    qt_ns->addConstant("XAxis",                    new QoreBigIntNode(Qt::XAxis));
    qt_ns->addConstant("YAxis",                    new QoreBigIntNode(Qt::YAxis));
    qt_ns->addConstant("ZAxis",                    new QoreBigIntNode(Qt::ZAxis));
+
+   // WindowModality enum
+   qt_ns->addConstant("NonModal",                 new QoreBigIntNode(Qt::NonModal));
+   qt_ns->addConstant("WindowModal",              new QoreBigIntNode(Qt::WindowModal));
+   qt_ns->addConstant("ApplicationModal",         new QoreBigIntNode(Qt::ApplicationModal));
 
 }
 

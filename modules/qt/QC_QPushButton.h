@@ -38,8 +38,10 @@ class myQPushButton : public QPushButton, public QoreQWidgetExtension
       friend class QoreQPushbutton;
 
 #define QOREQTYPE QPushButton
+#define MYQOREQTYPE myQPushButton
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

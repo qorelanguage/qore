@@ -39,7 +39,9 @@ DLLLOCAL extern AbstractQoreNode *get_qore_qapp();
 class myQApplication : public QApplication, public QoreQObjectExtension
 {
 #define QOREQTYPE QApplication
+#define MYQOREQTYPE myQApplication
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
       DLLLOCAL myQApplication(QoreObject *obj, int &argc, char **argv) : QApplication(argc, argv), QoreQObjectExtension(obj->getClass())

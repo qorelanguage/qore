@@ -76,21 +76,20 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
    
    if (ntype == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
-      s->sprintf("elements=%d\n", l->size());
+      s->sprintf("elements=%d", l->size());
       ConstListIterator li(l);
       while (li.next()) {
+	 s->concat('\n');
 	 strindent(s, indent);
 	 s->sprintf("list element %d/%d: ", li.index(), l->size());
 	 dni(s, li.getValue(), indent + 3, xsink);
-	 if (!li.last())
-	    s->concat('\n');
       }
       return;
    }
    
    if (ntype == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
-      s->sprintf("elements=%d (type=%s, valid=%s)\n", o->size(xsink),
+      s->sprintf("elements=%d (type=%s, valid=%s)", o->size(xsink),
 		 o->getClass() ? o->getClass()->getName() : "<none>",
 		 o->isValid() ? "yes" : "no");
       {
@@ -99,14 +98,13 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 	 if (l)
 	 {
 	    for (unsigned i = 0; i < l->size(); i++) {
+	       s->concat('\n');
 	       strindent(s, indent);
 	       QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
 	       s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
 	       AbstractQoreNode *nn;
 	       dni(s, nn = o->getReferencedMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
 	       discard(nn, xsink);
-	       if (i != (l->size() - 1))
-		  s->concat('\n');
 	    }
 	 }
       }
@@ -115,17 +113,16 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 
    if (ntype == NT_HASH) {
       const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
-      s->sprintf("elements=%d\n", h->size());
+      s->sprintf("elements=%d", h->size());
       {
 	 int i = 0;
 	 ConstHashIterator hi(h);
 	 while (hi.next())
 	 {
+	    s->concat('\n');
 	    strindent(s, indent);
 	    s->sprintf("key %d/%d \"%s\" = ", i++, h->size(), hi.getKey());
 	    dni(s, hi.getValue(), indent + 3, xsink);
-	    if (!hi.last())
-	       s->concat('\n');
 	 }
       }
       return;

@@ -38,8 +38,10 @@ class myQMenu : public QMenu, public QoreQWidgetExtension
       friend class QoreQMenu;
 
 #define QOREQTYPE QMenu
+#define MYQOREQTYPE myQMenu
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

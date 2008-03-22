@@ -24,7 +24,7 @@
 
 #define _QORE_QC_QWIDGET_H
 
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQDialog.h"
 #include "QoreAbstractQLayout.h"
 
 #include <QWidget>
@@ -41,8 +41,10 @@ DLLLOCAL class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreC
 class myQWidget : public QWidget, public QoreQWidgetExtension
 {
 #define QOREQTYPE QWidget
+#define MYQOREQTYPE myQWidget
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

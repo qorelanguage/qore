@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQRadioButtonClass(QoreClass *);
 class myQRadioButton : public QRadioButton, public QoreQWidgetExtension
 {
 #define QOREQTYPE QRadioButton
+#define MYQOREQTYPE myQRadioButton
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

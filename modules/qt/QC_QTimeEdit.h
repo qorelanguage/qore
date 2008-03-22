@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQTimeEditClass(QoreClass *);
 class myQTimeEdit : public QTimeEdit, public QoreQWidgetExtension
 {
 #define QOREQTYPE QTimeEdit
+#define MYQOREQTYPE myQTimeEdit
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

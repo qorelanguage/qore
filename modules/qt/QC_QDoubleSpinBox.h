@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQDoubleSpinBoxClass(QoreClass *);
 class myQDoubleSpinBox : public QDoubleSpinBox, public QoreQWidgetExtension
 {
 #define QOREQTYPE QDoubleSpinBox
+#define MYQOREQTYPE myQDoubleSpinBox
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

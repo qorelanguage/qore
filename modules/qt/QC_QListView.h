@@ -35,8 +35,10 @@ DLLLOCAL QoreNamespace *initQListViewNS(QoreClass *);
 class myQListView : public QListView, public QoreQWidgetExtension
 {
 #define QOREQTYPE QListView
+#define MYQOREQTYPE myQListView
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

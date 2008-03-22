@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQGroupBoxClass(QoreClass *);
 class myQGroupBox : public QGroupBox, public QoreQWidgetExtension
 {
 #define QOREQTYPE QGroupBox
+#define MYQOREQTYPE myQGroupBox
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

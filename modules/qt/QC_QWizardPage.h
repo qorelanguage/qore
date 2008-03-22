@@ -38,8 +38,10 @@ class myQWizardPage : public QWizardPage, public QoreQWidgetExtension
       friend class QoreQWizardPage;
 
 #define QOREQTYPE QWizardPage
+#define MYQOREQTYPE myQWizardPage
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

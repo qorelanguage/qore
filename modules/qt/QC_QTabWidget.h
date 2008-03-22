@@ -38,8 +38,10 @@ class myQTabWidget : public QTabWidget, public QoreQWidgetExtension
       friend class QoreQTabWidget;
 
 #define QOREQTYPE QTabWidget
+#define MYQOREQTYPE myQTabWidget
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQCalendarWidgetClass(QoreClass *);
 class myQCalendarWidget : public QCalendarWidget, public QoreQWidgetExtension
 {
 #define QOREQTYPE QCalendarWidget
+#define MYQOREQTYPE myQCalendarWidget
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

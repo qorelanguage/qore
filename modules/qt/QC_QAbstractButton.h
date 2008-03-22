@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQAbstractButtonClass(QoreClass *);
 class myQAbstractButton : public QAbstractButton, public QoreQWidgetExtension
 {
 #define QOREQTYPE QAbstractButton
+#define MYQOREQTYPE myQAbstractButton
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -18,10 +18,11 @@ class T {
 
 	 qore_obj = obj;
 	 // reference container object for the lifetime of this object
-	 qore_obj->ref();
+	 qore_obj->tRef();
 	 
 	 // create dummy slot entry for "destroyed" signal
 	 methodMap.addMethod(new QoreQtDynamicSlot(qore_obj, 0, 0));
+
 	 // catch destroyed signal
 	 QByteArray theSignal = QMetaObject::normalizedSignature("destroyed()");
 	 int signalId = metaObject()->indexOfSignal(theSignal);
@@ -55,6 +56,11 @@ class T {
 
    public:
 
+      DLLLOCAL MYQOREQTYPE::~MYQOREQTYPE()
+      {
+	 qore_obj->tDeref();
+      }
+
       DLLLOCAL virtual void parent_timerEvent(QTimerEvent * event)
       {
 	 QOREQTYPE::timerEvent(event);
@@ -77,8 +83,9 @@ class T {
 	 // process "destroyed" signal
 	 if (!id) {
 	    assert(false);
-	    ExceptionSink xsink;
-	    qore_obj->deref(&xsink);
+	    //ExceptionSink xsink;
+	    //qore_obj->deref(&xsink);
+	    qore_obj->tDeref();
 	    return -1;
 	 }
 
@@ -250,6 +257,8 @@ class T {
       {
 	 return sender();
       }
+
+#undef MYQOREQTYPE
       
 #if 0
 }

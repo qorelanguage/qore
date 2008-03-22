@@ -37,7 +37,9 @@ DLLLOCAL void initQMovieStaticFunctions();
 class myQMovie : public QMovie, public QoreQObjectExtension
 {
 #define QOREQTYPE QMovie
+#define MYQOREQTYPE myQMovie
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

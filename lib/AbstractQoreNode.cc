@@ -79,6 +79,8 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
 #ifdef DEBUG
 #if TRACK_REFS
    if (type == NT_STRING) printd(5, "AbstractQoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
+   else if (type == NT_OBJECT)
+      printd(5, "QoreObject::deref() %08p class=%s (%d->%d)\n", this, ((QoreObject *)this)->getClassName(), references, references - 1);
    else
       printd(5, "AbstractQoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
 

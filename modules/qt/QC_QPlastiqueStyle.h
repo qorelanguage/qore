@@ -38,8 +38,10 @@ class myQPlastiqueStyle : public QPlastiqueStyle, public QoreQStyleExtension
       friend class QoreQPlastiqueStyle;
 
 #define QOREQTYPE QPlastiqueStyle
+#define MYQOREQTYPE myQPlastiqueStyle
 #include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -35,7 +35,9 @@ DLLLOCAL class QoreClass *initQHBoxLayoutClass(class QoreClass *qboxlayout);
 class myQHBoxLayout : public QHBoxLayout, public QoreQObjectExtension
 {
 #define QOREQTYPE QHBoxLayout
+#define MYQOREQTYPE myQHBoxLayout
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
    public:
       DLLLOCAL myQHBoxLayout(QoreObject *obj) : QHBoxLayout(), QoreQObjectExtension(obj->getClass())

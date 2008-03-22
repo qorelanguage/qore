@@ -38,8 +38,10 @@ DLLLOCAL class QoreClass *initQValidatorClass(QoreClass *);
 class myQValidator : public QValidator, public QoreQValidatorExtension
 {
 #define QOREQTYPE QValidator
+#define MYQOREQTYPE myQValidator
 #include "qore-qt-metacode.h"
 #include "qore-qt-qvalidator-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

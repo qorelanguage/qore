@@ -37,7 +37,9 @@ DLLLOCAL void initQCoreApplicationStaticFunctions();
 class myQCoreApplication : public QCoreApplication, public QoreQObjectExtension
 {
 #define QOREQTYPE QCoreApplication
+#define MYQOREQTYPE myQCoreApplication
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

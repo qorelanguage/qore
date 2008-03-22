@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQSpinBoxClass(QoreClass *);
 class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
 {
 #define QOREQTYPE QSpinBox
+#define MYQOREQTYPE myQSpinBox
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    private:

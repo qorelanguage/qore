@@ -36,7 +36,9 @@ DLLLOCAL void initQTimerStaticFunctions();
 class myQTimer : public QTimer, public QoreQObjectExtension
 {
 #define QOREQTYPE QTimer
+#define MYQOREQTYPE myQTimer
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
       DLLLOCAL myQTimer(QoreObject *obj, QObject *parent) : QTimer(parent), QoreQObjectExtension(obj->getClass())
@@ -66,7 +68,9 @@ class QoreSingleShotTimer : public QObject, public QoreQObjectExtension
 {
 #define QORE_NO_TIMER_EVENT
 #define QOREQTYPE QObject
+#define MYQOREQTYPE QoreSingleShotTimer
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 #undef QORE_NO_TIMER_EVENT
 

@@ -299,16 +299,11 @@ class QoreObject : public AbstractQoreNode
        */
       DLLEXPORT void tRef() const;
 
-      //! decrements the existence reference count, when it reaches 0 the object will be deleted
+      //! decrements the existence reference count, when it reaches 0 the C++ object ("this") will be deleted
       /** To increment the existence reference count, call QoreObject::tRef()
 	  @see QoreObject::tRef()
        */
       DLLEXPORT void tDeref();
-
-      //! increments the scope count of the object
-      /**  
-       */
-      DLLEXPORT void ref() const;
 
       DLLLOCAL int getStatus() const;
 

@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQDialogClass(QoreClass *);
 class myQDialog : public QDialog, public QoreQDialogExtension
 {
 #define QOREQTYPE QDialog
+#define MYQOREQTYPE myQDialog
 #include "qore-qt-metacode.h"
 #include "qore-qt-qdialog-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

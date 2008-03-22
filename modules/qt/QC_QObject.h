@@ -36,7 +36,9 @@ DLLLOCAL class QoreClass *initQObjectClass();
 class myQObject : public QObject, public QoreQObjectExtension 
 {
 #define QOREQTYPE QObject
+#define MYQOREQTYPE myQObject
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
    public:
       DLLLOCAL myQObject(QoreObject *obj, QObject *parent = 0) : QObject(parent), QoreQObjectExtension(obj->getClass())

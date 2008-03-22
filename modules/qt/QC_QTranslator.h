@@ -36,7 +36,9 @@ DLLLOCAL class QoreClass *initQTranslatorClass(QoreClass *);
 class myQTranslator : public QTranslator, public QoreQObjectExtension
 {
 #define QOREQTYPE QTranslator
+#define MYQOREQTYPE myQTranslator
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

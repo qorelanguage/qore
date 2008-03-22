@@ -35,8 +35,10 @@ DLLLOCAL QoreClass *initQListWidgetClass(QoreClass *);
 class myQListWidget : public QListWidget, public QoreQWidgetExtension
 {
 #define QOREQTYPE QListWidget
+#define MYQOREQTYPE myQListWidget
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

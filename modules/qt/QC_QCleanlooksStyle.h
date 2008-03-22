@@ -38,8 +38,10 @@ class myQCleanlooksStyle : public QCleanlooksStyle, public QoreQStyleExtension
       friend class QoreQCleanlooksStyle;
 
 #define QOREQTYPE QCleanlooksStyle
+#define MYQOREQTYPE myQCleanlooksStyle
 #include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

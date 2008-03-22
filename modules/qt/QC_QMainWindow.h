@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQMainWindowClass(QoreClass *);
 class myQMainWindow : public QMainWindow, public QoreQWidgetExtension
 {
 #define QOREQTYPE QMainWindow
+#define MYQOREQTYPE myQMainWindow
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

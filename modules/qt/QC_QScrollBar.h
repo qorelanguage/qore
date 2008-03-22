@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQScrollBarClass(QoreClass *);
 class myQScrollBar : public QScrollBar, public QoreQWidgetExtension
 {
 #define QOREQTYPE QScrollBar
+#define MYQOREQTYPE myQScrollBar
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

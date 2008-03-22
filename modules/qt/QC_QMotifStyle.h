@@ -37,8 +37,10 @@ class myQMotifStyle : public QMotifStyle, public QoreQStyleExtension
 {
    friend class QoreQMotifStyle;
 #define QOREQTYPE QMotifStyle
+#define MYQOREQTYPE myQMotifStyle
 #include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

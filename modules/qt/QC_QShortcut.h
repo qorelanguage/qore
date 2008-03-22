@@ -41,7 +41,9 @@ class myQShortcut : public QShortcut, public QoreQObjectExtension
 #define QORE_QT_METACALL if (id == 1) { activated(); return -1; } else if (id == 2) { activatedAmbiguously(); return -1; }
 
 #define QOREQTYPE QShortcut
+#define MYQOREQTYPE myQShortcut
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    private:

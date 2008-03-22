@@ -53,8 +53,10 @@ class myQStyle : public QStyle, public QoreQStyleExtension
 
 #define QORE_IS_QSTYLE
 #define QOREQTYPE QStyle
+#define MYQOREQTYPE myQStyle
 #include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 #undef QORE_IS_QSTYLE
 

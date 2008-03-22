@@ -230,12 +230,6 @@ void QoreObject::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, QoreOb
       xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), priv->myclass->getName());
 }
 
-void QoreObject::ref() const
-{
-   printd(5, "QoreObject::ref(this=%08p) class=%s, %d->%d\n", this, priv->myclass->getName(), references, references + 1);
-   ROreference();   // increment destructor-relevant references
-}
-
 bool QoreObject::validInstanceOf(qore_classid_t cid) const
 {
    if (priv->status == OS_DELETED)
@@ -419,7 +413,7 @@ inline void QoreObject::doDeleteIntern(ExceptionSink *xsink)
 // does a deep dereference and execs destructor if necessary
 bool QoreObject::derefImpl(ExceptionSink *xsink)
 {
-   printd(5, "QoreObject::derefImpl() this=%08p, class=%s %d->%d\n", this, priv->myclass->getName(), references, references - 1);
+   printd(5, "QoreObject::derefImpl() this=%08p, class=%s references=0\n", this, priv->myclass->getName());
    if (priv->g.enter(xsink) < 0) {
       assert(false);
       return false;   // FIXME: what the hell do we do if this happens?
@@ -427,6 +421,7 @@ bool QoreObject::derefImpl(ExceptionSink *xsink)
 
    printd(5, "QoreObject::derefImpl() class=%s deleting this=%08p\n", priv->myclass->getName(), this);
    if (priv->status == OS_OK) {
+      // FIXME: this is stupid
       // reference for destructor
       ROreference();
       doDeleteIntern(xsink);

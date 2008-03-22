@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QDir.h"
+#include "QC_QFileInfo.h"
 
 #include "qore-qt.h"
 
@@ -42,6 +43,10 @@ static void QDIR_constructor(QoreObject *self, const QoreListNode *params, Excep
    QString path;
    if (get_qstring(p, path, xsink))
       return;
+   if (num_params(params) == 1) {
+      self->setPrivate(CID_QDIR, new QoreQDir(path));
+      return;
+   }
    p = get_param(params, 1);
    QString nameFilter;
    if (get_qstring(p, nameFilter, xsink))
@@ -109,85 +114,76 @@ static AbstractQoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const Qore
    return new QoreStringNode(qd->dirName().toUtf8().data(), QCS_UTF8);
 }
 
-////QFileInfoList entryInfoList ( const QStringList & nameFilters, Filters filters = NoFilter, SortFlags sort = NoSort ) const
-////QFileInfoList entryInfoList ( Filters filters = NoFilter, SortFlags sort = NoSort ) const
-//static AbstractQoreNode *QDIR_entryInfoList(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   const AbstractQoreNode *p = get_param(params, 0);
-//   if (is_nothing(p)) {
-//      ??? return new QoreBigIntNode(qd->entryInfoList());
-//   }
-//   if (p && p->getType() == NT_???) {
-//      if (!p || p->getType() != NT_LIST) {
-//         xsink->raiseException("QDIR-ENTRYINFOLIST-PARAM-ERROR", "expecting a list as first argument to QDir::entryInfoList()");
-//         return 0;
-//      }
-//      QStringList nameFilters;
-//      ListIterator li_nameFilters(p);
-//      while (li_nameFilters.next())
-//      {
-//         QoreStringNodeValueHelper str(li_nameFileters.getValue());
-//         QString tmp;
-//         if (get_qstring(*str, tmp, xsink))
-//            return 0;
-//         nameFilters.push_back(tmp);
-//      }
-//   p = get_param(params, 1);
-//   SortFlags sort = !is_nothing(p) ? (SortFlags)p->getAsInt() : NoSort;
-//   ??? return new QoreBigIntNode(qd->entryInfoList(nameFilters, sort));
-//   }
-//   Filters filters = !is_nothing(p) ? (Filters)p->getAsInt() : NoFilter;
-//   p = get_param(params, 1);
-//   SortFlags sort = !is_nothing(p) ? (SortFlags)p->getAsInt() : NoSort;
-//   ??? return new QoreBigIntNode(qd->entryInfoList(filters, sort));
-//}
+//QFileInfoList entryInfoList ( const QStringList & nameFilters, Filters filters = NoFilter, SortFlags sort = NoSort ) const
+//QFileInfoList entryInfoList ( Filters filters = NoFilter, SortFlags sort = NoSort ) const
+static AbstractQoreNode *QDIR_entryInfoList(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      QFileInfoList qfilist_rv = qd->entryInfoList();
+      QoreListNode *l = new QoreListNode();
+      for (QFileInfoList::iterator i = qfilist_rv.begin(), e = qfilist_rv.end(); i != e; ++i)
+         l->push(return_object(QC_QFileInfo, new QoreQFileInfo(*i)));
+      return l;
+   }
+   if (p && p->getType() == NT_LIST) {
+      QStringList nameFilters;
+      ConstListIterator li_nameFilters(reinterpret_cast<const QoreListNode *>(p));
+      while (li_nameFilters.next()) {
+         QoreStringNodeValueHelper str(li_nameFilters.getValue());
+         QString tmp;
+         if (get_qstring(*str, tmp, xsink))
+            return 0;
+         nameFilters.push_back(tmp);
+      }
+      p = get_param(params, 1);
+      QDir::Filters filters = !is_nothing(p) ? (QDir::Filters)p->getAsInt() : QDir::NoFilter;
+      p = get_param(params, 2);
+      QDir::SortFlags sort = !is_nothing(p) ? (QDir::SortFlags)p->getAsInt() : QDir::NoSort;
+      QFileInfoList qfilist_rv = qd->entryInfoList(nameFilters, filters, sort);
+      QoreListNode *l = new QoreListNode();
+      for (QFileInfoList::iterator i = qfilist_rv.begin(), e = qfilist_rv.end(); i != e; ++i)
+         l->push(return_object(QC_QFileInfo, new QoreQFileInfo(*i)));
+      return l;
+   }
+   QDir::Filters filters = !is_nothing(p) ? (QDir::Filters)p->getAsInt() : QDir::NoFilter;
+   p = get_param(params, 1);
+   QDir::SortFlags sort = !is_nothing(p) ? (QDir::SortFlags)p->getAsInt() : QDir::NoSort;
+   QFileInfoList qfilist_rv = qd->entryInfoList(filters, sort);
+   QoreListNode *l = new QoreListNode();
+   for (QFileInfoList::iterator i = qfilist_rv.begin(), e = qfilist_rv.end(); i != e; ++i)
+      l->push(return_object(QC_QFileInfo, new QoreQFileInfo(*i)));
+   return l;
+}
 
-////QStringList entryList ( const QStringList & nameFilters, Filters filters = NoFilter, SortFlags sort = NoSort ) const
-////QStringList entryList ( Filters filters = NoFilter, SortFlags sort = NoSort ) const
-//static AbstractQoreNode *QDIR_entryList(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   const AbstractQoreNode *p = get_param(params, 0);
-//   if (is_nothing(p)) {
-//      QStringList strlist_rv = qd->entryList();
-//      QoreListNode *l = new QoreListNode();
-//      for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-//         l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-//      return l;
-//   }
-//   if (p && p->getType() == NT_???) {
-//      if (!p || p->getType() != NT_LIST) {
-//         xsink->raiseException("QDIR-ENTRYLIST-PARAM-ERROR", "expecting a list as first argument to QDir::entryList()");
-//         return 0;
-//      }
-//      QStringList nameFilters;
-//      ListIterator li_nameFilters(p);
-//      while (li_nameFilters.next())
-//      {
-//         QoreStringNodeValueHelper str(li_nameFileters.getValue());
-//         if (*xsink)
-//            return 0;
-//         QString tmp;
-//         if (get_qstring(*str, tmp, xsink))
-//            return 0;
-//         nameFilters.push_back(tmp);
-//      }
-//   p = get_param(params, 1);
-//   SortFlags sort = !is_nothing(p) ? (SortFlags)p->getAsInt() : NoSort;
-//   QStringList strlist_rv = qd->entryList(nameFilters, sort);
-//   QoreListNode *l = new QoreListNode();
-//   for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-//      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-//   return l;
-//   }
-//   Filters filters = !is_nothing(p) ? (Filters)p->getAsInt() : NoFilter;
-//   p = get_param(params, 1);
-//   SortFlags sort = !is_nothing(p) ? (SortFlags)p->getAsInt() : NoSort;
-//   QStringList strlist_rv = qd->entryList(filters, sort);
-//   QoreListNode *l = new QoreListNode();
-//   for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-//      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-//   return l;
-//}
+//QStringList entryList ( Filters filters = NoFilter, SortFlags sort = NoSort ) const
+static AbstractQoreNode *QDIR_entryList(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      return return_qstringlist(qd->entryList());
+   }
+   if (p && p->getType() == NT_LIST) {
+      QStringList nameFilters;
+      ConstListIterator li_nameFilters(reinterpret_cast<const QoreListNode *>(p));
+      while (li_nameFilters.next()) {
+         QoreStringNodeValueHelper str(li_nameFilters.getValue());
+         QString tmp;
+         if (get_qstring(*str, tmp, xsink))
+            return 0;
+         nameFilters.push_back(tmp);
+      }
+      p = get_param(params, 1);
+      QDir::Filters filters = !is_nothing(p) ? (QDir::Filters)p->getAsInt() : QDir::NoFilter;
+      p = get_param(params, 2);
+      QDir::SortFlags sort = !is_nothing(p) ? (QDir::SortFlags)p->getAsInt() : QDir::NoSort;
+      return return_qstringlist(qd->entryList(nameFilters, filters, sort));
+   }
+   QDir::Filters filters = !is_nothing(p) ? (QDir::Filters)p->getAsInt() : QDir::NoFilter;
+   p = get_param(params, 1);
+   QDir::SortFlags sort = !is_nothing(p) ? (QDir::SortFlags)p->getAsInt() : QDir::NoSort;
+   return return_qstringlist(qd->entryList(filters, sort));
+}
 
 //bool exists ( const QString & name ) const
 //bool exists () const
@@ -213,11 +209,11 @@ static AbstractQoreNode *QDIR_filePath(QoreObject *self, QoreQDir *qd, const Qor
    return new QoreStringNode(qd->filePath(fileName).toUtf8().data(), QCS_UTF8);
 }
 
-////Filters filter () const
-//static AbstractQoreNode *QDIR_filter(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreBigIntNode(qd->filter());
-//}
+//Filters filter () const
+static AbstractQoreNode *QDIR_filter(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+{
+   return new QoreBigIntNode(qd->filter());
+}
 
 //bool isAbsolute () const
 static AbstractQoreNode *QDIR_isAbsolute(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
@@ -397,13 +393,13 @@ static AbstractQoreNode *QDIR_setSorting(QoreObject *self, QoreQDir *qd, const Q
    return 0;
 }
 
-////SortFlags sorting () const
-//static AbstractQoreNode *QDIR_sorting(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreBigIntNode(qd->sorting());
-//}
+//SortFlags sorting () const
+static AbstractQoreNode *QDIR_sorting(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+{
+   return new QoreBigIntNode(qd->sorting());
+}
 
-QoreClass *initQDirClass()
+static QoreClass *initQDirClass()
 {
    QC_QDir = new QoreClass("QDir", QDOM_GUI);
    CID_QDIR = QC_QDir->getID();
@@ -418,11 +414,11 @@ QoreClass *initQDirClass()
    QC_QDir->addMethod("cdUp",                        (q_method_t)QDIR_cdUp);
    QC_QDir->addMethod("count",                       (q_method_t)QDIR_count);
    QC_QDir->addMethod("dirName",                     (q_method_t)QDIR_dirName);
-   //QC_QDir->addMethod("entryInfoList",               (q_method_t)QDIR_entryInfoList);
-   //QC_QDir->addMethod("entryList",                   (q_method_t)QDIR_entryList);
+   QC_QDir->addMethod("entryInfoList",               (q_method_t)QDIR_entryInfoList);
+   QC_QDir->addMethod("entryList",                   (q_method_t)QDIR_entryList);
    QC_QDir->addMethod("exists",                      (q_method_t)QDIR_exists);
    QC_QDir->addMethod("filePath",                    (q_method_t)QDIR_filePath);
-   //QC_QDir->addMethod("filter",                      (q_method_t)QDIR_filter);
+   QC_QDir->addMethod("filter",                      (q_method_t)QDIR_filter);
    QC_QDir->addMethod("isAbsolute",                  (q_method_t)QDIR_isAbsolute);
    QC_QDir->addMethod("isReadable",                  (q_method_t)QDIR_isReadable);
    QC_QDir->addMethod("isRelative",                  (q_method_t)QDIR_isRelative);
@@ -442,9 +438,52 @@ QoreClass *initQDirClass()
    QC_QDir->addMethod("setNameFilters",              (q_method_t)QDIR_setNameFilters);
    QC_QDir->addMethod("setPath",                     (q_method_t)QDIR_setPath);
    QC_QDir->addMethod("setSorting",                  (q_method_t)QDIR_setSorting);
-   //QC_QDir->addMethod("sorting",                     (q_method_t)QDIR_sorting);
+   QC_QDir->addMethod("sorting",                     (q_method_t)QDIR_sorting);
 
    return QC_QDir;
+}
+
+QoreNamespace *initQDirNS()
+{
+   QoreNamespace *qdirns = new QoreNamespace("QDir");
+   
+   qdirns->addSystemClass(initQDirClass());
+
+   // Filter enum
+   qdirns->addConstant("Dirs",                     new QoreBigIntNode(QDir::Dirs));
+   qdirns->addConstant("Files",                    new QoreBigIntNode(QDir::Files));
+   qdirns->addConstant("Drives",                   new QoreBigIntNode(QDir::Drives));
+   qdirns->addConstant("NoSymLinks",               new QoreBigIntNode(QDir::NoSymLinks));
+   qdirns->addConstant("AllEntries",               new QoreBigIntNode(QDir::AllEntries));
+   qdirns->addConstant("TypeMask",                 new QoreBigIntNode(QDir::TypeMask));
+   qdirns->addConstant("Readable",                 new QoreBigIntNode(QDir::Readable));
+   qdirns->addConstant("Writable",                 new QoreBigIntNode(QDir::Writable));
+   qdirns->addConstant("Executable",               new QoreBigIntNode(QDir::Executable));
+   qdirns->addConstant("PermissionMask",           new QoreBigIntNode(QDir::PermissionMask));
+   qdirns->addConstant("Modified",                 new QoreBigIntNode(QDir::Modified));
+   qdirns->addConstant("Hidden",                   new QoreBigIntNode(QDir::Hidden));
+   qdirns->addConstant("System",                   new QoreBigIntNode(QDir::System));
+   qdirns->addConstant("AccessMask",               new QoreBigIntNode(QDir::AccessMask));
+   qdirns->addConstant("AllDirs",                  new QoreBigIntNode(QDir::AllDirs));
+   qdirns->addConstant("CaseSensitive",            new QoreBigIntNode(QDir::CaseSensitive));
+   qdirns->addConstant("NoDotAndDotDot",           new QoreBigIntNode(QDir::NoDotAndDotDot));
+   qdirns->addConstant("NoFilter",                 new QoreBigIntNode(QDir::NoFilter));
+
+   // SortFlag enum
+   qdirns->addConstant("Name",                     new QoreBigIntNode(QDir::Name));
+   qdirns->addConstant("Time",                     new QoreBigIntNode(QDir::Time));
+   qdirns->addConstant("Size",                     new QoreBigIntNode(QDir::Size));
+   qdirns->addConstant("Unsorted",                 new QoreBigIntNode(QDir::Unsorted));
+   qdirns->addConstant("SortByMask",               new QoreBigIntNode(QDir::SortByMask));
+   qdirns->addConstant("DirsFirst",                new QoreBigIntNode(QDir::DirsFirst));
+   qdirns->addConstant("Reversed",                 new QoreBigIntNode(QDir::Reversed));
+   qdirns->addConstant("IgnoreCase",               new QoreBigIntNode(QDir::IgnoreCase));
+   qdirns->addConstant("DirsLast",                 new QoreBigIntNode(QDir::DirsLast));
+   qdirns->addConstant("LocaleAware",              new QoreBigIntNode(QDir::LocaleAware));
+   qdirns->addConstant("Type",                     new QoreBigIntNode(QDir::Type));
+   qdirns->addConstant("NoSort",                   new QoreBigIntNode(QDir::NoSort));
+
+   return qdirns;
 }
 
 //void addSearchPath ( const QString & prefix, const QString & path )
@@ -487,11 +526,15 @@ static AbstractQoreNode *f_QDir_currentPath(const QoreListNode *params, Exceptio
    return new QoreStringNode(QDir::currentPath().toUtf8().data(), QCS_UTF8);
 }
 
-////QFileInfoList drives ()
-//static AbstractQoreNode *f_QDir_drives(const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreBigIntNode(QDir::drives());
-//}
+//QFileInfoList drives ()
+static AbstractQoreNode *f_QDir_drives(const QoreListNode *params, ExceptionSink *xsink)
+{
+   QFileInfoList qfilist_rv = QDir::drives();
+   QoreListNode *l = new QoreListNode();
+   for (QFileInfoList::iterator i = qfilist_rv.begin(), e = qfilist_rv.end(); i != e; ++i)
+      l->push(return_object(QC_QFileInfo, new QoreQFileInfo(*i)));
+   return l;
+}
 
 //QString fromNativeSeparators ( const QString & pathName )
 static AbstractQoreNode *f_QDir_fromNativeSeparators(const QoreListNode *params, ExceptionSink *xsink)
@@ -657,7 +700,7 @@ void initQDirStaticFunctions()
    builtinFunctions.add("QDir_cleanPath",                    f_QDir_cleanPath);
    builtinFunctions.add("QDir_current",                      f_QDir_current);
    builtinFunctions.add("QDir_currentPath",                  f_QDir_currentPath);
-   //builtinFunctions.add("QDir_drives",                       f_QDir_drives);
+   builtinFunctions.add("QDir_drives",                       f_QDir_drives);
    builtinFunctions.add("QDir_fromNativeSeparators",         f_QDir_fromNativeSeparators);
    builtinFunctions.add("QDir_home",                         f_QDir_home);
    builtinFunctions.add("QDir_homePath",                     f_QDir_homePath);

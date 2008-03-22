@@ -38,8 +38,10 @@ class myQTableView : public QTableView, public QoreQWidgetExtension
       friend class QoreQTableView;
 
 #define QOREQTYPE QTableView
+#define MYQOREQTYPE myQTableView
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

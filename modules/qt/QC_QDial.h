@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQDialClass(QoreClass *);
 class myQDial : public QDial, public QoreQWidgetExtension
 {
 #define QOREQTYPE QDial
+#define MYQOREQTYPE myQDial
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -59,5 +59,6 @@ DLLLOCAL AbstractQoreNode *return_qstyleoption(const class QStyleOption *qso);
 DLLLOCAL AbstractQoreNode *return_qevent(class QEvent *event);
 DLLLOCAL AbstractQoreNode *return_qaction(class QAction *action);
 DLLLOCAL AbstractQoreNode *return_qwidget(class QWidget *widget);
+DLLLOCAL QoreListNode *return_qstringlist(const QStringList &l);
 
 #endif

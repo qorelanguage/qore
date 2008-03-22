@@ -35,8 +35,10 @@ DLLLOCAL QoreNamespace *initQToolBarNS(QoreClass *);
 class myQToolBar : public QToolBar, public QoreQWidgetExtension
 {
 #define QOREQTYPE QToolBar
+#define MYQOREQTYPE myQToolBar
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -37,8 +37,10 @@ class myQTextEdit : public QTextEdit, public QoreQWidgetExtension
 {
    friend class QoreQTextEdit;
 #define QOREQTYPE QTextEdit
+#define MYQOREQTYPE myQTextEdit
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

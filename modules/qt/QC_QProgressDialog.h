@@ -1,5 +1,5 @@
 /*
- QC_QMessageBox.h
+ QC_QProgressDialog.h
  
  Qore Programming Language
  
@@ -20,49 +20,51 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QT_QC_QMESSAGEBOX_H
+#ifndef _QORE_QT_QC_QPROGRESSDIALOG_H
 
-#define _QORE_QT_QC_QMESSAGEBOX_H
+#define _QORE_QT_QC_QPROGRESSDIALOG_H
 
-#include <QMessageBox>
+#include <QProgressDialog>
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QMESSAGEBOX;
-DLLLOCAL extern class QoreClass *QC_QMessageBox;
+DLLLOCAL extern int CID_QPROGRESSDIALOG;
+DLLLOCAL extern QoreClass *QC_QProgressDialog;
+DLLLOCAL QoreClass *initQProgressDialogClass(QoreClass *);
 
-DLLLOCAL class QoreClass *initQMessageBoxClass(QoreClass *);
-DLLLOCAL void initQMessageBoxStaticFunctions();
-
-class myQMessageBox : public QMessageBox, public QoreQDialogExtension
+class myQProgressDialog : public QProgressDialog, public QoreQDialogExtension
 {
-#define QOREQTYPE QMessageBox
-#define MYQOREQTYPE myQMessageBox
+#define QOREQTYPE QProgressDialog
+#define MYQOREQTYPE myQProgressDialog
 #include "qore-qt-metacode.h"
-#include "qore-qt-qdialog-methods.h"
+#include  "qore-qt-qdialog-methods.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMessageBox(QoreObject *obj, QWidget* parent = 0) : QMessageBox(parent), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQProgressDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QProgressDialog(parent, f), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQMessageBox(QoreObject *obj, Icon icon, const QString& title, const QString& text, StandardButtons buttons = NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : QMessageBox(icon, title, text, buttons, parent, f), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQProgressDialog(QoreObject *obj, const QString& labelText, const QString& cancelButtonText, int minimum, int maximum, QWidget* parent = 0, Qt::WindowFlags f = 0) : QProgressDialog(labelText, cancelButtonText, minimum, maximum, parent, f), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
+      }
+      void parent_forceShow()
+      {
+         forceShow();
       }
 };
 
-class QoreQMessageBox : public QoreAbstractQDialog
+class QoreQProgressDialog : public QoreAbstractQDialog
 {
    public:
-      QPointer<myQMessageBox> qobj;
+      QPointer<myQProgressDialog> qobj;
 
-      DLLLOCAL QoreQMessageBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQMessageBox(obj, parent))
+      DLLLOCAL QoreQProgressDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : qobj(new myQProgressDialog(obj, parent, f))
       {
       }
-      DLLLOCAL QoreQMessageBox(QoreObject *obj, QMessageBox::Icon icon, const QString& title, const QString& text, QMessageBox::StandardButtons buttons = QMessageBox::NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : qobj(new myQMessageBox(obj, icon, title, text, buttons, parent, f))
+      DLLLOCAL QoreQProgressDialog(QoreObject *obj, const QString& labelText, const QString& cancelButtonText, int minimum, int maximum, QWidget* parent = 0, Qt::WindowFlags f = 0) : qobj(new myQProgressDialog(obj, labelText, cancelButtonText, minimum, maximum, parent, f))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -84,4 +86,4 @@ class QoreQMessageBox : public QoreAbstractQDialog
       QORE_VIRTUAL_QDIALOG_METHODS
 };
 
-#endif // _QORE_QT_QC_QMESSAGEBOX_H
+#endif // _QORE_QT_QC_QPROGRESSDIALOG_H

@@ -1,3 +1,9 @@
+2008.03.22: David Nichols
+	* qt: implemented QProgressDialog
+	* qt: added findfiles.q example
+	* eliminated QoreObject::ref() function (already implemented in
+	  AbstractQoreNode base class)
+
 2008.03.21: David Nichols
 	* implemented the ReferenceHelper class to provide a safe way to
 	  access and manipulate reference arguments passed to builtin functions

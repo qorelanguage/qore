@@ -37,8 +37,10 @@ DLLLOCAL class QoreClass *initQAbstractSliderClass(class QoreClass *qframe);
 class myQAbstractSlider : public QAbstractSlider, public QoreQWidgetExtension
 {
 #define QOREQTYPE QAbstractSlider
+#define MYQOREQTYPE myQAbstractSlider
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

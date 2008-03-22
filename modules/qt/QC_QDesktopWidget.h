@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQDesktopWidgetClass(QoreClass *);
 class myQDesktopWidget : public QDesktopWidget, public QoreQWidgetExtension
 {
 #define QOREQTYPE QDesktopWidget
+#define MYQOREQTYPE myQDesktopWidget
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQPrintDialogClass(QoreClass *);
 class myQPrintDialog : public QPrintDialog, public QoreQDialogExtension
 {
 #define QOREQTYPE QPrintDialog
+#define MYQOREQTYPE myQPrintDialog
 #include "qore-qt-metacode.h"
 #include "qore-qt-qdialog-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

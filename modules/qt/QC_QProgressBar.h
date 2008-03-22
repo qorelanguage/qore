@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQProgressBarClass(QoreClass *);
 class myQProgressBar : public QProgressBar, public QoreQWidgetExtension
 {
 #define QOREQTYPE QProgressBar
+#define MYQOREQTYPE myQProgressBar
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

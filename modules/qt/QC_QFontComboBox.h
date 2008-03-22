@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQFontComboBoxClass(QoreClass *);
 class myQFontComboBox : public QFontComboBox, public QoreQWidgetExtension
 {
 #define QOREQTYPE QFontComboBox
+#define MYQOREQTYPE myQFontComboBox
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

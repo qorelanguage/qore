@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQRegExpValidatorClass(QoreClass *);
 class myQRegExpValidator : public QRegExpValidator, public QoreQValidatorExtension
 {
 #define QOREQTYPE QRegExpValidator
+#define MYQOREQTYPE myQRegExpValidator
 #include "qore-qt-metacode.h"
 #include "qore-qt-qvalidator-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

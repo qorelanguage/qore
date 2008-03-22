@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQToolButtonClass(QoreClass *);
 class myQToolButton : public QToolButton, public QoreQWidgetExtension
 {
 #define QOREQTYPE QToolButton
+#define MYQOREQTYPE myQToolButton
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

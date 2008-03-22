@@ -37,8 +37,10 @@ DLLLOCAL class QoreClass *initQLCDNumberClass(class QoreClass *qframe);
 class myQLCDNumber : public QLCDNumber, public QoreQWidgetExtension
 {
 #define QOREQTYPE QLCDNumber
+#define MYQOREQTYPE myQLCDNumber
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

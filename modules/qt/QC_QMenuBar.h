@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQMenuBarClass(QoreClass *);
 class myQMenuBar : public QMenuBar, public QoreQWidgetExtension
 {
 #define QOREQTYPE QMenuBar
+#define MYQOREQTYPE myQMenuBar
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

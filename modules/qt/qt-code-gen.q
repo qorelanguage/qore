@@ -11,6 +11,7 @@ const opts = (
     "file"            : "f,file",
     "parent"          : "p,parent=s",
     "widget"          : "w,widget",
+    "dialog"          : "d,dialog", 
     "style"           : "s,style",
     "validator"       : "v,validator",
     "qt"              : "q,qt-class",
@@ -42,6 +43,7 @@ const qobject_list =
       "QPrintDialog", "QValidator", "QIODevice", "QTabBar", "QTabWidget", 
       "QDesktopWidget", "QWizard", "QWizardPage", "QTranslator", 
       "QApplication", "QCoreApplication", "QListView", "QListWidget",
+      "QProgressBar", "QProgressDialog", "QLabel"
  );
 
 const abstract_class_list = 
@@ -126,6 +128,7 @@ sub usage()
   -n,--name=ARG            abstract parent's class name
   -A,--abstract-list=ARG   list of abstract classes
   -w,--widget              is a QWidget
+  -d.--dialog              is a QDialog
   -s,--style               is a QStyle
   -q,--qt-class            add Qt class to abstract class
   -p,--parent=ARG          parent class name
@@ -155,8 +158,11 @@ sub command_line()
     if (!exists $cn)
 	usage();
 
+    if ($o.dialog)
+	$o.widget = True;
+
     if (!$o.indep && !exists $o.abstract_class)
-	$o.abstract_class = $o.abstract ? $cn : $o.widget ? "QWidget" : "QObject";
+	$o.abstract_class = $o.abstract ? $cn : $o.dialog ? "QDialog" : $o.widget ? "QWidget" : "QObject";
     else if ($o.indep && $o.abstract && !exists $o.abstract_class)
 	$o.abstract_class = $cn;
 
@@ -176,7 +182,7 @@ sub command_line()
     }
 
     if (!$o.indep && !exists $o.parent)
-	$o.parent = $o.widget ? "QWidget" : "QObject";
+	$o.parent = $o.dialog ? "QDialog" : $o.widget ? "QWidget" : "QObject";
 
     if ($o.qt && !$o.abstract) {
 	stderr.printf("cannot add Qt class to non-abstract class\n");
@@ -223,15 +229,13 @@ sub do_return_qobject($type, $callstr)
     $lo += "if (!qt_qobj)";
     $lo += "   return 0;";
     $lo += "QVariant qv_ptr = qt_qobj->property(\"qobject\");";
-    $lo += "Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());";
+    $lo += "QoreObject *rv_obj = reinterpret_cast<const QoreObject *>(qv_ptr.toULongLong());";
     $lo += "if (rv_obj)";
-    $lo += "   rv_obj->ref();";
-    $lo += "else {";
-    $lo += sprintf("   rv_obj = new Object(QC_%s, getProgram());", $type);
-    $lo += sprintf("   QoreQt%s *t_qobj = new QoreQt%s(rv_obj, qt_qobj);", $type, $type);
-    $lo += sprintf("   rv_obj->setPrivate(CID_%s, t_qobj);", toupper($type));
-    $lo += "}";
-    $lo += "return new QoreNode(rv_obj);";
+    $lo += "   return rv_obj->refSelf();";
+    $lo += sprintf("rv_obj = new QoreObject(QC_%s, getProgram());", $type);
+    $lo += sprintf("QoreQt%s *t_qobj = new QoreQt%s(rv_obj, qt_qobj);", $type, $type);
+    $lo += sprintf("rv_obj->setPrivate(CID_%s, t_qobj);", toupper($type));
+    $lo += "return rv_obj;";
     return $lo;
 }
 
@@ -249,16 +253,24 @@ sub do_return_class($type, $callstr)
     my $lo = ();
 
     my $utn = toupper($type);
+
     if ($type == $cn)
-	$lo += sprintf("Object *o_%s = new Object(self->getClass(CID_%s), getProgram());", $cl, $utn);
+	$lo += sprintf("return return_object(self->getClass(CID_%s), new Qore%s(%s));", $utn, $type, $callstr);
     else {
-	$lo += sprintf("Object *o_%s = new Object(QC_%s, getProgram());", $cl, $type);
+	$lo += sprintf("return return_object(QC_%s, new Qore%s(%s));", $type, $type, $callstr);
+    }
+
+/*
+    if ($type == $cn)
+	$lo += sprintf("QoreObject *o_%s = new QoreObject(self->getClass(CID_%s), getProgram());", $cl, $utn);
+    else {
+	$lo += sprintf("QoreObject *o_%s = new QoreObject(QC_%s, getProgram());", $cl, $type);
     }
     $lo += sprintf("Qore%s *q_%s = new Qore%s(%s);", $type, $cl, $type, $callstr);
 	
     $lo += sprintf("o_%s->setPrivate(CID_%s, q_%s);", $cl, $utn, $cl);
-    $lo += sprintf("return new QoreNode(o_%s);", $cl);
-
+    $lo += sprintf("return o_%s;", $cl);
+*/
     return $lo;
 }
 
@@ -283,7 +295,7 @@ sub do_class($arg, $name, $cn, $i, $d, $const)
     if ($ref)
 	$arg.get = "*(" + $arg.get + ")";
 
-    $lo += sprintf("   %s *%s = (p && p->type == NT_OBJECT) ? (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
+    $lo += sprintf("   %s *%s = (p && p->getType() == NT_OBJECT) ? (%s *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_%s, xsink) : 0;", 
 		   $tcn, $arg.name, $tcn, $utn);
     if (!exists $arg.def) {
 	$lo += sprintf("   if (!%s) {", $arg.name);
@@ -321,7 +333,7 @@ sub do_dynamic_class($arg, $name, $cn, $i, $const)
 	 ? sprintf("*(%s->get%s())", $arg.name, $type)
 	 : sprintf("%s->get%s()", $arg.name, $type));
 
-    $lo += sprintf("   AbstractPrivateData *apd_%s = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
+    $lo += sprintf("   AbstractPrivateData *apd_%s = (p && p->getType() == NT_OBJECT) ? reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_%s, xsink) : 0;", 
 		   $arg.name, $utn);
     $lo += sprintf("   if (!apd_%s) {", $arg.name);
     $lo += "      if (!xsink->isException())";
@@ -424,10 +436,11 @@ sub add_new_build_files($fp)
 		}
 	    }
 	    else if ($lines[$i + 1] =~ /add QBoxLayout namespace/) {
+		my $ns = $o.dialog ? "qdialog_ns" : "qt_ns";
 		if ($o.ns)
-		    $of.printf("   qt->addInitialNamespace(init%sNS(%s));\n", $cn, tolower($o.parent));
+		    $of.printf("   %s->addInitialNamespace(init%sNS(%s));\n", $ns, $cn, tolower($o.parent));
 		else
-		    $of.printf("   qt->addSystemClass(init%sClass(%s));\n", $cn, tolower($o.parent));
+		    $of.printf("   %s->addSystemClass(init%sClass(%s));\n", $ns, $cn, tolower($o.parent));
 	    }
 	    $of.printf("%s\n", $lines[$i]);
 	}	
@@ -446,13 +459,13 @@ sub do_abstract($of, $proto, $qt)
     $of.printf("class %s : public QoreAbstract%s\n", $class_name, $o.abstract_class);
     $of.printf("{\n   public:\n");
     if ($qt)
-	$of.printf("      Object *qore_obj;\n");
+	$of.printf("      QoreObject *qore_obj;\n");
     $of.printf("      QPointer<%s%s> qobj;
 
 ", $qt ? "" : "my", $cn);
     
     if ($qt)
-	$of.printf("      DLLLOCAL %s(Object *obj, %s *%s) : qore_obj(obj), qobj(%s)\n      {\n      }\n", $class_name, $cn, $lcn, $lcn);
+	$of.printf("      DLLLOCAL %s(QoreObject *obj, %s *%s) : qore_obj(obj), qobj(%s)\n      {\n      }\n", $class_name, $cn, $lcn, $lcn);
     else {
 	if (exists $proto.$cn) {
 	    foreach my $i in ($proto.$cn.inst) {
@@ -463,7 +476,7 @@ sub do_abstract($of, $proto, $qt)
 		    splice $arg_names, -2;
 		    $arg_names = ", " + $arg_names;
 		}
-		my $str = "Object *obj";
+		my $str = "QoreObject *obj";
 		if (strlen($i.orig_args))
 		    $str += ", " + $i.orig_args;
 		$of.printf("      DLLLOCAL %s(%s) : qobj(new my%s(obj%s))\n      {\n      }\n", $class_name, $str, $cn, $arg_names);
@@ -476,7 +489,7 @@ sub do_abstract($of, $proto, $qt)
       }
 ");
     if ($o.widget)
-      $of.printf("      DLLLOCAL virtual class QWidget *getQWidget() const
+	$of.printf("      DLLLOCAL virtual class QWidget *getQWidget() const
       {
          return static_cast<QWidget *>(&(*qobj));
       }
@@ -485,7 +498,15 @@ sub do_abstract($of, $proto, $qt)
          return static_cast<QPaintDevice *>(&(*qobj));
       }
 ");
-    if ($o.abstract_class != "QObject" && $o.abstract_class != "QWidget")
+    if ($o.dialog)
+	$of.printf("      DLLLOCAL virtual class QDialog *getQDialog() const
+      {
+         return static_cast<QDialog *>(&(*qobj));
+      }
+");
+
+
+    if ($o.abstract_class != "QObject" && $o.abstract_class != "QWidget" && $o.abstract_class != "QDialog")
 	$of.printf("      DLLLOCAL virtual class %s *get%s() const
       {
          return static_cast<%s *>(&(*qobj));
@@ -507,9 +528,9 @@ sub do_abstract($of, $proto, $qt)
 ", $ac, $ac, $ac);
 
     if (!$qt)
-	$of.printf("      QORE_VIRTUAL_Q%s_METHODS\n", $o.widget ? "WIDGET" : ($o.style ? "STYLE" : ($o.validator ? "VALIDATOR" : "OBJECT")));
+	$of.printf("      QORE_VIRTUAL_Q%s_METHODS\n", $o.dialog ? "DIALOG" : $o.widget ? "WIDGET" : ($o.style ? "STYLE" : ($o.validator ? "VALIDATOR" : "OBJECT")));
     else
-	$of.printf("#include \"qore-qt-static-q%s-methods.h\"\n", $o.widget ? "widget" : ($o.style ? "style" : "object"));
+	$of.printf("#include \"qore-qt-static-q%s-methods.h\"\n", $o.dialog ? "dialog" : $o.widget ? "widget" : ($o.style ? "style" : "object"));
     $of.printf("};\n");
 }
 
@@ -734,7 +755,7 @@ DLLLOCAL extern int CID_%s;
 DLLLOCAL extern QoreClass *QC_%s;
 ", $func_prefix, $cn);
         if ($o.ns)
-            $of.printf("DLLLOCAL Namespace *init%sNS(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
+            $of.printf("DLLLOCAL QoreNamespace *init%sNS(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
         else
             $of.printf("DLLLOCAL QoreClass *init%sClass(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
 
@@ -764,8 +785,9 @@ DLLLOCAL extern QoreClass *QC_%s;
 	}
 	else # abstract/dependent class
 	{
-	    $of.printf("class my%s : public %s%s\n", $cn, $cn, $o.widget ? ", public QoreQWidgetExtension" 
-		       : ($o.validator ? ", public QoreQValidatorExtension" : ", public QoreQObjectExtension"));
+	    $of.printf("class my%s : public %s%s\n", $cn, $cn, $o.dialog ? ", public QoreQDialogExtension" : 
+		       $o.widget ? ", public QoreQWidgetExtension" :  
+		       $o.validator ? ", public QoreQValidatorExtension" : ", public QoreQObjectExtension");
             $of.printf("{\n");
             if ($o.style)
                 $of.printf("      friend class Qore%s;\n\n", $cn);
@@ -774,7 +796,8 @@ DLLLOCAL extern QoreClass *QC_%s;
 %s#undef QOREQTYPE
 
    public:
-", $cn, $o.widget ? "#include \"qore-qt-widget-events.h\"\n" : 
+", $cn, $o.dialog ? "#include  \"qore-qt-qdialog-methods.h\"\n" : 
+		       $o.widget ? "#include \"qore-qt-widget-events.h\"\n" : 
 		       $o.validator ? "#include \"qore-qt-qvalidator-methods.h\"\n" : "");
 	    
 	    if (exists $proto.$cn) {
@@ -784,12 +807,13 @@ DLLLOCAL extern QoreClass *QC_%s;
 			$arg_names += $a.name + ", ";
 		    if (exists $arg_names)
 			splice $arg_names, -2;
-		    my $str = "Object *obj";
+		    my $str = "QoreObject *obj";
 		    if (strlen($i.orig_args))
 			$str += ", " + $i.orig_args;
 		    $of.printf("      DLLLOCAL my%s(%s) : %s(%s)%s\n      {\n", $cn, $str, $cn, $arg_names,
-			$o.widget ? ", QoreQWidgetExtension(obj->getClass())" 
-			       : $o.validator ? ", QoreQValidatorExtension(obj->getClass())" : ", QoreQObjectExtension(obj->getClass())");
+			       $o.dialog ? ", QoreQDialogExtension(obj->getClass())" :
+			       $o.widget ? ", QoreQWidgetExtension(obj->getClass())" :
+			       $o.validator ? ", QoreQValidatorExtension(obj->getClass())" : ", QoreQObjectExtension(obj->getClass())");
 		    $of.printf("         init(obj);\n");
 		    $of.printf("      }\n"); 
 		}
@@ -829,14 +853,14 @@ DLLLOCAL extern QoreClass *QC_%s;
 	    }
         }
 	if ($p == $cn)
-	    $lo += sprintf("static void %s(Object *self, QoreNode *params, ExceptionSink *xsink)", 
+	    $lo += sprintf("static void %s(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)", 
 			   $proto.$p.funcname, $cl);
         else {
             if ($o.static)
-                $lo += sprintf("static QoreNode *%s(QoreNode *params, ExceptionSink *xsink)", 
+                $lo += sprintf("static AbstractQoreNode *%s(const QoreListNode *params, ExceptionSink *xsink)", 
 			       $proto.$p.funcname);
             else
-                $lo += sprintf("static QoreNode *%s(Object *self, Qore%s *%s, QoreNode *params, ExceptionSink *xsink)", 
+                $lo += sprintf("static AbstractQoreNode *%s(QoreObject *self, Qore%s *%s, const QoreListNode *params, ExceptionSink *xsink)", 
 			       $proto.$p.funcname, $qore_class, $cl);
         }
 	$lo += "{";
@@ -912,7 +936,7 @@ class QoreClass *QC_%s = 0;
 	$of.printf("\n");
 
 	if ($p == $cn) {
-	    $of.printf("static void %s_copy(class Object *self, class Object *old, class Qore%s *%s, ExceptionSink *xsink)
+	    $of.printf("static void %s_copy(QoreObject *self, QoreObject *old, Qore%s *%s, ExceptionSink *xsink)
 {
    xsink->raiseException(\"%s-COPY-ERROR\", \"objects of this class cannot be copied\");
 }
@@ -947,7 +971,7 @@ class QoreClass *QC_%s = 0;
 
         if ($o.ns) {
             # print out namespace initializer
-            $of.printf("\nNamespace *init%sNS(%s)\n{\n   Namespace *ns = new Namespace(\"%s\");\n   ns->addSystemClass(init%sClass(%s));\n\n   return ns;\n}\n", $cn, exists $o.parent ? "QoreClass *" + tolower($o.parent) : "", $cn, $cn, tolower($o.parent)); 
+            $of.printf("\nQoreNamespace *init%sNS(%s)\n{\n   QoreNamespace *ns = new QoreNamespace(\"%s\");\n   ns->addSystemClass(init%sClass(%s));\n\n   return ns;\n}\n", $cn, exists $o.parent ? "QoreClass *" + tolower($o.parent) : "", $cn, $cn, tolower($o.parent)); 
         }
     }
 }
@@ -982,10 +1006,10 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 	: sprintf("%s->get%s()", $arg.name, $type);
 
     if (!$last)
-	$lo += sprintf("%s%s *%s = (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink);", 
+	$lo += sprintf("%s%s *%s = (%s *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_%s, xsink);", 
 		       $os, $tcn, $arg.name, $tcn, $utn);
     else
-	$lo += sprintf("%s%s *%s = (p && p->type == NT_OBJECT) ? (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
+	$lo += sprintf("%s%s *%s = (p && p->getType() == NT_OBJECT) ? (%s *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_%s, xsink) : 0;", 
 		       $os, $tcn, $arg.name, $tcn, $utn);
     if (!exists $arg.def) {
 	$lo += sprintf("%sif (!%s) {", $os, $arg.name);
@@ -995,14 +1019,14 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 	    if (!$last) {
 		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"%s::%s() does not know how to handle arguments of class '%s' as passed as the ", 
 			       $os, toupper($cn), toupper($name), $cn, $name);
-		$str += sprintf("%s argument\", p->val.object->getClass()->getName());", ordinal[$i]);
+		$str += sprintf("%s argument\", reinterpret_cast<const QoreObject *>(p)->getClassName());", ordinal[$i]);
 	    }
 	    else {
 		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the %s argument\");",
 			       $os, toupper($cn), toupper($name), $cn, $name, $type, ordinal[$i]);
 	    }
 	    
-	    $str += sprintf("%s argument\", p->val.object->getClass()->getName());", ordinal[$i]);
+	    $str += sprintf("%s argument\", reinterpret_cast<const QoreObject *>(p)->getClassName());", ordinal[$i]);
 	    $lo += $str;
 	    $lo += sprintf("%s   return%s;", $os, $const ? "" : " 0");
 	}
@@ -1153,7 +1177,7 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 	delete $rl;
     }
 
-    $lo += sprintf("%sp = get_param(params, %d);", $param ? "" : "QoreNode *", $param);
+    $lo += sprintf("%sp = get_param(params, %d);", $param ? "" : "const AbstractQoreNode *", $param);
     if (exists $none) {
 	my $cs = $callstr;
 	# truncate callstr if necessary
@@ -1170,7 +1194,7 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 	my $last = $param ? elements $cl == 1 : elements $cl == 1 && !elements $rl && !elements $fl;
 
 	if (!$last) {
-	    $lo += sprintf("if (p && p->type == NT_OBJECT) {");
+	    $lo += sprintf("if (p && p->getType() == NT_OBJECT) {");
 	    #$lo += sprintf("++ param=%n, elements $cl=%n", $param, elements $cl);
 	}
 	
@@ -1215,14 +1239,18 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 		case /char/:
 		    $qt = "STRING";
 		    break;
-	    
+		case "QStringList": {
+		    $qt = "LIST";
+		    break;
+		}
+
 	        default:
 		    $qt = "???";
 		    $func.ok = False;
 		    break;
 	    }
 	
-	$lo += sprintf("if (p && p->type == NT_%s) {", $qt);
+	$lo += sprintf("if (p && p->getType() == NT_%s) {", $qt);
 	$lo += do_single_arg(3, $name, $opt.args[$param], $param, \$func.ok, !exists $func.rt);
 
 	append_call(\$rcallstr, $opt.args[$param]);
@@ -1236,7 +1264,7 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 	    $lo += do_return_value(3, $func.rt, $rcallstr, \$func.ok);
 	}
 	else
-	    $lo += do_multi_function($name, \$func, $fl, $rcallstr, $param + 1, -3);
+	    $lo += do_multi_function($name, \$func, $rl, $rcallstr, $param + 1); #, -3);
 
 	$lo += "}";
     }
@@ -1344,15 +1372,15 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 	    }
 	    case "char*": {
 		if (exists $arg.def)
-		    $lo = sprintf("const char *%s = (p && p->type == NT_STRING) ? p->val.String->getBuffer() : %s;", $arg.name, trim($arg.def));
+		    $lo = sprintf("const char *%s = (p && p->getType() == NT_STRING) ? reinterpret_cast<const QoreStringNode *>(p)->getBuffer() : %s;", $arg.name, trim($arg.def));
 		else {
-		    $lo += "if (!p || p->type != NT_STRING) {";
+		    $lo += "if (!p || p->getType() != NT_STRING) {";
 		    $lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a string as %s argument to %s::%s()\");", 
 				   toupper($cn), toupper($name), ordinal[$i], $cn, $name);
 		    
 		    $lo += $const ? "   return;" : "   return 0;";
 		    $lo += "}";
-		    $lo += sprintf("const char *%s = p->val.String->getBuffer();", $arg.name);
+		    $lo += sprintf("const char *%s = reinterpret_cast<const QoreStringNode *>(p)->getBuffer();", $arg.name);
 		}
 		break;
 	    }
@@ -1393,18 +1421,15 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 	    }
 	    break;
 	    case "QStringList" : {
-		$lo += "if (!p || p->type != NT_LIST) {";
-		$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a list as %s argument to %s::%s()\");", 
-			       toupper($cn), toupper($name), ordinal[$i], $cn, $name);
-		$lo += $const ? "   return;" : "   return 0;";
-		$lo += "}";
+		#$lo += "if (!p || p->getType() != NT_LIST) {";
+		#$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a list as %s argument to %s::%s()\");", 
+		#	       toupper($cn), toupper($name), ordinal[$i], $cn, $name);
+		#$lo += $const ? "   return;" : "   return 0;";
+		#$lo += "}";
 		$lo += sprintf("QStringList %s;", $arg.name);
-		$lo += sprintf("ListIterator li_%s(p->val.list);", $arg.name);
-		$lo += sprintf("while (li_%s.next())", $arg.name);
-		$lo += "{";
-		$lo += sprintf("   QoreNodeTypeHelper str(li_%s.getValue(), NT_STRING, xsink);", $arg.name);
-		$lo += "   if (*xsink)";
-		$lo += $const ? "      return;" : "      return 0;";
+		$lo += sprintf("ConstListIterator li_%s(reinterpret_cast<const QoreListNode *>(p));", $arg.name);
+		$lo += sprintf("while (li_%s.next()) {", $arg.name);
+		$lo += sprintf("   QoreStringNodeValueHelper str(li_%s.getValue());", $arg.name);
 		$lo += "   QString tmp;";
 		$lo += "   if (get_qstring(*str, tmp, xsink))";
 		$lo += $const ? "      return;" : "      return 0;";
@@ -1449,15 +1474,15 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 	    }
 	    case "char": {
 		if (exists $arg.def)
-		    $lo = sprintf("const char %s = p ? p->val.String->getBuffer()[0] : %s;", $arg.name, trim($arg.def));
+		    $lo = sprintf("const char %s = p && p->getType() == NT_STRING ? reinterpret_cast<const QoreStringNode *>(p)->getBuffer()[0] : %s;", $arg.name, trim($arg.def));
 		else {
-		    $lo += "if (!p || p->type != NT_STRING) {";
+		    $lo += "if (!p || p->getType() != NT_STRING) {";
 		    $lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a string as %s argument to %s::%s()\");", 
 				   toupper($cn), toupper($name), ordinal[$i], $cn, $name);
 		    
 		    $lo += $const ? "   return;" : "   return 0;";
 		    $lo += "}";
-		    $lo += sprintf("const char %s = p->val.String->getBuffer()[0];", $arg.name);
+		    $lo += sprintf("const char %s = reinterpret_cast<const QoreStringNode *>(p)->getBuffer()[0];", $arg.name);
 		}
 		break;
 	    }
@@ -1509,7 +1534,7 @@ sub do_single_function($name, $func, $inst, $callstr)
 
     # do arguments
     for (my $i = 0; $i < elements $inst.args; ++$i) {
-	$lo += sprintf("   %sp = get_param(params, %d);", $i ? "" : "QoreNode *", $i);
+	$lo += sprintf("   %sp = get_param(params, %d);", $i ? "" : "const AbstractQoreNode *", $i);
 	
 	if ($inst.args[$i].is_class && !$inst.args[$i].special_arg)
 	    $lo += do_class(\$inst.args[$i], $name, $cn, $i, True, !exists $func.rt);
@@ -1558,7 +1583,7 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	    break;
 	}
 	case "bool": {
-	    $lo += sprintf("return new QoreNode(%s);", $callstr); 
+	    $lo += sprintf("return get_bool_node(%s);", $callstr); 
 	    break;
 	}
 	case =~ m/::/:
@@ -1571,13 +1596,13 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	    case "short":
 	    case "ulong":
 	    case "int": {
-		$lo += sprintf("return new QoreNode((int64)%s);", $callstr); 
+		$lo += sprintf("return new QoreBigIntNode(%s);", $callstr); 
 		break;
 	}
 	case "qreal" :
 	    case "double":
 	    case "float" : {
-		$lo += sprintf("return new QoreNode((double)%s);", $callstr); 
+		$lo += sprintf("return new QoreFloatNode(%s);", $callstr); 
 		break;
 	}
 
@@ -1585,58 +1610,63 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	    $lo += sprintf("QDateTime rv_dt = %s;", $callstr);
 	    $lo += "QDate rv_d = rv_dt.date();";
 	    $lo += "QTime rv_t = rv_dt.time();";
-	    $lo += "return new QoreNode(new DateTime(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec()));";
+	    $lo += "return new DateTimeNode(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());";
 	    break;
 	}
 
 	case /^QDate/: {
 	    $lo += sprintf("QDate rv_date = %s;", $callstr);
-	    $lo += "return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));";
+	    $lo += "return new DateTimeNode(rv_date.year(), rv_date.month(), rv_date.day());";
 	    break;
 	}
 
 	case /^QTime/: {
 	    $lo += sprintf("QTime rv_t = %s;", $callstr);
-	    $lo += "return new QoreNode(new DateTime(1970, 1, 1, rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec()));";
+	    $lo += "return new DateTimeNode(1970, 1, 1, rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());";
 	    break;
 	}
 
 	case "QString": {
-	    $lo += sprintf("return new QoreNode(new QoreString(%s.toUtf8().data(), QCS_UTF8));", $callstr); 
+	    $lo += sprintf("return new QoreStringNode(%s.toUtf8().data(), QCS_UTF8);", $callstr); 
 	    break;
 	}
 
 	case "QChar": {
-	    $lo += "QoreString *rv_str = new QoreString(QCS_UTF8);";
+	    $lo += "QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);";
 	    $lo += sprintf("QChar rv_qc = %s;", $callstr);
 	    $lo += "rv_str->concatUTF8FromUnicode(rv_qc.unicode());";
-	    $lo += "return new QoreNode(rv_str);";
+	    $lo += "return rv_str;";
 	    break;
 	}
 
 	case "char": {
 	    $lo += sprintf("const char c_rv = %s;", $callstr);
-	    $lo += "QoreString *rv_str = new QoreString();";
+	    $lo += "QoreStringNode *rv_str = new QoreStringNode();";
 	    $lo += "rv_str->concat(c_rv);";
-	    $lo += "return new QoreNode(rv_str);";
+	    $lo += "return rv_str;";
 	    break;
 	}
 
 	case "QList<int>": {
 	    $lo += sprintf("QList<int> ilist_rv = %s;", $callstr);
-	    $lo += "QoreList *l = new QoreList();";
+	    $lo += "QoreListNode *l = new QoreListNode();";
 	    $lo += "for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)";
-	    $lo += "   l->push(new QoreNode((int64)(*i)));";
-	    $lo += "return new QoreNode(l);";
+	    $lo += "   l->push(new QoreBigIntNode((*i)));";
+	    $lo += "return l;";
+	    break;
+	}
+
+	case "QFileInfoList": {
+	    $lo += sprintf("QFileInfoList qfilist_rv = %s;", $callstr);
+	    $lo += "QoreListNode *l = new QoreListNode();";
+	    $lo += "for (QFileInfoList::iterator i = qfilist_rv.begin(), e = qfilist_rv.end(); i != e; ++i)";
+	    $lo += "   l->push(return_object(QC_QFileInfo, new QoreQFileInfo(*i)));";
+	    $lo += "return l;";
 	    break;
 	}
 
 	case "QStringList": {
-	    $lo += sprintf("QStringList strlist_rv = %s;", $callstr);
-	    $lo += "QoreList *l = new QoreList();";
-	    $lo += "for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)";
-	    $lo += "   l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));";
-	    $lo += "return new QoreNode(l);";
+	    $lo += sprintf("return return_qstringlist(%s);", $callstr);
 	    break;
 	}
 
@@ -1649,9 +1679,7 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	    $lo += sprintf("QPaintDevice *qpd_rv = %s;", $callstr);
 	    $lo += "if (!qpd_rv)";
 	    $lo += "   return 0;";
-	    $lo += "Object *o = new Object(QC_QPaintDevice, getProgram());";
-	    $lo += "o->setPrivate(CID_QPAINTDEVICE, new QoreQtQPaintDevice(qpd));";
-	    $lo += "return new QoreNode(o);";
+	    $lo += "return return_object(QC_QPaintDevice, new QoreQtQPaintDevice(qpd));";
 	    break;
 	}
 
@@ -1669,7 +1697,7 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	  }
 	  else {
 	      if ($rt !~ /\*/)
-		  $lo += sprintf("??? return new QoreNode((int64)%s);", $callstr);
+		  $lo += sprintf("??? return new QoreBigIntNode(%s);", $callstr);
 	      else
 		  $lo += sprintf("??? return %s;", $callstr); 
 	      $ok = False;

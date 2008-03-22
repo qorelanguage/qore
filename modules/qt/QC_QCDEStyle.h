@@ -38,8 +38,10 @@ class myQCDEStyle : public QCDEStyle, public QoreQStyleExtension
       friend class QoreQCDEStyle;
 
 #define QOREQTYPE QCDEStyle
+#define MYQOREQTYPE myQCDEStyle
 #include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

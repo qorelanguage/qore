@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQItemDelegateClass(QoreClass *);
 class myQItemDelegate : public QItemDelegate, public QoreQAbstractItemDelegateExtension
 {
 #define QOREQTYPE QItemDelegate
+#define MYQOREQTYPE myQItemDelegate
 #include "qore-qt-metacode.h"
 #include "qore-qt-qabstractitemdelegate-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

@@ -29,7 +29,7 @@
 DLLLOCAL extern qore_classid_t CID_QDIR;
 DLLLOCAL extern class QoreClass *QC_QDir;
 
-DLLLOCAL class QoreClass *initQDirClass();
+DLLLOCAL QoreNamespace *initQDirNS();
 DLLLOCAL void initQDirStaticFunctions();
 
 class QoreQDir : public AbstractPrivateData, public QDir

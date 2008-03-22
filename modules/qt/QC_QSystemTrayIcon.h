@@ -37,7 +37,9 @@ DLLLOCAL void initQSystemTrayIconStaticFunctions();
 class myQSystemTrayIcon : public QSystemTrayIcon, public QoreQObjectExtension
 {
 #define QOREQTYPE QSystemTrayIcon
+#define MYQOREQTYPE myQSystemTrayIcon
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

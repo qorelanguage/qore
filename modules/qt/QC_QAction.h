@@ -36,7 +36,9 @@ DLLLOCAL class QoreClass *initQActionClass(QoreClass *);
 class myQAction : public QAction, public QoreQObjectExtension
 {
 #define QOREQTYPE QAction
+#define MYQOREQTYPE myQAction
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

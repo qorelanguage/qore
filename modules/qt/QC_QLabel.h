@@ -37,8 +37,10 @@ DLLLOCAL class QoreClass *initQLabelClass(class QoreClass *qframe);
 class myQLabel : public QLabel, public QoreQWidgetExtension
 {
 #define QOREQTYPE QLabel
+#define MYQOREQTYPE myQLabel
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

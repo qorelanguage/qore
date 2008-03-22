@@ -39,8 +39,10 @@ class myQWizard : public QWizard, public QoreQDialogExtension
       friend class QoreQtQWizard;
 
 #define QOREQTYPE QWizard
+#define MYQOREQTYPE myQWizard
 #include "qore-qt-metacode.h"
 #include "qore-qt-qdialog-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

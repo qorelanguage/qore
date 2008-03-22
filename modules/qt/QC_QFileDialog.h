@@ -37,8 +37,10 @@ DLLLOCAL void initQFileDialogStaticFunctions();
 class myQFileDialog : public QFileDialog, public QoreQDialogExtension
 {
 #define QOREQTYPE QFileDialog
+#define MYQOREQTYPE myQFileDialog
 #include "qore-qt-metacode.h"
 #include "qore-qt-qdialog-methods.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

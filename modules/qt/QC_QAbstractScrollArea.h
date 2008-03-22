@@ -36,8 +36,10 @@ DLLLOCAL class QoreClass *initQAbstractScrollAreaClass(QoreClass *);
 class myQAbstractScrollArea : public QAbstractScrollArea, public QoreQWidgetExtension
 {
 #define QOREQTYPE QAbstractScrollArea
+#define MYQOREQTYPE myQAbstractScrollArea
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:

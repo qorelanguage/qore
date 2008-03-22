@@ -35,7 +35,9 @@ DLLLOCAL class QoreClass *initQGridLayoutClass(class QoreClass *qlayout);
 class myQGridLayout : public QGridLayout, public QoreQObjectExtension
 {
 #define QOREQTYPE QGridLayout
+#define MYQOREQTYPE myQGridLayout
 #include "qore-qt-metacode.h"
+#undef MYQOREQTYPE
 #undef QOREQTYPE
       DLLLOCAL myQGridLayout(QoreObject *obj) : QGridLayout(), QoreQObjectExtension(obj->getClass())
       {
