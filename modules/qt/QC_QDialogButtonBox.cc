@@ -174,13 +174,16 @@ static AbstractQoreNode *QDIALOGBUTTONBOX_buttonRole(QoreObject *self, QoreQDial
    return new QoreBigIntNode(qdbb->qobj->buttonRole(static_cast<QAbstractButton *>(button->getQAbstractButton())));
 }
 
-/*
 //QList<QAbstractButton *> buttons () const
 static AbstractQoreNode *QDIALOGBUTTONBOX_buttons(QoreObject *self, QoreQDialogButtonBox *qdbb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   ??? return new QoreBigIntNode(qdbb->qobj->buttons());
+   QList<QAbstractButton *> l = qdbb->qobj->buttons();
+   QoreListNode *ql = new QoreListNode();
+   for (QList<QAbstractButton *>::iterator i = l.begin(), e = l.end(); i != e; ++i) {
+      ql->push(return_qabstractbutton(*i));
+   }
+   return ql;
 }
-*/
 
 //bool centerButtons () const
 static AbstractQoreNode *QDIALOGBUTTONBOX_centerButtons(QoreObject *self, QoreQDialogButtonBox *qdbb, const QoreListNode *params, ExceptionSink *xsink)
@@ -276,7 +279,7 @@ static QoreClass *initQDialogButtonBoxClass(QoreClass *qwidget)
    QC_QDialogButtonBox->addMethod("addButton",                   (q_method_t)QDIALOGBUTTONBOX_addButton);
    QC_QDialogButtonBox->addMethod("button",                      (q_method_t)QDIALOGBUTTONBOX_button);
    QC_QDialogButtonBox->addMethod("buttonRole",                  (q_method_t)QDIALOGBUTTONBOX_buttonRole);
-   //QC_QDialogButtonBox->addMethod("buttons",                     (q_method_t)QDIALOGBUTTONBOX_buttons);
+   QC_QDialogButtonBox->addMethod("buttons",                     (q_method_t)QDIALOGBUTTONBOX_buttons);
    QC_QDialogButtonBox->addMethod("centerButtons",               (q_method_t)QDIALOGBUTTONBOX_centerButtons);
    QC_QDialogButtonBox->addMethod("clear",                       (q_method_t)QDIALOGBUTTONBOX_clear);
    QC_QDialogButtonBox->addMethod("orientation",                 (q_method_t)QDIALOGBUTTONBOX_orientation);

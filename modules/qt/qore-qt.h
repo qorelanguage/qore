@@ -29,6 +29,8 @@
 #include <QBrush>
 #include <QObject>
 
+class QAbstractButton;
+
 #include "BrushStyleNode.h"
 #include "PenStyleNode.h"
 
@@ -52,13 +54,14 @@ DLLLOCAL int get_qstring(const AbstractQoreNode *n, QString &str, class Exceptio
 DLLLOCAL int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &qks, class ExceptionSink *xsink, bool suppress_exception = false);
 
 DLLLOCAL QoreObject *return_object(QoreClass *qclass, AbstractPrivateData *data);
+DLLLOCAL QoreObject *return_qabstractbutton(QAbstractButton *button);
+DLLLOCAL QoreObject *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
+DLLLOCAL QoreObject *return_qobject(QObject *o);
+DLLLOCAL QoreObject *return_qstyleoption(const class QStyleOption *qso);
+DLLLOCAL QoreObject *return_qevent(class QEvent *event);
+DLLLOCAL QoreObject *return_qaction(class QAction *action);
+DLLLOCAL QoreObject *return_qwidget(class QWidget *widget);
 DLLLOCAL AbstractQoreNode *return_qvariant(const QVariant &qv);
-DLLLOCAL AbstractQoreNode *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
-DLLLOCAL AbstractQoreNode *return_qobject(QObject *o);
-DLLLOCAL AbstractQoreNode *return_qstyleoption(const class QStyleOption *qso);
-DLLLOCAL AbstractQoreNode *return_qevent(class QEvent *event);
-DLLLOCAL AbstractQoreNode *return_qaction(class QAction *action);
-DLLLOCAL AbstractQoreNode *return_qwidget(class QWidget *widget);
 DLLLOCAL QoreListNode *return_qstringlist(const QStringList &l);
 
 #endif

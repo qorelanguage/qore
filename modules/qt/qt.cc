@@ -622,7 +622,7 @@ QoreObject *return_object(QoreClass *qclass, AbstractPrivateData *data)
    return qore_object;
 }
 
-AbstractQoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink)
+QoreObject *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink)
 {
    if (!qs) {
       xsink->raiseException("QSTYLEFACTORY-CREATE-ERROR", "unable to create style", style.toUtf8().data());
@@ -699,7 +699,7 @@ AbstractQoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink 
    return obj;
 }
 
-class AbstractQoreNode *return_qstyleoption(const QStyleOption *qso)
+QoreObject *return_qstyleoption(const QStyleOption *qso)
 {
    if (!qso)
       return 0;
@@ -864,7 +864,7 @@ class AbstractQoreNode *return_qvariant(const QVariant &qv)
 }
 
 // here QWidget subclasses can be determined if necessary
-static AbstractQoreNode *return_qwidget_intern(QWidget *w)
+static QoreObject *return_qwidget_intern(QWidget *w)
 {
    // assign as QWidget
    QoreObject *qo = new QoreObject(QC_QWidget, getProgram());
@@ -872,8 +872,26 @@ static AbstractQoreNode *return_qwidget_intern(QWidget *w)
    return qo;
 }
 
-// returns a AbstractQoreNode tagged as the appropriate QObject subclass
-class AbstractQoreNode *return_qobject(QObject *o)
+QoreObject *return_qabstractbutton(QAbstractButton *button)
+{
+   if (!button)
+      return 0;
+
+   // see if it's an object created in Qore
+   QVariant qv_ptr = button->property("qobject");
+   QoreObject *qo = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
+   if (qo) {
+      qo->ref();
+      return qo;
+   }
+
+   qo = new QoreObject(QC_QAbstractButton, getProgram());
+   qo->setPrivate(CID_QABSTRACTBUTTON, new QoreQtQAbstractButton(qo, button));
+   return qo;
+}
+
+// returns a QoreObject tagged as the appropriate QObject subclass
+QoreObject *return_qobject(QObject *o)
 {
    if (!o)
       return 0;
@@ -897,8 +915,8 @@ class AbstractQoreNode *return_qobject(QObject *o)
    return qo;
 }
 
-// returns a AbstractQoreNode tagged as the appropriate QWidget subclass
-class AbstractQoreNode *return_qwidget(QWidget *w)
+// returns a QoreObject tagged as the appropriate QWidget subclass
+QoreObject *return_qwidget(QWidget *w)
 {
    if (!w)
       return 0;
@@ -914,7 +932,7 @@ class AbstractQoreNode *return_qwidget(QWidget *w)
    return return_qwidget_intern(w);
 }
 
-class AbstractQoreNode *return_qaction(QAction *action)
+QoreObject *return_qaction(QAction *action)
 {
    if (!action)
       return 0;
@@ -930,7 +948,7 @@ class AbstractQoreNode *return_qaction(QAction *action)
    return rv_obj;
 }
 
-class AbstractQoreNode *return_qevent(QEvent *event)
+QoreObject *return_qevent(QEvent *event)
 {
    if (!event)
       return 0;
@@ -1335,7 +1353,7 @@ static class AbstractQoreNode *f_QToolTip_showText(const QoreListNode *params, c
 }
 
 //QStyle * create ( const QString & key )
-static AbstractQoreNode *f_QStyleFactory_create(const QoreListNode *params, ExceptionSink *xsink)
+AbstractQoreNode *f_QStyleFactory_create(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QString key;
