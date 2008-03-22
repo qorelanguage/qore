@@ -442,7 +442,7 @@ static AbstractQoreNode *QFILEDIALOG_viewMode(QoreObject *self, QoreQFileDialog 
    return new QoreBigIntNode(qfd->qobj->viewMode());
 }
 
-QoreClass *initQFileDialogClass(QoreClass *qdialog)
+static QoreClass *initQFileDialogClass(QoreClass *qdialog)
 {
    QC_QFileDialog = new QoreClass("QFileDialog", QDOM_GUI);
    CID_QFILEDIALOG = QC_QFileDialog->getID();
@@ -493,6 +493,44 @@ QoreClass *initQFileDialogClass(QoreClass *qdialog)
    return QC_QFileDialog;
 }
 
+QoreNamespace *initQFileDialogNS(QoreClass *qdialog)
+{
+   QoreNamespace *ns = new QoreNamespace("QFileDialog");
+   
+   ns->addSystemClass(initQFileDialogClass(qdialog));
+
+   // ViewMode enum
+   ns->addConstant("Detail",                   new QoreBigIntNode(QFileDialog::Detail));
+   ns->addConstant("List",                     new QoreBigIntNode(QFileDialog::List));
+
+   // FileMode enum
+   ns->addConstant("AnyFile",                  new QoreBigIntNode(QFileDialog::AnyFile));
+   ns->addConstant("ExistingFile",             new QoreBigIntNode(QFileDialog::ExistingFile));
+   ns->addConstant("Directory",                new QoreBigIntNode(QFileDialog::Directory));
+   ns->addConstant("ExistingFiles",            new QoreBigIntNode(QFileDialog::ExistingFiles));
+   ns->addConstant("DirectoryOnly",            new QoreBigIntNode(QFileDialog::DirectoryOnly));
+
+   // AcceptMode enum
+   ns->addConstant("AcceptOpen",               new QoreBigIntNode(QFileDialog::AcceptOpen));
+   ns->addConstant("AcceptSave",               new QoreBigIntNode(QFileDialog::AcceptSave));
+
+   // DialogLabel enum
+   ns->addConstant("LookIn",                   new QoreBigIntNode(QFileDialog::LookIn));
+   ns->addConstant("FileName",                 new QoreBigIntNode(QFileDialog::FileName));
+   ns->addConstant("FileType",                 new QoreBigIntNode(QFileDialog::FileType));
+   ns->addConstant("Accept",                   new QoreBigIntNode(QFileDialog::Accept));
+   ns->addConstant("Reject",                   new QoreBigIntNode(QFileDialog::Reject));
+
+   // Option enum
+   ns->addConstant("ShowDirsOnly",             new QoreBigIntNode(QFileDialog::ShowDirsOnly));
+   ns->addConstant("DontResolveSymlinks",      new QoreBigIntNode(QFileDialog::DontResolveSymlinks));
+   ns->addConstant("DontConfirmOverwrite",     new QoreBigIntNode(QFileDialog::DontConfirmOverwrite));
+   ns->addConstant("DontUseSheet",             new QoreBigIntNode(QFileDialog::DontUseSheet));
+   ns->addConstant("DontUseNativeDialog",      new QoreBigIntNode(QFileDialog::DontUseNativeDialog));
+
+   return ns;
+}
+
 //QString getExistingDirectory ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), Options options = ShowDirsOnly )
 static AbstractQoreNode *f_QFileDialog_getExistingDirectory(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -541,15 +579,27 @@ static AbstractQoreNode *f_QFileDialog_getOpenFileName(const QoreListNode *param
    if (get_qstring(p, filter, xsink, true))
       filter = QString();
 
-   p = get_param(params, 4);
+   const ReferenceNode *r = test_reference_param(params, 4);
    QString selectedFilter;
-   if (get_qstring(p, selectedFilter, xsink, true))
-      selectedFilter = QString();
 
    p = get_param(params, 5);
    QFileDialog::Options options = (QFileDialog::Options)(!is_nothing(p) ? p->getAsInt() : 0);
 
-   return new QoreStringNode(QFileDialog::getOpenFileName(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options).toUtf8().data(), QCS_UTF8);
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(QFileDialog::getOpenFileName(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, r ? &selectedFilter : 0, options).toUtf8().data(), QCS_UTF8));
+
+   // write back selectedFilter to reference
+   if (r) {
+      ReferenceHelper ref(r, xsink);
+      if (*xsink)
+	 return 0;
+      SimpleRefHolder<QoreStringNode> sf(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8));
+      ref.assign(*sf, xsink);
+      if (*xsink)
+	 return 0;
+      sf.release();
+   }
+
+   return str.release();
 }
 
 //QStringList getOpenFileNames ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, Options options = 0 )
@@ -573,18 +623,31 @@ static AbstractQoreNode *f_QFileDialog_getOpenFileNames(const QoreListNode *para
    QString filter;
    if (get_qstring(p, filter, xsink, true))
       filter = QString();
-   p = get_param(params, 4);
+
+   const ReferenceNode *r = test_reference_param(params, 4);
    QString selectedFilter;
-   if (get_qstring(p, selectedFilter, xsink, true))
-      selectedFilter = QString();
 
    p = get_param(params, 5);
    QFileDialog::Options options = (QFileDialog::Options)(!is_nothing(p) ? p->getAsInt() : 0);
-   QStringList strlist_rv = QFileDialog::getOpenFileNames(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options);
-   QoreListNode *l = new QoreListNode();
+   QStringList strlist_rv = QFileDialog::getOpenFileNames(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, r ? &selectedFilter : 0, options);
+
+   ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-   return l;
+
+   // write back selectedFilter to reference
+   if (r) {
+      ReferenceHelper ref(r, xsink);
+      if (*xsink)
+	 return 0;
+      SimpleRefHolder<QoreStringNode> sf(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8));
+      ref.assign(*sf, xsink);
+      if (*xsink)
+	 return 0;
+      sf.release();
+   }
+
+   return l.release();
 }
 
 //QString getSaveFileName ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, Options options = 0 )
@@ -611,14 +674,26 @@ static AbstractQoreNode *f_QFileDialog_getSaveFileName(const QoreListNode *param
    if (get_qstring(p, filter, xsink, true))
       filter = QString();
 
-   p = get_param(params, 4);
+   const ReferenceNode *r = test_reference_param(params, 4);
    QString selectedFilter;
-   if (get_qstring(p, selectedFilter, xsink, true))
-      selectedFilter = QString();
 
    p = get_param(params, 5);
    QFileDialog::Options options = (QFileDialog::Options)(!is_nothing(p) ? p->getAsInt() : 0);
-   return new QoreStringNode(QFileDialog::getSaveFileName(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options).toUtf8().data(), QCS_UTF8);
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(QFileDialog::getSaveFileName(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, r ? &selectedFilter : 0, options).toUtf8().data(), QCS_UTF8));
+
+   // write back selectedFilter to reference
+   if (r) {
+      ReferenceHelper ref(r, xsink);
+      if (*xsink)
+	 return 0;
+      SimpleRefHolder<QoreStringNode> sf(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8));
+      ref.assign(*sf, xsink);
+      if (*xsink)
+	 return 0;
+      sf.release();
+   }
+
+   return str.release();
 }
 
 void initQFileDialogStaticFunctions()

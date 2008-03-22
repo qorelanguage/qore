@@ -171,6 +171,8 @@
 #include "QC_QDialogButtonBox.h"
 #include "QC_QToolBar.h"
 #include "QC_QProgressDialog.h"
+#include "QC_QFontDialog.h"
+#include "QC_QErrorMessage.h"
 
 #include "qore-qt.h"
 
@@ -1581,7 +1583,7 @@ static void init_namespace()
    QoreNamespace *qdialog_ns = new QoreNamespace("QDialog");
 
    qdialog_ns->addSystemClass((qdialog = initQDialogClass(qwidget)));
-   qdialog_ns->addSystemClass(initQFileDialogClass(qdialog));
+   qdialog_ns->addInitialNamespace(initQFileDialogNS(qdialog));
    qdialog_ns->addSystemClass(initQPrintDialogClass(qdialog));
 
    qdialog_ns->addConstant("Rejected",   new QoreBigIntNode(QDialog::Rejected));
@@ -1675,6 +1677,7 @@ static void init_namespace()
    qt_ns->addInitialNamespace(initQDialogButtonBoxNS(qwidget));
    qt_ns->addInitialNamespace(initQToolBarNS(qwidget));
    qdialog_ns->addSystemClass(initQProgressDialogClass(qdialog));
+   qdialog_ns->addSystemClass(initQErrorMessageClass(qdialog));
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");
@@ -3393,6 +3396,7 @@ static class QoreStringNode *qt_module_init()
    initQTimerStaticFunctions();
    initQSystemTrayIconStaticFunctions();
    initQLibraryInfoStaticFunctions();
+   initQFontDialogStaticFunctions();
 
    return 0;
 }

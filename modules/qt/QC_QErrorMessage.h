@@ -1,5 +1,5 @@
 /*
- QC_QFileDialog.h
+ QC_QErrorMessage.h
  
  Qore Programming Language
  
@@ -20,49 +20,40 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QT_QC_QFILEDIALOG_H
+#ifndef _QORE_QT_QC_QERRORMESSAGE_H
 
-#define _QORE_QT_QC_QFILEDIALOG_H
+#define _QORE_QT_QC_QERRORMESSAGE_H
 
-#include <QFileDialog>
+#include <QErrorMessage>
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QFILEDIALOG;
-DLLLOCAL extern class QoreClass *QC_QFileDialog;
+DLLLOCAL extern int CID_QERRORMESSAGE;
+DLLLOCAL extern QoreClass *QC_QErrorMessage;
+DLLLOCAL QoreClass *initQErrorMessageClass(QoreClass *);
 
-DLLLOCAL QoreNamespace *initQFileDialogNS(QoreClass *);
-DLLLOCAL void initQFileDialogStaticFunctions();
-
-class myQFileDialog : public QFileDialog, public QoreQDialogExtension
+class myQErrorMessage : public QErrorMessage, public QoreQDialogExtension
 {
-#define QOREQTYPE QFileDialog
-#define MYQOREQTYPE myQFileDialog
+#define QOREQTYPE QErrorMessage
+#define MYQOREQTYPE myQErrorMessage
 #include "qore-qt-metacode.h"
-#include "qore-qt-qdialog-methods.h"
+#include  "qore-qt-qdialog-methods.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQFileDialog(QoreObject *obj, QWidget* parent, Qt::WindowFlags flags) : QFileDialog(parent, flags), QoreQDialogExtension(obj->getClass())
-      {
-         init(obj);
-      }
-      DLLLOCAL myQFileDialog(QoreObject *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : QFileDialog(parent, caption, directory, filter), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQErrorMessage(QoreObject *obj, QWidget* parent = 0) : QErrorMessage(parent), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
 };
 
-class QoreQFileDialog : public QoreAbstractQDialog
+class QoreQErrorMessage : public QoreAbstractQDialog
 {
    public:
-      QPointer<myQFileDialog> qobj;
+      QPointer<myQErrorMessage> qobj;
 
-      DLLLOCAL QoreQFileDialog(QoreObject *obj, QWidget* parent, Qt::WindowFlags flags) : qobj(new myQFileDialog(obj, parent, flags))
-      {
-      }
-      DLLLOCAL QoreQFileDialog(QoreObject *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : qobj(new myQFileDialog(obj, parent, caption, directory, filter))
+      DLLLOCAL QoreQErrorMessage(QoreObject *obj, QWidget* parent = 0) : qobj(new myQErrorMessage(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -84,4 +75,4 @@ class QoreQFileDialog : public QoreAbstractQDialog
       QORE_VIRTUAL_QDIALOG_METHODS
 };
 
-#endif // _QORE_QT_QC_QFILEDIALOG_H
+#endif // _QORE_QT_QC_QERRORMESSAGE_H

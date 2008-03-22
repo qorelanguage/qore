@@ -1,6 +1,6 @@
 2008.03.22: David Nichols
-	* qt: implemented QProgressDialog
-	* qt: added findfiles.q example
+	* qt: implemented new classes, bug fixes
+	* qt: added findfiles.q and standarddialogs.q examples
 	* eliminated QoreObject::ref() function (already implemented in
 	  AbstractQoreNode base class)
 

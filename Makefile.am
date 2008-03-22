@@ -484,6 +484,8 @@ noinst_HEADERS = \
 	modules/qt/QC_QDialogButtonBox.h \
 	modules/qt/QC_QToolBar.h \
 	modules/qt/QC_QProgressDialog.h \
+	modules/qt/QC_QFontDialog.h \
+	modules/qt/QC_QErrorMessage.h \
 	command-line.h \
 	include/qore/Qore.h
 

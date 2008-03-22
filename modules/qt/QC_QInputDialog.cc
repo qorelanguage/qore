@@ -68,14 +68,13 @@ static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, Ex
    double rv = QInputDialog::getDouble(static_cast<QWidget *>(parent->getQWidget()), title, label, value, minValue, maxValue, decimals, &ok, f);
 
    if (pr) {
-      class AutoVLock vl;
-      class AbstractQoreNode **vp = get_var_value_ptr(pr->getExpression(), &vl, xsink);
+      ReferenceHelper ref(pr, xsink);
       if (*xsink)
 	 return 0;
 
-      if (*vp)
-	 (*vp)->deref(xsink);
-      (*vp) = get_bool_node(ok);
+      ref.assign(get_bool_node(ok), xsink);
+      if (*xsink)
+	 return 0;
    }
 
    return new QoreFloatNode(rv);
@@ -124,14 +123,13 @@ static AbstractQoreNode *f_QInputDialog_getInteger(const QoreListNode *params, E
    int64 rv = QInputDialog::getInteger(static_cast<QWidget *>(parent->getQWidget()), title, label, value, minValue, maxValue, step, &ok, f);
 
    if (pr) {
-      class AutoVLock vl;
-      class AbstractQoreNode **vp = get_var_value_ptr(pr->getExpression(), &vl, xsink);
+      ReferenceHelper ref(pr, xsink);
       if (*xsink)
 	 return 0;
 
-      if (*vp)
-	 (*vp)->deref(xsink);
-      (*vp) = get_bool_node(ok);
+      ref.assign(get_bool_node(ok), xsink);
+      if (*xsink)
+	 return 0;
    }
 
    return new QoreBigIntNode(rv);
@@ -189,14 +187,13 @@ static AbstractQoreNode *f_QInputDialog_getItem(const QoreListNode *params, Exce
    QString rv = QInputDialog::getItem(static_cast<QWidget *>(parent->getQWidget()), title, label, list, current, editable, &ok, f);
 
    if (pr) {
-      class AutoVLock vl;
-      class AbstractQoreNode **vp = get_var_value_ptr(pr->getExpression(), &vl, xsink);
+      ReferenceHelper ref(pr, xsink);
       if (*xsink)
 	 return 0;
 
-      if (*vp)
-	 (*vp)->deref(xsink);
-      (*vp) = get_bool_node(ok);
+      ref.assign(get_bool_node(ok), xsink);
+      if (*xsink)
+	 return 0;
    }
 
    return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);
@@ -240,14 +237,13 @@ static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, Exce
    QString rv = QInputDialog::getText(static_cast<QWidget *>(parent->getQWidget()), title, label, mode, text, &ok, f);
 
    if (pr) {
-      class AutoVLock vl;
-      class AbstractQoreNode **vp = get_var_value_ptr(pr->getExpression(), &vl, xsink);
+      ReferenceHelper ref(pr, xsink);
       if (*xsink)
 	 return 0;
 
-      if (*vp)
-	 (*vp)->deref(xsink);
-      (*vp) = get_bool_node(ok);
+      ref.assign(get_bool_node(ok), xsink);
+      if (*xsink)
+	 return 0;
    }
 
    return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);

@@ -187,3 +187,5 @@
 #include "QC_QDialogButtonBox.cc"
 #include "QC_QToolBar.cc"
 #include "QC_QProgressDialog.cc"
+#include "QC_QFontDialog.cc"
+#include "QC_QErrorMessage.cc"

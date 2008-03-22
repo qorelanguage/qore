@@ -792,11 +792,13 @@ DLLLOCAL extern QoreClass *QC_%s;
             if ($o.style)
                 $of.printf("      friend class Qore%s;\n\n", $cn);
 	    $of.printf("#define QOREQTYPE %s
+#define MYQOREQTYPE my%s
 #include \"qore-qt-metacode.h\"
-%s#undef QOREQTYPE
+%s#undef MYQOREQTYPE
+#undef QOREQTYPE
 
    public:
-", $cn, $o.dialog ? "#include  \"qore-qt-qdialog-methods.h\"\n" : 
+", $cn, $cn, $o.dialog ? "#include  \"qore-qt-qdialog-methods.h\"\n" : 
 		       $o.widget ? "#include \"qore-qt-widget-events.h\"\n" : 
 		       $o.validator ? "#include \"qore-qt-qvalidator-methods.h\"\n" : "");
 	    
