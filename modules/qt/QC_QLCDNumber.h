@@ -44,15 +44,11 @@ class myQLCDNumber : public QLCDNumber, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQLCDNumber(QoreObject *obj, QWidget *parent = 0) : QLCDNumber(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLCDNumber(QoreObject *obj, QWidget *parent = 0) : QLCDNumber(parent), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
-	 //init_widget_events();
       }
-      DLLLOCAL myQLCDNumber(QoreObject *obj, int num_digits, QWidget *parent = 0) : QLCDNumber(num_digits, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLCDNumber(QoreObject *obj, int num_digits, QWidget *parent = 0) : QLCDNumber(num_digits, parent), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
-	 //init_widget_events();
       }
 };
 
@@ -65,9 +61,6 @@ class QoreQLCDNumber : public QoreAbstractQFrame
       {
       }
       DLLLOCAL QoreQLCDNumber(QoreObject *obj, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, parent))
-      {
-      }
-      DLLLOCAL virtual ~QoreQLCDNumber()
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

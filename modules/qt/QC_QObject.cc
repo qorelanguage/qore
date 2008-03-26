@@ -29,6 +29,13 @@
 qore_classid_t CID_QOBJECT;
 QoreClass *QC_QObject = 0;
 
+bool qobject_delete_blocker(QoreObject *self, QoreAbstractQObject *qo)
+{
+   bool rc = qo->deleteBlocker();
+   //printd(5, "qobject_delete_blocker() self=%08p, qo=%08p rc=%d\n", self, qo, rc);
+   return rc;
+}
+
 static void QOBJECT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQObject *qo;
@@ -52,7 +59,7 @@ static void QOBJECT_constructor(class QoreObject *self, const QoreListNode *para
    self->setPrivate(CID_QOBJECT, qo);
 }
 
-static void QOBJECT_copy(class QoreObject *self, class QoreObject *old, class QoreQObject *qo, ExceptionSink *xsink)
+static void QOBJECT_copy(QoreObject *self, QoreObject *old, QoreAbstractQObject *qo, ExceptionSink *xsink)
 {
    xsink->raiseException("QOBJECT-COPY-ERROR", "objects of this class cannot be copied");
 }
@@ -175,13 +182,19 @@ static AbstractQoreNode *QOBJECT_dumpObjectTree(QoreObject *self, QoreAbstractQO
 //   ??? return new QoreBigIntNode(qo->getQObject()->dynamicPropertyNames());
 //}
 
-//virtual bool event ( QEvent * e )
-//static AbstractQoreNode *QOBJECT_event(QoreObject *self, QoreAbstractQObject *qo, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   const AbstractQoreNode *p = get_param(params, 0);
-//   ??? QEvent* e = p;
-//   return get_bool_node(qo->getQObject()->event(e));
-//}
+//virtual bool event ( QEvent * event )
+static AbstractQoreNode *QOBJECT_event(QoreObject *self, QoreAbstractQObject *qo, const QoreListNode *params, ExceptionSink *xsink)
+{
+   QoreObject *p = test_object_param(params, 0);
+   QoreQEvent *event = p ? (QoreQEvent *)p->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QOBJECT-EVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QObject::event()");
+      return 0;
+   }
+   ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
+   return get_bool_node(qo->event(static_cast<QEvent *>(event)));
+}
 
 //virtual bool eventFilter ( QObject * watched, QEvent * event )
 //static AbstractQoreNode *QOBJECT_eventFilter(QoreObject *self, QoreAbstractQObject *qo, const QoreListNode *params, ExceptionSink *xsink)
@@ -471,6 +484,8 @@ class QoreClass *initQObjectClass()
    QC_QObject = new QoreClass("QObject", QDOM_GUI);
    CID_QOBJECT = QC_QObject->getID();
 
+   QC_QObject->setDeleteBlocker((q_delete_blocker_t)qobject_delete_blocker);
+
    QC_QObject->setConstructor(QOBJECT_constructor);
    QC_QObject->setCopy((q_copy_t)QOBJECT_copy);
   
@@ -508,6 +523,7 @@ class QoreClass *initQObjectClass()
 
    // private methods
    QC_QObject->addMethod("sender",                      (q_method_t)QOBJECT_sender, true);
+   QC_QObject->addMethod("event",                       (q_method_t)QOBJECT_event, true);
    QC_QObject->addMethod("childEvent",                  (q_method_t)QOBJECT_childEvent, true);
    QC_QObject->addMethod("timerEvent",                  (q_method_t)QOBJECT_timerEvent, true);
 

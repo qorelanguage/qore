@@ -45,13 +45,13 @@ class myQTableWidget : public QTableWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTableWidget(QoreObject *obj, QWidget* parent = 0) : QTableWidget(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTableWidget(QoreObject *obj, QWidget* parent = 0) : QTableWidget(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQTableWidget(QoreObject *obj, int rows, int columns, QWidget* parent = 0) : QTableWidget(rows, columns, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTableWidget(QoreObject *obj, int rows, int columns, QWidget* parent = 0) : QTableWidget(rows, columns, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

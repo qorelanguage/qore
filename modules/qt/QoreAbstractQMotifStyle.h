@@ -32,4 +32,32 @@ class QoreAbstractQMotifStyle : public QoreAbstractQStyle
       DLLLOCAL virtual class QMotifStyle *getQMotifStyle() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQMotifStyleBase : public QoreQStyleBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQMotifStyleBase(T *qo) : QoreQStyleBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QMotifStyle *getQMotifStyle() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQMotifStyleBase : public QoreQtQStyleBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQMotifStyleBase(QoreObject *obj, T *qo) : QoreQtQStyleBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QMotifStyle *getQMotifStyle() const
+      {
+	 return this->qobj;
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQMOTIFSTYLE_H

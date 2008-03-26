@@ -43,33 +43,20 @@ class myQMainWindow : public QMainWindow, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMainWindow(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QMainWindow(parent, flags), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQMainWindow(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QMainWindow(parent, flags), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQMainWindow : public QoreAbstractQWidget
+typedef QoreQWidgetBase<myQMainWindow, QoreAbstractQWidget> QoreQMainWindowImpl;
+
+class QoreQMainWindow : public QoreQMainWindowImpl
 {
    public:
-      QPointer<myQMainWindow> qobj;
-
-      DLLLOCAL QoreQMainWindow(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : qobj(new myQMainWindow(obj, parent, flags))
+      DLLLOCAL QoreQMainWindow(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QoreQMainWindowImpl(new myQMainWindow(obj, parent, flags))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QMAINWINDOW_H

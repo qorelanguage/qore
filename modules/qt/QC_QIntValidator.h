@@ -51,14 +51,14 @@ class myQIntValidator : public QIntValidator, public QoreQValidatorExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQIntValidator(QoreObject *obj, QObject* parent) : QIntValidator(parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQIntValidator(QoreObject *obj, QObject* parent) : QIntValidator(parent), QoreQValidatorExtension(obj, this)
       {
-         init(obj);
+         
          qdv_init(obj->getClass());
       }
-      DLLLOCAL myQIntValidator(QoreObject *obj, int minimum, int maximum, QObject* parent) : QIntValidator(minimum, maximum, parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQIntValidator(QoreObject *obj, int minimum, int maximum, QObject* parent) : QIntValidator(minimum, maximum, parent), QoreQValidatorExtension(obj, this)
       {
-         init(obj);
+         
          qdv_init(obj->getClass());
       }
  

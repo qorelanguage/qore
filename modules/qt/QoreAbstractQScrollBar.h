@@ -32,4 +32,32 @@ class QoreAbstractQScrollBar : public QoreAbstractQAbstractSlider
       DLLLOCAL virtual class QScrollBar *getQScrollBar() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQScrollBarBase : public QoreQAbstractSliderBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQScrollBarBase(T *qo) : QoreQAbstractSliderBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QScrollBar *getQScrollBar() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQScrollBarBase : public QoreQtQAbstractSliderBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQScrollBarBase(QoreObject *obj, T *qo) : QoreQtQAbstractSliderBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QScrollBar *getQScrollBar() const
+      {
+	 return this->qobj;
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQSCROLLBAR_H

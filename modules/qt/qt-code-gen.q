@@ -813,9 +813,9 @@ DLLLOCAL extern QoreClass *QC_%s;
 		    if (strlen($i.orig_args))
 			$str += ", " + $i.orig_args;
 		    $of.printf("      DLLLOCAL my%s(%s) : %s(%s)%s\n      {\n", $cn, $str, $cn, $arg_names,
-			       $o.dialog ? ", QoreQDialogExtension(obj->getClass())" :
-			       $o.widget ? ", QoreQWidgetExtension(obj->getClass())" :
-			       $o.validator ? ", QoreQValidatorExtension(obj->getClass())" : ", QoreQObjectExtension(obj->getClass())");
+			       $o.dialog ? ", QoreQDialogExtension(obj, this)" :
+			       $o.widget ? ", QoreQWidgetExtension(obj, this)" :
+			       $o.validator ? ", QoreQValidatorExtension(obj, this)" : ", QoreQObjectExtension(obj, this)");
 		    $of.printf("         init(obj);\n");
 		    $of.printf("      }\n"); 
 		}

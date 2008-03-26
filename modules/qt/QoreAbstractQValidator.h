@@ -44,8 +44,9 @@ class QoreQValidatorExtension : public QoreQObjectExtension
       const QoreMethod *m_fixup, *m_validate;
 
    public:
-      DLLLOCAL QoreQValidatorExtension(const QoreClass *qc) : QoreQObjectExtension(qc)
+      DLLLOCAL QoreQValidatorExtension(QoreObject *obj, QObject *qo) : QoreQObjectExtension(obj, qo)
       {
+	 const QoreClass *qc = obj->getClass();
          m_fixup        = findMethod(qc, "fixup");
          m_validate     = findMethod(qc, "validate");
       }

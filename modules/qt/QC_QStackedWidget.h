@@ -42,9 +42,9 @@ class myQStackedWidget : public QStackedWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQStackedWidget(QoreObject *obj, QWidget* parent = 0) : QStackedWidget(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQStackedWidget(QoreObject *obj, QWidget* parent = 0) : QStackedWidget(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

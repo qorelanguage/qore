@@ -43,9 +43,9 @@ class myQDialog : public QDialog, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog(parent, f), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog(parent, f), QoreQDialogExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

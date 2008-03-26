@@ -44,14 +44,14 @@ class myQLabel : public QLabel, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQLabel(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLabel(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
+	 
 	 //init_widget_events();
       }
-      DLLLOCAL myQLabel(QoreObject *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLabel(QoreObject *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
+	 
 	 //init_widget_events();
       }
 };

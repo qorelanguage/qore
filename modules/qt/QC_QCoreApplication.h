@@ -43,52 +43,33 @@ class myQCoreApplication : public QCoreApplication, public QoreQObjectExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCoreApplication(QoreObject *obj, int& argc, char ** argv) : QCoreApplication(argc, argv), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQCoreApplication(QoreObject *obj, int& argc, char ** argv) : QCoreApplication(argc, argv), QoreQObjectExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQCoreApplication : public QoreAbstractQCoreApplication
+typedef QoreQCoreApplicationBase<myQCoreApplication, QoreAbstractQCoreApplication> QoreQCoreApplicationImpl;
+
+class QoreQCoreApplication : public QoreQCoreApplicationImpl
 {
    public:
-      QPointer<myQCoreApplication> qobj;
-
-      DLLLOCAL QoreQCoreApplication(QoreObject *obj) : qobj(new myQCoreApplication(obj, static_argc, static_argv))
+      DLLLOCAL QoreQCoreApplication(QoreObject *obj) : QoreQCoreApplicationImpl(new myQCoreApplication(obj, static_argc, static_argv))
       {
       }
-      DLLLOCAL QoreQCoreApplication(QoreObject *obj, int& argc, char ** argv) : qobj(new myQCoreApplication(obj, argc, argv))
+      DLLLOCAL QoreQCoreApplication(QoreObject *obj, int& argc, char ** argv) : QoreQCoreApplicationImpl(new myQCoreApplication(obj, argc, argv))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QCoreApplication *getQCoreApplication() const
-      {
-         return static_cast<QCoreApplication *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
-class QoreQtQCoreApplication : public QoreAbstractQCoreApplication
+typedef QoreQtQCoreApplicationBase<QCoreApplication, QoreAbstractQCoreApplication> QoreQtQCoreApplicationImpl;
+
+class QoreQtQCoreApplication : public QoreQtQCoreApplicationImpl
 {
   public:
-   QoreObject *qore_obj;
-   QPointer<QCoreApplication> qobj;
-
-   DLLLOCAL QoreQtQCoreApplication(QoreObject *obj, QCoreApplication *qcoreapplication) : qore_obj(obj), qobj(qcoreapplication)
+   DLLLOCAL QoreQtQCoreApplication(QoreObject *obj, QCoreApplication *qcoreapplication) : QoreQtQCoreApplicationImpl(obj, qcoreapplication)
    {
    }
-   DLLLOCAL virtual class QObject *getQObject() const
-   {
-      return static_cast<QObject *>(&(*qobj));
-   }
-   DLLLOCAL virtual class QCoreApplication *getQCoreApplication() const
-   {
-      return static_cast<QCoreApplication *>(&(*qobj));
-   }
-#include "qore-qt-static-qobject-methods.h"
 };
 
 #endif // _QORE_QT_QC_QCOREAPPLICATION_H

@@ -155,18 +155,6 @@ class T {
 
 	 *event = *e;
       }
-      DLLLOCAL virtual bool event(QEvent *event)
-      {
-	 //printd(5, QLSTR(QOREQTYPE) "::event(%08p) this=%08p func=%08p type=%d qore_obj=%08p\n", event, this, e_paintEvent, (int)event->getType()(), qore_obj);
-	 if (!e_event || !qore_obj)
-	    return QOREQTYPE::event(event);
-
-	 ExceptionSink xsink;
-         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
-	 args->push(return_qevent(event));
-
-	 return dispatch_event_bool(qore_obj, e_event, *args, &xsink);
-      }
 
       DLLLOCAL virtual void leaveEvent(QEvent *event)
       {
@@ -642,11 +630,6 @@ class T {
       DLLLOCAL virtual void parent_enterEvent(QEvent *event)
       {
 	 QOREQTYPE::enterEvent(event);
-      }
-
-      DLLLOCAL virtual bool parent_event(QEvent *event)
-      {
-	 return QOREQTYPE::event(event);
       }
 
       DLLLOCAL virtual void parent_leaveEvent(QEvent *event)

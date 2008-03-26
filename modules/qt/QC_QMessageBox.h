@@ -44,13 +44,13 @@ class myQMessageBox : public QMessageBox, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMessageBox(QoreObject *obj, QWidget* parent = 0) : QMessageBox(parent), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQMessageBox(QoreObject *obj, QWidget* parent = 0) : QMessageBox(parent), QoreQDialogExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQMessageBox(QoreObject *obj, Icon icon, const QString& title, const QString& text, StandardButtons buttons = NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : QMessageBox(icon, title, text, buttons, parent, f), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQMessageBox(QoreObject *obj, Icon icon, const QString& title, const QString& text, StandardButtons buttons = NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : QMessageBox(icon, title, text, buttons, parent, f), QoreQDialogExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

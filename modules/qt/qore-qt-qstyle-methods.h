@@ -17,7 +17,7 @@ class T {
 	 args->push(return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*option)));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
 
 	 discard(dispatch_event_intern(qore_obj, m_drawComplexControl, *args, &xsink), &xsink);
       }
@@ -34,7 +34,7 @@ class T {
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
 
 	 discard(dispatch_event_intern(qore_obj, m_drawControl, *args, &xsink), &xsink);
       }
@@ -110,7 +110,7 @@ class T {
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
 
 	 discard(dispatch_event_intern(qore_obj, m_drawPrimitive, *args, &xsink), &xsink);
       }
@@ -142,7 +142,7 @@ class T {
 	 args->push(new QoreBigIntNode(standardPixmap));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
 
 	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_standardPixmap, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
@@ -213,7 +213,7 @@ class T {
 	 args->push(new QoreBigIntNode(metric));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
 
 	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_pixelMetric, *args, &xsink), &xsink);
 	 return *rv ? rv->getAsInt() : 0;
@@ -227,7 +227,7 @@ class T {
 
 	 ExceptionSink xsink;
          ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
-	 args->push(return_qobject(widget));
+	 args->push(return_qwidget(widget, false));
 	 discard(dispatch_event_intern(qore_obj, m_polish, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual void polish ( QApplication * application )
@@ -275,7 +275,7 @@ class T {
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QSize, new QoreQSize(contentsSize)));
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
 
 	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_sizeFromContents, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
@@ -315,8 +315,10 @@ class T {
          ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(new QoreBigIntNode(hint));
 	 args->push(return_qstyleoption(option));
+
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
+
 	 // returnData not currently implemented
 
 	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_styleHint, *args, &xsink), &xsink);
@@ -333,7 +335,7 @@ class T {
 	 args->push(return_qstyleoption(option));
 	 args->push(new QoreBigIntNode(subControl));
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
 
 	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_subControlRect, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
@@ -356,7 +358,7 @@ class T {
 	 args->push(new QoreBigIntNode(element));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
-	    args->push(return_qobject(const_cast<QWidget *>(widget)));
+	    args->push(return_qwidget(const_cast<QWidget *>(widget), false));
 
 	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_subElementRect, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
@@ -378,7 +380,7 @@ class T {
 
 	 ExceptionSink xsink;
          ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
-	 args->push(return_qobject(widget));
+	 args->push(return_qwidget(widget, false));
 	 discard(dispatch_event_intern(qore_obj, m_unpolish, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual void unpolish ( QApplication * application ) 
@@ -487,6 +489,12 @@ class T {
       }									
 #endif
 
+      DLLLOCAL virtual int parent_layoutSpacingImplementation ( QSizePolicy::ControlType control1, QSizePolicy::ControlType control2, Qt::Orientation orientation, const QStyleOption * option = 0, const QWidget * widget = 0 ) const { 
+	 return layoutSpacingImplementation(control1, control2, orientation, option, widget); 
+      }									
+      DLLLOCAL virtual QIcon parent_standardIconImplementation ( QStyle::StandardPixmap standardIcon, const QStyleOption * option = 0, const QWidget * widget = 0 ) const { 
+	 return parent_standardIconImplementation(standardIcon, option, widget); 
+      }
       DLLLOCAL virtual void parent_drawItemPixmap ( QPainter * painter, const QRect & rectangle, int alignment, const QPixmap & pixmap ) const 
       { 
 	 QOREQTYPE::drawItemPixmap(painter, rectangle, alignment, pixmap);	

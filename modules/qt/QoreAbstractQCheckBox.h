@@ -29,7 +29,36 @@
 class QoreAbstractQCheckBox : public QoreAbstractQAbstractButton
 {
    public:
-      DLLLOCAL virtual class QCheckBox *getQCheckBox() const = 0;
+      DLLLOCAL virtual QCheckBox *getQCheckBox() const = 0;
 };
+
+template<typename T, typename V>
+class QoreQCheckBoxBase : public QoreQAbstractButtonBase<T, V>
+{
+   public:
+      QoreQCheckBoxBase(T *qo) : QoreQAbstractButtonBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QCheckBox *getQCheckBox() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQCheckBoxBase : public QoreQtQAbstractButtonBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQCheckBoxBase(QoreObject *obj, T *qo) : QoreQtQAbstractButtonBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QCheckBox *getQCheckBox() const
+      {
+	 return this->qobj;
+      }
+};
+
 
 #endif  // _QORE_QT_QOREABSTRACTQCHECKBOX_H

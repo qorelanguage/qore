@@ -29,37 +29,25 @@
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QCLIPBOARD;
-DLLLOCAL extern class QoreClass *QC_QClipboard;
+DLLLOCAL extern QoreClass *QC_QClipboard;
 
-DLLLOCAL class QoreClass *initQClipboardClass(QoreClass *);
+DLLLOCAL QoreClass *initQClipboardClass(QoreClass *);
 
-class QoreQClipboard : public QoreAbstractQObject
+typedef QoreQtQObjectPrivateBase<QClipboard, QoreAbstractQObject> QoreQClipboardImpl;
+
+class QoreQClipboard : public QoreQClipboardImpl
 {
-   private:
-      QoreObject *qore_obj;     // containing qore object
-
    protected:
       DLLLOCAL ~QoreQClipboard()
       {
-	 
       }
 
    public:
-      QPointer<QClipboard> qobj;
-
-      DLLLOCAL QoreQClipboard(QoreObject *obj, QClipboard *cb) : qore_obj(obj), qobj(cb)
+      DLLLOCAL QoreQClipboard(QoreObject *obj, QClipboard *cb) : QoreQClipboardImpl(obj, cb)
       {
 	 // set pointer to object owner as a property
          qobj->setProperty("qobject", reinterpret_cast<qulonglong>(obj));
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-
-#include "qore-qt-static-qobject-methods.h"
-
 };
 
 #endif // _QORE_QT_QC_QCLIPBOARD_H

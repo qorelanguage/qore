@@ -48,62 +48,29 @@ class myQWidget : public QWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWidget(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QWidget(parent, window_flags), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQWidget(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QWidget(parent, window_flags), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
-	 //init_widget_events();
       }
 };
 
-class QoreQWidget : public QoreAbstractQWidget
+typedef QoreQWidgetBase<myQWidget, QoreAbstractQWidget> QoreQWidgetImpl;
+
+class QoreQWidget : public QoreQWidgetImpl
 {
    public:
-      QPointer<myQWidget>qobj;
-
-      DLLLOCAL QoreQWidget(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQWidget(obj, parent, window_flags))
+      DLLLOCAL QoreQWidget(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QoreQWidgetImpl(new myQWidget(obj, parent, window_flags))
       {
       }
-      DLLLOCAL virtual QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual QWidget *getQWidget() const
-      {
-	 //return static_cast<QWidget *>(&(*qobj));
-	 return &(*qobj);
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-	 return static_cast<QPaintDevice *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQWidget : public QoreAbstractQWidget
+typedef QoreQtQWidgetBase<QWidget, QoreAbstractQWidget> QoreQtQWidgetImpl;
+
+class QoreQtQWidget : public QoreQtQWidgetImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QWidget>qobj;
-
-      DLLLOCAL QoreQtQWidget(QoreObject *obj, QWidget *qw) : qore_obj(obj), qobj(qw)
+   DLLLOCAL QoreQtQWidget(QoreObject *obj, QWidget *qw, bool managed = true) : QoreQtQWidgetImpl(obj, qw, managed)
       {
       }
-      DLLLOCAL virtual QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual QWidget *getQWidget() const
-      {
-	 //return static_cast<QWidget *>(&(*qobj));
-	 return &(*qobj);
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-	 return static_cast<QPaintDevice *>(&(*qobj));
-      }
-
-#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif

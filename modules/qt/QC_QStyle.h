@@ -49,8 +49,6 @@ DLLLOCAL class QoreNamespace *initQStyleNS(QoreClass *);
 
 class myQStyle : public QStyle, public QoreQStyleExtension 
 {
-      friend class QoreQStyle;
-
 #define QORE_IS_QSTYLE
 #define QOREQTYPE QStyle
 #define MYQOREQTYPE myQStyle
@@ -61,46 +59,31 @@ class myQStyle : public QStyle, public QoreQStyleExtension
 #undef QORE_IS_QSTYLE
 
    public:
-      DLLLOCAL myQStyle(QoreObject *obj) : QStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQStyle(QoreObject *obj) : QStyle(), QoreQStyleExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQStyle : public QoreAbstractQStyle
+typedef QoreQStyleBase<myQStyle, QoreAbstractQStyle> QoreQStyleImpl;
+
+class QoreQStyle : public QoreQStyleImpl
 {
    public:
-      QPointer<myQStyle> qobj;
-
-      DLLLOCAL QoreQStyle(QoreObject *obj) : qobj(new myQStyle(obj))
+      DLLLOCAL QoreQStyle(QoreObject *obj) : QoreQStyleImpl(new myQStyle(obj))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QSTYLE_METHODS
 };
+
+typedef QoreQtQStyleBase<QStyle, QoreAbstractQStyle> QoreQtQStyleImpl;
 
 // for non-qore-generated QStyle object
-class QoreQtQStyle : public QoreAbstractQStyle
+class QoreQtQStyle : public QoreQtQStyleImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QStyle> qobj;
-
-      DLLLOCAL QoreQtQStyle(QoreObject *obj, QStyle *qs) : qore_obj(obj), qobj(qs)
+      DLLLOCAL QoreQtQStyle(QoreObject *obj, QStyle *qs) : QoreQtQStyleImpl(obj, qs)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QStyle *getQStyle() const
-      {
-	 return static_cast<QStyle *>(&(*qobj));
-      }
-#include "qore-qt-static-qstyle-methods.h"
 };
 
 #endif // _QORE_QT_QC_QSTYLE_H

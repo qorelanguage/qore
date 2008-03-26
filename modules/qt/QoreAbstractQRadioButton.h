@@ -32,4 +32,32 @@ class QoreAbstractQRadioButton : public QoreAbstractQAbstractButton
       DLLLOCAL virtual class QRadioButton *getQRadioButton() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQRadioButtonBase : public QoreQAbstractButtonBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQRadioButtonBase(T *qo) : QoreQAbstractButtonBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QRadioButton *getQRadioButton() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQRadioButtonBase : public QoreQtQAbstractButtonBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQRadioButtonBase(QoreObject *obj, T *qo) : QoreQtQAbstractButtonBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QRadioButton *getQRadioButton() const
+      {
+	 return this->qobj;
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQRADIOBUTTON_H

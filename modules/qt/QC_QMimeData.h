@@ -42,25 +42,20 @@ class myQMimeData : public QMimeData, public QoreQObjectExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMimeData(QoreObject *obj) : QMimeData(), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQMimeData(QoreObject *obj) : QMimeData(), QoreQObjectExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQMimeData : public QoreAbstractQObject
+typedef QoreQObjectBase<myQMimeData, QoreAbstractQObject> QoreQMimeDataImpl;
+
+class QoreQMimeData : public QoreQMimeDataImpl
 {
    public:
-      QPointer<myQMimeData> qobj;
-
-      DLLLOCAL QoreQMimeData(QoreObject *obj) : qobj(new myQMimeData(obj))
+      DLLLOCAL QoreQMimeData(QoreObject *obj) : QoreQMimeDataImpl(new myQMimeData(obj))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif // _QORE_QT_QC_QMIMEDATA_H

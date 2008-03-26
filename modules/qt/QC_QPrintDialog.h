@@ -43,9 +43,9 @@ class myQPrintDialog : public QPrintDialog, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQPrintDialog(QoreObject *obj, QPrinter* printer, QWidget* parent = 0) : QPrintDialog(printer, parent), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQPrintDialog(QoreObject *obj, QPrinter* printer, QWidget* parent = 0) : QPrintDialog(printer, parent), QoreQDialogExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

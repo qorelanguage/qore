@@ -44,13 +44,13 @@ class myQTextEdit : public QTextEdit, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTextEdit(QoreObject *obj, QWidget* parent = 0) : QTextEdit(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTextEdit(QoreObject *obj, QWidget* parent = 0) : QTextEdit(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQTextEdit(QoreObject *obj, const QString& text, QWidget* parent = 0) : QTextEdit(text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTextEdit(QoreObject *obj, const QString& text, QWidget* parent = 0) : QTextEdit(text, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

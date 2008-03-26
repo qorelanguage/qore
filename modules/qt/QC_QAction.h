@@ -42,17 +42,17 @@ class myQAction : public QAction, public QoreQObjectExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQAction(QoreObject *obj, QObject* parent) : QAction(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQAction(QoreObject *obj, QObject* parent) : QAction(parent), QoreQObjectExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQAction(QoreObject *obj, const QString& text, QObject* parent) : QAction(text, parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQAction(QoreObject *obj, const QString& text, QObject* parent) : QAction(text, parent), QoreQObjectExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQAction(QoreObject *obj, const QIcon& icon, const QString& text, QObject* parent) : QAction(icon, text, parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQAction(QoreObject *obj, const QIcon& icon, const QString& text, QObject* parent) : QAction(icon, text, parent), QoreQObjectExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

@@ -43,13 +43,13 @@ class myQGroupBox : public QGroupBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQGroupBox(QoreObject *obj, QWidget* parent = 0) : QGroupBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQGroupBox(QoreObject *obj, QWidget* parent = 0) : QGroupBox(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQGroupBox(QoreObject *obj, const QString& title, QWidget* parent = 0) : QGroupBox(title, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQGroupBox(QoreObject *obj, const QString& title, QWidget* parent = 0) : QGroupBox(title, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

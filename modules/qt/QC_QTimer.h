@@ -41,27 +41,20 @@ class myQTimer : public QTimer, public QoreQObjectExtension
 #undef MYQOREQTYPE
 #undef QOREQTYPE
 
-      DLLLOCAL myQTimer(QoreObject *obj, QObject *parent) : QTimer(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQTimer(QoreObject *obj, QObject *parent) : QTimer(parent), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }      
 };
 
-class QoreQTimer : public QoreAbstractQObject
+typedef QoreQObjectBase<myQTimer, QoreAbstractQObject> QoreQTimerImpl;
+
+class QoreQTimer : public QoreQTimerImpl
 {
    public:
-      QPointer<myQTimer> qobj;
-
-      DLLLOCAL QoreQTimer(QoreObject *obj, QObject *parent = 0) : qobj(new myQTimer(obj, parent))
+      DLLLOCAL QoreQTimer(QoreObject *obj, QObject *parent = 0) : QoreQTimerImpl(new myQTimer(obj, parent))
       {
       }
-
-      DLLLOCAL virtual QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 class QoreSingleShotTimer : public QObject, public QoreQObjectExtension
@@ -78,9 +71,9 @@ class QoreSingleShotTimer : public QObject, public QoreQObjectExtension
       int timerId;
 
    public:
-      DLLLOCAL QoreSingleShotTimer(QoreObject *obj) : QoreQObjectExtension(obj->getClass())
+      DLLLOCAL QoreSingleShotTimer(QoreObject *obj) : QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 
       DLLLOCAL void timer_init(QoreAbstractQObject *qsst, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink)
@@ -111,22 +104,15 @@ protected:
       }
 };
 
-class QoreQtSingleShotTimer : public QoreAbstractQObject
+typedef QoreQtQObjectBase<QoreSingleShotTimer, QoreAbstractQObject> QoreQtSingleShotTimerImpl;
+
+class QoreQtSingleShotTimer : public QoreQtSingleShotTimerImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QoreSingleShotTimer> qobj;
-
-      DLLLOCAL QoreQtSingleShotTimer(QoreObject *obj, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink) : qore_obj(obj), qobj(new QoreSingleShotTimer(qore_obj))
+      DLLLOCAL QoreQtSingleShotTimer(QoreObject *obj, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink) : QoreQtSingleShotTimerImpl(obj, new QoreSingleShotTimer(qore_obj))
       {
-	 qobj->timer_init(this, msec, receiver, member, xsink);
+	 this->qobj->timer_init(this, msec, receiver, member, xsink);
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return &*qobj;
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

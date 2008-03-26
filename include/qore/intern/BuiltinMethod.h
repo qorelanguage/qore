@@ -29,18 +29,20 @@
 
 class BuiltinMethod : public BuiltinFunction, public QoreReferenceCounter
 {
-protected:
-   DLLLOCAL inline ~BuiltinMethod() {}
+   protected:
+      DLLLOCAL ~BuiltinMethod() {}
    
-public:
-   class QoreClass *myclass;
+   public:
+      QoreClass *myclass;
    
-   DLLLOCAL inline BuiltinMethod(class QoreClass *c, const char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
-   DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-   DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_system_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-   DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-   DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
-   DLLLOCAL inline void deref();
+      DLLLOCAL BuiltinMethod(QoreClass *c, const char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL BuiltinMethod(QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL BuiltinMethod(QoreClass *c, q_system_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL BuiltinMethod(QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL BuiltinMethod(QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL BuiltinMethod(QoreClass *c, q_delete_blocker_t m) : BuiltinFunction(m), myclass(c) {}
+
+      DLLLOCAL void deref();
 };
 
 #endif

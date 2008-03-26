@@ -42,9 +42,9 @@ class myQErrorMessage : public QErrorMessage, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQErrorMessage(QoreObject *obj, QWidget* parent = 0) : QErrorMessage(parent), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQErrorMessage(QoreObject *obj, QWidget* parent = 0) : QErrorMessage(parent), QoreQDialogExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

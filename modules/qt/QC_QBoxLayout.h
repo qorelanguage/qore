@@ -39,13 +39,13 @@ class myQBoxLayout : public QBoxLayout, public QoreQObjectExtension
 #include "qore-qt-metacode.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
-      DLLLOCAL myQBoxLayout(QoreObject *obj, QBoxLayout::Direction dir) : QBoxLayout(dir), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQBoxLayout(QoreObject *obj, QBoxLayout::Direction dir) : QBoxLayout(dir), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
-      DLLLOCAL myQBoxLayout(QoreObject *obj, QBoxLayout::Direction dir, QWidget *parent) : QBoxLayout(dir, parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQBoxLayout(QoreObject *obj, QBoxLayout::Direction dir, QWidget *parent) : QBoxLayout(dir, parent), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 

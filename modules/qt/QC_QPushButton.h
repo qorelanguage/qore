@@ -45,101 +45,44 @@ class myQPushButton : public QPushButton, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQPushButton(QoreObject *obj, QWidget* parent = 0) : QPushButton(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQPushButton(QoreObject *obj, QWidget* parent = 0) : QPushButton(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQPushButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : QPushButton(text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQPushButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : QPushButton(text, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQPushButton(QoreObject *obj, const QIcon& icon, const QString& text, QWidget* parent = 0) : QPushButton(icon, text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQPushButton(QoreObject *obj, const QIcon& icon, const QString& text, QWidget* parent = 0) : QPushButton(icon, text, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQPushButton : public QoreAbstractQPushButton
+typedef QoreQPushButtonBase<myQPushButton, QoreAbstractQPushButton> QoreQPushButtonImpl;
+
+class QoreQPushButton : public QoreQPushButtonImpl
 {
    public:
-      QPointer<myQPushButton> qobj;
-
-      DLLLOCAL QoreQPushButton(QoreObject *obj, QWidget* parent = 0) : qobj(new myQPushButton(obj, parent))
+      DLLLOCAL QoreQPushButton(QoreObject *obj, QWidget* parent = 0) : QoreQPushButtonImpl(new myQPushButton(obj, parent))
       {
       }
-      DLLLOCAL QoreQPushButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : qobj(new myQPushButton(obj, text, parent))
+      DLLLOCAL QoreQPushButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : QoreQPushButtonImpl(new myQPushButton(obj, text, parent))
       {
       }
-      DLLLOCAL QoreQPushButton(QoreObject *obj, const QIcon& icon, const QString& text, QWidget* parent = 0) : qobj(new myQPushButton(obj, icon, text, parent))
+      DLLLOCAL QoreQPushButton(QoreObject *obj, const QIcon& icon, const QString& text, QWidget* parent = 0) : QoreQPushButtonImpl(new myQPushButton(obj, icon, text, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QPushButton *getQPushButton() const
-      {
-         return static_cast<QPushButton *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
-      {
-         return static_cast<QAbstractButton *>(&(*qobj));
-      }
-/*
-      DLLLOCAL virtual void initStyleOption(QStyleOptionButton *style) const 
-      {
-	 qobj->initStyleOption(style);
-      }
-*/
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQPushButton : public QoreAbstractQPushButton
+typedef QoreQtQPushButtonBase<QPushButton, QoreAbstractQPushButton> QoreQtQPushButtonImpl;
+
+class QoreQtQPushButton : public QoreQtQPushButtonImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QPushButton> qobj;
-
-      DLLLOCAL QoreQtQPushButton(QoreObject *obj, QPushButton *qpushbutton) : qore_obj(obj), qobj(qpushbutton)
+      DLLLOCAL QoreQtQPushButton(QoreObject *obj, QPushButton *qpushbutton) : QoreQtQPushButtonImpl(obj, qpushbutton)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QPushButton *getQPushButton() const
-      {
-         return static_cast<QPushButton *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
-      {
-         return static_cast<QAbstractButton *>(&(*qobj));
-      }
-/*
-      DLLLOCAL virtual void initStyleOption(QStyleOptionButton *style) const 
-      {
-	 //qobj->initStyleOption(style);
-      }
-*/
-
-#include "qore-qt-static-qwidget-methods.h"
-
 };
 
 #endif // _QORE_QT_QC_QPUSHBUTTON_H

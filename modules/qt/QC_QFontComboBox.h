@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QFONTCOMBOBOX_H
 
 #include <QFontComboBox>
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQComboBox.h"
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QFONTCOMBOBOX;
@@ -43,37 +43,19 @@ class myQFontComboBox : public QFontComboBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQFontComboBox(QoreObject *obj, QWidget* parent = 0) : QFontComboBox(parent), QoreQWidgetExtension(obj->getClass())
-      {
-         init(obj);
+      DLLLOCAL myQFontComboBox(QoreObject *obj, QWidget* parent = 0) : QFontComboBox(parent), QoreQWidgetExtension(obj, this)
+      {         
       }
 };
 
-class QoreQFontComboBox : public QoreAbstractQWidget
+typedef QoreQComboBoxBase<myQFontComboBox, QoreAbstractQComboBox> QoreQFontComboBoxImpl;
+
+class QoreQFontComboBox : public QoreQFontComboBoxImpl
 {
    public:
-      QPointer<myQFontComboBox> qobj;
-
-      DLLLOCAL QoreQFontComboBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQFontComboBox(obj, parent))
+      DLLLOCAL QoreQFontComboBox(QoreObject *obj, QWidget* parent = 0) : QoreQFontComboBoxImpl(new myQFontComboBox(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QComboBox *getQComboBox() const
-      {
-         return static_cast<QComboBox *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QFONTCOMBOBOX_H

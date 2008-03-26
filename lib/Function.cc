@@ -277,6 +277,14 @@ BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
    next = 0;
 }
 
+BuiltinFunction::BuiltinFunction(q_delete_blocker_t m)
+{
+   type = QDOM_DEFAULT;
+   name = "(delete_blocker)";
+   code.delete_blocker = m;
+   next = 0;
+}
+
 void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalConstructor()");
@@ -401,6 +409,11 @@ void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, AbstractPrivat
       xsink->addStackInfo(CT_BUILTIN, class_name, "copy", o_fn, o_ln, o_eln);
    
    traceout("BuiltinFunction::evalCopy()");
+}
+
+bool BuiltinFunction::evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const
+{
+   return code.delete_blocker(self, private_data);
 }
 
 void BuiltinFunction::evalSystemDestructor(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const

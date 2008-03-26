@@ -43,18 +43,20 @@ class myQActionGroup : public QActionGroup, public QoreQObjectExtension
 #undef MYQOREQTYPE
 #undef QOREQTYPE
 
-      DLLLOCAL myQActionGroup(QoreObject *obj, QObject *parent) : QActionGroup(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQActionGroup(QoreObject *obj, QObject *parent) : QActionGroup(parent), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 
-class QoreQActionGroup : public QoreAbstractQObject
+typedef QoreQObjectBase<myQActionGroup, QoreAbstractQObject> QoreQActionGroupImpl;
+
+class QoreQActionGroup : public QoreQActionGroupImpl
 {
    public:
       myQActionGroup *qobj;
 
-      DLLLOCAL QoreQActionGroup(QoreObject *obj, QObject *parent) : qobj(new myQActionGroup(obj, parent))
+      DLLLOCAL QoreQActionGroup(QoreObject *obj, QObject *parent) : QoreQActionGroupImpl(new myQActionGroup(obj, parent))
       {
       }
 
@@ -62,13 +64,6 @@ class QoreQActionGroup : public QoreAbstractQObject
       {
 	 qapp_dec();
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(qobj);
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
-
 
 #endif

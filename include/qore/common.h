@@ -208,7 +208,7 @@ typedef void (*q_system_constructor_t)(QoreObject *self, int code, va_list args)
 //! the type used for builtin QoreClass destructor signatures
 /** destructors are optional, but, if present, must call AbstractPrivateData::deref() on any private data (if present)
     @param self the QoreObject that the function is being executed on
-    @param private_data the object's private data representing the state of the object
+    @param private_data the object's private data representing the state of the object for the current builtin class
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
 typedef void (*q_destructor_t)(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink);
@@ -217,10 +217,18 @@ typedef void (*q_destructor_t)(QoreObject *self, AbstractPrivateData *private_da
 /** this function must set any private data against the new object by calling QoreObject::setPrivate() on \c self
     @param self the QoreObject that the function is being executed on (the new copy of the object)
     @param old the object being copied
-    @param private_data the object's private data representing the state of the object
+    @param private_data the object's private data representing the state of the object for the current builtin class
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
 typedef void (*q_copy_t)(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink);
+
+//! the typed used for QoreClass deleteBlocker signatures
+/** 
+    @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object for the current builtin class
+    @return false if the object may be deleted normally, true if the deletion should be suppressed
+ */
+typedef bool (*q_delete_blocker_t)(QoreObject *self, AbstractPrivateData *private_data);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX

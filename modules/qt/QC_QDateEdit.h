@@ -43,13 +43,13 @@ class myQDateEdit : public QDateEdit, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDateEdit(QoreObject *obj, QWidget* parent = 0) : QDateEdit(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDateEdit(QoreObject *obj, QWidget* parent = 0) : QDateEdit(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQDateEdit(QoreObject *obj, const QDate& date, QWidget* parent = 0) : QDateEdit(date, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDateEdit(QoreObject *obj, const QDate& date, QWidget* parent = 0) : QDateEdit(date, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

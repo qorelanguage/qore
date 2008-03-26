@@ -43,84 +43,40 @@ class myQCheckBox : public QCheckBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCheckBox(QoreObject *obj, QWidget* parent = 0) : QCheckBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQCheckBox(QoreObject *obj, QWidget* parent = 0) : QCheckBox(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQCheckBox(QoreObject *obj, const QString& text, QWidget* parent = 0) : QCheckBox(text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQCheckBox(QoreObject *obj, const QString& text, QWidget* parent = 0) : QCheckBox(text, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQCheckBox : public QoreAbstractQCheckBox
+typedef QoreQCheckBoxBase<myQCheckBox, QoreAbstractQCheckBox> QoreQCheckBoxImpl;
+
+class QoreQCheckBox : public QoreQCheckBoxImpl
 {
    public:
-      QPointer<myQCheckBox> qobj;
-
-      DLLLOCAL QoreQCheckBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQCheckBox(obj, parent))
+      DLLLOCAL QoreQCheckBox(QoreObject *obj, QWidget* parent = 0) : QoreQCheckBoxImpl(new myQCheckBox(obj, parent))
       {
       }
-      DLLLOCAL QoreQCheckBox(QoreObject *obj, const QString& text, QWidget* parent = 0) : qobj(new myQCheckBox(obj, text, parent))
+      DLLLOCAL QoreQCheckBox(QoreObject *obj, const QString& text, QWidget* parent = 0) : QoreQCheckBoxImpl(new myQCheckBox(obj, text, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
-      {
-         return static_cast<QAbstractButton *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QCheckBox *getQCheckBox() const
-      {
-         return static_cast<QCheckBox *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQCheckBox : public QoreAbstractQCheckBox
+typedef QoreQtQCheckBoxBase<QCheckBox, QoreAbstractQCheckBox> QoreQtQCheckBoxImpl;
+
+class QoreQtQCheckBox : public QoreQtQCheckBoxImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QCheckBox> qobj;
-
-      DLLLOCAL QoreQtQCheckBox(QoreObject *obj, QCheckBox *cb) : qore_obj(obj), qobj(cb)
+      DLLLOCAL QoreQtQCheckBox(QoreObject *obj, QCheckBox *cb) : QoreQtQCheckBoxImpl(obj, cb)
       {
       }
       DLLLOCAL ~QoreQtQCheckBox()
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
-      {
-         return static_cast<QAbstractButton *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QCheckBox *getQCheckBox() const
-      {
-         return static_cast<QCheckBox *>(&(*qobj));
-      }
-
-#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QCHECKBOX_H

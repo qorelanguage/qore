@@ -43,13 +43,13 @@ class myQRegExpValidator : public QRegExpValidator, public QoreQValidatorExtensi
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQRegExpValidator(QoreObject *obj, QObject* parent) : QRegExpValidator(parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQRegExpValidator(QoreObject *obj, QObject* parent) : QRegExpValidator(parent), QoreQValidatorExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQRegExpValidator(QoreObject *obj, const QRegExp& rx, QObject* parent) : QRegExpValidator(rx, parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQRegExpValidator(QoreObject *obj, const QRegExp& rx, QObject* parent) : QRegExpValidator(rx, parent), QoreQValidatorExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

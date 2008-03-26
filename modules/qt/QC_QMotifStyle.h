@@ -44,54 +44,30 @@ class myQMotifStyle : public QMotifStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMotifStyle(QoreObject *obj, bool useHighlightCols = false) : QMotifStyle(useHighlightCols), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQMotifStyle(QoreObject *obj, bool useHighlightCols = false) : QMotifStyle(useHighlightCols), QoreQStyleExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQMotifStyle : public QoreAbstractQMotifStyle
+typedef QoreQMotifStyleBase<myQMotifStyle, QoreAbstractQMotifStyle> QoreQMotifStyleImpl;
+
+class QoreQMotifStyle : public QoreQMotifStyleImpl
 {
    public:
-      QPointer<myQMotifStyle> qobj;
-
-      DLLLOCAL QoreQMotifStyle(QoreObject *obj, bool useHighlightCols = false) : qobj(new myQMotifStyle(obj, useHighlightCols))
+      DLLLOCAL QoreQMotifStyle(QoreObject *obj, bool useHighlightCols = false) : QoreQMotifStyleImpl(new myQMotifStyle(obj, useHighlightCols))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QMotifStyle *getQMotifStyle() const
-      {
-         return static_cast<QMotifStyle *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QSTYLE_METHODS
 };
 
-class QoreQtQMotifStyle : public QoreAbstractQMotifStyle
+typedef QoreQtQMotifStyleBase<QMotifStyle, QoreAbstractQMotifStyle> QoreQtQMotifStyleImpl;
+
+class QoreQtQMotifStyle : public QoreQtQMotifStyleImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QMotifStyle> qobj;
-
-      DLLLOCAL QoreQtQMotifStyle(QoreObject *obj, QMotifStyle *qms) : qore_obj(obj), qobj(qms)
+      DLLLOCAL QoreQtQMotifStyle(QoreObject *obj, QMotifStyle *qms) : QoreQtQMotifStyleImpl(obj, qms)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QMotifStyle *getQMotifStyle() const
-      {
-         return static_cast<QMotifStyle *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QStyle *getQStyle() const
-      {
-         return static_cast<QStyle *>(&(*qobj));
-      }
-
-#include "qore-qt-static-qstyle-methods.h"
 };
 
 #endif // _QORE_QT_QC_QMOTIFSTYLE_H

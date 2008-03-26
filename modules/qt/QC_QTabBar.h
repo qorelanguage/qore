@@ -43,9 +43,9 @@ class myQTabBar : public QTabBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTabBar(QoreObject *obj, QWidget* parent = 0) : QTabBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTabBar(QoreObject *obj, QWidget* parent = 0) : QTabBar(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 
       void parent_initStyleOption ( QStyleOptionTab * option, int tabIndex ) const

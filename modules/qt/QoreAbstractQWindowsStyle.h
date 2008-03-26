@@ -32,4 +32,32 @@ class QoreAbstractQWindowsStyle : public QoreAbstractQStyle
       DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQWindowsStyleBase : public QoreQStyleBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQWindowsStyleBase(T *qo) : QoreQStyleBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QWindowsStyle *getQWindowsStyle() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQWindowsStyleBase : public QoreQtQStyleBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQWindowsStyleBase(QoreObject *obj, T *qo) : QoreQtQStyleBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QWindowsStyle *getQWindowsStyle() const
+      {
+	 return this->qobj;
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQWINDOWSSTYLE_H

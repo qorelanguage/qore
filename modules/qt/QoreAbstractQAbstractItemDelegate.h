@@ -58,8 +58,9 @@ class QoreQAbstractItemDelegateExtension : public QoreQObjectExtension
       const QoreMethod *m_createEditor, *m_editorEvent, *m_paint, *m_setEditorData, 
 	 *m_setModelData, *m_sizeHint, *m_updateEditorGeometry;
 
-      DLLLOCAL QoreQAbstractItemDelegateExtension(const QoreClass *qc) : QoreQObjectExtension(qc)
+      DLLLOCAL QoreQAbstractItemDelegateExtension(QoreObject *obj, QObject *qo) : QoreQObjectExtension(obj, qo)
       {
+	 const QoreClass *qc = obj->getClass();
          m_createEditor           = findMethod(qc, "createEditor");
          m_editorEvent            = findMethod(qc, "editorEvent");
          m_paint                  = findMethod(qc, "paint");

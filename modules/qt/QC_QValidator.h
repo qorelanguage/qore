@@ -45,9 +45,9 @@ class myQValidator : public QValidator, public QoreQValidatorExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQValidator(QoreObject *obj, QObject* parent) : QValidator(parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQValidator(QoreObject *obj, QObject* parent) : QValidator(parent), QoreQValidatorExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

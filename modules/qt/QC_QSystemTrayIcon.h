@@ -43,32 +43,25 @@ class myQSystemTrayIcon : public QSystemTrayIcon, public QoreQObjectExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQSystemTrayIcon(QoreObject *obj, QObject* parent = 0) : QSystemTrayIcon(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQSystemTrayIcon(QoreObject *obj, QObject* parent = 0) : QSystemTrayIcon(parent), QoreQObjectExtension(obj, this)
       {
-         init(obj);
       }
-      DLLLOCAL myQSystemTrayIcon(QoreObject *obj, const QIcon& icon, QObject* parent = 0) : QSystemTrayIcon(icon, parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQSystemTrayIcon(QoreObject *obj, const QIcon& icon, QObject* parent = 0) : QSystemTrayIcon(icon, parent), QoreQObjectExtension(obj, this)
       {
-         init(obj);
       }
 };
 
-class QoreQSystemTrayIcon : public QoreAbstractQObject
+typedef QoreQObjectBase<myQSystemTrayIcon, QoreAbstractQObject> QoreQSystemTrayIconImpl; 
+
+class QoreQSystemTrayIcon : public QoreQSystemTrayIconImpl
 {
    public:
-      QPointer<myQSystemTrayIcon> qobj;
-
-      DLLLOCAL QoreQSystemTrayIcon(QoreObject *obj, QObject* parent = 0) : qobj(new myQSystemTrayIcon(obj, parent))
+      DLLLOCAL QoreQSystemTrayIcon(QoreObject *obj, QObject* parent = 0) : QoreQSystemTrayIconImpl(new myQSystemTrayIcon(obj, parent))
       {
       }
-      DLLLOCAL QoreQSystemTrayIcon(QoreObject *obj, const QIcon& icon, QObject* parent = 0) : qobj(new myQSystemTrayIcon(obj, icon, parent))
+      DLLLOCAL QoreQSystemTrayIcon(QoreObject *obj, const QIcon& icon, QObject* parent = 0) : QoreQSystemTrayIconImpl(new myQSystemTrayIcon(obj, icon, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif // _QORE_QT_QC_QSYSTEMTRAYICON_H

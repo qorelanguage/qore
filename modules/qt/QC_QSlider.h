@@ -44,50 +44,29 @@ class myQSlider : public QSlider, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQSlider(QoreObject *obj, QWidget *parent = 0) : QSlider(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQSlider(QoreObject *obj, QWidget *parent = 0) : QSlider(parent), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
+	 
 	 //init_widget_events();
       }
-      DLLLOCAL myQSlider(QoreObject *obj, Qt::Orientation orientation, QWidget *parent = 0) : QSlider(orientation, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQSlider(QoreObject *obj, Qt::Orientation orientation, QWidget *parent = 0) : QSlider(orientation, parent), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
+	 
 	 //init_widget_events();
       }
 };
 
+typedef QoreQAbstractSliderBase<myQSlider, QoreAbstractQAbstractSlider> QoreQSliderImpl;
 
-class QoreQSlider : public QoreAbstractQAbstractSlider
+class QoreQSlider : public QoreQSliderImpl
 {
    public:
-      QPointer<myQSlider>qobj;
-
-      DLLLOCAL QoreQSlider(QoreObject *obj, QWidget *parent = 0) : qobj(new myQSlider(obj, parent))
+      DLLLOCAL QoreQSlider(QoreObject *obj, QWidget *parent = 0) : QoreQSliderImpl(new myQSlider(obj, parent))
       {
       }
-      DLLLOCAL QoreQSlider(QoreObject *obj, Qt::Orientation orientation, QWidget *parent = 0) : qobj(new myQSlider(obj, orientation, parent))
+      DLLLOCAL QoreQSlider(QoreObject *obj, Qt::Orientation orientation, QWidget *parent = 0) : QoreQSliderImpl(new myQSlider(obj, orientation, parent))
       {
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual QWidget *getQWidget() const
-      {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual QAbstractSlider *getQAbstractSlider() const
-      {
-         return static_cast<QAbstractSlider *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
-
 };
 
 #endif

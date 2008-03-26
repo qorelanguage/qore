@@ -42,9 +42,9 @@ class myQListView : public QListView, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQListView(QoreObject *obj, QWidget* parent = 0) : QListView(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQListView(QoreObject *obj, QWidget* parent = 0) : QListView(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
       DLLLOCAL void pub_setupViewport(QWidget *w)
       {

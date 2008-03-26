@@ -9,6 +9,11 @@ class T {
 	 return qore_obj;
       }
 
+      DLLLOCAL virtual bool deleteBlocker()
+      {
+	 return false;
+      }
+
       DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, ExceptionSink *xsink)
       {
          return qobj->metaObject()->indexOfSlot(theSlot);
@@ -75,18 +80,13 @@ class T {
          printd(5, "%s::emit_signal(%s, %08p) static signal %d\n", qobj->metaObject()->className(), sig, args, id);
       }
 
-      DLLLOCAL virtual QoreQtDynamicSlot* getSlot(const char *slot, ExceptionSink *xsink)
-      {
-         xsink->raiseException("DYNAMIC-SLOT-ERROR", "this class does not support dynamic slots");
-         return 0;
-      }
-
       DLLLOCAL virtual QObject *sender() const
       {
          return 0;
       }
 
       // these are protected functions that therefore will never be called
+      DLLLOCAL virtual bool event(QEvent *event) { return false; }	
       DLLLOCAL virtual void timerEvent(QTimerEvent * event) {}
       DLLLOCAL virtual void childEvent(QChildEvent * event) {}
 

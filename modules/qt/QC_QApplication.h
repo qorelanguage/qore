@@ -44,18 +44,18 @@ class myQApplication : public QApplication, public QoreQObjectExtension
 #undef MYQOREQTYPE
 #undef QOREQTYPE
 
-      DLLLOCAL myQApplication(QoreObject *obj, int &argc, char **argv) : QApplication(argc, argv), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQApplication(QoreObject *obj, int &argc, char **argv) : QApplication(argc, argv), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 
-class QoreQApplication : public QoreAbstractQCoreApplication
+typedef QoreQCoreApplicationBase<myQApplication, QoreAbstractQCoreApplication> QoreQApplicationImpl;
+
+class QoreQApplication : public QoreQApplicationImpl
 {
    public:
-      myQApplication *qobj;
-
-      DLLLOCAL QoreQApplication(QoreObject *obj) : qobj(new myQApplication(obj, static_argc, static_argv))
+      DLLLOCAL QoreQApplication(QoreObject *obj) : QoreQApplicationImpl(new myQApplication(obj, static_argc, static_argv))
       {
       }
 
@@ -63,17 +63,6 @@ class QoreQApplication : public QoreAbstractQCoreApplication
       {
 	 qapp_dec();
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(qobj);
-      }
-      DLLLOCAL virtual class QCoreApplication *getQCoreApplication() const
-      {
-         return static_cast<QCoreApplication *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 

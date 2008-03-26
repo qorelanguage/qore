@@ -131,9 +131,6 @@ typedef safe_dslist<class BCNode *> bclist_t;
 //  this class is a QoreReferenceCounter so it won't be copied when the class is copied
 class BCList : public QoreReferenceCounter, public bclist_t
 {
-   private:
-      bool init;
-
    protected:
       DLLLOCAL inline ~BCList();
 
@@ -143,14 +140,15 @@ class BCList : public QoreReferenceCounter, public bclist_t
 
       DLLLOCAL BCList(class BCNode *n);
       DLLLOCAL inline BCList();
-      DLLLOCAL inline void parseInit(class QoreClass *thisclass, class BCAList *bcal);
+      DLLLOCAL inline void parseInit(QoreClass *thisclass, class BCAList *bcal, bool &has_delete_blocker);
       DLLLOCAL inline const QoreMethod *resolveSelfMethod(const char *name);
       DLLLOCAL inline const QoreMethod *findParseMethod(const char *name);
       DLLLOCAL inline const QoreMethod *findMethod(const char *name) const;
       DLLLOCAL inline const QoreMethod *findMethod(const char *name, bool &p) const;
       DLLLOCAL inline bool match(class BCANode *bca);
-      DLLLOCAL inline void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
-      DLLLOCAL void execConstructorsWithArgs(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL inline void execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const;
+      DLLLOCAL void execConstructorsWithArgs(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const;
+      DLLLOCAL bool execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const;
       DLLLOCAL inline bool isPrivateMember(const char *str) const;
       DLLLOCAL inline void ref() const;
       DLLLOCAL void deref();

@@ -43,9 +43,9 @@ class myQFrame : public QFrame, public QoreQWidgetExtension
 #undef MYQOREQTYPE
 #undef QOREQTYPE
 
-   DLLLOCAL myQFrame(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QFrame(parent, window_flags), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQFrame(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QFrame(parent, window_flags), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 

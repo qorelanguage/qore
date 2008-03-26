@@ -42,47 +42,34 @@ class myQDialogButtonBox : public QDialogButtonBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDialogButtonBox(QoreObject *obj, QWidget* parent = 0) : QDialogButtonBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDialogButtonBox(QoreObject *obj, QWidget* parent = 0) : QDialogButtonBox(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQDialogButtonBox(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QDialogButtonBox(orientation, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDialogButtonBox(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QDialogButtonBox(orientation, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQDialogButtonBox(QoreObject *obj, StandardButtons buttons, Qt::Orientation orientation = Qt::Horizontal, QWidget* parent = 0) : QDialogButtonBox(buttons, orientation, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDialogButtonBox(QoreObject *obj, StandardButtons buttons, Qt::Orientation orientation = Qt::Horizontal, QWidget* parent = 0) : QDialogButtonBox(buttons, orientation, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQDialogButtonBox : public QoreAbstractQWidget
+typedef QoreQWidgetBase<myQDialogButtonBox, QoreAbstractQWidget> QoreQDialogButtonBoxImpl;
+
+class QoreQDialogButtonBox : public QoreQDialogButtonBoxImpl
 {
    public:
-      QPointer<myQDialogButtonBox> qobj;
-
-      DLLLOCAL QoreQDialogButtonBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQDialogButtonBox(obj, parent))
+      DLLLOCAL QoreQDialogButtonBox(QoreObject *obj, QWidget* parent = 0) : QoreQDialogButtonBoxImpl(new myQDialogButtonBox(obj, parent))
       {
       }
-      DLLLOCAL QoreQDialogButtonBox(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : qobj(new myQDialogButtonBox(obj, orientation, parent))
+      DLLLOCAL QoreQDialogButtonBox(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QoreQDialogButtonBoxImpl(new myQDialogButtonBox(obj, orientation, parent))
       {
       }
-      DLLLOCAL QoreQDialogButtonBox(QoreObject *obj, QDialogButtonBox::StandardButtons buttons, Qt::Orientation orientation = Qt::Horizontal, QWidget* parent = 0) : qobj(new myQDialogButtonBox(obj, buttons, orientation, parent))
+      DLLLOCAL QoreQDialogButtonBox(QoreObject *obj, QDialogButtonBox::StandardButtons buttons, Qt::Orientation orientation = Qt::Horizontal, QWidget* parent = 0) : QoreQDialogButtonBoxImpl(new myQDialogButtonBox(obj, buttons, orientation, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QDIALOGBUTTONBOX_H

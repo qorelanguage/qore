@@ -32,4 +32,32 @@ class QoreAbstractQCoreApplication : public QoreAbstractQObject
       DLLLOCAL virtual class QCoreApplication *getQCoreApplication() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQCoreApplicationBase : public QoreQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQCoreApplicationBase(T *qo) : QoreQObjectBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QCoreApplication *getQCoreApplication() const
+      {
+	 return static_cast<QCoreApplication *>(&(*this->qobj));
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQCoreApplicationBase : public QoreQtQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQCoreApplicationBase(QoreObject *obj, T *qo) : QoreQtQObjectBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QCoreApplication *getQCoreApplication() const
+      {
+	 return static_cast<QCoreApplication *>(&(*this->qobj));
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQCOREAPPLICATION_H

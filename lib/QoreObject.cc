@@ -44,7 +44,7 @@ typedef std::map<qore_classid_t, private_pair_t> keymap_t;
 struct qore_object_private {
       const QoreClass *myclass;
       int status;
-      bool system_object;
+      bool system_object, delete_blocker_run;
       mutable class VRMutex g;
       class KeyList *privateData;
       class QoreReferenceCounter tRefs;  // reference-references
@@ -52,7 +52,8 @@ struct qore_object_private {
       QoreProgram *pgm;
 
       DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
-	 myclass(oc), status(OS_OK), system_object(!p), privateData(0), data(n_data), pgm(p)
+	 myclass(oc), status(OS_OK), system_object(!p), delete_blocker_run(false), 
+	 privateData(0), data(n_data), pgm(p)
       {
 	 printd(5, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, p, oc->getName());
 	 // instead of referencing the class, we reference the program, because the
@@ -140,9 +141,8 @@ QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, class QoreHashNode *
 QoreObject::~QoreObject()
 {
    //tracein("QoreObject::~QoreObject()");
-   printd(5, "QoreObject::~QoreObject() this=%08p, pgm=%08p, class=%s\n", this, priv->pgm, priv->myclass->getName());
+   //printd(5, "QoreObject::~QoreObject() this=%08p, pgm=%08p, class=%s\n", this, priv->pgm, priv->myclass->getName());
    delete priv;
-   //traceout("QoreObject::~QoreObject()");
 }
 
 const QoreClass *QoreObject::getClass() const 
@@ -228,6 +228,23 @@ void QoreObject::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, QoreOb
       xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() cannot be executed because the object has already been deleted", priv->myclass->getName());
    else
       xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), priv->myclass->getName());
+}
+
+bool QoreObject::evalDeleteBlocker(BuiltinMethod *meth)
+{
+   // FIXME: eliminate reference counts for private data, ensure destructor is run in single thread
+   // and private data is destroyed after the destructor terminates
+   // ensure that the object cannot be accessed from other threads once the destructor starts executing
+
+   // get referenced object
+   ExceptionSink xsink;
+   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->myclass->getIDForMethod(), &xsink), &xsink);
+
+   if (pd)
+      return meth->evalDeleteBlocker(this, *pd);
+
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%08p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
+   return false;
 }
 
 bool QoreObject::validInstanceOf(qore_classid_t cid) const
@@ -400,38 +417,51 @@ inline void QoreObject::doDeleteIntern(ExceptionSink *xsink)
    priv->myclass->execDestructor(this, xsink);
 
    // FIXME: what the hell do we do if this happens?
-   if (priv->g.enter(xsink) >= 0)
-   {
-      priv->status = OS_DELETED;
-      QoreHashNode *td = priv->data;
-      priv->data = 0;
-      priv->g.exit();
-      cleanup(xsink, td);
+   if (priv->g.enter(xsink) < 0) {
+      assert(false);
+      return;
    }
+
+   priv->status = OS_DELETED;
+   QoreHashNode *td = priv->data;
+   priv->data = 0;
+   priv->g.exit();
+   cleanup(xsink, td);
 }
 
 // does a deep dereference and execs destructor if necessary
 bool QoreObject::derefImpl(ExceptionSink *xsink)
 {
-   printd(5, "QoreObject::derefImpl() this=%08p, class=%s references=0\n", this, priv->myclass->getName());
+   printd(5, "QoreObject::derefImpl() this=%08p, class=%s references=0 status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), priv->status, priv->myclass->has_delete_blocker(), priv->delete_blocker_run);
+
+   // if the scope deletion is blocked, then do not run the destructor
+   if (!priv->delete_blocker_run && priv->myclass->execDeleteBlocker(this, xsink)) {
+      //printd(5, "QoreObject::derefImpl() this=%08p class=%s blocking delete\n", this, getClassName());
+      priv->delete_blocker_run = true;
+      return false;
+   } 
+
    if (priv->g.enter(xsink) < 0) {
       assert(false);
       return false;   // FIXME: what the hell do we do if this happens?
    }
 
-   printd(5, "QoreObject::derefImpl() class=%s deleting this=%08p\n", priv->myclass->getName(), this);
+   //printd(5, "QoreObject::derefImpl() class=%s this=%08p going out of scope\n", getClassName(), this);
    if (priv->status == OS_OK) {
       // FIXME: this is stupid
       // reference for destructor
       ROreference();
       doDeleteIntern(xsink);
-      ROdereference();
+      if (ROdereference())
+	 tDeref();
    }
    else {
       priv->g.exit();
-      printd(5, "QoreObject::derefImpl() %08p class=%s data=%08p status=%d\n", this, priv->myclass->getName(), priv->data, priv->status);
+      printd(5, "QoreObject::derefImpl() %08p class=%s data=%08p status=%d\n", this, getClassName(), priv->data, priv->status);
+      assert(!reference_count());
+      tDeref();
    }
-   tDeref();
+
    return false;
 }
 
@@ -442,28 +472,29 @@ void QoreObject::obliterate(ExceptionSink *xsink)
    if (ROdereference())
    {
       // FIXME: what the hell do we do if this happens?
-      if (priv->g.enter(xsink) >= 0)
-      {
-	 printd(5, "QoreObject::obliterate() class=%s deleting this=%08p\n", priv->myclass->getName(), this);
-	 if (priv->status == OS_OK)
-	 {
-	    priv->status = OS_DELETED;
-	    QoreHashNode *td = priv->data;
-	    priv->data = 0;
-	    priv->g.exit();
-	    
-	    if (priv->privateData)
-	       priv->privateData->derefAll(xsink);
-
-	    cleanup(xsink, td);
-	 }
-	 else
-	 {
-	    priv->g.exit();
-	    printd(5, "QoreObject::obliterate() %08p data=%08p status=%d\n", this, priv->data, priv->status);
-	 }
-	 tDeref();
+      if (priv->g.enter(xsink) < 0) {
+	 assert(false);
+	 return;
       }
+      printd(5, "QoreObject::obliterate() class=%s deleting this=%08p\n", priv->myclass->getName(), this);
+      if (priv->status == OS_OK)
+      {
+	 priv->status = OS_DELETED;
+	 QoreHashNode *td = priv->data;
+	 priv->data = 0;
+	 priv->g.exit();
+	 
+	 if (priv->privateData)
+	    priv->privateData->derefAll(xsink);
+	 
+	 cleanup(xsink, td);
+      }
+      else
+      {
+	 priv->g.exit();
+	 printd(5, "QoreObject::obliterate() %08p data=%08p status=%d\n", this, priv->data, priv->status);
+      }
+      tDeref();
    }
 }
 

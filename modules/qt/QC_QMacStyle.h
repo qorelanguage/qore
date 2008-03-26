@@ -45,54 +45,30 @@ class myQMacStyle : public QMacStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMacStyle(QoreObject *obj) : QMacStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQMacStyle(QoreObject *obj) : QMacStyle(), QoreQStyleExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQMacStyle : public QoreAbstractQWindowsStyle
+typedef QoreQWindowsStyleBase<myQMacStyle, QoreAbstractQWindowsStyle> QoreQMacStyleImpl;
+
+class QoreQMacStyle : public QoreQMacStyleImpl
 {
    public:
-      QPointer<myQMacStyle> qobj;
-
-      DLLLOCAL QoreQMacStyle(QoreObject *obj) : qobj(new myQMacStyle(obj))
+      DLLLOCAL QoreQMacStyle(QoreObject *obj) : QoreQMacStyleImpl(new myQMacStyle(obj))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
-      {
-         return static_cast<QWindowsStyle *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QSTYLE_METHODS
 };
 
-class QoreQtQMacStyle : public QoreAbstractQWindowsStyle
+typedef QoreQtQWindowsStyleBase<QMacStyle, QoreAbstractQWindowsStyle> QoreQtQMacStyleImpl;
+
+class QoreQtQMacStyle : public QoreQtQMacStyleImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QMacStyle> qobj;
-
-      DLLLOCAL QoreQtQMacStyle(QoreObject *obj, QMacStyle *qms) : qore_obj(obj), qobj(qms)
+      DLLLOCAL QoreQtQMacStyle(QoreObject *obj, QMacStyle *qms) : QoreQtQMacStyleImpl(obj, qms)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
-      {
-         return static_cast<QWindowsStyle *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QStyle *getQStyle() const
-      {
-         return static_cast<QStyle *>(&(*qobj));
-      }
-
-#include "qore-qt-static-qstyle-methods.h"
 };
 
 #endif // _QORE_QT_QC_QMACSTYLE_H

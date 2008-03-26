@@ -41,46 +41,30 @@ class myQObject : public QObject, public QoreQObjectExtension
 #undef MYQOREQTYPE
 #undef QOREQTYPE
    public:
-      DLLLOCAL myQObject(QoreObject *obj, QObject *parent = 0) : QObject(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQObject(QoreObject *obj, QObject *parent = 0) : QObject(parent), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 
-class QoreQObject : public QoreAbstractQObject
+typedef QoreQObjectBase<myQObject, QoreAbstractQObject> QoreQObjectImpl;
+
+class QoreQObject : public QoreQObjectImpl 
 {
-   private:
    public:
-      QPointer<myQObject> qobj;
-
-      DLLLOCAL QoreQObject(QoreObject *obj, QObject *parent = 0) : qobj(new myQObject(obj, parent))
+      DLLLOCAL QoreQObject(QoreObject *obj, QObject *parent = 0) : QoreQObjectImpl(new myQObject(obj, parent))
       {
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return &*qobj;
-      }
-
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
-class QoreQtQObject : public QoreAbstractQObject
+typedef QoreQtQObjectBase<QObject, QoreAbstractQObject> QoreQtQObjectImpl;
+
+class QoreQtQObject : public QoreQtQObjectImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QObject> qobj;
-
-      DLLLOCAL QoreQtQObject(QoreObject *obj, QObject *qo) : qore_obj(obj), qobj(qo)
+      DLLLOCAL QoreQtQObject(QoreObject *obj, QObject *qo) : QoreQtQObjectImpl(obj, qo)
       {
       }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return &*qobj;
-      }
-
-#include "qore-qt-static-qobject-methods.h"
 };
 
 #endif

@@ -95,9 +95,6 @@ void qore_cleanup()
    // now free memory
    delete_global_variables();
 
-   // delete threading infrastructure
-   delete_qore_threads();
-
    // clear the list before modules are unloaded
    builtinFunctions.clear();
 
@@ -106,6 +103,9 @@ void qore_cleanup()
 
    // delete default type values
    delete_qore_types();
+
+   // delete threading infrastructure
+   delete_qore_threads();
 
    // cleanup openssl library
    EVP_cleanup();

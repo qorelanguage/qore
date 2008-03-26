@@ -45,9 +45,9 @@ class myQTabWidget : public QTabWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTabWidget(QoreObject *obj, QWidget* parent = 0) : QTabWidget(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTabWidget(QoreObject *obj, QWidget* parent = 0) : QTabWidget(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 
       DLLLOCAL void parent_tabInserted ( int index )
@@ -62,49 +62,34 @@ class myQTabWidget : public QTabWidget, public QoreQWidgetExtension
 
 };
 
-class QoreQTabWidget : public QoreAbstractQWidget
+typedef QoreQWidgetBase<myQTabWidget, QoreAbstractQWidget> QoreQTabWidgetImpl;
+
+class QoreQTabWidget : public QoreQTabWidgetImpl
 {
    public:
-      QPointer<myQTabWidget> qobj;
-
-      DLLLOCAL QoreQTabWidget(QoreObject *obj, QWidget* parent = 0) : qobj(new myQTabWidget(obj, parent))
+      DLLLOCAL QoreQTabWidget(QoreObject *obj, QWidget* parent = 0) : QoreQTabWidgetImpl(new myQTabWidget(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-
-      DLLLOCAL void initStyleOption ( QStyleOptionTabWidgetFrame * option ) const
+      DLLLOCAL void initStyleOption(QStyleOptionTabWidgetFrame *option) const
       {
 	 qobj->initStyleOption(option);
       }
-      DLLLOCAL void setTabBar ( QTabBar * tb )
+      DLLLOCAL void setTabBar(QTabBar *tb)
       {
 	 qobj->setTabBar(tb);
       }
-      DLLLOCAL QTabBar * tabBar () const
+      DLLLOCAL QTabBar *tabBar() const
       {
 	 return qobj->tabBar();
       }
-      DLLLOCAL void tabInserted ( int index )
+      DLLLOCAL void tabInserted(int index)
       {
 	 qobj->parent_tabInserted(index);
       }
-      DLLLOCAL void tabRemoved ( int index )
+      DLLLOCAL void tabRemoved(int index)
       {
 	 qobj->parent_tabRemoved(index);
       }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QTABWIDGET_H

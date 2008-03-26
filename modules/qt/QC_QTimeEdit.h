@@ -43,13 +43,13 @@ class myQTimeEdit : public QTimeEdit, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTimeEdit(QoreObject *obj, QWidget* parent = 0) : QTimeEdit(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTimeEdit(QoreObject *obj, QWidget* parent = 0) : QTimeEdit(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQTimeEdit(QoreObject *obj, const QTime& time, QWidget* parent = 0) : QTimeEdit(time, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTimeEdit(QoreObject *obj, const QTime& time, QWidget* parent = 0) : QTimeEdit(time, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

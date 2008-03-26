@@ -51,14 +51,14 @@ class myQDoubleValidator : public QDoubleValidator, public QoreQValidatorExtensi
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDoubleValidator(QoreObject *obj, QObject* parent) : QDoubleValidator(parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQDoubleValidator(QoreObject *obj, QObject* parent) : QDoubleValidator(parent), QoreQValidatorExtension(obj, this)
       {
-         init(obj);
+         
 	 qdv_init(obj->getClass());
       }
-      DLLLOCAL myQDoubleValidator(QoreObject *obj, double bottom, double top, int decimals, QObject* parent) : QDoubleValidator(bottom, top, decimals, parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQDoubleValidator(QoreObject *obj, double bottom, double top, int decimals, QObject* parent) : QDoubleValidator(bottom, top, decimals, parent), QoreQValidatorExtension(obj, this)
       {
-         init(obj);
+         
 	 qdv_init(obj->getClass());
       }
 

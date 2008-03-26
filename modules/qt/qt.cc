@@ -864,11 +864,11 @@ class AbstractQoreNode *return_qvariant(const QVariant &qv)
 }
 
 // here QWidget subclasses can be determined if necessary
-static QoreObject *return_qwidget_intern(QWidget *w)
+static QoreObject *return_qwidget_intern(QWidget *w, bool managed = true)
 {
    // assign as QWidget
    QoreObject *qo = new QoreObject(QC_QWidget, getProgram());
-   qo->setPrivate(CID_QWIDGET, new QoreQtQWidget(qo, w));
+   qo->setPrivate(CID_QWIDGET, new QoreQtQWidget(qo, w, managed));
    return qo;
 }
 
@@ -916,7 +916,7 @@ QoreObject *return_qobject(QObject *o)
 }
 
 // returns a QoreObject tagged as the appropriate QWidget subclass
-QoreObject *return_qwidget(QWidget *w)
+QoreObject *return_qwidget(QWidget *w, bool managed)
 {
    if (!w)
       return 0;
@@ -929,7 +929,7 @@ QoreObject *return_qwidget(QWidget *w)
       return qo;
    }
 
-   return return_qwidget_intern(w);
+   return return_qwidget_intern(w, managed);
 }
 
 QoreObject *return_qaction(QAction *action)

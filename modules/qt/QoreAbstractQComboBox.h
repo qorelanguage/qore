@@ -29,7 +29,20 @@
 class QoreAbstractQComboBox : public QoreAbstractQWidget
 {
    public:
-      DLLLOCAL virtual class QComboBox *getQComboBox() const = 0;
+      DLLLOCAL virtual QComboBox *getQComboBox() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQComboBoxBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQComboBoxBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QComboBox *getQComboBox() const
+      {
+	 return &(*this->qobj);
+      }
 };
 
 #endif

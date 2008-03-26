@@ -75,9 +75,9 @@ class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
       }
 
    public:
-      DLLLOCAL myQSpinBox(QoreObject *obj, QWidget* parent = 0) : QSpinBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQSpinBox(QoreObject *obj, QWidget* parent = 0) : QSpinBox(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
 	 qspinbox_init(obj->getClass());
       }
 

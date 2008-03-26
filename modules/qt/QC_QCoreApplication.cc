@@ -37,7 +37,7 @@ static void QCOREAPPLICATION_constructor(QoreObject *self, const QoreListNode *p
    self->setPrivate(CID_QCOREAPPLICATION, new QoreQCoreApplication(self));
 }
 
-static void QCOREAPPLICATION_copy(class QoreObject *self, class QoreObject *old, class QoreQCoreApplication *qca, ExceptionSink *xsink)
+static void QCOREAPPLICATION_copy(class QoreObject *self, class QoreObject *old, class QoreAbstractQCoreApplication *qca, ExceptionSink *xsink)
 {
    xsink->raiseException("QCOREAPPLICATION-COPY-ERROR", "objects of this class cannot be copied");
 }

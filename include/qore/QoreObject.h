@@ -421,6 +421,9 @@ class QoreObject : public AbstractQoreNode
 
       //! creates the object with the initial data passed as "d", used by the copy constructor
       DLLLOCAL QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHashNode *d);
+
+      //! evaluates the delete blocker function for the managed private data
+      DLLLOCAL bool evalDeleteBlocker(BuiltinMethod *meth);
 };
 
 #endif

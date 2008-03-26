@@ -43,9 +43,9 @@ class myQItemDelegate : public QItemDelegate, public QoreQAbstractItemDelegateEx
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQItemDelegate(QoreObject *obj, QObject* parent = 0) : QItemDelegate(parent), QoreQAbstractItemDelegateExtension(obj->getClass())
+   DLLLOCAL myQItemDelegate(QoreObject *obj, QObject* parent = 0) : QItemDelegate(parent), QoreQAbstractItemDelegateExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

@@ -32,4 +32,32 @@ class QoreAbstractQToolButton : public QoreAbstractQAbstractButton
       DLLLOCAL virtual class QToolButton *getQToolButton() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQToolButtonBase : public QoreQAbstractButtonBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQToolButtonBase(T *qo) : QoreQAbstractButtonBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QToolButton *getQToolButton() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQToolButtonBase : public QoreQtQAbstractButtonBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQToolButtonBase(QoreObject *obj, T *qo) : QoreQtQAbstractButtonBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QToolButton *getQToolButton() const
+      {
+	 return this->qobj;
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQTOOLBUTTON_H

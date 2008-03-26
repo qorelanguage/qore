@@ -42,25 +42,20 @@ class myQTranslator : public QTranslator, public QoreQObjectExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTranslator(QoreObject *obj, QObject* parent = 0) : QTranslator(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQTranslator(QoreObject *obj, QObject* parent = 0) : QTranslator(parent), QoreQObjectExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQTranslator : public QoreAbstractQObject
+typedef QoreQObjectBase<myQTranslator, QoreAbstractQObject> QoreQTranslatorImpl;
+
+class QoreQTranslator : public QoreQTranslatorImpl
 {
    public:
-      QPointer<myQTranslator> qobj;
-
-      DLLLOCAL QoreQTranslator(QoreObject *obj, QObject* parent = 0) : qobj(new myQTranslator(obj, parent))
+      DLLLOCAL QoreQTranslator(QoreObject *obj, QObject* parent = 0) : QoreQTranslatorImpl(new myQTranslator(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif // _QORE_QT_QC_QTRANSLATOR_H

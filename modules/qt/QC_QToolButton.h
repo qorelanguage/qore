@@ -43,74 +43,30 @@ class myQToolButton : public QToolButton, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQToolButton(QoreObject *obj, QWidget* parent = 0) : QToolButton(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQToolButton(QoreObject *obj, QWidget* parent = 0) : QToolButton(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQToolButton : public QoreAbstractQToolButton
+typedef QoreQToolButtonBase<myQToolButton, QoreAbstractQToolButton> QoreQToolButtonImpl;
+
+class QoreQToolButton : public QoreQToolButtonImpl
 {
    public:
-      QPointer<myQToolButton> qobj;
-
-      DLLLOCAL QoreQToolButton(QoreObject *obj, QWidget* parent = 0) : qobj(new myQToolButton(obj, parent))
+      DLLLOCAL QoreQToolButton(QoreObject *obj, QWidget* parent = 0) : QoreQToolButtonImpl(new myQToolButton(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QToolButton *getQToolButton() const
-      {
-         return static_cast<QToolButton *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
-      {
-         return static_cast<QAbstractButton *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQToolButton : public QoreAbstractQToolButton
+typedef QoreQtQToolButtonBase<QToolButton, QoreAbstractQToolButton> QoreQtQToolButtonImpl;
+
+class QoreQtQToolButton : public QoreQtQToolButtonImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QToolButton> qobj;
-
-      DLLLOCAL QoreQtQToolButton(QoreObject *obj, QToolButton *qtoolbutton) : qore_obj(obj), qobj(qtoolbutton)
+      DLLLOCAL QoreQtQToolButton(QoreObject *obj, QToolButton *qtoolbutton) : QoreQtQToolButtonImpl(obj, qtoolbutton)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QToolButton *getQToolButton() const
-      {
-         return static_cast<QToolButton *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
-      {
-         return static_cast<QAbstractButton *>(&(*qobj));
-      }
-
-#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QTOOLBUTTON_H

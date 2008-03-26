@@ -35,8 +35,6 @@ DLLLOCAL class QoreClass *initQWizardPageClass(QoreClass *);
 
 class myQWizardPage : public QWizardPage, public QoreQWidgetExtension
 {
-      friend class QoreQWizardPage;
-
 #define QOREQTYPE QWizardPage
 #define MYQOREQTYPE myQWizardPage
 #include "qore-qt-metacode.h"
@@ -45,9 +43,26 @@ class myQWizardPage : public QWizardPage, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWizardPage(QoreObject *obj, QWidget* parent = 0) : QWizardPage(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQWizardPage(QoreObject *obj, QWidget* parent = 0) : QWizardPage(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
+      }
+
+      DLLLOCAL QVariant parent_field ( const QString & name ) const
+      {
+	 return field(name);
+      }
+      DLLLOCAL void parent_registerField ( const QString & name, QWidget * widget, const char * property = 0, const char * changedSignal = 0 )
+      {
+	 registerField(name, widget, property, changedSignal);
+      }
+      DLLLOCAL void parent_setField ( const QString & name, const QVariant & value )
+      {
+	 setField(name, value);
+      }
+      DLLLOCAL QWizard * parent_wizard () const
+      {
+	 return wizard();
       }
 };
 
@@ -61,75 +76,56 @@ class QoreAbstractQWizardPage : public QoreAbstractQWidget
       DLLLOCAL virtual QWizard * wizard () const = 0;
 };
 
-class QoreQWizardPage : public QoreAbstractQWizardPage
+template <typename T, typename V>
+class QoreQWizardPageBase : public QoreQWidgetBase<T, V>
 {
    public:
-      QPointer<myQWizardPage> qobj;
-
-      DLLLOCAL QoreQWizardPage(QoreObject *obj, QWidget* parent = 0) : qobj(new myQWizardPage(obj, parent))
+      QoreQWizardPageBase(T *qo) : QoreQWidgetBase<T, V>(qo)
       {
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
       }
       DLLLOCAL virtual QWizardPage *getQWizardPage() const
       {
-	 return static_cast<QWizardPage *>(&(*qobj));
+	 return static_cast<QWizardPage *>(&(*this->qobj));
       }
-
       DLLLOCAL virtual QVariant field ( const QString & name ) const
       {
-	 return qobj->field(name);
+	 return this->qobj->parent_field(name);
       }
       DLLLOCAL virtual void registerField ( const QString & name, QWidget * widget, const char * property = 0, const char * changedSignal = 0 )
       {
-	 qobj->registerField(name, widget, property, changedSignal);
+	 this->qobj->parent_registerField(name, widget, property, changedSignal);
       }
       DLLLOCAL virtual void setField ( const QString & name, const QVariant & value )
       {
-	 qobj->setField(name, value);
+	 this->qobj->parent_setField(name, value);
       }
       DLLLOCAL virtual QWizard * wizard () const
       {
-	 return qobj->wizard();
+	 return this->qobj->parent_wizard();
       }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQWizardPage : public QoreAbstractQWizardPage
+typedef QoreQWizardPageBase<myQWizardPage, QoreAbstractQWizardPage> QoreQWizardPageImpl;
+
+class QoreQWizardPage : public QoreQWizardPageImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QWizardPage> qobj;
+      DLLLOCAL QoreQWizardPage(QoreObject *obj, QWidget* parent = 0) : QoreQWizardPageImpl(new myQWizardPage(obj, parent))
+      {
+      }
+};
 
-      DLLLOCAL QoreQtQWizardPage(QoreObject *obj, QWizardPage *qwp) : qore_obj(obj), qobj(qwp)
+template <typename T, typename V>
+class QoreQtQWizardPageBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQWizardPageBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
+
       DLLLOCAL virtual QWizardPage *getQWizardPage() const
       {
-	 return static_cast<QWizardPage *>(&(*qobj));
+	 return static_cast<QWizardPage *>(&(*this->qobj));
       }
 
       // the following methods can never be called because they are protected
@@ -147,9 +143,16 @@ class QoreQtQWizardPage : public QoreAbstractQWizardPage
       {
 	 return 0;
       }
+};
 
+typedef QoreQtQWizardPageBase<QWizardPage, QoreAbstractQWizardPage> QoreQtQWizardPageImpl;
 
-#include "qore-qt-static-qwidget-methods.h"
+class QoreQtQWizardPage : public QoreQtQWizardPageImpl
+{
+   public:
+      DLLLOCAL QoreQtQWizardPage(QoreObject *obj, QWizardPage *qwp) : QoreQtQWizardPageImpl(obj, qwp)
+      {
+      }
 };
 
 #endif // _QORE_QT_QC_QWIZARDPAGE_H

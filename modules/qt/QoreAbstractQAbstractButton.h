@@ -29,7 +29,36 @@
 class QoreAbstractQAbstractButton : public QoreAbstractQWidget
 {
    public:
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const = 0;
+      DLLLOCAL virtual QAbstractButton *getQAbstractButton() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQAbstractButtonBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQAbstractButtonBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractButton *getQAbstractButton() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQAbstractButtonBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQAbstractButtonBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractButton *getQAbstractButton() const
+      {
+	 return this->qobj;
+      }
+
 };
 
 #endif

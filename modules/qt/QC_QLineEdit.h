@@ -43,42 +43,29 @@ class myQLineEdit : public QLineEdit, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQLineEdit(QoreObject *obj, QWidget* parent = 0) : QLineEdit(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLineEdit(QoreObject *obj, QWidget* parent = 0) : QLineEdit(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
          //init_widget_events();
       }
-      DLLLOCAL myQLineEdit(QoreObject *obj, const QString& contents, QWidget* parent = 0) : QLineEdit(contents, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLineEdit(QoreObject *obj, const QString& contents, QWidget* parent = 0) : QLineEdit(contents, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
          //init_widget_events();
       }
 };
 
-class QoreQLineEdit : public QoreAbstractQWidget
+typedef QoreQWidgetBase<myQLineEdit, QoreAbstractQWidget> QoreQLineEditImpl;
+
+class QoreQLineEdit : public QoreQLineEditImpl
 {
    public:
-      QPointer<myQLineEdit> qobj;
-
-      DLLLOCAL QoreQLineEdit(QoreObject *obj, QWidget* parent = 0) : qobj(new myQLineEdit(obj, parent))
+      DLLLOCAL QoreQLineEdit(QoreObject *obj, QWidget* parent = 0) : QoreQLineEditImpl(new myQLineEdit(obj, parent))
       {
       }
-      DLLLOCAL QoreQLineEdit(QoreObject *obj, const QString& contents, QWidget* parent = 0) : qobj(new myQLineEdit(obj, contents, parent))
+      DLLLOCAL QoreQLineEdit(QoreObject *obj, const QString& contents, QWidget* parent = 0) : QoreQLineEditImpl(new myQLineEdit(obj, contents, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QLINEEDIT_H

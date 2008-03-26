@@ -40,13 +40,13 @@ class myQHBoxLayout : public QHBoxLayout, public QoreQObjectExtension
 #undef MYQOREQTYPE
 #undef QOREQTYPE
    public:
-      DLLLOCAL myQHBoxLayout(QoreObject *obj) : QHBoxLayout(), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQHBoxLayout(QoreObject *obj) : QHBoxLayout(), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
-      DLLLOCAL myQHBoxLayout(QoreObject *obj, QWidget *parent) : QHBoxLayout(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQHBoxLayout(QoreObject *obj, QWidget *parent) : QHBoxLayout(parent), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 

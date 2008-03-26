@@ -44,40 +44,20 @@ class myQAbstractSlider : public QAbstractSlider, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQAbstractSlider(QoreObject *obj, QWidget *parent = 0) : QAbstractSlider(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQAbstractSlider(QoreObject *obj, QWidget *parent = 0) : QAbstractSlider(parent), QoreQWidgetExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 
+typedef QoreQAbstractSliderBase<myQAbstractSlider, QoreAbstractQAbstractSlider> QoreQAbstractSliderImpl;
 
-class QoreQAbstractSlider : public QoreAbstractQAbstractSlider
+class QoreQAbstractSlider : public QoreQAbstractSliderImpl
 {
    public:
-      QPointer<myQAbstractSlider>qobj;
-
-      DLLLOCAL QoreQAbstractSlider(QoreObject *obj, QWidget *parent = 0) : qobj(new myQAbstractSlider(obj, parent))
+      DLLLOCAL QoreQAbstractSlider(QoreObject *obj, QWidget *parent = 0) : QoreQAbstractSliderImpl(new myQAbstractSlider(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual QWidget *getQWidget() const
-      {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual QAbstractSlider *getQAbstractSlider() const
-      {
-         return static_cast<QAbstractSlider *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QOBJECT_METHODS
-
 };
 
 #endif

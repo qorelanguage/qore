@@ -45,14 +45,14 @@ class myQMenu : public QMenu, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQMenu(QoreObject *obj, QWidget* parent = 0) : QMenu(parent), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQMenu(QoreObject *obj, QWidget* parent = 0) : QMenu(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
          //init_widget_events();
       }
-   DLLLOCAL myQMenu(QoreObject *obj, const QString& title, QWidget* parent = 0) : QMenu(title, parent), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQMenu(QoreObject *obj, const QString& title, QWidget* parent = 0) : QMenu(title, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
          //init_widget_events();
       }
 };

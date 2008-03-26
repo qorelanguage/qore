@@ -42,13 +42,13 @@ class myQProgressDialog : public QProgressDialog, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQProgressDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QProgressDialog(parent, f), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQProgressDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QProgressDialog(parent, f), QoreQDialogExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQProgressDialog(QoreObject *obj, const QString& labelText, const QString& cancelButtonText, int minimum, int maximum, QWidget* parent = 0, Qt::WindowFlags f = 0) : QProgressDialog(labelText, cancelButtonText, minimum, maximum, parent, f), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQProgressDialog(QoreObject *obj, const QString& labelText, const QString& cancelButtonText, int minimum, int maximum, QWidget* parent = 0, Qt::WindowFlags f = 0) : QProgressDialog(labelText, cancelButtonText, minimum, maximum, parent, f), QoreQDialogExtension(obj, this)
       {
-         init(obj);
+         
       }
       void parent_forceShow()
       {

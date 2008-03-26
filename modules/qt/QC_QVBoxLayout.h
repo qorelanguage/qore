@@ -39,13 +39,13 @@ class myQVBoxLayout : public QVBoxLayout, public QoreQObjectExtension
 #include "qore-qt-metacode.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
-      DLLLOCAL myQVBoxLayout(QoreObject *obj) : QVBoxLayout(), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQVBoxLayout(QoreObject *obj) : QVBoxLayout(), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
-      DLLLOCAL myQVBoxLayout(QoreObject *obj, QWidget *parent) : QVBoxLayout(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQVBoxLayout(QoreObject *obj, QWidget *parent) : QVBoxLayout(parent), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 

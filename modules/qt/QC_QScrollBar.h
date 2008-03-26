@@ -43,80 +43,37 @@ class myQScrollBar : public QScrollBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQScrollBar(QoreObject *obj, QWidget* parent = 0) : QScrollBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQScrollBar(QoreObject *obj, QWidget* parent = 0) : QScrollBar(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQScrollBar(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QScrollBar(orientation, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQScrollBar(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QScrollBar(orientation, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQScrollBar : public QoreAbstractQScrollBar
+typedef QoreQScrollBarBase<myQScrollBar, QoreAbstractQScrollBar> QoreQScrollBarImpl;
+
+class QoreQScrollBar : public QoreQScrollBarImpl
 {
    public:
-      QPointer<myQScrollBar> qobj;
-
-      DLLLOCAL QoreQScrollBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQScrollBar(obj, parent))
+      DLLLOCAL QoreQScrollBar(QoreObject *obj, QWidget* parent = 0) : QoreQScrollBarImpl(new myQScrollBar(obj, parent))
       {
       }
-      DLLLOCAL QoreQScrollBar(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : qobj(new myQScrollBar(obj, orientation, parent))
+      DLLLOCAL QoreQScrollBar(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QoreQScrollBarImpl(new myQScrollBar(obj, orientation, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractSlider *getQAbstractSlider() const
-      {
-         return static_cast<QAbstractSlider *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QScrollBar *getQScrollBar() const
-      {
-         return static_cast<QScrollBar *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQScrollBar : public QoreAbstractQScrollBar
+typedef QoreQtQScrollBarBase<QScrollBar, QoreAbstractQScrollBar> QoreQtQScrollBarImpl;
+
+class QoreQtQScrollBar : public QoreQtQScrollBarImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QScrollBar> qobj;
-
-      DLLLOCAL QoreQtQScrollBar(QoreObject *obj, QScrollBar *qscrollbar) : qore_obj(obj), qobj(qscrollbar)
+      DLLLOCAL QoreQtQScrollBar(QoreObject *obj, QScrollBar *qscrollbar) : QoreQtQScrollBarImpl(obj, qscrollbar)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractSlider *getQAbstractSlider() const
-      {
-         return static_cast<QAbstractSlider *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QScrollBar *getQScrollBar() const
-      {
-         return static_cast<QScrollBar *>(&(*qobj));
-      }
-#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QSCROLLBAR_H

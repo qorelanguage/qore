@@ -30,7 +30,34 @@ class QoreAbstractQPushButton : public QoreAbstractQAbstractButton
 {
    public:
       DLLLOCAL virtual class QPushButton *getQPushButton() const = 0;
-      //DLLLOCAL virtual void initStyleOption(QStyleOptionButton*) const = 0;
+};
+
+template<typename T, typename V>
+class QoreQPushButtonBase : public QoreQAbstractButtonBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQPushButtonBase(T *qo) : QoreQAbstractButtonBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QPushButton *getQPushButton() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQPushButtonBase : public QoreQtQAbstractButtonBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQPushButtonBase(QoreObject *obj, T *qo) : QoreQtQAbstractButtonBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QPushButton *getQPushButton() const
+      {
+	 return this->qobj;
+      }
 };
 
 #endif  // _QORE_QT_QOREABSTRACTQPUSHBUTTON_H

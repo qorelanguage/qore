@@ -43,9 +43,9 @@ class myQDial : public QDial, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDial(QoreObject *obj, QWidget* parent = 0) : QDial(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDial(QoreObject *obj, QWidget* parent = 0) : QDial(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
       DLLLOCAL void pub_initStyleOption(QStyleOptionSlider * option) const
       {
@@ -53,31 +53,14 @@ class myQDial : public QDial, public QoreQWidgetExtension
       }
 };
 
-class QoreQDial : public QoreAbstractQAbstractSlider
+typedef QoreQAbstractSliderBase<myQDial, QoreAbstractQAbstractSlider> QoreQDialImpl;
+
+class QoreQDial : public QoreQDialImpl
 {
    public:
-      QPointer<myQDial> qobj;
-
-      DLLLOCAL QoreQDial(QoreObject *obj, QWidget* parent = 0) : qobj(new myQDial(obj, parent))
+      DLLLOCAL QoreQDial(QoreObject *obj, QWidget* parent = 0) : QoreQDialImpl(new myQDial(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractSlider *getQAbstractSlider() const
-      {
-         return static_cast<QAbstractSlider *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QDIAL_H

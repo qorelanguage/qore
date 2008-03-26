@@ -72,9 +72,11 @@ bool QoreReferenceCounter::ROdereference() const
    // been deleted...  therefore this optimization cannot be used where atomic reference counting
    // is enforced with a mutex, but only here when the operation is atomic without a mutex
    if (references == 1) {
-#ifdef DEBUG
+      // we have to set this to 0 because the QoreObject class "comes back from the dead" to execute the destructor
+      // and increments the reference count from 0 again
+      // however when the reference count is 1 it means that only 1 thread is manipulating the object
+      // so it's safe to set the value directly like this
       references = 0;
-#endif
       return true;
    }
    return atomic_dec(&references);

@@ -39,14 +39,14 @@ class myQGridLayout : public QGridLayout, public QoreQObjectExtension
 #include "qore-qt-metacode.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
-      DLLLOCAL myQGridLayout(QoreObject *obj) : QGridLayout(), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQGridLayout(QoreObject *obj) : QGridLayout(), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 
-      DLLLOCAL myQGridLayout(QoreObject *obj, QWidget *parent) : QGridLayout(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQGridLayout(QoreObject *obj, QWidget *parent) : QGridLayout(parent), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
       }
 };
 

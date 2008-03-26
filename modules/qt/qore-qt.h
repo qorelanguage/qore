@@ -60,7 +60,7 @@ DLLLOCAL QoreObject *return_qobject(QObject *o);
 DLLLOCAL QoreObject *return_qstyleoption(const class QStyleOption *qso);
 DLLLOCAL QoreObject *return_qevent(class QEvent *event);
 DLLLOCAL QoreObject *return_qaction(class QAction *action);
-DLLLOCAL QoreObject *return_qwidget(class QWidget *widget);
+DLLLOCAL QoreObject *return_qwidget(class QWidget *widget, bool managed = true);
 DLLLOCAL AbstractQoreNode *return_qvariant(const QVariant &qv);
 DLLLOCAL QoreListNode *return_qstringlist(const QStringList &l);
 

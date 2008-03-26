@@ -45,9 +45,9 @@ class myQHeaderView : public QHeaderView, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQHeaderView(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QHeaderView(orientation, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQHeaderView(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QHeaderView(orientation, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

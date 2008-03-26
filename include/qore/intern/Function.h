@@ -54,7 +54,7 @@ class BuiltinFunction
       const char *name;
 
    public:
-      class BuiltinFunction *next;
+      BuiltinFunction *next;
       union {
 	    q_func_t func;
 	    q_method_t method;
@@ -62,6 +62,7 @@ class BuiltinFunction
 	    q_system_constructor_t system_constructor;
 	    q_destructor_t destructor;
 	    q_copy_t copy;
+	    q_delete_blocker_t delete_blocker;
       } code;
 
       DLLLOCAL BuiltinFunction(const char *nme, q_func_t f, int typ);
@@ -70,14 +71,16 @@ class BuiltinFunction
       DLLLOCAL BuiltinFunction(q_system_constructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
-      DLLLOCAL class AbstractQoreNode *evalMethod(class QoreObject *self, AbstractPrivateData *private_data, const class QoreListNode *args, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalConstructor(class QoreObject *self, const class QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalDestructor(class QoreObject *self, AbstractPrivateData *private_data, const char *class_name, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalCopy(class QoreObject *self, class QoreObject *old, AbstractPrivateData *private_data, const char *class_name, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalSystemConstructor(class QoreObject *self, int code, va_list args) const;
-      DLLLOCAL void evalSystemDestructor(class QoreObject *self, AbstractPrivateData *private_data, class ExceptionSink *xsink) const;
-      DLLLOCAL class AbstractQoreNode *evalWithArgs(class QoreObject *self, const class QoreListNode *args, class ExceptionSink *xsink) const;
-      DLLLOCAL class AbstractQoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL BuiltinFunction(q_delete_blocker_t m);
+      DLLLOCAL AbstractQoreNode *evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
+      DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
+      DLLLOCAL bool evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const;
+      DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;
+      DLLLOCAL void evalSystemDestructor(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL int getType() const { return type; }
       DLLLOCAL const char *getName() const { return name; }
 };
@@ -96,12 +99,14 @@ class Paramlist {
       DLLLOCAL ~Paramlist();
 };
 
+class VRMutex;
+
 class UserFunction : public QoreReferenceCounter
 {
    private:
       bool synchronized;
       // for "synchronized" functions
-      class VRMutex *gate;
+      VRMutex *gate;
       char *name;
 
    protected:

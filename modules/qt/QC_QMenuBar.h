@@ -43,9 +43,9 @@ class myQMenuBar : public QMenuBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMenuBar(QoreObject *obj, QWidget* parent = 0) : QMenuBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQMenuBar(QoreObject *obj, QWidget* parent = 0) : QMenuBar(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

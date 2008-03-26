@@ -43,9 +43,9 @@ class myQComboBox : public QComboBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQComboBox(QoreObject *obj, QWidget* parent = 0) : QComboBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQComboBox(QoreObject *obj, QWidget* parent = 0) : QComboBox(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

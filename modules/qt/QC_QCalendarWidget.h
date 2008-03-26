@@ -43,33 +43,20 @@ class myQCalendarWidget : public QCalendarWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQCalendarWidget(QoreObject *obj, QWidget* parent = 0) : QCalendarWidget(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQCalendarWidget(QoreObject *obj, QWidget* parent = 0) : QCalendarWidget(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQCalendarWidget : public QoreAbstractQWidget
+typedef QoreQWidgetBase<myQCalendarWidget, QoreAbstractQWidget> QoreQCalenderWidgetImpl;
+
+class QoreQCalendarWidget : public QoreQCalenderWidgetImpl
 {
    public:
-      QPointer<myQCalendarWidget> qobj;
-
-      DLLLOCAL QoreQCalendarWidget(QoreObject *obj, QWidget* parent = 0) : qobj(new myQCalendarWidget(obj, parent))
+      DLLLOCAL QoreQCalendarWidget(QoreObject *obj, QWidget* parent = 0) : QoreQCalenderWidgetImpl(new myQCalendarWidget(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QCALENDARWIDGET_H

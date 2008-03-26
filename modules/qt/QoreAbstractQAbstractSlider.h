@@ -32,4 +32,32 @@ class QoreAbstractQAbstractSlider : public QoreAbstractQWidget
       DLLLOCAL virtual class QAbstractSlider *getQAbstractSlider() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQAbstractSliderBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQAbstractSliderBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractSlider *getQAbstractSlider() const
+      {
+	 return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQAbstractSliderBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQAbstractSliderBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractSlider *getQAbstractSlider() const
+      {
+	 return this->qobj;
+      }
+};
+
 #endif

@@ -43,33 +43,20 @@ class myQProgressBar : public QProgressBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQProgressBar(QoreObject *obj, QWidget* parent = 0) : QProgressBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQProgressBar(QoreObject *obj, QWidget* parent = 0) : QProgressBar(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQProgressBar : public QoreAbstractQWidget
+typedef QoreQWidgetBase<myQProgressBar, QoreAbstractQWidget> QoreQProgressBarImpl;
+
+class QoreQProgressBar : public QoreQProgressBarImpl
 {
    public:
-      QPointer<myQProgressBar> qobj;
-
-      DLLLOCAL QoreQProgressBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQProgressBar(obj, parent))
+      DLLLOCAL QoreQProgressBar(QoreObject *obj, QWidget* parent = 0) : QoreQProgressBarImpl(new myQProgressBar(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QPROGRESSBAR_H

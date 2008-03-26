@@ -35,14 +35,14 @@
 AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one)
 {
 #if TRACK_REFS
-   printd(5, "AbstractQoreNode::ref() %08p type=%08p (0->1)\n", this, type);
+   printd(5, "AbstractQoreNode::ref() %08p type=%d (0->1)\n", this, type);
 #endif
 }
 
 AbstractQoreNode::~AbstractQoreNode()
 {
 #if 0
-   printd(5, "AbstractQoreNode::~AbstractQoreNode() type=%08p (%s)\n", type, getTypeName());
+   printd(5, "AbstractQoreNode::~AbstractQoreNode() type=%d (%s)\n", type, getTypeName());
 #endif
 }
 
@@ -52,7 +52,7 @@ void AbstractQoreNode::ref() const
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(this);
-      printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d) object=%08p, class=%s\n", this, getTypeName(), references, references + 1, o, o->getClass()->getName());
+      printd(5, "AbstractQoreNode::ref() %08p type=object (%d->%d) object=%08p, class=%s\n", this, references, references + 1, o, o->getClass()->getName());
    }
    else
       printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);

@@ -46,9 +46,9 @@ class myQWizard : public QWizard, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWizard(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QWizard(parent, flags), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQWizard(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QWizard(parent, flags), QoreQDialogExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

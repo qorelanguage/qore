@@ -82,8 +82,9 @@ class QoreQStyleExtension : public QoreQObjectExtension
 	 *m_subControlRect, *m_subElementRect, *m_unpolish;
 
    public:
-      DLLLOCAL QoreQStyleExtension(const QoreClass *qc) : QoreQObjectExtension(qc)
+      DLLLOCAL QoreQStyleExtension(QoreObject *obj, QObject *qo) : QoreQObjectExtension(obj, qo)
       {
+	 const QoreClass *qc = obj->getClass();
 	 m_drawComplexControl      = findMethod(qc, "drawComplexControl");
          m_drawControl             = findMethod(qc, "drawControl");
          m_drawItemPixmap          = findMethod(qc, "drawItemPixmap");
@@ -103,6 +104,210 @@ class QoreQStyleExtension : public QoreQObjectExtension
          m_subElementRect          = findMethod(qc, "subElementRect");
          m_unpolish                = findMethod(qc, "unpolish");
       }
+};
+
+template<typename T, typename V>
+class QoreQStyleBase : public QoreQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQStyleBase(T *qo) : QoreQObjectBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QStyle *getQStyle() const
+      {
+	 return &(*this->qobj);
+      }
+
+      DLLLOCAL virtual int layoutSpacingImplementation ( QSizePolicy::ControlType control1, QSizePolicy::ControlType control2, Qt::Orientation orientation, const QStyleOption * option = 0, const QWidget * widget = 0 ) const { 
+	 return this->qobj->parent_layoutSpacingImplementation(control1, control2, orientation, option, widget); 
+      }									
+      DLLLOCAL virtual QIcon standardIconImplementation ( QStyle::StandardPixmap standardIcon, const QStyleOption * option = 0, const QWidget * widget = 0 ) const { 
+	 return this->qobj->parent_standardIconImplementation(standardIcon, option, widget); 
+      }									
+      DLLLOCAL virtual void drawComplexControl ( QStyle::ComplexControl control, const QStyleOptionComplex * option, QPainter * painter, const QWidget * widget = 0 ) const { 
+	 this->qobj->parent_drawComplexControl(control, option, painter, widget);	
+      }									
+      DLLLOCAL virtual void drawControl ( QStyle::ControlElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const { 
+	 this->qobj->parent_drawControl(element, option, painter, widget);		
+      }									
+      DLLLOCAL virtual void drawItemPixmap ( QPainter * painter, const QRect & rectangle, int alignment, const QPixmap & pixmap ) const { 
+	 this->qobj->parent_drawItemPixmap(painter, rectangle, alignment, pixmap);	
+      }									
+      DLLLOCAL virtual void drawItemText ( QPainter * painter, const QRect & rectangle, int alignment, const QPalette & palette, bool enabled, const QString & text, QPalette::ColorRole textRole = QPalette::NoRole ) const { 
+	 this->qobj->parent_drawItemText(painter, rectangle, alignment, palette, enabled, text, textRole); 
+      }									
+      DLLLOCAL virtual void drawPrimitive ( QStyle::PrimitiveElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const { 
+	 this->qobj->parent_drawPrimitive(element, option, painter, widget); 
+      }									
+      DLLLOCAL virtual QPixmap generatedIconPixmap ( QIcon::Mode iconMode, const QPixmap & pixmap, const QStyleOption * option ) const 
+      {
+	 return this->qobj->parent_generatedIconPixmap(iconMode, pixmap, option); 
+      }									
+      DLLLOCAL virtual QStyle::SubControl hitTestComplexControl ( QStyle::ComplexControl control, const QStyleOptionComplex * option, const QPoint & position, const QWidget * widget = 0 ) const 
+      { 
+	 return this->qobj->parent_hitTestComplexControl(control, option, position, widget); 
+      }									
+      DLLLOCAL virtual QRect itemPixmapRect ( const QRect & rectangle, int alignment, const QPixmap & pixmap ) const 
+      {
+	 return this->qobj->parent_itemPixmapRect(rectangle, alignment, pixmap); 
+      }									
+      DLLLOCAL virtual QRect itemTextRect ( const QFontMetrics & metrics, const QRect & rectangle, int alignment, bool enabled, const QString & text ) const 
+      { 
+	 return this->qobj->parent_itemTextRect(metrics, rectangle, alignment, enabled, text); 
+      }									
+      DLLLOCAL virtual int pixelMetric ( QStyle::PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const 
+      {
+	 return this->qobj->parent_pixelMetric(metric, option, widget); 
+      }									
+      DLLLOCAL virtual void polish ( QWidget * widget ) 
+      {
+	 this->qobj->parent_polish(widget); 
+      }									
+      DLLLOCAL virtual void polish ( QApplication * application )
+      {
+	 this->qobj->parent_polish(application); 
+      }									
+      DLLLOCAL virtual void polish ( QPalette & palette )
+      {
+	 this->qobj->parent_polish(palette); 
+      } 
+      DLLLOCAL virtual QSize sizeFromContents ( QStyle::ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const
+      {
+	 return this->qobj->parent_sizeFromContents(type, option, contentsSize, widget); 
+      }									
+      DLLLOCAL virtual QPalette standardPalette () const
+      {
+	 return this->qobj->parent_standardPalette(); 
+      }									
+      DLLLOCAL virtual QPixmap standardPixmap(QStyle::StandardPixmap standardPixmap, const QStyleOption *option = 0, const QWidget *widget = 0) const
+      {
+	 return this->qobj->parent_standardPixmap(standardPixmap, option, widget);	
+      }									
+      DLLLOCAL virtual int styleHint ( QStyle::StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const
+      {
+	 return this->qobj->parent_styleHint(hint, option, widget, returnData); 
+      }									
+      DLLLOCAL virtual QRect subControlRect ( QStyle::ComplexControl control, const QStyleOptionComplex * option, QStyle::SubControl subControl, const QWidget * widget = 0 ) const
+      {
+	 return this->qobj->parent_subControlRect(control, option, subControl, widget); 
+      }									
+      DLLLOCAL virtual QRect subElementRect ( QStyle::SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const 
+      {
+	 return this->qobj->parent_subElementRect(element, option, widget); 
+      }									
+      DLLLOCAL virtual void unpolish ( QWidget * widget )
+      {
+	 this->qobj->parent_unpolish(widget); 
+      }									
+      DLLLOCAL virtual void unpolish ( QApplication * application )
+      {
+	 this->qobj->parent_unpolish(application);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQStyleBase : public QoreQtQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQStyleBase(QoreObject *obj, T *qo) : QoreQtQObjectBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QStyle *getQStyle() const
+      {
+	 return this->qobj;
+      }
+
+      // these functions will never be called
+      DLLLOCAL virtual int layoutSpacingImplementation ( QSizePolicy::ControlType control1, QSizePolicy::ControlType control2, Qt::Orientation orientation, const QStyleOption * option = 0, const QWidget * widget = 0 ) const { return 0; }
+      DLLLOCAL virtual QIcon standardIconImplementation ( QStyle::StandardPixmap standardIcon, const QStyleOption * option = 0, const QWidget * widget = 0 ) const { return QIcon(); }
+      // these functions could be called
+      DLLLOCAL virtual void drawComplexControl ( QStyle::ComplexControl control, const QStyleOptionComplex * option, QPainter * painter, const QWidget * widget = 0 ) const 
+      { 
+	 this->qobj->drawComplexControl(control, option, painter, widget);	
+      }
+      DLLLOCAL virtual void drawControl ( QStyle::ControlElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const 
+      { 
+	 this->qobj->drawControl(element, option, painter, widget);
+      }
+      DLLLOCAL virtual void drawItemPixmap ( QPainter * painter, const QRect & rectangle, int alignment, const QPixmap & pixmap ) const 
+      { 
+	 this->qobj->drawItemPixmap(painter, rectangle, alignment, pixmap);	
+      }									
+      DLLLOCAL virtual void drawItemText ( QPainter * painter, const QRect & rectangle, int alignment, const QPalette & palette, bool enabled, const QString & text, QPalette::ColorRole textRole = QPalette::NoRole ) const 
+      { 
+	 this->qobj->drawItemText(painter, rectangle, alignment, palette, enabled, text, textRole); 
+      }									
+      DLLLOCAL virtual void drawPrimitive ( QStyle::PrimitiveElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const 
+      { 
+	 this->qobj->drawPrimitive(element, option, painter, widget); 
+      }									
+      DLLLOCAL virtual QPixmap generatedIconPixmap ( QIcon::Mode iconMode, const QPixmap & pixmap, const QStyleOption * option ) const
+      {
+	 return this->qobj->generatedIconPixmap(iconMode, pixmap, option); 
+      }									
+      DLLLOCAL virtual QStyle::SubControl hitTestComplexControl ( QStyle::ComplexControl control, const QStyleOptionComplex * option, const QPoint & position, const QWidget * widget = 0 ) const 
+      { 
+	 return this->qobj->hitTestComplexControl(control, option, position, widget); 
+      }
+      DLLLOCAL virtual QRect itemPixmapRect ( const QRect & rectangle, int alignment, const QPixmap & pixmap ) const 
+      {
+	 return this->qobj->itemPixmapRect(rectangle, alignment, pixmap); 
+      }									
+      DLLLOCAL virtual QRect itemTextRect ( const QFontMetrics & metrics, const QRect & rectangle, int alignment, bool enabled, const QString & text ) const 
+      { 
+	 return this->qobj->itemTextRect(metrics, rectangle, alignment, enabled, text); 
+      }									
+      DLLLOCAL virtual int pixelMetric ( QStyle::PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const 
+      {
+	 return this->qobj->pixelMetric(metric, option, widget); 
+      }					
+      DLLLOCAL virtual void polish ( QWidget * widget ) 
+      {
+	 this->qobj->polish(widget); 
+      }									
+      DLLLOCAL virtual void polish ( QApplication * application ) 
+      {	
+	 this->qobj->polish(application); 
+      }									
+      DLLLOCAL virtual void polish ( QPalette & palette ) 
+      {
+	 this->qobj->polish(palette); 
+      } 
+      DLLLOCAL virtual QSize sizeFromContents ( QStyle::ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const 
+      {
+	 return this->qobj->sizeFromContents(type, option, contentsSize, widget); 
+      }									
+      DLLLOCAL virtual QPalette standardPalette () const 
+      {			
+	 return this->qobj->standardPalette(); 
+      }
+      DLLLOCAL virtual QPixmap standardPixmap(QStyle::StandardPixmap standardPixmap, const QStyleOption *option = 0, const QWidget *widget = 0) const 
+      {
+	 return this->qobj->standardPixmap(standardPixmap, option, widget);
+      }
+      DLLLOCAL virtual int styleHint ( QStyle::StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const 
+      {
+	 return this->qobj->styleHint(hint, option, widget, returnData); 
+      }									
+      DLLLOCAL virtual QRect subControlRect ( QStyle::ComplexControl control, const QStyleOptionComplex * option, QStyle::SubControl subControl, const QWidget * widget = 0 ) const 
+      {
+	 return this->qobj->subControlRect(control, option, subControl, widget); 
+      }									
+      DLLLOCAL virtual QRect subElementRect ( QStyle::SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const 
+      {
+	 return this->qobj->subElementRect(element, option, widget); 
+      }									
+      DLLLOCAL virtual void unpolish ( QWidget * widget ) 
+      {		
+	 this->qobj->unpolish(widget); 
+      }									
+      DLLLOCAL virtual void unpolish ( QApplication * application ) 
+      {
+	 this->qobj->unpolish(application); 
+      }
+
 };
 
 #define QORE_VIRTUAL_QSTYLE_METHODS QORE_VIRTUAL_QOBJECT_METHODS	\

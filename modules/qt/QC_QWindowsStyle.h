@@ -45,53 +45,30 @@ class myQWindowsStyle : public QWindowsStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWindowsStyle(QoreObject *obj) : QWindowsStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQWindowsStyle(QoreObject *obj) : QWindowsStyle(), QoreQStyleExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQWindowsStyle : public QoreAbstractQWindowsStyle
+typedef QoreQWindowsStyleBase<myQWindowsStyle, QoreAbstractQWindowsStyle> QoreQWindowsStyleImpl;
+
+class QoreQWindowsStyle : public QoreQWindowsStyleImpl
 {
    public:
-      QPointer<myQWindowsStyle> qobj;
-
-      DLLLOCAL QoreQWindowsStyle(QoreObject *obj) : qobj(new myQWindowsStyle(obj))
+      DLLLOCAL QoreQWindowsStyle(QoreObject *obj) : QoreQWindowsStyleImpl(new myQWindowsStyle(obj))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
-      {
-         return static_cast<QWindowsStyle *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QSTYLE_METHODS
 };
 
-class QoreQtQWindowsStyle : public QoreAbstractQWindowsStyle
+typedef QoreQtQWindowsStyleBase<QWindowsStyle, QoreAbstractQWindowsStyle> QoreQtQWindowsStyleImpl;
+
+class QoreQtQWindowsStyle : public QoreQtQWindowsStyleImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QWindowsStyle> qobj;
-
-      DLLLOCAL QoreQtQWindowsStyle(QoreObject *obj, QWindowsStyle *qws) : qore_obj(obj), qobj(qws)
+      DLLLOCAL QoreQtQWindowsStyle(QoreObject *obj, QWindowsStyle *qws) : QoreQtQWindowsStyleImpl(obj, qws)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
-      {
-         return static_cast<QWindowsStyle *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QStyle *getQStyle() const
-      {
-         return static_cast<QStyle *>(&(*qobj));
-      }
-#include "qore-qt-static-qstyle-methods.h"
 };
 
 #endif // _QORE_QT_QC_QWINDOWSSTYLE_H

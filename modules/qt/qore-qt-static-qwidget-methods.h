@@ -14,8 +14,7 @@ class T {
       DLLLOCAL virtual void dragLeaveEvent ( QDragLeaveEvent * event ) {}	
       DLLLOCAL virtual void dragMoveEvent ( QDragMoveEvent * event )  {}	
       DLLLOCAL virtual void dropEvent ( QDropEvent * event ) {}		
-      DLLLOCAL virtual void enterEvent ( QEvent * event ) {}		
-      DLLLOCAL virtual bool event ( QEvent * event ) { return false; }	
+      DLLLOCAL virtual void enterEvent ( QEvent * event ) {}
       DLLLOCAL virtual void focusInEvent ( QFocusEvent * event ) {}	
       DLLLOCAL virtual void focusOutEvent ( QFocusEvent * event ) {}	
       DLLLOCAL virtual void hideEvent ( QHideEvent * event ) {}		

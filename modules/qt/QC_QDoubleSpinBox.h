@@ -43,9 +43,9 @@ class myQDoubleSpinBox : public QDoubleSpinBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDoubleSpinBox(QoreObject *obj, QWidget* parent = 0) : QDoubleSpinBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDoubleSpinBox(QoreObject *obj, QWidget* parent = 0) : QDoubleSpinBox(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

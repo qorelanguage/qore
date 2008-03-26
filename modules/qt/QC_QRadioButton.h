@@ -43,82 +43,37 @@ class myQRadioButton : public QRadioButton, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQRadioButton(QoreObject *obj, QWidget* parent = 0) : QRadioButton(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQRadioButton(QoreObject *obj, QWidget* parent = 0) : QRadioButton(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
-      DLLLOCAL myQRadioButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : QRadioButton(text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQRadioButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : QRadioButton(text, parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQRadioButton : public QoreAbstractQRadioButton
+typedef QoreQRadioButtonBase<myQRadioButton, QoreAbstractQRadioButton> QoreQRadioButtonImpl;
+
+class QoreQRadioButton : public QoreQRadioButtonImpl
 {
    public:
-      QPointer<myQRadioButton> qobj;
-
-      DLLLOCAL QoreQRadioButton(QoreObject *obj, QWidget* parent = 0) : qobj(new myQRadioButton(obj, parent))
+      DLLLOCAL QoreQRadioButton(QoreObject *obj, QWidget* parent = 0) : QoreQRadioButtonImpl(new myQRadioButton(obj, parent))
       {
       }
-      DLLLOCAL QoreQRadioButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : qobj(new myQRadioButton(obj, text, parent))
+      DLLLOCAL QoreQRadioButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : QoreQRadioButtonImpl(new myQRadioButton(obj, text, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
-      {
-         return static_cast<QAbstractButton *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QRadioButton *getQRadioButton() const
-      {
-         return static_cast<QRadioButton *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQRadioButton : public QoreAbstractQRadioButton
+typedef QoreQtQRadioButtonBase<QRadioButton, QoreAbstractQRadioButton> QoreQtQRadioButtonImpl;
+
+class QoreQtQRadioButton : public QoreQtQRadioButtonImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QRadioButton> qobj;
-
-      DLLLOCAL QoreQtQRadioButton(QoreObject *obj, QRadioButton *qb) : qore_obj(obj), qobj(qb)
+      DLLLOCAL QoreQtQRadioButton(QoreObject *obj, QRadioButton *qb) : QoreQtQRadioButtonImpl(obj, qb)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
-      {
-         return static_cast<QAbstractButton *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QRadioButton *getQRadioButton() const
-      {
-         return static_cast<QRadioButton *>(&(*qobj));
-      }
-
-#include "qore-qt-static-qwidget-methods.h"
-
 };
 
 #endif // _QORE_QT_QC_QRADIOBUTTON_H

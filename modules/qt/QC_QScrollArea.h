@@ -43,9 +43,9 @@ class myQScrollArea : public QScrollArea, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQScrollArea(QoreObject *obj, QWidget* parent = 0) : QScrollArea(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQScrollArea(QoreObject *obj, QWidget* parent = 0) : QScrollArea(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
       DLLLOCAL void pub_setupViewport(QWidget *w)
       {

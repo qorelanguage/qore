@@ -59,7 +59,7 @@ static void QWIDGET_constructor(class QoreObject *self, const QoreListNode *para
    self->setPrivate(CID_QWIDGET, qw);
 }
 
-static void QWIDGET_copy(class QoreObject *self, class QoreObject *old, class QoreQWidget *qw, ExceptionSink *xsink)
+static void QWIDGET_copy(class QoreObject *self, class QoreObject *old, QoreAbstractQWidget *qw, ExceptionSink *xsink)
 {
    xsink->raiseException("QWIDGET-COPY-ERROR", "objects of this class cannot be copied");
 }
@@ -2302,20 +2302,6 @@ static AbstractQoreNode *QWIDGET_enterEvent(QoreObject *self, QoreQWidget *qw, c
    return 0;
 }
 
-//virtual bool event ( QEvent * event )
-static AbstractQoreNode *QWIDGET_event(QoreObject *self, QoreQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreObject *p = test_object_param(params, 0);
-   QoreQEvent *event = p ? (QoreQEvent *)p->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
-   if (!event) {
-      if (!xsink->isException())
-         xsink->raiseException("QWIDGET-EVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::event()");
-      return 0;
-   }
-   ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
-   return get_bool_node(qw->event(static_cast<QEvent *>(event)));
-}
-
 //virtual void focusInEvent ( QFocusEvent * event )
 static AbstractQoreNode *QWIDGET_focusInEvent(QoreObject *self, QoreQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -2828,7 +2814,6 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("showNormal",                  (q_method_t)QWIDGET_showNormal);
 
    // events (private members)
-   QC_QWidget->addMethod("event",                   (q_method_t)QWIDGET_event, true);
    QC_QWidget->addMethod("paintEvent",              (q_method_t)QWIDGET_paintEvent, true);
    QC_QWidget->addMethod("mouseMoveEvent",          (q_method_t)QWIDGET_mouseMoveEvent, true);
    QC_QWidget->addMethod("mousePressEvent",         (q_method_t)QWIDGET_mousePressEvent, true);

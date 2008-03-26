@@ -45,9 +45,9 @@ class myQTableView : public QTableView, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTableView(QoreObject *obj, QWidget* parent = 0) : QTableView(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTableView(QoreObject *obj, QWidget* parent = 0) : QTableView(parent), QoreQWidgetExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

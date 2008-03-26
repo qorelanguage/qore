@@ -35,7 +35,7 @@ class QoreQWidgetExtension : public QoreQObjectExtension
 {
    protected:
       // event methods
-      const QoreMethod *e_changeEvent, *e_enterEvent, *e_event, *e_leaveEvent,
+      const QoreMethod *e_changeEvent, *e_enterEvent, *e_leaveEvent,
          *e_paintEvent, 
          *e_mouseMoveEvent, *e_mousePressEvent, 
          *e_mouseReleaseEvent, *e_mouseDoubleClickEvent,
@@ -68,8 +68,9 @@ class QoreQWidgetExtension : public QoreQObjectExtension
 	 ;
 
    public:
-      DLLLOCAL QoreQWidgetExtension(const QoreClass *qc) : QoreQObjectExtension(qc)
+      DLLLOCAL QoreQWidgetExtension(QoreObject *obj, QObject *qo) : QoreQObjectExtension(obj, qo)
       {
+	 const QoreClass *qc = obj->getClass();
          e_paintEvent             = findMethod(qc, "paintEvent");
          e_mouseMoveEvent         = findMethod(qc, "mouseMoveEvent");
          e_mousePressEvent        = findMethod(qc, "mousePressEvent");
@@ -79,7 +80,6 @@ class QoreQWidgetExtension : public QoreQObjectExtension
          e_keyReleaseEvent        = findMethod(qc, "keyReleaseEvent");
          e_changeEvent            = findMethod(qc, "changeEvent");
          e_enterEvent             = findMethod(qc, "enterEvent");
-         e_event                  = findMethod(qc, "event");
          e_leaveEvent             = findMethod(qc, "leaveEvent");
          e_resizeEvent            = findMethod(qc, "resizeEvent");
          e_moveEvent              = findMethod(qc, "moveEvent");
@@ -124,7 +124,6 @@ class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPain
       DLLLOCAL virtual void dragMoveEvent(QDragMoveEvent * event) = 0;
       DLLLOCAL virtual void dropEvent(QDropEvent * event) = 0;
       DLLLOCAL virtual void enterEvent(QEvent * event) = 0;
-      DLLLOCAL virtual bool event(QEvent * event) = 0;
       DLLLOCAL virtual void focusInEvent(QFocusEvent * event) = 0;
       DLLLOCAL virtual void focusOutEvent(QFocusEvent * event) = 0;
       DLLLOCAL virtual void hideEvent(QHideEvent * event) = 0;
@@ -158,6 +157,194 @@ class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPain
       DLLLOCAL virtual QSize sizeHint() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQWidgetBase : public QoreQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQWidgetBase(T *qo) : QoreQObjectBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual QWidget *getQWidget() const
+      {
+	 return &(*this->qobj);
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+	 return static_cast<QPaintDevice *>(&(*this->qobj));
+      }
+
+      DLLLOCAL virtual void actionEvent(QActionEvent * event) {
+	 this->qobj->parent_actionEvent(event);
+      }
+      DLLLOCAL virtual void changeEvent(QEvent * event) {
+	 this->qobj->parent_changeEvent(event);
+      }
+      DLLLOCAL virtual void closeEvent(QCloseEvent * event) {
+	 this->qobj->parent_closeEvent(event);
+      }
+      DLLLOCAL virtual void contextMenuEvent ( QContextMenuEvent * event ) {
+	 this->qobj->parent_contextMenuEvent(event); 
+      } 
+      DLLLOCAL virtual void dragEnterEvent ( QDragEnterEvent * event ) {
+	 this->qobj->parent_dragEnterEvent(event); 
+      }
+      DLLLOCAL virtual void dragLeaveEvent ( QDragLeaveEvent * event ) {
+	 this->qobj->parent_dragLeaveEvent(event); 
+      }
+      DLLLOCAL virtual void dragMoveEvent ( QDragMoveEvent * event )  {
+	 this->qobj->parent_dragMoveEvent(event); 
+      }
+      DLLLOCAL virtual void dropEvent ( QDropEvent * event ) {	
+	 this->qobj->parent_dropEvent(event); 
+      }
+      DLLLOCAL virtual void enterEvent ( QEvent * event ) {	
+	 this->qobj->parent_enterEvent(event); 
+      }
+      DLLLOCAL virtual void focusInEvent ( QFocusEvent * event ) {	
+	 this->qobj->parent_focusInEvent(event); 
+      }
+      DLLLOCAL virtual void focusOutEvent ( QFocusEvent * event ) {	
+	 this->qobj->parent_focusOutEvent(event); 
+      }
+      DLLLOCAL virtual void hideEvent ( QHideEvent * event ) {	
+	 this->qobj->parent_hideEvent(event); 
+      }
+      DLLLOCAL virtual void inputMethodEvent ( QInputMethodEvent * event ) { 
+	 this->qobj->parent_inputMethodEvent(event); 
+      }
+      DLLLOCAL virtual void keyPressEvent ( QKeyEvent * event ) {	
+	 this->qobj->parent_keyPressEvent(event); 
+      }
+      DLLLOCAL virtual void keyReleaseEvent ( QKeyEvent * event ) {	
+	 this->qobj->parent_keyReleaseEvent(event); 
+      }
+      DLLLOCAL virtual void leaveEvent ( QEvent * event ) {	
+	 this->qobj->parent_leaveEvent(event); 
+      }
+      /*DLLLOCAL virtual bool macEvent ( EventHandlerCallRef caller, EventRef event ) { 
+	this->qobj->parent_macEvent(event);						
+	}*/								
+      DLLLOCAL virtual void mouseDoubleClickEvent ( QMouseEvent * event ) { 
+	 this->qobj->parent_mouseDoubleClickEvent(event); 
+      }
+      DLLLOCAL virtual void mouseMoveEvent ( QMouseEvent * event ) {	
+	 this->qobj->parent_mouseMoveEvent(event);					
+      }
+      DLLLOCAL virtual void mousePressEvent ( QMouseEvent * event ) {	
+	 this->qobj->parent_mousePressEvent(event); 
+      }
+      DLLLOCAL virtual void mouseReleaseEvent ( QMouseEvent * event ) {	
+	 this->qobj->parent_mouseReleaseEvent(event); 
+      }
+      DLLLOCAL virtual void moveEvent ( QMoveEvent * event ) {	
+	 this->qobj->parent_moveEvent(event); 
+      }
+      DLLLOCAL virtual void paintEvent ( QPaintEvent * event ) {	
+	 this->qobj->parent_paintEvent(event); 
+      }
+      /*DLLLOCAL virtual bool qwsEvent ( QWSEvent * event ) {	
+	this->qobj->parent_qwsEvent(event);					
+	}*/							
+      DLLLOCAL virtual void resizeEvent ( QResizeEvent * event ) {
+	 this->qobj->parent_resizeEvent(event); 
+      }
+      DLLLOCAL virtual void showEvent ( QShowEvent * event ) {	
+	 this->qobj->parent_showEvent(event); 
+      }
+      DLLLOCAL virtual void tabletEvent ( QTabletEvent * event ) {	
+	 this->qobj->parent_tabletEvent(event); 
+      }
+      DLLLOCAL virtual void wheelEvent ( QWheelEvent * event ) {	
+	 this->qobj->parent_wheelEvent(event); 
+      }
+      /*DLLLOCAL virtual bool winEvent ( MSG * message, long * result ) {	
+	this->qobj->parent_winEvent(event);						
+	}									
+	DLLLOCAL virtual bool x11Event ( XEvent * event ) {		
+	this->qobj->parent_x11Event(event);						
+	}*/ 
+      DLLLOCAL virtual int heightForWidth ( int w ) const { 
+	 return this->qobj->parent_heightForWidth(w); 
+      } 
+      DLLLOCAL virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const { 
+	 return this->qobj->parent_inputMethodQuery(query); 
+      } 
+      DLLLOCAL virtual QSize minimumSizeHint () const { 
+	 return this->qobj->parent_minimumSizeHint(); 
+      } 
+      /*DLLLOCAL virtual QPaintEngine * paintEngine () const {	
+	return this->qobj->parent_paintEngine();				
+	}								
+	DLLLOCAL virtual void releaseDC ( HDC hdc ) const {	
+	this->qobj->parent_releaseDC(hdc);				
+	}*/							
+      DLLLOCAL virtual void setVisible ( bool visible ) { 
+	 this->qobj->parent_setVisible(visible); 
+      } 
+      DLLLOCAL virtual QSize sizeHint() const { 
+	 return this->qobj->parent_sizeHint();
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQWidgetBase : public QoreQtQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQWidgetBase(QoreObject *obj, T *qo, bool n_managed = true) : QoreQtQObjectBase<T, V>(obj, qo, n_managed)
+      {
+      }
+
+      DLLLOCAL virtual QWidget *getQWidget() const
+      {
+	 return this->qobj;
+      }
+
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+	 return static_cast<QPaintDevice *>(this->qobj);
+      }
+
+      DLLLOCAL virtual void actionEvent(QActionEvent * event) { }
+      DLLLOCAL virtual void changeEvent(QEvent * event) {}
+      DLLLOCAL virtual void closeEvent(QCloseEvent * event) {}
+      DLLLOCAL virtual void contextMenuEvent ( QContextMenuEvent * event ) {}
+      DLLLOCAL virtual void dragEnterEvent ( QDragEnterEvent * event ) {}	
+      DLLLOCAL virtual void dragLeaveEvent ( QDragLeaveEvent * event ) {}	
+      DLLLOCAL virtual void dragMoveEvent ( QDragMoveEvent * event )  {}	
+      DLLLOCAL virtual void dropEvent ( QDropEvent * event ) {}		
+      DLLLOCAL virtual void enterEvent ( QEvent * event ) {}
+      DLLLOCAL virtual void focusInEvent ( QFocusEvent * event ) {}	
+      DLLLOCAL virtual void focusOutEvent ( QFocusEvent * event ) {}	
+      DLLLOCAL virtual void hideEvent ( QHideEvent * event ) {}		
+      DLLLOCAL virtual void inputMethodEvent ( QInputMethodEvent * event ) {} 
+      DLLLOCAL virtual void keyPressEvent ( QKeyEvent * event ) {}		
+      DLLLOCAL virtual void keyReleaseEvent ( QKeyEvent * event ) {}	
+      DLLLOCAL virtual void leaveEvent ( QEvent * event ) {}		
+      //DLLLOCAL virtual bool macEvent ( EventHandlerCallRef caller, EventRef event ) {}
+      DLLLOCAL virtual void mouseDoubleClickEvent ( QMouseEvent * event ) {} 
+      DLLLOCAL virtual void mouseMoveEvent ( QMouseEvent * event ) {}	
+      DLLLOCAL virtual void mousePressEvent ( QMouseEvent * event ) {}	
+      DLLLOCAL virtual void mouseReleaseEvent ( QMouseEvent * event ) {}	
+      DLLLOCAL virtual void moveEvent ( QMoveEvent * event ) {}		
+      DLLLOCAL virtual void paintEvent ( QPaintEvent * event ) {}		
+      //DLLLOCAL virtual bool qwsEvent ( QWSEvent * event ) { return false; }
+      DLLLOCAL virtual void resizeEvent ( QResizeEvent * event ) {}	
+      DLLLOCAL virtual void showEvent ( QShowEvent * event ) {}		
+      DLLLOCAL virtual void tabletEvent ( QTabletEvent * event ) {}	
+      DLLLOCAL virtual void wheelEvent ( QWheelEvent * event ) {}		
+      //DLLLOCAL virtual bool winEvent ( MSG * message, long * result ) { return false;}
+      //DLLLOCAL virtual bool x11Event ( XEvent * event ) { return false; }
+      //DLLLOCAL virtual HDC getDC () const {}
+      DLLLOCAL virtual int heightForWidth ( int w ) const { return 0; }
+      DLLLOCAL virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const { return QVariant(); }
+      DLLLOCAL virtual QSize minimumSizeHint () const { return QSize(); }
+      //DLLLOCAL virtual QPaintEngine * paintEngine () const { return 0; }
+      //DLLLOCAL virtual void releaseDC ( HDC hdc ) const {}
+      DLLLOCAL virtual void setVisible ( bool visible ) {}
+      DLLLOCAL virtual QSize sizeHint() const { return QSize(); }
+};
+
 #define QORE_VIRTUAL_QWIDGET_METHODS QORE_VIRTUAL_QOBJECT_METHODS \
    DLLLOCAL virtual void actionEvent(QActionEvent * event) { \
       qobj->parent_actionEvent(event);		    \
@@ -185,9 +372,6 @@ class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPain
    }\
    DLLLOCAL virtual void enterEvent ( QEvent * event ) {	\
       qobj->parent_enterEvent(event); \
-   }\
-   DLLLOCAL virtual bool event ( QEvent * event ) {	\
-      return qobj->parent_event(event); \
    }\
    DLLLOCAL virtual void focusInEvent ( QFocusEvent * event ) {	\
       qobj->parent_focusInEvent(event); \

@@ -420,11 +420,15 @@ class GameBoard inherits QWidget
 	$leftLayout.addWidget($angle);
 	$leftLayout.addWidget($force);
 
+	my $cannonLayout = new QVBoxLayout();
+	$cannonLayout.addWidget($.cannonField);
+	$cannonBox.setLayout($cannonLayout);
+
 	my $gridLayout = new QGridLayout();
 	$gridLayout.addWidget($quit, 0, 0);
 	$gridLayout.addLayout($topLayout, 0, 1);
 	$gridLayout.addLayout($leftLayout, 1, 0);
-	$gridLayout.addWidget($.cannonField, 1, 1, 2, 1);
+	$gridLayout.addWidget($cannonBox, 1, 1, 2, 1);
 	$gridLayout.setColumnStretch(1, 10);
 	$.setLayout($gridLayout);
 

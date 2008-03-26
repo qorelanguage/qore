@@ -45,54 +45,30 @@ class myQPlastiqueStyle : public QPlastiqueStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQPlastiqueStyle(QoreObject *obj) : QPlastiqueStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQPlastiqueStyle(QoreObject *obj) : QPlastiqueStyle(), QoreQStyleExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 
-class QoreQPlastiqueStyle : public QoreAbstractQWindowsStyle
+typedef QoreQWindowsStyleBase<myQPlastiqueStyle, QoreAbstractQWindowsStyle> QoreQPlastiqueStyleImpl;
+
+class QoreQPlastiqueStyle : public QoreQPlastiqueStyleImpl
 {
    public:
-      QPointer<myQPlastiqueStyle> qobj;
-
-      DLLLOCAL QoreQPlastiqueStyle(QoreObject *obj) : qobj(new myQPlastiqueStyle(obj))
+      DLLLOCAL QoreQPlastiqueStyle(QoreObject *obj) : QoreQPlastiqueStyleImpl(new myQPlastiqueStyle(obj))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
-      {
-         return static_cast<QWindowsStyle *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QSTYLE_METHODS
 };
 
-class QoreQtQPlastiqueStyle : public QoreAbstractQWindowsStyle
+typedef QoreQtQWindowsStyleBase<QPlastiqueStyle, QoreAbstractQWindowsStyle> QoreQtQPlastiqueStyleImpl;
+
+class QoreQtQPlastiqueStyle : public QoreQtQPlastiqueStyleImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QPlastiqueStyle> qobj;
-
-      DLLLOCAL QoreQtQPlastiqueStyle(QoreObject *obj, QPlastiqueStyle *qps) : qore_obj(obj), qobj(qps)
+      DLLLOCAL QoreQtQPlastiqueStyle(QoreObject *obj, QPlastiqueStyle *qps) : QoreQtQPlastiqueStyleImpl(obj, qps)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
-      {
-         return static_cast<QWindowsStyle *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QStyle *getQStyle() const
-      {
-         return static_cast<QStyle *>(&(*qobj));
-      }
-
-#include "qore-qt-static-qstyle-methods.h"
 };
 
 #endif // _QORE_QT_QC_QPLASTIQUESTYLE_H

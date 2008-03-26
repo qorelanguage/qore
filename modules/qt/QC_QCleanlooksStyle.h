@@ -45,9 +45,9 @@ class myQCleanlooksStyle : public QCleanlooksStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCleanlooksStyle(QoreObject *obj) : QCleanlooksStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQCleanlooksStyle(QoreObject *obj) : QCleanlooksStyle(), QoreQStyleExtension(obj, this)
       {
-         init(obj);
+         
       }
 };
 

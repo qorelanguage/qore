@@ -40,17 +40,21 @@ struct qore_qc_private {
       hm_method_t hm, hm_pending;  // method maps
       strset_t pmm, pending_pmm;   // private member lists (sets)
 
-      const QoreMethod *system_constructor, *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
-      qore_classid_t classID,     // class ID
+      const QoreMethod *system_constructor, *constructor, *destructor, *copyMethod, *methodGate, *memberGate, 
+	 *deleteBlocker;
+      qore_classid_t classID,      // class ID
          methodID;                 // for subclasses of builtin classes that will not have their own private data,
                                    //   instead they will get the private data from this class
-      bool sys, initialized;       // system class?, is initialized?
+      bool sys,                    // system class?
+	 initialized,              // is initialized?
+	 has_delete_blocker;       // has a delete_blocker function somewhere in the hierarchy?
       int domain;             // capabilities of builtin class to use in the context of parse restrictions
       class QoreReferenceCounter nref;  // namespace references
 
       DLLLOCAL qore_qc_private(const char *nme, int dom = QDOM_DEFAULT)
       {
 	 initialized = false;
+	 has_delete_blocker = false;
 	 domain = dom;
 	 scl = 0;
 	 name = nme ? strdup(nme) : 0;
@@ -58,8 +62,10 @@ struct qore_qc_private {
 	 bcal = 0;
 
 	 // quick pointers
-	 system_constructor = constructor = destructor = copyMethod = methodGate = memberGate = 0;
+	 system_constructor = constructor = destructor = copyMethod = methodGate = memberGate = 
+	    deleteBlocker = 0;
       }
+
       DLLLOCAL ~qore_qc_private()
       {
 	 //printd(5, "QoreClass::~QoreClass() deleting %08p %s\n", this, name);
@@ -298,12 +304,12 @@ BCNode::~BCNode()
       args->deref(0);
 }
 
-BCList::BCList(class BCNode *n) : init(false)
+BCList::BCList(class BCNode *n)
 {
    push_back(n);
 }
 
-inline BCList::BCList() : init(false)
+inline BCList::BCList()
 {
 }
 
@@ -329,13 +335,8 @@ void BCList::deref()
       delete this;
 }
 
-inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
+inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_delete_blocker)
 {
-   if (init)
-      return;
-
-   init = true;
-
    printd(5, "BCList::parseInit(%s) this=%08p empty=%d, bcal=%08p\n", cls->getName(), this, empty(), bcal);
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
@@ -357,6 +358,9 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
       // recursively add base classes to special method list
       if ((*i)->sclass)
       {
+	 (*i)->sclass->initialize();
+	 if (!has_delete_blocker && (*i)->sclass->has_delete_blocker())
+	    has_delete_blocker = true;
          (*i)->sclass->addBaseClassesToSubclass(cls, (*i)->is_virtual);
 	 // include all subclass domains in this class' domain
 	 cls->addDomain((*i)->sclass->getDomain());
@@ -396,7 +400,7 @@ inline const QoreMethod *BCList::findMethod(const char *name) const
       if ((*i)->sclass)
       {
 	 // assert that the base class list has already been initialized if it exists
-	 assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->scl->init));
+	 assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
 
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->findMethod(name)))
@@ -413,8 +417,7 @@ inline const QoreMethod *BCList::findParseMethod(const char *name)
    {
       if ((*i)->sclass)
       {
-	 if ((*i)->sclass->priv->scl)
-	    (*i)->sclass->priv->scl->parseInit((*i)->sclass, (*i)->sclass->priv->bcal);
+	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->findParseMethod(name)))
 	    return m;
@@ -471,8 +474,7 @@ inline const QoreMethod *BCList::resolveSelfMethod(const char *name)
    {
       if ((*i)->sclass)
       {
-	 if ((*i)->sclass->priv->scl)
-	    (*i)->sclass->priv->scl->parseInit((*i)->sclass, (*i)->sclass->priv->bcal);
+	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->resolveSelfMethodIntern(name)))
 	    return m;
@@ -481,7 +483,19 @@ inline const QoreMethod *BCList::resolveSelfMethod(const char *name)
    return 0;
 }
 
-inline void BCList::execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const
+bool BCList::execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const
+{
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
+   {
+      //printd(5, "BCList::execDeleteBlockers() %s o=%08p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName());
+
+      if ((*i)->sclass->execDeleteBlocker(o, xsink))
+	 return true;
+   }
+   return false;
+}
+
+void BCList::execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
    {
@@ -525,6 +539,11 @@ inline void BuiltinMethod::deref()
 {
    if (ROdereference())
       delete this;
+}
+
+bool QoreClass::has_delete_blocker() const
+{
+   return priv->has_delete_blocker;
 }
 
 BCSMList *QoreClass::getBCSMList() const
@@ -1090,6 +1109,12 @@ void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsin
       old->evalCopyMethodWithPrivateData(priv->func.builtin, self, priv->parent_class->getName(), xsink);
 }
 
+bool QoreMethod::evalDeleteBlocker(QoreObject *self) const
+{
+   // can only be builtin
+   return self->evalDeleteBlocker(priv->func.builtin);
+}
+
 void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const
 {
    // switch to new program for imported objects
@@ -1158,7 +1183,7 @@ inline void QoreClass::insertMethod(QoreMethod *m)
    //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", priv->name, m->getName(), numMethods());
 #ifdef DEBUG
    if (priv->hm[m->getName()]) {
-      printd(0, "ERROR: '%s::%s()' inserted twice!\n", priv->name, m->getName());
+      printd(0, "ERROR: '%s::%s()' inserted twice; fix your source code!\n", priv->name, m->getName());
       assert(false);
    }
 #endif
@@ -1194,7 +1219,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       return 0;
    }
    // check for illegal explicit call
-   if (w == priv->constructor || w == priv->destructor)
+   if (w == priv->constructor || w == priv->destructor || w == priv->deleteBlocker)
    {
       xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
       traceout("QoreClass::evalMethod()");
@@ -1236,7 +1261,7 @@ AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, c
    }
    else
       args_holder = new QoreListNode();
-   
+
    args_holder->insert(new QoreStringNode(nme));
 
    return priv->methodGate->eval(self, *args_holder, xsink);
@@ -1321,20 +1346,33 @@ QoreObject *QoreClass::execSystemConstructor(int code, ...) const
    return o;
 }
 
-inline void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const
+void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const
 {
-   if (!priv->constructor)
-   {
+   // if there is no constructor, execute the superclass constructors directly
+   if (!priv->constructor){
       if (priv->scl) // execute superconstructors if any
 	 priv->scl->execConstructors(self, bceal, xsink);
    }
-   else // no lock is sent with constructor, because no variable has been assigned yet
-   {
+   else { // no lock is sent with constructor, because no variable has been assigned yet
       bool already_executed;
       QoreListNode *args = bceal->findArgs(this, &already_executed);
       if (!already_executed)
 	 priv->constructor->evalConstructor(self, args, priv->scl, bceal, xsink);
    }
+}
+
+bool QoreClass::execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const
+{
+   printd(5, "QoreClass::execDeleteBlocker(self=%08p) this=%08p '%s' has_delete_blocker=%s deleteBlocker=%08p\n", self, this, priv->name, priv->has_delete_blocker ? "true" : "false", priv->deleteBlocker);
+   if (priv->has_delete_blocker) {
+      if (priv->scl) // execute superclass delete blockers if any
+	 if (priv->scl->execDeleteBlockers(self, xsink))
+	    return true;
+      if (priv->deleteBlocker) {
+	 return priv->deleteBlocker->evalDeleteBlocker(self);
+      }
+   }
+   return false;
 }
 
 void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink) const
@@ -1345,8 +1383,7 @@ void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink) const
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
 
-   if (self->isSystemObject())
-   {
+   if (self->isSystemObject()) {
       if (priv->destructor)
 	 priv->destructor->evalSystemDestructor(self, &de);
       else
@@ -1441,11 +1478,7 @@ inline void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, Excep
 void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual)
 {      
    if (priv->scl)
-   {
-      // initialize list, just in case
-      priv->scl->parseInit(this, priv->bcal);
       priv->scl->sml.addBaseClassesToSubclass(this, sc, is_virtual);
-   }
    sc->priv->scl->sml.add(sc, this, is_virtual);
 }
 
@@ -1642,6 +1675,16 @@ void QoreClass::setCopy(q_copy_t m)
    priv->copyMethod = o;
 }
 
+// sets the delete_blocker function
+void QoreClass::setDeleteBlocker(q_delete_blocker_t m)
+{
+   priv->sys = true;
+   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
+   insertMethod(o);
+   priv->deleteBlocker = o;
+   priv->has_delete_blocker = true;
+}
+
 QoreListNode *QoreClass::getMethodList() const
 {
    QoreListNode *l = new QoreListNode();
@@ -1651,20 +1694,26 @@ QoreListNode *QoreClass::getMethodList() const
    return l;
 }
 
-// initializes all user methods
-void QoreClass::parseInit()
+// one-time initialization
+void QoreClass::initialize()
 {
-   setParseClass(this);
    if (!priv->initialized)
    {
       printd(5, "QoreClass::parseInit() %s this=%08p pending size=%d, scl=%08p, bcal=%08p\n", priv->name, this, priv->hm_pending.size(), priv->scl, priv->bcal);
       if (priv->scl)
-	 priv->scl->parseInit(this, priv->bcal);
+	 priv->scl->parseInit(this, priv->bcal, priv->has_delete_blocker);
 
       if (!priv->sys && priv->domain & getProgram()->getParseOptions())
 	 parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", priv->name);
       priv->initialized = true;
    }
+}
+
+// initializes all user methods
+void QoreClass::parseInit()
+{
+   setParseClass(this);
+   initialize();
 
    for (hm_method_t::iterator i = priv->hm_pending.begin(); i != priv->hm_pending.end(); i++)
    {

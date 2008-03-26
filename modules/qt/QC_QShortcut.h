@@ -47,12 +47,12 @@ class myQShortcut : public QShortcut, public QoreQObjectExtension
 #undef QOREQTYPE
 
    private:
-      QoreAbstractQWidget *parent;
+      QoreAbstractQWidget *parent_widget;
       int target_m, target_am;
 
       DLLLOCAL void init_shortcut(QoreAbstractQWidget *n_parent)
       {
-	 parent = n_parent;
+	 parent_widget = n_parent;
 	 target_m = target_am = -1;
 
 	 // create dummy slot entry for "activated" signal
@@ -79,24 +79,24 @@ class myQShortcut : public QShortcut, public QoreQObjectExtension
       {
 	 //printd(5, "QoreQShortcut::activated() this=%08p target_m=%d\n", this, target_m);
 	 if (target_m != -1)
-	    parent->getQObject()->qt_metacall(QMetaObject::InvokeMetaMethod, target_m, static_void_args);
+	    parent_widget->getQObject()->qt_metacall(QMetaObject::InvokeMetaMethod, target_m, static_void_args);
       }
       
       DLLLOCAL void activatedAmbigously()
       {
 	 if (target_am != -1)
-	    parent->getQObject()->qt_metacall(QMetaObject::InvokeMetaMethod, target_am, static_void_args);
+	    parent_widget->getQObject()->qt_metacall(QMetaObject::InvokeMetaMethod, target_am, static_void_args);
       }
       
    public:
-      DLLLOCAL myQShortcut(QoreObject *obj, QoreAbstractQWidget *parent = 0) : QShortcut(parent->getQWidget()), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQShortcut(QoreObject *obj, QoreAbstractQWidget *parent = 0) : QShortcut(parent->getQWidget()), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
 	 init_shortcut(parent);
       }
-      DLLLOCAL myQShortcut(QoreObject *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : QShortcut(key, parent->getQWidget(), 0, 0, context), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQShortcut(QoreObject *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : QShortcut(key, parent->getQWidget(), 0, 0, context), QoreQObjectExtension(obj, this)
       {
-	 init(obj);
+	 
 	 init_shortcut(parent);
       }
 
@@ -109,7 +109,7 @@ class myQShortcut : public QShortcut, public QoreQObjectExtension
 	    return;
 	 }
 
-	 target_m = (target[0] == '1') ? parent->getSlotIndex(theSlot, xsink) : parent->getSignalIndex(theSlot);
+	 target_m = (target[0] == '1') ? parent_widget->getSlotIndex(theSlot, xsink) : parent_widget->getSignalIndex(theSlot);
 	 if (target_m < 0 && target[0] != '1') {
 	    xsink->raiseException("SHOTCUT-ERROR", "target signal '%s' does not exist", target + 1);
 	    return;
@@ -126,7 +126,7 @@ class myQShortcut : public QShortcut, public QoreQObjectExtension
 	    return;
 	 }
 
-	 target_am = (target[0] == '1') ? parent->getSlotIndex(theSlot, xsink) : parent->getSignalIndex(theSlot);
+	 target_am = (target[0] == '1') ? parent_widget->getSlotIndex(theSlot, xsink) : parent_widget->getSignalIndex(theSlot);
 	 if (target_am < 0 && target[0] != '1') {
 	    xsink->raiseException("SHOTCUT-ERROR", "target signal '%s' does not exist", target + 1);
 	    return;
@@ -134,26 +134,17 @@ class myQShortcut : public QShortcut, public QoreQObjectExtension
       }
 };
 
-class QoreQShortcut : public QoreAbstractQObject
+typedef QoreQObjectBase<myQShortcut, QoreAbstractQObject> QoreQShortcutImpl;
+
+class QoreQShortcut : public QoreQShortcutImpl
 {
    public:
-      myQShortcut *qobj;
-
-      DLLLOCAL QoreQShortcut(QoreObject *obj, QoreAbstractQWidget *parent = 0) : qobj(new myQShortcut(obj, parent))
+      DLLLOCAL QoreQShortcut(QoreObject *obj, QoreAbstractQWidget *parent = 0) : QoreQShortcutImpl(new myQShortcut(obj, parent))
       {
       }
 
-      DLLLOCAL QoreQShortcut(QoreObject *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : qobj(new myQShortcut(obj, key, parent, context))
+      DLLLOCAL QoreQShortcut(QoreObject *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : QoreQShortcutImpl(new myQShortcut(obj, key, parent, context))
       {
-      }
-
-      DLLLOCAL virtual ~QoreQShortcut()
-      {
-      }
-
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(qobj);
       }
 
       DLLLOCAL void setMember(const char *target, class ExceptionSink *xsink)
@@ -165,8 +156,6 @@ class QoreQShortcut : public QoreAbstractQObject
       {
 	 qobj->setAmbiguousMember(target, xsink);
       }
-
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 
