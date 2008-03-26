@@ -48,31 +48,14 @@ class myQStackedWidget : public QStackedWidget, public QoreQWidgetExtension
       }
 };
 
-class QoreQStackedWidget : public QoreAbstractQFrame
+typedef QoreQFrameBase<myQStackedWidget, QoreAbstractQFrame> QoreQStackedWidgetImpl;
+
+class QoreQStackedWidget : public QoreQStackedWidgetImpl
 {
    public:
-      QPointer<myQStackedWidget> qobj;
-
-      DLLLOCAL QoreQStackedWidget(QoreObject *obj, QWidget* parent = 0) : qobj(new myQStackedWidget(obj, parent))
+      DLLLOCAL QoreQStackedWidget(QoreObject *obj, QWidget* parent = 0) : QoreQStackedWidgetImpl(new myQStackedWidget(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QSTACKEDWIDGET_H

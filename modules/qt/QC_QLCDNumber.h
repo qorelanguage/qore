@@ -52,36 +52,17 @@ class myQLCDNumber : public QLCDNumber, public QoreQWidgetExtension
       }
 };
 
-class QoreQLCDNumber : public QoreAbstractQFrame
+typedef QoreQFrameBase<myQLCDNumber, QoreAbstractQFrame> QoreQLCDNumberImpl;
+
+class QoreQLCDNumber : public QoreQLCDNumberImpl
 {
    public:
-      QPointer<myQLCDNumber>qobj;
-
-      DLLLOCAL QoreQLCDNumber(QoreObject *obj, int num_digits, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, num_digits, parent))
+      DLLLOCAL QoreQLCDNumber(QoreObject *obj, int num_digits, QWidget *parent = 0) : QoreQLCDNumberImpl(new myQLCDNumber(obj, num_digits, parent))
       {
       }
-      DLLLOCAL QoreQLCDNumber(QoreObject *obj, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, parent))
+      DLLLOCAL QoreQLCDNumber(QoreObject *obj, QWidget *parent = 0) : QoreQLCDNumberImpl(new myQLCDNumber(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual QWidget *getQWidget() const
-      {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QFrame *getQFrame() const
-      {
-	 return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
-
 };
 
 #endif

@@ -49,32 +49,14 @@ class myQFrame : public QFrame, public QoreQWidgetExtension
       }
 };
 
-class QoreQFrame : public QoreAbstractQFrame
+typedef QoreQFrameBase<myQFrame, QoreAbstractQFrame> QoreQFrameImpl;
+
+class QoreQFrame : public QoreQFrameImpl
 {
    public:
-      QPointer<myQFrame>qobj;
-
-      DLLLOCAL QoreQFrame(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQFrame(obj, parent, window_flags))
+      DLLLOCAL QoreQFrame(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QoreQFrameImpl(new myQFrame(obj, parent, window_flags))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual QWidget *getQWidget() const
-      {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QFrame *getQFrame() const
-      {
-	 return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif

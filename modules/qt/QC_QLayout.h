@@ -35,24 +35,14 @@ DLLLOCAL extern QoreClass *QC_QLayout;
 
 DLLLOCAL class QoreClass *initQLayoutClass(class QoreClass *qobject);
 
-class QoreQtQLayout : public QoreAbstractQLayout
+typedef QoreQtQLayoutBase<QLayout, QoreAbstractQLayout> QoreQtQLayoutImpl;
+
+class QoreQtQLayout : public QoreQtQLayoutImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QLayout> qobj;
-
-      DLLLOCAL QoreQtQLayout(QoreObject *obj, QLayout *ql) : qore_obj(obj), qobj(ql)
+      DLLLOCAL QoreQtQLayout(QoreObject *obj, QLayout *ql) : QoreQtQLayoutImpl(obj, ql)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QLayout *getQLayout() const
-      {
-         return static_cast<QLayout *>(&(*qobj));
-      }
-#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif

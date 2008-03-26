@@ -33,4 +33,40 @@ class QoreAbstractQAbstractScrollArea : public QoreAbstractQFrame
       DLLLOCAL virtual void setupViewport(QWidget *w) = 0;
 };
 
+template<typename T, typename V>
+class QoreQAbstractScrollAreaBase : public QoreQFrameBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQAbstractScrollAreaBase(T *qo) : QoreQFrameBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QAbstractScrollArea *getQAbstractScrollArea() const
+      {
+         return &(*this->qobj);
+      }
+
+      DLLLOCAL virtual void setupViewport(QWidget *w)
+      {
+         this->qobj->pub_setupViewport(w);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQAbstractScrollAreaBase : public QoreQtQFrameBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQAbstractScrollAreaBase(QoreObject *obj, T *qo) : QoreQtQFrameBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractScrollArea *getQAbstractScrollArea() const
+      {
+         return this->qobj;
+      }
+
+      DLLLOCAL virtual void setupViewport(QWidget *w)
+      {
+      }
+};
+
 #endif

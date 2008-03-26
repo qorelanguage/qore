@@ -54,34 +54,17 @@ class myQFileDialog : public QFileDialog, public QoreQDialogExtension
       }
 };
 
-class QoreQFileDialog : public QoreAbstractQDialog
+typedef QoreQDialogBase<myQFileDialog, QoreAbstractQDialog> QoreQFileDialogImpl;
+
+class QoreQFileDialog : public QoreQFileDialogImpl
 {
    public:
-      QPointer<myQFileDialog> qobj;
-
-      DLLLOCAL QoreQFileDialog(QoreObject *obj, QWidget* parent, Qt::WindowFlags flags) : qobj(new myQFileDialog(obj, parent, flags))
+      DLLLOCAL QoreQFileDialog(QoreObject *obj, QWidget* parent, Qt::WindowFlags flags) : QoreQFileDialogImpl(new myQFileDialog(obj, parent, flags))
       {
       }
-      DLLLOCAL QoreQFileDialog(QoreObject *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : qobj(new myQFileDialog(obj, parent, caption, directory, filter))
+      DLLLOCAL QoreQFileDialog(QoreObject *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : QoreQFileDialogImpl(new myQFileDialog(obj, parent, caption, directory, filter))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-         return static_cast<QDialog *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QFILEDIALOG_H

@@ -41,39 +41,25 @@ class myQGridLayout : public QGridLayout, public QoreQObjectExtension
 #undef QOREQTYPE
       DLLLOCAL myQGridLayout(QoreObject *obj) : QGridLayout(), QoreQObjectExtension(obj, this)
       {
-	 
       }
 
       DLLLOCAL myQGridLayout(QoreObject *obj, QWidget *parent) : QGridLayout(parent), QoreQObjectExtension(obj, this)
       {
-	 
       }
 };
 
-class QoreQGridLayout : public QoreAbstractQLayout
+typedef QoreQLayoutBase<myQGridLayout, QoreAbstractQLayout> QoreQGridLayoutImpl;
+
+class QoreQGridLayout : public QoreQGridLayoutImpl
 {
    public:
-      QPointer<myQGridLayout> qobj;
-
-      DLLLOCAL QoreQGridLayout(QoreObject *obj) : qobj(new myQGridLayout(obj))
+      DLLLOCAL QoreQGridLayout(QoreObject *obj) : QoreQGridLayoutImpl(new myQGridLayout(obj))
       {
       }
 
-      DLLLOCAL QoreQGridLayout(QoreObject *obj, QWidget *parent) : qobj(new myQGridLayout(obj, parent))
+      DLLLOCAL QoreQGridLayout(QoreObject *obj, QWidget *parent) : QoreQGridLayoutImpl(new myQGridLayout(obj, parent))
       {
       }
-
-      DLLLOCAL virtual QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-
-      DLLLOCAL virtual QLayout *getQLayout() const
-      {
-	 return static_cast<QLayout *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

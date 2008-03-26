@@ -41,41 +41,24 @@ class myQVBoxLayout : public QVBoxLayout, public QoreQObjectExtension
 #undef QOREQTYPE
       DLLLOCAL myQVBoxLayout(QoreObject *obj) : QVBoxLayout(), QoreQObjectExtension(obj, this)
       {
-	 
       }
       DLLLOCAL myQVBoxLayout(QoreObject *obj, QWidget *parent) : QVBoxLayout(parent), QoreQObjectExtension(obj, this)
       {
-	 
       }
 };
 
-class QoreQVBoxLayout : public QoreAbstractQBoxLayout
+typedef QoreQBoxLayoutBase<myQVBoxLayout, QoreAbstractQBoxLayout> QoreQVBoxLayoutImpl;
+
+class QoreQVBoxLayout : public QoreQVBoxLayoutImpl
 {
    public:
-      QPointer<myQVBoxLayout> qobj;
-
-      DLLLOCAL QoreQVBoxLayout(QoreObject *obj) : qobj(new myQVBoxLayout(obj))
+      DLLLOCAL QoreQVBoxLayout(QoreObject *obj) : QoreQVBoxLayoutImpl(new myQVBoxLayout(obj))
       {
       }
 
-      DLLLOCAL QoreQVBoxLayout(QoreObject *obj, QWidget *parent) : qobj(new myQVBoxLayout(obj, parent))
+      DLLLOCAL QoreQVBoxLayout(QoreObject *obj, QWidget *parent) : QoreQVBoxLayoutImpl(new myQVBoxLayout(obj, parent))
       {
       }
-      DLLLOCAL virtual QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-
-      DLLLOCAL virtual QLayout *getQLayout() const
-      {
-	 return static_cast<QLayout *>(&(*qobj));
-      }
-
-      DLLLOCAL virtual QBoxLayout *getQBoxLayout() const
-      {
-	 return static_cast<QBoxLayout *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

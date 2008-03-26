@@ -35,7 +35,6 @@ DLLLOCAL QoreNamespace *initQTextEditNS(QoreClass *);
 
 class myQTextEdit : public QTextEdit, public QoreQWidgetExtension
 {
-   friend class QoreQTextEdit;
 #define QOREQTYPE QTextEdit
 #define MYQOREQTYPE myQTextEdit
 #include "qore-qt-metacode.h"
@@ -46,54 +45,28 @@ class myQTextEdit : public QTextEdit, public QoreQWidgetExtension
    public:
       DLLLOCAL myQTextEdit(QoreObject *obj, QWidget* parent = 0) : QTextEdit(parent), QoreQWidgetExtension(obj, this)
       {
-         
       }
       DLLLOCAL myQTextEdit(QoreObject *obj, const QString& text, QWidget* parent = 0) : QTextEdit(text, parent), QoreQWidgetExtension(obj, this)
+      {         
+      }
+
+      DLLLOCAL void pub_setupViewport(QWidget *w)
       {
-         
+         setupViewport(w);
       }
 };
 
-class QoreQTextEdit : public QoreAbstractQTextEdit
+typedef QoreQTextEditBase<myQTextEdit, QoreAbstractQTextEdit> QoreQTextEditImpl;
+
+class QoreQTextEdit : public QoreQTextEditImpl
 {
    public:
-      QPointer<myQTextEdit> qobj;
-
-      DLLLOCAL QoreQTextEdit(QoreObject *obj, QWidget* parent = 0) : qobj(new myQTextEdit(obj, parent))
+      DLLLOCAL QoreQTextEdit(QoreObject *obj, QWidget* parent = 0) : QoreQTextEditImpl(new myQTextEdit(obj, parent))
       {
       }
-      DLLLOCAL QoreQTextEdit(QoreObject *obj, const QString& text, QWidget* parent = 0) : qobj(new myQTextEdit(obj, text, parent))
+      DLLLOCAL QoreQTextEdit(QoreObject *obj, const QString& text, QWidget* parent = 0) : QoreQTextEditImpl(new myQTextEdit(obj, text, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QTextEdit *getQTextEdit() const
-      {
-         return static_cast<QTextEdit *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractScrollArea *getQAbstractScrollArea() const
-      {
-         return static_cast<QAbstractScrollArea *>(&(*qobj));
-      }
-      DLLLOCAL virtual void setupViewport(QWidget *w)
-      {
-         qobj->setupViewport(w);
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QTEXTEDIT_H

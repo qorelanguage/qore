@@ -49,34 +49,18 @@ class myQBoxLayout : public QBoxLayout, public QoreQObjectExtension
       }
 };
 
-class QoreQBoxLayout : public QoreAbstractQBoxLayout
+typedef QoreQBoxLayoutBase<myQBoxLayout, QoreAbstractQBoxLayout> QoreQBoxLayoutImpl;
+
+class QoreQBoxLayout : public QoreQBoxLayoutImpl
 {
    public:
-      QPointer<myQBoxLayout> qobj;
-
-      DLLLOCAL QoreQBoxLayout(QoreObject *obj, QBoxLayout::Direction dir) : qobj(new myQBoxLayout(obj, dir))
+      DLLLOCAL QoreQBoxLayout(QoreObject *obj, QBoxLayout::Direction dir) : QoreQBoxLayoutImpl(new myQBoxLayout(obj, dir))
       {
       }
 
-      DLLLOCAL QoreQBoxLayout(QoreObject *obj, QBoxLayout::Direction dir, QWidget *parent) : qobj(new myQBoxLayout(obj, dir, parent))
+      DLLLOCAL QoreQBoxLayout(QoreObject *obj, QBoxLayout::Direction dir, QWidget *parent) : QoreQBoxLayoutImpl(new myQBoxLayout(obj, dir, parent))
       {
       }
-      DLLLOCAL virtual QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-
-      DLLLOCAL virtual QLayout *getQLayout() const
-      {
-	 return static_cast<QLayout *>(&(*qobj));
-      }
-
-      DLLLOCAL virtual QBoxLayout *getQBoxLayout() const
-      {
-	 return static_cast<QBoxLayout *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif

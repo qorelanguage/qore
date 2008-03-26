@@ -29,14 +29,12 @@
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QTABLEVIEW;
-DLLLOCAL extern class QoreClass *QC_QTableView;
+DLLLOCAL extern QoreClass *QC_QTableView;
 
 DLLLOCAL class QoreClass *initQTableViewClass(QoreClass *);
 
 class myQTableView : public QTableView, public QoreQWidgetExtension
 {
-      friend class QoreQTableView;
-
 #define QOREQTYPE QTableView
 #define MYQOREQTYPE myQTableView
 #include "qore-qt-metacode.h"
@@ -47,52 +45,22 @@ class myQTableView : public QTableView, public QoreQWidgetExtension
    public:
       DLLLOCAL myQTableView(QoreObject *obj, QWidget* parent = 0) : QTableView(parent), QoreQWidgetExtension(obj, this)
       {
-         
       }
+
+      DLLLOCAL void pub_setupViewport(QWidget *w)
+      {
+         setupViewport(w);
+      }      
 };
 
-class QoreQTableView : public QoreAbstractQTableView
+typedef QoreQTableViewBase<myQTableView, QoreAbstractQTableView> QoreQTableViewImpl;
+
+class QoreQTableView : public QoreQTableViewImpl
 {
    public:
-      QPointer<myQTableView> qobj;
-
-      DLLLOCAL QoreQTableView(QoreObject *obj, QWidget* parent = 0) : qobj(new myQTableView(obj, parent))
+      DLLLOCAL QoreQTableView(QoreObject *obj, QWidget* parent = 0) : QoreQTableViewImpl(new myQTableView(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QTableView *getQTableView() const
-      {
-         return static_cast<QTableView *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractScrollArea *getQAbstractScrollArea() const
-      {
-         return static_cast<QAbstractScrollArea *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractItemView *getQAbstractItemView() const
-      {
-         return static_cast<QAbstractItemView *>(&(*qobj));
-      }
-      DLLLOCAL virtual void setupViewport(QWidget *w)
-      {
-         qobj->setupViewport(w);
-      }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QTABLEVIEW_H

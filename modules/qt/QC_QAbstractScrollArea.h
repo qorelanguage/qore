@@ -53,39 +53,14 @@ class myQAbstractScrollArea : public QAbstractScrollArea, public QoreQWidgetExte
       }
 };
 
-class QoreQAbstractScrollArea : public QoreAbstractQAbstractScrollArea
+typedef QoreQAbstractScrollAreaBase<myQAbstractScrollArea, QoreAbstractQAbstractScrollArea> QoreQAbstractScrollAreaImpl;
+
+class QoreQAbstractScrollArea : public QoreQAbstractScrollAreaImpl
 {
    public:
-      QPointer<myQAbstractScrollArea> qobj;
-
-      DLLLOCAL QoreQAbstractScrollArea(QoreObject *obj, QWidget* parent = 0) : qobj(new myQAbstractScrollArea(obj, parent))
+      DLLLOCAL QoreQAbstractScrollArea(QoreObject *obj, QWidget* parent = 0) : QoreQAbstractScrollAreaImpl(new myQAbstractScrollArea(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractScrollArea *getQAbstractScrollArea() const
-      {
-         return static_cast<QAbstractScrollArea *>(&(*qobj));
-      }
-      DLLLOCAL virtual void setupViewport(QWidget *w)
-      {
-	 qobj->pub_setupViewport(w);
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QABSTRACTSCROLLAREA_H

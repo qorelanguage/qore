@@ -29,7 +29,34 @@
 class QoreAbstractQTableView : public QoreAbstractQAbstractItemView
 {
    public:
-      DLLLOCAL virtual class QTableView *getQTableView() const = 0;
+      DLLLOCAL virtual QTableView *getQTableView() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQTableViewBase : public QoreQAbstractItemViewBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQTableViewBase(T *qo) : QoreQAbstractItemViewBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QTableView *getQTableView() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQTableViewBase : public QoreQtQAbstractItemViewBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQTableViewBase(QoreObject *obj, T *qo) : QoreQtQAbstractItemViewBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QTableView *getQTableView() const
+      {
+         return this->qobj;
+      }
 };
 
 #endif  // _QORE_QT_QOREABSTRACTQTABLEVIEW_H

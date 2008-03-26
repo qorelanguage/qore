@@ -60,117 +60,24 @@ class myQListWidget : public QListWidget, public QoreQWidgetExtension
       }
 };
 
-class QoreQListWidget : public QoreAbstractQListWidget
+typedef QoreQListWidgetBase<myQListWidget, QoreAbstractQListWidget> QoreQListWidgetImpl;
+
+class QoreQListWidget : public QoreQListWidgetImpl
 {
    public:
-      QPointer<myQListWidget> qobj;
-
-      DLLLOCAL QoreQListWidget(QoreObject *obj, QWidget* parent = 0) : qobj(new myQListWidget(obj, parent))
+      DLLLOCAL QoreQListWidget(QoreObject *obj, QWidget* parent = 0) : QoreQListWidgetImpl(new myQListWidget(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QListWidget *getQListWidget() const
-      {
-         return static_cast<QListWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractItemView *getQAbstractItemView() const
-      {
-         return static_cast<QAbstractItemView *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractScrollArea *getQAbstractScrollArea() const
-      {
-         return static_cast<QAbstractScrollArea *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QListView *getQListView() const
-      {
-         return static_cast<QListView *>(&(*qobj));
-      }
-      DLLLOCAL virtual void setupViewport(QWidget *w)
-      {
-         qobj->pub_setupViewport(w);
-      }
-      DLLLOCAL virtual QRect rectForIndex(const QModelIndex & index) const
-      {
-         return qobj->pub_rectForIndex(index);
-      }
-      DLLLOCAL virtual void setPositionForIndex(const QPoint & position, const QModelIndex & index)
-      {
-         qobj->pub_setPositionForIndex(position, index);
-      }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQListWidget : public QoreAbstractQListWidget
+typedef QoreQtQListWidgetBase<QListWidget, QoreAbstractQListWidget> QoreQtQListWidgetImpl;
+
+class QoreQtQListWidget : public QoreQtQListWidgetImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QListWidget> qobj;
-
-      DLLLOCAL QoreQtQListWidget(QoreObject *obj, QListWidget *qlw) : qore_obj(obj), qobj(qlw)
+      DLLLOCAL QoreQtQListWidget(QoreObject *obj, QListWidget *qlw) : QoreQtQListWidgetImpl(obj, qlw)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QListWidget *getQListWidget() const
-      {
-         return static_cast<QListWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractItemView *getQAbstractItemView() const
-      {
-         return static_cast<QAbstractItemView *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractScrollArea *getQAbstractScrollArea() const
-      {
-         return static_cast<QAbstractScrollArea *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QListView *getQListView() const
-      {
-         return static_cast<QListView *>(&(*qobj));
-      }
-
-      // these functions will never be called because they are protected
-      DLLLOCAL virtual void setupViewport(QWidget *w)
-      {
-      }
-      DLLLOCAL virtual QRect rectForIndex(const QModelIndex & index) const
-      {
-	 return QRect();
-      }
-      DLLLOCAL virtual void setPositionForIndex(const QPoint & position, const QModelIndex & index)
-      {
-      }
-
-#include "qore-qt-static-qwidget-methods.h"
 };
 
 

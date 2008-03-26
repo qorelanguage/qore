@@ -56,36 +56,17 @@ class myQLabel : public QLabel, public QoreQWidgetExtension
       }
 };
 
-class QoreQLabel : public QoreAbstractQFrame
+typedef QoreQFrameBase<myQLabel, QoreAbstractQFrame> QoreQLabelImpl;
+
+class QoreQLabel : public QoreQLabelImpl
 {
    public:
-      QPointer<myQLabel>qobj;
-
-      DLLLOCAL QoreQLabel(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : qobj(new myQLabel(obj, parent, f))
+      DLLLOCAL QoreQLabel(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QoreQLabelImpl(new myQLabel(obj, parent, f))
       {
       }
-      DLLLOCAL QoreQLabel(QoreObject *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : qobj(new myQLabel(obj, text, parent, f))
+      DLLLOCAL QoreQLabel(QoreObject *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QoreQLabelImpl(new myQLabel(obj, text, parent, f))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-	 return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual QWidget *getQWidget() const
-      {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
-
 };
 
 #endif

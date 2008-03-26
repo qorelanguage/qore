@@ -54,34 +54,17 @@ class myQMessageBox : public QMessageBox, public QoreQDialogExtension
       }
 };
 
-class QoreQMessageBox : public QoreAbstractQDialog
+typedef QoreQDialogBase<myQMessageBox, QoreAbstractQDialog> QoreQMessageBoxImpl;
+
+class QoreQMessageBox : public QoreQMessageBoxImpl
 {
    public:
-      QPointer<myQMessageBox> qobj;
-
-      DLLLOCAL QoreQMessageBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQMessageBox(obj, parent))
+      DLLLOCAL QoreQMessageBox(QoreObject *obj, QWidget* parent = 0) : QoreQMessageBoxImpl(new myQMessageBox(obj, parent))
       {
       }
-      DLLLOCAL QoreQMessageBox(QoreObject *obj, QMessageBox::Icon icon, const QString& title, const QString& text, QMessageBox::StandardButtons buttons = QMessageBox::NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : qobj(new myQMessageBox(obj, icon, title, text, buttons, parent, f))
+      DLLLOCAL QoreQMessageBox(QoreObject *obj, QMessageBox::Icon icon, const QString& title, const QString& text, QMessageBox::StandardButtons buttons = QMessageBox::NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : QoreQMessageBoxImpl(new myQMessageBox(obj, icon, title, text, buttons, parent, f))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-         return static_cast<QDialog *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QMESSAGEBOX_H

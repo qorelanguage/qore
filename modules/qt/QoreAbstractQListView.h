@@ -34,4 +34,50 @@ class QoreAbstractQListView : public QoreAbstractQAbstractItemView
       DLLLOCAL virtual void setPositionForIndex ( const QPoint & position, const QModelIndex & index ) = 0;
 };
 
+template<typename T, typename V>
+class QoreQListViewBase : public QoreQAbstractItemViewBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQListViewBase(T *qo) : QoreQAbstractItemViewBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QListView *getQListView() const
+      {
+         return &(*this->qobj);
+      }
+
+      DLLLOCAL virtual QRect rectForIndex ( const QModelIndex & index ) const
+      {
+	 return this->qobj->pub_rectForIndex(index);
+      }
+
+      DLLLOCAL virtual void setPositionForIndex ( const QPoint & position, const QModelIndex & index )
+      {
+         this->qobj->pub_setPositionForIndex(position, index);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQListViewBase : public QoreQtQAbstractItemViewBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQListViewBase(QoreObject *obj, T *qo) : QoreQtQAbstractItemViewBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QListView *getQListView() const
+      {
+         return this->qobj;
+      }
+
+      DLLLOCAL virtual QRect rectForIndex ( const QModelIndex & index ) const
+      {
+	 return QRect();
+      }
+
+      DLLLOCAL virtual void setPositionForIndex ( const QPoint & position, const QModelIndex & index )
+      {
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQLISTVIEW_H

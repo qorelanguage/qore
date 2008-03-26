@@ -29,7 +29,50 @@
 class QoreAbstractQMenu : public QoreAbstractQWidget
 {
    public:
-      DLLLOCAL virtual class QMenu *getQMenu() const = 0;
+      DLLLOCAL virtual QMenu *getQMenu() const = 0;
+
+      DLLLOCAL virtual int columnCount () const = 0;
+      DLLLOCAL virtual void initStyleOption ( QStyleOptionMenuItem * option, const QAction * action ) const = 0;
+};
+
+template<typename T, typename V>
+class QoreQMenuBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQMenuBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QMenu *getQMenu() const
+      {
+         return &(*this->qobj);
+      }
+      DLLLOCAL virtual int columnCount () const
+      {
+         return this->qobj->parent_columnCount();
+      }
+      DLLLOCAL virtual void initStyleOption ( QStyleOptionMenuItem * option, const QAction * action ) const
+      {
+         this->qobj->parent_initStyleOption(option, action);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQMenuBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQMenuBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+      DLLLOCAL virtual QMenu *getQMenu() const
+      {
+         return this->qobj;
+      }
+
+      DLLLOCAL virtual int columnCount () const { return 0; }
+      DLLLOCAL virtual void initStyleOption ( QStyleOptionMenuItem * option, const QAction * action ) const
+      {
+      }
+
 };
 
 #endif

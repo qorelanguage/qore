@@ -53,34 +53,17 @@ class myQGroupBox : public QGroupBox, public QoreQWidgetExtension
       }
 };
 
-class QoreQGroupBox : public QoreAbstractQGroupBox
+typedef QoreQGroupBoxBase<myQGroupBox, QoreAbstractQGroupBox> QoreQGroupBoxImpl;
+
+class QoreQGroupBox : public QoreQGroupBoxImpl
 {
    public:
-      QPointer<myQGroupBox> qobj;
-
-      DLLLOCAL QoreQGroupBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQGroupBox(obj, parent))
+      DLLLOCAL QoreQGroupBox(QoreObject *obj, QWidget* parent = 0) : QoreQGroupBoxImpl(new myQGroupBox(obj, parent))
       {
       }
-      DLLLOCAL QoreQGroupBox(QoreObject *obj, const QString& title, QWidget* parent = 0) : qobj(new myQGroupBox(obj, title, parent))
+      DLLLOCAL QoreQGroupBox(QoreObject *obj, const QString& title, QWidget* parent = 0) : QoreQGroupBoxImpl(new myQGroupBox(obj, title, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QGroupBox *getQGroupBox() const
-      {
-         return static_cast<QGroupBox *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QGROUPBOX_H

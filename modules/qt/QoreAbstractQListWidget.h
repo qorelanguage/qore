@@ -29,7 +29,34 @@
 class QoreAbstractQListWidget : public QoreAbstractQListView
 {
    public:
-      DLLLOCAL virtual class QListWidget *getQListWidget() const = 0;
+      DLLLOCAL virtual QListWidget *getQListWidget() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQListWidgetBase : public QoreQListViewBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQListWidgetBase(T *qo) : QoreQListViewBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QListWidget *getQListWidget() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQListWidgetBase : public QoreQtQListViewBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQListWidgetBase(QoreObject *obj, T *qo) : QoreQtQListViewBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QListWidget *getQListWidget() const
+      {
+         return this->qobj;
+      }
 };
 
 #endif  // _QORE_QT_QOREABSTRACTQLISTWIDGET_H

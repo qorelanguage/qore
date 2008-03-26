@@ -32,4 +32,32 @@ class QoreAbstractQFrame : public QoreAbstractQWidget
       DLLLOCAL virtual class QFrame *getQFrame() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQFrameBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQFrameBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QFrame *getQFrame() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQFrameBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQFrameBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QFrame *getQFrame() const
+      {
+         return this->qobj;
+      }
+};
+
+
 #endif

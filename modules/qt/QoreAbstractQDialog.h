@@ -52,6 +52,50 @@ class QoreAbstractQDialog : public QoreAbstractQWidget
       DLLLOCAL virtual void reject () = 0;
 };
 
+template<typename T, typename V>
+class QoreQDialogBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQDialogBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QDialog *getQDialog() const
+      {
+         return &(*this->qobj);
+      }
+
+      DLLLOCAL virtual void accept()
+      { 
+	 this->qobj->parent_accept(); 
+      }
+      DLLLOCAL virtual void done(int r)
+      {
+	 this->qobj->parent_done(r);
+      }
+      DLLLOCAL virtual void reject()
+      {
+	 this->qobj->parent_reject();
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQDialogBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQDialogBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QDialog *getQDialog() const
+      {
+         return this->qobj;
+      }
+
+      DLLLOCAL virtual void accept() { this->qobj->accept(); }
+      DLLLOCAL virtual void done(int r) { /*this->qobj->done(r);*/ }
+      DLLLOCAL virtual void reject() { this->qobj->reject(); }
+};
+
 #define QORE_VIRTUAL_QDIALOG_METHODS QORE_VIRTUAL_QWIDGET_METHODS \
    DLLLOCAL virtual void accept () { qobj->parent_accept(); } \
    DLLLOCAL virtual void done ( int r ) { qobj->parent_done(r); } \

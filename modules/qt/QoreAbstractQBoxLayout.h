@@ -34,4 +34,30 @@ class QoreAbstractQBoxLayout : public QoreAbstractQLayout
       DLLLOCAL virtual class QBoxLayout *getQBoxLayout() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQBoxLayoutBase : public QoreQLayoutBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQBoxLayoutBase(T *qo) : QoreQLayoutBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QBoxLayout *getQBoxLayout() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQBoxLayoutBase : public QoreQtQLayoutBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQBoxLayoutBase(QoreObject *obj, T *qo) : QoreQtQLayoutBase<T, V>(obj, qo)
+      {
+      }
+      DLLLOCAL virtual QBoxLayout *getQBoxLayout() const
+      {
+         return this->qobj;
+      }
+};
+
 #endif

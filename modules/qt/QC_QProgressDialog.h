@@ -56,34 +56,17 @@ class myQProgressDialog : public QProgressDialog, public QoreQDialogExtension
       }
 };
 
-class QoreQProgressDialog : public QoreAbstractQDialog
+typedef QoreQDialogBase<myQProgressDialog, QoreAbstractQDialog> QoreQProgressDialogImpl;
+
+class QoreQProgressDialog : public QoreQProgressDialogImpl
 {
    public:
-      QPointer<myQProgressDialog> qobj;
-
-      DLLLOCAL QoreQProgressDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : qobj(new myQProgressDialog(obj, parent, f))
+      DLLLOCAL QoreQProgressDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QoreQProgressDialogImpl(new myQProgressDialog(obj, parent, f))
       {
       }
-      DLLLOCAL QoreQProgressDialog(QoreObject *obj, const QString& labelText, const QString& cancelButtonText, int minimum, int maximum, QWidget* parent = 0, Qt::WindowFlags f = 0) : qobj(new myQProgressDialog(obj, labelText, cancelButtonText, minimum, maximum, parent, f))
+      DLLLOCAL QoreQProgressDialog(QoreObject *obj, const QString& labelText, const QString& cancelButtonText, int minimum, int maximum, QWidget* parent = 0, Qt::WindowFlags f = 0) : QoreQProgressDialogImpl(new myQProgressDialog(obj, labelText, cancelButtonText, minimum, maximum, parent, f))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-         return static_cast<QDialog *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QPROGRESSDIALOG_H

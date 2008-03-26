@@ -32,7 +32,34 @@ extern qore_classid_t CID_QWIDGET;
 class QoreAbstractQLayout : public QoreAbstractQObject
 {
    public:
-      DLLLOCAL virtual class QLayout *getQLayout() const = 0;
+      DLLLOCAL virtual QLayout *getQLayout() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQLayoutBase : public QoreQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQLayoutBase(T *qo) : QoreQObjectBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QLayout *getQLayout() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQLayoutBase : public QoreQtQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQLayoutBase(QoreObject *obj, T *qo) : QoreQtQObjectBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QLayout *getQLayout() const
+      {
+         return this->qobj;
+      }
 };
 
 #endif

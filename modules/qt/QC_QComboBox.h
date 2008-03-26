@@ -49,31 +49,14 @@ class myQComboBox : public QComboBox, public QoreQWidgetExtension
       }
 };
 
-class QoreQComboBox : public QoreAbstractQComboBox
+typedef QoreQComboBoxBase<myQComboBox, QoreAbstractQComboBox> QoreQComboBoxImpl;
+
+class QoreQComboBox : public QoreQComboBoxImpl
 {
    public:
-      QPointer<myQComboBox> qobj;
-
-      DLLLOCAL QoreQComboBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQComboBox(obj, parent))
+      DLLLOCAL QoreQComboBox(QoreObject *obj, QWidget* parent = 0) : QoreQComboBoxImpl(new myQComboBox(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      } 
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-     DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QComboBox *getQComboBox() const
-      {
-         return static_cast<QComboBox *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QCOMBOBOX_H

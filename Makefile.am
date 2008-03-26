@@ -424,7 +424,6 @@ noinst_HEADERS = \
 	modules/qt/QC_QTableView.h \
 	modules/qt/QoreAbstractQTableView.h \
 	modules/qt/QC_QTableWidget.h \
-	modules/qt/QoreAbstractQTableWidget.h \
 	modules/qt/QC_QTableWidgetItem.h \
 	modules/qt/QC_QStyleOptionMenuItem.h \
 	modules/qt/QC_QMessageBox.h \

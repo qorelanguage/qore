@@ -49,35 +49,14 @@ class myQPrintDialog : public QPrintDialog, public QoreQDialogExtension
       }
 };
 
-class QoreQPrintDialog : public QoreAbstractQDialog
+typedef QoreQDialogBase<myQPrintDialog, QoreAbstractQDialog> QoreQPrintDialogImpl;
+
+class QoreQPrintDialog : public QoreQPrintDialogImpl
 {
    public:
-      QPointer<myQPrintDialog> qobj;
-
-      DLLLOCAL QoreQPrintDialog(QoreObject *obj, QPrinter* printer, QWidget* parent = 0) : qobj(new myQPrintDialog(obj, printer, parent))
+      DLLLOCAL QoreQPrintDialog(QoreObject *obj, QPrinter* printer, QWidget* parent = 0) : QoreQPrintDialogImpl(new myQPrintDialog(obj, printer, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-         return static_cast<QDialog *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QPrintDialog *getQPrintDialog() const
-      {
-         return static_cast<QPrintDialog *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QPRINTDIALOG_H

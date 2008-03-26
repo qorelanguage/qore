@@ -49,31 +49,16 @@ class myQDialog : public QDialog, public QoreQDialogExtension
       }
 };
 
-class QoreQDialog : public QoreAbstractQDialog
+typedef QoreQDialogBase<myQDialog, QoreAbstractQDialog> QoreQDialogImpl;
+
+class QoreQDialog : public QoreQDialogImpl
 {
    public:
       QPointer<myQDialog> qobj;
 
-      DLLLOCAL QoreQDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : qobj(new myQDialog(obj, parent, f))
+      DLLLOCAL QoreQDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QoreQDialogImpl(new myQDialog(obj, parent, f))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-         return static_cast<QDialog *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QDIALOG_H

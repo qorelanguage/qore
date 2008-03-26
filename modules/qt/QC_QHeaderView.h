@@ -49,95 +49,43 @@ class myQHeaderView : public QHeaderView, public QoreQWidgetExtension
       {
          
       }
+
+      DLLLOCAL void pub_setupViewport(QWidget *w)
+      {
+         setupViewport(w);
+      }
 };
 
-class QoreQHeaderView : public QoreAbstractQHeaderView
+typedef QoreQHeaderViewBase<myQHeaderView, QoreAbstractQHeaderView> QoreQHeaderViewImpl;
+
+class QoreQHeaderView : public QoreQHeaderViewImpl
 {
    public:
-      QPointer<myQHeaderView> qobj;
-
-      DLLLOCAL QoreQHeaderView(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : qobj(new myQHeaderView(obj, orientation, parent))
+      DLLLOCAL QoreQHeaderView(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QoreQHeaderViewImpl(new myQHeaderView(obj, orientation, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractItemView *getQAbstractItemView() const
-      {
-         return static_cast<QAbstractItemView *>(&(*qobj));
-      } 
-      DLLLOCAL virtual class QHeaderView *getQHeaderView() const
-      {
-         return static_cast<QHeaderView *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractScrollArea *getQAbstractScrollArea() const
-      {
-         return static_cast<QAbstractScrollArea *>(&(*qobj));
-      }
+/*
       DLLLOCAL virtual void setupViewport(QWidget *w)
       {
          qobj->setupViewport(w);
       }
-      QORE_VIRTUAL_QWIDGET_METHODS
+*/
 };
 
-class QoreQtQHeaderView : public QoreAbstractQHeaderView
+typedef QoreQtQHeaderViewBase<QHeaderView, QoreAbstractQHeaderView> QoreQtQHeaderViewImpl;
+
+class QoreQtQHeaderView : public QoreQtQHeaderViewImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QHeaderView> qobj;
-
-      DLLLOCAL QoreQtQHeaderView(QoreObject *obj, QHeaderView *hv) : qore_obj(obj), qobj(hv)
+      DLLLOCAL QoreQtQHeaderView(QoreObject *obj, QHeaderView *hv) : QoreQtQHeaderViewImpl(obj, hv)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractItemView *getQAbstractItemView() const
-      {
-         return static_cast<QAbstractItemView *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QFrame *getQFrame() const
-      {
-         return static_cast<QFrame *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractScrollArea *getQAbstractScrollArea() const
-      {
-         return static_cast<QAbstractScrollArea *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QHeaderView *getQHeaderView() const
-      {
-         return static_cast<QHeaderView *>(&(*qobj));
-      }
+/*
       // will never be called
       DLLLOCAL virtual void setupViewport(QWidget *w)
       {
       }
-
-#include "qore-qt-static-qwidget-methods.h"
-
+*/
 };
 
 #endif // _QORE_QT_QC_QHEADERVIEW_H

@@ -32,4 +32,31 @@ class QoreAbstractQHeaderView : public QoreAbstractQAbstractItemView
       DLLLOCAL virtual class QHeaderView *getQHeaderView() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQHeaderViewBase : public QoreQAbstractItemViewBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQHeaderViewBase(T *qo) : QoreQAbstractItemViewBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QHeaderView *getQHeaderView() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQHeaderViewBase : public QoreQtQAbstractItemViewBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQHeaderViewBase(QoreObject *obj, T *qo) : QoreQtQAbstractItemViewBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QHeaderView *getQHeaderView() const
+      {
+         return this->qobj;
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQHEADERVIEW_H

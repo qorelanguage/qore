@@ -29,7 +29,34 @@
 class QoreAbstractQTextEdit : public QoreAbstractQAbstractScrollArea
 {
    public:
-      DLLLOCAL virtual class QTextEdit *getQTextEdit() const = 0;
+      DLLLOCAL virtual QTextEdit *getQTextEdit() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQTextEditBase : public QoreQAbstractScrollAreaBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQTextEditBase(T *qo) : QoreQAbstractScrollAreaBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QTextEdit *getQTextEdit() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQTextEditBase : public QoreQtQAbstractScrollAreaBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQTextEditBase(QoreObject *obj, T *qo) : QoreQtQAbstractScrollAreaBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QTextEdit *getQTextEdit() const
+      {
+         return this->qobj;
+      }
 };
 
 #endif  // _QORE_QT_QOREABSTRACTQTEXTEDIT_H

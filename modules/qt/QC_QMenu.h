@@ -29,14 +29,12 @@
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QMENU;
-DLLLOCAL extern class QoreClass *QC_QMenu;
+DLLLOCAL extern QoreClass *QC_QMenu;
 
-DLLLOCAL class QoreClass *initQMenuClass(QoreClass *);
+DLLLOCAL QoreClass *initQMenuClass(QoreClass *);
 
 class myQMenu : public QMenu, public QoreQWidgetExtension
 {
-      friend class QoreQMenu;
-
 #define QOREQTYPE QMenu
 #define MYQOREQTYPE myQMenu
 #include "qore-qt-metacode.h"
@@ -45,90 +43,45 @@ class myQMenu : public QMenu, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQMenu(QoreObject *obj, QWidget* parent = 0) : QMenu(parent), QoreQWidgetExtension(obj, this)
+      DLLLOCAL myQMenu(QoreObject *obj, QWidget* parent = 0) : QMenu(parent), QoreQWidgetExtension(obj, this)
       {
-         
-         //init_widget_events();
       }
-   DLLLOCAL myQMenu(QoreObject *obj, const QString& title, QWidget* parent = 0) : QMenu(title, parent), QoreQWidgetExtension(obj, this)
+      DLLLOCAL myQMenu(QoreObject *obj, const QString& title, QWidget* parent = 0) : QMenu(title, parent), QoreQWidgetExtension(obj, this)
       {
-         
-         //init_widget_events();
+      }
+
+      DLLLOCAL int parent_columnCount () const
+      {
+	 return columnCount();
+      }
+      DLLLOCAL void parent_initStyleOption ( QStyleOptionMenuItem * option, const QAction * action ) const
+      {
+	 initStyleOption(option, action);
+      }
+
+};
+
+typedef QoreQMenuBase<myQMenu, QoreAbstractQMenu> QoreQMenuImpl;
+
+class QoreQMenu : public QoreQMenuImpl
+{
+   public:
+      DLLLOCAL QoreQMenu(QoreObject *obj, QWidget* parent = 0) : QoreQMenuImpl(new myQMenu(obj, parent))
+      {
+      }
+      DLLLOCAL QoreQMenu(QoreObject *obj, const QString& title, QWidget* parent = 0) : QoreQMenuImpl(new myQMenu(obj, title, parent))
+      {
       }
 };
 
-class QoreQMenu : public QoreAbstractQMenu
+typedef QoreQtQMenuBase<QMenu, QoreAbstractQMenu> QoreQtQMenuImpl;
+
+class QoreQtQMenu : public QoreQtQMenuImpl
 {
    public:
-      QPointer<myQMenu> qobj;
-
-      DLLLOCAL QoreQMenu(QoreObject *obj, QWidget* parent = 0) : qobj(new myQMenu(obj, parent))
+      DLLLOCAL QoreQtQMenu(QoreObject *obj, QMenu *qm) : QoreQtQMenuImpl(obj, qm)
       {
       }
-      DLLLOCAL QoreQMenu(QoreObject *obj, const QString& title, QWidget* parent = 0) : qobj(new myQMenu(obj, title, parent))
-      {
-      }
-      DLLLOCAL int columnCount () const
-      {
-	 return qobj->columnCount();
-      }
-      DLLLOCAL void initStyleOption ( QStyleOptionMenuItem * option, const QAction * action ) const
-      {
-	 qobj->initStyleOption(option, action);
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QMenu *getQMenu() const
-      {
-         return static_cast<QMenu *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
-};
-
-class QoreQtQMenu : public QoreAbstractQMenu
-{
-   public:
-      QoreObject *qore_obj;
-      QPointer<QMenu> qobj;
-
-      DLLLOCAL QoreQtQMenu(QoreObject *obj, QMenu *qm) : qore_obj(obj), qobj(qm)
-      {
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QMenu *getQMenu() const
-      {
-         return static_cast<QMenu *>(&(*qobj));
-      }
-      // the following two functions will never be called
-      DLLLOCAL int columnCount () const
-      {
-	 return 0;
-      }
-      DLLLOCAL void initStyleOption ( QStyleOptionMenuItem * option, const QAction * action ) const
-      {
-      }
-#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QMENU_H

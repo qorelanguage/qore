@@ -29,7 +29,34 @@
 class QoreAbstractQGroupBox : public QoreAbstractQWidget
 {
    public:
-      DLLLOCAL virtual class QGroupBox *getQGroupBox() const = 0;
+      DLLLOCAL virtual QGroupBox *getQGroupBox() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQGroupBoxBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQGroupBoxBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QGroupBox *getQGroupBox() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQGroupBoxBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQGroupBoxBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QGroupBox *getQGroupBox() const
+      {
+         return this->qobj;
+      }
 };
 
 #endif

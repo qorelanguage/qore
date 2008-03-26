@@ -32,4 +32,31 @@ class QoreAbstractQAbstractItemView : public QoreAbstractQAbstractScrollArea
       DLLLOCAL virtual class QAbstractItemView *getQAbstractItemView() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQAbstractItemViewBase : public QoreQAbstractScrollAreaBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQAbstractItemViewBase(T *qo) : QoreQAbstractScrollAreaBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QAbstractItemView *getQAbstractItemView() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQAbstractItemViewBase : public QoreQtQAbstractScrollAreaBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQAbstractItemViewBase(QoreObject *obj, T *qo) : QoreQtQAbstractScrollAreaBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractItemView *getQAbstractItemView() const
+      {
+         return this->qobj;
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQABSTRACTITEMVIEW_H

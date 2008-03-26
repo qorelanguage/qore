@@ -48,31 +48,14 @@ class myQErrorMessage : public QErrorMessage, public QoreQDialogExtension
       }
 };
 
-class QoreQErrorMessage : public QoreAbstractQDialog
+typedef QoreQDialogBase<myQErrorMessage, QoreAbstractQDialog> QoreQErrorMessageImpl;
+
+class QoreQErrorMessage : public QoreQErrorMessageImpl
 {
    public:
-      QPointer<myQErrorMessage> qobj;
-
-      DLLLOCAL QoreQErrorMessage(QoreObject *obj, QWidget* parent = 0) : qobj(new myQErrorMessage(obj, parent))
+      DLLLOCAL QoreQErrorMessage(QoreObject *obj, QWidget* parent = 0) : QoreQErrorMessageImpl(new myQErrorMessage(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-         return static_cast<QDialog *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QERRORMESSAGE_H

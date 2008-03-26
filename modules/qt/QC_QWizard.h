@@ -58,69 +58,52 @@ class QoreAbstractQWizard : public QoreAbstractQDialog
       DLLLOCAL virtual QWizard *getQWizard() const = 0;
 };
 
-class QoreQWizard : public QoreAbstractQWizard
+template<typename T, typename V>
+class QoreQWizardBase : public QoreQDialogBase<T, V>
 {
    public:
-      QPointer<myQWizard> qobj;
-
-      DLLLOCAL QoreQWizard(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : qobj(new myQWizard(obj, parent, flags))
+      DLLLOCAL QoreQWizardBase(T *qo) : QoreQDialogBase<T, V>(qo)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
+      DLLLOCAL virtual QWizard *getQWizard() const
       {
-         return static_cast<QObject *>(&(*qobj));
+	 return &(*this->qobj);
       }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-	 return static_cast<QDialog *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWizard *getQWizard() const
-      {
-	 return static_cast<QWizard *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
-class QoreQtQWizard : public QoreAbstractQWizard
+
+template<typename T, typename V>
+class QoreQtQWizardBase : public QoreQtQDialogBase<T, V>
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QWizard> qobj;
-
-      DLLLOCAL QoreQtQWizard(QoreObject *obj, QWizard *qw) : qore_obj(obj), qobj(qw)
+      DLLLOCAL QoreQtQWizardBase(QoreObject *obj, T *qo) : QoreQtQDialogBase<T, V>(obj, qo)
       {
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-	 return static_cast<QDialog *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWizard *getQWizard() const
-      {
-	 return static_cast<QWizard *>(&(*qobj));
       }
 
-#include "qore-qt-static-qdialog-methods.h"
+      DLLLOCAL virtual QWizard *getQWizard() const
+      {
+         return this->qobj;
+      }
+};
 
+typedef QoreQWizardBase<myQWizard, QoreAbstractQWizard> QoreQWizardImpl;
+
+class QoreQWizard : public QoreQWizardImpl
+{
+   public:
+      DLLLOCAL QoreQWizard(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QoreQWizardImpl(new myQWizard(obj, parent, flags))
+      {
+      }
+};
+
+typedef QoreQtQWizardBase<QWizard, QoreAbstractQWizard> QoreQtQWizardImpl;
+
+class QoreQtQWizard : public QoreQtQWizardImpl
+{
+   public:
+      DLLLOCAL QoreQtQWizard(QoreObject *obj, QWizard *qw) : QoreQtQWizardImpl(obj, qw)
+      {
+      }
 };
 
 #endif // _QORE_QT_QC_QWIZARD_H

@@ -29,7 +29,7 @@
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QABSTRACTITEMVIEW;
-DLLLOCAL extern class QoreClass *QC_QAbstractItemView;
+DLLLOCAL extern QoreClass *QC_QAbstractItemView;
 
 DLLLOCAL class QoreClass *initQAbstractItemViewClass(QoreClass *);
 
