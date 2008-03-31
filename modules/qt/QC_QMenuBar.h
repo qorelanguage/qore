@@ -44,64 +44,28 @@ class myQMenuBar : public QMenuBar, public QoreQWidgetExtension
 
    public:
       DLLLOCAL myQMenuBar(QoreObject *obj, QWidget* parent = 0) : QMenuBar(parent), QoreQWidgetExtension(obj, this)
-      {
-         
+      {  
       }
 };
 
-class QoreQMenuBar : public QoreAbstractQMenuBar
+typedef QoreQMenuBarBase<myQMenuBar, QoreAbstractQMenuBar> QoreQMenuBarImpl;
+
+class QoreQMenuBar : public QoreQMenuBarImpl
 {
    public:
-      QPointer<myQMenuBar> qobj;
-
-      DLLLOCAL QoreQMenuBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQMenuBar(obj, parent))
+      DLLLOCAL QoreQMenuBar(QoreObject *obj, QWidget* parent = 0) : QoreQMenuBarImpl(new myQMenuBar(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QMenuBar *getQMenuBar() const
-      {
-         return static_cast<QMenuBar *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQMenuBar : public QoreAbstractQMenuBar
+typedef QoreQtQMenuBarBase<QMenuBar, QoreAbstractQMenuBar> QoreQtQMenuBarImpl;
+
+class QoreQtQMenuBar : public QoreQtQMenuBarImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QMenuBar> qobj;
-
-      DLLLOCAL QoreQtQMenuBar(QoreObject *obj, QMenuBar *qmenubar) : qore_obj(obj), qobj(qmenubar)
+      DLLLOCAL QoreQtQMenuBar(QoreObject *obj, QMenuBar *qmenubar) : QoreQtQMenuBarImpl(obj, qmenubar)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QMenuBar *getQMenuBar() const
-      {
-         return static_cast<QMenuBar *>(&(*qobj));
-      }
-#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QMENUBAR_H

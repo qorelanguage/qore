@@ -39,14 +39,16 @@ static AbstractQoreNode *QLAYOUT_activate(QoreObject *self, QoreAbstractQLayout 
    return get_bool_node(ql->getQLayout()->activate());
 }
 
-////virtual void addItem ( QLayoutItem * item ) = 0
-//static AbstractQoreNode *QLAYOUT_addItem(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   const AbstractQoreNode *p = get_param(params, 0);
-//   ??? QLayoutItem* item = p;
-//   ql->getQLayout()->addItem(item);
-//   return 0;
-//}
+/*
+virtual void addItem ( QLayoutItem * item ) = 0
+static AbstractQoreNode *QLAYOUT_addItem(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? QLayoutItem* item = p;
+   ql->getQLayout()->addItem(item);
+   return 0;
+}
+*/
 
 //void addWidget ( QWidget * w )
 static AbstractQoreNode *QLAYOUT_addWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
@@ -58,8 +60,11 @@ static AbstractQoreNode *QLAYOUT_addWidget(QoreObject *self, QoreAbstractQLayout
          xsink->raiseException("QLAYOUT-ADDWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QLayout::addWidget()");
       return 0;
    }
+
    ReferenceHolder<QoreAbstractQWidget> wHolder(w, xsink);
    ql->getQLayout()->addWidget(w->getQWidget());
+   // the widget pointer is now owned by the layout
+   w->setExternallyOwned();
    return 0;
 }
 

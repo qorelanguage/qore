@@ -81,30 +81,21 @@ class myQIntValidator : public QIntValidator, public QoreQValidatorExtension
       }
 };
 
-class QoreQIntValidator : public QoreAbstractQValidator
+typedef QoreQValidatorBase<myQIntValidator, QoreAbstractQValidator> QoreQIntValidatorImpl;
+
+class QoreQIntValidator : public QoreQIntValidatorImpl
 {
    public:
-      QPointer<myQIntValidator> qobj;
-
-      DLLLOCAL QoreQIntValidator(QoreObject *obj, QObject* parent) : qobj(new myQIntValidator(obj, parent))
+      DLLLOCAL QoreQIntValidator(QoreObject *obj, QObject* parent) : QoreQIntValidatorImpl(new myQIntValidator(obj, parent))
       {
       }
-      DLLLOCAL QoreQIntValidator(QoreObject *obj, int minimum, int maximum, QObject* parent) : qobj(new myQIntValidator(obj, minimum, maximum, parent))
+      DLLLOCAL QoreQIntValidator(QoreObject *obj, int minimum, int maximum, QObject* parent) : QoreQIntValidatorImpl(new myQIntValidator(obj, minimum, maximum, parent))
       {
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QValidator *getQValidator() const
-      {
-         return static_cast<QValidator *>(&(*qobj));
       }
       DLLLOCAL void setRange(int bottom, int top)
       {
          qobj->parent_setRange(bottom, top);
       }
-      QORE_VIRTUAL_QVALIDATOR_METHODS
 };
 
 #endif // _QORE_QT_QC_QINTVALIDATOR_H

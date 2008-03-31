@@ -29,7 +29,35 @@
 class QoreAbstractQIODevice : public QoreAbstractQObject
 {
    public:
-      DLLLOCAL virtual class QIODevice *getQIODevice() const = 0;
+      DLLLOCAL virtual QIODevice *getQIODevice() const = 0;
 };
+
+template<typename T, typename V>
+class QoreQIODeviceBase : public QoreQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQIODeviceBase(T *qo) : QoreQObjectBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QIODevice *getQIODevice() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQIODeviceBase : public QoreQtQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQIODeviceBase(QoreObject *obj, T *qo) : QoreQtQObjectBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QIODevice *getQIODevice() const
+      {
+         return this->qobj;
+      }
+};
+
 
 #endif  // _QORE_QT_QOREABSTRACTQIODEVICE_H

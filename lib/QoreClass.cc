@@ -1046,15 +1046,18 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
 	 rv = priv->func.userFunc->eval(args, self, xsink, priv->parent_class->getName());
       else
       {
+	 // save current program location in case there's an exception
+	 const char *o_fn = get_pgm_file();
+	 int o_ln, o_eln;
+	 get_pgm_counter(o_ln, o_eln);
+
 	 // evalute arguments before calling builtin method
 	 QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
 	 if (*xsink)
 	    return 0;
 
-	 // save current program location in case there's an exception
-	 const char *o_fn = get_pgm_file();
-	 int o_ln, o_eln;
-	 get_pgm_counter(o_ln, o_eln);
+	 // reset program position after arguments are evaluted
+	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);   
 
 	 rv = self->evalBuiltinMethodWithPrivateData(priv->func.builtin, *new_args, xsink);      
 	 if (xsink->isException())

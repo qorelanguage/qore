@@ -184,10 +184,6 @@ sub command_line()
     if (!$o.indep && !exists $o.parent)
 	$o.parent = $o.dialog ? "QDialog" : $o.widget ? "QWidget" : "QObject";
 
-    if ($o.qt && !$o.abstract) {
-	stderr.printf("cannot add Qt class to non-abstract class\n");
-	exit(1);
-    }
 }
 
 sub dl($l)
@@ -450,22 +446,27 @@ sub add_new_build_files($fp)
 sub do_abstract($of, $proto, $qt)
 {
     my $class_name = "Qore" + ($qt ? "Qt" : "") + $cn;
+
+    my $ptr_name = sprintf("%s%s", $qt ? "" : "my", $cn);
+
+    my $impl_class = $class_name + "Impl";
+
+    my $base_class = sprintf("Qore%s%sBase", $qt ? "Qt" : "", $o.abstract_class);
+    
     my $lcn;
     if ($qt)
 	$lcn = tolower($cn);
 
     if ($qt)
 	$of.printf("\n");
-    $of.printf("class %s : public QoreAbstract%s\n", $class_name, $o.abstract_class);
-    $of.printf("{\n   public:\n");
-    if ($qt)
-	$of.printf("      QoreObject *qore_obj;\n");
-    $of.printf("      QPointer<%s%s> qobj;
+    
+    $of.printf("typedef %s<%s, QoreAbstract%s> %s;\n\n", $base_class, $ptr_name, $o.abstract_class, $impl_class);
 
-", $qt ? "" : "my", $cn);
+    $of.printf("class %s : public %s\n", $class_name, $impl_class);
+    $of.printf("{\n   public:\n");
     
     if ($qt)
-	$of.printf("      DLLLOCAL %s(QoreObject *obj, %s *%s) : qore_obj(obj), qobj(%s)\n      {\n      }\n", $class_name, $cn, $lcn, $lcn);
+	$of.printf("      DLLLOCAL %s(QoreObject *obj, %s *%s) : %s(obj, %s)\n      {\n      }\n", $class_name, $cn, $lcn, $impl_class, $lcn);
     else {
 	if (exists $proto.$cn) {
 	    foreach my $i in ($proto.$cn.inst) {
@@ -479,46 +480,10 @@ sub do_abstract($of, $proto, $qt)
 		my $str = "QoreObject *obj";
 		if (strlen($i.orig_args))
 		    $str += ", " + $i.orig_args;
-		$of.printf("      DLLLOCAL %s(%s) : qobj(new my%s(obj%s))\n      {\n      }\n", $class_name, $str, $cn, $arg_names);
+		$of.printf("      DLLLOCAL %s(%s) : %s(new my%s(obj%s))\n      {\n      }\n", $class_name, $str, $impl_class, $cn, $arg_names);
 	    }
 	}
     }
-    $of.printf("      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-");
-    if ($o.widget)
-	$of.printf("      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-");
-    if ($o.dialog)
-	$of.printf("      DLLLOCAL virtual class QDialog *getQDialog() const
-      {
-         return static_cast<QDialog *>(&(*qobj));
-      }
-");
-
-
-    if ($o.abstract_class != "QObject" && $o.abstract_class != "QWidget" && $o.abstract_class != "QDialog")
-	$of.printf("      DLLLOCAL virtual class %s *get%s() const
-      {
-         return static_cast<%s *>(&(*qobj));
-      }
-", $o.abstract_class, $o.abstract_class, $o.abstract_class);
-    
-    if ($o.abstract && $o.abstract_class != $cn)
-	$of.printf("      DLLLOCAL virtual class %s *get%s() const
-      {
-         return static_cast<%s *>(&(*qobj));
-      }
-", $cn, $cn, $cn);
     
     foreach my $ac in ($o.abstract_list)
 	$of.printf("      DLLLOCAL virtual class %s *get%s() const
@@ -527,10 +492,6 @@ sub do_abstract($of, $proto, $qt)
       }
 ", $ac, $ac, $ac);
 
-    if (!$qt)
-	$of.printf("      QORE_VIRTUAL_Q%s_METHODS\n", $o.dialog ? "DIALOG" : $o.widget ? "WIDGET" : ($o.style ? "STYLE" : ($o.validator ? "VALIDATOR" : "OBJECT")));
-    else
-	$of.printf("#include \"qore-qt-static-q%s-methods.h\"\n", $o.dialog ? "dialog" : $o.widget ? "widget" : ($o.style ? "style" : "object"));
     $of.printf("};\n");
 }
 
@@ -709,8 +670,39 @@ sub main()
       DLLLOCAL virtual class %s *get%s() const = 0;
 };
 
-#endif  // _QORE_QT_QOREABSTRACT%s_H
 ", $cn, exists $o.parent ? " : public QoreAbstract" + $o.parent : "", $cn, $cn, $func_prefix);
+
+            $of.printf("template<typename T, typename V>
+class Qore%sBase : public Qore%sBase<T, V>
+{
+   public:
+      DLLLOCAL Qore%sBase(T *qo) : Qore%sBase<T, V>(qo)
+      {
+      }
+
+      DLLLOCAL virtual class %s *get%s() const
+      {
+         return static_cast<%s *>(&(*this->qobj));
+      }      
+};
+", $cn, $o.parent, $cn, $o.parent, $cn, $cn, $cn);
+
+            $of.printf("\ntemplate<typename T, typename V>
+class QoreQt%sBase : public QoreQt%sBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQt%sBase(QoreObject *obj, T *qo) : QoreQt%sBase<T, V>(qobj, qo)
+      {
+      }
+
+      DLLLOCAL virtual class %s *get%s() const
+      {
+         return this->qobj);
+      }      
+};
+", $cn, $o.parent, $cn, $o.parent, $cn, $cn, $cn);
+
+    $of.printf("\n#endif  // _QORE_QT_QOREABSTRACT%s_H\n");
 	}
 
 	$of = get_file("QC_" + $cn + ".h");
@@ -816,7 +808,6 @@ DLLLOCAL extern QoreClass *QC_%s;
 			       $o.dialog ? ", QoreQDialogExtension(obj, this)" :
 			       $o.widget ? ", QoreQWidgetExtension(obj, this)" :
 			       $o.validator ? ", QoreQValidatorExtension(obj, this)" : ", QoreQObjectExtension(obj, this)");
-		    $of.printf("         init(obj);\n");
 		    $of.printf("      }\n"); 
 		}
 	    }

@@ -37,4 +37,69 @@ class QoreAbstractQTabBar : public QoreAbstractQWidget
       DLLLOCAL virtual QSize tabSizeHint ( int index ) const = 0;
 };
 
+template<typename T, typename V>
+class QoreQTabBarBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQTabBarBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QTabBar *getQTabBar() const
+      {
+         return &(*this->qobj);
+      }
+
+      DLLLOCAL virtual void initStyleOption ( QStyleOptionTab * option, int tabIndex ) const
+      {
+         this->qobj->parent_initStyleOption(option, tabIndex);
+      }
+
+      DLLLOCAL virtual void tabInserted ( int index )
+      {
+         this->qobj->parent_tabInserted(index);
+      }
+
+      DLLLOCAL virtual void tabLayoutChange ()
+      {
+         this->qobj->parent_tabLayoutChange();
+      }
+
+      DLLLOCAL virtual void tabRemoved ( int index )
+      {
+         this->qobj->parent_tabRemoved(index);
+      }
+
+      DLLLOCAL QSize virtual tabSizeHint ( int index ) const
+      {
+         return this->qobj->parent_tabSizeHint(index);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQTabBarBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQTabBarBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QTabBar *getQTabBar() const
+      {
+         return this->qobj;
+      }
+
+      DLLLOCAL virtual void initStyleOption ( QStyleOptionTab * option, int tabIndex ) const { }
+
+      DLLLOCAL virtual void tabInserted ( int index ) { }
+
+      DLLLOCAL virtual void tabLayoutChange () { }
+
+      DLLLOCAL virtual void tabRemoved ( int index ) { }
+
+      DLLLOCAL QSize virtual tabSizeHint ( int index ) const
+      {
+	 return QSize();
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQTABBAR_H

@@ -62,8 +62,6 @@ typedef QoreQObjectBase<myQMovie, QoreAbstractQObject> QoreQMovieImpl;
 class QoreQMovie : public QoreQMovieImpl
 {
    public:
-      QPointer<myQMovie> qobj;
-
       DLLLOCAL QoreQMovie(QoreObject *obj, QObject* parent = 0) : QoreQMovieImpl(new myQMovie(obj, parent))
       {
       }

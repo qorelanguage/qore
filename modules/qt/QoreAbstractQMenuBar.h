@@ -32,4 +32,31 @@ class QoreAbstractQMenuBar : public QoreAbstractQWidget
       DLLLOCAL virtual class QMenuBar *getQMenuBar() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQMenuBarBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQMenuBarBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QMenuBar *getQMenuBar() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQMenuBarBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQMenuBarBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QMenuBar *getQMenuBar() const
+      {
+         return this->qobj;
+      }
+};
+
 #endif  // _QORE_QT_QOREABSTRACTQMENUBAR_H

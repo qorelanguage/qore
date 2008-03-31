@@ -29,7 +29,7 @@
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QDATETIMEEDIT;
-DLLLOCAL extern class QoreClass *QC_QDateTimeEdit;
+DLLLOCAL extern QoreClass *QC_QDateTimeEdit;
 
 DLLLOCAL class QoreClass *initQDateTimeEditClass(QoreClass *);
 
@@ -61,44 +61,23 @@ class myQDateTimeEdit : public QDateTimeEdit, public QoreQWidgetExtension
       }
 };
 
-class QoreQDateTimeEdit : public QoreAbstractQDateTimeEdit
+typedef QoreQDateTimeEditBase<myQDateTimeEdit, QoreAbstractQDateTimeEdit> QoreQDateTimeEditImpl;
+
+class QoreQDateTimeEdit : public QoreQDateTimeEditImpl
 {
    public:
-      QPointer<myQDateTimeEdit> qobj;
-
-      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, parent))
+      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, QWidget* parent = 0) : QoreQDateTimeEditImpl(new myQDateTimeEdit(obj, parent))
       {
       }
-      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QDateTime& datetime, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, datetime, parent))
+      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QDateTime& datetime, QWidget* parent = 0) : QoreQDateTimeEditImpl(new myQDateTimeEdit(obj, datetime, parent))
       {
       }
-      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QDate& date, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, date, parent))
+      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QDate& date, QWidget* parent = 0) : QoreQDateTimeEditImpl(new myQDateTimeEdit(obj, date, parent))
       {
       }
-      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QTime& time, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, time, parent))
+      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QTime& time, QWidget* parent = 0) : QoreQDateTimeEditImpl(new myQDateTimeEdit(obj, time, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractSpinBox *getQAbstractSpinBox() const
-      {
-         return static_cast<QAbstractSpinBox *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QDateTimeEdit *getQDateTimeEdit() const
-      {
-         return static_cast<QDateTimeEdit *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QDATETIMEEDIT_H

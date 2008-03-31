@@ -378,8 +378,8 @@ class TetrixBoard::TetrixBoard inherits QFrame
 class TetrixPiece::TetrixPiece
 {
     private $.pieceShape, $.coords;
-
-   uctor() { $.setShape(NoShape); }
+    
+    constructor() { $.setShape(NoShape); }
 
     shape() { return $.pieceShape; }
     x($index) { return $.coords[$index][0]; }

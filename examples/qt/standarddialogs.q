@@ -181,7 +181,7 @@ class Dialog inherits QDialog
 	my $d = QInputDialog_getDouble($self, TR("QInputDialog::getDouble()"),
 				       TR("Amount:"), 37.56, -10000, 10000, 2, \$ok);
 	if ($ok)
-	    $.doubleLabel.setText(sprintf("%f", $d));
+	    $.doubleLabel.setText(sprintf("%.2f", $d));
     }
 
     setItem()

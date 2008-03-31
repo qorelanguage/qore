@@ -37,6 +37,59 @@ class QoreAbstractQValidator : public QoreAbstractQObject
       DLLLOCAL virtual QValidator::State validate(QString &intput, int &pos) const = 0;
 };
 
+template<typename T, typename V>
+class QoreQValidatorBase : public QoreQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQValidatorBase(T *qo) : QoreQObjectBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QValidator *getQValidator() const
+      {
+         return &(*this->qobj);
+      }
+      DLLLOCAL virtual void fixup(QString & input) const 
+      {
+	 this->qobj->fixup_parent(input);
+      }
+      DLLLOCAL virtual QValidator::State validate(QString & input, int & pos) const 
+      {
+	 return this->qobj->validate_parent(input, pos);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQValidatorCommonBase : public QoreQtQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQValidatorCommonBase(QoreObject *obj, T *qo) : QoreQtQObjectBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QValidator *getQValidator() const
+      {
+         return this->qobj;
+      }
+
+      DLLLOCAL virtual void fixup(QString & input) const 
+      { 
+	 this->qobj->fixup(input); 
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQValidatorBase : public QoreQtQValidatorCommonBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQValidatorBase(QoreObject *obj, T *qo) : QoreQtQValidatorCommonBase<T, V>(obj, qo)
+      {
+      }
+      DLLLOCAL virtual QValidator::State validate(QString & input, int & pos) const 
+      {
+	 return this->qobj->validate(input, pos); 
+      }
+};
+
 class QoreQValidatorExtension : public QoreQObjectExtension
 {
    protected:
@@ -51,9 +104,5 @@ class QoreQValidatorExtension : public QoreQObjectExtension
          m_validate     = findMethod(qc, "validate");
       }
 };
-
-#define QORE_VIRTUAL_QVALIDATOR_METHODS QORE_VIRTUAL_QOBJECT_METHODS \
-   DLLLOCAL virtual void fixup(QString & input) const { qobj->fixup_parent(input); } \
-   DLLLOCAL virtual QValidator::State validate(QString & input, int & pos) const {return qobj->validate_parent(input, pos); }
 
 #endif  // _QORE_QT_QOREABSTRACTQVALIDATOR_H

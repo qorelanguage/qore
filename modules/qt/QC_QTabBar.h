@@ -74,102 +74,23 @@ class myQTabBar : public QTabBar, public QoreQWidgetExtension
       }
 };
 
-class QoreQTabBar : public QoreAbstractQTabBar
+typedef QoreQTabBarBase<myQTabBar, QoreAbstractQTabBar> QoreQTabBarImpl;
+
+class QoreQTabBar : public QoreQTabBarImpl
 {
    public:
-      QPointer<myQTabBar> qobj;
-
-      DLLLOCAL QoreQTabBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQTabBar(obj, parent))
+      DLLLOCAL QoreQTabBar(QoreObject *obj, QWidget* parent = 0) : QoreQTabBarImpl(new myQTabBar(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QTabBar *getQTabBar() const
-      {
-         return static_cast<QTabBar *>(&(*qobj));
-      }
-
-      DLLLOCAL virtual void initStyleOption ( QStyleOptionTab * option, int tabIndex ) const
-      {
-         qobj->parent_initStyleOption(option, tabIndex);
-      }
-
-      DLLLOCAL virtual void tabInserted ( int index )
-      {
-         qobj->parent_tabInserted(index);
-      }
-
-      DLLLOCAL virtual void tabLayoutChange ()
-      {
-         qobj->parent_tabLayoutChange();
-      }
-
-      DLLLOCAL virtual void tabRemoved ( int index )
-      {
-         qobj->parent_tabRemoved(index);
-      }
-
-      DLLLOCAL QSize virtual tabSizeHint ( int index ) const
-      {
-         return qobj->parent_tabSizeHint(index);
-      }
-
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQTabBar : public QoreAbstractQTabBar
+typedef QoreQtQTabBarBase<QTabBar, QoreAbstractQTabBar> QoreQtQTabBarImpl;
+
+class QoreQtQTabBar : public QoreQtQTabBarImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QTabBar> qobj;
-
-      DLLLOCAL QoreQtQTabBar(QoreObject *obj, QTabBar *qtabbar) : qore_obj(obj), qobj(qtabbar)
+      DLLLOCAL QoreQtQTabBar(QoreObject *obj, QTabBar *qtabbar) : QoreQtQTabBarImpl(obj, qtabbar)
       {
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QTabBar *getQTabBar() const
-      {
-         return static_cast<QTabBar *>(&(*qobj));
-      }
-#include "qore-qt-static-qwidget-methods.h"
-
-      // these functions will never be called
-      DLLLOCAL virtual void initStyleOption ( QStyleOptionTab * option, int tabIndex ) const
-      {
-      }
-      DLLLOCAL virtual void tabInserted ( int index )
-      {
-      }
-      DLLLOCAL virtual void tabLayoutChange ()
-      {
-      }
-      DLLLOCAL virtual void tabRemoved ( int index )
-      {
-      }
-      DLLLOCAL virtual QSize tabSizeHint ( int index ) const
-      {
-	 return QSize();
       }
 };
 

@@ -56,49 +56,30 @@ class myQAction : public QAction, public QoreQObjectExtension
       }
 };
 
-class QoreQAction : public QoreAbstractQAction
+typedef QoreQActionBase<myQAction, QoreAbstractQAction> QoreQActionImpl;
+
+class QoreQAction : public QoreQActionImpl
 {
    public:
-      QPointer<myQAction> qobj;
-
-      DLLLOCAL QoreQAction(QoreObject *obj, QObject* parent) : qobj(new myQAction(obj, parent))
+      DLLLOCAL QoreQAction(QoreObject *obj, QObject* parent) : QoreQActionImpl(new myQAction(obj, parent))
       {
       }
-      DLLLOCAL QoreQAction(QoreObject *obj, const QString& text, QObject* parent) : qobj(new myQAction(obj, text, parent))
+      DLLLOCAL QoreQAction(QoreObject *obj, const QString& text, QObject* parent) : QoreQActionImpl(new myQAction(obj, text, parent))
       {
       }
-      DLLLOCAL QoreQAction(QoreObject *obj, const QIcon& icon, const QString& text, QObject* parent) : qobj(new myQAction(obj, icon, text, parent))
+      DLLLOCAL QoreQAction(QoreObject *obj, const QIcon& icon, const QString& text, QObject* parent) : QoreQActionImpl(new myQAction(obj, icon, text, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAction *getQAction() const
-      {
-         return static_cast<QAction *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
-class QoreQtQAction : public QoreAbstractQAction
+typedef QoreQtQActionBase<QAction, QoreAbstractQAction> QoreQtQActionImpl;
+
+class QoreQtQAction : public QoreQtQActionImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QAction> qobj;
-
-      DLLLOCAL QoreQtQAction(QoreObject *obj, QAction *qaction) : qore_obj(obj), qobj(qaction)
+      DLLLOCAL QoreQtQAction(QoreObject *obj, QAction *qaction) : QoreQtQActionImpl(obj, qaction)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAction *getQAction() const
-      {
-         return static_cast<QAction *>(&(*qobj));
-      }
-#include "qore-qt-static-qobject-methods.h"
 };
 
 #endif // _QORE_QT_QC_QACTION_H

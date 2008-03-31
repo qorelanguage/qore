@@ -79,7 +79,7 @@ AbstractQoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout 
    if (!layout)
    {
       if (!xsink->isException())
-         xsink->raiseException("QLAYOUT-ADDLAYOUT-ERROR", "expecting an object derived from QLayout as the only argument to QLayout::addLayout()");
+         xsink->raiseException("QGRIDLAYOUT-ADDLAYOUT-ERROR", "expecting an object derived from QLayout as the only argument to QLayout::addLayout()");
       return 0;
    }
    ReferenceHolder<QoreAbstractQLayout> holder(layout, xsink);
@@ -96,6 +96,8 @@ AbstractQoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout 
    {
       //printd(5, "addLayout(%08x, %d, %d, %d)\n", layout->getQLayout(), row, col, p ? p->getAsInt() : 0);
       ql->qobj->addLayout(layout->getQLayout(), row, col, (Qt::Alignment)(p ? p->getAsInt() : 0));
+      // the layout pointer is now owned by the layout
+      layout->setExternallyOwned();
       return 0;
    }
    int row_span = p ? p->getAsInt() : 0;
@@ -103,6 +105,8 @@ AbstractQoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout 
    p = get_param(params, 5);
 
    ql->qobj->addLayout(layout->getQLayout(), row, col, row_span, col_span, (Qt::Alignment)(p ? p->getAsInt() : 0));
+   // the layout pointer is now owned by the layout
+   layout->setExternallyOwned();
    return 0;
 }
 
@@ -115,15 +119,19 @@ AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout 
    if (!widget)
    {
       if (!xsink->isException())
-         xsink->raiseException("QLAYOUT-ADDWIDGET-ERROR", "expecting an object derived from QWidget as the only argument to QLayout::addWidget()");
+         xsink->raiseException("QGRIDLAYOUT-ADDWIDGET-ERROR", "expecting an object derived from QWidget as the only argument to QLayout::addWidget()");
       return 0;
    }
+   //printd(5, "QGRIDLAYOUT_addWidget() qore_obj=%08p qwidget=%08p widget=%08p (%s)\n", o, widget, widget->getQWidget(), widget->getQWidget()->metaObject()->className());
+
    ReferenceHolder<QoreAbstractQWidget> holder(widget, xsink);
 
    const AbstractQoreNode *p = get_param(params, 1);
    if (is_nothing(p))
    {
-      ql->getQLayout()->addWidget(widget->getQWidget());
+      ql->qobj->addWidget(widget->getQWidget());
+      // the widget pointer is now owned by the layout
+      widget->setExternallyOwned();
       return 0;
    }
    int row = p->getAsInt();
@@ -135,8 +143,12 @@ AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout 
    const AbstractQoreNode *p1 = get_param(params, 4);
    if (is_nothing(p1))
    {
-      //printd(5, "addWidget(%08x, %d, %d, %d)\n", widget->getQWidget(), row, col, p ? p->getAsInt() : 0);
+      //printd(5, "QGRIDLAYOUT_addWidget(%08x, %d, %d, %d)\n", widget->getQWidget(), row, col, p ? p->getAsInt() : 0);
       ql->qobj->addWidget(widget->getQWidget(), row, col, (Qt::Alignment)(p ? p->getAsInt() : 0));
+      // the widget pointer is now owned by the layout
+      widget->setExternallyOwned();
+      //printd(5, "QGRIDLAYOUT_addWidget() widget parent=%08p\n", widget->getQWidget()->parent());
+
       return 0;
    }
    int row_span = p ? p->getAsInt() : 0;
@@ -144,6 +156,8 @@ AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout 
    p = get_param(params, 5);
 
    ql->qobj->addWidget(widget->getQWidget(), row, col, row_span, col_span, (Qt::Alignment)(p ? p->getAsInt() : 0));
+   // the widget pointer is now owned by the layout
+   widget->setExternallyOwned();
    return 0;
 }
 

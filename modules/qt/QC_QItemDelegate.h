@@ -49,27 +49,14 @@ class myQItemDelegate : public QItemDelegate, public QoreQAbstractItemDelegateEx
       }
 };
 
-class QoreQItemDelegate : public QoreAbstractQItemDelegate
+typedef QoreQItemDelegateBase<myQItemDelegate, QoreAbstractQItemDelegate> QoreQItemDelegateImpl;
+
+class QoreQItemDelegate : public QoreQItemDelegateImpl
 {
    public:
-      QPointer<myQItemDelegate> qobj;
-
-      DLLLOCAL QoreQItemDelegate(QoreObject *obj, QObject* parent = 0) : qobj(new myQItemDelegate(obj, parent))
+      DLLLOCAL QoreQItemDelegate(QoreObject *obj, QObject* parent = 0) : QoreQItemDelegateImpl(new myQItemDelegate(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractItemDelegate *getQAbstractItemDelegate() const
-      {
-         return static_cast<QAbstractItemDelegate *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QItemDelegate *getQItemDelegate() const
-      {
-         return static_cast<QItemDelegate *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QABSTRACTITEMDELEGATE_METHODS
 };
 
 #endif // _QORE_QT_QC_QITEMDELEGATE_H

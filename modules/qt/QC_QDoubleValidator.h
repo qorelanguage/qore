@@ -83,30 +83,21 @@ class myQDoubleValidator : public QDoubleValidator, public QoreQValidatorExtensi
       }
 };
 
-class QoreQDoubleValidator : public QoreAbstractQValidator
+typedef QoreQValidatorBase<myQDoubleValidator, QoreAbstractQValidator> QoreQDoubleValidatorImpl;
+
+class QoreQDoubleValidator : public QoreQDoubleValidatorImpl
 {
    public:
-      QPointer<myQDoubleValidator> qobj;
-
-      DLLLOCAL QoreQDoubleValidator(QoreObject *obj, QObject* parent) : qobj(new myQDoubleValidator(obj, parent))
+      DLLLOCAL QoreQDoubleValidator(QoreObject *obj, QObject* parent) : QoreQDoubleValidatorImpl(new myQDoubleValidator(obj, parent))
       {
       }
-      DLLLOCAL QoreQDoubleValidator(QoreObject *obj, double bottom, double top, int decimals, QObject* parent) : qobj(new myQDoubleValidator(obj, bottom, top, decimals, parent))
+      DLLLOCAL QoreQDoubleValidator(QoreObject *obj, double bottom, double top, int decimals, QObject* parent) : QoreQDoubleValidatorImpl(new myQDoubleValidator(obj, bottom, top, decimals, parent))
       {
-      }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QValidator *getQValidator() const
-      {
-         return static_cast<QValidator *>(&(*qobj));
       }
       DLLLOCAL void setRange(double minimum, double maximum, int decimals = 0)
       {
 	 qobj->parent_setRange(minimum, maximum, decimals);
       }
-      QORE_VIRTUAL_QVALIDATOR_METHODS
 };
 
 #endif // _QORE_QT_QC_QDOUBLEVALIDATOR_H

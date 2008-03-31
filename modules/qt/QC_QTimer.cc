@@ -164,7 +164,7 @@ static AbstractQoreNode *f_QTimer_singleShot(const QoreListNode *params, Excepti
    const char *member = pstr->getBuffer();
 
    QoreObject *obj = new QoreObject(QC_QObject, getProgram());
-   class QoreQtSingleShotTimer *qsst = new QoreQtSingleShotTimer(obj, msec, receiver, member, xsink);
+   class QoreSingleShotTimer *qsst = new QoreSingleShotTimer(obj, msec, receiver, member, xsink);
    if (!*xsink)
       obj->setPrivate(CID_QOBJECT, qsst);
 

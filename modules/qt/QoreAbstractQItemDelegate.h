@@ -31,7 +31,44 @@ extern qore_classid_t CID_QWIDGET;
 class QoreAbstractQItemDelegate : public QoreAbstractQAbstractItemDelegate
 {
    public:
+      DLLLOCAL virtual QAbstractItemDelegate *getQAbstractItemDelegate() const = 0;
       DLLLOCAL virtual QItemDelegate *getQItemDelegate() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQItemDelegateBase : public QoreQAbstractItemDelegateBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQItemDelegateBase(T *qo) : QoreQAbstractItemDelegateBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QAbstractItemDelegate *getQAbstractItemDelegate() const
+      {
+         return static_cast<QAbstractItemDelegate *>(&(*this->qobj));
+      }
+      DLLLOCAL virtual QItemDelegate *getQItemDelegate() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQItemDelegateBase : public QoreQtQAbstractItemDelegateBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQItemDelegateBase(QoreObject *obj, T *qo) : QoreQtQAbstractItemDelegateBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractItemDelegate *getQAbstractItemDelegate() const
+      {
+         return static_cast<QAbstractItemDelegate *>(this->qobj);
+      }
+
+      DLLLOCAL virtual QItemDelegate *getQItemDelegate() const
+      {
+         return this->qobj;
+      }
 };
 
 #endif

@@ -53,26 +53,17 @@ class myQRegExpValidator : public QRegExpValidator, public QoreQValidatorExtensi
       }
 };
 
-class QoreQRegExpValidator : public QoreAbstractQValidator
+typedef QoreQValidatorBase<myQRegExpValidator, QoreAbstractQValidator> QoreQRegExpValidatorImpl;
+
+class QoreQRegExpValidator : public QoreQRegExpValidatorImpl
 {
    public:
-      QPointer<myQRegExpValidator> qobj;
-
-      DLLLOCAL QoreQRegExpValidator(QoreObject *obj, QObject* parent) : qobj(new myQRegExpValidator(obj, parent))
+      DLLLOCAL QoreQRegExpValidator(QoreObject *obj, QObject* parent) : QoreQRegExpValidatorImpl(new myQRegExpValidator(obj, parent))
       {
       }
-      DLLLOCAL QoreQRegExpValidator(QoreObject *obj, const QRegExp& rx, QObject* parent) : qobj(new myQRegExpValidator(obj, rx, parent))
+      DLLLOCAL QoreQRegExpValidator(QoreObject *obj, const QRegExp& rx, QObject* parent) : QoreQRegExpValidatorImpl(new myQRegExpValidator(obj, rx, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QValidator *getQValidator() const
-      {
-         return static_cast<QValidator *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QVALIDATOR_METHODS
 };
 
 #endif // _QORE_QT_QC_QREGEXPVALIDATOR_H

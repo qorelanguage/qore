@@ -33,24 +33,14 @@ DLLLOCAL extern class QoreClass *QC_QIODevice;
 
 DLLLOCAL class QoreClass *initQIODeviceClass(QoreClass *);
 
-class QoreQtQIODevice : public QoreAbstractQIODevice
+typedef QoreQtQIODeviceBase<QIODevice, QoreAbstractQIODevice> QoreQtQIODeviceImpl;
+
+class QoreQtQIODevice : public QoreQtQIODeviceImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QIODevice> qobj;
-
-      DLLLOCAL QoreQtQIODevice(QoreObject *obj, QIODevice* qiod) : qore_obj(obj), qobj(qiod)
+      DLLLOCAL QoreQtQIODevice(QoreObject *obj, QIODevice* qiod) : QoreQtQIODeviceImpl(obj, qiod)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QIODevice *getQIODevice() const
-      {
-         return static_cast<QIODevice *>(&(*qobj));
-      }
-#include "qore-qt-static-qobject-methods.h"
 };
 
 #endif // _QORE_QT_QC_QIODEVICE_H

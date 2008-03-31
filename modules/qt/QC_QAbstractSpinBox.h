@@ -29,7 +29,7 @@
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QABSTRACTSPINBOX;
-DLLLOCAL extern class QoreClass *QC_QAbstractSpinBox;
+DLLLOCAL extern QoreClass *QC_QAbstractSpinBox;
 
 DLLLOCAL class QoreClass *initQAbstractSpinBoxClass(QoreClass *);
 
@@ -45,35 +45,17 @@ class myQAbstractSpinBox : public QAbstractSpinBox, public QoreQWidgetExtension
    public:
       DLLLOCAL myQAbstractSpinBox(QoreObject *obj, QWidget* parent = 0) : QAbstractSpinBox(parent), QoreQWidgetExtension(obj, this)
       {
-         
       }
 };
 
-class QoreQAbstractSpinBox : public QoreAbstractQAbstractSpinBox
+typedef QoreQAbstractSpinBoxBase<myQAbstractSpinBox, QoreAbstractQAbstractSpinBox> QoreQAbstractSpinBoxImpl;
+
+class QoreQAbstractSpinBox : public QoreQAbstractSpinBoxImpl
 {
    public:
-      QPointer<myQAbstractSpinBox> qobj;
-
-      DLLLOCAL QoreQAbstractSpinBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQAbstractSpinBox(obj, parent))
+      DLLLOCAL QoreQAbstractSpinBox(QoreObject *obj, QWidget* parent = 0) : QoreQAbstractSpinBoxImpl(new myQAbstractSpinBox(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractSpinBox *getQAbstractSpinBox() const
-      {
-         return static_cast<QAbstractSpinBox *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QOBJECT_METHODS
 };
 
 #endif // _QORE_QT_QC_QABSTRACTSPINBOX_H

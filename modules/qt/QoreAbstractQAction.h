@@ -29,7 +29,35 @@
 class QoreAbstractQAction : public QoreAbstractQObject
 {
    public:
-      DLLLOCAL virtual class QAction *getQAction() const = 0;
+      DLLLOCAL virtual QAction *getQAction() const = 0;
 };
+
+template<typename T, typename V>
+class QoreQActionBase : public QoreQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQActionBase(T *qo) : QoreQObjectBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QAction *getQAction() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQActionBase : public QoreQtQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQActionBase(QoreObject *obj, T *qo) : QoreQtQObjectBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QAction *getQAction() const
+      {
+         return this->qobj;
+      }
+};
+
 
 #endif  // _QORE_QT_QOREABSTRACTQACTION_H

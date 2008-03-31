@@ -52,6 +52,88 @@ class QoreAbstractQAbstractItemDelegate : public QoreAbstractQObject
       virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0;
 };
 
+template<typename T, typename V>
+class QoreQAbstractItemDelegateBase : public QoreQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQAbstractItemDelegateBase(T *qo) : QoreQObjectBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QAbstractItemDelegate *getQAbstractItemDelegate() const
+      {
+         return &(*this->qobj);
+      }
+      DLLLOCAL virtual QWidget * createEditor ( QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+      { 
+	 return this->qobj->parent_createEditor(parent, option, index); 
+      }
+      DLLLOCAL virtual bool editorEvent ( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem & option, const QModelIndex & index ) 
+      {
+	 return this->qobj->parent_editorEvent(event, model, option, index); 
+      }
+      DLLLOCAL virtual void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const 
+      {
+	 this->qobj->parent_paint(painter, option, index); 
+      }
+      DLLLOCAL virtual void setEditorData ( QWidget * editor, const QModelIndex & index ) const 
+      {
+	 this->qobj->parent_setEditorData(editor, index); 
+      }
+      DLLLOCAL virtual void setModelData ( QWidget * editor, QAbstractItemModel * model, const QModelIndex & index ) const 
+      { 
+	 this->qobj->parent_setModelData(editor, model, index); 
+      }
+      DLLLOCAL virtual QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const 
+      { 
+	 return this->qobj->parent_sizeHint(option, index); 
+      }
+      DLLLOCAL virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const 
+      {
+	 this->qobj->parent_updateEditorGeometry(editor, option, index); 
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQAbstractItemDelegateBase : public QoreQtQObjectBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQAbstractItemDelegateBase(QoreObject *obj, T *qo) : QoreQtQObjectBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractItemDelegate *getQAbstractItemDelegate() const
+      {
+         return this->qobj;
+      }
+
+      // these functions will never be called
+      DLLLOCAL virtual QWidget * createEditor ( QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+      { 
+	 return 0;
+      }
+      DLLLOCAL virtual bool editorEvent ( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem & option, const QModelIndex & index ) 
+      {
+	 return false;
+      }
+      DLLLOCAL virtual void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+      {
+      }
+      DLLLOCAL virtual void setEditorData ( QWidget * editor, const QModelIndex & index ) const 
+      {
+      }
+      DLLLOCAL virtual void setModelData ( QWidget * editor, QAbstractItemModel * model, const QModelIndex & index ) const 
+      { 
+      }
+      DLLLOCAL virtual QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const 
+      { 
+	 return QSize();
+      }
+      DLLLOCAL virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const 
+      {
+      }
+};
+
+
 class QoreQAbstractItemDelegateExtension : public QoreQObjectExtension
 {
    protected:
@@ -70,21 +152,5 @@ class QoreQAbstractItemDelegateExtension : public QoreQObjectExtension
          m_updateEditorGeometry   = findMethod(qc, "updateEditorGeometry");
       }
 };
-
-#define QORE_VIRTUAL_QABSTRACTITEMDELEGATE_METHODS QORE_VIRTUAL_QOBJECT_METHODS \
-   DLLLOCAL virtual QWidget * createEditor ( QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const {\
-      return qobj->parent_createEditor(parent, option, index); }\
-   DLLLOCAL virtual bool editorEvent ( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem & option, const QModelIndex & index ) {\
-      return qobj->parent_editorEvent(event, model, option, index); }\
-   DLLLOCAL virtual void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const {\
-      qobj->parent_paint(painter, option, index); }\
-   DLLLOCAL virtual void setEditorData ( QWidget * editor, const QModelIndex & index ) const {\
-      qobj->parent_setEditorData(editor, index); }\
-   DLLLOCAL virtual void setModelData ( QWidget * editor, QAbstractItemModel * model, const QModelIndex & index ) const { \
-      qobj->parent_setModelData(editor, model, index); }\
-   DLLLOCAL virtual QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const { \
-      return qobj->parent_sizeHint(option, index); }\
-   DLLLOCAL virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const {\
-      qobj->parent_updateEditorGeometry(editor, option, index); }
 
 #endif

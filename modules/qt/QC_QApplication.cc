@@ -213,7 +213,7 @@ static AbstractQoreNode *f_QApplication_desktop(const QoreListNode *params, Exce
       rv_obj->ref();
    else {
       rv_obj = new QoreObject(QC_QDesktopWidget, getProgram());
-      QoreQtQDesktopWidget *t_qobj = new QoreQtQDesktopWidget(rv_obj, qt_qobj);
+      QoreQtQDesktopWidget *t_qobj = new QoreQtQDesktopWidget(rv_obj, qt_qobj, false);
       rv_obj->setPrivate(CID_QDESKTOPWIDGET, t_qobj);
    }
    return rv_obj;

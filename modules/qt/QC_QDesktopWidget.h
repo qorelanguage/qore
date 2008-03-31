@@ -44,8 +44,7 @@ class myQDesktopWidget : public QDesktopWidget, public QoreQWidgetExtension
 
    public:
       DLLLOCAL myQDesktopWidget(QoreObject *obj) : QDesktopWidget(), QoreQWidgetExtension(obj, this)
-      {
-         
+      {         
       }
 };
 
@@ -54,8 +53,6 @@ typedef QoreQWidgetBase<myQDesktopWidget, QoreAbstractQWidget> QoreQDesktopWidge
 class QoreQDesktopWidget : public QoreQDesktopWidgetImpl
 {
    public:
-      QPointer<myQDesktopWidget> qobj;
-
       DLLLOCAL QoreQDesktopWidget(QoreObject *obj) : QoreQDesktopWidgetImpl(new myQDesktopWidget(obj))
       {
       }
@@ -66,7 +63,7 @@ typedef QoreQtQWidgetBase<QDesktopWidget, QoreAbstractQWidget> QoreQtQDesktopWid
 class QoreQtQDesktopWidget : public QoreQtQDesktopWidgetImpl
 {
    public:
-      DLLLOCAL QoreQtQDesktopWidget(QoreObject *obj, QDesktopWidget *qdw) : QoreQtQDesktopWidgetImpl(obj, qdw)
+   DLLLOCAL QoreQtQDesktopWidget(QoreObject *obj, QDesktopWidget *qdw, bool managed = true) : QoreQtQDesktopWidgetImpl(obj, qdw, managed)
       {
       }
 };

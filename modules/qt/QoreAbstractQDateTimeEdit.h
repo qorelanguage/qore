@@ -32,4 +32,31 @@ class QoreAbstractQDateTimeEdit : public QoreAbstractQAbstractSpinBox
       DLLLOCAL virtual class QDateTimeEdit *getQDateTimeEdit() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQDateTimeEditBase : public QoreQAbstractSpinBoxBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQDateTimeEditBase(T *qo) : QoreQAbstractSpinBoxBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QDateTimeEdit *getQDateTimeEdit() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQDateTimeEditBase : public QoreQtQAbstractSpinBoxBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQDateTimeEditBase(QoreObject *obj, T *qo) : QoreQtQAbstractSpinBoxBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QDateTimeEdit *getQDateTimeEdit() const
+      {
+         return this->qobj;
+      }
+};
+
 #endif

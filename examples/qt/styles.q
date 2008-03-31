@@ -309,13 +309,11 @@ class WidgetGallery inherits QDialog
 
     changeStyle($styleName)
     {
-	my $style;
 	if ($styleName == "NorwegianWood") {
-	    $style = new NorwegianWoodStyle();
+	    QApplication_setStyle(new NorwegianWoodStyle());
 	} else {
-	    $style = QStyleFactory_create($styleName);
+	    QApplication_setStyle(QStyleFactory_create($styleName));
 	}
-	QApplication_setStyle($style);
 	$.changePalette();
     }
 

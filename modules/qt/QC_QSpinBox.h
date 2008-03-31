@@ -92,31 +92,14 @@ class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
       }
 };
 
-class QoreQSpinBox : public QoreAbstractQAbstractSpinBox
+typedef QoreQAbstractSpinBoxBase<myQSpinBox, QoreAbstractQAbstractSpinBox> QoreQSpinBoxImpl;
+
+class QoreQSpinBox : public QoreQSpinBoxImpl
 {
    public:
-      QPointer<myQSpinBox> qobj;
-
-      DLLLOCAL QoreQSpinBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQSpinBox(obj, parent))
+      DLLLOCAL QoreQSpinBox(QoreObject *obj, QWidget* parent = 0) : QoreQSpinBoxImpl(new myQSpinBox(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWidget *getQWidget() const
-      {
-         return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-         return static_cast<QPaintDevice *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QAbstractSpinBox *getQAbstractSpinBox() const
-      {
-         return static_cast<QAbstractSpinBox *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QSPINBOX_H

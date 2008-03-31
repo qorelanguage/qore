@@ -66,6 +66,9 @@ static AbstractQoreNode *QBOXLAYOUT_addLayout(QoreObject *self, QoreAbstractQBox
    const AbstractQoreNode *p = get_param(params, 1);
    int stretch = p ? p->getAsInt() : 0;
    qbl->getQBoxLayout()->addLayout(layout->getQLayout(), stretch);
+   // the layout pointer is now owned by the layout
+   layout->setExternallyOwned();
+
    return 0;
 }
 
@@ -114,6 +117,9 @@ static AbstractQoreNode *QBOXLAYOUT_addWidget(QoreObject *self, QoreAbstractQBox
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    //printd(5, "QBoxLayout::addWidget(%08x, %d, %d)\n", widget->getQWidget(), stretch, (int)alignment);
    qbl->getQBoxLayout()->addWidget(widget->getQWidget(), stretch, alignment);
+   // the widget pointer is now owned by the layout
+   widget->setExternallyOwned();
+
    return 0;
 }
 

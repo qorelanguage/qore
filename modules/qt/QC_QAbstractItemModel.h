@@ -33,24 +33,14 @@ DLLLOCAL extern class QoreClass *QC_QAbstractItemModel;
 
 DLLLOCAL class QoreClass *initQAbstractItemModelClass(QoreClass *);
 
-class QoreQtQAbstractItemModel : public QoreAbstractQAbstractItemModel
+typedef QoreQtQAbstractItemModelBase<QAbstractItemModel, QoreAbstractQAbstractItemModel> QoreQtQAbstractItemModelImpl;
+
+class QoreQtQAbstractItemModel : public QoreQtQAbstractItemModelImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QAbstractItemModel> qobj;
-
-      DLLLOCAL QoreQtQAbstractItemModel(QoreObject *obj, QAbstractItemModel *aim) : qore_obj(obj), qobj(aim)
+      DLLLOCAL QoreQtQAbstractItemModel(QoreObject *obj, QAbstractItemModel *aim) : QoreQtQAbstractItemModelImpl(obj, aim)
       {
       }
-      DLLLOCAL QObject *getQObject() const
-      {
-	 return qobj;
-      }
-      DLLLOCAL QAbstractItemModel *getQAbstractItemModel() const
-      {
-	 return qobj;
-      }
-#include "qore-qt-static-qabstractitemmodel-methods.h"
 };
 
 #endif // _QORE_QT_QC_QABSTRACTITEMMODEL_H

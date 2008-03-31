@@ -189,3 +189,4 @@
 #include "QC_QProgressDialog.cc"
 #include "QC_QFontDialog.cc"
 #include "QC_QErrorMessage.cc"
+#include "QC_QStackedLayout.cc"

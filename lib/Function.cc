@@ -319,6 +319,7 @@ void BuiltinFunction::evalSystemConstructor(QoreObject *self, int val, va_list a
    code.system_constructor(self, val, args);
 }
 
+/*
 AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalWithArgs()");
@@ -342,22 +343,25 @@ AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreList
    }
    
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, self ? self->getClass()->getName() : 0, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_BUILTIN, self ? self->getClassName() : 0, name, o_fn, o_ln, o_eln);
 
    traceout("BuiltinFunction::evalWithArgs()");
    return rv;
 }
+*/
 
 AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const
 {
    printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
+
    CodeContextHelper cch(name, self, xsink);
 #ifdef DEBUG
    // push call on call stack in debugging mode
    CallStackHelper csh(name, CT_BUILTIN, self, xsink);
 #endif
 
-   // note: exception stack trace is added at the level above
+   // exception information added at the level above
+   // (program location must be saved before arguments are evaluated)
    return code.method(self, private_data, args, xsink);
 }
 
@@ -584,7 +588,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClass()->getName()) : 0, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClassName()) : 0, name, o_fn, o_ln, o_eln);
    
    return val;
 }

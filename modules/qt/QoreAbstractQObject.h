@@ -60,6 +60,9 @@ class QoreAbstractQObject : public AbstractPrivateData
       // emits a signal; args are offset from 1
       DLLLOCAL virtual void emit_signal(const char *sig, const QoreListNode *args) = 0;
 
+      // to mark an object as being externally owned
+      DLLLOCAL virtual void setExternallyOwned() = 0;
+
       // protected QObject methods
       DLLLOCAL virtual QObject *sender() const = 0;
 };
@@ -71,13 +74,13 @@ class QoreQObjectExtension : public QoreQtEventDispatcher
       DynamicMethodMap methodMap;            // dynamic method manager
       QHash<QByteArray, int> slotIndices;    // map slot signatures to indices in the methodMap
       QHash<QByteArray, int> signalIndices;  // map signal signatures to signal IDs
-      bool obj_ref;
+      bool obj_ref, externally_owned;
 
       // event method pointers
       const QoreMethod *e_timerEvent, *e_childEvent, *e_event;
 
    public:
-      DLLLOCAL QoreQObjectExtension(QoreObject *obj, QObject *qo) : qore_obj(0), obj_ref(false)
+      DLLLOCAL QoreQObjectExtension(QoreObject *obj, QObject *qo) : qore_obj(0), obj_ref(false), externally_owned(false)
       {
 	 const QoreClass *qc = obj->getClass();
          e_timerEvent = findMethod(qc, "timerEvent");
@@ -111,6 +114,15 @@ class QoreQObjectExtension : public QoreQtEventDispatcher
 	 //printd(5, "QoreQObjectExtension::~QoreQObjectExtension() this=%08p qore_obj=%08p\n", this, qore_obj);
       }
 
+      DLLLOCAL void setExternallyOwned()
+      {
+	 externally_owned = true;
+	 if (!obj_ref) {
+	    obj_ref = true;
+	    qore_obj->ref();
+	 }
+      }
+
       DLLLOCAL QoreObject *getQoreObject() const
       {
 	 return qore_obj;
@@ -132,7 +144,7 @@ class QoreQObjectExtension : public QoreQtEventDispatcher
 
 	 signalId = methodMap.addMethod(ds);
 	 signalIndices[theSignal] = signalId;
-	 //printd(5, "%s::createDynamicSignal() this=%08p id=%d, method_id=%d: '%s'\n", metaObject()->className(), this, signalId, signalId + metaObject()->methodCount(), signal);
+	 //printd(5, "%s::createDynamicSignal() this=%08p id=%d '%s'\n", qore_obj->getClassName(), this, signalId, signal);
 	 return 0;
       }
 
@@ -184,8 +196,10 @@ class QoreQObjectExtension : public QoreQtEventDispatcher
 	 }
 
 	 signalId = signalIndices.value(theSignal, -1);
-	 if (signalId < 0)
+	 if (signalId < 0) {
+	    //printd(5, "%s:getSignalIndex('%s') this=%08p does not exist\n", qo->metaObject()->className(), theSignal.data(), this);
 	    return -1;
+	 }
 	 
 	 //printd(5, "%s:getSignalIndex('%s') this=%08p is dynamic (%d methodid %d)\n", qo->metaObject()->className(), theSignal.data(), this, signalId, signalId + qo->metaObject()->methodCount());
 	 return signalId + qo->metaObject()->methodCount();
@@ -293,6 +307,11 @@ class QoreQObjectBase : public V
 	 //printd(5, "deleteBlocker() this=%08p qobj=%08p parent=%08p\n", this, &(*qobj), qobj ? qobj->parent() : 0);
 	 return qobj ? qobj->deleteBlocker() : false;
       }
+      DLLLOCAL virtual void setExternallyOwned()
+      {
+	 qobj->setExternallyOwned();
+      }
+
 };
 
 // template for private data classes based on QObject corresponding to the QoreAbstractQObject API
@@ -394,6 +413,11 @@ class QoreQtQObjectPrivateBase : public V
       DLLLOCAL virtual bool event(QEvent *event) { return false; }	
       DLLLOCAL virtual void timerEvent(QTimerEvent * event) {}
       DLLLOCAL virtual void childEvent(QChildEvent * event) {}
+
+      DLLLOCAL virtual void setExternallyOwned()
+      {
+	 assert(false);
+      }
 };
 
 template<typename T, typename V>

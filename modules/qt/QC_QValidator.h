@@ -24,8 +24,6 @@
 
 #define _QORE_QT_QC_QVALIDATOR_H
 
-#define _IS_QORE_QVALIDATOR 1
-
 #include <QValidator>
 #include "QoreAbstractQValidator.h"
 #include "qore-qt-events.h"
@@ -51,46 +49,29 @@ class myQValidator : public QValidator, public QoreQValidatorExtension
       }
 };
 
-class QoreQValidator : public QoreAbstractQValidator
+typedef QoreQValidatorBase<myQValidator, QoreAbstractQValidator> QoreQValidatorImpl;
+
+class QoreQValidator : public QoreQValidatorImpl
 {
    public:
-      QPointer<myQValidator> qobj;
-
-      DLLLOCAL QoreQValidator(QoreObject *obj, QObject* parent) : qobj(new myQValidator(obj, parent))
+      DLLLOCAL QoreQValidator(QoreObject *obj, QObject* parent) : QoreQValidatorImpl(new myQValidator(obj, parent))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QValidator *getQValidator() const 
-      { 
-	 return static_cast<QValidator *>(&(*qobj)); 
-      }
-
-      QORE_VIRTUAL_QVALIDATOR_METHODS
 };
 
-class QoreQtQValidator : public QoreAbstractQValidator
+typedef QoreQtQValidatorCommonBase<QValidator, QoreAbstractQValidator> QoreQtQValidatorImpl;
+
+class QoreQtQValidator : public QoreQtQValidatorImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QValidator> qobj;
+      DLLLOCAL QoreQtQValidator(QoreObject *obj, QValidator *qv) : QoreQtQValidatorImpl(obj, qv)
+      {
+      }
 
-      DLLLOCAL QoreQtQValidator(QoreObject *obj, QValidator *qv) : qore_obj(obj), qobj(qv)
+      DLLLOCAL virtual QValidator::State validate(QString & input, int & pos) const 
       {
+	 return QValidator::Invalid;
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QValidator *getQValidator() const 
-      { 
-	 return static_cast<QValidator *>(&(*qobj)); 
-      }
-#include "qore-qt-static-qvalidator-methods.h"
 };
-
-#undef _IS_QORE_QVALIDATOR
 
 #endif // _QORE_QT_QC_QVALIDATOR_H

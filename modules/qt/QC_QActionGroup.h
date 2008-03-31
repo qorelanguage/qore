@@ -54,8 +54,6 @@ typedef QoreQObjectBase<myQActionGroup, QoreAbstractQObject> QoreQActionGroupImp
 class QoreQActionGroup : public QoreQActionGroupImpl
 {
    public:
-      myQActionGroup *qobj;
-
       DLLLOCAL QoreQActionGroup(QoreObject *obj, QObject *parent) : QoreQActionGroupImpl(new myQActionGroup(obj, parent))
       {
       }

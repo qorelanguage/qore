@@ -29,7 +29,34 @@
 class QoreAbstractQCleanlooksStyle : public QoreAbstractQWindowsStyle
 {
    public:
-      DLLLOCAL virtual class QCleanlooksStyle *getQCleanlooksStyle() const = 0;
+      DLLLOCAL virtual QCleanlooksStyle *getQCleanlooksStyle() const = 0;
+};
+
+template<typename T, typename V>
+class QoreQCleanlooksStyleBase : public QoreQWindowsStyleBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQCleanlooksStyleBase(T *qo) : QoreQWindowsStyleBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QCleanlooksStyle *getQCleanlooksStyle() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQCleanlooksStyleBase : public QoreQtQWindowsStyleBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQCleanlooksStyleBase(QoreObject *obj, T *qo) : QoreQtQWindowsStyleBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QCleanlooksStyle *getQCleanlooksStyle() const
+      {
+         return this->qobj;
+      }
 };
 
 #endif  // _QORE_QT_QOREABSTRACTQCLEANLOOKSSTYLE_H

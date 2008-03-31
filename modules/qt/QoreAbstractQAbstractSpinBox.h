@@ -32,4 +32,31 @@ class QoreAbstractQAbstractSpinBox : public QoreAbstractQWidget
       DLLLOCAL virtual class QAbstractSpinBox *getQAbstractSpinBox() const = 0;
 };
 
+template<typename T, typename V>
+class QoreQAbstractSpinBoxBase : public QoreQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQAbstractSpinBoxBase(T *qo) : QoreQWidgetBase<T, V>(qo)
+      {
+      }
+      DLLLOCAL virtual QAbstractSpinBox *getQAbstractSpinBox() const
+      {
+         return &(*this->qobj);
+      }
+};
+
+template<typename T, typename V>
+class QoreQtQAbstractSpinBoxBase : public QoreQtQWidgetBase<T, V>
+{
+   public:
+      DLLLOCAL QoreQtQAbstractSpinBoxBase(QoreObject *obj, T *qo) : QoreQtQWidgetBase<T, V>(obj, qo)
+      {
+      }
+
+      DLLLOCAL virtual QAbstractSpinBox *getQAbstractSpinBox() const
+      {
+         return this->qobj;
+      }
+};
+
 #endif

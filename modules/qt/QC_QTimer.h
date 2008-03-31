@@ -57,11 +57,11 @@ class QoreQTimer : public QoreQTimerImpl
       }
 };
 
-class QoreSingleShotTimer : public QObject, public QoreQObjectExtension
+class mySingleShotTimer : public QObject, public QoreQObjectExtension
 {
 #define QORE_NO_TIMER_EVENT
 #define QOREQTYPE QObject
-#define MYQOREQTYPE QoreSingleShotTimer
+#define MYQOREQTYPE mySingleShotTimer
 #include "qore-qt-metacode.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
@@ -71,19 +71,17 @@ class QoreSingleShotTimer : public QObject, public QoreQObjectExtension
       int timerId;
 
    public:
-      DLLLOCAL QoreSingleShotTimer(QoreObject *obj) : QoreQObjectExtension(obj, this)
+      DLLLOCAL mySingleShotTimer(QoreObject *obj) : QoreQObjectExtension(obj, this)
       {
-	 
       }
 
-      DLLLOCAL void timer_init(QoreAbstractQObject *qsst, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink)
+      DLLLOCAL void timer_init(QoreAbstractQObject *qsst, int msec, QoreAbstractQObject *receiver, const char *member, ExceptionSink *xsink)
       {
 	 createDynamicSignal("timeout()", xsink);
 	 assert(!*xsink);
 
 	 receiver->connectDynamic(qsst, "2timeout()", member, xsink);
 	 if (*xsink) {
-	    qore_obj->deref(xsink);
 	    return;
 	 }
 	 timerId = startTimer(msec);
@@ -98,18 +96,15 @@ protected:
 	    killTimer(timerId);
 	 timerId = -1;
 	 emit_signal("timeout()", 0);
-
-	 ExceptionSink xsink;
-	 qore_obj->deref(&xsink);
       }
 };
 
-typedef QoreQtQObjectBase<QoreSingleShotTimer, QoreAbstractQObject> QoreQtSingleShotTimerImpl;
+typedef QoreQObjectBase<mySingleShotTimer, QoreAbstractQObject> QoreSingleShotTimerImpl;
 
-class QoreQtSingleShotTimer : public QoreQtSingleShotTimerImpl
+class QoreSingleShotTimer : public QoreSingleShotTimerImpl
 {
    public:
-      DLLLOCAL QoreQtSingleShotTimer(QoreObject *obj, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink) : QoreQtSingleShotTimerImpl(obj, new QoreSingleShotTimer(qore_obj))
+      DLLLOCAL QoreSingleShotTimer(QoreObject *obj, int msec, QoreAbstractQObject *receiver, const char *member, ExceptionSink *xsink) : QoreSingleShotTimerImpl(new mySingleShotTimer(obj))
       {
 	 this->qobj->timer_init(this, msec, receiver, member, xsink);
       }

@@ -54,8 +54,6 @@ typedef QoreQDialogBase<myQDialog, QoreAbstractQDialog> QoreQDialogImpl;
 class QoreQDialog : public QoreQDialogImpl
 {
    public:
-      QPointer<myQDialog> qobj;
-
       DLLLOCAL QoreQDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QoreQDialogImpl(new myQDialog(obj, parent, f))
       {
       }

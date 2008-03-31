@@ -59,9 +59,11 @@ class T {
       DLLLOCAL virtual bool deleteBlocker()
       {
 	 //printd(5, "deleteBlocker() %s returning %s\n", metaObject()->className(), QOREQTYPE::parent() ? "true" : "false");
-	 if (QOREQTYPE::parent()) {
-	    obj_ref = true;
-	    qore_obj->ref();
+	 if (QOREQTYPE::parent() || externally_owned) {
+	    if (!obj_ref) {
+	       obj_ref = true;
+	       qore_obj->ref();
+	    }
 	    return true;
 	 }
 
@@ -78,7 +80,8 @@ class T {
 	    qore_obj->deref(&xsink);
 	 }
 	 if (!QOREQTYPE::parent()) {	    
-	    delete this;
+	    if (!externally_owned)
+	       delete this;
 	 }
 	 //printd(5, "detach() exiting\n");
       }

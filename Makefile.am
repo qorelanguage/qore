@@ -437,7 +437,6 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQMenuBar.h \
 	modules/qt/QC_QPrinter.h \
 	modules/qt/QC_QPrintDialog.h \
-	modules/qt/QoreAbstractQPrintDialog.h \
 	modules/qt/QC_QRegExp.h \
 	modules/qt/QC_QValidator.h \
 	modules/qt/QC_QDoubleValidator.h \
@@ -485,6 +484,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QProgressDialog.h \
 	modules/qt/QC_QFontDialog.h \
 	modules/qt/QC_QErrorMessage.h \
+	modules/qt/QC_QStackedLayout.h \
 	command-line.h \
 	include/qore/Qore.h
 

@@ -30,27 +30,6 @@
 #include <QWidget>
 #include <QListWidgetItem>
 
-#define QORE_VIRTUAL_QOBJECT_METHODS \
-   DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink) {\
-      return qobj->getSlotIndex(qobj, theSlot, xsink);			\
-   } \
-   DLLLOCAL virtual bool deleteBlocker() { return qobj ? qobj->deleteBlocker() : false; } \
-   DLLLOCAL virtual int getSignalIndex(const QByteArray &theSignal) const { \
-      return qobj->getSignalIndex(qobj, theSignal);			\
-   } \
-   DLLLOCAL virtual int createSignal(const char *signal, class ExceptionSink *xsink) {	\
-      return qobj->createDynamicSignal(signal, xsink);		\
-   } \
-   DLLLOCAL virtual int connectDynamic(QoreAbstractQObject *sender, const char *signal, const char *slot, class ExceptionSink *xsink) { \
-      return qobj->connectDynamic(sender, signal, qobj, slot, xsink);	\
-   } \
-   DLLLOCAL virtual void emit_signal(const char *sig, const QoreListNode *args) { return qobj->emit_signal(sig, args); } \
-   DLLLOCAL virtual QObject *sender() const { return qobj->getSender(); } \
-   DLLLOCAL virtual QoreObject *getQoreObject() const { return qobj->getQoreObject(); } \
-   DLLLOCAL virtual bool event(QEvent *event) { return qobj->parent_event(event); } \
-   DLLLOCAL virtual void timerEvent(QTimerEvent * event) { qobj->parent_timerEvent(event); } \
-   DLLLOCAL virtual void childEvent(QChildEvent * event) { qobj->parent_childEvent(event); }
-
 #include <vector>
 
 #define QQT_TYPE_UNKNOWN             -1

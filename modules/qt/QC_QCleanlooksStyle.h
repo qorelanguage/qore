@@ -29,7 +29,7 @@
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QCLEANLOOKSSTYLE;
-DLLLOCAL extern class QoreClass *QC_QCleanlooksStyle;
+DLLLOCAL extern QoreClass *QC_QCleanlooksStyle;
 
 DLLLOCAL class QoreClass *initQCleanlooksStyleClass(QoreClass *);
 
@@ -51,55 +51,24 @@ class myQCleanlooksStyle : public QCleanlooksStyle, public QoreQStyleExtension
       }
 };
 
-class QoreQCleanlooksStyle : public QoreAbstractQCleanlooksStyle
+typedef QoreQCleanlooksStyleBase<myQCleanlooksStyle, QoreAbstractQCleanlooksStyle> QoreQCleanlooksStyleImpl;
+
+class QoreQCleanlooksStyle : public QoreQCleanlooksStyleImpl
 {
    public:
-      QPointer<myQCleanlooksStyle> qobj;
-
-      DLLLOCAL QoreQCleanlooksStyle(QoreObject *obj) : qobj(new myQCleanlooksStyle(obj))
+      DLLLOCAL QoreQCleanlooksStyle(QoreObject *obj) : QoreQCleanlooksStyleImpl(new myQCleanlooksStyle(obj))
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QCleanlooksStyle *getQCleanlooksStyle() const
-      {
-         return static_cast<QCleanlooksStyle *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
-      {
-         return static_cast<QWindowsStyle *>(&(*qobj));
-      }
-      QORE_VIRTUAL_QSTYLE_METHODS
 };
 
-class QoreQtQCleanlooksStyle : public QoreAbstractQCleanlooksStyle
+typedef QoreQtQCleanlooksStyleBase<QCleanlooksStyle, QoreAbstractQCleanlooksStyle> QoreQtQCleanlooksStyleImpl;
+
+class QoreQtQCleanlooksStyle : public QoreQtQCleanlooksStyleImpl
 {
    public:
-      QoreObject *qore_obj;
-      QPointer<QCleanlooksStyle> qobj;
-
-      DLLLOCAL QoreQtQCleanlooksStyle(QoreObject *obj, QCleanlooksStyle *qcleanlooksstyle) : qore_obj(obj), qobj(qcleanlooksstyle)
+      DLLLOCAL QoreQtQCleanlooksStyle(QoreObject *obj, QCleanlooksStyle *qcleanlooksstyle) : QoreQtQCleanlooksStyleImpl(obj, qcleanlooksstyle)
       {
       }
-      DLLLOCAL virtual class QObject *getQObject() const
-      {
-         return static_cast<QObject *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QCleanlooksStyle *getQCleanlooksStyle() const
-      {
-         return static_cast<QCleanlooksStyle *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
-      {
-         return static_cast<QWindowsStyle *>(&(*qobj));
-      }
-      DLLLOCAL virtual class QStyle *getQStyle() const
-      {
-         return static_cast<QStyle *>(&(*qobj));
-      }
-#include "qore-qt-static-qstyle-methods.h"
 };
 
 #endif // _QORE_QT_QC_QCLEANLOOKSSTYLE_H

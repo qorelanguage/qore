@@ -173,6 +173,7 @@
 #include "QC_QProgressDialog.h"
 #include "QC_QFontDialog.h"
 #include "QC_QErrorMessage.h"
+#include "QC_QStackedLayout.h"
 
 #include "qore-qt.h"
 
@@ -1696,6 +1697,7 @@ static void init_namespace()
    qt_ns->addInitialNamespace(initQToolBarNS(qwidget));
    qdialog_ns->addSystemClass(initQProgressDialogClass(qdialog));
    qdialog_ns->addSystemClass(initQErrorMessageClass(qdialog));
+   qt_ns->addSystemClass(initQStackedLayoutClass(qobject));
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");
