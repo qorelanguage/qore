@@ -485,6 +485,10 @@ noinst_HEADERS = \
 	modules/qt/QC_QFontDialog.h \
 	modules/qt/QC_QErrorMessage.h \
 	modules/qt/QC_QStackedLayout.h \
+	modules/qt/QC_QGLWidget.h \
+	modules/qt/QC_QGLFormat.h \
+	modules/qt/QC_QGLContext.h \
+	modules/qt/QC_QGLColormap.h \
 	command-line.h \
 	include/qore/Qore.h
 

@@ -1,6 +1,7 @@
 2008.03.31: David Nichols
 	* qt: bug fixes
 	* qt: added QStackedLayout class
+	* qt: started adding GL support
 
 2008.03.26: David Nichols
 	* qt: massive updates to ensure correct object lifecycle management and

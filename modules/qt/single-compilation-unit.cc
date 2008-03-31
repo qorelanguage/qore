@@ -190,3 +190,7 @@
 #include "QC_QFontDialog.cc"
 #include "QC_QErrorMessage.cc"
 #include "QC_QStackedLayout.cc"
+#include "QC_QGLWidget.cc"
+#include "QC_QGLFormat.cc"
+#include "QC_QGLContext.cc"
+#include "QC_QGLColormap.cc"

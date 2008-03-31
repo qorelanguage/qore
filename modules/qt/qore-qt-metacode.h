@@ -44,7 +44,7 @@ class T {
       {
 	 //printd(5, "destructor() this=%08p (%s) qore_obj=%08p this=%08p parent=%08p obj_ref=%d\n", this, metaObject()->className(), qore_obj, this, QOREQTYPE::parent(), obj_ref);
 	 
-	 if (obj_ref) { // && QOREQTYPE::parent() && qore_obj->isValid()) {
+	 if (obj_ref) {
 	    ExceptionSink xsink;
 	    //printd(5, "QoreQObjectExtension::~QoreQObjectExtension() deleting object of class %s\n", qore_obj->getClassName());
 	    obj_ref = false;

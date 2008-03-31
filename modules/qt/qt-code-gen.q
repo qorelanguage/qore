@@ -14,7 +14,6 @@ const opts = (
     "dialog"          : "d,dialog", 
     "style"           : "s,style",
     "validator"       : "v,validator",
-    "qt"              : "q,qt-class",
     "static"          : "S,static",
     "test"            : "t,test",
     "ns"              : "N,namespace",
@@ -43,7 +42,8 @@ const qobject_list =
       "QPrintDialog", "QValidator", "QIODevice", "QTabBar", "QTabWidget", 
       "QDesktopWidget", "QWizard", "QWizardPage", "QTranslator", 
       "QApplication", "QCoreApplication", "QListView", "QListWidget",
-      "QProgressBar", "QProgressDialog", "QLabel"
+      "QProgressBar", "QProgressDialog", "QLabel", "QGLWidget",
+
  );
 
 const abstract_class_list = 
@@ -109,6 +109,9 @@ const class_list = ( "QRegion",
 		     "QPaintDevice",
 		     "QPaintEngine",
 		     "QListWidgetItem",
+		     "QGLContext",
+		     "QGLFormat",
+		     "QGLColormap",
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
@@ -814,8 +817,7 @@ DLLLOCAL extern QoreClass *QC_%s;
 	    $of.printf("};\n\n");
 
             do_abstract($of, $proto);
-            if ($o.qt)
-                do_abstract($of, $proto, $o.qt);
+            do_abstract($of, $proto, True);
 	}
 
 	$of.printf("\n#endif // _QORE_QT_QC_%s_H\n", $func_prefix);
@@ -1012,7 +1014,6 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 	    if (!$last) {
 		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"%s::%s() does not know how to handle arguments of class '%s' as passed as the ", 
 			       $os, toupper($cn), toupper($name), $cn, $name);
-		$str += sprintf("%s argument\", reinterpret_cast<const QoreObject *>(p)->getClassName());", ordinal[$i]);
 	    }
 	    else {
 		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the %s argument\");",
