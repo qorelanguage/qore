@@ -152,7 +152,9 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QGLWidget.cc \
 	QC_QGLFormat.cc \
 	QC_QGLContext.cc \
-	QC_QGLColormap.cc
+	QC_QGLColormap.cc \
+	QC_QGradient.cc \
+	QC_QLinearGradient.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

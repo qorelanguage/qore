@@ -194,3 +194,5 @@
 #include "QC_QGLFormat.cc"
 #include "QC_QGLContext.cc"
 #include "QC_QGLColormap.cc"
+#include "QC_QGradient.cc"
+#include "QC_QLinearGradient.cc"

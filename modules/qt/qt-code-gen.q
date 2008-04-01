@@ -112,6 +112,8 @@ const class_list = ( "QRegion",
 		     "QGLContext",
 		     "QGLFormat",
 		     "QGLColormap",
+		     "QGradient",
+		     "QLinearGradient",
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
@@ -1016,8 +1018,8 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 			       $os, toupper($cn), toupper($name), $cn, $name);
 	    }
 	    else {
-		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the %s argument\");",
-			       $os, toupper($cn), toupper($name), $cn, $name, $type, ordinal[$i]);
+		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the );",
+			       $os, toupper($cn), toupper($name), $cn, $name, $type);
 	    }
 	    
 	    $str += sprintf("%s argument\", reinterpret_cast<const QoreObject *>(p)->getClassName());", ordinal[$i]);
@@ -1465,7 +1467,7 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 		    $lo += sprintf("if (get_qchar(p, %s, xsink))", $arg.name);
 		    $lo += $const ? "   return;" : "   return 0;";
 		}
-	    }
+	    }	    
 	    case "char": {
 		if (exists $arg.def)
 		    $lo = sprintf("const char %s = p && p->getType() == NT_STRING ? reinterpret_cast<const QoreStringNode *>(p)->getBuffer()[0] : %s;", $arg.name, trim($arg.def));
@@ -1480,7 +1482,64 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 		}
 		break;
 	    }
-	    
+	    case "QGradientStop": {
+		$lo += "if (!p || p->getType() != NT_LIST || reinterpret_cast<const QoreListNode *>(p)->size() != 2) {";
+		$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a 2-element list specifying a gradient stop as %s argument to %s::%s()\");", 
+			       toupper($cn), toupper($name), ordinal[$i], $cn, $name);
+		$lo += $const ? "   return;" : "   return 0;";
+		$lo += "}";
+		$lo += sprintf("const QoreListNode l_%s = reinterpret_cast<const QoreListNode *>(p);", $arg.name);
+		$lo += sprintf("p = l_%s->retrieve_entry(0);", $arg.name);
+		$lo += sprintf("qreal r_%s = p ? p->getAsFloat() : 0.0;");
+		$lo += sprintf("p = l_%s->retrieve_entry(1);", $arg.name);
+		$lo += sprintf("QoreQColor *qc_%s = (p && p->getType() == NT_OBJECT) ? (QoreQColor *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;", $arg.name);
+		$lo += "if (*xsink)";
+		$lo += $const ? "   return;" : "   return 0;";
+		$lo += sprintf("if (!qc_%s) {", $arg.name);
+		$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting an object derived from QColor as the second element in the gradient stop list in call to %s::%s()\");", 
+			       toupper($cn), toupper($name), $cn, $name);
+		$lo += $const ? "   return;" : "   return 0;";
+		$lo += "}";
+		$lo += sprintf("ReferenceHolder<AbstractPrivateData> %s_holder(qc_%s, xsink);", $arg.name, $arg.name);
+		$lo += sprintf("QGradientStop %s(r_%s, *qc_%s);", $arg.name, $arg.name);
+		break;
+	    }
+
+	    case "QGradientStops": {
+		$lo += "if (!p || p->getType() != NT_LIST) {";
+		$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a list giving gradient stop points as %s argument to %s::%s()\");",
+			       toupper($cn), toupper($name), ordinal[$i], $cn, $name);
+		$lo += $const ? "   return;" : "   return 0;";
+		$lo += "}";
+		$lo += sprintf("QGradientStops %s;", $arg.name);
+		$lo += sprintf("ConstListIterator li_%s(reinterpret_cast<const QoreListNode *>(p));", $arg.name);
+		$lo += sprintf("while (li_%s.next()) {", $arg.name);
+		$lo += sprintf("   p = li_%s.getValue();", $arg.name);
+		$lo += "   if (!p || p->getType() != NT_LIST || reinterpret_cast<const QoreListNode *>(p)->size() != 2) {";
+		$lo += sprintf("      xsink->raiseException(\"%s-%s-QGRADIENTSTOPS-ERROR\", \"expecting a 2-element list specifying a gradient stop for every element in the QGradientStops list in a call to %s::%s()\");", 
+			       toupper($cn), toupper($name), $cn, $name);
+		$lo += $const ? "      return;" : "      return 0;";
+		$lo += "   }";
+		$lo += "   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(p);";
+		$lo += "   const AbstractQoreNode *p_i = l->retrieve_entry(0);";
+		$lo += "   qreal r = p_i ? p_i->getAsFloat() : 0.0;";
+		$lo += "   p_i = l->retrieve_entry(1);";
+		$lo += "   QoreQColor *qc = (p_i && p_i->getType() == NT_OBJECT) ? (QoreQColor *)reinterpret_cast<const QoreObject *>(p_i)->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;";
+		$lo += "   if (*xsink)";
+		$lo += $const ? "      return;" : "      return 0;";
+		$lo += "   if (!qc) {";
+		$lo += sprintf("      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting an object derived from QColor as the second element in the gradient stop list in call to %s::%s()\");", 
+			       toupper($cn), toupper($name), $cn, $name);
+		$lo += $const ? "      return;" : "      return 0;";
+		$lo += "   }";
+
+		$lo += "   ReferenceHolder<AbstractPrivateData> qc_holder(qc, xsink);";
+		$lo += sprintf("   %s.push_back(qMakePair(r, *static_cast<QColor *>(qc)));", $arg.name);
+		$lo += "}";
+
+		break;
+	    }
+   
 	  default: {
 	      if ($arg.is_int) {
 		  # add class prefix to enum if not already present
@@ -1661,6 +1720,19 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 
 	case "QStringList": {
 	    $lo += sprintf("return return_qstringlist(%s);", $callstr);
+	    break;
+	}
+
+	case "QGradientStops": {
+	    $lo += sprintf("QGradientStops gs_rv = %s;", $callstr);
+	    $lo += "QoreListNode *l = new QoreListNode();";
+	    $lo += "for (QGradientStops::iterator i = gs_rv.begin(), e = gs_rv.end(); i != e; ++i) {";
+	    $lo += "   QoreListNode *e = new QoreListNode();";
+	    $lo += "   e->push(new QoreFloatNode(i->first));";
+	    $lo += "   e->push(return_object(QC_QColor, new QoreQColor(i->second)));";
+	    $lo += "   l->push(e);";
+	    $lo += "}";
+	    $lo += "return l;";
 	    break;
 	}
 

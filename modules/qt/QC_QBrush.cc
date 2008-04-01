@@ -51,7 +51,8 @@ static void QBRUSH_constructor(class QoreObject *self, const QoreListNode *param
       qb = new QoreQBrush();
    else if (p->getType() == NT_OBJECT)
    {
-      QoreQColor *color = p ? (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+      QoreQColor *color = (QoreQColor *)o->getReferencedPrivateData(CID_QCOLOR, xsink);
       if (color) {
 	 ReferenceHolder<QoreQColor> holder(color, xsink);
 	 
@@ -76,8 +77,29 @@ static void QBRUSH_constructor(class QoreObject *self, const QoreListNode *param
 	 qb = new QoreQBrush(*color, style);
       }
       else {
-	 xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QBrush::constructor() does not take objects of class '%s' as an argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
-	 return;
+	 QoreQGradient *gradient = (QoreQGradient *)o->getReferencedPrivateData(CID_QGRADIENT, xsink);
+	 if (gradient) {
+	    ReferenceHolder<AbstractPrivateData> gradient_holder(gradient, xsink);
+	    qb = new QoreQBrush(*gradient);
+	 }
+	 else {
+	    QoreQPixmap *pixmap =  (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, xsink);
+	    if (pixmap) {
+	       ReferenceHolder<AbstractPrivateData> pixmap_holder(pixmap, xsink);
+	       qb = new QoreQBrush(*pixmap);
+	    }
+	    else {
+	       QoreQImage *image =  (QoreQImage *)o->getReferencedPrivateData(CID_QIMAGE, xsink);
+	       if (image) {
+		  ReferenceHolder<AbstractPrivateData> image_holder(image, xsink);
+		  qb = new QoreQBrush(*image);
+	       }
+	       else {
+		  xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QBrush::constructor() does not take objects of class '%s' as an argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
+		  return;
+	       }
+	    }
+	 }
       }
    }
    else if (p->getType() == NT_BRUSHSTYLE) {
@@ -129,10 +151,11 @@ static AbstractQoreNode *QBRUSH_color(QoreObject *self, QoreQBrush *qb, const Qo
 //}
 
 //const QGradient * gradient () const
-//static AbstractQoreNode *QBRUSH_gradient(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   ??? return qb->getQBrush()->gradient();
-//}
+static AbstractQoreNode *QBRUSH_gradient(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QGradient *rv = qb->getQBrush()->gradient();
+   return return_object(QC_QGradient, new QoreQtQGradient(const_cast<QGradient *>(rv)));
+}
 
 //bool isDetached () const
 static AbstractQoreNode *QBRUSH_isDetached(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
@@ -277,7 +300,7 @@ class QoreClass *initQBrushClass()
 
    QC_QBrush->addMethod("color",                       (q_method_t)QBRUSH_color);
    //QC_QBrush->addMethod("data_ptr",                    (q_method_t)QBRUSH_data_ptr);
-   //QC_QBrush->addMethod("gradient",                    (q_method_t)QBRUSH_gradient);
+   QC_QBrush->addMethod("gradient",                    (q_method_t)QBRUSH_gradient);
    QC_QBrush->addMethod("isDetached",                  (q_method_t)QBRUSH_isDetached);
    QC_QBrush->addMethod("isOpaque",                    (q_method_t)QBRUSH_isOpaque);
    //QC_QBrush->addMethod("matrix",                      (q_method_t)QBRUSH_matrix);

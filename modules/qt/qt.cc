@@ -178,6 +178,7 @@
 #include "QC_QGLFormat.h"
 #include "QC_QGLContext.h"
 #include "QC_QGLColormap.h"
+#include "QC_QGradient.h"
 
 #include "qore-qt.h"
 
@@ -1704,8 +1705,10 @@ static void init_namespace()
    qt_ns->addSystemClass(initQStackedLayoutClass(qlayout));
    qt_ns->addSystemClass(initQGLWidgetClass(qwidget));
    qt_ns->addInitialNamespace(initQGLFormatNS());
+   qt_ns->addInitialNamespace(initQGLNS());
    qt_ns->addSystemClass(initQGLContextClass());
    qt_ns->addSystemClass(initQGLColormapClass());
+   qt_ns->addInitialNamespace(initQGradientNS());
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");

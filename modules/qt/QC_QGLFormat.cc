@@ -420,6 +420,35 @@ static QoreClass *initQGLFormatClass()
    return QC_QGLFormat;
 }
 
+QoreNamespace *initQGLNS()
+{
+   QoreNamespace *ns = new QoreNamespace("QGL");
+
+   // FormatOption namespace
+   ns->addConstant("DoubleBuffer",             new QoreBigIntNode(QGL::DoubleBuffer));
+   ns->addConstant("DepthBuffer",              new QoreBigIntNode(QGL::DepthBuffer));
+   ns->addConstant("Rgba",                     new QoreBigIntNode(QGL::Rgba));
+   ns->addConstant("AlphaChannel",             new QoreBigIntNode(QGL::AlphaChannel));
+   ns->addConstant("AccumBuffer",              new QoreBigIntNode(QGL::AccumBuffer));
+   ns->addConstant("StencilBuffer",            new QoreBigIntNode(QGL::StencilBuffer));
+   ns->addConstant("StereoBuffers",            new QoreBigIntNode(QGL::StereoBuffers));
+   ns->addConstant("DirectRendering",          new QoreBigIntNode(QGL::DirectRendering));
+   ns->addConstant("HasOverlay",               new QoreBigIntNode(QGL::HasOverlay));
+   ns->addConstant("SampleBuffers",            new QoreBigIntNode(QGL::SampleBuffers));
+   ns->addConstant("SingleBuffer",             new QoreBigIntNode(QGL::SingleBuffer));
+   ns->addConstant("NoDepthBuffer",            new QoreBigIntNode(QGL::NoDepthBuffer));
+   ns->addConstant("ColorIndex",               new QoreBigIntNode(QGL::ColorIndex));
+   ns->addConstant("NoAlphaChannel",           new QoreBigIntNode(QGL::NoAlphaChannel));
+   ns->addConstant("NoAccumBuffer",            new QoreBigIntNode(QGL::NoAccumBuffer));
+   ns->addConstant("NoStencilBuffer",          new QoreBigIntNode(QGL::NoStencilBuffer));
+   ns->addConstant("NoStereoBuffers",          new QoreBigIntNode(QGL::NoStereoBuffers));
+   ns->addConstant("IndirectRendering",        new QoreBigIntNode(QGL::IndirectRendering));
+   ns->addConstant("NoOverlay",                new QoreBigIntNode(QGL::NoOverlay));
+   ns->addConstant("NoSampleBuffers",          new QoreBigIntNode(QGL::NoSampleBuffers));
+
+   return ns;
+}
+
 QoreNamespace *initQGLFormatNS()
 {
    QoreNamespace *ns = new QoreNamespace("QGLFormat");
@@ -439,8 +468,6 @@ QoreNamespace *initQGLFormatNS()
    ns->addConstant("OpenGL_ES_Common_Version_1_1", new QoreBigIntNode(QGLFormat::OpenGL_ES_Common_Version_1_1));
    ns->addConstant("OpenGL_ES_CommonLite_Version_1_1", new QoreBigIntNode(QGLFormat::OpenGL_ES_CommonLite_Version_1_1));
    ns->addConstant("OpenGL_ES_Version_2_0",    new QoreBigIntNode(QGLFormat::OpenGL_ES_Version_2_0));
-
-
 
    return ns;
 }

@@ -489,6 +489,8 @@ noinst_HEADERS = \
 	modules/qt/QC_QGLFormat.h \
 	modules/qt/QC_QGLContext.h \
 	modules/qt/QC_QGLColormap.h \
+	modules/qt/QC_QGradient.h \
+	modules/qt/QC_QLinearGradient.h \
 	command-line.h \
 	include/qore/Qore.h
 
