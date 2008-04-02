@@ -299,12 +299,6 @@ noinst_HEADERS = \
 	modules/qt/qore-qt-qdialog-methods.h \
 	modules/qt/qore-qt-qlayoutitem-methods.h \
 	modules/qt/qore-qt-qlayout-methods.h \
-	modules/qt/qore-qt-static-qobject-methods.h \
-	modules/qt/qore-qt-static-qwidget-methods.h \
-	modules/qt/qore-qt-static-qstyle-methods.h \
-	modules/qt/qore-qt-static-qabstractitemmodel-methods.h \
-	modules/qt/qore-qt-static-qvalidator-methods.h \
-	modules/qt/qore-qt-static-qdialog-methods.h \
 	modules/qt/QC_QBrush.h \
 	modules/qt/QC_QColor.h \
 	modules/qt/QC_QPaintDevice.h \
