@@ -179,6 +179,11 @@
 #include "QC_QGLContext.h"
 #include "QC_QGLColormap.h"
 #include "QC_QGradient.h"
+#include "QC_QGLFramebufferObject.h"
+#include "QC_QTimeLine.h"
+#include "QC_QSvgRenderer.h"
+#include "QC_QLayoutItem.h"
+#include "QC_QWidgetItem.h"
 
 #include "qore-qt.h"
 
@@ -1459,9 +1464,12 @@ static void init_namespace()
 
    qt_ns->addInitialNamespace(qregion);
 
+   QoreClass *qlayoutitem;
+   qt_ns->addSystemClass((qlayoutitem = initQLayoutItemClass()));
+
    QoreNamespace *qlayout_ns = new QoreNamespace("QLayout");
 
-   qlayout_ns->addSystemClass((qlayout = initQLayoutClass(qobject)));
+   qlayout_ns->addSystemClass((qlayout = initQLayoutClass(qobject, qlayoutitem)));
    qlayout_ns->addSystemClass(initQGridLayoutClass(qlayout));
 
    qlayout_ns->addSystemClass((qboxlayout = initQBoxLayoutClass(qlayout)));
@@ -1709,6 +1717,10 @@ static void init_namespace()
    qt_ns->addSystemClass(initQGLContextClass());
    qt_ns->addSystemClass(initQGLColormapClass());
    qt_ns->addInitialNamespace(initQGradientNS());
+   qt_ns->addInitialNamespace(initQGLFramebufferObjectNS(qpaintdevice));
+   qt_ns->addInitialNamespace(initQTimeLineNS(qobject));
+   qt_ns->addSystemClass(initQSvgRendererClass(qobject));
+   qt_ns->addSystemClass(initQWidgetItemClass(qlayoutitem));
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");
@@ -3428,6 +3440,7 @@ static class QoreStringNode *qt_module_init()
    initQSystemTrayIconStaticFunctions();
    initQLibraryInfoStaticFunctions();
    initQFontDialogStaticFunctions();
+   initQGLFramebufferObjectStaticFunctions();
 
    return 0;
 }

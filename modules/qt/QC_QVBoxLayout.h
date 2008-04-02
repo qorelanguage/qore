@@ -32,17 +32,18 @@ DLLEXPORT extern qore_classid_t CID_QVBOXLAYOUT;
 
 DLLLOCAL class QoreClass *initQVBoxLayoutClass(class QoreClass *qboxlayout);
 
-class myQVBoxLayout : public QVBoxLayout, public QoreQObjectExtension
+class myQVBoxLayout : public QVBoxLayout, public QoreQLayoutExtension
 {
 #define QOREQTYPE QVBoxLayout
 #define MYQOREQTYPE myQVBoxLayout
 #include "qore-qt-metacode.h"
+#include "qore-qt-qlayout-methods.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
-      DLLLOCAL myQVBoxLayout(QoreObject *obj) : QVBoxLayout(), QoreQObjectExtension(obj, this)
+      DLLLOCAL myQVBoxLayout(QoreObject *obj) : QVBoxLayout(), QoreQLayoutExtension(obj, this)
       {
       }
-      DLLLOCAL myQVBoxLayout(QoreObject *obj, QWidget *parent) : QVBoxLayout(parent), QoreQObjectExtension(obj, this)
+      DLLLOCAL myQVBoxLayout(QoreObject *obj, QWidget *parent) : QVBoxLayout(parent), QoreQLayoutExtension(obj, this)
       {
       }
 };

@@ -31,6 +31,7 @@
 #include "QC_QUrl.h"
 #include "QC_QPrinter.h"
 #include "QC_QColor.h"
+#include "QC_QTextBrowser.h"
 
 #include "qore-qt.h"
 
@@ -893,7 +894,10 @@ static QoreClass *initQTextEditClass(QoreClass *qabstractscrollarea)
 QoreNamespace *initQTextEditNS(QoreClass *qabstractscrollarea)
 {
    QoreNamespace *ns = new QoreNamespace("QTextEdit");
-   ns->addSystemClass(initQTextEditClass(qabstractscrollarea));
+
+   QoreClass *qtextedit;
+   ns->addSystemClass((qtextedit = initQTextEditClass(qabstractscrollarea)));
+   ns->addSystemClass(initQTextBrowserClass(qtextedit));
 
    // LineWrapMode enum
    ns->addConstant("NoWrap",                   new QoreBigIntNode(QTextEdit::NoWrap));

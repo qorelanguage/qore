@@ -32,23 +32,29 @@ DLLLOCAL extern int CID_QSTACKEDLAYOUT;
 DLLLOCAL extern QoreClass *QC_QStackedLayout;
 DLLLOCAL QoreClass *initQStackedLayoutClass(QoreClass *);
 
-class myQStackedLayout : public QStackedLayout, public QoreQObjectExtension
+class myQStackedLayout : public QStackedLayout, public QoreQLayoutExtension
 {
 #define QOREQTYPE QStackedLayout
 #define MYQOREQTYPE myQStackedLayout
 #include "qore-qt-metacode.h"
+#include "qore-qt-qlayout-methods.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQStackedLayout(QoreObject *obj) : QStackedLayout(), QoreQObjectExtension(obj, this)
+      DLLLOCAL myQStackedLayout(QoreObject *obj) : QStackedLayout(), QoreQLayoutExtension(obj, this)
       {
       }
-      DLLLOCAL myQStackedLayout(QoreObject *obj, QWidget* parent) : QStackedLayout(parent), QoreQObjectExtension(obj, this)
+      DLLLOCAL myQStackedLayout(QoreObject *obj, QWidget* parent) : QStackedLayout(parent), QoreQLayoutExtension(obj, this)
       {
       }
-      DLLLOCAL myQStackedLayout(QoreObject *obj, QLayout* parentLayout) : QStackedLayout(parentLayout), QoreQObjectExtension(obj, this)
+      DLLLOCAL myQStackedLayout(QoreObject *obj, QLayout* parentLayout) : QStackedLayout(parentLayout), QoreQLayoutExtension(obj, this)
       {
+      }
+
+      DLLLOCAL QWidget *widget(int index) const
+      {
+	 return QStackedLayout::widget(index);
       }
 };
 

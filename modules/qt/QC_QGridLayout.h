@@ -32,18 +32,19 @@ DLLEXPORT extern qore_classid_t CID_QGRIDLAYOUT;
 
 DLLLOCAL class QoreClass *initQGridLayoutClass(class QoreClass *qlayout);
 
-class myQGridLayout : public QGridLayout, public QoreQObjectExtension
+class myQGridLayout : public QGridLayout, public QoreQLayoutExtension
 {
 #define QOREQTYPE QGridLayout
 #define MYQOREQTYPE myQGridLayout
 #include "qore-qt-metacode.h"
+#include "qore-qt-qlayout-methods.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
-      DLLLOCAL myQGridLayout(QoreObject *obj) : QGridLayout(), QoreQObjectExtension(obj, this)
+      DLLLOCAL myQGridLayout(QoreObject *obj) : QGridLayout(), QoreQLayoutExtension(obj, this)
       {
       }
 
-      DLLLOCAL myQGridLayout(QoreObject *obj, QWidget *parent) : QGridLayout(parent), QoreQObjectExtension(obj, this)
+      DLLLOCAL myQGridLayout(QoreObject *obj, QWidget *parent) : QGridLayout(parent), QoreQLayoutExtension(obj, this)
       {
       }
 };

@@ -297,6 +297,8 @@ noinst_HEADERS = \
 	modules/qt/qore-qt-qabstractitemdelegate-methods.h \
 	modules/qt/qore-qt-qstyle-methods.h \
 	modules/qt/qore-qt-qdialog-methods.h \
+	modules/qt/qore-qt-qlayoutitem-methods.h \
+	modules/qt/qore-qt-qlayout-methods.h \
 	modules/qt/qore-qt-static-qobject-methods.h \
 	modules/qt/qore-qt-static-qwidget-methods.h \
 	modules/qt/qore-qt-static-qstyle-methods.h \
@@ -491,6 +493,13 @@ noinst_HEADERS = \
 	modules/qt/QC_QGLColormap.h \
 	modules/qt/QC_QGradient.h \
 	modules/qt/QC_QLinearGradient.h \
+	modules/qt/QC_QGLFramebufferObject.h \
+	modules/qt/QC_QTimeLine.h \
+	modules/qt/QC_QSVGRenderer.h \
+	modules/qt/QC_QTextBrowser.h \
+	modules/qt/QC_QLayoutItem.h \
+	modules/qt/QoreAbstractQLayoutItem.h \
+	modules/qt/QC_QWidgetItem.h \
 	command-line.h \
 	include/qore/Qore.h
 

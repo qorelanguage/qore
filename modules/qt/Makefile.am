@@ -154,7 +154,13 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QGLContext.cc \
 	QC_QGLColormap.cc \
 	QC_QGradient.cc \
-	QC_QLinearGradient.cc
+	QC_QLinearGradient.cc \
+	QC_QGLFramebufferObject.cc \
+	QC_QTimeLine.cc \
+	QC_QSvgRenderer.cc \
+	QC_QTextBrowser.cc \
+	QC_QLayoutItem.cc \
+	QC_QWidgetItem.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

@@ -33,7 +33,45 @@
 DLLLOCAL extern qore_classid_t CID_QLAYOUT;
 DLLLOCAL extern QoreClass *QC_QLayout;
 
-DLLLOCAL class QoreClass *initQLayoutClass(class QoreClass *qobject);
+#include "QC_QLayoutItem.h"
+
+
+DLLLOCAL QoreClass *initQLayoutClass(QoreClass *qobject, QoreClass *qlayoutitem);
+
+class QoreQLayout;
+
+class myQLayout : public QLayout, public QoreQLayoutExtension
+{
+#define QORE_IS_QLAYOUT
+#define QOREQTYPE QLayout
+#define MYQOREQTYPE myQLayout
+#include "qore-qt-metacode.h"
+#include "qore-qt-qlayout-methods.h"
+#undef MYQOREQTYPE
+#undef QOREQTYPE
+#undef QORE_IS_QLAYOUT
+
+   public:
+      DLLLOCAL myQLayout(QoreObject *obj, QWidget* parent) : QLayout(parent), QoreQLayoutExtension(obj, this)
+      {
+      }
+      DLLLOCAL myQLayout(QoreObject *obj) : QLayout(), QoreQLayoutExtension(obj, this)
+      {
+      }
+};
+
+typedef QoreQLayoutBase<myQLayout, QoreAbstractQLayout> QoreQLayoutImpl;
+
+class QoreQLayout : public QoreQLayoutImpl
+{
+   public:
+      DLLLOCAL QoreQLayout(QoreObject *obj, QWidget* parent) : QoreQLayoutImpl(new myQLayout(obj, parent))
+      {
+      }
+      DLLLOCAL QoreQLayout(QoreObject *obj) : QoreQLayoutImpl(new myQLayout(obj))
+      {
+      }
+};
 
 typedef QoreQtQLayoutBase<QLayout, QoreAbstractQLayout> QoreQtQLayoutImpl;
 

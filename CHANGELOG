@@ -1,3 +1,6 @@
+2008.04.01: David Nichols
+	* qt: QLayout fixes, QLayoutItem and other new classes added
+
 2008.03.31: David Nichols
 	* qt: bug fixes
 	* qt: added QStackedLayout class

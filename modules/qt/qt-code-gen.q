@@ -114,6 +114,10 @@ const class_list = ( "QRegion",
 		     "QGLColormap",
 		     "QGradient",
 		     "QLinearGradient",
+		     "QGLFramebufferObject",
+		     "QLayoutItem",
+		     "QWidgetItem",
+		     "QSpacerItem",
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
@@ -748,7 +752,7 @@ class QoreQt%sBase : public QoreQt%sBase<T, V>
 	}
 
 	$of.printf("
-DLLLOCAL extern int CID_%s;
+DLLLOCAL extern qore_classid_t CID_%s;
 DLLLOCAL extern QoreClass *QC_%s;
 ", $func_prefix, $cn);
         if ($o.ns)
@@ -917,8 +921,8 @@ DLLLOCAL extern QoreClass *QC_%s;
 
 #include \"QC_%s.h\"
 
-int CID_%s;
-class QoreClass *QC_%s = 0;
+qore_classid_t CID_%s;
+QoreClass *QC_%s = 0;
 
 ", $cn, $cn, $func_prefix, $cn);
     }
@@ -1018,7 +1022,7 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 			       $os, toupper($cn), toupper($name), $cn, $name);
 	    }
 	    else {
-		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the );",
+		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the ",
 			       $os, toupper($cn), toupper($name), $cn, $name, $type);
 	    }
 	    
@@ -1196,9 +1200,9 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 	
 	for (my $cc = 0; $cc < elements $cl; ++$cc) {
 	    my $off = $last ? 0 : ($cc + 1) * 3;
-		
+
 	    #printf("cl=%N\nrl=%N\nil=%N\n", $cl, $rl, $fl);
-	    $lo += do_multi_class_header($off, $cc == (elements $cl) - 1, \$cl[$cc].args[$param], $name, $param, !exists $cl[$cc].rt, $last);
+	    $lo += do_multi_class_header($off, $cc == (elements $cl) - 1, \$cl[$cc].args[$param], $name, $param, !exists $func.rt, $last);
 	    
 	    append_call(\$cl[$cc].callstr, $cl[$cc].args[$param]);
 	}
@@ -1328,7 +1332,8 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 			$lo += sprintf("int64 %s = p ? p->getAsBigInt() : 0;", $arg.name);
 	    }
 	    break;
-	    
+	
+	    case "GLuint":
 	    case "quint32":
 		case "uint": {
 		    if (exists $arg.def)
@@ -1648,6 +1653,7 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	    case "ushort":
 	    case "short":
 	    case "ulong":
+	    case "GLuint":
 	    case "int": {
 		$lo += sprintf("return new QoreBigIntNode(%s);", $callstr); 
 		break;

@@ -193,13 +193,6 @@ static AbstractQoreNode *QBOXLAYOUT_insertWidget(QoreObject *self, QoreAbstractQ
    return 0;
 }
 
-//virtual void invalidate ()
-static AbstractQoreNode *QBOXLAYOUT_invalidate(QoreObject *self, QoreAbstractQBoxLayout *qbl, const QoreListNode *params, ExceptionSink *xsink)
-{
-   qbl->getQBoxLayout()->invalidate();
-   return 0;
-}
-
 //void setDirection ( Direction direction )
 static AbstractQoreNode *QBOXLAYOUT_setDirection(QoreObject *self, QoreAbstractQBoxLayout *qbl, const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -274,7 +267,6 @@ class QoreClass *initQBoxLayoutClass(class QoreClass *qlayout)
    QC_QBoxLayout->addMethod("insertSpacing",                (q_method_t)QBOXLAYOUT_insertSpacing);
    QC_QBoxLayout->addMethod("insertStretch",                (q_method_t)QBOXLAYOUT_insertStretch);
    QC_QBoxLayout->addMethod("insertWidget",                 (q_method_t)QBOXLAYOUT_insertWidget);
-   QC_QBoxLayout->addMethod("invalidate",                   (q_method_t)QBOXLAYOUT_invalidate);
    QC_QBoxLayout->addMethod("setDirection",                 (q_method_t)QBOXLAYOUT_setDirection);
    QC_QBoxLayout->addMethod("setSpacing",                   (q_method_t)QBOXLAYOUT_setSpacing);
    QC_QBoxLayout->addMethod("setStretchFactor",             (q_method_t)QBOXLAYOUT_setStretchFactor);
