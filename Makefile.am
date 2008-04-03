@@ -489,7 +489,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QLinearGradient.h \
 	modules/qt/QC_QGLFramebufferObject.h \
 	modules/qt/QC_QTimeLine.h \
-	modules/qt/QC_QSVGRenderer.h \
+	modules/qt/QC_QSvgRenderer.h \
 	modules/qt/QC_QTextBrowser.h \
 	modules/qt/QC_QLayoutItem.h \
 	modules/qt/QoreAbstractQLayoutItem.h \
