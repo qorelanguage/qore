@@ -1786,7 +1786,7 @@ AC_ARG_WITH([qt-includes],
 
 check_qt_include()
 {
-    if test -f "$1/QtCore/qglobal.h" -a -f "$1/QtGui/QApplication" -a -f "$1/QtOpenGL/QtOpenGL" -a -f "$1/QtSvg/QtSvg"; then
+    if test -f "$1/QtCore/qglobal.h" -a -f "$1/QtGui/QApplication" -a -f "$1/QtOpenGL/QtOpenGL" -a -f "$1/QtSvg/QtSvg" -a -f "$1/QtXml/QtXml"; then
        found_qt_includes=$1
     elif test "$2" = "err"; then
        AC_MSG_ERROR([$1 is not a valid QT parent include directory])
@@ -1795,7 +1795,7 @@ check_qt_include()
 
 check_qt_lib()
 {
-    if test -f "$1/libQtCore.${SHLIB_SUFFIX}" -a "$1/libQtGui.${SHLIB_SUFFIX}" -a $1/libQtOpenGL.${SHLIB_SUFFIX} -a $1/libQtSvg.${SHLIB_SUFFIX}; then
+    if test -f "$1/libQtCore.${SHLIB_SUFFIX}" -a "$1/libQtGui.${SHLIB_SUFFIX}" -a $1/libQtOpenGL.${SHLIB_SUFFIX} -a $1/libQtSvg.${SHLIB_SUFFIX} -a $1/libQtXml.${SHLIB_SUFFIX}; then
        found_qt_libs=$lib
     elif test "$2" = "err"; then
     	AC_MSG_ERROR([$1 is not a valid QT 4 library directory])
@@ -1864,10 +1864,10 @@ if test "${with_qt}" != "no"; then
       	 fi
       else
          # check for frameworks on darwin
-	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework -a -d /Library/Frameworks/QtGui.framework -a -d /Library/Frameworks/QtOpenGL.framework -a -d /Library/Frameworks/QtSvg.framework; then
+	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework -a -d /Library/Frameworks/QtGui.framework -a -d /Library/Frameworks/QtOpenGL.framework -a -d /Library/Frameworks/QtSvg.framework -a -d /Library/Frameworks/QtXml.framework; then
 	    qt_framework="/Library/Frameworks"
-	    QT_INCLUDES="-I /Library/Frameworks/QtCore.framework/Headers -I /Library/Frameworks/QtGui.framework/Headers -I /Library/Frameworks/QtOpenGL.framework/Headers -I /Library/Frameworks/QtSvg.framework/Headers"
-	    QT_LIBS="-framework QtCore -framework QtGui -framework QtOpenGL -framework QtSvg"
+	    QT_INCLUDES="-I /Library/Frameworks/QtCore.framework/Headers -I /Library/Frameworks/QtGui.framework/Headers -I /Library/Frameworks/QtOpenGL.framework/Headers -I /Library/Frameworks/QtSvg.framework/Headers -I /Library/Frameworks/QtXml.framework/Headers"
+	    QT_LIBS="-framework QtCore -framework QtGui -framework QtOpenGL -framework QtSvg -framework QtXml"
 	 else
 	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt4 /usr/qt /usr/qt4 /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
       	       check_qt $dir
@@ -1900,10 +1900,10 @@ fi
 if test "${with_qt}" = yes; then
   if test -n "$with_qt_includes" -o -n "$qt_framework"; then
      if test -z "$QT_INCLUDES"; then
-        QT_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui -I$with_qt_includes/QtOpenGL -I$with_qt_includes/QtSvg"
+        QT_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui -I$with_qt_includes/QtOpenGL -I$with_qt_includes/QtSvg -I$with_qt_includes/QtXml"
      fi
      if test -z "$QT_LIBS"; then
-	QT_LIBS="-lQtCore -lQtGui -lQtOpenGL -lQtSvg"
+	QT_LIBS="-lQtCore -lQtGui -lQtOpenGL -lQtSvg -lQtXml"
 	if test -n "$qt_app_libs"; then
 	   QT_LIBS="-L$with_qt_libs $QT_LIBS"
 	fi
