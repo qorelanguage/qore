@@ -1384,6 +1384,78 @@ static AbstractQoreNode *f_QStyleFactory_keys(const QoreListNode *params, Except
    return l;
 }
 
+//int qAlpha ( QRgb rgba )
+static AbstractQoreNode *f_qAlpha(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   return new QoreBigIntNode(qAlpha(p ? p->getAsBigInt() : 0));
+}
+
+//int qBlue ( QRgb rgb )
+static AbstractQoreNode *f_qBlue(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   return new QoreBigIntNode(qBlue(p ? p->getAsBigInt() : 0));
+}
+
+//int qGray ( int r, int g, int b )
+//int qGray ( QRgb rgb )
+static AbstractQoreNode *f_qGray(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   if (num_params(params) == 1)
+      return new QoreBigIntNode(qGray(p ? p->getAsBigInt() : 0));
+   int r = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int g = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int b = p ? p->getAsInt() : 0;
+
+   return new QoreBigIntNode(qGray(r, g, b));
+}
+
+//int qGreen ( QRgb rgb )
+static AbstractQoreNode *f_qGreen(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   return new QoreBigIntNode(qGreen(p ? p->getAsBigInt() : 0));
+}
+
+//int qRed ( QRgb rgb )
+static AbstractQoreNode *f_qRed(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   return new QoreBigIntNode(qRed(p ? p->getAsBigInt() : 0));
+}
+
+//QRgb qRgb ( int r, int g, int b )
+static AbstractQoreNode *f_qRgb(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   int r = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int g = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int b = p ? p->getAsInt() : 0;
+
+   return new QoreBigIntNode(qRgb(r, g, b));
+}
+
+//QRgb qRgba ( int r, int g, int b, int a )
+static AbstractQoreNode *f_qRgba(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   int r = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int g = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int b = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int a = p ? p->getAsInt() : 0;
+
+   return new QoreBigIntNode(qRgba(r, g, b, a));
+}
+
 static QoreNamespace *qt_ns = new QoreNamespace("Qt");
 
 static void init_namespace()
@@ -3421,6 +3493,15 @@ static class QoreStringNode *qt_module_init()
    // QStyleFactory static functions
    builtinFunctions.add("QStyleFactory_create",       f_QStyleFactory_create);
    builtinFunctions.add("QStyleFactory_keys",         f_QStyleFactory_keys);
+
+   builtinFunctions.add("qAlpha",                     f_qAlpha);
+   builtinFunctions.add("qBlue",                      f_qBlue);
+   builtinFunctions.add("qGray",                      f_qGray);
+   builtinFunctions.add("qGray",                      f_qGray);
+   builtinFunctions.add("qGreen",                     f_qGreen);
+   builtinFunctions.add("qRed",                       f_qRed);
+   builtinFunctions.add("qRgb",                       f_qRgb);
+   builtinFunctions.add("qRgba",                      f_qRgba);
 
    // add static class functions as builtin functions
    initQCoreApplicationStaticFunctions();

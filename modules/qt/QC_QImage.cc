@@ -488,12 +488,52 @@ static AbstractQoreNode *QIMAGE_scaledToWidth(QoreObject *self, QoreQImage *qi, 
 
 //uchar * scanLine ( int i )
 //const uchar * scanLine ( int i ) const
-//static AbstractQoreNode *QIMAGE_scanLine(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   const AbstractQoreNode *p = get_param(params, 0);
-//   int i = p ? p->getAsInt() : 0;
-//   ??? return qi->scanLine(i);
-//}
+static AbstractQoreNode *QIMAGE_scanLine(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
+{
+   // get number of pixels per 32-bit word
+   QImage::Format format = qi->format();
+   int ppw = 0;
+   switch (format) {
+      case QImage::Format_Invalid:
+	 xsink->raiseException("QIMAGE-SCANLINE-ERROR", "The current image is invalid");
+	 return 0;
+
+      case QImage::Format_Mono:
+      case QImage::Format_MonoLSB:
+	 ppw = 32;
+	 break;
+
+      case QImage::Format_Indexed8:
+	 ppw = 4;
+	 break;
+	 
+      case QImage::Format_RGB32:
+      case QImage::Format_ARGB32:
+      case QImage::Format_ARGB32_Premultiplied:
+	 ppw = 1;
+	 break;
+
+      default:
+	 xsink->raiseException("QIMAGE-SCANLINE-ERROR", "The current image is in an unknown format (format code %d)", (int)format);
+	 return 0;
+   }
+
+   // get scanline
+   const AbstractQoreNode *p = get_param(params, 0);
+   int i = p ? p->getAsInt() : 0;
+
+   uchar *d = qi->scanLine(i);
+   if (!d)
+      return 0;
+
+   int w = qi->width();
+
+   int size = w / ppw;
+   if ((size * ppw) != w)
+      ++size;
+
+   return new BinaryNode(d, size);
+}
 
 //void setAlphaChannel ( const QImage & alphaChannel )
 static AbstractQoreNode *QIMAGE_setAlphaChannel(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
@@ -737,7 +777,7 @@ class QoreClass *initQImageClass(class QoreClass *qpaintdevice)
    QC_QImage->addMethod("scaled",                      (q_method_t)QIMAGE_scaled);
    QC_QImage->addMethod("scaledToHeight",              (q_method_t)QIMAGE_scaledToHeight);
    QC_QImage->addMethod("scaledToWidth",               (q_method_t)QIMAGE_scaledToWidth);
-   //QC_QImage->addMethod("scanLine",                    (q_method_t)QIMAGE_scanLine);
+   QC_QImage->addMethod("scanLine",                    (q_method_t)QIMAGE_scanLine);
    QC_QImage->addMethod("setAlphaChannel",             (q_method_t)QIMAGE_setAlphaChannel);
    QC_QImage->addMethod("setColor",                    (q_method_t)QIMAGE_setColor);
    //QC_QImage->addMethod("setColorTable",               (q_method_t)QIMAGE_setColorTable);

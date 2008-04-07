@@ -30,7 +30,6 @@
 qore_classid_t CID_QPOINT;
 class QoreClass *QC_QPoint = 0;
 
-
 static void QPOINT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQPoint *qr;
@@ -115,6 +114,22 @@ static AbstractQoreNode *QPOINT_unaryMinus(QoreObject *self, QoreQPoint *qp, con
    return return_object(QC_QPoint, new QoreQPoint(-(*qp)));
 }
 
+//QPoint subtract ( const QPoint p ) const
+static AbstractQoreNode *QPOINT_subtract(QoreObject *self, QoreQPoint *qp, const QoreListNode *params, ExceptionSink *xsink)
+{
+   QoreObject *o = test_object_param(params, 0);
+   if (!o)
+      return 0;
+   QoreQPoint *p = (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink);
+   if (!p)
+      return 0;
+
+   ReferenceHolder<AbstractPrivateData> pHolder(p, xsink);
+
+   QPoint np = (*qp) - (*p);
+   return return_object(QC_QPoint, new QoreQPoint(np));
+}
+
 class QoreClass *initQPointClass()
 {
    tracein("initQPointClass()");
@@ -135,6 +150,7 @@ class QoreClass *initQPointClass()
 
    // in place of operators
    QC_QPoint->addMethod("unaryMinus",                  (q_method_t)QPOINT_unaryMinus);
+   QC_QPoint->addMethod("subtract",                    (q_method_t)QPOINT_subtract);
 
    traceout("initQPointClass()");
    return QC_QPoint;
