@@ -24,7 +24,6 @@
 
 #define _QORE_OPENGL_H
 
-#include "OpenGL.h"
 #include "gl.h"
 
 void addOpenGLConstants();
