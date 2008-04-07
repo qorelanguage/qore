@@ -1962,8 +1962,12 @@ AC_ARG_WITH([opengl-includes],
 
 check_opengl_include()
 {
-    if test -f "$1/OpenGL.h" "$1/gl.h"; then
+    if test -f "$1/gl.h"; then
        found_opengl_includes=$1
+    elif test -f "$1/GL/gl.h"; then
+       found_opengl_includes=$1/GL
+    elif test -f "$1/OpenGL/gl.h"; then
+       found_opengl_includes=$1/OpenGL
     elif test "$2" = "err"; then
        AC_MSG_ERROR([$1 is not a valid OpenGL parent include directory])
     fi
@@ -1981,9 +1985,9 @@ check_opengl_lib()
 check_opengl_version()
 {
     # check opengl version
-    opengl_ver=`grep CGL_VERSION_2_1 $with_opengl_includes/OpenGL.h|cut -f2 -d\"|cut -f1 -d.`
+    opengl_ver=`grep GL_VERSION_2_1.*1 $with_opengl_includes/*.h`
     if test -z "$opengl_ver"; then
-       AC_MSG_ERROR([can't find OpenGL C API version 2.1])
+       AC_MSG_ERROR([can't find OpenGL API version 2.1])
     fi
 }
 
@@ -2088,7 +2092,7 @@ if test "${with_opengl}" = yes; then
      CXXFLAGS="$CXXFLAGS $OPENGL_INCLUDES"
      LDFLAGS="$LDFLAGS $OPENGL_LIBS"
      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <OpenGL.h>
+#include <gl.h>
 	 ]],[[
    glBegin(GL_POINTS);
 	]])], opengl_links=yes, opengl_links=no)
