@@ -742,51 +742,111 @@ void addOpenGLConstants()
    opengl_ns.addConstant("GL_SRC0_RGB",                                new QoreBigIntNode(GL_SRC0_RGB));
    opengl_ns.addConstant("GL_SRC1_RGB",                                new QoreBigIntNode(GL_SRC1_RGB));
    opengl_ns.addConstant("GL_SRC2_RGB",                                new QoreBigIntNode(GL_SRC2_RGB));
+#ifdef GL_SRC3_RGB
    opengl_ns.addConstant("GL_SRC3_RGB",                                new QoreBigIntNode(GL_SRC3_RGB));
+#endif
+#ifdef GL_SRC3_RGB
    opengl_ns.addConstant("GL_SRC4_RGB",                                new QoreBigIntNode(GL_SRC4_RGB));
+#endif
+#ifdef GL_SRC3_RGB
    opengl_ns.addConstant("GL_SRC5_RGB",                                new QoreBigIntNode(GL_SRC5_RGB));
+#endif
+#ifdef GL_SRC3_RGB
    opengl_ns.addConstant("GL_SRC6_RGB",                                new QoreBigIntNode(GL_SRC6_RGB));
+#endif
+#ifdef GL_SRC3_RGB
    opengl_ns.addConstant("GL_SRC7_RGB",                                new QoreBigIntNode(GL_SRC7_RGB));
+#endif
    opengl_ns.addConstant("GL_SRC0_ALPHA",                              new QoreBigIntNode(GL_SRC0_ALPHA));
    opengl_ns.addConstant("GL_SRC1_ALPHA",                              new QoreBigIntNode(GL_SRC1_ALPHA));
    opengl_ns.addConstant("GL_SRC2_ALPHA",                              new QoreBigIntNode(GL_SRC2_ALPHA));
+#ifdef GL_SRC3_ALPHA
    opengl_ns.addConstant("GL_SRC3_ALPHA",                              new QoreBigIntNode(GL_SRC3_ALPHA));
+#endif
+#ifdef GL_SRC4_ALPHA
    opengl_ns.addConstant("GL_SRC4_ALPHA",                              new QoreBigIntNode(GL_SRC4_ALPHA));
+#endif
+#ifdef GL_SRC5_ALPHA
    opengl_ns.addConstant("GL_SRC5_ALPHA",                              new QoreBigIntNode(GL_SRC5_ALPHA));
+#endif
+#ifdef GL_SRC6_ALPHA
    opengl_ns.addConstant("GL_SRC6_ALPHA",                              new QoreBigIntNode(GL_SRC6_ALPHA));
+#endif
+#ifdef GL_SRC7_ALPHA
    opengl_ns.addConstant("GL_SRC7_ALPHA",                              new QoreBigIntNode(GL_SRC7_ALPHA));
+#endif
    opengl_ns.addConstant("GL_SOURCE0_RGB",                             new QoreBigIntNode(GL_SOURCE0_RGB));
    opengl_ns.addConstant("GL_SOURCE1_RGB",                             new QoreBigIntNode(GL_SOURCE1_RGB));
    opengl_ns.addConstant("GL_SOURCE2_RGB",                             new QoreBigIntNode(GL_SOURCE2_RGB));
+#ifdef GL_SOURCE3_RGB
    opengl_ns.addConstant("GL_SOURCE3_RGB",                             new QoreBigIntNode(GL_SOURCE3_RGB));
+#endif
+#ifdef GL_SOURCE4_RGB
    opengl_ns.addConstant("GL_SOURCE4_RGB",                             new QoreBigIntNode(GL_SOURCE4_RGB));
+#endif
+#ifdef GL_SOURCE5_RGB
    opengl_ns.addConstant("GL_SOURCE5_RGB",                             new QoreBigIntNode(GL_SOURCE5_RGB));
+#endif
+#ifdef GL_SOURCE6_RGB
    opengl_ns.addConstant("GL_SOURCE6_RGB",                             new QoreBigIntNode(GL_SOURCE6_RGB));
+#endif
+#ifdef GL_SOURCE7_RGB
    opengl_ns.addConstant("GL_SOURCE7_RGB",                             new QoreBigIntNode(GL_SOURCE7_RGB));
+#endif
    opengl_ns.addConstant("GL_SOURCE0_ALPHA",                           new QoreBigIntNode(GL_SOURCE0_ALPHA));
    opengl_ns.addConstant("GL_SOURCE1_ALPHA",                           new QoreBigIntNode(GL_SOURCE1_ALPHA));
    opengl_ns.addConstant("GL_SOURCE2_ALPHA",                           new QoreBigIntNode(GL_SOURCE2_ALPHA));
+#ifdef GL_SOURCE3_ALPHA
    opengl_ns.addConstant("GL_SOURCE3_ALPHA",                           new QoreBigIntNode(GL_SOURCE3_ALPHA));
+#endif
+#ifdef GL_SOURCE4_ALPHA
    opengl_ns.addConstant("GL_SOURCE4_ALPHA",                           new QoreBigIntNode(GL_SOURCE4_ALPHA));
+#endif
+#ifdef GL_SOURCE5_ALPHA
    opengl_ns.addConstant("GL_SOURCE5_ALPHA",                           new QoreBigIntNode(GL_SOURCE5_ALPHA));
+#endif
+#ifdef GL_SOURCE6_ALPHA
    opengl_ns.addConstant("GL_SOURCE6_ALPHA",                           new QoreBigIntNode(GL_SOURCE6_ALPHA));
+#endif
+#ifdef GL_SOURCE7_ALPHA
    opengl_ns.addConstant("GL_SOURCE7_ALPHA",                           new QoreBigIntNode(GL_SOURCE7_ALPHA));
+#endif
    opengl_ns.addConstant("GL_OPERAND0_RGB",                            new QoreBigIntNode(GL_OPERAND0_RGB));
    opengl_ns.addConstant("GL_OPERAND1_RGB",                            new QoreBigIntNode(GL_OPERAND1_RGB));
    opengl_ns.addConstant("GL_OPERAND2_RGB",                            new QoreBigIntNode(GL_OPERAND2_RGB));
+#ifdef GL_OPERAND3_RGB
    opengl_ns.addConstant("GL_OPERAND3_RGB",                            new QoreBigIntNode(GL_OPERAND3_RGB));
+#endif
+#ifdef GL_OPERAND3_RGB
    opengl_ns.addConstant("GL_OPERAND4_RGB",                            new QoreBigIntNode(GL_OPERAND4_RGB));
+#endif
+#ifdef GL_OPERAND3_RGB
    opengl_ns.addConstant("GL_OPERAND5_RGB",                            new QoreBigIntNode(GL_OPERAND5_RGB));
+#endif
+#ifdef GL_OPERAND3_RGB
    opengl_ns.addConstant("GL_OPERAND6_RGB",                            new QoreBigIntNode(GL_OPERAND6_RGB));
+#endif
+#ifdef GL_OPERAND3_RGB
    opengl_ns.addConstant("GL_OPERAND7_RGB",                            new QoreBigIntNode(GL_OPERAND7_RGB));
+#endif
    opengl_ns.addConstant("GL_OPERAND0_ALPHA",                          new QoreBigIntNode(GL_OPERAND0_ALPHA));
    opengl_ns.addConstant("GL_OPERAND1_ALPHA",                          new QoreBigIntNode(GL_OPERAND1_ALPHA));
    opengl_ns.addConstant("GL_OPERAND2_ALPHA",                          new QoreBigIntNode(GL_OPERAND2_ALPHA));
+#ifdef GL_OPERAND3_ALPHA
    opengl_ns.addConstant("GL_OPERAND3_ALPHA",                          new QoreBigIntNode(GL_OPERAND3_ALPHA));
+#endif
+#ifdef GL_OPERAND4_ALPHA
    opengl_ns.addConstant("GL_OPERAND4_ALPHA",                          new QoreBigIntNode(GL_OPERAND4_ALPHA));
+#endif
+#ifdef GL_OPERAND5_ALPHA
    opengl_ns.addConstant("GL_OPERAND5_ALPHA",                          new QoreBigIntNode(GL_OPERAND5_ALPHA));
+#endif
+#ifdef GL_OPERAND6_ALPHA
    opengl_ns.addConstant("GL_OPERAND6_ALPHA",                          new QoreBigIntNode(GL_OPERAND6_ALPHA));
+#endif
+#ifdef GL_OPERAND7_ALPHA
    opengl_ns.addConstant("GL_OPERAND7_ALPHA",                          new QoreBigIntNode(GL_OPERAND7_ALPHA));
+#endif
    opengl_ns.addConstant("GL_DOT3_RGB",                                new QoreBigIntNode(GL_DOT3_RGB));
    opengl_ns.addConstant("GL_DOT3_RGBA",                               new QoreBigIntNode(GL_DOT3_RGBA));
    opengl_ns.addConstant("GL_TRANSPOSE_MODELVIEW_MATRIX",              new QoreBigIntNode(GL_TRANSPOSE_MODELVIEW_MATRIX));
