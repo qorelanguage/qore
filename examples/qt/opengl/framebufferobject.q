@@ -292,9 +292,14 @@ class framebufferobject inherits QApplication
     constructor() {
 	our $scale_in = True;
 
-	if (!QGLFormat_hasOpenGL() || !QGLFramebufferObject_hasOpenGLFramebufferObjects()) {
+	if (!QGLFormat_hasOpenGL()) {
 	    QMessageBox_information(0, "OpenGL framebuffer objects",
-				    "this system does not support OpenGL/framebuffer objects.");
+				    "this system does not support OpenGL");
+	    return -1;
+	}
+	if (!QGLFramebufferObject_hasOpenGLFramebufferObjects()) {
+	    QMessageBox_information(0, "OpenGL framebuffer objects",
+				    "this system does not support framebuffer objects.");
 	    return -1;
 	}
 
