@@ -26,12 +26,14 @@
 
 #include <QGLFramebufferObject>
 
+#include "QoreAbstractQPaintDevice.h"
+
 DLLLOCAL extern int CID_QGLFRAMEBUFFEROBJECT;
 DLLLOCAL extern QoreClass *QC_QGLFramebufferObject;
 DLLLOCAL QoreNamespace *initQGLFramebufferObjectNS(QoreClass *);
 DLLLOCAL void initQGLFramebufferObjectStaticFunctions();
 
-class QoreQGLFramebufferObject : public AbstractPrivateData, public QGLFramebufferObject
+class QoreQGLFramebufferObject : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QGLFramebufferObject
 {
    public:
       DLLLOCAL QoreQGLFramebufferObject(const QSize& size, GLenum target = GL_TEXTURE_2D) : QGLFramebufferObject(size, target)
@@ -46,6 +48,12 @@ class QoreQGLFramebufferObject : public AbstractPrivateData, public QGLFramebuff
       DLLLOCAL QoreQGLFramebufferObject(const QSize& size, Attachment attachment, GLenum target = GL_TEXTURE_2D, GLenum internal_format = GL_RGBA8) : QGLFramebufferObject(size, attachment, target, internal_format)
       {
       }
+
+      DLLLOCAL virtual class QPaintDevice *getQPaintDevice() const
+      {
+	 return static_cast<QPaintDevice *>(const_cast<QoreQGLFramebufferObject *>(this));
+      }
+
 };
 
 #endif // _QORE_QT_QC_QGLFRAMEBUFFEROBJECT_H

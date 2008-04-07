@@ -293,10 +293,22 @@ QoreNamespace *initQTimeLineNS(QoreClass *qobject)
 {
    QoreNamespace *ns = new QoreNamespace("QTimeLine");
    ns->addSystemClass(initQTimeLineClass(qobject));
-   
+
+   // State enum   
    ns->addConstant("NotRunning",  new QoreBigIntNode(QTimeLine::NotRunning));
    ns->addConstant("Paused",      new QoreBigIntNode(QTimeLine::Paused));
    ns->addConstant("Running",     new QoreBigIntNode(QTimeLine::Running));
+
+   // Direction enum
+   ns->addConstant("Forward",                  new QoreBigIntNode(QTimeLine::Forward));
+   ns->addConstant("Backward",                 new QoreBigIntNode(QTimeLine::Backward));
+
+   // CurveShape enum
+   ns->addConstant("EaseInCurve",              new QoreBigIntNode(QTimeLine::EaseInCurve));
+   ns->addConstant("EaseOutCurve",             new QoreBigIntNode(QTimeLine::EaseOutCurve));
+   ns->addConstant("EaseInOutCurve",           new QoreBigIntNode(QTimeLine::EaseInOutCurve));
+   ns->addConstant("LinearCurve",              new QoreBigIntNode(QTimeLine::LinearCurve));
+   ns->addConstant("SineCurve",                new QoreBigIntNode(QTimeLine::SineCurve));
 
    return ns;
 }

@@ -140,21 +140,19 @@ static AbstractQoreNode *QIMAGE_color(QoreObject *self, QoreQImage *qi, const Qo
 
 //QImage convertToFormat ( Format format, Qt::ImageConversionFlags flags = Qt::AutoColor ) const
 //QImage convertToFormat ( Format format, const QVector<QRgb> & colorTable, Qt::ImageConversionFlags flags = Qt::AutoColor ) const
-//static AbstractQoreNode *QIMAGE_convertToFormat(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   const AbstractQoreNode *p = get_param(params, 0);
-//   QImage::Format format = (QImage::Format)(p ? p->getAsInt() : 0);
-//   p = get_param(params, 1);
-//   if (p && p->getType() == NT_???) {
-//      ??? QVector<QRgb> colorTable = p;
-//   p = get_param(params, 2);
-//   }
-//   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
-//   QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
-//   QoreQImage *q_qi = new QoreQImage(qi->convertToFormat(format, flags));
-//   o_qi->setPrivate(CID_QIMAGE, q_qi);
-//   return o_qi;
-//}
+static AbstractQoreNode *QIMAGE_convertToFormat(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   QImage::Format format = (QImage::Format)(p ? p->getAsInt() : 0);
+
+   p = get_param(params, 1);
+   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
+
+   QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
+   QoreQImage *q_qi = new QoreQImage(qi->convertToFormat(format, flags));
+   o_qi->setPrivate(CID_QIMAGE, q_qi);
+   return o_qi;
+}
 
 //QImage copy ( const QRect & rectangle = QRect() ) const
 //QImage copy ( int x, int y, int width, int height ) const
@@ -526,13 +524,17 @@ static AbstractQoreNode *QIMAGE_scanLine(QoreObject *self, QoreQImage *qi, const
    if (!d)
       return 0;
 
-   int w = qi->width();
+   int w = qi->width() * 4;
 
    int size = w / ppw;
    if ((size * ppw) != w)
       ++size;
 
-   return new BinaryNode(d, size);
+   //printd(0, "QImage::scanLine() w=%d size=%d\n", w, size);
+
+   BinaryNode *b = new BinaryNode();
+   b->append(d, size);
+   return b;
 }
 
 //void setAlphaChannel ( const QImage & alphaChannel )
@@ -747,7 +749,7 @@ class QoreClass *initQImageClass(class QoreClass *qpaintdevice)
    QC_QImage->addMethod("cacheKey",                    (q_method_t)QIMAGE_cacheKey);
    QC_QImage->addMethod("color",                       (q_method_t)QIMAGE_color);
    //QC_QImage->addMethod("colorTable",                  (q_method_t)QIMAGE_colorTable);
-   //QC_QImage->addMethod("convertToFormat",             (q_method_t)QIMAGE_convertToFormat);
+   QC_QImage->addMethod("convertToFormat",             (q_method_t)QIMAGE_convertToFormat);
    QC_QImage->addMethod("qt_copy",                     (q_method_t)QIMAGE_QT_copy);
    QC_QImage->addMethod("createAlphaMask",             (q_method_t)QIMAGE_createAlphaMask);
    QC_QImage->addMethod("createHeuristicMask",         (q_method_t)QIMAGE_createHeuristicMask);

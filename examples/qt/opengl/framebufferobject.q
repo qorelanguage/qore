@@ -8,7 +8,7 @@
 # use the "qt" module
 %requires qt
 # use the "opengl" module
-#%requires opengl
+%requires opengl
 
 # this is an object-oriented program, the application class is "framebufferobject"
 %exec-class framebufferobject
@@ -20,7 +20,6 @@
 const PI = 3.1415927;
 const AMP = 5;
 
-/*
 class GLWidget inherits QGLWidget
 {
     private $.anchor, $.scale, $.rot_x, $.rot_y, $.rot_z,
@@ -40,13 +39,17 @@ class GLWidget inherits QGLWidget
 	$.connect($.anim, SIGNAL("valueChanged(qreal)"), SLOT("animate(qreal)"));
 	$.connect($.anim, SIGNAL("finished()"), SLOT("animFinished()"));
 
-	$.svg_renderer = new QSvgRenderer(QLatin1String(":/res/bubbles.svg"), $self);
+	$.svg_renderer = new QSvgRenderer("images/bubbles.svg", $self);
+	printf("svg_renderer valid=%N\n", $.svg_renderer.isValid());
 	$.connect($.svg_renderer, SIGNAL("repaintNeeded()"), SLOT("draw()"));
 
-	$.logo = QImage(":/res/qt4-logo.png");
+	$.logo = new QImage("images/qt4-logo.png");
+	printf("logo valid=%N\n", !$.logo.isNull());
 	$.logo = $.logo.convertToFormat(QImage::Format_ARGB32);
+	printf("logo valid=%N\n", !$.logo.isNull());
 
 	$.tile_list = glGenLists(1);
+
 	glNewList($.tile_list, GL_COMPILE);
 	glBegin(GL_QUADS);
 	{
@@ -83,20 +86,17 @@ class GLWidget inherits QGLWidget
 	glEnd();
 	glEndList();
 
-	$.wave = new GLfloat[$.logo.width()*$.logo.height()];
-	memset($.wave, 0, $.logo.width()*$.logo.height());
-	startTimer(30); # $.wave timer
+	$.startTimer(30); # $.wave timer
     }
 
     destructor()
     {
 	glDeleteLists($.tile_list, 1);
-	delete $.fbo;
     }
 
     paintEvent()
     {
-	draw();
+	$.draw();
     }
 
     draw()
@@ -107,8 +107,8 @@ class GLWidget inherits QGLWidget
 	$.saveGLState();
 
 	# render the 'bubbles.svg' file into our framebuffer object
-	QPainter $.fbo_painter($.fbo);
-	$.svg_renderer.render(&$.fbo_painter);
+	$.fbo_painter = new QPainter($.fbo);
+	$.svg_renderer.render($.fbo_painter);
 	$.fbo_painter.end();
 
 	# draw into the GL widget
@@ -119,7 +119,7 @@ class GLWidget inherits QGLWidget
 	glTranslatef(0.0, 0.0, -15.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glViewport(0, 0, width(), height());
+	glViewport(0, 0, $.width(), $.height());
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -135,85 +135,92 @@ class GLWidget inherits QGLWidget
 	glCallList($.tile_list);
 	glPopMatrix();
 
-	const int w = $.logo.width();
-	const int h = $.logo.height();
+	my $w = $.logo.width();
+	my $h = $.logo.height();
+	printf("h=%n, w=%n\n", $h, $w);
 
 	glRotatef($.rot_x, 1.0, 0.0, 0.0);
 	glRotatef($.rot_y, 0.0, 1.0, 0.0);
 	glRotatef($.rot_z, 0.0, 0.0, 1.0);
-	glScalef($.scale/w, $.scale/w, $.scale/w);
+	glScalef($.scale/$w, $.scale/$w, $.scale/$w);
 
 	glDepthFunc(GL_LESS);
 	glEnable(GL_DEPTH_TEST);
 	# draw the Qt icon
-	glTranslatef(-w+1, -h+1, 0.0);
-	for (my $y=h-1; $y>=0; --$y) {
-	    uint *p = (uint*) $.logo.scanLine(y);
-	    uint *end = p + w;
-	    int  x = 0;
-	    while (p < end) {
-		glColor4ub(qRed(*p), qGreen(*p), qBlue(*p), uchar(qAlpha(*p)*.9));
-		glTranslatef(0.0, 0.0, $.wave[y*w+x]);
-             if (qAlpha(*p) > 128)
-                 glCallList($.tile_list);
-             glTranslatef(0.0, 0.0, -$.wave[y*w+x]);
+	glTranslatef(-$w+1, -$h+1, 0.0);
+	for (my $y=$h-1; $y>=0; --$y) {
+	    my $line = $.logo.scanLine($y);
+	    my $end = elements $line / 4;
+	    my $x = 0;
+	    while ($x < $end) {
+		my $word = getWord32($line, $x);
+		#printf("line=%N (%d), x=%n word=%n\n", $line, elements $line, $x, $word);
+		glColor4ub(qRed($word), qGreen($word), qBlue($word), qAlpha($word)* 0.9);
+		glTranslatef(0.0, 0.0, $.wave[$y*$w+$x]);
+		if (qAlpha($word) > 128)
+		    glCallList($.tile_list);
+		glTranslatef(0.0, 0.0, -$.wave[$y*$w+$x]);
 		glTranslatef(2.0, 0.0, 0.0);
-		++x;
-		++p;
+		++$x;
 	    }
-	    glTranslatef(-w*2.0, 2.0, 0.0);
+	    glTranslatef(-$w * 2.0, 2.0, 0.0);
 	}
 
-		# restore the GL state that QPainter expects
-	    restoreGLState();
+	# restore the GL state that QPainter expects
+	$.restoreGLState();
 
 	# draw the overlayed text using QPainter
-	    p.setPen(QColor(197, 197, 197, 157));
-	p.setBrush(QColor(197, 197, 197, 127));
-	p.drawRect(QRect(0, 0, width(), 50));
-	p.setPen(Qt::black);
-	p.setBrush(Qt::NoBrush);
-	const QString str1(TR("A simple OpenGL framebuffer object example."));
-	const QString str2(TR("Use the mouse wheel to zoom, press buttons and move mouse to rotate, double-click to flip."));
-	QFontMetrics fm(p.font());
-	p.drawText(width()/2 - fm.width(str1)/2, 20, str1);
-	p.drawText(width()/2 - fm.width(str2)/2, 20 + fm.lineSpacing(), str2);
+	$p.setPen(new QColor(197, 197, 197, 157));
+	$p.setBrush(new QColor(197, 197, 197, 127));
+	$p.drawRect(new QRect(0, 0, $.width(), 50));
+	$p.setPen(Qt::black);
+	$p.setBrush(Qt::NoBrush);
+	my $str1 = TR("A simple OpenGL framebuffer object example.");
+	my $str2 = TR("Use the mouse wheel to zoom, press buttons and move mouse to rotate, double-click to flip.");
+	my $fm = new QFontMetrics($p.font());
+	$p.drawText($.width()/2 - $fm.width($str1)/2, 20, $str1);
+	$p.drawText($.width()/2 - $fm.width($str2)/2, 20 + $fm.lineSpacing(), $str2);
+	$.show();
     }
 
-    mousePressEvent(QMouseEvent *e)
+    mousePressEvent($e)
     {
-	$.anchor = e.pos();
+	$.anchor = $e.pos();
     }
 
-    mouseMoveEvent(QMouseEvent *e)
+    mouseMoveEvent($e)
     {
-	QPoint diff = e.pos() - $.anchor;
-	if (e.buttons() & Qt::LeftButton) {
-	    $.rot_x += diff.y()/5.0;
-         $.rot_y += diff.x()/5.0;
-	} else if (e.buttons() & Qt::RightButton) {
-	    $.rot_z += diff.x()/5.0;
+	my $diff = $e.pos().subtract($.anchor);
+	if ($e.buttons() & Qt::LeftButton) {
+	    $.rot_x += $diff.y
+		()/5.0;
+	    $.rot_y += $diff.x()/5.0;
+	} else if ($e.buttons() & Qt::RightButton) {
+	    $.rot_z += $diff.x()/5.0;
 	}
 
-	$.anchor = e.pos();
-	draw();
+	$.anchor = $e.pos();
+	$.draw();
     }
 
-    wheelEvent(QWheelEvent *e)
+    wheelEvent($e)
     {
-	e.delta() > 0 ? $.scale += $.scale*0.1 : $.scale -= $.scale*0.1;
-	draw();
+	if ($e.delta() > 0)
+	    $.scale += $.scale * 0.1;
+	else
+	    $.scale -= $.scale * 0.1;
+	$.draw();
     }
 
-    mouseDoubleClickEvent(QMouseEvent *)
+    mouseDoubleClickEvent()
     {
 	$.anim.start();
     }
 
-    animate(qreal val)
+    animate($val)
     {
-	$.rot_y = val * 180;
-	draw();
+	$.rot_y = $val * 180;
+	$.draw();
     }
 
     animFinished()
@@ -244,28 +251,26 @@ class GLWidget inherits QGLWidget
 
     timerEvent()
     {
-	if (QApplication::mouseButtons() != 0)
+	if (QApplication_mouseButtons() != 0)
 	    return;
 
-	static bool scale_in = true;
+	if ($scale_in && $.scale > 35.0)
+	    $scale_in = False;
+	else if (!$scale_in && $.scale < 0.5)
+	    $scale_in = True;
 
-	if (scale_in && $.scale > 35.0)
-	    scale_in = false;
-	else if (!scale_in && $.scale < .5)
-	    scale_in = true;
-
-	$.scale = scale_in ? $.scale + $.scale*0.01 : $.scale-$.scale*0.01;
+	$.scale = $scale_in ? $.scale + $.scale * 0.01 : $.scale-$.scale * 0.01;
 	$.rot_z += 0.3;
 	$.rot_x += 0.1;
 
-	my $dx, $dy; # disturbance point
-	my $s, $v, $W, $t;
+	my ($dx, $dy); # disturbance point
+	my ($s, $v, $W, $t);
 	our $wt;
 	my $width = $.logo.width();
 
 	$dx = $dy = $width >> 1;
 
-	$W = .3;
+	$W = 0.3;
 	$v = -4; # wave speed
 
 	for (my $i = 0; $i < $width; ++$i) {
@@ -285,6 +290,8 @@ class GLWidget inherits QGLWidget
 class framebufferobject inherits QApplication 
 {
     constructor() {
+	our $scale_in = True;
+
 	if (!QGLFormat_hasOpenGL() || !QGLFramebufferObject_hasOpenGLFramebufferObjects()) {
 	    QMessageBox_information(0, "OpenGL framebuffer objects",
 				    "this system does not support OpenGL/framebuffer objects.");
@@ -295,15 +302,5 @@ class framebufferobject inherits QApplication
 	$widget.resize(640, 480);
 	$widget.show();
         $.exec();
-    }
-}
-*/
-
-class framebufferobject inherits QApplication 
-{
-    constructor() {
-	QMessageBox_information(0, "OpenGL framebuffer objects",
-				    "this example is not yet ready because it depends on the as-yet-unimplemented opengl module");
-	return -1;
     }
 }

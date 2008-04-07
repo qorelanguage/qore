@@ -244,6 +244,7 @@ noinst_HEADERS = \
 	modules/sybase/sybase_query.h \
 	modules/sybase/common_constants.h \
 	modules/sybase/row_output_buffers.h \
+	modules/opengl/qore-opengl.h \
 	modules/qt/QC_QApplication.h \
 	modules/qt/QC_QPushButton.h \
 	modules/qt/QC_QFont.h \

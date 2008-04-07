@@ -857,6 +857,41 @@ static AbstractQoreNode *f_getByte(const QoreListNode *params, ExceptionSink *xs
    return new QoreBigIntNode(ptr[offset]);  
 }
 
+static AbstractQoreNode *f_getWord32(const QoreListNode *params, ExceptionSink *xsink)
+{
+   // need binary argument
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   if (!p0)
+      return 0;
+   unsigned char *ptr;
+   int size;
+   if (p0->getType() == NT_BINARY)
+   {
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
+      ptr = (unsigned char *)b->getPtr();
+      size = b->size();
+   }
+   else if (p0->getType() == NT_STRING)
+   {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+      ptr = (unsigned char *)str->getBuffer();
+      size = str->strlen();
+   }
+   else
+      return 0;
+
+   const AbstractQoreNode *p1 = get_param(params, 1);
+   int offset = p1 ? p1->getAsInt() : 0;
+   offset *= 4;
+
+   if (!ptr || offset >= size || offset < 0)
+      return 0;
+
+   int64 val = ptr[offset] << 24 + ptr[offset + 1] << 16 + ptr[offset + 2] << 8 + ptr[offset + 3];
+
+   return new QoreBigIntNode(val);
+}
+
 // same as splice operator, but operates on a copy of the list
 static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -1075,6 +1110,7 @@ void init_misc_functions()
    builtinFunctions.add("gunzip_to_string", f_gunzip_to_string);
    builtinFunctions.add("gunzip_to_binary", f_gunzip_to_binary);
    builtinFunctions.add("getByte", f_getByte);
+   builtinFunctions.add("getWord32", f_getWord32);
    builtinFunctions.add("splice", f_splice);
    builtinFunctions.add("hextoint", f_hextoint);
    builtinFunctions.add("strtoint", f_strtoint);

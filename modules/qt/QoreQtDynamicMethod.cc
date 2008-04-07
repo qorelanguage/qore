@@ -79,6 +79,10 @@ int QoreQtDynamicMethod::get_type(const char *&p)
       rt = QQT_TYPE_P_QLISTWIDGETITEM;
       p += 16;
    }
+   else if (!strncmp("qreal", p, 5)) {
+      rt = QQT_TYPE_QREAL;
+      p += 5;
+   }
    else {
       //printd(5, "QoreQtDynamicMethod::get_type(%s) unknown type error!\n", p);
       return QQT_TYPE_UNKNOWN;
@@ -235,6 +239,10 @@ void QoreQtDynamicSlot::call(void **arguments)
 
 	 args->push(o_qlwi);
       }
+      else if (type_list[i] == QQT_TYPE_QREAL) {
+	 qreal *ptr = reinterpret_cast<qreal *>(arguments[i + 1]);
+	 args->push(new QoreFloatNode(*ptr));
+      }
       else {
 	 printd(0, "QoreQtDynamicSlot::call() ignoring argument %d type %d\n", i, type_list[i]);
 	 args->push(0);
@@ -331,6 +339,9 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, const QoreListNode *
 
 	    break;
 	 }
+	 case QQT_TYPE_QREAL:
+	    sig_args[i + 1] = arg_list[i].set((double)(n ? n->getAsFloat() : 0.0));
+	    break;
 	 default:
 	    printd(0, "QoreQtDynamicSignal::emit_signal() unsupported type=%d\n", type_list[i]);
 	    assert(false);

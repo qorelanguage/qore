@@ -51,6 +51,8 @@
 DLLLOCAL qore_classid_t CID_QPAINTER;
 DLLLOCAL QoreClass *QC_QPainter = 0;
 
+class AbstractPaintDeviceData : public AbstractPrivateData, public QoreAbstractQPaintDevice {};
+
 static void QPAINTER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQPainter *qp;
@@ -58,6 +60,22 @@ static void QPAINTER_constructor(class QoreObject *self, const QoreListNode *par
    const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->getType() == NT_OBJECT)
    {
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+      AbstractPaintDeviceData *aqpd = (AbstractPaintDeviceData *)o->getReferencedPrivateData(CID_QPAINTDEVICE, xsink);
+      if (*xsink)
+	 return;
+      if (!aqpd) {
+	 xsink->raiseException("QPAINTER-CONSTRUCTOR-ERROR", "QPainter::constructor() does not take objects of class '%s' as an argument", o->getClassName());
+	 return;
+      }
+      ReferenceHolder<AbstractPrivateData> holder(aqpd, xsink);
+
+      QPaintDevice *qpd = aqpd->getQPaintDevice();
+      if (!qpd)
+	 printd(0, "o=%08p (%s) aqpd=%08p, qpd=%08p\n", o, o->getClassName(), aqpd, qpd);
+      assert(qpd);
+      qp = new QoreQPainter(qpd);
+/*      
       AbstractPrivateData *apd = (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink);
       if (apd) {
 	 ReferenceHolder<AbstractPrivateData> holder(apd, xsink);
@@ -70,6 +88,7 @@ static void QPAINTER_constructor(class QoreObject *self, const QoreListNode *par
 	 xsink->raiseException("QPAINTER-CONSTRUCTOR-ERROR", "QPainter::constructor() does not take objects of class '%s' as an argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return;
       }
+*/
    }
    else
       qp = new QoreQPainter();
@@ -1363,15 +1382,16 @@ static AbstractQoreNode *QPAINTER_setBackgroundMode(QoreObject *self, QoreQPaint
 static AbstractQoreNode *QPAINTER_setBrush(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
+   //printd(5, "QPAINTER_setBrush() p=%08p (%s)\n", p, p ? p->getTypeName() : "n/a");
    if (p && p->getType() == NT_BRUSHSTYLE) {
       Qt::BrushStyle style = (reinterpret_cast<const BrushStyleNode *>(p))->getStyle();
       qp->getQPainter()->setBrush(style);
+      return 0;
    }
-   else {
-      QBrush brush;
-      if (!get_qbrush(p, brush, xsink))
-	 qp->getQPainter()->setBrush(brush);
-   }
+   QBrush brush;
+   if (!get_qbrush(p, brush, xsink))
+      qp->getQPainter()->setBrush(brush);
+
    return 0;
 }
 

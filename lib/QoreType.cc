@@ -34,7 +34,7 @@ QoreString FalseString("False");
 QoreString EmptyHashString("<EMPTY HASH>");
 QoreString EmptyListString("<EMPTY LIST>");
 
-static qore_type_t lastid = 0;
+static qore_type_t lastid = QORE_NUM_TYPES;
 
 class QoreTypeManager
 {

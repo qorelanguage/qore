@@ -567,7 +567,7 @@ int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &ks, class Exceptio
 
 int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 {
-   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->getType() == NT_OBJECT ? n->getClass()->getName() : "n/a");
+   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->getType() == NT_OBJECT ? reinterpret_cast<const QoreObject *>(n)->getClassName() : "n/a");
    if (n) {
       qore_type_t ntype = n->getType();
       if (ntype == NT_OBJECT) {
@@ -611,10 +611,8 @@ int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xs
       }
       else if (ntype == NT_BRUSHSTYLE) {
 	 const BrushStyleNode *bs = reinterpret_cast<const BrushStyleNode *>(n);
-	 if (bs) {
-	    brush = QBrush(bs->getStyle());
-	    return 0;
-	 }
+	 brush = QBrush(bs->getStyle());
+	 return 0;
       }
       // assume Qt::GlobalColor enum
       else if (ntype == NT_INT) {
@@ -3522,6 +3520,7 @@ static class QoreStringNode *qt_module_init()
    initQLibraryInfoStaticFunctions();
    initQFontDialogStaticFunctions();
    initQGLFramebufferObjectStaticFunctions();
+   initQGLFormatStaticFunctions();
 
    return 0;
 }

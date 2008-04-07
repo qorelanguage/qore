@@ -1945,6 +1945,170 @@ if test "${with_qt}" = yes; then
   fi
 fi
 
+AC_ARG_WITH([opengl],
+    [AS_HELP_STRING([--with-opengl@<:@=DIR@:>@],
+                    [OpenGL base directory])],
+    [if test ! -d "${with_opengl}"; then AC_MSG_ERROR(directory ${with_opengl} does not exist for --with-opengl); unset with_opengl; fi])
+
+AC_ARG_WITH([opengl-libs],
+    [AS_HELP_STRING([--with-opengl-libs@<:@=DIR@:>@],
+                    [OpenGL library directory])],
+    [if test ! -d "${with_opengl_libs}"; then AC_MSG_ERROR(directory ${with_opengl_libs} does not exist for --with-opengl-libs); unset with_opengl_libs; fi])
+
+AC_ARG_WITH([opengl-includes],
+    [AS_HELP_STRING([--with-opengl-includes@<:@=DIR@:>@],
+                    [OpenGL include file parent directory])],
+    [if test ! -d "${with_opengl_includes}"; then AC_MSG_ERROR(directory ${with_opengl_includes} does not exist for --with-opengl-includes); unset with_opengl_includes; fi])
+
+check_opengl_include()
+{
+    if test -f "$1/OpenGL.h" "$1/gl.h"; then
+       found_opengl_includes=$1
+    elif test "$2" = "err"; then
+       AC_MSG_ERROR([$1 is not a valid OpenGL parent include directory])
+    fi
+}
+
+check_opengl_lib()
+{
+    if test -f "$1/libGL.${SHLIB_SUFFIX}" -a "$1/libGLU.${SHLIB_SUFFIX}"; then
+       found_opengl_libs=$lib
+    elif test "$2" = "err"; then
+    	AC_MSG_ERROR([$1 is not a valid OpenGL library directory])
+    fi
+}
+
+check_opengl_version()
+{
+    # check opengl version
+    opengl_ver=`grep CGL_VERSION_2_1 $with_opengl_includes/OpenGL.h|cut -f2 -d\"|cut -f1 -d.`
+    if test -z "$opengl_ver"; then
+       AC_MSG_ERROR([can't find OpenGL C API version 2.1])
+    fi
+}
+
+check_opengl()
+{
+    if test -z "$with_opengl_includes"; then
+        inc="$1/include"
+        if test "$1" = "/"; then
+       	    inc=/usr/include
+        fi
+	check_opengl_include $inc
+
+	if test -z "$found_opengl_includes"; then
+	    #echo DBG: opengl $1 $inc includes not found
+       	    return
+    	fi
+	with_opengl_includes="$found_opengl_includes"
+	unset found_opengl_includes
+    fi
+
+    if test -z "$with_opengl_libs"; then
+        lib="$1/lib${LIBSUFFIX}"
+
+	check_opengl_lib $lib
+    	if test -z "$found_opengl_libs"; then
+       	    #echo DBG: opengl $1 $lib libs not found
+       	    unset with_opengl_includes
+       	    return
+    	fi
+	with_opengl_libs="$found_opengl_libs"
+    fi
+    if test "$with_opengl_libs" != "/lib${LIBSUFFIX}"; then
+        opengl_app_libs=true
+    fi
+
+    check_opengl_version
+}
+
+# see if we can figure out where the opengl include files and libraries are
+if test "${with_opengl}" != "no"; then
+   AC_MSG_CHECKING([for OpenGL includes and libraries])
+
+   if test -n "$with_opengl_includes" -a -n "$with_opengl_libs"; then
+      check_opengl_includes "$with_opengl_includes" err
+      check_opengl_libs "$with_opengl_libs" err
+   else
+      if test -n "$with_opengl"; then
+      	 check_opengl "$with_opengl"
+      	 if test -z "$with_opengl_includes"; then
+	    AC_MSG_ERROR([not found in $with_opengl])
+      	 fi
+      else
+         # check for frameworks on darwin
+	 if test -n "$darwin" -a -d /System/Library/Frameworks/OpenGL.framework; then
+	    opengl_framework="/System/Library/Frameworks"
+	    OPENGL_INCLUDES="-I /System/Library/Frameworks/OpenGL.framework/Headers"
+	    OPENGL_LIBS="-framework OpenGL"
+	 else
+	    for dir in $OPENGL_DIR / /usr /usr/local /opt/opengl /usr/opengl /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+      	       check_opengl $dir
+      	       if test -n "$with_opengl_includes"; then
+	          break;
+      	       fi
+   	    done
+         fi
+      fi
+   fi
+
+   if test -n "$opengl_framework"; then
+      AC_MSG_RESULT([using Darwin frameworks in $opengl_framework])
+      with_opengl=yes
+   else
+      if test -n "$with_opengl_includes"; then
+         if test -n "$opengl_static"; then
+	    AC_MSG_RESULT([includes=$with_opengl_includes, libs=$with_opengl_libs (static)])
+      	 else
+	    AC_MSG_RESULT([includes=$with_opengl_includes, libs=$with_opengl_libs (shared)])
+      	 fi
+      	 with_opengl=yes
+      else
+	 AC_MSG_RESULT([not found])
+         unset with_opengl
+      fi
+   fi
+fi
+
+if test "${with_opengl}" = yes; then
+  if test -n "$with_opengl_includes" -o -n "$opengl_framework"; then
+     if test -z "$OPENGL_INCLUDES"; then
+        OPENGL_INCLUDES="-I$with_opengl_includes"
+     fi
+     if test -z "$OPENGL_LIBS"; then
+	OPENGL_LIBS="-lGL -lGLU"
+	if test -n "$opengl_app_libs"; then
+	   OPENGL_LIBS="-L$with_opengl_libs $OPENGL_LIBS"
+	fi
+     fi
+
+     # check if C++ compiler can link with OPENGL libs
+     SAVE_CXXFLAGS="$CXXFLAGS"
+     SAVE_LDFLAGS="$LDFLAGS"
+     CXXFLAGS="$CXXFLAGS $OPENGL_INCLUDES"
+     LDFLAGS="$LDFLAGS $OPENGL_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <OpenGL.h>
+	 ]],[[
+   glBegin(GL_POINTS);
+	]])], opengl_links=yes, opengl_links=no)
+
+     CXXFLAGS="$SAVE_CXXFLAGS"
+     LDFLAGS="$SAVE_LDFLAGS"
+
+     if test "$opengl_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test OpenGL program])
+     else
+        AC_SUBST(OPENGL_INCLUDES)
+	AC_SUBST(OPENGL_LIBS)
+        with_opengl=yes
+     fi
+  else
+     AC_MSG_WARN([no OpenGL libraries or includes found, disabling OpenGL support])
+     unset with_opengl
+  fi
+fi
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
@@ -2181,11 +2345,12 @@ AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_QT],         [test "$with_qt" = yes])
+AM_CONDITIONAL([COND_OPENGL],     [test "$with_opengl" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/opengl/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -2225,6 +2390,7 @@ show_library_feature tibrv $with_tibrv
 show_library_feature tibae $with_tibae
 show_library_feature tuxedo $with_tuxedo
 show_library_feature qt $with_qt
+show_library_feature opengl $with_opengl
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules

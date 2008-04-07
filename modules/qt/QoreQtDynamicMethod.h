@@ -45,6 +45,7 @@
 #define QQT_TYPE_QSTRING              9
 #define QQT_TYPE_P_QWIDGET           10
 #define QQT_TYPE_P_QLISTWIDGETITEM   11
+#define QQT_TYPE_QREAL               12
 
 union qt_arg_u {
       int t_int;

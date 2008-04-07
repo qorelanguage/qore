@@ -1063,12 +1063,15 @@ int RootQoreNamespace::resolveScopedConstant(AbstractQoreNode **node, int level)
 {
    assert(node && (*node)->getType() == NT_CONSTANT);
    ConstantNode *c = reinterpret_cast<ConstantNode *>(*node);
-   printd(5, "resolveScopedConstant(%s, %d)\n", c->scoped_ref->ostr, level);
 
    // if constant is not found, then a parse error will be raised
    AbstractQoreNode *rv = findConstantValue(c->scoped_ref, level);
-   if (!rv)
+   if (!rv) {
+      //printd(5, "RootQoreNamespace::resolveScopedConstant(%s, %d) findConstantValue() returned 0\n", c->scoped_ref->ostr, level);
       return -1;
+   }
+
+   //printd(5, "RootQoreNamespace::resolveScopedConstant(%s, %d) %08p %s-> %08p %s\n", c->scoped_ref->ostr, level, *node, (*node)->getTypeName(), rv, rv->getTypeName());
 
    c->deref();
    *node = rv->refSelf();
@@ -1118,32 +1121,30 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *scname,
 	 parse_error("constant '%s' cannot be resolved in any namespace", scname->ostr);
 	 return 0;
       }
+      return rv;
    }
+
+   int m = 0;
+   rv = rootFindScopedConstantValue(scname, &m);
+   if (rv)
+      return rv;
+
+   if (m != (scname->elements - 1))
+      parse_error("cannot resolve namespace '%s' in '%s'", scname->strlist[m], scname->ostr);
    else
    {
-      int m = 0;
-      rv = rootFindScopedConstantValue(scname, &m);
-      if (!rv)
+      QoreString err;
+      err.sprintf("cannot find constant '%s' in any namespace '", scname->getIdentifier());
+      for (int i = 0; i < (scname->elements - 1); i++)
       {
-	 if (m != (scname->elements - 1))
-	    parse_error("cannot resolve namespace '%s' in '%s'", scname->strlist[m], scname->ostr);
-	 else
-	 {
-	    QoreString err;
-	    err.sprintf("cannot find constant '%s' in any namespace '", scname->getIdentifier());
-	    for (int i = 0; i < (scname->elements - 1); i++)
-	    {
-	       err.concat(scname->strlist[i]);
-	       if (i != (scname->elements - 2))
-		  err.concat("::");
-	    }
-	    err.concat("'");
-	    parse_error(err.getBuffer());
-	 }
-	 return 0;
+	 err.concat(scname->strlist[i]);
+	 if (i != (scname->elements - 2))
+	    err.concat("::");
       }
+      err.concat("'");
+      parse_error(err.getBuffer());
    }
-   return rv;
+   return 0;
 }
 
 // public, only called either in single-threaded initialization or

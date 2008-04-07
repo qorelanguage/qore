@@ -297,7 +297,8 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
       if ((p->getBuffer()[i] == '%') 
 	  && (j < params->size()))
       {
-	 i += process_opt(buf, (char *)&p->getBuffer()[i], get_param(params, j++), field, &taken, xsink);
+	 const AbstractQoreNode *node = get_param(params, j++);
+	 i += process_opt(buf, (char *)&p->getBuffer()[i], node, field, &taken, xsink);
 	 if (!taken)
 	    j--;
       }
