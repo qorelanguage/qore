@@ -28,7 +28,11 @@ void addGlutConstants()
 {
    glut_ns.addConstant("GLUT_API_VERSION",                 new QoreBigIntNode(GLUT_API_VERSION));
    glut_ns.addConstant("GLUT_XLIB_IMPLEMENTATION",         new QoreBigIntNode(GLUT_XLIB_IMPLEMENTATION));
+#ifdef GLUT_MACOSX_IMPLEMENTATION
    glut_ns.addConstant("GLUT_MACOSX_IMPLEMENTATION",       new QoreBigIntNode(GLUT_MACOSX_IMPLEMENTATION));
+#else
+   glut_ns.addConstant("GLUT_MACOSX_IMPLEMENTATION",       new QoreBigIntNode(0));
+#endif
    glut_ns.addConstant("GLUT_RGB",                         new QoreBigIntNode(GLUT_RGB));
    glut_ns.addConstant("GLUT_RGBA",                        new QoreBigIntNode(GLUT_RGBA));
    glut_ns.addConstant("GLUT_INDEX",                       new QoreBigIntNode(GLUT_INDEX));
@@ -41,7 +45,9 @@ void addGlutConstants()
    glut_ns.addConstant("GLUT_MULTISAMPLE",                 new QoreBigIntNode(GLUT_MULTISAMPLE));
    glut_ns.addConstant("GLUT_STEREO",                      new QoreBigIntNode(GLUT_STEREO));
    glut_ns.addConstant("GLUT_LUMINANCE",                   new QoreBigIntNode(GLUT_LUMINANCE));
+#ifdef GLUT_NO_RECOVERY
    glut_ns.addConstant("GLUT_NO_RECOVERY",                 new QoreBigIntNode(GLUT_NO_RECOVERY));
+#endif
    glut_ns.addConstant("GLUT_LEFT_BUTTON",                 new QoreBigIntNode(GLUT_LEFT_BUTTON));
    glut_ns.addConstant("GLUT_MIDDLE_BUTTON",               new QoreBigIntNode(GLUT_MIDDLE_BUTTON));
    glut_ns.addConstant("GLUT_RIGHT_BUTTON",                new QoreBigIntNode(GLUT_RIGHT_BUTTON));

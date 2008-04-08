@@ -2132,9 +2132,9 @@ check_glut_include()
 {
     if test -f "$1/glut.h"; then
        found_glut_includes=$1
-    elif test -f "$1/GL/gl.h"; then
+    elif test -f "$1/GL/glut.h"; then
        found_glut_includes=$1/GL
-    elif test -f "$1/glut/gl.h"; then
+    elif test -f "$1/glut/glut.h"; then
        found_glut_includes=$1/glut
     elif test "$2" = "err"; then
        AC_MSG_ERROR([$1 is not a valid glut parent include directory])
