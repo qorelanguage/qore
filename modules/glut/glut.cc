@@ -195,7 +195,7 @@ static AbstractQoreNode *f_glutReshapeFunc(const QoreListNode *params, Exception
 {
    const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
 
-   printd(0, "glutReshapeFunc() params=%08p (%d) r=%08p (%d)\n", params, params ? params->needs_eval() : -1, r, r ? r->needs_eval() : -1);
+   //printd(5, "glutReshapeFunc() params=%08p (%d) r=%08p (%d)\n", params, params ? params->needs_eval() : -1, r, r ? r->needs_eval() : -1);
 
    AutoLocker al(&reshape_lock);
    glutReshapeFunc(r ? reshape_func : 0);
