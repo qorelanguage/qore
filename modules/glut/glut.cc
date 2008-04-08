@@ -134,7 +134,7 @@ static AbstractQoreNode *f_glutSwapBuffers(const QoreListNode *params, Exception
 
 void reshape_func(int width, int height)
 {
-   printd(0, "reshape_func(width=%d, height=%d) reshape_ref=%08p\n", width, height, reshape_ref);
+   //printd(5, "reshape_func(width=%d, height=%d) reshape_ref=%08p\n", width, height, reshape_ref);
    AutoLocker al(&reshape_lock);
    if (reshape_ref) {
       ExceptionSink xsink;
@@ -147,17 +147,17 @@ void reshape_func(int width, int height)
 
 void display_func()
 {
-   printd(0, "display_func() display_ref=%08p\n", display_ref);
+   //printd(5, "display_func() display_ref=%08p\n", display_ref);
    AutoLocker al(&display_lock);
    if (display_ref) {
       ExceptionSink xsink;
-      discard(reshape_ref->exec(0, &xsink), &xsink);
+      discard(display_ref->exec(0, &xsink), &xsink);
    }
 }
 
 void keyboard_func(unsigned char key, int x, int y)
 {
-   printd(0, "keyboard_func(key=%d (%c), x=%d, y=%d) keyboard_ref=%08p\n", key, key, x, y, keyboard_ref);
+   //printd(5, "keyboard_func(key=%d (%c), x=%d, y=%d) keyboard_ref=%08p\n", key, key, x, y, keyboard_ref);
    AutoLocker al(&keyboard_lock);
    if (keyboard_ref) {
       ExceptionSink xsink;
@@ -171,7 +171,7 @@ void keyboard_func(unsigned char key, int x, int y)
 
 void visibility_func(int state)
 {
-   printd(0, "visibility_func(state=%d) visibility_ref=%08p\n", state, visibility_ref);
+   //printd(5, "visibility_func(state=%d) visibility_ref=%08p\n", state, visibility_ref);
    AutoLocker al(&visibility_lock);
    if (visibility_ref) {
       ExceptionSink xsink;
@@ -183,7 +183,7 @@ void visibility_func(int state)
 
 void idle_func()
 {
-   printd(0, "idle_func() idle_ref=%08p\n", idle_ref);
+   //printd(5, "idle_func() idle_ref=%08p\n", idle_ref);
    AutoLocker al(&idle_lock);
    if (idle_ref) {
       ExceptionSink xsink;

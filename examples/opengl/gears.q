@@ -7,7 +7,6 @@
 
 const d_near = 1.0;
 const d_far = 2000;
-const poo = 0;
 const M_PI = 3.14159265358979323846;
 
 our $circle_subdiv;
@@ -111,8 +110,14 @@ sub tooth_side($nt, $ir, $or, $tp, $tip, $wd)
     my ($x, $y);
     my ($s, $c);
 
+
+    my $bound = 2.0 * M_PI - $end / 4.0;
     $or = $or * $ir;         # or is really a ratio of ir
-    for ($i = 0; $i < 2.0 * M_PI - $end / 4.0; $i += $end) {
+    for ($i = 0.0; $i < $bound; $i += $end) {
+
+	#printf("tooth_side(%n, %n, %n, %n, %n, %n) i=%n, bound=%n, end=%n\n", $nt, $ir, $or, $tp, $tip, $wd, $i, $bound, $end);
+
+
 	$c[0] = cos($i);
 	$s[0] = sin($i);
 	$c[1] = cos($i + $end * (0.5 - $tip / 2));
@@ -220,8 +225,7 @@ sub flat_face($ir, $or, $wd)
     my $w;
 
     # draw each face (top & bottom )
-    if (poo)
-	printf("Face  : %f..%f wid=%f\n", $ir, $or, $wd);
+    #printf("Face   : %n..%n wid=%n\n", $ir, $or, $wd);
     if ($wd == 0.0)
 	return;
     for ($w = $wd / 2; $w > -$wd; $w -= $wd) {
@@ -263,8 +267,7 @@ sub draw_inside($w1, $w2, $rad)
 {
     my ($i, $j);
     my ($c, $s);
-    if (poo)
-	printf("Inside: wid=%f..%f rad=%f\n", $w1, $w2, $rad);
+    #printf("Inside : wid=%n..%n rad=%n\n", $w1, $w2, $rad);
     if ($w1 == $w2)
 	return;
 
@@ -301,8 +304,7 @@ sub draw_outside($w1, $w2, $rad)
 {
     my ($i, $j);
     my ($c, $s);
-    if (poo)
-	printf("Outsid: wid=%f..%f rad=%f\n", $w1, $w2, $rad);
+    #printf("Outside: wid=%n..%n rad=%n\n", $w1, $w2, $rad);
 
     if ($w1 == $w2)
 	return;
@@ -338,6 +340,7 @@ sub draw_outside($w1, $w2, $rad)
 
 sub oneFrame()
 {
+    #printf("oneFrame()\n");
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
@@ -387,11 +390,13 @@ sub oneFrame()
 
 sub display()
 {
+    #printf("display()");
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 sub myReshape($w, $h)
 {
+    #printf("myReshape(%n, %n)\n", $w, $h);
     glViewport(0, 0, $w, $h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -403,6 +408,7 @@ sub myReshape($w, $h)
 
 sub visibility($status)
 {
+    #printf("visibility(%n)\n", $status);
     if ($status == GLUT_VISIBLE) {
 	glutIdleFunc(\oneFrame());
     } else {
@@ -473,7 +479,7 @@ sub myinit()
 
 sub keys($c, $x, $y)
 {
-    printf("keys: c=%s x=%d y=%d\n", $c, $x, $y);
+    #printf("keys: c=%s x=%d y=%d\n", $c, $x, $y);
     if ($c == 0x1b)
 	exit(0);
 }
