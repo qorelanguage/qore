@@ -473,8 +473,9 @@ sub myinit()
 
 sub keys($c, $x, $y)
 {
-  if ($c == 0x1b)
-    exit(0);
+    printf("keys: c=%s x=%d y=%d\n", $c, $x, $y);
+    if ($c == 0x1b)
+	exit(0);
 }
 
 sub main()

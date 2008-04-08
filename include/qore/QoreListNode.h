@@ -399,6 +399,9 @@ class QoreListNode : public AbstractQoreNode
       DLLLOCAL void clearNeedsEval();
 
       //! this function is not exported in the qore library
+      DLLLOCAL void setNeedsEval();
+
+      //! this function is not exported in the qore library
       DLLLOCAL void clear();
 
       //! this function is not exported in the qore library

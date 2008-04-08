@@ -612,6 +612,12 @@ void QoreHashNode::clearNeedsEval()
    needs_eval_flag = false;
 }
 
+void QoreHashNode::setNeedsEval()
+{
+   value = false;
+   needs_eval_flag = true;
+}
+
 int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
    if (!size()) {

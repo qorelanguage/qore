@@ -134,6 +134,7 @@ static AbstractQoreNode *f_glutSwapBuffers(const QoreListNode *params, Exception
 
 void reshape_func(int width, int height)
 {
+   printd(0, "reshape_func(width=%d, height=%d) reshape_ref=%08p\n", width, height, reshape_ref);
    AutoLocker al(&reshape_lock);
    if (reshape_ref) {
       ExceptionSink xsink;
@@ -146,6 +147,7 @@ void reshape_func(int width, int height)
 
 void display_func()
 {
+   printd(0, "display_func() display_ref=%08p\n", display_ref);
    AutoLocker al(&display_lock);
    if (display_ref) {
       ExceptionSink xsink;
@@ -155,6 +157,7 @@ void display_func()
 
 void keyboard_func(unsigned char key, int x, int y)
 {
+   printd(0, "keyboard_func(key=%d (%c), x=%d, y=%d) keyboard_ref=%08p\n", key, key, x, y, keyboard_ref);
    AutoLocker al(&keyboard_lock);
    if (keyboard_ref) {
       ExceptionSink xsink;
@@ -168,6 +171,7 @@ void keyboard_func(unsigned char key, int x, int y)
 
 void visibility_func(int state)
 {
+   printd(0, "visibility_func(state=%d) visibility_ref=%08p\n", state, visibility_ref);
    AutoLocker al(&visibility_lock);
    if (visibility_ref) {
       ExceptionSink xsink;
@@ -179,6 +183,7 @@ void visibility_func(int state)
 
 void idle_func()
 {
+   printd(0, "idle_func() idle_ref=%08p\n", idle_ref);
    AutoLocker al(&idle_lock);
    if (idle_ref) {
       ExceptionSink xsink;
@@ -189,12 +194,14 @@ void idle_func()
 static AbstractQoreNode *f_glutReshapeFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
    const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+
+   printd(0, "glutReshapeFunc() params=%08p (%d) r=%08p (%d)\n", params, params ? params->needs_eval() : -1, r, r ? r->needs_eval() : -1);
+
    AutoLocker al(&reshape_lock);
    glutReshapeFunc(r ? reshape_func : 0);
-   if (reshape_ref) {
+   if (reshape_ref)
       reshape_ref->deref(xsink);
-      reshape_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
-   }
+   reshape_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -206,10 +213,9 @@ static AbstractQoreNode *f_glutDisplayFunc(const QoreListNode *params, Exception
    const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
    AutoLocker al(&display_lock);
    glutDisplayFunc(r ? display_func : 0);
-   if (display_ref) {
+   if (display_ref)
       display_ref->deref(xsink);
-      display_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
-   }
+   display_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -221,10 +227,9 @@ static AbstractQoreNode *f_glutKeyboardFunc(const QoreListNode *params, Exceptio
    const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
    AutoLocker al(&keyboard_lock);
    glutKeyboardFunc(r ? keyboard_func : 0);
-   if (keyboard_ref) {
+   if (keyboard_ref)
       keyboard_ref->deref(xsink);
-      keyboard_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
-   }
+   keyboard_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -236,10 +241,9 @@ static AbstractQoreNode *f_glutVisibilityFunc(const QoreListNode *params, Except
    const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
    AutoLocker al(&visibility_lock);
    glutVisibilityFunc(r ? visibility_func : 0);
-   if (visibility_ref) {
+   if (visibility_ref)
       visibility_ref->deref(xsink);
-      visibility_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
-   }
+   visibility_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -251,10 +255,9 @@ static AbstractQoreNode *f_glutIdleFunc(const QoreListNode *params, ExceptionSin
    const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
    AutoLocker al(&idle_lock);
    glutIdleFunc(r ? idle_func : 0);
-   if (idle_ref) {
+   if (idle_ref)
       idle_ref->deref(xsink);
-      idle_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
-   }
+   idle_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
    if (r)
       r->ref();
 

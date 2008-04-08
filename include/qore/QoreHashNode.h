@@ -337,6 +337,9 @@ class QoreHashNode : public AbstractQoreNode
       //! sets "needs_eval" to false and "value" to true
       DLLLOCAL void clearNeedsEval();
 
+      //! sets "needs_eval" to true and "value" to false
+      DLLLOCAL void setNeedsEval();
+
       DLLLOCAL AbstractQoreNode *evalKeyValue(const QoreString *key, class ExceptionSink *xsink) const;
 
       // "key" is always passed in the default character encoding

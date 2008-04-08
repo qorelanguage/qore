@@ -299,8 +299,18 @@ int process_list_node_intern(QoreListNode *l, LocalVar *oflag, int pflag)
 {
    int lvids = 0;
 
-   for (unsigned i = 0; i < l->size(); i++)
-      lvids += process_node(l->get_entry_ptr(i), oflag, pflag);
+   // set needs_eval if previously 0 and one of the list members needs evaluation after being resolved
+   // for example with a resolved function reference
+   bool needs_eval = l->needs_eval();
+   for (unsigned i = 0; i < l->size(); i++) {
+      AbstractQoreNode **n = l->get_entry_ptr(i);
+      lvids += process_node(n, oflag, pflag);
+      if (!needs_eval && *n && (*n)->needs_eval()) {
+	 //printd(5, "setting needs_eval on list %08p\n", l);
+	 l->setNeedsEval();
+	 needs_eval = true;
+      }
+   }
    
    return lvids;
 }
@@ -454,17 +464,25 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       else if (f->getFunctionType() == FC_UNRESOLVED)
 	 getProgram()->resolveFunction(f);
       
-      if (f->args)
+      if (f->args) {
+	 bool needs_eval = f->args->needs_eval();
 	 for (unsigned i = 0; i < f->args->size(); i++) {
 	    AbstractQoreNode **n = f->args->get_entry_ptr(i);
-	    if ((*n)->getType() == NT_REFERENCE) {
-	       if (!f->existsUserParam(i))
-		  parse_error("not enough parameters in \"%s\" to accept reference expression", f->getName());
-	       lvids += process_node(n, oflag, pflag | PF_REFERENCE_OK);
+	    if (*n) {
+	       if ((*n)->getType() == NT_REFERENCE) {
+		  if (!f->existsUserParam(i))
+		     parse_error("not enough parameters in \"%s\" to accept reference expression", f->getName());
+		  lvids += process_node(n, oflag, pflag | PF_REFERENCE_OK);
+	       }
+	       else
+		  lvids += process_node(n, oflag, pflag);
+	       if (!needs_eval && (*n)->needs_eval()) {
+		  f->args->setNeedsEval();
+		  needs_eval = true;
+	       }
 	    }
-	    else
-	       lvids += process_node(n, oflag, pflag);
 	 }
+      }
 
       return lvids;
    }
@@ -493,6 +511,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 
    if (ntype == NT_HASH) {
       QoreHashNode *h = reinterpret_cast<QoreHashNode *>(*node);
+      bool needs_eval = h->needs_eval();
       HashIterator hi(h);
       while (hi.next()) {
 	 const char *k = hi.getKey();
@@ -525,8 +544,14 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 	    // delete the old key (not possible to have an exception here)
 	    hi.deleteKey(0);
 	 }
-	 if (value)
+	 if (value) {
 	    lvids += process_node(value, oflag, pflag);
+	    if (!needs_eval && *value && (*value)->needs_eval()) {
+	       //printd(5, "setting needs_eval on hash %08p\n", h);
+	       h->setNeedsEval();
+	       needs_eval = true;
+	    }
+	 }
       }
       return lvids;
    }
@@ -543,7 +568,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 
    if (ntype == NT_SELF_VARREF) {
       SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>(*node);
-      //printd(0, "process_node() SELF_REF '%s'  oflag=%d\n", v->str, oflag);
+      //printd(5, "process_node() SELF_REF '%s'  oflag=%d\n", v->str, oflag);
       if (!oflag)
 	 parse_error("cannot reference member \"%s\" out of an object member function definition", v->str);
       

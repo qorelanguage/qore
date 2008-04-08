@@ -506,13 +506,6 @@ double StaticUserFunctionReferenceNode::floatEvalImpl(ExceptionSink *xsink) cons
    return 0.0;
 }
 
-/*
-bool StaticUserFunctionReferenceNode::needs_eval() const
-{
-   return true;
-}
-*/
-
 AbstractQoreNode *StaticUserFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
    assert(false);

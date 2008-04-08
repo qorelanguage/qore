@@ -29,6 +29,7 @@ static AbstractQoreNode *f_sort(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
+
    const QoreListNode *l = dynamic_cast<const QoreListNode *>(lst);
    if (!l)
       return lst->refSelf();

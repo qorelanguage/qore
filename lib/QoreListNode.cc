@@ -808,6 +808,12 @@ void QoreListNode::clearNeedsEval()
    needs_eval_flag = false;
 }
 
+void QoreListNode::setNeedsEval()
+{
+   value = false;
+   needs_eval_flag = true;
+}
+
 AbstractQoreNode *QoreListNode::min() const
 {
    AbstractQoreNode *rv = 0;
