@@ -43,6 +43,10 @@ if COND_OPENGL
 SUBDIRS += opengl
 endif
 
+if COND_GLUT
+SUBDIRS += glut
+endif
+
 if COND_QT
 SUBDIRS += qt
 endif

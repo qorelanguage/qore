@@ -2113,6 +2113,163 @@ if test "${with_opengl}" = yes; then
   fi
 fi
 
+AC_ARG_WITH([glut],
+    [AS_HELP_STRING([--with-glut@<:@=DIR@:>@],
+                    [glut base directory])],
+    [if test ! -d "${with_glut}"; then AC_MSG_ERROR(directory ${with_glut} does not exist for --with-glut); unset with_glut; fi])
+
+AC_ARG_WITH([glut-libs],
+    [AS_HELP_STRING([--with-glut-libs@<:@=DIR@:>@],
+                    [glut library directory])],
+    [if test ! -d "${with_glut_libs}"; then AC_MSG_ERROR(directory ${with_glut_libs} does not exist for --with-glut-libs); unset with_glut_libs; fi])
+
+AC_ARG_WITH([glut-includes],
+    [AS_HELP_STRING([--with-glut-includes@<:@=DIR@:>@],
+                    [glut include file parent directory])],
+    [if test ! -d "${with_glut_includes}"; then AC_MSG_ERROR(directory ${with_glut_includes} does not exist for --with-glut-includes); unset with_glut_includes; fi])
+
+check_glut_include()
+{
+    if test -f "$1/glut.h"; then
+       found_glut_includes=$1
+    elif test -f "$1/GL/gl.h"; then
+       found_glut_includes=$1/GL
+    elif test -f "$1/glut/gl.h"; then
+       found_glut_includes=$1/glut
+    elif test "$2" = "err"; then
+       AC_MSG_ERROR([$1 is not a valid glut parent include directory])
+    fi
+}
+
+check_glut_lib()
+{
+    if test -f "$1/libGL.${SHLIB_SUFFIX}" -a "$1/libGLU.${SHLIB_SUFFIX}"; then
+       found_glut_libs=$lib
+    elif test "$2" = "err"; then
+    	AC_MSG_ERROR([$1 is not a valid glut library directory])
+    fi
+}
+
+check_glut()
+{
+    if test -z "$with_glut_includes"; then
+        inc="$1/include"
+        if test "$1" = "/"; then
+       	    inc=/usr/include
+        fi
+	check_glut_include $inc
+
+	if test -z "$found_glut_includes"; then
+	    #echo DBG: glut $1 $inc includes not found
+       	    return
+    	fi
+	with_glut_includes="$found_glut_includes"
+	unset found_glut_includes
+    fi
+
+    if test -z "$with_glut_libs"; then
+        lib="$1/lib${LIBSUFFIX}"
+
+	check_glut_lib $lib
+    	if test -z "$found_glut_libs"; then
+       	    #echo DBG: glut $1 $lib libs not found
+       	    unset with_glut_includes
+       	    return
+    	fi
+	with_glut_libs="$found_glut_libs"
+    fi
+    if test "$with_glut_libs" != "/lib${LIBSUFFIX}"; then
+        glut_app_libs=true
+    fi
+}
+
+# see if we can figure out where the glut include files and libraries are
+if test "${with_glut}" != "no"; then
+   AC_MSG_CHECKING([for glut includes and libraries])
+
+   if test -n "$with_glut_includes" -a -n "$with_glut_libs"; then
+      check_glut_includes "$with_glut_includes" err
+      check_glut_libs "$with_glut_libs" err
+   else
+      if test -n "$with_glut"; then
+      	 check_glut "$with_glut"
+      	 if test -z "$with_glut_includes"; then
+	    AC_MSG_ERROR([not found in $with_glut])
+      	 fi
+      else
+         # check for frameworks on darwin
+	 if test -n "$darwin" -a -d /System/Library/Frameworks/GLUT.framework; then
+	    glut_framework="/System/Library/Frameworks"
+	    GLUT_INCLUDES="-I /System/Library/Frameworks/GLUT.framework/Headers"
+	    GLUT_LIBS="-framework GLUT"
+	 else
+	    for dir in $GLUT_DIR / /usr /usr/local /opt/glut /usr/glut /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+      	       check_glut $dir
+      	       if test -n "$with_glut_includes"; then
+	          break;
+      	       fi
+   	    done
+         fi
+      fi
+   fi
+
+   if test -n "$glut_framework"; then
+      AC_MSG_RESULT([using Darwin frameworks in $glut_framework])
+      with_glut=yes
+   else
+      if test -n "$with_glut_includes"; then
+         if test -n "$glut_static"; then
+	    AC_MSG_RESULT([includes=$with_glut_includes, libs=$with_glut_libs (static)])
+      	 else
+	    AC_MSG_RESULT([includes=$with_glut_includes, libs=$with_glut_libs (shared)])
+      	 fi
+      	 with_glut=yes
+      else
+	 AC_MSG_RESULT([not found])
+         unset with_glut
+      fi
+   fi
+fi
+
+if test "${with_glut}" = yes; then
+  if test -n "$with_glut_includes" -o -n "$glut_framework"; then
+     if test -z "$GLUT_INCLUDES"; then
+        GLUT_INCLUDES="-I$with_glut_includes"
+     fi
+     if test -z "$GLUT_LIBS"; then
+	GLUT_LIBS="-lGL -lGLU"
+	if test -n "$glut_app_libs"; then
+	   GLUT_LIBS="-L$with_glut_libs $GLUT_LIBS"
+	fi
+     fi
+
+     # check if C++ compiler can link with GLUT libs
+     SAVE_CXXFLAGS="$CXXFLAGS"
+     SAVE_LDFLAGS="$LDFLAGS"
+     CXXFLAGS="$CXXFLAGS $GLUT_INCLUDES"
+     LDFLAGS="$LDFLAGS $GLUT_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <glut.h>
+	 ]],[[
+   glutInit(0, 0);
+	]])], glut_links=yes, glut_links=no)
+
+     CXXFLAGS="$SAVE_CXXFLAGS"
+     LDFLAGS="$SAVE_LDFLAGS"
+
+     if test "$glut_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test glut program])
+     else
+        AC_SUBST(GLUT_INCLUDES)
+	AC_SUBST(GLUT_LIBS)
+        with_glut=yes
+     fi
+  else
+     AC_MSG_WARN([no glut libraries or includes found, disabling glut support])
+     unset with_glut
+  fi
+fi
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
@@ -2350,11 +2507,12 @@ AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_QT],         [test "$with_qt" = yes])
 AM_CONDITIONAL([COND_OPENGL],     [test "$with_opengl" = yes])
+AM_CONDITIONAL([COND_GLUT],       [test "$with_glut" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/opengl/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/opengl/Makefile modules/glut/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -2395,6 +2553,7 @@ show_library_feature tibae $with_tibae
 show_library_feature tuxedo $with_tuxedo
 show_library_feature qt $with_qt
 show_library_feature opengl $with_opengl
+show_library_feature glut $with_glut
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules

@@ -1,3 +1,6 @@
+2008.04.08: David Nichols
+	* glut: started adding glut module
+
 2008.04.07: David Nichols
 	* opengl: started adding opengl module
 

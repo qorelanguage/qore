@@ -1,5 +1,5 @@
 /*
-  qore-opengl.h
+  qore-glut.h
   
   Qore Programming Language
 
@@ -20,14 +20,14 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_OPENGL_H
+#ifndef _QORE_GLUT_H
 
-#define _QORE_OPENGL_H
+#define _QORE_GLUT_H
 
-#include "gl.h"
+#include "glut.h"
 
-DLLLOCAL void addOpenGLConstants();
+DLLLOCAL void addGlutConstants();
 
-DLLLOCAL extern QoreNamespace opengl_ns;
+DLLLOCAL extern QoreNamespace glut_ns;
 
 #endif 

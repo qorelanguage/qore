@@ -904,6 +904,293 @@ static AbstractQoreNode *f_glDepthFunc(const QoreListNode *params, ExceptionSink
    return 0;
 }
 
+//void glNormal3b( GLbyte nx, GLbyte ny, GLbyte nz )
+static AbstractQoreNode *f_glNormal3b(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLbyte nx = (GLbyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLbyte ny = (GLbyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLbyte nz = (GLbyte)(p ? p->getAsInt() : 0);
+   glNormal3b(nx, ny, nz);
+   return 0;
+}
+
+//void glNormal3d( GLdouble nx, GLdouble ny, GLdouble nz )
+static AbstractQoreNode *f_glNormal3d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble nx = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble ny = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble nz = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glNormal3d(nx, ny, nz);
+   return 0;
+}
+
+//void glNormal3f( GLfloat nx, GLfloat ny, GLfloat nz )
+static AbstractQoreNode *f_glNormal3f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat nx = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat ny = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat nz = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glNormal3f(nx, ny, nz);
+   return 0;
+}
+
+//void glNormal3i( GLint nx, GLint ny, GLint nz )
+static AbstractQoreNode *f_glNormal3i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint nx = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint ny = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint nz = (GLint)(p ? p->getAsInt() : 0);
+   glNormal3i(nx, ny, nz);
+   return 0;
+}
+
+//void glNormal3s( GLshort nx, GLshort ny, GLshort nz )
+static AbstractQoreNode *f_glNormal3s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort nx = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort ny = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort nz = (GLshort)(p ? p->getAsInt() : 0);
+   glNormal3s(nx, ny, nz);
+   return 0;
+}
+
+//void glLightf( GLenum light, GLenum pname, GLfloat param )
+static AbstractQoreNode *f_glLightf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum light = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glLightf(light, pname, param);
+   return 0;
+}
+
+//void glLighti( GLenum light, GLenum pname, GLint param )
+static AbstractQoreNode *f_glLighti(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum light = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glLighti(light, pname, param);
+   return 0;
+}
+
+//void glMaterialf( GLenum face, GLenum pname, GLfloat param )
+static AbstractQoreNode *f_glMaterialf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glMaterialf(face, pname, param);
+   return 0;
+}
+
+//void glMateriali( GLenum face, GLenum pname, GLint param )
+static AbstractQoreNode *f_glMateriali(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glMateriali(face, pname, param);
+   return 0;
+}
+
+//void glClearColor( GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha )
+static AbstractQoreNode *f_glClearColor(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLclampf red = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLclampf green = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLclampf blue = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLclampf alpha = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   glClearColor(red, green, blue, alpha);
+   return 0;
+}
+
+static int get_num_light_args(GLenum name)
+{
+   switch (name)
+   {
+      case GL_AMBIENT:
+      case GL_DIFFUSE:
+      case GL_SPECULAR:
+      case GL_POSITION:
+	 return 4;
+
+      case GL_SPOT_DIRECTION:
+	 return 3;
+
+      case GL_SPOT_EXPONENT:
+      case GL_SPOT_CUTOFF:
+      case GL_CONSTANT_ATTENUATION:
+      case GL_LINEAR_ATTENUATION:
+      case GL_QUADRATIC_ATTENUATION:
+	 return 1;
+   }
+   return -1;
+}
+
+static AbstractQoreNode *f_glLightfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum light = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLLIGHTFV-ERROR", "expecing a list as third argument");
+      return 0;
+   }
+
+   int num = get_num_light_args(pname);
+   if (num == -1) {
+      xsink->raiseException("GLLIGHTFV-ERROR", "unrecognized light parameter code %d", (int)pname);
+      return 0;      
+   }
+
+   GLfloat a[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      a[i] = p ? p->getAsFloat() : 0.0;
+   }
+
+   glLightfv(light, pname, a);
+   return 0;
+}
+
+static AbstractQoreNode *f_glLightiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum light = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLLIGHTFV-ERROR", "expecing a list as third argument");
+      return 0;
+   }
+
+   int num = get_num_light_args(pname);
+   if (num == -1) {
+      xsink->raiseException("GLLIGHTFV-ERROR", "unrecognized light parameter code %d", (int)pname);
+      return 0;      
+   }
+
+   GLint a[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      a[i] = p ? p->getAsBigInt() : 0.0;
+   }
+
+   glLightiv(light, pname, a);
+   return 0;
+}
+
+static int get_num_material_args(GLenum name)
+{
+   switch (name)
+   {
+      case GL_AMBIENT:
+      case GL_DIFFUSE:
+      case GL_SPECULAR:
+      case GL_EMISSION:
+      case GL_AMBIENT_AND_DIFFUSE:
+	 return 4;
+
+      case GL_COLOR_INDEXES:
+	 return 3;
+
+      case GL_SHININESS:
+	 return 1;
+   }
+   return -1;
+}
+
+static AbstractQoreNode *f_glMaterialfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum material = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLMATERIALFV-ERROR", "expecing a list as third argument");
+      return 0;
+   }
+
+   int num = get_num_material_args(pname);
+   if (num == -1) {
+      xsink->raiseException("GLMATERIALFV-ERROR", "unrecognized material parameter code %d", (int)pname);
+      return 0;      
+   }
+
+   GLfloat a[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      a[i] = p ? p->getAsFloat() : 0.0;
+   }
+
+   glMaterialfv(material, pname, a);
+   return 0;
+}
+
+static AbstractQoreNode *f_glMaterialiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum material = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLMATERIALFV-ERROR", "expecing a list as third argument");
+      return 0;
+   }
+
+   int num = get_num_material_args(pname);
+   if (num == -1) {
+      xsink->raiseException("GLMATERIALFV-ERROR", "unrecognized material parameter code %d", (int)pname);
+      return 0;      
+   }
+
+   GLint a[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      a[i] = p ? p->getAsBigInt() : 0.0;
+   }
+
+   glMaterialiv(material, pname, a);
+   return 0;
+}
+
 static QoreStringNode *opengl_module_init()
 {
    builtinFunctions.add("glGenLists",                   f_glGenLists);
@@ -945,6 +1232,7 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glVertex4s",                   f_glVertex4s);
 
    builtinFunctions.add("glClear",                      f_glClear);
+   builtinFunctions.add("glClearColor",                 f_glClearColor);
    builtinFunctions.add("glPushAttrib",                 f_glPushAttrib);
    builtinFunctions.add("glPopAttrib",                  f_glPopAttrib);
    builtinFunctions.add("glMatrixMode",                 f_glMatrixMode);
@@ -959,8 +1247,10 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glDisable",                    f_glDisable);
    builtinFunctions.add("glBlendFunc",                  f_glBlendFunc);
    builtinFunctions.add("glBindTexture",                f_glBindTexture);
+
    builtinFunctions.add("glScaled",                     f_glScaled);
    builtinFunctions.add("glScalef",                     f_glScalef);
+
    builtinFunctions.add("glColor3b",                    f_glColor3b);
    builtinFunctions.add("glColor3d",                    f_glColor3d);
    builtinFunctions.add("glColor3f",                    f_glColor3f);
@@ -981,6 +1271,22 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glRotated",                    f_glRotated);
    builtinFunctions.add("glRotatef",                    f_glRotatef);
    builtinFunctions.add("glDepthFunc",                  f_glDepthFunc);
+
+   builtinFunctions.add("glNormal3b",                   f_glNormal3b);
+   builtinFunctions.add("glNormal3d",                   f_glNormal3d);
+   builtinFunctions.add("glNormal3f",                   f_glNormal3f);
+   builtinFunctions.add("glNormal3i",                   f_glNormal3i);
+   builtinFunctions.add("glNormal3s",                   f_glNormal3s);
+
+   builtinFunctions.add("glLightf",                     f_glLightf);
+   builtinFunctions.add("glLighti",                     f_glLighti);
+   builtinFunctions.add("glLightfv",                    f_glLightfv);
+   builtinFunctions.add("glLightiv",                    f_glLightiv);
+
+   builtinFunctions.add("glMaterialf",                  f_glMaterialf);
+   builtinFunctions.add("glMateriali",                  f_glMateriali);
+   builtinFunctions.add("glMaterialfv",                 f_glMaterialfv);
+   builtinFunctions.add("glMaterialiv",                 f_glMaterialiv);
 
    addOpenGLConstants();
 

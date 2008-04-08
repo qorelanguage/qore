@@ -607,6 +607,7 @@ trim					return TOK_TRIM;
 on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
+keys\(                                  yylval->string = strdup("keys"); return KW_IDENTIFIER_OPENPAREN;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
 trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
 push\(                                  yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
