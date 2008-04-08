@@ -1,5 +1,7 @@
 2008.04.08: David Nichols
 	* glut: started adding glut module
+	* opengl: added gears.q example of classic 3 spinning gears
+	* opengl: renamed old slow gears example to gears2.q
 
 2008.04.07: David Nichols
 	* opengl: started adding opengl module

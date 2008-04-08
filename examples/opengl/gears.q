@@ -1,510 +1,297 @@
 #!/usr/bin/env qore
 
+%require-our
+
 %requires opengl
 %requires glut
 
-%require-our
-
-const d_near = 1.0;
-const d_far = 2000;
 const M_PI = 3.14159265358979323846;
 
-our $circle_subdiv;
+our $view_rotx = 20.0;
+our $view_roty = 30.0;
+our $view_rotz = 0.0;
+our ($gear1, $gear2, $gear3);
+our $angle = 0.0;
 
-our $gear_profile = (( "rad" : 0.000, "wid" : 0.0 ),
-		     ( "rad" : 0.300, "wid" : 7.0 ),
-		     ( "rad" : 0.340, "wid" : 0.4 ),
-		     ( "rad" : 0.550, "wid" : 0.64 ),
-		     ( "rad" : 0.600, "wid" : 0.4 ),
-		     ( "rad" : 0.950, "wid" : 1.0 ));
+our $limit;
+our $count = 1;
 
-our $a1 = 27.0;
-our $a2 = 67.0;
-our $a3 = 47.0;
-our $a4 = 87.0;
-our $i1 = 1.2;
-our $i2 = 3.1;
-our $i3 = 2.3;
-our $i4 = 1.1;
+const pos = ( 5.0, 5.0, 10.0, 0.0 );
+const red = ( 0.8, 0.1, 0.0, 1.0 );
+const green = ( 0.0, 0.8, 0.2, 1.0 );
+const blue = ( 0.2, 0.2, 1.0, 1.0 );
 
-sub gear($nt, $wd, $ir, $or, $tp, $tip, $ip)
-{
-    # * nt - number of teeth 
-    # * wd - width of gear at teeth
-    # * ir - inside radius absolute scale
-    # * or - radius at outside of wheel (tip of tooth) ratio of ir
-    # * tp - ratio of tooth in slice of circle (0..1] (1 = teeth are touching at base)
-    # * tip - ratio of tip of tooth (0..tp] (cant be wider that base of tooth)
-    # * ns - number of elements in wheel width profile
-    # * *ip - list of float pairs {start radius, width, ...} (width is ratio to wd)
-    
-    # gear lying on xy plane, z for width. all normals calulated (normalized)
+#  Draw a gear wheel.  You'll probably want to call this function when
+#  building a display list since we do a lot of trig here.
+# 
+#  Input:  inner_radius - radius of hole at center
+#          outer_radius - radius at center of teeth
+#          width - width of gear
+#          teeth - number of teeth
+#          tooth_depth - depth of tooth
 
-    my $ns = elements $ip;
-	
-    my $prev;
-    my ($k, $t);
-    
-    # estimate # times to divide circle
-    if ($nt <= 0)
-	$circle_subdiv = 64;
-    else {
-	# lowest multiple of number of teeth
-	$circle_subdiv = $nt;
-	while ($circle_subdiv < 64)
-	    $circle_subdiv += $nt;
-    }
-
-    # --- draw wheel face ---
-
-    # draw horzontal, vertical faces for each section. if first
-    # section radius not zero, use wd for 0.. first if ns == 0
-    # use wd for whole face. last width used to edge.
-
-    if ($ns <= 0) {
-	flat_face(0.0, $ir, $wd);
-    } else {
-	# draw first flat_face, then continue in loop
-	if ($ip[0].rad > 0.0) {
-	    flat_face(0.0, $ip[0].rad * $ir, $wd);
-	    $prev = $wd;
-	    $t = 0;
-	} else {
-	    flat_face(0.0, $ip[1].rad * $ir, $ip[0].wid * $wd);
-	    $prev = $ip[0].wid;
-	    $t = 1;
-	}
-	for ($k = $t; $k < $ns; $k++) {
-	    if ($prev < $ip[$k].wid) {
-		draw_inside($prev * $wd, $ip[$k].wid * $wd, $ip[$k].rad * $ir);
-	    } else {
-		draw_outside($prev * $wd, $ip[$k].wid * $wd, $ip[$k].rad * $ir);
-	    }
-	    $prev = $ip[$k].wid;
-	    # - draw to edge of wheel, add final face if needed
-		if ($k == $ns - 1) {
-		    flat_face($ip[$k].rad * $ir, $ir, $ip[$k].wid * $wd);
-		    
-		    # now draw side to match tooth rim
-		    if ($ip[$k].wid < 1.0) {
-			draw_inside($ip[$k].wid * $wd, $wd, $ir);
-		    } else {
-			draw_outside($ip[$k].wid * $wd, $wd, $ir);
-		    }
-		} else {
-		    flat_face($ip[$k].rad * $ir, $ip[$k + 1].rad * $ir, $ip[$k].wid * $wd);
-		}
-	}
-    }
-    
-    # --- tooth side faces ---
-    tooth_side($nt, $ir, $or, $tp, $tip, $wd);
-
-    # --- tooth hill surface ---
-}
-
-sub tooth_side($nt, $ir, $or, $tp, $tip, $wd)
+sub gear($inner_radius, $outer_radius, $width, $teeth, $tooth_depth)
 {
     my $i;
-    my $end = 2.0 * M_PI / $nt;
-    my ($x, $y);
-    my ($s, $c);
+    my $angle;
+    my ($u, $v, $len);
 
+    my $r0 = $inner_radius;
+    my $r1 = $outer_radius - $tooth_depth / 2.0;
+    my $r2 = $outer_radius + $tooth_depth / 2.0;
 
-    my $bound = 2.0 * M_PI - $end / 4.0;
-    $or = $or * $ir;         # or is really a ratio of ir
-    for ($i = 0.0; $i < $bound; $i += $end) {
+    my $da = 2.0 * M_PI / $teeth / 4.0;
 
-	#printf("tooth_side(%n, %n, %n, %n, %n, %n) i=%n, bound=%n, end=%n\n", $nt, $ir, $or, $tp, $tip, $wd, $i, $bound, $end);
+    glShadeModel(GL_FLAT);
 
+    glNormal3f(0.0, 0.0, 1.0);
 
-	$c[0] = cos($i);
-	$s[0] = sin($i);
-	$c[1] = cos($i + $end * (0.5 - $tip / 2));
-	$s[1] = sin($i + $end * (0.5 - $tip / 2));
-	$c[2] = cos($i + $end * (0.5 + $tp / 2));
-	$s[2] = sin($i + $end * (0.5 + $tp / 2));
-	
-	$x[0] = $ir * $c[0];
-	$y[0] = $ir * $s[0];
-	$x[5] = $ir * cos($i + $end);
-	$y[5] = $ir * sin($i + $end);
-	# ---treat veritices 1,4 special to match strait edge of face
-	$x[1] = $x[0] + ($x[5] - $x[0]) * (0.5 - $tp / 2);
-	$y[1] = $y[0] + ($y[5] - $y[0]) * (0.5 - $tp / 2);
-	$x[4] = $x[0] + ($x[5] - $x[0]) * (0.5 + $tp / 2);
-	$y[4] = $y[0] + ($y[5] - $y[0]) * (0.5 + $tp / 2);
-	$x[2] = $or * cos($i + $end * (0.5 - $tip / 2));
-	$y[2] = $or * sin($i + $end * (0.5 - $tip / 2));
-	$x[3] = $or * cos($i + $end * (0.5 + $tip / 2));
-	$y[3] = $or * sin($i + $end * (0.5 + $tip / 2));
-
-	# draw face trapezoids as 2 tmesh
-	glNormal3f(0.0, 0.0, 1.0);
-	glBegin(GL_TRIANGLE_STRIP);
-	glVertex3f($x[2], $y[2], $wd / 2);
-	glVertex3f($x[1], $y[1], $wd / 2);
-	glVertex3f($x[3], $y[3], $wd / 2);
-	glVertex3f($x[4], $y[4], $wd / 2);
-	glEnd();
-
-	glNormal3f(0.0, 0.0, -1.0);
-	glBegin(GL_TRIANGLE_STRIP);
-	glVertex3f($x[2], $y[2], -$wd / 2);
-	glVertex3f($x[1], $y[1], -$wd / 2);
-	glVertex3f($x[3], $y[3], -$wd / 2);
-	glVertex3f($x[4], $y[4], -$wd / 2);
-	glEnd();
-
-	# draw inside rim pieces
-	glNormal3f($c[0], $s[0], 0.0);
-	glBegin(GL_TRIANGLE_STRIP);
-	glVertex3f($x[0], $y[0], -$wd / 2);
-	glVertex3f($x[1], $y[1], -$wd / 2);
-	glVertex3f($x[0], $y[0], $wd / 2);
-	glVertex3f($x[1], $y[1], $wd / 2);
-	glEnd();
-
-	# draw up hill side
-	{
-	    my ($a, $b, $n);
-	    # calculate normal of face
-	    $a = $x[2] - $x[1];
-	    $b = $y[2] - $y[1];
-	    $n = 1.0 / sqrt($a * $a + $b * $b);
-	    $a = $a * $n;
-	    $b = $b * $n;
-	    glNormal3f($b, -$a, 0.0);
-	}
-	glBegin(GL_TRIANGLE_STRIP);
-	glVertex3f($x[1], $y[1], -$wd / 2);
-	glVertex3f($x[2], $y[2], -$wd / 2);
-	glVertex3f($x[1], $y[1], $wd / 2);
-	glVertex3f($x[2], $y[2], $wd / 2);
-	glEnd();
-	# draw top of hill
-	glNormal3f($c[1], $s[1], 0.0);
-	glBegin(GL_TRIANGLE_STRIP);
-	glVertex3f($x[2], $y[2], -$wd / 2);
-	glVertex3f($x[3], $y[3], -$wd / 2);
-	glVertex3f($x[2], $y[2], $wd / 2);
-	glVertex3f($x[3], $y[3], $wd / 2);
-	glEnd();
-
-	# draw down hill side
-	{
-	    my ($a, $b, $c);
-	    # calculate normal of face
-	    $a = $x[4] - $x[3];
-	    $b = $y[4] - $y[3];
-	    $c = 1.0 / sqrt($a * $a + $b * $b);
-	    $a = $a * $c;
-	    $b = $b * $c;
-	    glNormal3f($b, -$a, 0.0);
-	}
-	glBegin(GL_TRIANGLE_STRIP);
-	glVertex3f($x[3], $y[3], -$wd / 2);
-	glVertex3f($x[4], $y[4], -$wd / 2);
-	glVertex3f($x[3], $y[3], $wd / 2);
-	glVertex3f($x[4], $y[4], $wd / 2);
-	glEnd();
-	# inside rim part 
-	glNormal3f($c[2], $s[2], 0.0);
-	glBegin(GL_TRIANGLE_STRIP);
-	glVertex3f($x[4], $y[4], -$wd / 2);
-	glVertex3f($x[5], $y[5], -$wd / 2);
-	glVertex3f($x[4], $y[4], $wd / 2);
-	glVertex3f($x[5], $y[5], $wd / 2);
-	glEnd();
+    # draw front face
+    glBegin(GL_QUAD_STRIP);
+    for ($i = 0; $i <= $teeth; $i++) {
+	$angle = $i * 2.0 * M_PI / $teeth;
+	glVertex3f($r0 * cos($angle), $r0 * sin($angle), $width * 0.5);
+	glVertex3f($r1 * cos($angle), $r1 * sin($angle), $width * 0.5);
+	glVertex3f($r0 * cos($angle), $r0 * sin($angle), $width * 0.5);
+	glVertex3f($r1 * cos($angle + 3 * $da), $r1 * sin($angle + 3 * $da), $width * 0.5);
     }
+    glEnd();
+
+    # draw front sides of teeth
+    glBegin(GL_QUADS);
+    $da = 2.0 * M_PI / $teeth / 4.0;
+    for ($i = 0; $i < $teeth; $i++) {
+	$angle = $i * 2.0 * M_PI / $teeth;
+
+	glVertex3f($r1 * cos($angle), $r1 * sin($angle), $width * 0.5);
+	glVertex3f($r2 * cos($angle + $da), $r2 * sin($angle + $da), $width * 0.5);
+	glVertex3f($r2 * cos($angle + 2 * $da), $r2 * sin($angle + 2 * $da), $width * 0.5);
+	glVertex3f($r1 * cos($angle + 3 * $da), $r1 * sin($angle + 3 * $da), $width * 0.5);
+    }
+    glEnd();
+
+    glNormal3f(0.0, 0.0, -1.0);
+
+    # draw back face
+    glBegin(GL_QUAD_STRIP);
+    for ($i = 0; $i <= $teeth; $i++) {
+	$angle = $i * 2.0 * M_PI / $teeth;
+	glVertex3f($r1 * cos($angle), $r1 * sin($angle), -$width * 0.5);
+	glVertex3f($r0 * cos($angle), $r0 * sin($angle), -$width * 0.5);
+	glVertex3f($r1 * cos($angle + 3 * $da), $r1 * sin($angle + 3 * $da), -$width * 0.5);
+	glVertex3f($r0 * cos($angle), $r0 * sin($angle), -$width * 0.5);
+    }
+    glEnd();
+
+    # draw back sides of teeth
+    glBegin(GL_QUADS);
+    $da = 2.0 * M_PI / $teeth / 4.0;
+    for ($i = 0; $i < $teeth; $i++) {
+	$angle = $i * 2.0 * M_PI / $teeth;
+
+	glVertex3f($r1 * cos($angle + 3 * $da), $r1 * sin($angle + 3 * $da), -$width * 0.5);
+	glVertex3f($r2 * cos($angle + 2 * $da), $r2 * sin($angle + 2 * $da), -$width * 0.5);
+	glVertex3f($r2 * cos($angle + $da), $r2 * sin($angle + $da), -$width * 0.5);
+	glVertex3f($r1 * cos($angle), $r1 * sin($angle), -$width * 0.5);
+    }
+    glEnd();
+
+    # draw outward faces of teeth
+    glBegin(GL_QUAD_STRIP);
+    for ($i = 0; $i < $teeth; $i++) {
+	$angle = $i * 2.0 * M_PI / $teeth;
+
+	glVertex3f($r1 * cos($angle), $r1 * sin($angle), $width * 0.5);
+	glVertex3f($r1 * cos($angle), $r1 * sin($angle), -$width * 0.5);
+	$u = $r2 * cos($angle + $da) - $r1 * cos($angle);
+	$v = $r2 * sin($angle + $da) - $r1 * sin($angle);
+	$len = sqrt($u * $u + $v * $v);
+	$u /= $len;
+	$v /= $len;
+	glNormal3f($v, -$u, 0.0);
+	glVertex3f($r2 * cos($angle + $da), $r2 * sin($angle + $da), $width * 0.5);
+	glVertex3f($r2 * cos($angle + $da), $r2 * sin($angle + $da), -$width * 0.5);
+	glNormal3f(cos($angle), sin($angle), 0.0);
+	glVertex3f($r2 * cos($angle + 2 * $da), $r2 * sin($angle + 2 * $da), $width * 0.5);
+	glVertex3f($r2 * cos($angle + 2 * $da), $r2 * sin($angle + 2 * $da), -$width * 0.5);
+	$u = $r1 * cos($angle + 3 * $da) - $r2 * cos($angle + 2 * $da);
+	$v = $r1 * sin($angle + 3 * $da) - $r2 * sin($angle + 2 * $da);
+	glNormal3f($v, -$u, 0.0);
+	glVertex3f($r1 * cos($angle + 3 * $da), $r1 * sin($angle + 3 * $da), $width * 0.5);
+	glVertex3f($r1 * cos($angle + 3 * $da), $r1 * sin($angle + 3 * $da), -$width * 0.5);
+	glNormal3f(cos($angle), sin($angle), 0.0);
+    }
+
+    glVertex3f($r1 * cos(0), $r1 * sin(0), $width * 0.5);
+    glVertex3f($r1 * cos(0), $r1 * sin(0), -$width * 0.5);
+
+    glEnd();
+
+    glShadeModel(GL_SMOOTH);
+
+    # draw inside radius cylinder
+    glBegin(GL_QUAD_STRIP);
+    for ($i = 0; $i <= $teeth; $i++) {
+	$angle = $i * 2.0 * M_PI / $teeth;
+
+	glNormal3f(-cos($angle), -sin($angle), 0.0);
+	glVertex3f($r0 * cos($angle), $r0 * sin($angle), -$width * 0.5);
+	glVertex3f($r0 * cos($angle), $r0 * sin($angle), $width * 0.5);
+    }
+    glEnd();
 }
 
-sub flat_face($ir, $or, $wd)
+sub draw()
 {
-    my $i;
-    my $w;
-
-    # draw each face (top & bottom )
-    #printf("Face   : %n..%n wid=%n\n", $ir, $or, $wd);
-    if ($wd == 0.0)
-	return;
-    for ($w = $wd / 2; $w > -$wd; $w -= $wd) {
-	if ($w > 0.0)
-	    glNormal3f(0.0, 0.0, 1.0);
-	else
-	    glNormal3f(0.0, 0.0, -1.0);
-
-	if ($ir == 0.0) {
-	    # draw as t-fan
-	    glBegin(GL_TRIANGLE_FAN);
-	    glVertex3f(0.0, 0.0, $w);  #/* center */
-	    glVertex3f($or, 0.0, $w);
-	    for ($i = 1; $i < $circle_subdiv; $i++) {
-		glVertex3f(cos(2.0 * M_PI * $i / $circle_subdiv) * $or,
-			   sin(2.0 * M_PI * $i / $circle_subdiv) * $or, $w);
-	    }
-	    glVertex3f($or, 0.0, $w);
-	    glEnd();
-	} else {
-	    #/* draw as tmesh */
-	    glBegin(GL_TRIANGLE_STRIP);
-	    glVertex3f($or, 0.0, $w);
-	    glVertex3f($ir, 0.0, $w);
-	    for ($i = 1; $i < $circle_subdiv; $i++) {
-		glVertex3f(cos(2.0 * M_PI * $i / $circle_subdiv) * $or,
-			   sin(2.0 * M_PI * $i / $circle_subdiv) * $or, $w);
-		glVertex3f(cos(2.0 * M_PI * $i / $circle_subdiv) * $ir,
-			   sin(2.0 * M_PI * $i / $circle_subdiv) * $ir, $w);
-	    }
-	    glVertex3f($or, 0.0, $w);
-	    glVertex3f($ir, 0.0, $w);
-	    glEnd();
-	}
-    }
-}
-
-sub draw_inside($w1, $w2, $rad)
-{
-    my ($i, $j);
-    my ($c, $s);
-    #printf("Inside : wid=%n..%n rad=%n\n", $w1, $w2, $rad);
-    if ($w1 == $w2)
-	return;
-
-    $w1 = $w1 / 2;
-    $w2 = $w2 / 2;
-    for ($j = 0; $j < 2; $j++) {
-	if ($j == 1) {
-	    $w1 = -$w1;
-	    $w2 = -$w2;
-	}
-	glBegin(GL_TRIANGLE_STRIP);
-	glNormal3f(-1.0, 0.0, 0.0);
-	glVertex3f($rad, 0.0, $w1);
-	glVertex3f($rad, 0.0, $w2);
-	for ($i = 1; $i < $circle_subdiv; $i++) {
-	    $c = cos(2.0 * M_PI * $i / $circle_subdiv);
-	    $s = sin(2.0 * M_PI * $i / $circle_subdiv);
-	    glNormal3f(-$c, -$s, 0.0);
-	    glVertex3f($c * $rad,
-		       $s * $rad,
-		       $w1);
-	    glVertex3f($c * $rad,
-		       $s * $rad,
-		       $w2);
-	}
-	glNormal3f(-1.0, 0.0, 0.0);
-	glVertex3f($rad, 0.0, $w1);
-	glVertex3f($rad, 0.0, $w2);
-	glEnd();
-    }
-}
-
-sub draw_outside($w1, $w2, $rad)
-{
-    my ($i, $j);
-    my ($c, $s);
-    #printf("Outside: wid=%n..%n rad=%n\n", $w1, $w2, $rad);
-
-    if ($w1 == $w2)
-	return;
-
-    $w1 = $w1 / 2;
-    $w2 = $w2 / 2;
-    for ($j = 0; $j < 2; $j++) {
-	if ($j == 1) {
-	    $w1 = -$w1;
-	    $w2 = -$w2;
-	}
-	glBegin(GL_TRIANGLE_STRIP);
-	glNormal3f(1.0, 0.0, 0.0);
-	glVertex3f($rad, 0.0, $w1);
-	glVertex3f($rad, 0.0, $w2);
-	for ($i = 1; $i < $circle_subdiv; $i++) {
-	    $c = cos(2.0 * M_PI * $i / $circle_subdiv);
-	    $s = sin(2.0 * M_PI * $i / $circle_subdiv);
-	    glNormal3f($c, $s, 0.0);
-	    glVertex3f($c * $rad,
-		       $s * $rad,
-		       $w1);
-	    glVertex3f($c * $rad,
-		       $s * $rad,
-		       $w2);
-	}
-	glNormal3f(1.0, 0.0, 0.0);
-	glVertex3f($rad, 0.0, $w1);
-	glVertex3f($rad, 0.0, $w2);
-	glEnd();
-    }
-}
-
-sub oneFrame()
-{
-    #printf("oneFrame()\n");
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
-    glTranslatef(0.0, 0.0, -4.0);
-    glRotatef($a3, 1.0, 1.0, 1.0);
-    glRotatef($a4, 0.0, 0.0, -1.0);
-    glTranslatef(0.14, 0.2, 0.0);
-    gear(76,
-	 0.4, 2.0, 1.1,
-	 0.4, 0.04,
-	 $gear_profile);
+    glRotatef($view_rotx, 1.0, 0.0, 0.0);
+    glRotatef($view_roty, 0.0, 1.0, 0.0);
+    glRotatef($view_rotz, 0.0, 0.0, 1.0);
+
+    glPushMatrix();
+    glTranslatef(-3.0, -2.0, 0.0);
+    glRotatef($angle, 0.0, 0.0, 1.0);
+    glCallList($gear1);
     glPopMatrix();
 
     glPushMatrix();
-    glTranslatef(0.1, 0.2, -3.8);
-    glRotatef($a2, -4.0, 2.0, -1.0);
-    glRotatef($a1, 1.0, -3.0, 1.0);
-    glTranslatef(0.0, -0.2, 0.0);
-    gear(36,
-	 0.4, 2.0, 1.1,
-	 0.7, 0.2,
-	 $gear_profile);
+    glTranslatef(3.1, -2.0, 0.0);
+    glRotatef(-2.0 * $angle - 9.0, 0.0, 0.0, 1.0);
+    glCallList($gear2);
     glPopMatrix();
-    
-    $a1 += $i1;
-    if ($a1 > 360.0)
-	$a1 -= 360.0;
-    if ($a1 < 0.0)
-	$a1 -= 360.0;
-    $a2 += $i2;
-    if ($a2 > 360.0)
-	$a2 -= 360.0;
-    if ($a2 < 0.0)
-	$a2 -= 360.0;
-    $a3 += $i3;
-    if ($a3 > 360.0)
-	$a3 -= 360.0;
-    if ($a3 < 0.0)
-	$a3 -= 360.0;
-    $a4 += $i4;
-    if ($a4 > 360.0)
-	$a4 -= 360.0;
-    if ($a4 < 0.0)
-	$a4 -= 360.0;
+
+    glPushMatrix();
+    glTranslatef(-3.1, 4.2, 0.0);
+    glRotatef(-2.0 * $angle - 25.0, 0.0, 0.0, 1.0);
+    glCallList($gear3);
+    glPopMatrix();
+
+    glPopMatrix();
+
     glutSwapBuffers();
+
+    $count++;
+    if ($count == $limit) {
+	exit(0);
+    }
 }
 
-sub display()
+sub idle()
 {
-    #printf("display()");
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    $angle += 2.0;
+    glutPostRedisplay();
 }
 
-sub myReshape($w, $h)
+# change view angle, exit upon ESC
+sub key($k)
 {
-    #printf("myReshape(%n, %n)\n", $w, $h);
-    glViewport(0, 0, $w, $h);
+    switch ($k) {
+    case 122: # 'z'
+        $view_rotz += 5.0;
+	break;
+    case 90: # 'Z'
+	$view_rotz -= 5.0;
+	break;
+    case 27:  /* Escape */
+        exit(0);
+	break;
+    default:
+	return;
+    }
+    glutPostRedisplay();
+}
+
+# change view angle
+sub special($k, $x, $y)
+{
+    switch ($k) {
+    case GLUT_KEY_UP:
+	$view_rotx += 5.0;
+	break;
+    case GLUT_KEY_DOWN:
+	$view_rotx -= 5.0;
+	break;
+    case GLUT_KEY_LEFT:
+	$view_roty += 5.0;
+	break;
+    case GLUT_KEY_RIGHT:
+	$view_roty -= 5.0;
+	break;
+    default:
+	return;
+    }
+    glutPostRedisplay();
+}
+
+#/* new window size or exposure */
+sub reshape($width, $height)
+{
+    my $h = float($height) / $width;
+
+    glViewport(0, 0, $width, $height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(-1.0, 1.0, -1.0, 1.0, d_near, d_far);
+    glFrustum(-1.0, 1.0, -$h, $h, 5.0, 60.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glTranslatef(0.0, 0.0, -40.0);
 }
 
-sub visibility($status)
+sub init()
 {
-    #printf("visibility(%n)\n", $status);
-    if ($status == GLUT_VISIBLE) {
-	glutIdleFunc(\oneFrame());
-    } else {
-	glutIdleFunc();
-    }
-}
-
-sub myinit()
-{
-    my $f;
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    myReshape(640, 480);
-    # glShadeModel(GL_FLAT);
-    glEnable(GL_DEPTH_TEST);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glEnable(GL_CULL_FACE);
     glEnable(GL_LIGHTING);
-
-    glLightf(GL_LIGHT0, GL_SHININESS, 1.0);
-    $f[0] = 1.3;
-    $f[1] = 1.3;
-    $f[2] = -3.3;
-    $f[3] = 1.0;
-    glLightfv(GL_LIGHT0, GL_POSITION, $f);
-    $f[0] = 0.8;
-    $f[1] = 1.0;
-    $f[2] = 0.83;
-    $f[3] = 1.0;
-    glLightfv(GL_LIGHT0, GL_SPECULAR, $f);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, $f);
     glEnable(GL_LIGHT0);
+    glEnable(GL_DEPTH_TEST);
 
-    glLightf(GL_LIGHT1, GL_SHININESS, 1.0);
-    $f[0] = -2.3;
-    $f[1] = 0.3;
-    $f[2] = -7.3;
-    $f[3] = 1.0;
-    glLightfv(GL_LIGHT1, GL_POSITION, $f);
-    $f[0] = 1.0;
-    $f[1] = 0.8;
-    $f[2] = 0.93;
-    $f[3] = 1.0;
-    glLightfv(GL_LIGHT1, GL_SPECULAR, $f);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, $f);
-    glEnable(GL_LIGHT1);
-    
-    # gear material
-    $f[0] = 0.1;
-    $f[1] = 0.15;
-    $f[2] = 0.2;
-    $f[3] = 1.0;
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, $f);
-    
-    $f[0] = 0.9;
-    $f[1] = 0.3;
-    $f[2] = 0.3;
-    $f[3] = 1.0;
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, $f);
-    
-    $f[0] = 0.4;
-    $f[1] = 0.9;
-    $f[2] = 0.6;
-    $f[3] = 1.0;
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, $f);
-    
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 4);
+    # make the gears
+    $gear1 = glGenLists(1);
+    glNewList($gear1, GL_COMPILE);
+    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, red);
+    gear(1.0, 4.0, 1.0, 20, 0.7);
+    glEndList();
+
+    $gear2 = glGenLists(1);
+    glNewList($gear2, GL_COMPILE);
+    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, green);
+    gear(0.5, 2.0, 2.0, 10, 0.7);
+    glEndList();
+
+    $gear3 = glGenLists(1);
+    glNewList($gear3, GL_COMPILE);
+    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, blue);
+    gear(1.3, 2.0, 0.5, 10, 0.7);
+    glEndList();
+
+    glEnable(GL_NORMALIZE);
 }
 
-sub keys($c, $x, $y)
+sub visible($vis)
 {
-    #printf("keys: c=%s x=%d y=%d\n", $c, $x, $y);
-    if ($c == 0x1b)
-	exit(0);
+    if ($vis == GLUT_VISIBLE)
+	glutIdleFunc(\idle());
+    else
+	glutIdleFunc();
 }
 
 sub main()
 {
-    my $mode = GLUT_DOUBLE;
+    glutInit();
+    $limit = int(shift $ARGV);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-    #glutInit(&argc, argv);
-    glutInit($ARGV);
-
-    if (elements $ARGV > 1)
-	$mode = GLUT_SINGLE;
-    glutInitDisplayMode($mode | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowPosition(100, 100);
-    glutInitWindowSize(640, 480);
     glutCreateWindow("Gears");
+    init();
+
+    glutDisplayFunc(\draw());
+    glutReshapeFunc(\reshape());
+    glutKeyboardFunc(\key());
+    glutSpecialFunc(\special());
+    glutVisibilityFunc(\visible());
     
-    myinit();
-    glutReshapeFunc(\myReshape());
-    glutDisplayFunc(\display());
-    glutKeyboardFunc(\keys());
-    glutVisibilityFunc(\visibility());
-    glutPostRedisplay();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glutMainLoop();
 }
 

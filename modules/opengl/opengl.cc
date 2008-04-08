@@ -1191,6 +1191,15 @@ static AbstractQoreNode *f_glMaterialiv(const QoreListNode *params, ExceptionSin
    return 0;
 }
 
+//void glShadeModel( GLenum mode )
+static AbstractQoreNode *f_glShadeModel(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glShadeModel(mode);
+   return 0;
+}
+
 static QoreStringNode *opengl_module_init()
 {
    builtinFunctions.add("glGenLists",                   f_glGenLists);
@@ -1287,6 +1296,8 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glMateriali",                  f_glMateriali);
    builtinFunctions.add("glMaterialfv",                 f_glMaterialfv);
    builtinFunctions.add("glMaterialiv",                 f_glMaterialiv);
+
+   builtinFunctions.add("glShadeModel",                 f_glShadeModel);
 
    addOpenGLConstants();
 

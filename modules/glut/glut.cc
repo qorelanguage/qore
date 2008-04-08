@@ -41,12 +41,13 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = glut_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = glut_module_delete;
 #endif
 
-static QoreThreadLock reshape_lock, display_lock, keyboard_lock, visibility_lock, idle_lock;
+static QoreThreadLock reshape_lock, display_lock, keyboard_lock, visibility_lock, idle_lock, special_lock;
 static ResolvedFunctionReferenceNode *reshape_ref = 0, 
    *display_ref = 0, 
    *keyboard_ref = 0,
    *visibility_ref = 0,
-   *idle_ref = 0;
+   *idle_ref = 0,
+   *special_ref = 0;
 
 QoreNamespace glut_ns("Glut");
 
@@ -191,6 +192,20 @@ void idle_func()
    }
 }
 
+void special_func(int key, int x, int y)
+{
+   //printd(5, "special_func(key=%d, x=%d, y=%d) special_ref=%08p\n", key, x, y, special_ref);
+   AutoLocker al(&special_lock);
+   if (special_ref) {
+      ExceptionSink xsink;
+      ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+      args->push(new QoreBigIntNode(key));
+      args->push(new QoreBigIntNode(x));
+      args->push(new QoreBigIntNode(y));
+      discard(special_ref->exec(*args, &xsink), &xsink);
+   }
+}
+
 static AbstractQoreNode *f_glutReshapeFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
    const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
@@ -264,6 +279,20 @@ static AbstractQoreNode *f_glutIdleFunc(const QoreListNode *params, ExceptionSin
    return 0;
 }
 
+static AbstractQoreNode *f_glutSpecialFunc(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   AutoLocker al(&special_lock);
+   glutSpecialFunc(r ? special_func : 0);
+   if (special_ref)
+      special_ref->deref(xsink);
+   special_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   if (r)
+      r->ref();
+
+   return 0;
+}
+
 static QoreStringNode *glut_module_init()
 {
    builtinFunctions.add("glutInit",                     f_glutInit);
@@ -281,6 +310,7 @@ static QoreStringNode *glut_module_init()
    builtinFunctions.add("glutKeyboardFunc",             f_glutKeyboardFunc);
    builtinFunctions.add("glutVisibilityFunc",           f_glutVisibilityFunc);
    builtinFunctions.add("glutIdleFunc",                 f_glutIdleFunc);
+   builtinFunctions.add("glutSpecialFunc",              f_glutSpecialFunc);
 
    addGlutConstants();
 
@@ -295,4 +325,3 @@ static void glut_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
 static void glut_module_delete()
 {
 }
-
