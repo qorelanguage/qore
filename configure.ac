@@ -2237,7 +2237,7 @@ if test "${with_glut}" = yes; then
         GLUT_INCLUDES="-I$with_glut_includes"
      fi
      if test -z "$GLUT_LIBS"; then
-	GLUT_LIBS="-lGL -lGLU"
+	GLUT_LIBS="-lglut"
 	if test -n "$glut_app_libs"; then
 	   GLUT_LIBS="-L$with_glut_libs $GLUT_LIBS"
 	fi
