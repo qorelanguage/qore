@@ -90,7 +90,7 @@ class QoreQLayoutBase : public QoreQObjectBase<T, V>
 
       DLLLOCAL virtual bool layoutItemDeleteBlocker()
       {
-	 return this->qobj->layoutItemDeleteBlocker();
+	 return this->qobj ? this->qobj->layoutItemDeleteBlocker() : false;
       }
 
       DLLLOCAL virtual void setItemExternallyOwned()
