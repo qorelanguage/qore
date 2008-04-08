@@ -2,6 +2,7 @@
 	* glut: started adding glut module
 	* opengl: added gears.q example of classic 3 spinning gears
 	* opengl: renamed old slow gears example to gears2.q
+	* opengl: added mprph3d.q script
 
 2008.04.07: David Nichols
 	* opengl: started adding opengl module

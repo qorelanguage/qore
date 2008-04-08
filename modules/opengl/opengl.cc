@@ -1191,12 +1191,147 @@ static AbstractQoreNode *f_glMaterialiv(const QoreListNode *params, ExceptionSin
    return 0;
 }
 
+static int get_num_lightmodel_args(GLenum name)
+{
+   switch (name)
+   {
+      case GL_LIGHT_MODEL_AMBIENT:
+	 return 4;
+
+      case GL_LIGHT_MODEL_COLOR_CONTROL:
+      case GL_LIGHT_MODEL_LOCAL_VIEWER:
+      case GL_LIGHT_MODEL_TWO_SIDE:
+	 return 1;
+   }
+   return -1;
+}
+
+static AbstractQoreNode *f_glLightModelfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   const QoreListNode *l = test_list_param(params, 1);
+   if (!l) {
+      xsink->raiseException("GLLIGHTMODELFV-ERROR", "expecing a list as second argument");
+      return 0;
+   }
+
+   int num = get_num_lightmodel_args(pname);
+   if (num == -1) {
+      xsink->raiseException("GLLIGHTMODELFV-ERROR", "unrecognized lightmodel parameter code %d", (int)pname);
+      return 0;      
+   }
+
+   GLfloat a[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      a[i] = p ? p->getAsFloat() : 0.0;
+   }
+
+   glLightModelfv(pname, a);
+   return 0;
+}
+
+static AbstractQoreNode *f_glLightModeliv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   const QoreListNode *l = test_list_param(params, 1);
+   if (!l) {
+      xsink->raiseException("GLLIGHTMODELFV-ERROR", "expecing a list as second argument");
+      return 0;
+   }
+
+   int num = get_num_lightmodel_args(pname);
+   if (num == -1) {
+      xsink->raiseException("GLLIGHTMODELFV-ERROR", "unrecognized lightmodel parameter code %d", (int)pname);
+      return 0;
+   }
+
+   GLint a[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      a[i] = p ? p->getAsBigInt() : 0.0;
+   }
+
+   glLightModeliv(pname, a);
+   return 0;
+}
+
+//void glLightModelf( GLenum pname, GLfloat param )
+static AbstractQoreNode *f_glLightModelf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glLightModelf(pname, param);
+   return 0;
+}
+
+//void glLightModeli( GLenum pname, GLint param )
+static AbstractQoreNode *f_glLightModeli(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glLightModeli(pname, param);
+   return 0;
+}
+
 //void glShadeModel( GLenum mode )
 static AbstractQoreNode *f_glShadeModel(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
    GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
    glShadeModel(mode);
+   return 0;
+}
+
+//void glOrtho( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val )
+static AbstractQoreNode *f_glOrtho(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble left = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble right = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble bottom = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLdouble top = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 4);
+   GLdouble near_val = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 5);
+   GLdouble far_val = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glOrtho(left, right, bottom, top, near_val, far_val);
+   return 0;
+}
+
+//void glHint( GLenum target, GLenum mode )
+static AbstractQoreNode *f_glHint(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glHint(target, mode);
+   return 0;
+}
+
+//void glClearDepth( GLclampd depth )
+static AbstractQoreNode *f_glClearDepth(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLclampd depth = (GLclampd)(p ? p->getAsInt() : 0);
+   glClearDepth(depth);
+   return 0;
+}
+
+//void glFlush( void )
+static AbstractQoreNode *f_glFlush(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glFlush();
    return 0;
 }
 
@@ -1298,6 +1433,17 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glMaterialiv",                 f_glMaterialiv);
 
    builtinFunctions.add("glShadeModel",                 f_glShadeModel);
+
+   builtinFunctions.add("glOrtho",                      f_glOrtho);
+   builtinFunctions.add("glHint",                       f_glHint);
+
+   builtinFunctions.add("glClearDepth",                 f_glClearDepth);
+   builtinFunctions.add("glFlush",                      f_glFlush);
+
+   builtinFunctions.add("glLightModelf",                f_glLightModelf);
+   builtinFunctions.add("glLightModeli",                f_glLightModeli);
+   builtinFunctions.add("glLightModelfv",               f_glLightModelfv);
+   builtinFunctions.add("glLightModeliv",               f_glLightModeliv);
 
    addOpenGLConstants();
 

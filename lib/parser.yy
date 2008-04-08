@@ -1411,9 +1411,11 @@ list:
 	      l = reinterpret_cast<QoreListNode *>($1);
 	   else
 	   {
-	      parse_error("problem in parsing ',' in list: left side of comma is not a list (type: '%s')", $1 ? $1->getTypeName() : "NOTHING");
-	      // so we don't insert null values in the parse tree
 	      l = new QoreListNode();
+	      l->push($1);
+	      // parse_error("problem in parsing ',' in list: left side of comma is not a list (type: '%s')", $1 ? $1->getTypeName() : "NOTHING");
+	      // so we don't insert null values in the parse tree
+	      //l = new QoreListNode();
 	   }
 	   $$ = l;
         }

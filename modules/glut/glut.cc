@@ -133,6 +133,14 @@ static AbstractQoreNode *f_glutSwapBuffers(const QoreListNode *params, Exception
    return 0;
 }
 
+//int glutGet(GLenum state);
+static AbstractQoreNode *f_glutGet(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum state = (GLenum)(p ? p->getAsInt() : 0);
+   return new QoreBigIntNode(glutGet(state));
+}
+
 void reshape_func(int width, int height)
 {
    //printd(5, "reshape_func(width=%d, height=%d) reshape_ref=%08p\n", width, height, reshape_ref);
@@ -304,6 +312,7 @@ static QoreStringNode *glut_module_init()
    builtinFunctions.add("glutPostWindowRedisplay",      f_glutPostWindowRedisplay);
    builtinFunctions.add("glutMainLoop",                 f_glutMainLoop);
    builtinFunctions.add("glutSwapBuffers",              f_glutSwapBuffers);
+   builtinFunctions.add("glutGet",                      f_glutGet);
 
    builtinFunctions.add("glutReshapeFunc",              f_glutReshapeFunc);
    builtinFunctions.add("glutDisplayFunc",              f_glutDisplayFunc);
