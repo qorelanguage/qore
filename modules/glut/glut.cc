@@ -52,7 +52,10 @@ static QoreThreadLock menu_map_lock;
 static menu_map_t menu_map;
 
 // locks for callback functions
-static QoreThreadLock wmclose_lock,
+static QoreThreadLock 
+#ifdef HAVE_GLUTWMCLOSE
+   wmclose_lock,
+#endif
    display_lock,
    reshape_lock,
    keyboard_lock,
@@ -80,7 +83,10 @@ static QoreThreadLock wmclose_lock,
    joystick_lock;
 
 // call references for callback functions
-static ResolvedFunctionReferenceNode *wmclose_ref = 0,
+static ResolvedFunctionReferenceNode 
+#ifdef HAVE_GLUTWMCLOSE
+   *wmclose_ref = 0,
+#endif
    *display_ref = 0,
    *reshape_ref = 0,
    *keyboard_ref = 0,
@@ -197,6 +203,7 @@ static void qore_glut_special_func(int key, int x, int y)
    }
 }
 
+#ifdef HAVE_GLUTWMCLOSE
 static void qore_glut_wmclose_func()
 {
    AutoLocker al(&wmclose_lock);
@@ -205,6 +212,7 @@ static void qore_glut_wmclose_func()
       discard(wmclose_ref->exec(0, &xsink), &xsink);
    }
 }
+#endif
 
 static void qore_glut_mouse_func(int button, int state, int x, int y)
 {
@@ -438,7 +446,7 @@ static void qore_glut_joystick_func(unsigned int buttonMask, int x, int y, int z
    }
 }
 
-
+#ifdef HAVE_GLUTWMCLOSE
 //void glutWMCloseFunc(void (*func)(void));
 static AbstractQoreNode *f_glutWMCloseFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -454,6 +462,7 @@ static AbstractQoreNode *f_glutWMCloseFunc(const QoreListNode *params, Exception
 
    return 0;
 }
+#endif
 
 //void glutDisplayFunc(void (*func)(void));
 static AbstractQoreNode *f_glutDisplayFunc(const QoreListNode *params, ExceptionSink *xsink)
@@ -1125,6 +1134,7 @@ static AbstractQoreNode *f_glutWarpPointer(const QoreListNode *params, Exception
    return 0;
 }
 
+#ifdef HAVE_GLUTSURFACETEXTURE
 //void glutSurfaceTexture(GLenum target, GLenum internalformat, int surfacewin);
 static AbstractQoreNode *f_glutSurfaceTexture(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -1137,13 +1147,16 @@ static AbstractQoreNode *f_glutSurfaceTexture(const QoreListNode *params, Except
    glutSurfaceTexture(target, internalformat, surfacewin);
    return 0;
 }
+#endif
 
+#ifdef HAVE_GLUTCHECKLOOP
 //void glutCheckLoop(void);
 static AbstractQoreNode *f_glutCheckLoop(const QoreListNode *params, ExceptionSink *xsink)
 {
    glutCheckLoop();
    return 0;
 }
+#endif
 
 //void glutEstablishOverlay(void);
 static AbstractQoreNode *f_glutEstablishOverlay(const QoreListNode *params, ExceptionSink *xsink)
@@ -1410,6 +1423,7 @@ static AbstractQoreNode *f_glutLayerGet(const QoreListNode *params, ExceptionSin
    return new QoreBigIntNode(glutLayerGet(type));
 }
 
+#ifdef HAVE_GLUTGETPROCADDRESS
 //void * glutGetProcAddress(const char *procName);
 static AbstractQoreNode *f_glutGetProcAddress(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -1422,6 +1436,7 @@ static AbstractQoreNode *f_glutGetProcAddress(const QoreListNode *params, Except
    glutGetProcAddress(procName);
    return 0;
 }
+#endif
 
 //void glutBitmapCharacter(void *font, int character);
 static AbstractQoreNode *f_glutBitmapCharacter(const QoreListNode *params, ExceptionSink *xsink)
@@ -1846,9 +1861,15 @@ static QoreStringNode *glut_module_init()
    builtinFunctions.add("glutFullScreen",               f_glutFullScreen);
    builtinFunctions.add("glutSetCursor",                f_glutSetCursor);
    builtinFunctions.add("glutWarpPointer",              f_glutWarpPointer);
+#ifdef HAVE_GLUTSURFACETEXTURE
    builtinFunctions.add("glutSurfaceTexture",           f_glutSurfaceTexture);
+#endif
+#ifdef HAVE_GLUTWMCLOSE
    builtinFunctions.add("glutWMCloseFunc",              f_glutWMCloseFunc);
+#endif
+#ifdef HAVE_GLUTCHECKLOOP
    builtinFunctions.add("glutCheckLoop",                f_glutCheckLoop);
+#endif
    builtinFunctions.add("glutEstablishOverlay",         f_glutEstablishOverlay);
    builtinFunctions.add("glutRemoveOverlay",            f_glutRemoveOverlay);
    builtinFunctions.add("glutUseLayer",                 f_glutUseLayer);
@@ -1899,7 +1920,9 @@ static QoreStringNode *glut_module_init()
    builtinFunctions.add("glutExtensionSupported",       f_glutExtensionSupported);
    builtinFunctions.add("glutGetModifiers",             f_glutGetModifiers);
    builtinFunctions.add("glutLayerGet",                 f_glutLayerGet);
+#ifdef HAVE_GLUTGETPROCADDRESS
    builtinFunctions.add("glutGetProcAddress",           f_glutGetProcAddress);
+#endif
    builtinFunctions.add("glutBitmapCharacter",          f_glutBitmapCharacter);
    builtinFunctions.add("glutBitmapWidth",              f_glutBitmapWidth);
    builtinFunctions.add("glutStrokeCharacter",          f_glutStrokeCharacter);
