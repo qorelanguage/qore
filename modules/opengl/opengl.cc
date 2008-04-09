@@ -856,7 +856,6 @@ static AbstractQoreNode *f_glColor4us(const QoreListNode *params, ExceptionSink 
 }
 
 //void glCallList( GLuint list )
-//void glCallList( GLuint list )
 static AbstractQoreNode *f_glCallList(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
@@ -1109,7 +1108,7 @@ static AbstractQoreNode *f_glLightiv(const QoreListNode *params, ExceptionSink *
    GLint a[num];
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
-      a[i] = p ? p->getAsBigInt() : 0.0;
+      a[i] = p ? p->getAsBigInt() : 0;
    }
 
    glLightiv(light, pname, a);
@@ -1185,7 +1184,7 @@ static AbstractQoreNode *f_glMaterialiv(const QoreListNode *params, ExceptionSin
    GLint a[num];
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
-      a[i] = p ? p->getAsBigInt() : 0.0;
+      a[i] = p ? p->getAsBigInt() : 0;
    }
 
    glMaterialiv(material, pname, a);
@@ -1252,7 +1251,7 @@ static AbstractQoreNode *f_glLightModeliv(const QoreListNode *params, ExceptionS
    GLint a[num];
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
-      a[i] = p ? p->getAsBigInt() : 0.0;
+      a[i] = p ? p->getAsBigInt() : 0;
    }
 
    glLightModeliv(pname, a);
@@ -1831,12 +1830,5963 @@ static AbstractQoreNode *f_glTexEnviv(const QoreListNode *params, ExceptionSink 
    GLint parms[num];
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
-      parms[i] = p ? p->getAsInt() : 0.0;
+      parms[i] = p ? p->getAsInt() : 0;
    }
 
    glTexEnviv(target, pname, parms);
    return 0;
 }
+
+//void glAccum (GLenum op, GLfloat value);
+static AbstractQoreNode *f_glAccum(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum op = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat value = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glAccum(op, value);
+   return 0;
+}
+
+//void glAlphaFunc (GLenum func, GLclampf ref);
+static AbstractQoreNode *f_glAlphaFunc(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum func = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLclampf ref = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   glAlphaFunc(func, ref);
+   return 0;
+}
+
+/*
+//GLboolean glAreTexturesResident (GLsizei n, const GLuint *textures, GLboolean *residences);
+static AbstractQoreNode *f_glAreTexturesResident(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* textures = p;
+   p = get_param(params, 2);
+   ??? GLboolean* residences = p;
+   ??? return new QoreBigIntNode(glAreTexturesResident(n, textures, residences));
+}
+*/
+
+//void glArrayElement (GLint i);
+static AbstractQoreNode *f_glArrayElement(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint i = (GLint)(p ? p->getAsInt() : 0);
+   glArrayElement(i);
+   return 0;
+}
+
+/*
+//void glBitmap (GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap);
+static AbstractQoreNode *f_glBitmap(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei height = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLfloat xorig = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat yorig = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 4);
+   GLfloat xmove = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 5);
+   GLfloat ymove = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 6);
+   ??? GLubyte* bitmap = p;
+   glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
+   return 0;
+}
+*/
+
+//void glBlendColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
+static AbstractQoreNode *f_glBlendColor(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLclampf red = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLclampf green = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLclampf blue = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLclampf alpha = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   glBlendColor(red, green, blue, alpha);
+   return 0;
+}
+
+//void glBlendEquation (GLenum mode);
+static AbstractQoreNode *f_glBlendEquation(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glBlendEquation(mode);
+   return 0;
+}
+
+//void glBlendEquationSeparate (GLenum modeRGB, GLenum modeAlpha);
+static AbstractQoreNode *f_glBlendEquationSeparate(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum modeRGB = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum modeAlpha = (GLenum)(p ? p->getAsInt() : 0);
+   glBlendEquationSeparate(modeRGB, modeAlpha);
+   return 0;
+}
+
+/*
+//void glCallLists (GLsizei n, GLenum type, const GLvoid *lists);
+static AbstractQoreNode *f_glCallLists(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glCallLists();
+   return 0;
+}
+*/
+
+//void glClearAccum (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+static AbstractQoreNode *f_glClearAccum(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat red = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat green = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat blue = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat alpha = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glClearAccum(red, green, blue, alpha);
+   return 0;
+}
+
+//void glClearIndex (GLfloat c);
+static AbstractQoreNode *f_glClearIndex(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat c = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glClearIndex(c);
+   return 0;
+}
+
+//void glClearStencil (GLint s);
+static AbstractQoreNode *f_glClearStencil(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint s = (GLint)(p ? p->getAsInt() : 0);
+   glClearStencil(s);
+   return 0;
+}
+
+/*
+//void glClipPlane (GLenum plane, const GLdouble *equation);
+static AbstractQoreNode *f_glClipPlane(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum plane = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLdouble* equation = p;
+   glClipPlane(plane, equation);
+   return 0;
+}
+*/
+
+/*
+//void glColor3bv (const GLbyte *v);
+static AbstractQoreNode *f_glColor3bv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLbyte* v = p;
+   glColor3bv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor3dv (const GLdouble *v);
+static AbstractQoreNode *f_glColor3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glColor3dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor3fv (const GLfloat *v);
+static AbstractQoreNode *f_glColor3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glColor3fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor3iv (const GLint *v);
+static AbstractQoreNode *f_glColor3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glColor3iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor3sv (const GLshort *v);
+static AbstractQoreNode *f_glColor3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glColor3sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor3ubv (const GLubyte *v);
+static AbstractQoreNode *f_glColor3ubv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLubyte* v = p;
+   glColor3ubv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor3uiv (const GLuint *v);
+static AbstractQoreNode *f_glColor3uiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLuint* v = p;
+   glColor3uiv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor3usv (const GLushort *v);
+static AbstractQoreNode *f_glColor3usv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLushort* v = p;
+   glColor3usv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor4bv (const GLbyte *v);
+static AbstractQoreNode *f_glColor4bv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLbyte* v = p;
+   glColor4bv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor4dv (const GLdouble *v);
+static AbstractQoreNode *f_glColor4dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glColor4dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor4fv (const GLfloat *v);
+static AbstractQoreNode *f_glColor4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glColor4fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor4iv (const GLint *v);
+static AbstractQoreNode *f_glColor4iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glColor4iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor4sv (const GLshort *v);
+static AbstractQoreNode *f_glColor4sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glColor4sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor4ubv (const GLubyte *v);
+static AbstractQoreNode *f_glColor4ubv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLubyte* v = p;
+   glColor4ubv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor4uiv (const GLuint *v);
+static AbstractQoreNode *f_glColor4uiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLuint* v = p;
+   glColor4uiv(v);
+   return 0;
+}
+*/
+
+/*
+//void glColor4usv (const GLushort *v);
+static AbstractQoreNode *f_glColor4usv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLushort* v = p;
+   glColor4usv(v);
+   return 0;
+}
+*/
+
+//void glColorMask (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
+static AbstractQoreNode *f_glColorMask(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLboolean red = (GLboolean)(p ? p->getAsBool() : 0);
+   p = get_param(params, 1);
+   GLboolean green = (GLboolean)(p ? p->getAsBool() : 0);
+   p = get_param(params, 2);
+   GLboolean blue = (GLboolean)(p ? p->getAsBool() : 0);
+   p = get_param(params, 3);
+   GLboolean alpha = (GLboolean)(p ? p->getAsBool() : 0);
+   glColorMask(red, green, blue, alpha);
+   return 0;
+}
+
+//void glColorMaterial (GLenum face, GLenum mode);
+static AbstractQoreNode *f_glColorMaterial(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glColorMaterial(face, mode);
+   return 0;
+}
+
+/*
+//void glColorPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glColorPointer();
+   return 0;
+}
+*/
+
+ /*
+//void glColorSubTable (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const GLvoid *data);
+static AbstractQoreNode *f_glColorSubTable(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glColorSubTable();
+   return 0;
+}
+*/
+
+/*
+//void glColorTable (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const GLvoid *table);
+static AbstractQoreNode *f_glColorTable(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glColorTable();
+   return 0;
+}
+*/
+
+/*
+//void glColorTableParameterfv (GLenum target, GLenum pname, const GLfloat *params);
+static AbstractQoreNode *f_glColorTableParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glColorTableParameterfv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glColorTableParameteriv (GLenum target, GLenum pname, const GLint *params);
+static AbstractQoreNode *f_glColorTableParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glColorTableParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glConvolutionFilter1D (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const GLvoid *image);
+static AbstractQoreNode *f_glConvolutionFilter1D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glConvolutionFilter1D();
+   return 0;
+}
+*/
+
+/*
+//void glConvolutionFilter2D (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *image);
+static AbstractQoreNode *f_glConvolutionFilter2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glConvolutionFilter2D();
+   return 0;
+}
+*/
+
+//void glConvolutionParameterf (GLenum target, GLenum pname, GLfloat params);
+static AbstractQoreNode *f_glConvolutionParameterf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLfloat parms = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glConvolutionParameterf(target, pname, parms);
+   return 0;
+}
+
+/*
+//void glConvolutionParameterfv (GLenum target, GLenum pname, const GLfloat *params);
+static AbstractQoreNode *f_glConvolutionParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glConvolutionParameterfv(target, pname, params);
+   return 0;
+}
+*/
+
+//void glConvolutionParameteri (GLenum target, GLenum pname, GLint params);
+static AbstractQoreNode *f_glConvolutionParameteri(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint parms = (GLint)(p ? p->getAsInt() : 0);
+   glConvolutionParameteri(target, pname, parms);
+   return 0;
+}
+
+/*
+//void glConvolutionParameteriv (GLenum target, GLenum pname, const GLint *params);
+static AbstractQoreNode *f_glConvolutionParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glConvolutionParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+//void glCopyColorSubTable (GLenum target, GLsizei start, GLint x, GLint y, GLsizei width);
+static AbstractQoreNode *f_glCopyColorSubTable(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei start = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   glCopyColorSubTable(target, start, x, y, width);
+   return 0;
+}
+
+//void glCopyColorTable (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
+static AbstractQoreNode *f_glCopyColorTable(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum internalformat = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   glCopyColorTable(target, internalformat, x, y, width);
+   return 0;
+}
+
+//void glCopyConvolutionFilter1D (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
+static AbstractQoreNode *f_glCopyConvolutionFilter1D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum internalformat = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   glCopyConvolutionFilter1D(target, internalformat, x, y, width);
+   return 0;
+}
+
+//void glCopyConvolutionFilter2D (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height);
+static AbstractQoreNode *f_glCopyConvolutionFilter2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum internalformat = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   GLsizei height = (GLsizei)(p ? p->getAsInt() : 0);
+   glCopyConvolutionFilter2D(target, internalformat, x, y, width, height);
+   return 0;
+}
+
+//void glCopyPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum type);
+static AbstractQoreNode *f_glCopyPixels(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLsizei height = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLenum type = (GLenum)(p ? p->getAsInt() : 0);
+   glCopyPixels(x, y, width, height, type);
+   return 0;
+}
+
+//void glCopyTexImage1D (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
+static AbstractQoreNode *f_glCopyTexImage1D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint level = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLenum internalformat = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 6);
+   GLint border = (GLint)(p ? p->getAsInt() : 0);
+   glCopyTexImage1D(target, level, internalformat, x, y, width, border);
+   return 0;
+}
+
+//void glCopyTexImage2D (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
+static AbstractQoreNode *f_glCopyTexImage2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint level = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLenum internalformat = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 6);
+   GLsizei height = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 7);
+   GLint border = (GLint)(p ? p->getAsInt() : 0);
+   glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
+   return 0;
+}
+
+//void glCopyTexSubImage1D (GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+static AbstractQoreNode *f_glCopyTexSubImage1D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint level = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint xoffset = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   glCopyTexSubImage1D(target, level, xoffset, x, y, width);
+   return 0;
+}
+
+//void glCopyTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+static AbstractQoreNode *f_glCopyTexSubImage2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint level = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint xoffset = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint yoffset = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 6);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 7);
+   GLsizei height = (GLsizei)(p ? p->getAsInt() : 0);
+   glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+   return 0;
+}
+
+//void glCopyTexSubImage3D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+static AbstractQoreNode *f_glCopyTexSubImage3D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint level = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint xoffset = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint yoffset = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint zoffset = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 6);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 7);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 8);
+   GLsizei height = (GLsizei)(p ? p->getAsInt() : 0);
+   glCopyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y, width, height);
+   return 0;
+}
+
+//void glCullFace (GLenum mode);
+static AbstractQoreNode *f_glCullFace(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glCullFace(mode);
+   return 0;
+}
+
+/*
+//void glDeleteTextures (GLsizei n, const GLuint *textures);
+static AbstractQoreNode *f_glDeleteTextures(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* textures = p;
+   glDeleteTextures(n, textures);
+   return 0;
+}
+*/
+
+//void glDepthMask (GLboolean flag);
+static AbstractQoreNode *f_glDepthMask(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLboolean flag = (GLboolean)(p ? p->getAsBool() : 0);
+   glDepthMask(flag);
+   return 0;
+}
+
+//void glDepthRange (GLclampd zNear, GLclampd zFar);
+static AbstractQoreNode *f_glDepthRange(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLclampd zNear = (GLclampd)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLclampd zFar = (GLclampd)(p ? p->getAsInt() : 0);
+   glDepthRange(zNear, zFar);
+   return 0;
+}
+
+//void glDisableClientState (GLenum array);
+static AbstractQoreNode *f_glDisableClientState(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum array = (GLenum)(p ? p->getAsInt() : 0);
+   glDisableClientState(array);
+   return 0;
+}
+
+//void glDrawArrays (GLenum mode, GLint first, GLsizei count);
+static AbstractQoreNode *f_glDrawArrays(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint first = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   glDrawArrays(mode, first, count);
+   return 0;
+}
+
+//void glDrawBuffer (GLenum mode);
+static AbstractQoreNode *f_glDrawBuffer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glDrawBuffer(mode);
+   return 0;
+}
+
+/*
+//void glDrawElements (GLenum mode, GLsizei count, GLenum type, const GLvoid *indices);
+static AbstractQoreNode *f_glDrawElements(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glDrawElements();
+   return 0;
+}
+*/
+
+/*
+//void glDrawPixels (GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
+static AbstractQoreNode *f_glDrawPixels(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glDrawPixels();
+   return 0;
+}
+*/
+
+/*
+//void glDrawRangeElements (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indices);
+static AbstractQoreNode *f_glDrawRangeElements(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glDrawRangeElements();
+   return 0;
+}
+*/
+
+//void glEdgeFlag (GLboolean flag);
+static AbstractQoreNode *f_glEdgeFlag(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLboolean flag = (GLboolean)(p ? p->getAsBool() : 0);
+   glEdgeFlag(flag);
+   return 0;
+}
+
+/*
+//void glEdgeFlagPointer (GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glEdgeFlagPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glEdgeFlagPointer();
+   return 0;
+}
+*/
+
+/*
+//void glEdgeFlagv (const GLboolean *flag);
+static AbstractQoreNode *f_glEdgeFlagv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLboolean* flag = p;
+   glEdgeFlagv(flag);
+   return 0;
+}
+*/
+
+//void glEnableClientState (GLenum array);
+static AbstractQoreNode *f_glEnableClientState(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum array = (GLenum)(p ? p->getAsInt() : 0);
+   glEnableClientState(array);
+   return 0;
+}
+
+//void glEvalCoord1d (GLdouble u);
+static AbstractQoreNode *f_glEvalCoord1d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble u = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glEvalCoord1d(u);
+   return 0;
+}
+
+/*
+//void glEvalCoord1dv (const GLdouble *u);
+static AbstractQoreNode *f_glEvalCoord1dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* u = p;
+   glEvalCoord1dv(u);
+   return 0;
+}
+*/
+
+//void glEvalCoord1f (GLfloat u);
+static AbstractQoreNode *f_glEvalCoord1f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat u = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glEvalCoord1f(u);
+   return 0;
+}
+
+/*
+//void glEvalCoord1fv (const GLfloat *u);
+static AbstractQoreNode *f_glEvalCoord1fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* u = p;
+   glEvalCoord1fv(u);
+   return 0;
+}
+*/
+
+//void glEvalCoord2d (GLdouble u, GLdouble v);
+static AbstractQoreNode *f_glEvalCoord2d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble u = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble v = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glEvalCoord2d(u, v);
+   return 0;
+}
+
+/*
+//void glEvalCoord2dv (const GLdouble *u);
+static AbstractQoreNode *f_glEvalCoord2dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* u = p;
+   glEvalCoord2dv(u);
+   return 0;
+}
+*/
+
+//void glEvalCoord2f (GLfloat u, GLfloat v);
+static AbstractQoreNode *f_glEvalCoord2f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat u = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat v = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glEvalCoord2f(u, v);
+   return 0;
+}
+
+/*
+//void glEvalCoord2fv (const GLfloat *u);
+static AbstractQoreNode *f_glEvalCoord2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* u = p;
+   glEvalCoord2fv(u);
+   return 0;
+}
+*/
+
+//void glEvalMesh1 (GLenum mode, GLint i1, GLint i2);
+static AbstractQoreNode *f_glEvalMesh1(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint i1 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint i2 = (GLint)(p ? p->getAsInt() : 0);
+   glEvalMesh1(mode, i1, i2);
+   return 0;
+}
+
+//void glEvalMesh2 (GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2);
+static AbstractQoreNode *f_glEvalMesh2(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint i1 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint i2 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint j1 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint j2 = (GLint)(p ? p->getAsInt() : 0);
+   glEvalMesh2(mode, i1, i2, j1, j2);
+   return 0;
+}
+
+//void glEvalPoint1 (GLint i);
+static AbstractQoreNode *f_glEvalPoint1(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint i = (GLint)(p ? p->getAsInt() : 0);
+   glEvalPoint1(i);
+   return 0;
+}
+
+//void glEvalPoint2 (GLint i, GLint j);
+static AbstractQoreNode *f_glEvalPoint2(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint i = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint j = (GLint)(p ? p->getAsInt() : 0);
+   glEvalPoint2(i, j);
+   return 0;
+}
+
+/*
+//void glFeedbackBuffer (GLsizei size, GLenum type, GLfloat *buffer);
+static AbstractQoreNode *f_glFeedbackBuffer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei size = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum type = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* buffer = p;
+   glFeedbackBuffer(size, type, buffer);
+   return 0;
+}
+*/
+
+//void glFinish (void);
+static AbstractQoreNode *f_glFinish(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glFinish();
+   return 0;
+}
+
+//void glFogf (GLenum pname, GLfloat param);
+static AbstractQoreNode *f_glFogf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glFogf(pname, param);
+   return 0;
+}
+
+/*
+//void glFogfv (GLenum pname, const GLfloat *params);
+static AbstractQoreNode *f_glFogfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLfloat* params = p;
+   glFogfv(pname, params);
+   return 0;
+}
+*/
+
+//void glFogi (GLenum pname, GLint param);
+static AbstractQoreNode *f_glFogi(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glFogi(pname, param);
+   return 0;
+}
+
+/*
+//void glFogiv (GLenum pname, const GLint *params);
+static AbstractQoreNode *f_glFogiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLint* params = p;
+   glFogiv(pname, params);
+   return 0;
+}
+*/
+
+//void glFrontFace (GLenum mode);
+static AbstractQoreNode *f_glFrontFace(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glFrontFace(mode);
+   return 0;
+}
+
+/*
+//void glGenTextures (GLsizei n, GLuint *textures);
+static AbstractQoreNode *f_glGenTextures(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* textures = p;
+   glGenTextures(n, textures);
+   return 0;
+}
+*/
+
+/*
+//void glGetClipPlane (GLenum plane, GLdouble *equation);
+static AbstractQoreNode *f_glGetClipPlane(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum plane = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLdouble* equation = p;
+   glGetClipPlane(plane, equation);
+   return 0;
+}
+*/
+
+/*
+//void glGetColorTable (GLenum target, GLenum format, GLenum type, GLvoid *table);
+static AbstractQoreNode *f_glGetColorTable(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetColorTable();
+   return 0;
+}
+*/
+
+/*
+//void glGetColorTableParameterfv (GLenum target, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetColorTableParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetColorTableParameterfv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetColorTableParameteriv (GLenum target, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetColorTableParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetColorTableParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetConvolutionFilter (GLenum target, GLenum format, GLenum type, GLvoid *image);
+static AbstractQoreNode *f_glGetConvolutionFilter(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetConvolutionFilter();
+   return 0;
+}
+*/
+
+/*
+//void glGetConvolutionParameterfv (GLenum target, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetConvolutionParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetConvolutionParameterfv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetConvolutionParameteriv (GLenum target, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetConvolutionParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetConvolutionParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetHistogram (GLenum target, GLboolean reset, GLenum format, GLenum type, GLvoid *values);
+static AbstractQoreNode *f_glGetHistogram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetHistogram();
+   return 0;
+}
+*/
+
+/*
+//void glGetHistogramParameterfv (GLenum target, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetHistogramParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetHistogramParameterfv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetHistogramParameteriv (GLenum target, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetHistogramParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetHistogramParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetLightfv (GLenum light, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetLightfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum light = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetLightfv(light, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetLightiv (GLenum light, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetLightiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum light = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetLightiv(light, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetMapdv (GLenum target, GLenum query, GLdouble *v);
+static AbstractQoreNode *f_glGetMapdv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum query = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLdouble* v = p;
+   glGetMapdv(target, query, v);
+   return 0;
+}
+*/
+
+/*
+//void glGetMapfv (GLenum target, GLenum query, GLfloat *v);
+static AbstractQoreNode *f_glGetMapfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum query = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* v = p;
+   glGetMapfv(target, query, v);
+   return 0;
+}
+*/
+
+/*
+//void glGetMapiv (GLenum target, GLenum query, GLint *v);
+static AbstractQoreNode *f_glGetMapiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum query = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* v = p;
+   glGetMapiv(target, query, v);
+   return 0;
+}
+*/
+
+/*
+//void glGetMaterialfv (GLenum face, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetMaterialfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetMaterialfv(face, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetMaterialiv (GLenum face, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetMaterialiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetMaterialiv(face, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetMinmax (GLenum target, GLboolean reset, GLenum format, GLenum type, GLvoid *values);
+static AbstractQoreNode *f_glGetMinmax(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetMinmax();
+   return 0;
+}
+*/
+
+/*
+//void glGetMinmaxParameterfv (GLenum target, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetMinmaxParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetMinmaxParameterfv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetMinmaxParameteriv (GLenum target, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetMinmaxParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetMinmaxParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetPixelMapfv (GLenum map, GLfloat *values);
+static AbstractQoreNode *f_glGetPixelMapfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum map = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLfloat* values = p;
+   glGetPixelMapfv(map, values);
+   return 0;
+}
+*/
+
+/*
+//void glGetPixelMapuiv (GLenum map, GLuint *values);
+static AbstractQoreNode *f_glGetPixelMapuiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum map = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* values = p;
+   glGetPixelMapuiv(map, values);
+   return 0;
+}
+*/
+
+/*
+//void glGetPixelMapusv (GLenum map, GLushort *values);
+static AbstractQoreNode *f_glGetPixelMapusv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum map = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLushort* values = p;
+   glGetPixelMapusv(map, values);
+   return 0;
+}
+*/
+
+/*
+//void glGetPointerv (GLenum pname, GLvoid* *params);
+static AbstractQoreNode *f_glGetPointerv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetPointerv();
+   return 0;
+}
+*/
+
+/*
+//void glGetPolygonStipple (GLubyte *mask);
+static AbstractQoreNode *f_glGetPolygonStipple(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLubyte* mask = p;
+   glGetPolygonStipple(mask);
+   return 0;
+}
+*/
+
+/*
+//void glGetSeparableFilter (GLenum target, GLenum format, GLenum type, GLvoid *row, GLvoid *column, GLvoid *span);
+static AbstractQoreNode *f_glGetSeparableFilter(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetSeparableFilter();
+   return 0;
+}
+*/
+
+/*
+//const GLubyte * glGetString (GLenum name);
+static AbstractQoreNode *f_glGetString(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum name = (GLenum)(p ? p->getAsInt() : 0);
+   ??? return new QoreBigIntNode(glGetString(name));
+}
+*/
+
+/*
+//void glGetTexEnvfv (GLenum target, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetTexEnvfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetTexEnvfv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetTexEnviv (GLenum target, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetTexEnviv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetTexEnviv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetTexGendv (GLenum coord, GLenum pname, GLdouble *params);
+static AbstractQoreNode *f_glGetTexGendv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLdouble* params = p;
+   glGetTexGendv(coord, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetTexGenfv (GLenum coord, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetTexGenfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetTexGenfv(coord, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetTexGeniv (GLenum coord, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetTexGeniv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetTexGeniv(coord, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetTexImage (GLenum target, GLint level, GLenum format, GLenum type, GLvoid *pixels);
+static AbstractQoreNode *f_glGetTexImage(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetTexImage();
+   return 0;
+}
+*/
+
+/*
+//void glGetTexLevelParameterfv (GLenum target, GLint level, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetTexLevelParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint level = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* params = p;
+   glGetTexLevelParameterfv(target, level, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetTexLevelParameteriv (GLenum target, GLint level, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetTexLevelParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint level = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLint* params = p;
+   glGetTexLevelParameteriv(target, level, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetTexParameterfv (GLenum target, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetTexParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetTexParameterfv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetTexParameteriv (GLenum target, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetTexParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetTexParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+//void glHistogram (GLenum target, GLsizei width, GLenum internalformat, GLboolean sink);
+static AbstractQoreNode *f_glHistogram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLenum internalformat = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLboolean sink = (GLboolean)(p ? p->getAsBool() : 0);
+   glHistogram(target, width, internalformat, sink);
+   return 0;
+}
+
+//void glIndexMask (GLuint mask);
+static AbstractQoreNode *f_glIndexMask(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned mask = p ? p->getAsBigInt() : 0;
+   glIndexMask(mask);
+   return 0;
+}
+
+/*
+//void glIndexPointer (GLenum type, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glIndexPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glIndexPointer();
+   return 0;
+}
+*/
+
+//void glIndexd (GLdouble c);
+static AbstractQoreNode *f_glIndexd(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble c = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glIndexd(c);
+   return 0;
+}
+
+/*
+//void glIndexdv (const GLdouble *c);
+static AbstractQoreNode *f_glIndexdv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* c = p;
+   glIndexdv(c);
+   return 0;
+}
+*/
+
+//void glIndexf (GLfloat c);
+static AbstractQoreNode *f_glIndexf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat c = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glIndexf(c);
+   return 0;
+}
+
+/*
+//void glIndexfv (const GLfloat *c);
+static AbstractQoreNode *f_glIndexfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* c = p;
+   glIndexfv(c);
+   return 0;
+}
+*/
+
+//void glIndexi (GLint c);
+static AbstractQoreNode *f_glIndexi(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint c = (GLint)(p ? p->getAsInt() : 0);
+   glIndexi(c);
+   return 0;
+}
+
+/*
+//void glIndexiv (const GLint *c);
+static AbstractQoreNode *f_glIndexiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* c = p;
+   glIndexiv(c);
+   return 0;
+}
+*/
+
+//void glIndexs (GLshort c);
+static AbstractQoreNode *f_glIndexs(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort c = (GLshort)(p ? p->getAsInt() : 0);
+   glIndexs(c);
+   return 0;
+}
+
+/*
+//void glIndexsv (const GLshort *c);
+static AbstractQoreNode *f_glIndexsv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* c = p;
+   glIndexsv(c);
+   return 0;
+}
+*/
+
+//void glIndexub (GLubyte c);
+static AbstractQoreNode *f_glIndexub(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLubyte c = (GLubyte)(p ? p->getAsInt() : 0);
+   glIndexub(c);
+   return 0;
+}
+
+/*
+//void glIndexubv (const GLubyte *c);
+static AbstractQoreNode *f_glIndexubv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLubyte* c = p;
+   glIndexubv(c);
+   return 0;
+}
+*/
+
+//void glInitNames (void);
+static AbstractQoreNode *f_glInitNames(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glInitNames();
+   return 0;
+}
+
+/*
+//void glInterleavedArrays (GLenum format, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glInterleavedArrays(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glInterleavedArrays();
+   return 0;
+}
+*/
+
+//GLboolean glIsEnabled (GLenum cap);
+static AbstractQoreNode *f_glIsEnabled(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum cap = (GLenum)(p ? p->getAsInt() : 0);
+   return get_bool_node(glIsEnabled(cap));
+}
+
+//GLboolean glIsList (GLuint list);
+static AbstractQoreNode *f_glIsList(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned list = p ? p->getAsBigInt() : 0;
+   return get_bool_node(glIsList(list));
+}
+
+//GLboolean glIsTexture (GLuint texture);
+static AbstractQoreNode *f_glIsTexture(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned texture = p ? p->getAsBigInt() : 0;
+   return get_bool_node(glIsTexture(texture));
+}
+
+//void glLineStipple (GLint factor, GLushort pattern);
+static AbstractQoreNode *f_glLineStipple(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint factor = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLushort pattern = (GLushort)(p ? p->getAsInt() : 0);
+   glLineStipple(factor, pattern);
+   return 0;
+}
+
+//void glLineWidth (GLfloat width);
+static AbstractQoreNode *f_glLineWidth(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat width = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glLineWidth(width);
+   return 0;
+}
+
+//void glListBase (GLuint base);
+static AbstractQoreNode *f_glListBase(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned base = p ? p->getAsBigInt() : 0;
+   glListBase(base);
+   return 0;
+}
+
+/*
+//void glLoadMatrixd (const GLdouble *m);
+static AbstractQoreNode *f_glLoadMatrixd(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* m = p;
+   glLoadMatrixd(m);
+   return 0;
+}
+*/
+
+/*
+//void glLoadMatrixf (const GLfloat *m);
+static AbstractQoreNode *f_glLoadMatrixf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* m = p;
+   glLoadMatrixf(m);
+   return 0;
+}
+*/
+
+//void glLoadName (GLuint name);
+static AbstractQoreNode *f_glLoadName(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned name = p ? p->getAsBigInt() : 0;
+   glLoadName(name);
+   return 0;
+}
+
+//void glLogicOp (GLenum opcode);
+static AbstractQoreNode *f_glLogicOp(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum opcode = (GLenum)(p ? p->getAsInt() : 0);
+   glLogicOp(opcode);
+   return 0;
+}
+
+/*
+//void glMap1d (GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points);
+static AbstractQoreNode *f_glMap1d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLdouble u1 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble u2 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLint stride = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint order = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   ??? GLdouble* points = p;
+   glMap1d(target, u1, u2, stride, order, points);
+   return 0;
+}
+*/
+
+/*
+//void glMap1f (GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points);
+static AbstractQoreNode *f_glMap1f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat u1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat u2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLint stride = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint order = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   ??? GLfloat* points = p;
+   glMap1f(target, u1, u2, stride, order, points);
+   return 0;
+}
+*/
+
+/*
+//void glMap2d (GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points);
+static AbstractQoreNode *f_glMap2d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLdouble u1 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble u2 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLint ustride = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint uorder = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   GLdouble v1 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 6);
+   GLdouble v2 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 7);
+   GLint vstride = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 8);
+   GLint vorder = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 9);
+   ??? GLdouble* points = p;
+   glMap2d(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
+   return 0;
+}
+*/
+
+/*
+//void glMap2f (GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points);
+static AbstractQoreNode *f_glMap2f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat u1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat u2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLint ustride = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint uorder = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 5);
+   GLfloat v1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 6);
+   GLfloat v2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 7);
+   GLint vstride = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 8);
+   GLint vorder = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 9);
+   ??? GLfloat* points = p;
+   glMap2f(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
+   return 0;
+}
+*/
+
+//void glMapGrid1d (GLint un, GLdouble u1, GLdouble u2);
+static AbstractQoreNode *f_glMapGrid1d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint un = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLdouble u1 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble u2 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glMapGrid1d(un, u1, u2);
+   return 0;
+}
+
+//void glMapGrid1f (GLint un, GLfloat u1, GLfloat u2);
+static AbstractQoreNode *f_glMapGrid1f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint un = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat u1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat u2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glMapGrid1f(un, u1, u2);
+   return 0;
+}
+
+//void glMapGrid2d (GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2);
+static AbstractQoreNode *f_glMapGrid2d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint un = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLdouble u1 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble u2 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLint vn = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLdouble v1 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 5);
+   GLdouble v2 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glMapGrid2d(un, u1, u2, vn, v1, v2);
+   return 0;
+}
+
+//void glMapGrid2f (GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2);
+static AbstractQoreNode *f_glMapGrid2f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint un = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat u1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat u2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLint vn = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLfloat v1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 5);
+   GLfloat v2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glMapGrid2f(un, u1, u2, vn, v1, v2);
+   return 0;
+}
+
+//void glMinmax (GLenum target, GLenum internalformat, GLboolean sink);
+static AbstractQoreNode *f_glMinmax(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum internalformat = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean sink = (GLboolean)(p ? p->getAsBool() : 0);
+   glMinmax(target, internalformat, sink);
+   return 0;
+}
+
+/*
+//void glMultMatrixd (const GLdouble *m);
+static AbstractQoreNode *f_glMultMatrixd(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* m = p;
+   glMultMatrixd(m);
+   return 0;
+}
+*/
+
+/*
+//void glMultMatrixf (const GLfloat *m);
+static AbstractQoreNode *f_glMultMatrixf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* m = p;
+   glMultMatrixf(m);
+   return 0;
+}
+*/
+
+/*
+//void glNormal3bv (const GLbyte *v);
+static AbstractQoreNode *f_glNormal3bv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLbyte* v = p;
+   glNormal3bv(v);
+   return 0;
+}
+*/
+
+/*
+//void glNormal3dv (const GLdouble *v);
+static AbstractQoreNode *f_glNormal3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glNormal3dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glNormal3fv (const GLfloat *v);
+static AbstractQoreNode *f_glNormal3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glNormal3fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glNormal3iv (const GLint *v);
+static AbstractQoreNode *f_glNormal3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glNormal3iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glNormal3sv (const GLshort *v);
+static AbstractQoreNode *f_glNormal3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glNormal3sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glNormalPointer (GLenum type, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glNormalPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glNormalPointer();
+   return 0;
+}
+*/
+
+//void glPassThrough (GLfloat token);
+static AbstractQoreNode *f_glPassThrough(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat token = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glPassThrough(token);
+   return 0;
+}
+
+/*
+//void glPixelMapfv (GLenum map, GLint mapsize, const GLfloat *values);
+static AbstractQoreNode *f_glPixelMapfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum map = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint mapsize = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* values = p;
+   glPixelMapfv(map, mapsize, values);
+   return 0;
+}
+*/
+
+/*
+//void glPixelMapuiv (GLenum map, GLint mapsize, const GLuint *values);
+static AbstractQoreNode *f_glPixelMapuiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum map = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint mapsize = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLuint* values = p;
+   glPixelMapuiv(map, mapsize, values);
+   return 0;
+}
+*/
+
+/*
+//void glPixelMapusv (GLenum map, GLint mapsize, const GLushort *values);
+static AbstractQoreNode *f_glPixelMapusv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum map = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint mapsize = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLushort* values = p;
+   glPixelMapusv(map, mapsize, values);
+   return 0;
+}
+*/
+
+//void glPixelStoref (GLenum pname, GLfloat param);
+static AbstractQoreNode *f_glPixelStoref(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glPixelStoref(pname, param);
+   return 0;
+}
+
+//void glPixelStorei (GLenum pname, GLint param);
+static AbstractQoreNode *f_glPixelStorei(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glPixelStorei(pname, param);
+   return 0;
+}
+
+//void glPixelTransferf (GLenum pname, GLfloat param);
+static AbstractQoreNode *f_glPixelTransferf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glPixelTransferf(pname, param);
+   return 0;
+}
+
+//void glPixelTransferi (GLenum pname, GLint param);
+static AbstractQoreNode *f_glPixelTransferi(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glPixelTransferi(pname, param);
+   return 0;
+}
+
+//void glPixelZoom (GLfloat xfactor, GLfloat yfactor);
+static AbstractQoreNode *f_glPixelZoom(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat xfactor = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat yfactor = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glPixelZoom(xfactor, yfactor);
+   return 0;
+}
+
+//void glPointSize (GLfloat size);
+static AbstractQoreNode *f_glPointSize(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat size = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glPointSize(size);
+   return 0;
+}
+
+//void glPolygonMode (GLenum face, GLenum mode);
+static AbstractQoreNode *f_glPolygonMode(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glPolygonMode(face, mode);
+   return 0;
+}
+
+//void glPolygonOffset (GLfloat factor, GLfloat units);
+static AbstractQoreNode *f_glPolygonOffset(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat factor = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat units = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glPolygonOffset(factor, units);
+   return 0;
+}
+
+/*
+//void glPolygonStipple (const GLubyte *mask);
+static AbstractQoreNode *f_glPolygonStipple(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLubyte* mask = p;
+   glPolygonStipple(mask);
+   return 0;
+}
+*/
+
+//void glPopClientAttrib (void);
+static AbstractQoreNode *f_glPopClientAttrib(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glPopClientAttrib();
+   return 0;
+}
+
+//void glPopName (void);
+static AbstractQoreNode *f_glPopName(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glPopName();
+   return 0;
+}
+
+/*
+//void glPrioritizeTextures (GLsizei n, const GLuint *textures, const GLclampf *priorities);
+static AbstractQoreNode *f_glPrioritizeTextures(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* textures = p;
+   p = get_param(params, 2);
+   ??? GLclampf* priorities = p;
+   glPrioritizeTextures(n, textures, priorities);
+   return 0;
+}
+*/
+
+//void glPushClientAttrib (GLbitfield mask);
+static AbstractQoreNode *f_glPushClientAttrib(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLbitfield mask = (GLbitfield)(p ? p->getAsInt() : 0);
+   glPushClientAttrib(mask);
+   return 0;
+}
+
+//void glPushName (GLuint name);
+static AbstractQoreNode *f_glPushName(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned name = p ? p->getAsBigInt() : 0;
+   glPushName(name);
+   return 0;
+}
+
+//void glRasterPos2d (GLdouble x, GLdouble y);
+static AbstractQoreNode *f_glRasterPos2d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble y = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glRasterPos2d(x, y);
+   return 0;
+}
+
+/*
+//void glRasterPos2dv (const GLdouble *v);
+static AbstractQoreNode *f_glRasterPos2dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glRasterPos2dv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos2f (GLfloat x, GLfloat y);
+static AbstractQoreNode *f_glRasterPos2f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat y = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glRasterPos2f(x, y);
+   return 0;
+}
+
+/*
+//void glRasterPos2fv (const GLfloat *v);
+static AbstractQoreNode *f_glRasterPos2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glRasterPos2fv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos2i (GLint x, GLint y);
+static AbstractQoreNode *f_glRasterPos2i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   glRasterPos2i(x, y);
+   return 0;
+}
+
+/*
+//void glRasterPos2iv (const GLint *v);
+static AbstractQoreNode *f_glRasterPos2iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glRasterPos2iv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos2s (GLshort x, GLshort y);
+static AbstractQoreNode *f_glRasterPos2s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort y = (GLshort)(p ? p->getAsInt() : 0);
+   glRasterPos2s(x, y);
+   return 0;
+}
+
+/*
+//void glRasterPos2sv (const GLshort *v);
+static AbstractQoreNode *f_glRasterPos2sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glRasterPos2sv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos3d (GLdouble x, GLdouble y, GLdouble z);
+static AbstractQoreNode *f_glRasterPos3d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble y = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble z = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glRasterPos3d(x, y, z);
+   return 0;
+}
+
+/*
+//void glRasterPos3dv (const GLdouble *v);
+static AbstractQoreNode *f_glRasterPos3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glRasterPos3dv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos3f (GLfloat x, GLfloat y, GLfloat z);
+static AbstractQoreNode *f_glRasterPos3f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat y = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat z = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glRasterPos3f(x, y, z);
+   return 0;
+}
+
+/*
+//void glRasterPos3fv (const GLfloat *v);
+static AbstractQoreNode *f_glRasterPos3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glRasterPos3fv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos3i (GLint x, GLint y, GLint z);
+static AbstractQoreNode *f_glRasterPos3i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint z = (GLint)(p ? p->getAsInt() : 0);
+   glRasterPos3i(x, y, z);
+   return 0;
+}
+
+/*
+//void glRasterPos3iv (const GLint *v);
+static AbstractQoreNode *f_glRasterPos3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glRasterPos3iv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos3s (GLshort x, GLshort y, GLshort z);
+static AbstractQoreNode *f_glRasterPos3s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort y = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort z = (GLshort)(p ? p->getAsInt() : 0);
+   glRasterPos3s(x, y, z);
+   return 0;
+}
+
+/*
+//void glRasterPos3sv (const GLshort *v);
+static AbstractQoreNode *f_glRasterPos3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glRasterPos3sv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos4d (GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+static AbstractQoreNode *f_glRasterPos4d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble y = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble z = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLdouble w = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glRasterPos4d(x, y, z, w);
+   return 0;
+}
+
+/*
+//void glRasterPos4dv (const GLdouble *v);
+static AbstractQoreNode *f_glRasterPos4dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glRasterPos4dv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos4f (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+static AbstractQoreNode *f_glRasterPos4f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat y = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat z = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat w = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glRasterPos4f(x, y, z, w);
+   return 0;
+}
+
+/*
+//void glRasterPos4fv (const GLfloat *v);
+static AbstractQoreNode *f_glRasterPos4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glRasterPos4fv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos4i (GLint x, GLint y, GLint z, GLint w);
+static AbstractQoreNode *f_glRasterPos4i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint z = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint w = (GLint)(p ? p->getAsInt() : 0);
+   glRasterPos4i(x, y, z, w);
+   return 0;
+}
+
+/*
+//void glRasterPos4iv (const GLint *v);
+static AbstractQoreNode *f_glRasterPos4iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glRasterPos4iv(v);
+   return 0;
+}
+*/
+
+//void glRasterPos4s (GLshort x, GLshort y, GLshort z, GLshort w);
+static AbstractQoreNode *f_glRasterPos4s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort y = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort z = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLshort w = (GLshort)(p ? p->getAsInt() : 0);
+   glRasterPos4s(x, y, z, w);
+   return 0;
+}
+
+/*
+//void glRasterPos4sv (const GLshort *v);
+static AbstractQoreNode *f_glRasterPos4sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glRasterPos4sv(v);
+   return 0;
+}
+*/
+
+//void glReadBuffer (GLenum mode);
+static AbstractQoreNode *f_glReadBuffer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   glReadBuffer(mode);
+   return 0;
+}
+
+/*
+//void glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid *pixels);
+static AbstractQoreNode *f_glReadPixels(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glReadPixels();
+   return 0;
+}
+*/
+
+//void glRectd (GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2);
+static AbstractQoreNode *f_glRectd(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble x1 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble y1 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble x2 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLdouble y2 = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glRectd(x1, y1, x2, y2);
+   return 0;
+}
+
+/*
+//void glRectdv (const GLdouble *v1, const GLdouble *v2);
+static AbstractQoreNode *f_glRectdv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v1 = p;
+   p = get_param(params, 1);
+   ??? GLdouble* v2 = p;
+   glRectdv(v1, v2);
+   return 0;
+}
+*/
+
+//void glRectf (GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
+static AbstractQoreNode *f_glRectf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat x1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat y1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat x2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat y2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glRectf(x1, y1, x2, y2);
+   return 0;
+}
+
+/*
+//void glRectfv (const GLfloat *v1, const GLfloat *v2);
+static AbstractQoreNode *f_glRectfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v1 = p;
+   p = get_param(params, 1);
+   ??? GLfloat* v2 = p;
+   glRectfv(v1, v2);
+   return 0;
+}
+*/
+
+//void glRecti (GLint x1, GLint y1, GLint x2, GLint y2);
+static AbstractQoreNode *f_glRecti(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint x1 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint y1 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint x2 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint y2 = (GLint)(p ? p->getAsInt() : 0);
+   glRecti(x1, y1, x2, y2);
+   return 0;
+}
+
+/*
+//void glRectiv (const GLint *v1, const GLint *v2);
+static AbstractQoreNode *f_glRectiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v1 = p;
+   p = get_param(params, 1);
+   ??? GLint* v2 = p;
+   glRectiv(v1, v2);
+   return 0;
+}
+*/
+
+//void glRects (GLshort x1, GLshort y1, GLshort x2, GLshort y2);
+static AbstractQoreNode *f_glRects(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort x1 = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort y1 = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort x2 = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLshort y2 = (GLshort)(p ? p->getAsInt() : 0);
+   glRects(x1, y1, x2, y2);
+   return 0;
+}
+
+/*
+//void glRectsv (const GLshort *v1, const GLshort *v2);
+static AbstractQoreNode *f_glRectsv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v1 = p;
+   p = get_param(params, 1);
+   ??? GLshort* v2 = p;
+   glRectsv(v1, v2);
+   return 0;
+}
+*/
+
+/*
+//GLint glRenderMode (GLenum mode);
+static AbstractQoreNode *f_glRenderMode(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   ??? return new QoreBigIntNode(glRenderMode(mode));
+}
+*/
+
+//void glResetHistogram (GLenum target);
+static AbstractQoreNode *f_glResetHistogram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   glResetHistogram(target);
+   return 0;
+}
+
+//void glResetMinmax (GLenum target);
+static AbstractQoreNode *f_glResetMinmax(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   glResetMinmax(target);
+   return 0;
+}
+
+//void glScissor (GLint x, GLint y, GLsizei width, GLsizei height);
+static AbstractQoreNode *f_glScissor(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLsizei width = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLsizei height = (GLsizei)(p ? p->getAsInt() : 0);
+   glScissor(x, y, width, height);
+   return 0;
+}
+
+/*
+//void glSelectBuffer (GLsizei size, GLuint *buffer);
+static AbstractQoreNode *f_glSelectBuffer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei size = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* buffer = p;
+   glSelectBuffer(size, buffer);
+   return 0;
+}
+*/
+
+/*
+//void glSeparableFilter2D (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *row, const GLvoid *column);
+static AbstractQoreNode *f_glSeparableFilter2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glSeparableFilter2D();
+   return 0;
+}
+*/
+
+//void glStencilFunc (GLenum func, GLint ref, GLuint mask);
+static AbstractQoreNode *f_glStencilFunc(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum func = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint ref = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   unsigned mask = p ? p->getAsBigInt() : 0;
+   glStencilFunc(func, ref, mask);
+   return 0;
+}
+
+//void glStencilMask (GLuint mask);
+static AbstractQoreNode *f_glStencilMask(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned mask = p ? p->getAsBigInt() : 0;
+   glStencilMask(mask);
+   return 0;
+}
+
+//void glStencilOp (GLenum fail, GLenum zfail, GLenum zpass);
+static AbstractQoreNode *f_glStencilOp(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum fail = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum zfail = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLenum zpass = (GLenum)(p ? p->getAsInt() : 0);
+   glStencilOp(fail, zfail, zpass);
+   return 0;
+}
+
+/*
+//void glTexCoord1dv (const GLdouble *v);
+static AbstractQoreNode *f_glTexCoord1dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glTexCoord1dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord1fv (const GLfloat *v);
+static AbstractQoreNode *f_glTexCoord1fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glTexCoord1fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord1iv (const GLint *v);
+static AbstractQoreNode *f_glTexCoord1iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glTexCoord1iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord1sv (const GLshort *v);
+static AbstractQoreNode *f_glTexCoord1sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glTexCoord1sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord2dv (const GLdouble *v);
+static AbstractQoreNode *f_glTexCoord2dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glTexCoord2dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord2fv (const GLfloat *v);
+static AbstractQoreNode *f_glTexCoord2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glTexCoord2fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord2iv (const GLint *v);
+static AbstractQoreNode *f_glTexCoord2iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glTexCoord2iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord2sv (const GLshort *v);
+static AbstractQoreNode *f_glTexCoord2sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glTexCoord2sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord3dv (const GLdouble *v);
+static AbstractQoreNode *f_glTexCoord3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glTexCoord3dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord3fv (const GLfloat *v);
+static AbstractQoreNode *f_glTexCoord3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glTexCoord3fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord3iv (const GLint *v);
+static AbstractQoreNode *f_glTexCoord3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glTexCoord3iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord3sv (const GLshort *v);
+static AbstractQoreNode *f_glTexCoord3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glTexCoord3sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord4dv (const GLdouble *v);
+static AbstractQoreNode *f_glTexCoord4dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glTexCoord4dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord4fv (const GLfloat *v);
+static AbstractQoreNode *f_glTexCoord4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glTexCoord4fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord4iv (const GLint *v);
+static AbstractQoreNode *f_glTexCoord4iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glTexCoord4iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoord4sv (const GLshort *v);
+static AbstractQoreNode *f_glTexCoord4sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glTexCoord4sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glTexCoordPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glTexCoordPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glTexCoordPointer();
+   return 0;
+}
+*/
+
+//void glTexGend (GLenum coord, GLenum pname, GLdouble param);
+static AbstractQoreNode *f_glTexGend(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLdouble param = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glTexGend(coord, pname, param);
+   return 0;
+}
+
+/*
+//void glTexGendv (GLenum coord, GLenum pname, const GLdouble *params);
+static AbstractQoreNode *f_glTexGendv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLdouble* params = p;
+   glTexGendv(coord, pname, params);
+   return 0;
+}
+*/
+
+//void glTexGenf (GLenum coord, GLenum pname, GLfloat param);
+static AbstractQoreNode *f_glTexGenf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glTexGenf(coord, pname, param);
+   return 0;
+}
+
+/*
+//void glTexGenfv (GLenum coord, GLenum pname, const GLfloat *params);
+static AbstractQoreNode *f_glTexGenfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glTexGenfv(coord, pname, params);
+   return 0;
+}
+*/
+
+//void glTexGeni (GLenum coord, GLenum pname, GLint param);
+static AbstractQoreNode *f_glTexGeni(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glTexGeni(coord, pname, param);
+   return 0;
+}
+
+/*
+//void glTexGeniv (GLenum coord, GLenum pname, const GLint *params);
+static AbstractQoreNode *f_glTexGeniv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glTexGeniv(coord, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glTexImage1D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+static AbstractQoreNode *f_glTexImage1D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glTexImage1D();
+   return 0;
+}
+*/
+
+/*
+//void glTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+static AbstractQoreNode *f_glTexImage2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glTexImage2D();
+   return 0;
+}
+*/
+
+/*
+//void glTexImage3D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+static AbstractQoreNode *f_glTexImage3D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glTexImage3D();
+   return 0;
+}
+*/
+
+//void glTexParameterf (GLenum target, GLenum pname, GLfloat param);
+static AbstractQoreNode *f_glTexParameterf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glTexParameterf(target, pname, param);
+   return 0;
+}
+
+/*
+//void glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params);
+static AbstractQoreNode *f_glTexParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glTexParameterfv(target, pname, params);
+   return 0;
+}
+*/
+
+//void glTexParameteri (GLenum target, GLenum pname, GLint param);
+static AbstractQoreNode *f_glTexParameteri(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glTexParameteri(target, pname, param);
+   return 0;
+}
+
+/*
+//void glTexParameteriv (GLenum target, GLenum pname, const GLint *params);
+static AbstractQoreNode *f_glTexParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glTexParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glTexSubImage1D (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels);
+static AbstractQoreNode *f_glTexSubImage1D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glTexSubImage1D();
+   return 0;
+}
+*/
+
+/*
+//void glTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
+static AbstractQoreNode *f_glTexSubImage2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glTexSubImage2D();
+   return 0;
+}
+*/
+
+/*
+//void glTexSubImage3D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid *pixels);
+static AbstractQoreNode *f_glTexSubImage3D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glTexSubImage3D();
+   return 0;
+}
+*/
+
+/*
+//void glVertex2dv (const GLdouble *v);
+static AbstractQoreNode *f_glVertex2dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glVertex2dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex2fv (const GLfloat *v);
+static AbstractQoreNode *f_glVertex2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glVertex2fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex2iv (const GLint *v);
+static AbstractQoreNode *f_glVertex2iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glVertex2iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex2sv (const GLshort *v);
+static AbstractQoreNode *f_glVertex2sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glVertex2sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex3dv (const GLdouble *v);
+static AbstractQoreNode *f_glVertex3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glVertex3dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex3fv (const GLfloat *v);
+static AbstractQoreNode *f_glVertex3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glVertex3fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex3iv (const GLint *v);
+static AbstractQoreNode *f_glVertex3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glVertex3iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex3sv (const GLshort *v);
+static AbstractQoreNode *f_glVertex3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glVertex3sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex4dv (const GLdouble *v);
+static AbstractQoreNode *f_glVertex4dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glVertex4dv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex4fv (const GLfloat *v);
+static AbstractQoreNode *f_glVertex4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glVertex4fv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex4iv (const GLint *v);
+static AbstractQoreNode *f_glVertex4iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glVertex4iv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertex4sv (const GLshort *v);
+static AbstractQoreNode *f_glVertex4sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glVertex4sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glVertexPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glVertexPointer();
+   return 0;
+}
+*/
+
+//void glSampleCoverage (GLclampf value, GLboolean invert);
+static AbstractQoreNode *f_glSampleCoverage(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLclampf value = (GLclampf)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLboolean invert = (GLboolean)(p ? p->getAsBool() : 0);
+   glSampleCoverage(value, invert);
+   return 0;
+}
+
+//void glSamplePass (GLenum pass);
+static AbstractQoreNode *f_glSamplePass(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pass = (GLenum)(p ? p->getAsInt() : 0);
+   glSamplePass(pass);
+   return 0;
+}
+
+/*
+//void glLoadTransposeMatrixf (const GLfloat *m);
+static AbstractQoreNode *f_glLoadTransposeMatrixf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* m = p;
+   glLoadTransposeMatrixf(m);
+   return 0;
+}
+*/
+
+/*
+//void glLoadTransposeMatrixd (const GLdouble *m);
+static AbstractQoreNode *f_glLoadTransposeMatrixd(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* m = p;
+   glLoadTransposeMatrixd(m);
+   return 0;
+}
+*/
+
+/*
+//void glMultTransposeMatrixf (const GLfloat *m);
+static AbstractQoreNode *f_glMultTransposeMatrixf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* m = p;
+   glMultTransposeMatrixf(m);
+   return 0;
+}
+*/
+
+/*
+//void glMultTransposeMatrixd (const GLdouble *m);
+static AbstractQoreNode *f_glMultTransposeMatrixd(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* m = p;
+   glMultTransposeMatrixd(m);
+   return 0;
+}
+*/
+
+/*
+//void glCompressedTexImage3D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid *data);
+static AbstractQoreNode *f_glCompressedTexImage3D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glCompressedTexImage3D();
+   return 0;
+}
+*/
+
+/*
+//void glCompressedTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid *data);
+static AbstractQoreNode *f_glCompressedTexImage2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glCompressedTexImage2D();
+   return 0;
+}
+*/
+
+/*
+//void glCompressedTexImage1D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const GLvoid *data);
+static AbstractQoreNode *f_glCompressedTexImage1D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glCompressedTexImage1D();
+   return 0;
+}
+*/
+
+/*
+//void glCompressedTexSubImage3D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid *data);
+static AbstractQoreNode *f_glCompressedTexSubImage3D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glCompressedTexSubImage3D();
+   return 0;
+}
+*/
+
+/*
+//void glCompressedTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid *data);
+static AbstractQoreNode *f_glCompressedTexSubImage2D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glCompressedTexSubImage2D();
+   return 0;
+}
+*/
+
+/*
+//void glCompressedTexSubImage1D (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const GLvoid *data);
+static AbstractQoreNode *f_glCompressedTexSubImage1D(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glCompressedTexSubImage1D();
+   return 0;
+}
+*/
+
+/*
+//void glGetCompressedTexImage (GLenum target, GLint lod, GLvoid *img);
+static AbstractQoreNode *f_glGetCompressedTexImage(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetCompressedTexImage();
+   return 0;
+}
+*/
+
+//void glActiveTexture (GLenum texture);
+static AbstractQoreNode *f_glActiveTexture(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum texture = (GLenum)(p ? p->getAsInt() : 0);
+   glActiveTexture(texture);
+   return 0;
+}
+
+//void glClientActiveTexture (GLenum texture);
+static AbstractQoreNode *f_glClientActiveTexture(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum texture = (GLenum)(p ? p->getAsInt() : 0);
+   glClientActiveTexture(texture);
+   return 0;
+}
+
+//void glMultiTexCoord1d (GLenum target, GLdouble s);
+static AbstractQoreNode *f_glMultiTexCoord1d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLdouble s = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glMultiTexCoord1d(target, s);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord1dv (GLenum target, const GLdouble *v);
+static AbstractQoreNode *f_glMultiTexCoord1dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLdouble* v = p;
+   glMultiTexCoord1dv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord1f (GLenum target, GLfloat s);
+static AbstractQoreNode *f_glMultiTexCoord1f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat s = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glMultiTexCoord1f(target, s);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord1fv (GLenum target, const GLfloat *v);
+static AbstractQoreNode *f_glMultiTexCoord1fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLfloat* v = p;
+   glMultiTexCoord1fv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord1i (GLenum target, GLint s);
+static AbstractQoreNode *f_glMultiTexCoord1i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint s = (GLint)(p ? p->getAsInt() : 0);
+   glMultiTexCoord1i(target, s);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord1iv (GLenum target, const GLint *v);
+static AbstractQoreNode *f_glMultiTexCoord1iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLint* v = p;
+   glMultiTexCoord1iv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord1s (GLenum target, GLshort s);
+static AbstractQoreNode *f_glMultiTexCoord1s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort s = (GLshort)(p ? p->getAsInt() : 0);
+   glMultiTexCoord1s(target, s);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord1sv (GLenum target, const GLshort *v);
+static AbstractQoreNode *f_glMultiTexCoord1sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glMultiTexCoord1sv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord2d (GLenum target, GLdouble s, GLdouble t);
+static AbstractQoreNode *f_glMultiTexCoord2d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLdouble s = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble t = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glMultiTexCoord2d(target, s, t);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord2dv (GLenum target, const GLdouble *v);
+static AbstractQoreNode *f_glMultiTexCoord2dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLdouble* v = p;
+   glMultiTexCoord2dv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord2f (GLenum target, GLfloat s, GLfloat t);
+static AbstractQoreNode *f_glMultiTexCoord2f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat s = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat t = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glMultiTexCoord2f(target, s, t);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord2fv (GLenum target, const GLfloat *v);
+static AbstractQoreNode *f_glMultiTexCoord2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLfloat* v = p;
+   glMultiTexCoord2fv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord2i (GLenum target, GLint s, GLint t);
+static AbstractQoreNode *f_glMultiTexCoord2i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint s = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint t = (GLint)(p ? p->getAsInt() : 0);
+   glMultiTexCoord2i(target, s, t);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord2iv (GLenum target, const GLint *v);
+static AbstractQoreNode *f_glMultiTexCoord2iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLint* v = p;
+   glMultiTexCoord2iv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord2s (GLenum target, GLshort s, GLshort t);
+static AbstractQoreNode *f_glMultiTexCoord2s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort s = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort t = (GLshort)(p ? p->getAsInt() : 0);
+   glMultiTexCoord2s(target, s, t);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord2sv (GLenum target, const GLshort *v);
+static AbstractQoreNode *f_glMultiTexCoord2sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glMultiTexCoord2sv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord3d (GLenum target, GLdouble s, GLdouble t, GLdouble r);
+static AbstractQoreNode *f_glMultiTexCoord3d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLdouble s = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble t = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLdouble r = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glMultiTexCoord3d(target, s, t, r);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord3dv (GLenum target, const GLdouble *v);
+static AbstractQoreNode *f_glMultiTexCoord3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLdouble* v = p;
+   glMultiTexCoord3dv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord3f (GLenum target, GLfloat s, GLfloat t, GLfloat r);
+static AbstractQoreNode *f_glMultiTexCoord3f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat s = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat t = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat r = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glMultiTexCoord3f(target, s, t, r);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord3fv (GLenum target, const GLfloat *v);
+static AbstractQoreNode *f_glMultiTexCoord3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLfloat* v = p;
+   glMultiTexCoord3fv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord3i (GLenum target, GLint s, GLint t, GLint r);
+static AbstractQoreNode *f_glMultiTexCoord3i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint s = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint t = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint r = (GLint)(p ? p->getAsInt() : 0);
+   glMultiTexCoord3i(target, s, t, r);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord3iv (GLenum target, const GLint *v);
+static AbstractQoreNode *f_glMultiTexCoord3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLint* v = p;
+   glMultiTexCoord3iv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord3s (GLenum target, GLshort s, GLshort t, GLshort r);
+static AbstractQoreNode *f_glMultiTexCoord3s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort s = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort t = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLshort r = (GLshort)(p ? p->getAsInt() : 0);
+   glMultiTexCoord3s(target, s, t, r);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord3sv (GLenum target, const GLshort *v);
+static AbstractQoreNode *f_glMultiTexCoord3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glMultiTexCoord3sv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord4d (GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q);
+static AbstractQoreNode *f_glMultiTexCoord4d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLdouble s = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble t = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLdouble r = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 4);
+   GLdouble q = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glMultiTexCoord4d(target, s, t, r, q);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord4dv (GLenum target, const GLdouble *v);
+static AbstractQoreNode *f_glMultiTexCoord4dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLdouble* v = p;
+   glMultiTexCoord4dv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord4f (GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q);
+static AbstractQoreNode *f_glMultiTexCoord4f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat s = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat t = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat r = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 4);
+   GLfloat q = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glMultiTexCoord4f(target, s, t, r, q);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord4fv (GLenum target, const GLfloat *v);
+static AbstractQoreNode *f_glMultiTexCoord4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLfloat* v = p;
+   glMultiTexCoord4fv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord4i (GLenum target, GLint, GLint s, GLint t, GLint r);
+static AbstractQoreNode *f_glMultiTexCoord4i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint glint = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint s = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint t = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint r = (GLint)(p ? p->getAsInt() : 0);
+   glMultiTexCoord4i(target, glint, s, t, r);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord4iv (GLenum target, const GLint *v);
+static AbstractQoreNode *f_glMultiTexCoord4iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLint* v = p;
+   glMultiTexCoord4iv(target, v);
+   return 0;
+}
+*/
+
+//void glMultiTexCoord4s (GLenum target, GLshort s, GLshort t, GLshort r, GLshort q);
+static AbstractQoreNode *f_glMultiTexCoord4s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort s = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort t = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLshort r = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLshort q = (GLshort)(p ? p->getAsInt() : 0);
+   glMultiTexCoord4s(target, s, t, r, q);
+   return 0;
+}
+
+/*
+//void glMultiTexCoord4sv (GLenum target, const GLshort *v);
+static AbstractQoreNode *f_glMultiTexCoord4sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glMultiTexCoord4sv(target, v);
+   return 0;
+}
+*/
+
+//void glFogCoordf (GLfloat coord);
+static AbstractQoreNode *f_glFogCoordf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat coord = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glFogCoordf(coord);
+   return 0;
+}
+
+/*
+//void glFogCoordfv (const GLfloat *coord);
+static AbstractQoreNode *f_glFogCoordfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* coord = p;
+   glFogCoordfv(coord);
+   return 0;
+}
+*/
+
+//void glFogCoordd (GLdouble coord);
+static AbstractQoreNode *f_glFogCoordd(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble coord = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glFogCoordd(coord);
+   return 0;
+}
+
+/*
+//void glFogCoorddv (const GLdouble * coord);
+static AbstractQoreNode *f_glFogCoorddv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* coord = p;
+   glFogCoorddv(coord);
+   return 0;
+}
+*/
+
+/*
+//void glFogCoordPointer (GLenum type, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glFogCoordPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glFogCoordPointer();
+   return 0;
+}
+*/
+
+//void glSecondaryColor3b (GLbyte red, GLbyte green, GLbyte blue);
+static AbstractQoreNode *f_glSecondaryColor3b(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLbyte red = (GLbyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLbyte green = (GLbyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLbyte blue = (GLbyte)(p ? p->getAsInt() : 0);
+   glSecondaryColor3b(red, green, blue);
+   return 0;
+}
+
+/*
+//void glSecondaryColor3bv (const GLbyte *v);
+static AbstractQoreNode *f_glSecondaryColor3bv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLbyte* v = p;
+   glSecondaryColor3bv(v);
+   return 0;
+}
+*/
+
+//void glSecondaryColor3d (GLdouble red, GLdouble green, GLdouble blue);
+static AbstractQoreNode *f_glSecondaryColor3d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble red = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble green = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble blue = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glSecondaryColor3d(red, green, blue);
+   return 0;
+}
+
+/*
+//void glSecondaryColor3dv (const GLdouble *v);
+static AbstractQoreNode *f_glSecondaryColor3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glSecondaryColor3dv(v);
+   return 0;
+}
+*/
+
+//void glSecondaryColor3f (GLfloat red, GLfloat green, GLfloat blue);
+static AbstractQoreNode *f_glSecondaryColor3f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat red = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat green = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat blue = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glSecondaryColor3f(red, green, blue);
+   return 0;
+}
+
+/*
+//void glSecondaryColor3fv (const GLfloat *v);
+static AbstractQoreNode *f_glSecondaryColor3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glSecondaryColor3fv(v);
+   return 0;
+}
+*/
+
+//void glSecondaryColor3i (GLint red, GLint green, GLint blue);
+static AbstractQoreNode *f_glSecondaryColor3i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint red = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint green = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint blue = (GLint)(p ? p->getAsInt() : 0);
+   glSecondaryColor3i(red, green, blue);
+   return 0;
+}
+
+/*
+//void glSecondaryColor3iv (const GLint *v);
+static AbstractQoreNode *f_glSecondaryColor3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glSecondaryColor3iv(v);
+   return 0;
+}
+*/
+
+//void glSecondaryColor3s (GLshort red, GLshort green, GLshort blue);
+static AbstractQoreNode *f_glSecondaryColor3s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort red = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort green = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort blue = (GLshort)(p ? p->getAsInt() : 0);
+   glSecondaryColor3s(red, green, blue);
+   return 0;
+}
+
+/*
+//void glSecondaryColor3sv (const GLshort *v);
+static AbstractQoreNode *f_glSecondaryColor3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glSecondaryColor3sv(v);
+   return 0;
+}
+*/
+
+//void glSecondaryColor3ub (GLubyte red, GLubyte green, GLubyte blue);
+static AbstractQoreNode *f_glSecondaryColor3ub(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLubyte red = (GLubyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLubyte green = (GLubyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLubyte blue = (GLubyte)(p ? p->getAsInt() : 0);
+   glSecondaryColor3ub(red, green, blue);
+   return 0;
+}
+
+/*
+//void glSecondaryColor3ubv (const GLubyte *v);
+static AbstractQoreNode *f_glSecondaryColor3ubv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLubyte* v = p;
+   glSecondaryColor3ubv(v);
+   return 0;
+}
+*/
+
+//void glSecondaryColor3ui (GLuint red, GLuint green, GLuint blue);
+static AbstractQoreNode *f_glSecondaryColor3ui(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned red = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   unsigned green = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 2);
+   unsigned blue = p ? p->getAsBigInt() : 0;
+   glSecondaryColor3ui(red, green, blue);
+   return 0;
+}
+
+/*
+//void glSecondaryColor3uiv (const GLuint *v);
+static AbstractQoreNode *f_glSecondaryColor3uiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLuint* v = p;
+   glSecondaryColor3uiv(v);
+   return 0;
+}
+*/
+
+//void glSecondaryColor3us (GLushort red, GLushort green, GLushort blue);
+static AbstractQoreNode *f_glSecondaryColor3us(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLushort red = (GLushort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLushort green = (GLushort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLushort blue = (GLushort)(p ? p->getAsInt() : 0);
+   glSecondaryColor3us(red, green, blue);
+   return 0;
+}
+
+/*
+//void glSecondaryColor3usv (const GLushort *v);
+static AbstractQoreNode *f_glSecondaryColor3usv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLushort* v = p;
+   glSecondaryColor3usv(v);
+   return 0;
+}
+*/
+
+ /*
+//void glSecondaryColorPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glSecondaryColorPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glSecondaryColorPointer();
+   return 0;
+}
+ */
+
+//void glPointParameterf (GLenum pname, GLfloat param);
+static AbstractQoreNode *f_glPointParameterf(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat param = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glPointParameterf(pname, param);
+   return 0;
+}
+
+/*
+//void glPointParameterfv (GLenum pname, const GLfloat *params);
+static AbstractQoreNode *f_glPointParameterfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLfloat* params = p;
+   glPointParameterfv(pname, params);
+   return 0;
+}
+*/
+
+//void glPointParameteri (GLenum pname, GLint param);
+static AbstractQoreNode *f_glPointParameteri(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint param = (GLint)(p ? p->getAsInt() : 0);
+   glPointParameteri(pname, param);
+   return 0;
+}
+
+/*
+//void glPointParameteriv (GLenum pname, const GLint *params);
+static AbstractQoreNode *f_glPointParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLint* params = p;
+   glPointParameteriv(pname, params);
+   return 0;
+}
+*/
+
+//void glBlendFuncSeparate (GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
+static AbstractQoreNode *f_glBlendFuncSeparate(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum srcRGB = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum dstRGB = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLenum srcAlpha = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLenum dstAlpha = (GLenum)(p ? p->getAsInt() : 0);
+   glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+   return 0;
+}
+
+/*
+//void glMultiDrawArrays (GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount);
+static AbstractQoreNode *f_glMultiDrawArrays(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum mode = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLint* first = p;
+   p = get_param(params, 2);
+   ??? GLsizei* count = p;
+   p = get_param(params, 3);
+   GLsizei primcount = (GLsizei)(p ? p->getAsInt() : 0);
+   glMultiDrawArrays(mode, first, count, primcount);
+   return 0;
+}
+*/
+
+/*
+//void glMultiDrawElements (GLenum mode, const GLsizei *count, GLenum type, const GLvoid* *indices, GLsizei primcount);
+static AbstractQoreNode *f_glMultiDrawElements(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glMultiDrawElements();
+   return 0;
+}
+*/
+
+//void glWindowPos2d (GLdouble x, GLdouble y);
+static AbstractQoreNode *f_glWindowPos2d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble y = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glWindowPos2d(x, y);
+   return 0;
+}
+
+/*
+//void glWindowPos2dv (const GLdouble *v);
+static AbstractQoreNode *f_glWindowPos2dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glWindowPos2dv(v);
+   return 0;
+}
+*/
+
+//void glWindowPos2f (GLfloat x, GLfloat y);
+static AbstractQoreNode *f_glWindowPos2f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat y = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glWindowPos2f(x, y);
+   return 0;
+}
+
+/*
+//void glWindowPos2fv (const GLfloat *v);
+static AbstractQoreNode *f_glWindowPos2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glWindowPos2fv(v);
+   return 0;
+}
+*/
+
+//void glWindowPos2i (GLint x, GLint y);
+static AbstractQoreNode *f_glWindowPos2i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   glWindowPos2i(x, y);
+   return 0;
+}
+
+/*
+//void glWindowPos2iv (const GLint *v);
+static AbstractQoreNode *f_glWindowPos2iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glWindowPos2iv(v);
+   return 0;
+}
+*/
+
+//void glWindowPos2s (GLshort x, GLshort y);
+static AbstractQoreNode *f_glWindowPos2s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort y = (GLshort)(p ? p->getAsInt() : 0);
+   glWindowPos2s(x, y);
+   return 0;
+}
+
+/*
+//void glWindowPos2sv (const GLshort *v);
+static AbstractQoreNode *f_glWindowPos2sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glWindowPos2sv(v);
+   return 0;
+}
+*/
+
+//void glWindowPos3d (GLdouble x, GLdouble y, GLdouble z);
+static AbstractQoreNode *f_glWindowPos3d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLdouble y = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble z = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glWindowPos3d(x, y, z);
+   return 0;
+}
+
+/*
+//void glWindowPos3dv (const GLdouble *v);
+static AbstractQoreNode *f_glWindowPos3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLdouble* v = p;
+   glWindowPos3dv(v);
+   return 0;
+}
+*/
+
+//void glWindowPos3f (GLfloat x, GLfloat y, GLfloat z);
+static AbstractQoreNode *f_glWindowPos3f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 1);
+   GLfloat y = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat z = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glWindowPos3f(x, y, z);
+   return 0;
+}
+
+/*
+//void glWindowPos3fv (const GLfloat *v);
+static AbstractQoreNode *f_glWindowPos3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLfloat* v = p;
+   glWindowPos3fv(v);
+   return 0;
+}
+*/
+
+//void glWindowPos3i (GLint x, GLint y, GLint z);
+static AbstractQoreNode *f_glWindowPos3i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint x = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint y = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint z = (GLint)(p ? p->getAsInt() : 0);
+   glWindowPos3i(x, y, z);
+   return 0;
+}
+
+/*
+//void glWindowPos3iv (const GLint *v);
+static AbstractQoreNode *f_glWindowPos3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLint* v = p;
+   glWindowPos3iv(v);
+   return 0;
+}
+*/
+
+//void glWindowPos3s (GLshort x, GLshort y, GLshort z);
+static AbstractQoreNode *f_glWindowPos3s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLshort y = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort z = (GLshort)(p ? p->getAsInt() : 0);
+   glWindowPos3s(x, y, z);
+   return 0;
+}
+
+/*
+//void glWindowPos3sv (const GLshort *v);
+static AbstractQoreNode *f_glWindowPos3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   ??? GLshort* v = p;
+   glWindowPos3sv(v);
+   return 0;
+}
+*/
+
+/*
+//void glGenQueries (GLsizei n, GLuint *ids);
+static AbstractQoreNode *f_glGenQueries(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* ids = p;
+   glGenQueries(n, ids);
+   return 0;
+}
+*/
+
+/*
+//void glDeleteQueries (GLsizei n, const GLuint *ids);
+static AbstractQoreNode *f_glDeleteQueries(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* ids = p;
+   glDeleteQueries(n, ids);
+   return 0;
+}
+*/
+
+//GLboolean glIsQuery (GLuint id);
+static AbstractQoreNode *f_glIsQuery(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned id = p ? p->getAsBigInt() : 0;
+   return get_bool_node(glIsQuery(id));
+}
+
+//void glBeginQuery (GLenum target, GLuint id);
+static AbstractQoreNode *f_glBeginQuery(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   unsigned id = p ? p->getAsBigInt() : 0;
+   glBeginQuery(target, id);
+   return 0;
+}
+
+//void glEndQuery (GLenum target);
+static AbstractQoreNode *f_glEndQuery(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   glEndQuery(target);
+   return 0;
+}
+
+/*
+//void glGetQueryiv (GLenum target, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetQueryiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetQueryiv(target, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetQueryObjectiv (GLuint id, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetQueryObjectiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned id = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetQueryObjectiv(id, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetQueryObjectuiv (GLuint id, GLenum pname, GLuint *params);
+static AbstractQoreNode *f_glGetQueryObjectuiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned id = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLuint* params = p;
+   glGetQueryObjectuiv(id, pname, params);
+   return 0;
+}
+*/
+
+//void glBindBuffer (GLenum target, GLuint buffer);
+static AbstractQoreNode *f_glBindBuffer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   unsigned buffer = p ? p->getAsBigInt() : 0;
+   glBindBuffer(target, buffer);
+   return 0;
+}
+
+/*
+//void glDeleteBuffers (GLsizei n, const GLuint *buffers);
+static AbstractQoreNode *f_glDeleteBuffers(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* buffers = p;
+   glDeleteBuffers(n, buffers);
+   return 0;
+}
+*/
+
+/*
+//void glGenBuffers (GLsizei n, GLuint *buffers);
+static AbstractQoreNode *f_glGenBuffers(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLuint* buffers = p;
+   glGenBuffers(n, buffers);
+   return 0;
+}
+*/
+
+//GLboolean glIsBuffer (GLuint buffer);
+static AbstractQoreNode *f_glIsBuffer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned buffer = p ? p->getAsBigInt() : 0;
+   return get_bool_node(glIsBuffer(buffer));
+}
+
+/*
+//void glBufferData (GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage);
+static AbstractQoreNode *f_glBufferData(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glBufferData();
+   return 0;
+}
+*/
+
+/*
+//void glBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid *data);
+static AbstractQoreNode *f_glBufferSubData(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glBufferSubData();
+   return 0;
+}
+*/
+
+/*
+//void glGetBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size, GLvoid *data);
+static AbstractQoreNode *f_glGetBufferSubData(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetBufferSubData();
+   return 0;
+}
+*/
+
+/*
+//GLvoid * glMapBuffer (GLenum target, GLenum access);
+static AbstractQoreNode *f_glMapBuffer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum access = (GLenum)(p ? p->getAsInt() : 0);
+   ??? return new QoreBigIntNode(glMapBuffer(target, access));
+}
+*/
+
+/*
+//GLboolean glUnmapBuffer (GLenum target);
+static AbstractQoreNode *f_glUnmapBuffer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   ??? return new QoreBigIntNode(glUnmapBuffer(target));
+}
+*/
+
+/*
+//void glGetBufferParameteriv (GLenum target, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetBufferParameteriv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum target = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetBufferParameteriv(target, pname, params);
+   return 0;
+}
+*/
+
+ /*
+//void glGetBufferPointerv (GLenum target, GLenum pname, GLvoid **params);
+static AbstractQoreNode *f_glGetBufferPointerv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetBufferPointerv();
+   return 0;
+}
+ */
+
+/*
+//void glDrawBuffers (GLsizei n, const GLenum *bufs);
+static AbstractQoreNode *f_glDrawBuffers(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   ??? GLenum* bufs = p;
+   glDrawBuffers(n, bufs);
+   return 0;
+}
+*/
+
+//void glVertexAttrib1d (GLuint index, GLdouble x);
+static AbstractQoreNode *f_glVertexAttrib1d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glVertexAttrib1d(index, x);
+   return 0;
+}
+
+/*
+//void glVertexAttrib1dv (GLuint index, const GLdouble *v);
+static AbstractQoreNode *f_glVertexAttrib1dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLdouble* v = p;
+   glVertexAttrib1dv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib1f (GLuint index, GLfloat x);
+static AbstractQoreNode *f_glVertexAttrib1f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glVertexAttrib1f(index, x);
+   return 0;
+}
+
+/*
+//void glVertexAttrib1fv (GLuint index, const GLfloat *v);
+static AbstractQoreNode *f_glVertexAttrib1fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLfloat* v = p;
+   glVertexAttrib1fv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib1s (GLuint index, GLshort x);
+static AbstractQoreNode *f_glVertexAttrib1s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   glVertexAttrib1s(index, x);
+   return 0;
+}
+
+/*
+//void glVertexAttrib1sv (GLuint index, const GLshort *v);
+static AbstractQoreNode *f_glVertexAttrib1sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glVertexAttrib1sv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib2d (GLuint index, GLdouble x, GLdouble y);
+static AbstractQoreNode *f_glVertexAttrib2d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble y = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glVertexAttrib2d(index, x, y);
+   return 0;
+}
+
+/*
+//void glVertexAttrib2dv (GLuint index, const GLdouble *v);
+static AbstractQoreNode *f_glVertexAttrib2dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLdouble* v = p;
+   glVertexAttrib2dv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib2f (GLuint index, GLfloat x, GLfloat y);
+static AbstractQoreNode *f_glVertexAttrib2f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat y = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glVertexAttrib2f(index, x, y);
+   return 0;
+}
+
+/*
+//void glVertexAttrib2fv (GLuint index, const GLfloat *v);
+static AbstractQoreNode *f_glVertexAttrib2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLfloat* v = p;
+   glVertexAttrib2fv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib2s (GLuint index, GLshort x, GLshort y);
+static AbstractQoreNode *f_glVertexAttrib2s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort y = (GLshort)(p ? p->getAsInt() : 0);
+   glVertexAttrib2s(index, x, y);
+   return 0;
+}
+
+/*
+//void glVertexAttrib2sv (GLuint index, const GLshort *v);
+static AbstractQoreNode *f_glVertexAttrib2sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glVertexAttrib2sv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib3d (GLuint index, GLdouble x, GLdouble y, GLdouble z);
+static AbstractQoreNode *f_glVertexAttrib3d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble y = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLdouble z = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glVertexAttrib3d(index, x, y, z);
+   return 0;
+}
+
+/*
+//void glVertexAttrib3dv (GLuint index, const GLdouble *v);
+static AbstractQoreNode *f_glVertexAttrib3dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLdouble* v = p;
+   glVertexAttrib3dv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib3f (GLuint index, GLfloat x, GLfloat y, GLfloat z);
+static AbstractQoreNode *f_glVertexAttrib3f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat y = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat z = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glVertexAttrib3f(index, x, y, z);
+   return 0;
+}
+
+/*
+//void glVertexAttrib3fv (GLuint index, const GLfloat *v);
+static AbstractQoreNode *f_glVertexAttrib3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLfloat* v = p;
+   glVertexAttrib3fv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib3s (GLuint index, GLshort x, GLshort y, GLshort z);
+static AbstractQoreNode *f_glVertexAttrib3s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort y = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLshort z = (GLshort)(p ? p->getAsInt() : 0);
+   glVertexAttrib3s(index, x, y, z);
+   return 0;
+}
+
+/*
+//void glVertexAttrib3sv (GLuint index, const GLshort *v);
+static AbstractQoreNode *f_glVertexAttrib3sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glVertexAttrib3sv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4Nbv (GLuint index, const GLbyte *v);
+static AbstractQoreNode *f_glVertexAttrib4Nbv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLbyte* v = p;
+   glVertexAttrib4Nbv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4Niv (GLuint index, const GLint *v);
+static AbstractQoreNode *f_glVertexAttrib4Niv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLint* v = p;
+   glVertexAttrib4Niv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4Nsv (GLuint index, const GLshort *v);
+static AbstractQoreNode *f_glVertexAttrib4Nsv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glVertexAttrib4Nsv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib4Nub (GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
+static AbstractQoreNode *f_glVertexAttrib4Nub(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLubyte x = (GLubyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLubyte y = (GLubyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLubyte z = (GLubyte)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLubyte w = (GLubyte)(p ? p->getAsInt() : 0);
+   glVertexAttrib4Nub(index, x, y, z, w);
+   return 0;
+}
+
+/*
+//void glVertexAttrib4Nubv (GLuint index, const GLubyte *v);
+static AbstractQoreNode *f_glVertexAttrib4Nubv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLubyte* v = p;
+   glVertexAttrib4Nubv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4Nuiv (GLuint index, const GLuint *v);
+static AbstractQoreNode *f_glVertexAttrib4Nuiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLuint* v = p;
+   glVertexAttrib4Nuiv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4Nusv (GLuint index, const GLushort *v);
+static AbstractQoreNode *f_glVertexAttrib4Nusv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLushort* v = p;
+   glVertexAttrib4Nusv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4bv (GLuint index, const GLbyte *v);
+static AbstractQoreNode *f_glVertexAttrib4bv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLbyte* v = p;
+   glVertexAttrib4bv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib4d (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+static AbstractQoreNode *f_glVertexAttrib4d(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLdouble x = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLdouble y = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLdouble z = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 4);
+   GLdouble w = (GLdouble)(p ? p->getAsFloat() : 0.0);
+   glVertexAttrib4d(index, x, y, z, w);
+   return 0;
+}
+
+/*
+//void glVertexAttrib4dv (GLuint index, const GLdouble *v);
+static AbstractQoreNode *f_glVertexAttrib4dv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLdouble* v = p;
+   glVertexAttrib4dv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib4f (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+static AbstractQoreNode *f_glVertexAttrib4f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLfloat x = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat y = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat z = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 4);
+   GLfloat w = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glVertexAttrib4f(index, x, y, z, w);
+   return 0;
+}
+
+/*
+//void glVertexAttrib4fv (GLuint index, const GLfloat *v);
+static AbstractQoreNode *f_glVertexAttrib4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLfloat* v = p;
+   glVertexAttrib4fv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4iv (GLuint index, const GLint *v);
+static AbstractQoreNode *f_glVertexAttrib4iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLint* v = p;
+   glVertexAttrib4iv(index, v);
+   return 0;
+}
+*/
+
+//void glVertexAttrib4s (GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
+static AbstractQoreNode *f_glVertexAttrib4s(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLshort x = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLshort y = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLshort z = (GLshort)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLshort w = (GLshort)(p ? p->getAsInt() : 0);
+   glVertexAttrib4s(index, x, y, z, w);
+   return 0;
+}
+
+/*
+//void glVertexAttrib4sv (GLuint index, const GLshort *v);
+static AbstractQoreNode *f_glVertexAttrib4sv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLshort* v = p;
+   glVertexAttrib4sv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4ubv (GLuint index, const GLubyte *v);
+static AbstractQoreNode *f_glVertexAttrib4ubv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLubyte* v = p;
+   glVertexAttrib4ubv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4uiv (GLuint index, const GLuint *v);
+static AbstractQoreNode *f_glVertexAttrib4uiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLuint* v = p;
+   glVertexAttrib4uiv(index, v);
+   return 0;
+}
+*/
+
+/*
+//void glVertexAttrib4usv (GLuint index, const GLushort *v);
+static AbstractQoreNode *f_glVertexAttrib4usv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLushort* v = p;
+   glVertexAttrib4usv(index, v);
+   return 0;
+}
+*/
+
+ /*
+//void glVertexAttribPointer (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer);
+static AbstractQoreNode *f_glVertexAttribPointer(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glVertexAttribPointer();
+   return 0;
+}
+ */
+
+//void glEnableVertexAttribArray (GLuint index);
+static AbstractQoreNode *f_glEnableVertexAttribArray(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   glEnableVertexAttribArray(index);
+   return 0;
+}
+
+//void glDisableVertexAttribArray (GLuint index);
+static AbstractQoreNode *f_glDisableVertexAttribArray(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   glDisableVertexAttribArray(index);
+   return 0;
+}
+
+/*
+//void glGetVertexAttribdv (GLuint index, GLenum pname, GLdouble *params);
+static AbstractQoreNode *f_glGetVertexAttribdv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLdouble* params = p;
+   glGetVertexAttribdv(index, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetVertexAttribfv (GLuint index, GLenum pname, GLfloat *params);
+static AbstractQoreNode *f_glGetVertexAttribfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetVertexAttribfv(index, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetVertexAttribiv (GLuint index, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetVertexAttribiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetVertexAttribiv(index, pname, params);
+   return 0;
+}
+*/
+
+ /*
+//void glGetVertexAttribPointerv (GLuint index, GLenum pname, GLvoid* *pointer);
+static AbstractQoreNode *f_glGetVertexAttribPointerv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   glGetVertexAttribPointerv();
+   return 0;
+}
+ */
+
+//void glDeleteShader (GLuint shader);
+static AbstractQoreNode *f_glDeleteShader(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   glDeleteShader(shader);
+   return 0;
+}
+
+//void glDetachShader (GLuint program, GLuint shader);
+static AbstractQoreNode *f_glDetachShader(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   glDetachShader(program, shader);
+   return 0;
+}
+
+//GLuint glCreateShader (GLenum type);
+static AbstractQoreNode *f_glCreateShader(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum type = (GLenum)(p ? p->getAsInt() : 0);
+   return new QoreBigIntNode(glCreateShader(type));
+}
+
+/*
+//void glShaderSource (GLuint shader, GLsizei count, const GLchar* *string, const GLint *length);
+static AbstractQoreNode *f_glShaderSource(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLchar** string = p;
+   p = get_param(params, 3);
+   ??? GLint* length = p;
+   glShaderSource(shader, count, string, length);
+   return 0;
+}
+*/
+
+//void glCompileShader (GLuint shader);
+static AbstractQoreNode *f_glCompileShader(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   glCompileShader(shader);
+   return 0;
+}
+
+//GLuint glCreateProgram (void);
+static AbstractQoreNode *f_glCreateProgram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   return new QoreBigIntNode(glCreateProgram());
+}
+
+//void glAttachShader (GLuint program, GLuint shader);
+static AbstractQoreNode *f_glAttachShader(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   glAttachShader(program, shader);
+   return 0;
+}
+
+//void glLinkProgram (GLuint program);
+static AbstractQoreNode *f_glLinkProgram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   glLinkProgram(program);
+   return 0;
+}
+
+//void glUseProgram (GLuint program);
+static AbstractQoreNode *f_glUseProgram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   glUseProgram(program);
+   return 0;
+}
+
+//void glDeleteProgram (GLuint program);
+static AbstractQoreNode *f_glDeleteProgram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   glDeleteProgram(program);
+   return 0;
+}
+
+//void glValidateProgram (GLuint program);
+static AbstractQoreNode *f_glValidateProgram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   glValidateProgram(program);
+   return 0;
+}
+
+//void glUniform1f (GLint location, GLfloat v0);
+static AbstractQoreNode *f_glUniform1f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat v0 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glUniform1f(location, v0);
+   return 0;
+}
+
+//void glUniform2f (GLint location, GLfloat v0, GLfloat v1);
+static AbstractQoreNode *f_glUniform2f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat v0 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat v1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glUniform2f(location, v0, v1);
+   return 0;
+}
+
+//void glUniform3f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+static AbstractQoreNode *f_glUniform3f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat v0 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat v1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat v2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glUniform3f(location, v0, v1, v2);
+   return 0;
+}
+
+//void glUniform4f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+static AbstractQoreNode *f_glUniform4f(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLfloat v0 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 2);
+   GLfloat v1 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 3);
+   GLfloat v2 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   p = get_param(params, 4);
+   GLfloat v3 = (GLfloat)(p ? p->getAsFloat() : 0.0);
+   glUniform4f(location, v0, v1, v2, v3);
+   return 0;
+}
+
+//void glUniform1i (GLint location, GLint v0);
+static AbstractQoreNode *f_glUniform1i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint v0 = (GLint)(p ? p->getAsInt() : 0);
+   glUniform1i(location, v0);
+   return 0;
+}
+
+//void glUniform2i (GLint location, GLint v0, GLint v1);
+static AbstractQoreNode *f_glUniform2i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint v0 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint v1 = (GLint)(p ? p->getAsInt() : 0);
+   glUniform2i(location, v0, v1);
+   return 0;
+}
+
+//void glUniform3i (GLint location, GLint v0, GLint v1, GLint v2);
+static AbstractQoreNode *f_glUniform3i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint v0 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint v1 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint v2 = (GLint)(p ? p->getAsInt() : 0);
+   glUniform3i(location, v0, v1, v2);
+   return 0;
+}
+
+//void glUniform4i (GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+static AbstractQoreNode *f_glUniform4i(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLint v0 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint v1 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLint v2 = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 4);
+   GLint v3 = (GLint)(p ? p->getAsInt() : 0);
+   glUniform4i(location, v0, v1, v2, v3);
+   return 0;
+}
+
+/*
+//void glUniform1fv (GLint location, GLsizei count, const GLfloat *value);
+static AbstractQoreNode *f_glUniform1fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* value = p;
+   glUniform1fv(location, count, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniform2fv (GLint location, GLsizei count, const GLfloat *value);
+static AbstractQoreNode *f_glUniform2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* value = p;
+   glUniform2fv(location, count, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniform3fv (GLint location, GLsizei count, const GLfloat *value);
+static AbstractQoreNode *f_glUniform3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* value = p;
+   glUniform3fv(location, count, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniform4fv (GLint location, GLsizei count, const GLfloat *value);
+static AbstractQoreNode *f_glUniform4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* value = p;
+   glUniform4fv(location, count, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniform1iv (GLint location, GLsizei count, const GLint *value);
+static AbstractQoreNode *f_glUniform1iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* value = p;
+   glUniform1iv(location, count, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniform2iv (GLint location, GLsizei count, const GLint *value);
+static AbstractQoreNode *f_glUniform2iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* value = p;
+   glUniform2iv(location, count, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniform3iv (GLint location, GLsizei count, const GLint *value);
+static AbstractQoreNode *f_glUniform3iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* value = p;
+   glUniform3iv(location, count, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniform4iv (GLint location, GLsizei count, const GLint *value);
+static AbstractQoreNode *f_glUniform4iv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* value = p;
+   glUniform4iv(location, count, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniformMatrix2fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix2fv(location, count, transpose, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniformMatrix3fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix3fv(location, count, transpose, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix4fv(location, count, transpose, value);
+   return 0;
+}
+*/
+
+//GLboolean glIsShader (GLuint shader);
+static AbstractQoreNode *f_glIsShader(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   return get_bool_node(glIsShader(shader));
+}
+
+//GLboolean glIsProgram (GLuint program);
+static AbstractQoreNode *f_glIsProgram(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   return get_bool_node(glIsProgram(program));
+}
+
+/*
+//void glGetShaderiv (GLuint shader, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetShaderiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetShaderiv(shader, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetProgramiv (GLuint program, GLenum pname, GLint *params);
+static AbstractQoreNode *f_glGetProgramiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetProgramiv(program, pname, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetAttachedShaders (GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders);
+static AbstractQoreNode *f_glGetAttachedShaders(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLsizei maxCount = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLsizei* count = p;
+   p = get_param(params, 3);
+   ??? GLuint* shaders = p;
+   glGetAttachedShaders(program, maxCount, count, shaders);
+   return 0;
+}
+*/
+
+/*
+//void glGetShaderInfoLog (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+static AbstractQoreNode *f_glGetShaderInfoLog(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLsizei bufSize = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLsizei* length = p;
+   p = get_param(params, 3);
+   ??? GLchar* infoLog = p;
+   glGetShaderInfoLog(shader, bufSize, length, infoLog);
+   return 0;
+}
+*/
+
+/*
+//void glGetProgramInfoLog (GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+static AbstractQoreNode *f_glGetProgramInfoLog(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLsizei bufSize = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLsizei* length = p;
+   p = get_param(params, 3);
+   ??? GLchar* infoLog = p;
+   glGetProgramInfoLog(program, bufSize, length, infoLog);
+   return 0;
+}
+*/
+
+/*
+//GLint glGetUniformLocation (GLuint program, const GLchar *name);
+static AbstractQoreNode *f_glGetUniformLocation(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLchar* name = p;
+   ??? return new QoreBigIntNode(glGetUniformLocation(program, name));
+}
+*/
+
+/*
+//void glGetActiveUniform (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
+static AbstractQoreNode *f_glGetActiveUniform(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 2);
+   GLsizei bufSize = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLsizei* length = p;
+   p = get_param(params, 4);
+   ??? GLint* size = p;
+   p = get_param(params, 5);
+   ??? GLenum* type = p;
+   p = get_param(params, 6);
+   ??? GLchar* name = p;
+   glGetActiveUniform(program, index, bufSize, length, size, type, name);
+   return 0;
+}
+*/
+
+/*
+//void glGetUniformfv (GLuint program, GLint location, GLfloat *params);
+static AbstractQoreNode *f_glGetUniformfv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLfloat* params = p;
+   glGetUniformfv(program, location, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetUniformiv (GLuint program, GLint location, GLint *params);
+static AbstractQoreNode *f_glGetUniformiv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLint* params = p;
+   glGetUniformiv(program, location, params);
+   return 0;
+}
+*/
+
+/*
+//void glGetShaderSource (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source);
+static AbstractQoreNode *f_glGetShaderSource(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned shader = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   GLsizei bufSize = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   ??? GLsizei* length = p;
+   p = get_param(params, 3);
+   ??? GLchar* source = p;
+   glGetShaderSource(shader, bufSize, length, source);
+   return 0;
+}
+*/
+
+/*
+//void glBindAttribLocation (GLuint program, GLuint index, const GLchar *name);
+static AbstractQoreNode *f_glBindAttribLocation(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 2);
+   ??? GLchar* name = p;
+   glBindAttribLocation(program, index, name);
+   return 0;
+}
+*/
+
+/*
+//void glGetActiveAttrib (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
+static AbstractQoreNode *f_glGetActiveAttrib(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   unsigned index = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 2);
+   GLsizei bufSize = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLsizei* length = p;
+   p = get_param(params, 4);
+   ??? GLint* size = p;
+   p = get_param(params, 5);
+   ??? GLenum* type = p;
+   p = get_param(params, 6);
+   ??? GLchar* name = p;
+   glGetActiveAttrib(program, index, bufSize, length, size, type, name);
+   return 0;
+}
+*/
+
+/*
+//GLint glGetAttribLocation (GLuint program, const GLchar *name);
+static AbstractQoreNode *f_glGetAttribLocation(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   unsigned program = p ? p->getAsBigInt() : 0;
+   p = get_param(params, 1);
+   ??? GLchar* name = p;
+   ??? return new QoreBigIntNode(glGetAttribLocation(program, name));
+}
+*/
+
+//void glStencilFuncSeparate (GLenum face, GLenum func, GLint ref, GLuint mask);
+static AbstractQoreNode *f_glStencilFuncSeparate(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum func = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLint ref = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   unsigned mask = p ? p->getAsBigInt() : 0;
+   glStencilFuncSeparate(face, func, ref, mask);
+   return 0;
+}
+
+//void glStencilOpSeparate (GLenum face, GLenum fail, GLenum zfail, GLenum zpass);
+static AbstractQoreNode *f_glStencilOpSeparate(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLenum fail = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLenum zfail = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   GLenum zpass = (GLenum)(p ? p->getAsInt() : 0);
+   glStencilOpSeparate(face, fail, zfail, zpass);
+   return 0;
+}
+
+//void glStencilMaskSeparate (GLenum face, GLuint mask);
+static AbstractQoreNode *f_glStencilMaskSeparate(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLenum face = (GLenum)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   unsigned mask = p ? p->getAsBigInt() : 0;
+   glStencilMaskSeparate(face, mask);
+   return 0;
+}
+
+/*
+//void glUniformMatrix2x3fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix2x3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix2x3fv(location, count, transpose, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniformMatrix3x2fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix3x2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix3x2fv(location, count, transpose, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniformMatrix2x4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix2x4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix2x4fv(location, count, transpose, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniformMatrix4x2fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix4x2fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix4x2fv(location, count, transpose, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniformMatrix3x4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix3x4fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix3x4fv(location, count, transpose, value);
+   return 0;
+}
+*/
+
+/*
+//void glUniformMatrix4x3fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+static AbstractQoreNode *f_glUniformMatrix4x3fv(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   GLint location = (GLint)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   GLsizei count = (GLsizei)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   GLboolean transpose = (GLboolean)(p ? p->getAsInt() : 0);
+   p = get_param(params, 3);
+   ??? GLfloat* value = p;
+   glUniformMatrix4x3fv(location, count, transpose, value);
+   return 0;
+}
+*/
 
 static QoreStringNode *opengl_module_init()
 {
@@ -1957,6 +7907,488 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glTexEnvi",                    f_glTexEnvi);
    builtinFunctions.add("glTexEnvfv",                   f_glTexEnvfv);
    builtinFunctions.add("glTexEnviv",                   f_glTexEnviv);
+
+   builtinFunctions.add("glAccum",                      f_glAccum);
+   builtinFunctions.add("glAlphaFunc",                  f_glAlphaFunc);
+   //builtinFunctions.add("glAreTexturesResident",        f_glAreTexturesResident);
+   builtinFunctions.add("glArrayElement",               f_glArrayElement);
+   //builtinFunctions.add("glBitmap",                     f_glBitmap);
+   builtinFunctions.add("glBlendColor",                 f_glBlendColor);
+   builtinFunctions.add("glBlendEquation",              f_glBlendEquation);
+   builtinFunctions.add("glBlendEquationSeparate",      f_glBlendEquationSeparate);
+   //builtinFunctions.add("glCallLists",                  f_glCallLists);
+   builtinFunctions.add("glClearAccum",                 f_glClearAccum);
+   builtinFunctions.add("glClearIndex",                 f_glClearIndex);
+   builtinFunctions.add("glClearStencil",               f_glClearStencil);
+   //builtinFunctions.add("glClipPlane",                  f_glClipPlane);
+   //builtinFunctions.add("glColor3bv",                   f_glColor3bv);
+   //builtinFunctions.add("glColor3dv",                   f_glColor3dv);
+   //builtinFunctions.add("glColor3fv",                   f_glColor3fv);
+   //builtinFunctions.add("glColor3iv",                   f_glColor3iv);
+   //builtinFunctions.add("glColor3sv",                   f_glColor3sv);
+   //builtinFunctions.add("glColor3ubv",                  f_glColor3ubv);
+   //builtinFunctions.add("glColor3uiv",                  f_glColor3uiv);
+   //builtinFunctions.add("glColor3usv",                  f_glColor3usv);
+   //builtinFunctions.add("glColor4bv",                   f_glColor4bv);
+   //builtinFunctions.add("glColor4dv",                   f_glColor4dv);
+   //builtinFunctions.add("glColor4fv",                   f_glColor4fv);
+   //builtinFunctions.add("glColor4iv",                   f_glColor4iv);
+   //builtinFunctions.add("glColor4sv",                   f_glColor4sv);
+   //builtinFunctions.add("glColor4ubv",                  f_glColor4ubv);
+   //builtinFunctions.add("glColor4uiv",                  f_glColor4uiv);
+   //builtinFunctions.add("glColor4usv",                  f_glColor4usv);
+   builtinFunctions.add("glColorMask",                  f_glColorMask);
+   builtinFunctions.add("glColorMaterial",              f_glColorMaterial);
+   //builtinFunctions.add("glColorPointer",               f_glColorPointer);
+   //builtinFunctions.add("glColorSubTable",              f_glColorSubTable);
+   //builtinFunctions.add("glColorTable",                 f_glColorTable);
+   //builtinFunctions.add("glColorTableParameterfv",      f_glColorTableParameterfv);
+   //builtinFunctions.add("glColorTableParameteriv",      f_glColorTableParameteriv);
+   //builtinFunctions.add("glConvolutionFilter1D",        f_glConvolutionFilter1D);
+   //builtinFunctions.add("glConvolutionFilter2D",        f_glConvolutionFilter2D);
+   builtinFunctions.add("glConvolutionParameterf",      f_glConvolutionParameterf);
+   //builtinFunctions.add("glConvolutionParameterfv",     f_glConvolutionParameterfv);
+   builtinFunctions.add("glConvolutionParameteri",      f_glConvolutionParameteri);
+   //builtinFunctions.add("glConvolutionParameteriv",     f_glConvolutionParameteriv);
+   builtinFunctions.add("glCopyColorSubTable",          f_glCopyColorSubTable);
+   builtinFunctions.add("glCopyColorTable",             f_glCopyColorTable);
+   builtinFunctions.add("glCopyConvolutionFilter1D",    f_glCopyConvolutionFilter1D);
+   builtinFunctions.add("glCopyConvolutionFilter2D",    f_glCopyConvolutionFilter2D);
+   builtinFunctions.add("glCopyPixels",                 f_glCopyPixels);
+   builtinFunctions.add("glCopyTexImage1D",             f_glCopyTexImage1D);
+   builtinFunctions.add("glCopyTexImage2D",             f_glCopyTexImage2D);
+   builtinFunctions.add("glCopyTexSubImage1D",          f_glCopyTexSubImage1D);
+   builtinFunctions.add("glCopyTexSubImage2D",          f_glCopyTexSubImage2D);
+   builtinFunctions.add("glCopyTexSubImage3D",          f_glCopyTexSubImage3D);
+   builtinFunctions.add("glCullFace",                   f_glCullFace);
+   //builtinFunctions.add("glDeleteTextures",             f_glDeleteTextures);
+   builtinFunctions.add("glDepthMask",                  f_glDepthMask);
+   builtinFunctions.add("glDepthRange",                 f_glDepthRange);
+   builtinFunctions.add("glDisableClientState",         f_glDisableClientState);
+   builtinFunctions.add("glDrawArrays",                 f_glDrawArrays);
+   builtinFunctions.add("glDrawBuffer",                 f_glDrawBuffer);
+   //builtinFunctions.add("glDrawElements",               f_glDrawElements);
+   //builtinFunctions.add("glDrawPixels",                 f_glDrawPixels);
+   //builtinFunctions.add("glDrawRangeElements",          f_glDrawRangeElements);
+   builtinFunctions.add("glEdgeFlag",                   f_glEdgeFlag);
+   //builtinFunctions.add("glEdgeFlagPointer",            f_glEdgeFlagPointer);
+   //builtinFunctions.add("glEdgeFlagv",                  f_glEdgeFlagv);
+   builtinFunctions.add("glEnableClientState",          f_glEnableClientState);
+   builtinFunctions.add("glEvalCoord1d",                f_glEvalCoord1d);
+   //builtinFunctions.add("glEvalCoord1dv",               f_glEvalCoord1dv);
+   builtinFunctions.add("glEvalCoord1f",                f_glEvalCoord1f);
+   //builtinFunctions.add("glEvalCoord1fv",               f_glEvalCoord1fv);
+   builtinFunctions.add("glEvalCoord2d",                f_glEvalCoord2d);
+   //builtinFunctions.add("glEvalCoord2dv",               f_glEvalCoord2dv);
+   builtinFunctions.add("glEvalCoord2f",                f_glEvalCoord2f);
+   //builtinFunctions.add("glEvalCoord2fv",               f_glEvalCoord2fv);
+   builtinFunctions.add("glEvalMesh1",                  f_glEvalMesh1);
+   builtinFunctions.add("glEvalMesh2",                  f_glEvalMesh2);
+   builtinFunctions.add("glEvalPoint1",                 f_glEvalPoint1);
+   builtinFunctions.add("glEvalPoint2",                 f_glEvalPoint2);
+   //builtinFunctions.add("glFeedbackBuffer",             f_glFeedbackBuffer);
+   builtinFunctions.add("glFinish",                     f_glFinish);
+   builtinFunctions.add("glFogf",                       f_glFogf);
+   //builtinFunctions.add("glFogfv",                      f_glFogfv);
+   builtinFunctions.add("glFogi",                       f_glFogi);
+   //builtinFunctions.add("glFogiv",                      f_glFogiv);
+   builtinFunctions.add("glFrontFace",                  f_glFrontFace);
+   //builtinFunctions.add("glGenTextures",                f_glGenTextures);
+   //builtinFunctions.add("glGetClipPlane",               f_glGetClipPlane);
+   //builtinFunctions.add("glGetColorTable",              f_glGetColorTable);
+   //builtinFunctions.add("glGetColorTableParameterfv",   f_glGetColorTableParameterfv);
+   //builtinFunctions.add("glGetColorTableParameteriv",   f_glGetColorTableParameteriv);
+   //builtinFunctions.add("glGetConvolutionFilter",       f_glGetConvolutionFilter);
+   //builtinFunctions.add("glGetConvolutionParameterfv",  f_glGetConvolutionParameterfv);
+   //builtinFunctions.add("glGetConvolutionParameteriv",  f_glGetConvolutionParameteriv);
+   //builtinFunctions.add("glGetHistogram",               f_glGetHistogram);
+   //builtinFunctions.add("glGetHistogramParameterfv",    f_glGetHistogramParameterfv);
+   //builtinFunctions.add("glGetHistogramParameteriv",    f_glGetHistogramParameteriv);
+   //builtinFunctions.add("glGetLightfv",                 f_glGetLightfv);
+   //builtinFunctions.add("glGetLightiv",                 f_glGetLightiv);
+   //builtinFunctions.add("glGetMapdv",                   f_glGetMapdv);
+   //builtinFunctions.add("glGetMapfv",                   f_glGetMapfv);
+   //builtinFunctions.add("glGetMapiv",                   f_glGetMapiv);
+   //builtinFunctions.add("glGetMaterialfv",              f_glGetMaterialfv);
+   //builtinFunctions.add("glGetMaterialiv",              f_glGetMaterialiv);
+   //builtinFunctions.add("glGetMinmax",                  f_glGetMinmax);
+   //builtinFunctions.add("glGetMinmaxParameterfv",       f_glGetMinmaxParameterfv);
+   //builtinFunctions.add("glGetMinmaxParameteriv",       f_glGetMinmaxParameteriv);
+   //builtinFunctions.add("glGetPixelMapfv",              f_glGetPixelMapfv);
+   //builtinFunctions.add("glGetPixelMapuiv",             f_glGetPixelMapuiv);
+   //builtinFunctions.add("glGetPixelMapusv",             f_glGetPixelMapusv);
+   //builtinFunctions.add("glGetPointerv",                f_glGetPointerv);
+   //builtinFunctions.add("glGetPolygonStipple",          f_glGetPolygonStipple);
+   //builtinFunctions.add("glGetSeparableFilter",         f_glGetSeparableFilter);
+   //builtinFunctions.add("glGetString",                  f_glGetString);
+   //builtinFunctions.add("glGetTexEnvfv",                f_glGetTexEnvfv);
+   //builtinFunctions.add("glGetTexEnviv",                f_glGetTexEnviv);
+   //builtinFunctions.add("glGetTexGendv",                f_glGetTexGendv);
+   //builtinFunctions.add("glGetTexGenfv",                f_glGetTexGenfv);
+   //builtinFunctions.add("glGetTexGeniv",                f_glGetTexGeniv);
+   //builtinFunctions.add("glGetTexImage",                f_glGetTexImage);
+   //builtinFunctions.add("glGetTexLevelParameterfv",     f_glGetTexLevelParameterfv);
+   //builtinFunctions.add("glGetTexLevelParameteriv",     f_glGetTexLevelParameteriv);
+   //builtinFunctions.add("glGetTexParameterfv",          f_glGetTexParameterfv);
+   //builtinFunctions.add("glGetTexParameteriv",          f_glGetTexParameteriv);
+   builtinFunctions.add("glHistogram",                  f_glHistogram);
+   builtinFunctions.add("glIndexMask",                  f_glIndexMask);
+   //builtinFunctions.add("glIndexPointer",               f_glIndexPointer);
+   builtinFunctions.add("glIndexd",                     f_glIndexd);
+   //builtinFunctions.add("glIndexdv",                    f_glIndexdv);
+   builtinFunctions.add("glIndexf",                     f_glIndexf);
+   //builtinFunctions.add("glIndexfv",                    f_glIndexfv);
+   builtinFunctions.add("glIndexi",                     f_glIndexi);
+   //builtinFunctions.add("glIndexiv",                    f_glIndexiv);
+   builtinFunctions.add("glIndexs",                     f_glIndexs);
+   //builtinFunctions.add("glIndexsv",                    f_glIndexsv);
+   builtinFunctions.add("glIndexub",                    f_glIndexub);
+   //builtinFunctions.add("glIndexubv",                   f_glIndexubv);
+   builtinFunctions.add("glInitNames",                  f_glInitNames);
+   //builtinFunctions.add("glInterleavedArrays",          f_glInterleavedArrays);
+   builtinFunctions.add("glIsEnabled",                  f_glIsEnabled);
+   builtinFunctions.add("glIsList",                     f_glIsList);
+   builtinFunctions.add("glIsTexture",                  f_glIsTexture);
+   builtinFunctions.add("glLineStipple",                f_glLineStipple);
+   builtinFunctions.add("glLineWidth",                  f_glLineWidth);
+   builtinFunctions.add("glListBase",                   f_glListBase);
+   //builtinFunctions.add("glLoadMatrixd",                f_glLoadMatrixd);
+   //builtinFunctions.add("glLoadMatrixf",                f_glLoadMatrixf);
+   builtinFunctions.add("glLoadName",                   f_glLoadName);
+   builtinFunctions.add("glLogicOp",                    f_glLogicOp);
+   //builtinFunctions.add("glMap1d",                      f_glMap1d);
+   //builtinFunctions.add("glMap1f",                      f_glMap1f);
+   //builtinFunctions.add("glMap2d",                      f_glMap2d);
+   //builtinFunctions.add("glMap2f",                      f_glMap2f);
+   builtinFunctions.add("glMapGrid1d",                  f_glMapGrid1d);
+   builtinFunctions.add("glMapGrid1f",                  f_glMapGrid1f);
+   builtinFunctions.add("glMapGrid2d",                  f_glMapGrid2d);
+   builtinFunctions.add("glMapGrid2f",                  f_glMapGrid2f);
+   builtinFunctions.add("glMinmax",                     f_glMinmax);
+   //builtinFunctions.add("glMultMatrixd",                f_glMultMatrixd);
+   //builtinFunctions.add("glMultMatrixf",                f_glMultMatrixf);
+   //builtinFunctions.add("glNormal3bv",                  f_glNormal3bv);
+   //builtinFunctions.add("glNormal3dv",                  f_glNormal3dv);
+   //builtinFunctions.add("glNormal3fv",                  f_glNormal3fv);
+   //builtinFunctions.add("glNormal3iv",                  f_glNormal3iv);
+   //builtinFunctions.add("glNormal3sv",                  f_glNormal3sv);
+   //builtinFunctions.add("glNormalPointer",              f_glNormalPointer);
+   builtinFunctions.add("glPassThrough",                f_glPassThrough);
+   //builtinFunctions.add("glPixelMapfv",                 f_glPixelMapfv);
+   //builtinFunctions.add("glPixelMapuiv",                f_glPixelMapuiv);
+   //builtinFunctions.add("glPixelMapusv",                f_glPixelMapusv);
+   builtinFunctions.add("glPixelStoref",                f_glPixelStoref);
+   builtinFunctions.add("glPixelStorei",                f_glPixelStorei);
+   builtinFunctions.add("glPixelTransferf",             f_glPixelTransferf);
+   builtinFunctions.add("glPixelTransferi",             f_glPixelTransferi);
+   builtinFunctions.add("glPixelZoom",                  f_glPixelZoom);
+   builtinFunctions.add("glPointSize",                  f_glPointSize);
+   builtinFunctions.add("glPolygonMode",                f_glPolygonMode);
+   builtinFunctions.add("glPolygonOffset",              f_glPolygonOffset);
+   //builtinFunctions.add("glPolygonStipple",             f_glPolygonStipple);
+   builtinFunctions.add("glPopClientAttrib",            f_glPopClientAttrib);
+   builtinFunctions.add("glPopName",                    f_glPopName);
+   //builtinFunctions.add("glPrioritizeTextures",         f_glPrioritizeTextures);
+   builtinFunctions.add("glPushClientAttrib",           f_glPushClientAttrib);
+   builtinFunctions.add("glPushName",                   f_glPushName);
+   builtinFunctions.add("glRasterPos2d",                f_glRasterPos2d);
+   //builtinFunctions.add("glRasterPos2dv",               f_glRasterPos2dv);
+   builtinFunctions.add("glRasterPos2f",                f_glRasterPos2f);
+   //builtinFunctions.add("glRasterPos2fv",               f_glRasterPos2fv);
+   builtinFunctions.add("glRasterPos2i",                f_glRasterPos2i);
+   //builtinFunctions.add("glRasterPos2iv",               f_glRasterPos2iv);
+   builtinFunctions.add("glRasterPos2s",                f_glRasterPos2s);
+   //builtinFunctions.add("glRasterPos2sv",               f_glRasterPos2sv);
+   builtinFunctions.add("glRasterPos3d",                f_glRasterPos3d);
+   //builtinFunctions.add("glRasterPos3dv",               f_glRasterPos3dv);
+   builtinFunctions.add("glRasterPos3f",                f_glRasterPos3f);
+   //builtinFunctions.add("glRasterPos3fv",               f_glRasterPos3fv);
+   builtinFunctions.add("glRasterPos3i",                f_glRasterPos3i);
+   //builtinFunctions.add("glRasterPos3iv",               f_glRasterPos3iv);
+   builtinFunctions.add("glRasterPos3s",                f_glRasterPos3s);
+   //builtinFunctions.add("glRasterPos3sv",               f_glRasterPos3sv);
+   builtinFunctions.add("glRasterPos4d",                f_glRasterPos4d);
+   //builtinFunctions.add("glRasterPos4dv",               f_glRasterPos4dv);
+   builtinFunctions.add("glRasterPos4f",                f_glRasterPos4f);
+   //builtinFunctions.add("glRasterPos4fv",               f_glRasterPos4fv);
+   builtinFunctions.add("glRasterPos4i",                f_glRasterPos4i);
+   //builtinFunctions.add("glRasterPos4iv",               f_glRasterPos4iv);
+   builtinFunctions.add("glRasterPos4s",                f_glRasterPos4s);
+   //builtinFunctions.add("glRasterPos4sv",               f_glRasterPos4sv);
+   builtinFunctions.add("glReadBuffer",                 f_glReadBuffer);
+   //builtinFunctions.add("glReadPixels",                 f_glReadPixels);
+   builtinFunctions.add("glRectd",                      f_glRectd);
+   //builtinFunctions.add("glRectdv",                     f_glRectdv);
+   builtinFunctions.add("glRectf",                      f_glRectf);
+   //builtinFunctions.add("glRectfv",                     f_glRectfv);
+   builtinFunctions.add("glRecti",                      f_glRecti);
+   //builtinFunctions.add("glRectiv",                     f_glRectiv);
+   builtinFunctions.add("glRects",                      f_glRects);
+   //builtinFunctions.add("glRectsv",                     f_glRectsv);
+   //builtinFunctions.add("glRenderMode",                 f_glRenderMode);
+   builtinFunctions.add("glResetHistogram",             f_glResetHistogram);
+   builtinFunctions.add("glResetMinmax",                f_glResetMinmax);
+   builtinFunctions.add("glScissor",                    f_glScissor);
+   //builtinFunctions.add("glSelectBuffer",               f_glSelectBuffer);
+   //builtinFunctions.add("glSeparableFilter2D",          f_glSeparableFilter2D);
+   builtinFunctions.add("glStencilFunc",                f_glStencilFunc);
+   builtinFunctions.add("glStencilMask",                f_glStencilMask);
+   builtinFunctions.add("glStencilOp",                  f_glStencilOp);
+   //builtinFunctions.add("glTexCoord1dv",                f_glTexCoord1dv);
+   //builtinFunctions.add("glTexCoord1fv",                f_glTexCoord1fv);
+   //builtinFunctions.add("glTexCoord1iv",                f_glTexCoord1iv);
+   //builtinFunctions.add("glTexCoord1sv",                f_glTexCoord1sv);
+   //builtinFunctions.add("glTexCoord2dv",                f_glTexCoord2dv);
+   //builtinFunctions.add("glTexCoord2fv",                f_glTexCoord2fv);
+   //builtinFunctions.add("glTexCoord2iv",                f_glTexCoord2iv);
+   //builtinFunctions.add("glTexCoord2sv",                f_glTexCoord2sv);
+   //builtinFunctions.add("glTexCoord3dv",                f_glTexCoord3dv);
+   //builtinFunctions.add("glTexCoord3fv",                f_glTexCoord3fv);
+   //builtinFunctions.add("glTexCoord3iv",                f_glTexCoord3iv);
+   //builtinFunctions.add("glTexCoord3sv",                f_glTexCoord3sv);
+   //builtinFunctions.add("glTexCoord4dv",                f_glTexCoord4dv);
+   //builtinFunctions.add("glTexCoord4fv",                f_glTexCoord4fv);
+   //builtinFunctions.add("glTexCoord4iv",                f_glTexCoord4iv);
+   //builtinFunctions.add("glTexCoord4sv",                f_glTexCoord4sv);
+   //builtinFunctions.add("glTexCoordPointer",            f_glTexCoordPointer);
+   builtinFunctions.add("glTexGend",                    f_glTexGend);
+   //builtinFunctions.add("glTexGendv",                   f_glTexGendv);
+   builtinFunctions.add("glTexGenf",                    f_glTexGenf);
+   //builtinFunctions.add("glTexGenfv",                   f_glTexGenfv);
+   builtinFunctions.add("glTexGeni",                    f_glTexGeni);
+   //builtinFunctions.add("glTexGeniv",                   f_glTexGeniv);
+   //builtinFunctions.add("glTexImage1D",                 f_glTexImage1D);
+   //builtinFunctions.add("glTexImage2D",                 f_glTexImage2D);
+   //builtinFunctions.add("glTexImage3D",                 f_glTexImage3D);
+   builtinFunctions.add("glTexParameterf",              f_glTexParameterf);
+   //builtinFunctions.add("glTexParameterfv",             f_glTexParameterfv);
+   builtinFunctions.add("glTexParameteri",              f_glTexParameteri);
+   //builtinFunctions.add("glTexParameteriv",             f_glTexParameteriv);
+   //builtinFunctions.add("glTexSubImage1D",              f_glTexSubImage1D);
+   //builtinFunctions.add("glTexSubImage2D",              f_glTexSubImage2D);
+   //builtinFunctions.add("glTexSubImage3D",              f_glTexSubImage3D);
+   //builtinFunctions.add("glVertex2dv",                  f_glVertex2dv);
+   //builtinFunctions.add("glVertex2fv",                  f_glVertex2fv);
+   //builtinFunctions.add("glVertex2iv",                  f_glVertex2iv);
+   //builtinFunctions.add("glVertex2sv",                  f_glVertex2sv);
+   //builtinFunctions.add("glVertex3dv",                  f_glVertex3dv);
+   //builtinFunctions.add("glVertex3fv",                  f_glVertex3fv);
+   //builtinFunctions.add("glVertex3iv",                  f_glVertex3iv);
+   //builtinFunctions.add("glVertex3sv",                  f_glVertex3sv);
+   //builtinFunctions.add("glVertex4dv",                  f_glVertex4dv);
+   //builtinFunctions.add("glVertex4fv",                  f_glVertex4fv);
+   //builtinFunctions.add("glVertex4iv",                  f_glVertex4iv);
+   //builtinFunctions.add("glVertex4sv",                  f_glVertex4sv);
+   //builtinFunctions.add("glVertexPointer",              f_glVertexPointer);
+   builtinFunctions.add("glSampleCoverage",             f_glSampleCoverage);
+   builtinFunctions.add("glSamplePass",                 f_glSamplePass);
+   //builtinFunctions.add("glLoadTransposeMatrixf",       f_glLoadTransposeMatrixf);
+   //builtinFunctions.add("glLoadTransposeMatrixd",       f_glLoadTransposeMatrixd);
+   //builtinFunctions.add("glMultTransposeMatrixf",       f_glMultTransposeMatrixf);
+   //builtinFunctions.add("glMultTransposeMatrixd",       f_glMultTransposeMatrixd);
+   //builtinFunctions.add("glCompressedTexImage3D",       f_glCompressedTexImage3D);
+   //builtinFunctions.add("glCompressedTexImage2D",       f_glCompressedTexImage2D);
+   //builtinFunctions.add("glCompressedTexImage1D",       f_glCompressedTexImage1D);
+   //builtinFunctions.add("glCompressedTexSubImage3D",    f_glCompressedTexSubImage3D);
+   //builtinFunctions.add("glCompressedTexSubImage2D",    f_glCompressedTexSubImage2D);
+   //builtinFunctions.add("glCompressedTexSubImage1D",    f_glCompressedTexSubImage1D);
+   //builtinFunctions.add("glGetCompressedTexImage",      f_glGetCompressedTexImage);
+   builtinFunctions.add("glActiveTexture",              f_glActiveTexture);
+   builtinFunctions.add("glClientActiveTexture",        f_glClientActiveTexture);
+   builtinFunctions.add("glMultiTexCoord1d",            f_glMultiTexCoord1d);
+   //builtinFunctions.add("glMultiTexCoord1dv",           f_glMultiTexCoord1dv);
+   builtinFunctions.add("glMultiTexCoord1f",            f_glMultiTexCoord1f);
+   //builtinFunctions.add("glMultiTexCoord1fv",           f_glMultiTexCoord1fv);
+   builtinFunctions.add("glMultiTexCoord1i",            f_glMultiTexCoord1i);
+   //builtinFunctions.add("glMultiTexCoord1iv",           f_glMultiTexCoord1iv);
+   builtinFunctions.add("glMultiTexCoord1s",            f_glMultiTexCoord1s);
+   //builtinFunctions.add("glMultiTexCoord1sv",           f_glMultiTexCoord1sv);
+   builtinFunctions.add("glMultiTexCoord2d",            f_glMultiTexCoord2d);
+   //builtinFunctions.add("glMultiTexCoord2dv",           f_glMultiTexCoord2dv);
+   builtinFunctions.add("glMultiTexCoord2f",            f_glMultiTexCoord2f);
+   //builtinFunctions.add("glMultiTexCoord2fv",           f_glMultiTexCoord2fv);
+   builtinFunctions.add("glMultiTexCoord2i",            f_glMultiTexCoord2i);
+   //builtinFunctions.add("glMultiTexCoord2iv",           f_glMultiTexCoord2iv);
+   builtinFunctions.add("glMultiTexCoord2s",            f_glMultiTexCoord2s);
+   //builtinFunctions.add("glMultiTexCoord2sv",           f_glMultiTexCoord2sv);
+   builtinFunctions.add("glMultiTexCoord3d",            f_glMultiTexCoord3d);
+   //builtinFunctions.add("glMultiTexCoord3dv",           f_glMultiTexCoord3dv);
+   builtinFunctions.add("glMultiTexCoord3f",            f_glMultiTexCoord3f);
+   //builtinFunctions.add("glMultiTexCoord3fv",           f_glMultiTexCoord3fv);
+   builtinFunctions.add("glMultiTexCoord3i",            f_glMultiTexCoord3i);
+   //builtinFunctions.add("glMultiTexCoord3iv",           f_glMultiTexCoord3iv);
+   builtinFunctions.add("glMultiTexCoord3s",            f_glMultiTexCoord3s);
+   //builtinFunctions.add("glMultiTexCoord3sv",           f_glMultiTexCoord3sv);
+   builtinFunctions.add("glMultiTexCoord4d",            f_glMultiTexCoord4d);
+   //builtinFunctions.add("glMultiTexCoord4dv",           f_glMultiTexCoord4dv);
+   builtinFunctions.add("glMultiTexCoord4f",            f_glMultiTexCoord4f);
+   //builtinFunctions.add("glMultiTexCoord4fv",           f_glMultiTexCoord4fv);
+   builtinFunctions.add("glMultiTexCoord4i",            f_glMultiTexCoord4i);
+   //builtinFunctions.add("glMultiTexCoord4iv",           f_glMultiTexCoord4iv);
+   builtinFunctions.add("glMultiTexCoord4s",            f_glMultiTexCoord4s);
+   //builtinFunctions.add("glMultiTexCoord4sv",           f_glMultiTexCoord4sv);
+   builtinFunctions.add("glFogCoordf",                  f_glFogCoordf);
+   //builtinFunctions.add("glFogCoordfv",                 f_glFogCoordfv);
+   builtinFunctions.add("glFogCoordd",                  f_glFogCoordd);
+   //builtinFunctions.add("glFogCoorddv",                 f_glFogCoorddv);
+   //builtinFunctions.add("glFogCoordPointer",            f_glFogCoordPointer);
+   builtinFunctions.add("glSecondaryColor3b",           f_glSecondaryColor3b);
+   //builtinFunctions.add("glSecondaryColor3bv",          f_glSecondaryColor3bv);
+   builtinFunctions.add("glSecondaryColor3d",           f_glSecondaryColor3d);
+   //builtinFunctions.add("glSecondaryColor3dv",          f_glSecondaryColor3dv);
+   builtinFunctions.add("glSecondaryColor3f",           f_glSecondaryColor3f);
+   //builtinFunctions.add("glSecondaryColor3fv",          f_glSecondaryColor3fv);
+   builtinFunctions.add("glSecondaryColor3i",           f_glSecondaryColor3i);
+   //builtinFunctions.add("glSecondaryColor3iv",          f_glSecondaryColor3iv);
+   builtinFunctions.add("glSecondaryColor3s",           f_glSecondaryColor3s);
+   //builtinFunctions.add("glSecondaryColor3sv",          f_glSecondaryColor3sv);
+   builtinFunctions.add("glSecondaryColor3ub",          f_glSecondaryColor3ub);
+   //builtinFunctions.add("glSecondaryColor3ubv",         f_glSecondaryColor3ubv);
+   builtinFunctions.add("glSecondaryColor3ui",          f_glSecondaryColor3ui);
+   //builtinFunctions.add("glSecondaryColor3uiv",         f_glSecondaryColor3uiv);
+   builtinFunctions.add("glSecondaryColor3us",          f_glSecondaryColor3us);
+   //builtinFunctions.add("glSecondaryColor3usv",         f_glSecondaryColor3usv);
+   //builtinFunctions.add("glSecondaryColorPointer",      f_glSecondaryColorPointer);
+   builtinFunctions.add("glPointParameterf",            f_glPointParameterf);
+   //builtinFunctions.add("glPointParameterfv",           f_glPointParameterfv);
+   builtinFunctions.add("glPointParameteri",            f_glPointParameteri);
+   //builtinFunctions.add("glPointParameteriv",           f_glPointParameteriv);
+   builtinFunctions.add("glBlendFuncSeparate",          f_glBlendFuncSeparate);
+   //builtinFunctions.add("glMultiDrawArrays",            f_glMultiDrawArrays);
+   //builtinFunctions.add("glMultiDrawElements",          f_glMultiDrawElements);
+   builtinFunctions.add("glWindowPos2d",                f_glWindowPos2d);
+   //builtinFunctions.add("glWindowPos2dv",               f_glWindowPos2dv);
+   builtinFunctions.add("glWindowPos2f",                f_glWindowPos2f);
+   //builtinFunctions.add("glWindowPos2fv",               f_glWindowPos2fv);
+   builtinFunctions.add("glWindowPos2i",                f_glWindowPos2i);
+   //builtinFunctions.add("glWindowPos2iv",               f_glWindowPos2iv);
+   builtinFunctions.add("glWindowPos2s",                f_glWindowPos2s);
+   //builtinFunctions.add("glWindowPos2sv",               f_glWindowPos2sv);
+   builtinFunctions.add("glWindowPos3d",                f_glWindowPos3d);
+   //builtinFunctions.add("glWindowPos3dv",               f_glWindowPos3dv);
+   builtinFunctions.add("glWindowPos3f",                f_glWindowPos3f);
+   //builtinFunctions.add("glWindowPos3fv",               f_glWindowPos3fv);
+   builtinFunctions.add("glWindowPos3i",                f_glWindowPos3i);
+   //builtinFunctions.add("glWindowPos3iv",               f_glWindowPos3iv);
+   builtinFunctions.add("glWindowPos3s",                f_glWindowPos3s);
+   //builtinFunctions.add("glWindowPos3sv",               f_glWindowPos3sv);
+   //builtinFunctions.add("glGenQueries",                 f_glGenQueries);
+   //builtinFunctions.add("glDeleteQueries",              f_glDeleteQueries);
+   builtinFunctions.add("glIsQuery",                    f_glIsQuery);
+   builtinFunctions.add("glBeginQuery",                 f_glBeginQuery);
+   builtinFunctions.add("glEndQuery",                   f_glEndQuery);
+   //builtinFunctions.add("glGetQueryiv",                 f_glGetQueryiv);
+   //builtinFunctions.add("glGetQueryObjectiv",           f_glGetQueryObjectiv);
+   //builtinFunctions.add("glGetQueryObjectuiv",          f_glGetQueryObjectuiv);
+   builtinFunctions.add("glBindBuffer",                 f_glBindBuffer);
+   //builtinFunctions.add("glDeleteBuffers",              f_glDeleteBuffers);
+   //builtinFunctions.add("glGenBuffers",                 f_glGenBuffers);
+   builtinFunctions.add("glIsBuffer",                   f_glIsBuffer);
+   //builtinFunctions.add("glBufferData",                 f_glBufferData);
+   //builtinFunctions.add("glBufferSubData",              f_glBufferSubData);
+   //builtinFunctions.add("glGetBufferSubData",           f_glGetBufferSubData);
+   //builtinFunctions.add("glMapBuffer",                  f_glMapBuffer);
+   //builtinFunctions.add("glUnmapBuffer",                f_glUnmapBuffer);
+   //builtinFunctions.add("glGetBufferParameteriv",       f_glGetBufferParameteriv);
+   //builtinFunctions.add("glGetBufferPointerv",          f_glGetBufferPointerv);
+   //builtinFunctions.add("glDrawBuffers",                f_glDrawBuffers);
+   builtinFunctions.add("glVertexAttrib1d",             f_glVertexAttrib1d);
+   //builtinFunctions.add("glVertexAttrib1dv",            f_glVertexAttrib1dv);
+   builtinFunctions.add("glVertexAttrib1f",             f_glVertexAttrib1f);
+   //builtinFunctions.add("glVertexAttrib1fv",            f_glVertexAttrib1fv);
+   builtinFunctions.add("glVertexAttrib1s",             f_glVertexAttrib1s);
+   //builtinFunctions.add("glVertexAttrib1sv",            f_glVertexAttrib1sv);
+   builtinFunctions.add("glVertexAttrib2d",             f_glVertexAttrib2d);
+   //builtinFunctions.add("glVertexAttrib2dv",            f_glVertexAttrib2dv);
+   builtinFunctions.add("glVertexAttrib2f",             f_glVertexAttrib2f);
+   //builtinFunctions.add("glVertexAttrib2fv",            f_glVertexAttrib2fv);
+   builtinFunctions.add("glVertexAttrib2s",             f_glVertexAttrib2s);
+   //builtinFunctions.add("glVertexAttrib2sv",            f_glVertexAttrib2sv);
+   builtinFunctions.add("glVertexAttrib3d",             f_glVertexAttrib3d);
+   //builtinFunctions.add("glVertexAttrib3dv",            f_glVertexAttrib3dv);
+   builtinFunctions.add("glVertexAttrib3f",             f_glVertexAttrib3f);
+   //builtinFunctions.add("glVertexAttrib3fv",            f_glVertexAttrib3fv);
+   builtinFunctions.add("glVertexAttrib3s",             f_glVertexAttrib3s);
+   //builtinFunctions.add("glVertexAttrib3sv",            f_glVertexAttrib3sv);
+   //builtinFunctions.add("glVertexAttrib4Nbv",           f_glVertexAttrib4Nbv);
+   //builtinFunctions.add("glVertexAttrib4Niv",           f_glVertexAttrib4Niv);
+   //builtinFunctions.add("glVertexAttrib4Nsv",           f_glVertexAttrib4Nsv);
+   builtinFunctions.add("glVertexAttrib4Nub",           f_glVertexAttrib4Nub);
+   //builtinFunctions.add("glVertexAttrib4Nubv",          f_glVertexAttrib4Nubv);
+   //builtinFunctions.add("glVertexAttrib4Nuiv",          f_glVertexAttrib4Nuiv);
+   //builtinFunctions.add("glVertexAttrib4Nusv",          f_glVertexAttrib4Nusv);
+   //builtinFunctions.add("glVertexAttrib4bv",            f_glVertexAttrib4bv);
+   builtinFunctions.add("glVertexAttrib4d",             f_glVertexAttrib4d);
+   //builtinFunctions.add("glVertexAttrib4dv",            f_glVertexAttrib4dv);
+   builtinFunctions.add("glVertexAttrib4f",             f_glVertexAttrib4f);
+   //builtinFunctions.add("glVertexAttrib4fv",            f_glVertexAttrib4fv);
+   //builtinFunctions.add("glVertexAttrib4iv",            f_glVertexAttrib4iv);
+   builtinFunctions.add("glVertexAttrib4s",             f_glVertexAttrib4s);
+   //builtinFunctions.add("glVertexAttrib4sv",            f_glVertexAttrib4sv);
+   //builtinFunctions.add("glVertexAttrib4ubv",           f_glVertexAttrib4ubv);
+   //builtinFunctions.add("glVertexAttrib4uiv",           f_glVertexAttrib4uiv);
+   //builtinFunctions.add("glVertexAttrib4usv",           f_glVertexAttrib4usv);
+   //builtinFunctions.add("glVertexAttribPointer",        f_glVertexAttribPointer);
+   builtinFunctions.add("glEnableVertexAttribArray",    f_glEnableVertexAttribArray);
+   builtinFunctions.add("glDisableVertexAttribArray",   f_glDisableVertexAttribArray);
+   //builtinFunctions.add("glGetVertexAttribdv",          f_glGetVertexAttribdv);
+   //builtinFunctions.add("glGetVertexAttribfv",          f_glGetVertexAttribfv);
+   //builtinFunctions.add("glGetVertexAttribiv",          f_glGetVertexAttribiv);
+   //builtinFunctions.add("glGetVertexAttribPointerv",    f_glGetVertexAttribPointerv);
+   builtinFunctions.add("glDeleteShader",               f_glDeleteShader);
+   builtinFunctions.add("glDetachShader",               f_glDetachShader);
+   builtinFunctions.add("glCreateShader",               f_glCreateShader);
+   //builtinFunctions.add("glShaderSource",               f_glShaderSource);
+   builtinFunctions.add("glCompileShader",              f_glCompileShader);
+   builtinFunctions.add("glCreateProgram",              f_glCreateProgram);
+   builtinFunctions.add("glAttachShader",               f_glAttachShader);
+   builtinFunctions.add("glLinkProgram",                f_glLinkProgram);
+   builtinFunctions.add("glUseProgram",                 f_glUseProgram);
+   builtinFunctions.add("glDeleteProgram",              f_glDeleteProgram);
+   builtinFunctions.add("glValidateProgram",            f_glValidateProgram);
+   builtinFunctions.add("glUniform1f",                  f_glUniform1f);
+   builtinFunctions.add("glUniform2f",                  f_glUniform2f);
+   builtinFunctions.add("glUniform3f",                  f_glUniform3f);
+   builtinFunctions.add("glUniform4f",                  f_glUniform4f);
+   builtinFunctions.add("glUniform1i",                  f_glUniform1i);
+   builtinFunctions.add("glUniform2i",                  f_glUniform2i);
+   builtinFunctions.add("glUniform3i",                  f_glUniform3i);
+   builtinFunctions.add("glUniform4i",                  f_glUniform4i);
+   //builtinFunctions.add("glUniform1fv",                 f_glUniform1fv);
+   //builtinFunctions.add("glUniform2fv",                 f_glUniform2fv);
+   //builtinFunctions.add("glUniform3fv",                 f_glUniform3fv);
+   //builtinFunctions.add("glUniform4fv",                 f_glUniform4fv);
+   //builtinFunctions.add("glUniform1iv",                 f_glUniform1iv);
+   //builtinFunctions.add("glUniform2iv",                 f_glUniform2iv);
+   //builtinFunctions.add("glUniform3iv",                 f_glUniform3iv);
+   //builtinFunctions.add("glUniform4iv",                 f_glUniform4iv);
+   //builtinFunctions.add("glUniformMatrix2fv",           f_glUniformMatrix2fv);
+   //builtinFunctions.add("glUniformMatrix3fv",           f_glUniformMatrix3fv);
+   //builtinFunctions.add("glUniformMatrix4fv",           f_glUniformMatrix4fv);
+   builtinFunctions.add("glIsShader",                   f_glIsShader);
+   builtinFunctions.add("glIsProgram",                  f_glIsProgram);
+   //builtinFunctions.add("glGetShaderiv",                f_glGetShaderiv);
+   //builtinFunctions.add("glGetProgramiv",               f_glGetProgramiv);
+   //builtinFunctions.add("glGetAttachedShaders",         f_glGetAttachedShaders);
+   //builtinFunctions.add("glGetShaderInfoLog",           f_glGetShaderInfoLog);
+   //builtinFunctions.add("glGetProgramInfoLog",          f_glGetProgramInfoLog);
+   //builtinFunctions.add("glGetUniformLocation",         f_glGetUniformLocation);
+   //builtinFunctions.add("glGetActiveUniform",           f_glGetActiveUniform);
+   //builtinFunctions.add("glGetUniformfv",               f_glGetUniformfv);
+   //builtinFunctions.add("glGetUniformiv",               f_glGetUniformiv);
+   //builtinFunctions.add("glGetShaderSource",            f_glGetShaderSource);
+   //builtinFunctions.add("glBindAttribLocation",         f_glBindAttribLocation);
+   //builtinFunctions.add("glGetActiveAttrib",            f_glGetActiveAttrib);
+   //builtinFunctions.add("glGetAttribLocation",          f_glGetAttribLocation);
+   builtinFunctions.add("glStencilFuncSeparate",        f_glStencilFuncSeparate);
+   builtinFunctions.add("glStencilOpSeparate",          f_glStencilOpSeparate);
+   builtinFunctions.add("glStencilMaskSeparate",        f_glStencilMaskSeparate);
+   //builtinFunctions.add("glUniformMatrix2x3fv",         f_glUniformMatrix2x3fv);
+   //builtinFunctions.add("glUniformMatrix3x2fv",         f_glUniformMatrix3x2fv);
+   //builtinFunctions.add("glUniformMatrix2x4fv",         f_glUniformMatrix2x4fv);
+   //builtinFunctions.add("glUniformMatrix4x2fv",         f_glUniformMatrix4x2fv);
+   //builtinFunctions.add("glUniformMatrix3x4fv",         f_glUniformMatrix3x4fv);
+   //builtinFunctions.add("glUniformMatrix4x3fv",         f_glUniformMatrix4x3fv);
 
    addOpenGLConstants();
 
