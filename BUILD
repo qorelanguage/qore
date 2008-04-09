@@ -101,6 +101,15 @@ Note that this module is not supported on HP-UX PA-RISC platforms due to the fac
 note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.
 if your ncurses is in a non-standard location, set the NCURSES_DIR environment variable before running configure.  Also can be built with Solaris curses.
 
+*) "qt": QT4 module
+experimental: requires at least qt 4.3 or above
+
+*) "opengl": OpenGL module
+builds with OpenGL or with Mesa
+
+*) "glut": GLUT module
+builds with with GLUT or with freeglut
+
 To build qore, run the following commands:
 
    ./configure [options]  (for non-debugging builds I recommend: configure --disable-static --disable-debug --prefix=/usr)

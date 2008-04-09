@@ -4,7 +4,7 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 if COND_SINGLE_COMPILATION_UNIT
 GLUT_SOURCES = single-compilation-unit.cc
 else
-GLUT_SOURCES = glut.cc glut-constants.cc
+GLUT_SOURCES = glut.cc glut-constants.cc GlutVoidPtrType.cc
 endif
 
 if COND_MONOLITHIC

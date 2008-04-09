@@ -24,7 +24,9 @@
 
 #define _QORE_GLUT_H
 
-#include "glut.h"
+#include <glut.h>
+
+#include "GlutVoidPtrType.h"
 
 DLLLOCAL void addGlutConstants();
 

@@ -132,6 +132,12 @@ class ResolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
 	  @return a pointer to the QoreProgram object associated with this reference (can be 0)
        */
       DLLLOCAL virtual QoreProgram *getProgram() const;
+
+      DLLLOCAL ResolvedFunctionReferenceNode *refRefSelf() const
+      {
+	 ref();
+	 return const_cast<ResolvedFunctionReferenceNode *>(this);
+      }
 };
 
 
