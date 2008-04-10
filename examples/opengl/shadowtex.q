@@ -666,6 +666,8 @@ sub Idle()
 
 sub Key($key, $x, $y)
 {
+    if ($key > 27)
+	$key = chr($key);
     switch ($key) {
 	case 'a':
 	    $Anim = !$Anim;
@@ -676,11 +678,11 @@ sub Key($key, $x, $y)
 	break;
 	case 'b':
 	    $Bias -= 0.01;
-	printf("Bias %g\n", $Bias);
+	printf("Bias %n\n", $Bias);
 	break;
 	case 'B':
 	    $Bias += 0.01;
-	printf("Bias %g\n", $Bias);
+	printf("Bias %n\n", $Bias);
 	break;
 	case 'd':
 	    $DisplayMode = SHOW_DISTANCE;
@@ -859,7 +861,6 @@ sub Init()
     if (GL_EXT_framebuffer_object) {
 	$HaveFBO = glutExtensionSupported("GL_EXT_framebuffer_object");
 
-	# DEBUG
 	$UseFBO = $HaveFBO;
 	if ($UseFBO) {
 	    printf("Using GL_EXT_framebuffer_object\n");
