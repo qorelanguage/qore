@@ -1071,5 +1071,196 @@ void addOpenGLConstants()
    opengl_ns.addConstant("GL_COMPRESSED_SRGB_ALPHA",                   new QoreBigIntNode(GL_COMPRESSED_SRGB_ALPHA));
    opengl_ns.addConstant("GL_COMPRESSED_SLUMINANCE",                   new QoreBigIntNode(GL_COMPRESSED_SLUMINANCE));
    opengl_ns.addConstant("GL_COMPRESSED_SLUMINANCE_ALPHA",             new QoreBigIntNode(GL_COMPRESSED_SLUMINANCE_ALPHA));
-}
 
+   // constants for opengl extensions
+#if GL_EXT_clip_volume_hint == 1
+   opengl_ns.addConstant("GL_EXT_clip_volume_hint",                    &True);
+#else
+   opengl_ns.addConstant("GL_EXT_clip_volume_hint",                    &False);
+#endif
+#if GL_EXT_rescale_normal == 1
+   opengl_ns.addConstant("GL_EXT_rescale_normal",                      &True);
+#else
+   opengl_ns.addConstant("GL_EXT_rescale_normal",                      &False);
+#endif
+#if GL_EXT_blend_color == 1
+   opengl_ns.addConstant("GL_EXT_blend_color",                         &True);
+#else
+   opengl_ns.addConstant("GL_EXT_blend_color",                         &False);
+#endif
+#if GL_EXT_blend_minmax == 1
+   opengl_ns.addConstant("GL_EXT_blend_minmax",                        &True);
+#else
+   opengl_ns.addConstant("GL_EXT_blend_minmax",                        &False);
+#endif
+#if GL_EXT_blend_subtract == 1
+   opengl_ns.addConstant("GL_EXT_blend_subtract",                      &True);
+#else
+   opengl_ns.addConstant("GL_EXT_blend_subtract",                      &False);
+#endif
+#if GL_EXT_compiled_vertex_array == 1
+   opengl_ns.addConstant("GL_EXT_compiled_vertex_array",               &True);
+#else
+   opengl_ns.addConstant("GL_EXT_compiled_vertex_array",               &False);
+#endif
+#if GL_EXT_texture_lod_bias == 1
+   opengl_ns.addConstant("GL_EXT_texture_lod_bias",                    &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_lod_bias",                    &False);
+#endif
+#if GL_EXT_texture_env_add == 1
+   opengl_ns.addConstant("GL_EXT_texture_env_add",                     &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_env_add",                     &False);
+#endif
+#if GL_EXT_abgr == 1
+   opengl_ns.addConstant("GL_EXT_abgr",                                &True);
+#else
+   opengl_ns.addConstant("GL_EXT_abgr",                                &False);
+#endif
+#if GL_EXT_bgra == 1
+   opengl_ns.addConstant("GL_EXT_bgra",                                &True);
+#else
+   opengl_ns.addConstant("GL_EXT_bgra",                                &False);
+#endif
+#if GL_EXT_texture_filter_anisotropic == 1
+   opengl_ns.addConstant("GL_EXT_texture_filter_anisotropic",          &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_filter_anisotropic",          &False);
+#endif
+#if GL_EXT_paletted_texture == 1
+   opengl_ns.addConstant("GL_EXT_paletted_texture",                    &True);
+#else
+   opengl_ns.addConstant("GL_EXT_paletted_texture",                    &False);
+#endif
+#if GL_EXT_secondary_color == 1
+   opengl_ns.addConstant("GL_EXT_secondary_color",                     &True);
+#else
+   opengl_ns.addConstant("GL_EXT_secondary_color",                     &False);
+#endif
+#if GL_EXT_separate_specular_color == 1
+   opengl_ns.addConstant("GL_EXT_separate_specular_color",             &True);
+#else
+   opengl_ns.addConstant("GL_EXT_separate_specular_color",             &False);
+#endif
+#if GL_EXT_texture_compression_s3tc == 1
+   opengl_ns.addConstant("GL_EXT_texture_compression_s3tc",            &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_compression_s3tc",            &False);
+#endif
+#if GL_EXT_texture_rectangle == 1
+   opengl_ns.addConstant("GL_EXT_texture_rectangle",                   &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_rectangle",                   &False);
+#endif
+#if GL_EXT_fog_coord == 1
+   opengl_ns.addConstant("GL_EXT_fog_coord",                           &True);
+#else
+   opengl_ns.addConstant("GL_EXT_fog_coord",                           &False);
+#endif
+#if GL_EXT_draw_range_elements == 1
+   opengl_ns.addConstant("GL_EXT_draw_range_elements",                 &True);
+#else
+   opengl_ns.addConstant("GL_EXT_draw_range_elements",                 &False);
+#endif
+#if GL_EXT_stencil_wrap == 1
+   opengl_ns.addConstant("GL_EXT_stencil_wrap",                        &True);
+#else
+   opengl_ns.addConstant("GL_EXT_stencil_wrap",                        &False);
+#endif
+#if GL_EXT_blend_func_separate == 1
+   opengl_ns.addConstant("GL_EXT_blend_func_separate",                 &True);
+#else
+   opengl_ns.addConstant("GL_EXT_blend_func_separate",                 &False);
+#endif
+#if GL_EXT_multi_draw_arrays == 1
+   opengl_ns.addConstant("GL_EXT_multi_draw_arrays",                   &True);
+#else
+   opengl_ns.addConstant("GL_EXT_multi_draw_arrays",                   &False);
+#endif
+#if GL_EXT_shadow_funcs == 1
+   opengl_ns.addConstant("GL_EXT_shadow_funcs",                        &True);
+#else
+   opengl_ns.addConstant("GL_EXT_shadow_funcs",                        &False);
+#endif
+#if GL_EXT_stencil_two_side == 1
+   opengl_ns.addConstant("GL_EXT_stencil_two_side",                    &True);
+#else
+   opengl_ns.addConstant("GL_EXT_stencil_two_side",                    &False);
+#endif
+#if GL_EXT_depth_bounds_test == 1
+   opengl_ns.addConstant("GL_EXT_depth_bounds_test",                   &True);
+#else
+   opengl_ns.addConstant("GL_EXT_depth_bounds_test",                   &False);
+#endif
+#if GL_EXT_blend_equation_separate == 1
+   opengl_ns.addConstant("GL_EXT_blend_equation_separate",             &True);
+#else
+   opengl_ns.addConstant("GL_EXT_blend_equation_separate",             &False);
+#endif
+#if GL_EXT_texture_mirror_clamp == 1
+   opengl_ns.addConstant("GL_EXT_texture_mirror_clamp",                &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_mirror_clamp",                &False);
+#endif
+#if GL_EXT_texture_compression_dxt1 == 1
+   opengl_ns.addConstant("GL_EXT_texture_compression_dxt1",            &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_compression_dxt1",            &False);
+#endif
+#if GL_EXT_texture_sRGB == 1
+   opengl_ns.addConstant("GL_EXT_texture_sRGB",                        &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_sRGB",                        &False);
+#endif
+#if GL_EXT_framebuffer_object == 1
+   opengl_ns.addConstant("GL_EXT_framebuffer_object",                  &True);
+#else
+   opengl_ns.addConstant("GL_EXT_framebuffer_object",                  &False);
+#endif
+#if GL_EXT_framebuffer_blit == 1
+   opengl_ns.addConstant("GL_EXT_framebuffer_blit",                    &True);
+#else
+   opengl_ns.addConstant("GL_EXT_framebuffer_blit",                    &False);
+#endif
+#if GL_EXT_framebuffer_multisample == 1
+   opengl_ns.addConstant("GL_EXT_framebuffer_multisample",             &True);
+#else
+   opengl_ns.addConstant("GL_EXT_framebuffer_multisample",             &False);
+#endif
+#if GL_EXT_packed_depth_stencil == 1
+   opengl_ns.addConstant("GL_EXT_packed_depth_stencil",                &True);
+#else
+   opengl_ns.addConstant("GL_EXT_packed_depth_stencil",                &False);
+#endif
+#if GL_EXT_gpu_program_parameters == 1
+   opengl_ns.addConstant("GL_EXT_gpu_program_parameters",              &True);
+#else
+   opengl_ns.addConstant("GL_EXT_gpu_program_parameters",              &False);
+#endif
+#if GL_EXT_geometry_shader4 == 1
+   opengl_ns.addConstant("GL_EXT_geometry_shader4",                    &True);
+#else
+   opengl_ns.addConstant("GL_EXT_geometry_shader4",                    &False);
+#endif
+#if GL_EXT_transform_feedback == 1
+   opengl_ns.addConstant("GL_EXT_transform_feedback",                  &True);
+#else
+   opengl_ns.addConstant("GL_EXT_transform_feedback",                  &False);
+#endif
+#if GL_EXT_bindable_uniform == 1
+   opengl_ns.addConstant("GL_EXT_bindable_uniform",                    &True);
+#else
+   opengl_ns.addConstant("GL_EXT_bindable_uniform",                    &False);
+#endif
+#if GL_EXT_texture_integer == 1
+   opengl_ns.addConstant("GL_EXT_texture_integer",                     &True);
+#else
+   opengl_ns.addConstant("GL_EXT_texture_integer",                     &False);
+#endif
+#if GL_EXT_gpu_shader4 == 1
+   opengl_ns.addConstant("GL_EXT_gpu_shader4",                         &True);
+#else
+   opengl_ns.addConstant("GL_EXT_gpu_shader4",                         &False);
+#endif
+}

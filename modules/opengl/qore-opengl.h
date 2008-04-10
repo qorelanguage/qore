@@ -28,6 +28,9 @@
 
 DLLLOCAL void addOpenGLConstants();
 
+DLLLOCAL void initOpenGLExt();
+DLLLOCAL void initOpenGLU();
+
 DLLLOCAL extern QoreNamespace opengl_ns;
 
 #endif 
