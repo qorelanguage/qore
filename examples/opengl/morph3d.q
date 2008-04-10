@@ -38,7 +38,8 @@ const TAU = ((SQRT5 + 1) / 2);
 our $mono=0;
 our $smooth=1;
 our $anim=1;
-our ($WindH, $WindW);
+our $WindH = 480;
+our $WindW = 640;
 our $step=0.0;
 our $seno;
 our $object;
@@ -542,6 +543,10 @@ sub draw ()
     glPushMatrix();
 
     glTranslatef( 0.0, 0.0, -10.0 );
+
+    if (!$WindW)
+	printf("error! $WindW=%N\n", $WindW);
+
     glScalef( Scale*$WindH/$WindW, Scale, Scale );
     glTranslatef(2.5*$WindW/$WindH*sin($step*1.11),2.5*cos($step*1.25*1.11),0);
     glRotatef($step*100,1,0,0);
