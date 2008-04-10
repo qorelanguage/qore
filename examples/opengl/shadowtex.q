@@ -43,8 +43,8 @@ const DEG_TO_RAD = (3.1415927 / 180.0);
 our $WindowWidth = 450;
 our $WindowHeight = 300;
 our $Xrot = 15;
-our $Yrot = 0;
-our $Zrot = 0;
+our $Yrot = 0.0;
+our $Zrot = 0.0;
 
 const Red = (1, 0, 0, 1);
 const Green = (0, 1, 0, 1);
@@ -68,7 +68,7 @@ our $Bias = -0.06;
 
 our $Anim = GL_TRUE;
 
-our $NeedNewShadowMap = GL_FALSE;
+our $NeedNewShadowMap = GL_TRUE;
 our $ShadowTexture;
 our $GrayTexture;
 our $ShadowFBO;
@@ -452,8 +452,9 @@ sub RenderShadowMap()
 	}
     }
 
-    if (glIsEnabled(GL_TEXTURE_1D)) throw "ASSERT";
-    if (glIsEnabled(GL_TEXTURE_2D)) throw "ASSERT";
+    if (glIsEnabled(GL_TEXTURE_1D)) assert("GL_TEXTURE_1D");
+
+    if (glIsEnabled(GL_TEXTURE_2D)) assert("GL_TEXTURE_2D");
 
     glViewport(0, 0, $ShadowTexWidth, $ShadowTexHeight);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -853,7 +854,7 @@ sub Init()
     $HaveEXTshadowFuncs = glutExtensionSupported("GL_EXT_shadow_funcs");
 
     $HavePackedDepthStencil = glutExtensionSupported("GL_EXT_packed_depth_stencil");
-    $UsePackedDepthStencil = !$HavePackedDepthStencil;
+    $UsePackedDepthStencil = $HavePackedDepthStencil;
 
     if (GL_EXT_framebuffer_object) {
 	$HaveFBO = glutExtensionSupported("GL_EXT_framebuffer_object");
