@@ -5635,4 +5635,3 @@ void initOpenGLExt()
    builtinFunctions.add("glPointParameteriNV",          f_glPointParameteriNV);
    //builtinFunctions.add("glPointParameterivNV",         f_glPointParameterivNV);
 }
-

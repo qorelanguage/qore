@@ -231,6 +231,13 @@ const tPlane = ( 0, 1, 0, 0 );
 const rPlane = ( 0, 0, 1, 0 );
 const qPlane = ( 0, 0, 0, 1 );
 
+sub assert($str)
+{
+    stderr.vprintf("ASSERT: " + $str, $argv);
+    stderr.printf("\n");
+    exit(1);
+}
+
 sub DrawScene()
 {
     my $k = 6.0;
@@ -286,7 +293,7 @@ sub MakeShadowMatrix($lightPos, $spotDir, $spotAngle, $shadowNear, $shadowFar)
     glPushMatrix();
     glLoadIdentity();
     glFrustum(-$d, $d, -$d, $d, $shadowNear, $shadowFar);
-    glGetFloatv(GL_PROJECTION_MATRIX, $lightProjection);
+    $lightProjection = glGetFloatv(GL_PROJECTION_MATRIX);
     glPopMatrix();
 
     glMatrixMode(GL_MODELVIEW);
@@ -297,7 +304,7 @@ sub MakeShadowMatrix($lightPos, $spotDir, $spotAngle, $shadowNear, $shadowFar)
 	      $lightPos[1] + $spotDir[1],
 	      $lightPos[2] + $spotDir[2],
 	      0.0, 1.0, 0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, $lightModelview);
+    $lightModelview = glGetFloatv(GL_MODELVIEW_MATRIX);
     glPopMatrix();
 }
 
@@ -407,7 +414,7 @@ sub RenderShadowMap()
     }
     printf("Rendering %d x %d depth texture\n", $ShadowTexWidth, $ShadowTexHeight);
 
-    if ($usePackedDepthStencil) {
+    if ($UsePackedDepthStencil) {
 	$depthFormat = GL_DEPTH_STENCIL_EXT;
 	$depthType = GL_UNSIGNED_INT_24_8_EXT;
     }
@@ -422,27 +429,26 @@ sub RenderShadowMap()
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf($lightModelview);
 
-    if ($useFBO) {
+    if ($UseFBO) {
 	my $fbo_status;
 
 	glTexImage2D(GL_TEXTURE_2D, 0, $depthFormat,
 		     $ShadowTexWidth, $ShadowTexHeight, 0,
-		     $depthFormat, $depthType, NULL);
+		     $depthFormat, $depthType);
 
-	/* Set the filter mode so that the texture is texture-complete.
-       * Otherwise it will cause the framebuffer to fail the framebuffer
-       * completeness test.
-       */
-       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	# Set the filter mode so that the texture is texture-complete.
+	# Otherwise it will cause the framebuffer to fail the framebuffer
+	# completeness test.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, $ShadowFBO);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
-
+	
 	$fbo_status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 	if ($fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-	    stderr.printf("FBO not complete!  status = 0x%04x\n", $fbo_status);
-	    if ($fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT) throw "ASSERT";
+	    stderr.printf("FBO not complete! status = 0x%04x\n", $fbo_status);
+	    #if ($fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT) throw "ASSERT";
 	}
     }
 
@@ -454,7 +460,7 @@ sub RenderShadowMap()
     glEnable(GL_DEPTH_TEST);
     DrawScene();
 
-    if ($useFBO) {
+    if ($UseFBO) {
 	# all done!
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     }
@@ -467,13 +473,13 @@ sub RenderShadowMap()
 			 GL_LUMINANCE, GL_UNSIGNED_INT, $depth);
 	}
 	else {
-	    # The normal shadow case - a real depth texture */
+	    # The normal shadow case - a real depth texture
 	    glCopyTexImage2D(GL_TEXTURE_2D, 0, $depthFormat,
 			     0, 0, $ShadowTexWidth, $ShadowTexHeight, 0);
-	    if ($usePackedDepthStencil) {
-		# debug check 
+	    if ($UsePackedDepthStencil) {
+		# debug check
 		my $intFormat = glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT);
-		if ($intFormat != GL_DEPTH_STENCIL_EXT) throw "ASSERT";
+		if ($intFormat != GL_DEPTH_STENCIL_EXT) assert("intFormat=%d, depthFormat=%d", $intFormat, $depthFormat);
 	    }
 	}
     }
@@ -584,10 +590,10 @@ sub Display()
 	    EnableDistanceTexgen($LightPos, $SpotDir, ShadowNear+$Bias, ShadowFar);
 	    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	    glEnable(GL_TEXTURE_1D);
-	    assert(!glIsEnabled(GL_TEXTURE_2D));
+	    if (glIsEnabled(GL_TEXTURE_2D)) throw "ASSERT";
 	}
 	else {
-	    assert($DisplayMode == SHOW_SHADOWS);
+	    if ($DisplayMode != SHOW_SHADOWS) throw "ASSERT";
 	    if ($HaveShadow) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB,
 				GL_COMPARE_R_TO_TEXTURE_ARB);
@@ -603,7 +609,7 @@ sub Display()
 	    
 	    SetShadowTextureMatrix();
 	    
-	    if ($useVP) {
+	    if ($UseVP) {
 		glEnable(GL_VERTEX_PROGRAM_ARB);
 	    }
 	    else {
@@ -614,7 +620,7 @@ sub Display()
 	
 	DrawScene();
 	
-	if ($useVP) {
+	if ($UseVP) {
 	    glDisable(GL_VERTEX_PROGRAM_ARB);
 	}
 	else {
@@ -718,13 +724,13 @@ sub Key($key, $x, $y)
 	}
 	break;
 	case 'p':
-	    $usePackedDepthStencil = !$usePackedDepthStencil;
-	if ($usePackedDepthStencil && !$HavePackedDepthStencil) {
+	    $UsePackedDepthStencil = !$UsePackedDepthStencil;
+	if ($UsePackedDepthStencil && !$HavePackedDepthStencil) {
             printf("Sorry, GL_EXT_packed_depth_stencil not supported\n");
-            $usePackedDepthStencil = GL_FALSE;
+            $UsePackedDepthStencil = GL_FALSE;
 	}
 	else {
-            printf("$use GL_DEPTH_STENCIL_EXT: %d\n", $usePackedDepthStencil);
+            printf("$use GL_DEPTH_STENCIL_EXT: %d\n", $UsePackedDepthStencil);
             /* Don't really need to regenerate shadow map texture, but do so
              * to exercise more code more often.
              */
@@ -732,9 +738,9 @@ sub Key($key, $x, $y)
 	}
 	break;
 	case 'v':
-	    $useVP = !$useVP && $HaveVP;
+	    $UseVP = !$UseVP && $HaveVP;
 	printf("Using vertex %s mode.\n",
-	       $useVP ? "program" : "fixed-function");
+	       $UseVP ? "program" : "fixed-function");
 	break;
 	case 'z':
 	    $Zrot -= step;
@@ -847,12 +853,14 @@ sub Init()
     $HaveEXTshadowFuncs = glutExtensionSupported("GL_EXT_shadow_funcs");
 
     $HavePackedDepthStencil = glutExtensionSupported("GL_EXT_packed_depth_stencil");
-    $usePackedDepthStencil = $HavePackedDepthStencil;
+    $UsePackedDepthStencil = !$HavePackedDepthStencil;
 
     if (GL_EXT_framebuffer_object) {
 	$HaveFBO = glutExtensionSupported("GL_EXT_framebuffer_object");
-	$useFBO = $HaveFBO;
-	if ($useFBO) {
+
+	# DEBUG
+	$UseFBO = $HaveFBO;
+	if ($UseFBO) {
 	    printf("Using GL_EXT_framebuffer_object\n");
 	}
     }
@@ -874,7 +882,7 @@ sub Init()
     }
 
     if (GL_EXT_framebuffer_object) {
-	if ($useFBO) {
+	if ($UseFBO) {
 	    $ShadowFBO = glGenFramebuffersEXT(1);
 	    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, $ShadowFBO);
 	    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT,
@@ -896,11 +904,11 @@ sub Init()
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     {
 	my $i;
-	my $image;
+	my $image = "";
 	for ($i = 0; $i < 256; $i++)
-	    $image[$i] = $i;
+	    $image += chr($i);
 	glTexImage1D(GL_TEXTURE_1D, 0, GL_LUMINANCE,
-		     256, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, $image);
+		     256, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, binary($image));
     }
 
     if ($HaveVP) {
@@ -970,3 +978,5 @@ sub main()
     glutMainLoop();
     return 0;
 }
+
+main();

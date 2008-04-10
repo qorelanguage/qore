@@ -1600,6 +1600,7 @@ static int get_num_var_size(GLenum name)
       case GL_VERTEX_ARRAY_TYPE:
       case GL_ZOOM_X:
       case GL_ZOOM_Y:
+      case GL_PROGRAM_ERROR_POSITION_ARB:
          return 1;
 
       case GL_ALIASED_POINT_SIZE_RANGE:
@@ -2595,6 +2596,7 @@ static AbstractQoreNode *f_glCopyTexImage2D(const QoreListNode *params, Exceptio
    GLsizei height = (GLsizei)(p ? p->getAsInt() : 0);
    p = get_param(params, 7);
    GLint border = (GLint)(p ? p->getAsInt() : 0);
+
    glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
    return 0;
 }
@@ -3379,15 +3381,15 @@ static AbstractQoreNode *f_glGetSeparableFilter(const QoreListNode *params, Exce
 }
 */
 
-/*
 //const GLubyte * glGetString (GLenum name);
 static AbstractQoreNode *f_glGetString(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
    GLenum name = (GLenum)(p ? p->getAsInt() : 0);
-   ??? return new QoreBigIntNode(glGetString(name));
+   // the man page does not say what encoding the string is - but another man page says that
+   // such strings are in latin1 encoding, so we'll assume that here too
+   return new QoreStringNode((const char *)glGetString(name), QCS_ISO_8859_1);
 }
-*/
 
 /*
 //void glGetTexEnvfv (GLenum target, GLenum pname, GLfloat *params);
@@ -3507,7 +3509,7 @@ static AbstractQoreNode *f_glGetTexLevelParameterfv(const QoreListNode *params, 
 
    int num = get_texlevel_num(pname);
    if (num == -1) {
-      xsink->raiseException("GLGETTEXLEVELPARAMETERIV", "cannot determine result value size for parameter code %d", (int)pname);
+      xsink->raiseException("GLGETTEXLEVELPARAMETERFV", "cannot determine result value size for parameter code %d", (int)pname);
       return 0;
    }
 
@@ -3541,7 +3543,7 @@ static AbstractQoreNode *f_glGetTexLevelParameteriv(const QoreListNode *params, 
       return 0;
    }
 
-      GLint parms[num];
+   GLint parms[num];
    glGetTexLevelParameteriv(target, level, pname, parms);
 
    if (num == 1)
@@ -4019,27 +4021,43 @@ static AbstractQoreNode *f_glMinmax(const QoreListNode *params, ExceptionSink *x
    return 0;
 }
 
-/*
 //void glMultMatrixd (const GLdouble *m);
 static AbstractQoreNode *f_glMultMatrixd(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p = get_param(params, 0);
-   ??? GLdouble* m = p;
+   const QoreListNode *l = test_list_param(params, 0);
+   if (!l) {
+      xsink->raiseException("GLMULTMATRIXD-ERROR", "expecting a list as the sole argument to glMultMatrixd()");
+      return 0;
+   }
+   
+   GLdouble m[16];
+   for (int i = 0; i < 16; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      m[i] = n ? n->getAsFloat() : 0;
+   }
+
    glMultMatrixd(m);
    return 0;
 }
-*/
 
-/*
 //void glMultMatrixf (const GLfloat *m);
 static AbstractQoreNode *f_glMultMatrixf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p = get_param(params, 0);
-   ??? GLfloat* m = p;
+   const QoreListNode *l = test_list_param(params, 0);
+   if (!l) {
+      xsink->raiseException("GLMULTMATRIXF-ERROR", "expecting a list as the sole argument to glMultMatrixf()");
+      return 0;
+   }
+   
+   GLfloat m[16];
+   for (int i = 0; i < 16; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      m[i] = n ? n->getAsFloat() : 0;
+   }
+
    glMultMatrixf(m);
    return 0;
 }
-*/
 
 /*
 //void glNormal3bv (const GLbyte *v);
@@ -4612,6 +4630,9 @@ static int get_bits_per_pixel(GLenum type)
       case GL_UNSIGNED_INT_8_8_8_8_REV:
       case GL_UNSIGNED_INT_10_10_10_2:
       case GL_UNSIGNED_INT_2_10_10_10_REV:
+      case GL_UNSIGNED_INT_24_8_EXT:
+      case GL_UNSIGNED_INT_S8_S8_8_8_NV:
+      case GL_UNSIGNED_INT_8_8_S8_S8_REV_NV:
 	 return 32;
 
       case GL_UNSIGNED_SHORT:
@@ -4668,6 +4689,8 @@ static AbstractQoreNode *f_glReadPixels(const QoreListNode *params, ExceptionSin
       xsink->outOfMemory();
       return 0;
    }
+
+   printd(0, "glReadPixels() x=%d, y=%d, bpp=%d size=%d\n", x, y, bpp, size);
 
    glReadPixels(x, y, width, height, format, type, pixels);
    return new BinaryNode(pixels, size);
@@ -5083,7 +5106,19 @@ static AbstractQoreNode *f_glTexGend(const QoreListNode *params, ExceptionSink *
    return 0;
 }
 
-/*
+static int get_texgen_num(GLenum pname)
+{
+   switch (pname) {
+      case GL_TEXTURE_GEN_MODE:
+	 return 1;
+
+      case GL_EYE_PLANE:
+      case GL_OBJECT_PLANE:
+	 return 4;
+   }
+   return -1;
+}
+
 //void glTexGendv (GLenum coord, GLenum pname, const GLdouble *params);
 static AbstractQoreNode *f_glTexGendv(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -5091,12 +5126,28 @@ static AbstractQoreNode *f_glTexGendv(const QoreListNode *params, ExceptionSink 
    GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
-   p = get_param(params, 2);
-   ??? GLdouble* params = p;
-   glTexGendv(coord, pname, params);
+
+   int num = get_texgen_num(pname);
+   if (num == -1) {
+      xsink->raiseException("GLTEXGENDV-ERROR", "cannot determine list argument length for glTexGendv() from unknown param code %d", (int)pname);
+      return 0;
+   }
+
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLTEXGENDV-ERROR", "expecting a list as the third argument to glTexGendv()");
+      return 0;
+   }
+   
+   GLdouble parms[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      parms[i] = n ? n->getAsFloat() : 0;
+   }
+
+   glTexGendv(coord, pname, parms);
    return 0;
 }
-*/
 
 //void glTexGenf (GLenum coord, GLenum pname, GLfloat param);
 static AbstractQoreNode *f_glTexGenf(const QoreListNode *params, ExceptionSink *xsink)
@@ -5111,7 +5162,6 @@ static AbstractQoreNode *f_glTexGenf(const QoreListNode *params, ExceptionSink *
    return 0;
 }
 
-/*
 //void glTexGenfv (GLenum coord, GLenum pname, const GLfloat *params);
 static AbstractQoreNode *f_glTexGenfv(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -5119,12 +5169,28 @@ static AbstractQoreNode *f_glTexGenfv(const QoreListNode *params, ExceptionSink 
    GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
-   p = get_param(params, 2);
-   ??? GLfloat* params = p;
-   glTexGenfv(coord, pname, params);
+
+   int num = get_texgen_num(pname);
+   if (num == -1) {
+      xsink->raiseException("GLTEXGENFV-ERROR", "cannot determine list argument length for glTexGenfv() from unknown param code %d", (int)pname);
+      return 0;
+   }
+
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLTEXGENFV-ERROR", "expecting a list as the third argument to glTexGenfv()");
+      return 0;
+   }
+   
+   GLfloat parms[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      parms[i] = n ? n->getAsFloat() : 0;
+   }
+
+   glTexGenfv(coord, pname, parms);
    return 0;
 }
-*/
 
 //void glTexGeni (GLenum coord, GLenum pname, GLint param);
 static AbstractQoreNode *f_glTexGeni(const QoreListNode *params, ExceptionSink *xsink)
@@ -5139,7 +5205,6 @@ static AbstractQoreNode *f_glTexGeni(const QoreListNode *params, ExceptionSink *
    return 0;
 }
 
-/*
 //void glTexGeniv (GLenum coord, GLenum pname, const GLint *params);
 static AbstractQoreNode *f_glTexGeniv(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -5147,12 +5212,28 @@ static AbstractQoreNode *f_glTexGeniv(const QoreListNode *params, ExceptionSink 
    GLenum coord = (GLenum)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
-   p = get_param(params, 2);
-   ??? GLint* params = p;
-   glTexGeniv(coord, pname, params);
+
+   int num = get_texgen_num(pname);
+   if (num == -1) {
+      xsink->raiseException("GLTEXGENIV-ERROR", "cannot determine list argument length for glTexGeniv() from unknown param code %d", (int)pname);
+      return 0;
+   }
+
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLTEXGENIV-ERROR", "expecting a list as the third argument to glTexGeniv()");
+      return 0;
+   }
+   
+   GLint parms[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      parms[i] = n ? n->getAsInt() : 0;
+   }
+
+   glTexGeniv(coord, pname, parms);
    return 0;
 }
-*/
 
 //void glTexImage1D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
 static AbstractQoreNode *f_glTexImage1D(const QoreListNode *params, ExceptionSink *xsink)
@@ -5185,17 +5266,17 @@ static AbstractQoreNode *f_glTexImage1D(const QoreListNode *params, ExceptionSin
       ++size;
 
    const BinaryNode *b = test_binary_param(params, 7);
-   if (!b) {
+   if (!b && get_param(params, 7)) {
       xsink->raiseException("GLTEXIMAGE1D-ERROR", "missing binary object for texture image as eighth argument");
       return 0;
    }
    
-   if (b->size() < size) {
+   if (b && b->size() < size) {
       xsink->raiseException("GLTEXTIMAGE1D-ERROR", "binary data passed has only %d byte%s, but %d bytes are required", b->size(), b->size() == 1 ? "" : "s", size);
       return 0;
    }
 
-   const GLvoid *pixels = b->getPtr();
+   const GLvoid *pixels = b ? b->getPtr() : 0;
 
    glTexImage1D(target, level, internalformat, width, border, format, type, pixels);
    return 0;
@@ -5234,17 +5315,17 @@ static AbstractQoreNode *f_glTexImage2D(const QoreListNode *params, ExceptionSin
       ++size;
 
    const BinaryNode *b = test_binary_param(params, 8);
-   if (!b) {
+   if (!b && get_param(params, 8)) {
       xsink->raiseException("GLTEXIMAGE2D-ERROR", "missing binary object for texture image as ninth argument");
       return 0;
    }
    
-   if (b->size() < size) {
+   if (b && b->size() < size) {
       xsink->raiseException("GLTEXTIMAGE2D-ERROR", "binary data passed has only %d byte%s, but %d bytes are required", b->size(), b->size() == 1 ? "" : "s", size);
       return 0;
    }
 
-   const GLvoid *pixels = b->getPtr();
+   const GLvoid *pixels = b ? b->getPtr() : 0;
 
    glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
    return 0;
@@ -5285,17 +5366,17 @@ static AbstractQoreNode *f_glTexImage3D(const QoreListNode *params, ExceptionSin
       ++size;
 
    const BinaryNode *b = test_binary_param(params, 9);
-   if (!b) {
+   if (!b && get_param(params, 9)) {
       xsink->raiseException("GLTEXIMAGE3D-ERROR", "missing binary object for texture image as tenth argument");
       return 0;
    }
    
-   if (b->size() < size) {
+   if (b && b->size() < size) {
       xsink->raiseException("GLTEXTIMAGE3D-ERROR", "binary data passed has only %d byte%s, but %d bytes are required", b->size(), b->size() == 1 ? "" : "s", size);
       return 0;
    }
 
-   const GLvoid *pixels = b->getPtr();
+   const GLvoid *pixels = b ? b->getPtr() : 0;
 
    glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels);
    return 0;
@@ -8564,7 +8645,7 @@ static QoreStringNode *opengl_module_init()
    //builtinFunctions.add("glGetPointerv",                f_glGetPointerv);
    //builtinFunctions.add("glGetPolygonStipple",          f_glGetPolygonStipple);
    //builtinFunctions.add("glGetSeparableFilter",         f_glGetSeparableFilter);
-   //builtinFunctions.add("glGetString",                  f_glGetString);
+   builtinFunctions.add("glGetString",                  f_glGetString);
    //builtinFunctions.add("glGetTexEnvfv",                f_glGetTexEnvfv);
    //builtinFunctions.add("glGetTexEnviv",                f_glGetTexEnviv);
    //builtinFunctions.add("glGetTexGendv",                f_glGetTexGendv);
@@ -8609,8 +8690,8 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glMapGrid2d",                  f_glMapGrid2d);
    builtinFunctions.add("glMapGrid2f",                  f_glMapGrid2f);
    builtinFunctions.add("glMinmax",                     f_glMinmax);
-   //builtinFunctions.add("glMultMatrixd",                f_glMultMatrixd);
-   //builtinFunctions.add("glMultMatrixf",                f_glMultMatrixf);
+   builtinFunctions.add("glMultMatrixd",                f_glMultMatrixd);
+   builtinFunctions.add("glMultMatrixf",                f_glMultMatrixf);
    //builtinFunctions.add("glNormal3bv",                  f_glNormal3bv);
    //builtinFunctions.add("glNormal3dv",                  f_glNormal3dv);
    //builtinFunctions.add("glNormal3fv",                  f_glNormal3fv);
@@ -8696,11 +8777,11 @@ static QoreStringNode *opengl_module_init()
    //builtinFunctions.add("glTexCoord4sv",                f_glTexCoord4sv);
    //builtinFunctions.add("glTexCoordPointer",            f_glTexCoordPointer);
    builtinFunctions.add("glTexGend",                    f_glTexGend);
-   //builtinFunctions.add("glTexGendv",                   f_glTexGendv);
+   builtinFunctions.add("glTexGendv",                   f_glTexGendv);
    builtinFunctions.add("glTexGenf",                    f_glTexGenf);
-   //builtinFunctions.add("glTexGenfv",                   f_glTexGenfv);
+   builtinFunctions.add("glTexGenfv",                   f_glTexGenfv);
    builtinFunctions.add("glTexGeni",                    f_glTexGeni);
-   //builtinFunctions.add("glTexGeniv",                   f_glTexGeniv);
+   builtinFunctions.add("glTexGeniv",                   f_glTexGeniv);
    builtinFunctions.add("glTexImage1D",                 f_glTexImage1D);
    builtinFunctions.add("glTexImage2D",                 f_glTexImage2D);
    builtinFunctions.add("glTexImage3D",                 f_glTexImage3D);
@@ -8940,6 +9021,7 @@ static QoreStringNode *opengl_module_init()
    initOpenGLU();
 
    addOpenGLConstants();
+   addOpenGLExtConstants();
 
    return 0;
 }

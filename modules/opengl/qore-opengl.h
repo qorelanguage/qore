@@ -30,6 +30,7 @@
 #include "gl.h"
 
 DLLLOCAL void addOpenGLConstants();
+DLLLOCAL void addOpenGLExtConstants();
 
 DLLLOCAL void initOpenGLExt();
 DLLLOCAL void initOpenGLU();

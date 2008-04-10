@@ -4,7 +4,7 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 if COND_SINGLE_COMPILATION_UNIT
 OPENGL_SOURCES = single-compilation-unit.cc
 else
-OPENGL_SOURCES = opengl.cc opengl-constants.cc opengl-ext.cc opengl-glu.cc
+OPENGL_SOURCES = opengl.cc opengl-constants.cc opengl-ext.cc opengl-glu.cc opengl-ext-constants.cc
 endif
 
 if COND_MONOLITHIC
