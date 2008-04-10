@@ -5486,7 +5486,7 @@ static AbstractQoreNode *f_glVertex2iv(const QoreListNode *params, ExceptionSink
    GLint v[2];
    for (int i = 0; i < 2; ++i) {
       const AbstractQoreNode *n = l->retrieve_entry(i);
-      v[i] = n ? n->getAsFloat() : 0;
+      v[i] = n ? n->getAsInt() : 0;
    }
 
    glVertex2iv(v);
@@ -5505,7 +5505,7 @@ static AbstractQoreNode *f_glVertex2sv(const QoreListNode *params, ExceptionSink
    GLshort v[2];
    for (int i = 0; i < 2; ++i) {
       const AbstractQoreNode *n = l->retrieve_entry(i);
-      v[i] = n ? n->getAsFloat() : 0;
+      v[i] = n ? n->getAsInt() : 0;
    }
 
    glVertex2sv(v);
@@ -5684,6 +5684,7 @@ static AbstractQoreNode *f_glSampleCoverage(const QoreListNode *params, Exceptio
    return 0;
 }
 
+#ifdef HAVE_GLSAMPLEPASS
 //void glSamplePass (GLenum pass);
 static AbstractQoreNode *f_glSamplePass(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -5692,6 +5693,7 @@ static AbstractQoreNode *f_glSamplePass(const QoreListNode *params, ExceptionSin
    glSamplePass(pass);
    return 0;
 }
+#endif
 
 /*
 //void glLoadTransposeMatrixf (const GLfloat *m);
@@ -8723,7 +8725,9 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glVertex4sv",                  f_glVertex4sv);
    //builtinFunctions.add("glVertexPointer",              f_glVertexPointer);
    builtinFunctions.add("glSampleCoverage",             f_glSampleCoverage);
+#ifdef HAVE_GLSAMPLEPASS
    builtinFunctions.add("glSamplePass",                 f_glSamplePass);
+#endif
    //builtinFunctions.add("glLoadTransposeMatrixf",       f_glLoadTransposeMatrixf);
    //builtinFunctions.add("glLoadTransposeMatrixd",       f_glLoadTransposeMatrixd);
    //builtinFunctions.add("glMultTransposeMatrixf",       f_glMultTransposeMatrixf);

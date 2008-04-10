@@ -24,6 +24,9 @@
 
 #define _QORE_OPENGL_H
 
+// to get ext prototypes with mesa
+#define GL_GLEXT_PROTOTYPES 1
+
 #include "gl.h"
 
 DLLLOCAL void addOpenGLConstants();

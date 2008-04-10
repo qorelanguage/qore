@@ -1,4 +1,4 @@
-/*
+#/*
   opengl-ext.cc
   
   Qore Programming Language
@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 
 #include "qore-opengl.h"
+
+#include <glext.h>
 
 //void glActiveTextureARB (GLenum);
 static AbstractQoreNode *f_glActiveTextureARB(const QoreListNode *params, ExceptionSink *xsink)
@@ -529,6 +531,7 @@ static AbstractQoreNode *f_glSampleCoverageARB(const QoreListNode *params, Excep
    return 0;
 }
 
+#ifdef HAVE_GLSAMPLEPASSARB
 //void glSamplePassARB (GLenum);
 static AbstractQoreNode *f_glSamplePassARB(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -537,6 +540,7 @@ static AbstractQoreNode *f_glSamplePassARB(const QoreListNode *params, Exception
    glSamplePassARB(arg0);
    return 0;
 }
+#endif
 
 /*
 //void glCompressedTexImage3DARB (GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei, GLint, GLsizei, const GLvoid *);
@@ -3653,6 +3657,7 @@ static AbstractQoreNode *f_glFramebufferTextureFaceEXT(const QoreListNode *param
    return 0;
 }
 
+#ifdef HAVE_GLBINDBUFFEREXT
 //void glBindBufferRangeEXT (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
 static AbstractQoreNode *f_glBindBufferRangeEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -3697,7 +3702,9 @@ static AbstractQoreNode *f_glBindBufferBaseEXT(const QoreListNode *params, Excep
    glBindBufferBaseEXT(target, index, buffer);
    return 0;
 }
+#endif
 
+#ifdef HAVE_GLTRANSFORMFEEDBACKEXT
 //void glBeginTransformFeedbackEXT (GLenum primitiveMode);
 static AbstractQoreNode *f_glBeginTransformFeedbackEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -3713,6 +3720,7 @@ static AbstractQoreNode *f_glEndTransformFeedbackEXT(const QoreListNode *params,
    glEndTransformFeedbackEXT();
    return 0;
 }
+#endif
 
 /*
 //void glTransformFeedbackVaryingsEXT (GLuint program, GLsizei count, const GLchar **varyings, GLenum bufferMode);
@@ -4384,6 +4392,7 @@ static AbstractQoreNode *f_glGetFragDataLocationEXT(const QoreListNode *params, 
 }
 */
 
+#ifdef HAVE_GL_APPLE_FUNCS
 /*
 //void glTextureRangeAPPLE (GLenum target, GLsizei length, const GLvoid *pointer);
 static AbstractQoreNode *f_glTextureRangeAPPLE(const QoreListNode *params, ExceptionSink *xsink)
@@ -4397,6 +4406,7 @@ static AbstractQoreNode *f_glTextureRangeAPPLE(const QoreListNode *params, Excep
    glTextureRangeAPPLE(target, length, pointer);
    return 0;
 }
+#endif
 */
 
 /*
@@ -4883,6 +4893,7 @@ static AbstractQoreNode *f_glGetObjectParameterivAPPLE(const QoreListNode *param
    return 0;
 }
 */
+#endif // HAVE_GL_APPLE_FUNCS
 
 //void glPNTrianglesiATI (GLenum pname, GLint param);
 static AbstractQoreNode *f_glPNTrianglesiATI(const QoreListNode *params, ExceptionSink *xsink)
@@ -4947,6 +4958,7 @@ static AbstractQoreNode *f_glStencilFuncSeparateATI(const QoreListNode *params, 
    return 0;
 }
 
+#ifdef HAVE_GLPNTRIANGLESATIX
 //void glPNTrianglesiATIX (GLenum pname, GLint param);
 static AbstractQoreNode *f_glPNTrianglesiATIX(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -4968,6 +4980,7 @@ static AbstractQoreNode *f_glPNTrianglesfATIX(const QoreListNode *params, Except
    glPNTrianglesfATIX(pname, param);
    return 0;
 }
+#endif
 
 /*
 //void glCombinerParameterfvNV (GLenum, const GLfloat *);
@@ -5275,7 +5288,9 @@ void initOpenGLExt()
    //builtinFunctions.add("glMultTransposeMatrixfARB",    f_glMultTransposeMatrixfARB);
    //builtinFunctions.add("glMultTransposeMatrixdARB",    f_glMultTransposeMatrixdARB);
    builtinFunctions.add("glSampleCoverageARB",          f_glSampleCoverageARB);
+#ifdef HAVE_GLSAMPLEPASSARB
    builtinFunctions.add("glSamplePassARB",              f_glSamplePassARB);
+#endif
    //builtinFunctions.add("glCompressedTexImage3DARB",    f_glCompressedTexImage3DARB);
    //builtinFunctions.add("glCompressedTexImage2DARB",    f_glCompressedTexImage2DARB);
    //builtinFunctions.add("glCompressedTexImage1DARB",    f_glCompressedTexImage1DARB);
@@ -5498,11 +5513,15 @@ void initOpenGLExt()
    builtinFunctions.add("glFramebufferTextureEXT",      f_glFramebufferTextureEXT);
    builtinFunctions.add("glFramebufferTextureLayerEXT", f_glFramebufferTextureLayerEXT);
    builtinFunctions.add("glFramebufferTextureFaceEXT",  f_glFramebufferTextureFaceEXT);
+#ifdef HAVE_GLBINDBUFFEREXT
    builtinFunctions.add("glBindBufferRangeEXT",         f_glBindBufferRangeEXT);
    builtinFunctions.add("glBindBufferOffsetEXT",        f_glBindBufferOffsetEXT);
    builtinFunctions.add("glBindBufferBaseEXT",          f_glBindBufferBaseEXT);
+#endif
+#ifdef HAVE_GLTRANSFORMFEEDBACKEXT
    builtinFunctions.add("glBeginTransformFeedbackEXT",  f_glBeginTransformFeedbackEXT);
    builtinFunctions.add("glEndTransformFeedbackEXT",    f_glEndTransformFeedbackEXT);
+#endif
    //builtinFunctions.add("glTransformFeedbackVaryingsEXT", f_glTransformFeedbackVaryingsEXT);
    //builtinFunctions.add("glGetTransformFeedbackVaryingEXT", f_glGetTransformFeedbackVaryingEXT);
    //builtinFunctions.add("glGetIntegerIndexedvEXT",      f_glGetIntegerIndexedvEXT);
@@ -5550,6 +5569,7 @@ void initOpenGLExt()
    //builtinFunctions.add("glGetUniformuivEXT",           f_glGetUniformuivEXT);
    //builtinFunctions.add("glBindFragDataLocationEXT",    f_glBindFragDataLocationEXT);
    //builtinFunctions.add("glGetFragDataLocationEXT",     f_glGetFragDataLocationEXT);
+#ifdef HAVE_GL_APPLE_FUNCS
    //builtinFunctions.add("glTextureRangeAPPLE",          f_glTextureRangeAPPLE);
    //builtinFunctions.add("glGetTexParameterPointervAPPLE", f_glGetTexParameterPointervAPPLE);
    //builtinFunctions.add("glVertexArrayRangeAPPLE",      f_glVertexArrayRangeAPPLE);
@@ -5587,13 +5607,16 @@ void initOpenGLExt()
    builtinFunctions.add("glObjectPurgeableAPPLE",       f_glObjectPurgeableAPPLE);
    builtinFunctions.add("glObjectUnpurgeableAPPLE",     f_glObjectUnpurgeableAPPLE);
    //builtinFunctions.add("glGetObjectParameterivAPPLE",  f_glGetObjectParameterivAPPLE);
+#endif
    builtinFunctions.add("glPNTrianglesiATI",            f_glPNTrianglesiATI);
    builtinFunctions.add("glPNTrianglesfATI",            f_glPNTrianglesfATI);
    builtinFunctions.add("glBlendEquationSeparateATI",   f_glBlendEquationSeparateATI);
    builtinFunctions.add("glStencilOpSeparateATI",       f_glStencilOpSeparateATI);
    builtinFunctions.add("glStencilFuncSeparateATI",     f_glStencilFuncSeparateATI);
+#ifdef HAVE_GLPNTRIANGLESATI
    builtinFunctions.add("glPNTrianglesiATIX",           f_glPNTrianglesiATIX);
    builtinFunctions.add("glPNTrianglesfATIX",           f_glPNTrianglesfATIX);
+#endif
    //builtinFunctions.add("glCombinerParameterfvNV",      f_glCombinerParameterfvNV);
    builtinFunctions.add("glCombinerParameterfNV",       f_glCombinerParameterfNV);
    //builtinFunctions.add("glCombinerParameterivNV",      f_glCombinerParameterivNV);
