@@ -448,7 +448,9 @@ sub RenderShadowMap()
 	$fbo_status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 	if ($fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT) {
 	    stderr.printf("FBO not complete! status = 0x%04x\n", $fbo_status);
-	    #if ($fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT) throw "ASSERT";
+	    if (GL_FRAMEBUFFER_UNSUPPORTED_EXT)
+		assert("unsupported framebuffer extension");
+	    assert("framebuffer not complete");
 	}
     }
 
@@ -475,12 +477,12 @@ sub RenderShadowMap()
 	}
 	else {
 	    # The normal shadow case - a real depth texture
-	    glCopyTexImage2D(GL_TEXTURE_2D, 0, $depthFormat,
-			     0, 0, $ShadowTexWidth, $ShadowTexHeight, 0);
+	    glCopyTexImage2D(GL_TEXTURE_2D, 0, $depthFormat, 0, 0, $ShadowTexWidth, $ShadowTexHeight, 0);
+
 	    if ($UsePackedDepthStencil) {
 		# debug check
 		my $intFormat = glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT);
-		if ($intFormat != GL_DEPTH_STENCIL_EXT) assert("intFormat=%d, depthFormat=%d", $intFormat, $depthFormat);
+		if ($intFormat != GL_DEPTH_STENCIL_EXT) stderr.printf("texture format not set to GL_DEPTH_STENCIL_EXT (%d) internal format=%d\n", $depthFormat, $intFormat);
 	    }
 	}
     }
@@ -733,7 +735,7 @@ sub Key($key, $x, $y)
             $UsePackedDepthStencil = GL_FALSE;
 	}
 	else {
-            printf("$use GL_DEPTH_STENCIL_EXT: %d\n", $UsePackedDepthStencil);
+            printf("use GL_DEPTH_STENCIL_EXT: %d\n", $UsePackedDepthStencil);
             /* Don't really need to regenerate shadow map texture, but do so
              * to exercise more code more often.
              */
@@ -861,7 +863,8 @@ sub Init()
     if (GL_EXT_framebuffer_object) {
 	$HaveFBO = glutExtensionSupported("GL_EXT_framebuffer_object");
 
-	$UseFBO = $HaveFBO;
+	# disable framebuffer on Darwin initially - why doesn't it work?  I have no clue :-(
+	$UseFBO = PlatformOS == "Darwin" ? False : $HaveFBO;
 	if ($UseFBO) {
 	    printf("Using GL_EXT_framebuffer_object\n");
 	}
