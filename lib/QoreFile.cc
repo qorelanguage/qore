@@ -32,6 +32,7 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/file.h>
 
 #include <string>
 
@@ -91,7 +92,7 @@ int QoreFile::lock(int operation, ExceptionSink *xsink)
       return -1;
    }
 
-   int rc = ::flock(priv->fd, operation);
+   int rc = flock(priv->fd, operation);
    if (rc)
       xsink->raiseException("FILE-LOCK-ERROR", "the lock operation failed: ", strerror(errno));
 
@@ -105,7 +106,7 @@ int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink)
       return -1;
    }
 
-   int rc = ::fchown(priv->fd, owner, group);
+   int rc = fchown(priv->fd, owner, group);
    if (rc)
       xsink->raiseException("FILE-CHOWN-ERROR", "the chown(%d, %d) operation failed: ", owner, group, strerror(errno));
 
