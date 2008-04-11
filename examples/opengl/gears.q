@@ -5,8 +5,6 @@
 %requires opengl
 %requires glut
 
-const M_PI = 3.14159265358979323846;
-
 our $view_rotx = 20.0;
 our $view_roty = 30.0;
 our $view_rotz = 0.0;

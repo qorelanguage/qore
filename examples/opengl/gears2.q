@@ -8,8 +8,7 @@
 %require-our
 
 const d_near = 1.0;
-const d_far = 2000;
-const M_PI = 3.14159265358979323846;
+const d_far = 2000.0;
 
 our $circle_subdiv;
 
