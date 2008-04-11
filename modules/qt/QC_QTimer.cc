@@ -173,5 +173,5 @@ static AbstractQoreNode *f_QTimer_singleShot(const QoreListNode *params, Excepti
 
 void initQTimerStaticFunctions()
 {
-   builtinFunctions.add("QTimer_singleShot",                   f_QTimer_singleShot);
+   builtinFunctions.add("QTimer_singleShot",                   f_QTimer_singleShot, QDOM_GUI);
 }

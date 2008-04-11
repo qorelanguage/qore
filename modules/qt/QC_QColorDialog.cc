@@ -103,10 +103,10 @@ static AbstractQoreNode *f_QColorDialog_setStandardColor(const QoreListNode *par
 
 void initQColorDialogStaticFunctions()
 {
-   builtinFunctions.add("QColorDialog_customColor",                  f_QColorDialog_customColor);
-   builtinFunctions.add("QColorDialog_customCount",                  f_QColorDialog_customCount);
-   builtinFunctions.add("QColorDialog_getColor",                     f_QColorDialog_getColor);
-   //builtinFunctions.add("QColorDialog_getRgba",                      f_QColorDialog_getRgba);
-   builtinFunctions.add("QColorDialog_setCustomColor",               f_QColorDialog_setCustomColor);
-   builtinFunctions.add("QColorDialog_setStandardColor",             f_QColorDialog_setStandardColor);
+   builtinFunctions.add("QColorDialog_customColor",                  f_QColorDialog_customColor, QDOM_GUI);
+   builtinFunctions.add("QColorDialog_customCount",                  f_QColorDialog_customCount, QDOM_GUI);
+   builtinFunctions.add("QColorDialog_getColor",                     f_QColorDialog_getColor, QDOM_GUI);
+   //builtinFunctions.add("QColorDialog_getRgba",                      f_QColorDialog_getRgba, QDOM_GUI);
+   builtinFunctions.add("QColorDialog_setCustomColor",               f_QColorDialog_setCustomColor, QDOM_GUI);
+   builtinFunctions.add("QColorDialog_setStandardColor",             f_QColorDialog_setStandardColor, QDOM_GUI);
 }

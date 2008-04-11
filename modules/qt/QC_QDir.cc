@@ -696,24 +696,24 @@ static AbstractQoreNode *f_QDir_toNativeSeparators(const QoreListNode *params, E
 
 void initQDirStaticFunctions()
 {
-   builtinFunctions.add("QDir_addSearchPath",                f_QDir_addSearchPath);
-   builtinFunctions.add("QDir_cleanPath",                    f_QDir_cleanPath);
-   builtinFunctions.add("QDir_current",                      f_QDir_current);
-   builtinFunctions.add("QDir_currentPath",                  f_QDir_currentPath);
-   builtinFunctions.add("QDir_drives",                       f_QDir_drives);
-   builtinFunctions.add("QDir_fromNativeSeparators",         f_QDir_fromNativeSeparators);
-   builtinFunctions.add("QDir_home",                         f_QDir_home);
-   builtinFunctions.add("QDir_homePath",                     f_QDir_homePath);
-   builtinFunctions.add("QDir_isAbsolutePath",               f_QDir_isAbsolutePath);
-   builtinFunctions.add("QDir_isRelativePath",               f_QDir_isRelativePath);
-   builtinFunctions.add("QDir_match",                        f_QDir_match);
-   builtinFunctions.add("QDir_root",                         f_QDir_root);
-   builtinFunctions.add("QDir_rootPath",                     f_QDir_rootPath);
-   builtinFunctions.add("QDir_searchPaths",                  f_QDir_searchPaths);
-   builtinFunctions.add("QDir_separator",                    f_QDir_separator);
-   builtinFunctions.add("QDir_setCurrent",                   f_QDir_setCurrent);
-   builtinFunctions.add("QDir_setSearchPaths",               f_QDir_setSearchPaths);
-   builtinFunctions.add("QDir_temp",                         f_QDir_temp);
-   builtinFunctions.add("QDir_tempPath",                     f_QDir_tempPath);
-   builtinFunctions.add("QDir_toNativeSeparators",           f_QDir_toNativeSeparators);
+   builtinFunctions.add("QDir_addSearchPath",                f_QDir_addSearchPath, QDOM_GUI);
+   builtinFunctions.add("QDir_cleanPath",                    f_QDir_cleanPath, QDOM_GUI);
+   builtinFunctions.add("QDir_current",                      f_QDir_current, QDOM_GUI);
+   builtinFunctions.add("QDir_currentPath",                  f_QDir_currentPath, QDOM_GUI);
+   builtinFunctions.add("QDir_drives",                       f_QDir_drives, QDOM_GUI);
+   builtinFunctions.add("QDir_fromNativeSeparators",         f_QDir_fromNativeSeparators, QDOM_GUI);
+   builtinFunctions.add("QDir_home",                         f_QDir_home, QDOM_GUI);
+   builtinFunctions.add("QDir_homePath",                     f_QDir_homePath, QDOM_GUI);
+   builtinFunctions.add("QDir_isAbsolutePath",               f_QDir_isAbsolutePath, QDOM_GUI);
+   builtinFunctions.add("QDir_isRelativePath",               f_QDir_isRelativePath, QDOM_GUI);
+   builtinFunctions.add("QDir_match",                        f_QDir_match, QDOM_GUI);
+   builtinFunctions.add("QDir_root",                         f_QDir_root, QDOM_GUI);
+   builtinFunctions.add("QDir_rootPath",                     f_QDir_rootPath, QDOM_GUI);
+   builtinFunctions.add("QDir_searchPaths",                  f_QDir_searchPaths, QDOM_GUI);
+   builtinFunctions.add("QDir_separator",                    f_QDir_separator, QDOM_GUI);
+   builtinFunctions.add("QDir_setCurrent",                   f_QDir_setCurrent, QDOM_GUI);
+   builtinFunctions.add("QDir_setSearchPaths",               f_QDir_setSearchPaths, QDOM_GUI);
+   builtinFunctions.add("QDir_temp",                         f_QDir_temp, QDOM_GUI);
+   builtinFunctions.add("QDir_tempPath",                     f_QDir_tempPath, QDOM_GUI);
+   builtinFunctions.add("QDir_toNativeSeparators",           f_QDir_toNativeSeparators, QDOM_GUI);
 }

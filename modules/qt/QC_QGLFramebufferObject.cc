@@ -171,5 +171,5 @@ static AbstractQoreNode *f_QGLFramebufferObject_hasOpenGLFramebufferObjects(cons
 
 void initQGLFramebufferObjectStaticFunctions()
 {
-   builtinFunctions.add("QGLFramebufferObject_hasOpenGLFramebufferObjects",  f_QGLFramebufferObject_hasOpenGLFramebufferObjects);
+   builtinFunctions.add("QGLFramebufferObject_hasOpenGLFramebufferObjects",  f_QGLFramebufferObject_hasOpenGLFramebufferObjects, QDOM_GUI);
 }

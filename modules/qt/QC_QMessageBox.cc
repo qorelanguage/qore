@@ -626,10 +626,10 @@ static AbstractQoreNode *f_QMessageBox_warning(const QoreListNode *params, Excep
 void initQMessageBoxStaticFunctions()
 {
    // add builtin functions
-   builtinFunctions.add("QMessageBox_about",       f_QMessageBox_about);
-   builtinFunctions.add("QMessageBox_aboutQt",     f_QMessageBox_aboutQt);
-   builtinFunctions.add("QMessageBox_critical",    f_QMessageBox_critical);
-   builtinFunctions.add("QMessageBox_information", f_QMessageBox_information);
-   builtinFunctions.add("QMessageBox_question",    f_QMessageBox_question);
-   builtinFunctions.add("QMessageBox_warning",     f_QMessageBox_warning);
+   builtinFunctions.add("QMessageBox_about",       f_QMessageBox_about, QDOM_GUI);
+   builtinFunctions.add("QMessageBox_aboutQt",     f_QMessageBox_aboutQt, QDOM_GUI);
+   builtinFunctions.add("QMessageBox_critical",    f_QMessageBox_critical, QDOM_GUI);
+   builtinFunctions.add("QMessageBox_information", f_QMessageBox_information, QDOM_GUI);
+   builtinFunctions.add("QMessageBox_question",    f_QMessageBox_question, QDOM_GUI);
+   builtinFunctions.add("QMessageBox_warning",     f_QMessageBox_warning, QDOM_GUI);
 }

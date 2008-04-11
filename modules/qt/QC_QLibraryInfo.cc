@@ -72,8 +72,8 @@ static AbstractQoreNode *f_QLibraryInfo_location(const QoreListNode *params, Exc
 
 void initQLibraryInfoStaticFunctions()
 {
-   builtinFunctions.add("QLibraryInfo_buildKey",                     f_QLibraryInfo_buildKey);
-   builtinFunctions.add("QLibraryInfo_licensedProducts",             f_QLibraryInfo_licensedProducts);
-   builtinFunctions.add("QLibraryInfo_licensee",                     f_QLibraryInfo_licensee);
-   builtinFunctions.add("QLibraryInfo_location",                     f_QLibraryInfo_location);
+   builtinFunctions.add("QLibraryInfo_buildKey",                     f_QLibraryInfo_buildKey, QDOM_GUI);
+   builtinFunctions.add("QLibraryInfo_licensedProducts",             f_QLibraryInfo_licensedProducts, QDOM_GUI);
+   builtinFunctions.add("QLibraryInfo_licensee",                     f_QLibraryInfo_licensee, QDOM_GUI);
+   builtinFunctions.add("QLibraryInfo_location",                     f_QLibraryInfo_location, QDOM_GUI);
 }

@@ -698,9 +698,9 @@ static AbstractQoreNode *f_QFileDialog_getSaveFileName(const QoreListNode *param
 
 void initQFileDialogStaticFunctions()
 {
-   builtinFunctions.add("QFileDialog_getExistingDirectory",         f_QFileDialog_getExistingDirectory);
-   builtinFunctions.add("QFileDialog_getOpenFileName",              f_QFileDialog_getOpenFileName);
-   builtinFunctions.add("QFileDialog_getOpenFileNames",             f_QFileDialog_getOpenFileNames);
-   builtinFunctions.add("QFileDialog_getSaveFileName",              f_QFileDialog_getSaveFileName);
+   builtinFunctions.add("QFileDialog_getExistingDirectory",         f_QFileDialog_getExistingDirectory, QDOM_GUI);
+   builtinFunctions.add("QFileDialog_getOpenFileName",              f_QFileDialog_getOpenFileName, QDOM_GUI);
+   builtinFunctions.add("QFileDialog_getOpenFileNames",             f_QFileDialog_getOpenFileNames, QDOM_GUI);
+   builtinFunctions.add("QFileDialog_getSaveFileName",              f_QFileDialog_getSaveFileName, QDOM_GUI);
 }
 

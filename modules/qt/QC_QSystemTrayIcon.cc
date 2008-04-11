@@ -268,6 +268,6 @@ static AbstractQoreNode *f_QSystemTrayIcon_supportsMessages(const QoreListNode *
 
 void initQSystemTrayIconStaticFunctions()
 {
-   builtinFunctions.add("QSystemTrayIcon_isSystemTrayAvailable",        f_QSystemTrayIcon_isSystemTrayAvailable);
-   builtinFunctions.add("QSystemTrayIcon_supportsMessages",             f_QSystemTrayIcon_supportsMessages);
+   builtinFunctions.add("QSystemTrayIcon_isSystemTrayAvailable",        f_QSystemTrayIcon_isSystemTrayAvailable, QDOM_GUI);
+   builtinFunctions.add("QSystemTrayIcon_supportsMessages",             f_QSystemTrayIcon_supportsMessages, QDOM_GUI);
 }

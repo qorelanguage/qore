@@ -289,5 +289,5 @@ static AbstractQoreNode *f_QImageWriter_supportedImageFormats(const QoreListNode
 
 void initQImageWriterStaticFunctions()
 {
-   builtinFunctions.add("QImageWriter_supportedImageFormats", f_QImageWriter_supportedImageFormats);
+   builtinFunctions.add("QImageWriter_supportedImageFormats", f_QImageWriter_supportedImageFormats, QDOM_GUI);
 }

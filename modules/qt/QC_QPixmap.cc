@@ -654,11 +654,11 @@ static AbstractQoreNode *f_QPixmap_grabWindow(const QoreListNode *params, Except
 
 void initQPixmapStaticFunctions()
 {
-   builtinFunctions.add("QPixmap_defaultDepth",                 f_QPixmap_defaultDepth);
-   builtinFunctions.add("QPixmap_fromImage",                    f_QPixmap_fromImage);
-   //builtinFunctions.add("QPixmap_fromMacCGImageRef",            f_QPixmap_fromMacCGImageRef);
-   //builtinFunctions.add("QPixmap_fromWinHBITMAP",               f_QPixmap_fromWinHBITMAP);
-   builtinFunctions.add("QPixmap_grabWidget",                   f_QPixmap_grabWidget);
-   builtinFunctions.add("QPixmap_grabWindow",                   f_QPixmap_grabWindow);
-   //builtinFunctions.add("QPixmap_trueMatrix",                   f_QPixmap_trueMatrix);
+   builtinFunctions.add("QPixmap_defaultDepth",                 f_QPixmap_defaultDepth, QDOM_GUI);
+   builtinFunctions.add("QPixmap_fromImage",                    f_QPixmap_fromImage, QDOM_GUI);
+   //builtinFunctions.add("QPixmap_fromMacCGImageRef",            f_QPixmap_fromMacCGImageRef, QDOM_GUI);
+   //builtinFunctions.add("QPixmap_fromWinHBITMAP",               f_QPixmap_fromWinHBITMAP, QDOM_GUI);
+   builtinFunctions.add("QPixmap_grabWidget",                   f_QPixmap_grabWidget, QDOM_GUI);
+   builtinFunctions.add("QPixmap_grabWindow",                   f_QPixmap_grabWindow, QDOM_GUI);
+   //builtinFunctions.add("QPixmap_trueMatrix",                   f_QPixmap_trueMatrix, QDOM_GUI);
 }

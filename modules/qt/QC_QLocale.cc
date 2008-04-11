@@ -406,10 +406,10 @@ static AbstractQoreNode *f_QLocale_system(const QoreListNode *params, ExceptionS
 void initQLocaleStaticFunctions()
 {
    // add builtin functions
-   builtinFunctions.add("QLocale_countriesForLanguage",       f_QLocale_countriesForLanguage);
-   builtinFunctions.add("QLocale_languageToString",           f_QLocale_languageToString);
-   builtinFunctions.add("QLocale_countryToString",            f_QLocale_countryToString);
-   builtinFunctions.add("QLocale_c",                          f_QLocale_c);
-   builtinFunctions.add("QLocale_setDefault",                 f_QLocale_setDefault);
-   builtinFunctions.add("QLocale_system",                     f_QLocale_system);
+   builtinFunctions.add("QLocale_countriesForLanguage",       f_QLocale_countriesForLanguage, QDOM_GUI);
+   builtinFunctions.add("QLocale_languageToString",           f_QLocale_languageToString, QDOM_GUI);
+   builtinFunctions.add("QLocale_countryToString",            f_QLocale_countryToString, QDOM_GUI);
+   builtinFunctions.add("QLocale_c",                          f_QLocale_c, QDOM_GUI);
+   builtinFunctions.add("QLocale_setDefault",                 f_QLocale_setDefault, QDOM_GUI);
+   builtinFunctions.add("QLocale_system",                     f_QLocale_system, QDOM_GUI);
 }

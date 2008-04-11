@@ -365,5 +365,5 @@ static AbstractQoreNode *f_QMovie_supportedFormats(const QoreListNode *params, E
 
 void initQMovieStaticFunctions()
 {
-   builtinFunctions.add("QMovie_supportedFormats", f_QMovie_supportedFormats);
+   builtinFunctions.add("QMovie_supportedFormats", f_QMovie_supportedFormats, QDOM_GUI);
 }

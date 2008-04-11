@@ -815,17 +815,17 @@ static AbstractQoreNode *f_QColor_setAllowX11ColorNames(const QoreListNode *para
 void initQColorStaticFunctions()
 {
 #ifdef Q_WS_X11
-   builtinFunctions.add("QColor_allowX11ColorNames",           f_QColor_allowX11ColorNames);
+   builtinFunctions.add("QColor_allowX11ColorNames",           f_QColor_allowX11ColorNames, QDOM_GUI);
 #endif
-   builtinFunctions.add("QColor_colorNames",                   f_QColor_colorNames);
-   builtinFunctions.add("QColor_fromCmyk",                     f_QColor_fromCmyk);
-   builtinFunctions.add("QColor_fromCmykF",                    f_QColor_fromCmykF);
-   builtinFunctions.add("QColor_fromHsv",                      f_QColor_fromHsv);
-   builtinFunctions.add("QColor_fromHsvF",                     f_QColor_fromHsvF);
-   builtinFunctions.add("QColor_fromRgb",                      f_QColor_fromRgb);
-   builtinFunctions.add("QColor_fromRgbF",                     f_QColor_fromRgbF);
-   builtinFunctions.add("QColor_fromRgba",                     f_QColor_fromRgba);
+   builtinFunctions.add("QColor_colorNames",                   f_QColor_colorNames, QDOM_GUI);
+   builtinFunctions.add("QColor_fromCmyk",                     f_QColor_fromCmyk, QDOM_GUI);
+   builtinFunctions.add("QColor_fromCmykF",                    f_QColor_fromCmykF, QDOM_GUI);
+   builtinFunctions.add("QColor_fromHsv",                      f_QColor_fromHsv, QDOM_GUI);
+   builtinFunctions.add("QColor_fromHsvF",                     f_QColor_fromHsvF, QDOM_GUI);
+   builtinFunctions.add("QColor_fromRgb",                      f_QColor_fromRgb, QDOM_GUI);
+   builtinFunctions.add("QColor_fromRgbF",                     f_QColor_fromRgbF, QDOM_GUI);
+   builtinFunctions.add("QColor_fromRgba",                     f_QColor_fromRgba, QDOM_GUI);
 #ifdef Q_WS_X11
-   builtinFunctions.add("QColor_setAllowX11ColorNames",        f_QColor_setAllowX11ColorNames);
+   builtinFunctions.add("QColor_setAllowX11ColorNames",        f_QColor_setAllowX11ColorNames, QDOM_GUI);
 #endif
 }

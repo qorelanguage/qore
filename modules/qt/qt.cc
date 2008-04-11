@@ -3467,39 +3467,39 @@ static class QoreStringNode *qt_module_init()
    // initialize namespace (must come after type initialization)
    init_namespace();
 
-   builtinFunctions.add("QObject_connect",            f_QObject_connect);
-   builtinFunctions.add("SLOT",                       f_SLOT);
-   builtinFunctions.add("SIGNAL",                     f_SIGNAL);
-   builtinFunctions.add("TR",                         f_TR);
-   builtinFunctions.add("QAPP",                       f_QAPP);
-   builtinFunctions.add("qDebug",                     f_qDebug);
-   builtinFunctions.add("qWarning",                   f_qWarning);
-   builtinFunctions.add("qCritical",                  f_qCritical);
-   builtinFunctions.add("qFatal",                     f_qFatal);
-   builtinFunctions.add("qRound",                     f_qRound);
-   builtinFunctions.add("qsrand",                     f_qsrand);
-   builtinFunctions.add("qrand",                      f_qrand);
+   builtinFunctions.add("QObject_connect",            f_QObject_connect, QDOM_GUI);
+   builtinFunctions.add("SLOT",                       f_SLOT, QDOM_GUI);
+   builtinFunctions.add("SIGNAL",                     f_SIGNAL, QDOM_GUI);
+   builtinFunctions.add("TR",                         f_TR, QDOM_GUI);
+   builtinFunctions.add("QAPP",                       f_QAPP, QDOM_GUI);
+   builtinFunctions.add("qDebug",                     f_qDebug, QDOM_GUI);
+   builtinFunctions.add("qWarning",                   f_qWarning, QDOM_GUI);
+   builtinFunctions.add("qCritical",                  f_qCritical, QDOM_GUI);
+   builtinFunctions.add("qFatal",                     f_qFatal, QDOM_GUI);
+   builtinFunctions.add("qRound",                     f_qRound, QDOM_GUI);
+   builtinFunctions.add("qsrand",                     f_qsrand, QDOM_GUI);
+   builtinFunctions.add("qrand",                      f_qrand, QDOM_GUI);
 
    // QToolTip static functions
-   builtinFunctions.add("QToolTip_font",              f_QToolTip_font);
-   builtinFunctions.add("QToolTip_hideText",          f_QToolTip_hideText);
-   builtinFunctions.add("QToolTip_palette",           f_QToolTip_palette);
-   builtinFunctions.add("QToolTip_setFont",           f_QToolTip_setFont);
-   builtinFunctions.add("QToolTip_setPalette",        f_QToolTip_setPalette);
-   builtinFunctions.add("QToolTip_showText",          f_QToolTip_showText);
+   builtinFunctions.add("QToolTip_font",              f_QToolTip_font, QDOM_GUI);
+   builtinFunctions.add("QToolTip_hideText",          f_QToolTip_hideText, QDOM_GUI);
+   builtinFunctions.add("QToolTip_palette",           f_QToolTip_palette, QDOM_GUI);
+   builtinFunctions.add("QToolTip_setFont",           f_QToolTip_setFont, QDOM_GUI);
+   builtinFunctions.add("QToolTip_setPalette",        f_QToolTip_setPalette, QDOM_GUI);
+   builtinFunctions.add("QToolTip_showText",          f_QToolTip_showText, QDOM_GUI);
 
    // QStyleFactory static functions
-   builtinFunctions.add("QStyleFactory_create",       f_QStyleFactory_create);
-   builtinFunctions.add("QStyleFactory_keys",         f_QStyleFactory_keys);
+   builtinFunctions.add("QStyleFactory_create",       f_QStyleFactory_create, QDOM_GUI);
+   builtinFunctions.add("QStyleFactory_keys",         f_QStyleFactory_keys, QDOM_GUI);
 
-   builtinFunctions.add("qAlpha",                     f_qAlpha);
-   builtinFunctions.add("qBlue",                      f_qBlue);
-   builtinFunctions.add("qGray",                      f_qGray);
-   builtinFunctions.add("qGray",                      f_qGray);
-   builtinFunctions.add("qGreen",                     f_qGreen);
-   builtinFunctions.add("qRed",                       f_qRed);
-   builtinFunctions.add("qRgb",                       f_qRgb);
-   builtinFunctions.add("qRgba",                      f_qRgba);
+   builtinFunctions.add("qAlpha",                     f_qAlpha, QDOM_GUI);
+   builtinFunctions.add("qBlue",                      f_qBlue, QDOM_GUI);
+   builtinFunctions.add("qGray",                      f_qGray, QDOM_GUI);
+   builtinFunctions.add("qGray",                      f_qGray, QDOM_GUI);
+   builtinFunctions.add("qGreen",                     f_qGreen, QDOM_GUI);
+   builtinFunctions.add("qRed",                       f_qRed, QDOM_GUI);
+   builtinFunctions.add("qRgb",                       f_qRgb, QDOM_GUI);
+   builtinFunctions.add("qRgba",                      f_qRgba, QDOM_GUI);
 
    // add static class functions as builtin functions
    initQCoreApplicationStaticFunctions();

@@ -251,8 +251,8 @@ static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, Exce
 
 void initQInputDialogStaticFunctions()
 {
-   builtinFunctions.add("QInputDialog_getDouble",      f_QInputDialog_getDouble);
-   builtinFunctions.add("QInputDialog_getInteger",     f_QInputDialog_getInteger);
-   builtinFunctions.add("QInputDialog_getItem",        f_QInputDialog_getItem);
-   builtinFunctions.add("QInputDialog_getText",        f_QInputDialog_getText);
+   builtinFunctions.add("QInputDialog_getDouble",      f_QInputDialog_getDouble, QDOM_GUI);
+   builtinFunctions.add("QInputDialog_getInteger",     f_QInputDialog_getInteger, QDOM_GUI);
+   builtinFunctions.add("QInputDialog_getItem",        f_QInputDialog_getItem, QDOM_GUI);
+   builtinFunctions.add("QInputDialog_getText",        f_QInputDialog_getText, QDOM_GUI);
 }

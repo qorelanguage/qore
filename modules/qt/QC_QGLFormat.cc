@@ -534,11 +534,11 @@ static AbstractQoreNode *f_QGLFormat_setDefaultOverlayFormat(const QoreListNode 
 
 void initQGLFormatStaticFunctions()
 {
-   builtinFunctions.add("QGLFormat_defaultFormat",                f_QGLFormat_defaultFormat);
-   builtinFunctions.add("QGLFormat_defaultOverlayFormat",         f_QGLFormat_defaultOverlayFormat);
-   builtinFunctions.add("QGLFormat_hasOpenGL",                    f_QGLFormat_hasOpenGL);
-   builtinFunctions.add("QGLFormat_hasOpenGLOverlays",            f_QGLFormat_hasOpenGLOverlays);
-   builtinFunctions.add("QGLFormat_openGLVersionFlags",           f_QGLFormat_openGLVersionFlags);
-   builtinFunctions.add("QGLFormat_setDefaultFormat",             f_QGLFormat_setDefaultFormat);
-   builtinFunctions.add("QGLFormat_setDefaultOverlayFormat",      f_QGLFormat_setDefaultOverlayFormat);
+   builtinFunctions.add("QGLFormat_defaultFormat",                f_QGLFormat_defaultFormat, QDOM_GUI);
+   builtinFunctions.add("QGLFormat_defaultOverlayFormat",         f_QGLFormat_defaultOverlayFormat, QDOM_GUI);
+   builtinFunctions.add("QGLFormat_hasOpenGL",                    f_QGLFormat_hasOpenGL, QDOM_GUI);
+   builtinFunctions.add("QGLFormat_hasOpenGLOverlays",            f_QGLFormat_hasOpenGLOverlays, QDOM_GUI);
+   builtinFunctions.add("QGLFormat_openGLVersionFlags",           f_QGLFormat_openGLVersionFlags, QDOM_GUI);
+   builtinFunctions.add("QGLFormat_setDefaultFormat",             f_QGLFormat_setDefaultFormat, QDOM_GUI);
+   builtinFunctions.add("QGLFormat_setDefaultOverlayFormat",      f_QGLFormat_setDefaultOverlayFormat, QDOM_GUI);
 }

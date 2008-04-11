@@ -335,5 +335,5 @@ QoreClass *initQFontDatabaseClass()
 void initQFontDatabaseStaticFunctions()
 {
    // add static functions as builtin methods
-   builtinFunctions.add("QFontDatabase_standardSizes",     f_QFontDatabase_standardSizes);
+   builtinFunctions.add("QFontDatabase_standardSizes",     f_QFontDatabase_standardSizes, QDOM_GUI);
 }
