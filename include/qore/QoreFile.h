@@ -30,6 +30,9 @@
 
 #include <fcntl.h>
 
+#include <sys/file.h>
+#include <unistd.h>
+
 //! provides controlled access to file data through Qore data structures
 /** Each file has a default character encoding associated with it.  String data
     read from the file will be tagged with this encoding.  String data written to

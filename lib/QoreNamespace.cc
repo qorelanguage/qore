@@ -1674,11 +1674,8 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    qns->addConstant("AF_INET",       new QoreBigIntNode(AF_INET));
    qns->addConstant("AF_INET6",      new QoreBigIntNode(AF_INET6));
 
-   // file locking constants
-   qns->addConstant("LOCK_SH",       new QoreBigIntNode(LOCK_SH));
-   qns->addConstant("LOCK_EX",       new QoreBigIntNode(LOCK_EX));
-   qns->addConstant("LOCK_NB",       new QoreBigIntNode(LOCK_NB));
-   qns->addConstant("LOCK_UN",       new QoreBigIntNode(LOCK_UN));
+   // math constants
+   qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
    // create Qore::SQL namespace
    qns->addInitialNamespace(getSQLNamespace());
