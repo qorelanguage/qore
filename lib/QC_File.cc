@@ -504,6 +504,29 @@ static AbstractQoreNode *FILE_getchar(QoreObject *self, class File *f, const Qor
    return f->getchar();
 }
 
+static AbstractQoreNode *FILE_lock(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
+{
+   int operation;
+   const AbstractQoreNode *p = get_param(params, 0);
+   operation = p ? p->getAsInt() : 0;
+   if (operation < 1 || operation > 8) {
+      xsink->raiseException("FILE-LOCK-PARAM-ERROR", "the lock operation must be between 1-8 made up of a bitfield of the constants LOCK_SH, LOCK_EX, LOCK_NB, and LOCK_UN");
+      return 0;
+   }
+   f->lock(operation, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_chown(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   uid_t owner = (uid_t)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   gid_t group = (gid_t)(p ? p->getAsInt() : 0);
+   f->chown(owner, group, xsink);
+   return 0;
+}
+
 class QoreClass *initFileClass()
 {
    tracein("initFileClass()");
@@ -551,6 +574,9 @@ class QoreClass *initFileClass()
    QC_FILE->addMethod("vprintf",           (q_method_t)FILE_vprintf);
    QC_FILE->addMethod("f_printf",          (q_method_t)FILE_f_printf);
    QC_FILE->addMethod("f_vprintf",         (q_method_t)FILE_f_vprintf);
+   QC_FILE->addMethod("lock",              (q_method_t)FILE_lock);
+   QC_FILE->addMethod("chown",             (q_method_t)FILE_chown);
+
    traceout("initFileClass()");
    return QC_FILE;
 }

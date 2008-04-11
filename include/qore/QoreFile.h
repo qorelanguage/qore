@@ -357,6 +357,12 @@ class QoreFile {
       //! returns the filename of the file being read
       DLLEXPORT const char *getFileName() const;
 
+      //! changes ownership of the file (if possible)
+      DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
+
+      //! perform a file lock operation
+      DLLEXPORT int lock(int operation, ExceptionSink *xsink);
+
       // NOTE: QoreFile::makeSpecial() can only be called right after the constructor
       DLLLOCAL void makeSpecial(int sfd);
 };

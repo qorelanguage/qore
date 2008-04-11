@@ -701,6 +701,38 @@ static AbstractQoreNode* runRecentQoreTests(const QoreListNode *params, Exceptio
    return 0;
 }
 
+//int chown (const char *path, uid_t owner, gid_t group);
+static AbstractQoreNode *f_chown(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   if (!p || p->getType() != NT_STRING) {
+      xsink->raiseException("CHOWN-PARAM-ERROR", "expecting a string as first argument to chown()");
+      return 0;
+   }
+   const char *path = reinterpret_cast<const QoreStringNode *>(p)->getBuffer();
+   p = get_param(params, 1);
+   uid_t owner = (uid_t)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   gid_t group = (gid_t)(p ? p->getAsInt() : 0);
+   return new QoreBigIntNode(chown(path, owner, group));
+}
+
+//int lchown (const char *path, uid_t owner, gid_t group);
+static AbstractQoreNode *f_lchown(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   if (!p || p->getType() != NT_STRING) {
+      xsink->raiseException("LCHOWN-PARAM-ERROR", "expecting a string as first argument to lchown()");
+      return 0;
+   }
+   const char *path = reinterpret_cast<const QoreStringNode *>(p)->getBuffer();
+   p = get_param(params, 1);
+   uid_t owner = (uid_t)(p ? p->getAsInt() : 0);
+   p = get_param(params, 2);
+   gid_t group = (gid_t)(p ? p->getAsInt() : 0);
+   return new QoreBigIntNode(lchown(path, owner, group));
+}
+
 namespace {
 TEST()
 {
@@ -746,13 +778,13 @@ void init_lib_functions()
    builtinFunctions.add("hstat",       f_hstat, QDOM_FILESYSTEM);
    builtinFunctions.add("hlstat",      f_hlstat, QDOM_FILESYSTEM);
    builtinFunctions.add("exec",        f_exec, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
-   builtinFunctions.add("setuid",      f_setuid);
-   builtinFunctions.add("setgid",      f_setgid);
+   builtinFunctions.add("setuid",      f_setuid, QDOM_PROCESS);
+   builtinFunctions.add("setgid",      f_setgid, QDOM_PROCESS);
 #ifdef HAVE_SETEUID
-   builtinFunctions.add("seteuid",     f_seteuid);
+   builtinFunctions.add("seteuid",     f_seteuid, QDOM_PROCESS);
 #endif
 #ifdef HAVE_SETEGID
-   builtinFunctions.add("setegid",     f_setegid);
+   builtinFunctions.add("setegid",     f_setegid, QDOM_PROCESS);
 #endif
    builtinFunctions.add("gethostbyname",       f_gethostbyname);
    builtinFunctions.add("gethostbyaddr",       f_gethostbyaddr);
@@ -760,6 +792,9 @@ void init_lib_functions()
    builtinFunctions.add("gethostbyaddr_long",  f_gethostbyaddr_long);
 
    builtinFunctions.add("getcwd",      f_getcwd);
+
+   builtinFunctions.add("chown",       f_chown, QDOM_FILESYSTEM);
+   builtinFunctions.add("lchown",      f_lchown, QDOM_FILESYSTEM);
 
 #ifdef DEBUG
    builtinFunctions.add("runQoreTests", runQoreTests);

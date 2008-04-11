@@ -84,6 +84,34 @@ QoreFile::~QoreFile()
    delete priv;
 }
 
+int QoreFile::lock(int operation, ExceptionSink *xsink)
+{
+   if (!priv->is_open) {
+      xsink->raiseException("FILE-LOCK-ERROR", "the file has not been opened");
+      return -1;
+   }
+
+   int rc = ::flock(priv->fd, operation);
+   if (rc)
+      xsink->raiseException("FILE-LOCK-ERROR", "the lock operation failed: ", strerror(errno));
+
+   return rc;
+}
+
+int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink)
+{
+   if (!priv->is_open) {
+      xsink->raiseException("FILE-CHOWN-ERROR", "the file has not been opened");
+      return -1;
+   }
+
+   int rc = ::fchown(priv->fd, owner, group);
+   if (rc)
+      xsink->raiseException("FILE-CHOWN-ERROR", "the chown(%d, %d) operation failed: ", owner, group, strerror(errno));
+
+   return rc;
+}
+
 const char *QoreFile::getFileName() const
 { 
    return priv->filename.c_str(); 
