@@ -1,4 +1,5 @@
-/** @defgroup qore_modules Developing Qore Modules
+/** @page qore_modules Developing Qore Modules
+
     @section module_dev Qore Module development
 
     @subsection module_header Module Header Info

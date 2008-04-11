@@ -1,4 +1,5 @@
-/** @defgroup dbi_drivers Implementing Qore DBI Drivers
+/** @page dbi_drivers Implementing Qore DBI Drivers
+
     @section dbi_drivers Implementing Qore DBI Drivers
 
    @subsection dbi_function_overview DBI Function Overview
