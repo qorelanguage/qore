@@ -2,6 +2,7 @@
 	* added chown() and lchown() functions
 	* added File::lock() method based on flock
 	* added File::chown() method based on fchown()
+	* opengl: added examples/opengl/opengl-logo.q 
 
 2008.04.09: David Nichols
 	* glut: added mappings for the entire glut API from glut.h

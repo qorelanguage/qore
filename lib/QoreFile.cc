@@ -85,17 +85,44 @@ QoreFile::~QoreFile()
    delete priv;
 }
 
-int QoreFile::lock(int operation, ExceptionSink *xsink)
+int QoreFile::lockBlocking(struct flock &fl, ExceptionSink *xsink)
 {
    if (!priv->is_open) {
       xsink->raiseException("FILE-LOCK-ERROR", "the file has not been opened");
       return -1;
    }
 
-   int rc = flock(priv->fd, operation);
+   int rc = fcntl(priv->fd, F_SETLKW, &fl);
    if (rc)
-      xsink->raiseException("FILE-LOCK-ERROR", "the lock operation failed: ", strerror(errno));
+      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: ", strerror(errno));
+   return rc;
+}
 
+//! perform a file lock operation, does not block
+int QoreFile::lock(const struct flock &fl, ExceptionSink *xsink)
+{
+   if (!priv->is_open) {
+      xsink->raiseException("FILE-LOCK-ERROR", "the file has not been opened");
+      return -1;
+   }
+
+   int rc = fcntl(priv->fd, F_SETLK, &fl);
+   if (rc)
+      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: ", strerror(errno));
+   return rc;
+}
+
+//! get lock info operation, does not block
+int QoreFile::getLockInfo(struct flock &fl, ExceptionSink *xsink)
+{
+   if (!priv->is_open) {
+      xsink->raiseException("FILE-LOCK-ERROR", "the file has not been opened");
+      return -1;
+   }
+
+   int rc = fcntl(priv->fd, F_GETLK, &fl);
+   if (rc)
+      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: ", strerror(errno));
    return rc;
 }
 

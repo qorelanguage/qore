@@ -364,7 +364,13 @@ class QoreFile {
       DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
 
       //! perform a file lock operation
-      DLLEXPORT int lock(int operation, ExceptionSink *xsink);
+      DLLEXPORT int lockBlocking(struct flock &fl, ExceptionSink *xsink);
+
+      //! perform a file lock operation, does not block
+      DLLEXPORT int lock(const struct flock &fl, ExceptionSink *xsink);
+
+      //! get lock info operation, does not block
+      DLLEXPORT int getLockInfo(struct flock &fl, ExceptionSink *xsink);
 
       // NOTE: QoreFile::makeSpecial() can only be called right after the constructor
       DLLLOCAL void makeSpecial(int sfd);

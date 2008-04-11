@@ -504,17 +504,66 @@ static AbstractQoreNode *FILE_getchar(QoreObject *self, class File *f, const Qor
    return f->getchar();
 }
 
+static int lock_intern(struct flock &fl, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   fl.l_type = p ? p->getAsInt() : 0;
+
+   p = get_param(params, 1);
+   fl.l_start = !is_nothing(p) ? p->getAsInt() : 0;
+
+   p = get_param(params, 2);
+   if (!is_nothing(p)) {
+      fl.l_len = p->getAsInt();
+      if (fl.l_len < 0) {
+	 xsink->raiseException("FILE-LOCK-ERROR", "length of locked area cannot be negative (value passed=%d)", fl.l_len);
+	 return -1;
+      }
+   }
+   else
+      fl.l_len = 0;
+   
+   p = get_param(params, 3);
+   fl.l_whence = !is_nothing(p) ? p->getAsInt() : SEEK_SET;
+   return 0;
+}
+
 static AbstractQoreNode *FILE_lock(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
-   int operation;
-   const AbstractQoreNode *p = get_param(params, 0);
-   operation = p ? p->getAsInt() : 0;
-   if (operation < 1 || operation > 8) {
-      xsink->raiseException("FILE-LOCK-PARAM-ERROR", "the lock operation must be between 1-8 made up of a bitfield of the constants LOCK_SH, LOCK_EX, LOCK_NB, and LOCK_UN");
+   struct flock fl;
+
+   if (lock_intern(fl, params, xsink))
       return 0;
-   }
-   f->lock(operation, xsink);
+
+   f->lock(fl, xsink);
    return 0;
+}
+
+static AbstractQoreNode *FILE_lockBlocking(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
+{
+   struct flock fl;
+
+   if (lock_intern(fl, params, xsink))
+      return 0;
+
+   f->lockBlocking(fl, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_getLockInfo(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
+{
+   struct flock fl;
+   if (f->getLockInfo(fl, xsink))
+      return 0;
+
+   QoreHashNode *h = new QoreHashNode();
+   h->setKeyValue("start", new QoreBigIntNode(fl.l_start), xsink);
+   h->setKeyValue("len", new QoreBigIntNode(fl.l_len), xsink);
+   h->setKeyValue("pid", new QoreBigIntNode(fl.l_pid), xsink);
+   h->setKeyValue("type", new QoreBigIntNode(fl.l_type), xsink);
+   h->setKeyValue("whence", new QoreBigIntNode(fl.l_whence), xsink);
+
+   return h;
 }
 
 static AbstractQoreNode *FILE_chown(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -575,6 +624,8 @@ class QoreClass *initFileClass()
    QC_FILE->addMethod("f_printf",          (q_method_t)FILE_f_printf);
    QC_FILE->addMethod("f_vprintf",         (q_method_t)FILE_f_vprintf);
    QC_FILE->addMethod("lock",              (q_method_t)FILE_lock);
+   QC_FILE->addMethod("lockBLocking",      (q_method_t)FILE_lockBlocking);
+   QC_FILE->addMethod("getLockInfo",       (q_method_t)FILE_getLockInfo);
    QC_FILE->addMethod("chown",             (q_method_t)FILE_chown);
 
    traceout("initFileClass()");

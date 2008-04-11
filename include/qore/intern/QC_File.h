@@ -136,11 +136,13 @@ static inline void addFileConstants(class QoreNamespace *ns)
    ns->addConstant("S_IRWXO", new QoreBigIntNode(S_IRWXO));
 #endif
 
-   // file locking constants
-   ns->addConstant("LOCK_SH",       new QoreBigIntNode(LOCK_SH));
-   ns->addConstant("LOCK_EX",       new QoreBigIntNode(LOCK_EX));
-   ns->addConstant("LOCK_NB",       new QoreBigIntNode(LOCK_NB));
-   ns->addConstant("LOCK_UN",       new QoreBigIntNode(LOCK_UN));
+   // other file constants
+   ns->addConstant("F_RDLCK",       new QoreBigIntNode(F_RDLCK));
+   ns->addConstant("F_WRLCK",       new QoreBigIntNode(F_WRLCK));
+
+   ns->addConstant("SEEK_SET",      new QoreBigIntNode(SEEK_SET));
+   ns->addConstant("SEEK_CUR",      new QoreBigIntNode(SEEK_CUR));
+   ns->addConstant("SEEK_END",      new QoreBigIntNode(SEEK_END));
 }
 
 #endif // _QORE_CLASS_FILE_H
