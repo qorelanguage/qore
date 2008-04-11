@@ -31,7 +31,7 @@
     }
     @endcode
 
-    This is faster than using dynamic_cast<> as follows (which is also a perfectly legal method for getting as well, just a little slower due to the dynamic_cast<>):
+    This is faster than using dynamic_cast<> as follows (which is also a perfectly legal method for getting a pointer/testing the data type as well, just a little slower due to the dynamic_cast<>):
 
     @code
     DateTimeNode *dt = dynamic_cast<DateTimeNode *>(node);
@@ -129,7 +129,7 @@
 
     QoreObject is special in that the implementation for objects in Qore mirrors that of Java, in that objects are pased by reference when used as function or method arguments, unlike other types.  However, like Java, the reference to the object is passed, and not the variable, so, while an object passed as an argument to a function can be modified by that function (modifications are made to the original object), in order to write a swap method, for example, you would need to pass the variables by reference (or the lvalue expression by reference, as the case may be) to the swap function.  Unlike Java, Qore does support passing arguments by reference.
 
-    @subsection reference_arguments Handling Reference Arguments: ReferenceNode
+    @subsection reference_arguments Handling Reference Arguments: ReferenceNode and ReferenceHelper
 
     Handling lvalue references is more complicated, as access to global variables and object member references must be made under the appropriate thread locks.  However the ReferenceHelper class makes access to lvalue references much easier and takes care of all the locking and access to the lvalue expression.  With the ReferenceHelper class you can get the type of the lvalue expression's value, get a pointer to a node with a reference count of 1 for in-place modification, or assign a new value to the lvalue.
 
@@ -142,7 +142,12 @@
        if (!p)
           return 0;
 
+       qore_type_t ptype = p->getType();
+
        // ... some code not relevant to this example removed 
+
+       // note that the function test_reference_param() can be used
+       // to test for a reference argument directly
 
        if (ptype != NT_REFERENCE)
           return 0;
