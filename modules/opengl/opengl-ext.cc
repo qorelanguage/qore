@@ -4917,6 +4917,7 @@ static AbstractQoreNode *f_glPNTrianglesfATI(const QoreListNode *params, Excepti
    return 0;
 }
 
+#ifdef HAVE_GLBLENDEQUATIONSEPARATEATI
 //void glBlendEquationSeparateATI (GLenum equationRGB, GLenum equationAlpha);
 static AbstractQoreNode *f_glBlendEquationSeparateATI(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -4927,6 +4928,7 @@ static AbstractQoreNode *f_glBlendEquationSeparateATI(const QoreListNode *params
    glBlendEquationSeparateATI(equationRGB, equationAlpha);
    return 0;
 }
+#endif
 
 //void glStencilOpSeparateATI (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
 static AbstractQoreNode *f_glStencilOpSeparateATI(const QoreListNode *params, ExceptionSink *xsink)
@@ -5610,7 +5612,9 @@ void initOpenGLExt()
 #endif
    builtinFunctions.add("glPNTrianglesiATI",            f_glPNTrianglesiATI, QDOM_GUI);
    builtinFunctions.add("glPNTrianglesfATI",            f_glPNTrianglesfATI, QDOM_GUI);
+#ifdef HAVE_GLBLENDEQUATIONSEPARATEATI
    builtinFunctions.add("glBlendEquationSeparateATI",   f_glBlendEquationSeparateATI, QDOM_GUI);
+#endif
    builtinFunctions.add("glStencilOpSeparateATI",       f_glStencilOpSeparateATI, QDOM_GUI);
    builtinFunctions.add("glStencilFuncSeparateATI",     f_glStencilFuncSeparateATI, QDOM_GUI);
 #ifdef HAVE_GLPNTRIANGLESATI

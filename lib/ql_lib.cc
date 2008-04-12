@@ -674,33 +674,6 @@ static AbstractQoreNode *f_gethostbyaddr_long(const QoreListNode *params, Except
    return q_gethostbyaddr_to_hash(xsink, p0->getBuffer(), type);
 }
 
-#ifdef DEBUG
-static AbstractQoreNode* runQoreTests(const QoreListNode *params, ExceptionSink *xsink)
-{
-   minitest::result res = minitest::execute_all_tests();
-   if (res.all_tests_succeeded) {
-      printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
-      return 0;
-   }
-   
-   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-			 res.failed_test_file, res.failed_test_line);
-   return 0;
-}
-
-static AbstractQoreNode* runRecentQoreTests(const QoreListNode *params, ExceptionSink *xsink)
-{
-   minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
-   if (res.all_tests_succeeded) {
-      printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
-      return 0;
-   }
-   
-   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-			 res.failed_test_file, res.failed_test_line);
-   return 0;
-}
-
 //int chown (const char *path, uid_t owner, gid_t group);
 static AbstractQoreNode *f_chown(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -731,6 +704,33 @@ static AbstractQoreNode *f_lchown(const QoreListNode *params, ExceptionSink *xsi
    p = get_param(params, 2);
    gid_t group = (gid_t)(p ? p->getAsInt() : 0);
    return new QoreBigIntNode(lchown(path, owner, group));
+}
+
+#ifdef DEBUG
+static AbstractQoreNode* runQoreTests(const QoreListNode *params, ExceptionSink *xsink)
+{
+   minitest::result res = minitest::execute_all_tests();
+   if (res.all_tests_succeeded) {
+      printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
+      return 0;
+   }
+   
+   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+			 res.failed_test_file, res.failed_test_line);
+   return 0;
+}
+
+static AbstractQoreNode* runRecentQoreTests(const QoreListNode *params, ExceptionSink *xsink)
+{
+   minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
+   if (res.all_tests_succeeded) {
+      printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
+      return 0;
+   }
+   
+   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+			 res.failed_test_file, res.failed_test_line);
+   return 0;
 }
 
 namespace {
