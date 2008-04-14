@@ -2973,18 +2973,49 @@ static AbstractQoreNode *f_glFogf(const QoreListNode *params, ExceptionSink *xsi
    return 0;
 }
 
-/*
+static int get_num_fog_args(GLenum pname)
+{
+   switch (pname) {
+      case GL_FOG_COLOR:
+	 return 4;
+
+      case GL_FOG_INDEX:
+      case GL_FOG_END:
+      case GL_FOG_START:
+      case GL_FOG_DENSITY:
+      case GL_FOG_MODE:
+	 return 1;
+   }
+   return -1;
+}
+
 //void glFogfv (GLenum pname, const GLfloat *params);
 static AbstractQoreNode *f_glFogfv(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
    GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   ??? GLfloat* params = p;
-   glFogfv(pname, params);
+
+   const QoreListNode *l = test_list_param(params, 1);
+   if (!l) {
+      xsink->raiseException("GLFOGFV-ERROR", "expecing a list as second argument");
+      return 0;
+   }
+
+   int num = get_num_fog_args(pname);
+   if (num == -1) {
+      xsink->raiseException("GLFOGFV-ERROR", "unrecognized parameter code %d", (int)pname);
+      return 0;      
+   }
+
+   GLfloat parms[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      parms[i] = p ? p->getAsFloat() : 0.0;
+   }
+
+   glFogfv(pname, parms);
    return 0;
 }
-*/
 
 //void glFogi (GLenum pname, GLint param);
 static AbstractQoreNode *f_glFogi(const QoreListNode *params, ExceptionSink *xsink)
@@ -2997,18 +3028,33 @@ static AbstractQoreNode *f_glFogi(const QoreListNode *params, ExceptionSink *xsi
    return 0;
 }
 
-/*
 //void glFogiv (GLenum pname, const GLint *params);
 static AbstractQoreNode *f_glFogiv(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
    GLenum pname = (GLenum)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   ??? GLint* params = p;
-   glFogiv(pname, params);
+
+   const QoreListNode *l = test_list_param(params, 1);
+   if (!l) {
+      xsink->raiseException("GLFOGIV-ERROR", "expecing a list as second argument");
+      return 0;
+   }
+
+   int num = get_num_fog_args(pname);
+   if (num == -1) {
+      xsink->raiseException("GLFOGIV-ERROR", "unrecognized parameter code %d", (int)pname);
+      return 0;      
+   }
+
+   GLint parms[num];
+   for (int i = 0; i < num; ++i) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      parms[i] = p ? p->getAsInt() : 0.0;
+   }
+
+   glFogiv(pname, parms);
    return 0;
 }
-*/
 
 //void glFrontFace (GLenum mode);
 static AbstractQoreNode *f_glFrontFace(const QoreListNode *params, ExceptionSink *xsink)
@@ -4059,60 +4105,105 @@ static AbstractQoreNode *f_glMultMatrixf(const QoreListNode *params, ExceptionSi
    return 0;
 }
 
-/*
 //void glNormal3bv (const GLbyte *v);
 static AbstractQoreNode *f_glNormal3bv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p = get_param(params, 0);
-   ??? GLbyte* v = p;
+   const QoreListNode *l = test_list_param(params, 0);
+   if (!l) {
+      xsink->raiseException("GLNORMAL3BV-ERROR", "expecting a list as the sole argument to glNormal3bv()");
+      return 0;
+   }
+
+   GLbyte v[3];
+
+   for (int i = 0; i < 3; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      v[i] = n ? n->getAsInt() : 0;
+   }
+
    glNormal3bv(v);
    return 0;
 }
-*/
 
-/*
 //void glNormal3dv (const GLdouble *v);
 static AbstractQoreNode *f_glNormal3dv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p = get_param(params, 0);
-   ??? GLdouble* v = p;
+   const QoreListNode *l = test_list_param(params, 0);
+   if (!l) {
+      xsink->raiseException("GLNORMAL3DV-ERROR", "expecting a list as the sole argument to glNormal3dv()");
+      return 0;
+   }
+
+   GLdouble v[3];
+
+   for (int i = 0; i < 3; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      v[i] = n ? n->getAsFloat() : 0;
+   }
+
    glNormal3dv(v);
    return 0;
 }
-*/
 
-/*
 //void glNormal3fv (const GLfloat *v);
 static AbstractQoreNode *f_glNormal3fv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p = get_param(params, 0);
-   ??? GLfloat* v = p;
+   const QoreListNode *l = test_list_param(params, 0);
+   if (!l) {
+      xsink->raiseException("GLNORMAL3FV-ERROR", "expecting a list as the sole argument to glNormal3fv()");
+      return 0;
+   }
+
+   GLfloat v[3];
+
+   for (int i = 0; i < 3; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      v[i] = n ? n->getAsFloat() : 0;
+   }
+
    glNormal3fv(v);
    return 0;
 }
-*/
 
-/*
 //void glNormal3iv (const GLint *v);
 static AbstractQoreNode *f_glNormal3iv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p = get_param(params, 0);
-   ??? GLint* v = p;
+   const QoreListNode *l = test_list_param(params, 0);
+   if (!l) {
+      xsink->raiseException("GLNORMAL3IV-ERROR", "expecting a list as the sole argument to glNormal3iv()");
+      return 0;
+   }
+
+   GLint v[3];
+
+   for (int i = 0; i < 3; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      v[i] = n ? n->getAsInt() : 0;
+   }
+
    glNormal3iv(v);
    return 0;
 }
-*/
 
-/*
 //void glNormal3sv (const GLshort *v);
 static AbstractQoreNode *f_glNormal3sv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p = get_param(params, 0);
-   ??? GLshort* v = p;
+   const QoreListNode *l = test_list_param(params, 0);
+   if (!l) {
+      xsink->raiseException("GLNORMAL3SV-ERROR", "expecting a list as the sole argument to glNormal3sv()");
+      return 0;
+   }
+
+   GLshort v[3];
+
+   for (int i = 0; i < 3; ++i) {
+      const AbstractQoreNode *n = l->retrieve_entry(i);
+      v[i] = n ? n->getAsInt() : 0;
+   }
+
    glNormal3sv(v);
    return 0;
 }
-*/
 
 /*
 //void glNormalPointer (GLenum type, GLsizei stride, const GLvoid *pointer);
@@ -8614,9 +8705,9 @@ static QoreStringNode *opengl_module_init()
    //builtinFunctions.add("glFeedbackBuffer",             f_glFeedbackBuffer, QDOM_GUI);
    builtinFunctions.add("glFinish",                     f_glFinish, QDOM_GUI);
    builtinFunctions.add("glFogf",                       f_glFogf, QDOM_GUI);
-   //builtinFunctions.add("glFogfv",                      f_glFogfv, QDOM_GUI);
+   builtinFunctions.add("glFogfv",                      f_glFogfv, QDOM_GUI);
    builtinFunctions.add("glFogi",                       f_glFogi, QDOM_GUI);
-   //builtinFunctions.add("glFogiv",                      f_glFogiv, QDOM_GUI);
+   builtinFunctions.add("glFogiv",                      f_glFogiv, QDOM_GUI);
    builtinFunctions.add("glFrontFace",                  f_glFrontFace, QDOM_GUI);
    builtinFunctions.add("glGenTextures",                f_glGenTextures, QDOM_GUI);
    //builtinFunctions.add("glGetClipPlane",               f_glGetClipPlane, QDOM_GUI);
@@ -8692,11 +8783,11 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glMinmax",                     f_glMinmax, QDOM_GUI);
    builtinFunctions.add("glMultMatrixd",                f_glMultMatrixd, QDOM_GUI);
    builtinFunctions.add("glMultMatrixf",                f_glMultMatrixf, QDOM_GUI);
-   //builtinFunctions.add("glNormal3bv",                  f_glNormal3bv, QDOM_GUI);
-   //builtinFunctions.add("glNormal3dv",                  f_glNormal3dv, QDOM_GUI);
-   //builtinFunctions.add("glNormal3fv",                  f_glNormal3fv, QDOM_GUI);
-   //builtinFunctions.add("glNormal3iv",                  f_glNormal3iv, QDOM_GUI);
-   //builtinFunctions.add("glNormal3sv",                  f_glNormal3sv, QDOM_GUI);
+   builtinFunctions.add("glNormal3bv",                  f_glNormal3bv, QDOM_GUI);
+   builtinFunctions.add("glNormal3dv",                  f_glNormal3dv, QDOM_GUI);
+   builtinFunctions.add("glNormal3fv",                  f_glNormal3fv, QDOM_GUI);
+   builtinFunctions.add("glNormal3iv",                  f_glNormal3iv, QDOM_GUI);
+   builtinFunctions.add("glNormal3sv",                  f_glNormal3sv, QDOM_GUI);
    //builtinFunctions.add("glNormalPointer",              f_glNormalPointer, QDOM_GUI);
    builtinFunctions.add("glPassThrough",                f_glPassThrough, QDOM_GUI);
    //builtinFunctions.add("glPixelMapfv",                 f_glPixelMapfv, QDOM_GUI);
