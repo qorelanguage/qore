@@ -951,8 +951,7 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
       // assign rhs to lhs (take reference for assignment)
       *v = new_right.getReferencedValue();
    }
-   else // do integer plus-equals
-   {
+   else { // do integer plus-equals
       // optimization to remove the need for a virtual function call in the most common case
       int64 iv = right ? (right->getType() == NT_INT ? reinterpret_cast<const QoreBigIntNode *>(right)->val : right->bigIntEval(xsink)) : 0;
       if (*xsink)
@@ -964,8 +963,7 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
 	 i = new QoreBigIntNode();
 	 (*v) = i;
       }
-      else
-      {
+      else {
 	 ensure_unique_int(v, xsink);
 	 if (*xsink)
 	    return 0;

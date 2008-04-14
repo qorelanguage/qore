@@ -192,6 +192,18 @@ static AbstractQoreNode *f_atan(const QoreListNode *params, ExceptionSink *xsink
    return new QoreFloatNode(atan(p0->getAsFloat()));
 }
 
+static AbstractQoreNode *f_atan2(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p0;
+
+   if (!(p0 = get_param(params, 0)))
+      return 0;
+
+   const AbstractQoreNode *p1 = get_param(params, 1);
+
+   return new QoreFloatNode(atan2(p0->getAsFloat(), p1 ? p1->getAsFloat() : 0.0));
+}
+
 static AbstractQoreNode *f_sinh(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0;
@@ -430,6 +442,7 @@ void init_math_functions()
    builtinFunctions.add("asin",          f_asin);
    builtinFunctions.add("acos",          f_acos);
    builtinFunctions.add("atan",          f_atan);
+   builtinFunctions.add("atan2",         f_atan2);
    builtinFunctions.add("sinh",          f_sinh);
    builtinFunctions.add("cosh",          f_cosh);
    builtinFunctions.add("tanh",          f_tanh);

@@ -624,7 +624,7 @@ class QoreClass *initFileClass()
    QC_FILE->addMethod("f_printf",          (q_method_t)FILE_f_printf);
    QC_FILE->addMethod("f_vprintf",         (q_method_t)FILE_f_vprintf);
    QC_FILE->addMethod("lock",              (q_method_t)FILE_lock);
-   QC_FILE->addMethod("lockBLocking",      (q_method_t)FILE_lockBlocking);
+   QC_FILE->addMethod("lockBlocking",      (q_method_t)FILE_lockBlocking);
    QC_FILE->addMethod("getLockInfo",       (q_method_t)FILE_getLockInfo);
    QC_FILE->addMethod("chown",             (q_method_t)FILE_chown);
 
