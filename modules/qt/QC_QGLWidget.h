@@ -57,49 +57,108 @@ class myQGLWidget : public QGLWidget, public QoreQWidgetExtension
 	 m_resizeOverlayGL      = oc->findMethod("resizeOverlayGL");
       }
 
-/*
       virtual void glDraw()
       {
+	 if (!m_glDraw) {
+	    QGLWidget::glDraw();
+	    return;
+	 }
+
+	 dispatch_event(qore_obj, m_glDraw, 0);
       }
 
       virtual void glInit()
       {
+	 if (!m_glInit) {
+	    QGLWidget::glInit();
+	    return;
+	 }
+
+	 dispatch_event(qore_obj, m_glInit, 0);
       }
 
       virtual void initializeGL()
       {
+	 if (!m_initializeGL) {
+	    QGLWidget::initializeGL();
+	    return;
+	 }
+
+	 dispatch_event(qore_obj, m_initializeGL, 0);
       }
 
       virtual void initializeOverlayGL()
       {
+	 if (!m_initializeOverlayGL) {
+	    QGLWidget::initializeOverlayGL();
+	    return;
+	 }
+
+	 dispatch_event(qore_obj, m_initializeOverlayGL, 0);
       }
 
       virtual void paintGL()
       {
+	 if (!m_paintGL) {
+	    QGLWidget::paintGL();
+	    return;
+	 }
+
+	 dispatch_event(qore_obj, m_paintGL, 0);
       }
 
       virtual void paintOverlayGL()
       {
+	 if (!m_paintOverlayGL) {
+	    QGLWidget::paintOverlayGL();
+	    return;
+	 }
+
+	 dispatch_event(qore_obj, m_paintOverlayGL, 0);
       }
       
       virtual void resizeGL(int width, int height)
       {
+	 if (!m_resizeGL) {
+	    QGLWidget::resizeGL(width, height);
+	    return;
+	 }
+
+         ExceptionSink xsink;
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+         args->push(new QoreBigIntNode(width));
+         args->push(new QoreBigIntNode(height));
+
+	 dispatch_event(qore_obj, m_resizeGL, *args);
       }
 
       virtual void resizeOverlayGL(int width, int height)
       {
+	 if (!m_resizeOverlayGL) {
+	    QGLWidget::resizeOverlayGL(width, height);
+	    return;
+	 }
+
+         ExceptionSink xsink;
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+         args->push(new QoreBigIntNode(width));
+         args->push(new QoreBigIntNode(height));
+
+	 dispatch_event(qore_obj, m_resizeOverlayGL, *args);
       }
-*/
 
    public:
       DLLLOCAL myQGLWidget(QoreObject *obj, QWidget* parent = 0, const QGLWidget* shareWidget = 0, Qt::WindowFlags f = 0) : QGLWidget(parent, shareWidget, f), QoreQWidgetExtension(obj, this)
       {
+	 init(obj->getClass());
       }
       DLLLOCAL myQGLWidget(QoreObject *obj, QGLContext* context, QWidget* parent = 0, const QGLWidget* shareWidget = 0, Qt::WindowFlags f = 0) : QGLWidget(context, parent, shareWidget, f), QoreQWidgetExtension(obj, this)
       {
+	 init(obj->getClass());
       }
       DLLLOCAL myQGLWidget(QoreObject *obj, const QGLFormat& format, QWidget* parent = 0, const QGLWidget* shareWidget = 0, Qt::WindowFlags f = 0) : QGLWidget(format, parent, shareWidget, f), QoreQWidgetExtension(obj, this)
       {
+	 init(obj->getClass());
       }
 
       bool parent_autoBufferSwap() const
@@ -109,47 +168,47 @@ class myQGLWidget : public QGLWidget, public QoreQWidgetExtension
 
       void parent_glDraw()
       {
-	 glDraw();
+	 QGLWidget::glDraw();
       }
 
       void parent_glInit()
       {
-	 glInit();
+	 QGLWidget::glInit();
       }
 
       void parent_initializeGL()
       {
-	 initializeGL();
+	 QGLWidget::initializeGL();
       }
       
       void parent_initializeOverlayGL()
       {
-	 initializeOverlayGL();
+	 QGLWidget::initializeOverlayGL();
       }
 
       void parent_paintGL()
       {
-	 paintGL();
+	 QGLWidget::paintGL();
       }
 
       void parent_paintOverlayGL()
       {
-	 paintOverlayGL();
+	 QGLWidget::paintOverlayGL();
       }
 
       void parent_resizeGL(int width, int height)
       {
-	 resizeGL(width, height);
+	 QGLWidget::resizeGL(width, height);
       }
 
       void parent_resizeOverlayGL(int width, int height)
       {
-	 resizeOverlayGL(width, height);
+	 QGLWidget::resizeOverlayGL(width, height);
       }
 
       void parent_setAutoBufferSwap(bool on)
       {
-	 setAutoBufferSwap(on);
+	 QGLWidget::setAutoBufferSwap(on);
       }
 };
 

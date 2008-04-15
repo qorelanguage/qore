@@ -107,7 +107,6 @@ class GLWidget inherits QGLWidget
 
     paintGL()
     {
-	printf("paintGL() called\n");
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glPushMatrix();
@@ -126,8 +125,6 @@ class GLWidget inherits QGLWidget
 
     resizeGL($width, $height)
     {
-	printf("resizeGL() called\n");
-
 	my $side = min($width, $height);
 	glViewport(($width - $side) / 2, ($height - $side) / 2, $side, $side);
 
@@ -163,8 +160,6 @@ class GLWidget inherits QGLWidget
 
     advanceGears()
     {
-	printf("advanceGears() called\n");
-
 	$.gear1Rot += 2 * 16;
 	$.updateGL();
     }
@@ -172,8 +167,6 @@ class GLWidget inherits QGLWidget
     makeGear($reflectance, $innerRadius, $outerRadius, $thickness,
 	     $toothSize, $toothCount)
     {
-	printf("makeGear() called\n");
-
 	my $list = glGenLists(1);
 	glNewList($list, GL_COMPILE);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, $reflectance);
@@ -258,8 +251,6 @@ class GLWidget inherits QGLWidget
 
     drawGear($gear, $dx, $dy, $dz, $angle)
     {
-	printf("drawGear() called\n");
-
 	glPushMatrix();
 	glTranslated($dx, $dy, $dz);
 	glRotated($angle, 0.0, 0.0, 1.0);
@@ -339,7 +330,7 @@ class MainWindow inherits QMainWindow
 
     grabFrameBuffer()
     {
-	my $image = $.glWidget.$.grabFrameBuffer();
+	my $image = $.glWidget.grabFrameBuffer();
 	$.setPixmap(QPixmap_fromImage($image));
     }
 
@@ -422,8 +413,7 @@ class MainWindow inherits QMainWindow
 	my $text = QInputDialog_getText($self, TR("Grabber"),
 					TR("Enter pixmap size:"),
 					QLineEdit::Normal,
-					TR("%1 x %2").arg($.glWidget.width())
-					.arg($.glWidget.height()),
+					sprintf(TR("%d x %d"), $.glWidget.width(), $.glWidget.height()),
 					\$ok);
 	if (!$ok)
 	    return new QSize();
