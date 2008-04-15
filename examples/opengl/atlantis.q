@@ -37,6 +37,8 @@
  * OpenGL(TM) is a trademark of Silicon Graphics, Inc.
  */
 
+# ported to Qore by David Nichols, copyrights belong to original holders
+
 %require-our
 
 %requires opengl
@@ -50,14 +52,6 @@ const SHARKSIZE = 6000;
 const SHARKSPEED = 100.0;
 
 const WHALESPEED = 250.0;
-
-#typedef struct _fishRec {
-#    float x, y, z, phi, theta, psi, v;
-#    float xt, yt, zt;
-#    float htail, vtail;
-#    float dtheta;
-#    int spurt, attack;
-#} fishRec;
 
 const N001 = (-0.005937 ,-0.101998 ,-0.994767);
 const N002 = (0.936780 ,-0.200803 ,0.286569);
