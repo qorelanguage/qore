@@ -1,3 +1,6 @@
+2008.04.15: David Nichols
+	* opengl: added new example "atlantis.q"
+
 2008.04.10: David Nichols
 	* added chown() and lchown() functions
 	* added File::lock() method based on flock

@@ -1668,8 +1668,17 @@ static AbstractQoreNode *f_glGetBooleanv(const QoreListNode *params, ExceptionSi
       return get_bool_node(parms[0]);
 
    QoreListNode *l = new QoreListNode();
-   for (int i = 0; i < num; ++i)
-      l->push(get_bool_node(parms[i]));
+   if (num == 16) {
+      for (int i = 0; i < 4; ++i) {
+	 QoreListNode *m = new QoreListNode();
+	 l->push(m);
+	 for (int j = 0; j < 4; ++j)
+	    m->push(get_bool_node(parms[i*4 + j]));
+      }
+   }
+   else
+      for (int i = 0; i < num; ++i)
+	 l->push(get_bool_node(parms[i]));
 
    return l;
 }
@@ -1693,8 +1702,17 @@ static AbstractQoreNode *f_glGetDoublev(const QoreListNode *params, ExceptionSin
       return new QoreFloatNode(parms[0]);
 
    QoreListNode *l = new QoreListNode();
-   for (int i = 0; i < num; ++i)
-      l->push(new QoreFloatNode(parms[i]));
+   if (num == 16) {
+      for (int i = 0; i < 4; ++i) {
+	 QoreListNode *m = new QoreListNode();
+	 l->push(m);
+	 for (int j = 0; j < 4; ++j)
+	    m->push(new QoreFloatNode(parms[i*4 + j]));
+      }
+   }
+   else
+      for (int i = 0; i < num; ++i)
+	 l->push(new QoreFloatNode(parms[i]));
 
    return l;
 }
@@ -1718,8 +1736,17 @@ static AbstractQoreNode *f_glGetFloatv(const QoreListNode *params, ExceptionSink
       return new QoreFloatNode(parms[0]);
 
    QoreListNode *l = new QoreListNode();
-   for (int i = 0; i < num; ++i)
-      l->push(new QoreFloatNode(parms[i]));
+   if (num == 16) {
+      for (int i = 0; i < 4; ++i) {
+	 QoreListNode *m = new QoreListNode();
+	 l->push(m);
+	 for (int j = 0; j < 4; ++j)
+	    m->push(new QoreFloatNode(parms[i*4 + j]));
+      }
+   }
+   else
+      for (int i = 0; i < num; ++i)
+	 l->push(new QoreFloatNode(parms[i]));
 
    return l;
 }
@@ -1743,8 +1770,17 @@ static AbstractQoreNode *f_glGetIntegerv(const QoreListNode *params, ExceptionSi
       return new QoreBigIntNode(parms[0]);
 
    QoreListNode *l = new QoreListNode();
-   for (int i = 0; i < num; ++i)
-      l->push(new QoreBigIntNode(parms[i]));
+   if (num == 16) {
+      for (int i = 0; i < 4; ++i) {
+	 QoreListNode *m = new QoreListNode();
+	 l->push(m);
+	 for (int j = 0; j < 4; ++j)
+	    m->push(new QoreBigIntNode(parms[i*4 + j]));
+      }
+   }
+   else
+      for (int i = 0; i < num; ++i)
+	 l->push(new QoreBigIntNode(parms[i]));
 
    return l;
 }
