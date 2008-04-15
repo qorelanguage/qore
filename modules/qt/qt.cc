@@ -1258,6 +1258,32 @@ static class AbstractQoreNode *f_qrand(const QoreListNode *params, class Excepti
    return new QoreBigIntNode(qrand());
 }
 
+static class AbstractQoreNode *f_qSwap(const QoreListNode *params, class ExceptionSink *xsink)
+{
+   const ReferenceNode *r0 = test_reference_param(params, 0);
+   if (!r0) {
+      xsink->raiseException("QSWAP-ERROR", "first argument must be a reference");
+      return 0;
+   }
+
+   const ReferenceNode *r1 = test_reference_param(params, 1);
+   if (!r1) {
+      xsink->raiseException("QSWAP-ERROR", "second argument must be a reference");
+      return 0;
+   }
+
+   ReferenceHelper ref0(r0, xsink);
+   if (!ref0)
+      return 0;
+
+   ReferenceHelper ref1(r1, xsink);
+   if (!ref1)
+      return 0;
+
+   ref0.swap(ref1);
+   return 0;
+}
+
 static AbstractQoreNode *f_QToolTip_font(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
@@ -3479,6 +3505,7 @@ static class QoreStringNode *qt_module_init()
    builtinFunctions.add("qRound",                     f_qRound, QDOM_GUI);
    builtinFunctions.add("qsrand",                     f_qsrand, QDOM_GUI);
    builtinFunctions.add("qrand",                      f_qrand, QDOM_GUI);
+   builtinFunctions.add("qSwap",                      f_qSwap, QDOM_GUI);
 
    // QToolTip static functions
    builtinFunctions.add("QToolTip_font",              f_QToolTip_font, QDOM_GUI);

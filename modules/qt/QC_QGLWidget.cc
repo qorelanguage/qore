@@ -187,14 +187,16 @@ static AbstractQoreNode *QGLWIDGET_isValid(QoreObject *self, QoreQGLWidget *qglw
 //void makeCurrent ()
 static AbstractQoreNode *QGLWIDGET_makeCurrent(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->qobj->makeCurrent();
+   if (qglw->qobj)
+      qglw->qobj->makeCurrent();
    return 0;
 }
 
 //void makeOverlayCurrent ()
 static AbstractQoreNode *QGLWIDGET_makeOverlayCurrent(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->qobj->makeOverlayCurrent();
+   if (qglw->qobj)
+      qglw->qobj->makeOverlayCurrent();
    return 0;
 }
 
@@ -316,21 +318,24 @@ static AbstractQoreNode *QGLWIDGET_setMouseTracking(QoreObject *self, QoreQGLWid
 //void swapBuffers ()
 static AbstractQoreNode *QGLWIDGET_swapBuffers(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->qobj->swapBuffers();
+   if (qglw->qobj)
+      qglw->qobj->swapBuffers();
    return 0;
 }
 
 //virtual void updateGL ()
 static AbstractQoreNode *QGLWIDGET_updateGL(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->qobj->updateGL();
+   if (qglw->qobj)
+      qglw->qobj->updateGL();
    return 0;
 }
 
 //virtual void updateOverlayGL ()
 static AbstractQoreNode *QGLWIDGET_updateOverlayGL(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->qobj->updateOverlayGL();
+   if (qglw->qobj)
+      qglw->qobj->updateOverlayGL();
    return 0;
 }
 
@@ -343,42 +348,48 @@ static AbstractQoreNode *QGLWIDGET_autoBufferSwap(QoreObject *self, QoreQGLWidge
 //virtual void glDraw ()
 static AbstractQoreNode *QGLWIDGET_glDraw(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->glDraw();
+   if (qglw->qobj)
+      qglw->glDraw();
    return 0;
 }
 
 //virtual void glInit ()
 static AbstractQoreNode *QGLWIDGET_glInit(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->glInit();
+   if (qglw->qobj)
+      qglw->glInit();
    return 0;
 }
 
 //virtual void initializeGL ()
 static AbstractQoreNode *QGLWIDGET_initializeGL(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->initializeGL();
+   if (qglw->qobj)
+      qglw->initializeGL();
    return 0;
 }
 
 //virtual void initializeOverlayGL ()
 static AbstractQoreNode *QGLWIDGET_initializeOverlayGL(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->initializeOverlayGL();
+   if (qglw->qobj)
+      qglw->initializeOverlayGL();
    return 0;
 }
 
 //virtual void paintGL ()
 static AbstractQoreNode *QGLWIDGET_paintGL(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->paintGL();
+   if (qglw->qobj)
+      qglw->paintGL();
    return 0;
 }
 
 //virtual void paintOverlayGL ()
 static AbstractQoreNode *QGLWIDGET_paintOverlayGL(QoreObject *self, QoreQGLWidget *qglw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   qglw->paintOverlayGL();
+   if (qglw->qobj)
+      qglw->paintOverlayGL();
    return 0;
 }
 

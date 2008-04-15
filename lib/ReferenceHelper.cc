@@ -56,3 +56,10 @@ int ReferenceHelper::assign(AbstractQoreNode *val, ExceptionSink *xsink)
    (*vp) = val;
    return 0;
 }
+
+void ReferenceHelper::swap(ReferenceHelper &other)
+{
+   AbstractQoreNode *t = *other.vp;
+   *other.vp = *vp;
+   *vp = t;
+}

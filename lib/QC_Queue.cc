@@ -47,6 +47,12 @@ static AbstractQoreNode *QUEUE_push(QoreObject *self, class Queue *tq, const Qor
    return 0;
 }
 
+static AbstractQoreNode *QUEUE_insert(QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
+{
+   tq->insert(get_param(params, 0));
+   return 0;
+}
+
 // can't use shift because it's a reserved word
 static AbstractQoreNode *QUEUE_get(QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -104,6 +110,7 @@ class QoreClass *initQueueClass()
    QC_QUEUE->setDestructor((q_destructor_t)QUEUE_destructor);
    QC_QUEUE->setCopy((q_copy_t)QUEUE_copy);
    QC_QUEUE->addMethod("push",          (q_method_t)QUEUE_push);
+   QC_QUEUE->addMethod("insert",        (q_method_t)QUEUE_insert);
    QC_QUEUE->addMethod("get",           (q_method_t)QUEUE_get);
    QC_QUEUE->addMethod("pop",           (q_method_t)QUEUE_pop);
    QC_QUEUE->addMethod("size",          (q_method_t)QUEUE_size);

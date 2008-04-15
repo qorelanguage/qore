@@ -115,6 +115,9 @@ class ReferenceHelper {
 	  @endcode
        */
       DLLEXPORT int assign(AbstractQoreNode *val, ExceptionSink *xsink);
+
+      //! swaps the values of two references
+      DLLEXPORT void swap(ReferenceHelper &other);
 };
 
 #endif

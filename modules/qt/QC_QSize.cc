@@ -180,6 +180,46 @@ static AbstractQoreNode *QSIZE_width(QoreObject *self, QoreQSize *qs, const Qore
    return new QoreBigIntNode(qs->width());
 }
 
+//subtraction operator
+static AbstractQoreNode *QSIZE_subtract(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreObject *o = test_object_param(params, 0);
+
+   QoreQSize *qsize = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   if (*xsink)
+      return 0;
+
+   if (!qsize) {
+      xsink->raiseException("QSIZE-SUBTRACT-OPERATOR-ERROR", "expecting an object derived from QSize as sole argument to QSize::subtract()");
+      return 0;
+   }
+  
+   ReferenceHolder<AbstractPrivateData> holder(qsize, xsink);
+
+   return return_object(QC_QSize, new QoreQSize(*qs - *qsize));
+}
+
+//subtraction operator
+static AbstractQoreNode *QSIZE_subtractEquals(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreObject *o = test_object_param(params, 0);
+
+   QoreQSize *qsize = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   if (*xsink)
+      return 0;
+
+   if (!qsize) {
+      xsink->raiseException("QSIZE-SUBTRACTEQUALS-OPERATOR-ERROR", "expecting an object derived from QSize as sole argument to QSize::subtractEquals()");
+      return 0;
+   }
+  
+   ReferenceHolder<AbstractPrivateData> holder(qsize, xsink);
+
+   *qs -= *qsize;
+
+   return 0;
+}
+
 class QoreClass *initQSizeClass()
 {
    tracein("initQSizeClass()");
@@ -202,6 +242,10 @@ class QoreClass *initQSizeClass()
    QC_QSize->addMethod("setWidth",                    (q_method_t)QSIZE_setWidth);
    QC_QSize->addMethod("transpose",                   (q_method_t)QSIZE_transpose);
    QC_QSize->addMethod("width",                       (q_method_t)QSIZE_width);
+
+   // operators
+   QC_QSize->addMethod("subtract",                    (q_method_t)QSIZE_subtract);
+   QC_QSize->addMethod("subtractEquals",              (q_method_t)QSIZE_subtractEquals);
 
    traceout("initQSizeClass()");
    return QC_QSize;
