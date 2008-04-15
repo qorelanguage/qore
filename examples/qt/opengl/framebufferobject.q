@@ -17,7 +17,6 @@
 # enable all parse warnings
 %enable-all-warnings
 
-const PI = 3.1415927;
 const AMP = 5;
 
 class GLWidget inherits QGLWidget
@@ -86,6 +85,13 @@ class GLWidget inherits QGLWidget
 	glEnd();
 	glEndList();
 
+	my $size = $.logo.width() * $.logo.height();
+	my $str = "";
+	for (my $i = 0; $i < $size; ++$i)
+	    $str += chr(0);
+
+	$.wave = binary($str);
+
 	$.startTimer(30); # $.wave timer
     }
 
@@ -150,11 +156,12 @@ class GLWidget inherits QGLWidget
 	glTranslatef(-$w+1, -$h+1, 0.0);
 	for (my $y=$h-1; $y>=0; --$y) {
 	    my $line = $.logo.scanLine($y);
+	    printf("y=%n line=%n (%s)\n", $y, $line, makeBase64String($line));
 	    my $end = elements $line / 4;
 	    my $x = 0;
 	    while ($x < $end) {
 		my $word = getWord32($line, $x);
-		#printf("line=%N (%d), x=%n word=%n\n", $line, elements $line, $x, $word);
+		printf("line=%N (%d), x=%n word=%n\n", $line, elements $line, $x, $word);
 		glColor4ub(qRed($word), qGreen($word), qBlue($word), qAlpha($word)* 0.9);
 		glTranslatef(0.0, 0.0, $.wave[$y*$w+$x]);
 		if (qAlpha($word) > 128)
@@ -165,7 +172,6 @@ class GLWidget inherits QGLWidget
 	    }
 	    glTranslatef(-$w * 2.0, 2.0, 0.0);
 	}
-
 	# restore the GL state that QPainter expects
 	$.restoreGLState();
 
@@ -279,9 +285,9 @@ class GLWidget inherits QGLWidget
 		$wt[$i][$j] += 0.1;
 		$t = $s / $v;
 		if ($s != 0)
-		    $.wave[$i*$width + $j] = AMP * sin(2 * PI * $W * ($wt[$i][$j] + $t)) / (0.2*($s + 2));
+		    $.wave[$i*$width + $j] = AMP * sin(2 * M_PI * $W * ($wt[$i][$j] + $t)) / (0.2*($s + 2));
 		else
-		    $.wave[$i*$width + $j] = AMP * sin(2 * PI * $W * ($wt[$i][$j] + $t));
+		    $.wave[$i*$width + $j] = AMP * sin(2 * M_PI * $W * ($wt[$i][$j] + $t));
          }
      }
  }

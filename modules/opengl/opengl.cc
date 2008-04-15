@@ -2374,14 +2374,114 @@ static AbstractQoreNode *f_glColorMaterial(const QoreListNode *params, Exception
    return 0;
 }
 
-/*
 //void glColorPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionSink *xsink)
 {
-   glColorPointer();
+   const AbstractQoreNode *p = get_param(params, 0);
+   int size = p ? p->getAsInt() : 0;
+   if (size < 2 || size > 4) {
+      xsink->raiseException("GLCOLORPOINTER-ERROR", "size must be 2, 3, or 4, but %d given as the first argument", size);
+      return 0;
+   }
+
+   p = get_param(params, 1);
+   GLenum type = (GLenum)(p ? p->getAsInt() : 0);
+   
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLCOLORPOINTER-ERROR", "expecing a list as third argument (there is no 'stride' argument in the qore version of glColorPointer()))");
+      return 0;
+   }
+ 
+   switch (type) {
+      case GL_BYTE: {
+	 GLbyte array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glColorPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_UNSIGNED_BYTE: {
+	 GLubyte array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glColorPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_SHORT: {
+	 GLshort array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glColorPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_UNSIGNED_SHORT: {
+	 GLushort array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glColorPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_INT: {
+	 GLint array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glColorPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_UNSIGNED_INT: {
+	 GLuint array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glColorPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_FLOAT: {
+	 GLfloat array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsFloat() : 0.0;	    
+	 }
+	 glColorPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_DOUBLE: {
+	 GLdouble array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsFloat() : 0.0;	    
+	 }
+	 glColorPointer(size, type, 0, array);
+	 break;
+      }
+
+      default: {
+	 xsink->raiseException("GLCOLORPOINTER-ERROR", "type must be GL_SHORT, GL_INT, GL_FLOAT, or GL_DOUBLE (code passed: %d)", type);
+	 return 0;
+      }
+   }
+
    return 0;
 }
-*/
 
  /*
 //void glColorSubTable (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const GLvoid *data);
@@ -3085,7 +3185,7 @@ static AbstractQoreNode *f_glFogiv(const QoreListNode *params, ExceptionSink *xs
    GLint parms[num];
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
-      parms[i] = p ? p->getAsInt() : 0.0;
+      parms[i] = p ? p->getAsInt() : 0;
    }
 
    glFogiv(pname, parms);
@@ -5211,14 +5311,74 @@ static AbstractQoreNode *f_glTexCoord4sv(const QoreListNode *params, ExceptionSi
 }
 */
 
-/*
 //void glTexCoordPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 static AbstractQoreNode *f_glTexCoordPointer(const QoreListNode *params, ExceptionSink *xsink)
 {
-   glTexCoordPointer();
+   const AbstractQoreNode *p = get_param(params, 0);
+   int size = p ? p->getAsInt() : 0;
+   if (size < 2 || size > 4) {
+      xsink->raiseException("GLTEXCOORDPOINTER-ERROR", "size must be 2, 3, or 4, but %d given as the first argument", size);
+      return 0;
+   }
+
+   p = get_param(params, 1);
+   GLenum type = (GLenum)(p ? p->getAsInt() : 0);
+   
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLTEXCOORDPOINTER-ERROR", "expecing a list as third argument (there is no 'stride' argument in the qore version of glTexCoordPointer()))");
+      return 0;
+   }
+ 
+   switch (type) {
+      case GL_SHORT: {
+	 GLshort array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glTexCoordPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_INT: {
+	 GLint array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glTexCoordPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_FLOAT: {
+	 GLfloat array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsFloat() : 0.0;	    
+	 }
+	 glTexCoordPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_DOUBLE: {
+	 GLdouble array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsFloat() : 0.0;	    
+	 }
+	 glTexCoordPointer(size, type, 0, array);
+	 break;
+      }
+
+      default: {
+	 xsink->raiseException("GLTEXCOORDPOINTER-ERROR", "type must be GL_SHORT, GL_INT, GL_FLOAT, or GL_DOUBLE (code passed: %d)", type);
+	 return 0;
+      }
+   }
+
    return 0;
 }
-*/
 
 //void glTexGend (GLenum coord, GLenum pname, GLdouble param);
 static AbstractQoreNode *f_glTexGend(const QoreListNode *params, ExceptionSink *xsink)
@@ -5872,14 +6032,74 @@ static AbstractQoreNode *f_glVertex4sv(const QoreListNode *params, ExceptionSink
    return 0;
 }
 
-/*
 //void glVertexPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 static AbstractQoreNode *f_glVertexPointer(const QoreListNode *params, ExceptionSink *xsink)
 {
-   glVertexPointer();
+   const AbstractQoreNode *p = get_param(params, 0);
+   int size = p ? p->getAsInt() : 0;
+   if (size < 2 || size > 4) {
+      xsink->raiseException("GLVERTEXPOINTER-ERROR", "size must be 2, 3, or 4, but %d given as the first argument", size);
+      return 0;
+   }
+
+   p = get_param(params, 1);
+   GLenum type = (GLenum)(p ? p->getAsInt() : 0);
+   
+   const QoreListNode *l = test_list_param(params, 2);
+   if (!l) {
+      xsink->raiseException("GLVERTEXPOINTER-ERROR", "expecing a list as third argument (there is no 'stride' argument in the qore version of glVertexPointer()))");
+      return 0;
+   }
+ 
+   switch (type) {
+      case GL_SHORT: {
+	 GLshort array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glVertexPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_INT: {
+	 GLint array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsInt() : 0;	    
+	 }
+	 glVertexPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_FLOAT: {
+	 GLfloat array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsFloat() : 0.0;	    
+	 }
+	 glVertexPointer(size, type, 0, array);
+	 break;
+      }
+
+      case GL_DOUBLE: {
+	 GLdouble array[size];
+	 for (int i = 0; i < size; ++i) {
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    array[i] = p ? p->getAsFloat() : 0.0;	    
+	 }
+	 glVertexPointer(size, type, 0, array);
+	 break;
+      }
+
+      default: {
+	 xsink->raiseException("GLVERTEXPOINTER-ERROR", "type must be GL_SHORT, GL_INT, GL_FLOAT, or GL_DOUBLE (code passed: %d)", type);
+	 return 0;
+      }
+   }
+
    return 0;
 }
-*/
 
 //void glSampleCoverage (GLclampf value, GLboolean invert);
 static AbstractQoreNode *f_glSampleCoverage(const QoreListNode *params, ExceptionSink *xsink)
@@ -8691,7 +8911,7 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glColor4usv",                  f_glColor4usv, QDOM_GUI);
    builtinFunctions.add("glColorMask",                  f_glColorMask, QDOM_GUI);
    builtinFunctions.add("glColorMaterial",              f_glColorMaterial, QDOM_GUI);
-   //builtinFunctions.add("glColorPointer",               f_glColorPointer, QDOM_GUI);
+   builtinFunctions.add("glColorPointer",               f_glColorPointer, QDOM_GUI);
    //builtinFunctions.add("glColorSubTable",              f_glColorSubTable, QDOM_GUI);
    //builtinFunctions.add("glColorTable",                 f_glColorTable, QDOM_GUI);
    //builtinFunctions.add("glColorTableParameterfv",      f_glColorTableParameterfv, QDOM_GUI);
@@ -8902,7 +9122,7 @@ static QoreStringNode *opengl_module_init()
    //builtinFunctions.add("glTexCoord4fv",                f_glTexCoord4fv, QDOM_GUI);
    //builtinFunctions.add("glTexCoord4iv",                f_glTexCoord4iv, QDOM_GUI);
    //builtinFunctions.add("glTexCoord4sv",                f_glTexCoord4sv, QDOM_GUI);
-   //builtinFunctions.add("glTexCoordPointer",            f_glTexCoordPointer, QDOM_GUI);
+   builtinFunctions.add("glTexCoordPointer",            f_glTexCoordPointer, QDOM_GUI);
    builtinFunctions.add("glTexGend",                    f_glTexGend, QDOM_GUI);
    builtinFunctions.add("glTexGendv",                   f_glTexGendv, QDOM_GUI);
    builtinFunctions.add("glTexGenf",                    f_glTexGenf, QDOM_GUI);
@@ -8931,7 +9151,7 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glVertex4fv",                  f_glVertex4fv, QDOM_GUI);
    builtinFunctions.add("glVertex4iv",                  f_glVertex4iv, QDOM_GUI);
    builtinFunctions.add("glVertex4sv",                  f_glVertex4sv, QDOM_GUI);
-   //builtinFunctions.add("glVertexPointer",              f_glVertexPointer, QDOM_GUI);
+   builtinFunctions.add("glVertexPointer",              f_glVertexPointer, QDOM_GUI);
    builtinFunctions.add("glSampleCoverage",             f_glSampleCoverage, QDOM_GUI);
 #ifdef HAVE_GLSAMPLEPASS
    builtinFunctions.add("glSamplePass",                 f_glSamplePass, QDOM_GUI);
@@ -9161,4 +9381,3 @@ static void opengl_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
 static void opengl_module_delete()
 {
 }
-

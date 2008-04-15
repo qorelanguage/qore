@@ -497,6 +497,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QLayoutItem.h \
 	modules/qt/QoreAbstractQLayoutItem.h \
 	modules/qt/QC_QWidgetItem.h \
+	modules/qt/QC_QGLPixelBuffer.h \
 	command-line.h \
 	include/qore/Qore.h
 

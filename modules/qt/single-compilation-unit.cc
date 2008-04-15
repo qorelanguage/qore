@@ -202,3 +202,4 @@
 #include "QC_QTextBrowser.cc"
 #include "QC_QLayoutItem.cc"
 #include "QC_QWidgetItem.cc"
+#include "QC_QGLPixelBuffer.cc"

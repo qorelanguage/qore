@@ -160,7 +160,8 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QSvgRenderer.cc \
 	QC_QTextBrowser.cc \
 	QC_QLayoutItem.cc \
-	QC_QWidgetItem.cc
+	QC_QWidgetItem.cc \
+	QC_QGLPixelBuffer.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

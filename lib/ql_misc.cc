@@ -887,7 +887,8 @@ static AbstractQoreNode *f_getWord32(const QoreListNode *params, ExceptionSink *
    if (!ptr || offset >= size || offset < 0)
       return 0;
 
-   int64 val = ptr[offset] << 24 + ptr[offset + 1] << 16 + ptr[offset + 2] << 8 + ptr[offset + 3];
+   int64 val = *((unsigned int *)&ptr[offset]);
+   //<< 24 + ptr[offset + 1] << 16 + ptr[offset + 2] << 8 + ptr[offset + 3];
 
    return new QoreBigIntNode(val);
 }
