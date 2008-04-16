@@ -187,7 +187,7 @@ static AbstractQoreNode *QMATRIX_map(QoreObject *self, QoreQMatrix *qm, const Qo
                }
                ReferenceHolder<AbstractPrivateData> polygonHolder(static_cast<AbstractPrivateData *>(polygon), xsink);
                QPolygonF rv = qm->map(*(static_cast<QPolygonF *>(polygon)));
-               return return_object(QC_QPolygon, new QoreQPolygon(rv));
+               return return_object(QC_QPolygonF, new QoreQPolygonF(rv));
             }
             ReferenceHolder<AbstractPrivateData> lineHolder(static_cast<AbstractPrivateData *>(line), xsink);
             QLine rv = qm->map(*(static_cast<QLine *>(line)));
