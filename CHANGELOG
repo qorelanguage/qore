@@ -1,3 +1,7 @@
+2008.04.16: David Nichols
+	* qt: new classes, fixes, made dragging the cannon's barrel in the
+	  tutorial.q example program finally work properly
+
 2008.04.15: David Nichols
 	* opengl: added new example "atlantis.q"
 

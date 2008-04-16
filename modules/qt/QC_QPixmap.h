@@ -54,6 +54,10 @@ class QoreQPixmap : public QoreAbstractQPixmap, public QPixmap
       {
          return static_cast<QPixmap *>(const_cast<QoreQPixmap *>(this));
       }
+      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      {
+         return QPixmap::paintEngine();
+      }
 };
 
 #endif

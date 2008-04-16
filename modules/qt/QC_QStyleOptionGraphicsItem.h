@@ -1,5 +1,5 @@
 /*
- QoreAbstractQPixmap.h
+ QC_QStyleOptionGraphicsItem.h
  
  Qore Programming Language
  
@@ -20,16 +20,25 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QOREABSTRACTQPIXMAP_H
+#ifndef _QORE_QT_QC_QSTYLEOPTIONGRAPHICSITEM_H
 
-#define _QORE_QOREABSTRACTQPIXMAP_H
+#define _QORE_QT_QC_QSTYLEOPTIONGRAPHICSITEM_H
 
-#include "QoreAbstractQPaintDevice.h"
+#include <QStyleOptionGraphicsItem>
 
-class QoreAbstractQPixmap : public AbstractPrivateData, public QoreAbstractQPaintDevice
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONGRAPHICSITEM;
+DLLLOCAL extern QoreClass *QC_QStyleOptionGraphicsItem;
+DLLLOCAL QoreNamespace *initQStyleOptionGraphicsItemNS(QoreClass *);
+
+class QoreQStyleOptionGraphicsItem : public AbstractPrivateData, public QStyleOptionGraphicsItem
 {
    public:
-      DLLLOCAL virtual QPixmap *getQPixmap() const = 0;
+      DLLLOCAL QoreQStyleOptionGraphicsItem() : QStyleOptionGraphicsItem()
+      {
+      }
+      DLLLOCAL QoreQStyleOptionGraphicsItem(const QStyleOptionGraphicsItem& other) : QStyleOptionGraphicsItem(other)
+      {
+      }
 };
 
-#endif
+#endif // _QORE_QT_QC_QSTYLEOPTIONGRAPHICSITEM_H

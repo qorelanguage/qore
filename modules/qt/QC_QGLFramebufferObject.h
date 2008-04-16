@@ -54,6 +54,11 @@ class QoreQGLFramebufferObject : public AbstractPrivateData, public QoreAbstract
 	 return static_cast<QPaintDevice *>(const_cast<QoreQGLFramebufferObject *>(this));
       }
 
+      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      {
+         return QGLFramebufferObject::paintEngine();
+      }
+
 };
 
 #endif // _QORE_QT_QC_QGLFRAMEBUFFEROBJECT_H

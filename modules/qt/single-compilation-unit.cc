@@ -203,3 +203,8 @@
 #include "QC_QLayoutItem.cc"
 #include "QC_QWidgetItem.cc"
 #include "QC_QGLPixelBuffer.cc"
+#include "QC_QCursor.cc"
+#include "QC_QStyleOptionGraphicsItem.cc"
+#include "QC_QTransform.cc"
+#include "QC_QSvgGenerator.cc"
+#include "QC_QSvgWidget.cc"

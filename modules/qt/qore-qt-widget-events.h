@@ -739,12 +739,12 @@ class T {
 	 return QOREQTYPE::minimumSizeHint();
       }
 
-      /*
       DLLLOCAL virtual QPaintEngine * parent_paintEngine () const
       {
 	 return QOREQTYPE::paintEngine();
       }
 
+      /*
       DLLLOCAL virtual void parent_releaseDC ( HDC hdc ) const
       {
 	 QOREQTYPE::releaseDC(hdc);

@@ -31,6 +31,11 @@ class QoreAbstractQPaintDevice
       DLLLOCAL virtual ~QoreAbstractQPaintDevice()
       {
       }
+
+      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      {
+	 return 0;
+      }
 };
 
 #endif

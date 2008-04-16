@@ -59,6 +59,11 @@ class QoreQImage : public AbstractPrivateData, public QoreAbstractQPaintDevice, 
       {
          return static_cast<QPaintDevice *>(const_cast<QoreQImage *>(this));
       }
+
+      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      {
+         return QImage::paintEngine();
+      }
 };
 
 #endif

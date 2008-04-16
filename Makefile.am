@@ -498,6 +498,11 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQLayoutItem.h \
 	modules/qt/QC_QWidgetItem.h \
 	modules/qt/QC_QGLPixelBuffer.h \
+	modules/qt/QC_QCursor.h \
+	modules/qt/QC_QStyleOptionGraphicsItem.h \
+	modules/qt/QC_QTransform.h \
+	modules/qt/QC_QSvgGenerator.h \
+	modules/qt/QC_QSvgWidget.h \
 	command-line.h \
 	include/qore/Qore.h
 

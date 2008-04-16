@@ -43,7 +43,7 @@ const qobject_list =
       "QDesktopWidget", "QWizard", "QWizardPage", "QTranslator", 
       "QApplication", "QCoreApplication", "QListView", "QListWidget",
       "QProgressBar", "QProgressDialog", "QLabel", "QGLWidget",
-
+      "QSvgRenderer", "QSvgWidget"
  );
 
 const abstract_class_list = 
@@ -60,7 +60,7 @@ const const_class_list =
       "QPen", "QModelIndex", "QStyleOptionViewItem", 
       "QStyleOptionViewItemV2", "QLocale", "QUrl", "QByteArray", "QVariant", 
       "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir", "QRegExp",
-      "QFileInfo", "QPainterPath"
+      "QFileInfo", "QPainterPath", "QMatrix", "QTransform",
     );
 
 const class_list = ( "QRegion",
@@ -102,6 +102,7 @@ const class_list = ( "QRegion",
 		     "QStyleOptionButton",
 		     "QStyleOptionTab",
 		     "QStyleOptionTabWidgetFrame",
+		     "QStyleOptionGraphicsItem",
 		     "QTableWidgetItem",
 		     "QHeaderView",
 		     "QMetaObject",
@@ -118,6 +119,9 @@ const class_list = ( "QRegion",
 		     "QLayoutItem",
 		     "QWidgetItem",
 		     "QSpacerItem",
+		     "QCursor",
+		     "QGraphicsItem",
+		     "QSvgGenerator", 
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
@@ -234,7 +238,7 @@ sub do_return_qobject($type, $callstr)
     $lo += "if (!qt_qobj)";
     $lo += "   return 0;";
     $lo += "QVariant qv_ptr = qt_qobj->property(\"qobject\");";
-    $lo += "QoreObject *rv_obj = reinterpret_cast<const QoreObject *>(qv_ptr.toULongLong());";
+    $lo += "QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());";
     $lo += "if (rv_obj)";
     $lo += "   return rv_obj->refSelf();";
     $lo += sprintf("rv_obj = new QoreObject(QC_%s, getProgram());", $type);
@@ -381,10 +385,13 @@ sub add_new_build_files($fp)
 {
     my $cc = $fp + ".cc";
     my $hh = $fp + ".h";
-    # see if the file is already present in single-compilation-unit.cc
-    my $str = "grep " + $cc + " single-compilation-unit.cc";
-    if (!strlen(trim(backquote($str))))
-	system("printf '#include \\\"" + $cc + "\\\"\\n'>> single-compilation-unit.cc");
+
+    if (!$o.test) {
+	# see if the file is already present in single-compilation-unit.cc
+	my $str = "grep " + $cc + " single-compilation-unit.cc";
+	if (!strlen(trim(backquote($str))))
+	    system("printf '#include \\\"" + $cc + "\\\"\\n'>> single-compilation-unit.cc");
+    }
 
     # add to qt/Makefile.am
     if (!$o.test && !strlen(trim(backquote("grep " + $cc + " Makefile.am")))) {
@@ -495,7 +502,7 @@ sub do_abstract($of, $proto, $qt)
     }
     
     foreach my $ac in ($o.abstract_list)
-	$of.printf("      DLLLOCAL virtual class %s *get%s() const
+	$of.printf("      DLLLOCAL virtual %s *get%s() const
       {
          return static_cast<%s *>(&(*qobj));
       }
@@ -676,7 +683,7 @@ sub main()
 "class QoreAbstract%s%s
 {
    public:
-      DLLLOCAL virtual class %s *get%s() const = 0;
+      DLLLOCAL virtual %s *get%s() const = 0;
 };
 
 ", $cn, exists $o.parent ? " : public QoreAbstract" + $o.parent : "", $cn, $cn, $func_prefix);
@@ -689,7 +696,7 @@ class Qore%sBase : public Qore%sBase<T, V>
       {
       }
 
-      DLLLOCAL virtual class %s *get%s() const
+      DLLLOCAL virtual %s *get%s() const
       {
          return static_cast<%s *>(&(*this->qobj));
       }      
@@ -704,7 +711,7 @@ class QoreQt%sBase : public QoreQt%sBase<T, V>
       {
       }
 
-      DLLLOCAL virtual class %s *get%s() const
+      DLLLOCAL virtual %s *get%s() const
       {
          return this->qobj);
       }      

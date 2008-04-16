@@ -1,5 +1,5 @@
 /*
- QC_QPicture.h
+ QC_QTransform.h
  
  Qore Programming Language
  
@@ -20,37 +20,34 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPICTURE_H
+#ifndef _QORE_QT_QC_QTRANSFORM_H
 
-#define _QORE_QC_QPICTURE_H
+#define _QORE_QT_QC_QTRANSFORM_H
 
-#include "QoreAbstractQPaintDevice.h"
+#include <QTransform>
 
-#include <QPicture>
+DLLLOCAL extern qore_classid_t CID_QTRANSFORM;
+DLLLOCAL extern QoreClass *QC_QTransform;
+DLLLOCAL QoreNamespace *initQTransformNS();
 
-DLLEXPORT extern qore_classid_t CID_QPICTURE;
-DLLEXPORT extern QoreClass *QC_QPicture;
-
-DLLLOCAL class QoreClass *initQPictureClass(class QoreClass *qpaintdevice);
-
-class QoreQPicture : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QPicture
+class QoreQTransform : public AbstractPrivateData, public QTransform
 {
    public:
-      DLLLOCAL QoreQPicture(int formatVersion = -1) : QPicture(formatVersion)
+      DLLLOCAL QoreQTransform() : QTransform()
       {
       }
-      DLLLOCAL QoreQPicture(const QPicture & pic) : QPicture(pic)
+      DLLLOCAL QoreQTransform(qreal h11, qreal h12, qreal h13, qreal h21, qreal h22, qreal h23, qreal h31, qreal h32, qreal h33 = 1.0) : QTransform(h11, h12, h13, h21, h22, h23, h31, h32, h33)
       {
       }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      DLLLOCAL QoreQTransform(qreal h11, qreal h12, qreal h21, qreal h22, qreal dx, qreal dy) : QTransform(h11, h12, h21, h22, dx, dy)
       {
-         return static_cast<QPaintDevice *>(const_cast<QoreQPicture *>(this));
       }
-
-      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      DLLLOCAL QoreQTransform(const QMatrix& matrix) : QTransform(matrix)
       {
-         return QPicture::paintEngine();
+      }
+      DLLLOCAL QoreQTransform(const QTransform &t) : QTransform(t)
+      {
       }
 };
 
-#endif
+#endif // _QORE_QT_QC_QTRANSFORM_H

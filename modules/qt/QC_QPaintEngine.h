@@ -32,4 +32,20 @@ DLLLOCAL extern class QoreClass *QC_QPaintEngine;
 
 DLLLOCAL class QoreClass *initQPaintEngineClass();
 
+class QoreQtQPaintEngine : public QoreAbstractQPaintEngine
+{
+   private:
+      QPaintEngine *pe;
+
+   public:
+      DLLLOCAL QoreQtQPaintEngine(QPaintEngine *n_pe) : pe(n_pe)
+      {
+      }
+
+      DLLLOCAL virtual QPaintEngine *getQPaintEngine() const
+      {
+	 return pe;
+      }
+};
+
 #endif // _QORE_QT_QC_QPAINTENGINE_H

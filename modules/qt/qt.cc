@@ -185,6 +185,11 @@
 #include "QC_QLayoutItem.h"
 #include "QC_QWidgetItem.h"
 #include "QC_QGLPixelBuffer.h"
+#include "QC_QCursor.h"
+#include "QC_QStyleOptionGraphicsItem.h"
+#include "QC_QTransform.h"
+#include "QC_QSvgGenerator.h"
+#include "QC_QSvgWidget.h"
 
 #include "qore-qt.h"
 
@@ -1819,6 +1824,11 @@ static void init_namespace()
    qt_ns->addSystemClass(initQSvgRendererClass(qobject));
    qt_ns->addSystemClass(initQWidgetItemClass(qlayoutitem));
    qt_ns->addSystemClass(initQGLPixelBufferClass(qobject));
+   qt_ns->addSystemClass(initQCursorClass());
+   qt_ns->addInitialNamespace(initQStyleOptionGraphicsItemNS(qstyleoption));
+   qt_ns->addInitialNamespace(initQTransformNS());
+   qt_ns->addSystemClass(initQSvgGeneratorClass());
+   qt_ns->addSystemClass(initQSvgWidgetClass(qwidget));
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");
@@ -3551,6 +3561,7 @@ static class QoreStringNode *qt_module_init()
    initQGLFramebufferObjectStaticFunctions();
    initQGLFormatStaticFunctions();
    initQGLPixelBufferStaticFunctions();
+   initQCursorStaticFunctions();
 
    return 0;
 }

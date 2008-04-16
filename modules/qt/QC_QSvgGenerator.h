@@ -1,5 +1,5 @@
 /*
- QoreAbstractQPixmap.h
+ QC_QSvgGenerator.h
  
  Qore Programming Language
  
@@ -20,16 +20,32 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QOREABSTRACTQPIXMAP_H
+#ifndef _QORE_QT_QC_QSVGGENERATOR_H
 
-#define _QORE_QOREABSTRACTQPIXMAP_H
+#define _QORE_QT_QC_QSVGGENERATOR_H
 
+#include <QSvgGenerator>
 #include "QoreAbstractQPaintDevice.h"
 
-class QoreAbstractQPixmap : public AbstractPrivateData, public QoreAbstractQPaintDevice
+DLLLOCAL extern qore_classid_t CID_QSVGGENERATOR;
+DLLLOCAL extern QoreClass *QC_QSvgGenerator;
+DLLLOCAL QoreClass *initQSvgGeneratorClass();
+
+class QoreQSvgGenerator : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QSvgGenerator
 {
    public:
-      DLLLOCAL virtual QPixmap *getQPixmap() const = 0;
+      DLLLOCAL QoreQSvgGenerator() : QSvgGenerator()
+      {
+      }
+   
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return const_cast<QPaintDevice *>(static_cast<const QPaintDevice *>(this));
+      }
+      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      {
+         return QSvgGenerator::paintEngine();
+      }
 };
 
-#endif
+#endif // _QORE_QT_QC_QSVGGENERATOR_H

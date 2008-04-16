@@ -42,7 +42,10 @@ class QoreQPrinter : public AbstractPrivateData, public QoreAbstractQPaintDevice
       {
          return const_cast<QPaintDevice *>(static_cast<const QPaintDevice *>(this));
       }
-
+      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      {
+         return QPrinter::paintEngine();
+      }
 };
 
 #endif // _QORE_QT_QC_QPRINTER_H

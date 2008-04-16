@@ -20,28 +20,28 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QMATRIX_H
+#ifndef _QORE_QT_QC_QMATRIX_H
 
-#define _QORE_QC_QMATRIX_H
+#define _QORE_QT_QC_QMATRIX_H
 
 #include <QMatrix>
 
 DLLLOCAL extern qore_classid_t CID_QMATRIX;
 DLLLOCAL extern QoreClass *QC_QMatrix;
-
-DLLLOCAL class QoreClass *initQMatrixClass();
+DLLLOCAL QoreClass *initQMatrixClass();
 
 class QoreQMatrix : public AbstractPrivateData, public QMatrix
 {
    public:
-      DLLLOCAL QoreQMatrix(qreal m11, qreal m12, qreal m21, qreal m22, qreal dx, qreal dy) : 
-	 QMatrix(m11, m12, m21, m22, dx, dy)
+      DLLLOCAL QoreQMatrix() : QMatrix()
       {
       }
-      DLLLOCAL QoreQMatrix(const QMatrix &matrix) : QMatrix(matrix)
+      DLLLOCAL QoreQMatrix(qreal m11, qreal m12, qreal m21, qreal m22, qreal dx, qreal dy) : QMatrix(m11, m12, m21, m22, dx, dy)
+      {
+      }
+      DLLLOCAL QoreQMatrix(const QMatrix& matrix) : QMatrix(matrix)
       {
       }
 };
 
-
-#endif
+#endif // _QORE_QT_QC_QMATRIX_H

@@ -56,6 +56,11 @@ class QoreQBitmap : public AbstractPrivateData, public QoreAbstractQPaintDevice,
       {
          return static_cast<QPixmap *>(const_cast<QoreQBitmap *>(this));
       }
+
+      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      {
+         return QBitmap::paintEngine();
+      }
 };
 
 #endif

@@ -47,6 +47,11 @@ class QoreQGLPixelBuffer : public AbstractPrivateData, public QoreAbstractQPaint
       {
 	 return const_cast<QPaintDevice *>(static_cast<const QPaintDevice *>(this));
       }
+
+      DLLLOCAL virtual QPaintEngine *parent_paintEngine() const
+      {
+         return QGLPixelBuffer::paintEngine();
+      }
 };
 
 #endif // _QORE_QT_QC_QGLPIXELBUFFER_H

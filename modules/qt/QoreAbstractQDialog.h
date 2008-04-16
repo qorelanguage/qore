@@ -96,9 +96,4 @@ class QoreQtQDialogBase : public QoreQtQWidgetBase<T, V>
       DLLLOCAL virtual void reject() { this->qobj->reject(); }
 };
 
-#define QORE_VIRTUAL_QDIALOG_METHODS QORE_VIRTUAL_QWIDGET_METHODS \
-   DLLLOCAL virtual void accept () { qobj->parent_accept(); } \
-   DLLLOCAL virtual void done ( int r ) { qobj->parent_done(r); } \
-   DLLLOCAL virtual void reject () { qobj->parent_reject(); }
-
 #endif  // _QORE_QT_QOREABSTRACTQDIALOG_H
