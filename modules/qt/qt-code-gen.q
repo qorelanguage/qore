@@ -43,7 +43,8 @@ const qobject_list =
       "QDesktopWidget", "QWizard", "QWizardPage", "QTranslator", 
       "QApplication", "QCoreApplication", "QListView", "QListWidget",
       "QProgressBar", "QProgressDialog", "QLabel", "QGLWidget",
-      "QSvgRenderer", "QSvgWidget"
+      "QSvgRenderer", "QSvgWidget", "QSplashScreen", "QSplitter",
+      "QSplitterHandle", 
  );
 
 const abstract_class_list = 
@@ -124,6 +125,11 @@ const class_list = ( "QRegion",
 		     "QSvgGenerator", 
 		     "QGraphicsSceneEvent",
 		     "QGraphicsSceneContextMenuEvent",
+		     "QGraphicsSceneDragDropEvent",
+		     "QGraphicsSceneHelpEvent",
+		     "QGraphicsSceneHoverEvent",
+		     "QGraphicsSceneMouseEvent",
+		     "QGraphicsSceneWheelEvent",
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
@@ -709,14 +715,14 @@ class Qore%sBase : public Qore%sBase<T, V>
 class QoreQt%sBase : public QoreQt%sBase<T, V>
 {
    public:
-      DLLLOCAL QoreQt%sBase(QoreObject *obj, T *qo) : QoreQt%sBase<T, V>(qobj, qo)
+      DLLLOCAL QoreQt%sBase(QoreObject *obj, T *qo) : QoreQt%sBase<T, V>(obj, qo)
       {
       }
 
       DLLLOCAL virtual %s *get%s() const
       {
-         return this->qobj);
-      }      
+         return this->qobj;
+      }
 };
 ", $cn, $o.parent, $cn, $o.parent, $cn, $cn, $cn);
 
@@ -1248,6 +1254,7 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 		case /char/:
 		    $qt = "STRING";
 		    break;
+		case /QList/:
 		case "QStringList": {
 		    $qt = "LIST";
 		    break;
@@ -1430,6 +1437,21 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 		}
 	    }
 	    break;
+	    case "QList<int>": {
+		$lo += "if (!p || p->getType() != NT_LIST) {";
+		$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a list as %s argument to %s::%s()\");", 
+			       toupper($cn), toupper($name), ordinal[$i], $cn, $name);
+		$lo += $const ? "   return;" : "   return 0;";
+		$lo += "}";
+		$lo += sprintf("QList<int> %s;", $arg.name);
+		$lo += sprintf("ConstListIterator li_%s(reinterpret_cast<const QoreListNode *>(p));", $arg.name);
+		$lo += sprintf("while (li_%s.next()) {", $arg.name);
+		$lo += sprintf("   const AbstractQoreNode *n = li_%s.getValue();", $arg.name);
+		$lo += sprintf("   %s.push_back(n ? n->getAsBigInt() : 0);", $arg.name);
+		$lo += "}";
+	    }
+	    break;
+
 	    case "QStringList" : {
 		#$lo += "if (!p || p->getType() != NT_LIST) {";
 		#$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a list as %s argument to %s::%s()\");", 

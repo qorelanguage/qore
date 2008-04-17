@@ -190,7 +190,9 @@
 #include "QC_QTransform.h"
 #include "QC_QSvgGenerator.h"
 #include "QC_QSvgWidget.h"
-#include "QC_QGraphicsSceneDragDropEvent.h"
+#include "QC_QSplashScreen.h"
+#include "QC_QSplitter.h"
+#include "QC_QSplitterHandle.h"
 
 #include "qore-qt.h"
 
@@ -1830,6 +1832,9 @@ static void init_namespace()
    qt_ns->addInitialNamespace(initQTransformNS());
    qt_ns->addSystemClass(initQSvgGeneratorClass());
    qt_ns->addSystemClass(initQSvgWidgetClass(qwidget));
+   qt_ns->addSystemClass(initQSplashScreenClass(qwidget));
+   qt_ns->addSystemClass(initQSplitterClass(qwidget));
+   qt_ns->addSystemClass(initQSplitterHandleClass(qwidget));
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");

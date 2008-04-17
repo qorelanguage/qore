@@ -169,7 +169,14 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QSvgWidget.cc \
 	QC_QGraphicsSceneEvent.cc \
 	QC_QGraphicsSceneContextMenuEvent.cc \
-	QC_QGraphicsSceneDragDropEvent.cc
+	QC_QGraphicsSceneDragDropEvent.cc \
+	QC_QGraphicsSceneHelpEvent.cc \
+	QC_QGraphicsSceneHoverEvent.cc \
+	QC_QGraphicsSceneMouseEvent.cc \
+	QC_QGraphicsSceneWheelEvent.cc \
+	QC_QSplashScreen.cc \
+	QC_QSplitter.cc \
+	QC_QSplitterHandle.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

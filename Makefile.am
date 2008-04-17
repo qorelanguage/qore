@@ -507,6 +507,14 @@ noinst_HEADERS = \
 	modules/qt/QC_QGraphicsSceneEvent.h \
 	modules/qt/QC_QGraphicsSceneContextMenuEvent.h \
 	modules/qt/QC_QGraphicsSceneDragDropEvent.h \
+	modules/qt/QC_QGraphicsSceneHelpEvent.h \
+	modules/qt/QC_QGraphicsSceneHoverEvent.h \
+	modules/qt/QC_QGraphicsSceneMouseEvent.h \
+	modules/qt/QC_QGraphicsSceneWheelEvent.h \
+	modules/qt/QC_QSplashScreen.h \
+	modules/qt/QC_QSplitter.h \
+	modules/qt/QC_QSplitterHandle.h \
+	modules/qt/QoreAbstractQSplitterHandle.h \
 	command-line.h \
 	include/qore/Qore.h
 
