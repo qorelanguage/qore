@@ -208,3 +208,6 @@
 #include "QC_QTransform.cc"
 #include "QC_QSvgGenerator.cc"
 #include "QC_QSvgWidget.cc"
+#include "QC_QGraphicsSceneEvent.cc"
+#include "QC_QGraphicsSceneContextMenuEvent.cc"
+#include "QC_QGraphicsSceneDragDropEvent.cc"

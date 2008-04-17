@@ -1,3 +1,7 @@
+2008.04.17: David Nichols
+	* added bzip functionality to library: bzip2(), bunzip2_to_string() and
+	  bunzip2_to_binary() functions and tests in test/test.q
+
 2008.04.16: David Nichols
 	* qt: new classes, fixes, made dragging the cannon's barrel in the
 	  tutorial.q example program finally work properly

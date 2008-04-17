@@ -26,6 +26,10 @@
 #include "QC_QRegion.h"
 #include "QC_QRect.h"
 
+#include "QC_QGraphicsSceneEvent.h"
+#include "QC_QGraphicsSceneContextMenuEvent.h"
+#include "QC_QGraphicsSceneDragDropEvent.h"
+
 qore_classid_t CID_QEVENT;
 
 class QoreClass *QC_QEvent = 0;
@@ -109,7 +113,7 @@ QoreNamespace *initQEventNS()
 {
    QoreNamespace *ns = new QoreNamespace("QEvent");
 
-   class QoreClass *qevent, *qinputevent, *qdropevent, *qdragmoveevent;
+   QoreClass *qevent, *qinputevent, *qdropevent, *qdragmoveevent;
    ns->addSystemClass((qevent = initQEventClass()));
    ns->addSystemClass(initQPaintEventClass(qevent));
    ns->addSystemClass(initQMoveEventClass(qevent));
@@ -138,6 +142,11 @@ QoreNamespace *initQEventNS()
    ns->addSystemClass(initQChildEventClass(qevent));
    ns->addSystemClass(initQTimerEventClass(qevent));
    ns->addSystemClass(initQHelpEventClass(qevent));
+
+   QoreClass *qgraphicssceneevent;
+   ns->addSystemClass((qgraphicssceneevent = initQGraphicsSceneEventClass(qevent)));
+   ns->addInitialNamespace(initQGraphicsSceneContextMenuEventNS(qgraphicssceneevent));
+   ns->addSystemClass(initQGraphicsSceneDragDropEventClass(qgraphicssceneevent));
 
    // Type enum
    ns->addConstant("None",                     new QoreBigIntNode(QEvent::None));

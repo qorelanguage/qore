@@ -166,7 +166,10 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QStyleOptionGraphicsItem.cc \
 	QC_QTransform.cc \
 	QC_QSvgGenerator.cc \
-	QC_QSvgWidget.cc
+	QC_QSvgWidget.cc \
+	QC_QGraphicsSceneEvent.cc \
+	QC_QGraphicsSceneContextMenuEvent.cc \
+	QC_QGraphicsSceneDragDropEvent.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

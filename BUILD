@@ -31,6 +31,10 @@ for ssl support in the Socket class
 	http://www.openssl.org
 if you have the open headers and libraries in a location the configure script cannot find, then you can either use the --with-openssl-libs and --with-openssl-libraries options, or set the OPENSSL_DIR environment variable before running configure
 
+*) bzlib 1.0.4 or higher (some earlier versions may work as well)
+
+*) zlib 1.1.3 or higher (some earlier versions will work as well)
+
 "configure" Option Overview
 ---------------------------
 --enable-64bit                      : to build a 64-bit binary (support for x86_64, sparc, and pa-risc architectures) - the default is to build a 32-bit binary even on 64-bit platforms

@@ -58,4 +58,14 @@ class QoreQMimeData : public QoreQMimeDataImpl
       }
 };
 
+typedef QoreQtQObjectBase<QMimeData, QoreAbstractQObject> QoreQtQMimeDataImpl;
+
+class QoreQtQMimeData : public QoreQtQMimeDataImpl
+{
+   public:
+      DLLLOCAL QoreQtQMimeData(QoreObject *o, QMimeData *qm, bool managed = true) : QoreQtQMimeDataImpl(o, qm, managed)
+      {
+      }
+};
+
 #endif // _QORE_QT_QC_QMIMEDATA_H

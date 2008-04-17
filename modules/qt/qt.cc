@@ -190,6 +190,7 @@
 #include "QC_QTransform.h"
 #include "QC_QSvgGenerator.h"
 #include "QC_QSvgWidget.h"
+#include "QC_QGraphicsSceneDragDropEvent.h"
 
 #include "qore-qt.h"
 

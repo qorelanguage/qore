@@ -122,6 +122,8 @@ const class_list = ( "QRegion",
 		     "QCursor",
 		     "QGraphicsItem",
 		     "QSvgGenerator", 
+		     "QGraphicsSceneEvent",
+		     "QGraphicsSceneContextMenuEvent",
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
