@@ -666,6 +666,14 @@ char *q_dirname(const char *path)
    return x;
 }
 
+void *q_realloc(void *ptr, size_t size)
+{
+   void *p = realloc(ptr, size);
+   if (!p)
+      free(ptr);
+   return p;
+}
+
 ResolvedFunctionReferenceNode *getFunctionReference(const QoreString *str, ExceptionSink *xsink)
 {
    QoreProgram *pgm = getProgram();

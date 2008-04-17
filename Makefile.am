@@ -176,6 +176,7 @@ noinst_HEADERS = \
 	include/qore/intern/ql_crypto.h \
 	include/qore/intern/ql_file.h \
 	include/qore/intern/ql_object.h \
+	include/qore/intern/ql_bzip.h \
 	include/qore/intern/QC_Queue.h \
 	include/qore/intern/QC_Socket.h \
 	include/qore/intern/QC_Sequence.h \
@@ -503,6 +504,9 @@ noinst_HEADERS = \
 	modules/qt/QC_QTransform.h \
 	modules/qt/QC_QSvgGenerator.h \
 	modules/qt/QC_QSvgWidget.h \
+	modules/qt/QC_QGraphicsSceneEvent.h \
+	modules/qt/QC_QGraphicsSceneContextMenuEvent.h \
+	modules/qt/QC_QGraphicsSceneDragDropEvent.h \
 	command-line.h \
 	include/qore/Qore.h
 

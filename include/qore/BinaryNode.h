@@ -118,6 +118,23 @@ class BinaryNode : public SimpleValueQoreNode
 	 @return the data being managed (leaves this object empty)
        */
       DLLEXPORT void *giveBuffer();
+
+      //! pre-allocates a buffer of a certain size
+      /** This function can be used to write data directly to a new BinaryNode object.
+	  This call can be made more than once, subsequent calls will cause realloc() 
+	  to be called on the buffer which can be used to extend the buffer size.
+	  @param size the number of bytes to pre-allocate
+	  @return 0 for OK, -1 for error (memory could not be allocated)
+       */
+      DLLEXPORT int preallocate(qore_size_t size);
+
+      //! sets the buffer size after preallocation
+      /** This function is designed to be used with BinaryNode::preallocate().  The
+	  size to be set must be less than the currently allocated size.
+	  @param size the size of the BinaryNode to set
+	  @return 0 for OK, -1 for error (size > current size)
+       */
+      DLLEXPORT int setSize(qore_size_t size);
 };
 
 #endif // _QORE_BINARYOBJECT_H

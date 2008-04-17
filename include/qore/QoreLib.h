@@ -64,6 +64,9 @@ DLLEXPORT char *q_basenameptr(const char *path);
 //! thread-safe dirname function (resulting pointer must be free()ed)
 DLLEXPORT char *q_dirname(const char *path);
 
+//! frees memory if there is an allocation error
+DLLEXPORT void *q_realloc(void *ptr, size_t size);
+
 //! sets up the Qore ARGV and QORE_ARGV values
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
@@ -187,5 +190,29 @@ static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink)
    if (n)
       n->deref(xsink);
 }
+
+class BinaryNode;
+class QoreStringNode;
+class ExceptionSink;
+
+//! compresses data with the DEFLATE algorithm
+DLLEXPORT BinaryNode     *qore_deflate(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
+//! decompresses data compressed with the DEFLATE algorithm to a string
+DLLEXPORT QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink);
+//! decompresses data compressed with the DEFLATE algorithm to a binary
+DLLEXPORT BinaryNode     *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink);
+//! gzips data
+DLLEXPORT BinaryNode     *qore_gzip(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
+//! gunzips compressed data to a string
+DLLEXPORT QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink);
+//! gunzips compressed data to a binary
+DLLEXPORT BinaryNode     *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink);
+//! compresses data with bzip2
+DLLEXPORT BinaryNode     *qore_bzip2(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
+//! decompresses bzip2 data to a string
+DLLEXPORT QoreStringNode *qore_bunzip2_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink);
+//! decompresses bzip2 data to a binary
+DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, ExceptionSink *xsink);
+
 
 #endif // _QORE_QORELIB_H

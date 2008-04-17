@@ -124,6 +124,7 @@
 #include "ql_crypto.cc"
 #include "ql_object.cc"
 #include "ql_file.cc"
+#include "ql_bzip.cc"
 #include "QC_Socket.cc"
 #include "QC_Program.cc"
 #include "QC_File.cc"

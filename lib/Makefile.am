@@ -140,6 +140,7 @@ libqore_la_SOURCES = \
 	ql_crypto.cc \
 	ql_object.cc \
 	ql_file.cc \
+	ql_bzip.cc \
 	QC_Socket.cc \
 	QC_Program.cc \
 	QC_File.cc \
@@ -173,9 +174,9 @@ endif
 
 endif
 
-libqore_la_LDFLAGS = -version-info 4:0:0 -no-undefined ${LIBXML2_LDFLAGS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(ZLIB_LDFLAGS) $(LDFLAGS) -lm
+libqore_la_LDFLAGS = -version-info 4:0:0 -no-undefined ${LIBXML2_LDFLAGS} $(PCRE_LDFLAGS) $(OPENSSL_LDFLAGS) $(ZLIB_LDFLAGS) $(BZ2_LDFLAGS) $(LDFLAGS) -lm
 libqore_la_LIBADD = ${PTHREAD_LIBS} ${OTHER_LIBS}
-AM_CPPFLAGS = -D_QORE_LIB_INTERN -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS) $(LIBXML2_CPPFLAGS)
+AM_CPPFLAGS = -D_QORE_LIB_INTERN -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(OPENSSL_CPPFLAGS) $(LIBXML2_CPPFLAGS) $(BZ2_CPPFLAGS)
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
 if COND_DEBUG

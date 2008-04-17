@@ -1095,10 +1095,21 @@ sub misc_tests()
 	       "path" : "/path/is/here" );
 
     test_value(parseURL($url), $uh, "parseURL()");
-    
+
+    # test gzip
     my $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-    test_value($str, uncompress_to_string(compress($str)), "compress and uncompress");
-    test_value($str, gunzip_to_string(gzip($str)), "gzip and gunzip");
+    my $bstr = binary($str);
+    my $c = compress($str);
+    test_value($str, uncompress_to_string($c), "compress() and uncompress_to_string()");
+    test_value($bstr, uncompress_to_binary($c), "compress() and uncompress_to_binary()");
+    my $gz = gzip($str);
+    test_value($str, gunzip_to_string($gz), "gzip() and gunzip_to_string()");
+    test_value($bstr, gunzip_to_binary($gz), "gzip() and gunzip_to_binary()");
+    
+    # test bzip2
+    my $bz = bzip2($str);
+    test_value($str, bunzip2_to_string($bz), "bzip2 and bunzip2_to_string");
+    test_value($bstr, bunzip2_to_binary($bz), "bzip2 and bunzip2_to_binary");
 }
 
 sub math_tests()

@@ -292,6 +292,7 @@ if test "$enable_static_common" = "yes"; then
    libxml2_static=yes
    pcre_static=yes
    ncurses_static=yes
+   bz2lib_static=yes
 fi
 
 AC_ARG_WITH([static-libz-dir],
@@ -537,6 +538,75 @@ for dir in "${with_libxml2_dir}" /usr / /usr/local /opt/gnu /opt/libxml2 /usr/lo
 done
 if test -z "$LIBXML2_LDFLAGS"; then
     AC_MSG_ERROR([no libxml2 library found])
+fi
+
+set_bz2lib_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        BZ2_CPPFLAGS=-I$1
+    fi
+}
+
+find_bz2lib()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static bz2lib libraries
+    if test -n "$bz2lib_static"; then
+    	if test -f "$lib/libbz2.a"; then
+	    BZ2_LDFLAGS="$lib/libbz2.a"
+       	    AC_MSG_RESULT([$lib (forced static)])
+    	fi
+    else
+        if test -f "$lib/libbz2.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        BZ2_LDFLAGS="-L$lib"
+    	    fi
+	    BZ2_LDFLAGS="$BZ2_LDFLAGS -lbz2"
+       	    AC_MSG_RESULT([$lib (shared)])
+    	elif test -f "$lib/libbz2.a"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        BZ2_LDFLAGS="-L$lib"
+    	    fi
+	    BZ2_LDFLAGS="$BZ2_LDFLAGS -lbz2"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    fi
+    if test -z "$BZ2_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for bz2lib include files])
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/bzlib.h"; then
+        AC_MSG_RESULT([found: $inc/bzlib.h])
+        set_bz2lib_cppflags $inc
+    else
+	AC_MSG_ERROR([not found])
+    fi
+    AC_SUBST(BZ2_LDFLAGS)
+    AC_SUBST(BZ2_CPPFLAGS)   
+}
+
+# see if we can figure out where the bz2lib library is
+AC_ARG_WITH([bz2lib-dir],
+  [AS_HELP_STRING([--with-bz2lib-dir@<:@=DIR@:>@],
+                  [bz2lib directory])],
+  [if test ! -d "${with_bz2lib_dir}"; then AC_MSG_ERROR(bad value ${with_bz2lib_dir} for --with-bz2lib-dir); unset with_bz2lib_dir; fi], 
+  [with_bz2lib_dir="$BZ2_DIR"])
+
+AC_MSG_CHECKING([for bz2lib libraries and header files])
+for dir in "${with_bz2lib_dir}" /usr / /usr/local /opt/gnu /opt/bzlib /usr/local/bzlib /opt/local /sw /usr/sfw /opt/sfw; do
+    find_bz2lib $dir
+    if test -n "$BZ2_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$BZ2_LDFLAGS"; then
+    AC_MSG_ERROR([no bzlib library found])
 fi
 
 AC_ARG_ENABLE([profile],

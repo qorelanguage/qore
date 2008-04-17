@@ -138,3 +138,22 @@ const char *BinaryNode::getTypeName() const
    return getStaticTypeName();
 }
 
+int BinaryNode::preallocate(qore_size_t size)
+{
+   ptr = q_realloc(ptr, size);
+   if (ptr) {
+      len = size;
+      return 0;
+   }
+   len = 0;
+   return -1;
+}
+
+int BinaryNode::setSize(qore_size_t size)
+{
+   if (size > len)
+      return -1;
+
+   len = size;
+   return 0;
+}

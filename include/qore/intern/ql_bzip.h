@@ -1,5 +1,5 @@
 /*
-  ql_misc.h
+  ql_bzip.h
 
   Qore Programming Language
 
@@ -20,10 +20,10 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_LIB_MISC_H
+#ifndef QORE_QL_BZIP_H
 
-#define QORE_LIB_MISC_H
+#define QORE_QL_BZIP_H
 
-DLLLOCAL void init_misc_functions();
+DLLLOCAL void init_bzip_functions();
 
 #endif
