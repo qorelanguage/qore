@@ -140,7 +140,7 @@ int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink)
    return rc;
 }
 
-#ifdef 0
+#if 0
 int QoreFile::preallocate(fstore_t &fs, ExceptionSink *xsink)
 {
    if (!priv->is_open) {
