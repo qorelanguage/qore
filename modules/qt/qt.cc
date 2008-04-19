@@ -193,6 +193,9 @@
 #include "QC_QSplashScreen.h"
 #include "QC_QSplitter.h"
 #include "QC_QSplitterHandle.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QTextLine.h"
+#include "QC_QTextOption.h"
 
 #include "qore-qt.h"
 
@@ -633,7 +636,7 @@ int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xs
    return -1;
 }
 
-QoreObject *return_object(QoreClass *qclass, AbstractPrivateData *data)
+QoreObject *return_object(const QoreClass *qclass, AbstractPrivateData *data)
 {
    QoreObject *qore_object = new QoreObject(qclass, getProgram());
    qore_object->setPrivate(qclass->getID(), data);
@@ -1835,6 +1838,9 @@ static void init_namespace()
    qt_ns->addSystemClass(initQSplashScreenClass(qwidget));
    qt_ns->addSystemClass(initQSplitterClass(qwidget));
    qt_ns->addSystemClass(initQSplitterHandleClass(qwidget));
+   qt_ns->addInitialNamespace(initQGraphicsItemNS());
+   qt_ns->addInitialNamespace(initQTextLineNS());
+   qt_ns->addInitialNamespace(initQTextOptionNS());
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");

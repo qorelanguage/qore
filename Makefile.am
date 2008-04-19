@@ -303,6 +303,7 @@ noinst_HEADERS = \
 	modules/qt/qore-qt-qdialog-methods.h \
 	modules/qt/qore-qt-qlayoutitem-methods.h \
 	modules/qt/qore-qt-qlayout-methods.h \
+	modules/qt/qore-qt-qgraphicsitem-methods.h \
 	modules/qt/QC_QBrush.h \
 	modules/qt/QC_QColor.h \
 	modules/qt/QC_QPaintDevice.h \
@@ -515,6 +516,28 @@ noinst_HEADERS = \
 	modules/qt/QC_QSplitter.h \
 	modules/qt/QC_QSplitterHandle.h \
 	modules/qt/QoreAbstractQSplitterHandle.h \
+	modules/qt/QC_QGraphicsItem.h \
+	modules/qt/QoreAbstractQGraphicsItem.h \
+	modules/qt/QC_QAbstractGraphicsShapeItem.h \
+	modules/qt/QoreAbstractQAbstractGraphicsShapeItem.h \
+	modules/qt/QC_QGraphicsEllipseItem.h \
+	modules/qt/QoreAbstractQGraphicsEllipseItem.h \
+	modules/qt/QC_QGraphicsPathItem.h \
+	modules/qt/QoreAbstractQGraphicsPathItem.h \
+	modules/qt/QC_QGraphicsPolygonItem.h \
+	modules/qt/QoreAbstractQGraphicsPolygonItem.h \
+	modules/qt/QC_QGraphicsRectItem.h \
+	modules/qt/QoreAbstractQGraphicsRectItem.h \
+	modules/qt/QC_QGraphicsSimpleTextItem.h \
+	modules/qt/QoreAbstractQGraphicsSimpleTextItem.h \
+	modules/qt/QC_QGraphicsItemGroup.h \
+	modules/qt/QoreAbstractQGraphicsItemGroup.h \
+	modules/qt/QC_QGraphicsLineItem.h \
+	modules/qt/QoreAbstractQGraphicsLineItem.h \
+	modules/qt/QC_QGraphicsPixmapItem.h \
+	modules/qt/QoreAbstractQGraphicsPixmapItem.h \
+	modules/qt/QC_QTextLine.h \
+	modules/qt/QC_QTextOption.h \
 	command-line.h \
 	include/qore/Qore.h
 

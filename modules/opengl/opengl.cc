@@ -1931,7 +1931,6 @@ static AbstractQoreNode *f_glArrayElement(const QoreListNode *params, ExceptionS
    return 0;
 }
 
-/*
 //void glBitmap (GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap);
 static AbstractQoreNode *f_glBitmap(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -1947,12 +1946,25 @@ static AbstractQoreNode *f_glBitmap(const QoreListNode *params, ExceptionSink *x
    GLfloat xmove = (GLfloat)(p ? p->getAsFloat() : 0.0);
    p = get_param(params, 5);
    GLfloat ymove = (GLfloat)(p ? p->getAsFloat() : 0.0);
-   p = get_param(params, 6);
-   ??? GLubyte* bitmap = p;
-   glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
+
+   const BinaryNode *b = test_binary_param(params, 6);
+   if (!b) {
+      xsink->raiseException("GLBITMAP-ERROR", "expecting binary object as sixth argument to glBitmap()");
+      return 0;
+   }
+
+   size_t len = width * height;
+   size_t bytes = len / 8;
+   if (bytes * 8 != len)
+      ++bytes;
+   
+   if (b->size() < bytes) {
+      xsink->raiseException("GLBITMAP-ERROR", "width=%d * height=%d requires a binary object of at least %d bytes, however the binary object passed is only %d bytes long", width, height, b->size());
+   }
+
+   glBitmap(width, height, xorig, yorig, xmove, ymove, (GLubyte *)b->getPtr());
    return 0;
 }
-*/
 
 //void glBlendColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 static AbstractQoreNode *f_glBlendColor(const QoreListNode *params, ExceptionSink *xsink)
@@ -8884,7 +8896,7 @@ static QoreStringNode *opengl_module_init()
    builtinFunctions.add("glAlphaFunc",                  f_glAlphaFunc, QDOM_GUI);
    //builtinFunctions.add("glAreTexturesResident",        f_glAreTexturesResident, QDOM_GUI);
    builtinFunctions.add("glArrayElement",               f_glArrayElement, QDOM_GUI);
-   //builtinFunctions.add("glBitmap",                     f_glBitmap, QDOM_GUI);
+   builtinFunctions.add("glBitmap",                     f_glBitmap, QDOM_GUI);
    builtinFunctions.add("glBlendColor",                 f_glBlendColor, QDOM_GUI);
    builtinFunctions.add("glBlendEquation",              f_glBlendEquation, QDOM_GUI);
    builtinFunctions.add("glBlendEquationSeparate",      f_glBlendEquationSeparate, QDOM_GUI);

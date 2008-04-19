@@ -89,8 +89,9 @@ class T {
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
-	    xsink.raiseException("QSTYLE-ITEMPIXMAPRECT-ERROR", "%s::itemPixmapRect() did not return a QRect object (got type '%s' instead)",
-				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
+	    if (!xsink)
+	       xsink.raiseException("QSTYLE-ITEMPIXMAPRECT-ERROR", "%s::itemPixmapRect() did not return a QRect object (got type '%s' instead)",
+	       qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
 	    return QRect();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qrect), &xsink);
@@ -148,8 +149,9 @@ class T {
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQPixmap *qpixmap = o ? (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
 	 if (!qpixmap) {
-	    xsink.raiseException("QSTYLE-STANDARDPIXMAP-ERROR", "%s::standardPixmap() did not return a QPixmap object (got type '%s' instead)",
-				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
+	    if (!xsink)
+	       xsink.raiseException("QSTYLE-STANDARDPIXMAP-ERROR", "%s::standardPixmap() did not return a QPixmap object (got type '%s' instead)",
+	       qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
 	    return QPixmap();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qpixmap), &xsink);
@@ -171,8 +173,9 @@ class T {
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQPixmap *qpixmap = o ? (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
 	 if (!qpixmap) {
-	    xsink.raiseException("QSTYLE-GENERATEDICONPIXMAP-ERROR", "%s::generatedIconPixmap() did not return a QPixmap object (got type '%s' instead)",
-				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
+	    if (!xsink)
+	       xsink.raiseException("QSTYLE-GENERATEDICONPIXMAP-ERROR", "%s::generatedIconPixmap() did not return a QPixmap object (got type '%s' instead)",
+	       qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
 	    return QPixmap();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qpixmap), &xsink);
@@ -196,8 +199,9 @@ class T {
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
-	    xsink.raiseException("QSTYLE-ITEMPIXMAPRECT-ERROR", "%s::itemPixmapRect() did not return a QRect object (got type '%s' instead)",
-				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
+	    if (!xsink)
+	       xsink.raiseException("QSTYLE-ITEMPIXMAPRECT-ERROR", "%s::itemPixmapRect() did not return a QRect object (got type '%s' instead)",
+	       qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
 	    return QRect();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qrect), &xsink);
@@ -281,8 +285,9 @@ class T {
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQSize *qsize = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
 	 if (!qsize) {
-	    xsink.raiseException("QSTYLE-SIZEFROMCONTENTS-ERROR", "%s::sizeFromContents() did not return a QSize object (got type '%s' instead)",
-				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
+	    if (!xsink)
+	       xsink.raiseException("QSTYLE-SIZEFROMCONTENTS-ERROR", "%s::sizeFromContents() did not return a QSize object (got type '%s' instead)",
+	       qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
 	    return QSize();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qsize), &xsink);
@@ -298,8 +303,9 @@ class T {
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQPalette *qpalette = o ? (QoreQPalette *)o->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
 	 if (!qpalette) {
-	    xsink.raiseException("QSTYLE-STANDARDPALETTE-ERROR", "%s::standardPalette() did not return a QPalette object (got type '%s' instead)",
-				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
+	    if (!xsink)
+	       xsink.raiseException("QSTYLE-STANDARDPALETTE-ERROR", "%s::standardPalette() did not return a QPalette object (got type '%s' instead)",
+	       qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
 	    return QPalette();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qpalette), &xsink);
@@ -341,8 +347,9 @@ class T {
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
-	    xsink.raiseException("QSTYLE-SUBCONTROLRECT-ERROR", "%s::subControlRect() did not return a QRect object (got type '%s' instead)",
-				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
+	    if (!xsink)
+	       xsink.raiseException("QSTYLE-SUBCONTROLRECT-ERROR", "%s::subControlRect() did not return a QRect object (got type '%s' instead)",
+	       qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
 	    return QRect();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qrect), &xsink);
@@ -364,8 +371,9 @@ class T {
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
-	    xsink.raiseException("QSTYLE-SUBELEMENTRECT-ERROR", "%s::subElementRect() did not return a QRect object (got type '%s' instead)",
-				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
+	    if (!xsink)
+	       xsink.raiseException("QSTYLE-SUBELEMENTRECT-ERROR", "%s::subElementRect() did not return a QRect object (got type '%s' instead)",
+	       qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
 	    return QRect();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qrect), &xsink);

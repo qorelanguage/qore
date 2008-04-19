@@ -14,6 +14,7 @@ const opts = (
     "dialog"          : "d,dialog", 
     "style"           : "s,style",
     "validator"       : "v,validator",
+    "gitem"           : "g,graphicsitem",
     "static"          : "S,static",
     "test"            : "t,test",
     "ns"              : "N,namespace",
@@ -44,13 +45,15 @@ const qobject_list =
       "QApplication", "QCoreApplication", "QListView", "QListWidget",
       "QProgressBar", "QProgressDialog", "QLabel", "QGLWidget",
       "QSvgRenderer", "QSvgWidget", "QSplashScreen", "QSplitter",
-      "QSplitterHandle", 
+      "QSplitterHandle", "QTextDocument",
  );
 
 const abstract_class_list = 
     ( "QObject", "QWidget", "QAbstractItemDelegate", "QItemDelegate", 
       "QItemModel", "QLayout", "QStyle", "QHeaderView", "QMenuBar",
-      "QAction", "QValidator", "QIODevice" );
+      "QAction", "QValidator", "QIODevice", "QPainter", "QGraphicsItem",
+      
+    );
 
 const const_class_list = 
     ( "QPalette", "QMovie", "QPixmap", "QPicture", "QImage", "QPoint", "QPointF", 
@@ -61,7 +64,8 @@ const const_class_list =
       "QPen", "QModelIndex", "QStyleOptionViewItem", 
       "QStyleOptionViewItemV2", "QLocale", "QUrl", "QByteArray", "QVariant", 
       "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir", "QRegExp",
-      "QFileInfo", "QPainterPath", "QMatrix", "QTransform",
+      "QFileInfo", "QPainterPath", "QMatrix", "QTransform", "QTextBlock",
+      "QTextLine", "QTextOption", 
     );
 
 const class_list = ( "QRegion",
@@ -130,12 +134,25 @@ const class_list = ( "QRegion",
 		     "QGraphicsSceneHoverEvent",
 		     "QGraphicsSceneMouseEvent",
 		     "QGraphicsSceneWheelEvent",
+		     "QAbstractGraphicsShapeItem",
+		     "QGraphicsEllipseItem",
+		     "QGraphicsPathItem",
+		     "QGraphicsPolygonItem",
+		     "QGraphicsRectItem",
+		     "QGraphicsSimpleTextItem",
+		     "QGraphicsItemGroup",
+		     #"QGraphicsItem",
+		     #"QGraphicsItem",
+		     #"QGraphicsItem",
+
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
     );
 
 const spaces = "                                                                        ";
+
+const copyright = " Qore Programming Language\n\n Copyright (C) 2003 - 2008 David Nichols\n\n This library is free software; you can redistribute it and/or\n modify it under the terms of the GNU Lesser General Public\n License as published by the Free Software Foundation; either\n version 2.1 of the License, or (at your option) any later version.\n\n This library is distributed in the hope that it will be useful,\n but WITHOUT ANY WARRANTY; without even the implied warranty of\n MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU\n Lesser General Public License for more details.\n\n You should have received a copy of the GNU Lesser General Public\n License along with this library; if not, write to the Free Software\n Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA\n";
 
 our ($o, $if, $cn);
 
@@ -151,6 +168,7 @@ sub usage()
   -w,--widget              is a QWidget
   -d.--dialog              is a QDialog
   -s,--style               is a QStyle
+  -g,--graphicsitem        is a QGraphicsItem
   -q,--qt-class            add Qt class to abstract class
   -p,--parent=ARG          parent class name
   -S,--static              assume prototypes are static functions
@@ -458,9 +476,9 @@ sub add_new_build_files($fp)
 	    else if ($lines[$i + 1] =~ /add QBoxLayout namespace/) {
 		my $ns = $o.dialog ? "qdialog_ns" : "qt_ns";
 		if ($o.ns)
-		    $of.printf("   %s->addInitialNamespace(init%sNS(%s));\n", $ns, $cn, tolower($o.parent));
+		    $of.printf("   %s->addInitialNamespace(init%sNS(%s));\n", $ns, $cn, exists $o.parent ? "QC_" + $o.parent : "");
 		else
-		    $of.printf("   %s->addSystemClass(init%sClass(%s));\n", $ns, $cn, tolower($o.parent));
+		    $of.printf("   %s->addSystemClass(init%sClass(%s));\n", $ns, $cn, exists $o.parent ? "QC_" + $o.parent : "");
 	    }
 	    $of.printf("%s\n", $lines[$i]);
 	}	
@@ -489,8 +507,17 @@ sub do_abstract($of, $proto, $qt)
     $of.printf("class %s : public %s\n", $class_name, $impl_class);
     $of.printf("{\n   public:\n");
     
-    if ($qt)
-	$of.printf("      DLLLOCAL %s(QoreObject *obj, %s *%s) : %s(obj, %s)\n      {\n      }\n", $class_name, $cn, $lcn, $impl_class, $lcn);
+    if ($qt) {
+	my $qtparam = sprintf("%s%s *%s%s", 
+			      $o.gitem ? "" : "QoreObject *obj, ",
+			      $cn, $lcn,
+			      $o.gitem ? ", bool managed = false" : "");
+	my $qtarg = sprintf("%s%s%s", 
+			    $o.gitem ? "" : "obj, ", 
+			    $lcn,
+			    $o.gitem ? ", managed" : "");
+	$of.printf("      DLLLOCAL %s(%s) : %s(%s)\n      {\n      }\n", $class_name, $qtparam, $impl_class, $qtarg);
+    }
     else {
 	if (exists $proto.$cn) {
 	    foreach my $i in ($proto.$cn.inst) {
@@ -504,6 +531,8 @@ sub do_abstract($of, $proto, $qt)
 		my $str = "QoreObject *obj";
 		if (strlen($i.orig_args))
 		    $str += ", " + $i.orig_args;
+		if ($str =~ /^, /)
+		    $str = substr($str, 2);
 		$of.printf("      DLLLOCAL %s(%s) : %s(new my%s(obj%s))\n      {\n      }\n", $class_name, $str, $impl_class, $cn, $arg_names);
 	    }
 	}
@@ -658,99 +687,35 @@ sub main()
 "/*
  QoreAbstract%s.h
  
- Qore Programming Language
- 
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
- 
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
- 
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ %s 
  */
 
 #ifndef _QORE_QT_QOREABSTRACT%s_H
 
 #define _QORE_QT_QOREABSTRACT%s_H
 
-", $cn, $func_prefix, $func_prefix);
+", $cn, copyright, $func_prefix, $func_prefix);
 
 	    if (exists $o.parent)
-		$of.printf("#include \"QoreAbstract%s.h\"\n\n", $o.parent); 
+		$of.printf("#include \"QoreAbstract%s.h\"\n\n", $o.parent);
 
+	    $of.printf("class QoreAbstract%s%s\n{\n   public:\n      DLLLOCAL virtual %s *get%s() const = 0;\n};\n\n", $cn, exists $o.parent ? " : public QoreAbstract" + $o.parent : "", $cn, $cn, $func_prefix);
 
-	    $of.printf(
-"class QoreAbstract%s%s
-{
-   public:
-      DLLLOCAL virtual %s *get%s() const = 0;
-};
+            $of.printf("template<typename T, typename V>\nclass Qore%sBase : public Qore%sBase<T, V>\n{\n   public:\n      DLLLOCAL Qore%sBase(T *qo) : Qore%sBase<T, V>(qo)\n      {\n      }\n\n      DLLLOCAL virtual %s *get%s() const\n      {\n         return static_cast<%s *>(&(*this->qobj));\n      }\n};\n", $cn, $o.parent, $cn, $o.parent, $cn, $cn, $cn);
 
-", $cn, exists $o.parent ? " : public QoreAbstract" + $o.parent : "", $cn, $cn, $func_prefix);
+	    my $qtparam = $o.gitem ? "T *qo, bool managed = true" : "QoreObject *obj, T *qo";
+	    my $qtarg = $o.gitem ? "qo, managed" : "obj, qo";
+            $of.printf("\ntemplate<typename T, typename V>\nclass QoreQt%sBase : public QoreQt%sBase<T, V>\n{\n   public:\n      DLLLOCAL QoreQt%sBase(%s) : QoreQt%sBase<T, V>(%s)\n      {\n      }\n\n      DLLLOCAL virtual %s *get%s() const\n      {\n         return this->qobj;\n      }\n};\n", $cn, $o.parent, $cn, $qtparam, $o.parent, $qtarg, $cn, $cn);
 
-            $of.printf("template<typename T, typename V>
-class Qore%sBase : public Qore%sBase<T, V>
-{
-   public:
-      DLLLOCAL Qore%sBase(T *qo) : Qore%sBase<T, V>(qo)
-      {
-      }
-
-      DLLLOCAL virtual %s *get%s() const
-      {
-         return static_cast<%s *>(&(*this->qobj));
-      }      
-};
-", $cn, $o.parent, $cn, $o.parent, $cn, $cn, $cn);
-
-            $of.printf("\ntemplate<typename T, typename V>
-class QoreQt%sBase : public QoreQt%sBase<T, V>
-{
-   public:
-      DLLLOCAL QoreQt%sBase(QoreObject *obj, T *qo) : QoreQt%sBase<T, V>(obj, qo)
-      {
-      }
-
-      DLLLOCAL virtual %s *get%s() const
-      {
-         return this->qobj;
-      }
-};
-", $cn, $o.parent, $cn, $o.parent, $cn, $cn, $cn);
-
-    $of.printf("\n#endif  // _QORE_QT_QOREABSTRACT%s_H\n");
+            $of.printf("\n#endif  // _QORE_QT_QOREABSTRACT%s_H\n", $func_prefix);
 	}
 
-	$of = get_file("QC_" + $cn + ".h");
+        $of = get_file("QC_" + $cn + ".h");
 	$of.printf(
 "/*
  QC_%s.h
  
- Qore Programming Language
- 
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
- 
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
- 
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ %s
  */
 
 #ifndef _QORE_QT_QC_%s_H
@@ -758,13 +723,13 @@ class QoreQt%sBase : public QoreQt%sBase<T, V>
 #define _QORE_QT_QC_%s_H
 
 #include <%s>
-", $cn, $func_prefix, $func_prefix, $cn);
+", $cn, copyright, $func_prefix, $func_prefix, $cn);
 
 	if (exists $o.abstract_class) {
 	    $of.printf("#include \"QoreAbstract%s.h\"\n", $o.abstract_class);
 	    if (!$o.indep)
 		$of.printf("#include \"qore-qt-events.h\"\n");
-	}
+        }
 
 	$of.printf("
 DLLLOCAL extern qore_classid_t CID_%s;
@@ -803,20 +768,25 @@ DLLLOCAL extern QoreClass *QC_%s;
 	{
 	    $of.printf("class my%s : public %s%s\n", $cn, $cn, $o.dialog ? ", public QoreQDialogExtension" : 
 		       $o.widget ? ", public QoreQWidgetExtension" :  
-		       $o.validator ? ", public QoreQValidatorExtension" : ", public QoreQObjectExtension");
+		       $o.validator ? ", public QoreQValidatorExtension" : 
+		       $o.gitem ? ", public QoreQGraphicsItemExtension" :
+		       ", public QoreQObjectExtension");
             $of.printf("{\n");
             if ($o.style)
                 $of.printf("      friend class Qore%s;\n\n", $cn);
-	    $of.printf("#define QOREQTYPE %s
-#define MYQOREQTYPE my%s
-#include \"qore-qt-metacode.h\"
-%s#undef MYQOREQTYPE
-#undef QOREQTYPE
-
-   public:
-", $cn, $cn, $o.dialog ? "#include  \"qore-qt-qdialog-methods.h\"\n" : 
-		       $o.widget ? "#include \"qore-qt-widget-events.h\"\n" : 
-		       $o.validator ? "#include \"qore-qt-qvalidator-methods.h\"\n" : "");
+            $of.printf("#define QOREQTYPE %s\n#define MYQOREQTYPE my%s\n",
+		       $cn, $cn);
+            if ($o.gitem)
+                $of.printf("#include \"qore-qt-qgraphicsitem-methods.h\"\n");
+            else
+                $of.printf("#include \"qore-qt-metacode.h\"\n");
+	    if ($o.dialog)
+		$of.printf("#include  \"qore-qt-qdialog-methods.h\"\n");
+	    else if ($o.widget)
+		$of.printf("#include \"qore-qt-widget-events.h\"\n");
+	    else if ($o.validator)
+		$of.printf("#include \"qore-qt-qvalidator-methods.h\"\n");
+            $of.printf("#undef MYQOREQTYPE\n#undef QOREQTYPE\n\n   public:\n");
 	    
 	    if (exists $proto.$cn) {
 		foreach my $i in ($proto.$cn.inst) {
@@ -828,10 +798,13 @@ DLLLOCAL extern QoreClass *QC_%s;
 		    my $str = "QoreObject *obj";
 		    if (strlen($i.orig_args))
 			$str += ", " + $i.orig_args;
-		    $of.printf("      DLLLOCAL my%s(%s) : %s(%s)%s\n      {\n", $cn, $str, $cn, $arg_names,
-			       $o.dialog ? ", QoreQDialogExtension(obj, this)" :
-			       $o.widget ? ", QoreQWidgetExtension(obj, this)" :
-			       $o.validator ? ", QoreQValidatorExtension(obj, this)" : ", QoreQObjectExtension(obj, this)");
+		    my $cargs = $o.gitem ? "obj" : "obj, this";
+		    $of.printf("      DLLLOCAL my%s(%s) : %s(%s)%s(%s)\n      {\n", $cn, $str, $cn, $arg_names,
+			       $o.dialog ? ", QoreQDialogExtension" :
+			       $o.widget ? ", QoreQWidgetExtension" :
+			       $o.validator ? ", QoreQValidatorExtension" : 
+			       $o.gitem ? ", QoreQGraphicsItemExtension" :
+			       ", QoreQObjectExtension", $cargs);
 		    $of.printf("      }\n"); 
 		}
 	    }
@@ -913,23 +886,7 @@ DLLLOCAL extern QoreClass *QC_%s;
 	$of.printf("/*
  QC_%s.cc
  
- Qore Programming Language
- 
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
- 
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
- 
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ %s
  */
 
 #include <qore/Qore.h>
@@ -939,7 +896,7 @@ DLLLOCAL extern QoreClass *QC_%s;
 qore_classid_t CID_%s;
 QoreClass *QC_%s = 0;
 
-", $cn, $cn, $func_prefix, $cn);
+", $cn, copyright, $cn, $func_prefix, $cn);
     }
 
     foreach my $p in (keys $proto) {
@@ -987,7 +944,7 @@ QoreClass *QC_%s = 0;
 
         if ($o.ns) {
             # print out namespace initializer
-            $of.printf("\nQoreNamespace *init%sNS(%s)\n{\n   QoreNamespace *ns = new QoreNamespace(\"%s\");\n   ns->addSystemClass(init%sClass(%s));\n\n   return ns;\n}\n", $cn, exists $o.parent ? "QoreClass *" + tolower($o.parent) : "", $cn, $cn, tolower($o.parent)); 
+            $of.printf("\nQoreNamespace *init%sNS(%s)\n{\n   QoreNamespace *ns = new QoreNamespace(\"%s\");\n   ns->addSystemClass(init%sClass(%s));\n\n   return ns;\n}\n", $cn, exists $o.parent ? "QoreClass *" + tolower($o.parent) : "", $cn, $cn, exists $o.parent ? "QC_" + $o.parent : ""); 
         }
     }
 }
@@ -1452,6 +1409,21 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 	    }
 	    break;
 
+	    case "QList<qreal>": {
+		$lo += "if (!p || p->getType() != NT_LIST) {";
+		$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a list as %s argument to %s::%s()\");", 
+			       toupper($cn), toupper($name), ordinal[$i], $cn, $name);
+		$lo += $const ? "   return;" : "   return 0;";
+		$lo += "}";
+		$lo += sprintf("QList<qreal> %s;", $arg.name);
+		$lo += sprintf("ConstListIterator li_%s(reinterpret_cast<const QoreListNode *>(p));", $arg.name);
+		$lo += sprintf("while (li_%s.next()) {", $arg.name);
+		$lo += sprintf("   const AbstractQoreNode *n = li_%s.getValue();", $arg.name);
+		$lo += sprintf("   %s.push_back(n ? n->getAsFloat() : 0);", $arg.name);
+		$lo += "}";
+	    }
+	    break;
+
 	    case "QStringList" : {
 		#$lo += "if (!p || p->getType() != NT_LIST) {";
 		#$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a list as %s argument to %s::%s()\");", 
@@ -1742,6 +1714,15 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	    $lo += "QoreListNode *l = new QoreListNode();";
 	    $lo += "for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)";
 	    $lo += "   l->push(new QoreBigIntNode((*i)));";
+	    $lo += "return l;";
+	    break;
+	}
+
+	case "QList<qreal>": {
+	    $lo += sprintf("QList<qreal> ilist_rv = %s;", $callstr);
+	    $lo += "QoreListNode *l = new QoreListNode();";
+	    $lo += "for (QList<qreal>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)";
+	    $lo += "   l->push(new QoreFloatNode((*i)));";
 	    $lo += "return l;";
 	    break;
 	}

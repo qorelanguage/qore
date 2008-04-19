@@ -176,7 +176,19 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QGraphicsSceneWheelEvent.cc \
 	QC_QSplashScreen.cc \
 	QC_QSplitter.cc \
-	QC_QSplitterHandle.cc
+	QC_QSplitterHandle.cc \
+	QC_QGraphicsItem.cc \
+	QC_QAbstractGraphicsShapeItem.cc \
+	QC_QGraphicsEllipseItem.cc \
+	QC_QGraphicsPathItem.cc \
+	QC_QGraphicsPolygonItem.cc \
+	QC_QGraphicsRectItem.cc \
+	QC_QGraphicsSimpleTextItem.cc \
+	QC_QGraphicsItemGroup.cc \
+	QC_QGraphicsLineItem.cc \
+	QC_QGraphicsPixmapItem.cc \
+	QC_QTextLine.cc \
+	QC_QTextOption.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif
