@@ -6,12 +6,12 @@ see README-SVN to lean how to build qore from svn sources
 
 Build Requirements
 ------------------
-*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry.  flex 2.5.33 is recommended)
-qore requires this very new version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  many linux distributions ship with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.33 at:
+*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry.  flex 2.5.34 is recommended)
+qore requires this very new version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  many older linux distributions ship with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.34 at:
 	 http://sourceforge.net/projects/flex
 
 *) bison 1.85 (or better, 2.* versions are fine)
-qore requires bison 1.85 or greater to be able to interface properly with the scanner produced by flex 2.5.3[1-3]*
+qore requires bison 1.85 or greater to be able to interface properly with the scanner produced by flex 2.5.3*
 
 *) POSIX threads
 OS-level POSIX thread support is required to build qore.
@@ -31,7 +31,7 @@ for ssl support in the Socket class
 	http://www.openssl.org
 if you have the open headers and libraries in a location the configure script cannot find, then you can either use the --with-openssl-libs and --with-openssl-libraries options, or set the OPENSSL_DIR environment variable before running configure
 
-*) bzlib 1.0.4 or higher (some earlier versions may work as well)
+*) bzlib 1.0.4 or higher (earlier versions may work as well)
 
 *) zlib 1.1.3 or higher (some earlier versions will work as well)
 
@@ -52,9 +52,13 @@ if you have the open headers and libraries in a location the configure script ca
 --with-tibrv=<dir>                  : directory of TIBCO Rendezvous installation ("tibrv" module)
 --with-tibae=<dir>                  : directory of TIBCO AE SDK ("tibae" module)
 --with-tibae-tpcl=<dir>             : directory of TIBCO AE TPCL installation ("tibae" module)
+--with-tibco-ems=<dir>              : directory of TIBCO EMS installation ("tibae" module)
 --with-tuxedo=<dir>                 : directory of Bea Tuxedo installation ("tuxedo" module)
 --with-sybase=<dir>                 : directory of Sybase or Sybase OCS installation ("sybase" module)
 --with-freetds=<dir>                : directory of FreeTDS installation ("mssql" module)
+--with-opengl=<dir>                 : directory of OpenGL installation ("opengl" module)
+--with-glut=<dir>                   : directory of GLUT installation ("glut" module)
+--with-qt=<dir>                     : directory of QT4 installation ("qt" module)
 
 rarely used options
 -------------------
@@ -96,8 +100,8 @@ FreeTDS website: http://www.freetds.org
 Set the RV_ROOT environment variable to the Rendezvous directory before calling configure (or use the --with-tibrv configure option) to build the "tibrv" module for direct Rendezvous support.  Note that to build this module the libtibrvcpp library must be present; on some platforms you have to rebuild this yourself from the sources provided by TIBCO in order for it to link with the C++ compiler you are using - the sources are normally present in $RV_ROOT/src/librvcpp, normally you have to edit the Makefile provided there and then type "make" to rebuild.  I had to include "ranlib libtibrvcpp.a" on the libraries I rebuilt for OS X.  Secure daemon support is turned off by default in tibrvcpp, to enable secure daemon support edit $RV_ROOT/src/librvcpp/Makefile and uncomment the SD_MODULE line near the end of the file, rebuild, install the new library in $RV_ROOT/lib, and rerun qore's configure script
 
 *) "tibae": TIBCO AE module requires TIBCO SDK 5.2.1 or better
-If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, SDK_ROOT, and TPCL_ROOT environment variables are pointing to your Rendezvous, SDK, and TPCL directories respectively before calling configure.  Otherwise you can use the --with-tibrv, --with-tibae, and with-tibae-tpcl configure options.  The TIBCO module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
-Note that this module is not supported on HP-UX PA-RISC platforms due to the fact that the compiler requirements for aCC for the SDK are incompatible with compiling qore.
+If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, TRA_ROOT, TPCL_ROOT, and EMS_ROOT environment variables are pointing to your Rendezvous, SDK, TPCL, and EMS directories respectively before calling configure (EMS_ROOT only required for SDK 5.5 and above).  Otherwise you can use the --with-tibrv, --with-tibae, with-tibae-tpcl, and --with-tibco-ems configure options.  The "tibae" module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
+Note that newer SDKs may work with HP-UX PA-RISC 11.*, so the restriction on building this module on HP-UX PA-RISC has been removed from the configure script.
 
 *) "tuxedo": BEA Tuxedo support requores Tuxedo 8 or better
 
@@ -131,11 +135,11 @@ OS-Specific Issues
 ------------------
 *) Linux:
 there are no particular issues on Linux, this is the main development platform.
-Various distributions have been tested: FC3-5, Gentoo, Ubuntu, ARCH, etc
+Various distributions have been tested: FC3-8, Gentoo, Ubuntu, ARCH, etc
 
 *) Darwin - OS/X
 I use fink to provide libtool 1.5.10 (libtool14 package), which works for me to build shared libraries and shared modules on Darwin.  I was not able to make a build with any other version of libtool on Darwin (particularly not the version of libtool that comes with OS/X - i.e. /usr/bin/glibtool on OS/X 10.4.2 is version 1.5 and did not work for me).  Also this version seems to have a bug: it created modules with a suffix of *.so instead of *.dylib.  I have built in a workaround for this in the configure.ac script, under darwin, when builind modules, the module suffix is set to .so...
-Older builds worked fine with 10.3.8, currently the new version with shared libraries & modules has been tested only on 10.4.[2-7] with g++ 4.0.[01] (with some fink/port components) on i386 and ppc
+Older builds worked fine with 10.3.8, currently the new version with shared libraries & modules has been tested only on 10.[4-5].* with g++ 4.0.1 (with some fink/macports components) on i386 and ppc
 NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096)
 
 *) Solaris:
@@ -151,7 +155,6 @@ HP-UX builds are finally working with g++ (tested 4.1.1), however the configure 
 With aCC, PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
 With g++, PA-RISC 1.1 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
 Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.
-The TIBCO AE Adapters module (tibae) is not supported on PA-RISC because the compiler requirements are incompatible with compiling qore.
 Currently there is no fast atomic reference count support on PA-RISC platforms.
 Note that only PA-RISC builds have been tested; itanium builds are untested.
 

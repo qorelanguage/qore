@@ -1082,7 +1082,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    }
    
    // merge redirect hash keys
-   if (redirect_hash.size())
+   if (!redirect_hash.empty())
    {
       HashIterator hi(&redirect_hash);
       while (hi.next())

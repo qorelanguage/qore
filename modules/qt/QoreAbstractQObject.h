@@ -395,13 +395,15 @@ class QoreQtQObjectPrivateBase : public V
 
       DLLLOCAL virtual void emit_signal(const char *sig, const QoreListNode *args)
       {
+/*
          QByteArray theSignal = QMetaObject::normalizedSignature(sig);   
          int id = qobj->metaObject()->indexOfSignal(theSignal);
 
          if (id < 0)
             return;
-         QMetaMethod qmm = qobj->metaObject()->method(id);
+	 QMetaMethod qmm = qobj->metaObject()->method(id);
          printd(5, "%s::emit_signal(%s, %08p) static signal %d\n", qobj->metaObject()->className(), sig, args, id);
+*/
       }
 
       DLLLOCAL virtual QObject *sender() const

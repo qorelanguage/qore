@@ -127,7 +127,7 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 
    assert(xsink);
 
-   bool obe = on_block_exit_list.size();
+   bool obe = !on_block_exit_list.empty();
    // push on block exit iterator if necessary
    if (obe)
       pushBlock(on_block_exit_list.end());

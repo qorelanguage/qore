@@ -37,7 +37,7 @@ RWLock::RWLock(bool p) : readRequests(0), prefer_writers(p), num_readers(0)
 #ifdef DEBUG
 RWLock::~RWLock()
 {
-   assert(!tmap.size());
+   assert(tmap.empty());
 }
 #endif
 
@@ -128,7 +128,7 @@ int RWLock::cleanup_read_lock_intern(tid_map_t::iterator i)
       // remove map entries for this thread
       tmap.erase(i);
       vmap.erase(vi);
-      assert((tmap.size() && num_readers) || (!tmap.size() && !num_readers));
+      assert((!tmap.empty() && num_readers) || (tmap.empty() && !num_readers));
       return 0;
    }
    return -1;
@@ -189,7 +189,7 @@ void RWLock::cleanupImpl()
       
       // erase thread map entry
       tmap.erase(ti);
-      assert((tmap.size() && num_readers) || (!tmap.size() && !num_readers));
+      assert((!tmap.empty() && num_readers) || (tmap.empty() && !num_readers));
    }
    else if (tid >= 0)  // if it was the write lock
    {
