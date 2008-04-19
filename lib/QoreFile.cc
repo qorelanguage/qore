@@ -140,7 +140,7 @@ int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink)
    return rc;
 }
 
-int QoreFile::preallocate(fstore_t fs, ExceptionSink *xsink)
+int QoreFile::preallocate(fstore_t &fs, ExceptionSink *xsink)
 {
    if (!priv->is_open) {
       xsink->raiseException("FILE-PREALLOCATE-ERROR", "the file has not been opened");
