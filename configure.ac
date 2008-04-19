@@ -812,21 +812,18 @@ TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_
    fi
 fi
 
+# set TRA_ROOT to SDK_ROOT if SDK_ROOT is set and TRA_ROOT is not
+if test -n "$SDK_ROOT" -a -z "$TRA_ROOT"; then TRA_ROOT=$SDK_ROOT; fi
+
 AC_ARG_WITH([tibae],
   [AS_HELP_STRING([--with-tibae@<:@=DIR@:>@],
-		  [TIBCO Adapters SDK directory (defaults to $SDK_ROOT)])],
+		  [TIBCO Adapters SDK directory (defaults to $TRA_ROOT)])],
   [if test ! -d "${with_tibae}"; then AC_MSG_ERROR(bad value ${with_tibae} for --with-tibae); unset with_tibae; fi])
 
 AC_MSG_CHECKING([TIBCO Adapters SDK])
 if test -n "$with_tibae"; then
-   # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
-   if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
-      AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
-      unset with_tibae
-   elif test ! -e "$with_tibae/include/sdk/Maverick.h" -a ! -e "$with_tibae/include/Maverick.h"; then
-      AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk])
-   elif test -z "`ls $with_tibae/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
-      AC_MSG_ERROR([can't find libmaverick*.${SHLIB_SUFFIX} in $with_tibae/lib])
+   if test ! -e "$with_tibae/include/sdk/Maverick.h" -a ! -e "$with_tibae/include/Maverick.h"; then
+      AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk or in $with_tibae/include])
    else
       AC_MSG_RESULT([$with_tibae])
    fi
@@ -835,18 +832,40 @@ else
    if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
       AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
       unset with_tibae
-   elif test -n "$SDK_ROOT" -a \( -f "$SDK_ROOT/include/sdk/Maverick.h" -o -f "$SDK_ROOT/include/Maverick.h" \) -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
-      AC_MSG_RESULT([$SDK_ROOT])
-      with_tibae=$SDK_ROOT
+   elif test -n "$TRA_ROOT" -a \( -f "$TRA_ROOT/include/sdk/Maverick.h" -o -f "$TRA_ROOT/include/Maverick.h" \) 2>/dev/null; then
+      AC_MSG_RESULT([$TRA_ROOT])
+      with_tibae=$TRA_ROOT      
    else
       AC_MSG_RESULT([not found])
       unset with_tibae
    fi
 fi
 
+AC_ARG_WITH([tibco-ems],
+  [AS_HELP_STRING([--with-tibco-ems@<:@=DIR@:>@],
+		  [TIBCO EMS directory (defaults to $JMS_ROOT)])],
+  [if test ! -d "${with_tibco_ems}"; then AC_MSG_ERROR(bad value ${with_tibco_ems} for --with-tibco-ems); unset with_tibco_ems; fi])
+
+AC_MSG_CHECKING([TIBCO EMS])
+if test -n "$with_tibco_ems"; then
+   if test ! -e "$with_tibco_ems/clients/c/include/tibems/types.h"; then
+      AC_MSG_ERROR([can't find clients/c/include/tibems/types.h in $with_tibco_ems])
+   else
+      AC_MSG_RESULT([$with_tibco_ems])
+   fi
+else
+   if test -n "$JMS_ROOT" -a \( -f "$JMS_ROOT/clients/c/include/tibems/types.h" \) 2>/dev/null; then
+      AC_MSG_RESULT([$JMS_ROOT])
+      with_tibco_ems=$JMS_ROOT
+   else
+      AC_MSG_RESULT([not found])
+      unset with_tibco_ems
+   fi
+fi
+
 if test -n "$with_tibae"; then
    if test -z "$rv_found"; then
-      AC_MSG_WARN([TIBCO Adapters SDK found, but no Rendezvous found, disabling tibae support])
+      AC_MSG_WARN([TIBCO Adapters SDK and TRA found, but no Rendezvous found, disabling tibae support])
       unset with_tibae
    else
       AC_MSG_CHECKING([TIBCO Adapters SDK version])
@@ -895,7 +914,7 @@ if test -n "$with_tibae"; then
    fi
 fi
 
-if test -n "$with_tibae"; then
+if test -n "$with_tibae" -a -n "$with_:tibae_tra"; then
    case "$TIBCO_SDK_VERSION" in
 	4.1.2) TIBAE_LDFLAGS="-L${with_tibae}/lib -lmaverick41 -lpthread"
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
@@ -913,8 +932,17 @@ if test -n "$with_tibae"; then
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
-        5.4.*|5.5.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
+        5.4.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
                TIBAE_CPPFLAGS="-I${with_tibae}/include"
+               AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
+               ;;
+        5.5.*) if test -z "${with_tibco_ems}"; then AC_MSG_ERROR([SDK 5.5 requires TIBCO EMS, but TIBCO EMS was not found]); fi
+	       if test "$enable_64bit" = "yes"; then
+	          TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae}/lib/64 -L${with_tibae_tpcl}/lib -L${with_tibae_tpcl}/lib/64 -lmaverick55${LIBSUFFIX} -lrepowww550${LIBSUFFIX} -lxerces-c2_7 -lxerces-depdom2_7 -lssl -lcrypto -licuuc -licudata -lpthread"
+	       else
+	          TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick55${LIBSUFFIX} -lrepowww550${LIBSUFFIX} -lxerces-c2_7 -lssl -lcrypto -licuuc -licudata -lpthread"
+	       fi
+               TIBAE_CPPFLAGS="-I${with_tibae}/include -I${with_tibae}/include/xercesc -I${with_tibco_ems}/clients/c/include"
                AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
                ;;
 	*)     AC_MSG_ERROR(Unsupported TIBCO SDK Version) 
@@ -948,12 +976,12 @@ class TApp : public MApp
 
 	 ]],[[
 TApp ma(NULL);
-	]])], tibae_sdk_links=yes, tibae_sdk_links=no)
+	]])], tibae_links=yes, tibae_links=no)
 
    CPPFLAGS="$SAVE_CPPFLAGS"
    LDFLAGS="$SAVE_LDFLAGS"
 
-   if test "$tibae_sdk_links" = "no"; then
+   if test "$tibae_links" = "no"; then
       AC_MSG_RESULT([failed with this C++ compiler, try CXX=<comp> configure, disabling tibae support])
       unset with_tibae
    else
