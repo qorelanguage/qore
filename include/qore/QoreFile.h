@@ -372,8 +372,10 @@ class QoreFile {
       //! get lock info operation, does not block
       DLLEXPORT int getLockInfo(struct flock &fl, ExceptionSink *xsink);
 
+#if 0
       //! preallocates storage
       DLLEXPORT int preallocate(fstore_t &fs, ExceptionSink *xsink);
+#endif
 
       // NOTE: QoreFile::makeSpecial() can only be called right after the constructor (private API)
       DLLLOCAL void makeSpecial(int sfd);

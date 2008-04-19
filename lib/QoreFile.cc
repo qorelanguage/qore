@@ -140,6 +140,7 @@ int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink)
    return rc;
 }
 
+#ifdef 0
 int QoreFile::preallocate(fstore_t &fs, ExceptionSink *xsink)
 {
    if (!priv->is_open) {
@@ -152,6 +153,7 @@ int QoreFile::preallocate(fstore_t &fs, ExceptionSink *xsink)
       xsink->raiseException("FILE-PREALLOCATE-ERROR", "the call to fcntl(F_PREALLOCATE) failed (%d bytes allocated): %s", fs.fst_bytesalloc, strerror(errno));
    return rc;
 }
+#endif
 
 const char *QoreFile::getFileName() const
 { 
