@@ -94,7 +94,7 @@ int QoreFile::lockBlocking(struct flock &fl, ExceptionSink *xsink)
 
    int rc = fcntl(priv->fd, F_SETLKW, &fl);
    if (rc)
-      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: ", strerror(errno));
+      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: %s", strerror(errno));
    return rc;
 }
 
@@ -108,7 +108,7 @@ int QoreFile::lock(const struct flock &fl, ExceptionSink *xsink)
 
    int rc = fcntl(priv->fd, F_SETLK, &fl);
    if (rc)
-      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: ", strerror(errno));
+      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: %s", strerror(errno));
    return rc;
 }
 
@@ -122,7 +122,7 @@ int QoreFile::getLockInfo(struct flock &fl, ExceptionSink *xsink)
 
    int rc = fcntl(priv->fd, F_GETLK, &fl);
    if (rc)
-      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: ", strerror(errno));
+      xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl(F_GETLK) failed: %s", strerror(errno));
    return rc;
 }
 
@@ -135,8 +135,21 @@ int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink)
 
    int rc = fchown(priv->fd, owner, group);
    if (rc)
-      xsink->raiseException("FILE-CHOWN-ERROR", "the chown(%d, %d) operation failed: ", owner, group, strerror(errno));
+      xsink->raiseException("FILE-CHOWN-ERROR", "the chown(%d, %d) operation failed: %s", owner, group, strerror(errno));
 
+   return rc;
+}
+
+int QoreFile::preallocate(fstore_t fs, ExceptionSink *xsink)
+{
+   if (!priv->is_open) {
+      xsink->raiseException("FILE-PREALLOCATE-ERROR", "the file has not been opened");
+      return -1;
+   }
+
+   int rc = fcntl(priv->fd, F_PREALLOCATE, &fs);
+   if (rc)
+      xsink->raiseException("FILE-PREALLOCATE-ERROR", "the call to fcntl(F_PREALLOCATE) failed (%d bytes allocated): %s", fs.fst_bytesalloc, strerror(errno));
    return rc;
 }
 

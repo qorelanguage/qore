@@ -1,3 +1,9 @@
+2008.04.19: David Nichols
+	* added a public QoreFile::preallocate() method (c++ class)
+
+2008.04.18: David Nichols
+	* qt: QGraphicsItem infrastructure additions, fixes, other new classes
+
 2008.04.17: David Nichols
 	* added bzip functionality to library: bzip2(), bunzip2_to_string() and
 	  bunzip2_to_binary() functions and tests in test/test.q
