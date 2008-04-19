@@ -116,6 +116,11 @@ class ReferenceHelper {
        */
       DLLEXPORT int assign(AbstractQoreNode *val, ExceptionSink *xsink);
 
+      //! returns a constant pointer to the reference's value
+      /** @return the value of the lvalue reference (may be 0)
+       */
+      DLLEXPORT const AbstractQoreNode *getValue() const;
+
       //! swaps the values of two references
       DLLEXPORT void swap(ReferenceHelper &other);
 };

@@ -63,3 +63,8 @@ void ReferenceHelper::swap(ReferenceHelper &other)
    *other.vp = *vp;
    *vp = t;
 }
+
+const AbstractQoreNode *ReferenceHelper::getValue() const
+{
+   return *vp;
+}
