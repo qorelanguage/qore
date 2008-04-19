@@ -64,7 +64,7 @@ class QoreQWidgetExtension : public QoreQObjectExtension
 	 //*p_paintEngine,
 	 //*p_releaseDC,
 	 *p_setVisible,
-	 *p_sizeHint,
+	 *p_sizeHint
 	 ;
 
    public:
