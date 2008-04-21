@@ -570,9 +570,11 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 	 //printd(5, "loading module dependency=%s\n", dep);
 	 str = loadModuleIntern(dep, pgm);
 	 if (str) {
-	    str->replace(0, 0, "\": ");
+	    str->replace(0, 0, "': ");
 	    str->replace(0, 0, dep);
-	    str->replace(0, 0, "error loading module dependency \"");
+	    str->replace(0, 0, "' module dependency '");
+	    str->replace(0, 0, name);
+	    str->replace(0, 0, "error loading '");
 	    return str;
 	 }
       }
