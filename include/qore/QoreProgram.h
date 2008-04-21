@@ -382,6 +382,21 @@ class QoreProgram : public AbstractPrivateData
       //! returns a list of features in the program object
       DLLEXPORT QoreListNode *getFeatureList() const;
 
+      //! returns the script directory, if known
+      /** return the script directory, if known (0 if not)
+       */
+      DLLEXPORT const char *getScriptDir() const;
+
+      //! sets the script directory
+      /** @param dir the directory of the script (set to 0 to clear)
+       */
+      DLLEXPORT void setScriptDir(const char *dir);
+
+      //! sets the script directory from the path
+      /** @param path the full path of the script (set to 0 to clear)
+       */
+      DLLEXPORT void setScriptDirFromPath(const char *path);
+
       /// returns a pointed to the given user function if it exists (otherwise returns 0)
       DLLLOCAL class UserFunction *findUserFunction(const char *name);
       

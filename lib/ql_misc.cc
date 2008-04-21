@@ -1081,6 +1081,17 @@ static AbstractQoreNode *f_decode_url(const QoreListNode *params, ExceptionSink 
    return str;
 }
 
+// returns a string with percent-encodings substituted for characters
+static AbstractQoreNode *f_get_script_dir(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const char *dir = getProgram()->getScriptDir();
+   if (!dir)
+      return 0;
+   QoreStringNode *str = new QoreStringNode(dir);
+   str->concat('/');
+   return str;
+}
+
 void init_misc_functions()
 {
    // register builtin functions in this file
@@ -1119,6 +1130,7 @@ void init_misc_functions()
    builtinFunctions.add("set_signal_handler", f_set_signal_handler, QDOM_PROCESS);
    builtinFunctions.add("remove_signal_handler", f_remove_signal_handler, QDOM_PROCESS);
    builtinFunctions.add("decode_url", f_decode_url);
+   builtinFunctions.add("get_script_dir", f_get_script_dir);
    
    // deprecated with stupid capitalization
    builtinFunctions.add("hexToInt", f_hextoint);

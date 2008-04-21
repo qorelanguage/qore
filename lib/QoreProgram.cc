@@ -39,6 +39,7 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <memory>
 
 extern QoreListNode *ARGV, *QORE_ARGV;
 extern class QoreHashNode *ENV;
@@ -113,7 +114,7 @@ struct qore_program_private {
       int parse_options;
       int warn_mask;
       bool po_locked, exec_class, base_object, requires_exception;
-      std::string exec_class_name;
+      std::string exec_class_name, script_dir;
       pthread_key_t thread_local_storage;
 
       DLLLOCAL qore_program_private()
@@ -204,28 +205,24 @@ struct qore_program_private {
 	 
 	 if (!(*code))
 	    return 0;
-	 
-	 // insert name for buffer in case of errors
-	 QoreString s;
-	 s.sprintf("<run-time-loaded: %s>", label);
-	 
+
 	 // save this file name for storage in the parse tree and deletion
 	 // when the QoreProgram object is deleted
-	 char *sname = strdup(s.getBuffer());
+	 char *sname = strdup(label);
 	 fileList.push_back(sname);
 	 beginParsing(sname);
-	 
+
 	 // no need to save buffer, because it's deleted automatically in lexer
-	 
+
 	 printd(5, "QoreProgram::internParsePending() parsing tag=%s (%08p): '%s'\n", label, label, code);
-	 
+
 	 yyscan_t lexer;
 	 yylex_init(&lexer);
 	 yy_scan_string(code, lexer);
 	 yyset_lineno(1, lexer);
 	 // yyparse() will call endParsing() and restore old pgm position
 	 yyparse(lexer);
-	 
+
 	 printd(5, "QoreProgram::internParsePending() returned from yyparse()\n");
 	 int rc = 0;
 	 if (parseSink->isException())
@@ -235,32 +232,31 @@ struct qore_program_private {
 	    internParseRollback();
 	    requires_exception = false;
 	 }
-	 
+
 	 printd(5, "QoreProgram::internParsePending() about to call yylex_destroy()\n");
 	 yylex_destroy(lexer);
 	 printd(5, "QoreProgram::internParsePending() returned from yylex_destroy()\n");
 	 return rc;
       }
 
-      void parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm)
+      int parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm)
       {
 	 // grab program-level parse lock
-	 plock.lock();
+	 AutoLocker al(&plock);
 	 warnSink = wS;
 	 warn_mask = wm;
-	 
+
 	 parseSink = xsink;
-	 internParsePending(code, label);
+	 int rc = internParsePending(code, label);
 	 warnSink = 0;
 #ifdef DEBUG
 	 parseSink = 0;
 #endif
-	 // release program-level parse lock
-	 plock.unlock();
+	 return rc;
       }
 
       // caller must have grabbed the lock and put the current program on the program stack
-      void internParseCommit()
+      int internParseCommit()
       {
 	 tracein("QoreProgram::internParseCommit()");
 	 printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, parseSink->isEvent());
@@ -285,10 +281,12 @@ struct qore_program_private {
 	 
 	 // if a parse exception has occurred, then back out all new
 	 // changes to the QoreProgram atomically
+	 int rc;
 	 if (parseSink->isEvent())
 	 {
 	    internParseRollback();
 	    requires_exception = false;
+	    rc = -1;
 	 }
 	 else // otherwise commit them
 	 {
@@ -300,29 +298,30 @@ struct qore_program_private {
 	    
 	    // commit pending statements
 	    nextSB();
+
+	    rc = 0;
 	 }
-	 traceout("QoreProgram::internParseCommit()");
+	 return rc;
       }
 
-      void parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm)
+      int parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm)
       {
 	 // grab program-level parse lock
-	 plock.lock();
+	 AutoLocker al(&plock);
 	 warnSink = wS;
 	 warn_mask = wm;
 	 parseSink = xsink;
-	 
+
 	 // finalize parsing, back out or commit all changes
-	 internParseCommit();
-	 
+	 int rc = internParseCommit();
+
 #ifdef DEBUG
 	 parseSink = 0;
 #endif   
 	 warnSink = 0;
 	 // release program-level parse lock
-	 plock.unlock();
+	 return rc;
       }
-
 };
 
 // note the number and order of the warnings has to correspond to those in QoreProgram.h
@@ -985,8 +984,7 @@ void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, Except
    // if already at the end of file, then return
    // try to get one character from file
    int c = fgetc(fp);
-   if (feof(fp))
-   {
+   if (feof(fp)) {
       printd(5, "QoreProgram::parse(fp=%08p, name=%s) EOF\n", fp, name);
       return;
    }
@@ -998,7 +996,7 @@ void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, Except
    priv->warnSink = wS;
    priv->warn_mask = wm;
    priv->parseSink = xsink;
-   
+
    // save this file name for storage in the parse tree and deletion
    // when the QoreProgram object is deleted
    char *sname = strdup(name);
@@ -1056,7 +1054,7 @@ void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsin
    priv->warnSink = wS;
    priv->warn_mask = wm;
    priv->parseSink = xsink;
-   
+
    // parse text given
    if (!priv->internParsePending(code, label))
       priv->internParseCommit();   // finalize parsing, back out or commit all changes
@@ -1076,16 +1074,13 @@ void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, Exceptio
    printd(5, "QoreProgram::parseFile(%s)\n", filename);
 
    FILE *fp;
-   if (!(fp = fopen(filename, "r")))
-   {
+   if (!(fp = fopen(filename, "r"))) {
       xsink->raiseException("PARSE-EXCEPTION", "cannot open qore script '%s': %s", filename, strerror(errno));
-      traceout("QoreProgram::parseFile()");
       return;
    }
    ON_BLOCK_EXIT(fclose, fp);
 
    parse(fp, filename, xsink, wS, wm);
-   traceout("QoreProgram::parseFile()");
 }
 
 void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm)
@@ -1377,4 +1372,27 @@ void QoreProgram::tc_inc()
 void QoreProgram::tc_dec()
 {
    priv->tcount.dec();
+}
+
+const char *QoreProgram::getScriptDir() const
+{
+   return priv->script_dir.empty() ? 0 : priv->script_dir.c_str();
+}
+
+void QoreProgram::setScriptDir(const char *dir)
+{
+   if (!dir)
+      priv->script_dir.clear();
+   else
+      priv->script_dir = dir;
+}
+
+void QoreProgram::setScriptDirFromPath(const char *path)
+{
+   if (!path)
+      priv->script_dir.clear();
+   else {
+      std::auto_ptr<char> dir(q_dirname(path));
+      priv->script_dir = dir.get();
+   }
 }

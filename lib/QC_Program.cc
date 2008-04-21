@@ -52,16 +52,24 @@ static AbstractQoreNode *PROGRAM_parse(QoreObject *self, QoreProgram *p, const Q
       return 0;
    }
 
+   // format label as "<run-time-loaded: xxx>"
+   QoreString label("<run-time-loaded: ");
+   label.concat(p1, xsink);
+   if (*xsink)
+      return 0;
+   label.concat('>');
+
    // see if a warning mask was passed
    const AbstractQoreNode *p2 = get_param(params, 2);
    int warning_mask = p2 ? p2->getAsInt() : 0;
 
    if (!warning_mask) {
-      p->parse(p0, p1, xsink);
+      p->parse(p0, &label, xsink);
       return 0;
    }
+
    ExceptionSink wsink;
-   p->parse(p0, p1, xsink, &wsink, warning_mask);
+   p->parse(p0, &label, xsink, &wsink, warning_mask);
    if (!wsink.isException())
       return 0;
 
@@ -79,16 +87,23 @@ static AbstractQoreNode *PROGRAM_parsePending(QoreObject *self, QoreProgram *p, 
       return 0;
    }
 
+   // format label as "<run-time-loaded: xxx>"
+   QoreString label("<run-time-loaded: ");
+   label.concat(p1, xsink);
+   if (*xsink)
+      return 0;
+   label.concat('>');
+
    // see if a warning mask was passed
    const AbstractQoreNode *p2 = get_param(params, 2);
    int warning_mask = p2 ? p2->getAsInt() : 0;
 
    if (!warning_mask) {
-      p->parsePending(p0, p1, xsink);
+      p->parsePending(p0, &label, xsink);
       return 0;
    }
    ExceptionSink wsink;
-   p->parsePending(p0, p1, xsink, &wsink, warning_mask);
+   p->parsePending(p0, &label, xsink, &wsink, warning_mask);
    if (!wsink.isException())
       return 0;
 
@@ -244,11 +259,25 @@ static class QoreClass *PROGRAM_disableParseOptions(QoreObject *self, QoreProgra
    return 0;
 }
 
-class QoreClass *initProgramClass()
+static AbstractQoreNode *PROGRAM_setScriptDir(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *p0 = test_string_param(params, 0);
+
+   p->setScriptDir(p0 ? p0->getBuffer() : 0);
+   return 0;
+}
+
+static AbstractQoreNode *PROGRAM_getScriptDir(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const char *str = p->getScriptDir();
+   return str ? new QoreStringNode(str) : 0;
+}
+
+QoreClass *initProgramClass()
 {
    tracein("initProgramClass()");
 
-   class QoreClass *QC_PROGRAM = new QoreClass("Program");
+   QoreClass *QC_PROGRAM = new QoreClass("Program");
    CID_PROGRAM = QC_PROGRAM->getID();
    QC_PROGRAM->setConstructor(PROGRAM_constructor);
    QC_PROGRAM->setCopy((q_copy_t)PROGRAM_copy);
@@ -265,6 +294,8 @@ class QoreClass *initProgramClass()
    QC_PROGRAM->addMethod("getUserFunctionList",  (q_method_t)PROGRAM_getUserFunctionList);
    QC_PROGRAM->addMethod("setParseOptions",      (q_method_t)PROGRAM_setParseOptions);
    QC_PROGRAM->addMethod("disableParseOptions",  (q_method_t)PROGRAM_disableParseOptions);
+   QC_PROGRAM->addMethod("setScriptDir",         (q_method_t)PROGRAM_setScriptDir);
+   QC_PROGRAM->addMethod("getScriptDir",         (q_method_t)PROGRAM_getScriptDir);
 
    traceout("initProgramClass()");
    return QC_PROGRAM;
