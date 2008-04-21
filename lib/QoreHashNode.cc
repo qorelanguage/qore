@@ -606,6 +606,11 @@ qore_size_t QoreHashNode::size() const
    return priv->len; 
 }
 
+bool QoreHashNode::empty() const
+{
+   return !priv->len;
+}
+
 void QoreHashNode::clearNeedsEval()
 {
    value = true;

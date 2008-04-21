@@ -802,6 +802,11 @@ qore_size_t QoreListNode::size() const
    return priv->length;
 }
 
+bool QoreListNode::empty() const
+{
+   return !priv->length;
+}
+
 void QoreListNode::clearNeedsEval()
 {
    value = true;

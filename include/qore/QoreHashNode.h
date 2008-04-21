@@ -331,6 +331,11 @@ class QoreHashNode : public AbstractQoreNode
        */
       DLLEXPORT qore_size_t size() const;
 
+      //! returns true if the hash has no members, false if not
+      /** return true if the hash has no members, false if not
+       */
+      DLLEXPORT bool empty() const;
+
       DLLLOCAL QoreHashNode(bool ne);
       DLLLOCAL void clear(ExceptionSink *xsink);
 

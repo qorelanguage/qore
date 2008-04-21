@@ -371,7 +371,14 @@ class QoreListNode : public AbstractQoreNode
       DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const AbstractQoreNode *l, class ExceptionSink *xsink);
 
       //! returns the number of elements in the list
+      /** return the number of elements in the list
+       */
       DLLEXPORT qore_size_t size() const;
+
+      //! returns true if the list is empty
+      /** return true if the list is empty
+       */
+      DLLEXPORT bool empty() const;
 
       //! returns a list with the order of the elements reversed
       DLLEXPORT QoreListNode *reverse() const;

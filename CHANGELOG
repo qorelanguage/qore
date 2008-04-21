@@ -1,3 +1,6 @@
+2008.04.21: David Nichols
+	* added QoreHashNode::empty() and QoreListNode::empty() functions
+
 2008.04.19: David Nichols
 	* added a public QoreFile::preallocate() method (c++ class)
 
