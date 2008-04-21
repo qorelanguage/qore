@@ -139,32 +139,32 @@ class MoviePlayer inherits QWidget
 	my $iconSize = new QSize(36, 36);
 	
 	$.openButton = new QToolButton();
-	$.openButton.setIcon(new QIcon("images/open.png"));
+	$.openButton.setIcon(new QIcon($dir + "images/open.png"));
 	$.openButton.setIconSize($iconSize);
 	$.openButton.setToolTip(TR("Open File"));
 	$.connect($.openButton, SIGNAL("clicked()"), SLOT("open()"));
 
 	$.playButton = new QToolButton();
-	$.playButton.setIcon(new QIcon("images/play.png"));
+	$.playButton.setIcon(new QIcon($dir + "images/play.png"));
 	$.playButton.setIconSize($iconSize);
 	$.playButton.setToolTip(TR("Play"));
 	$.movie.connect($.playButton, SIGNAL("clicked()"), SLOT("start()"));
 
 	$.pauseButton = new QToolButton();
 	$.pauseButton.setCheckable(True);
-	$.pauseButton.setIcon(new QIcon("images/pause.png"));
+	$.pauseButton.setIcon(new QIcon($dir + "images/pause.png"));
 	$.pauseButton.setIconSize($iconSize);
 	$.pauseButton.setToolTip(TR("Pause"));
 	$.movie.connect($.pauseButton, SIGNAL("clicked(bool)"), SLOT("setPaused(bool)"));
 
 	$.stopButton = new QToolButton();
-	$.stopButton.setIcon(new QIcon("images/stop.png"));
+	$.stopButton.setIcon(new QIcon($dir + "images/stop.png"));
 	$.stopButton.setIconSize($iconSize);
 	$.stopButton.setToolTip(TR("Stop"));
 	$.movie.connect($.stopButton, SIGNAL("clicked()"), SLOT("stop()"));
 	
 	$.quitButton = new QToolButton();
-	$.quitButton.setIcon(new QIcon("images/quit.png"));
+	$.quitButton.setIcon(new QIcon($dir + "images/quit.png"));
 	$.quitButton.setIconSize($iconSize);
 	$.quitButton.setToolTip(TR("Quit"));
 	$.connect($.quitButton, SIGNAL("clicked()"), SLOT("close()"));
@@ -185,6 +185,8 @@ class movieplayer_example inherits QApplication
 {
     constructor()
     {
+	our $dir = get_script_dir();
+
         my $player = new MoviePlayer();
         $player.show();
         $.exec();

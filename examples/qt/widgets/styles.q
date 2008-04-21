@@ -35,8 +35,8 @@ class NorwegianWoodStyle inherits QMotifStyle
 	my $beige = new QColor(236, 182, 120);
 	my $slightlyOpaqueBlack = new QColor(0, 0, 0, 63);
 
-	my $backgroundImage = new QPixmap("images/woodbackground.png");
-	my $buttonImage = new QPixmap("images/woodbutton.png");
+	my $backgroundImage = new QPixmap($dir + "images/woodbackground.png");
+	my $buttonImage = new QPixmap($dir + "images/woodbutton.png");
 	my $midImage = $buttonImage.copy();
         
 	my $painter = new QPainter();
@@ -460,8 +460,11 @@ class styles_example inherits QApplication
 {
     constructor()
     {
+	# get script directory for loading resources
+	our $dir = get_script_dir();
+      
 	# check for texture resources
-	if (!is_file("images/woodbackground.png") || !is_file("images/woodbutton.png")) {
+	if (!is_file($dir + "images/woodbackground.png") || !is_file($dir + "images/woodbutton.png")) {
 	    QMessageBox_information(0, TR("Style Example"), TR("Cannot load bitmap resources required for style; try running in the same directory as the script"));
 	    exit(1);
 	}

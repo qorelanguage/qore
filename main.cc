@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
 	 qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
       else if (program_file_name) {
 	 qpgm->parseFile(program_file_name, &xsink, &wsink, warnings);
+	 qpgm->setScriptDirFromPath(program_file_name);
 	 free(program_file_name);
       }
       else

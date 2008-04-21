@@ -25,8 +25,8 @@ class ClassWizard inherits QWizard
 	$.addPage(new OutputFilesPage());
 	$.addPage(new ConclusionPage());
 
-	$.setPixmap(QWizard::BannerPixmap, new QPixmap("images/banner.png"));
-	$.setPixmap(QWizard::BackgroundPixmap, new QPixmap("images/background.png"));
+	$.setPixmap(QWizard::BannerPixmap, new QPixmap($dir + "images/banner.png"));
+	$.setPixmap(QWizard::BackgroundPixmap, new QPixmap($dir + "images/background.png"));
 
 	$.setWindowTitle(TR("Class Wizard"));
     }
@@ -68,9 +68,7 @@ class ClassWizard inherits QWizard
 	$block += "\n";
 	$block += "{\n";
 
-	/* qmake ignore Q_OBJECT */
-
-	    if ($.field("qobjectMacro")) {
+	if ($.field("qobjectMacro")) {
 		$block += "    Q_OBJECT\n";
 		$block += "\n";
 	}
@@ -169,7 +167,7 @@ class IntroPage inherits QWizardPage
     constructor($parent) : QWizardPage($parent)
     {
 	$.setTitle(TR("Introduction"));
-	$.setPixmap(QWizard::WatermarkPixmap, new QPixmap("images/watermark1.png"));
+	$.setPixmap(QWizard::WatermarkPixmap, new QPixmap($dir + "images/watermark1.png"));
 
 	$.label = new QLabel(TR("this wizard will generate a skeleton C++ class "
 				"definition, including a few functions. You simply "
@@ -196,7 +194,7 @@ class ClassInfoPage inherits QWizardPage
 	 $.setTitle(TR("Class Information"));
 	 $.setSubTitle(TR("Specify basic information about the class for which you "
 			  "want to generate skeleton source code files."));
-	 $.setPixmap(QWizard::LogoPixmap, new QPixmap("images/logo1.png"));
+	 $.setPixmap(QWizard::LogoPixmap, new QPixmap($dir + "images/logo1.png"));
 
 	 $.classNameLabel = new QLabel(TR("&Class name:"));
 	 $.classNameLineEdit = new QLineEdit();
@@ -255,7 +253,7 @@ class CodeStylePage inherits QWizardPage
      {
 	 $.setTitle(TR("Code Style Options"));
 	 $.setSubTitle(TR("Choose the formatting of the generated code."));
-	 $.setPixmap(QWizard::LogoPixmap, new QPixmap("images/logo2.png"));
+	 $.setPixmap(QWizard::LogoPixmap, new QPixmap($dir + "images/logo2.png"));
 
 	 $.commentCheckBox = new QCheckBox(TR("&Start generated files with a "
 					    "comment"));
@@ -329,7 +327,7 @@ class OutputFilesPage inherits QWizardPage
 	$.setTitle(TR("Output Files"));
 	$.setSubTitle(TR("Specify where you want the wizard to put the generated "
 			 "skeleton code."));
-	$.setPixmap(QWizard::LogoPixmap, new QPixmap("images/logo3.png"));
+	$.setPixmap(QWizard::LogoPixmap, new QPixmap($dir + "images/logo3.png"));
 
 	$.outputDirLabel = new QLabel(TR("&Output directory:"));
 	$.outputDirLineEdit = new QLineEdit();
@@ -373,7 +371,7 @@ class ConclusionPage inherits QWizardPage
     constructor($parent) : QWizardPage($parent)
     {
 	$.setTitle(TR("Conclusion"));
-	$.setPixmap(QWizard::WatermarkPixmap, new QPixmap("images/watermark2.png"));
+	$.setPixmap(QWizard::WatermarkPixmap, new QPixmap($dir + "images/watermark2.png"));
 
 	$.label = new QLabel();
 	$.label.setWordWrap(True);
@@ -395,6 +393,8 @@ class classwizard_example inherits QApplication
 {
     constructor()
     {      
+	our $dir = get_script_dir();
+
 	my $translatorFileName = "qt_";
 	$translatorFileName += QLocale_system().name();
 	my $translator = new QTranslator(QAPP());

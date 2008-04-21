@@ -61,19 +61,19 @@ class ConfigDialog inherits QDialog
     private createIcons()
     {
 	my $configButton = new QListWidgetItem($.contentsWidget);
-	$configButton.setIcon(new QIcon("images/config.png"));
+	$configButton.setIcon(new QIcon($dir + "images/config.png"));
 	$configButton.setText(TR("Configuration"));
 	$configButton.setTextAlignment(Qt::AlignHCenter);
 	$configButton.setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
 	my $updateButton = new QListWidgetItem($.contentsWidget);
-	$updateButton.setIcon(new QIcon("images/update.png"));
+	$updateButton.setIcon(new QIcon($dir + "images/update.png"));
 	$updateButton.setText(TR("Update"));
 	$updateButton.setTextAlignment(Qt::AlignHCenter);
 	$updateButton.setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
 	my $queryButton = new QListWidgetItem($.contentsWidget);
-	$queryButton.setIcon(new QIcon("images/query.png"));
+	$queryButton.setIcon(new QIcon($dir + "images/query.png"));
 	$queryButton.setText(TR("Query"));
 	$queryButton.setTextAlignment(Qt::AlignHCenter);
 	$queryButton.setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
@@ -211,7 +211,9 @@ class UpdatePage inherits QWidget
 class configdialog_example inherits QApplication
 {
     constructor()
-    {      
+    {
+	our $dir = get_script_dir();
+
 	my $dialog = new ConfigDialog();
 	$dialog.show();
 	

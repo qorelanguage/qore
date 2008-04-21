@@ -119,9 +119,9 @@ class Window inherits QWidget
 	$.iconLabel = new QLabel("Icon:");
 
 	$.iconComboBox = new QComboBox();
-	$.iconComboBox.addItem(new QIcon("images/bad.svg"), TR("Bad"));
-	$.iconComboBox.addItem(new QIcon("images/heart.svg"), TR("Heart"));
-	$.iconComboBox.addItem(new QIcon("images/trash.svg"), TR("Trash"));
+	$.iconComboBox.addItem(new QIcon($dir + "images/bad.svg"), TR("Bad"));
+	$.iconComboBox.addItem(new QIcon($dir + "images/heart.svg"), TR("Heart"));
+	$.iconComboBox.addItem(new QIcon($dir + "images/trash.svg"), TR("Trash"));
 
 	$.showIconCheckBox = new QCheckBox(TR("Show icon"));
 	$.showIconCheckBox.setChecked(True);
@@ -223,6 +223,8 @@ class systray_example inherits QApplication
 {
     constructor()
     {
+        our $dir = get_script_dir();
+
 	if (!QSystemTrayIcon_isSystemTrayAvailable()) {
 	    QMessageBox_critical(0, TR("Systray"),
 				 TR("I couldn't detect any system tray on this system."));

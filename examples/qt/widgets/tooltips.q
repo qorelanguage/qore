@@ -34,11 +34,11 @@ class SortingBox inherits QWidget
 
 	$.itemInMotion = 0;
 
-	$.newCircleButton = $.createToolButton(TR("New Circle"), new QIcon("images/circle.png"), SLOT("createNewCircle()"));
+	$.newCircleButton = $.createToolButton(TR("New Circle"), new QIcon($dir + "images/circle.png"), SLOT("createNewCircle()"));
 
-	$.newSquareButton = $.createToolButton(TR("New Square"), new QIcon("images/square.png"), SLOT("createNewSquare()"));
+	$.newSquareButton = $.createToolButton(TR("New Square"), new QIcon($dir + "images/square.png"), SLOT("createNewSquare()"));
 
-	$.newTriangleButton = $.createToolButton(TR("New Triangle"), new QIcon("images/triangle.png"), SLOT("createNewTriangle()"));
+	$.newTriangleButton = $.createToolButton(TR("New Triangle"), new QIcon($dir + "images/triangle.png"), SLOT("createNewTriangle()"));
 
 	$.circlePath.addEllipse(new QRectF(0, 0, 100, 100));
 	$.squarePath.addRect(new QRectF(0, 0, 100, 100));
@@ -286,6 +286,8 @@ class tooltips_example inherits QApplication
 	our $square_count = 1;
 	our $triangle_count = 1;
 
+        our $dir = get_script_dir();
+        
         qsrand(int(now() - get_midnight(now())));
 	my $sortingBox = new SortingBox();
 	$sortingBox.show();

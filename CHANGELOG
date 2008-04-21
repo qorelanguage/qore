@@ -2,6 +2,12 @@
 	* added QoreHashNode::empty() and QoreListNode::empty() functions
 	* implemented module dependencies, added "opengl" as a dependency of the
 	  "glut" module
+	* added ability to save the script directory to the QoreProgram class
+	* added the get_script_dir() function to get the script directory
+	* added the Program::getScriptDir() and Program::setScriptDir() methods
+	* use the new get_script_dir() function in qt example scripts to find
+	  resources when the scripts are not started in the same directory of
+	  the script
 
 2008.04.19: David Nichols
 	* added a public QoreFile::preallocate() method (c++ class)

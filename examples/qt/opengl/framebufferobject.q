@@ -38,11 +38,11 @@ class GLWidget inherits QGLWidget
 	$.connect($.anim, SIGNAL("valueChanged(qreal)"), SLOT("animate(qreal)"));
 	$.connect($.anim, SIGNAL("finished()"), SLOT("animFinished()"));
 
-	$.svg_renderer = new QSvgRenderer("images/bubbles.svg", $self);
+	$.svg_renderer = new QSvgRenderer($dir + "images/bubbles.svg", $self);
 	printf("svg_renderer valid=%N\n", $.svg_renderer.isValid());
 	$.connect($.svg_renderer, SIGNAL("repaintNeeded()"), SLOT("draw()"));
 
-	$.logo = new QImage("images/qt4-logo.png");
+	$.logo = new QImage($dir + "images/qt4-logo.png");
 	printf("logo valid=%N\n", !$.logo.isNull());
 	$.logo = $.logo.convertToFormat(QImage::Format_ARGB32);
 	printf("logo valid=%N\n", !$.logo.isNull());
@@ -296,6 +296,7 @@ class GLWidget inherits QGLWidget
 class framebufferobject inherits QApplication 
 {
     constructor() {
+        our $dir = get_script_dir();
 	our $scale_in = True;
 
 	if (!QGLFormat_hasOpenGL()) {
