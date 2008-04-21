@@ -34,11 +34,16 @@
 #define QORE_MODULE_API_MAJOR 0 //!< the major number of the Qore module API implemented
 #define QORE_MODULE_API_MINOR 4 //!< the minor number of the Qore module API implemented
 
+class QoreNamespace;
+class QoreStringNode;
+class QoreListNode;
+class ExceptionSink;
+
 //! signature of the module constructor/initialization function
-typedef class QoreStringNode *(*qore_module_init_t)();
+typedef QoreStringNode *(*qore_module_init_t)();
 
 //! signature of the module namespace change/delta function
-typedef void (*qore_module_ns_init_t)(class QoreNamespace *, class QoreNamespace *);
+typedef void (*qore_module_ns_init_t)(QoreNamespace *root_ns, QoreNamespace *qore_ns);
 
 //! signature of the module destructor function
 typedef void (*qore_module_delete_t)();
@@ -56,13 +61,11 @@ class ModuleInfo;
 class ModuleManager
 {
    private:
-      DLLLOCAL static bool show_errors;
-      DLLLOCAL static class QoreThreadLock mutex;
-      
       DLLLOCAL static void add(ModuleInfo *m);
       DLLLOCAL static void addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
       DLLLOCAL static ModuleInfo *add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
-      DLLLOCAL static class QoreStringNode *loadModuleFromPath(const char *path, const char *feature = 0, ModuleInfo **mi = 0);
+      DLLLOCAL static QoreStringNode *loadModuleIntern(const char *name, QoreProgram *pgm);
+      DLLLOCAL static QoreStringNode *loadModuleFromPath(const char *path, const char *feature = 0, ModuleInfo **mi = 0, QoreProgram *pgm = 0);
       DLLLOCAL static ModuleInfo *find(const char *name);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -97,33 +100,48 @@ class ModuleManager
       DLLEXPORT static void addAutoModuleDirList(const char *strlist);
 
       //! retuns a list of module information hashes, caller owns the list reference returned
-      DLLEXPORT static class QoreListNode *getModuleList();
+      DLLEXPORT static QoreListNode *getModuleList();
 
-      //! loads the named module at parse time, returns a non-0 QoreStringNode if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
+      //! loads the named module at parse time, returns a non-0 QoreStringNode pointer if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
       /** if the feature is already loaded, then the function returns immediately without raising an error
+	  The feature's namespace changes are added to the QoreProgram object if the feature is loaded and the pgm argument is non-zero.
 	  @param name can be either a feature name or the full path to the module file
 	  @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
        */
-      DLLEXPORT static class QoreStringNode *parseLoadModule(const char *name, class QoreProgram *pgm = 0);
+      DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
 
       //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
-      /** if the feature is already loaded, then the function returns immediately without raising an error
+      /** If the feature is already loaded, then the function returns immediately without raising an error.
+	  The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
 	  @param name can be either a feature name or the full path to the module file
 	  @param xsink if any errors are encountered loading the module, then a Qore-language "LOAD-MODULE-ERROR" exception is raised here
 	  @return -1 if an exception was raised, 0 for OK
        */
-      DLLEXPORT static int runTimeLoadModule(const char *name, class ExceptionSink *xsink);
+      DLLEXPORT static int runTimeLoadModule(const char *name, ExceptionSink *xsink);
 
-      //! creates the ModuleManager object
+      //! loads the named module from within a module initialization function; returns a non-0 QoreStringNode pointer if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
+      /** if the feature is already loaded, then the function returns immediately without raising an error
+	  @param name can be either a feature name or the full path to the module file
+       */
+      DLLEXPORT static QoreStringNode *loadModuleDependency(const char *name);
+
+      //! creates the ModuleManager object (private)
+      /** private interface; not exported in the library's public API
+       */
       DLLLOCAL ModuleManager();
 
-      //! explicit initialization and autoloading
+      //! explicit initialization and autoloading (private)
+      /** private interface; not exported in the library's public API
+       */
       DLLLOCAL static void init(bool se);      
 
-      //! explicit cleanup
+      //! explicit cleanup (private)
+      /** private interface; not exported in the library's public API
+       */
       DLLLOCAL static void cleanup();
 };
 
-DLLEXPORT extern class ModuleManager MM;
+//! the global ModuleManager object
+DLLEXPORT extern ModuleManager MM;
 
 #endif // _QORE_MODULEMANAGER_H

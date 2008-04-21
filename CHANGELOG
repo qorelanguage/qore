@@ -1,5 +1,7 @@
 2008.04.21: David Nichols
 	* added QoreHashNode::empty() and QoreListNode::empty() functions
+	* implemented module dependencies, added "opengl" as a dependency of the
+	  "glut" module
 
 2008.04.19: David Nichols
 	* added a public QoreFile::preallocate() method (c++ class)

@@ -41,7 +41,6 @@
 
 %require-our
 
-%requires opengl
 %requires glut
 
 const RAD = 57.295;

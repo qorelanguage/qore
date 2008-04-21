@@ -1,9 +1,9 @@
 #!/usr/bin/env qore
 
-%requires opengl
+# the glut module automatically loads the opengl module
 %requires glut
 
-    const Scale = 0.3;
+const Scale = 0.3;
 
 # Increasing this values produces better image quality, the price is speed.
 # Very low values produces erroneous/incorrect plotting

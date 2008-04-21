@@ -27,7 +27,8 @@ for information on how to build and install qore from sources - some quick infor
  * requires libxml2 headers and libraries; libxml2 support is no longer optional
  * requires pcre headers and libraries for perl5-compatible regex support; POSIX regex support is no longer used
  * requires openssl headers and libraries
- * optionally support for Oracle, MySQL, PostgreSQL, Sybase, MS SQL Server, ncurses, TIBCO Rendezvous, TIBCO AE Adapters, and Bea Tuxedo can be built
+ * requires zlib and bzlib headers and libraries as well
+ * optionally support for Oracle, MySQL, PostgreSQL, Sybase, MS SQL Server, ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvous, TIBCO AE Adapters, and Bea Tuxedo can be built
 (see BUILD for details)
 
 docs/qore.html

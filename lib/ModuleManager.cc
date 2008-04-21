@@ -41,13 +41,13 @@
 
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
 
-class ModuleManager MM;
+ModuleManager MM;
 
 typedef std::map<const char *, ModuleInfo *, class ltstr> module_map_t;
 static module_map_t map;
 
-bool ModuleManager::show_errors = false;
-class QoreThreadLock ModuleManager::mutex;
+static bool show_errors = false;
+static QoreThreadLock mutex;
 
 #ifdef QORE_MONOLITHIC
 // for non-shared builds of the qore library, initialize all optional components here
@@ -355,27 +355,23 @@ int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink)
 
    QoreStringNode *err = parseLoadModule(name, pgm);
    sl.unlock();
-   if (err)
-   {
+   if (err) {
       xsink->raiseException("LOAD-MODULE-ERROR", err);
       return -1;
    }
    return 0;
 }
 
-QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm)
+QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *pgm)
 {
    // if the feature already exists in this program, then return
    if (pgm && !pgm->checkFeature(name))
       return 0;
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
-   SafeLocker sl(&mutex); // make sure checking and loading are atomic
-   class ModuleInfo *mi = find(name);
-   if (mi)
-   {
-      if (pgm)
-      {
+   ModuleInfo *mi = find(name);
+   if (mi) {
+      if (pgm) {
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	 pgm->addFeature(mi->getName());
       }
@@ -385,14 +381,11 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
    QoreStringNode *errstr;
 
    // see if this is actually a path
-   if (name[0] == '/')
-   {
-      if ((errstr = loadModuleFromPath(name, 0, &mi)))
+   if (name[0] == '/') {
+      if ((errstr = loadModuleFromPath(name, 0, &mi, pgm)))
 	 return errstr;
       
-      sl.unlock();
-      if (pgm)
-      {
+      if (pgm) {
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	 pgm->addFeature(mi->getName());
       }
@@ -400,24 +393,20 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
    }
 
    // otherwise, try to find module in the module path
-   class QoreString str;
+   QoreString str;
    struct stat sb;
 
    DirectoryList::iterator w = moduleDirList.begin();
-   while (w != moduleDirList.end())
-   {
+   while (w != moduleDirList.end()) {
       str.clear();
       str.sprintf("%s/%s.qmod", (*w).c_str(), name);
       //printd(5, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
 
-      if (!stat(str.getBuffer(), &sb))
-      {
-	 if ((errstr = loadModuleFromPath(str.getBuffer(), name, &mi)))
+      if (!stat(str.getBuffer(), &sb)) {
+	 if ((errstr = loadModuleFromPath(str.getBuffer(), name, &mi, pgm)))
 	    return errstr;
 
-	 sl.unlock();
-	 if (pgm)
-	 {
+	 if (pgm) {
 	    mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	    pgm->addFeature(mi->getName());
 	 }
@@ -425,14 +414,20 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
       }
       w++;
    }
-   sl.unlock();
    
    errstr = new QoreStringNode;
    errstr->sprintf("feature '%s' is not builtin and no module with this name could be found in the module path", name);
    return errstr;
 }
 
-QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, class ModuleInfo **mip)
+QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm)
+{
+   SafeLocker sl(&mutex); // make sure checking and loading are atomic
+
+   return loadModuleIntern(name, pgm);
+}
+
+QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, class ModuleInfo **mip, QoreProgram *pgm)
 {
    class ModuleInfo *mi = 0;
    if (mip)
@@ -440,8 +435,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
    QoreStringNode *str = 0;
    void *ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
-   if (!ptr)
-   {
+   if (!ptr) {
       str = new QoreStringNode();
       str->sprintf("error loading qore module '%s': %s", path, dlerror());
       printd(5, "%s\n", str->getBuffer());
@@ -449,8 +443,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
    }
    // get module name
    char *name = (char *)dlsym(ptr, "qore_module_name");
-   if (!name)
-   {
+   if (!name) {
       str = new QoreStringNode();
       str->sprintf("module '%s': no feature name present in module", path);
       dlclose(ptr);
@@ -458,8 +451,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
       return str;
    }
    // ensure provided feature matches with expected feature
-   if (feature && strcmp(feature, name))
-   {
+   if (feature && strcmp(feature, name)) {
       str = new QoreStringNode();
       str->sprintf("module '%s': provides feature '%s', expecting feature '%s', skipping, rename module to %s.qmod to load", path, name, feature, feature);
       dlclose(ptr);
@@ -468,8 +460,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
    }
 
    // see if a module with this name is already registered
-   if ((mi = find(name)))
-   {
+   if ((mi = find(name))) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s' already registered by '%s'", path, name, mi->getFileName());
       dlclose(ptr);
@@ -478,8 +469,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
    }
    // get qore module API major number
    int *api_major = (int *)dlsym(ptr, "qore_module_api_major");
-   if (!api_major)
-   {
+   if (!api_major) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': no qore module API major number", path, name);
       dlclose(ptr);
@@ -489,8 +479,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
    // get qore module API minor number
    int *api_minor = (int *)dlsym(ptr, "qore_module_api_minor");
-   if (!api_minor)
-   {
+   if (!api_minor) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': no qore module API minor number", path, name);
       dlclose(ptr);
@@ -498,8 +487,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
       return str;
    }
 
-   if (*api_major != QORE_MODULE_API_MAJOR || (!(*api_major) && *api_minor != QORE_MODULE_API_MINOR))
-   {
+   if (*api_major != QORE_MODULE_API_MAJOR || (!(*api_major) && *api_minor != QORE_MODULE_API_MINOR)) {
       str = new QoreStringNode();
 #if QORE_MODULE_API_MAJOR > 0
       str->sprintf("module '%s': feature '%s': API mismatch, module supports API %d.%d, however the minimum supported version is %d.0 is required", path, name, *api_major, *api_minor, QORE_MODULE_API_MAJOR);
@@ -513,8 +501,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
    // get initialization function
    qore_module_init_t *module_init = (qore_module_init_t *)dlsym(ptr, "qore_module_init");
-   if (!module_init)
-   {
+   if (!module_init) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': claims API major=%d, %d required", path, name, *api_major, QORE_MODULE_API_MAJOR);
       dlclose(ptr);
@@ -524,8 +511,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
    // get namespace initialization function
    qore_module_ns_init_t *module_ns_init = (qore_module_ns_init_t *)dlsym(ptr, "qore_module_ns_init");
-   if (!module_ns_init)
-   {
+   if (!module_ns_init) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': missing namespace init method", path, name);
       dlclose(ptr);
@@ -535,8 +521,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
    // get deletion function
    qore_module_delete_t *module_delete = (qore_module_delete_t *)dlsym(ptr, "qore_module_delete");
-   if (!module_delete)
-   {
+   if (!module_delete) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': missing delete method", path, name);
       dlclose(ptr);
@@ -546,8 +531,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
    // get qore module description
    char *desc = (char *)dlsym(ptr, "qore_module_description");
-   if (!desc)
-   {
+   if (!desc) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': missing description", path, name);
       dlclose(ptr);
@@ -557,8 +541,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
    // get qore module version
    char *version = (char *)dlsym(ptr, "qore_module_version");
-   if (!version)
-   {
+   if (!version) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': missing version", path, name);
       dlclose(ptr);
@@ -568,8 +551,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
    // get qore module author
    char *author = (char *)dlsym(ptr, "qore_module_author");
-   if (!author)
-   {
+   if (!author) {
       str = new QoreStringNode();
       str->sprintf("module '%s': feature '%s': missing author", path, name);
       dlclose(ptr);
@@ -580,12 +562,27 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
    // get qore module URL (optional)
    char *url = (char *)dlsym(ptr, "qore_module_url");
 
+   char **dep_list = (char **)dlsym(ptr, "qore_module_dependencies");
+   if (dep_list) {
+      char *dep = dep_list[0];
+      //printd(5, "dep_list=%08p (0=%s)\n", dep_list, dep);
+      for (int i = 0; dep; dep = dep_list[++i]) {
+	 //printd(5, "loading module dependency=%s\n", dep);
+	 str = loadModuleIntern(dep, pgm);
+	 if (str) {
+	    str->replace(0, 0, "\": ");
+	    str->replace(0, 0, dep);
+	    str->replace(0, 0, "error loading module dependency \"");
+	    return str;
+	 }
+      }
+   }
+
    printd(5, "ModuleManager::loadModuleFromPath(%s) %s: calling module_init@%08p\n", path, name, *module_init);
 
    str = (*module_init)();
    // run initialization
-   if (str) 
-   {
+   if (str) {
       printd(5, "ModuleManager::loadModuleFromPath(%s): '%s': qore_module_init returned error: %s", path, name, str->getBuffer());
       QoreString desc;
       desc.sprintf("module '%s': feature '%s': ", path, name);

@@ -2,7 +2,7 @@
 
 # this one is pretty slow compared to gears.q
 
-%requires opengl
+# the glut module automatically loads the opengl module
 %requires glut
 
 %require-our

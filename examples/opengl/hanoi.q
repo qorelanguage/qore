@@ -4,7 +4,7 @@
 
 %require-our
 
-%requires opengl
+# the glut module automatically loads the opengl module
 %requires glut
 
 const WIDTH = 800.0;
