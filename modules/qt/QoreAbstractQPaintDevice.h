@@ -38,4 +38,8 @@ class QoreAbstractQPaintDevice
       }
 };
 
+class QoreAbstractQPaintDeviceData : public AbstractPrivateData, public QoreAbstractQPaintDevice
+{
+};
+
 #endif

@@ -1,5 +1,5 @@
 /*
- QC_QTextLine.h
+ QC_QTextLayout.h
  
   Qore Programming Language
 
@@ -21,33 +21,28 @@
 
  */
 
-#ifndef _QORE_QT_QC_QTEXTLINE_H
+#ifndef _QORE_QT_QC_QTEXTLAYOUT_H
 
-#define _QORE_QT_QC_QTEXTLINE_H
+#define _QORE_QT_QC_QTEXTLAYOUT_H
 
-#include <QTextLine>
+#include <QTextLayout>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTLINE;
-DLLLOCAL extern QoreClass *QC_QTextLine;
-DLLLOCAL QoreNamespace *initQTextLineNS();
+DLLLOCAL extern qore_classid_t CID_QTEXTLAYOUT;
+DLLLOCAL extern QoreClass *QC_QTextLayout;
+DLLLOCAL QoreNamespace *initQTextLayoutNS();
 
-class QoreQTextLine : public AbstractPrivateData
+class QoreQTextLayout : public AbstractPrivateData, public QTextLayout
 {
-   private:
-      QTextLine line;
-      
    public:
-      DLLLOCAL QoreQTextLine()
+      DLLLOCAL QoreQTextLayout() : QTextLayout()
       {
       }
-      DLLLOCAL QoreQTextLine(const QTextLine &n_line) : line(n_line)
+      DLLLOCAL QoreQTextLayout(const QString& text) : QTextLayout(text)
       {
       }
-      DLLLOCAL QTextLine *getQTextLine()
+      DLLLOCAL QoreQTextLayout(const QString& text, const QFont& font, QPaintDevice* paintdevice = 0) : QTextLayout(text, font, paintdevice)
       {
-	 return &line;
       }
-
 };
 
-#endif // _QORE_QT_QC_QTEXTLINE_H
+#endif // _QORE_QT_QC_QTEXTLAYOUT_H

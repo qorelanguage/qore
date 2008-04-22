@@ -52,7 +52,7 @@ const abstract_class_list =
     ( "QObject", "QWidget", "QAbstractItemDelegate", "QItemDelegate", 
       "QItemModel", "QLayout", "QStyle", "QHeaderView", "QMenuBar",
       "QAction", "QValidator", "QIODevice", "QPainter", "QGraphicsItem",
-      
+      "QPaintDevice"
     );
 
 const const_class_list = 
@@ -141,9 +141,10 @@ const class_list = ( "QRegion",
 		     "QGraphicsRectItem",
 		     "QGraphicsSimpleTextItem",
 		     "QGraphicsItemGroup",
+		     "QGraphicsLineItem",
+		     "QGraphicsPixmapItem",
 		     #"QGraphicsItem",
-		     #"QGraphicsItem",
-		     #"QGraphicsItem",
+		     "QTextLayout",
 
  ) + const_class_list + qobject_list;
 
@@ -998,7 +999,7 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 			       $os, toupper($cn), toupper($name), $cn, $name, $type);
 	    }
 	    
-	    $str += sprintf("%s argument\", reinterpret_cast<const QoreObject *>(p)->getClassName());", ordinal[$i]);
+	    $str += sprintf("%s argument\");", ordinal[$i]);
 	    $lo += $str;
 	    $lo += sprintf("%s   return%s;", $os, $const ? "" : " 0");
 	}

@@ -26,10 +26,6 @@
 DLLLOCAL qore_classid_t CID_QPAINTDEVICE;
 DLLLOCAL QoreClass *QC_QPaintDevice = 0;
 
-class QoreAbstractQPaintDeviceData : public AbstractPrivateData, public QoreAbstractQPaintDevice
-{
-};
-
 static void QPAINTDEVICE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("ABSTRACT-CLASS-ERROR", "QPaintDevice is an abstract builtin class and cannot be directly instantiated or referenced by user code");

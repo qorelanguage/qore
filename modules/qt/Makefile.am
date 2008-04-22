@@ -188,7 +188,8 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QGraphicsLineItem.cc \
 	QC_QGraphicsPixmapItem.cc \
 	QC_QTextLine.cc \
-	QC_QTextOption.cc
+	QC_QTextOption.cc \
+	QC_QTextLayout.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

@@ -43,7 +43,7 @@ static void QTEXTLINE_copy(QoreObject *self, QoreObject *old, QoreQTextLine *qtl
 //qreal ascent () const
 static AbstractQoreNode *QTEXTLINE_ascent(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreFloatNode(qtl->ascent());
+   return new QoreFloatNode(qtl->getQTextLine()->ascent());
 }
 
 //qreal cursorToX ( int * cursorPos, Edge edge = Leading ) const
@@ -64,7 +64,7 @@ static AbstractQoreNode *QTEXTLINE_cursorToX(QoreObject *self, QoreQTextLine *qt
 
       p = get_param(params, 1);
       QTextLine::Edge edge = !is_nothing(p) ? (QTextLine::Edge)p->getAsInt() : QTextLine::Leading;
-      qreal rv = qtl->cursorToX(&cursorPos, edge);
+      qreal rv = qtl->getQTextLine()->cursorToX(&cursorPos, edge);
 
       if (cursorPos != save && ref.assign(new QoreBigIntNode(cursorPos), xsink))
 	 return 0;  // there was an exception
@@ -74,13 +74,13 @@ static AbstractQoreNode *QTEXTLINE_cursorToX(QoreObject *self, QoreQTextLine *qt
    int cursorPos = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QTextLine::Edge edge = !is_nothing(p) ? (QTextLine::Edge)p->getAsInt() : QTextLine::Leading;
-   return new QoreFloatNode(qtl->cursorToX(cursorPos, edge));
+   return new QoreFloatNode(qtl->getQTextLine()->cursorToX(cursorPos, edge));
 }
 
 //qreal descent () const
 static AbstractQoreNode *QTEXTLINE_descent(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreFloatNode(qtl->descent());
+   return new QoreFloatNode(qtl->getQTextLine()->descent());
 }
 
 //void draw ( QPainter * painter, const QPointF & position, const QTextLayout::FormatRange * selection = 0 ) const
@@ -102,50 +102,50 @@ static AbstractQoreNode *QTEXTLINE_draw(QoreObject *self, QoreQTextLine *qtl, co
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
-   qtl->draw(static_cast<QPainter *>(painter->getQPainter()), *(static_cast<QPointF *>(position)));
+   qtl->getQTextLine()->draw(static_cast<QPainter *>(painter->getQPainter()), *(static_cast<QPointF *>(position)));
    return 0;
 }
 
 //qreal height () const
 static AbstractQoreNode *QTEXTLINE_height(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreFloatNode(qtl->height());
+   return new QoreFloatNode(qtl->getQTextLine()->height());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QTEXTLINE_isValid(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return get_bool_node(qtl->isValid());
+   return get_bool_node(qtl->getQTextLine()->isValid());
 }
 
 //int lineNumber () const
 static AbstractQoreNode *QTEXTLINE_lineNumber(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBigIntNode(qtl->lineNumber());
+   return new QoreBigIntNode(qtl->getQTextLine()->lineNumber());
 }
 
 //QRectF naturalTextRect () const
 static AbstractQoreNode *QTEXTLINE_naturalTextRect(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return return_object(QC_QRectF, new QoreQRectF(qtl->naturalTextRect()));
+   return return_object(QC_QRectF, new QoreQRectF(qtl->getQTextLine()->naturalTextRect()));
 }
 
 //qreal naturalTextWidth () const
 static AbstractQoreNode *QTEXTLINE_naturalTextWidth(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreFloatNode(qtl->naturalTextWidth());
+   return new QoreFloatNode(qtl->getQTextLine()->naturalTextWidth());
 }
 
 //QPointF position () const
 static AbstractQoreNode *QTEXTLINE_position(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return return_object(QC_QPointF, new QoreQPointF(qtl->position()));
+   return return_object(QC_QPointF, new QoreQPointF(qtl->getQTextLine()->position()));
 }
 
 //QRectF rect () const
 static AbstractQoreNode *QTEXTLINE_rect(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return return_object(QC_QRectF, new QoreQRectF(qtl->rect()));
+   return return_object(QC_QRectF, new QoreQRectF(qtl->getQTextLine()->rect()));
 }
 
 //void setLineWidth ( qreal width )
@@ -153,7 +153,7 @@ static AbstractQoreNode *QTEXTLINE_setLineWidth(QoreObject *self, QoreQTextLine 
 {
    const AbstractQoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
-   qtl->setLineWidth(width);
+   qtl->getQTextLine()->setLineWidth(width);
    return 0;
 }
 
@@ -165,7 +165,7 @@ static AbstractQoreNode *QTEXTLINE_setNumColumns(QoreObject *self, QoreQTextLine
    int numColumns = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    qreal alignmentWidth = p ? p->getAsFloat() : 0.0;
-   qtl->setNumColumns(numColumns, alignmentWidth);
+   qtl->getQTextLine()->setNumColumns(numColumns, alignmentWidth);
    return 0;
 }
 
@@ -180,32 +180,32 @@ static AbstractQoreNode *QTEXTLINE_setPosition(QoreObject *self, QoreQTextLine *
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> posHolder(static_cast<AbstractPrivateData *>(pos), xsink);
-   qtl->setPosition(*(static_cast<QPointF *>(pos)));
+   qtl->getQTextLine()->setPosition(*(static_cast<QPointF *>(pos)));
    return 0;
 }
 
 //int textLength () const
 static AbstractQoreNode *QTEXTLINE_textLength(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBigIntNode(qtl->textLength());
+   return new QoreBigIntNode(qtl->getQTextLine()->textLength());
 }
 
 //int textStart () const
 static AbstractQoreNode *QTEXTLINE_textStart(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBigIntNode(qtl->textStart());
+   return new QoreBigIntNode(qtl->getQTextLine()->textStart());
 }
 
 //qreal width () const
 static AbstractQoreNode *QTEXTLINE_width(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreFloatNode(qtl->width());
+   return new QoreFloatNode(qtl->getQTextLine()->width());
 }
 
 //qreal x () const
 static AbstractQoreNode *QTEXTLINE_x(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreFloatNode(qtl->x());
+   return new QoreFloatNode(qtl->getQTextLine()->x());
 }
 
 //int xToCursor ( qreal x, CursorPosition cpos = CursorBetweenCharacters ) const
@@ -215,13 +215,13 @@ static AbstractQoreNode *QTEXTLINE_xToCursor(QoreObject *self, QoreQTextLine *qt
    qreal x = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    QTextLine::CursorPosition cpos = !is_nothing(p) ? (QTextLine::CursorPosition)p->getAsInt() : QTextLine::CursorBetweenCharacters;
-   return new QoreBigIntNode(qtl->xToCursor(x, cpos));
+   return new QoreBigIntNode(qtl->getQTextLine()->xToCursor(x, cpos));
 }
 
 //qreal y () const
 static AbstractQoreNode *QTEXTLINE_y(QoreObject *self, QoreQTextLine *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreFloatNode(qtl->y());
+   return new QoreFloatNode(qtl->getQTextLine()->y());
 }
 
 static QoreClass *initQTextLineClass()

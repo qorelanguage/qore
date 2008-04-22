@@ -196,6 +196,7 @@
 #include "QC_QGraphicsItem.h"
 #include "QC_QTextLine.h"
 #include "QC_QTextOption.h"
+#include "QC_QTextLayout.h"
 
 #include "qore-qt.h"
 
@@ -1841,6 +1842,7 @@ static void init_namespace()
    qt_ns->addInitialNamespace(initQGraphicsItemNS());
    qt_ns->addInitialNamespace(initQTextLineNS());
    qt_ns->addInitialNamespace(initQTextOptionNS());
+   qt_ns->addInitialNamespace(initQTextLayoutNS());
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");
