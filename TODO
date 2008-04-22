@@ -5,8 +5,7 @@ see docs/roadmap.html
 * implement function class hierarchies for returning different types (bool, int64, double, node)
 * change get/test_*params() to return const values
 * implement optimized foreach statement for hash key iteration
-* implement optimization to check a program for use of parse(), parseCommit() and background to convert all global variables to local to avoid locking
-* make QoreHash implementation private
+* implement optimization to check a program for use of parse(), parseCommit() and background to convert all global variables to local to avoid locking (cannot be done)
 * make ThreadResourceList private
 * tag functions if they have no effect except returning a value so if the value is not used at the top level a warning may be emitted
 * implement find_key operator, taking a regular expression to find a key in a hash
@@ -39,6 +38,7 @@ docs:
 * document optimizations
 
 done 0.7.0:
+* make QoreHashNode implementation private
 * change getExistingVarValue to take a ReferenceHolder argument instead of a temporary QoreNode * arg
 * implement bool_eval(), etc for VarRefNode
 * make it so that there is only ever one Nothing and Null object

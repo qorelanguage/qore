@@ -711,7 +711,7 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
       // see if the hash member is a call reference
       const AbstractQoreNode *ref = h->getKeyValue(f->f.c_str);
       if (ref && ref->getType() == NT_FUNCREF)
-	 return reinterpret_cast<const ResolvedFunctionReferenceNode *>(ref)->exec(f->args, xsink);
+	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->exec(f->args, xsink);
    }
 
    if (!(*op) || (*op)->getType() != NT_OBJECT) {

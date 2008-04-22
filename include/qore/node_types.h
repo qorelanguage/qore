@@ -61,8 +61,8 @@ const qore_type_t NT_REGEX_TRANS       = 25; //!< type value for RegexTransNode
 const qore_type_t NT_REGEX             = 26; //!< type value for QoreRegexNode
 const qore_type_t NT_CLASSREF          = 27; //!< type value for ClassRefNode
 const qore_type_t NT_OBJMETHREF        = 28; //!< type value for AbstractParseObjectMethodReferenceNode
-const qore_type_t NT_FUNCREF           = 29; //!< type value for AbstractFunctionReferenceNode
-const qore_type_t NT_FUNCREFCALL       = 30; //!< type value for FunctionReferenceCallNode
+const qore_type_t NT_FUNCREF           = 29; //!< type value for AbstractCallReferenceNode
+const qore_type_t NT_FUNCREFCALL       = 30; //!< type value for CallReferenceCallNode
 
 //! number of types implemented in the Qore library
 #define QORE_NUM_TYPES 31

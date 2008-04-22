@@ -1,5 +1,5 @@
 /*
- FunctionReferenceNode.h
+ CallReferenceNode.h
  
  Qore Programming Language
  
@@ -27,7 +27,7 @@
 //! base class for call references, reference-counted, dynamically allocated only
 /** cannot be a ParseNode or SimpleQoreNode because we require deref(xsink)
  */
-class AbstractFunctionReferenceNode : public AbstractQoreNode
+class AbstractCallReferenceNode : public AbstractQoreNode
 {
    private:
       //! this function will never be executed for parse types; this function should never be called directly
@@ -77,12 +77,12 @@ class AbstractFunctionReferenceNode : public AbstractQoreNode
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
       //! protected constructor for subclasses that are not reference-counted
-      DLLLOCAL AbstractFunctionReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one);
+      DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one);
 
    public:
-      DLLLOCAL AbstractFunctionReferenceNode(bool n_needs_eval = false);
+      DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval = false);
 
-      DLLLOCAL virtual ~AbstractFunctionReferenceNode();
+      DLLLOCAL virtual ~AbstractCallReferenceNode();
 
       //! concatenate the verbose string representation of the value to an existing QoreString
       /** used for %n and %N printf formatting
@@ -113,11 +113,11 @@ class AbstractFunctionReferenceNode : public AbstractQoreNode
 };
 
 //! base class for resolved call references
-class ResolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
+class ResolvedCallReferenceNode : public AbstractCallReferenceNode
 {
    public:
       //! constructor is not exported outside the library
-      DLLLOCAL ResolvedFunctionReferenceNode(bool n_needs_eval = false);
+      DLLLOCAL ResolvedCallReferenceNode(bool n_needs_eval = false);
 
       //! pure virtual function for executing the function reference
       /** executes the function reference and returns the value returned
@@ -133,10 +133,10 @@ class ResolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
        */
       DLLLOCAL virtual QoreProgram *getProgram() const;
 
-      DLLLOCAL ResolvedFunctionReferenceNode *refRefSelf() const
+      DLLLOCAL ResolvedCallReferenceNode *refRefSelf() const
       {
 	 ref();
-	 return const_cast<ResolvedFunctionReferenceNode *>(this);
+	 return const_cast<ResolvedCallReferenceNode *>(this);
       }
 };
 

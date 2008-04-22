@@ -68,7 +68,7 @@
 #include <qore/ScopeGuard.h>
 #include <qore/SystemEnvironment.h>
 #include <qore/AutoVLock.h>
-#include <qore/FunctionReferenceNode.h>
+#include <qore/CallReferenceNode.h>
 #include <qore/ReferenceNode.h>
 #include <qore/params.h>
 #include <qore/ReferenceHelper.h>

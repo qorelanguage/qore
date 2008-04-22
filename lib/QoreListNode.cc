@@ -484,7 +484,7 @@ QoreListNode *QoreListNode::sortDescending() const
    return rv;
 }
 
-QoreListNode *QoreListNode::sortDescending(const ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink) const
+QoreListNode *QoreListNode::sortDescending(const ResolvedCallReferenceNode *fr, ExceptionSink *xsink) const
 {   
    ReferenceHolder<QoreListNode> rv(copy(), xsink);
    if (priv->length)
@@ -514,7 +514,7 @@ static inline QoreListNode *do_args(AbstractQoreNode *e1, AbstractQoreNode *e2)
 }
 
 // mergesort for controlled and interruptible sorts (stable)
-int QoreListNode::mergesort(const ResolvedFunctionReferenceNode *fr, bool ascending, ExceptionSink *xsink)
+int QoreListNode::mergesort(const ResolvedCallReferenceNode *fr, bool ascending, ExceptionSink *xsink)
 {
    //printd(5, "List::mergesort() ENTER this=%08p, pgm=%08p, f=%08p priv->length=%d\n", this, pgm, f, priv->length);
    
@@ -572,7 +572,7 @@ int QoreListNode::mergesort(const ResolvedFunctionReferenceNode *fr, bool ascend
 // quicksort for controlled and interruptible sorts (unstable)
 // I am so smart that I did not comment this code
 // and now I don't know how it works anymore
-int QoreListNode::qsort(const ResolvedFunctionReferenceNode *fr, qore_size_t left, qore_size_t right, bool ascending, ExceptionSink *xsink)
+int QoreListNode::qsort(const ResolvedCallReferenceNode *fr, qore_size_t left, qore_size_t right, bool ascending, ExceptionSink *xsink)
 {
    qore_size_t l_hold = left;
    qore_size_t r_hold = right;
@@ -634,7 +634,7 @@ int QoreListNode::qsort(const ResolvedFunctionReferenceNode *fr, qore_size_t lef
    return rc;
 }
 
-QoreListNode *QoreListNode::sort(const ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink) const
+QoreListNode *QoreListNode::sort(const ResolvedCallReferenceNode *fr, ExceptionSink *xsink) const
 {   
    ReferenceHolder<QoreListNode> rv(copy(), xsink);
    if (priv->length)
@@ -660,7 +660,7 @@ QoreListNode *QoreListNode::sortDescendingStable() const
    return rv;
 }
 
-QoreListNode *QoreListNode::sortDescendingStable(const ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink) const
+QoreListNode *QoreListNode::sortDescendingStable(const ResolvedCallReferenceNode *fr, ExceptionSink *xsink) const
 {   
    ReferenceHolder<QoreListNode> rv(copy(), xsink);
    if (priv->length)
@@ -670,7 +670,7 @@ QoreListNode *QoreListNode::sortDescendingStable(const ResolvedFunctionReference
    return rv.release();
 }
 
-QoreListNode *QoreListNode::sortStable(const ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink) const
+QoreListNode *QoreListNode::sortStable(const ResolvedCallReferenceNode *fr, ExceptionSink *xsink) const
 {   
    ReferenceHolder<QoreListNode> rv(copy(), xsink);
    if (priv->length)
@@ -865,7 +865,7 @@ AbstractQoreNode *QoreListNode::max() const
    return rv ? rv->refSelf() : 0;
 }
 
-AbstractQoreNode *QoreListNode::min(const ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink) const
+AbstractQoreNode *QoreListNode::min(const ResolvedCallReferenceNode *fr, ExceptionSink *xsink) const
 {
    AbstractQoreNode *rv = 0;
 
@@ -887,7 +887,7 @@ AbstractQoreNode *QoreListNode::min(const ResolvedFunctionReferenceNode *fr, Exc
    return rv ? rv->refSelf() : 0;
 }
 
-AbstractQoreNode *QoreListNode::max(const ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink) const
+AbstractQoreNode *QoreListNode::max(const ResolvedCallReferenceNode *fr, ExceptionSink *xsink) const
 {
    AbstractQoreNode *rv = 0;
 

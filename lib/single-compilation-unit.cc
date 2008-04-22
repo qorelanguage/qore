@@ -87,7 +87,7 @@
 #include "DatasourcePool.cc"
 #include "ManagedDatasource.cc"
 #include "ExecArgList.cc"
-#include "FunctionReferenceNode.cc"
+#include "CallReferenceNode.cc"
 #include "NamedScope.cc"
 #include "RWLock.cc"
 #include "QoreSSLBase.cc"

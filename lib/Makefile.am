@@ -122,7 +122,7 @@ libqore_la_SOURCES = \
 	SystemEnvironment.cc \
 	SmartMutex.cc \
 	QoreCounter.cc \
-	FunctionReferenceNode.cc \
+	CallReferenceNode.cc \
 	ParseOptionMap.cc \
 	ql_thread.cc \
 	ql_io.cc \

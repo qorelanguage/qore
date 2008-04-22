@@ -45,7 +45,7 @@ DLLEXPORT char *qore_module_dependencies[] = { "opengl", 0 };
 #endif
 
 // type for mapping glut menu entries to call references
-typedef std::map<int, ResolvedFunctionReferenceNode *> menu_map_t;
+typedef std::map<int, ResolvedCallReferenceNode *> menu_map_t;
 
 // menu map lock
 static QoreThreadLock menu_map_lock;
@@ -84,7 +84,7 @@ static QoreThreadLock
    joystick_lock;
 
 // call references for callback functions
-static ResolvedFunctionReferenceNode 
+static ResolvedCallReferenceNode 
 #ifdef HAVE_GLUTWMCLOSE
    *wmclose_ref = 0,
 #endif
@@ -451,13 +451,13 @@ static void qore_glut_joystick_func(unsigned int buttonMask, int x, int y, int z
 //void glutWMCloseFunc(void (*func)(void));
 static AbstractQoreNode *f_glutWMCloseFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&wmclose_lock);
    glutWMCloseFunc(r ? qore_glut_wmclose_func : 0);
    if (wmclose_ref)
       wmclose_ref->deref(xsink);
-   wmclose_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   wmclose_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -468,13 +468,13 @@ static AbstractQoreNode *f_glutWMCloseFunc(const QoreListNode *params, Exception
 //void glutDisplayFunc(void (*func)(void));
 static AbstractQoreNode *f_glutDisplayFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&display_lock);
    glutDisplayFunc(r ? qore_glut_display_func : 0);
    if (display_ref)
       display_ref->deref(xsink);
-   display_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   display_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -484,13 +484,13 @@ static AbstractQoreNode *f_glutDisplayFunc(const QoreListNode *params, Exception
 //void glutReshapeFunc(void (*func)(int width, int height));
 static AbstractQoreNode *f_glutReshapeFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&reshape_lock);
    glutReshapeFunc(r ? qore_glut_reshape_func : 0);
    if (reshape_ref)
       reshape_ref->deref(xsink);
-   reshape_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   reshape_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -500,13 +500,13 @@ static AbstractQoreNode *f_glutReshapeFunc(const QoreListNode *params, Exception
 //void glutKeyboardFunc(void (*func)(unsigned char key, int x, int y));
 static AbstractQoreNode *f_glutKeyboardFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&keyboard_lock);
    glutKeyboardFunc(r ? qore_glut_keyboard_func : 0);
    if (keyboard_ref)
       keyboard_ref->deref(xsink);
-   keyboard_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   keyboard_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -516,13 +516,13 @@ static AbstractQoreNode *f_glutKeyboardFunc(const QoreListNode *params, Exceptio
 //void glutMouseFunc(void (*func)(int button, int state, int x, int y));
 static AbstractQoreNode *f_glutMouseFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&mouse_lock);
    glutMouseFunc(r ? qore_glut_mouse_func : 0);
    if (mouse_ref)
       mouse_ref->deref(xsink);
-   mouse_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   mouse_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -532,13 +532,13 @@ static AbstractQoreNode *f_glutMouseFunc(const QoreListNode *params, ExceptionSi
 //void glutMotionFunc(void (*func)(int x, int y));
 static AbstractQoreNode *f_glutMotionFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&motion_lock);
    glutMotionFunc(r ? qore_glut_motion_func : 0);
    if (motion_ref)
       motion_ref->deref(xsink);
-   motion_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   motion_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -548,13 +548,13 @@ static AbstractQoreNode *f_glutMotionFunc(const QoreListNode *params, ExceptionS
 //void glutPassiveMotionFunc(void (*func)(int x, int y));
 static AbstractQoreNode *f_glutPassiveMotionFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&passivemotion_lock);
    glutPassiveMotionFunc(r ? qore_glut_passivemotion_func : 0);
    if (passivemotion_ref)
       passivemotion_ref->deref(xsink);
-   passivemotion_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   passivemotion_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -564,13 +564,13 @@ static AbstractQoreNode *f_glutPassiveMotionFunc(const QoreListNode *params, Exc
 //void glutEntryFunc(void (*func)(int state));
 static AbstractQoreNode *f_glutEntryFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&entry_lock);
    glutEntryFunc(r ? qore_glut_entry_func : 0);
    if (entry_ref)
       entry_ref->deref(xsink);
-   entry_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   entry_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -580,13 +580,13 @@ static AbstractQoreNode *f_glutEntryFunc(const QoreListNode *params, ExceptionSi
 //void glutVisibilityFunc(void (*func)(int state));
 static AbstractQoreNode *f_glutVisibilityFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&visibility_lock);
    glutVisibilityFunc(r ? qore_glut_visibility_func : 0);
    if (visibility_ref)
       visibility_ref->deref(xsink);
-   visibility_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   visibility_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -596,13 +596,13 @@ static AbstractQoreNode *f_glutVisibilityFunc(const QoreListNode *params, Except
 //void glutIdleFunc(void (*func)(void));
 static AbstractQoreNode *f_glutIdleFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&idle_lock);
    glutIdleFunc(r ? qore_glut_idle_func : 0);
    if (idle_ref)
       idle_ref->deref(xsink);
-   idle_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   idle_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -615,7 +615,7 @@ static AbstractQoreNode *f_glutTimerFunc(const QoreListNode *params, ExceptionSi
    const AbstractQoreNode *p = get_param(params, 0);
    unsigned millis = p ? p->getAsBigInt() : 0;
 
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 1);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 1);
 
    p = get_param(params, 2);
    int value = p ? p->getAsInt() : 0;
@@ -624,7 +624,7 @@ static AbstractQoreNode *f_glutTimerFunc(const QoreListNode *params, ExceptionSi
    glutTimerFunc(millis, r ? qore_glut_timer_func : 0, value);
    if (timer_ref)
       timer_ref->deref(xsink);
-   timer_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   timer_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -634,13 +634,13 @@ static AbstractQoreNode *f_glutTimerFunc(const QoreListNode *params, ExceptionSi
 //void glutMenuStateFunc(void (*func)(int state));
 static AbstractQoreNode *f_glutMenuStateFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&menustate_lock);
    glutMenuStateFunc(r ? qore_glut_menustate_func : 0);
    if (menustate_ref)
       menustate_ref->deref(xsink);
-   menustate_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   menustate_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -650,13 +650,13 @@ static AbstractQoreNode *f_glutMenuStateFunc(const QoreListNode *params, Excepti
 //void glutSpecialFunc(void (*func)(int key, int x, int y));
 static AbstractQoreNode *f_glutSpecialFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&special_lock);
    glutSpecialFunc(r ? qore_glut_special_func : 0);
    if (special_ref)
       special_ref->deref(xsink);
-   special_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   special_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -666,13 +666,13 @@ static AbstractQoreNode *f_glutSpecialFunc(const QoreListNode *params, Exception
 //void glutSpaceballMotionFunc(void (*func)(int x, int y, int z));
 static AbstractQoreNode *f_glutSpaceballMotionFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&spaceballmotion_lock);
    glutSpaceballMotionFunc(r ? qore_glut_spaceballmotion_func : 0);
    if (spaceballmotion_ref)
       spaceballmotion_ref->deref(xsink);
-   spaceballmotion_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   spaceballmotion_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -682,13 +682,13 @@ static AbstractQoreNode *f_glutSpaceballMotionFunc(const QoreListNode *params, E
 //void glutSpaceballRotateFunc(void (*func)(int x, int y, int z));
 static AbstractQoreNode *f_glutSpaceballRotateFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&spaceballrotate_lock);
    glutSpaceballRotateFunc(r ? qore_glut_spaceballrotate_func : 0);
    if (spaceballrotate_ref)
       spaceballrotate_ref->deref(xsink);
-   spaceballrotate_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   spaceballrotate_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -698,13 +698,13 @@ static AbstractQoreNode *f_glutSpaceballRotateFunc(const QoreListNode *params, E
 //void glutSpaceballButtonFunc(void (*func)(int button, int state));
 static AbstractQoreNode *f_glutSpaceballButtonFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&spaceballbutton_lock);
    glutSpaceballButtonFunc(r ? qore_glut_spaceballbutton_func : 0);
    if (spaceballbutton_ref)
       spaceballbutton_ref->deref(xsink);
-   spaceballbutton_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   spaceballbutton_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -714,13 +714,13 @@ static AbstractQoreNode *f_glutSpaceballButtonFunc(const QoreListNode *params, E
 //void glutButtonBoxFunc(void (*func)(int button, int state));
 static AbstractQoreNode *f_glutButtonBoxFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&buttonbox_lock);
    glutButtonBoxFunc(r ? qore_glut_buttonbox_func : 0);
    if (buttonbox_ref)
       buttonbox_ref->deref(xsink);
-   buttonbox_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   buttonbox_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -730,13 +730,13 @@ static AbstractQoreNode *f_glutButtonBoxFunc(const QoreListNode *params, Excepti
 //void glutDialsFunc(void (*func)(int dial, int value));
 static AbstractQoreNode *f_glutDialsFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&dials_lock);
    glutDialsFunc(r ? qore_glut_dials_func : 0);
    if (dials_ref)
       dials_ref->deref(xsink);
-   dials_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   dials_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -746,13 +746,13 @@ static AbstractQoreNode *f_glutDialsFunc(const QoreListNode *params, ExceptionSi
 //void glutTabletMotionFunc(void (*func)(int x, int y));
 static AbstractQoreNode *f_glutTabletMotionFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&tabletmotion_lock);
    glutTabletMotionFunc(r ? qore_glut_tabletmotion_func : 0);
    if (tabletmotion_ref)
       tabletmotion_ref->deref(xsink);
-   tabletmotion_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   tabletmotion_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -762,13 +762,13 @@ static AbstractQoreNode *f_glutTabletMotionFunc(const QoreListNode *params, Exce
 //void glutTabletButtonFunc(void (*func)(int button, int state, int x, int y));
 static AbstractQoreNode *f_glutTabletButtonFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&tabletbutton_lock);
    glutTabletButtonFunc(r ? qore_glut_tabletbutton_func : 0);
    if (tabletbutton_ref)
       tabletbutton_ref->deref(xsink);
-   tabletbutton_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   tabletbutton_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -778,13 +778,13 @@ static AbstractQoreNode *f_glutTabletButtonFunc(const QoreListNode *params, Exce
 //void glutMenuStatusFunc(void (*func)(int status, int x, int y));
 static AbstractQoreNode *f_glutMenuStatusFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&menustatus_lock);
    glutMenuStatusFunc(r ? qore_glut_menustatus_func : 0);
    if (menustatus_ref)
       menustatus_ref->deref(xsink);
-   menustatus_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   menustatus_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -794,13 +794,13 @@ static AbstractQoreNode *f_glutMenuStatusFunc(const QoreListNode *params, Except
 //void glutOverlayDisplayFunc(void (*func)(void));
 static AbstractQoreNode *f_glutOverlayDisplayFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&overlaydisplay_lock);
    glutOverlayDisplayFunc(r ? qore_glut_overlaydisplay_func : 0);
    if (overlaydisplay_ref)
       overlaydisplay_ref->deref(xsink);
-   overlaydisplay_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   overlaydisplay_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -810,13 +810,13 @@ static AbstractQoreNode *f_glutOverlayDisplayFunc(const QoreListNode *params, Ex
 //void glutWindowStatusFunc(void (*func)(int state));
 static AbstractQoreNode *f_glutWindowStatusFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&windowstatus_lock);
    glutWindowStatusFunc(r ? qore_glut_windowstatus_func : 0);
    if (windowstatus_ref)
       windowstatus_ref->deref(xsink);
-   windowstatus_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   windowstatus_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -826,13 +826,13 @@ static AbstractQoreNode *f_glutWindowStatusFunc(const QoreListNode *params, Exce
 //void glutKeyboardUpFunc(void (*func)(unsigned char key, int x, int y));
 static AbstractQoreNode *f_glutKeyboardUpFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&keyboardup_lock);
    glutKeyboardUpFunc(r ? qore_glut_keyboardup_func : 0);
    if (keyboardup_ref)
       keyboardup_ref->deref(xsink);
-   keyboardup_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   keyboardup_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -842,13 +842,13 @@ static AbstractQoreNode *f_glutKeyboardUpFunc(const QoreListNode *params, Except
 //void glutSpecialUpFunc(void (*func)(int key, int x, int y));
 static AbstractQoreNode *f_glutSpecialUpFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    AutoLocker al(&specialup_lock);
    glutSpecialUpFunc(r ? qore_glut_specialup_func : 0);
    if (specialup_ref)
       specialup_ref->deref(xsink);
-   specialup_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   specialup_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -858,7 +858,7 @@ static AbstractQoreNode *f_glutSpecialUpFunc(const QoreListNode *params, Excepti
 //void glutJoystickFunc(void (*func)(unsigned int buttonMask, int x, int y, int z), int pollInterval);
 static AbstractQoreNode *f_glutJoystickFunc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    const AbstractQoreNode *p = get_param(params, 1);
    int pollInterval = p ? p->getAsInt() : 0;
@@ -867,7 +867,7 @@ static AbstractQoreNode *f_glutJoystickFunc(const QoreListNode *params, Exceptio
    glutJoystickFunc(r ? qore_glut_joystick_func : 0, pollInterval);
    if (joystick_ref)
       joystick_ref->deref(xsink);
-   joystick_ref = const_cast<ResolvedFunctionReferenceNode *>(r);
+   joystick_ref = const_cast<ResolvedCallReferenceNode *>(r);
    if (r)
       r->ref();
 
@@ -1215,7 +1215,7 @@ static AbstractQoreNode *f_glutHideOverlay(const QoreListNode *params, Exception
 //int glutCreateMenu(void (*)(int));
 static AbstractQoreNode *f_glutCreateMenu(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const ResolvedFunctionReferenceNode *r = test_funcref_param(params, 0);
+   const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
 
    if (!r) {
       xsink->raiseException("GLUTCREATEMENU-ERROR", "a call reference for the menu callback was expected as the sole argument to glutCreateMenu()");

@@ -29,7 +29,7 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/Restrictions.h>
 
-class AbstractFunctionReferenceNode;
+class AbstractCallReferenceNode;
 
 // warnings - must correspond with the string order in QoreProgram.cc
 #define QP_WARN_NONE                     0
@@ -414,7 +414,7 @@ class QoreProgram : public AbstractPrivateData
 
       DLLLOCAL void registerUserFunction(class UserFunction *u);
       DLLLOCAL void resolveFunction(class FunctionCallNode *f);      
-      DLLLOCAL AbstractFunctionReferenceNode *resolveFunctionReference(class UnresolvedFunctionReferenceNode *fr);      
+      DLLLOCAL AbstractCallReferenceNode *resolveCallReference(class UnresolvedCallReferenceNode *fr);      
       DLLLOCAL void addGlobalVarDef(const char *name);
       DLLLOCAL void addStatement(class AbstractStatement *s);
       DLLLOCAL class Var *findGlobalVar(const char *name);

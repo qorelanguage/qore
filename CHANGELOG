@@ -1,3 +1,6 @@
+2008.04.22: David Nichols
+	* renamed all instances of "FunctionReference" to "CallReference"
+
 2008.04.21: David Nichols
 	* added QoreHashNode::empty() and QoreListNode::empty() functions
 	* implemented module dependencies, added "opengl" as a dependency of the

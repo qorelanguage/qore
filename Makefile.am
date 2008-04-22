@@ -57,7 +57,7 @@ noinst_HEADERS = \
 	include/qore/QoreCounter.h \
 	include/qore/BinaryNode.h \
 	include/qore/ReferenceNode.h \
-	include/qore/FunctionReferenceNode.h \
+	include/qore/CallReferenceNode.h \
 	include/qore/hash_map.h \
 	include/qore/QoreFtpClient.h \
 	include/qore/safe_dslist \
@@ -156,8 +156,8 @@ noinst_HEADERS = \
 	include/qore/intern/AbstractSmartLock.h \
 	include/qore/intern/VLock.h \
 	include/qore/intern/AutoNamespaceList.h \
-	include/qore/intern/FunctionReferenceNode.h \
-	include/qore/intern/FunctionReferenceCallNode.h \
+	include/qore/intern/CallReferenceNode.h \
+	include/qore/intern/CallReferenceCallNode.h \
 	include/qore/intern/ParseNode.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \

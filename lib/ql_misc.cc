@@ -71,7 +71,7 @@ static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSi
    }
 
    // must be a function reference
-   return reinterpret_cast<const ResolvedFunctionReferenceNode *>(p0)->exec(*args, xsink);
+   return reinterpret_cast<const ResolvedCallReferenceNode *>(p0)->exec(*args, xsink);
 }
 
 static AbstractQoreNode *f_call_function_args(const QoreListNode *params, ExceptionSink *xsink)
@@ -98,7 +98,7 @@ static AbstractQoreNode *f_call_function_args(const QoreListNode *params, Except
    if (p0_type == NT_STRING)
       rv = getProgram()->callFunction((reinterpret_cast<const QoreStringNode *>(p0))->getBuffer(), args, xsink);
    else
-      rv = reinterpret_cast<const ResolvedFunctionReferenceNode *>(p0)->exec(args, xsink);
+      rv = reinterpret_cast<const ResolvedCallReferenceNode *>(p0)->exec(args, xsink);
 
    if (p1 != args)
    {
@@ -1035,7 +1035,7 @@ static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, Except
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return 0;
    }
-   const ResolvedFunctionReferenceNode *p1 = test_funcref_param(params, 1);
+   const ResolvedCallReferenceNode *p1 = test_funcref_param(params, 1);
    if (!p1)
    {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference as second argument to set_signal_handler()");

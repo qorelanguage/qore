@@ -138,18 +138,18 @@ static inline const QoreListNode *test_list_param(const QoreListNode *n, qore_si
    return p && p->getType() == NT_LIST ? reinterpret_cast<const QoreListNode *>(p) : 0;
 }
 
-//! returns a ResolvedFunctionReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ResolvedFunctionReferenceNode
+//! returns a ResolvedCallReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ResolvedCallReferenceNode
 /**
    @param n a pointer to the argument list
    @param i the offset in the list to test (first element is offset 0)
-   @return a ResolvedFunctionReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ResolvedFunctionReferenceNode
+   @return a ResolvedCallReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ResolvedCallReferenceNode
  */
-static inline const ResolvedFunctionReferenceNode *test_funcref_param(const QoreListNode *n, qore_size_t i)
+static inline const ResolvedCallReferenceNode *test_funcref_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
-   return p && p->getType() == NT_FUNCREF ? reinterpret_cast<const ResolvedFunctionReferenceNode *>(p) : 0;
+   return p && p->getType() == NT_FUNCREF ? reinterpret_cast<const ResolvedCallReferenceNode *>(p) : 0;
 }
 
 //! returns a ReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ReferenceNode

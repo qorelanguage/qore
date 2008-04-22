@@ -57,12 +57,12 @@ class QoreListNode : public AbstractQoreNode
       //! qsort sorts the list in-place (unstable)
       /** @return 0 for OK, -1 for exception raised
        */
-      DLLLOCAL int qsort(const class ResolvedFunctionReferenceNode *fr, qore_size_t left, qore_size_t right, bool ascending, class ExceptionSink *xsink);
+      DLLLOCAL int qsort(const class ResolvedCallReferenceNode *fr, qore_size_t left, qore_size_t right, bool ascending, class ExceptionSink *xsink);
 
       //! mergesort sorts the list in-place (stable)
       /** @return 0 for OK, -1 for exception raised
        */
-      DLLLOCAL int mergesort(const class ResolvedFunctionReferenceNode *fr, bool ascending, class ExceptionSink *xsink);
+      DLLLOCAL int mergesort(const class ResolvedCallReferenceNode *fr, bool ascending, class ExceptionSink *xsink);
 
       //! does an unconditional evaluation of the list and returns the new list, 0 if there is a qore-language exception
       DLLLOCAL QoreListNode *eval_intern(class ExceptionSink *xsink) const;
@@ -277,7 +277,7 @@ class QoreListNode : public AbstractQoreNode
 	  @param fr the function reference to be executed for each comparison to give lexical order to the elements
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT QoreListNode *sort(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *sort(const class ResolvedCallReferenceNode *fr, class ExceptionSink *xsink) const;
 
       //! returns a new list based on executing mergesort on the source list ("this")
       /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
@@ -290,7 +290,7 @@ class QoreListNode : public AbstractQoreNode
 	  @param fr the function reference to be executed for each comparison to give lexical order to the elements
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT QoreListNode *sortStable(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *sortStable(const class ResolvedCallReferenceNode *fr, class ExceptionSink *xsink) const;
 
       //! returns a new list based on quicksorting the source list ("this") in descending order
       /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
@@ -303,7 +303,7 @@ class QoreListNode : public AbstractQoreNode
 	  @param fr the function reference to be executed for each comparison to give lexical order to the elements
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT QoreListNode *sortDescending(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *sortDescending(const class ResolvedCallReferenceNode *fr, class ExceptionSink *xsink) const;
 
       //! returns a new list based on executing mergesort on the source list ("this") in descending order
       /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
@@ -316,7 +316,7 @@ class QoreListNode : public AbstractQoreNode
 	  @param fr the function reference to be executed for each comparison to give lexical order to the elements
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT QoreListNode *sortDescendingStable(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *sortDescendingStable(const class ResolvedCallReferenceNode *fr, class ExceptionSink *xsink) const;
 
       //! returns the element having the lowest value (determined by calling OP_LOG_LT - the less-than "<" operator)
       /** so "soft" comparisons are made, meaning that the list can be made up of different types, and, as long
@@ -335,14 +335,14 @@ class QoreListNode : public AbstractQoreNode
 	  @param fr the function reference to be executed for each comparison to give lexical order to the elements
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT AbstractQoreNode *min(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *min(const class ResolvedCallReferenceNode *fr, class ExceptionSink *xsink) const;
 
       //! returns the element having the highest value (determined by calling the function reference passed to give lexical order)
       /** 
 	  @param fr the function reference to be executed for each comparison to give lexical order to the elements
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT AbstractQoreNode *max(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *max(const class ResolvedCallReferenceNode *fr, class ExceptionSink *xsink) const;
 
       //! truncates the list at position "offset" (first element is offset 0)
       /**

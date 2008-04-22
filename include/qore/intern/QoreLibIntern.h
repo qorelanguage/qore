@@ -36,8 +36,8 @@ typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 #define NT_ALL   -2
 
 #include <qore/intern/ParseNode.h>
-#include <qore/intern/FunctionReferenceCallNode.h>
-#include <qore/intern/FunctionReferenceNode.h>
+#include <qore/intern/CallReferenceCallNode.h>
+#include <qore/intern/CallReferenceNode.h>
 #include <qore/intern/Function.h>
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/Variable.h>
@@ -106,7 +106,7 @@ DLLLOCAL BinaryNode *parseHex(const char *buf, int len);
 DLLLOCAL void print_node(FILE *fp, const AbstractQoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
-DLLLOCAL ResolvedFunctionReferenceNode *getFunctionReference(const QoreString *str, ExceptionSink *xsink);
+DLLLOCAL ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink);
 
 // the following functions are implemented in support.cc
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);

@@ -674,7 +674,7 @@ void *q_realloc(void *ptr, size_t size)
    return p;
 }
 
-ResolvedFunctionReferenceNode *getFunctionReference(const QoreString *str, ExceptionSink *xsink)
+ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink)
 {
    QoreProgram *pgm = getProgram();
    UserFunction *f = pgm->findUserFunction(str->getBuffer());
@@ -683,5 +683,5 @@ ResolvedFunctionReferenceNode *getFunctionReference(const QoreString *str, Excep
       xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", str->getBuffer());
       return 0;
    }
-   return new UserFunctionReferenceNode(f, pgm);
+   return new UserCallReferenceNode(f, pgm);
 }

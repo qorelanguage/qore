@@ -1853,7 +1853,7 @@ exp:    scalar
 		 VarRefNode *r = dynamic_cast<VarRefNode *>($1);
 		 if (r && r->type != VT_UNRESOLVED)
 		    parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", r->type == VT_GLOBAL ? "global" : "local", r->name);
-		 $$ = new FunctionReferenceCallNode($1, makeArgs($3));
+		 $$ = new CallReferenceCallNode($1, makeArgs($3));
 	      }
 	   }
 	}
@@ -1945,7 +1945,7 @@ exp:    scalar
 	      else
 	      {
 		 if (f->getFunctionType() == FC_UNRESOLVED)
-		    $$ = new UnresolvedFunctionReferenceNode(f->takeName());
+		    $$ = new UnresolvedCallReferenceNode(f->takeName());
 		 else // must be self call
 		 {
 		    assert(f->getFunctionType() == FC_SELF);

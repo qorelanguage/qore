@@ -936,9 +936,9 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
 }
 
 // called during parsing (plock already grabbed)
-AbstractFunctionReferenceNode *QoreProgram::resolveFunctionReference(UnresolvedFunctionReferenceNode *fr)
+AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallReferenceNode *fr)
 {
-   SimpleRefHolder<UnresolvedFunctionReferenceNode> fr_holder(fr);
+   SimpleRefHolder<UnresolvedCallReferenceNode> fr_holder(fr);
    char *fname = fr->str;
 
    {   
@@ -946,7 +946,7 @@ AbstractFunctionReferenceNode *QoreProgram::resolveFunctionReference(UnresolvedF
       if ((ufc = priv->user_func_list.find(fname)))
       {
 	 printd(5, "resolved function reference to user function %s\n", fname);
-	 return new StaticUserFunctionReferenceNode(ufc, this);
+	 return new StaticUserCallReferenceNode(ufc, this);
       }
    }
    
@@ -955,7 +955,7 @@ AbstractFunctionReferenceNode *QoreProgram::resolveFunctionReference(UnresolvedF
       if ((ifn = priv->imported_func_list.findNode(fname)))
       {
 	 printd(5, "resolved function reference to imported function %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
-	 return new ImportedFunctionReferenceNode(new ImportedFunctionCall(ifn->pgm, ifn->func));
+	 return new ImportedCallReferenceNode(new ImportedFunctionCall(ifn->pgm, ifn->func));
       }
    }
    
@@ -968,7 +968,7 @@ AbstractFunctionReferenceNode *QoreProgram::resolveFunctionReference(UnresolvedF
       if (bfc->getType() & priv->parse_options)
 	 parse_error("parse options do not allow access to builtin function '%s'", fname);
       else 
-	 return new BuiltinFunctionReferenceNode(bfc);
+	 return new BuiltinCallReferenceNode(bfc);
    }
    else
       // cannot find function, throw exception

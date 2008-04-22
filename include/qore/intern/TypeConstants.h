@@ -39,7 +39,7 @@ static inline class QoreNamespace *get_type_ns()
    Type->addConstant("List",           new QoreStringNode(QoreListNode::getStaticTypeName()));
    Type->addConstant("Hash",           new QoreStringNode(QoreHashNode::getStaticTypeName())); 
    Type->addConstant("Object",         new QoreStringNode(QoreObject::getStaticTypeName())); 
-   Type->addConstant("CallReference",  new QoreStringNode(AbstractFunctionReferenceNode::getStaticTypeName()));
+   Type->addConstant("CallReference",  new QoreStringNode(AbstractCallReferenceNode::getStaticTypeName()));
 
    return Type;
 }

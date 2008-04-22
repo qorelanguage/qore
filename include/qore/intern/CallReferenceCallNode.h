@@ -1,5 +1,5 @@
 /*
- FunctionReferenceCallNode.h
+ CallReferenceCallNode.h
  
  Qore Programming Language
  
@@ -24,10 +24,10 @@
 
 #define _QORE_FUNCTIONREFERENCECALLNODE_H
 
-class FunctionReferenceCallNode : public ParseNode
+class CallReferenceCallNode : public ParseNode
 {
    private:
-      AbstractQoreNode *exp;    // must evaluate to an AbstractFunctionReference
+      AbstractQoreNode *exp;    // must evaluate to an AbstractCallReference
       QoreListNode *args;
 
       //! evaluates the value and returns the result
@@ -51,9 +51,9 @@ class FunctionReferenceCallNode : public ParseNode
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
    public:
-      DLLLOCAL FunctionReferenceCallNode(class AbstractQoreNode *n_exp, class QoreListNode *n_args);
+      DLLLOCAL CallReferenceCallNode(class AbstractQoreNode *n_exp, class QoreListNode *n_args);
 
-      DLLLOCAL virtual ~FunctionReferenceCallNode();
+      DLLLOCAL virtual ~CallReferenceCallNode();
 
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
