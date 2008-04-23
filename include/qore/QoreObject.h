@@ -307,6 +307,26 @@ class QoreObject : public AbstractQoreNode
        */
       DLLEXPORT void tDeref();
 
+      //! returns the pointer to the value of the member
+      /** if the member exists, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
+	  an exception will be thrown if the character encoding conversion fails
+	  also if the object has a deleted status an exception will be thrown
+	  NOTE: the value returned is not referenced by this function, but rather the object is locked
+	  @param key the name of the member
+	  @param vl the AutoVLock container for nested locking
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT AbstractQoreNode *getMemberValueNoMethod(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const;
+
+      //! returns the pointer to the value of the member
+      /**
+	  NOTE: the value returned is not referenced by this function, but rather the object is locked
+	  @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
+	  @param vl the AutoVLock container for nested locking
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT AbstractQoreNode *getMemberValueNoMethod(const char *key, AutoVLock *vl, ExceptionSink *xsink) const;
+
       DLLLOCAL int getStatus() const;
 
       //! returns the value of the member with an incremented reference count, or executes the memberGate() method and returns the value
@@ -362,26 +382,6 @@ class QoreObject : public AbstractQoreNode
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL void defaultSystemDestructor(qore_classid_t classID, ExceptionSink *xsink);
-
-      //! returns the pointer to the value of the member
-      /** if the member exists, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
-	  an exception will be thrown if the character encoding conversion fails
-	  also if the object has a deleted status an exception will be thrown
-	  NOTE: the value returned is not referenced by this function, but rather the object is locked
-	  @param key the name of the member
-	  @param vl the AutoVLock container for nested locking
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-       */
-      DLLLOCAL AbstractQoreNode *getMemberValueNoMethod(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const;
-
-      //! returns the pointer to the value of the member
-      /**
-	  NOTE: the value returned is not referenced by this function, but rather the object is locked
-	  @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
-	  @param vl the AutoVLock container for nested locking
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-       */
-      DLLLOCAL AbstractQoreNode *getMemberValueNoMethod(const char *key, AutoVLock *vl, ExceptionSink *xsink) const;
 
       //! returns a pointer to a pointer to the value of the member, so it can be set externally
       /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released

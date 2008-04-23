@@ -100,12 +100,12 @@ class NorwegianWoodStyle inherits QMotifStyle
 	switch ($element) {
 	    case PE_PanelButtonCommand:
 	    {
-		my $delta = ($option.state() & State_MouseOver) ? 64 : 0;
+		my $delta = ($option.state & State_MouseOver) ? 64 : 0;
 		my $slightlyOpaqueBlack = new QColor(0, 0, 0, 63);
 		my $semiTransparentWhite = new QColor(255, 255, 255, 127 + $delta);
 		my $semiTransparentBlack = new QColor(0, 0, 0, 127 - $delta);
 		
-		my $rect = $option.rect();
+		my $rect = $option.rect;
 		my ($x, $y, $width, $height) = $rect.getRect();
 
 		my $roundRect = $.roundRectPath($rect);
@@ -144,7 +144,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 		my $topPen = new QPen($semiTransparentWhite, $penWidth);
 		my $bottomPen = new QPen($semiTransparentBlack, $penWidth);
 		
-		if ($option.state() & (State_Sunken | State_On)) {
+		if ($option.state & (State_Sunken | State_On)) {
 		    qSwap(\$topPen, \$bottomPen);
 		}
 		
@@ -153,7 +153,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 		my $x3 = $x + $width - $radius;
 		my $x4 = $x + $width;
 		
-		if ($option.direction() == Qt::RightToLeft) {
+		if ($option.direction == Qt::RightToLeft) {
 		    qSwap(\$x1, \$x4);
 		    qSwap(\$x2, \$x3);
 		}
@@ -177,7 +177,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 		$painter.setPen($bottomPen);
 		$painter.drawPath($roundRect);
 		
-		$painter.setPen($option.palette().foreground().color());
+		$painter.setPen($option.palette.foreground().color());
 		$painter.setClipping(False);
 		$painter.drawPath($roundRect);
 		
