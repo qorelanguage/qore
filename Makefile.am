@@ -538,6 +538,7 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQGraphicsPixmapItem.h \
 	modules/qt/QC_QTextLine.h \
 	modules/qt/QC_QTextOption.h \
+	modules/qt/QC_QTextLayout.h \
 	command-line.h \
 	include/qore/Qore.h
 

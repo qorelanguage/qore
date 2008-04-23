@@ -245,11 +245,11 @@ static AbstractQoreNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreLis
       return 0;
 
    QoreListNode *l;
-   class AutoVLock vl;
    if (p0->getType() == NT_REFERENCE)
    {
       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
-      ReferenceHelper ref(r, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(r, vl, xsink);
       if (!ref)
 	 return 0;
 

@@ -42,4 +42,7 @@ class QoreQStyleOption : public AbstractPrivateData, public QStyleOption
       }
 };
 
+int QStyleOption_Notification(QoreObject *obj, QStyleOption *qso, const char *mem, ExceptionSink *xsink);
+AbstractQoreNode *QStyleOption_MemberGate(QStyleOption *qso, const char *mem);
+
 #endif // _QORE_QT_QC_QSTYLEOPTION_H

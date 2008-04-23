@@ -51,11 +51,14 @@ class QoreFloatNode : public SimpleValueQoreNode
       //! the value of the type
       double f;
 
-      //! creates a new float-point value and assigns the initial value to it
+      //! creates a new floating-point value and assigns the initial value to it
       /**
 	 @param n_f the value for the object
        */
       DLLEXPORT QoreFloatNode(double n_f);
+
+      //! creates a new floating-point value and assigns 0.0 to it
+      DLLEXPORT QoreFloatNode();
 
       //! returns the floating-point value converted to a string and sets del to true
       /** NOTE: do not use this function directly, use QoreStringValueHelper instead

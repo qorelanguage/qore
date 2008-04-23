@@ -1285,11 +1285,12 @@ static class AbstractQoreNode *f_qSwap(const QoreListNode *params, class Excepti
       return 0;
    }
 
-   ReferenceHelper ref0(r0, xsink);
+   AutoVLock vl(xsink);
+   ReferenceHelper ref0(r0, vl, xsink);
    if (!ref0)
       return 0;
 
-   ReferenceHelper ref1(r1, xsink);
+   ReferenceHelper ref1(r1, vl, xsink);
    if (!ref1)
       return 0;
 

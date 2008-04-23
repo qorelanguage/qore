@@ -28,6 +28,8 @@
 
 #define _QORE_QOREOBJECT_H
 
+class AutoVLock;
+
 //! the implementation of Qore's object data type, reference counted, dynamically-allocated only
 /** objects in Qore are unique unless copied explicitly (similar to Java)
     Builtin classes (those classes implemented in C++ as opposed to user classes implemented in the Qore language)
@@ -49,8 +51,8 @@ class QoreObject : public AbstractQoreNode
       struct qore_object_private *priv;
 
       // must only be called when inside the gate
-      DLLLOCAL inline void doDeleteIntern(class ExceptionSink *xsink);
-      DLLLOCAL void cleanup(class ExceptionSink *xsink, class QoreHashNode *td);
+      DLLLOCAL inline void doDeleteIntern(ExceptionSink *xsink);
+      DLLLOCAL void cleanup(ExceptionSink *xsink, QoreHashNode *td);
       DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -65,7 +67,7 @@ class QoreObject : public AbstractQoreNode
 	  are members of this object, any exceptions thrown there will also be added to "xsink"
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
+      DLLEXPORT virtual bool derefImpl(ExceptionSink *xsink);
 
       //! should never be called, does nothing
       /** in debugging builds calls to this function will abort
@@ -105,7 +107,7 @@ class QoreObject : public AbstractQoreNode
 	 @param oc the class of the object being created
 	 @param p the QoreProgram object where the object "lives", this QoreProgram object is referenced for the life of the object to ensure that it is not deleted while the object still exists (for example, if the object is exported to a parent QoreProgram object)
        */
-      DLLEXPORT QoreObject(const QoreClass *oc, class QoreProgram *p);
+      DLLEXPORT QoreObject(const QoreClass *oc, QoreProgram *p);
 
       //! concatenate the verbose string representation of the list (including all contained values) to an existing QoreString
       /** used for %n and %N printf formatting
@@ -114,7 +116,7 @@ class QoreObject : public AbstractQoreNode
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return -1 for exception raised, 0 = OK
       */
-      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
 
       //! returns a QoreString giving the verbose string representation of the List (including all contained values)
       /** used for %n and %N printf formatting
@@ -124,10 +126,10 @@ class QoreObject : public AbstractQoreNode
 	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
 	  @see QoreNodeAsStringHelper
       */
-      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
       //! performs a deep copy of the list and returns the new list
-      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
+      DLLEXPORT virtual AbstractQoreNode *realCopy() const;
 
       //! tests for equality ("deep compare" including all contained values) with possible type conversion (soft compare)
       /**
@@ -164,67 +166,67 @@ class QoreObject : public AbstractQoreNode
 	  @param val the value to set for the member (must be already referenced for the assignment, 0 is OK too)
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void setValue(const char *key, class AbstractQoreNode *val, class ExceptionSink *xsink);
+      DLLEXPORT void setValue(const char *key, AbstractQoreNode *val, ExceptionSink *xsink);
 
       //! returns the list of members, caller owns the list returned
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT class QoreListNode *getMemberList(class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *getMemberList(ExceptionSink *xsink) const;
 
       //! removes a member from the object, if the member's value is an object it is deleted as well (destructor is called)
       /**
 	  @param key the name of the member to delete
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void deleteMemberValue(const class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT void deleteMemberValue(const QoreString *key, ExceptionSink *xsink);
 
       //! removes a member from the object, if the member's value is an object it is deleted as well (destructor is called)
       /**
 	  @param key the name of the member to delete, assumed to be in the default encoding (QCS_DEFAULT)
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void deleteMemberValue(const char *key, class ExceptionSink *xsink);
+      DLLEXPORT void deleteMemberValue(const char *key, ExceptionSink *xsink);
 
       //! returns the number of members of the object
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT int size(class ExceptionSink *xsink) const;
+      DLLEXPORT int size(ExceptionSink *xsink) const;
 
       //! tests for equality ("deep compare" including all contained values) with possible type conversion of contained elements (soft compare)
       /**
 	 @param obj the object to compare
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT bool compareSoft(const class QoreObject *obj, class ExceptionSink *xsink) const;
+      DLLEXPORT bool compareSoft(const class QoreObject *obj, ExceptionSink *xsink) const;
 
       //! tests for equality ("deep compare" including all contained values) with possible type conversion of contained elements (hard compare)
       /**
 	 @param obj the object to compare
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT bool compareHard(const class QoreObject *obj, class ExceptionSink *xsink) const;
+      DLLEXPORT bool compareHard(const class QoreObject *obj, ExceptionSink *xsink) const;
 
       //! returns the value of the given member with the reference count incremented, the caller owns the AbstractQoreNode (reference) returned
       /**
 	 @param mem the name member to retrieve the value for
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT AbstractQoreNode *getReferencedMemberNoMethod(const char *mem, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *getReferencedMemberNoMethod(const char *mem, ExceptionSink *xsink) const;
 
       //! retuns all member data of the object (or 0 if there's an exception), caller owns the QoreHashNode reference returned
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT class QoreHashNode *copyData(class ExceptionSink *xsink) const;
+      DLLEXPORT QoreHashNode *copyData(ExceptionSink *xsink) const;
 
       //! copies all member data of the current object to the passed QoreHashNode
       /**
 	 @param hash the hash to copy all data from
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void mergeDataToHash(class QoreHashNode *hash, class ExceptionSink *xsink);
+      DLLEXPORT void mergeDataToHash(QoreHashNode *hash, ExceptionSink *xsink);
 
       //! sets private data for the object against the class ID passed, used in C++ functions implementing Qore constructors
       /**
@@ -238,7 +240,7 @@ class QoreObject : public AbstractQoreNode
 	 @param key the class ID of the class to get the private data for
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(qore_classid_t key, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(qore_classid_t key, ExceptionSink *xsink) const;
 
       //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
       /**
@@ -246,13 +248,13 @@ class QoreObject : public AbstractQoreNode
 	 @param args the arguments for the method
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT AbstractQoreNode *evalMethod(const class QoreString *name, const class QoreListNode *args, class ExceptionSink *xsink);
+      DLLEXPORT AbstractQoreNode *evalMethod(const QoreString *name, const QoreListNode *args, ExceptionSink *xsink);
 
       //! runs the destructor on the object (if it hasn't already been deleted)
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void doDelete(class ExceptionSink *xsink);
+      DLLEXPORT void doDelete(ExceptionSink *xsink);
 
       //! returns a pointer to a QoreClass object if the class ID passed is a valid class in the hierarchy
       /**
@@ -283,7 +285,7 @@ class QoreObject : public AbstractQoreNode
       /** for system objects only (created with the system constructor) this will be 0
 	  @return the QoreProgram object associated with this object
       */
-      DLLEXPORT class QoreProgram *getProgram() const;
+      DLLEXPORT QoreProgram *getProgram() const;
 
       //! returns true if the object is a system object (created with the system constructor)
       /**
@@ -312,14 +314,14 @@ class QoreObject : public AbstractQoreNode
 	 @param member the name of the member to get the value for (or evaluate the memberGate() method against)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *evalMember(const QoreString *member, ExceptionSink *xsink);
 
       //! merges data from a hash as members of the object
       /**
 	 @param h the hash to merge
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL void merge(const class QoreHashNode *h, class ExceptionSink *xsink);
+      DLLLOCAL void merge(const QoreHashNode *h, ExceptionSink *xsink);
 
       DLLLOCAL class KeyNode *getReferencedPrivateDataNode(qore_classid_t key);
 
@@ -328,7 +330,7 @@ class QoreObject : public AbstractQoreNode
 	 @param key the class key to use
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractPrivateData *getAndClearPrivateData(qore_classid_t key, class ExceptionSink *xsink);
+      DLLLOCAL AbstractPrivateData *getAndClearPrivateData(qore_classid_t key, ExceptionSink *xsink);
 
       //! called to evaluate a builtin method when private data is available
       /**
@@ -336,30 +338,30 @@ class QoreObject : public AbstractQoreNode
 	 @param args the arguments for the method
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink);
 
       //! called on the old object (this) to acquire private data, copy method called on "self" (new copy)
-      DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, class ExceptionSink *xsink);
+      DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, ExceptionSink *xsink);
 
       //! concatenates info about private data to a string
       /**
 	 @param str the string to concatenate to
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL void addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink) const;
+      DLLLOCAL void addPrivateDataToString(QoreString *str, ExceptionSink *xsink) const;
 
       //! destroys all members and dereferences all private data structures
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL void obliterate(class ExceptionSink *xsink);
+      DLLLOCAL void obliterate(ExceptionSink *xsink);
 
       //! runs the destructor for system objects
       /**
 	 @param classID the ID of the class
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL void defaultSystemDestructor(qore_classid_t classID, class ExceptionSink *xsink);
+      DLLLOCAL void defaultSystemDestructor(qore_classid_t classID, ExceptionSink *xsink);
 
       //! returns the pointer to the value of the member
       /** if the member exists, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
@@ -370,7 +372,7 @@ class QoreObject : public AbstractQoreNode
 	  @param vl the AutoVLock container for nested locking
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode *getMemberValueNoMethod(const class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *getMemberValueNoMethod(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const;
 
       //! returns the pointer to the value of the member
       /**
@@ -379,7 +381,7 @@ class QoreObject : public AbstractQoreNode
 	  @param vl the AutoVLock container for nested locking
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode *getMemberValueNoMethod(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *getMemberValueNoMethod(const char *key, AutoVLock *vl, ExceptionSink *xsink) const;
 
       //! returns a pointer to a pointer to the value of the member, so it can be set externally
       /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
@@ -389,7 +391,7 @@ class QoreObject : public AbstractQoreNode
 	  @param vl the AutoVLock container for nested locking
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode **getMemberValuePtr(const class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode **getMemberValuePtr(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const;
 
       //! returns a pointer to a pointer to the value of the member, so it can be set or changed externally
       /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
@@ -398,7 +400,7 @@ class QoreObject : public AbstractQoreNode
 	  @param vl the AutoVLock container for nested locking
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, ExceptionSink *xsink) const;
 
       //! returns a pointer to a pointer to the value of the member only if it already exists, so it can be set externally
       /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
@@ -408,7 +410,7 @@ class QoreObject : public AbstractQoreNode
 	  @param vl the AutoVLock container for nested locking
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode **getExistingValuePtr(const class QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode **getExistingValuePtr(const QoreString *mem, AutoVLock *vl, ExceptionSink *xsink) const;
 
       //! returns a pointer to a pointer to the value of the member only if it already exists
       /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
@@ -417,13 +419,19 @@ class QoreObject : public AbstractQoreNode
 	  @param vl the AutoVLock container for nested locking
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode **getExistingValuePtr(const char *mem, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode **getExistingValuePtr(const char *mem, AutoVLock *vl, ExceptionSink *xsink) const;
 
       //! creates the object with the initial data passed as "d", used by the copy constructor
-      DLLLOCAL QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHashNode *d);
+      DLLLOCAL QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *d);
 
       //! evaluates the delete blocker function for the managed private data
       DLLLOCAL bool evalDeleteBlocker(BuiltinMethod *meth);
+
+      //! returns true if the class has a memberNotification method
+      DLLLOCAL bool hasMemberNotification() const;
+
+      //! executes the member notification on the object the given member
+      DLLLOCAL void execMemberNotification(const char *member, ExceptionSink *xsink);
 };
 
 #endif

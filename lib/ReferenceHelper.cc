@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-ReferenceHelper::ReferenceHelper(const ReferenceNode *ref, ExceptionSink *xsink)
+ReferenceHelper::ReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink)
 {
    vp = get_var_value_ptr(ref->getExpression(), &vl, xsink);
 }
@@ -50,6 +50,7 @@ int ReferenceHelper::assign(AbstractQoreNode *val, ExceptionSink *xsink)
       (*vp)->deref(xsink);
       if (*xsink) {
 	 (*vp) = 0;
+	 discard(val, xsink);
 	 return -1;
       }
    }

@@ -325,6 +325,9 @@ class QoreClass{
       //! returns true if the class implements a "memberGate" method
       DLLEXPORT bool hasMemberGate() const;
 
+      //! returns true if the class implements a "memberNotification" method
+      DLLEXPORT bool hasMemberNotification() const;
+
       //! returns the functional domain of the class
       DLLEXPORT int getDomain() const;
 
@@ -367,8 +370,9 @@ class QoreClass{
       DLLEXPORT void addBuiltinVirtualBaseClass(QoreClass *qc);
 
       DLLLOCAL QoreClass();
-      DLLLOCAL void addMethod(class QoreMethod *f);
+      DLLLOCAL void addMethod(QoreMethod *f);
       DLLLOCAL AbstractQoreNode *evalMemberGate(QoreObject *self, const QoreString *nme, ExceptionSink *xsink) const;
+      DLLLOCAL void execMemberNotification(QoreObject *self, const char *mem, ExceptionSink *xsink) const;
       DLLLOCAL bool execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const;
       DLLLOCAL void execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const;
       DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink *xsink) const;

@@ -28,10 +28,10 @@
 #include <sys/types.h>
 #include <pcre.h>
 
-DLLLOCAL class OperatorList oplist;
+DLLLOCAL OperatorList oplist;
 
 // the standard, system-default operator pointers
-class Operator *OP_ASSIGNMENT, *OP_MODULA, 
+Operator *OP_ASSIGNMENT, *OP_MODULA, 
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
    *OP_MULT, *OP_DIV, *OP_UNARY_MINUS, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
    *OP_POST_INCREMENT, *OP_POST_DECREMENT, *OP_PRE_INCREMENT, *OP_PRE_DECREMENT, 
@@ -391,15 +391,12 @@ static bool op_exists(const AbstractQoreNode *left, const AbstractQoreNode *x, E
       return true;
 
    ReferenceHolder<AbstractQoreNode> tn(xsink);
-   AutoVLock vl;
+   AutoVLock vl(xsink);
    AbstractQoreNode *n = getExistingVarValue(left, xsink, &vl, tn);
 
    // return if an exception happened
    if (*xsink)
-   {
-      vl.del();
       return false;
-   }
 
    return is_nothing(n) ? false : true;
 }
@@ -583,58 +580,59 @@ static AbstractQoreNode *op_question_mark(const AbstractQoreNode *left, const Ab
 static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // get current value and save
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    // if it's not a string, then do nothing
-   if (!(*v) || (*v)->getType() != NT_STRING)
+   if (!v.check_type(NT_STRING))
       return 0;
 
-   QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v.get_value());
+
    assert(right && right->getType() == NT_REGEX_SUBST);
    const RegexSubstNode *rs = reinterpret_cast<const RegexSubstNode *>(right);
-   QoreStringNode *nv = rs->exec((*vs), xsink);
+
+   // get new value
+   QoreStringNode *nv = rs->exec(str, xsink);
+
+   // if there is an exception above, nv = 0
    if (xsink->isEvent())
       return 0;
 
-   // assign new value to lvalue
-   (*vs)->deref();
-   (*v) = nv;
+   // assign new value to lvalue (no exception possible here)
+   v.assign(nv);
 
    // reference for return value if necessary
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? nv->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_regex_trans(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // get current value and save
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    // if it's not a string, then do nothing
-   if (!(*v) || (*v)->getType() != NT_STRING)
+   if (!v.check_type(NT_STRING))
       return 0;
 
+   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v.get_value());
+
+   // get new value
    assert(right && right->getType() == NT_REGEX_TRANS);
-   QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-   QoreStringNode *nv = reinterpret_cast<const RegexTransNode *>(right)->exec((*vs), xsink);
+   QoreStringNode *nv = reinterpret_cast<const RegexTransNode *>(right)->exec(str, xsink);
+
+   // if there is an exception above, nv = 0
    if (*xsink)
       return 0;
 
-   // assign new value to lvalue
-   (*vs)->deref();
-   (*v) = nv;
+   // assign new value to lvalue (no exception possible here)
+   v.assign(nv);
+
    // reference for return value
-   (*v)->ref();
-   return (*v);      
+   return ref_rv ? nv->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_list_ref(const AbstractQoreNode *left, const AbstractQoreNode *index, ExceptionSink *xsink)
@@ -750,24 +748,13 @@ static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const Abstr
       return 0;
 
    // get current value and save
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
-   // dereference old value if necessary
-   discard(*v, xsink);
-   if (*xsink)
-   {
-      *v = 0;
+   // assign new value
+   if (v.assign(new_value.release()))
       return 0;
-   }
-
-   // assign new value 
-   (*v) = new_value.release();
-   vl.del();
 
 #if 0
    printd(5, "op_assignment() *%08p=%08p (type=%s refs=%d)\n",
@@ -776,22 +763,16 @@ static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const Abstr
 	  new_value ? new_value->reference_count() : 0 );
 #endif
 
-   // traceout("op_assignment()");
-   if (ref_rv && (*v))
-      return (*v)->refSelf();
-
-   return 0;
+   // reference return value if necessary
+   const AbstractQoreNode *rv = v.get_value();
+   return ref_rv && rv ? rv->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **v;
-
    assert(n_left && n_left->getType() == NT_LIST);
    const QoreListNode *left = reinterpret_cast<const QoreListNode *>(n_left);
    
-   // tracein("op_assignment()");
-
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
       for the variable assignment - however it does need to be
@@ -806,33 +787,24 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
    {
       const AbstractQoreNode *lv = left->retrieve_entry(i);
 
-      class AutoVLock vl;
-      v = get_var_value_ptr(lv, &vl, xsink);
-      if (!v) {
-	 assert(*xsink);
+      // get current value and save
+      LValueHelper v(lv, xsink);
+      if (!v)
 	 return 0;
-      }
-      
-      // dereference old value if necessary
-      discard(*v, xsink);
-      if (*xsink)
-      {
-	 *v = 0;
-	 return 0;
-      }
 
       // if there's only one value, then save it
       if (new_value && new_value->getType() == NT_LIST) { // assign to list position
 	 const QoreListNode *nv = reinterpret_cast<const QoreListNode *>(*new_value);
-	 (*v) = nv->get_referenced_entry(i);
+	 v.assign(nv->get_referenced_entry(i));
       }
       else {
 	 if (!i)
-	    (*v) = new_value.getReferencedValue();
+	    v.assign(new_value.getReferencedValue());
 	 else
-	    (*v) = 0;
+	    v.assign(0);
       }
-      vl.del();
+      if (*xsink)
+	 return 0;
    }
 
    // traceout("op_list_assignment()");
@@ -841,229 +813,199 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
 
 static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   // get current value and save
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    // dereferences happen in each section so that the
    // already referenced value can be passed to list->push()
    // if necessary
    // do list plus-equals if left-hand side is a list
-   qore_type_t vtype = *v ? (*v)->getType() : 0;
-   if (vtype == NT_LIST)
-   {
+   qore_type_t vtype = v.get_type();
+   if (vtype == NT_LIST) {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
       if (*xsink)
 	 return 0;
 
-      ensure_unique(v, xsink);
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(*v);
+      v.ensure_unique(); // no exception possible here
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(v.get_value());
       if (new_right && new_right->getType() == NT_LIST)
 	 l->merge(reinterpret_cast<const QoreListNode *>(*new_right));
       else
 	 l->push(new_right.getReferencedValue());
-   }
-   // do hash plus-equals if left side is a hash
-   else if (vtype == NT_HASH)
-   {
+   } // do hash plus-equals if left side is a hash
+   else if (vtype == NT_HASH) {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink || !new_right)
+      if (*xsink)
 	 return 0;
-
-      if (new_right->getType() == NT_HASH)
-      {
-	 ensure_unique(v, xsink);
-	 reinterpret_cast<QoreHashNode *>(*v)->merge(reinterpret_cast<const QoreHashNode *>(*new_right), xsink);
-      }
-      else if (new_right->getType() == NT_OBJECT)
-      {
-	 ensure_unique(v, xsink);
-	 const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*new_right))->mergeDataToHash(reinterpret_cast<QoreHashNode *>(*v), xsink);
+      if (new_right) {
+	 if (new_right->getType() == NT_HASH) {
+	    v.ensure_unique();
+	    reinterpret_cast<QoreHashNode *>(v.get_value())->merge(reinterpret_cast<const QoreHashNode *>(*new_right), xsink);
+	 }
+	 else if (new_right->getType() == NT_OBJECT) {
+	    v.ensure_unique();
+	    const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*new_right))->mergeDataToHash(reinterpret_cast<QoreHashNode *>(v.get_value()), xsink);
+	 }
       }
    }
    // do hash/object plus-equals if left side is an object
-   else if (vtype == NT_OBJECT)
-   {
+   else if (vtype == NT_OBJECT) {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink || !new_right)
+      if (*xsink)
 	 return 0;
-
-      QoreObject *o = reinterpret_cast<QoreObject *>(*v);
-      // do not need ensure_unique() for objects
-      if (new_right->getType() == NT_OBJECT)
-      {
-	 ReferenceHolder<QoreHashNode> h(const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*new_right))->copyData(xsink), xsink);
-	 if (h)
-	    o->merge(*h, xsink);
+      if (new_right) {
+	 QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
+	 // do not need ensure_unique() for objects
+	 if (new_right->getType() == NT_OBJECT) {
+	    ReferenceHolder<QoreHashNode> h(const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*new_right))->copyData(xsink), xsink);
+	    if (h)
+	       o->merge(*h, xsink);
+	 }
+	 else if (new_right->getType() == NT_HASH)
+	    o->merge(reinterpret_cast<const QoreHashNode *>(*new_right), xsink);
       }
-      else if (new_right->getType() == NT_HASH)
-	 o->merge(reinterpret_cast<const QoreHashNode *>(*new_right), xsink);
    }
    // do string plus-equals if left-hand side is a string
    else if (vtype == NT_STRING)
    {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink || !new_right)
+      if (*xsink)
 	 return 0;
+      if (new_right) {
+	 QoreStringValueHelper str(*new_right);
 
-      QoreStringValueHelper str(*new_right);
-
-      ensure_unique(v, xsink);
-      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-      (*vs)->concat(*str, xsink);
+	 v.ensure_unique();
+	 QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(v.get_value());
+	 vs->concat(*str, xsink);
+      }
    }
    else if (vtype == NT_FLOAT)
    {
-      // optimization to remove the need for a virtual function call in the most common case
-      double f = right ? (right->getType() == NT_FLOAT ? reinterpret_cast<const QoreFloatNode *>(right)->f : right->floatEval(xsink)) : 0.0;
-      if (*xsink || f == 0.0)
+      double f = right ? right->floatEval(xsink) : 0.0;
+      if (*xsink)
 	 return 0;
-
-      ensure_unique(v, xsink);
-      QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
-      (*vf)->f += f;
+      if (f != 0.0) {
+	 v.ensure_unique();
+	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
+	 vf->f += f;
+      }
    }
    else if (vtype == NT_DATE)
    {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink || !new_right)
+      if (*xsink)
 	 return 0;
-
-      DateTimeValueHelper date(*new_right);
-
-      DateTimeNode **vd = reinterpret_cast<DateTimeNode **>(v);
-      DateTimeNode *nd = (*vd)->add(*date);
-      (*v)->deref(xsink);
-      (*v) = nd;
+      if (new_right) {
+	 DateTimeValueHelper date(*new_right);
+	 v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->add(*date));
+      }
    }
-   else if (!vtype || vtype == NT_NOTHING)
+   else if (vtype == NT_NOTHING)
    {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink || !new_right)
+      if (*xsink)
 	 return 0;
-
-      if (*v)
-	 (*v)->deref(xsink); // exception not possible here
-      // assign rhs to lhs (take reference for assignment)
-      *v = new_right.getReferencedValue();
+      if (new_right) {
+	 // assign rhs to lhs (take reference for assignment)
+	 v.assign(new_right.getReferencedValue());
+      }
    }
    else { // do integer plus-equals
-      // optimization to remove the need for a virtual function call in the most common case
-      int64 iv = right ? (right->getType() == NT_INT ? reinterpret_cast<const QoreBigIntNode *>(right)->val : right->bigIntEval(xsink)) : 0;
+      int64 iv = right ? right->bigIntEval(xsink) : 0;
       if (*xsink)
 	 return 0;
 
-      QoreBigIntNode *i;
       // get new value if necessary
-      if (!(*v)) {
-	 i = new QoreBigIntNode();
-	 (*v) = i;
-      }
-      else {
-	 ensure_unique_int(v, xsink);
-	 if (*xsink)
-	    return 0;
-	 i = reinterpret_cast<QoreBigIntNode *>(*v);
-      }
+      if (v.ensure_unique_int())
+	 return 0;
+      QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(v.get_value());
 
       // increment current value
       i->val += iv;
    }
 
+   // v has been assigned to a value by this point
    // reference return value
-   // traceout("op_plus_equals()");
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
+
+   if (!right) {
+      AbstractQoreNode *val = v.get_value();
+      return ref_rv && val ? val->refSelf() : 0;
    }
 
-   if (!right)
-      return ref_rv ? (*v)->refSelf() : 0;
-
    // do float minus-equals if left side is a float
-   qore_type_t vtype = *v ? (*v)->getType() : 0;
+   qore_type_t vtype = v.get_type();
    if (vtype == NT_FLOAT) {
-      // optimization to remove the need for a virtual function call in the most common case
-      double f = right ? (right->getType() == NT_FLOAT ? reinterpret_cast<const QoreFloatNode *>(right)->f : right->floatEval(xsink)) : 0.0;
+      double f = right ? right->floatEval(xsink) : 0.0;
       if (*xsink)
 	 return 0;
 
       if (f) {
-	 ensure_unique(v, xsink);
-	 QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
-	 (*vf)->f -= f;
+	 v.ensure_unique();
+	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
+	 vf->f -= f;
       }
    }
    else if (vtype == NT_DATE) {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
       if (*xsink)
 	 return 0;
-      if (!new_right)
-	 return ref_rv ? (*v)->refSelf() : 0;
-
-      DateTimeValueHelper date(*new_right);
-
-      ensure_unique(v, xsink);
-      DateTimeNode **vd = reinterpret_cast<DateTimeNode **>(v);
-      DateTimeNode *nd = (*vd)->subtractBy(*date);
-      (*v)->deref(xsink);
-      (*v) = nd;
+      if (new_right) {
+	 DateTimeValueHelper date(*new_right);
+	 v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->subtractBy(*date));
+      }
    }
    else if (vtype == NT_HASH) {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
       if (*xsink)
 	 return 0;
-      if (!new_right || new_right->getType() == NT_HASH)
-	 return ref_rv ? (*v)->refSelf() : 0;
+      if (new_right && new_right->getType() != NT_HASH) {
+	 v.ensure_unique();
+	 QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v.get_value());
 
-      ensure_unique(v, xsink);
-      QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(*v);
-
-      const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
-      if (nrl && nrl->size()) {
-	 // treat each element in the list as a string giving a key to delete
-	 ConstListIterator li(nrl);
-	 while (li.next()) {
-	    QoreStringValueHelper val(li.getValue());
-	    
-	    vh->deleteKey(*val, xsink);
-	    if (*xsink)
-	       return 0;
+	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
+	 if (nrl && nrl->size()) {
+	    // treat each element in the list as a string giving a key to delete
+	    ConstListIterator li(nrl);
+	    while (li.next()) {
+	       QoreStringValueHelper val(li.getValue());
+	       
+	       vh->deleteKey(*val, xsink);
+	       if (*xsink)
+		  return 0;
+	    }
+	 }
+	 else {
+	    QoreStringValueHelper str(*new_right);
+	    vh->deleteKey(*str, xsink);
 	 }
       }
-      else {
-	 QoreStringValueHelper str(*new_right);
-	 vh->deleteKey(*str, xsink);
-      }
    }
-   else if (!vtype || vtype == NT_NOTHING) {
+   else if (vtype == NT_NOTHING) {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink || !new_right)
+      if (*xsink)
 	 return 0;
 
-      if (*v)
-	 (*v)->deref(xsink); // exception not possible here
-
-      if (new_right->getType() == NT_FLOAT) {
-	 const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
-	 (*v) = new QoreFloatNode(-f->f);
-      }
-      else {
-	 // optimization to eliminate a virtual function call in the most common case
-	 int64 i = new_right->getAsBigInt();
-	 (*v) = new QoreBigIntNode(-i);
+      if (new_right) {
+	 if (new_right->getType() == NT_FLOAT) {
+	    const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
+	    v.assign(new QoreFloatNode(-f->f));
+	 }
+	 else {
+	    // optimization to eliminate a virtual function call in the most common case
+	    int64 i = new_right->getAsBigInt();
+	    v.assign(new QoreBigIntNode(-i));
+	 }
       }
    }
    else { // do integer minus-equals
@@ -1071,27 +1013,20 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
       if (*xsink)
 	 return 0;
       
-      QoreBigIntNode *i;
       // get new value if necessary
-      if (!(*v)) {
-	 i = new QoreBigIntNode();
-	 (*v) = i;
-      }
-      else
-      {
-	 ensure_unique_int(v, xsink);
-	 if (*xsink)
-	    return 0;
-	 i = reinterpret_cast<QoreBigIntNode *>(*v);
-      }
+      if (v.ensure_unique_int())
+	 return 0;
+      QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(v.get_value());
       
       // decrement current value
       i->val -= iv;
    }
 
+   // here we know that v has a value
+
    // traceout("op_minus_equals()");
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1102,34 +1037,28 @@ static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const Abstr
       return 0;
 
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
    
    QoreBigIntNode *b;
    // get new value if necessary
-   if (!(*v)) {
+   if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode();
-      (*v) = b;
+      v.assign(b);
    }
    else 
    {
-      ensure_unique_int(v, xsink);
-      if (*xsink)
+      if (v.ensure_unique_int())
 	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(*v);
+      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
    }
 
    // and current value with arg val
    b->val &= val;
 
-   //traceout("op_and_equals()");
-
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? b->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1139,32 +1068,27 @@ static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const Abstra
       return 0;
 
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    QoreBigIntNode *b;
    // get new value if necessary
-   if (!(*v)) {
+   if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode(0);
-      (*v) = b;
+      v.assign(b);
    }
    else {
-      ensure_unique_int(v, xsink);
-      if (*xsink)
+      if (v.ensure_unique_int())
 	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(*v);
+      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
    }
 
    // or current value with arg val
    b->val |= val;
 
-   //traceout("op_or_equals()");
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? b->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1174,60 +1098,49 @@ static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const Ab
       return 0;
 
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    QoreBigIntNode *b;
    // get new value if necessary
-   if (!(*v)) {
+   if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode(0);
-      (*v) = b;
+      v.assign(b);
    }
    else {
-      ensure_unique_int(v, xsink);
-      if (*xsink)
+      if (v.ensure_unique_int())
 	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(*v);
+      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
    }
 
    // or current value with arg val
    b->val %= val;
 
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? b->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    // is either side a float?
-   if ((*v) && (*v)->getType() == NT_FLOAT)
-   {
+   if (v.get_type() == NT_FLOAT) {
       double f = right ? right->floatEval(xsink) : 0;
       if (*xsink)
 	 return 0;
 
-      if (f)
-      {
-	 ensure_unique(v, xsink);
-	 QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
-	 (*vf)->f *= f;
+      if (f) {
+	 v.ensure_unique();
+	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
+	 vf->f *= f;
       }
-      else // if factor is NOTHING, assign 0.0
-      {
-	 (*v)->deref(xsink);
-	 (*v) = new QoreFloatNode(0.0);
+      else { // if factor is NOTHING, assign 0.0
+	 v.assign(new QoreFloatNode(0.0));
       }
    }
    else {
@@ -1235,50 +1148,41 @@ static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const 
       if (*xsink)
 	 return 0;
 
-      if (res && res->getType() == NT_FLOAT)
-      {
-	 if (!(*v))
-	    (*v) = new QoreFloatNode(0.0);
-	 else
-	 {
-	    ensure_unique_float(v, xsink);
-	    if (*xsink)
+      if (res && res->getType() == NT_FLOAT) {
+	 if (v.get_type() == NT_NOTHING)
+	    v.assign(new QoreFloatNode(0.0));
+	 else {
+	    if (v.ensure_unique_float())
 	       return 0;
 	    
 	    // multiply current value with arg val
-	    QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
-	    (*vf)->f *= (reinterpret_cast<const QoreFloatNode *>(*res))->f;
+	    QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
+	    vf->f *= (reinterpret_cast<const QoreFloatNode *>(*res))->f;
 	 }
       }
-      else // do integer multiply equals
-      {
+      else { // do integer multiply equals
 	 // get new value if necessary
-	 if (!(*v))
-	    (*v) = new QoreBigIntNode();
-	 else 
-	 {
-	    if (res)
-	    {
-	       ensure_unique_int(v, xsink);
-	       if (*xsink)
+	 if (v.get_type() == NT_NOTHING)
+	    v.assign(new QoreBigIntNode());
+	 else {
+	    if (res) {
+	       if (v.ensure_unique_int())
 		  return 0;
-	       
-	       QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(*v);
+
+	       QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
 	       
 	       // multiply current value with arg val
 	       b->val *= res->getAsBigInt();
 	    }
-	    else // if factor is NOTHING, assign 0
-	    {
-	       (*v)->deref(xsink);
-	       (*v) = new QoreBigIntNode();
+	    else { // if factor is NOTHING, assign 0
+	       v.assign(new QoreBigIntNode());
 	    }
 	 }
       }
    }
 
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1288,16 +1192,12 @@ static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const Ab
       return 0;
 
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    // is either side a float?
-   if (res && res->getType() == NT_FLOAT)
-   {
+   if (res && res->getType() == NT_FLOAT) {
       const QoreFloatNode *rf = reinterpret_cast<const QoreFloatNode *>(*res);
 
       if (!rf->f) {
@@ -1305,62 +1205,51 @@ static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const Ab
 	 return 0;
       }
 
-      if (!(*v))
-	 (*v) = new QoreFloatNode(0.0);
-      else
-      {
-	 ensure_unique_float(v, xsink);
-
-	 QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
-	 // divide current value with arg val
-	 (*vf)->f /= rf->f;
-      }
-   }
-   else if ((*v) && (*v)->getType() == NT_FLOAT)
-   {
-      if (res)
-      {
-	 float val = res->getAsFloat();
-	 if (!val) {
-	    xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
+      if (v.get_type() == NT_NOTHING)
+	 v.assign(new QoreFloatNode());
+      else {
+	 if (v.ensure_unique_float())
 	    return 0;
-	 }
-	 else {
-	    ensure_unique(v, xsink);
 
-	    QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
-	    (*vf)->f /= val;
-	 }
+	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
+	 // divide current value with arg val
+	 vf->f /= rf->f;
       }
-      else // if factor is NOTHING, raise exception
-	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
    }
-   else // do integer divide equals
-   {
+   else if (v.get_type() == NT_FLOAT) {
+      float val = res ? res->getAsFloat() : 0.0;
+      if (val == 0.0) {
+	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
+	 return 0;
+      }
+      v.ensure_unique();
+
+      QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
+      vf->f /= val;
+   }
+   else { // do integer divide equals
       int64 val = res ? res->getAsBigInt() : 0;
       if (!val) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression!");
 	 return 0;
       }
       // get new value if necessary
-      if (!(*v))
-	 (*v) = new QoreBigIntNode(0);
-      else 
-      {
-	 ensure_unique_int(v, xsink);
-	 if (*xsink)
+      if (v.get_type() == NT_NOTHING)
+	 v.assign(new QoreBigIntNode());
+      else {
+	 if (v.ensure_unique_int())
 	    return 0;
 
-	 QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(*v);
+	 QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
 	 
 	 // divide current value with arg val
 	 b->val /= val;
       }
    }
 
-   assert(*v);
+   assert(v.get_value());
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1370,70 +1259,60 @@ static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const Abstr
       return 0;
 
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    QoreBigIntNode *b;
 
    // get new value if necessary
-   if (!(*v)) {
+   if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode(0);
-      (*v) = b;
+      v.assign(b);
    }
-   else 
-   {
-      ensure_unique_int(v, xsink);
-      if (*xsink)
+   else {
+      if (v.ensure_unique_int())
 	 return 0;
 
-      b = reinterpret_cast<QoreBigIntNode *>(*v);
+      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
    }
 
    // xor current value with arg val
    b->val ^= val;
 
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
+   if (*xsink)
       return 0;
 
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    QoreBigIntNode *b;
    // get new value if necessary
-   if (!(*v)) {
+   if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode(0);
-      (*v) = b;
+      v.assign(b);
    }
-   else 
-   {
-      ensure_unique_int(v, xsink);
-      if (*xsink)
+   else {
+      if (v.ensure_unique_int())
 	 return 0;
 
-      b = reinterpret_cast<QoreBigIntNode *>(*v);
+      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
    }
 
    // shift left current value by arg val
    b->val <<= val;
 
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
+   return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1441,46 +1320,37 @@ static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, con
    //tracein("op_shift_right_equals()");
 
    int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
+   if (*xsink)
       return 0;
 
    // get ptr to current value
-   class AutoVLock vl;
-   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (!v) {
-      assert(*xsink);
+   LValueHelper v(left, xsink);
+   if (!v)
       return 0;
-   }
 
    QoreBigIntNode *b;
    // get new value if necessary
-   if (!(*v)) {
+   if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode();
-      (*v) = b;
+      v.assign(b);
    }
-   else 
-   {
-      ensure_unique_int(v, xsink);
-      if (*xsink)
+   else {
+      if (v.ensure_unique_int())
 	 return 0;
 
-      b = reinterpret_cast<QoreBigIntNode *>(*v);
+      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
    }
 
    // shift right current value by arg val
    b->val >>= val;
 
    // reference return value and return
-   return ref_rv ? (*v)->refSelf() : 0;
-
-   //traceout("op_shift_right_equals()");
-   return 0;
+   return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 // this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
 static AbstractQoreNode *op_plus_list(const AbstractQoreNode *left, const AbstractQoreNode *right)
 {
-
    if (left->getType() == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(left);
       QoreListNode *rv = l->copy();
@@ -1608,19 +1478,16 @@ static int64 op_shift_right_int(int64 left, int64 right)
 // variable assignment
 static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   class AutoVLock vl;
-   AbstractQoreNode **n = get_var_value_ptr(left, &vl, xsink);
-   if (!n) {
-      assert(*xsink);
+   LValueHelper n(left, xsink);
+   if (!n)
       return 0;
-   }
 
    // reference for return value is reference for variable assignment (if not null)
-   AbstractQoreNode *rv = *n;
+   AbstractQoreNode *rv = n.take_value();
 
    // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode((*n) ? (*n)->getAsBigInt() : 0);
-   (*n) = b;
+   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(rv) ? rv->getAsBigInt() : 0);
+   n.assign(b);
 
    // increment value
    b->val++;
@@ -1632,26 +1499,20 @@ static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, 
 // variable assignment
 static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   class AutoVLock vl;
-   AbstractQoreNode **n = get_var_value_ptr(left, &vl, xsink);
-   //printd(5, "op_post_dec() n=%08p, *n=%08p\n", n, *n);
-   if (!n) {
-      assert(*xsink);
+   LValueHelper n(left, xsink);
+   if (!n)
       return 0;
-   }
 
    // reference for return value is reference for variable assignment (if not null)
-   AbstractQoreNode *rv = *n;
+   AbstractQoreNode *rv = n.take_value();
 
    // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode((*n) ? (*n)->getAsBigInt() : 0);
-   (*n) = b;
+   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(rv) ? rv->getAsBigInt() : 0);
+   n.assign(b);
 
    // decrement value
    b->val--;
 
-   //printd(5, "op_post_dec(): n=%08p, *n=%08p\n", n, *n);
-   // traceout("op_post_dec()");
    // return original value (may be null or non-integer)
    return rv;
 }
@@ -1659,24 +1520,20 @@ static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, 
 // variable assignment
 static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   class AutoVLock vl;
-   AbstractQoreNode **n = get_var_value_ptr(left, &vl, xsink);
-   if (!n) {
-      assert(*xsink);
+   LValueHelper n(left, xsink);
+   if (!n)
       return 0;
-   }
 
    QoreBigIntNode *b;
    // acquire new value if necessary
-   if (!(*n)) {
+   if (n.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode(0);
-      (*n) = b;
+      n.assign(b);
    }
    else {
-      ensure_unique_int(n, xsink);
-      if (*xsink)
+      if (n.ensure_unique_int())
 	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(*n);
+      b = reinterpret_cast<QoreBigIntNode *>(n.get_value());
    }
 
    // increment value
@@ -1690,33 +1547,27 @@ static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, E
 // variable assignment
 static AbstractQoreNode *op_pre_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   class AutoVLock vl;
-   AbstractQoreNode **n = get_var_value_ptr(left, &vl, xsink);
-   if (!n) {
-      assert(*xsink);
+   LValueHelper n(left, xsink);
+   if (!n)
       return 0;
-   }
 
    QoreBigIntNode *b;
    // acquire new value if necessary
-   if (!(*n)) {
-      b = new QoreBigIntNode();
-      (*n) = b;
+   if (n.get_type() == NT_NOTHING) {
+      b = new QoreBigIntNode(0);
+      n.assign(b);
    }
    else {
-      ensure_unique_int(n, xsink);
-      if (*xsink)
+      if (n.ensure_unique_int())
 	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(*n);
+      b = reinterpret_cast<QoreBigIntNode *>(n.get_value());
    }
 
    // decrement value
    b->val--;
 
-   // traceout("op_pre_dec()");
-
    // reference return value
-   return ref_rv ? (*n)->refSelf() : 0;
+   return ref_rv ? b->refSelf() : 0;
 }
 
 // unshift lvalue, element
@@ -1724,32 +1575,24 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
 {
    printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
-   class AutoVLock vl;
-   AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink); 
-   if (!val) {
-      assert(*xsink);
+   LValueHelper val(left, xsink);
+   if (!val)
       return 0;
-   }
 
    // value is not a list, so throw exception
-   if (!*val || (*val)->getType() != NT_LIST) {
+   if (val.get_type() != NT_LIST) {
       xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
       return 0;
    }
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
+   // no exception can occurr here
+   val.ensure_unique();
 
-   if (!l->is_unique()) {
-      l = l->copy();
-      (*val)->deref(xsink);
-      (*val) = l;
-   }
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
 
-   printd(5, "op_unshift() *val=%08p (%s)\n", *val, *val ? (*val)->getTypeName() : "(none)");
    printd(5, "op_unshift() about to call unshift() on list node %08p (%d) with element %08p\n", l, l->size(), elem);
 
-   if (elem)
-   {
+   if (elem) {
       ReferenceHolder<AbstractQoreNode> e(elem->eval(xsink), xsink);
       if (*xsink)
 	 return 0;
@@ -1759,10 +1602,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
       l->insert(0);
 
    // reference for return value
-   if (ref_rv)
-      return (*val)->refSelf();
-
-   return 0;
+   return ref_rv ? l->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
@@ -1770,25 +1610,18 @@ static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQo
    //tracein("op_shift()");
    printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
-   class AutoVLock vl;
-   AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (!val) {
-      assert(*xsink);
-      return 0;
-   }
-
-   if (!*val || (*val)->getType() != NT_LIST)
+   LValueHelper val(left, xsink);
+   if (!val)
       return 0;
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
+   if (val.get_type() != NT_LIST)
+      return 0;
 
-   if (!l->is_unique()) {
-      l = l->copy();
-      (*val)->deref(xsink);
-      (*val) = l;
-   }
+   // no exception can occurr here
+   val.ensure_unique();
 
-   printd(5, "op_shift() *val=%08p (%s)\n", *val, *val ? (*val)->getTypeName() : "(none)");
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
+
    printd(5, "op_shift() about to call QoreListNode::shift() on list node %08p (%d)\n", l, l->size());
 
    // the list reference will now be the reference for return value
@@ -1800,34 +1633,23 @@ static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQore
 {
    printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
-   class AutoVLock vl;
-   AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (!val) {
-      assert(*xsink);
-      return 0;
-   }
-
-   if (!*val || (*val)->getType() != NT_LIST)
+   LValueHelper val(left, xsink);
+   if (!val)
       return 0;
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
-   
-   if (!l->is_unique()) {
-      l = l->copy();
-      (*val)->deref(xsink);
-      (*val) = l;
-   }
+   if (val.get_type() != NT_LIST)
+      return 0;
 
-   printd(5, "op_pop() *val=%08p (%s)\n", *val, *val ? (*val)->getTypeName() : "(none)");
-   printd(5, "op_pop() about to call QoreListNode::pop() on list node %08p (%d)\n", (*val), l->size());
+   // no exception can occurr here
+   val.ensure_unique();
+
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
+
+   printd(5, "op_pop() about to call QoreListNode::pop() on list node %08p (%d)\n", l, l->size());
 
    // the list reference will now be the reference for return value
    // therefore no need to reference again
-   AbstractQoreNode *rv = l->pop();
-
-   printd(5, "op_pop() got node %08p (%s)\n", rv, rv ? rv->getTypeName() : "(none)");
-
-   return rv;
+   return l->pop();
 }
 
 static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink)
@@ -1835,32 +1657,21 @@ static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQor
    //tracein("op_push()");
    printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
-   class AutoVLock vl;
-   AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (!val) {
-      assert(*xsink);
+   LValueHelper val(left, xsink);
+   if (!val)
       return 0;
-   }
 
-   if (!*val || (*val)->getType() != NT_LIST) {
-      xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
+   if (val.get_type() != NT_LIST)
       return 0;
-   }
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
+   // no exception can occurr here
+   val.ensure_unique();
 
-   if (!l->is_unique()) {
-      l = l->copy();
-      (*val)->deref(xsink);
-      (*val) = l;
-   }
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
 
-   ensure_unique(val, xsink);
+   printd(5, "op_push() about to call push() on list node %08p (%d) with element %08p\n", l, l->size(), elem);
 
-   printd(5, "op_push() about to call push() on list node %08p (%d) with element %08p\n", (*val), l->size(), elem);
-
-   if (elem)
-   {
+   if (elem) {
       ReferenceHolder<AbstractQoreNode> e(elem->eval(xsink), xsink);
       if (*xsink)
 	 return 0;
@@ -1881,16 +1692,13 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
    assert(n_l->getType() == NT_LIST);
    const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n_l);
 
-   class AutoVLock vl;
-   AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (!val) {
-      assert(*xsink);
+   LValueHelper val(left, xsink);
+   if (!val)
       return 0;
-   }
 
    // if value is not a list or string, throw exception
-   if (!(*val) || ((*val)->getType() != NT_LIST && (*val)->getType() != NT_STRING))
-   {
+   const qore_type_t vt = val.get_type();
+   if (vt != NT_LIST && vt != NT_STRING) {
       xsink->raiseException("SPLICE-ERROR", "first argument to splice is not a list or a string");
       return 0;
    }
@@ -1900,31 +1708,29 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
    if (*xsink)
       return 0;
 
-   ensure_unique(val, xsink);
+   // no exception can occur here
+   val.ensure_unique();
 
    // evaluating a list must give another list
    int size = nl->size();
    int offset = nl->getEntryAsInt(0);
 
 #ifdef DEBUG
-   if ((*val)->getType() == NT_LIST) {
-      QoreListNode **vl = reinterpret_cast<QoreListNode **>(val);
-      printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*vl)->size(), *nl, size, offset);
+   if (vt == NT_LIST) {
+      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.get_value());
+      printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", val.get_value(), vl->size(), *nl, size, offset);
    }
    else {
-      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(val);
-
-      printd(5, "op_splice() val=%08p (strlen=%d) list=%08p (size=%d) offset=%d\n", (*val), (*vs)->strlen(), *nl, size, offset);
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.get_value());
+      printd(5, "op_splice() val=%08p (strlen=%d) list=%08p (size=%d) offset=%d\n", val.get_value(), vs->strlen(), *nl, size, offset);
    }
 #endif
 
-   if ((*val)->getType() == NT_LIST)
-   {
-      QoreListNode *vl = reinterpret_cast<QoreListNode *>(*val);
+   if (vt == NT_LIST) {
+      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.get_value());
       if (size == 1)
 	 vl->splice(offset, xsink);
-      else
-      {
+      else {
 	 int length = nl->getEntryAsInt(1);
 	 if (size == 2)
 	    vl->splice(offset, length, xsink);
@@ -1932,14 +1738,11 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
 	    vl->splice(offset, length, nl->retrieve_entry(2), xsink);
       }
    }
-   else // must be a string
-   {
-      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(*val);
-
+   else { // must be a string
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.get_value());
       if (size == 1)
 	 vs->splice(offset, xsink);
-      else
-      {
+      else {
 	 int length = nl->getEntryAsInt(1);
 	 if (size == 2)
 	    vs->splice(offset, length, xsink);
@@ -1949,67 +1752,57 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
    }
 
    // reference for return value
-   return ref_rv ? (*val)->refSelf() : 0;
+   return ref_rv ? val.get_value()->refSelf() : 0;
 }
 
 static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, ExceptionSink *xsink)
 {
    //tracein("op_chomp()");
-   
-   class AutoVLock vl;
-   AbstractQoreNode **val = get_var_value_ptr(arg, &vl, xsink);
-   if (!val) {
-      assert(*xsink);
-      return 0;
-   }
 
-   if (!(*val))
+   LValueHelper val(arg, xsink);
+   if (!val)
       return 0;
 
-   qore_type_t vtype = (*val)->getType();
-   if (vtype != NT_STRING && vtype != NT_LIST && vtype != NT_HASH)
+   const qore_type_t vtype = val.get_type();
+   if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
 
    // note that no exception can happen here
-   ensure_unique(val, xsink);
+   val.ensure_unique();
    assert(!*xsink);
 
    if (vtype == NT_STRING)
-      return reinterpret_cast<QoreStringNode *>(*val)->chomp();
+      return reinterpret_cast<QoreStringNode *>(val.get_value())->chomp();
 
    int64 count = 0;   
 
    if (vtype == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
       ListIterator li(l);
-      while (li.next())
-      {
+      while (li.next()) {
 	 AbstractQoreNode **v = li.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING)
-	 {
+	 if (*v && (*v)->getType() == NT_STRING) {
 	    // note that no exception can happen here
 	    ensure_unique(v, xsink);
 	    assert(!*xsink);
-	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-	    count += (*vs)->chomp();
+	    QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(*v);
+	    count += vs->chomp();
 	 }
       }      
       return count;
    }
 
    // must be a hash
-   QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(*val);
+   QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(val.get_value());
    HashIterator hi(vh);
-   while (hi.next())
-   {
+   while (hi.next()) {
       AbstractQoreNode **v = hi.getValuePtr();
-      if (*v && (*v)->getType() == NT_STRING)
-      {
+      if (*v && (*v)->getType() == NT_STRING) {
 	 // note that no exception can happen here
 	 ensure_unique(v, xsink);
 	 assert(!*xsink);
-	 QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-	 count += (*vs)->chomp();
+	 QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(*v);
+	 count += vs->chomp();
       }
    }
    return count;
@@ -2019,64 +1812,53 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
 {
    //tracein("op_trim()");
    
-   class AutoVLock vl;
-   AbstractQoreNode **val = get_var_value_ptr(arg, &vl, xsink);
-   if (!val) {
-      assert(*xsink);
+   LValueHelper val(arg, xsink);
+   if (!val)
       return 0;
-   }
-   
-   if (!(*val) || ((*val)->getType() != NT_STRING && (*val)->getType() != NT_LIST && (*val)->getType() != NT_HASH))
+
+   const qore_type_t vtype = val.get_type();
+   if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
    
    // note that no exception can happen here
-   ensure_unique(val, xsink);
+   val.ensure_unique();
    assert(!*xsink);
 
-   if ((*val)->getType() == NT_STRING) {
-      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(val);
-      (*vs)->trim();
+   if (vtype == NT_STRING) {
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.get_value());
+      vs->trim();
    }
-   else if ((*val)->getType() == NT_LIST)
-   {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
+   else if (vtype == NT_LIST) {
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
       ListIterator li(l);
-      while (li.next())
-      {
+      while (li.next()) {
 	 AbstractQoreNode **v = li.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING)
-	 {
+	 if (*v && (*v)->getType() == NT_STRING) {
 	    // note that no exception can happen here
 	    ensure_unique(v, xsink);
 	    assert(!*xsink);
-	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-	    (*vs)->trim();
+	    QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(*v);
+	    vs->trim();
 	 }
       }      
    }
-   else // is a hash
-   {
-      QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(*val);
+   else { // is a hash
+      QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(val.get_value());
       HashIterator hi(vh);
-      while (hi.next())
-      {
+      while (hi.next()) {
 	 AbstractQoreNode **v = hi.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING)
-	 {
+	 if (*v && (*v)->getType() == NT_STRING) {
 	    // note that no exception can happen here
 	    assert(!*xsink);
 	    ensure_unique(v, xsink);
-	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-	    (*vs)->trim();
+	    QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(*v);
+	    vs->trim();
 	 }
       }
    }
 
    // reference for return value
-   if (ref_rv)
-      return (*val)->refSelf();
-   
-   return 0;
+   return ref_rv ? val.get_value()->refSelf() : 0;
 }
 
 static QoreHashNode *op_minus_hash_string(const QoreHashNode *h, const QoreString *s, ExceptionSink *xsink)

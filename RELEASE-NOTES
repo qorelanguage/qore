@@ -6,6 +6,7 @@ qore 0.7.0 is a major release with major new features
 *) stable ABI and API, cleaned-up public header files, development packages
 *) complete reimplementation of the type and operator subsystems
 *) major performance and memory usage improvements
+*) new special object method: "memberNotification()", called when members are updated externally to the class
 *) documented public API (with doxygen)
 *) qt module based on QT4
 *) opengl module

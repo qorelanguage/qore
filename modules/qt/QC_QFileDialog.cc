@@ -589,14 +589,14 @@ static AbstractQoreNode *f_QFileDialog_getOpenFileName(const QoreListNode *param
 
    // write back selectedFilter to reference
    if (r) {
-      ReferenceHelper ref(r, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(r, vl, xsink);
       if (*xsink)
 	 return 0;
-      SimpleRefHolder<QoreStringNode> sf(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8));
-      ref.assign(*sf, xsink);
+      
+      ref.assign(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8), xsink);
       if (*xsink)
 	 return 0;
-      sf.release();
    }
 
    return str.release();
@@ -637,14 +637,14 @@ static AbstractQoreNode *f_QFileDialog_getOpenFileNames(const QoreListNode *para
 
    // write back selectedFilter to reference
    if (r) {
-      ReferenceHelper ref(r, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(r, vl, xsink);
       if (*xsink)
 	 return 0;
-      SimpleRefHolder<QoreStringNode> sf(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8));
-      ref.assign(*sf, xsink);
+      
+      ref.assign(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8), xsink);
       if (*xsink)
 	 return 0;
-      sf.release();
    }
 
    return l.release();
@@ -683,14 +683,14 @@ static AbstractQoreNode *f_QFileDialog_getSaveFileName(const QoreListNode *param
 
    // write back selectedFilter to reference
    if (r) {
-      ReferenceHelper ref(r, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(r, vl, xsink);
       if (*xsink)
 	 return 0;
-      SimpleRefHolder<QoreStringNode> sf(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8));
-      ref.assign(*sf, xsink);
+      
+      ref.assign(new QoreStringNode(selectedFilter.toUtf8().data(), QCS_UTF8), xsink);
       if (*xsink)
 	 return 0;
-      sf.release();
    }
 
    return str.release();

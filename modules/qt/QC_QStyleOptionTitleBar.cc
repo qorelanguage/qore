@@ -25,7 +25,109 @@
 #include "QC_QStyleOptionTitleBar.h"
 
 qore_classid_t CID_QSTYLEOPTIONTITLEBAR;
-class QoreClass *QC_QStyleOptionTitleBar = 0;
+QoreClass *QC_QStyleOptionTitleBar = 0;
+
+int QStyleOptionTitleBar_Notification(QoreObject *obj, QStyleOptionTitleBar *qsotb, const char *mem, ExceptionSink *xsink)
+{
+   AbstractQoreNode *p;
+
+   if (!strcmp(mem, "icon")) {
+      AutoVLock vl(xsink);
+      p = obj->getMemberValueNoMethod(mem, &vl, xsink);
+      if (*xsink || !p || p->getType() != NT_OBJECT)
+	 return 0;
+
+      QoreObject *o = reinterpret_cast<QoreObject *>(p);
+      QoreQIcon *icon = (QoreQIcon *)o->getReferencedPrivateData(CID_QICON, xsink);
+      if (!icon)
+	 return 0;
+      ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
+      qsotb->icon = *(static_cast<QIcon *>(icon));
+      return 0;
+   }
+
+   if (!strcmp(mem, "text")) {
+      AutoVLock vl(xsink);
+      p = obj->getMemberValueNoMethod(mem, &vl, xsink);
+      if (*xsink)
+	 return 0;
+
+      QString text;
+      if (get_qstring(p, text, xsink))
+	 return 0;
+      qsotb->text = text;
+      return 0;
+   }
+
+   if (!strcmp(mem, "titleBarFlags")) {
+      AutoVLock vl(xsink);
+      p = obj->getMemberValueNoMethod(mem, &vl, xsink);
+      if (*xsink)
+	 return 0;
+
+      Qt::WindowFlags titleBarFlags = (Qt::WindowFlags)(p ? p->getAsInt() : 0);
+      qsotb->titleBarFlags = titleBarFlags;
+      return 0;
+   }
+
+   if (!strcmp(mem, "titleBarState")) {
+      AutoVLock vl(xsink);
+      p = obj->getMemberValueNoMethod(mem, &vl, xsink);
+      if (*xsink)
+	 return 0;
+
+      int titleBarState = p ? p->getAsInt() : 0;
+      qsotb->titleBarState = titleBarState;
+      return 0;
+   }
+
+   return -1;
+}
+
+AbstractQoreNode *QStyleOptionTitleBar_MemberGate(QStyleOptionTitleBar *qsotb, const char *mem)
+{
+   if (!strcmp(mem, "icon"))
+      return return_object(QC_QIcon, new QoreQIcon(qsotb->icon));
+
+   if (!strcmp(mem, "text"))
+      return new QoreStringNode(qsotb->text.toUtf8().data(), QCS_UTF8);
+
+   if (!strcmp(mem, "fetitleBarFlagsatures"))
+      return new QoreBigIntNode(qsotb->titleBarFlags);
+
+   if (!strcmp(mem, "titleBarState"))
+      return new QoreBigIntNode(qsotb->titleBarState);
+
+   return 0;
+}
+
+static AbstractQoreNode *QSTYLEOPTIONTITLEBAR_memberNotification(QoreObject *self, QoreQStyleOptionTitleBar *qsotb, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *str = test_string_param(params, 0);
+   if (!str || !str->strlen())
+      return 0;
+
+   const char *member = str->getBuffer();
+   if (!QStyleOptionTitleBar_Notification(self, qsotb, member, xsink) || *xsink)
+      return 0;
+
+   QStyleOption_Notification(self, qsotb, member, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *QSTYLEOPTIONTITLEBAR_memberGate(QoreObject *self, QoreQStyleOptionTitleBar *qsotb, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *str = test_string_param(params, 0);
+   if (!str || !str->strlen())
+      return 0;
+
+   const char *member = str->getBuffer();
+   AbstractQoreNode *rv = QStyleOptionTitleBar_MemberGate(qsotb, member);
+   if (rv)
+      return rv;
+
+   return QStyleOption_MemberGate(qsotb, member);
+}
 
 //QStyleOptionTitleBar ()
 //QStyleOptionTitleBar ( const QStyleOptionTitleBar & other )
@@ -49,6 +151,9 @@ QoreClass *initQStyleOptionTitleBarClass(QoreClass *qstyleoptioncomplex)
    QC_QStyleOptionTitleBar->setConstructor(QSTYLEOPTIONTITLEBAR_constructor);
    QC_QStyleOptionTitleBar->setCopy((q_copy_t)QSTYLEOPTIONTITLEBAR_copy);
 
+   // add special methods
+   QC_QStyleOptionTitleBar->addMethod("memberNotification",   (q_method_t)QSTYLEOPTIONTITLEBAR_memberNotification);
+   QC_QStyleOptionTitleBar->addMethod("memberGate",           (q_method_t)QSTYLEOPTIONTITLEBAR_memberGate);
 
    return QC_QStyleOptionTitleBar;
 }

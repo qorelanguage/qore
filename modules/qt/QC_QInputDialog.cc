@@ -68,7 +68,8 @@ static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, Ex
    double rv = QInputDialog::getDouble(static_cast<QWidget *>(parent->getQWidget()), title, label, value, minValue, maxValue, decimals, &ok, f);
 
    if (pr) {
-      ReferenceHelper ref(pr, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(pr, vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -123,7 +124,8 @@ static AbstractQoreNode *f_QInputDialog_getInteger(const QoreListNode *params, E
    int64 rv = QInputDialog::getInteger(static_cast<QWidget *>(parent->getQWidget()), title, label, value, minValue, maxValue, step, &ok, f);
 
    if (pr) {
-      ReferenceHelper ref(pr, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(pr, vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -187,7 +189,8 @@ static AbstractQoreNode *f_QInputDialog_getItem(const QoreListNode *params, Exce
    QString rv = QInputDialog::getItem(static_cast<QWidget *>(parent->getQWidget()), title, label, list, current, editable, &ok, f);
 
    if (pr) {
-      ReferenceHelper ref(pr, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(pr, vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -237,7 +240,8 @@ static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, Exce
    QString rv = QInputDialog::getText(static_cast<QWidget *>(parent->getQWidget()), title, label, mode, text, &ok, f);
 
    if (pr) {
-      ReferenceHelper ref(pr, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(pr, vl, xsink);
       if (*xsink)
 	 return 0;
 

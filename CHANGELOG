@@ -1,5 +1,20 @@
+2008.04.23: David Nichols
+	* rewrote the ForEachStatement execution code to be more efficient and
+	  use LValueHelper
+	* implemented support for memberNotification methods
+	* qt: added memberNotification methods to QStyleOption* classes to
+	  automatically retrieve and set option values when Qore members are
+	  read or set
+
 2008.04.22: David Nichols
 	* renamed all instances of "FunctionReference" to "CallReference"
+	* corrected a design issue with ReferenceHelper; it must take an
+	  AutoVLock argument and not provide its own, as otherwise every
+	  instance of ReferenceHelper would have its own AutoVLock structure,
+	  which would be inefficient
+	* started to implement LValueHelper to make LValue updates safer and
+	  more controlled and to put the infrastructure in place so that
+	  support for memberNotification methods can be implemented
 
 2008.04.21: David Nichols
 	* added QoreHashNode::empty() and QoreListNode::empty() functions

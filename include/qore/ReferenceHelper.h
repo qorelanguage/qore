@@ -56,17 +56,16 @@ class ReferenceHelper {
       DLLLOCAL void *operator new(size_t);
 
    protected:
-      //! the lock container
-      AutoVLock vl;
       //! pointer to the pointer to the lvalue expression target of the reference
       AbstractQoreNode **vp;
 
    public:
       //! initializes the object and tries to get the pointer to the pointer of the lvalue expression target
       /** @param ref the ReferenceNode to use
+	  @param vl the reference to the AutoVLock structure for managing nested locks
 	  @param xsink Qore-language exceptions raised will be added here (for example, a deadlock accessing the object)
        */
-      DLLEXPORT ReferenceHelper(const ReferenceNode *ref, ExceptionSink *xsink);
+      DLLEXPORT ReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink);
 
       //! destroys the object
       DLLEXPORT ~ReferenceHelper();
@@ -86,7 +85,8 @@ class ReferenceHelper {
 	  @returns a pointer to the reference's value with a unique reference count (so it can be modified), or 0 if the value was 0 to start with or if a Qore-language exception was raised
 	  @note you must check that the reference is valid before calling this function
 	  @code
-	  ReferenceHelper rh(ref, xsink);
+	  AutoVLock vl;
+	  ReferenceHelper rh(ref, vl, xsink);
 	  // if the reference is not valid, then return
 	  if (!rh)  
 	     return;
@@ -102,16 +102,16 @@ class ReferenceHelper {
       //! assigns a value to the reference, assumes the reference is valid
       /** @param val the value to assign (must be already referenced for the assignment)
 	  @param xsink required for the call to AbstractQoreNode::deref() of the current value
-	  @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val must be dereferenced manually
+	  @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val is dereferenced automatically by the ReferenceHelper object
 	  @note you must check that the reference is valid before calling this function
 	  @code
-	  ReferenceHelper rh(ref, xsink);
+	  AutoVLock vl;
+	  ReferenceHelper rh(ref, vl, xsink);
 	  // if the reference is not valid, then return
 	  if (!rh)  
 	     return;
-	  // make the assignment, but if the assignment fails, dereference the value
-	  if (rh.assign(val, xsink))
-	     val->deref(xsink);
+	  // make the assignment (if the assignment fails, the value will be dereferenced automatically)
+	  rh.assign(val->refSelf(), xsink);
 	  @endcode
        */
       DLLEXPORT int assign(AbstractQoreNode *val, ExceptionSink *xsink);

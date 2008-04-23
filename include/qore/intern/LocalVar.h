@@ -259,26 +259,19 @@ class LocalVar {
 	    return;
 	 }
 
+	 ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
+
 	 ObjectSubstitutionHelper osh(val->val.ref.obj);
-	 AutoVLock vl;
+	 AutoVLock vl(xsink);
 
-	 AbstractQoreNode **valp;
-	 {
-	    // skip this entry in case it's a recursive reference
-	    VarStackPointerHelper helper(val);
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerHelper helper(val);
 
-	    valp = get_var_value_ptr(val->val.ref.vexp, &vl, xsink);
-	 }
+	 LValueHelper valp(val->val.ref.vexp, xsink);
+	 if (!valp)
+	    return;
 
-	 if (!*xsink) {
-	    discard(*valp, xsink);
-	    *valp = value;
-	    vl.del();
-	 }
-	 else {
-	    vl.del();
-	    discard(value, xsink);
-	 }
+	 valp.assign(value_holder.release());
       }
 
       DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink)

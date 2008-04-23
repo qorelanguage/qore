@@ -18,7 +18,6 @@
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
  */
 
 #include <qore/Qore.h>
@@ -53,7 +52,8 @@ static AbstractQoreNode *QTEXTLINE_cursorToX(QoreObject *self, QoreQTextLine *qt
    const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->getType() == NT_REFERENCE) {
       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
-      ReferenceHelper ref(r, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper ref(r, vl, xsink);
       if (!ref)
 	 return 0;
 

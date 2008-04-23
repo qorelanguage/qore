@@ -98,7 +98,8 @@ static AbstractQoreNode *QSPLITTER_getRange(QoreObject *self, QoreAbstractQSplit
       return 0;
    }
 
-   ReferenceHelper rhmin(rmin, xsink);
+   AutoVLock vl(xsink);
+   ReferenceHelper rhmin(rmin, vl, xsink);
    if (!rhmin)
       return 0;
 
@@ -108,7 +109,7 @@ static AbstractQoreNode *QSPLITTER_getRange(QoreObject *self, QoreAbstractQSplit
       return 0;
    }
 
-   ReferenceHelper rhmax(rmax, xsink);
+   ReferenceHelper rhmax(rmax, vl, xsink);
    if (!rhmax)
       return 0;
 

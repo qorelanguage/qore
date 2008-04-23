@@ -990,3 +990,14 @@ double QoreObject::floatEvalImpl(ExceptionSink *xsink) const
    assert(false);
    return 0.0;
 }
+
+bool QoreObject::hasMemberNotification() const
+{
+   return priv->myclass->hasMemberNotification();
+}
+
+void QoreObject::execMemberNotification(const char *member, ExceptionSink *xsink)
+{
+   if (priv->status == OS_OK)
+      priv->myclass->execMemberNotification(this, member, xsink);
+}

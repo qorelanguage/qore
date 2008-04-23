@@ -24,18 +24,16 @@
 #include <qore/intern/ForEachStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
+ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, class StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0)
 {
-   var = v;
-   list = l;
-   code = cd;
-   lvars = 0;
 }
 
 ForEachStatement::~ForEachStatement()
 {
-   var->deref(0);
-   list->deref(0);
+   if (var)
+      var->deref(0);
+   if (list)
+      list->deref(0);
    if (code)
       delete code;
    if (lvars)
@@ -53,83 +51,43 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    LVListInstantiator lvi(lvars, xsink);
 
    // get list evaluation (although may be a single node)
-   AbstractQoreNode *tlist = list->eval(xsink);
-   if (tlist && is_nothing(tlist))
-   {
-      tlist->deref(xsink);
-      tlist = 0;
-   }
-   
-   QoreListNode *l_tlist = tlist && tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
+   ReferenceHolder<AbstractQoreNode> tlist(list->eval(xsink), xsink);
+   if (!code || *xsink || is_nothing(*tlist))
+      return 0;
+
+   QoreListNode *l_tlist = tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(*tlist) : 0;
+   if (l_tlist && l_tlist->empty())
+      return 0;
 
    // execute "foreach" body
-   if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
-   {
-      unsigned i = 0;
+   unsigned i = 0;
 
-      while (true)
+   while (true) {
       {
-	 class AutoVLock vl;
-	 AbstractQoreNode **n = get_var_value_ptr(var, &vl, xsink);
-	 if (xsink->isEvent())
-	 {
-	    // unlock lock now
-	    vl.del();
-	    // dereference single value (because it won't be assigned
-	    // to the variable and dereferenced later because an 
-	    // exception has been thrown)
-	    if (tlist->getType() != NT_LIST)
-	       tlist->deref(xsink);
+	 LValueHelper n(var, xsink);
+	 if (!n)
 	    break;
-	 }
-
-	 // dereference old value of variable
-	 if (*n)
-	 {
-	    (*n)->deref(xsink);
-	    if (xsink->isEvent())
-	    {
-	       (*n) = 0;
-	       // unlock lock now
-	       vl.del();
-	       // dereference single value (because it won't be assigned
-	       // to the variable and dereferenced later because an 
-	       // exception has been thrown)
-	       if (tlist->getType() != NT_LIST)
-		  tlist->deref(xsink);
-	       break;
-	    }
-	 }
-
+	 
 	 // assign variable to current value in list
-	 if (l_tlist)
-	    *n = l_tlist->eval_entry(i, xsink);
-	 else
-	    *n = tlist;
-
-	 // unlock variable
-	 vl.del();
-
-	 // execute "for" body
-	 if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
-	 {
-	    rc = 0;
-	    break;
-	 }
-
-	 if (rc == RC_RETURN)
-	    break;
-	 else if (rc == RC_CONTINUE)
-	    rc = 0;
-	 i++;
-	 // if the argument is not a list or list iteration is done, then break
-	 if (!l_tlist || i == l_tlist->size())
+	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
 	    break;
       }
+      
+      // execute "foreach" body
+      if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
+	 rc = 0;
+	 break;
+      }
+      
+      if (rc == RC_RETURN)
+	 break;
+      else if (rc == RC_CONTINUE)
+	 rc = 0;
+      i++;
+      // if the argument is not a list or list iteration is done, then break
+      if (!l_tlist || i == l_tlist->size())
+	 break;
    }
-   // dereference list (but not single values; their reference belongs to the variable assignment
-   if (l_tlist)
-      tlist->deref(xsink);
 
    return rc;
 }
@@ -142,151 +100,83 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    LVListInstantiator lvi(lvars, xsink);
 
    // get list evaluation (although may be a single node)
-   AbstractQoreNode *tlist, *vr;
    bool is_self_ref = false;
 
    ReferenceNode *r = reinterpret_cast<ReferenceNode *>(list);
-   vr = doPartialEval(r->getExpression(), &is_self_ref, xsink);
-   if (!xsink->isEvent())
-   {
-      tlist = vr->eval(xsink);
-      if (tlist && is_nothing(tlist))
-      {
-	 tlist->deref(xsink);
-	 tlist = 0;
-      }
-   }
-   else
-      tlist = 0;
 
-   QoreListNode *l_tlist = tlist && tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
+   // here we do a "doPartialEval()" to evaluate all parts of the expression not related to the lvalue so
+   // that these parts will only be executed once (and not again when this lvalue is actually assigned)
+   ReferenceHolder<AbstractQoreNode> vr(doPartialEval(r->getExpression(), &is_self_ref, xsink), xsink);
+   if (*xsink)
+      return 0;
 
-   AutoVLock vl;
+   // get the current value of the lvalue expression
+   ReferenceHolder<AbstractQoreNode> tlist(vr->eval(xsink), xsink);
+   if (!code || *xsink || is_nothing(*tlist))
+      return 0;
+
+   QoreListNode *l_tlist = tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(*tlist) : 0;
+   if (l_tlist && l_tlist->empty())
+      return 0;
 
    // execute "foreach" body
-   if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
-   {
-      AbstractQoreNode *ln = 0;
-      unsigned i = 0;
+   ReferenceHolder<AbstractQoreNode> ln(0, xsink);
+   unsigned i = 0;
 
+   if (l_tlist)
+      ln = new QoreListNode();
+
+   while (true) {
+      {
+	 LValueHelper n(var, xsink);
+	 if (!n)
+	    return 0;
+
+	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
+	    return 0;
+      }
+
+      
+      // execute "for" body
+      rc = code->execImpl(return_value, xsink);
+      if (*xsink)
+	 return 0;
+
+      // get value of foreach variable
+      AbstractQoreNode *nv = var->eval(xsink);
+      if (*xsink)
+	 return 0;
+      
+      // assign new value to temporary variable for later assignment to referenced lvalue
       if (l_tlist)
-	 ln = new QoreListNode();
-
-      while (true)
-      {
-	 AbstractQoreNode **n = get_var_value_ptr(var, &vl, xsink);
-	 if (xsink->isEvent())
-	 {
-	    // unlock lock now
-	    vl.del();
-	    // dereference single value (because it won't be assigned
-	    // to the variable and dereferenced later because an 
-	    // exception has been thrown)
-	    if (!l_tlist)
-	       tlist->deref(xsink);
-	    break;
-	 }
-
-	 // dereference old value of variable
-	 if (*n)
-	 {
-	    (*n)->deref(xsink);
-	    if (xsink->isEvent())
-	    {
-	       (*n) = 0;
-	       // unlock lock now
-	       vl.del();
-	       // dereference single value (because it won't be assigned
-	       // to the variable and dereferenced later because an 
-	       // exception has been thrown)
-	       if (!l_tlist)
-		  tlist->deref(xsink);
-	       break;
-	    }
-	 }
-
-	 // assign variable to current value in list
-	 if (l_tlist)
-	    *n = l_tlist->eval_entry(i, xsink);
-	 else
-	    *n = tlist;
-	 
-	 // unlock variable
-	 vl.del();
-	 
-	 // execute "for" body
-	 if (code)
-	 {
-	    rc = code->execImpl(return_value, xsink);
-
-	    // assign value of variable to referenced variable
-	    n = get_var_value_ptr(var, &vl, xsink);
-	    if (xsink->isEvent())
-	    {
-	       // unlock lock now
-	       vl.del();
-	       break;
-	    }
-
-	    AbstractQoreNode *nv;
-	    if (*n)
-	       nv = (*n)->eval(xsink);
-	    else
-	       nv = 0;
-
-	    // assign new value to referenced variable
-	    if (l_tlist)
-	       (reinterpret_cast<QoreListNode *>(ln))->set_entry(i, nv, 0);
-	    else
-	       ln = nv;
-
-	    vl.del();
-	 }
-
-	 if (!code || xsink->isEvent() || rc == RC_BREAK)
-	 {
-	    rc = 0;
-	    break;
-	 }
-
-	 if (rc == RC_RETURN)
-	    break;
-	 else if (rc == RC_CONTINUE)
-	    rc = 0;
-	 i++;
-
-	 // break out of loop if appropriate
-	 if (!l_tlist || i == l_tlist->size())
-	    break;
+	 reinterpret_cast<QoreListNode *>(*ln)->push(nv);
+      else
+	 ln = nv;
+      
+      if (rc == RC_BREAK) {
+	 rc = 0;
+	 break;
       }
-
-      if (!xsink->isEvent())
-      {
-	 // write the value back to the lvalue
-	 AbstractQoreNode **val = get_var_value_ptr(vr, &vl, xsink);
-	 if (!xsink->isEvent())
-	 {
-	    discard(*val, xsink);
-	    *val = ln;
-	    vl.del();
-	 }
-	 else
-	 {
-	    vl.del();
-	    discard(ln, xsink);
-	 }
-      }
+      
+      if (rc == RC_RETURN)
+	 break;
+      else if (rc == RC_CONTINUE)
+	 rc = 0;
+      i++;
+      
+      // break out of loop if appropriate
+      if (!l_tlist || i == l_tlist->size())
+	 break;
    }
 
-    // dereference list (but not single values; their reference belongs to the
-   // variable assignment
-   if (l_tlist)
-      tlist->deref(xsink);
-
-   // dereference partial evaluation for lvalue assignment
-   if (vr)
-      vr->deref(xsink);
+   // write the value back to the lvalue
+   LValueHelper val(*vr, xsink);
+   if (!val)
+      return 0;
    
+   if (val.assign(ln.release()))
+      return 0;
+
    return rc;
 }
 

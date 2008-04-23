@@ -59,19 +59,18 @@ static AbstractQoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidat
       xsink->raiseException("QVALIDATOR-FIXUP-ERROR", "expecting a reference as sole argument to QValidator::fixup()");
       return 0;
    }
-   class AutoVLock vl;
-   class AbstractQoreNode **vp = get_var_value_ptr(p->getExpression(), &vl, xsink);
-   if (*xsink)
+
+   AutoVLock vl(xsink);
+   ReferenceHelper ref(p, vl, xsink);
+   if (!ref)
       return 0;
 
    QString input;
-   if (get_qstring(*vp, input, xsink))
+   if (get_qstring(ref.getValue(), input, xsink))
       return 0;
    qv->fixup(input);
 
-   if (*vp)
-      (*vp)->deref(xsink);
-   (*vp) = new QoreStringNode(input.toUtf8().data(), QCS_UTF8);
+   ref.assign(new QoreStringNode(input.toUtf8().data(), QCS_UTF8), xsink);
 
    return 0;
 }
@@ -114,31 +113,29 @@ static AbstractQoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQVali
       xsink->raiseException("QVALIDATOR-VALIDATE-ERROR", "expecting a reference as second argument to QValidator::validate()");
       return 0;
    }
-   
-   class AutoVLock vl;
-   class AbstractQoreNode **vp0 = get_var_value_ptr(p0->getExpression(), &vl, xsink);
-   if (*xsink)
-      return 0;
-   
-   QString input;
-   if (get_qstring(*vp0, input, xsink))
-      return 0;
-   
-   class AbstractQoreNode **vp1 = get_var_value_ptr(p1->getExpression(), &vl, xsink);
-   if (*xsink)
+
+   AutoVLock vl(xsink);
+   ReferenceHelper ref0(p0, vl, xsink);
+   if (!ref0)
       return 0;
 
-   int pos = *vp1 ? (*vp1)->getAsInt() : 0;
+   ReferenceHelper ref1(p1, vl, xsink);
+   if (!ref1)
+      return 0;
+      
+   QString input;
+   if (get_qstring(ref0.getValue(), input, xsink))
+      return 0;
+   
+   const AbstractQoreNode *v1 = ref1.getValue();
+   int pos = v1 ? v1->getAsInt() : 0;
 
    QValidator::State rc = qv->validate(input, pos);
 
-   if (*vp0)
-      (*vp0)->deref(xsink);
-   (*vp0) = new QoreStringNode(input.toUtf8().data(), QCS_UTF8);
+   if (ref0.assign(new QoreStringNode(input.toUtf8().data(), QCS_UTF8), xsink))
+      return 0;
 
-   if (*vp1)
-      (*vp1)->deref(xsink);
-   (*vp1) = new QoreBigIntNode(pos);
+   ref1.assign(new QoreBigIntNode(pos), xsink);
 
    return new QoreBigIntNode(rc);
 }

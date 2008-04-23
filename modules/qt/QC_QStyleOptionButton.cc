@@ -29,7 +29,117 @@
 #include "qore-qt.h"
 
 qore_classid_t CID_QSTYLEOPTIONBUTTON;
-class QoreClass *QC_QStyleOptionButton = 0;
+QoreClass *QC_QStyleOptionButton = 0;
+
+int QStyleOptionButton_Notification(QoreObject *obj, QStyleOptionButton *qsob, const char *mem, ExceptionSink *xsink)
+{
+   AbstractQoreNode *p;
+
+   if (!strcmp(mem, "features")) {
+      AutoVLock vl(xsink);
+      p = obj->getMemberValueNoMethod(mem, &vl, xsink);
+      if (*xsink)
+	 return 0;
+
+      QStyleOptionButton::ButtonFeatures features = (QStyleOptionButton::ButtonFeatures)(p ? p->getAsInt() : 0);
+      qsob->features = features;
+      return 0;
+   }
+
+   if (!strcmp(mem, "icon")) {
+      AutoVLock vl(xsink);
+      p = obj->getMemberValueNoMethod(mem, &vl, xsink);
+      if (*xsink || !p || p->getType() != NT_OBJECT)
+	 return 0;
+
+      QoreObject *o = reinterpret_cast<QoreObject *>(p);
+      QoreQIcon *icon = (QoreQIcon *)o->getReferencedPrivateData(CID_QICON, xsink);
+      if (!icon)
+	 return 0;
+      ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
+      qsob->icon = *(static_cast<QIcon *>(icon));
+      return 0;
+   }
+
+   if (!strcmp(mem, "iconSize")) {
+      AutoVLock vl(xsink);
+      p = obj->getMemberValueNoMethod(mem, &vl, xsink);
+      if (*xsink || !p || p->getType() != NT_OBJECT)
+	 return 0;
+
+      QoreObject *o = reinterpret_cast<QoreObject *>(p);
+      QoreQSize *size = (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, xsink);
+      if (!size)
+	 return 0;
+      ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
+      qsob->iconSize = *(static_cast<QSize *>(size));
+      return 0;
+   }
+
+   if (!strcmp(mem, "text")) {
+      AutoVLock vl(xsink);
+      p = obj->getMemberValueNoMethod(mem, &vl, xsink);
+      if (*xsink)
+	 return 0;
+
+      QString text;
+      if (get_qstring(p, text, xsink))
+	 return 0;
+      qsob->text = text;
+      return 0;
+   }
+
+   return -1;
+}
+
+AbstractQoreNode *QStyleOptionButton_MemberGate(QStyleOptionButton *qsob, const char *mem)
+{
+   if (!strcmp(mem, "features"))
+      return new QoreBigIntNode(qsob->features);
+
+   if (!strcmp(mem, "icon"))
+      return return_object(QC_QIcon, new QoreQIcon(qsob->icon));
+
+   if (!strcmp(mem, "iconSize")) {
+      QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
+      QoreQSize *q_qs = new QoreQSize(qsob->iconSize);
+      o_qs->setPrivate(CID_QSIZE, q_qs);
+      return o_qs;
+   }
+
+   if (!strcmp(mem, "text"))
+      return new QoreStringNode(qsob->text.toUtf8().data(), QCS_UTF8);
+
+   return 0;
+}
+
+static AbstractQoreNode *QSTYLEOPTIONBUTTON_memberNotification(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *str = test_string_param(params, 0);
+   if (!str || !str->strlen())
+      return 0;
+
+   const char *member = str->getBuffer();
+   if (!QStyleOptionButton_Notification(self, qsob, member, xsink) || *xsink)
+      return 0;
+
+   QStyleOption_Notification(self, qsob, member, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *QSTYLEOPTIONBUTTON_memberGate(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *str = test_string_param(params, 0);
+   if (!str || !str->strlen())
+      return 0;
+
+   const char *member = str->getBuffer();
+   AbstractQoreNode *rv = QStyleOptionButton_MemberGate(qsob, member);
+   if (rv)
+      return rv;
+
+   return QStyleOption_MemberGate(qsob, member);
+}
 
 //QStyleOptionButton ()
 //QStyleOptionButton ( const QStyleOptionButton & other )
@@ -43,86 +153,6 @@ static void QSTYLEOPTIONBUTTON_copy(class QoreObject *self, class QoreObject *ol
    self->setPrivate(CID_QSTYLEOPTIONBUTTON, new QoreQStyleOptionButton(*qsob));
 }
 
-//ButtonFeatures features ()
-static AbstractQoreNode *QSTYLEOPTIONBUTTON_features(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
-{
-   return new QoreBigIntNode(qsob->features);
-}
-
-//QIcon icon ()
-static AbstractQoreNode *QSTYLEOPTIONBUTTON_icon(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
-   QoreQIcon *q_qi = new QoreQIcon(qsob->icon);
-   o_qi->setPrivate(CID_QICON, q_qi);
-   return o_qi;
-}
-
-//QSize iconSize ()
-static AbstractQoreNode *QSTYLEOPTIONBUTTON_iconSize(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
-   QoreQSize *q_qs = new QoreQSize(qsob->iconSize);
-   o_qs->setPrivate(CID_QSIZE, q_qs);
-   return o_qs;
-}
-
-//QString text ()
-static AbstractQoreNode *QSTYLEOPTIONBUTTON_text(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
-{
-   return new QoreStringNode(qsob->text.toUtf8().data(), QCS_UTF8);
-}
-
-//void setFeatures ( ButtonFeatures features )
-static AbstractQoreNode *QSTYLEOPTIONBUTTON_setFeatures(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p = get_param(params, 0);
-   QStyleOptionButton::ButtonFeatures features = (QStyleOptionButton::ButtonFeatures)(p ? p->getAsInt() : 0);
-   qsob->features = features;
-   return 0;
-}
-
-//void setIcon ( const QIcon & icon )
-static AbstractQoreNode *QSTYLEOPTIONBUTTON_setIcon(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreObject *p = test_object_param(params, 0);
-   QoreQIcon *icon = p ? (QoreQIcon *)p->getReferencedPrivateData(CID_QICON, xsink) : 0;
-   if (!icon) {
-      if (!xsink->isException())
-         xsink->raiseException("QSTYLEOPTIONBUTTON-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QStyleOptionButton::setIcon()");
-      return 0;
-   }
-   ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
-   qsob->icon = *(static_cast<QIcon *>(icon));
-   return 0;
-}
-
-//void setIconSize ( const QSize & size )
-static AbstractQoreNode *QSTYLEOPTIONBUTTON_setIconSize(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreObject *p = test_object_param(params, 0);
-   QoreQSize *size = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
-   if (!size) {
-      if (!xsink->isException())
-         xsink->raiseException("QSTYLEOPTIONBUTTON-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QStyleOptionButton::setIconSize()");
-      return 0;
-   }
-   ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
-   qsob->iconSize = *(static_cast<QSize *>(size));
-   return 0;
-}
-
-//void setText ( const QString & text )
-static AbstractQoreNode *QSTYLEOPTIONBUTTON_setText(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p = get_param(params, 0);
-   QString text;
-   if (get_qstring(p, text, xsink))
-      return 0;
-   qsob->text = text;
-   return 0;
-}
-
 static QoreClass *initQStyleOptionButtonClass(QoreClass *qstyleoption)
 {
    QC_QStyleOptionButton = new QoreClass("QStyleOptionButton", QDOM_GUI);
@@ -133,14 +163,9 @@ static QoreClass *initQStyleOptionButtonClass(QoreClass *qstyleoption)
    QC_QStyleOptionButton->setConstructor(QSTYLEOPTIONBUTTON_constructor);
    QC_QStyleOptionButton->setCopy((q_copy_t)QSTYLEOPTIONBUTTON_copy);
 
-   QC_QStyleOptionButton->addMethod("features",                    (q_method_t)QSTYLEOPTIONBUTTON_features);
-   QC_QStyleOptionButton->addMethod("icon",                        (q_method_t)QSTYLEOPTIONBUTTON_icon);
-   QC_QStyleOptionButton->addMethod("iconSize",                    (q_method_t)QSTYLEOPTIONBUTTON_iconSize);
-   QC_QStyleOptionButton->addMethod("text",                        (q_method_t)QSTYLEOPTIONBUTTON_text);
-   QC_QStyleOptionButton->addMethod("setFeatures",                 (q_method_t)QSTYLEOPTIONBUTTON_setFeatures);
-   QC_QStyleOptionButton->addMethod("setIcon",                     (q_method_t)QSTYLEOPTIONBUTTON_setIcon);
-   QC_QStyleOptionButton->addMethod("setIconSize",                 (q_method_t)QSTYLEOPTIONBUTTON_setIconSize);
-   QC_QStyleOptionButton->addMethod("setText",                     (q_method_t)QSTYLEOPTIONBUTTON_setText);
+   // add special methods
+   QC_QStyleOptionButton->addMethod("memberNotification",          (q_method_t)QSTYLEOPTIONBUTTON_memberNotification);
+   QC_QStyleOptionButton->addMethod("memberGate",                  (q_method_t)QSTYLEOPTIONBUTTON_memberGate);
 
    return QC_QStyleOptionButton;
 }

@@ -40,8 +40,10 @@ struct qore_qc_private {
       hm_method_t hm, hm_pending;  // method maps
       strset_t pmm, pending_pmm;   // private member lists (sets)
 
-      const QoreMethod *system_constructor, *constructor, *destructor, *copyMethod, *methodGate, *memberGate, 
-	 *deleteBlocker;
+      const QoreMethod *system_constructor, *constructor, *destructor,
+	 *copyMethod, *methodGate, *memberGate, *deleteBlocker,
+	 *memberNotification;
+
       qore_classid_t classID,      // class ID
          methodID;                 // for subclasses of builtin classes that will not have their own private data,
                                    //   instead they will get the private data from this class
@@ -62,8 +64,8 @@ struct qore_qc_private {
 	 bcal = 0;
 
 	 // quick pointers
-	 system_constructor = constructor = destructor = copyMethod = methodGate = memberGate = 
-	    deleteBlocker = 0;
+	 system_constructor = constructor = destructor = copyMethod = 
+	    methodGate = memberGate = deleteBlocker = memberNotification = 0;
       }
 
       DLLLOCAL ~qore_qc_private()
@@ -124,6 +126,8 @@ struct qore_qc_private {
 	    methodGate = m;
 	 else if (!memberGate && !strcmp(m->getName(), "memberGate"))
 	    memberGate = m;
+	 else if (!memberNotification && !strcmp(m->getName(), "memberNotification"))
+	    memberNotification = m;
       }
 
       // checks for all special methods
@@ -663,6 +667,11 @@ bool QoreClass::hasMemberGate() const
    return priv->memberGate != 0;
 }
 
+bool QoreClass::hasMemberNotification() const
+{
+   return priv->memberNotification != 0;
+}
+
 int QoreClass::getDomain() const
 {
    return priv->domain;
@@ -1165,6 +1174,8 @@ QoreClass *QoreClass::copyAndDeref()
 	 noc->priv->methodGate   = nf;
       else if (i->second == priv->memberGate)
 	 noc->priv->memberGate   = nf;
+      else if (i->second == priv->memberNotification)
+	 noc->priv->memberNotification = nf;
    }
    // copy private member list
    for (strset_t::iterator i = priv->pmm.begin(); i != priv->pmm.end(); i++)
@@ -1293,6 +1304,18 @@ AbstractQoreNode *QoreClass::evalMemberGate(QoreObject *self, const QoreString *
    ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
    args->push(new QoreStringNode(*nme));
    return priv->memberGate->eval(self, *args, xsink);
+}
+
+void QoreClass::execMemberNotification(QoreObject *self, const char *mem, ExceptionSink *xsink) const
+{
+   // cannot run this method when executing from within the class
+   assert((this != getStackClass()));
+
+   //printd(5, "QoreClass::execMemberNotification() member=%s\n", mem);
+
+   ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+   args->push(new QoreStringNode(mem));
+   discard(priv->memberNotification->eval(self, *args, xsink), xsink);
 }
 
 QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const

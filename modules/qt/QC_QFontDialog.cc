@@ -101,7 +101,8 @@ static AbstractQoreNode *f_QFontDialog_getFont(const QoreListNode *params, Excep
    }
 
    // write back ok value
-   ReferenceHelper ref(r, xsink);
+   AutoVLock vl(xsink);
+   ReferenceHelper ref(r, vl, xsink);
    if (*xsink)
       return 0;
 

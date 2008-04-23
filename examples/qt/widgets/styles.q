@@ -114,15 +114,15 @@ class NorwegianWoodStyle inherits QMotifStyle
 		my $brush;
 		my $darker;
 	    
-		if ($option instanceof QStyleOptionButton && ($option.features() & QStyleOptionButton::Flat)) {
-		    $brush = $option.palette().background();
-		    $darker = ($option.state() & (State_Sunken | State_On));
+		if ($option instanceof QStyleOptionButton && ($option.features & QStyleOptionButton::Flat)) {
+		    $brush = $option.palette.background();
+		    $darker = ($option.state & (State_Sunken | State_On));
 		} else {
-		    if ($option.state() & (State_Sunken | State_On)) {
-			$brush = $option.palette().mid();
-			$darker = !($option.state() & State_Sunken);
+		    if ($option.state & (State_Sunken | State_On)) {
+			$brush = $option.palette.mid();
+			$darker = !($option.state & State_Sunken);
 		    } else {
-			$brush = $option.palette().button();
+			$brush = $option.palette.button();
 			$darker = False;
 		    }
 		}
@@ -198,9 +198,9 @@ class NorwegianWoodStyle inherits QMotifStyle
 		
 		if ($option instanceof QStyleOptionButton) {
 		    $myButtonOption = $option.copy();
-		    if ($myButtonOption.palette().currentColorGroup() != QPalette::Disabled) {
-			if ($myButtonOption.state() & (State_Sunken | State_On)) {
-			    $myButtonOption.palette().setBrush(QPalette::ButtonText, $myButtonOption.palette().brightText());
+		    if ($myButtonOption.palette.currentColorGroup() != QPalette::Disabled) {
+			if ($myButtonOption.state & (State_Sunken | State_On)) {
+			    $myButtonOption.palette.setBrush(QPalette::ButtonText, $myButtonOption.palette.brightText());
 			}
 		    }
 		}

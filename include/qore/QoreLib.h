@@ -70,14 +70,6 @@ DLLEXPORT void *q_realloc(void *ptr, size_t size);
 //! sets up the Qore ARGV and QORE_ARGV values
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
-//! for retrieving a pointer to a pointer to an lvalue expression
-// implemented in Variable.h
-DLLEXPORT AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
-
-//! for retrieving a pointer to a pointer to an lvalue expression, only returns a value if the variable's value is of type string
-// implemented in Variable.h
-DLLEXPORT class QoreStringNode **get_string_var_value_ptr(class AbstractQoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
-
 //! STL-like list containing all presently-loaded Qore features
 /** this list must be thread-safe for reading, writing under a lock
  */

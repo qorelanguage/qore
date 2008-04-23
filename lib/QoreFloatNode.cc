@@ -26,6 +26,10 @@ QoreFloatNode::QoreFloatNode(double n_f) : SimpleValueQoreNode(NT_FLOAT), f(n_f)
 {
 }
 
+QoreFloatNode::QoreFloatNode() : SimpleValueQoreNode(NT_FLOAT), f(0.0)
+{
+}
+
 QoreFloatNode::~QoreFloatNode()
 {
 }

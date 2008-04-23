@@ -565,10 +565,8 @@ static AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsin
 
    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
 
-   // ReferenceHelper will take care of locking any objects that need to
-   // be locked for accessing the variable (if necessary).  The locks 
-   // are released when the ReferenceHelper object goes out of scope
-   ReferenceHelper ref(r, xsink);
+   AutoVLock vl(xsink);
+   ReferenceHelper ref(r, vl, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
 
@@ -602,7 +600,8 @@ static AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink
 
    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
 
-   ReferenceHelper ref(r, xsink);
+   AutoVLock vl(xsink);
+   ReferenceHelper ref(r, vl, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
 

@@ -39,6 +39,8 @@ class AutoVLock
    private:
       //! the count of locks held directly in this structure
       int counter;
+      //! copy of the ExceptionSink pointer
+      ExceptionSink *xsink;
       //! the list of locks held directly in this structure
       AbstractSmartLock *fp[QORE_AVL_INTERN];
       //! private implementation of the generic lock container
@@ -53,7 +55,7 @@ class AutoVLock
    
    public:
       //! creates an empty lock container
-      DLLEXPORT AutoVLock();
+      DLLEXPORT AutoVLock(ExceptionSink *n_xsink);
 
       //! releases all locks held and destroys the container
       DLLEXPORT ~AutoVLock();
@@ -63,6 +65,12 @@ class AutoVLock
 
       //! pushes a lock on the list
       DLLLOCAL void push(class AbstractSmartLock *asl);
+
+      //! adds an object member notification entry, internal-only
+      /** @param o the object to add
+	  @param member the member that was changed (must be in QCS_DEFAULT encoding)
+       */
+      DLLLOCAL void addMemberNotification(QoreObject *o, const char *member);
 };
 
 #endif

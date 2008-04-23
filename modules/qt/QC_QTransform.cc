@@ -173,7 +173,8 @@ static AbstractQoreNode *QTRANSFORM_inverted(QoreObject *self, QoreQTransform *q
    QTransform transform;
 
    if (ri) {
-      ReferenceHelper refi(ri, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper refi(ri, vl, xsink);
       if (!refi)
 	 return 0;
 
@@ -311,11 +312,12 @@ static AbstractQoreNode *QTRANSFORM_map(QoreObject *self, QoreQTransform *qt, co
       int tx, ty;
       qt->map(x, y, &tx, &ty);
 
-      ReferenceHelper refx(rx, xsink);
+      AutoVLock vl(xsink);
+      ReferenceHelper refx(rx, vl, xsink);
       if (!refx)
 	 return 0;
 
-      ReferenceHelper refy(ry, xsink);
+      ReferenceHelper refy(ry, vl, xsink);
       if (!refy)
 	 return 0;
 
@@ -344,11 +346,12 @@ static AbstractQoreNode *QTRANSFORM_map(QoreObject *self, QoreQTransform *qt, co
    qreal tx, ty;
    qt->map(x, y, &tx, &ty);
 
-   ReferenceHelper refx(rx, xsink);
+   AutoVLock vl(xsink);
+   ReferenceHelper refx(rx, vl, xsink);
    if (!refx)
       return 0;
    
-   ReferenceHelper refy(ry, xsink);
+   ReferenceHelper refy(ry, vl, xsink);
    if (!refy)
       return 0;
    
