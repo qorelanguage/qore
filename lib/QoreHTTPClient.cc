@@ -120,7 +120,7 @@ struct qore_qtc_private {
 	 default_headers["Content-Type"] = "text/html";
 	 default_headers["Connection"] = "Keep-Alive";
 	 default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
-	 default_headers["Accept-Encoding"] = "deflate,gzip";
+	 default_headers["Accept-Encoding"] = "deflate,gzip,bzip2";
       }
       DLLLOCAL ~qore_qtc_private()
       {
@@ -1072,8 +1072,9 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 str = qore_inflate_to_string(bobj, priv->m_socket.getEncoding(), xsink);
       else if (!strcasecmp(content_encoding, "gzip") || !strcasecmp(content_encoding, "x-gzip"))
 	 str = qore_gunzip_to_string(bobj, priv->m_socket.getEncoding(), xsink);
-      else
-      {
+      else if (!strcasecmp(content_encoding, "bzip2") || !strcasecmp(content_encoding, "x-bzip2"))
+	 str = qore_bunzip2_to_string(bobj, priv->m_socket.getEncoding(), xsink);
+      else {
 	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "don't know how to handle content-encoding '%s'", content_encoding);
 	 ans = 0;
       }
