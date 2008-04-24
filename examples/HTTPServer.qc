@@ -3,6 +3,9 @@
 # *) not really HTTP 1.1 compliant
 # *) no real content-type handling
 
+# changes for v0.2.3:
+# * bzip2 content-encoding support 
+
 # changes for v0.2.2:
 # * basic authentication
 
@@ -141,16 +144,15 @@ class HTTPServer::Listener inherits Qore::Socket {
 	$.stop();
     }
     
-    synchronized stop()
+    synchronized stop_listener()
     {
-	if (!exists $.cThreads || $.stopped)
+	if ($.exit)
 	    return;
 
 	$.exit = True;
 	# wake up main listener thread
 	try {
 	    my $s = new Socket();
-	    #printf("Listener::stop() socket=%N\n", $.socket);
 	    if (type($.socket) == Type::Int)
 		$s.connect("127.0.0.1:" + $.socket);
 	    else
@@ -161,6 +163,14 @@ class HTTPServer::Listener inherits Qore::Socket {
 	{
 	    printf("LISTENER-SHUTDOWN-ERROR: %s: %s\n", $ex.err, $ex.desc);
 	}
+    }
+
+    synchronized stop()
+    {
+	if (!exists $.cThreads || $.stopped)
+	    return;
+
+	$.stop_listener();
 	
 	# wait for all connection threads to terminate
 	$.cThreads.waitForZero();
@@ -282,8 +292,26 @@ class HTTPServer::Listener inherits Qore::Socket {
 		if ($hdr.path =~ /^\//)
 		    $hdr.path = substr($hdr.path, 1);
 
-		# decode escape encodings in url if present
+		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
+		/*
+		if (elements (my $xl = ($hdr.path =~ x/(%[0-9a-fA-F][0-9a-fA-F])/)))
+		{
+		    foreach my $x in ($xl)
+		    {
+			my $i = index($hdr.path, $x);
+			#printf("x=%n i=%d %n %n %n\n", $x, $i, substr($hdr.path, 0, $i), chr(hexToInt(substr($x, 1))), substr($hdr.path, $i + 3));
+			try {
+			    $hdr.path = substr($hdr.path, 0, $i) + chr(hexToInt(substr($x, 1))) + substr($hdr.path, $i + 3);
+			}
+			catch ()
+			{
+			    # break if there are invalid hex digits
+			    break;
+			}
+		    }
+		}
+		*/
 
 		# check for authentication info
 		if (exists $.rbac && $.rbac.requires_authentication())
@@ -326,11 +354,11 @@ class HTTPServer::Listener inherits Qore::Socket {
 			# save username in thread-local data
 			# since this thread is dedicated to this connection, the data will be 
 			# automatically deleted when the thread exits
-			save_thread_data(("http_authorized_user" : $user));
+			save_thread_data(("rbac_authorized_user" : $user));
 			$context += ( "user"  : $user,
 				      "roles" : $roles );
 		    }
-		    else if (!exists get_thread_data("http_authorized_user"))
+		    else if (!exists get_thread_data("rbac_authorized_user"))
 		    {
 			my ($roles, $user);
 			# only try ip-based authentication if the connection is not already authenticated
@@ -346,7 +374,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 			if (elements $roles)
 			{
 			    # save username in thread-local data
-			    save_thread_data(("http_authorized_user" : $user));
+			    save_thread_data(("rbac_authorized_user" : $user));
 			    $context += ( "user"  : $user,
 					  "roles" : $roles );
 			}
@@ -358,15 +386,17 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    }
 		}
 
+		$context.encoding = $.getCharset();
 		# split content-type fields
 		my $ct = split(";", $hdr."content-type");
+		trim $ct;
 		foreach my $c in (\$ct)
 		{
-		    trim(\$c);
 		    if ($c =~ /charset=/)
 		    {
 			$c =~ s/charset=//;
 			$s.setCharset($c);
+			$context.encoding = $c;
 		    }
 		    else
 			$hdr."content-type" = $c;
@@ -375,8 +405,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		# check if we need to close the connection
 		my $conn = split(",", tolower($hdr.connection));
 		# remove leading and trailing whitespace
-		foreach my $c in (\$conn)
-		    trim(\$c);
+		trim $conn;
 
 		my $close = (inlist("close", $conn) || ($hdr.http_version != "1.1" && !inlist("keep-alive", $conn)));
 		#printf("conn=%n, close=%n\n", $conn, $close);
@@ -394,6 +423,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		if ($hdr."content-encoding" =~ /iso-/i || $hdr."content-encoding" =~ /utf-/i)
 		{
 		    $.setCharset($hdr."content-encoding");
+		    $context.encoding = $hdr."content-encoding";
 		    delete $hdr."content-encoding";
 		}
 
@@ -459,6 +489,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 			    break;
 			}
 		    }
+		    #printf("HTTP DEBUG: id: %d, body: %n\n", $context.id, substr($body, 0, 80));
 		    # handle content-encoding
 		    if (exists $hdr."content-encoding")
 		    {
@@ -475,6 +506,10 @@ class HTTPServer::Listener inherits Qore::Socket {
 				case "x-gzip":
 				    $body = gunzip_to_string(binary($body));
 				    #printf("AFTER body=%N\n", $body);
+				    break;
+   				case "bzip2":
+				case "x-bzip2":
+				    $body = bunzip2_to_string(binary($body));
 				    break;
 			        default:
 				    throw "UNSUPPORTED-CONTENT-ENCODING", "don't know how to handle this content-encoding";
@@ -542,18 +577,13 @@ class HTTPServer::HTTPServer {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
 	$.rbac = $rbac;
+	$.lm = new Mutex();
 
 	if (exists $logfunc && !existsFunction($logfunc))
-	{
-	    delete $self;
 	    throw "HTTP-SERVER-ERROR", sprintf("log function '%s' does not exist", $logfunc);
-	}
 	
 	if (exists $errlogfunc && !existsFunction($errlogfunc))
-	{
-	    delete $self;
 	    throw "HTTP-SERVER-ERROR", sprintf("error function '%s' does not exist", $errlogfunc);
-	}
 	
 	# quit server flag
 	$.exit = False;
@@ -561,11 +591,13 @@ class HTTPServer::HTTPServer {
 	$.httpserverstring = sprintf("Qore HTTP Server v%s", HTTPServer::Version);
 	$.seqSessions  = new Sequence();
 	$.seqListeners = new Sequence();
-	$.lm = new Mutex();
     }
 
     addListener($sock, $cert, $key)
     {
+	if (!exists $sock)
+	    throw "ADDLISTENER-ERROR", "no socket value passed to HTTPServer::addListener()";
+
 	$.lm.lock();
 	on_exit $.lm.unlock();
 
@@ -579,6 +611,16 @@ class HTTPServer::HTTPServer {
     copy()
     {
 	throw "COPY-ERROR", "this object cannot be copied";
+    }
+
+    stop_listeners()
+    {
+	# stop all listeners
+	$.lm.lock();
+	on_exit $.lm.unlock();
+
+	foreach my $id in (keys $.listeners)
+	    $.listeners.$id.stop_listener();
     }
 
     stop()
@@ -694,8 +736,18 @@ class HTTPServer::HTTPServer {
 
 	if (type($extra_hdrs) == Type::Hash)
 	    $hdr += $extra_hdrs;
-	
-	$s.sendHTTPResponse($code, HTTPServer::HTTPCodes.$code, "1.1", $hdr, $str);
+
+        # log exceptions if not "SOCKET-SEND-ERROR" (probably broken pipe)
+        try {
+            $s.sendHTTPResponse($code, HTTPServer::HTTPCodes.$code, "1.1", $hdr, $str);
+        }
+        catch ($ex)
+        {
+            if ($ex.err != "SOCKET-SEND-ERROR") {
+		my $estr = sprintf("%s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
+		$.logError($estr);
+            }
+        }
     }
 
     handleRequest($s, $context, $hdr, $body, $close, $head)
@@ -713,7 +765,7 @@ class HTTPServer::HTTPServer {
 		# get encoding
 		my $enc = $acc =~ x/^(\w+|\*)/[0];
 		# ignore encodings we don't recognize
-		if (!inlist($enc, ("gzip", "deflate", "x-deflate", "x-gzip")))
+		if (!inlist($enc, ("gzip", "deflate", "x-deflate", "x-gzip", "bzip2", "x-bzip2")))
 		    continue;
 		# get q value
 		$q = $acc =~ x/;q=(.*)$/[0];
@@ -820,16 +872,19 @@ class HTTPServer::HTTPServer {
 		    $s.sendHTTPResponse($rv.code, HTTPServer::HTTPCodes.($rv.code), "1.1", $rv.hdr);
 		else
 		{
-		    if ($context.encoding == "deflate")
-		    {
+		    if ($context.encoding == "deflate") {
 			$rv.hdr += ( "Content-Encoding" : "deflate" );
 			$rv.body = compress($rv.body);
 		    }
-		    else if ($context.encoding == "gzip")
-		    {
+		    else if ($context.encoding == "gzip") {
 			$rv.hdr += ( "Content-Encoding" : "gzip" );
 			$rv.body = gzip($rv.body);
 		    }
+		    else if ($context.encoding == "bzip2") {
+			$rv.hdr += ( "Content-Encoding" : "bzip2" );
+			$rv.body = bzip2($rv.body);
+		    }
+		    
 		    $s.sendHTTPResponse($rv.code, HTTPServer::HTTPCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
 		}
 	    }

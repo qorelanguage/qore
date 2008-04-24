@@ -3,6 +3,8 @@
 # this is basically a direct port of the QT widget example
 # "styles" to Qore using Qore's "qt" module.  
 
+# it doesn't really work very well and I don't know why :-(
+
 # Note that Qore's "qt" module requires QT 4.3 or above 
 
 # use the "qt" module
@@ -15,13 +17,6 @@
 # enable all parse warnings
 %enable-all-warnings
 
-sub qSwap($a, $b)
-{
-    my $t = $a;
-    $a = $b;
-    $b = $t;
-}
-
 class NorwegianWoodStyle inherits QMotifStyle
 {
     polish($palette)
@@ -31,6 +26,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 		$palette.setAttribute(Qt::WA_Hover, True);
 	    return;
 	}
+
 	my $brown = new QColor(212, 140, 95);
 	my $beige = new QColor(236, 182, 120);
 	my $slightlyOpaqueBlack = new QColor(0, 0, 0, 63);
