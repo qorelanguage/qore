@@ -5,6 +5,7 @@
 	* qt: added memberNotification methods to QStyleOption* classes to
 	  automatically retrieve and set option values when Qore members are
 	  read or set
+	* added support for bzip2 content-encoding to HTTPClient
 
 2008.04.22: David Nichols
 	* renamed all instances of "FunctionReference" to "CallReference"

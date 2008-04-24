@@ -142,7 +142,7 @@ AbstractQoreNode *QStyleOption_MemberGate(QStyleOption *qso, const char *mem)
 
    if (!strcmp(mem, "palette")) {
       QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
-      QoreQPalette *q_qp = new QoreQPalette(&qso->palette);
+      QoreQPalette *q_qp = new QoreQPalette(qso->palette);
       o_qp->setPrivate(CID_QPALETTE, q_qp);
       return o_qp;
    }

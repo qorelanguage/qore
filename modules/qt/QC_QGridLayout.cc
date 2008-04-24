@@ -91,6 +91,7 @@ AbstractQoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout 
    int col = p ? p->getAsInt() : 0;
 
    p = get_param(params, 3);
+
    const AbstractQoreNode *p1 = get_param(params, 4);
    if (is_nothing(p1))
    {
@@ -141,8 +142,7 @@ AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout 
 
    p = get_param(params, 3);
    const AbstractQoreNode *p1 = get_param(params, 4);
-   if (is_nothing(p1))
-   {
+   if (is_nothing(p1)) {
       //printd(5, "QGRIDLAYOUT_addWidget(%08x, %d, %d, %d)\n", widget->getQWidget(), row, col, p ? p->getAsInt() : 0);
       ql->qobj->addWidget(widget->getQWidget(), row, col, (Qt::Alignment)(p ? p->getAsInt() : 0));
       // the widget pointer is now owned by the layout
@@ -162,14 +162,14 @@ AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout 
 }
 
 //QRect cellRect ( int row, int column ) const
-//static AbstractQoreNode *QGRIDLAYOUT_cellRect(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   const AbstractQoreNode *p = get_param(params, 0);
-//   int row = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int column = p ? p->getAsInt() : 0;
-//   ??? return new QoreBigIntNode(qgl->qobj->cellRect(row, column));
-//}
+static AbstractQoreNode *QGRIDLAYOUT_cellRect(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *p = get_param(params, 0);
+   int row = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int column = p ? p->getAsInt() : 0;
+   return return_qobject(QC_QRect, new QoreQRect(qgl->qobj->cellRect(row, column)));
+}
 
 //int columnCount () const
 static AbstractQoreNode *QGRIDLAYOUT_columnCount(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
@@ -352,7 +352,7 @@ class QoreClass *initQGridLayoutClass(class QoreClass *qlayout)
    //QC_QGridLayout->addMethod("addItem",                     (q_method_t)QGRIDLAYOUT_addItem);
    QC_QGridLayout->addMethod("addLayout",                   (q_method_t)QGRIDLAYOUT_addLayout);
    QC_QGridLayout->addMethod("addWidget",                   (q_method_t)QGRIDLAYOUT_addWidget);
-   //QC_QGridLayout->addMethod("cellRect",                    (q_method_t)QGRIDLAYOUT_cellRect);
+   QC_QGridLayout->addMethod("cellRect",                    (q_method_t)QGRIDLAYOUT_cellRect);
    QC_QGridLayout->addMethod("columnCount",                 (q_method_t)QGRIDLAYOUT_columnCount);
    QC_QGridLayout->addMethod("columnMinimumWidth",          (q_method_t)QGRIDLAYOUT_columnMinimumWidth);
    QC_QGridLayout->addMethod("columnStretch",               (q_method_t)QGRIDLAYOUT_columnStretch);
