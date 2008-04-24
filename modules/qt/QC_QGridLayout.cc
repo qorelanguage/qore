@@ -168,7 +168,7 @@ static AbstractQoreNode *QGRIDLAYOUT_cellRect(QoreObject *self, QoreQGridLayout 
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
-   return return_qobject(QC_QRect, new QoreQRect(qgl->qobj->cellRect(row, column)));
+   return return_object(QC_QRect, new QoreQRect(qgl->qobj->cellRect(row, column)));
 }
 
 //int columnCount () const

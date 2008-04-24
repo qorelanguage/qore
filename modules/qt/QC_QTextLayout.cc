@@ -24,9 +24,33 @@
 #include <qore/Qore.h>
 
 #include "QC_QTextLayout.h"
+#include "QC_QTextCharFormat.h"
 
 qore_classid_t CID_QTEXTLAYOUT;
 QoreClass *QC_QTextLayout = 0;
+
+static int get_format_range(QTextLayout::FormatRange &fr, const QoreHashNode *h, ExceptionSink *xsink)
+{
+   const AbstractQoreNode *n = h->getKeyValue("format");
+   if (n && n->getType() == NT_OBJECT) {
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
+      QoreQTextCharFormat *format = (QoreQTextCharFormat *)o->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink);
+      if (*xsink)
+	 return -1;
+      ReferenceHolder<AbstractPrivateData> holder(format, xsink);
+      fr.format = *format;
+   }
+   
+   n = h->getKeyValue("length");
+   if (!is_nothing(n))
+      fr.length = n->getAsInt();
+
+   n = h->getKeyValue("start");
+   if (!is_nothing(n))
+      fr.start = n->getAsInt();
+
+   return 0;
+}
 
 //QTextLayout ()
 //QTextLayout ( const QString & text )
@@ -68,19 +92,23 @@ static void QTEXTLAYOUT_copy(QoreObject *self, QoreObject *old, QoreQTextLayout 
    xsink->raiseException("QTEXTLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-/*
 //QList<FormatRange> additionalFormats () const
 static AbstractQoreNode *QTEXTLAYOUT_additionalFormats(QoreObject *self, QoreQTextLayout *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QList<FormatRange> fr = qtl->additionalFormats();
+   QList<QTextLayout::FormatRange> fr = qtl->additionalFormats();
    
    QoreListNode *l = new QoreListNode();
-   for (QList<FormatRange>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
-      l->push(new QoreBigIntNode((*i)));
+   for (QList<QTextLayout::FormatRange>::iterator i = fr.begin(), e = fr.end(); i != e; ++i) {
+      QoreHashNode *h = new QoreHashNode();
+
+      h->setKeyValue("format", return_object(QC_QTextCharFormat, new QoreQTextCharFormat(i->format)), 0);
+      h->setKeyValue("length", new QoreBigIntNode(i->length), 0);
+      h->setKeyValue("start", new QoreBigIntNode(i->start), 0);
+      l->push(h);
+   }
 
    return l;
 }
-*/
 
 //void beginLayout ()
 static AbstractQoreNode *QTEXTLAYOUT_beginLayout(QoreObject *self, QoreQTextLayout *qtl, const QoreListNode *params, ExceptionSink *xsink)
@@ -114,18 +142,17 @@ static AbstractQoreNode *QTEXTLAYOUT_createLine(QoreObject *self, QoreQTextLayou
    return return_object(QC_QTextLine, new QoreQTextLine(qtl->createLine()));
 }
 
-/*
 //void draw ( QPainter * p, const QPointF & pos, const QVector<FormatRange> & selections = QVector<FormatRange> (), const QRectF & clip = QRectF() ) const
 static AbstractQoreNode *QTEXTLAYOUT_draw(QoreObject *self, QoreQTextLayout *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainter *p = (p && p->getType() == NT_OBJECT) ? (QoreQPainter *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
-   if (!p) {
+   QoreQPainter *painter = (p && p->getType() == NT_OBJECT) ? (QoreQPainter *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+   if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTLAYOUT-DRAW-PARAM-ERROR", "expecting a QPainter object as first argument to QTextLayout::draw()");
       return 0;
    }
-   ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(p), xsink);
+   ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(painter), xsink);
    p = get_param(params, 1);
    QoreQPointF *pos = (p && p->getType() == NT_OBJECT) ? (QoreQPointF *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
    if (!pos) {
@@ -135,28 +162,36 @@ static AbstractQoreNode *QTEXTLAYOUT_draw(QoreObject *self, QoreQTextLayout *qtl
    }
    ReferenceHolder<AbstractPrivateData> posHolder(static_cast<AbstractPrivateData *>(pos), xsink);
 
-   QVector<FormatRange> selections;
+   QVector<QTextLayout::FormatRange> selections;
 
-   const QoreQoreNode *l = test_list_param(params, 2);
+   const QoreListNode *l = test_list_param(params, 2);
    if (l) {
       ConstListIterator li_selections(l);
       while (li_selections.next()) {
 	 const AbstractQoreNode *n = li_selections.getValue();
-	 selections.push_back(n ? n->getAsBigInt() : 0);
+	 if (!n || n->getType() != NT_HASH) {
+	    xsink->raiseException("QTEXTLAYOUT-DRAW-PARAM-ERROR", "selections list element is not a FormatRange hash (type encountered: '%s')", n ? n->getTypeName() : "NOTHING");
+	    return 0;
+	 }
+
+	 QTextLayout::FormatRange fr;
+	 if (get_format_range(fr, reinterpret_cast<const QoreHashNode *>(n), xsink))
+	    return 0;
+
+	 selections.push_back(fr);
       }
    }
    else
-      selections = QVector<FormatRange>;
+      selections = QVector<QTextLayout::FormatRange>();
 
    p = get_param(params, 3);
    QoreQRectF *clip = (p && p->getType() == NT_OBJECT) ? (QoreQRectF *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> clipHolder(static_cast<AbstractPrivateData *>(clip), xsink);
-   qtl->draw(static_cast<QPainter *>(p->getQPainter()), *(static_cast<QPointF *>(pos)), selections, clip ? *(static_cast<QRectF *>(clip) : 0));
+   qtl->draw(painter->getQPainter(), *(static_cast<QPointF *>(pos)), selections, clip ? *(static_cast<QRectF *>(clip)) : QRectF());
    return 0;
 }
-*/
 
 //void drawCursor ( QPainter * painter, const QPointF & position, int cursorPosition, int width ) const
 //void drawCursor ( QPainter * painter, const QPointF & position, int cursorPosition ) const
@@ -289,26 +324,34 @@ static AbstractQoreNode *QTEXTLAYOUT_previousCursorPosition(QoreObject *self, Qo
    return new QoreBigIntNode(qtl->previousCursorPosition(oldPos, mode));
 }
 
-/*
 //void setAdditionalFormats ( const QList<FormatRange> & formatList )
 static AbstractQoreNode *QTEXTLAYOUT_setAdditionalFormats(QoreObject *self, QoreQTextLayout *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   const QoreQoreNode *l = test_list_param(params, 0);
+   const QoreListNode *l = test_list_param(params, 0);
    if (!l) {
       xsink->raiseException("QTEXTLAYOUT-SETADDITIONALFORMATS-PARAM-ERROR", "expecting a list as sole argument to QTextLayout::setAdditionalFormats()"); 
       return 0;
    }
-   QList<FormatRange> formatList;
+   QList<QTextLayout::FormatRange> formatList;
    ConstListIterator li_formatList(l);
    while (li_formatList.next()) {
       const AbstractQoreNode *n = li_formatList.getValue();
-      formatList.push_back(n ? n->getAsBigInt() : 0);
+
+      if (!n || n->getType() != NT_HASH) {
+	 xsink->raiseException("QTEXTLAYOUT-SETADDITIONALFORMATS-PARAM-ERROR", "formatList element is not a FormatRange hash (type encountered: '%s')", n ? n->getTypeName() : "NOTHING");
+	 return 0;
+      }
+
+      QTextLayout::FormatRange fr;
+      if (get_format_range(fr, reinterpret_cast<const QoreHashNode *>(n), xsink))
+	 return 0;
+
+      formatList.push_back(fr);
    }
 
    qtl->setAdditionalFormats(formatList);
    return 0;
 }
-*/
 
 //void setCacheEnabled ( bool enable )
 static AbstractQoreNode *QTEXTLAYOUT_setCacheEnabled(QoreObject *self, QoreQTextLayout *qtl, const QoreListNode *params, ExceptionSink *xsink)
@@ -408,13 +451,13 @@ static QoreClass *initQTextLayoutClass()
    QC_QTextLayout->setConstructor(QTEXTLAYOUT_constructor);
    QC_QTextLayout->setCopy((q_copy_t)QTEXTLAYOUT_copy);
 
-   //QC_QTextLayout->addMethod("additionalFormats",           (q_method_t)QTEXTLAYOUT_additionalFormats);
+   QC_QTextLayout->addMethod("additionalFormats",           (q_method_t)QTEXTLAYOUT_additionalFormats);
    QC_QTextLayout->addMethod("beginLayout",                 (q_method_t)QTEXTLAYOUT_beginLayout);
    QC_QTextLayout->addMethod("boundingRect",                (q_method_t)QTEXTLAYOUT_boundingRect);
    QC_QTextLayout->addMethod("cacheEnabled",                (q_method_t)QTEXTLAYOUT_cacheEnabled);
    QC_QTextLayout->addMethod("clearAdditionalFormats",      (q_method_t)QTEXTLAYOUT_clearAdditionalFormats);
    QC_QTextLayout->addMethod("createLine",                  (q_method_t)QTEXTLAYOUT_createLine);
-   //QC_QTextLayout->addMethod("draw",                        (q_method_t)QTEXTLAYOUT_draw);
+   QC_QTextLayout->addMethod("draw",                        (q_method_t)QTEXTLAYOUT_draw);
    QC_QTextLayout->addMethod("drawCursor",                  (q_method_t)QTEXTLAYOUT_drawCursor);
    QC_QTextLayout->addMethod("endLayout",                   (q_method_t)QTEXTLAYOUT_endLayout);
    QC_QTextLayout->addMethod("font",                        (q_method_t)QTEXTLAYOUT_font);
@@ -429,7 +472,7 @@ static QoreClass *initQTextLayoutClass()
    QC_QTextLayout->addMethod("preeditAreaPosition",         (q_method_t)QTEXTLAYOUT_preeditAreaPosition);
    QC_QTextLayout->addMethod("preeditAreaText",             (q_method_t)QTEXTLAYOUT_preeditAreaText);
    QC_QTextLayout->addMethod("previousCursorPosition",      (q_method_t)QTEXTLAYOUT_previousCursorPosition);
-   //QC_QTextLayout->addMethod("setAdditionalFormats",        (q_method_t)QTEXTLAYOUT_setAdditionalFormats);
+   QC_QTextLayout->addMethod("setAdditionalFormats",        (q_method_t)QTEXTLAYOUT_setAdditionalFormats);
    QC_QTextLayout->addMethod("setCacheEnabled",             (q_method_t)QTEXTLAYOUT_setCacheEnabled);
    QC_QTextLayout->addMethod("setFont",                     (q_method_t)QTEXTLAYOUT_setFont);
    QC_QTextLayout->addMethod("setPosition",                 (q_method_t)QTEXTLAYOUT_setPosition);
