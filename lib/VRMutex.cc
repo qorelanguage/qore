@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2008 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@ VRMutex::VRMutex() : count(0)
 int VRMutex::enter(ExceptionSink *xsink)
 {
    int mtid = gettid();
-   class VLock *nvl = getVLock();
+   VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
    int rc = grabImpl(mtid, nvl, xsink);
    if (!rc)

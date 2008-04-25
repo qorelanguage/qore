@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2008 David Nichols
 
   constants can only be defined when parsing
   constants values will be substituted during the 2nd parse phase

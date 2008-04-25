@@ -1,3 +1,7 @@
+2008.04.24: David Nichols
+	* fixed a design issue with Qore objects; once the destructor starts
+	  executing, no other threads can access the object
+
 2008.04.23: David Nichols
 	* rewrote the ForEachStatement execution code to be more efficient and
 	  use LValueHelper

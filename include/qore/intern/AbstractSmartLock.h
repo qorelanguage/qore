@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ Copyright 2003 - 2008 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -29,30 +29,32 @@
 #include <qore/QoreCondition.h>
 #include <qore/AbstractThreadResource.h>
 
+class VLock;
+
 class AbstractSmartLock : public AbstractThreadResource
 {
    protected:
       enum lock_status_e { Lock_Deleted = -2, Lock_Unlocked = -1 };
    
-      class VLock *vl;
+      VLock *vl;
       int tid, waiting;
 
       virtual int releaseImpl() = 0;
-      virtual int releaseImpl(class ExceptionSink *xsink) = 0;
-      virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms = 0) = 0;
-      virtual int tryGrabImpl(int mtid, class VLock *nvl) = 0;
+      virtual int releaseImpl(ExceptionSink *xsink) = 0;
+      virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0) = 0;
+      virtual int tryGrabImpl(int mtid, VLock *nvl) = 0;
 
-      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
+      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
+      DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
       DLLLOCAL virtual void signalAllImpl();
       DLLLOCAL virtual void signalImpl();
       DLLLOCAL virtual void cleanupImpl();
 
-      DLLLOCAL void mark_and_push(int mtid, class VLock *nvl);
+      DLLLOCAL void mark_and_push(int mtid, VLock *nvl);
       DLLLOCAL void release_and_signal();
-      DLLLOCAL void grab_intern(int mtid, class VLock *nvl);
+      DLLLOCAL void grab_intern(int mtid, VLock *nvl);
       DLLLOCAL void release_intern();
-      DLLLOCAL int verify_wait_unlocked(int mtid, class ExceptionSink *xsink);
+      DLLLOCAL int verify_wait_unlocked(int mtid, ExceptionSink *xsink);
 
    public:
       QoreThreadLock asl_lock;
@@ -60,25 +62,13 @@ class AbstractSmartLock : public AbstractThreadResource
 
       DLLLOCAL AbstractSmartLock() : vl(NULL), tid(-1), waiting(0)  {}
       DLLLOCAL virtual ~AbstractSmartLock() {}
-      DLLLOCAL void destructor(class ExceptionSink *xsink);
-      DLLLOCAL virtual void cleanup(class ExceptionSink *xsink);
+      DLLLOCAL void destructor(ExceptionSink *xsink);
+      DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
 
-      // grab return values: 
-      //    0   = grabbed the lock
-      //    > 0 = acquired the lock recursively (was already acquired by this thread)
-      //    < 0 = error occured (deadlock or timeout)
-/*
-      DLLLOCAL int grabIntern(class ExceptionSink *xsink)
-      {
-	 int mtid = gettid();
-	 AutoLocker al(&asl_lock);
-	 return grabInternImpl(mtid);
-      }
-*/
-      DLLLOCAL int grab(class ExceptionSink *xsink, int timeout_ms = 0);
+      DLLLOCAL int grab(ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL int tryGrab();
       DLLLOCAL int release();
-      DLLLOCAL int release(class ExceptionSink *xsink);
+      DLLLOCAL int release(ExceptionSink *xsink);
       DLLLOCAL int self_wait(int timeout_ms) 
       { 
 	 return timeout_ms ? asl_cond.wait(&asl_lock, timeout_ms) : asl_cond.wait(&asl_lock); 
@@ -88,7 +78,7 @@ class AbstractSmartLock : public AbstractThreadResource
 	 return timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock); 
       }
 
-      DLLLOCAL int extern_wait(class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms = 0);
+      DLLLOCAL int extern_wait(QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
 
       DLLLOCAL int get_tid() const { return tid; }
       DLLLOCAL int get_waiting() const { return waiting; }

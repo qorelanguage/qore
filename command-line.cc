@@ -7,7 +7,7 @@
 
   it should offer POSIX style command-line handling on any platform...
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2008 David Nichols
 */
 
 #include <qore/Qore.h>

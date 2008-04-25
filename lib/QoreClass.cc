@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2008 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -1139,13 +1139,19 @@ void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const
       AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->parent_class->getID(), xsink);
       if (ptr)
 	 priv->func.builtin->evalDestructor(self, ptr, priv->parent_class->getName(), xsink);
+#if DEBUG
+      // this case should be impossible to reach
       else if (!xsink->isException() && priv->parent_class->getID() == priv->parent_class->getIDForMethod()) // do not throw an exception if the class has no private data
       {
+	 assert(false);
+#if 0
 	 if (self->getClass() == priv->parent_class)
 	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() cannot be executed because the object has already been deleted", self->getClass()->getName());
 	 else
 	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() (base class of '%s') cannot be executed because the object has already been deleted", priv->parent_class->getName(), self->getClass()->getName());
+#endif
       }
+#endif
    }
 }
 
@@ -1158,10 +1164,8 @@ QoreClass *QoreClass::copyAndDeref()
    printd(5, "QoreClass::copyAndDeref() name=%s (%08p) new name=%s (%08p)\n", priv->name, priv->name, noc->priv->name, noc->priv->name);
 
    // set up function list
-
-   for (hm_method_t::iterator i = priv->hm.begin(); i != priv->hm.end(); i++)
-   {
-      class QoreMethod *nf = i->second->copy(noc);
+   for (hm_method_t::iterator i = priv->hm.begin(); i != priv->hm.end(); i++) {
+      QoreMethod *nf = i->second->copy(noc);
 
       noc->priv->hm[nf->getName()] = nf;
       if (i->second == priv->constructor)
@@ -1181,14 +1185,12 @@ QoreClass *QoreClass::copyAndDeref()
    for (strset_t::iterator i = priv->pmm.begin(); i != priv->pmm.end(); i++)
       noc->priv->pmm.insert(strdup(*i));
 
-   if (priv->scl)
-   {
+   if (priv->scl) {
       priv->scl->ref();
       noc->priv->scl = priv->scl;
    }
 
    nderef();
-   traceout("QoreClass::copyAndDeref");
    return noc;
 }
 
@@ -1217,10 +1219,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
    printd(5, "QoreClass::evalMethod() %s::%s() %s call attempted\n", priv->name, nme, external ? "external" : "internal" );
 
    if (!strcmp(nme, "copy"))
-   {
-      traceout("QoreClass::evalMethod()");
       return execCopy(self, xsink);
-   }
 
    bool priv_flag;
    if (!(w = findMethod(nme, priv_flag)))
@@ -1229,14 +1228,12 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
 	 return evalMethodGate(self, nme, args, xsink);
       // otherwise return an exception
       xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined", priv->name, nme);
-      traceout("QoreClass::evalMethod()");
       return 0;
    }
    // check for illegal explicit call
    if (w == priv->constructor || w == priv->destructor || w == priv->deleteBlocker)
    {
       xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
-      traceout("QoreClass::evalMethod()");
       return 0;      
    }
 
@@ -1244,16 +1241,13 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       if (w->isPrivate())
       {
 	 xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", priv->name, nme);
-	 traceout("QoreClass::evalMethod()");
 	 return 0;
       }
       else if (priv_flag)
       {
 	 xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class of %s", nme, priv->name);
-	 traceout("QoreClass::evalMethod()");
 	 return 0;
       }
-   traceout("QoreClass::evalMethod()");
    return w->eval(self, args, xsink);
 }
 

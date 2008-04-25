@@ -3,7 +3,7 @@
   
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2008 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -353,6 +353,9 @@ class AbstractQoreNode : public QoreReferenceCounter
 
       //! increments the reference count
       DLLEXPORT void ref() const;
+
+      //! returns true if the object is reference-counted
+      DLLEXPORT bool isReferenceCounted() const { return there_can_be_only_one; }
 };
 
 //! The base class for all types in Qore expression trees that cannot throw an exception when deleted

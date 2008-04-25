@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2005 David Nichols
+  Copyright 2003 - 2008 David Nichols
   
   FIXME: normalize methods to raise exceptions when file operations are attempted on a closed file
 

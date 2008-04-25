@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright 2003 - 2008 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -76,7 +76,7 @@ int SmartMutex::releaseImpl(ExceptionSink *xsink)
    if (tid != mtid)
    {
       // getName() for possible inheritance
-      xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock is held by tid %d", mtid, tid, getName());
+      xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock is held by tid %d", mtid, getName(), tid);
       return -1;
    }
    return 0;
