@@ -685,6 +685,50 @@ static AbstractQoreNode *f_SHA1(const QoreListNode *params, ExceptionSink *xsink
    return dh.getString();
 }
 
+#ifndef OPENSSL_NO_SHA256
+#define SHA224_ERR "SHA224-DIGEST-ERROR"
+static AbstractQoreNode *f_SHA224(const QoreListNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA224_ERR, params, xsink) || dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+#define SHA256_ERR "SHA256-DIGEST-ERROR"
+static AbstractQoreNode *f_SHA256(const QoreListNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA256_ERR, params, xsink) || dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
+      return 0;
+
+   return dh.getString();
+}
+#endif
+
+#ifndef OPENSSL_NO_SHA512
+#define SHA384_ERR "SHA384-DIGEST-ERROR"
+static AbstractQoreNode *f_SHA384(const QoreListNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA384_ERR, params, xsink) || dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
+      return 0;
+
+   return dh.getString();
+}
+
+#define SHA512_ERR "SHA512-DIGEST-ERROR"
+static AbstractQoreNode *f_SHA512(const QoreListNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA512_ERR, params, xsink) || dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
+      return 0;
+
+   return dh.getString();
+}
+#endif
+
 #define DSS_ERR "DSS-DIGEST-ERROR"
 static AbstractQoreNode *f_DSS(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -771,6 +815,46 @@ static AbstractQoreNode *f_SHA1_bin(const QoreListNode *params, ExceptionSink *x
    
    return dh.getBinary();
 }
+
+#ifndef OPENSSL_NO_SHA256
+static AbstractQoreNode *f_SHA224_bin(const QoreListNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA224_ERR, params, xsink) || dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
+      return 0;
+   
+   return dh.getBinary();
+}
+
+static AbstractQoreNode *f_SHA256_bin(const QoreListNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA256_ERR, params, xsink) || dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
+      return 0;
+   
+   return dh.getBinary();
+}
+#endif
+
+#ifndef OPENSSL_NO_SHA512
+static AbstractQoreNode *f_SHA384_bin(const QoreListNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA384_ERR, params, xsink) || dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
+      return 0;
+   
+   return dh.getBinary();
+}
+
+static AbstractQoreNode *f_SHA512_bin(const QoreListNode *params, ExceptionSink *xsink)
+{
+   class DigestHelper dh;
+   if (dh.getData(SHA512_ERR, params, xsink) || dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
+      return 0;
+   
+   return dh.getBinary();
+}
+#endif
 
 static AbstractQoreNode *f_DSS_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -868,14 +952,30 @@ void init_crypto_functions()
    builtinFunctions.add("SHA_bin",       f_SHA_bin);
    builtinFunctions.add("SHA1",          f_SHA1);
    builtinFunctions.add("SHA1_bin",      f_SHA1_bin);
+
+#ifndef OPENSSL_NO_SHA256
+   builtinFunctions.add("SHA224",        f_SHA224);
+   builtinFunctions.add("SHA224_bin",    f_SHA224_bin);
+   builtinFunctions.add("SHA256",        f_SHA256);
+   builtinFunctions.add("SHA256_bin",    f_SHA256_bin);
+#endif
+#ifndef OPENSSL_NO_SHA512
+   builtinFunctions.add("SHA384",        f_SHA384);
+   builtinFunctions.add("SHA384_bin",    f_SHA384_bin);
+   builtinFunctions.add("SHA512",        f_SHA512);
+   builtinFunctions.add("SHA512_bin",    f_SHA512_bin);
+#endif
+
    builtinFunctions.add("DSS",           f_DSS);
    builtinFunctions.add("DSS_bin",       f_DSS_bin);
    builtinFunctions.add("DSS1",          f_DSS1);
    builtinFunctions.add("DSS1_bin",      f_DSS1_bin);
+
 #ifndef OPENSSL_NO_MDC2
    builtinFunctions.add("MDC2",          f_MDC2);
    builtinFunctions.add("MDC2_bin",      f_MDC2_bin);
 #endif
+
    builtinFunctions.add("RIPEMD160",     f_RIPEMD160);
    builtinFunctions.add("RIPEMD160_bin", f_RIPEMD160_bin);
 

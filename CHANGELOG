@@ -1,3 +1,7 @@
+2008.04.26: David Nichols
+	* added SHA224(), SHA256(), SHA384(), SHA512() digest functions (as well
+	  as related *_bin() functions)
+
 2008.04.24: David Nichols
 	* fixed a design issue with Qore objects; once the destructor starts
 	  executing, no other threads can access the object
