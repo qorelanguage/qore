@@ -39,6 +39,10 @@
 #define DEFAULT_SOCKET_BUFSIZE 4096
 #endif
 
+#ifndef QORE_MAX_HEADER_SIZE
+#define QORE_MAX_HEADER_SIZE 16384
+#endif
+
 int SSLSocketHelper::setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink)
 {
    ctx  = SSL_CTX_new(meth);
@@ -1374,41 +1378,40 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state)
    // read in HHTP header until \r\n\r\n or \n\n from socket
    QoreStringNodeHolder hdr(new QoreStringNode(priv->charsetid));
 
+   int count = 0;
+
    while (true)
    {
       char c;
       *rc = recv(&c, 1, 0, timeout); // = read(priv->sock, &c, 1);
 				     //printd(0, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
-      if ((*rc) <= 0)
-      {
+      if ((*rc) <= 0) {
 	 //printd(0, "QoreSocket::readHTTPHeader(timeout=%d) hdr->strlen()=%d, rc=%d, errno=%d (%s)\n", timeout, hdr->strlen(), *rc, errno, strerror(errno));
 	 return 0;
       }
+      if (++count == QORE_MAX_HEADER_SIZE)
+	 return 0;
+      
       // check if we can progress to the next state
-      if (state == -1 && c == '\n')
-      {
+      if (state == -1 && c == '\n') {
 	 state = 3;
 	 continue;
       }
-      else if (state == -1 && c == '\r')
-      {
+      else if (state == -1 && c == '\r') {
 	 state = 0;
 	 continue;
       }
       else if (state > 0 && c == '\n')
 	 break;
-      if (!state && c == '\n')
-      {
+      if (!state && c == '\n') {
 	 state = 1;
 	 continue;
       }
-      else if (state == 1 && c == '\r')
-      {
+      else if (state == 1 && c == '\r') {
 	 state = 2;
 	 continue;
       }
-      else
-      {
+      else {
 	 if (!state)
 	    hdr->concat('\r');
 	 else if (state == 1)
@@ -1457,7 +1460,6 @@ void QoreSocket::convertHeaderToHash(class QoreHashNode *h, char *p)
    }
 }
 
-// FIXME: implement a maximum header size - otherwise a malicious message could fill up all memory
 // rc is:
 //    0 for remote end shutdown
 //   -1 for socket error
@@ -1465,8 +1467,7 @@ void QoreSocket::convertHeaderToHash(class QoreHashNode *h, char *p)
 //   -3 for timeout
 AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 {
-   if (!priv->sock)
-   {
+   if (!priv->sock) {
       *rc = -2;
       return 0;
    }
@@ -1479,18 +1480,15 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    //printd(0, "HTTP header=%s", buf);
 
    char *p;
-   if ((p = (char *)strstr(buf, "\r\n")))
-   {
+   if ((p = (char *)strstr(buf, "\r\n"))) {
      *p = '\0';
       p += 2;
    }
-   else if ((p = (char *)strchr(buf, '\n')))
-   {
+   else if ((p = (char *)strchr(buf, '\n'))) {
      *p = '\0';
       p++;
    }
-   else
-   {
+   else {
       //printd(5, "can't find first EOL marker\n");
       return hdr.release();
    }
@@ -1508,31 +1506,25 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    h->setKeyValue("http_version", new QoreStringNode(t1 + 5, 3, priv->charsetid), 0);
 
    // if we are getting a response
-   if (t1 == buf)
-   {
+   if (t1 == buf) {
       char *t2 = (char *)strchr(buf + 8, ' ');
-      if (t2)
-      {
+      if (t2) {
 	 t2++;
-	 if (isdigit(*(t2)))
-	 {
+	 if (isdigit(*(t2))) {
 	    h->setKeyValue("status_code", new QoreBigIntNode(atoi(t2)), 0);
 	    if (strlen(t2) > 4)
 	       h->setKeyValue("status_message", new QoreStringNode(t2 + 4), 0);
 	 }
       }
    }
-   else // get method and path
-   {
+   else { // get method and path
       char *t2 = (char *)strchr(buf, ' ');
-      if (t2)
-      {
+      if (t2) {
 	 *t2 = '\0';
 	 h->setKeyValue("method", new QoreStringNode(buf), 0);
 	 t2++;
 	 t1 = strchr(t2, ' ');
-	 if (t1)
-	 {
+	 if (t1) {
 	    *t1 = '\0';
 	    // the path is returned as-is with no decodings - use decode_url() to decode
 	    h->setKeyValue("path", new QoreStringNode(t2, priv->charsetid), 0);
@@ -1559,7 +1551,7 @@ void QoreSocket::doException(int rc, const char *meth, ExceptionSink *xsink)
 QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink)
 {
    SimpleRefHolder<BinaryNode> b(new BinaryNode());
-   class QoreString str; // for reading the size of each chunk
+   QoreString str; // for reading the size of each chunk
    
    int rc;
    // read the size then read the data and append to buffer
@@ -1767,8 +1759,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 
    // read footers or nothing
    QoreStringNodeHolder hdr(readHTTPData(timeout, &rc, 1));
-   if (!hdr)
-   {
+   if (!hdr) {
       doException(rc, "readHTTPChunkedBody", xsink);
       return 0;
    }
