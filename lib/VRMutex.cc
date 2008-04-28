@@ -34,7 +34,7 @@ int VRMutex::enter(ExceptionSink *xsink)
    int mtid = gettid();
    VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
-   int rc = grabImpl(mtid, nvl, xsink);
+   int rc = VRMutex::grabImpl(mtid, nvl, xsink);
    if (!rc)
       mark_and_push(mtid, nvl);
    return rc;
@@ -43,7 +43,7 @@ int VRMutex::enter(ExceptionSink *xsink)
 int VRMutex::exit()
 {
    AutoLocker al(&asl_lock);
-   int rc = releaseImpl();
+   int rc = VRMutex::releaseImpl();
    if (!rc)
       release_and_signal();
    return rc;
@@ -51,8 +51,7 @@ int VRMutex::exit()
 
 void VRMutex::cleanupImpl()
 {
-   if (tid == gettid())
-   {
+   if (tid == gettid()) {
       release_and_signal();
       count = 0;
    }
@@ -60,12 +59,9 @@ void VRMutex::cleanupImpl()
 
 int VRMutex::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms)
 {
-   if (tid != mtid)
-   {
-      while (tid != Lock_Unlocked)
-      {
-	 if (tid == Lock_Deleted)
-	 {
+   if (tid != mtid) {
+      while (tid != Lock_Unlocked) {
+	 if (tid == Lock_Deleted) {
 	    xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::enter() because the object has been deleted in another thread", mtid, getName());
 	    return -1;
 	 }
@@ -87,8 +83,7 @@ int VRMutex::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int time
 
 int VRMutex::tryGrabImpl(int mtid, class VLock *nvl)
 {
-   if (tid != mtid)
-   {
+   if (tid != mtid) {
       if (tid != Lock_Unlocked)
 	 return -1;
 
@@ -115,19 +110,16 @@ int VRMutex::releaseImpl()
 int VRMutex::releaseImpl(ExceptionSink *xsink)
 {
    int mtid = gettid();
-   if (tid == Lock_Unlocked)
-   {
+   if (tid == Lock_Unlocked) {
       // use getName() here so it can be safely inherited
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::exit() without acquiring the lock", mtid, getName());
       return -1;
    }
-   if (tid == Lock_Deleted)
-   {
+   if (tid == Lock_Deleted) {
       xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::exit() because the object has been deleted in another thread", mtid, getName());
       return -1;
    }
-   if (tid != mtid)
-   {
+   if (tid != mtid) {
       // use getName() here so it can be safely inherited
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::exit() while the lock is held by TID %d", mtid, getName(), tid);
       return -1;      

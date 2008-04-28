@@ -89,6 +89,8 @@ class LocalVariableList : public local_var_list_t
       }
 };
 
+typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
+
 struct qore_program_private {
       UserFunctionList user_func_list;
       ImportedFunctionList imported_func_list;
@@ -115,7 +117,8 @@ struct qore_program_private {
       int warn_mask;
       bool po_locked, exec_class, base_object, requires_exception;
       std::string exec_class_name, script_dir;
-      pthread_key_t thread_local_storage;
+
+      qpgm_thread_local_storage_t *thread_local_storage;
 
       DLLLOCAL qore_program_private()
       {
@@ -396,7 +399,7 @@ QoreProgram::QoreProgram() : priv(new qore_program_private)
    priv->exec_class = false;
 
    // init thread local storage key
-   pthread_key_create(&priv->thread_local_storage, 0);
+   priv->thread_local_storage = new qpgm_thread_local_storage_t;
 
    // save thread local storage hash
    startThread();
@@ -487,7 +490,7 @@ void QoreProgram::del(ExceptionSink *xsink)
       endThread(xsink);
 
       // delete thread local storage key
-      pthread_key_delete(priv->thread_local_storage);
+      delete priv->thread_local_storage;
       priv->base_object = false;
    }
 }
@@ -853,12 +856,12 @@ void QoreProgram::parsePending(const char *code, const char *label, ExceptionSin
 
 void QoreProgram::startThread()
 {
-   pthread_setspecific(priv->thread_local_storage, new QoreHashNode());
+   priv->thread_local_storage->set(new QoreHashNode());
 }
 
 class QoreHashNode *QoreProgram::getThreadData()
 {
-   return (class QoreHashNode *)pthread_getspecific(priv->thread_local_storage);
+   return priv->thread_local_storage->get();
 }
 
 AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink)
@@ -873,7 +876,7 @@ AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink)
 
 class QoreHashNode *QoreProgram::clearThreadData(ExceptionSink *xsink)
 {
-   class QoreHashNode *h = (class QoreHashNode *)pthread_getspecific(priv->thread_local_storage);
+   class QoreHashNode *h = priv->thread_local_storage->get();
    printd(5, "QoreProgram::clearThreadData() this=%08p h=%08p (size=%d)\n", this, h, h->size());
    h->clear(xsink);
    return h;
@@ -1127,18 +1130,18 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink)
 
 AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink)
 {
-   class UserFunction *ufc;
-   FunctionCallNode *fc;
+   UserFunction *ufc;
+   SimpleRefHolder<FunctionCallNode> fc;
 
    printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
-   // need to grab parse lock for safe acces to the user function map and imported function map
+   // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
    ufc = priv->user_func_list.find(name);
    if (!ufc)
       ufc = priv->imported_func_list.find(name);
    priv->plock.unlock();
 
-   if (ufc) // we assign the args to NULL below so that the caller will delete
+   if (ufc) // we assign the args to 0 below so that they will not be deleted
       fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args));
    else
    {
@@ -1151,7 +1154,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s'", name);
 	    return 0;
 	 }
-	 // we assign the args to NULL below so that the caller will delete
+	 // we assign the args to 0 below so that they will not be deleted
 	 fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args));
       }
       else
@@ -1169,15 +1172,14 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 
    // let caller delete function arguments if necessary
    fc->args = 0;
-   fc->deref();
 
    return rv;
 }
 
-AbstractQoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *QoreProgram::callFunction(UserFunction *ufc, const QoreListNode *args, ExceptionSink *xsink)
 {
-   // we assign the args to NULL below so that the caller will delete
-   FunctionCallNode *fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args));
+   // we assign the args to 0 below so that they will not be deleted
+   SimpleRefHolder<FunctionCallNode> fc(new FunctionCallNode(ufc, const_cast<QoreListNode *>(args)));
 
    AbstractQoreNode *rv;
    {
@@ -1187,13 +1189,12 @@ AbstractQoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreL
    
    // let caller delete function arguments if necessary
    fc->args = 0;
-   fc->deref();
 
    return rv;
 }
 
 // called during run time (not during parsing)
-void QoreProgram::importUserFunction(QoreProgram *p, class UserFunction *u, ExceptionSink *xsink)
+void QoreProgram::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink)
 {
    AutoLocker al(&priv->plock);
    // check if a user function already exists with this name

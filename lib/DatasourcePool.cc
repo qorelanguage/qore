@@ -38,10 +38,6 @@ DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pa
    //assert(mx > min);   
    //assert(db != 0 && db[0]);
 
-#ifdef DEBUG
-   pthread_key_create(&thread_local_storage, 0);
-#endif
-
    wait_count = 0;
    min = mn;
    max = mx;
@@ -79,10 +75,6 @@ DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pa
 
 DatasourcePool::~DatasourcePool()
 {
-#ifdef DEBUG
-   pthread_key_delete(thread_local_storage);
-#endif
-
    //printd(0, "DatasourcePool::~DatasourcePool() trlist.remove() this=%08p\n", this);
    
    for (int i = 0; i < cmax; i++)
@@ -107,29 +99,29 @@ void DatasourcePool::destructor(ExceptionSink *xsink)
 #ifdef DEBUG
 void DatasourcePool::addSQL(char *cmd, const QoreString *sql)
 {
-   class QoreString *str = (QoreString *)pthread_getspecific(thread_local_storage);
+   QoreString *str = thread_local_storage.get();
    if (!str)
       str = new QoreString();
    else
       str->concat('\n');
    str->sprintf("%s(): %s", cmd, sql->getBuffer());
-   pthread_setspecific(thread_local_storage, str);
+   thread_local_storage.set(str);
 }
 
 void DatasourcePool::resetSQL()
 {
-   class QoreString *str = (QoreString *)pthread_getspecific(thread_local_storage);
+   QoreString *str = thread_local_storage.get();
    if (str)
    {
       delete str;
-      pthread_setspecific(thread_local_storage, 0);
+      thread_local_storage.set(0);
    }
 }
 
 class QoreString *DatasourcePool::getAndResetSQL()
 {
-   class QoreString *str = (QoreString *)pthread_getspecific(thread_local_storage);
-   pthread_setspecific(thread_local_storage, 0);
+   QoreString *str = thread_local_storage.get();
+   thread_local_storage.set(0);
    return str;
 }
 #endif

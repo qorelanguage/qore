@@ -17,7 +17,7 @@ if test -z "`echo $LEX | grep flex`"; then
         AC_MSG_ERROR([no flex version found])
 elif test -z "`$LEX --version | grep -e ' 2\.5\.3[[1-9]]' -e '2\.5\.[[4-9]][[0-9]]' -e '2\.\[[6-9]]\.'`" ; then
         flexver=`$LEX --version`
-	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.33 at http://sourceforge.net/projects/flex])
+	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.35 at http://sourceforge.net/projects/flex])
 else
         flexver=`$LEX --version`
 	AC_MSG_RESULT([yes ($flexver)])

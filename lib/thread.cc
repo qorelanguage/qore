@@ -66,8 +66,6 @@ DLLLOCAL QoreThreadLock lThreadList;
 // recursive mutex attribute
 DLLLOCAL pthread_mutexattr_t ma_recursive;
 
-DLLLOCAL pthread_key_t   thread_data_key;
-
 #ifndef HAVE_GETHOSTBYNAME_R
 DLLLOCAL class QoreThreadLock lck_gethostbyname;
 #endif
@@ -256,6 +254,8 @@ class ThreadData
       DLLLOCAL ThreadData(int ptid, QoreProgram *p);
       DLLLOCAL ~ThreadData();
 };
+
+static QoreThreadLocalStorage<ThreadData> thread_data;
 
 void ThreadEntry::cleanup()
 {
@@ -491,56 +491,55 @@ ThreadData::~ThreadData()
 
 LocalVarValue *thread_instantiate_lvar()
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
-   return td->lvstack.instantiate();
+   return thread_data.get()->lvstack.instantiate();
 }
 
 void thread_uninstantiate_lvar(ExceptionSink *xsink)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    td->lvstack.uninstantiate(xsink);
 }
 
 LocalVarValue *thread_find_lvar(const char *id)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    return td->lvstack.find(id);
 }
 
 LocalVarValue *thread_find_current_lvar(const char *id)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    return td->lvstack.find_current(id);
 }
 void set_thread_resource(class AbstractThreadResource *atr)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    td->trlist.set(atr);
 }
 
 int remove_thread_resource(class AbstractThreadResource *atr)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    return td->trlist.remove(atr);
 }
 
 void purge_thread_resources(ExceptionSink *xsink)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    td->trlist.purge(xsink);
 }
 
 // called when a StatementBlock has "on block exit" blocks
 void pushBlock(block_list_t::iterator i)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    td->on_block_exit_list.push_back(i);
 }
 
 // called when a StatementBlock has "on block exit" blocks
 block_list_t::iterator popBlock()
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    block_list_t::iterator i = td->on_block_exit_list.back();
    td->on_block_exit_list.pop_back();
    return i;
@@ -549,14 +548,14 @@ block_list_t::iterator popBlock()
 // called by each "on_block_exit" statement to activate its code for the block exit
 void advanceOnBlockExit()
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    --td->on_block_exit_list.back();
 }
 
 // new file name, current parse state
 void beginParsing(char *file, void *ps)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    
    //printd(5, "beginParsing() of %08p (%s), (stack=%s)\n", file, file ? file : "null", (td->plStack ? td->plStack->file : "NONE"));
    
@@ -581,7 +580,7 @@ void beginParsing(char *file, void *ps)
 
 void *endParsing()
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    void *rv = td->parseState;
    
    printd(5, "endParsing() ending parsing of \"%s\", returning %08p\n", td->parse_file, rv);
@@ -604,36 +603,36 @@ void *endParsing()
 // thread-local functions
 int gettid()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->tid;
+   return (thread_data.get())->tid;
 }
 
 class VLock *getVLock()
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    return &td->vlock;
 }
 
 Context *get_context_stack()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->context_stack;
+   return (thread_data.get())->context_stack;
 }
 
 void update_context_stack(Context *cstack)
 {
-   ThreadData *td    = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td    = thread_data.get();
    td->context_stack = cstack;
 }
 
 void get_pgm_counter(int &start_line, int &end_line)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    start_line = td->pgm_counter_start;
    end_line = td->pgm_counter_end;
 }
 
 void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f)
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    td->pgm_counter_start = start_line;
    td->pgm_counter_end   = end_line;
    td->pgm_file          = f;
@@ -641,26 +640,26 @@ void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f)
 
 void update_pgm_counter(int start_line, int end_line)
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    td->pgm_counter_start = start_line;
    td->pgm_counter_end   = end_line;
 }
 
 const char *get_pgm_file()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->pgm_file;
+   return (thread_data.get())->pgm_file;
 }
 
 void get_parse_location(int &start_line, int &end_line)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    start_line = td->parse_line_start;
    end_line = td->parse_line_end;
 }
 
 void update_parse_location(int start_line, int end_line, const char *f)
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    td->parse_line_start = start_line;
    td->parse_line_end   = end_line;
    td->parse_file       = f;
@@ -668,32 +667,32 @@ void update_parse_location(int start_line, int end_line, const char *f)
 
 void update_parse_location(int start_line, int end_line)
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    td->parse_line_start = start_line;
    td->parse_line_end   = end_line;
 }
 
 const char *get_parse_file()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->parse_file;
+   return (thread_data.get())->parse_file;
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj)
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    old_obj = td->current_obj;
    td->current_obj = obj;
 }
 
 ObjectSubstitutionHelper::~ObjectSubstitutionHelper()
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    td->current_obj = old_obj;
 }
 
 CodeContextHelper::CodeContextHelper(const char *code, const QoreObject *obj, ExceptionSink *xs)
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    old_code = td->current_code;
    old_obj = td->current_obj;
    xsink = xs;
@@ -706,7 +705,7 @@ CodeContextHelper::CodeContextHelper(const char *code, const QoreObject *obj, Ex
 
 CodeContextHelper::~CodeContextHelper()
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    //printd(5, "CodeContextHelper::~CodeContextHelper() this=%08p current=(%s, %08p) restoring %s, %08p\n", this, td->current_code ? td->current_code : "null", td->current_obj, old_code ? old_code : "null", old_obj);
    if (td->current_obj)
       td->current_obj->deref(xsink);
@@ -716,14 +715,14 @@ CodeContextHelper::~CodeContextHelper()
 
 ArgvContextHelper::ArgvContextHelper(LocalVar *argvid)
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    old_argvid = td->current_argvid;
    td->current_argvid = argvid;
 }
 
 ArgvContextHelper::~ArgvContextHelper()
 {
-   ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td  = thread_data.get();
    td->current_argvid = old_argvid;
 }
 
@@ -751,7 +750,7 @@ class CallStack *getCallStack()
 
 bool inMethod(const char *name, const QoreObject *o)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    if (td->current_obj == o && td->current_code == name)
       return true;
    return false;
@@ -759,7 +758,7 @@ bool inMethod(const char *name, const QoreObject *o)
 
 QoreObject *getStackObject()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->current_obj;
+   return (thread_data.get())->current_obj;
 }
 
 ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm)
@@ -768,7 +767,7 @@ ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm)
    restore = false;
    if (pgm)
    {
-      ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+      ThreadData *td = thread_data.get();
       if (pgm != td->current_pgm)
       {
 	 restore = true;
@@ -781,64 +780,64 @@ ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm)
 ProgramContextHelper::~ProgramContextHelper()
 {
    if (restore)
-      ((ThreadData *)pthread_getspecific(thread_data_key))->current_pgm = old_pgm;
+      (thread_data.get())->current_pgm = old_pgm;
 }
 
 QoreProgram *getProgram()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->current_pgm;
-   //return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram();
+   return (thread_data.get())->current_pgm;
+   //return (thread_data.get())->pgmStack->getProgram();
 }
 
 class RootQoreNamespace *getRootNS()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->current_pgm->getRootNS();
-   //return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram()->getRootNS();
+   return (thread_data.get())->current_pgm->getRootNS();
+   //return (thread_data.get())->pgmStack->getProgram()->getRootNS();
 }
 
 int getParseOptions()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->current_pgm->getParseOptions();
-   //return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram()->getParseOptions();
+   return (thread_data.get())->current_pgm->getParseOptions();
+   //return (thread_data.get())->pgmStack->getProgram()->getParseOptions();
 }
 
 void updateCVarStack(class CVNode *ncvs)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    td->cvarstack = ncvs;
 }
 
 class CVNode *getCVarStack()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->cvarstack;
+   return (thread_data.get())->cvarstack;
 }
 
 void updateVStack(class VNode *nvs)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    td->vstack = nvs;
 }
 
 class VNode *getVStack()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->vstack;
+   return (thread_data.get())->vstack;
 }
 
 void setParseClass(class QoreClass *c)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    td->parseClass = c;
 }
 
 class QoreClass *getParseClass()
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->parseClass;
+   return (thread_data.get())->parseClass;
 }
 
 // to save the exception for "rethrow"
 void catchSaveException(class QoreException *e)
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    //printd(5, "cSE() td=%08p e=%08p\n", td, e);
    td->catchException = e;
 }
@@ -846,7 +845,7 @@ void catchSaveException(class QoreException *e)
 // for "rethrow"
 class QoreException *catchGetException()
 {
-   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   ThreadData *td = thread_data.get();
    //printd(5, "cGE() td=%08p e=%08p\n", td, td->catchException);
    assert(td->catchException);
    return td->catchException;
@@ -910,7 +909,7 @@ int get_thread_entry()
 
 void delete_thread_data()
 {
-   delete (ThreadData *)pthread_getspecific(thread_data_key);
+   delete thread_data.get();
 }
 
 void deregister_thread(int tid)
@@ -939,7 +938,7 @@ void register_thread(int tid, pthread_t ptid, QoreProgram *p)
 #ifdef DEBUG
    thread_list[tid].callStack = new CallStack();
 #endif
-   pthread_setspecific(thread_data_key, (void *)(new ThreadData(tid, p)));
+   thread_data.set(new ThreadData(tid, p));
 }
 
 // put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
@@ -1067,9 +1066,6 @@ void init_qore_threads()
 {
    tracein("qore_init_threads()");
 
-   // init thread data key
-   pthread_key_create(&thread_data_key, 0); //thread_data_cleanup);
-
    // setup parent thread data
    register_thread(get_thread_entry(), pthread_self(), 0);
 
@@ -1131,9 +1127,6 @@ void delete_qore_threads()
    delete_thread_data();
 
    thread_list[1].cleanup();
-
-   // delete key
-   pthread_key_delete(thread_data_key);
 
    traceout("delete_qore_threads()");
 }

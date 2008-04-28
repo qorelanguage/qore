@@ -22,7 +22,7 @@ BUILD
 for information on how to build and install qore from sources - some quick information here:
  * only UNIX-like platforms are currently supported
  * requires POSIX threading support
- * requires at least flex 2.5.31 (most distributions have flex 2.5.4, flex 2.5.33 recommended) in order to compile the multithreaded parser; you can get this version at 
+ * requires at least flex 2.5.31 (older distributions have flex 2.5.4, flex 2.5.35 recommended) in order to compile the multithreaded parser; you can get this version at 
 	http://sourceforge.net/projects/flex
  * requires libxml2 headers and libraries; libxml2 support is no longer optional
  * requires pcre headers and libraries for perl5-compatible regex support; POSIX regex support is no longer used

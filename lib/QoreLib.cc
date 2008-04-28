@@ -287,7 +287,7 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
    if (!(p = test_string_param(params, offset)))
       return new QoreStringNode();
 
-   QoreStringNode *buf = new QoreStringNode(p->getEncoding());
+   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(p->getEncoding()));
 
    j = 1 + offset;
    l = strlen(p->getBuffer());
@@ -298,7 +298,9 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
 	  && (j < params->size()))
       {
 	 const AbstractQoreNode *node = get_param(params, j++);
-	 i += process_opt(buf, (char *)&p->getBuffer()[i], node, field, &taken, xsink);
+	 i += process_opt(*buf, (char *)&p->getBuffer()[i], node, field, &taken, xsink);
+	 if (*xsink)
+	    return 0;
 	 if (!taken)
 	    j--;
       }
@@ -306,7 +308,7 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
 	 buf->concat(p->getBuffer()[i]);
    }
 
-   return buf;
+   return buf.release();
 }
 
 QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink)
@@ -320,7 +322,7 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
    args = get_param(params, offset + 1);
    const QoreListNode *arg_list = dynamic_cast<const QoreListNode *>(args);
 
-   QoreStringNode *buf = new QoreStringNode(fmt->getEncoding());
+   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
    unsigned j = 0;
    unsigned l = fmt->strlen();
    for (unsigned i = 0; i < l; i++)
@@ -347,15 +349,16 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
       }
       if (havearg)
       {
-	 i += process_opt(buf, (char *)&fmt->getBuffer()[i], 
-			  arg, field, &taken, xsink);
+	 i += process_opt(*buf, (char *)&fmt->getBuffer()[i], arg, field, &taken, xsink);
+	 if (*xsink)
+	    return 0;
 	 if (!taken)
 	    j--;
       }
       else
 	 buf->concat(fmt->getBuffer()[i]);
    }
-   return buf;
+   return buf.release();
 }
 
 // FIXME: SLOW! make a lookup table for characters to value

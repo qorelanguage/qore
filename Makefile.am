@@ -28,6 +28,7 @@ noinst_HEADERS = \
 	include/qore/node_types.h \
 	include/qore/BuiltinFunctionList.h \
 	include/qore/QoreThreadLock.h \
+	include/qore/QoreThreadLocalStorage.h \
 	include/qore/QoreClass.h \
 	include/qore/QoreString.h \
 	include/qore/common.h \

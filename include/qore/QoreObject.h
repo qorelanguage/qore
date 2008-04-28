@@ -51,9 +51,10 @@ class QoreObject : public AbstractQoreNode
       struct qore_object_private *priv;
 
       // must only be called when inside the gate
-      DLLLOCAL inline void doDeleteIntern(ExceptionSink *xsink);
+      DLLLOCAL void doDeleteIntern(ExceptionSink *xsink);
       DLLLOCAL void cleanup(ExceptionSink *xsink, QoreHashNode *td);
       DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
+      DLLLOCAL int check_access(ExceptionSink *xsink) const;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreObject(const QoreObject&);

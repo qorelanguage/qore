@@ -1413,8 +1413,7 @@ void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink) const
       if (priv->scl)
 	 priv->scl->sml.execSystemDestructors(self, &de);
    }
-   else
-   {
+   else {
       if (priv->destructor)
 	 priv->destructor->evalDestructor(self, &de);
       else if (priv->sys)

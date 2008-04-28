@@ -13,7 +13,7 @@ qore 0.7.0 is a major release with major new features
 *) glut module
 *) bz2 compressed data support (compression and decompression)
 *) file locking support in the File class (based on fcntl())
-
+*) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
 
 ***********************
 *** LANGUAGE ISSUES ***

@@ -61,6 +61,7 @@
 #include <qore/BuiltinFunctionList.h>
 #include <qore/qore_thread.h>
 #include <qore/QoreThreadLock.h>
+#include <qore/QoreThreadLocalStorage.h>
 #include <qore/QoreCondition.h>
 #include <qore/DBI.h>
 #include <qore/Datasource.h>

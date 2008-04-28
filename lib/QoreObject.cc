@@ -73,18 +73,6 @@ struct qore_object_private {
 	 assert(!data);
 	 assert(!privateData);
       }
-
-      DLLLOCAL int check_access(ExceptionSink *xsink)
-      {
-	 if (status > 0) {
-	    int tid = gettid();
-	    if (status != tid) {
-	       xsink->raiseException("OBJECT-ACCESS-ERROR", "this object is being deleted by TID %d and cannot be accessed from another thread (this is TID %d)", status, tid);
-	       return -1;
-	    }
-	 }
-	 return 0;
-      }
 };
 
 // for objects with multiple classes, private data has to be keyed
@@ -144,8 +132,10 @@ class KeyList
 };
 
 class AutoVRMutex {
-   private:
+   protected:
       VRMutex *vrm;
+
+      DLLLOCAL AutoVRMutex(VRMutex *n_vrm) : vrm(n_vrm) {}
 
    public:
       DLLLOCAL AutoVRMutex(VRMutex *n_vrm, ExceptionSink *xsink) : vrm(n_vrm)
@@ -186,6 +176,24 @@ QoreObject::~QoreObject()
    //tracein("QoreObject::~QoreObject()");
    //printd(5, "QoreObject::~QoreObject() this=%08p, pgm=%08p, class=%s\n", this, priv->pgm, priv->myclass->getName());
    delete priv;
+}
+
+int QoreObject::check_access(ExceptionSink *xsink) const
+{
+   if (!priv->status)
+      return 0;
+
+   QoreObject *o = getStackObject();
+   if (isSystemObject() || o && o == this)
+      return 0;
+
+   int tid = gettid();
+   printd(0, "check_access() o=%08p this=%08p tid=%d status=%d\n", o, this, tid, priv->status);
+   if (priv->status != tid)
+      xsink->raiseException("OBJECT-ACCESS-ERROR", "this object (class '%s') is being deleted by TID %d and can no longer be accessed outside the class (access attempted from TID %d)", getClassName(), priv->status, tid);
+   else
+      xsink->raiseException("OBJECT-ACCESS-ERROR", "this object (class '%s') is being deleted and can no longer be accessed outside the class", getClassName(), priv->status);
+   return -1;
 }
 
 const QoreClass *QoreObject::getClass() const 
@@ -235,7 +243,7 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(BuiltinMethod *me
 {
    // get referenced object
    AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink);
-   
+
    if (pd) {
       AbstractQoreNode *rv = meth->evalMethod(this, pd, args, xsink);
       pd->deref(xsink);
@@ -256,7 +264,7 @@ void QoreObject::evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *
 {
    // get referenced object
    AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getID(), xsink);
-   
+
    if (pd) {
       meth->evalCopy(self, this, pd, class_name, xsink);
       pd->deref(xsink);
@@ -321,7 +329,7 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
    // if accessed outside the class and the member is a private member 
    QoreObject *obj = getStackObject();
    printd(5, "QoreObject::evalMember(%s) obj=%08p class=%s ID=%d stack obj=%08p class=%s ID=%d isPrivateMember=%s\n", mem, this, priv->myclass->getName(), priv->myclass->getID(), obj, obj ? obj->priv->myclass->getName() : "(null)", obj ? obj->priv->myclass->getID() : -1, priv->myclass->isPrivateMember(mem) ? "true" : "false");
-  
+
    // if accessed outside the class and the member is a private member 
    if ((!obj || (obj && obj->priv->myclass->getID() != priv->myclass->getID())) && priv->myclass->isPrivateMember(mem)) {
       if (priv->myclass->hasMemberGate()) // execute the member gate if it exists for private members
@@ -337,7 +345,7 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
       if (!h)
 	 return 0;
       
-      if (priv->status == OS_DELETED || priv->check_access(xsink))
+      if (priv->status == OS_DELETED || check_access(xsink))
 	 return 0;
       
       rv = priv->data->getReferencedKeyValue(mem, exists);
@@ -375,14 +383,14 @@ bool QoreObject::compareSoft(const QoreObject *obj, ExceptionSink *xsink) const
    if (!v)
       return 1;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return 1;
 
-   VRMutexHeloper vo(&obj->priv->g);
+   AutoVRMutex vo(&obj->priv->g);
    if (!vo)
       return 1;
 
-   if (obj->priv->check_access(xsink))
+   if (obj->check_access(xsink))
       return 1;
 
    if (priv->status == OS_DELETED) {
@@ -419,15 +427,15 @@ void QoreObject::doDeleteIntern(ExceptionSink *xsink)
    }
    priv->status = gettid();
    priv->g.exit();
-   
+
    printd(5, "QoreObject::doDelete(this=%08p) calling destructor()\n", this);   
    priv->myclass->execDestructor(this, xsink);
 
-   // the object can no longer be accessed by any other thread, so we don't
-   // need to lock here anymore
-
-   //AutoVRMutex v(&priv->g, xsink);
-   //assert(v);
+   // once the status is set with the TID where the destructor is being run
+   // the VRMutex should not be able to be acquired from any other thread and
+   // therefore there should be no possibility of a deadlock
+   AutoVRMutex v(&priv->g, xsink);
+   assert(v);
 
    priv->status = OS_DELETED;
    QoreHashNode *td = priv->data;
@@ -445,7 +453,7 @@ bool QoreObject::derefImpl(ExceptionSink *xsink)
       //printd(5, "QoreObject::derefImpl() this=%08p class=%s blocking delete\n", this, getClassName());
       priv->delete_blocker_run = true;
       return false;
-   } 
+   }
 
    // there cannot be a deadlock here because the object is going out of scope
 #ifdef DEBUG
@@ -519,7 +527,7 @@ AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, AutoVLock *vl,
    if (!v)
       return 0;
 
-   if (priv->status == OS_DELETED || priv->check_access(xsink))
+   if (priv->status == OS_DELETED || check_access(xsink))
       return 0;
 
    vl->push(&priv->g);
@@ -554,7 +562,7 @@ AbstractQoreNode *QoreObject::getMemberValueNoMethod(const char *key, AutoVLock 
    if (!v)
       return 0;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return 0;
 
    if (priv->status == OS_DELETED) {
@@ -586,7 +594,7 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink)
    if (!v)
       return;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return;
 
    if (priv->status == OS_DELETED) {
@@ -605,7 +613,7 @@ QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const
    if (!v)
       return 0;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return 0;
 
    if (priv->status == OS_DELETED) {
@@ -622,7 +630,7 @@ void QoreObject::setValue(const char *key, AbstractQoreNode *value, ExceptionSin
    if (!v)
       return;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return;
 
    if (priv->status == OS_DELETED) {
@@ -638,7 +646,7 @@ int QoreObject::size(ExceptionSink *xsink) const
    if (!v)
       return 0;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return 0;
 
    if (priv->status == OS_DELETED)
@@ -655,7 +663,7 @@ void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink)
    if (!v)
       return;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return;
 
    if (priv->status == OS_DELETED) {
@@ -673,7 +681,7 @@ AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, Excep
    if (!v)
       return 0;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return 0;
 
    if (priv->status == OS_DELETED) {
@@ -689,7 +697,7 @@ QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const
    if (!v)
       return 0;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return 0;
 
    if (priv->status == OS_DELETED)
@@ -704,7 +712,7 @@ void QoreObject::mergeDataToHash(QoreHashNode *hash, ExceptionSink *xsink)
    if (!v)
       return;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return;
 
    if (priv->status == OS_DELETED) {
@@ -733,7 +741,7 @@ AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, AutoVLock *v
    if (!v)
       return 0;
 
-   if (priv->check_access(xsink))
+   if (check_access(xsink))
       return 0;
 
    if (priv->status == OS_DELETED) {
@@ -756,9 +764,6 @@ AbstractPrivateData *QoreObject::getReferencedPrivateData(qore_classid_t key, Ex
    if (!v)
       return 0;
 
-   if (priv->check_access(xsink))
-      return 0;
-
    if (priv->status != OS_DELETED && priv->privateData)
       return priv->privateData->getReferencedPrivateData(key);
 
@@ -769,9 +774,6 @@ AbstractPrivateData *QoreObject::getAndClearPrivateData(qore_classid_t key, Exce
 {
    AutoVRMutex v(&priv->g, xsink);
    if (!v)
-      return 0;
-
-   if (priv->check_access(xsink))
       return 0;
 
    if (priv->privateData)
@@ -806,9 +808,6 @@ void QoreObject::addPrivateDataToString(QoreString *str, ExceptionSink *xsink) c
    str->concat('(');
    AutoVRMutex v(&priv->g, xsink);
    if (!v)
-      return;
-
-   if (priv->check_access(xsink))
       return;
 
    if (priv->status == OS_OK && priv->privateData) {
