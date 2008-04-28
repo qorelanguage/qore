@@ -188,7 +188,7 @@ int QoreObject::check_access(ExceptionSink *xsink) const
       return 0;
 
    int tid = gettid();
-   printd(0, "check_access() o=%08p this=%08p tid=%d status=%d\n", o, this, tid, priv->status);
+   //printd(5, "check_access() o=%08p this=%08p tid=%d status=%d\n", o, this, tid, priv->status);
    if (priv->status != tid)
       xsink->raiseException("OBJECT-ACCESS-ERROR", "this object (class '%s') is being deleted by TID %d and can no longer be accessed outside the class (access attempted from TID %d)", getClassName(), priv->status, tid);
    else
