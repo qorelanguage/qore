@@ -48,6 +48,7 @@
 #include <qore/QoreNet.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreFile.h>
+#include <qore/QoreDir.h>
 #include <qore/QoreSocket.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreObject.h>

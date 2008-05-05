@@ -18,6 +18,10 @@
 	    <entry><para>For reading and writing files.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Qore_Dir_Class">File Class</link></para></entry>
+	    <entry><para>For handling of directories like listing files and creating/removing subdirectories.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore_FtpClient_Class">FtpClient Class</link></para></entry>
 	    <entry><para>For communicating with FTP servers.</para></entry>
 	  </row>
@@ -758,6 +762,14 @@
       </tgroup>
     </table>
   </sect1>
+
+
+
+
+
+
+
+
 
   <sect1 id="Qore_File_Class">
     <title>Qore::File Class</title>
@@ -3964,6 +3976,1498 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
     </sect2>
 
   </sect1>
+
+
+
+
+
+
+
+
+
+  <sect1 id="Qore_Dir_Class">
+    <title>Qore::Dir Class</title>
+
+    <para>Note: This class is not available with the <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link> parse option.</para>
+
+    <para>The Dir class allows Qore programs to list and manipulate directories.</para>
+
+    <para>Directory objects can be created/opened with a specific character set. This means that any entry read from the directory
+    will be tagged with the directory's character set. If no character set is given the default Qore character set is assumed.</para>
+
+    <table>
+      <title>Qore::Dir Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_constructor">Dir::constructor()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Create a Directory object with the optional character set. It points to the directory the script is started.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_destructor">Dir::destructor()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the directory object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_copy">Dir::copy()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a new directory object with the same character set specification and the same path as the original.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_chdir">Dir::chdir()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Change the path of the directory. The path specification can be relative or absolute (with leading '/'). This path not necessarily needs to exist.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_path">Dir::path()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Return the current path of the object. The path is stripped of all '.' and '..' entries.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_exists">Dir::exists()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Checks if the path in the object is an openable directory.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_create">Dir::create()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Try to create all directories of the object if they do not exist yet.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_chown">Dir::chown()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Change the ownership of the directory to the given user.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_chgrp">Dir::chgrp()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Change the group membership of the directory to the given group.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_chmod">Dir::chmod()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Change the permissions of the directory to the given mode.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_mkdir">Dir::mkdir()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Create a subdirectory with the name in the directory.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_rmdir">Dir::rmdir()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Delete an empty subdirectory with the name in the directory.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_list">Dir::list()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Get all entries in this directory, except '.' and '..' directories.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_listFiles">Dir::listFiles()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Get all entries in the directory which are not subdirectories.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_listDirs">Dir::listDirs()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Get all entries in the directory which are subdirectories, except '.' and '..' directories.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_openFile">Dir::openFile()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Get a File object which represents a file in the directory.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Dir_removeFile">Dir::removeFile()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Remove (unlink) a file in this directory.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+
+    <sect2 id="Qore_Dir_constructor">
+      <title>Dir::constructor()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates a Dir object. It accepts one optional argument that will set the default character set encoding for the directory.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>new</command> Dir(<replaceable>[string:encoding]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$d = <command>new</command> Dir("UTF-8");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <table>
+	<title>Arguments for Dir::constructor()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>encoding</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The character set encoding for the directory.  Any entry of the directory will be converted to this character set encoding if necessary.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for Dir::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Object</para></entry>
+	      <entry><para>The Dir object created.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_destructor">
+      <title>Dir::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Destroys the Dir object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>delete</command> $d;</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_copy">
+      <title>Dir::copy()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates a new Dir object with the same character set spcification and path as the original.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::copy()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$d2 = $d.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::copy()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>	    
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>The new Dir object created with the same character set specification and path as the original object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_chdir">
+      <title>Dir::chdir()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Change the directory of the Dir object to the path. you can use either an absolute path (leading with '/') or a directory realtive to the actual path.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::chdir(newdir)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+if($d.chdir("../doc")) {
+  printf("the directory does not exist or is not readable\n");
+}
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::chdir()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>newdir</para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The new directory name.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::chdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>True if the new path is openable as directory (see <link linkend="Qore_Dir_exists">exists()</link>).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_path">
+      <title>Dir::path()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Return the path of the Dir object. This path needs not necessarily to exist. The path is stripped from all '.' and '..' directories.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::path()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$mypath=$d.path();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::path()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::path()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The path of the Dir object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_exists">
+      <title>Dir::exists()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Return if the path in the Dir object points to a directory which is openable by the Program.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::exists()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+if(!$d.exists()) {
+  printf("the directory %s does not exist\n", $d.path());
+  exit(-1);
+}
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::exists()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::exists()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>True if the directory is openable.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_create">
+      <title>Dir::create()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Create the whole directory tree the Dir object points to, if it does not exist till now.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::create([mode])</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+if(!$d.exists()) {
+  printf("directory '%s' does not exist, so i create it\n", $d.path());
+  $cnt=$d.create();
+}
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::create()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>mode</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The mode of the directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::create()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Amount of created directories.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::create()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-CREATE-ERROR</code></para></entry>
+	      <entry><para>One of the directories in the path could not be created.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_chown">
+      <title>Dir::chown()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Change the ownership of the directory.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::chown(uid|username)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+$d.chown("nobody");
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::chown()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>uid</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The userid to be used.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para>username</para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>A username which is known by the system.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::chown()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Nothing</para></entry>
+	      <entry><para></para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::chown()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-CHOWN-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Parameter error.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-CHOWN-ERROR</code></para></entry>
+	      <entry><para>The error occoured in the chown() call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_chgrp">
+      <title>Dir::chgrp()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Change the group membership of the directory.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::chgrp(gid|groupname)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+$d.chgrp("nogroup");
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::chgrp()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>gid</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The groupid to be set for the directory.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para>groupname</para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the group to be set. Must be known in the system.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::chgrp()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Nothing</para></entry>
+	      <entry><para></para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::chgrp()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-CHGRP-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Parameter error.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-CHGRP-ERROR</code></para></entry>
+	      <entry><para>Error occoured during the change group chown() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_chmod">
+      <title>Dir::chmod()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Change the mode of the directory.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::chmod([mode])</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+$d.chmod(0711); # set mode to u(rwx) and go(x)
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::chmod()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>mode</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The mode of the directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::chmod()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Nothing</para></entry>
+	      <entry><para></para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::chmod()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-CHMOD-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Parameter error.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-CHMOD-ERROR</code></para></entry>
+	      <entry><para>The error returned from the chmod() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_mkdir">
+      <title>Dir::mkdir()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Make a subdirectory in the Dir object's path. There are no path info allowed (the '/'). If no mode is given the mode 0777 is used.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::mkdir(subdir, [mode])</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+$d.mkdir("newSubDir", 0755);
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::mkdir()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>subdir</para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the subdirectory.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para>mode</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The mode of the new directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::mkdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Nothing</para></entry>
+	      <entry><para></para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir:mkdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-MKDIR-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Parameter error.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-MKDIR-ERROR</code></para></entry>
+	      <entry><para>The error returned from the mkdir() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_rmdir">
+      <title>Dir::rmdir()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Remove a subdirectory from the Dir object's path. There is no pathinfo allowed in the name (the '/' delimiter).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::rmdir(dirname)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+$d.rmdir("emptySubdir");
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::rmdir()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>dirname</para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the directory to be removed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::rmdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Nothing</para></entry>
+	      <entry><para></para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::rmdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-RMDIR-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Parameter error.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-RMDIR-ERROR</code></para></entry>
+	      <entry><para>The error returned from the rmdir() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_list">
+      <title>Dir::list()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>List all entries in the directory of the Dir object. It supresses the '.' and '..' directory.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::list()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+foreach my $e in ( $d.list() ) {
+  printf("entry: %s\n");
+}
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::list()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This command has no Parameters.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::list()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of Strings with the directories content.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::list()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-READ-ERROR</code></para></entry>
+	      <entry><para>The error returned from the readdir() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_listFiles">
+      <title>Dir::listFiles()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>List all entries in the directory of the Dir object, which are not subdirectories.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::listFiles()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+foreach my $e in ( $d.listFiles() ) {
+  printf("file: %s\n");
+}
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::listFiles()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This command has no Parameters.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::listFiles()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of Strings with the directories content.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::listFiles()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-READ-ERROR</code></para></entry>
+	      <entry><para>The error returned from the readdir() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_listDirs">
+      <title>Dir::listDirs()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>List all entries in the directory of the Dir object, which are subdirectories. It supresses the '.' and '..' directory.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::listDirs()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+foreach my $e in ( $d.listDirs() ) {
+  printf("entry: %s\n");
+}
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::listDirs()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This command has no Parameters.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::listDirs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of Strings with the directories content.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::listDirs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-READ-ERROR</code></para></entry>
+	      <entry><para>The error returned from the readdir() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_openFile">
+      <title>Dir::openFile()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Create or open a File object in the directory of the Dir object.
+	          The filename does not allow path information (the '/').
+		  Uses the File::open2() method.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::openFile(<replaceable>string:filename, [integer:flags, [integer:mode, [string:charset]]]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+# open a file for writing in the directory and set the mode to
+# 0644 and the encoding to UTF-8
+$f=$d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0633, "UTF-8");
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::openFile()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>filename</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The Filename of the file.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>flags</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information. If this argument is not given, O_RDONLY will be used as the default value.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>mode</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Permission bits for when the file is to be created (default: 0666)</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>charset</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the default character set for this file.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::openFile()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Object</para></entry>
+	      <entry><para>The File object created or opened in the directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::openFile()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-OPENFILE-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>The file name to be opened contains path information ('/').</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para>File Exceptions</para></entry>
+	      <entry><para>Exceptions thrown by the File::open2() call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_removeFile">
+      <title>Dir::removeFile()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Remove the file with the given name in the Dir object's directory.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::removeFile(filename)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+$d.removeFile("myTestFile.dat");
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::removeFile()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>filename</para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the file in the directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::removeFile()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>True if the file was present and could be removed. False if the file did not exist.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::removeFile()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-REMOVEFILE-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Parameter error.</para></entry>
+	    </row>
+	  </tbody>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-REMOVEFILE-ERROR</code></para></entry>
+	      <entry><para>The error returned by the unlink() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+  </sect1>
+
+
 
   <sect1 id="Qore::GetOpt_Class">
     <title>Qore::GetOpt Class</title>

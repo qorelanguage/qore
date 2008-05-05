@@ -1,3 +1,6 @@
+2008.05.05: Wolfgang Ritzinger
+	* created Dir class
+
 2008.05.05: David Nichols
 	* updated scanner to allow "exists" to be a valid function or method
 	  name

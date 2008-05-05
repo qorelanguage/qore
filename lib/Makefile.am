@@ -81,6 +81,7 @@ libqore_la_SOURCES = \
 	QoreNet.cc \
 	QoreURL.cc \
 	QoreFile.cc \
+	QoreDir.cc \
 	QoreSocket.cc \
 	DateTime.cc \
 	QoreLib.cc \
@@ -122,7 +123,7 @@ libqore_la_SOURCES = \
 	SystemEnvironment.cc \
 	SmartMutex.cc \
 	QoreCounter.cc \
-	CallReferenceNode.cc \
+	FunctionReferenceNode.cc \
 	ParseOptionMap.cc \
 	ql_thread.cc \
 	ql_io.cc \
@@ -144,6 +145,7 @@ libqore_la_SOURCES = \
 	QC_Socket.cc \
 	QC_Program.cc \
 	QC_File.cc \
+	QC_Dir.cc \
 	QC_GetOpt.cc \
 	QC_FtpClient.cc \
 	QC_Datasource.cc \

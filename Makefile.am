@@ -76,6 +76,7 @@ noinst_HEADERS = \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
+	include/qore/QoreDir.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/qore_thread_intern.h \
@@ -187,6 +188,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_Condition.h \
 	include/qore/intern/QC_Gate.h \
 	include/qore/intern/QC_File.h \
+	include/qore/intern/QC_Dir.h \
 	include/qore/intern/QC_Counter.h \
 	include/qore/intern/QC_Datasource.h \
 	include/qore/intern/QC_DatasourcePool.h \
