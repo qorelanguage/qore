@@ -1,3 +1,11 @@
+2008.05.05: David Nichols
+	* updated scanner to allow "exists" to be a valid function or method
+	  name
+
+2008.04.28: David Nichols
+	* implemented a maximum HTTP header size of 16K so malicious messages
+	  cannot fill up all available memory
+
 2008.04.26: David Nichols
 	* added SHA224(), SHA256(), SHA384(), SHA512() digest functions (as well
 	  as related *_bin() functions)
