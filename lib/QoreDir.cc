@@ -46,13 +46,15 @@ struct qore_qd_private {
   //std::string dirname;
   char *dirname;
   
-  DLLLOCAL qore_qd_private(const QoreEncoding *cs) {
+  DLLLOCAL qore_qd_private(const QoreEncoding *cs, ExceptionSink *xsink) : dirname(0) {
     // set the directory to the cwd
     char *cwd=(char*)malloc(sizeof(char)*PATH_MAX);
     if(!cwd) { // error in malloc
+      xsink->outOfMemory();
       return;
     }
     if(!getcwd(cwd, (size_t)PATH_MAX)) { // error in cwd
+      free(cwd);
       return;
     }
     dirname=cwd;
@@ -73,7 +75,7 @@ const QoreEncoding *QoreDir::getEncoding() const {
   return priv->charset;
 }
 
-QoreDir::QoreDir(const QoreEncoding *cs) : priv(new qore_qd_private(cs)) {}
+QoreDir::QoreDir(const QoreEncoding *cs, ExceptionSink *xsink) : priv(new qore_qd_private(cs, xsink)) {}
 
 QoreDir::~QoreDir() {
   //close();
@@ -93,7 +95,7 @@ const char* QoreDir::dirname() const {
 // return 0 if the path exists
 // return errno of the opendir function
 int QoreDir::checkPath() {
-  return verifyDirectory(priv->dirname);
+  return !priv->dirname ? -1 : verifyDirectory(priv->dirname);
 }
  
 // check if the given directory is accessable
@@ -112,13 +114,19 @@ int QoreDir::verifyDirectory(const char* dir) {
 
 // change directory from current location on
 // return 0 if directory exists and is openable
-int QoreDir::chdir(const char* ndir) {
+int QoreDir::chdir(const char* ndir, ExceptionSink *xsink) {
   int ret=0;
 
   // if relative path then join with the old path and strip the path
   std::string ds;
+  const char *dir = dirname();
   if(ndir[0]!='/') { // relative path
-    ds=std::string(priv->dirname)+"/"+std::string(ndir);
+    if (!dir) {
+       xsink->raiseException("DIR-CHDIR-ERROR", "cannot change to relative directory; no directory is set");
+      return -1;
+    }
+
+    ds=std::string(dir)+"/"+std::string(ndir);
   }
   else {
     ds=ndir;
@@ -126,9 +134,10 @@ int QoreDir::chdir(const char* ndir) {
   ds=stripPath(ds);
 
   // clean up old dirname
-  free(priv->dirname);
+  if (dir)
+     free(priv->dirname);
   // set the new dirname
-  priv->dirname=strdup(strdup(ds.c_str()));
+  priv->dirname=strdup(ds.c_str());
 
   // look if the dirname exists
   /*
@@ -198,12 +207,17 @@ const std::string QoreDir::stripPath(const std::string& odir) {
 // create the directory with all the parent directories if they do not exist
 // return amount of created directoreis, -1 if error
 int QoreDir::create(int mode, ExceptionSink *xsink) {
+  const char *dir = dirname();
+  if (!dir) {
+     xsink->raiseException("DIR-CREATE-ERROR", "cannot create directory; no directory is set");
+     return -1;
+  }
   // split the directory in its subdirectories tree
   std::vector<std::string> dirs;
   //  tokenize(std::string(dirname), dirs);
   //  std::string dstr=std::string(dirname());
   //tokenize(dstr, dirs);
-  tokenize(std::string(dirname()), dirs);
+  tokenize(std::string(dir), dirs);
 
   // iterate through all directories and try to create them if
   // they do not exist (should happen only on the first level)
@@ -233,15 +247,22 @@ int QoreDir::create(int mode, ExceptionSink *xsink) {
 // directories '.' and '..' will be skipped
 //QoreListNode* QoreDir::list(Dir *d, int d_filter, ExceptionSink *xsink) {
 QoreListNode* QoreDir::list(int d_filter, ExceptionSink *xsink) {
+  const char *dir = dirname();
+  if (!dir) {
+     xsink->raiseException("DIR-READ-ERROR", "cannot list directory; no directory is set");
+     return 0;
+  }
+
   //QoreListNode *lst=new QoreListNode();
   // avoid memory leaks...
   ReferenceHolder<QoreListNode> lst(new QoreListNode(), xsink);
 
-  DIR *dptr=opendir(dirname());
+  DIR *dptr=opendir(dir);
   if(!dptr) {
     xsink->raiseException("DIR-READ-ERROR", "error opening directory for reading: %s", strerror(errno));
     return 0;
   }
+  ON_BLOCK_EXIT(closedir, dptr);
 
   struct dirent *de;
   while((de=readdir(dptr))) {
@@ -251,16 +272,15 @@ QoreListNode* QoreDir::list(int d_filter, ExceptionSink *xsink) {
       }
     }
   }
+
+/*
   // check for error of readdir
   if(errno) {
     xsink->raiseException("DIR-READ-ERROR", "error while reading directory: %s", strerror(errno));
     // but anyhow: close the dir pointer and ignore the message
-    closedir(dptr);
     return 0;
   }
-
-  // close
-  closedir(dptr);
-
+*/
   return lst.release();
 }
+

@@ -55,8 +55,9 @@ class QoreDir {
       /**
 	 the initial directory is the current directoy.
 	 @param cs the encoding to use for this directory
+	 @param xsink if an out of memory error occurs in the constructor
       */
-      DLLEXPORT QoreDir(const class QoreEncoding *cs = QCS_DEFAULT);
+      DLLEXPORT QoreDir(const class QoreEncoding *cs, ExceptionSink *xsink);
 
       //! closes the directory and frees all memory allocated to the object
       DLLEXPORT ~QoreDir();
@@ -71,9 +72,10 @@ class QoreDir {
       //! changes the directory in relation to the current
       /**
 	 @param dir the directory to change to. can include .. and .
+	 @param xsink if the path is relative and no current directory is set, a qore-language exception is thrown
 	 @return 0 for success
       */
-      DLLEXPORT int chdir(const char* dir);//, class ExceptionSink *xsink);
+      DLLEXPORT int chdir(const char* dir, ExceptionSink *xsink);
       
       DLLEXPORT int verifyDirectory(const char* dir); // check if the directory is accessable
       DLLEXPORT int checkPath(); // check if the stored path is accessable

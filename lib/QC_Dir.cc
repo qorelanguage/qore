@@ -39,14 +39,20 @@ static void DIR_constructor(QoreObject *self, const QoreListNode *params, Except
     cs = QCS_DEFAULT;
   }
   
-  self->setPrivate(CID_DIR, new Dir(cs));
+  SimpleRefHolder<Dir> d(new Dir(cs, xsink));
+  if (*xsink)
+     return;
+  self->setPrivate(CID_DIR, d.release());
 }
 
 static void DIR_copy(QoreObject *self, QoreObject *old, class Dir *d, ExceptionSink *xsink) {
   //self->setPrivate(CID_DIR, new Dir(d->getEncoding()));
-  Dir *nd=new Dir(d->getEncoding());
-  nd->chdir(d->dirname());
-  self->setPrivate(CID_DIR, nd);
+  SimpleRefHolder<Dir> nd(new Dir(d->getEncoding(), xsink));
+  if (*xsink)
+     return;
+  if (d->dirname())
+     nd->chdir(d->dirname(), xsink);
+  self->setPrivate(CID_DIR, nd.release());
 }
 
 
@@ -63,12 +69,13 @@ static AbstractQoreNode *DIR_chdir(QoreObject *self, class Dir *d, const QoreLis
     return 0;
   }
 
-  return get_bool_node(d->chdir(p0->getBuffer())? 0: 1);
+  return get_bool_node(d->chdir(p0->getBuffer(), xsink) ? 0: 1);
 }
 
 // path(): returns the actual directory name
 static AbstractQoreNode *DIR_getdirname(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-  return new QoreStringNode(d->dirname());
+   const char *dir = d->dirname();
+   return dir ? new QoreStringNode(dir) : 0;
 }
 
 // exists(): return 0 if the ch-dired directory exists
@@ -134,7 +141,7 @@ static AbstractQoreNode *DIR_chown(QoreObject *self, class Dir *d, const QoreLis
     return 0;
   }
 
-  if(chown(d->dirname(), uid, -1)) {
+  if(chown(d->dirname(), uid, (gid_t)-1)) {
     xsink->raiseException("DIR-CHOWN-ERROR", "error in Dir::chown(): %s", strerror(errno));
     return 0;
   }
@@ -167,7 +174,7 @@ static AbstractQoreNode *DIR_chgrp(QoreObject *self, class Dir *d, const QoreLis
     return 0;
   }
 
-  if(chown(d->dirname(), -1, gid)) {
+  if(chown(d->dirname(), (uid_t)-1, gid)) {
     xsink->raiseException("DIR-CHGRP-ERROR", "error in Dir::chgrp(): %s", strerror(errno));
     return 0;
   }

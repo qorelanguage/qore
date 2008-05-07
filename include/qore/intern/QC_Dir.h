@@ -35,7 +35,7 @@ class Dir : public AbstractPrivateData, public QoreDir {
       DLLLOCAL virtual ~Dir() {}
 
    public:
-      DLLLOCAL inline Dir(const class QoreEncoding *cs) : QoreDir(cs) {}
+      DLLLOCAL inline Dir(const class QoreEncoding *cs, ExceptionSink *xsink) : QoreDir(cs, xsink) {}
       //DLLLOCAL const QoreEncoding* getEncoding();
 };
 
