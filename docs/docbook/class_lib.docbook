@@ -3978,13 +3978,6 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
   </sect1>
 
 
-
-
-
-
-
-
-
   <sect1 id="Qore_Dir_Class">
     <title>Qore::Dir Class</title>
 
@@ -4069,17 +4062,17 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	  <row>
 	    <entry><para><link linkend="Qore_Dir_list">Dir::list()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Get all entries in this directory, except '.' and '..' directories.</para></entry>
+	    <entry><para>Get all entries in this directory, except '.' and '..' directories (takes an optional regular expression filter).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Dir_listFiles">Dir::listFiles()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Get all entries in the directory which are not subdirectories.</para></entry>
+	    <entry><para>Get all entries in the directory which are not subdirectories (takes an optional regular expression filter).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Dir_listDirs">Dir::listDirs()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Get all entries in the directory which are subdirectories, except '.' and '..' directories.</para></entry>
+	    <entry><para>Get all entries in the directory which are subdirectories, except '.' and '..' directories (takes an optional regular expression filter).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Dir_openFile">Dir::openFile()</link></para></entry>
@@ -5016,13 +5009,13 @@ $d.rmdir("emptySubdir");
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>List all entries in the directory of the Dir object. It supresses the '.' and '..' directory.</para>
+	    <para>List all entries in the directory of the Dir object. It supresses the '.' and '..' directory.  An optional regular expression string can be passed to filter the values returned; if this argument is given then only entries that match the regular expression will be returned.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Dir::list()</programlisting>
+	    <programlisting>Dir::list([regex, [regex_option]])</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5049,9 +5042,14 @@ foreach my $e in ( $d.list() ) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This command has no Parameters.</para></entry>
+	      <entry><para>[regex]</para></entry>
+	      <entry><para>string</para></entry>
+	      <entry><para>A regular expression string used to filter the arguments.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>[regex_option]</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5102,7 +5100,7 @@ foreach my $e in ( $d.list() ) {
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>List all entries in the directory of the Dir object, which are not subdirectories.</para>
+	    <para>List all entries in the directory of the Dir object, which are not subdirectories.  An optional regular expression string can be passed to filter the values returned; if this argument is given then only entries that match the regular expression will be returned.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5135,9 +5133,14 @@ foreach my $e in ( $d.listFiles() ) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This command has no Parameters.</para></entry>
+	      <entry><para>[regex]</para></entry>
+	      <entry><para>string</para></entry>
+	      <entry><para>A regular expression string used to filter the arguments.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>[regex_option]</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5188,7 +5191,7 @@ foreach my $e in ( $d.listFiles() ) {
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>List all entries in the directory of the Dir object, which are subdirectories. It supresses the '.' and '..' directory.</para>
+	    <para>List all entries in the directory of the Dir object, which are subdirectories. It supresses the '.' and '..' directories.  An optional regular expression string can be passed to filter the values returned; if this argument is given then only entries that match the regular expression will be returned.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5221,9 +5224,14 @@ foreach my $e in ( $d.listDirs() ) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This command has no Parameters.</para></entry>
+	      <entry><para>[regex]</para></entry>
+	      <entry><para>string</para></entry>
+	      <entry><para>A regular expression string used to filter the arguments.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>[regex_option]</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
