@@ -264,6 +264,13 @@ static AbstractQoreNode *DIR_list(QoreObject *self, class Dir *d, const QoreList
 // listFiles()
 // lists all files
 static AbstractQoreNode *DIR_listfiles(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+   // check for optional regular expression string
+   const QoreStringNode *p0;
+   p0 = test_string_param(params, 0);
+   if (p0) {
+      const AbstractQoreNode *p1 = get_param(params, 1);
+      return d->list(-1^DT_DIR, xsink, p0, p1 ? p1->getAsInt() : 0);
+   }
   return d->list(-1^DT_DIR, xsink);
 }
 
@@ -271,6 +278,13 @@ static AbstractQoreNode *DIR_listfiles(QoreObject *self, class Dir *d, const Qor
 // listDirs()
 // lists all directoreis but ignore '.' and '..'
 static AbstractQoreNode *DIR_listdirs(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+   // check for optional regular expression string
+   const QoreStringNode *p0;
+   p0 = test_string_param(params, 0);
+   if (p0) {
+      const AbstractQoreNode *p1 = get_param(params, 1);
+      return d->list(DT_DIR, xsink, p0, p1 ? p1->getAsInt() : 0);
+   }
   return d->list(DT_DIR, xsink);
 }
 
