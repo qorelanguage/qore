@@ -93,13 +93,13 @@ class QoreDir {
       DLLEXPORT const class QoreEncoding *getEncoding() const;
 
       // for internal use a wrapper for list
-      DLLLOCAL class QoreListNode* list(int, ExceptionSink*);
+      DLLLOCAL class QoreListNode* list(int, ExceptionSink *xsink, const QoreString *regex = 0, int regex_options = 0);
 
-      //! returns a list of all directory entries including directories and files
-      DLLEXPORT class QoreListNode* list() const;
+      //returns a list of all directory entries including directories and files
+      //DLLEXPORT class QoreListNode* list() const;
 
-      //! returns a list of all directory file, symlink etc entries
-      DLLEXPORT class QoreListNode* listFiles() const;
+      // returns a list of all directory file, symlink etc entries
+      //DLLEXPORT class QoreListNode* listFiles() const;
 
       //! returns a list of all directory subdirectory entries
       DLLEXPORT class QoreListNode* listDirs() const;

@@ -246,13 +246,20 @@ int QoreDir::create(int mode, ExceptionSink *xsink) {
 // the filter willl be applied to struct dirent->d_type for filtering out
 // directories '.' and '..' will be skipped
 //QoreListNode* QoreDir::list(Dir *d, int d_filter, ExceptionSink *xsink) {
-QoreListNode* QoreDir::list(int d_filter, ExceptionSink *xsink) {
+QoreListNode* QoreDir::list(int d_filter, ExceptionSink *xsink, const QoreString *regex, int regex_options) {
   const char *dir = dirname();
   if (!dir) {
      xsink->raiseException("DIR-READ-ERROR", "cannot list directory; no directory is set");
      return 0;
   }
 
+  SimpleRefHolder<QoreRegexNode> re(0);
+
+  if (regex) {
+     re = new QoreRegexNode(regex, regex_options, xsink);
+     if (*xsink)
+	return 0;
+  }
   //QoreListNode *lst=new QoreListNode();
   // avoid memory leaks...
   ReferenceHolder<QoreListNode> lst(new QoreListNode(), xsink);
@@ -268,6 +275,15 @@ QoreListNode* QoreDir::list(int d_filter, ExceptionSink *xsink) {
   while((de=readdir(dptr))) {
     if(strcmp(de->d_name, ".") && strcmp(de->d_name, "..")) {
       if(de->d_type & d_filter) {
+	 // if there is a regular expression, see if the name matches
+	 if (regex) {
+	    QoreString targ(de->d_name, priv->charset);
+	    bool b = re->exec(&targ, xsink);
+	    if (*xsink)
+	       return 0;
+	    if (!b)
+	       continue;
+	 }
 	lst->push(new QoreStringNode(de->d_name));
       }
     }
