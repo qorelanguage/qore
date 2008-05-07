@@ -542,14 +542,12 @@ class T {
 	 ExceptionSink xsink;
 
 	 // call sizeHint method
-	 AbstractQoreNode *rv = p_sizeHint->eval(qore_obj, 0, &xsink);
-	 if (xsink) {
-	    discard(rv, &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*p_sizeHint, 0, &xsink), &xsink);
+	 if (xsink)
 	    return QOREQTYPE::sizeHint();
-	 }
-         QoreObject *o = dynamic_cast<QoreObject *>(rv);
+
+         QoreObject *o = rv && rv->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*rv) : 0;
 	 QoreQSize *qs = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
-	 discard(rv, &xsink);
 
 	 if (!qs) {
 	    xsink.raiseException("SIZEHINT-ERROR", "the sizeHint() method did not return a QSize object");
@@ -569,14 +567,12 @@ class T {
 	 ExceptionSink xsink;
 
 	 // call minimumSizeHint method
-	 AbstractQoreNode *rv = p_minimumSizeHint->eval(qore_obj, 0, &xsink);
-	 if (xsink) {
-	    discard(rv, &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*p_minimumSizeHint, 0, &xsink), &xsink);
+	 if (xsink)
 	    return QOREQTYPE::minimumSizeHint();
-	 }
-         QoreObject *o = dynamic_cast<QoreObject *>(rv);
+
+         QoreObject *o = rv && rv->getType() ==NT_OBJECT ? reinterpret_cast<QoreObject *>(*rv) : 0;
 	 QoreQSize *qs = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
-	 discard(rv, &xsink);
 
 	 if (!qs) {
 	    xsink.raiseException("MINIMUMSIZEHINT-ERROR", "the minimumSizeHint() method did not return a QSize object");

@@ -35,14 +35,12 @@ class T {
          ExceptionSink xsink;
 
          // call geometry method
-         AbstractQoreNode *rv = m_geometry->eval(qore_obj, 0, &xsink);
-         if (xsink) {
-            discard(rv, &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_geometry, 0, &xsink), &xsink);
+         if (xsink)
             return parent_geometry();
-         }
-         QoreObject *o = dynamic_cast<QoreObject *>(rv);
+
+         QoreObject *o = rv && rv->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*rv) : 0;
          QoreQRect *qr = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
-         discard(rv, &xsink);
 
          if (!qr) {
             xsink.raiseException("GEOMETRY-ERROR", "the geometry() method did not return a QRect object");
@@ -70,14 +68,12 @@ class T {
          ExceptionSink xsink;
 
          // call maximumSize method
-         AbstractQoreNode *rv = m_maximumSize->eval(qore_obj, 0, &xsink);
-         if (xsink) {
-            discard(rv, &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_maximumSize, 0, &xsink), &xsink);
+         if (xsink)
             return parent_maximumSize();
-         }
-         QoreObject *o = dynamic_cast<QoreObject *>(rv);
+
+         QoreObject *o = rv && rv->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*rv) : 0;
          QoreQSize *qs = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
-         discard(rv, &xsink);
 
          if (!qs) {
             xsink.raiseException("MAXIMUMSIZE-ERROR", "the maximumSize() method did not return a QSize object");
@@ -96,14 +92,12 @@ class T {
          ExceptionSink xsink;
 
          // call minimumSize method
-         AbstractQoreNode *rv = m_minimumSize->eval(qore_obj, 0, &xsink);
-         if (xsink) {
-            discard(rv, &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_minimumSize, 0, &xsink), &xsink);
+         if (xsink)
             return parent_minimumSize();
-         }
-         QoreObject *o = dynamic_cast<QoreObject *>(rv);
+
+         QoreObject *o = rv && rv->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*rv) : 0;
          QoreQSize *qs = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
-         discard(rv, &xsink);
 
          if (!qs) {
             xsink.raiseException("MINIMUMSIZE-ERROR", "the minimumSize() method did not return a QSize object");
@@ -136,14 +130,12 @@ class T {
         ExceptionSink xsink;
 
          // call sizeHint method
-         AbstractQoreNode *rv = m_sizeHint->eval(qore_obj, 0, &xsink);
-         if (xsink) {
-            discard(rv, &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_sizeHint, 0, &xsink), &xsink);
+         if (xsink)
             return QOREQTYPE::sizeHint();
-         }
-         QoreObject *o = dynamic_cast<QoreObject *>(rv);
+
+         QoreObject *o = rv && rv->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*rv) : 0;
          QoreQSize *qs = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
-         discard(rv, &xsink);
 
          if (!qs) {
             xsink.raiseException("SIZEHINT-ERROR", "the sizeHint() method did not return a QSize object");
@@ -192,24 +184,21 @@ class T {
 
 	 ExceptionSink xsink;
 
-	 QoreAbstractQLayout *ql;
          // call layout method
-	 {
-	    ReferenceHolder<AbstractQoreNode> rv(m_layout->eval(qore_obj, 0, &xsink), &xsink);
-	    if (xsink)
-	       return QOREQTYPE::layout();
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_layout, 0, &xsink), &xsink);
+	 if (xsink)
+	    return QOREQTYPE::layout();
 	    
-	    if (!rv)
-	       return 0;
-	    
-	    if (rv->getType() != NT_OBJECT) {
-	       xsink.raiseException("LAYOUT-ERROR", "the layout() method did not return a QLayout object");
-	       return QOREQTYPE::layout();
-	    }
-	    
-	    QoreObject *o = reinterpret_cast<QoreObject *>(*rv);
-	    ql = o ? (QoreAbstractQLayout *)o->getReferencedPrivateData(CID_QLAYOUT, &xsink) : 0;
+	 if (!rv)
+	    return 0;
+	 
+	 if (rv->getType() != NT_OBJECT) {
+	    xsink.raiseException("LAYOUT-ERROR", "the layout() method did not return a QLayout object");
+	    return QOREQTYPE::layout();
 	 }
+	 
+	 QoreObject *o = reinterpret_cast<QoreObject *>(*rv);
+	 QoreAbstractQLayout *ql = o ? (QoreAbstractQLayout *)o->getReferencedPrivateData(CID_QLAYOUT, &xsink) : 0;
 
          if (!ql) {
             xsink.raiseException("LAYOUT-ERROR", "the layout() method did not return a QLayout object");
@@ -244,24 +233,21 @@ class T {
 
 	 ExceptionSink xsink;
 
-	 QoreQWidget *qw;
          // call widget method
-	 {
-	    ReferenceHolder<AbstractQoreNode> rv(m_widget->eval(qore_obj, 0, &xsink), &xsink);
-	    if (xsink)
-	       return QOREQTYPE::widget();
-	    
-	    if (!rv)
-	       return 0;
-	    
-	    if (rv->getType() != NT_OBJECT) {
-	       xsink.raiseException("WIDGET-ERROR", "the widget() method did not return a QWidget object");
-	       return QOREQTYPE::widget();
-	    }
-	    
-	    QoreObject *o = reinterpret_cast<QoreObject *>(*rv);
-	    qw = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_widget, 0, &xsink), &xsink);
+	 if (xsink)
+	    return QOREQTYPE::widget();
+	 
+	 if (!rv)
+	    return 0;
+	 
+	 if (rv->getType() != NT_OBJECT) {
+	    xsink.raiseException("WIDGET-ERROR", "the widget() method did not return a QWidget object");
+	    return QOREQTYPE::widget();
 	 }
+	 
+	 QoreObject *o = reinterpret_cast<QoreObject *>(*rv);
+	 QoreQWidget *qw = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
 
          if (!qw) {
 	    xsink.raiseException("WIDGET-ERROR", "the widget() method did not return a QWidget object");

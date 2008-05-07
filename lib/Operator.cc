@@ -720,7 +720,7 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
    }
 
    QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
-   return o->getClass()->evalMethod(o, f->f.c_str, f->args, xsink);
+   return o->evalMethod(f->f.c_str, f->args, xsink);
 }
 
 static AbstractQoreNode *op_new_object(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)

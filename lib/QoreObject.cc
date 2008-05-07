@@ -57,10 +57,11 @@ struct qore_object_private {
 	 system_object(!p), delete_blocker_run(false)
       {
 	 printd(5, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, p, oc->getName());
-	 // instead of referencing the class, we reference the program, because the
-	 // program contains the namespace that contains the class, and the class'
-	 // methods may call functions in the program as well that could otherwise
-	 // disappear when the program is deleted
+	 /* instead of referencing the class, we reference the program, because the
+	    program contains the namespace that contains the class, and the class'
+	    methods may call functions in the program as well that could otherwise
+	    disappear when the program is deleted
+	 */
 	 if (p) {
 	    printd(5, "QoreObject::init() this=%08p (%s) calling QoreProgram::depRef() (%08p)\n", this, myclass->getName(), p);
 	    p->depRef();
@@ -304,7 +305,21 @@ bool QoreObject::validInstanceOf(qore_classid_t cid) const
 
 AbstractQoreNode *QoreObject::evalMethod(const QoreString *name, const QoreListNode *args, ExceptionSink *xsink)
 {
-   return priv->myclass->evalMethod(this, name->getBuffer(), args, xsink);
+   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return 0;
+
+   return evalMethod(tmp->getBuffer(), args, xsink);
+}
+
+AbstractQoreNode *QoreObject::evalMethod(const char *name, const QoreListNode *args, ExceptionSink *xsink)
+{
+   return priv->myclass->evalMethod(this, name, args, xsink);
+}
+
+AbstractQoreNode *QoreObject::evalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink)
+{
+   return method.eval(this, args, xsink);
 }
 
 const QoreClass *QoreObject::getClass(qore_classid_t cid) const

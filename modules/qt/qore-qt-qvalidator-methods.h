@@ -19,7 +19,7 @@ class T {
 	 args->push(lvh.getArg());
 
 	 // execute method and discard any return value
-	 discard(m_fixup->eval(qore_obj, *args, &xsink), &xsink);
+	 discard(qore_obj->evalMethod(*m_fixup, *args, &xsink), &xsink);
 	 
 	 AbstractQoreNode *str = lvh.getOutputValue();
 	 get_qstring(str, input, &xsink);
@@ -42,9 +42,11 @@ class T {
 	 args->push(arg1.getArg());
 
 	 // execute method and discard any return value
-	 AbstractQoreNode *rv = m_fixup->eval(qore_obj, *args, &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_fixup, *args, &xsink), &xsink);
+	 if (xsink)
+	    return (QValidator::State)0;
+
 	 QValidator::State state = (QValidator::State)(rv ? rv->getAsInt() : 0);
-	 discard(rv, &xsink);
 	 
 	 // rewrite results to args
 	 if (!xsink) {

@@ -387,7 +387,7 @@ RunTimeObjectScopedMethodReferenceNode::~RunTimeObjectScopedMethodReferenceNode(
 
 AbstractQoreNode *RunTimeObjectScopedMethodReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
-   return method->eval(obj, args, xsink);
+   return obj->evalMethod(*method, args, xsink);
 }
 
 QoreProgram *RunTimeObjectScopedMethodReferenceNode::getProgram() const
@@ -410,7 +410,7 @@ RunTimeObjectMethodReferenceNode::~RunTimeObjectMethodReferenceNode()
 
 AbstractQoreNode *RunTimeObjectMethodReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
-   return obj->getClass()->evalMethod(obj, method, args, xsink);
+   return obj->evalMethod(method, args, xsink);
 }
 
 QoreProgram *RunTimeObjectMethodReferenceNode::getProgram() const

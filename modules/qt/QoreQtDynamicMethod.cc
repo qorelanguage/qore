@@ -248,7 +248,7 @@ void QoreQtDynamicSlot::call(void **arguments)
 	 args->push(0);
       }
    }
-   ReferenceHolder<AbstractQoreNode> rv(method->eval(qore_obj, *args, &xsink), &xsink);
+   ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*method, *args, &xsink), &xsink);
    if (return_type == QQT_TYPE_INT) {
       int *ptr = reinterpret_cast<int *>(arguments[0]);
       *ptr = *rv ? rv->getAsInt() : 0;
@@ -264,7 +264,7 @@ void QoreQtDynamicSlot::call()
    //printd(5, "DynamicSlot::call() sender=%08p\n", sender);
 
    ExceptionSink xsink;
-   discard(method->eval(qore_obj, 0, &xsink), &xsink);
+   discard(qore_obj->evalMethod(*method, 0, &xsink), &xsink);
 }
 
 QoreQtDynamicSignal::QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink) 

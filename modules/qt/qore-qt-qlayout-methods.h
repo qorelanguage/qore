@@ -30,7 +30,7 @@ class T {
 	 QoreAbstractQLayoutItemData *qli;
          // call itemAt method
 	 {
-	    ReferenceHolder<AbstractQoreNode> rv(m_itemAt->eval(qore_obj, *args, &xsink), &xsink);
+	    ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_itemAt, *args, &xsink), &xsink);
 	    if (xsink)
 	       return parent_itemAt(index);
 
@@ -66,7 +66,7 @@ class T {
 	 QoreAbstractQLayoutItemData *qli;
          // call takeAt method
 	 {
-	    ReferenceHolder<AbstractQoreNode> rv(m_takeAt->eval(qore_obj, *args, &xsink), &xsink);
+	    ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*m_takeAt, *args, &xsink), &xsink);
 	    if (xsink)
 	       return parent_takeAt(index);
 

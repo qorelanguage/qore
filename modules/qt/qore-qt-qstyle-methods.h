@@ -261,7 +261,7 @@ class T {
 	 args->push(q_palette);
 
 	 // execute method and discard any return value
-         discard(m_polish->eval(qore_obj, *args, &xsink), &xsink);
+         discard(qore_obj->evalMethod(*m_polish, *args, &xsink), &xsink);
 
 	 // delete the Qore object wrapper to ensure that it won't be accessed outside its scope
 	 // does not delete or otherwise affect the QPalette object

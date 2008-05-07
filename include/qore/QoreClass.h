@@ -60,6 +60,8 @@ class QoreObject;
     @see QoreClass
  */
 class QoreMethod {
+      friend class QoreObject;
+
    private:
       //! private implementation of the method
       struct qore_method_private *priv;
@@ -75,15 +77,16 @@ class QoreMethod {
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreMethod& operator=(const QoreMethod&);
 
-   public:
       //! evaluates the method and returns the result
-      /** 
+      /** should only be called by QoreObject; use QoreObject::evalMethod(const QoreMethod &meth, const QoreListNode *args, ExceptionSink *xsink) instead
 	  @param self a pointer to the object the method will be executed on
 	  @param args the list of arguments to the method
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the result of the evaluation (can be 0)
        */
       DLLEXPORT AbstractQoreNode *eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+
+   public:
 
       //! returns true if the method is synchronized (has a recursive thread lock associated with it)
       /**
@@ -142,8 +145,16 @@ class QoreMethod {
 class QoreClass{
       friend class BCList;
       friend class BCSMList;
+      friend class QoreObject;
 
    private:
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreClass(const QoreClass&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreClass& operator=(const QoreClass&);
+
       //! private implementation of the class
       struct qore_qc_private *priv;
 
@@ -155,11 +166,33 @@ class QoreClass{
       DLLLOCAL const QoreMethod *resolveSelfMethodIntern(const char *nme);
       DLLLOCAL BCAList *getBaseClassConstructorArgumentList() const;
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreClass(const QoreClass&);
-
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreClass& operator=(const QoreClass&);
+      //! evaluates a method on an object and returns the result
+      /** if the method name is not valid or is private (and the call is made outside the object)
+	  then an exception will be raised and 0 will be returned.
+	  This function must only be called from QoreObject!
+	  @param self the object to execute the method on
+	  @param method_name the name of the method to execute
+	  @param args the arguments for the method
+	  @param xsink Qore-language exception information is added here
+	  @return the value returned by the method, can be 0
+       */
+      DLLLOCAL AbstractQoreNode *evalMethod(QoreObject *self, const char *method_name, const QoreListNode *args, ExceptionSink *xsink) const;
+      // This function must only be called from QoreObject
+      DLLLOCAL AbstractQoreNode *evalMemberGate(QoreObject *self, const QoreString *nme, ExceptionSink *xsink) const;
+      // This function must only be called from QoreObject
+      DLLLOCAL void execMemberNotification(QoreObject *self, const char *mem, ExceptionSink *xsink) const;
+      // This function must only be called from QoreObject and BCList
+      DLLLOCAL bool execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const;
+      // This function must only be called from BCList
+      DLLLOCAL void execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const;
+      // This function must only be called from QoreObject
+      DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink *xsink) const;
+      // This function must only be called from BCSMList
+      DLLLOCAL void execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const;
+      // This function must only be called from BCSMList
+      DLLLOCAL void execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
+      // This function must only be called from BCSMList
+      DLLLOCAL void execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
 
    public:
       //! creates the QoreClass object and assigns the name and the functional domain
@@ -256,17 +289,6 @@ class QoreClass{
        */
       DLLEXPORT bool isPrivateMember(const char *str) const;
 
-      //! evaluates a method on an object and returns the result
-      /** if the method name is not valid or is private (and the call is made outside the object)
-	  then an exception will be raised and 0 will be returned.
-	  @param self the object to execute the method on
-	  @param method_name the name of the method to execute
-	  @param args the arguments for the method
-	  @param xsink Qore-language exception information is added here
-	  @return the value returned by the method, can be 0
-       */
-      DLLEXPORT AbstractQoreNode *evalMethod(QoreObject *self, const char *method_name, const QoreListNode *args, ExceptionSink *xsink) const;
-
       //! creates a new object and executes the constructor on it and returns the new object
       /** if a Qore-language exception occurs, 0 is returned.  To create a 
 	  @param args the arguments for the method
@@ -280,7 +302,7 @@ class QoreClass{
 	  @param code an optional code for the constructor; this parameter is here because passing a variable number of arguments requires at least one fixed parameter before the (possibly empty) list
 	  @return the object created
        */
-      DLLEXPORT QoreObject *execSystemConstructor(int code, ...) const;
+      DLLEXPORT QoreObject *execSystemConstructor(int code = 0, ...) const;
 
       //! executes a class' "copy" method on an object and returns the new object (or 0 in the case of an exception)
       /** @param old the original object to copy
@@ -371,14 +393,6 @@ class QoreClass{
 
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(QoreMethod *f);
-      DLLLOCAL AbstractQoreNode *evalMemberGate(QoreObject *self, const QoreString *nme, ExceptionSink *xsink) const;
-      DLLLOCAL void execMemberNotification(QoreObject *self, const char *mem, ExceptionSink *xsink) const;
-      DLLLOCAL bool execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const;
-      DLLLOCAL void execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const;
-      DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      DLLLOCAL void execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      DLLLOCAL void execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      DLLLOCAL void execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
       DLLLOCAL const QoreMethod *resolveSelfMethod(const char *nme);
       DLLLOCAL const QoreMethod *resolveSelfMethod(class NamedScope *nme);
       DLLLOCAL void addDomain(int dom);

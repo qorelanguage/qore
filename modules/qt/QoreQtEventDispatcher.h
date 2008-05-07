@@ -107,12 +107,12 @@ class QoreQtEventDispatcher {
 	 args->push(peo);
 	 
 	 // call event method
-	 return m->eval(qore_obj, *args, xsink);
+	 return qore_obj->evalMethod(*m, *args, xsink);
       }
       DLLLOCAL static AbstractQoreNode *dispatch_event_intern(QoreObject *qore_obj, const QoreMethod *m, const QoreListNode *args, class ExceptionSink *xsink)
       {
 	 // call event method
-	 return m->eval(qore_obj, args, xsink);
+	 return qore_obj->evalMethod(*m, args, xsink);
       }
 };
 

@@ -1230,6 +1230,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined", priv->name, nme);
       return 0;
    }
+
    // check for illegal explicit call
    if (w == priv->constructor || w == priv->destructor || w == priv->deleteBlocker)
    {
@@ -1248,7 +1249,8 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
 	 xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class of %s", nme, priv->name);
 	 return 0;
       }
-   return w->eval(self, args, xsink);
+
+   return self->evalMethod(*w, args, xsink);
 }
 
 AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
@@ -1272,7 +1274,7 @@ AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, c
 
    args_holder->insert(new QoreStringNode(nme));
 
-   return priv->methodGate->eval(self, *args_holder, xsink);
+   return self->evalMethod(*priv->methodGate, *args_holder, xsink);
 }
 
 bool QoreClass::isPrivateMember(const char *str) const
@@ -1297,7 +1299,8 @@ AbstractQoreNode *QoreClass::evalMemberGate(QoreObject *self, const QoreString *
 
    ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
    args->push(new QoreStringNode(*nme));
-   return priv->memberGate->eval(self, *args, xsink);
+
+   return self->evalMethod(*priv->memberGate, *args, xsink);
 }
 
 void QoreClass::execMemberNotification(QoreObject *self, const char *mem, ExceptionSink *xsink) const
@@ -1309,7 +1312,7 @@ void QoreClass::execMemberNotification(QoreObject *self, const char *mem, Except
 
    ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
    args->push(new QoreStringNode(mem));
-   discard(priv->memberNotification->eval(self, *args, xsink), xsink);
+   discard(self->evalMethod(*priv->memberNotification, *args, xsink), xsink);
 }
 
 QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const

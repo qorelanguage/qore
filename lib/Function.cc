@@ -80,7 +80,7 @@ AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink
    QoreObject *self = getStackObject();
    
    if (func)
-      return func->eval(self, args, xsink);
+      return self->evalMethod(*func, args, xsink);
    // otherwise exec copy method
    return self->getClass()->execCopy(self, xsink);
 }

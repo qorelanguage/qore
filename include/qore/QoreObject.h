@@ -245,11 +245,27 @@ class QoreObject : public AbstractQoreNode
 
       //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
       /**
-	 @param name the name of the method to evalute
-	 @param args the arguments for the method
+	 @param name the name of the method to evaluate
+	 @param args the arguments for the method (may be 0)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT AbstractQoreNode *evalMethod(const QoreString *name, const QoreListNode *args, ExceptionSink *xsink);
+
+      //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
+      /**
+	 @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding 
+	 @param args the arguments for the method (may be 0)
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT AbstractQoreNode *evalMethod(const char *name, const QoreListNode *args, ExceptionSink *xsink);
+
+      //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
+      /**
+	 @param method the method to evaluate
+	 @param args the arguments for the method (may be 0)
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT AbstractQoreNode *evalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink);
 
       //! runs the destructor on the object (if it hasn't already been deleted)
       /**
