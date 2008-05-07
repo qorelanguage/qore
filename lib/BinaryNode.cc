@@ -91,7 +91,6 @@ void *BinaryNode::giveBuffer()
    return p;
 }
 
-// FIXME: move QoreString * to first argument
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // the ExceptionSink is only needed for QoreObject where a method may be executed

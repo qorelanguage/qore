@@ -42,13 +42,9 @@ class QoreRegexNode : public ParseNoEvalNode, public QoreRegexBase
       // this version is used while parsing, takes ownership of str
       DLLLOCAL QoreRegexNode(QoreString *str);
       // used at run-time, does not change str
-      DLLLOCAL QoreRegexNode(const QoreString *str, int options, class ExceptionSink *xsink);
+      DLLLOCAL QoreRegexNode(const QoreString *str, int options, ExceptionSink *xsink);
       DLLLOCAL virtual ~QoreRegexNode();
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -60,9 +56,9 @@ class QoreRegexNode : public ParseNoEvalNode, public QoreRegexBase
 
       DLLLOCAL void concat(char c);
       DLLLOCAL void parse();
-      DLLLOCAL void parseRT(const QoreString *pattern, class ExceptionSink *xsink);
-      DLLLOCAL bool exec(const QoreString *target, class ExceptionSink *xsink) const;
-      DLLLOCAL QoreListNode *extractSubstrings(const QoreString *target, class ExceptionSink *xsink) const;
+      DLLLOCAL void parseRT(const QoreString *pattern, ExceptionSink *xsink);
+      DLLLOCAL bool exec(const QoreString *target, ExceptionSink *xsink) const;
+      DLLLOCAL QoreListNode *extractSubstrings(const QoreString *target, ExceptionSink *xsink) const;
       // caller owns QoreString returned
       DLLLOCAL QoreString *getString();
 };

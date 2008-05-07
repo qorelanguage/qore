@@ -115,8 +115,8 @@ struct qore_program_private {
 
       int parse_options;
       int warn_mask;
-      bool po_locked, exec_class, base_object, requires_exception;
       std::string exec_class_name, script_dir;
+      bool po_locked, exec_class, base_object, requires_exception;
 
       qpgm_thread_local_storage_t *thread_local_storage;
 

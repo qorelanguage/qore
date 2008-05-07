@@ -281,9 +281,7 @@ void QoreObject::evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *
 
 bool QoreObject::evalDeleteBlocker(BuiltinMethod *meth)
 {
-   // FIXME: eliminate reference counts for private data, ensure destructor is run in single thread
-   // and private data is destroyed after the destructor terminates
-   // ensure that the object cannot be accessed from other threads once the destructor starts executing
+   // FIXME: eliminate reference counts for private data, private data should be destroyed after the destructor terminates
 
    // get referenced object
    ExceptionSink xsink;
