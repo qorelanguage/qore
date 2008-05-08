@@ -110,6 +110,16 @@ static AbstractQoreNode *f_call_function_args(const QoreListNode *params, Except
    return rv;
 }
 
+static AbstractQoreNode *f_exists(const QoreListNode *params, ExceptionSink *xsink)
+{
+   // to emulate the exists operator, we must return True if more than one argument is passed
+   // as this will appear to be a list to the exists operator, which is different from NOTHING
+   int np = num_params(params);
+   if (np <= 1)
+      return get_bool_node(!is_nothing(get_param(params, 0)));
+   return &True;
+}
+
 static AbstractQoreNode *f_existsFunction(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
@@ -1098,6 +1108,7 @@ void init_misc_functions()
    builtinFunctions.add("parse", f_parse);
    builtinFunctions.add("call_function", f_call_function);
    builtinFunctions.add("call_function_args", f_call_function_args);
+   builtinFunctions.add("exists", f_exists);
    builtinFunctions.add("existsFunction", f_existsFunction);
    builtinFunctions.add("functionType", f_functionType);
    builtinFunctions.add("html_encode", f_html_encode);
