@@ -30,9 +30,8 @@ class AbstractSmartLock;
 #define QORE_AVL_INTERN 5
 #endif
 
-//! AutoVLock is a container for safely managing AbstractSmartLock objects, required for functions accessing global variables and object data where locking is necessary
-/** This object is used for nested lock management and automatically releasing all locks.
-    For performance reasons a minimal list is included directly in this implementation.
+//! AutoVLock is a container for safely managing global variable and object lock handovers, required for functions accessing global variables and object data where locking is necessary
+/** This object is used for lock handover management and automatically releasing the last lock.
  */
 class AutoVLock
 {
@@ -43,7 +42,7 @@ class AutoVLock
       // pointer to ExceptionSink object for use with object notifications
       ExceptionSink *xsink;
 
-      //! private implementation of the generic lock container (for object notifications)
+      //! private implementation of the object notification container
       struct qore_avl_private *priv;
    
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used

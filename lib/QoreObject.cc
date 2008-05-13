@@ -524,7 +524,7 @@ bool QoreObject::derefImpl(ExceptionSink *xsink)
    }
 
    //printd(5, "QoreObject::derefImpl() class=%s this=%08p going out of scope\n", getClassName(), this);
-   // FIXME: this is stupid
+
    // reference for destructor
    ROreference();
    doDeleteIntern(xsink);
@@ -565,7 +565,7 @@ void QoreObject::obliterate(ExceptionSink *xsink)
 
 void QoreObject::doDelete(ExceptionSink *xsink)
 {
-   AutoLocker al(priv->m);
+   priv->m.lock();
    doDeleteIntern(xsink);
 }
 
