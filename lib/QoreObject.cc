@@ -352,13 +352,14 @@ void QoreObject::evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *
       xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), priv->theclass->getName());
 }
 
+// note that the lock is already held when this method is called
 bool QoreObject::evalDeleteBlocker(BuiltinMethod *meth)
 {
    // FIXME: eliminate reference counts for private data, private data should be destroyed after the destructor terminates
 
    // get referenced object
    ExceptionSink xsink;
-   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->myclass->getIDForMethod(), &xsink), &xsink);
+   ReferenceHolder<AbstractPrivateData> pd(priv->privateData->getReferencedPrivateData(meth->myclass->getIDForMethod()), &xsink);
 
    if (pd)
       return meth->evalDeleteBlocker(this, *pd);
