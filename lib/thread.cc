@@ -1163,7 +1163,7 @@ QoreHashNode *getAllCallStacks()
 	    // make hash entry
 	    str.clear();
 	    str.sprintf("%d", w->tid);
-	    h->setKeyValue(&str, l, 0);
+	    h->setKeyValue(str.getBuffer(), l, 0);
 	 }
 	 else
 	    l->deref(0);

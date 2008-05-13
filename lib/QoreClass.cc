@@ -35,8 +35,8 @@ DLLLOCAL Sequence classIDSeq;
 // private QoreClass implementation
 struct qore_qc_private {
       char *name;                  // the name of the class
-      BCAList *bcal;         // base constructor argument list
-      BCList *scl;           // base class list
+      BCAList *bcal;               // base constructor argument list
+      BCList *scl;                 // base class list
       hm_method_t hm, hm_pending;  // method maps
       strset_t pmm, pending_pmm;   // private member lists (sets)
 
@@ -49,19 +49,16 @@ struct qore_qc_private {
                                   //   instead they will get the private data from this class
       bool sys,                   // system class?
 	 initialized,             // is initialized?
-	 has_delete_blocker;      // has a delete_blocker function somewhere in the hierarchy?
+	 has_delete_blocker,      // has a delete_blocker function somewhere in the hierarchy?
+	 synchronous_class;       // should all class methods be wrapped in a recursive thread lock?
       int domain;                 // capabilities of builtin class to use in the context of parse restrictions
       QoreReferenceCounter nref;  // namespace references
 
-      DLLLOCAL qore_qc_private(const char *nme, int dom = QDOM_DEFAULT)
+      DLLLOCAL qore_qc_private(const char *nme, int dom = QDOM_DEFAULT) : bcal(0), scl(0), 
+									  sys(false), initialized(false), has_delete_blocker(false), 
+									  synchronous_class(false), domain(dom)
       {
-	 initialized = false;
-	 has_delete_blocker = false;
-	 domain = dom;
-	 scl = 0;
 	 name = nme ? strdup(nme) : 0;
-	 sys  = false;
-	 bcal = 0;
 
 	 // quick pointers
 	 system_constructor = constructor = destructor = copyMethod = 
@@ -167,8 +164,7 @@ struct qore_method_private {
 };
 
 // BCEANode
-// base constructor evaluated argument node
-// created locally at run time
+// base constructor evaluated argument node; created locally at run time
 class BCEANode
 {
    public:

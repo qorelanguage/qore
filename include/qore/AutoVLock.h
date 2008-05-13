@@ -39,12 +39,15 @@ class AutoVLock
       // pointer to lock currently held
       QoreThreadLock *m;
 
+      // pointer to object to dereference
+      QoreObject *o;
+
       // pointer to ExceptionSink object for use with object notifications
       ExceptionSink *xsink;
 
       //! private implementation of the object notification container
       struct qore_avl_private *priv;
-   
+
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL AutoVLock(const AutoVLock&);
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -66,6 +69,9 @@ class AutoVLock
 
       //! sets the current lock
       DLLLOCAL void set(QoreThreadLock *n_m);
+
+      //! sets the current object (for dereference) and lock
+      DLLLOCAL void set(QoreObject *n_o, QoreThreadLock *n_m);
 
       //! gets the current lock
       DLLLOCAL QoreThreadLock *get();

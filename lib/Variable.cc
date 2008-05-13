@@ -531,8 +531,7 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
    
    qore_type_t lvtype = lvalue->getType();
 
-   // if the node is a variable reference, then find value
-   // ptr, dereference it, and return
+   // if the node is a variable reference, then find value ptr, dereference it, and return
    if (lvtype == NT_VARREF) {
       val = reinterpret_cast<VarRefNode *>(lvalue)->getValuePtr(&vl, xsink);
       if (val && *val)
@@ -567,17 +566,18 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
    QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(lvalue);
 
    // otherwise it is a list or object (hash) reference
-   // find variable ptr, exit if doesn't exist anyway
-   val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl);
-
-   if (!val || !(*val) || xsink->isEvent())
-      return;
 
    // if it's a list reference, see if the reference exists, if so, then delete it;
    // if it's the last element in the list, then resize the list...
    if (tree->op == OP_LIST_REF) {
-      // if it's not a list then return
-      if ((*val)->getType() != NT_LIST)
+      int offset = tree->right->integerEval(xsink);
+      if (*xsink)
+	 return;
+
+      // find variable ptr, exit if doesn't exist anyway
+      val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl);
+      
+      if (!val || !(*val) || (*val)->getType() != NT_LIST || *xsink)
 	 return;
 
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
@@ -587,9 +587,24 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
 	 (*val)->deref(xsink);
 	 (*val) = l;
       }
-      l->delete_entry(tree->right->integerEval(xsink), xsink);
+      l->delete_entry(offset, xsink);
       return;
    }
+
+   // get the member name
+   QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
+   if (*xsink)
+      return;
+
+   QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return;
+
+   // find variable ptr, exit if doesn't exist anyway
+   val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl);
+      
+   if (!val || !(*val) || *xsink)
+      return;
 
    QoreHashNode *h = (*val)->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
    QoreObject *o;
@@ -600,15 +615,6 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
 
    // otherwise if not a hash or object then exit
    if (!h && !o)
-      return;
-
-   // otherwise get the member name
-   QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
-   if (*xsink)
-      return;
-
-   QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
-   if (*xsink)
       return;
 
    // get unique value if necessary
@@ -623,7 +629,6 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
    if (h)
       h->deleteKey(mem->getBuffer(), xsink);
    else {    // must be an object reference
-
       o->deleteMemberValue(mem->getBuffer(), xsink);
       vl.addMemberNotification(o, mem->getBuffer());
    }

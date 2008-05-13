@@ -63,7 +63,7 @@ struct qore_avl_private {
       }
 };
 
-AutoVLock::AutoVLock(ExceptionSink *n_xsink) : m(0), xsink(n_xsink), priv(0)
+AutoVLock::AutoVLock(ExceptionSink *n_xsink) : m(0), o(0), xsink(n_xsink), priv(0)
 {
    //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
 }
@@ -91,12 +91,24 @@ void AutoVLock::del()
    if (m) {
       m->unlock();
       m = 0;
+      if (o) {
+	 o->tDeref();
+	 o = 0;
+      }
    }
+   assert(!o);
 }
 
 void AutoVLock::set(QoreThreadLock *n_m)
 {
    assert(!m);
+   m = n_m;
+}
+
+void AutoVLock::set(QoreObject *n_o, QoreThreadLock *n_m)
+{
+   assert(!m);
+   o = n_o;
    m = n_m;
 }
 

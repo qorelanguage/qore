@@ -280,6 +280,24 @@ void QoreHashNode::setKeyValue(const char *key, AbstractQoreNode *value, Excepti
    *v = value;
 }
 
+AbstractQoreNode *QoreHashNode::swapKeyValue(const QoreString *key, AbstractQoreNode *value, ExceptionSink *xsink)
+{
+   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return 0;
+
+   return swapKeyValue(tmp->getBuffer(), value);
+}
+
+AbstractQoreNode *QoreHashNode::swapKeyValue(const char *key, AbstractQoreNode *value)
+{
+   AbstractQoreNode **v = priv->getKeyValuePtr(key);
+   //printd(5, "QoreHashNode::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, value, v, *v);
+   AbstractQoreNode *rv = *v;
+   *v = value;
+   return rv;
+}
+
 AbstractQoreNode **QoreHashNode::getExistingValuePtr(const QoreString *key, ExceptionSink *xsink)
 {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);

@@ -35,7 +35,7 @@ class AutoVLock;
     Builtin classes (those classes implemented in C++ as opposed to user classes implemented in the Qore language)
     can have "private data", which is data that maintains the state of the object per that class.  QoreObject
     objects store this data as well as any member data.
-    
+
     objects have two levels of reference counts - one is for the existence of the c++ object (tRefs below)
     the other is for the scope of the object (the parent QoreReferenceCounter) - when this reaches 0 the
     object will have its destructor run (if it hasn't already been deleted).

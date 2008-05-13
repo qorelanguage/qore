@@ -579,7 +579,7 @@ static AbstractQoreNode *op_question_mark(const AbstractQoreNode *left, const Ab
 
 static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   // get current value and save
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -609,7 +609,7 @@ static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const Abst
 
 static AbstractQoreNode *op_regex_trans(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   // get current value and save
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -747,7 +747,7 @@ static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const Abstr
    if (*xsink)
       return 0;
 
-   // get current value and save
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -787,7 +787,7 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
    {
       const AbstractQoreNode *lv = left->retrieve_entry(i);
 
-      // get current value and save
+      // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
       LValueHelper v(lv, xsink);
       if (!v)
 	 return 0;
@@ -813,7 +813,11 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
 
 static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   // get current value and save
+   QoreNodeEvalOptionalRefHolder new_right(right, xsink);
+   if (*xsink)
+      return 0;
+
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -824,10 +828,6 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
    // do list plus-equals if left-hand side is a list
    qore_type_t vtype = v.get_type();
    if (vtype == NT_LIST) {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
-
       v.ensure_unique(); // no exception possible here
       QoreListNode *l = reinterpret_cast<QoreListNode *>(v.get_value());
       if (new_right && new_right->getType() == NT_LIST)
@@ -836,9 +836,6 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
 	 l->push(new_right.getReferencedValue());
    } // do hash plus-equals if left side is a hash
    else if (vtype == NT_HASH) {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
       if (new_right) {
 	 if (new_right->getType() == NT_HASH) {
 	    v.ensure_unique();
@@ -852,9 +849,6 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
    }
    // do hash/object plus-equals if left side is an object
    else if (vtype == NT_OBJECT) {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
       if (new_right) {
 	 QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
 	 // do not need ensure_unique() for objects
@@ -868,11 +862,7 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
       }
    }
    // do string plus-equals if left-hand side is a string
-   else if (vtype == NT_STRING)
-   {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
+   else if (vtype == NT_STRING) {
       if (new_right) {
 	 QoreStringValueHelper str(*new_right);
 
@@ -881,47 +871,34 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
 	 vs->concat(*str, xsink);
       }
    }
-   else if (vtype == NT_FLOAT)
-   {
-      double f = right ? right->floatEval(xsink) : 0.0;
-      if (*xsink)
-	 return 0;
+   else if (vtype == NT_FLOAT) {
+      double f = new_right ? new_right->getAsFloat() : 0.0;
       if (f != 0.0) {
 	 v.ensure_unique();
 	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
 	 vf->f += f;
       }
    }
-   else if (vtype == NT_DATE)
-   {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
+   else if (vtype == NT_DATE) {
       if (new_right) {
 	 DateTimeValueHelper date(*new_right);
 	 v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->add(*date));
       }
    }
-   else if (vtype == NT_NOTHING)
-   {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
+   else if (vtype == NT_NOTHING) {
       if (new_right) {
 	 // assign rhs to lhs (take reference for assignment)
 	 v.assign(new_right.getReferencedValue());
       }
    }
    else { // do integer plus-equals
-      int64 iv = right ? right->bigIntEval(xsink) : 0;
-      if (*xsink)
-	 return 0;
+      int64 iv = new_right ? new_right->getAsBigInt() : 0;
 
       // get new value if necessary
       if (v.ensure_unique_int())
 	 return 0;
       QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-
+      
       // increment current value
       i->val += iv;
    }
@@ -933,22 +910,27 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
 
 static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   // get ptr to current value
+   QoreNodeEvalOptionalRefHolder new_right(right, xsink);
+   if (*xsink)
+      return 0;
+
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
 
-   if (!right) {
+   if (is_nothing(*new_right)) {
+      if (!ref_rv)
+	 return 0;
+
       AbstractQoreNode *val = v.get_value();
-      return ref_rv && val ? val->refSelf() : 0;
+      return val ? val->refSelf() : 0;
    }
 
    // do float minus-equals if left side is a float
    qore_type_t vtype = v.get_type();
    if (vtype == NT_FLOAT) {
-      double f = right ? right->floatEval(xsink) : 0.0;
-      if (*xsink)
-	 return 0;
+      double f = new_right->getAsFloat();
 
       if (f) {
 	 v.ensure_unique();
@@ -957,19 +939,11 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
       }
    }
    else if (vtype == NT_DATE) {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
-      if (new_right) {
-	 DateTimeValueHelper date(*new_right);
-	 v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->subtractBy(*date));
-      }
+      DateTimeValueHelper date(*new_right);
+      v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->subtractBy(*date));
    }
    else if (vtype == NT_HASH) {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
-      if (new_right && new_right->getType() != NT_HASH) {
+      if (new_right->getType() != NT_HASH) {
 	 v.ensure_unique();
 	 QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v.get_value());
 
@@ -992,26 +966,18 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
       }
    }
    else if (vtype == NT_NOTHING) {
-      QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-      if (*xsink)
-	 return 0;
-
-      if (new_right) {
-	 if (new_right->getType() == NT_FLOAT) {
-	    const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
-	    v.assign(new QoreFloatNode(-f->f));
-	 }
-	 else {
-	    // optimization to eliminate a virtual function call in the most common case
-	    int64 i = new_right->getAsBigInt();
-	    v.assign(new QoreBigIntNode(-i));
-	 }
+      if (new_right->getType() == NT_FLOAT) {
+	 const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
+	 v.assign(new QoreFloatNode(-f->f));
+      }
+      else {
+	 // optimization to eliminate a virtual function call in the most common case
+	 int64 i = new_right->getAsBigInt();
+	 v.assign(new QoreBigIntNode(-i));
       }
    }
    else { // do integer minus-equals
-      int64 iv = right ? right->bigIntEval(xsink) : 0;
-      if (*xsink)
-	 return 0;
+      int64 iv = new_right->getAsBigInt();
       
       // get new value if necessary
       if (v.ensure_unique_int())
@@ -1036,7 +1002,7 @@ static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const Abstr
    if (*xsink)
       return 0;
 
-   // get ptr to current value
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -1067,7 +1033,7 @@ static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const Abstra
    if (xsink->isEvent())
       return 0;
 
-   // get ptr to current value
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -1097,7 +1063,7 @@ static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const Ab
    if (xsink->isEvent())
       return 0;
 
-   // get ptr to current value
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -1123,16 +1089,18 @@ static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const Ab
 
 static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   // get ptr to current value
+   QoreNodeEvalOptionalRefHolder res(right, xsink);
+   if (*xsink)
+      return 0;
+
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
 
    // is either side a float?
    if (v.get_type() == NT_FLOAT) {
-      double f = right ? right->floatEval(xsink) : 0;
-      if (*xsink)
-	 return 0;
+      double f = res ? res->getAsFloat() : 0;
 
       if (f) {
 	 v.ensure_unique();
@@ -1144,10 +1112,6 @@ static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const 
       }
    }
    else {
-      QoreNodeEvalOptionalRefHolder res(right, xsink);
-      if (*xsink)
-	 return 0;
-
       if (res && res->getType() == NT_FLOAT) {
 	 if (v.get_type() == NT_NOTHING)
 	    v.assign(new QoreFloatNode(0.0));
@@ -1191,7 +1155,7 @@ static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const Ab
    if (*xsink)
       return 0;
 
-   // get ptr to current value
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -1258,7 +1222,7 @@ static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const Abstr
    if (*xsink)
       return 0;
 
-   // get ptr to current value
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -1290,7 +1254,7 @@ static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, cons
    if (*xsink)
       return 0;
 
-   // get ptr to current value
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -1323,7 +1287,7 @@ static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, con
    if (*xsink)
       return 0;
 
-   // get ptr to current value
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
       return 0;
@@ -1478,6 +1442,7 @@ static int64 op_shift_right_int(int64 left, int64 right)
 // variable assignment
 static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(left, xsink);
    if (!n)
       return 0;
@@ -1499,6 +1464,7 @@ static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, 
 // variable assignment
 static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(left, xsink);
    if (!n)
       return 0;
@@ -1520,6 +1486,7 @@ static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, 
 // variable assignment
 static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(left, xsink);
    if (!n)
       return 0;
@@ -1547,6 +1514,7 @@ static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, E
 // variable assignment
 static AbstractQoreNode *op_pre_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(left, xsink);
    if (!n)
       return 0;
@@ -1575,6 +1543,11 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
 {
    printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
+   QoreNodeEvalOptionalRefHolder value(elem, xsink);
+   if (*xsink)
+      return 0;
+
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
    if (!val)
       return 0;
@@ -1592,14 +1565,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
 
    printd(5, "op_unshift() about to call unshift() on list node %08p (%d) with element %08p\n", l, l->size(), elem);
 
-   if (elem) {
-      ReferenceHolder<AbstractQoreNode> e(elem->eval(xsink), xsink);
-      if (*xsink)
-	 return 0;
-      l->insert(e.release());
-   }
-   else
-      l->insert(0);
+   l->insert(value.getReferencedValue());
 
    // reference for return value
    return ref_rv ? l->refSelf() : 0;
@@ -1610,6 +1576,7 @@ static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQo
    //tracein("op_shift()");
    printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
    if (!val)
       return 0;
@@ -1633,6 +1600,7 @@ static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQore
 {
    printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
    if (!val)
       return 0;
@@ -1657,6 +1625,11 @@ static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQor
    //tracein("op_push()");
    printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
+   QoreNodeEvalOptionalRefHolder value(elem, xsink);
+   if (*xsink)
+      return 0;
+
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
    if (!val)
       return 0;
@@ -1671,14 +1644,7 @@ static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQor
 
    printd(5, "op_push() about to call push() on list node %08p (%d) with element %08p\n", l, l->size(), elem);
 
-   if (elem) {
-      ReferenceHolder<AbstractQoreNode> e(elem->eval(xsink), xsink);
-      if (*xsink)
-	 return 0;
-      l->push(e.release());
-   }
-   else
-      l->push(0);
+   l->push(value.getReferencedValue());
 
    // reference for return value
    return ref_rv ? l->refSelf() : 0;
@@ -1692,6 +1658,12 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
    assert(n_l->getType() == NT_LIST);
    const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n_l);
 
+   // evaluate list
+   QoreListNodeEvalOptionalRefHolder nl(l, xsink);
+   if (*xsink)
+      return 0;
+
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
    if (!val)
       return 0;
@@ -1703,11 +1675,6 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
       return 0;
    }
    
-   // evaluate list
-   QoreListNodeEvalOptionalRefHolder nl(l, xsink);
-   if (*xsink)
-      return 0;
-
    // no exception can occur here
    val.ensure_unique();
 
@@ -1759,6 +1726,7 @@ static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, Ex
 {
    //tracein("op_chomp()");
 
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(arg, xsink);
    if (!val)
       return 0;
@@ -1812,6 +1780,7 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
 {
    //tracein("op_trim()");
    
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(arg, xsink);
    if (!val)
       return 0;

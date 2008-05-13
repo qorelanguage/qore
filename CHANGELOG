@@ -4,6 +4,8 @@
 	  implementation where the nested object is referenced, then the
 	  containing object's lock is released, then the nested object is
 	  accessed, then the nested object's reference count is decremented.
+	* rearranged execution order to avoid running any code while an
+	  lvalue lock is held
 
 2008.05.07: David Nichols
 	* updated QoreClass, QoreMethod, and QoreObject to funnel all method
