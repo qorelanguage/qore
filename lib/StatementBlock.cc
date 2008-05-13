@@ -347,8 +347,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 	 lvids = process_node(r->getExpressionPtr(), oflag, pflag);
 	 // if a background expression is being parsed, then check that no references to local variables
 	 // or object members are being used
-	 if (pflag & PF_BACKGROUND)
-	 {
+	 if (pflag & PF_BACKGROUND) {
 	    int vtype = getBaseLVType(r->getExpression());
 
 	    if (vtype == VT_LOCAL)

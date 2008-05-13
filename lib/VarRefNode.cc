@@ -65,14 +65,12 @@ const char *VarRefNode::getTypeName() const
 void VarRefNode::resolve()
 {
    LocalVar *id;
-   if ((id = find_local_var(name)))
-   {
+   if ((id = find_local_var(name))) {
       type = VT_LOCAL;
       ref.id = id;
       printd(5, "VarRefNode::resolve(): local var %s resolved (id=%08p)\n", name, ref.id);
    }
-   else
-   {
+   else {
       ref.var = getProgram()->checkGlobalVar(name);
       type = VT_GLOBAL;
       printd(5, "VarRefNode::resolve(): global var %s resolved (var=%08p)\n", name, ref.var);
@@ -83,8 +81,7 @@ void VarRefNode::resolve()
 int VarRefNode::resolveExisting()
 {
    LocalVar *id;
-   if ((id = find_local_var(name)))
-   {
+   if ((id = find_local_var(name))) {
       type = VT_LOCAL;
       ref.id = id;
       printd(5, "VarRefNode::resolveExisting(): local var %s resolved (id=%08p)\n", name, ref.id);
@@ -99,8 +96,7 @@ int VarRefNode::resolveExisting()
 
 AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const
 {
-   if (type == VT_LOCAL)
-   {
+   if (type == VT_LOCAL) {
       printd(5, "VarRefNode::eval() lvar %08p (%s)\n", ref.id, ref.id);
       return ref.id->eval(xsink);
    }

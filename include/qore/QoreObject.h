@@ -46,6 +46,9 @@ class AutoVLock;
 */
 class QoreObject : public AbstractQoreNode
 {
+      friend struct qore_object_private;
+      friend class qore_object_lock_handoff_manager;
+
    private:
       //! the private implementation of the class
       struct qore_object_private *priv;
@@ -54,7 +57,6 @@ class QoreObject : public AbstractQoreNode
       DLLLOCAL void doDeleteIntern(ExceptionSink *xsink);
       DLLLOCAL void cleanup(ExceptionSink *xsink, QoreHashNode *td);
       DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
-      DLLLOCAL int check_access(ExceptionSink *xsink) const;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreObject(const QoreObject&);

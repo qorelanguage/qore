@@ -49,7 +49,6 @@ union VarValue {
       // for value
       struct {
 	    AbstractQoreNode *value;
-	    char *name;
       } val;
       // for imported variables
       struct {
@@ -65,9 +64,14 @@ class Var : public QoreReferenceCounter
       unsigned char type;
       // holds the value of the variable or a pointer to the imported variable
       union VarValue v;
-      mutable VRMutex gate;
+      std::string name;
+      mutable QoreThreadLock m;
 
       DLLLOCAL void del(ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *evalIntern(ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode **getValuePtrIntern(AutoVLock *vl, ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *getValueIntern(AutoVLock *vl, ExceptionSink *xsink);
+      DLLLOCAL void setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink);
 
    protected:
       DLLLOCAL ~Var() {}
@@ -83,6 +87,22 @@ class Var : public QoreReferenceCounter
       DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const;
       DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink);
+};
+
+class AutoVarRefHolder {
+      Var *v;
+      ExceptionSink *xsink;
+
+   public:
+      DLLLOCAL AutoVarRefHolder(Var *n_v, ExceptionSink *n_xsink) : v(n_v), xsink(n_xsink)
+      {
+	 v->ROreference();
+      }
+      DLLLOCAL ~AutoVarRefHolder()
+      {
+	 v->deref(xsink);
+      }
+      DLLLOCAL Var *operator->() { return v; }
 };
 
 DLLLOCAL AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink);

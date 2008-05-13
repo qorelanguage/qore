@@ -37,13 +37,13 @@ class AbstractSmartLock;
 class AutoVLock
 {
    private:
-      //! the count of locks held directly in this structure
-      int counter;
-      //! copy of the ExceptionSink pointer
+      // pointer to lock currently held
+      QoreThreadLock *m;
+
+      // pointer to ExceptionSink object for use with object notifications
       ExceptionSink *xsink;
-      //! the list of locks held directly in this structure
-      AbstractSmartLock *fp[QORE_AVL_INTERN];
-      //! private implementation of the generic lock container
+
+      //! private implementation of the generic lock container (for object notifications)
       struct qore_avl_private *priv;
    
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -55,16 +55,21 @@ class AutoVLock
    
    public:
       //! creates an empty lock container
+      /** @param n_xsink pointer to ExceptionSink object for use with object notifications
+       */
       DLLEXPORT AutoVLock(ExceptionSink *n_xsink);
 
       //! releases all locks held and destroys the container
       DLLEXPORT ~AutoVLock();
 
-      //! manually releases all locks held
+      //! manually releases the lock currently held
       DLLEXPORT void del();
 
-      //! pushes a lock on the list
-      DLLLOCAL void push(class AbstractSmartLock *asl);
+      //! sets the current lock
+      DLLLOCAL void set(QoreThreadLock *n_m);
+
+      //! gets the current lock
+      DLLLOCAL QoreThreadLock *get();
 
       //! adds an object member notification entry, internal-only
       /** @param o the object to add

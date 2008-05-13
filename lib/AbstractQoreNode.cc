@@ -323,10 +323,13 @@ static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink 
    }
 
    // otherwise process each list element
-   QoreListNode *l = new QoreListNode(true);
-   for (unsigned i = 0; i < n->size(); i++)
+   ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
+   for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
-   return l;
+      if (*xsink)
+	 return 0;
+   }
+   return l.release();
 }
 
 static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink)
@@ -336,11 +339,14 @@ static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionS
    if (!n->needs_eval())
       return n->refSelf();
 
-   QoreHashNode *h = new QoreHashNode(1);
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
    ConstHashIterator hi(n);
-   while (hi.next())
+   while (hi.next()) {
       h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);
-   return h;
+      if (*xsink)
+	 return 0;
+   }
+   return h.release();
 }
 
 static inline AbstractQoreNode *crlr_tree_copy(const QoreTreeNode *n, ExceptionSink *xsink)
@@ -375,6 +381,24 @@ static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, Excep
    return 0;
 }
 
+static inline AbstractQoreNode *call_ref_call_copy(const CallReferenceCallNode *n, ExceptionSink *xsink)
+{
+   ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   QoreListNode *args = const_cast<QoreListNode *>(n->getArgs());
+   if (args) {
+      ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
+      if (*xsink)
+	 return 0;
+
+      args = args_holder.release();
+   }
+
+   return new CallReferenceCallNode(exp.release(), args);
+}
+
 static inline AbstractQoreNode *eval_notnull(const AbstractQoreNode *n, ExceptionSink *xsink)
 {
    n = n->eval(xsink);
@@ -407,6 +431,9 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
 
    if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->type == VT_LOCAL)
       return eval_notnull(n, xsink);
+
+   if (ntype == NT_FUNCREFCALL)
+      return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode *>(n), xsink);
 
    return n->refSelf();
 }

@@ -186,6 +186,13 @@ class SafeLocker
 	 locked = false;
 	 lck->unlock();
       }
+
+      //! will not unlock the lock when the destructor is run; do not use any other functions of this class after calling this function
+      DLLEXPORT void stay_locked()
+      {
+	 assert(locked);
+	 locked = false;
+      }
 };
 
 #endif // _QORE_QORETHREADLOCK_H

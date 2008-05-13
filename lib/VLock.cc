@@ -38,16 +38,13 @@ struct qore_obj_notification_s {
 typedef std::vector<qore_obj_notification_s> qore_notify_list_t;
 
 struct qore_avl_private {
-      abstract_lock_list_t *l;
       qore_notify_list_t *notify_list;
 
-      DLLLOCAL qore_avl_private() : l(0), notify_list(0)
+      DLLLOCAL qore_avl_private() : notify_list(0)
       {
       }
       DLLLOCAL ~qore_avl_private()
       {
-	 if (l)
-	    delete l;
 	 if (notify_list)
 	    delete notify_list;
       }
@@ -66,7 +63,7 @@ struct qore_avl_private {
       }
 };
 
-AutoVLock::AutoVLock(ExceptionSink *n_xsink) : counter(0), xsink(n_xsink), priv(0)
+AutoVLock::AutoVLock(ExceptionSink *n_xsink) : m(0), xsink(n_xsink), priv(0)
 {
    //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
 }
@@ -91,32 +88,21 @@ AutoVLock::~AutoVLock()
 
 void AutoVLock::del()
 {
-   //printd(5, "AutoVLock::del() this=%08p size=%d\n", this, size());
-
-   if (priv && priv->l) {
-      abstract_lock_list_t::iterator i;
-      while ((i = priv->l->begin()) != priv->l->end()) {
-	 //printd(5, "AutoVLock::del() this=%08p releasing=%08p\n", this, *i);
-	 (*i)->release();
-	 priv->l->erase(i);
-      }
+   if (m) {
+      m->unlock();
+      m = 0;
    }
-   while (counter)
-      fp[--counter]->release();
 }
 
-void AutoVLock::push(class AbstractSmartLock *p)
+void AutoVLock::set(QoreThreadLock *n_m)
 {
-   //printd(5, "AutoVLock::push(%08p) this=%08p\n", p, this);
-   if (counter == QORE_AVL_INTERN) {
-      if (!priv)
-	 priv = new qore_avl_private;
-      if (!priv->l)
-	 priv->l = new abstract_lock_list_t;
-      priv->l->push_back(p);
-      return;
-   }
-   fp[counter++] = p;
+   assert(!m);
+   m = n_m;
+}
+
+QoreThreadLock *AutoVLock::get()
+{
+   return m;
 }
 
 void AutoVLock::addMemberNotification(QoreObject *obj, const char *member)

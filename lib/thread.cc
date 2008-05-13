@@ -183,7 +183,7 @@ class ThreadLocalVariableData {
 #ifndef HAVE_UNLIMITED_THREAD_KEYS
       DLLLOCAL LocalVarValue *find_current(const char *id)
       {
-	 class ThreadVariableBlock *w = curr;
+	 ThreadVariableBlock *w = curr;
 	 while (true)
 	 {
 	    int p = w->pos;
@@ -202,7 +202,7 @@ class ThreadLocalVariableData {
 
       DLLLOCAL LocalVarValue *find(const char *id)
       {
-	 class ThreadVariableBlock *w = curr;
+	 ThreadVariableBlock *w = curr;
 	 while (true)
 	 {
 	    int p = w->pos;

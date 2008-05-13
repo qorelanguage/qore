@@ -5,6 +5,7 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 qore 0.7.0 is a major release with major new features
 *) stable ABI and API, cleaned-up public header files, development packages
 *) complete reimplementation of the type and operator subsystems
+*) reimplemented variable and object locking, no more possibility of nested locks and deadlocks
 *) major performance and memory usage improvements
 *) new special object method: "memberNotification()", called when members are updated externally to the class
 *) documented public API (with doxygen)

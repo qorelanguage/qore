@@ -30,13 +30,13 @@
 #include <assert.h>
 
 // global class ID sequence
-DLLLOCAL class Sequence classIDSeq;
+DLLLOCAL Sequence classIDSeq;
 
 // private QoreClass implementation
 struct qore_qc_private {
       char *name;                  // the name of the class
-      class BCAList *bcal;         // base constructor argument list
-      class BCList *scl;           // base class list
+      BCAList *bcal;         // base constructor argument list
+      BCList *scl;           // base class list
       hm_method_t hm, hm_pending;  // method maps
       strset_t pmm, pending_pmm;   // private member lists (sets)
 
@@ -44,14 +44,14 @@ struct qore_qc_private {
 	 *copyMethod, *methodGate, *memberGate, *deleteBlocker,
 	 *memberNotification;
 
-      qore_classid_t classID,      // class ID
-         methodID;                 // for subclasses of builtin classes that will not have their own private data,
-                                   //   instead they will get the private data from this class
-      bool sys,                    // system class?
-	 initialized,              // is initialized?
-	 has_delete_blocker;       // has a delete_blocker function somewhere in the hierarchy?
-      int domain;             // capabilities of builtin class to use in the context of parse restrictions
-      class QoreReferenceCounter nref;  // namespace references
+      qore_classid_t classID,     // class ID
+         methodID;                // for subclasses of builtin classes that will not have their own private data,
+                                  //   instead they will get the private data from this class
+      bool sys,                   // system class?
+	 initialized,             // is initialized?
+	 has_delete_blocker;      // has a delete_blocker function somewhere in the hierarchy?
+      int domain;                 // capabilities of builtin class to use in the context of parse restrictions
+      QoreReferenceCounter nref;  // namespace references
 
       DLLLOCAL qore_qc_private(const char *nme, int dom = QDOM_DEFAULT)
       {
@@ -72,8 +72,7 @@ struct qore_qc_private {
       {
 	 //printd(5, "QoreClass::~QoreClass() deleting %08p %s\n", this, name);
 	 hm_method_t::iterator i;
-	 while ((i = hm.begin()) != hm.end())
-	 {
+	 while ((i = hm.begin()) != hm.end()) {
 	    const QoreMethod *m = i->second;
 	    //printd(5, "QoreClass::~QoreClass() deleting method %08p %s::%s()\n", m, name, m->getName());
 	    hm.erase(i);
@@ -81,15 +80,13 @@ struct qore_qc_private {
 	 }   
 	 // delete private member list
 	 strset_t::iterator j;
-	 while ((j = pmm.begin()) != pmm.end())
-	 {
+	 while ((j = pmm.begin()) != pmm.end()) {
 	    char *n = *j;
 	    pmm.erase(j);
 	    //printd(5, "QoreClass::~QoreClass() freeing private member %08p '%s'\n", n, n);
 	    free(n);
 	 }
-	 while ((j = pending_pmm.begin()) != pending_pmm.end())
-	 {
+	 while ((j = pending_pmm.begin()) != pending_pmm.end()) {
 	    char *n = *j;
 	    pending_pmm.erase(j);
 	    //printd(5, "QoreClass::~QoreClass() freeing pending private member %08p '%s'\n", n, n);
@@ -109,8 +106,7 @@ struct qore_qc_private {
       DLLLOCAL void delete_pending_methods()
       {
 	 hm_method_t::iterator i;
-	 while ((i = hm_pending.begin()) != hm_pending.end())
-	 {
+	 while ((i = hm_pending.begin()) != hm_pending.end()) {
 	    const QoreMethod *m = i->second;
 	    //printd(5, "QoreClass::~QoreClass() deleting pending method %08p %s::%s()\n", m, name, m->getName());
 	    hm_pending.erase(i);
@@ -283,15 +279,13 @@ BCANode::~BCANode()
 
 inline void BCANode::resolve()
 {
-   if (ns)
-   {
+   if (ns) {
       sclass = getRootNS()->parseFindScopedClass(ns);
       printd(5, "BCANode::resolve() this=%08p resolved named scoped %s -> %08p\n", this, ns->ostr, sclass);
       delete ns;
       ns = 0;
    }
-   else
-   {
+   else {
       sclass = getRootNS()->parseFindClass(name);
       printd(5, "BCANode::resolve() this=%08p resolved %s -> %08p\n", this, name, sclass);
       free(name);
@@ -320,8 +314,7 @@ inline BCList::BCList()
 inline BCList::~BCList()
 {
    bclist_t::iterator i;
-   while ((i = begin()) != end())
-   {
+   while ((i = begin()) != end()) {
       delete *i;
       // erase() is constant time as long as i == begin()
       erase(i);
@@ -342,26 +335,22 @@ void BCList::deref()
 inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_delete_blocker)
 {
    printd(5, "BCList::parseInit(%s) this=%08p empty=%d, bcal=%08p\n", cls->getName(), this, empty(), bcal);
-   for (bclist_t::iterator i = begin(); i != end(); i++)
-   {
+   for (bclist_t::iterator i = begin(); i != end(); i++) {
       if (!(*i)->sclass)
-	 if ((*i)->cname)
-	 {
+	 if ((*i)->cname) {
 	    (*i)->sclass = getRootNS()->parseFindScopedClass((*i)->cname);
 	    printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cname->ostr, (*i)->sclass);
 	    delete (*i)->cname;
 	    (*i)->cname = 0;
 	 }
-	 else
-	 {
+	 else {
 	    (*i)->sclass = getRootNS()->parseFindClass((*i)->cstr);
 	    printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cstr, (*i)->sclass);
 	    free((*i)->cstr);
 	    (*i)->cstr = 0;
 	 }
       // recursively add base classes to special method list
-      if ((*i)->sclass)
-      {
+      if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 if (!has_delete_blocker && (*i)->sclass->has_delete_blocker())
 	    has_delete_blocker = true;
@@ -372,10 +361,8 @@ inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_del
    }
 
    // compare each class in the list to ensure that there are no duplicates
-   for (bclist_t::iterator i = begin(); i != end(); i++)
-   {
-      if ((*i)->sclass)
-      {
+   for (bclist_t::iterator i = begin(); i != end(); i++) {
+      if ((*i)->sclass) {
 	 bclist_t::iterator j = i;
 	 while (++j != end())
 	    if ((*i)->sclass == (*j)->sclass)
@@ -385,10 +372,8 @@ inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_del
 
    // if there is a base constructor list, resolve all classes and 
    // ensure that all classes referenced are base classes of this class
-   if (bcal)
-   {
-      for (bcalist_t::iterator i = bcal->begin(); i != bcal->end(); i++)
-      {
+   if (bcal) {
+      for (bcalist_t::iterator i = bcal->begin(); i != bcal->end(); i++) {
 	 (*i)->resolve();
 	 if ((*i)->sclass && !match(*i))
 	    parse_error("%s in base constructor argument list is not a base class of %s", (*i)->sclass->getName(), cls->getName());
@@ -399,10 +384,8 @@ inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_del
 // called at run time
 inline const QoreMethod *BCList::findMethod(const char *name) const
 {
-   for (bclist_t::const_iterator i = begin(); i != end(); i++)
-   {
-      if ((*i)->sclass)
-      {
+   for (bclist_t::const_iterator i = begin(); i != end(); i++) {
+      if ((*i)->sclass) {
 	 // assert that the base class list has already been initialized if it exists
 	 assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
 
@@ -417,10 +400,8 @@ inline const QoreMethod *BCList::findMethod(const char *name) const
 // called at parse time
 inline const QoreMethod *BCList::findParseMethod(const char *name)
 {
-   for (bclist_t::iterator i = begin(); i != end(); i++)
-   {
-      if ((*i)->sclass)
-      {
+   for (bclist_t::iterator i = begin(); i != end(); i++) {
+      if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->findParseMethod(name)))
@@ -433,13 +414,10 @@ inline const QoreMethod *BCList::findParseMethod(const char *name)
 // only called at run-time
 inline const QoreMethod *BCList::findMethod(const char *name, bool &priv) const
 {
-   for (bclist_t::const_iterator i = begin(); i != end(); i++)
-   {
-      if ((*i)->sclass)
-      {
+   for (bclist_t::const_iterator i = begin(); i != end(); i++) {
+      if ((*i)->sclass) {
 	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->findMethod(name, priv)))
-	 {
+	 if ((m = (*i)->sclass->findMethod(name, priv))) {
 	    if ((*i)->priv)
 	       priv = true;
 	    return m;
@@ -451,10 +429,8 @@ inline const QoreMethod *BCList::findMethod(const char *name, bool &priv) const
 
 inline bool BCList::match(class BCANode *bca)
 {
-   for (bclist_t::iterator i = begin(); i != end(); i++)
-   {
-      if (bca->sclass == (*i)->sclass)
-      {
+   for (bclist_t::iterator i = begin(); i != end(); i++) {
+      if (bca->sclass == (*i)->sclass) {
 	 (*i)->args = bca->argexp;
 	 bca->argexp = 0;
 	 (*i)->hasargs = true;
@@ -474,10 +450,8 @@ inline bool BCList::isPrivateMember(const char *str) const
 
 inline const QoreMethod *BCList::resolveSelfMethod(const char *name)
 {
-   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i)
-   {
-      if ((*i)->sclass)
-      {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+      if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->resolveSelfMethodIntern(name)))
@@ -489,8 +463,7 @@ inline const QoreMethod *BCList::resolveSelfMethod(const char *name)
 
 bool BCList::execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const
 {
-   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
-   {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       //printd(5, "BCList::execDeleteBlockers() %s o=%08p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName());
 
       if ((*i)->sclass->execDeleteBlocker(o, xsink))
@@ -501,8 +474,7 @@ bool BCList::execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const
 
 void BCList::execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const
 {
-   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
-   {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       printd(5, "BCList::execConstructors() %s::constructor() o=%08p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName()); 
       
       // do not execute constructors for virtual base classes
@@ -532,8 +504,7 @@ BCAList::BCAList(class BCANode *n)
 BCAList::~BCAList()
 {
    bcalist_t::iterator i;
-   while ((i = begin()) != end())
-   {
+   while ((i = begin()) != end()) {
       delete *i;
       erase(i);
    }
@@ -567,8 +538,7 @@ const QoreMethod *QoreClass::findLocalMethod(const char *nme) const
 const QoreMethod *QoreClass::findMethod(const char *nme) const
 {
    const QoreMethod *w;
-   if (!(w = findLocalMethod(nme)))
-   {
+   if (!(w = findLocalMethod(nme))) {
       // search superclasses
       if (priv->scl)
 	 w = priv->scl->findMethod(nme);
@@ -581,8 +551,7 @@ const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const
    priv_flag = false;
 
    const QoreMethod *w;
-   if (!(w = findLocalMethod(nme)))
-   {
+   if (!(w = findLocalMethod(nme))) {
       // search superclasses
       if (priv->scl)
 	 w = priv->scl->findMethod(nme, priv_flag);
@@ -593,28 +562,13 @@ const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const
 const QoreMethod *QoreClass::findParseMethod(const char *nme)
 {
    const QoreMethod *w;
-   if (!(w = findLocalMethod(nme)))
-   {
+   if (!(w = findLocalMethod(nme))) {
       // search superclasses
       if (priv->scl)
 	 w = priv->scl->findParseMethod(nme);
    }
    return w;
 }
-
-/*
-const QoreMethod *QoreClass::findParseMethod(const char *nme, bool *priv_flag)
-{
-   const QoreMethod *w;
-   if (!(w = findLocalMethod(nme)))
-   {
-      // search superclasses
-      if (priv->scl)
-	 w = priv->scl->findParseMethod(nme, priv_flag);
-   }
-   return w;
-}
-*/
 
 // only called when parsing
 void QoreClass::setName(const char *n)
@@ -850,14 +804,12 @@ void QoreMethod::parseInitConstructor(class BCList *bcl)
 QoreMethod *QoreMethod::copy(const QoreClass *p_class) const
 {
    class QoreMethod *nof;
-   if (priv->type == OTF_USER)
-   {
+   if (priv->type == OTF_USER) {
       priv->func.userFunc->ROreference();
       nof = new QoreMethod(p_class);
       nof->userInit(priv->func.userFunc, priv->priv_flag);
    }
-   else
-   {
+   else {
       priv->func.builtin->ROreference();
       nof = new QoreMethod(p_class, priv->func.builtin);
    }
@@ -874,15 +826,12 @@ static inline const QoreClass *getStackClass()
 
 void QoreClass::addPrivateMember(char *nme)
 {
-   if (priv->pmm.find(nme) == priv->pmm.end())
-   {
-      if (priv->pending_pmm.find(nme) == priv->pending_pmm.end())
-      {
+   if (priv->pmm.find(nme) == priv->pmm.end()) {
+      if (priv->pending_pmm.find(nme) == priv->pending_pmm.end()) {
 	 //printd(5, "QoreClass::addPrivateMember() this=%08p %s adding %08p %s\n", this, priv->name, nme, nme);
 	 priv->pending_pmm.insert(nme);
       }
-      else
-      {
+      else {
 	 if (priv->name)
 	    parse_error("private member '%s' already pending in class %s", nme, priv->name ? priv->name : "<pending>");
 	 else
@@ -890,8 +839,7 @@ void QoreClass::addPrivateMember(char *nme)
 	 free(nme);
       }
    }
-   else
-   {
+   else {
       parse_error("private member '%s' already declared in class %s", nme, priv->name ? priv->name : "<pending>");
       free(nme);
    }
@@ -900,8 +848,7 @@ void QoreClass::addPrivateMember(char *nme)
 inline bool BCSMList::isBaseClass(class QoreClass *qc) const
 {
    class_list_t::const_iterator i = begin();
-   while (i != end())
-   {
+   while (i != end()) {
       if (qc == (*i).first)
 	 return true;
       i++;
@@ -912,29 +859,23 @@ inline bool BCSMList::isBaseClass(class QoreClass *qc) const
 inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc, bool is_virtual)
 {
    //printd(5, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
-   class_list_t::const_iterator i = begin();
-   while (i != end())
-   {
+   for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i)
       sc->priv->scl->sml.add(thisclass, (*i).first, is_virtual || (*i).second);
-      i++;
-   }
 }
 
-inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc, bool is_virtual)
+inline void BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual)
 {
-   if (thisclass == qc)
-   {
+   if (thisclass == qc) {
       parse_error("class '%s' cannot inherit itself", qc->getName());
       return;
    }
+
    // see if class already exists in list
    class_list_t::const_iterator i = begin();
-   while (i != end())
-   {
+   while (i != end()) {
       if ((*i).first == qc)
          return;
-      if ((*i).first == thisclass)
-      {
+      if ((*i).first == thisclass) {
       	 parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
       	 return;
       }
@@ -949,8 +890,7 @@ inline void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const
 {
    class_list_t::const_reverse_iterator i = rbegin();
    // cast below required by g++ 3.2 at least
-   while (i != rend())
-   {
+   while (i != rend()) {
       printd(5, "BCSMList::execDestructors() %s::destructor() o=%08p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
       if (!(*i).second)
 	 (*i).first->execSubclassDestructor(o, xsink);
@@ -961,8 +901,7 @@ inline void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const
 inline void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const
 {
    class_list_t::const_reverse_iterator i = rbegin();
-   while (i != rend())
-   {
+   while (i != rend()) {
       printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%08p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
       if (!(*i).second)
 	 (*i).first->execSubclassSystemDestructor(o, xsink);
@@ -973,8 +912,7 @@ inline void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink)
 inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const
 {
    class_list_t::const_iterator i = begin();
-   while (i != end())
-   {
+   while (i != end()) {
       if (!(*i).second) {
 	 (*i).first->execSubclassCopy(self, old, xsink);
 	 if (xsink->isEvent())
@@ -987,8 +925,7 @@ inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, Excepti
 inline class QoreClass *BCSMList::getClass(qore_classid_t cid) const
 {
    class_list_t::const_iterator i = begin();
-   while (i != end())
-   {
+   while (i != end()) {
       if ((*i).first->getID() == cid)
 	 return (*i).first;
       i++;
@@ -1053,8 +990,7 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
 
       if (priv->type == OTF_USER)
 	 rv = priv->func.userFunc->eval(args, self, xsink, priv->parent_class->getName());
-      else
-      {
+      else {
 	 // save current program location in case there's an exception
 	 const char *o_fn = get_pgm_file();
 	 int o_ln, o_eln;
@@ -1092,8 +1028,7 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
 
    if (priv->type == OTF_USER)
       discard(priv->func.userFunc->evalConstructor(args, self, bcl, bceal, priv->parent_class->getName(), xsink), xsink);
-   else
-   {
+   else {
       // evalute arguments before calling builtin method
       QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
       if (*xsink)
@@ -1222,8 +1157,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       return execCopy(self, xsink);
 
    bool priv_flag;
-   if (!(w = findMethod(nme, priv_flag)))
-   {
+   if (!(w = findMethod(nme, priv_flag))) {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
 	 return evalMethodGate(self, nme, args, xsink);
       // otherwise return an exception
@@ -1232,20 +1166,17 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
    }
 
    // check for illegal explicit call
-   if (w == priv->constructor || w == priv->destructor || w == priv->deleteBlocker)
-   {
+   if (w == priv->constructor || w == priv->destructor || w == priv->deleteBlocker) {
       xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
       return 0;      
    }
 
    if (external)
-      if (w->isPrivate())
-      {
+      if (w->isPrivate()) {
 	 xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", priv->name, nme);
 	 return 0;
       }
-      else if (priv_flag)
-      {
+      else if (priv_flag) {
 	 xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class of %s", nme, priv->name);
 	 return 0;
       }
@@ -1260,8 +1191,7 @@ AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, c
    ReferenceHolder<QoreListNode> args_holder(xsink);
 
    // build new argument list
-   if (args)
-   {
+   if (args) {
       if (args->needs_eval())
 	 args_holder = args->evalList(xsink);
       else
@@ -1327,8 +1257,7 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
 
    printd(5, "QoreClass::execConstructor() %s::constructor() o=%08p\n", priv->name, o);
 
-   if (!priv->constructor)
-   {
+   if (!priv->constructor) {
       if (priv->scl) // execute superconstructors if any
 	 priv->scl->execConstructors(o, bceal, xsink);
    }
@@ -1338,8 +1267,7 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
    if (bceal)
       bceal->deref(xsink);
 
-   if (*xsink)
-   {
+   if (*xsink) {
       // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
       // which will clear out all the private data by running their dereference methods which should generally be OK
       o->obliterate(xsink);
@@ -1469,16 +1397,14 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
    ReferenceHolder<QoreObject> self(new QoreObject(this, getProgram(), h), xsink);
 
    // execute superclass copy methods
-   if (priv->scl)
-   {
+   if (priv->scl) {
       o_fn = get_pgm_file();
       get_pgm_counter(o_ln, o_eln);
 
       priv->scl->sml.execCopyMethods(*self, old, xsink);
    }
    
-   if (priv->copyMethod && !xsink->isEvent())
-   {
+   if (priv->copyMethod && !xsink->isEvent()) {
       // reload the old position for the copy method
       if (o_fn)
 	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);
@@ -1528,16 +1454,13 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme)
       err = true;
 
    // look in pending methods
-   if (!m)
-   {
+   if (!m) {
       // pending methods are not set to the quick pointers, so we have to compare the strings...
       if (!strcmp(nme, "constructor") || !strcmp(nme, "destructor"))
 	 err = true;
-      else
-      {
+      else {
 	 hm_method_t::iterator i = priv->hm_pending.find(nme);
-	 if (i != priv->hm_pending.end())
-	 {
+	 if (i != priv->hm_pending.end()) {
 	    m = i->second;
 	    printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending method %s::%s() %08p\n", nme, priv->name, nme, m);
 	 }
@@ -1545,8 +1468,7 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme)
    }
 
    // if still not found now look in superclass methods
-   if (!err && !m && priv->scl)
-   {
+   if (!err && !m && priv->scl) {
       m = priv->scl->resolveSelfMethod(nme);
 #ifdef DEBUG
       if (m)
@@ -1554,8 +1476,7 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme)
 #endif
    }
 
-   if (err)
-   {
+   if (err) {
       parse_error("explicit calls to ::%s() methods are not allowed", nme);
       m = 0;
    }
@@ -1573,8 +1494,7 @@ const QoreMethod *QoreClass::resolveSelfMethod(class NamedScope *nme)
       return 0;
 
    // see if class is base class of this class
-   if (qc != this && !priv->scl->sml.isBaseClass(qc))
-   {
+   if (qc != this && !priv->scl->sml.isBaseClass(qc)) {
       parse_error("'%s' is not a base class of '%s'", qc->getName(), priv->name ? priv->name : "<pending>");
       return 0;
    }
@@ -1586,21 +1506,18 @@ const QoreMethod *QoreClass::resolveSelfMethod(class NamedScope *nme)
       err = true;
 
    // look in pending methods
-   if (!m)
-   {
+   if (!m) {
       // pending methods are not set to the quick pointers, so we have to compare the strings...
       if (!strcmp(nstr, "constructor") || !strcmp(nstr, "destructor"))
 	 err = true;
-      else
-      {
+      else {
 	 hm_method_t::iterator i = qc->priv->hm_pending.find(nstr);
 	 if (i != qc->priv->hm_pending.end())
 	    m = i->second;
       }
    }
 
-   if (err)
-   {
+   if (err) {
       parse_error("explicit calls to ::%s() methods are not allowed", nstr);
       m = 0;
    }
@@ -1618,21 +1535,18 @@ void QoreClass::addMethod(QoreMethod *m)
    m->assign_class(this);
    bool dst = !strcmp(m->getName(), "destructor");
    // check for illegal private constructor or destructor
-   if (!strcmp(m->getName(), "constructor") || dst)
-   {
+   if (!strcmp(m->getName(), "constructor") || dst) {
       if (m->isPrivate())
 	 parseException("ILLEGAL-PRIVATE-METHOD", "%s methods cannot be private", m->getName());
    }
 
    // if the method already exists or the user is trying to define a user destructor on a system object
    // (system objects without explicit destructors have an implicit default system destructor that cannot be overridden)
-   if (parseFindMethod(m->getName()) || (priv->sys && dst))
-   {
+   if (parseFindMethod(m->getName()) || (priv->sys && dst)) {
       parse_error("method '%s::%s()' has already been defined", priv->name ? priv->name : "<pending>", m->getName());
       delete m;
    }
-   else
-   {
+   else {
       // insert in pending list for parse init
       priv->hm_pending[m->getName()] = m;
    }
@@ -1641,13 +1555,11 @@ void QoreClass::addMethod(QoreMethod *m)
 int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
 {
    // if the constructor is being defined after the class has already been initialized, then throw a parse exception
-   if (numMethods())
-   {
+   if (numMethods()) {
       parse_error("constructors giving explicit arguments to base constructors must be defined when the class is defined");
       return -1;
    }
-   else if (priv->bcal)
-   {
+   else if (priv->bcal) {
       parse_error("a constructor with a base class argument list has already been defined");
       return -1;
    }
@@ -1719,8 +1631,7 @@ QoreListNode *QoreClass::getMethodList() const
 // one-time initialization
 void QoreClass::initialize()
 {
-   if (!priv->initialized)
-   {
+   if (!priv->initialized) {
       printd(5, "QoreClass::parseInit() %s this=%08p pending size=%d, scl=%08p, bcal=%08p\n", priv->name, this, priv->hm_pending.size(), priv->scl, priv->bcal);
       if (priv->scl)
 	 priv->scl->parseInit(this, priv->bcal, priv->has_delete_blocker);
@@ -1737,8 +1648,7 @@ void QoreClass::parseInit()
    setParseClass(this);
    initialize();
 
-   for (hm_method_t::iterator i = priv->hm_pending.begin(); i != priv->hm_pending.end(); i++)
-   {
+   for (hm_method_t::iterator i = priv->hm_pending.begin(); i != priv->hm_pending.end(); i++) {
       // initialize method
       if (!strcmp(i->second->getName(), "constructor"))
 	 i->second->parseInitConstructor(priv->scl);
@@ -1746,10 +1656,8 @@ void QoreClass::parseInit()
 	 i->second->parseInit();
    }
 
-   if (priv->bcal)
-   {
-      if (!priv->scl)
-      {
+   if (priv->bcal) {
+      if (!priv->scl) {
 	 parse_error("base constructor arguments given for a class that has no parent classes");
       }
       delete priv->bcal;
@@ -1763,8 +1671,7 @@ void QoreClass::parseCommit()
    printd(5, "QoreClass::parseCommit() %s this=%08p size=%d\n", priv->name, this, priv->hm_pending.size());
 
    hm_method_t::iterator i;
-   while ((i = priv->hm_pending.begin()) != priv->hm_pending.end())
-   {
+   while ((i = priv->hm_pending.begin()) != priv->hm_pending.end()) {
       QoreMethod *m = i->second;
       priv->hm_pending.erase(i);
       insertMethod(m);
@@ -1773,8 +1680,7 @@ void QoreClass::parseCommit()
 
    // add all pending private members
    strset_t::iterator j;
-   while ((j = priv->pending_pmm.begin()) != priv->pending_pmm.end())
-   { 
+   while ((j = priv->pending_pmm.begin()) != priv->pending_pmm.end()) { 
       //printd(5, "QoreClass::parseCommit() %s committing private member %08p %s\n", name, *j, *j);
       priv->pmm.insert(*j);
       priv->pending_pmm.erase(j);

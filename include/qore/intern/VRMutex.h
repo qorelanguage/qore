@@ -36,15 +36,20 @@ class VRMutex : public AbstractSmartLock
       int count;
 
       DLLLOCAL virtual int releaseImpl();
-      DLLLOCAL virtual int releaseImpl(class ExceptionSink *xsink);
-      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms = 0);
+      DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
+      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0);
       DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl);
       DLLLOCAL virtual void cleanupImpl();
 
    public:
       DLLLOCAL VRMutex();
-      DLLLOCAL int enter(class ExceptionSink *);
+
+      // grabs the lock recursively, returns 0 for OK, non-zero for error
+      DLLLOCAL int enter(ExceptionSink *xsink);
+
+      // releases the lock, returns 0 if the lock is unlocked, -1 if there are still more calls to exit
       DLLLOCAL int exit();
+
       DLLLOCAL virtual const char *getName() const { return "VRMutex"; }
       DLLLOCAL int get_count() const { return count; }
 };
