@@ -284,7 +284,7 @@ QoreListNode* QoreDir::list(int d_filter, ExceptionSink *xsink, const QoreString
 	    if (!b)
 	       continue;
 	 }
-	lst->push(new QoreStringNode(de->d_name));
+	lst->push(new QoreStringNode(de->d_name, priv->charset));
       }
     }
   }

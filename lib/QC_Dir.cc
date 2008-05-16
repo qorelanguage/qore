@@ -73,7 +73,7 @@ static AbstractQoreNode *DIR_chdir(QoreObject *self, class Dir *d, const QoreLis
 }
 
 // path(): returns the actual directory name
-static AbstractQoreNode *DIR_getdirname(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *DIR_path(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    const char *dir = d->dirname();
    return dir ? new QoreStringNode(dir) : 0;
 }
@@ -263,7 +263,7 @@ static AbstractQoreNode *DIR_list(QoreObject *self, class Dir *d, const QoreList
 
 // listFiles()
 // lists all files
-static AbstractQoreNode *DIR_listfiles(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *DIR_listFiles(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    // check for optional regular expression string
    const QoreStringNode *p0;
    p0 = test_string_param(params, 0);
@@ -277,7 +277,7 @@ static AbstractQoreNode *DIR_listfiles(QoreObject *self, class Dir *d, const Qor
 
 // listDirs()
 // lists all directoreis but ignore '.' and '..'
-static AbstractQoreNode *DIR_listdirs(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *DIR_listDirs(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    // check for optional regular expression string
    const QoreStringNode *p0;
    p0 = test_string_param(params, 0);
@@ -294,7 +294,7 @@ static AbstractQoreNode *DIR_listdirs(QoreObject *self, class Dir *d, const Qore
 
 // openFile(filename, [flags, mode, charset])
 // throw exception from File::open2()
-static AbstractQoreNode *DIR_openfile(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *DIR_openFile(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
 
   const QoreStringNode *p0;
   p0 = test_string_param(params, 0);
@@ -347,9 +347,42 @@ static AbstractQoreNode *DIR_openfile(QoreObject *self, class Dir *d, const Qore
   return o;
 }
 
+// openDir(subdirectory, [encoding])
+static AbstractQoreNode *DIR_openDir(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+  const QoreStringNode *p0;
+  p0 = test_string_param(params, 0);
+  if(!p0) {
+    xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "expecting string filename as first argument of Dir::openDir()");
+    return 0;
+  }
 
-// unlink(filename): remove the file
-static AbstractQoreNode *DIR_unlink(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+  // check if there is a path delimiter in
+  const char *p0_str=p0->getBuffer();  
+  if(strchr(p0_str, '/')) {
+    xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only filenames without path are allowed");
+    return 0;
+  }
+  
+  const QoreStringNode *pstr = test_string_param(params, 1);
+  const QoreEncoding *charset;
+  if (pstr)
+    charset = QEM.findCreate(pstr);
+  else
+    charset = d->getEncoding();
+                                                                                                                  
+  // open the file with exception
+  ReferenceHolder<Dir> dc(new Dir(charset, xsink), xsink);
+  dc->chdir((std::string(d->dirname())+"/"+std::string(p0_str)).c_str(), xsink);
+
+  // create the qoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
+  QoreObject *o=new QoreObject(getRootNS()->rootFindClass("Dir"), getProgram());
+  o->setPrivate(CID_DIR, dc.release());
+
+  return o;
+}
+
+// removeFile(filename): remove the file
+static AbstractQoreNode *DIR_removeFile(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
   const QoreStringNode *p0;
   if(!(p0 = test_string_param(params, 0))) {
     return 0;
@@ -389,7 +422,7 @@ class QoreClass *initDirClass() {
    QC_DIR->setCopy((q_copy_t)DIR_copy);
 
    QC_DIR->addMethod("chdir",		(q_method_t)DIR_chdir);
-   QC_DIR->addMethod("path",		(q_method_t)DIR_getdirname);
+   QC_DIR->addMethod("path",		(q_method_t)DIR_path);
    QC_DIR->addMethod("exists",		(q_method_t)DIR_exists);
 
    QC_DIR->addMethod("create",		(q_method_t)DIR_create);
@@ -401,11 +434,12 @@ class QoreClass *initDirClass() {
    QC_DIR->addMethod("rmdir",		(q_method_t)DIR_rmdir);
 
    QC_DIR->addMethod("list",		(q_method_t)DIR_list);
-   QC_DIR->addMethod("listFiles",	(q_method_t)DIR_listfiles);
-   QC_DIR->addMethod("listDirs",	(q_method_t)DIR_listdirs);
+   QC_DIR->addMethod("listFiles",	(q_method_t)DIR_listFiles);
+   QC_DIR->addMethod("listDirs",	(q_method_t)DIR_listDirs);
 
-   QC_DIR->addMethod("openFile",	(q_method_t)DIR_openfile);
-   QC_DIR->addMethod("removeFile",	(q_method_t)DIR_unlink);
+   QC_DIR->addMethod("openDir",		(q_method_t)DIR_openDir);
+   QC_DIR->addMethod("openFile",	(q_method_t)DIR_openFile);
+   QC_DIR->addMethod("removeFile",	(q_method_t)DIR_removeFile);
 
    traceout("initDirClass()");
    return QC_DIR;

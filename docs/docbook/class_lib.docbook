@@ -4075,6 +4075,11 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	    <entry><para>Get all entries in the directory which are subdirectories, except '.' and '..' directories (takes an optional regular expression filter).</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Qore_Dir_openDir">Dir::openDir()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Get a Dir object as an subdir entry of the current directory.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore_Dir_openFile">Dir::openFile()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get a File object which represents a file in the directory.</para></entry>
@@ -5268,6 +5273,99 @@ foreach my $e in ( $d.listDirs() ) {
 	    <row>
 	      <entry><para><code>DIR-READ-ERROR</code></para></entry>
 	      <entry><para>The error returned from the readdir() system call.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="Qore_Dir_openDir">
+      <title>Dir::openDir()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Return a Dir object in the directory of the Dir object.
+	          The dirname does not allow path information (the '/').
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Dir::openDir(<replaceable>string:dirname, [string:charset]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>
+# open a subdir for working with.
+$sd=$d.openDir("mysubdir", "ISO-8859-1");
+$sd_list=$sd.list();
+            </programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Dir::openDir()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>dirname</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the subdirectory. The directory must not exist and can be created with create() afterwards.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>charset</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the default character set for this directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for Dir::openDir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Object</para></entry>
+	      <entry><para>The Dir object created for the directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::openDir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-OPENDIR-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>The directory name to be opened contains path information ('/').</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
