@@ -23,7 +23,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsPixmapItem.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QPixmap.h"
+#include "QC_QPointF.h"
 
 qore_classid_t CID_QGRAPHICSPIXMAPITEM;
 QoreClass *QC_QGraphicsPixmapItem = 0;

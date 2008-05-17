@@ -25,6 +25,7 @@
 #define _QORE_QC_QGRIDLAYOUT_H
 
 #include "QoreAbstractQLayout.h"
+#include "QC_QLayout.h"
 
 #include <QGridLayout>
 

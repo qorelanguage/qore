@@ -22,7 +22,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionComplex.h"
+#include "QC_QStyleOption.h"
 
 qore_classid_t CID_QSTYLEOPTIONCOMPLEX;
 QoreClass *QC_QStyleOptionComplex = 0;

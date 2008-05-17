@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsEllipseItem.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QRectF.h"
 
 qore_classid_t CID_QGRAPHICSELLIPSEITEM;
 QoreClass *QC_QGraphicsEllipseItem = 0;

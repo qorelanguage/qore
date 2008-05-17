@@ -23,7 +23,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsLineItem.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QLineF.h"
+#include "QC_QPen.h"
 
 qore_classid_t CID_QGRAPHICSLINEITEM;
 QoreClass *QC_QGraphicsLineItem = 0;

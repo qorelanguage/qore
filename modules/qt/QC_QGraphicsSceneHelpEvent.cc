@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsSceneHelpEvent.h"
+#include "QC_QPoint.h"
+#include "QC_QPointF.h"
 
 qore_classid_t CID_QGRAPHICSSCENEHELPEVENT;
 QoreClass *QC_QGraphicsSceneHelpEvent = 0;

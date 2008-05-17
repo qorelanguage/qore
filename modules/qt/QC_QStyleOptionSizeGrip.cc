@@ -22,7 +22,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionSizeGrip.h"
+#include "QC_QStyleOption.h"
 
 qore_classid_t CID_QSTYLEOPTIONSIZEGRIP;
 QoreClass *QC_QStyleOptionSizeGrip = 0;

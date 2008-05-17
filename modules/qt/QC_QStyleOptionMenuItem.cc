@@ -22,10 +22,16 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionMenuItem.h"
+#include "QC_QStyleOption.h"
+#include "QC_QFont.h"
+#include "QC_QIcon.h"
+#include "QC_QRect.h"
 
 qore_classid_t CID_QSTYLEOPTIONMENUITEM;
-class QoreClass *QC_QStyleOptionMenuItem = 0;
+QoreClass *QC_QStyleOptionMenuItem = 0;
 
 int QStyleOptionMenuItem_Notification(QoreObject *obj, QStyleOptionMenuItem *qsomi, const char *mem, ExceptionSink *xsink)
 {

@@ -23,7 +23,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsRectItem.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QRectF.h"
 
 qore_classid_t CID_QGRAPHICSRECTITEM;
 QoreClass *QC_QGraphicsRectItem = 0;

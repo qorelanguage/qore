@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsSceneMouseEvent.h"
+#include "QC_QPoint.h"
+#include "QC_QPointF.h"
 
 qore_classid_t CID_QGRAPHICSSCENEMOUSEEVENT;
 QoreClass *QC_QGraphicsSceneMouseEvent = 0;

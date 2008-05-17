@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsPathItem.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QPainterPath.h"
 
 qore_classid_t CID_QGRAPHICSPATHITEM;
 QoreClass *QC_QGraphicsPathItem = 0;

@@ -25,6 +25,8 @@
 #include "QC_QStyleOptionViewItemV2.h"
 #include "QC_QStyleOptionViewItem.h"
 
+#include "QC_QStyleOption.h"
+
 #include "qore-qt.h"
 
 qore_classid_t CID_QSTYLEOPTIONVIEWITEMV2;

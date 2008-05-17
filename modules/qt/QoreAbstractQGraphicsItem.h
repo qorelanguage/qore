@@ -24,6 +24,12 @@
 
 #define _QORE_QT_QOREABSTRACTQGRAPHICSITEM_H
 
+#include "QoreQtEventDispatcher.h"
+
+#include "QC_QRect.h"
+#include "QC_QPainter.h"
+#include "QC_QStyleOptionGraphicsItem.h"
+
 class QoreAbstractQGraphicsItem
 {
    public:

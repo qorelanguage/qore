@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsPolygonItem.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QPolygonF.h"
 
 qore_classid_t CID_QGRAPHICSPOLYGONITEM;
 QoreClass *QC_QGraphicsPolygonItem = 0;

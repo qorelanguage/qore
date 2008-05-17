@@ -1,7 +1,7 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
-if COND_SINGLE_COMPILATION_UNIT
+if COND_SINGLE_COMPILATION_UNIT_QT
 QT_SOURCES = single-compilation-unit.cc
 else
 QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.cc \

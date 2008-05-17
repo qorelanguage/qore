@@ -25,7 +25,11 @@
 #define _QORE_QT_QC_QSPLASHSCREEN_H
 
 #include <QSplashScreen>
+
+#include "QC_QPainter.h"
+
 #include "QoreAbstractQWidget.h"
+
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QSPLASHSCREEN;

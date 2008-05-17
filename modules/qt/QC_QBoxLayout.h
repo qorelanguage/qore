@@ -25,6 +25,7 @@
 #define _QORE_QC_QBOXLAYOUT_H
 
 #include "QoreAbstractQBoxLayout.h"
+#include "QC_QLayout.h"
 
 #include <QBoxLayout>
 

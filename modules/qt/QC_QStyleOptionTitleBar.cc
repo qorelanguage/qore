@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionTitleBar.h"
+#include "QC_QStyleOption.h"
+#include "QC_QIcon.h"
 
 qore_classid_t CID_QSTYLEOPTIONTITLEBAR;
 QoreClass *QC_QStyleOptionTitleBar = 0;

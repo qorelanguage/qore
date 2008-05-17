@@ -22,7 +22,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionViewItem.h"
+#include "QC_QStyleOption.h"
+#include "QC_QSize.h"
+#include "QC_QFont.h"
 
 qore_classid_t CID_QSTYLEOPTIONVIEWITEM;
 QoreClass *QC_QStyleOptionViewItem = 0;

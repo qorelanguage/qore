@@ -23,7 +23,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsSimpleTextItem.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QFont.h"
 
 qore_classid_t CID_QGRAPHICSSIMPLETEXTITEM;
 QoreClass *QC_QGraphicsSimpleTextItem = 0;

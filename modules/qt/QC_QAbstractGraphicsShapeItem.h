@@ -25,7 +25,9 @@
 #define _QORE_QT_QC_QABSTRACTGRAPHICSSHAPEITEM_H
 
 #include <QAbstractGraphicsShapeItem>
+
 #include "QoreAbstractQAbstractGraphicsShapeItem.h"
+
 #include "qore-qt-events.h"
 
 DLLLOCAL extern qore_classid_t CID_QABSTRACTGRAPHICSSHAPEITEM;

@@ -22,7 +22,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGLColormap.h"
+#include "QC_QColor.h"
 
 int CID_QGLCOLORMAP;
 class QoreClass *QC_QGLColormap = 0;

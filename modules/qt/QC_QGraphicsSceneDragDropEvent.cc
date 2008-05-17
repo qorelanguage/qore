@@ -22,7 +22,13 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsSceneDragDropEvent.h"
+#include "QC_QVariant.h"
+#include "QC_QMimeData.h"
+#include "QC_QPoint.h"
+#include "QC_QPointF.h"
 
 qore_classid_t CID_QGRAPHICSSCENEDRAGDROPEVENT;
 QoreClass *QC_QGraphicsSceneDragDropEvent = 0;

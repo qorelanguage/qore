@@ -21,7 +21,11 @@
  */
 
 #include <qore/Qore.h>
+
+#include "qore-qt.h"
+
 #include "QC_QPaintDevice.h"
+#include "QC_QPaintEngine.h"
 
 DLLLOCAL qore_classid_t CID_QPAINTDEVICE;
 DLLLOCAL QoreClass *QC_QPaintDevice = 0;

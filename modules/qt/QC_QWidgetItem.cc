@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 
+#include "QC_QLayout.h"
 #include "QC_QWidgetItem.h"
 
 qore_classid_t CID_QWIDGETITEM;

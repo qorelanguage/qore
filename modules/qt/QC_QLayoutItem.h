@@ -26,7 +26,9 @@
 
 #include <QLayoutItem>
 #include "QoreAbstractQLayoutItem.h"
-#include "QC_QLayout.h"
+
+DLLLOCAL extern QoreClass *QC_QLayout;
+DLLLOCAL extern qore_classid_t CID_QLAYOUT;
 
 DLLLOCAL extern qore_classid_t CID_QLAYOUTITEM;
 DLLLOCAL extern QoreClass *QC_QLayoutItem;
@@ -95,6 +97,5 @@ class QoreQtQLayoutItem : public QoreQtQLayoutItemImpl
 	 return QSize();
       }
 };
-
 
 #endif // _QORE_QT_QC_QLAYOUTITEM_H

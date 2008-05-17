@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionGroupBox.h"
+#include "QC_QStyleOption.h"
+#include "QC_QColor.h"
 
 qore_classid_t CID_QSTYLEOPTIONGROUPBOX;
 class QoreClass *QC_QStyleOptionGroupBox = 0;

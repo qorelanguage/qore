@@ -22,8 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGradient.h"
 #include "QC_QLinearGradient.h"
+#include "QC_QColor.h"
 
 int CID_QGRADIENT;
 class QoreClass *QC_QGradient = 0;

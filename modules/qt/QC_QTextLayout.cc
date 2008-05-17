@@ -1,7 +1,7 @@
 /*
  QC_QTextLayout.cc
  
-  Qore Programming Language
+ Qore Programming Language
 
  Copyright 2003 - 2008 David Nichols
 
@@ -18,13 +18,21 @@
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
- */
+*/
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QTextLayout.h"
 #include "QC_QTextCharFormat.h"
+#include "QC_QFont.h"
+#include "QC_QPaintDevice.h"
+#include "QC_QRectF.h"
+#include "QC_QTextLine.h"
+#include "QC_QPainter.h"
+#include "QC_QPointF.h"
+#include "QC_QTextOption.h"
 
 qore_classid_t CID_QTEXTLAYOUT;
 QoreClass *QC_QTextLayout = 0;

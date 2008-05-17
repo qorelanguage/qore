@@ -22,7 +22,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QCursor.h"
+#include "QC_QPixmap.h"
+#include "QC_QBitmap.h"
+#include "QC_QPoint.h"
 
 qore_classid_t CID_QCURSOR;
 QoreClass *QC_QCursor = 0;
@@ -162,14 +167,14 @@ static AbstractQoreNode *f_QCursor_setPos(const QoreListNode *params, ExceptionS
 {
    const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->getType() == NT_OBJECT) {
-      QoreQPoint *p = (QoreQPoint *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QPOINT, xsink);
-      if (!p) {
+      QoreQPoint *point = (QoreQPoint *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!point) {
          if (!xsink->isException())
             xsink->raiseException("QCURSOR-SETPOS-PARAM-ERROR", "QCursor::setPos() does not know how to handle arguments of class '%s' as passed as the first argument", reinterpret_cast<const QoreObject *>(p)->getClassName());
          return 0;
       }
-      ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(p), xsink);
-      QCursor::setPos(*(static_cast<QPoint *>(p)));
+      ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(point), xsink);
+      QCursor::setPos(*(static_cast<QPoint *>(point)));
       return 0;
    }
    int x = p ? p->getAsInt() : 0;

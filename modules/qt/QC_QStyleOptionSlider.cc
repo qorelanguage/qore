@@ -22,7 +22,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionSlider.h"
+#include "QC_QStyleOption.h"
 
 qore_classid_t CID_QSTYLEOPTIONSLIDER;
 QoreClass *QC_QStyleOptionSlider = 0;

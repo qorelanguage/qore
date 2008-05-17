@@ -22,7 +22,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QSplitterHandle.h"
+#include "QC_QSplitter.h"
 
 qore_classid_t CID_QSPLITTERHANDLE;
 QoreClass *QC_QSplitterHandle = 0;

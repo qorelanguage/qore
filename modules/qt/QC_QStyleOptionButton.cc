@@ -22,7 +22,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionButton.h"
+#include "QC_QStyleOption.h"
 #include "QC_QIcon.h"
 #include "QC_QSize.h"
 

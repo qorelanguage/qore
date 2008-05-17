@@ -22,7 +22,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QAbstractGraphicsShapeItem.h"
+#include "QC_QGraphicsItem.h"
+#include "QC_QBrush.h"
+#include "QC_QPen.h"
 
 qore_classid_t CID_QABSTRACTGRAPHICSSHAPEITEM;
 QoreClass *QC_QAbstractGraphicsShapeItem = 0;

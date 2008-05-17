@@ -22,7 +22,14 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGLPixelBuffer.h"
+#include "QC_QGLWidget.h"
+#include "QC_QGLFormat.h"
+#include "QC_QSize.h"
+#include "QC_QPixmap.h"
+#include "QC_QImage.h"
 
 qore_classid_t CID_QGLPIXELBUFFER;
 QoreClass *QC_QGLPixelBuffer = 0;

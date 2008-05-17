@@ -22,10 +22,13 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QLinearGradient.h"
+#include "QC_QPointF.h"
 
 int CID_QLINEARGRADIENT;
-class QoreClass *QC_QLinearGradient = 0;
+QoreClass *QC_QLinearGradient = 0;
 
 //QLinearGradient ()
 //QLinearGradient ( const QPointF & start, const QPointF & finalStop )

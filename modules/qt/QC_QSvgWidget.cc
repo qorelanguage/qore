@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QSvgWidget.h"
+#include "QC_QSvgRenderer.h"
+#include "QC_QWidget.h"
 
 qore_classid_t CID_QSVGWIDGET;
 QoreClass *QC_QSvgWidget = 0;

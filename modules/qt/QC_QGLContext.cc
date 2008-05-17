@@ -22,7 +22,14 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGLContext.h"
+#include "QC_QGLFormat.h"
+#include "QC_QPixmap.h"
+#include "QC_QImage.h"
+#include "QC_QColor.h"
+#include "QC_QPaintDevice.h"
 
 int CID_QGLCONTEXT;
 class QoreClass *QC_QGLContext = 0;

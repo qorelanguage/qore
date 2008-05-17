@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionTabWidgetFrame.h"
+#include "QC_QStyleOption.h"
+#include "QC_QSize.h"
 
 qore_classid_t CID_QSTYLEOPTIONTABWIDGETFRAME;
 QoreClass *QC_QStyleOptionTabWidgetFrame = 0;

@@ -22,7 +22,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QSplashScreen.h"
+#include "QC_QWidget.h"
+#include "QC_QPixmap.h"
+#include "QC_QColor.h"
 
 qore_classid_t CID_QSPLASHSCREEN;
 QoreClass *QC_QSplashScreen = 0;

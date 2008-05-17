@@ -22,10 +22,13 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QTimeLine.h"
+#include "QC_QObject.h"
 
 int CID_QTIMELINE;
-class QoreClass *QC_QTimeLine = 0;
+QoreClass *QC_QTimeLine = 0;
 
 //QTimeLine ( int duration = 1000, QObject * parent = 0 )
 static void QTIMELINE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

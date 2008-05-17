@@ -22,7 +22,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QTextLine.h"
+#include "QC_QPainter.h"
+#include "QC_QPointF.h"
+#include "QC_QRectF.h"
 
 qore_classid_t CID_QTEXTLINE;
 QoreClass *QC_QTextLine = 0;

@@ -22,10 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "QC_QLayout.h"
 #include "QC_QLayoutItem.h"
 
 qore_classid_t CID_QLAYOUTITEM;
-class QoreClass *QC_QLayoutItem = 0;
+QoreClass *QC_QLayoutItem = 0;
 
 bool qlayoutitem_delete_blocker(QoreObject *self, QoreAbstractQLayoutItemData *qli)
 {

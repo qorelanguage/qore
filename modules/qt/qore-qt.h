@@ -28,6 +28,7 @@
 #include <QKeySequence>
 #include <QBrush>
 #include <QObject>
+#include <QList>
 
 class QAbstractButton;
 

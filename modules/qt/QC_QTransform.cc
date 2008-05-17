@@ -22,7 +22,20 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QTransform.h"
+#include "QC_QMatrix.h"
+#include "QC_QPoint.h"
+#include "QC_QPointF.h"
+#include "QC_QLine.h"
+#include "QC_QLineF.h"
+#include "QC_QPolygon.h"
+#include "QC_QRegion.h"
+#include "QC_QPolygonF.h"
+#include "QC_QPainterPath.h"
+#include "QC_QRect.h"
+#include "QC_QRectF.h"
 
 qore_classid_t CID_QTRANSFORM;
 QoreClass *QC_QTransform = 0;
@@ -254,14 +267,14 @@ static AbstractQoreNode *QTRANSFORM_map(QoreObject *self, QoreQTransform *qt, co
                      if (!region) {
                         QoreQPainterPath *path = (QoreQPainterPath *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QPAINTERPATH, xsink);
                         if (!path) {
-                           QoreQPointF *p = (QoreQPointF *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QPOINTF, xsink);
-                           if (!p) {
+                           QoreQPointF *pointf = (QoreQPointF *)reinterpret_cast<const QoreObject *>(p)->getReferencedPrivateData(CID_QPOINTF, xsink);
+                           if (!pointf) {
                               if (!xsink->isException())
                                  xsink->raiseException("QTRANSFORM-MAP-PARAM-ERROR", "QTransform::map() does not know how to handle arguments of class '%s' as passed as the first argument", reinterpret_cast<const QoreObject *>(p)->getClassName());
                               return 0;
                            }
-                           ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(p), xsink);
-                           qt->map(*(static_cast<QPointF *>(p)));
+                           ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(pointf), xsink);
+                           qt->map(*(static_cast<QPointF *>(pointf)));
                            return 0;
                         }
                         ReferenceHolder<AbstractPrivateData> pathHolder(static_cast<AbstractPrivateData *>(path), xsink);

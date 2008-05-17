@@ -27,6 +27,7 @@
 #include "QC_QColor.h"
 #include "QC_QPixmap.h"
 #include "QC_QImage.h"
+#include "QC_QGradient.h"
 
 qore_classid_t CID_QBRUSH;
 QoreClass *QC_QBrush = 0;

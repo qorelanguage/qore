@@ -149,6 +149,15 @@ AC_ARG_ENABLE([single-compilation-unit],
       esac],
   [enable_single_compilation_unit=yes])
 
+AC_ARG_ENABLE([single-compilation-unit-qt],
+  [AS_HELP_STRING([--enable-single-compilation-unit-qt],
+		  [enable compilation as a single unit for QT - only if you have at least 2 Gigs of RAM! (default: off)])],
+  [case "${enable_single_compilation_unit_qt}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_single_compilation_unit_qt} for --enable-single-compilation-unit-qt) ;;
+      esac],
+  [enable_single_compilation_unit_qt=no])
+
 AC_ARG_ENABLE([64bit],
   [AS_HELP_STRING([--enable-64bit],
 		  [enable 64bit support (default: off)])],
@@ -2608,6 +2617,7 @@ AM_CONDITIONAL([COND_OPENGL],     [test "$with_opengl" = yes])
 AM_CONDITIONAL([COND_GLUT],       [test "$with_glut" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
+AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT_QT], [test "$enable_single_compilation_unit_qt" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 
 AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/opengl/Makefile modules/glut/Makefile])

@@ -22,7 +22,13 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QProgressDialog.h"
+#include "QC_QWidget.h"
+#include "QC_QProgressBar.h"
+#include "QC_QPushButton.h"
+#include "QC_QLabel.h"
 
 int CID_QPROGRESSDIALOG;
 class QoreClass *QC_QProgressDialog = 0;

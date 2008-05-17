@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QTextBrowser.h"
+#include "QC_QWidget.h"
+#include "QC_QUrl.h"
 
 int CID_QTEXTBROWSER;
 class QoreClass *QC_QTextBrowser = 0;

@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QSvgGenerator.h"
+#include "QC_QIODevice.h"
+#include "QC_QSize.h"
 
 qore_classid_t CID_QSVGGENERATOR;
 QoreClass *QC_QSvgGenerator = 0;

@@ -22,7 +22,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QErrorMessage.h"
+#include "QC_QWidget.h"
 
 int CID_QERRORMESSAGE;
 class QoreClass *QC_QErrorMessage = 0;

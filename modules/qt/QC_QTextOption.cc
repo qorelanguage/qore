@@ -23,6 +23,8 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QTextOption.h"
 
 qore_classid_t CID_QTEXTOPTION;

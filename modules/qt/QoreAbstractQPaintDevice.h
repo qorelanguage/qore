@@ -24,6 +24,9 @@
 
 #define _QORE_QOREABSTRACTQPAINTDEVICE_H
 
+#include <QPaintDevice>
+#include <QPaintEngine>
+
 class QoreAbstractQPaintDevice
 {
    public:

@@ -22,7 +22,15 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QSvgRenderer.h"
+#include "QC_QObject.h"
+#include "QC_QRectF.h"
+#include "QC_QSize.h"
+#include "QC_QMatrix.h"
+#include "QC_QRect.h"
+#include "QC_QPainter.h"
 
 int CID_QSVGRENDERER;
 class QoreClass *QC_QSvgRenderer = 0;

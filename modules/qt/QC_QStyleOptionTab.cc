@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionTab.h"
+#include "QC_QStyleOption.h"
+#include "QC_QIcon.h"
 
 qore_classid_t CID_QSTYLEOPTIONTAB;
 class QoreClass *QC_QStyleOptionTab = 0;

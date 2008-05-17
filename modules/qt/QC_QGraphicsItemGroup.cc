@@ -23,7 +23,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsItemGroup.h"
+#include "QC_QGraphicsItem.h"
 
 qore_classid_t CID_QGRAPHICSITEMGROUP;
 QoreClass *QC_QGraphicsItemGroup = 0;

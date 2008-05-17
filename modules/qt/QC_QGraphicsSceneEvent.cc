@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsSceneEvent.h"
 
 qore_classid_t CID_QGRAPHICSSCENEEVENT;

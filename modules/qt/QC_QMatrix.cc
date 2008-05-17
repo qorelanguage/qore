@@ -22,7 +22,19 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QMatrix.h"
+#include "QC_QRect.h"
+#include "QC_QRectF.h"
+#include "QC_QRegion.h"
+#include "QC_QPolygon.h"
+#include "QC_QPolygonF.h"
+#include "QC_QPoint.h"
+#include "QC_QPointF.h"
+#include "QC_QPainterPath.h"
+#include "QC_QLine.h"
+#include "QC_QLineF.h"
 
 qore_classid_t CID_QMATRIX;
 QoreClass *QC_QMatrix = 0;

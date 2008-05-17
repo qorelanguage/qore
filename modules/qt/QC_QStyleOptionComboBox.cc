@@ -22,7 +22,13 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionComboBox.h"
+#include "QC_QStyleOption.h"
+#include "QC_QIcon.h"
+#include "QC_QSize.h"
+#include "QC_QRect.h"
 
 qore_classid_t CID_QSTYLEOPTIONCOMBOBOX;
 QoreClass *QC_QStyleOptionComboBox = 0;

@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGLFormat.h"
 
 int CID_QGLFORMAT;

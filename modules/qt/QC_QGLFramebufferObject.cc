@@ -22,10 +22,14 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGLFramebufferObject.h"
+#include "QC_QSize.h"
+#include "QC_QImage.h"
 
 int CID_QGLFRAMEBUFFEROBJECT;
-class QoreClass *QC_QGLFramebufferObject = 0;
+QoreClass *QC_QGLFramebufferObject = 0;
 
 //QGLFramebufferObject ( const QSize & size, GLenum target = GL_TEXTURE_2D )
 //QGLFramebufferObject ( const QSize & size, Attachment attachment, GLenum target = GL_TEXTURE_2D, GLenum internal_format = GL_RGBA8 )

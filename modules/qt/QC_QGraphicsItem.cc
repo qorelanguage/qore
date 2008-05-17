@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QGraphicsItem.h"
 #include "QC_QAbstractGraphicsShapeItem.h"
 #include "QC_QGraphicsEllipseItem.h"
@@ -32,6 +34,21 @@
 #include "QC_QGraphicsItemGroup.h"
 #include "QC_QGraphicsLineItem.h"
 #include "QC_QGraphicsPixmapItem.h"
+#include "QC_QRectF.h"
+#include "QC_QPainterPath.h"
+#include "QC_QPainter.h"
+#include "QC_QPointF.h"
+#include "QC_QCursor.h"
+#include "QC_QTransform.h"
+#include "QC_QPolygonF.h"
+#include "QC_QWidget.h"
+#include "QC_QStyleOptionGraphicsItem.h"
+#include "QC_QGraphicsSceneContextMenuEvent.h"
+#include "QC_QGraphicsSceneDragDropEvent.h"
+#include "QC_QGraphicsSceneHoverEvent.h"
+#include "QC_QGraphicsSceneMouseEvent.h"
+#include "QC_QGraphicsSceneWheelEvent.h"
+#include "QC_QRect.h"
 
 qore_classid_t CID_QGRAPHICSITEM;
 QoreClass *QC_QGraphicsItem = 0;

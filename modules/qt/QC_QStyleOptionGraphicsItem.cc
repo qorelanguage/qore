@@ -22,7 +22,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionGraphicsItem.h"
+#include "QC_QStyleOption.h"
+#include "QC_QRectF.h"
+#include "QC_QMatrix.h"
 
 qore_classid_t CID_QSTYLEOPTIONGRAPHICSITEM;
 QoreClass *QC_QStyleOptionGraphicsItem = 0;

@@ -22,7 +22,10 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QStyleOptionSpinBox.h"
+#include "QC_QStyleOption.h"
 
 qore_classid_t CID_QSTYLEOPTIONSPINBOX;
 class QoreClass *QC_QStyleOptionSpinBox = 0;

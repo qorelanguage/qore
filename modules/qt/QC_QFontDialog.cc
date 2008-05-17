@@ -22,7 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt.h"
+
 #include "QC_QFontDialog.h"
+#include "QC_QWidget.h"
+#include "QC_QFont.h"
 
 //QFont getFont ( bool * ok, const QFont & initial, QWidget * parent, const QString & caption )
 //QFont getFont ( bool * ok, const QFont & initial, QWidget * parent = 0 )
