@@ -55,22 +55,13 @@ class VarRefNode : public ParseNode
 
       DLLLOCAL VarRefNode(char *n, int t);
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
       DLLLOCAL void resolve();
-
-      // returns -1 if the variable did not already exist
-      DLLLOCAL int resolveExisting();
 
       DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const;

@@ -65,10 +65,19 @@ const char *VarRefNode::getTypeName() const
 void VarRefNode::resolve()
 {
    LocalVar *id;
-   if ((id = find_local_var(name))) {
-      type = VT_LOCAL;
-      ref.id = id;
-      printd(5, "VarRefNode::resolve(): local var %s resolved (id=%08p)\n", name, ref.id);
+
+   bool in_closure;
+   if ((id = find_local_var(name, in_closure))) {
+      if (in_closure) {
+	 id->setClosureUse();
+	 type = VT_CLOSURE;
+	 ref.id = id;
+      }
+      else {
+	 type = VT_LOCAL;
+	 ref.id = id;
+      }
+      printd(5, "VarRefNode::resolve(): local var %s resolved (id=%08p, in_closure=%d)\n", name, ref.id, in_closure);
    }
    else {
       ref.var = getProgram()->checkGlobalVar(name);
@@ -77,28 +86,16 @@ void VarRefNode::resolve()
    }
 }
 
-// returns 0 for OK, 1 for would be a new variable
-int VarRefNode::resolveExisting()
-{
-   LocalVar *id;
-   if ((id = find_local_var(name))) {
-      type = VT_LOCAL;
-      ref.id = id;
-      printd(5, "VarRefNode::resolveExisting(): local var %s resolved (id=%08p)\n", name, ref.id);
-      return 0;
-   }
-   
-   ref.var = getProgram()->findGlobalVar(name);
-   type = VT_GLOBAL;
-   printd(5, "VarRefNode::resolveExisting(): global var %s resolved (var=%08p)\n", name, ref.var);
-   return !ref.var;
-}
-
 AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL) {
       printd(5, "VarRefNode::eval() lvar %08p (%s)\n", ref.id, ref.id);
       return ref.id->eval(xsink);
+   }
+   if (type == VT_CLOSURE) {
+      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->eval(xsink);
    }
    printd(5, "VarRefNode::eval() global var=%08p\n", ref.var);
    return ref.var->eval(xsink);
@@ -108,6 +105,10 @@ AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) 
 {
    if (type == VT_LOCAL)
       return ref.id->eval(needs_deref, xsink);
+   if (type == VT_CLOSURE) {
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->eval(needs_deref, xsink);
+   }
    needs_deref = true;
    return ref.var->eval(xsink);
 }
@@ -140,6 +141,11 @@ AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) 
 {
    if (type == VT_LOCAL)
       return ref.id->getValuePtr(vl, xsink);
+   if (type == VT_CLOSURE) {
+      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->getValuePtr(vl, xsink);
+   }
    return ref.var->getValuePtr(vl, xsink);
 }
 
@@ -147,15 +153,25 @@ AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) cons
 {
    if (type == VT_LOCAL)
       return ref.id->getValue(vl, xsink);
+   if (type == VT_CLOSURE) {
+      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->getValue(vl, xsink);
+   }
    return ref.var->getValue(vl, xsink);
 }
 
-void VarRefNode::setValue(AbstractQoreNode *val, ExceptionSink *xsink)
+void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink)
 {
    if (type == VT_LOCAL)
-      ref.id->setValue(val, xsink);
+      ref.id->setValue(n, xsink);
+   else if (type == VT_CLOSURE) {
+      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      val->setValue(n, xsink);
+   }
    else
-      ref.var->setValue(val, xsink);
+      ref.var->setValue(n, xsink);
 }
 
 char *VarRefNode::takeName()

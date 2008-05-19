@@ -95,13 +95,11 @@ void SelfFunctionCall::resolve()
       printd(5, "SelfFunctionCall:resolve() resolving '%s'\n", name ? name : "(null)");
    assert(!func);
 #endif
-   if (name)
-   {
+   if (name) {
       // FIXME: warn if argument list passed (will be ignored)
 
       // copy method calls will be recognized by func = 0
-      if (!strcmp(name, "copy"))
-      {
+      if (!strcmp(name, "copy")) {
 	 free(name);
 	 name = 0;
 	 printd(5, "SelfFunctionCall:resolve() resolved to copy constructor\n");
@@ -111,16 +109,13 @@ void SelfFunctionCall::resolve()
    }
    else
       func = getParseClass()->resolveSelfMethod(ns);
-   if (func)
-   {
+   if (func) {
       printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08p\n", func->getName(), func);
-      if (name)
-      {
+      if (name) {
 	 free(name);
 	 name = 0;
       }
-      else if (ns)
-      {
+      else if (ns) {
 	 delete ns;
 	 ns = 0;
       }
@@ -148,8 +143,7 @@ Paramlist::Paramlist(AbstractQoreNode *params)
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
    lv = 0;
-   if (!params)
-   {
+   if (!params) {
       num_params = 0;
       names = 0;
       return;
@@ -173,10 +167,8 @@ Paramlist::Paramlist(AbstractQoreNode *params)
 
    num_params = l->size();
    names = new char *[num_params];
-   for (int i = 0; i < num_params; i++)
-   {
-      if (l->retrieve_entry(i)->getType() != NT_VARREF)
-      {
+   for (int i = 0; i < num_params; i++) {
+      if (l->retrieve_entry(i)->getType() != NT_VARREF) {
 	 param_error();
 	 num_params = 0;
 	 delete [] names;
@@ -198,7 +190,7 @@ Paramlist::~Paramlist()
       delete [] lv;
 }
 
-UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlock *b, bool synced)
+UserFunction::UserFunction(char *n_name, class Paramlist *parms, class StatementBlock *b, bool synced)
 {
    synchronized = synced;
    if (synced)
@@ -207,7 +199,7 @@ UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlo
    else
       gate = 0;
 # endif
-   name = nme;
+   name = n_name;
    params = parms;
    statements = b;
 }
@@ -220,7 +212,8 @@ UserFunction::~UserFunction()
    delete params;
    if (statements)
       delete statements;
-   free(name);
+   if (name)
+      free(name);
 }
 
 void UserFunction::deref()
@@ -472,7 +465,7 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
 AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name) const
 {
    tracein("UserFunction::eval()");
-   printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", name, args, args ? args->size() : 0);
+   printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", getName(), args, args ? args->size() : 0);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -542,11 +535,11 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
    AbstractQoreNode *val = 0;
    if (statements)
    {
-      CodeContextHelper cch(name, self, xsink);
+      CodeContextHelper cch(getName(), self, xsink);
 
 #ifdef DEBUG
       // push call on stack
-      CallStackHelper csh(name, CT_USER, self, xsink);
+      CallStackHelper csh(getName(), CT_USER, self, xsink);
 #endif
 
       if (self)
@@ -588,7 +581,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClassName()) : 0, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClassName()) : 0, getName(), o_fn, o_ln, o_eln);
    
    return val;
 }
@@ -597,7 +590,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("UserFunction::evalCopy()");
-   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, old);
+   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", getName(), params->num_params, old);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -625,10 +618,10 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
 
    if (statements)
    {
-      CodeContextHelper cch(name, self, xsink);
+      CodeContextHelper cch(getName(), self, xsink);
 #ifdef DEBUG
       // push call on stack
-      CallStackHelper csh(name, CT_USER, self, xsink);
+      CallStackHelper csh(getName(), CT_USER, self, xsink);
 #endif
 
       // instantiate self
@@ -661,7 +654,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, class_name, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
    
    traceout("UserFunction::evalCopy()");
 }
@@ -670,8 +663,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
 AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("UserFunction::evalConstructor()");
-   printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 
-          class_name, name, args, args ? args->size() : 0);
+   printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", class_name, getName(), args, args ? args->size() : 0);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -752,10 +744,10 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
       // execute constructor
       if (statements)
       {
-	 CodeContextHelper cch(name, self, xsink);
+	 CodeContextHelper cch(getName(), self, xsink);
 #ifdef DEBUG
 	 // push call on stack
-	 CallStackHelper csh(name, CT_USER, self, xsink);
+	 CallStackHelper csh(getName(), CT_USER, self, xsink);
 #endif
 
 	 // instantiate "$self" variable
@@ -798,7 +790,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, class_name, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
    
    traceout("UserFunction::evalConstructor()");
    return val;

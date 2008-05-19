@@ -77,10 +77,10 @@ class AbstractCallReferenceNode : public AbstractQoreNode
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
       //! protected constructor for subclasses that are not reference-counted
-      DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one);
+      DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one, qore_type_t n_type = NT_FUNCREF);
 
    public:
-      DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval = false);
+      DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF);
 
       DLLLOCAL virtual ~AbstractCallReferenceNode();
 
@@ -108,7 +108,7 @@ class AbstractCallReferenceNode : public AbstractQoreNode
 
       DLLLOCAL static const char *getStaticTypeName()
       {
-	 return "function reference";
+	 return "call reference";
       }
 };
 
@@ -117,7 +117,7 @@ class ResolvedCallReferenceNode : public AbstractCallReferenceNode
 {
    public:
       //! constructor is not exported outside the library
-      DLLLOCAL ResolvedCallReferenceNode(bool n_needs_eval = false);
+      DLLLOCAL ResolvedCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF);
 
       //! pure virtual function for executing the function reference
       /** executes the function reference and returns the value returned

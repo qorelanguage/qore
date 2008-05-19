@@ -36,7 +36,26 @@ union lvar_u {
       lvar_ref ref;
 };
 
-struct LocalVarValue {
+class LocalVarValue;
+
+class VarStackPointerHelper {
+      LocalVarValue *orig;
+
+   public:
+      DLLLOCAL VarStackPointerHelper(LocalVarValue *v);
+      DLLLOCAL ~VarStackPointerHelper();
+};
+
+class VarStackPointerClosureHelper {
+      ClosureVarValue *orig;
+
+   public:
+      DLLLOCAL VarStackPointerClosureHelper(ClosureVarValue *v);
+      DLLLOCAL ~VarStackPointerClosureHelper();
+};
+
+class LocalVarValue {
+   public:
       union lvar_u val;
 #ifdef HAVE_UNLIMITED_THREAD_KEYS
       LocalVarValue *prev;
@@ -89,46 +108,273 @@ struct LocalVarValue {
       DLLLOCAL void uninstantiate(ExceptionSink *xsink)
       {
 	 if (!is_ref) {
-	    //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' val=%08p\n", this, id, val->val.value);
+	    //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' val=%08p\n", this, id, val.value);
 	    discard(val.value, xsink);
 	    return;
 	 }
 	 else {
-	    //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' reference expression vexp=%08p\n", this, id, val->val.ref.vexp);
+	    //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' reference expression vexp=%08p\n", this, id, val.ref.vexp);
 	    val.ref.vexp->deref(xsink);
 	    if (val.ref.obj)
 	       val.ref.obj->tDeref();
 	 }
       }
+
+      DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink)
+      {
+	 if (!is_ref)
+	    return const_cast<AbstractQoreNode **>(&val.value);
+
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerHelper helper(this);
+
+	 if (val.ref.obj) {
+	    ObjectSubstitutionHelper osh(val.ref.obj);
+	    return get_var_value_ptr(val.ref.vexp, vl, xsink);
+	 }
+
+	 return get_var_value_ptr(val.ref.vexp, vl, xsink);
+      }
+
+      DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink)
+      {
+	 if (!is_ref)
+	    return const_cast<AbstractQoreNode *>(val.value);
+
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerHelper helper(this);
+
+	 if (val.ref.obj) {
+	    ObjectSubstitutionHelper osh(val.ref.obj);
+	    return getNoEvalVarValue(val.ref.vexp, vl, xsink);
+	 }
+	 return getNoEvalVarValue(val.ref.vexp, vl, xsink);
+      }
+
+      // value is already referenced for assignment
+      DLLLOCAL void setValue(AbstractQoreNode *value, ExceptionSink *xsink)
+      {
+	 if (!is_ref) {
+	    if (val.value)
+	       val.value->deref(xsink);
+	    val.value = value;
+	    return;
+	 }
+
+	 ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
+
+	 ObjectSubstitutionHelper osh(val.ref.obj);
+	 AutoVLock vl(xsink);
+
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerHelper helper(this);
+
+	 LValueHelper valp(val.ref.vexp, xsink);
+	 if (!valp)
+	    return;
+
+	 valp.assign(value_holder.release());
+      }
+
+      DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink)
+      {
+	 if (!is_ref)
+	    return val.value ? val.value->refSelf() : 0;
+
+         ObjectSubstitutionHelper osh(val.ref.obj);
+
+         // push stack pointer back one in case the expression is a recursive reference
+         VarStackPointerHelper helper(this);
+         return val.ref.vexp->eval(xsink);
+      }
+
+      DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, ExceptionSink *xsink)
+      {
+	 if (!is_ref) {
+	    needs_deref = false;
+	    return val.value;
+	 }
+
+	 needs_deref = true;
+
+         ObjectSubstitutionHelper osh(val.ref.obj);
+
+         // push stack pointer back one in case the expression is a recursive reference
+         VarStackPointerHelper helper(this);
+         return val.ref.vexp->eval(xsink);
+      }
 };
 
-class VarStackPointerHelper {
-      LocalVarValue *orig;
+VarStackPointerHelper::VarStackPointerHelper(LocalVarValue *v) : orig(v)
+{
+   v->skip = true;
+}
+
+VarStackPointerHelper::~VarStackPointerHelper()
+{
+   orig->skip = false;
+}
+
+/* NOTE: the proper threading behavior of this class depends on the fact that the
+         type (reference or value) can never change.  also the reference expression
+         and object will also not change.
+	 only the value operations are locked.
+*/
+struct ClosureVarValue : public QoreReferenceCounter, public QoreThreadLock
+{
+   private:
+      DLLLOCAL void del(ExceptionSink *xsink)
+      {
+	 if (!is_ref) {
+	    //printd(5, "ClosureVarValue::del() this=%08p uninstantiating closure variable '%s' val=%08p\n", this, id, val->val.value);
+	    discard(val.value, xsink);
+	    return;
+	 }
+	 else {
+	    //printd(5, "ClosureVarValue::del() this=%08p uninstantiating closure variable '%s' reference expression vexp=%08p\n", this, id, val->val.ref.vexp);
+	    val.ref.vexp->deref(xsink);
+	    if (val.ref.obj)
+	       val.ref.obj->tDeref();
+	 }
+      }
 
    public:
-      DLLLOCAL VarStackPointerHelper(LocalVarValue *v) : orig(v)
+      union lvar_u val;
+      const char *id;
+      bool is_ref : 1;
+      bool skip : 1;
+
+      DLLLOCAL ClosureVarValue(const char *n_id, AbstractQoreNode *value)
       {
-	 v->skip = true;
+	 is_ref = false;
+	 skip = false;
+	 id = n_id;
+	 val.value = value;
       }
-      DLLLOCAL ~VarStackPointerHelper()
+
+      DLLLOCAL ClosureVarValue(const char *n_id, AbstractQoreNode *vexp, QoreObject *obj)
       {
-	 orig->skip = false;
+	 is_ref = true;
+	 skip = false;
+	 id = n_id;
+	 val.ref.vexp = vexp;
+	 val.ref.obj = obj;
+	 if (obj)
+	    obj->tRef();
+      }
+
+      DLLLOCAL void ref() { ROreference(); }
+
+      DLLLOCAL void deref(ExceptionSink *xsink) { if (ROdereference()) { del(xsink); delete this; } }
+
+      DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink)
+      {
+	 if (!is_ref) {
+	    lock();
+	    vl->set(this);
+	    return const_cast<AbstractQoreNode **>(&val.value);
+	 }
+
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerClosureHelper helper(this);
+
+	 if (val.ref.obj) {
+	    ObjectSubstitutionHelper osh(val.ref.obj);
+	    return get_var_value_ptr(val.ref.vexp, vl, xsink);
+	 }
+
+	 return get_var_value_ptr(val.ref.vexp, vl, xsink);
+      }
+
+      DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink)
+      {
+	 if (!is_ref) {
+	    lock();
+	    vl->set(this);
+	    return const_cast<AbstractQoreNode *>(val.value);
+	 }
+
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerClosureHelper helper(this);
+
+	 if (val.ref.obj) {
+	    ObjectSubstitutionHelper osh(val.ref.obj);
+	    return getNoEvalVarValue(val.ref.vexp, vl, xsink);
+	 }
+	 return getNoEvalVarValue(val.ref.vexp, vl, xsink);
+      }
+
+      // value is already referenced for assignment
+      DLLLOCAL void setValue(AbstractQoreNode *value, ExceptionSink *xsink)
+      {
+	 if (!is_ref) {
+	    AutoLocker al(this);
+	    if (val.value)
+	       val.value->deref(xsink);
+	    val.value = value;
+	    return;
+	 }
+
+	 ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
+
+	 ObjectSubstitutionHelper osh(val.ref.obj);
+	 AutoVLock vl(xsink);
+
+	 // skip this entry in case it's a recursive reference
+	 VarStackPointerClosureHelper helper(this);
+
+	 LValueHelper valp(val.ref.vexp, xsink);
+	 if (!valp)
+	    return;
+
+	 valp.assign(value_holder.release());
+      }
+
+      DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink)
+      {
+	 if (!is_ref) {
+	    AutoLocker al(this);
+	    return val.value ? val.value->refSelf() : 0;
+	 }
+
+         ObjectSubstitutionHelper osh(val.ref.obj);
+
+         // push stack pointer back one in case the expression is a recursive reference
+         VarStackPointerClosureHelper helper(this);
+         return val.ref.vexp->eval(xsink);
+      }
+
+      DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, ExceptionSink *xsink)
+      {
+	 needs_deref = true;
+	 return eval(xsink);
       }
 };
+
+VarStackPointerClosureHelper::VarStackPointerClosureHelper(ClosureVarValue *v) : orig(v)
+{
+   v->skip = true;
+}
+
+VarStackPointerClosureHelper::~VarStackPointerClosureHelper()
+{
+   orig->skip = false;
+}
 
 class LocalVar {
    private:
-      pthread_key_t var_key;
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
+      QoreThreadLocalStorage<LocalVarValue> var_key;
+#endif
       std::string name;
+      bool closure_use;
 
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
       DLLLOCAL LocalVarValue *get_current_var() const
       {
-#ifdef HAVE_UNLIMITED_THREAD_KEYS
-	 return (LocalVarValue *)pthread_getspecific(var_key);
-#else
-	 return thread_find_current_lvar(name.c_str());
-#endif
+	 return var_key.get();
       }
+#endif
 
       DLLLOCAL LocalVarValue *get_var() const
       {
@@ -143,45 +389,49 @@ class LocalVar {
       }
 
    public:
-      DLLLOCAL LocalVar(const char *n_name)
+      DLLLOCAL LocalVar(const char *n_name) : name(n_name), closure_use(false)
       {
-#ifdef HAVE_UNLIMITED_THREAD_KEYS
-	 pthread_key_create(&var_key, 0);
-#endif
-	 name = n_name;
       }
 
       DLLLOCAL ~LocalVar()
       {
-	 //pthread_key_delete(var_key);
       }
 
       DLLLOCAL void instantiate(AbstractQoreNode *value)
       {
 	 //printd(5, "LocalVar::instantiate(%08p) this=%08p '%s'\n", value, this, name.c_str());
 
-	 LocalVarValue *val = thread_instantiate_lvar();
+	 if (!closure_use) {
+	    LocalVarValue *val = thread_instantiate_lvar();
 #ifdef HAVE_UNLIMITED_THREAD_KEYS
-	 val->prev = get_current_var();
-	 pthread_setspecific(var_key, val);
-	 val->set(value);
+	    val->prev = get_current_var();
+	    var_key.set(val);
+	    val->set(value);
 #else
-	 val->set(name.c_str(), value);
+	    val->set(name.c_str(), value);
 #endif
+	    return;
+	 }
+	 thread_instantiate_closure_var(name.c_str(), value);
       }
 
       DLLLOCAL void instantiate_object(QoreObject *value)
       {
 	 //printd(5, "LocalVar::instantiate_object(%08p) this=%08p '%s'\n", value, this, name.c_str());
 
-	 LocalVarValue *val = thread_instantiate_lvar();
+	 if (!closure_use) {
+	    LocalVarValue *val = thread_instantiate_lvar();
 #ifdef HAVE_UNLIMITED_THREAD_KEYS
-	 val->prev = get_current_var();
-	 pthread_setspecific(var_key, val);
-	 val->set(value);
+	    val->prev = get_current_var();
+	    var_key.set(val);
+	    val->set(value);
 #else
-	 val->set(name.c_str(), value);
+	    val->set(name.c_str(), value);
 #endif
+	 }
+	 else
+	    thread_instantiate_closure_var(name.c_str(), value);
+
 	 value->ref();
       }
 
@@ -189,129 +439,103 @@ class LocalVar {
       {
 	 //printd(5, "LocalVar::instantiate(%08p, %08p) this=%08p '%s'\n", vexp, obj, this, name.c_str());
 
-	 LocalVarValue *val = thread_instantiate_lvar();
+	 if (!closure_use) {
+	    LocalVarValue *val = thread_instantiate_lvar();
 #ifdef HAVE_UNLIMITED_THREAD_KEYS
-	 val->prev = get_current_var();
-	 pthread_setspecific(var_key, val);
-	 val->set(vexp, obj);
+	    val->prev = get_current_var();
+	    var_key.set(val);
+	    val->set(vexp, obj);
 #else
-	 val->set(name.c_str(), vexp, obj);
+	    val->set(name.c_str(), vexp, obj);
 #endif
+	    return;
+	 }
+	 thread_instantiate_closure_var(name.c_str(), vexp, obj);
       }
       
       DLLLOCAL void uninstantiate(ExceptionSink *xsink)
       {
+	 if (!closure_use) {
 #ifdef HAVE_UNLIMITED_THREAD_KEYS
-	 LocalVarValue *val = get_current_var();
-	 assert(val);
-	 pthread_setspecific(var_key, val->prev);
+	    LocalVarValue *val = get_current_var();
+	    var_key.set(val->prev);
 #endif
-	 thread_uninstantiate_lvar(xsink);
+	    thread_uninstantiate_lvar(xsink);
+	    return;
+	 }
+	 thread_uninstantiate_closure_var(xsink);
       }
 
       DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const
       {
-	 LocalVarValue *val = get_var();
-	 assert(val);
-
-	 if (!val->is_ref)
-	    return const_cast<AbstractQoreNode **>(&val->val.value);
-
-	 // skip this entry in case it's a recursive reference
-	 VarStackPointerHelper helper(val);
-
-	 if (val->val.ref.obj) {
-	    ObjectSubstitutionHelper osh(val->val.ref.obj);
-	    return get_var_value_ptr(val->val.ref.vexp, vl, xsink);
+	 if (!closure_use) {
+	    LocalVarValue *val = get_var();
+	    return val->getValuePtr(vl, xsink);
 	 }
-
-	 return get_var_value_ptr(val->val.ref.vexp, vl, xsink);
+	 ClosureVarValue *val = thread_find_closure_var(name.c_str());
+	 return val->getValuePtr(vl, xsink);
       }
 
       DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink)
       {
-	 LocalVarValue *val = get_var();
-	 assert(val);
-
-	 if (!val->is_ref)
-	    return const_cast<AbstractQoreNode *>(val->val.value);
-
-	 // skip this entry in case it's a recursive reference
-	 VarStackPointerHelper helper(val);
-
-	 if (val->val.ref.obj) {
-	    ObjectSubstitutionHelper osh(val->val.ref.obj);
-	    return getNoEvalVarValue(val->val.ref.vexp, vl, xsink);
+	 if (!closure_use) {
+	    LocalVarValue *val = get_var();
+	    return val->getValue(vl, xsink);
 	 }
-	 return getNoEvalVarValue(val->val.ref.vexp, vl, xsink);
+
+	 ClosureVarValue *val = thread_find_closure_var(name.c_str());
+	 return val->getValue(vl, xsink);
       }
 
       // value is already referenced for assignment
       DLLLOCAL void setValue(AbstractQoreNode *value, ExceptionSink *xsink)
       {
-	 LocalVarValue *val = get_var();
-	 assert(val);
-
-	 if (!val->is_ref) {
-	    if (val->val.value)
-	       val->val.value->deref(xsink);
-	    val->val.value = value;
-	    return;
+	 if (!closure_use) {
+	    LocalVarValue *val = get_var();
+	    val->setValue(value, xsink);
 	 }
 
-	 ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
-
-	 ObjectSubstitutionHelper osh(val->val.ref.obj);
-	 AutoVLock vl(xsink);
-
-	 // skip this entry in case it's a recursive reference
-	 VarStackPointerHelper helper(val);
-
-	 LValueHelper valp(val->val.ref.vexp, xsink);
-	 if (!valp)
-	    return;
-
-	 valp.assign(value_holder.release());
+	 ClosureVarValue *val = thread_find_closure_var(name.c_str());
+	 val->setValue(value, xsink);
       }
 
       DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink)
       {
-	 LocalVarValue *val = get_var();
-	 assert(val);
+	 if (!closure_use) {
+	    LocalVarValue *val = get_var();
+	    return val->eval(xsink);
+	 }
 
-	 if (!val->is_ref)
-	    return val->val.value ? val->val.value->refSelf() : 0;
-
-         ObjectSubstitutionHelper osh(val->val.ref.obj);
-
-         // push stack pointer back one in case the expression is a recursive reference
-         VarStackPointerHelper helper(val);
-         return val->val.ref.vexp->eval(xsink);
+	 ClosureVarValue *val = thread_find_closure_var(name.c_str());
+	 return val->eval(xsink);
       }
 
       DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, ExceptionSink *xsink)
       {
-	 LocalVarValue *val = get_var();
-	 assert(val);
-
-	 if (!val->is_ref) {
-	    needs_deref = false;
-	    return val->val.value;
+	 if (!closure_use) {
+	    LocalVarValue *val = get_var();
+	    return val->eval(needs_deref, xsink);
 	 }
 
-	 needs_deref = true;
-
-         ObjectSubstitutionHelper osh(val->val.ref.obj);
-
-         // push stack pointer back one in case the expression is a recursive reference
-         VarStackPointerHelper helper(val);
-         return val->val.ref.vexp->eval(xsink);
+	 ClosureVarValue *val = thread_find_closure_var(name.c_str());
+	 return val->eval(needs_deref, xsink);
       }
 
-      const char *getName() const
+      DLLLOCAL const char *getName() const
       {
 	 return name.c_str();
       }
+
+      DLLLOCAL void setClosureUse()
+      {
+	 closure_use = true;
+      }
+
+      DLLLOCAL bool closureUse() const
+      { 
+	 return closure_use;
+      }
 };
+
 
 #endif

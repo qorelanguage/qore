@@ -73,7 +73,7 @@ class BuiltinFunction
       DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
       DLLLOCAL BuiltinFunction(q_delete_blocker_t m);
       DLLLOCAL AbstractQoreNode *evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
-      DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
       DLLLOCAL void evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
       DLLLOCAL bool evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const;
@@ -95,7 +95,7 @@ class Paramlist {
       LocalVar *argvid;
       LocalVar *selfid;
 
-      DLLLOCAL Paramlist(class AbstractQoreNode *params);
+      DLLLOCAL Paramlist(AbstractQoreNode *params);
       DLLLOCAL ~Paramlist();
 };
 
@@ -113,14 +113,14 @@ class UserFunction : public QoreReferenceCounter
       DLLLOCAL ~UserFunction();
 
    public:
-      class Paramlist *params;
-      class StatementBlock *statements;
+      Paramlist *params;
+      StatementBlock *statements;
 
-      // the object owns the memory for "nme"
-      DLLLOCAL UserFunction(char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
-      DLLLOCAL AbstractQoreNode *eval(const class QoreListNode *args, class QoreObject *self, class ExceptionSink *xsink, const char *class_name = 0) const;
-      DLLLOCAL AbstractQoreNode *evalConstructor(const class QoreListNode *args, class QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalCopy(class QoreObject *old, class QoreObject *self, const char *class_name, class ExceptionSink *xsink) const;
+      // the object owns the memory for "n_name", 0 for anonymous closures
+      DLLLOCAL UserFunction(char *n_name, Paramlist *parms, StatementBlock *states, bool synced = false);
+      DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
+      DLLLOCAL AbstractQoreNode *evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, ExceptionSink *xsink) const;
+      DLLLOCAL void evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const;
       DLLLOCAL bool isSynchronized() const 
       { 
 	 return synchronized; 
@@ -128,7 +128,7 @@ class UserFunction : public QoreReferenceCounter
       DLLLOCAL void deref();
       DLLLOCAL const char *getName() const 
       {
-	 return name;
+	 return name ? name : "<anonymous closure>";
       }
 };
 

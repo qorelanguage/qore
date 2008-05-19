@@ -132,6 +132,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 	 if (!n)
 	    return 0;
 
+	 // assign variable to current value in list
 	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
 	    return 0;
       }

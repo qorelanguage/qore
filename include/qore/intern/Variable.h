@@ -27,7 +27,8 @@
 #define VT_UNRESOLVED 1
 #define VT_LOCAL      2
 #define VT_GLOBAL     3
-#define VT_OBJECT     4  // used for references only
+#define VT_CLOSURE    4
+#define VT_OBJECT     5  // used for references only
 
 #define GV_VALUE  1
 #define GV_IMPORT 2
@@ -89,6 +90,7 @@ class Var : public QoreReferenceCounter
       DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink);
 };
 
+/*
 class AutoVarRefHolder {
       Var *v;
       ExceptionSink *xsink;
@@ -104,6 +106,7 @@ class AutoVarRefHolder {
       }
       DLLLOCAL Var *operator->() { return v; }
 };
+*/
 
 DLLLOCAL AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ReferenceHolder<AbstractQoreNode> &pt);
@@ -115,6 +118,8 @@ DLLLOCAL AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, Au
 
 DLLLOCAL extern QoreHashNode *ENV;
 
+// this class grabs global variable or object locks for the duration of the scope of the object
+// no evaluations can be done while this object is in scope or a deadlock may result
 class LValueHelper {
    private:
       AbstractQoreNode **v;
@@ -140,6 +145,7 @@ class LValueHelper {
       DLLLOCAL bool is_nothing() const { return ::is_nothing(*v); }
       DLLLOCAL AbstractQoreNode *get_value() { return *v; }
       DLLLOCAL AbstractQoreNode *take_value() { AbstractQoreNode *rv = *v; *v = 0; return rv; }
+
       DLLLOCAL int assign(AbstractQoreNode *val)
       {
 	 if (*v) {
@@ -153,6 +159,7 @@ class LValueHelper {
 	 (*v) = val;
 	 return 0;
       }
+
       DLLLOCAL int ensure_unique()
       {
 	 assert((*v) && (*v)->getType() != NT_OBJECT);
@@ -184,7 +191,7 @@ class LValueHelper {
 	    (*v) = new QoreBigIntNode(i);
 	    return 0;
 	 }
-	 
+
 	 if ((*v)->is_unique())
 	    return 0;
 

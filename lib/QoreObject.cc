@@ -78,125 +78,6 @@ struct qore_object_private {
 	 assert(!data);
 	 assert(!privateData);
       }
-
-      // must only be called with the lock held and status != OS_DELETED
-      DLLLOCAL int check_access(ExceptionSink *xsink) const
-      {
-	 if (!status)
-	    return 0;
-
-	 QoreObject *o = getStackObject();
-	 if (system_object || (o && o->priv == this))
-	    return 0;
-
-	 int tid = gettid();
-	 //printd(5, "check_access() o=%08p this=%08p tid=%d status=%d\n", o, this, tid, priv->status);
-	 if (status == tid)
-	    xsink->raiseException("OBJECT-ACCESS-ERROR", "this object (class '%s') is being deleted and can no longer be accessed outside the class", theclass->getName());
-	 else
-	    xsink->raiseException("OBJECT-ACCESS-ERROR", "this object (class '%s') is being deleted by TID %d and can no longer be accessed outside the class (access attempted from TID %d)", theclass->getName(), status, tid);
-	 return -1;
-      }
-
-/*
-      DLLLOCAL int enter_method(ExceptionSink *xsink)
-      {
-	 QoreObjectAccessHelper h(&g);
-
-	 if (status == OS_DELETED) {
-	    makeAccessDeletedObjectException(xsink, theclass->getName());
-	    return -1;
-	 }
-
-	 if (check_access(xsink))
-	    return -1;
-
-	 return enter_method_intern();
-      }
-
-      DLLLOCAL int enter_method_intern()
-      {
-	 ++call_count;
-
-	 int tid = gettid();
-	 if (call_count == 1)
-	    call_tid = tid;
-	 else {
-	    if (call_tid) {
-	       if (call_tid != tid) {
-		  // insert last call tid into tid call map
-		  tidmap[call_tid] = call_count - 1;
-		  call_tid = 0;
-		  tidmap[tid] = 1;
-		  call_threads = 2;
-	       }
-	    }
-	    else {
-	       tidmap_t::iterator i = tidmap.find(tid);
-	       if (i != tidmap.end())
-		  ++i->second;
-	       else {
-		  tidmap[tid] = 1;
-		  ++call_threads;
-	       }
-	    }
-	 }
-
-	 return 0;
-      }
-
-      DLLLOCAL void exit_method()
-      {
-	 QoreObjectAccessHelper h(&g);
-	 --call_count;
-
-	 // optimized path for single thread
-	 if (call_tid) {
-	    if (!call_count) {
-	       call_tid = 0;
-	       call_threads = 0;
-	       if (destructor_waiting)
-		  destructor_cond.signal();
-	    }
-	    return;
-	 }
-
-	 int tid = gettid();
-	 tidmap_t::iterator i = tidmap.find(tid);
-	 assert(i != tidmap.end());
-
-	 if (!--i->second) {
-	    tidmap.erase(i);
-	    if (--call_threads == 1) {
-	       i = tidmap.begin();
-	       assert(i != tidmap.end());
-	       assert(i->second == 1);
-	       call_tid = i->first;
-	    }
-
-	    // see if we need to signal the destructor to run
-	    if (destructor_waiting && (!call_threads || (call_threads == 1 && destructor_waiting == call_tid)))
-	       destructor_cond.signal();
-	 }
-      }
-
-      DLLLOCAL void destructor_wait()
-      {
-	 // see if there are any other methods running; if so block until they complete
-	 while (call_threads) {
-	    // see if this thread is already in a call to this object
-	    int tid = gettid();
-	    // break if this thread is the only thread running calls in this object right now
-	    if (call_tid == tid)
-	       break;
-
-	    // wait until other threads exit
-	    destructor_waiting = tid;
-	    destructor_cond.wait(&g.asl_lock);
-	    destructor_waiting = 0;
-	 }
-      }
-*/
 };
 
 // for objects with multiple classes, private data has to be keyed
@@ -451,7 +332,7 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
    {
       AutoLocker al(priv->m);
 
-      if (priv->status == OS_DELETED || priv->check_access(xsink))
+      if (priv->status == OS_DELETED)
 	 return 0;
 
       rv = priv->data->getReferencedKeyValue(mem, exists);
@@ -631,7 +512,7 @@ AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, AutoVLock *vl,
    // do lock handoff
    qore_object_lock_handoff_manager qolhm(const_cast<QoreObject *>(this), vl);
 
-   if (priv->status == OS_DELETED || priv->check_access(xsink))
+   if (priv->status == OS_DELETED)
       return 0;
 
    qolhm.stay_locked();
@@ -669,9 +550,6 @@ AbstractQoreNode *QoreObject::getMemberValueNoMethod(const char *key, AutoVLock 
       return 0;
    }
 
-   if (priv->check_access(xsink))
-      return 0;
-
    AbstractQoreNode *rv = priv->data->getKeyValue(key);
    if (rv && rv->isReferenceCounted()) {
       qolhm.stay_locked();
@@ -699,9 +577,6 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink)
 	 return;
       }
       
-      if (priv->check_access(xsink))
-	 return;
-
       v = priv->data->takeKeyValue(key);
    }
 
@@ -722,9 +597,6 @@ QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const
       return 0;
    }
 
-   if (priv->check_access(xsink))
-      return 0;
-
    return priv->data->getKeys();
 }
 
@@ -740,9 +612,6 @@ void QoreObject::setValue(const char *key, AbstractQoreNode *value, ExceptionSin
 	 return;
       }
 
-      if (priv->check_access(xsink))
-	 return;
-
       old_value = priv->data->takeKeyValue(key);
 
       priv->data->setKeyValue(key, value, xsink);
@@ -756,7 +625,7 @@ int QoreObject::size(ExceptionSink *xsink) const
 {
    AutoLocker al(priv->m);
 
-   if (priv->status == OS_DELETED || priv->check_access(xsink))
+   if (priv->status == OS_DELETED)
       return 0;
 
    return priv->data->size();
@@ -776,9 +645,6 @@ void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink)
 	 makeAccessDeletedObjectException(xsink, priv->theclass->getName());
 	 return;
       }
-
-      if (priv->check_access(xsink))
-	 return;
 
       ConstHashIterator hi(h);
       while (hi.next()) {
@@ -804,9 +670,6 @@ AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, Excep
       return 0;
    }
 
-   if (priv->check_access(xsink))
-      return 0;
-
    return priv->data->getReferencedKeyValue(mem);
 }
 
@@ -817,9 +680,6 @@ QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const
    if (priv->status == OS_DELETED)
       return 0;
    
-   if (priv->check_access(xsink))
-      return 0;
-
    return priv->data->copy();
 }
 
@@ -831,9 +691,6 @@ void QoreObject::mergeDataToHash(QoreHashNode *hash, ExceptionSink *xsink)
       makeAccessDeletedObjectException(xsink, priv->theclass->getName());
       return;
    }
-
-   if (priv->check_access(xsink))
-      return;
 
    hash->merge(priv->data, xsink);
 }
@@ -860,9 +717,6 @@ AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, AutoVLock *v
       makeAccessDeletedObjectException(xsink, mem, priv->theclass->getName());
       return 0;
    }
-
-   if (priv->check_access(xsink))
-      return 0;
 
    AbstractQoreNode **rv = priv->data->getExistingValuePtr(mem);
    if (rv) {

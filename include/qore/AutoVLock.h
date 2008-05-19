@@ -26,10 +26,6 @@
 
 class AbstractSmartLock;
 
-#ifndef QORE_AVL_INTERN
-#define QORE_AVL_INTERN 5
-#endif
-
 //! AutoVLock is a container for safely managing global variable and object lock handovers, required for functions accessing global variables and object data where locking is necessary
 /** This object is used for lock handover management and automatically releasing the last lock.
  */

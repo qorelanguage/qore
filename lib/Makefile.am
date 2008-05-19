@@ -124,6 +124,8 @@ libqore_la_SOURCES = \
 	SmartMutex.cc \
 	QoreCounter.cc \
 	FunctionReferenceNode.cc \
+	QoreClosureParseNode.cc \
+	QoreClosureNode.cc \
 	ParseOptionMap.cc \
 	ql_thread.cc \
 	ql_io.cc \

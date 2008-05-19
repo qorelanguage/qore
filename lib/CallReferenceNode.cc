@@ -116,11 +116,11 @@ int CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag)
    return lvids;
 }
 
-AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval) : AbstractQoreNode(NT_FUNCREF, false, n_needs_eval)
+AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval)
 {
 }
 
-AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one) : AbstractQoreNode(NT_FUNCREF, false, n_needs_eval, n_there_can_be_only_one)
+AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one, qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval, n_there_can_be_only_one)
 {
 }
 
@@ -540,7 +540,7 @@ QoreProgram *ImportedCallReferenceNode::getProgram() const
    return ifunc->pgm;
 }
 
-ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval) : AbstractCallReferenceNode(n_needs_eval)
+ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type)
 {
 }
 

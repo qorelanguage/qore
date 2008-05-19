@@ -31,7 +31,17 @@
 #define MAX_QORE_THREADS 0x1000
 #endif
 
-DLLLOCAL extern class Operator *OP_BACKGROUND;
+class Operator;
+class Context;
+class CVNode;
+class CallNode;
+class CallStack;
+class LocalVarValue;
+class ClosureParseEnvironment;
+class ClosureRuntimeEnvironment;
+class ClosureVarValue;
+
+DLLLOCAL extern Operator *OP_BACKGROUND;
 
 enum qore_call_t {
    CT_USER       = 0,
@@ -40,10 +50,12 @@ enum qore_call_t {
    CT_RETHROW    = 3
 };
 
-DLLLOCAL void purge_thread_resources(class ExceptionSink *xsink);
+class VNode;
+
+DLLLOCAL void purge_thread_resources(ExceptionSink *xsink);
 DLLLOCAL void beginParsing(char *file, void *ps = NULL);
 DLLLOCAL void *endParsing();
-DLLLOCAL class Context *get_context_stack();
+DLLLOCAL Context *get_context_stack();
 DLLLOCAL void update_context_stack(Context *cstack);
 DLLLOCAL void get_pgm_counter(int &start_line, int &end_line);
 DLLLOCAL const char *get_pgm_file();
@@ -52,29 +64,29 @@ DLLLOCAL void get_parse_location(int &start_line, int &end_line);
 DLLLOCAL const char *get_parse_file();
 DLLLOCAL void update_parse_location(int start_line, int end_line);
 DLLLOCAL void update_parse_location(int start_line, int end_line, const char *f);
-DLLLOCAL bool inMethod(const char *name, const class QoreObject *o);
-DLLLOCAL void pushProgram(class QoreProgram *pgm);
+DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
+DLLLOCAL void pushProgram(QoreProgram *pgm);
 DLLLOCAL void popProgram();
-DLLLOCAL class RootQoreNamespace *getRootNS();
+DLLLOCAL RootQoreNamespace *getRootNS();
 DLLLOCAL int getParseOptions();
-DLLLOCAL void updateCVarStack(class CVNode *ncvs);
-DLLLOCAL class CVNode *getCVarStack();
-DLLLOCAL void updateVStack(class VNode *nvs);
-DLLLOCAL class VNode *getVStack();
-DLLLOCAL class QoreObject *getStackObject();
-DLLLOCAL void setParseClass(class QoreClass *c);
-DLLLOCAL class QoreClass *getParseClass();
-DLLLOCAL void substituteObjectIfEqual(class QoreObject *o);
-DLLLOCAL class QoreObject *substituteObject(class QoreObject *o);
-DLLLOCAL void catchSaveException(class QoreException *e);
-DLLLOCAL class QoreException *catchGetException();
-DLLLOCAL class VLock *getVLock();
+DLLLOCAL void updateCVarStack(CVNode *ncvs);
+DLLLOCAL CVNode *getCVarStack();
+DLLLOCAL void updateVStack(VNode *nvs);
+DLLLOCAL VNode *getVStack();
+DLLLOCAL QoreObject *getStackObject();
+DLLLOCAL void setParseClass(QoreClass *c);
+DLLLOCAL QoreClass *getParseClass();
+DLLLOCAL void substituteObjectIfEqual(QoreObject *o);
+DLLLOCAL QoreObject *substituteObject(QoreObject *o);
+DLLLOCAL void catchSaveException(QoreException *e);
+DLLLOCAL QoreException *catchGetException();
+DLLLOCAL VLock *getVLock();
 
 #ifdef DEBUG
-DLLLOCAL void pushCall(class CallNode *cn);
-DLLLOCAL void popCall(class ExceptionSink *xsink);
-DLLLOCAL class CallStack *getCallStack();
-DLLLOCAL class QoreListNode *getCallStackList();
+DLLLOCAL void pushCall(CallNode *cn);
+DLLLOCAL void popCall(ExceptionSink *xsink);
+DLLLOCAL CallStack *getCallStack();
+DLLLOCAL QoreListNode *getCallStackList();
 #else
 #ifdef __GNUC__
 #define pushCall(args...)
@@ -89,7 +101,7 @@ DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0
 DLLLOCAL int get_signal_thread_entry();
 DLLLOCAL void delete_thread_data();
-DLLLOCAL void register_thread(int tid, pthread_t ptid, class QoreProgram *pgm);
+DLLLOCAL void register_thread(int tid, pthread_t ptid, QoreProgram *pgm);
 DLLLOCAL void deregister_thread(int tid);
 DLLLOCAL void deregister_signal_thread();
 
@@ -100,26 +112,54 @@ DLLLOCAL block_list_t::iterator popBlock();
 // called by each "on_block_exit" statement to activate it's code for the block exit
 DLLLOCAL void advanceOnBlockExit();
 
-DLLLOCAL class LocalVarValue *thread_instantiate_lvar();
+DLLLOCAL LocalVarValue *thread_instantiate_lvar();
 DLLLOCAL void thread_uninstantiate_lvar(ExceptionSink *xsink);
 
+DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment *cenv);
+DLLLOCAL ClosureParseEnvironment *thread_get_closure_parse_env();
+
+DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char *id, AbstractQoreNode *value);
+DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char *id, AbstractQoreNode *vexp, QoreObject *obj);
+DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink *xsink);
+DLLLOCAL ClosureVarValue *thread_find_closure_var(const char *id);
+DLLLOCAL ClosureVarValue *thread_get_runtime_closure_var(const LocalVar *id);
+
+DLLLOCAL ClosureRuntimeEnvironment *thread_get_runtime_closure_env();
+DLLLOCAL void thread_set_runtime_closure_env(ClosureRuntimeEnvironment *cenv);
+
+class QoreClosureRuntimeEnvironmentHelper {
+   private:
+      ClosureRuntimeEnvironment *cenv;
+      
+   public:
+      DLLLOCAL QoreClosureRuntimeEnvironmentHelper(ClosureRuntimeEnvironment *n_cenv)
+      {
+	 cenv = thread_get_runtime_closure_env();
+	 thread_set_runtime_closure_env(n_cenv);
+      }
+
+      DLLLOCAL ~QoreClosureRuntimeEnvironmentHelper()
+      {
+	 thread_set_runtime_closure_env(cenv);
+      }
+};
+
 #ifndef HAVE_UNLIMITED_THREAD_KEYS
-DLLLOCAL class LocalVarValue *thread_find_lvar(const char *id);
-DLLLOCAL class LocalVarValue *thread_find_current_lvar(const char *id);
+DLLLOCAL LocalVarValue *thread_find_lvar(const char *id);
 #endif
 
 DLLLOCAL extern pthread_attr_t ta_default;
 
 // for object implementation
-DLLLOCAL class QoreObject *getStackObject();
+DLLLOCAL QoreObject *getStackObject();
 // for methods that behave differently when called within the method itself
 DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
 
 class CodeContextHelper {
    private:
       const char *old_code;
-      class QoreObject *old_obj;
-      class ExceptionSink *xsink;
+      QoreObject *old_obj;
+      ExceptionSink *xsink;
 	 
    public:
       DLLLOCAL CodeContextHelper(const char *code = NULL, const QoreObject *obj = NULL, ExceptionSink *xs = NULL);
@@ -128,20 +168,20 @@ class CodeContextHelper {
 
 class ObjectSubstitutionHelper {
    private:
-      class QoreObject *old_obj;
+      QoreObject *old_obj;
    
    public:
-      DLLLOCAL ObjectSubstitutionHelper(class QoreObject *obj);
+      DLLLOCAL ObjectSubstitutionHelper(QoreObject *obj);
       DLLLOCAL ~ObjectSubstitutionHelper();
 };
 
 class ProgramContextHelper {
    private:
-      class QoreProgram *old_pgm;
+      QoreProgram *old_pgm;
       bool restore;
    
    public:
-      DLLLOCAL ProgramContextHelper(class QoreProgram *pgm);
+      DLLLOCAL ProgramContextHelper(QoreProgram *pgm);
       DLLLOCAL ~ProgramContextHelper();
 };
 
@@ -178,9 +218,9 @@ class CallStackHelper : public CallNode {
 #endif
 
 DLLLOCAL void init_qore_threads();
-DLLLOCAL class QoreNamespace *get_thread_ns();
+DLLLOCAL QoreNamespace *get_thread_ns();
 DLLLOCAL void delete_qore_threads();
-DLLLOCAL class QoreListNode *get_thread_list();
-DLLLOCAL class QoreHashNode *getAllCallStacks();
+DLLLOCAL QoreListNode *get_thread_list();
+DLLLOCAL QoreHashNode *getAllCallStacks();
 
 #endif

@@ -788,13 +788,13 @@ void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) co
 void QoreMethod::parseInit()
 {
    // must be called even if func.userFunc->statements is NULL
-   priv->func.userFunc->statements->parseInit(priv->func.userFunc->params, 0);
+   priv->func.userFunc->statements->parseInitMethod(priv->func.userFunc->params, 0);
 }
 
 void QoreMethod::parseInitConstructor(class BCList *bcl)
 {
    // must be called even if func.userFunc->statements is NULL
-   priv->func.userFunc->statements->parseInit(priv->func.userFunc->params, bcl);
+   priv->func.userFunc->statements->parseInitMethod(priv->func.userFunc->params, bcl);
 }
 
 QoreMethod *QoreMethod::copy(const QoreClass *p_class) const

@@ -67,6 +67,8 @@ typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 #include <qore/intern/QoreRegexNode.h>
 #include <qore/intern/RegexTransNode.h>
 #include <qore/intern/ObjectMethodReferenceNode.h>
+#include <qore/intern/QoreClosureParseNode.h>
+#include <qore/intern/QoreClosureNode.h>
 
 DLLLOCAL extern int qore_library_options;
 

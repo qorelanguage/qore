@@ -31,7 +31,7 @@ class UnresolvedCallReferenceNode : public AbstractCallReferenceNode
 
    public:
       char *str;
-      
+
       DLLLOCAL UnresolvedCallReferenceNode(char *n_str);
       DLLLOCAL virtual ~UnresolvedCallReferenceNode();
       DLLLOCAL AbstractCallReferenceNode *resolve();
@@ -84,20 +84,22 @@ class StaticUserCallReferenceNode : public ResolvedCallReferenceNode
 //! a call reference to a builtin function
 class BuiltinCallReferenceNode : public ResolvedCallReferenceNode
 {
-      const class BuiltinFunction *bf;
+      const BuiltinFunction *bf;
 
    public:
       DLLLOCAL BuiltinCallReferenceNode(const class BuiltinFunction *n_bf);
       DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
+class ImportedFunctionCall;
+
 //! a call reference to an imported function
 class ImportedCallReferenceNode :  public ResolvedCallReferenceNode
 {
-      class ImportedFunctionCall *ifunc;
+      ImportedFunctionCall *ifunc;
 
    public:
-      DLLLOCAL ImportedCallReferenceNode(class ImportedFunctionCall *n_ifunc);
+      DLLLOCAL ImportedCallReferenceNode(ImportedFunctionCall *n_ifunc);
       DLLLOCAL virtual ~ImportedCallReferenceNode();
       DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreProgram *getProgram() const;
@@ -107,7 +109,7 @@ class ImportedCallReferenceNode :  public ResolvedCallReferenceNode
 class RunTimeObjectMethodReferenceNode : public ResolvedCallReferenceNode
 {
    private:
-      class QoreObject *obj;
+      QoreObject *obj;
       char *method;
 
       DLLLOCAL virtual ~RunTimeObjectMethodReferenceNode();
@@ -122,7 +124,7 @@ class RunTimeObjectMethodReferenceNode : public ResolvedCallReferenceNode
 class RunTimeObjectScopedMethodReferenceNode : public ResolvedCallReferenceNode
 {
    private:
-      class QoreObject *obj;
+      QoreObject *obj;
       const class QoreMethod *method;
 
       DLLLOCAL virtual ~RunTimeObjectScopedMethodReferenceNode();

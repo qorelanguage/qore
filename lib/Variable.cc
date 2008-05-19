@@ -77,11 +77,10 @@ AbstractQoreNode *Var::evalIntern(ExceptionSink *xsink)
 {
    if (type == GV_IMPORT) {
       // perform lock handoff
-      AutoVarRefHolder avh(v.ivar.refptr, xsink);
       m.unlock();
-      avh->m.lock();
+      v.ivar.refptr->m.lock();
 
-      return avh->evalIntern(xsink);
+      return v.ivar.refptr->evalIntern(xsink);
    }
 
    AbstractQoreNode *rv = v.val.value;
@@ -111,11 +110,10 @@ AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, ExceptionSink *xsink) c
       }
 
       // perform lock handoff
-      AutoVarRefHolder avh(v.ivar.refptr, xsink);
       m.unlock();
-      avh->m.lock();
+      v.ivar.refptr->m.lock();
 
-      return avh->getValuePtrIntern(vl, xsink);
+      return v.ivar.refptr->getValuePtrIntern(vl, xsink);
    }
 
    vl->set(&m);
@@ -135,11 +133,10 @@ AbstractQoreNode *Var::getValueIntern(AutoVLock *vl, ExceptionSink *xsink)
 {
    if (type == GV_IMPORT) {
       // perform lock handoff
-      AutoVarRefHolder avh(v.ivar.refptr, xsink);
       m.unlock();
-      avh->m.lock();
+      v.ivar.refptr->m.lock();
 
-      return avh->getValueIntern(vl, xsink);
+      return v.ivar.refptr->getValueIntern(vl, xsink);
    }
 
    vl->set(&m);
@@ -164,11 +161,10 @@ void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink)
       }
 
       // perform lock handoff
-      AutoVarRefHolder avh(v.ivar.refptr, xsink);
       m.unlock();
-      avh->m.lock();
+      v.ivar.refptr->m.lock();
 
-      avh->setValueIntern(val, xsink);
+      v.ivar.refptr->setValueIntern(val, xsink);
       return;
    }
 

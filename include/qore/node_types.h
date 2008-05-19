@@ -63,9 +63,11 @@ const qore_type_t NT_CLASSREF          = 27; //!< type value for ClassRefNode
 const qore_type_t NT_OBJMETHREF        = 28; //!< type value for AbstractParseObjectMethodReferenceNode
 const qore_type_t NT_FUNCREF           = 29; //!< type value for AbstractCallReferenceNode
 const qore_type_t NT_FUNCREFCALL       = 30; //!< type value for CallReferenceCallNode
+const qore_type_t NT_CLOSURE           = 31; //!< type value for QoreClosureParseNode
+const qore_type_t NT_RUNTIME_CLOSURE   = 32; //!< type value for ResolvedCallReferenceNode (QoreClosureNode, QoreObjectClosureNode)
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 31
+#define QORE_NUM_TYPES 32
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

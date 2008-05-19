@@ -84,6 +84,7 @@ class ReferenceHelper {
       /** @param xsink required for the call to AbstractQoreNode::deref()
 	  @returns a pointer to the reference's value with a unique reference count (so it can be modified), or 0 if the value was 0 to start with or if a Qore-language exception was raised
 	  @note you must check that the reference is valid before calling this function
+	  @note take care to only call this function on types where the AbstractQoreNode::realCopy() function has a valid implementation (on all value types suitable for in-place modification this function has a valid implementation), as in debugging builds other types will abort(); in non-debugging builds this function will simply do nothing
 	  @code
 	  AutoVLock vl;
 	  ReferenceHelper rh(ref, vl, xsink);

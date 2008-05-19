@@ -245,41 +245,37 @@ static int checkParseOption(int o)
 class MemberList : private strset_t
 {
    public:
-      DLLLOCAL ~MemberList();
-      DLLLOCAL int add(char *name);
-      DLLLOCAL inline void mergePrivateMembers(class QoreClass *qc);
+      DLLLOCAL ~MemberList()
+      {
+	 strset_t::iterator i;
+	 while ((i = begin()) != end())
+	 {
+	    char *name = *i;
+	    erase(i);
+	    free(name);
+	 }
+      }
+
+      DLLLOCAL int add(char *name)
+      {
+	 if (find(name) != end())
+	    return -1;
+	 // add new member to list
+	 insert(name);
+	 return 0;
+      }
+
+      DLLLOCAL void mergePrivateMembers(class QoreClass *qc)
+      {
+	 strset_t::iterator i;
+	 while ((i = begin()) != end())
+	 {
+	    char *name = *i;
+	    erase(i);
+	    qc->addPrivateMember(name);
+	 }
+      }
 };
-
-inline void MemberList::mergePrivateMembers(class QoreClass *qc)
-{
-   strset_t::iterator i;
-   while ((i = begin()) != end())
-   {
-      char *name = *i;
-      erase(i);
-      qc->addPrivateMember(name);
-   }
-}
-
-MemberList::~MemberList()
-{
-   strset_t::iterator i;
-   while ((i = begin()) != end())
-   {
-      char *name = *i;
-      erase(i);
-      free(name);
-   }
-}
-
-int MemberList::add(char *name)
-{
-   if (find(name) != end())
-      return -1;
-   // add new member to list
-   insert(name);
-   return 0;
-}
 
 static inline void addConstant(class NamedScope *name, class AbstractQoreNode *value)
 {
@@ -288,14 +284,12 @@ static inline void addConstant(class NamedScope *name, class AbstractQoreNode *v
 
 static inline void addClass(class NamedScope *name, class QoreClass *oc)
 {
-   tracein("addClass()");
    getRootNS()->rootAddClass(name, oc);
-   traceout("addClass()");
 }
 
 static inline class QoreClass *parseFindClass(char *name)
 {
-   class QoreClass *c = getRootNS()->rootFindClass(name);
+   QoreClass *c = getRootNS()->rootFindClass(name);
    if (!c)
       parse_error("reference to undefined class '%s'", name);
 
@@ -305,8 +299,7 @@ static inline class QoreClass *parseFindClass(char *name)
 static AbstractQoreNode *process_dot(class AbstractQoreNode *l, class AbstractQoreNode *r)
 {
    qore_type_t rtype = r->getType();
-   if (rtype == NT_BAREWORD)
-   {
+   if (rtype == NT_BAREWORD) {
       BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
       class AbstractQoreNode *rv = makeTree(OP_OBJECT_REF, l, b->makeQoreStringNode());
       b->deref();
@@ -314,8 +307,7 @@ static AbstractQoreNode *process_dot(class AbstractQoreNode *l, class AbstractQo
    }
    else if (rtype == NT_FUNCTION_CALL) {
       FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(r);
-      if (f->getFunctionType() == FC_UNRESOLVED)
-      {
+      if (f->getFunctionType() == FC_UNRESOLVED) {
 	 f->parseMakeMethod();
 	 return makeTree(OP_OBJECT_FUNC_REF, l, r);
       }
@@ -332,8 +324,7 @@ static int check_lvalue(class AbstractQoreNode *node)
    if (ntype == NT_VARREF)
       return 0;
 
-   if (ntype == NT_TREE)
-   {
+   if (ntype == NT_TREE) {
       QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(node);
       if (t->op == OP_LIST_REF || t->op == OP_OBJECT_REF)
 	 return check_lvalue(t->left);
@@ -391,8 +382,7 @@ bool needsEval(class AbstractQoreNode *n)
       return false;
    }
    
-   if (ntype == NT_TREE)
-   {
+   if (ntype == NT_TREE) {
       QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
 
       if (needsEval(tree->left) || (tree->right && needsEval(tree->right)))
@@ -425,8 +415,7 @@ static bool hasEffect(class AbstractQoreNode *n)
 static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAList *bcal, StatementBlock *b)
 {
    class NamedScope *name = new NamedScope(n);
-   if (bcal && strcmp(name->getIdentifier(), "constructor"))
-   {
+   if (bcal && strcmp(name->getIdentifier(), "constructor")) {
       parse_error("base class constructor lists are only legal when defining ::constructor() methods");
       if (params)
 	 params->deref(0);
@@ -434,8 +423,7 @@ static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAL
       if (b)
 	 delete b;
    }
-   else
-   {
+   else {
       class QoreMethod *method = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE);
       
       if (getRootNS()->addMethodToClass(name, method, bcal))
@@ -470,8 +458,7 @@ struct MethodNode {
       {
 	 qc->addMethod(m);
 	 m = 0;
-	 if (bcal)
-	 {
+	 if (bcal) {
 	    qc->parseAddBaseClassArgumentList(bcal);
 	    bcal = 0;
 	 }
@@ -1933,6 +1920,7 @@ exp:    scalar
         | '\\' exp
         {
 	   qore_type_t t = $2 ? $2->getType() : 0;
+	   //printd(5, "backslash exp line %d, type %s\n", @2.first_line, $2->getTypeName());
 
 	   if (t == NT_FUNCTION_CALL)
 	   {
@@ -2050,6 +2038,27 @@ exp:    scalar
 	      reinterpret_cast<QoreListNode *>($2)->setFinalized(); 
 	}
         | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
+        | TOK_SUB '(' myexp ')' block
+        { 
+	   UserFunction *uf = new UserFunction(0, new Paramlist($3), $5);
+	   $$ = new QoreClosureParseNode(uf);
+/*
+	   // make sure definition was legal
+	   if (checkParseOption(PO_NO_CLOSURES))
+	      parse_error("illegal closure definition (conflicts with parse option NO_CLOSURES)");
+*/
+	}
+	| TOK_SYNCHRONIZED TOK_SUB '(' myexp ')' block
+        {
+	   UserFunction *uf = new UserFunction(0, new Paramlist($4), $6, true);
+	   $$ = new QoreClosureParseNode(uf);
+/*
+	   // make sure definition was legal
+	   if (checkParseOption(PO_NO_CLOSURES))
+	      parse_error("illegal closure definition (conflicts with parse option NO_CLOSURES)");
+*/
+	}
+
 	;
 
 string:
