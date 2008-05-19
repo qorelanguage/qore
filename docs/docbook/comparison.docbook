@@ -36,6 +36,9 @@
       <listitem>
         <para>Qore uses <ulink url="http://www.pcre.org">PCRE</ulink> to provide perl5-compatible regular expression support</para>
       </listitem>
+      <listitem>
+        <para>Qore and perl support closures that encapsulate the state of local variables accessed within the closure.  Qore additionally provides thread-safe access even to these &quot;persistent&quot; local variables, even when the closure is used in a multi-threaded context.</para>
+      </listitem>
     </itemizedlist>
 
     <para>(Some) differences from perl:</para>
@@ -96,9 +99,6 @@ $scalar = 3.0;</programlisting>
       </listitem>
       <listitem>
         <para>there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list</para>
-      </listitem>
-      <listitem>
-        <para>Qore does not support enclosures or lamba functions, however Qore's <link linkend="Qore_Program_Class">Program</link> class provides a powerful mechanism for embedding logic in a program (or even for self-modifying programs, if you really want to do that), and Qore's <link linkend="call_references">call references</link> allow expressions to be used to call functions or object methods (meaning that a call on a call reference pointing to an object method will be made in the context of a specific object) dynamically at run-time.</para>
       </listitem>
       <listitem>
         <para>Qore features experimental support for <link linkend="signal_handling">safe signal handling</link> as well.</para>

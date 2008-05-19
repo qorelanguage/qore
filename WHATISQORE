@@ -57,6 +57,7 @@ Qore's syntax superficially appears to be a mixture of C and perl with some uniq
 * Qore and perl share many basic operators
 * Qore and perl both use double-precision floating point numbers
 * Qore uses PCRE (www.pcre.org) to provide perl-compatible regular expression support
+* Qore and perl support closures that encapsulate the state of local variables at a higher lexical level than the closure and accessed within the closure.  Qore has the advantage of supporting closures in a thread-safe way; even local variables accessed within the closure are thread-safe
 
 (Some) differences from perl
 * Qore has a clean and powerful threading model, built-in from the start by design
@@ -77,7 +78,6 @@ Qore's syntax superficially appears to be a mixture of C and perl with some uniq
 * Qore uses 64-bit integers by default
 * Qore's operators can change lvalues without references, in Qore a function can change an lvalue only if a reference is passed
 * there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list
-* Qore does not support enclosures or lamba functions, however Qore's Program class provides a powerful mechanism for embedding logic in a program or even for self-modifying programs
 * Qore does not support variable substitution from regular expressions, in qore you need to construct the regex strings manually and use the regex() or regex_subst() functions
 * Qore does not yet support signal handling; this is planned for a future release (before 1.0)
 * Qore supports subpattern extraction from a regular expression when the x// operator is used (i.e. $list = "xmlns:wsdl" =~ x/(\w+):(\w+)/ will result in $list = ("xmlns", "wsdl") ) whereas perl uses the $1, $2, ... automatic variables
