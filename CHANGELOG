@@ -1,3 +1,11 @@
+2008.05.19: David Nichols
+	* added support for closures to qore.  qore closures encapsulate the
+	  state of local variables accessed within the closure; closures created
+	  in objects also encapsulate the state of (and prolong the scope of)
+	  the object where the closure was created.  Added closure tests to
+	  test/test.q
+	* added memberNotification method tests to test/test.q
+
 2008.05.13: David Nichols
 	* reimplemented global variable and object locking to be much more
 	  efficient; eliminated nested locks and instead use a "lock-handoff"

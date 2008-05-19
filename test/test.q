@@ -1188,6 +1188,19 @@ class Test inherits Socket {
     {
         return "memberGate-" + $m;
     }
+    memberNotification($m)
+    {
+	$.t.$m = $self.$m;
+    }
+    closure($x)
+    {
+	my $a = 1;
+	# return a closure encapsulating the state of the object
+	return sub ($y) 
+	{
+	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
+	};
+    }
 }
 
 sub class_test_Program()
@@ -1246,6 +1259,13 @@ sub class_library_tests()
     test_value($t.test(), "test", "methodGate() value");
     test_value($t instanceof Test, True, "first instanceof");
     test_value($t instanceof Qore::Socket, True, "second instanceof");
+    # test memberNotification()
+    $t.a = 1;
+    # test object closure
+    my $c = $t.closure(1);
+    test_value($c(2), "gee-1-2-2", "first object closure");
+    test_value($c(2), "gee-1-2-3", "second object closure");
+    test_value($t.t.a, 1, "memberNotification() method");
     class_test_File();
     class_test_Program();
 }
@@ -1606,6 +1626,29 @@ sub crypto_tests()
     test_value($str, $xstr, "DES random single key encrypt-decrypt");
 }
 
+sub closures($x)
+{
+    my $a = 1;
+    
+    my $inc = sub ($y) {
+	return sprintf("%s-%n-%n", $x, $y, ++$a);
+    };
+
+    my $dec = sub ($y) {
+	return sprintf("%s-%n-%n", $x, $y, --$a);
+    };
+
+    return ($inc, $dec);
+}
+
+sub closure_tests()
+{
+    my ($inc, $dec) = closures("test");
+    test_value($inc(5), "test-5-2", "first closure");
+    test_value($inc(7), "test-7-3", "second closure");
+    test_value($dec(3), "test-3-2", "third closure");
+}
+
 sub do_tests()
 {
     try {
@@ -1628,6 +1671,7 @@ sub do_tests()
 	    json_tests();
 	    crypto_tests();
 	    digest_tests();
+	    closure_tests();
 	    if ($o.bq)
 		backquote_tests();
 	}
