@@ -47,15 +47,12 @@ QoreClassList::~QoreClassList()
 
 int QoreClassList::add(QoreClass *oc)
 {
-   printd(!strcmp(oc->getName(), "T") ? 0 : 5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
+   printd(5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
 
    if (find(oc->getName()))
       return 1;
 
    hm[oc->getName()] = oc;
-
-   assert(hm.find(oc->getName()) != hm.end());
-   printd(!strcmp(oc->getName(), "T") ? 0 : 5, "QoreClassList::add() this=%08p added class %08p '%s' (found: %s and %s)\n", this, oc, oc->getName(), hm.find(oc->getName()) == hm.end() ? "false" : "true", hm.find("T") == hm.end() ? "false" : "true");
    return 0;
 }
 
@@ -64,11 +61,6 @@ QoreClass *QoreClassList::find(const char *name)
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
       return i->second;
-#ifdef DEBUG
-   printd(!strcmp(name, "T") ? 0 : 5, "QoreClassList::find('%s' strlen=%d ['%c' %d %d]) this=%08p not found (size %d - found: %s)\n", name, strlen(name), name[0], name[0], name[1], this, hm.size(), hm.find(name) == hm.end() ? "false" : "true");
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      printd(!strcmp(name, "T") ? 0 : 5, "QoreClassList() this=%08p '%s' (equal: %s)\n", this, i->first, !strcmp(i->first, name) ? "true" : "false");
-#endif
    return 0;
 }
 
