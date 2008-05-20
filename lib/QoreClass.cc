@@ -68,18 +68,20 @@ struct qore_qc_private {
       DLLLOCAL ~qore_qc_private()
       {
 	 //printd(5, "QoreClass::~QoreClass() deleting %08p %s\n", this, name);
-	 hm_method_t::iterator i;
-	 while ((i = hm.begin()) != hm.end()) {
+	 hm_method_t::iterator i = hm.begin();
+	 while (i != hm.end()) {
 	    const QoreMethod *m = i->second;
 	    //printd(5, "QoreClass::~QoreClass() deleting method %08p %s::%s()\n", m, name, m->getName());
 	    hm.erase(i);
+	    i = hm.begin();
 	    delete m;
 	 }   
 	 // delete private member list
-	 strset_t::iterator j;
-	 while ((j = pmm.begin()) != pmm.end()) {
+	 strset_t::iterator j = pmm.begin();
+	 while (j != pmm.end()) {
 	    char *n = *j;
 	    pmm.erase(j);
+	    j = pmm.begin();
 	    //printd(5, "QoreClass::~QoreClass() freeing private member %08p '%s'\n", n, n);
 	    free(n);
 	 }
@@ -102,11 +104,12 @@ struct qore_qc_private {
 
       DLLLOCAL void delete_pending_methods()
       {
-	 hm_method_t::iterator i;
-	 while ((i = hm_pending.begin()) != hm_pending.end()) {
+	 hm_method_t::iterator i = hm_pending.begin();
+	 while (i != hm_pending.end()) {
 	    const QoreMethod *m = i->second;
 	    //printd(5, "QoreClass::~QoreClass() deleting pending method %08p %s::%s()\n", m, name, m->getName());
 	    hm_pending.erase(i);
+	    i = hm_pending.begin();
 	    delete m;
 	 }
       }
@@ -1666,20 +1669,22 @@ void QoreClass::parseCommit()
 {
    printd(5, "QoreClass::parseCommit() %s this=%08p size=%d\n", priv->name, this, priv->hm_pending.size());
 
-   hm_method_t::iterator i;
-   while ((i = priv->hm_pending.begin()) != priv->hm_pending.end()) {
+   hm_method_t::iterator i = priv->hm_pending.begin();
+   while (i != priv->hm_pending.end()) {
       QoreMethod *m = i->second;
       priv->hm_pending.erase(i);
+      i = priv->hm_pending.begin();
       insertMethod(m);
       priv->checkSpecial(m);
    }
 
    // add all pending private members
-   strset_t::iterator j;
-   while ((j = priv->pending_pmm.begin()) != priv->pending_pmm.end()) { 
+   strset_t::iterator j = priv->pending_pmm.begin();
+   while (j != priv->pending_pmm.end()) { 
       //printd(5, "QoreClass::parseCommit() %s committing private member %08p %s\n", name, *j, *j);
       priv->pmm.insert(*j);
       priv->pending_pmm.erase(j);
+      j = priv->pending_pmm.begin();
    }
 }
 

@@ -78,8 +78,8 @@ void BuiltinFunctionList::add(const char *name, q_func_t f, int typ)
 void BuiltinFunctionList::clear()
 {
    //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() this=%08p\n", this);
-   hm_bf_t::iterator i;
-   while ((i = hm.begin()) != hm.end())
+   hm_bf_t::iterator i = hm.begin();
+   while (i != hm.end())
    {
       //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() deleting '%s()'\n", i->first);
       // char *c = (char *)i->first; - was used for deleting the cloned function name
@@ -89,6 +89,8 @@ void BuiltinFunctionList::clear()
 
       // erase hash entry
       hm.erase(i);
+
+      i = hm.begin();
 
       // delete name
       // free(c); - uncomment if the names are cloned, uncomment the 'c' declaration above too

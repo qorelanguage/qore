@@ -398,8 +398,12 @@ sub operator_test()
 
     # get function closure (multiply by 2)
     my $c = fmap_closure(2);
-    # apply function to list and check result
-    test_value((fmap $c, (1, 2, 3)), (2, 4, 6), "fmap");
+    # map function to list and check result
+    test_value((fmap $c, (1, 2, 3)), (2, 4, 6), "fmap operator");
+    # left fold function on list using immediate closure and check result
+    test_value((foldl sub ($x, $y) { return $x - $y; }, (2, 3, 4)), -5, "foldl operator");
+    # right fold function on list using immediate closure and check result
+    test_value((foldr sub ($x, $y) { return $x - $y; }, (2, 3, 4)), -1, "foldr operator");
 }
 
 sub no_parameter_test($p)

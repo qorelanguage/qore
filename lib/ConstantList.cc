@@ -47,9 +47,11 @@ ConstantList::~ConstantList()
 //  there is no need for an exception handler with the dereference
 void ConstantList::deleteAll()
 {
-   hm_qn_t::iterator i;
-   while ((i = hm.begin()) != hm.end())
+   hm_qn_t::iterator i = hm.begin();
+   while (i != hm.end()) {
       remove(i);
+      i = hm.begin();
+   }
 }
 
 void ConstantList::reset()
@@ -97,12 +99,13 @@ class ConstantList *ConstantList::copy()
 // no duplicate checking is done here
 void ConstantList::assimilate(class ConstantList *n)
 {
-   hm_qn_t::iterator i;
-   while ((i = n->hm.begin()) != n->hm.end())
+   hm_qn_t::iterator i = n->hm.begin();
+   while (i != n->hm.end())
    {
       // "move" data to new list
       hm[i->first] = i->second;
       n->hm.erase(i);
+      i = n->hm.begin();
    }
 }
 
@@ -110,8 +113,8 @@ void ConstantList::assimilate(class ConstantList *n)
 void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherlist, const char *nsname)
 {
    // assimilate target list
-   hm_qn_t::iterator i;
-   while ((i = n->hm.begin()) != n->hm.end())
+   hm_qn_t::iterator i = n->hm.begin();
+   while (i != n->hm.end())
    {
       hm_qn_t::iterator j = otherlist->hm.find(i->first);
       if (j != otherlist->hm.end())
@@ -134,14 +137,14 @@ void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherli
 	    n->hm.erase(i);
 	 }
       }
+      i = n->hm.begin();
    }
 }
 
 void ConstantList::parseInit()
 {
-   class RootQoreNamespace *rns = getRootNS();
-   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
-   {
+   RootQoreNamespace *rns = getRootNS();
+   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++) {
       printd(5, "ConstantList::parseInit() %s\n", i->first);
       rns->parseInitConstantValue(&i->second, 0);
       printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 

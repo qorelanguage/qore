@@ -2,6 +2,10 @@
 	* ensure that closures can be used anywhere call references can be used
 	* implemented "fmap" operator to map a call reference or closure on a
 	  list and return the result
+	* implemented "foldr" (right fold) and "foldl" (left fold) operators to
+	  fold a closure or call reference on a list (meaning apply the code
+	  recursively from right to left (foldr) or left to right (foldl) and
+	  return the result
 
 2008.05.19: David Nichols
 	* added support for closures to qore.  qore closures encapsulate the

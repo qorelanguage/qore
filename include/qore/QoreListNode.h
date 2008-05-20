@@ -430,12 +430,22 @@ typedef ReferenceHolder<QoreListNode> QoreListNodeHolder;
 //! For use on the stack only: iterates through a the elements of a QoreListNode
 /**
    @code
+   // iterate forward through the list
    ListIterator li(l);
    while (li.next()) {
       QoreStringValueHelper str(li.getValue());
       printf("%d: '%s'\n", li.index(), str->getBuffer());
    }
    @endcode
+   @code
+   // iterate backwards through the list
+   ListIterator li(l);
+   while (li.prev()) {
+      QoreStringValueHelper str(li.getValue());
+      printf("%d: '%s'\n", li.index(), str->getBuffer());
+   }
+   @endcode
+   @see ConstListIterator
 */
 class ListIterator
 {
@@ -447,8 +457,11 @@ class ListIterator
       DLLLOCAL void *operator new(size_t); 
    
    public:
-      //! initializes the iterator just before the first element
-      DLLEXPORT ListIterator(QoreListNode *lst);
+      //! initializes the iterator to the position given or, if omitted, just before the first element
+      /** @param lst the list to iterate
+	  @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will )
+       */
+      DLLEXPORT ListIterator(QoreListNode *lst, qore_size_t n_pos = -1);
 
       //! moves the iterator to the next element, returns true if the iterator is pointing to an element of the list
       /** if the iterator is on the last element, it moves to an invalid position before the first element and returns false
@@ -457,6 +470,23 @@ class ListIterator
 	  @return returns true if the iterator has been moved to point to a valid element of the list, false if there are no more elements to iterate
        */
       DLLEXPORT bool next();
+
+      //! moves the iterator to the previous element, returns true if the iterator is pointing to an element of the list
+      /** if the iterator is on the first element, it moves to an invalid position before the first element and returns false
+	  note that a subsequent call to prev() after it returns false will move the iterator to the last element again
+	  (assuming there is at least one element in the list)
+	  @return returns true if the iterator has been moved to point to a valid element of the list, false if there are no more elements to iterate
+	  @note after this function returns false, do not use the iterator until it points to a valid element, otherwise a crash will result
+       */
+      DLLEXPORT bool prev();
+
+      //! sets the iterator to a specific position in the list
+      /** In the case an invalid position is given (element not present in the list), the iterator will not be pointing to a valid element in the list
+	  @param n_pos the position in the list to set (first element is position 0)
+	  @return 0 for OK, -1 for invalid position
+	  @note if this function returns -1, do not use the iterator until it points to a valid element, otherwise a crash will result
+       */
+      DLLEXPORT int set(qore_size_t n_pos);
 
       //! returns a pointer to the value of the list element
       DLLEXPORT AbstractQoreNode *getValue() const;
@@ -481,13 +511,22 @@ class ListIterator
 
 //! For use on the stack only: iterates through elements of a const QoreListNode
 /**
-   @code
+   // iterate forward through the list
    ConstListIterator li(l);
    while (li.next()) {
       QoreStringValueHelper str(li.getValue());
       printf("%d: '%s'\n", li.index(), str->getBuffer());
    }
    @endcode
+   @code
+   // iterate backwards through the list
+   ConstListIterator li(l);
+   while (li.prev()) {
+      QoreStringValueHelper str(li.getValue());
+      printf("%d: '%s'\n", li.index(), str->getBuffer());
+   }
+   @endcode
+   @see ListIterator
 */
 class ConstListIterator
 {
@@ -499,8 +538,11 @@ class ConstListIterator
       DLLLOCAL void *operator new(size_t); 
    
    public:
-      //! initializes the iterator just before the first element
-      DLLEXPORT ConstListIterator(const QoreListNode *lst);
+      //! initializes the iterator to the position given or, if omitted, just before the first element
+      /** @param lst the list to iterate
+	  @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will )
+       */
+      DLLEXPORT ConstListIterator(const QoreListNode *lst, qore_size_t n_pos = -1);
 
       //! moves the iterator to the next element, returns true if the iterator is pointing to an element of the list
       /** if the iterator is on the last element, it moves to an invalid position before the first element and returns false
@@ -509,6 +551,23 @@ class ConstListIterator
 	  @return returns true if the iterator has been moved to point to a valid element of the list, false if there are no more elements to iterate
        */
       DLLEXPORT bool next();
+
+      //! moves the iterator to the previous element, returns true if the iterator is pointing to an element of the list
+      /** if the iterator is on the first element, it moves to an invalid position before the first element and returns false
+	  note that a subsequent call to prev() after it returns false will move the iterator to the last element again
+	  (assuming there is at least one element in the list)
+	  @return returns true if the iterator has been moved to point to a valid element of the list, false if there are no more elements to iterate
+	  @note after this function returns false, do not use the iterator until it points to a valid element, otherwise a crash will result
+       */
+      DLLEXPORT bool prev();
+
+      //! sets the iterator to a specific position in the list
+      /** In the case an invalid position is given (element not present in the list), the iterator will not be pointing to a valid element in the list
+	  @param n_pos the position in the list to set (first element is position 0)
+	  @return 0 for OK, -1 for invalid position
+	  @note if this function returns -1, do not use the iterator until it points to a valid element, otherwise a crash will result
+       */
+      DLLEXPORT int set(qore_size_t n_pos);
 
       //! returns a pointer to the value of the list element
       DLLEXPORT const AbstractQoreNode *getValue() const;

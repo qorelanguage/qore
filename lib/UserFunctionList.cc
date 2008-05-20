@@ -33,11 +33,12 @@ UserFunctionList::~UserFunctionList()
 
 void UserFunctionList::del()
 {
-   hm_uf_t::iterator i;
-   while ((i = fmap.begin()) != fmap.end())
+   hm_uf_t::iterator i = fmap.begin();
+   while (i != fmap.end())
    {
       class UserFunction *uf = i->second;
       fmap.erase(i);
+      i = fmap.begin();
       uf->deref();
    }
 }
@@ -105,11 +106,12 @@ void UserFunctionList::parseInit()
 // unlocked
 void UserFunctionList::parseCommit()
 {
-   hm_uf_t::iterator i;
-   while ((i = pmap.begin()) != pmap.end())
+   hm_uf_t::iterator i = pmap.begin();
+   while (i != pmap.end())
    {
       fmap[i->first] = i->second;
       pmap.erase(i);
+      i = pmap.begin();
    }
 }
 
@@ -117,12 +119,13 @@ void UserFunctionList::parseCommit()
 void UserFunctionList::parseRollback()
 {
    tracein("UserFunctionList::parseRollback()");
-   hm_uf_t::iterator i;
-   while ((i = pmap.begin()) != pmap.end())
+   hm_uf_t::iterator i = pmap.begin();
+   while (i != pmap.end())
    {
       class UserFunction *uf = i->second;
       pmap.erase(i);
       uf->deref();
+      i = pmap.begin();
    }
    traceout("UserFunctionList::parseRollback()");
 }

@@ -33,9 +33,11 @@
 
 void QoreClassList::deleteAll()
 {
-   hm_qc_t::iterator i;
-   while ((i = hm.begin()) != hm.end())
+   hm_qc_t::iterator i = hm.begin();
+   while (i != hm.end()) {
       remove(i);
+      i = hm.begin();
+   }
 }
 
 QoreClassList::~QoreClassList()
@@ -43,7 +45,7 @@ QoreClassList::~QoreClassList()
    deleteAll();
 }
 
-int QoreClassList::add(class QoreClass *oc)
+int QoreClassList::add(QoreClass *oc)
 {
    printd(5, "QCL::add() this=%08p '%s' (%08p)\n", this, oc->getName(), oc);
 
@@ -51,23 +53,31 @@ int QoreClassList::add(class QoreClass *oc)
       return 1;
 
    hm[oc->getName()] = oc;
+
+   assert(hm.find(oc->getName()) != hm.end());
+   //printd(5, "QoreClassList::add() this=%08p added class %08p '%s'\n", this, oc, oc->getName());
    return 0;
 }
 
-class QoreClass *QoreClassList::find(const char *name)
+QoreClass *QoreClassList::find(const char *name)
 {
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
       return i->second;
+#ifdef DEBUG
+   //printd(5, "QoreClassList::find('%s') this=%08p not found (size %d - found: %s)\n", name, this, hm.size(), hm.find(name) == hm.end() ? "false" : "true");
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+      printd(5, "QoreClassList() this=%08p '%s' (equal: %s)\n", this, i->first, !strcmp(i->first, name) ? "true" : "false");
+#endif
    return 0;
 }
 
-class QoreClass *QoreClassList::findChange(const char *name)
+QoreClass *QoreClassList::findChange(const char *name)
 {
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
    {
-      class QoreClass *nc;
+      QoreClass *nc;
       if (!i->second->is_unique())
       {
 	 nc = i->second;
@@ -82,9 +92,9 @@ class QoreClass *QoreClassList::findChange(const char *name)
    return 0;
 }
 
-class QoreClassList *QoreClassList::copy(int po)
+QoreClassList *QoreClassList::copy(int po)
 {
-   class QoreClassList *nocl = new QoreClassList();
+   QoreClassList *nocl = new QoreClassList();
 
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       if ((!(po & PO_NO_SYSTEM_CLASSES) && i->second->isSystem())
@@ -105,7 +115,7 @@ void QoreClassList::parseRollback()
       i->second->parseRollback();
 }
 
-void QoreClassList::parseCommit(class QoreClassList *l)
+void QoreClassList::parseCommit(QoreClassList *l)
 {
    assimilate(l);
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
@@ -117,13 +127,14 @@ void QoreClassList::reset()
    deleteAll();
 }
 
-void QoreClassList::assimilate(class QoreClassList *n)
+void QoreClassList::assimilate(QoreClassList *n)
 {
-   hm_qc_t::iterator i;
-   while ((i = n->hm.begin()) != n->hm.end())
+   hm_qc_t::iterator i = n->hm.begin();
+   while (i != n->hm.end())
    {
-      class QoreClass *nc = i->second;
+      QoreClass *nc = i->second;
       n->hm.erase(i);      
+      i = n->hm.begin();
 
       assert(!find(nc->getName()));
       printd(5, "QoreClassList::assimilate() this=%08p adding=%08p (%s)\n", this, nc, nc->getName());
@@ -133,8 +144,8 @@ void QoreClassList::assimilate(class QoreClassList *n)
 
 void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class QoreNamespaceList *nsl, class QoreNamespaceList *pendNSL, const char *nsname)
 {
-   hm_qc_t::iterator i;
-   while ((i = n->hm.begin()) != n->hm.end())
+   hm_qc_t::iterator i = n->hm.begin();
+   while (i != n->hm.end())
    {
       if (otherlist->find(i->first))
       {
@@ -162,6 +173,7 @@ void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class
 	 hm[i->first] = i->second;
 	 n->hm.erase(i);
       }
+      i = n->hm.begin();
    }
 }
 

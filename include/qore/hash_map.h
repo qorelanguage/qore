@@ -45,16 +45,26 @@ class eqstr
    public:
       bool operator()(const char* s1, const char* s2) const
       {
+	 //fprintf(stderr, "eqstr operator() this=%08p s1=%08p '%s' s2=%08p '%s' returning %s\n", this, s1, s1, s2, s2, !strcmp(s1, s2) ? "true" : "false");
          return !strcmp(s1, s2);
       }
 };
 
+#ifdef HAVE_UNORDERED_MAP
+typedef unordered_map<const char*, class AbstractQoreNode *, hash<const char *>, class eqstr> hm_qn_t;
+typedef unordered_map<const char*, class HashMember *,       hash<const char *>, class eqstr> hm_hm_t;
+typedef unordered_map<const char*, class QoreMethod *,       hash<const char *>, class eqstr> hm_method_t;
+typedef unordered_map<const char*, class BuiltinFunction *,  hash<const char *>, class eqstr> hm_bf_t;
+typedef unordered_map<const char*, class QoreClass *,        hash<const char *>, class eqstr> hm_qc_t;
+typedef unordered_map<const char*, class UserFunction *,     hash<const char *>, class eqstr> hm_uf_t;
+#else
 typedef hash_map<const char*, class AbstractQoreNode *, hash<const char *>, class eqstr> hm_qn_t;
-typedef hash_map<const char*, class HashMember *, hash<const char *>, class eqstr> hm_hm_t;
-typedef hash_map<const char*, class QoreMethod *, hash<const char *>, class eqstr> hm_method_t;
-typedef hash_map<const char*, class BuiltinFunction *, hash<const char *>, class eqstr> hm_bf_t;
-typedef hash_map<const char*, class QoreClass *, hash<const char *>, class eqstr> hm_qc_t;
-typedef hash_map<const char*, class UserFunction *, hash<const char *>, class eqstr> hm_uf_t;
+typedef hash_map<const char*, class HashMember *,       hash<const char *>, class eqstr> hm_hm_t;
+typedef hash_map<const char*, class QoreMethod *,       hash<const char *>, class eqstr> hm_method_t;
+typedef hash_map<const char*, class BuiltinFunction *,  hash<const char *>, class eqstr> hm_bf_t;
+typedef hash_map<const char*, class QoreClass *,        hash<const char *>, class eqstr> hm_qc_t;
+typedef hash_map<const char*, class UserFunction *,     hash<const char *>, class eqstr> hm_uf_t;
+#endif
 
 #else // HAVE_QORE_HASH_MAP
 

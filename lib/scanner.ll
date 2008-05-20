@@ -608,6 +608,8 @@ on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
 fmap                                    return TOK_FMAP;
+foldr                                   return TOK_FOLDR;
+foldl                                   return TOK_FOLDL;
 keys\(                                  yylval->string = strdup("keys"); return KW_IDENTIFIER_OPENPAREN;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
 trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
@@ -620,6 +622,8 @@ background\(	   			yylval->string = strdup("background"); return KW_IDENTIFIER_O
 find\(					yylval->string = strdup("find"); return KW_IDENTIFIER_OPENPAREN;
 exists\(                                yylval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN;
 fmap\(                                  yylval->string = strdup("fmap"); return KW_IDENTIFIER_OPENPAREN;
+foldr\(                                 yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN;
+foldl\(                                 yylval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN;
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;

@@ -974,19 +974,41 @@ QoreString *QoreListNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
    return rv.release();
 }
 
-ListIterator::ListIterator(QoreListNode *lst) : l(lst), pos(-1)
-{ 
+ListIterator::ListIterator(QoreListNode *lst, qore_size_t n_pos) : l(lst)
+{
+   set(n_pos);
 }
 
 bool ListIterator::next() 
 {
    if (l->size() == 0) return false; // empty
-   if (pos >= l->size()) {
+   if (pos == l->size()) {
       pos = 0;
       return true;
    }
    if (++pos == l->size()) return false; // finished
    return true;
+}
+
+bool ListIterator::prev()
+{
+   if (l->size() == 0) return false; // empty
+   if (!pos) { // finished
+      pos = l->size();
+      return false;
+   }
+   --pos;
+   return true;
+}
+
+int ListIterator::set(qore_size_t n_pos)
+{
+   if (n_pos >= l->size()) {
+      pos = l->size();
+      return -1;
+   }
+   pos = n_pos;
+   return 0;
 }
 
 AbstractQoreNode *ListIterator::getValue() const
@@ -1017,19 +1039,41 @@ bool ListIterator::first() const
    return !pos; 
 } 
 
-ConstListIterator::ConstListIterator(const QoreListNode *lst) : l(lst), pos(-1)
-{ 
+ConstListIterator::ConstListIterator(const QoreListNode *lst, qore_size_t n_pos) : l(lst)
+{
+   set(n_pos);
 }
 
 bool ConstListIterator::next() 
 {
    if (l->size() == 0) return false; // empty
-   if (pos >= l->size()) {
+   if (pos == l->size()) {
       pos = 0;
       return true;
    }
    if (++pos == l->size()) return false; // finished
    return true;
+}
+
+bool ConstListIterator::prev()
+{
+   if (l->size() == 0) return false; // empty
+   if (!pos) { // finished
+      pos = l->size();
+      return false;
+   }
+   --pos;
+   return true;
+}
+
+int ConstListIterator::set(qore_size_t n_pos)
+{
+   if (n_pos >= l->size()) {
+      pos = l->size();
+      return -1;
+   }
+   pos = n_pos;
+   return 0;
 }
 
 const AbstractQoreNode *ConstListIterator::getValue() const
