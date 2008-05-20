@@ -82,6 +82,11 @@ class QoreClosureParseNode : public ParseNode
    public:
       DLLLOCAL QoreClosureParseNode(UserFunction *n_uf, bool n_lambda = false);
 
+      DLLLOCAL ~QoreClosureParseNode()
+      {
+	 uf->deref();
+      }
+
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
       DLLLOCAL virtual const char *getTypeName() const;
