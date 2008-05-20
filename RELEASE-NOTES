@@ -7,6 +7,7 @@ qore 0.7.0 is a major release with major new features
 *) complete reimplementation of the type and operator subsystems
 *) reimplemented variable and object locking, no more possibility of nested locks and deadlocks
 *) major performance and memory usage improvements
+*) support for closures and encapsulating the state of local variables in the closure
 *) new special object method: "memberNotification()", called when members are updated externally to the class
 *) documented public API (with doxygen)
 *) qt module based on QT4
