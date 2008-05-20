@@ -6,6 +6,10 @@
 	  fold a closure or call reference on a list (meaning apply the code
 	  recursively from right to left (foldr) or left to right (foldl) and
 	  return the result
+	* disabled hash_map and unordered_map for internal data structures as
+	  all strings were "const char *" and no hash function for this data
+	  type was supplied (have to either switch to std::string and duplicate
+	  memory or write a hash function for const char *)
 
 2008.05.19: David Nichols
 	* added support for closures to qore.  qore closures encapsulate the

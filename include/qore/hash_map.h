@@ -29,52 +29,13 @@
 #include <qore/common.h>
 
 #include <map>
-typedef std::map<const char*, class Var *, class ltstr> map_var_t;
 
-#ifdef HAVE_QORE_HASH_MAP
-
-#include <qore/hash_map_include.h>
-
-#include <strings.h>
-#include <string.h>
-
-#include <string>
-
-class eqstr
-{
-   public:
-      bool operator()(const char* s1, const char* s2) const
-      {
-	 //fprintf(stderr, "eqstr operator() this=%08p s1=%08p '%s' s2=%08p '%s' returning %s\n", this, s1, s1, s2, s2, !strcmp(s1, s2) ? "true" : "false");
-         return !strcmp(s1, s2);
-      }
-};
-
-#ifdef HAVE_UNORDERED_MAP
-typedef unordered_map<const char*, class AbstractQoreNode *, hash<const char *>, class eqstr> hm_qn_t;
-typedef unordered_map<const char*, class HashMember *,       hash<const char *>, class eqstr> hm_hm_t;
-typedef unordered_map<const char*, class QoreMethod *,       hash<const char *>, class eqstr> hm_method_t;
-typedef unordered_map<const char*, class BuiltinFunction *,  hash<const char *>, class eqstr> hm_bf_t;
-typedef unordered_map<const char*, class QoreClass *,        hash<const char *>, class eqstr> hm_qc_t;
-typedef unordered_map<const char*, class UserFunction *,     hash<const char *>, class eqstr> hm_uf_t;
-#else
-typedef hash_map<const char*, class AbstractQoreNode *, hash<const char *>, class eqstr> hm_qn_t;
-typedef hash_map<const char*, class HashMember *,       hash<const char *>, class eqstr> hm_hm_t;
-typedef hash_map<const char*, class QoreMethod *,       hash<const char *>, class eqstr> hm_method_t;
-typedef hash_map<const char*, class BuiltinFunction *,  hash<const char *>, class eqstr> hm_bf_t;
-typedef hash_map<const char*, class QoreClass *,        hash<const char *>, class eqstr> hm_qc_t;
-typedef hash_map<const char*, class UserFunction *,     hash<const char *>, class eqstr> hm_uf_t;
-#endif
-
-#else // HAVE_QORE_HASH_MAP
-
-typedef std::map<const char*, class AbstractQoreNode *, class ltstr> hm_qn_t;
-typedef std::map<const char*, class HashMember *, class ltstr> hm_hm_t;
-typedef std::map<const char*, const class QoreMethod *, class ltstr> hm_method_t;
-typedef std::map<const char*, class BuiltinFunction *, class ltstr> hm_bf_t;
-typedef std::map<const char*, class QoreClass *, class ltstr> hm_qc_t;
-typedef std::map<const char*, class UserFunction *, class ltstr> hm_uf_t;
-
-#endif // HAVE_QORE_HASH_MAP
+typedef std::map<const char*,  class Var *,               class ltstr> map_var_t;
+typedef std::map<const char*,  class AbstractQoreNode *,  class ltstr> hm_qn_t;
+typedef std::map<const char*,  class HashMember *,        class ltstr> hm_hm_t;
+typedef std::map<const char*,  class QoreMethod *,        class ltstr> hm_method_t;
+typedef std::map<const char*,  class BuiltinFunction *,   class ltstr> hm_bf_t;
+typedef std::map<const char*,  class QoreClass *,         class ltstr> hm_qc_t;
+typedef std::map<const char*,  class UserFunction *,      class ltstr> hm_uf_t;
 
 #endif // _QORE_HASH_MAP_H

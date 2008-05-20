@@ -42,19 +42,19 @@ AC_DEFUN([AC_CXX_STL_HASH],
       [AC_REQUIRE([AC_CXX_NAMESPACES])
       AC_LANG_SAVE
       AC_LANG_CPLUSPLUS
-#      AC_TRY_COMPILE([#include <unordered_map>],
-#                     [unordered_map<int, int> t; const unordered_map<int, int> &tr = t; tr.find(1); return 0;],
-#                     ac_cv_cxx_stl_hash=unordered_map)
-#      if test -z "$ac_cv_cxx_stl_hash"; then
-#            AC_TRY_COMPILE([#include <unordered_map>],
-#      	                   [std::unordered_map<int, int> t; const std::unordered_map<int, int> &tr = t; tr.find(1); return 0;],
-#                           ac_cv_cxx_stl_hash=std_unordered_map)
-#      fi
-#      if test -z "$ac_cv_cxx_stl_hash"; then
-#            AC_TRY_COMPILE([#include <tr1/unordered_map>],
-#                          [std::tr1::unordered_map<int, int> t; const std::tr1::unordered_map<int, int> &tr = t; tr.find(1); return# 0;],
-#                          ac_cv_cxx_stl_hash=tr1_unordered_map)
-#      fi
+      AC_TRY_COMPILE([#include <unordered_map>],
+                     [unordered_map<int, int> t; const unordered_map<int, int> &tr = t; tr.find(1); return 0;],
+                     ac_cv_cxx_stl_hash=unordered_map)
+      if test -z "$ac_cv_cxx_stl_hash"; then
+            AC_TRY_COMPILE([#include <unordered_map>],
+      	                   [std::unordered_map<int, int> t; const std::unordered_map<int, int> &tr = t; tr.find(1); return 0;],
+                           ac_cv_cxx_stl_hash=std_unordered_map)
+      fi
+      if test -z "$ac_cv_cxx_stl_hash"; then
+            AC_TRY_COMPILE([#include <tr1/unordered_map>],
+                          [std::tr1::unordered_map<int, int> t; const std::tr1::unordered_map<int, int> &tr = t; tr.find(1); return 0;],
+                          ac_cv_cxx_stl_hash=tr1_unordered_map)
+      fi
       if test -z "$ac_cv_cxx_stl_hash"; then
            AC_TRY_COMPILE([#include <hash_map>],
                           [hash_map<int, int> t; return 0;],
