@@ -464,6 +464,9 @@ class ListIterator
       //! returns a pointer to a pointer of the value of the list element, so it can be changed externally
       DLLEXPORT AbstractQoreNode **getValuePtr() const;
 
+      //! returns the current value with an incremented reference count
+      DLLEXPORT AbstractQoreNode *getReferencedValue() const;
+
       //! returns true when the iterator is pointing to the first element in the list
       DLLEXPORT bool first() const;
 
@@ -509,6 +512,9 @@ class ConstListIterator
 
       //! returns a pointer to the value of the list element
       DLLEXPORT const AbstractQoreNode *getValue() const;
+
+      //! returns the current value with an incremented reference count
+      DLLEXPORT AbstractQoreNode *getReferencedValue() const;
 
       //! returns true when the iterator is pointing to the first element in the list
       DLLEXPORT bool first() const;

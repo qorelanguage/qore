@@ -317,13 +317,15 @@ sub global_variable_testa()
     printf("user=%s\n", $ENV{"USER"});
 }
 
-# local variable operator tests
-sub local_operator_test()
+sub fmap_closure($v) { return sub($v1) { return $v * $v1; }; }
+
+# operator tests
+sub operator_test()
 {
     if ($o.verbose)
-	print("%%%% local operator tests\n");
+	print("%%%% operator tests\n");
     my $a = 1;
-    test_value($a, 1, "local variable assignment");
+    test_value($a, 1, "variable assignment");
     $a += 3;
     test_value($a, 4, "integer += operator");
     $a -= 2;
@@ -392,7 +394,12 @@ sub local_operator_test()
     delete $ni;
     $ni -= 4;
     test_value($ni, -4, "integer -=, lhs NOTHING");
-    # array and hash tests in separate functions
+    # some array and hash tests in separate functions
+
+    # get function closure (multiply by 2)
+    my $c = fmap_closure(2);
+    # apply function to list and check result
+    test_value((fmap $c, (1, 2, 3)), (2, 4, 6), "fmap");
 }
 
 sub no_parameter_test($p)
@@ -1656,7 +1663,7 @@ sub do_tests()
 	{
 	    if ($o.verbose)
 		printf("TID %d: iteration %d\n", gettid(), $i);
-	    local_operator_test();
+	    operator_test();
 	    array_tests();
 	    hash_tests();
 	    logic_tests();

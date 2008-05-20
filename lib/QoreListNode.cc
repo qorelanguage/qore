@@ -994,6 +994,12 @@ AbstractQoreNode *ListIterator::getValue() const
    return l->retrieve_entry(pos);
 }
 
+AbstractQoreNode *ListIterator::getReferencedValue() const
+{
+   AbstractQoreNode *rv = l->retrieve_entry(pos);
+   return rv ? rv->refSelf() : 0;
+}
+
 AbstractQoreNode **ListIterator::getValuePtr() const
 {
    if (pos > l->size())
@@ -1029,6 +1035,12 @@ bool ConstListIterator::next()
 const AbstractQoreNode *ConstListIterator::getValue() const
 {
    return l->retrieve_entry(pos);
+}
+
+AbstractQoreNode *ConstListIterator::getReferencedValue() const
+{
+   const AbstractQoreNode *rv = l->retrieve_entry(pos);
+   return rv ? rv->refSelf() : 0;
 }
 
 bool ConstListIterator::last() const

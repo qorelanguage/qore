@@ -50,7 +50,7 @@ static AbstractQoreNode *f_sort(const QoreListNode *params, ExceptionSink *xsink
       return l->sort(*fr, xsink);
    }
 
-   if (fntype != NT_FUNCREF)
+   if (fntype != NT_FUNCREF && fntype != NT_RUNTIME_CLOSURE)
    {
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return 0;
@@ -84,7 +84,7 @@ static AbstractQoreNode *f_sortDescending(const QoreListNode *params, ExceptionS
       return l->sortDescending(*fr, xsink);
    }
    
-   if (fntype != NT_FUNCREF)
+   if (fntype != NT_FUNCREF && fntype != NT_RUNTIME_CLOSURE)
    {
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return 0;
@@ -118,7 +118,7 @@ static AbstractQoreNode *f_sortStable(const QoreListNode *params, ExceptionSink 
       return l->sortStable(*fr, xsink);
    }
       
-   if (fntype != NT_FUNCREF)
+   if (fntype != NT_FUNCREF && fntype != NT_RUNTIME_CLOSURE)
    {
       xsink->raiseException("SORTSTABLE-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return 0;
@@ -152,7 +152,7 @@ static AbstractQoreNode *f_sortDescendingStable(const QoreListNode *params, Exce
       return l->sortDescendingStable(*fr, xsink);
    }
 
-   if (fntype != NT_FUNCREF)
+   if (fntype != NT_FUNCREF && fntype != NT_RUNTIME_CLOSURE)
    {
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return 0;
@@ -180,7 +180,7 @@ static AbstractQoreNode *f_min(const QoreListNode *params, ExceptionSink *xsink)
 	 return lst->min(*fr, xsink);
       }
 
-      if (ptype != NT_FUNCREF)
+      if (ptype != NT_FUNCREF && ptype != NT_RUNTIME_CLOSURE)
       {
 	 xsink->raiseException("MIN-PARAM-ERROR", "second argument is present and is not a call reference or string (%s)", p->getTypeName());
 	 return 0;
@@ -212,7 +212,7 @@ static AbstractQoreNode *f_max(const QoreListNode *params, ExceptionSink *xsink)
 	 return lst->max(*fr, xsink);
       }
 
-      if (ptype != NT_FUNCREF)
+      if (ptype != NT_FUNCREF && ptype != NT_RUNTIME_CLOSURE)
       {
 	 xsink->raiseException("MAX-PARAM-ERROR", "second argument is present and is not a call reference or string (%s)", p->getTypeName());
 	 return 0;

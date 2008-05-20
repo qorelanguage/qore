@@ -878,7 +878,6 @@ QoreObject *getStackObject()
 
 ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm)
 {
-   assert(pgm);
    old_pgm = 0;
    restore = false;
    if (pgm) {

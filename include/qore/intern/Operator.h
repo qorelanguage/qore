@@ -28,8 +28,10 @@
 #include <qore/node_types.h>
 #include <vector>
 
+class Operator;
+
 // system default operators
-DLLLOCAL extern class Operator *OP_ASSIGNMENT, *OP_MODULA, 
+DLLLOCAL extern Operator *OP_ASSIGNMENT, *OP_MODULA, 
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
    *OP_MULT, *OP_DIV, *OP_UNARY_MINUS, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
    *OP_POST_INCREMENT, *OP_POST_DECREMENT, *OP_PRE_INCREMENT, *OP_PRE_DECREMENT, 
@@ -42,7 +44,7 @@ DLLLOCAL extern class Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_NOT, 
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF;
+   *OP_EXISTS, *OP_INSTANCEOF, *OP_FMAP;
 
 typedef safe_dslist<Operator *> oplist_t;
 
@@ -52,7 +54,7 @@ class OperatorList : public oplist_t
       DLLLOCAL OperatorList();
       DLLLOCAL ~OperatorList();
       DLLLOCAL void init();
-      DLLLOCAL class Operator *add(class Operator *o);
+      DLLLOCAL Operator *add(Operator *o);
 };
 
 DLLLOCAL extern class OperatorList oplist;
@@ -99,7 +101,7 @@ class AbstractOperatorFunction {
 
       DLLLOCAL AbstractOperatorFunction(qore_type_t lt, qore_type_t rt);
       DLLLOCAL virtual ~AbstractOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const = 0;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const = 0;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const = 0;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const = 0;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const = 0;
@@ -113,7 +115,7 @@ class OperatorFunction : public AbstractOperatorFunction
    public:
       DLLLOCAL OperatorFunction(qore_type_t lt, qore_type_t rt, op_func_t f);
       DLLLOCAL virtual ~OperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -129,7 +131,7 @@ class NodeOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~NodeOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -145,7 +147,7 @@ class EffectNoEvalOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~EffectNoEvalOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -161,7 +163,7 @@ class VarRefOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~VarRefOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -177,7 +179,7 @@ class HashStringOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~HashStringOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -193,7 +195,7 @@ class HashListOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~HashListOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -209,7 +211,7 @@ class NodeIntOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~NodeIntOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -225,7 +227,7 @@ class NoConvertOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~NoConvertOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -241,7 +243,7 @@ class ListStringRegexOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~ListStringRegexOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -257,7 +259,7 @@ class StringStringStringOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~StringStringStringOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -273,7 +275,7 @@ class BoolStrStrOperatorFunction : public AbstractOperatorFunction
       {
       }      
       DLLLOCAL virtual ~BoolStrStrOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -289,7 +291,7 @@ class BoolDateOperatorFunction : public AbstractOperatorFunction
       {
       }      
       DLLLOCAL virtual ~BoolDateOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -305,7 +307,7 @@ class DateOperatorFunction : public AbstractOperatorFunction
       {
       }      
       DLLLOCAL virtual ~DateOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -321,7 +323,7 @@ class BoolBinOperatorFunction : public AbstractOperatorFunction
       {
       }      
       DLLLOCAL virtual ~BoolBinOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -337,7 +339,7 @@ class NoConvertBoolOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~NoConvertBoolOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -353,7 +355,7 @@ class EffectBoolOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~EffectBoolOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -370,7 +372,7 @@ class BoolStrRegexOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~BoolStrRegexOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -386,7 +388,7 @@ class BoolIntOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~BoolIntOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -402,7 +404,7 @@ class IntIntOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~IntIntOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -419,7 +421,7 @@ class DivideIntOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~DivideIntOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -433,7 +435,7 @@ class UnaryMinusIntOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~UnaryMinusIntOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -447,7 +449,7 @@ class IntegerNotOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~IntegerNotOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -463,7 +465,7 @@ class BoolFloatOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~BoolFloatOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -479,7 +481,7 @@ class FloatFloatOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~FloatFloatOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -496,7 +498,7 @@ class DivideFloatOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~DivideFloatOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -510,7 +512,7 @@ class UnaryMinusFloatOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~UnaryMinusFloatOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -527,7 +529,7 @@ class CompareFloatOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~CompareFloatOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -541,7 +543,7 @@ class BoolNotOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~BoolNotOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -555,7 +557,7 @@ class CompareDateOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~CompareDateOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -571,7 +573,7 @@ class LogicOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~LogicOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -587,7 +589,7 @@ class BigIntStrStrOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~BigIntStrStrOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -604,7 +606,7 @@ class SimpleBoolOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~SimpleBoolOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -618,7 +620,7 @@ class BoolOperatorFunction : public AbstractOperatorFunction
    public:
       DLLLOCAL BoolOperatorFunction(qore_type_t lt, qore_type_t rt, op_bool_func_t f);
       DLLLOCAL virtual ~BoolOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -632,7 +634,7 @@ class BigIntOperatorFunction : public AbstractOperatorFunction
    public:
       DLLLOCAL BigIntOperatorFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f);
       DLLLOCAL virtual ~BigIntOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -646,13 +648,13 @@ class FloatOperatorFunction : public AbstractOperatorFunction
    public:
       DLLLOCAL FloatOperatorFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f);
       DLLLOCAL virtual ~FloatOperatorFunction() {}
-      DLLLOCAL virtual class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
 };
 
-typedef std::vector<class AbstractOperatorFunction *> opfunc_list_t;
+typedef std::vector<AbstractOperatorFunction *> opfunc_list_t;
 
 class Operator {
    private:
@@ -669,6 +671,14 @@ class Operator {
       DLLLOCAL int get_function(const QoreNodeEvalOptionalRefHolder &nleft, const QoreNodeEvalOptionalRefHolder &nright, ExceptionSink *xsink) const;
 
    public:
+      // create a new Operator
+      /** @param arg number of arguments (1 or 2)
+	  @param n the name of the operator
+	  @param desc the description of the operator
+	  @param n_evalArgs if the arguments should be evaluated before passing to the operator function or not
+	  @param n_effect if the operator modifies anything
+	  @param n_lvalue if the operator requires an lvalue on the left side (for modification, ex: $a =~ s/x/p/ )
+       */
       DLLLOCAL Operator(int arg, char *n, char *desc, int n_evalArgs, bool n_effect, bool n_lvalue = false);
       DLLLOCAL ~Operator();
       DLLLOCAL void init();
@@ -804,7 +814,7 @@ class Operator {
       DLLLOCAL void addFunction(qore_type_t lt, qore_type_t rt, op_bool_func_t f); 
       DLLLOCAL void addFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f); 
       DLLLOCAL void addFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f); 
-      DLLLOCAL class AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, ExceptionSink *xsink) const;
       DLLLOCAL bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) const;
       DLLLOCAL int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) const;
       DLLLOCAL double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) const;

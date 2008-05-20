@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) David Nichols 2003, 2004, 2005, 2006, 2007
+  Copyright David Nichols 2003 - 2008
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@
     no include file depth limits, 
     thread-safe
 
-  requires flex 2.5.31 or better (2.5.33 recommended, 2.5.4 will not work) 
+  requires flex 2.5.31 or better (2.5.35 recommended, 2.5.4 will not work) 
   so a thread-safe scanner can be generated
 
   see: http://lex.sourceforge.net/
@@ -607,6 +607,7 @@ trim					return TOK_TRIM;
 on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
+fmap                                    return TOK_FMAP;
 keys\(                                  yylval->string = strdup("keys"); return KW_IDENTIFIER_OPENPAREN;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
 trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
@@ -618,6 +619,7 @@ unshift\(                               yylval->string = strdup("unshift"); retu
 background\(	   			yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN;
 find\(					yylval->string = strdup("find"); return KW_IDENTIFIER_OPENPAREN;
 exists\(                                yylval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN;
+fmap\(                                  yylval->string = strdup("fmap"); return KW_IDENTIFIER_OPENPAREN;
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;

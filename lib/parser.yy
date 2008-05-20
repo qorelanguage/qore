@@ -616,6 +616,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token TOK_ON_EXIT "on_exit"
 %token TOK_ON_SUCCESS "on_success"
 %token TOK_ON_ERROR "on_error"
+%token TOK_FMAP "fmap"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -643,7 +644,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 // FIXME: check precedence
 %right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS
 %right '='
-%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE
+%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_FMAP
 %left ','
 %right '?' ':'
 %left LOGICAL_AND LOGICAL_OR
@@ -1722,7 +1723,7 @@ exp:    scalar
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() < 2 || l->size() > 4) {
-	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->getTypeName());
+	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (got %s)", get_type_name($2));
 	      $$ = makeErrorTree(OP_SPLICE, $2, 0);
 	   }
 	   else
@@ -1735,6 +1736,20 @@ exp:    scalar
 	      }
 	      else
 		 $$ = makeTree(OP_SPLICE, lv, $2);
+	   }
+	}
+        | TOK_FMAP exp
+        {
+	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   if (!l || l->size() != 2) {
+	      parse_error("invalid arguments to fmap operator, expected: code expression (must evaluate to call reference or runtime closure), argument, got: '%s'", get_type_name($2));
+	      $$ = makeErrorTree(OP_FMAP, $2, 0);
+	   }
+	   else {
+	      AbstractQoreNode *map_exp = l->shift();
+	      AbstractQoreNode *arg = l->shift();
+	      $$ = new QoreTreeNode(map_exp, OP_FMAP, arg);
+	      $2->deref(0);
 	   }
 	}
         | exp '?' exp ':' exp

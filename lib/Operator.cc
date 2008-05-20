@@ -44,7 +44,7 @@ Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_NOT, 
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF;
+   *OP_EXISTS, *OP_INSTANCEOF, *OP_FMAP;
 
 // call to get a node with reference count 1 (copy on write)
 static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink)
@@ -708,7 +708,7 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
       const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(*op);
       // see if the hash member is a call reference
       const AbstractQoreNode *ref = h->getKeyValue(f->f.c_str);
-      if (ref && ref->getType() == NT_FUNCREF)
+      if (ref && (ref->getType() == NT_FUNCREF || ref->getType() == NT_RUNTIME_CLOSURE))
 	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->exec(f->args, xsink);
    }
 
@@ -1830,6 +1830,34 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
    return ref_rv ? val.get_value()->refSelf() : 0;
 }
 
+static AbstractQoreNode *op_fmap(const AbstractQoreNode *left, const AbstractQoreNode *arg, bool ref_rv, ExceptionSink *xsink)
+{
+   qore_type_t t = left->getType();
+   if (t != NT_FUNCREF && t != NT_RUNTIME_CLOSURE) {
+      xsink->raiseException("FMAP-OPERATOR-ERROR", "first argument to fmap operator does not evaluate to a call reference or a runtime closure (type: '%s')", left->getTypeName());
+      return 0;
+   }
+   const ResolvedCallReferenceNode *ref = reinterpret_cast<const ResolvedCallReferenceNode *>(left);
+
+   if (arg->getType() != NT_LIST) {
+      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+      args->push(arg->refSelf());
+      return ref->exec(*args, xsink);
+   }
+
+   ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
+   ConstListIterator li(reinterpret_cast<const QoreListNode *>(arg));
+   while (li.next()) {
+      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+      args->push(li.getReferencedValue());
+      ReferenceHolder<AbstractQoreNode> val(ref->exec(*args, xsink), xsink);
+      if (*xsink)
+	 return 0;
+      rv->push(val.release());
+   }
+   return rv.release();
+}
+
 static QoreHashNode *op_minus_hash_string(const QoreHashNode *h, const QoreString *s, ExceptionSink *xsink)
 {
    ReferenceHolder<QoreHashNode> nh(h->copy(), xsink);
@@ -1943,87 +1971,19 @@ AbstractQoreNode *OperatorFunction::eval(const AbstractQoreNode *left, const Abs
 
 bool OperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   ReferenceHolder<AbstractQoreNode> l(xsink);
-
-   // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
-      l = get_node_type(left, ltype);
-      left = *l;
-   }
-
-   if (args == 1) {
-      ReferenceHolder<AbstractQoreNode> rv(op_func(left, 0, true, xsink), xsink);
-      return *rv ? rv->getAsBool() : false;
-   }
-
-   ReferenceHolder<AbstractQoreNode> r(xsink);
-
-   // convert node type to required argument types for operator if necessary
-   if ((right->getType() != rtype) && (rtype != NT_ALL))
-   {
-      r = get_node_type(right, rtype);
-      right = *r;
-   }
-
-   ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, true, xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(OperatorFunction::eval(left, right, true, args, xsink), xsink);
    return *rv ? rv->getAsBool() : false;
 }
 
 int64 OperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   ReferenceHolder<AbstractQoreNode> l(xsink);
-
-   // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL))
-   {
-      l = get_node_type(left, ltype);
-      left = *l;
-   }
-
-   if (args == 1) {
-      ReferenceHolder<AbstractQoreNode> rv(op_func(left, 0, true, xsink), xsink);
-      return *rv ? rv->getAsBigInt() : 0;
-   }
-
-   ReferenceHolder<AbstractQoreNode> r(xsink);
-
-   // convert node type to required argument types for operator if necessary
-   if ((right->getType() != rtype) && (rtype != NT_ALL))
-   {
-      r = get_node_type(right, rtype);
-      right = *r;
-   }
-
-   ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, true, xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(OperatorFunction::eval(left, right, true, args, xsink), xsink);
    return *rv ? rv->getAsBigInt() : 0;
 }
 
 double OperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   ReferenceHolder<AbstractQoreNode> l(xsink);
-
-   // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL))
-   {
-      l = get_node_type(left, ltype);
-      left = *l;
-   }
-
-   if (args == 1) {
-      ReferenceHolder<AbstractQoreNode> rv(op_func(left, 0, true, xsink), xsink);
-      return *rv ? rv->getAsFloat() : false;
-   }
-
-   ReferenceHolder<AbstractQoreNode> r(xsink);
-
-   // convert node type to required argument types for operator if necessary
-   if ((right->getType() != rtype) && (rtype != NT_ALL))
-   {
-      r = get_node_type(right, rtype);
-      right = *r;
-   }
-
-   ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, true, xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(OperatorFunction::eval(left, right, true, args, xsink), xsink);
    return *rv ? rv->getAsFloat() : 0;
 }
 
@@ -3834,6 +3794,9 @@ void OperatorList::init()
 
    OP_TRIM = add(new Operator(1, "trim", "trim characters from an lvalue", 0, true, true));
    OP_TRIM->addFunction(NT_ALL, NT_NONE, op_trim);
+
+   OP_FMAP = add(new Operator(2, "fmap", "map call reference or closure to a list", 1, true, false));
+   OP_FMAP->addFunction(NT_ALL, NT_ALL, op_fmap);
 
    // initialize all operators
    for (oplist_t::iterator i = begin(), e = end(); i != e; ++i)
