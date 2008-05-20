@@ -37,6 +37,7 @@
 #include <list>
 #include <set>
 #include <vector>
+#include <algorithm>
 
 //! used to identify unique Qore data and parse types (descendents of AbstractQoreNode)
 typedef short qore_type_t;
