@@ -1393,7 +1393,8 @@ void QoreProgram::setScriptDirFromPath(const char *path)
    if (!path)
       priv->script_dir.clear();
    else {
-      std::auto_ptr<char> dir(q_dirname(path));
-      priv->script_dir = dir.get();
+      char *dir = q_dirname(path);
+      priv->script_dir = dir;
+      free(dir);
    }
 }
