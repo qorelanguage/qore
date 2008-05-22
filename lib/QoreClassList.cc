@@ -67,11 +67,9 @@ QoreClass *QoreClassList::find(const char *name)
 QoreClass *QoreClassList::findChange(const char *name)
 {
    hm_qc_t::iterator i = hm.find(name);
-   if (i != hm.end())
-   {
+   if (i != hm.end()) {
       QoreClass *nc;
-      if (!i->second->is_unique())
-      {
+      if (!i->second->is_unique()) {
 	 nc = i->second;
 	 hm.erase(i);
 	 nc = nc->copyAndDeref();
@@ -137,30 +135,24 @@ void QoreClassList::assimilate(QoreClassList *n)
 void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class QoreNamespaceList *nsl, class QoreNamespaceList *pendNSL, const char *nsname)
 {
    hm_qc_t::iterator i = n->hm.begin();
-   while (i != n->hm.end())
-   {
-      if (otherlist->find(i->first))
-      {
+   while (i != n->hm.end()) {
+      if (otherlist->find(i->first)) {
 	 parse_error("class '%s' has already been defined in namespace '%s'", i->first, nsname);
 	 n->remove(i);
       }
-      else if (find(i->first))
-      {
+      else if (find(i->first)) {
 	 parse_error("class '%s' is already pending in namespace '%s'", i->first, nsname);
 	 n->remove(i);
       }
-      else if (nsl->find(i->first))
-      {
+      else if (nsl->find(i->first)) {
 	 parse_error("cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, nsname);
 	 n->remove(i);
       }
-      else if (pendNSL->find(i->first))
-      {
+      else if (pendNSL->find(i->first)) {
 	 parse_error("cannot add class '%s' to existing namespace '%s' because a pending subnamespace is already pending with this name", i->first, nsname);
 	 n->remove(i);
       }
-      else
-      {
+      else {
 	 // "move" data to new list
 	 hm[i->first] = i->second;
 	 n->hm.erase(i);
