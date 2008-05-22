@@ -44,7 +44,7 @@ Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_NOT, 
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF, *OP_FMAP, *OP_FOLDR, *OP_FOLDL;
+   *OP_EXISTS, *OP_INSTANCEOF, *OP_FMAP, *OP_FMAP_SELECT, *OP_FOLDR, *OP_FOLDL;
 
 // call to get a node with reference count 1 (copy on write)
 static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink)
@@ -1854,6 +1854,67 @@ static AbstractQoreNode *op_fmap(const AbstractQoreNode *left, const AbstractQor
       if (*xsink)
 	 return 0;
       rv->push(val.release());
+   }
+   return rv.release();
+}
+
+static AbstractQoreNode *op_fmap_select(const AbstractQoreNode *left, const AbstractQoreNode *arg, bool ref_rv, ExceptionSink *xsink)
+{
+   qore_type_t t = left->getType();
+   if (t != NT_FUNCREF && t != NT_RUNTIME_CLOSURE) {
+      xsink->raiseException("FMAP-OPERATOR-ERROR", "first argument to the fmap operator does not evaluate to a call reference or a runtime closure (type: '%s')", left->getTypeName());
+      return 0;
+   }
+   const ResolvedCallReferenceNode *ref = reinterpret_cast<const ResolvedCallReferenceNode *>(left);
+
+   assert(arg->getType() == NT_LIST);
+
+   const QoreListNode *arg_list = reinterpret_cast<const QoreListNode *>(arg);
+
+   const AbstractQoreNode *marg = arg_list->retrieve_entry(0);
+   const AbstractQoreNode *select = arg_list->retrieve_entry(1);
+
+   if (!select || (select->getType() != NT_FUNCREF && select->getType() != NT_RUNTIME_CLOSURE)) {
+      xsink->raiseException("FMAP-OPERATOR-ERROR", "third argument to the fmap operator does not evaluate to a call reference or a runtime closure (type: '%s')", get_type_name(select));
+      return 0;
+   }
+
+   const ResolvedCallReferenceNode *select_ref = reinterpret_cast<const ResolvedCallReferenceNode *>(select);
+
+   if (!marg || marg->getType() != NT_LIST) {
+      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+      args->push(marg ? marg->refSelf() : 0);
+      ReferenceHolder<AbstractQoreNode> val(ref->exec(*args, xsink), xsink);
+      if (*xsink)
+	 return 0;
+      args.release();
+      args = new QoreListNode();
+      args->push(val ? val->refSelf() : 0);
+      AbstractQoreNode *select_rv = select_ref->exec(*args, xsink);
+      if (*xsink)
+	 return 0;
+      if (select_rv && select_rv->getAsBool())
+	 return val.release();
+   }
+
+   ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
+   ConstListIterator li(reinterpret_cast<const QoreListNode *>(marg));
+   while (li.next()) {
+      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+      args->push(li.getReferencedValue());
+      ReferenceHolder<AbstractQoreNode> val(ref->exec(*args, xsink), xsink);
+      if (*xsink)
+	 return 0;
+
+      args.release();
+      args = new QoreListNode();
+      args->push(val ? val->refSelf() : 0);
+      ReferenceHolder<AbstractQoreNode> select_rv(select_ref->exec(*args, xsink), xsink);
+      if (*xsink)
+	 return 0;
+      
+      if (select_rv && select_rv->getAsBool())
+	 rv->push(val.release());
    }
    return rv.release();
 }
@@ -3889,6 +3950,9 @@ void OperatorList::init()
 
    OP_FMAP = add(new Operator(2, "fmap", "map call reference or closure to a list", 1, true, false));
    OP_FMAP->addFunction(NT_ALL, NT_ALL, op_fmap);
+
+   OP_FMAP_SELECT = add(new Operator(2, "fmap with select", "map call reference or closure to a list with select code expression", 1, true, false));
+   OP_FMAP_SELECT->addFunction(NT_ALL, NT_ALL, op_fmap_select);
 
    OP_FOLDL = add(new Operator(2, "foldl", "left fold call reference or closure on a list", 1, true, false));
    OP_FOLDL->addFunction(NT_ALL, NT_ALL, op_foldl);

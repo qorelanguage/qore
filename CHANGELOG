@@ -1,3 +1,8 @@
+2005.05.22: David Nichols
+	* implemented support for a select code expression as an optional third
+	  argument for the new fmap operator to filter which elements are
+	  included in the resulting list
+
 2008.05.20: David Nichols
 	* ensure that closures can be used anywhere call references can be used
 	* implemented "fmap" operator to map a call reference or closure on a

@@ -1743,15 +1743,20 @@ exp:    scalar
         | TOK_FMAP exp
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
-	   if (!l || l->size() != 2) {
-	      parse_error("invalid arguments to fmap operator, expected: 2-element list (code expression (must evaluate to call reference or runtime closure) and argument), got: '%s'", get_type_name($2));
+	   int len = l->size();
+	   if (!l || len < 2 || len > 3) {
+	      parse_error("invalid arguments to fmap operator, expected: 2 or 3 element list (code expression (must evaluate to call reference or runtime closure), argument, optional 'select' code expression for inclusion in resulting list), got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree(OP_FMAP, $2, 0);
 	   }
-	   else {
+	   else if (len == 2) {
 	      AbstractQoreNode *map_exp = l->shift();
 	      AbstractQoreNode *arg = l->shift();
 	      $$ = new QoreTreeNode(map_exp, OP_FMAP, arg);
 	      $2->deref(0);
+	   }
+	   else {
+	      AbstractQoreNode *map_exp = l->shift();
+	      $$ = new QoreTreeNode(map_exp, OP_FMAP_SELECT, l);
 	   }
 	}
         | TOK_FOLDR exp

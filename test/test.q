@@ -400,6 +400,8 @@ sub operator_test()
     my $c = fmap_closure(2);
     # map function to list and check result
     test_value((fmap $c, (1, 2, 3)), (2, 4, 6), "fmap operator");
+    # map function to list with select code
+    test_value((fmap $c, (1, 2, 3), sub($x) {return $x > 3;}), (4, 6), "fmap operator with select code");
     # left fold function on list using immediate closure and check result
     test_value((foldl sub ($x, $y) { return $x - $y; }, (2, 3, 4)), -5, "foldl operator");
     # right fold function on list using immediate closure and check result
