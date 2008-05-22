@@ -28,6 +28,9 @@
 
 #include <qore/common.h>
 
+// note: hash-map functionality has been removed for now pending redesign of the data structures
+//       and implementation of an appropriate hashing algorithm
+
 #include <map>
 
 typedef std::map<const char*,  class Var *,               class ltstr> map_var_t;
