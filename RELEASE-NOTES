@@ -4,13 +4,14 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 
 qore 0.7.0 is a major release with major new features
 *) stable ABI and API, cleaned-up public header files, development packages
+*) documented public API (with doxygen), documentation packages
 *) complete reimplementation of the type and operator subsystems
 *) reimplemented variable and object locking, no more possibility of nested locks and deadlocks
 *) major performance and memory usage improvements
 *) support for closures and encapsulating the state of local variables in the closure
-*) new operators: fmap (maps a call reference or closure on a list)
+*) some functional programming support: new operators: fmap, foldr, foldl, fselect
+*) new implicit argument references: $$ (entire argument list), $1, $2, ...
 *) new special object method: "memberNotification()", called when members are updated externally to the class
-*) documented public API (with doxygen)
 *) qt module based on QT4
 *) opengl module
 *) glut module

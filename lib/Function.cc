@@ -546,10 +546,10 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
          params->selfid->instantiate_object(self);
    
       // instantiate argv and push id on stack
-      params->argvid->instantiate(argv.release());
+      params->argvid->instantiate(argv ? argv->refSelf() : 0);
 
       {
-	 ArgvContextHelper(params->argvid);
+	 ArgvContextHelper argv_helper(argv.release(), xsink);
 
 	 // enter gate if necessary
 	 if (!synchronized || (gate->enter(xsink) >= 0))
@@ -605,7 +605,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
       params->lv[i]->instantiate(n ? n->refSelf() : 0);
    }
 
-   QoreListNode *argv;
+   ReferenceHolder<QoreListNode> argv(xsink);
 
    if (!params->num_params)
    {
@@ -613,8 +613,6 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
       old->ref();
       argv->push(old);
    }
-   else
-      argv = 0;
 
    if (statements)
    {
@@ -628,10 +626,11 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
       params->selfid->instantiate_object(self);
    
       // instantiate argv and push id on stack (for shift)
-      params->argvid->instantiate(argv);
+      params->argvid->instantiate(argv ? argv->refSelf() : 0);
 
       {
-	 ArgvContextHelper(params->argvid);
+	 ArgvContextHelper argv_helper(argv.release(), xsink);
+
 	 // execute function
 	 discard(statements->exec(xsink), xsink);
       }
@@ -642,8 +641,6 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
       // uninstantiate self
       params->selfid->uninstantiate(xsink);
    }
-   else
-      discard(argv, xsink);
 
    if (params->num_params)
    {
@@ -754,10 +751,10 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
          params->selfid->instantiate_object(self);
 	 
 	 // instantiate argv and push id on stack
-	 params->argvid->instantiate(argv.release());
+	 params->argvid->instantiate(argv ? argv->refSelf() : 0);
 
 	 {
-	    ArgvContextHelper(params->argvid);
+	    ArgvContextHelper argv_helper(argv.release(), xsink);
 	    
 	    // enter gate if necessary
 	    if (!synchronized || (gate->enter(xsink) >= 0))

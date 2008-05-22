@@ -87,6 +87,16 @@ class QoreClosureNode : ResolvedCallReferenceNode
       {
          return "runtime function closure";
       }
+
+      DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
+      {
+	 return QoreClosureNode::is_equal_hard(v, xsink);
+      }
+
+      DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
+      {
+	 return v == this;
+      }
 };
 
 class QoreObjectClosureNode : ResolvedCallReferenceNode
@@ -136,6 +146,16 @@ class QoreObjectClosureNode : ResolvedCallReferenceNode
       DLLLOCAL static const char *getStaticTypeName()
       {
          return "runtime function closure";
+      }
+
+      DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
+      {
+	 return QoreObjectClosureNode::is_equal_hard(v, xsink);
+      }
+
+      DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
+      {
+	 return v == this;
       }
 };
 

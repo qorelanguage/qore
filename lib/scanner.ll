@@ -607,9 +607,19 @@ trim					return TOK_TRIM;
 on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
-fmap                                    return TOK_FMAP;
+map                                     return TOK_MAP;
 foldr                                   return TOK_FOLDR;
 foldl                                   return TOK_FOLDL;
+select                                  return TOK_SELECT;
+in\(                                    yylval->string = strdup("in"); return KW_IDENTIFIER_OPENPAREN;
+class\(                                 yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;
+private\(                               yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN;
+new\(                                   yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN;
+delete\(                                yylval->string = strdup("delete"); return KW_IDENTIFIER_OPENPAREN;
+elements\(                              yylval->string = strdup("elements"); return KW_IDENTIFIER_OPENPAREN;
+context\(                               yylval->string = strdup("context"); return KW_IDENTIFIER_OPENPAREN;
+switch\(                                yylval->string = strdup("switch"); return KW_IDENTIFIER_OPENPAREN;
+case\(                                  yylval->string = strdup("case"); return KW_IDENTIFIER_OPENPAREN;
 keys\(                                  yylval->string = strdup("keys"); return KW_IDENTIFIER_OPENPAREN;
 chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
 trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
@@ -621,9 +631,161 @@ unshift\(                               yylval->string = strdup("unshift"); retu
 background\(	   			yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN;
 find\(					yylval->string = strdup("find"); return KW_IDENTIFIER_OPENPAREN;
 exists\(                                yylval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN;
-fmap\(                                  yylval->string = strdup("fmap"); return KW_IDENTIFIER_OPENPAREN;
+map\(                                   yylval->string = strdup("map"); return KW_IDENTIFIER_OPENPAREN;
 foldr\(                                 yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN;
 foldl\(                                 yylval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN;
+select\(                                yylval->string = strdup("select"); return KW_IDENTIFIER_OPENPAREN;
+default\(                               yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
+\.new[^A-Za-z_0-9]                      {
+                                           yylval->String = new QoreStringNode("new"); 
+					   if (yytext[4])
+					      unput(yytext[4]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.private[^A-Za-z_0-9]                  {
+                                           yylval->String = new QoreStringNode("private"); 
+					   if (yytext[8])
+					      unput(yytext[8]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.class[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("class"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.in[^A-Za-z_0-9]                       {
+                                           yylval->String = new QoreStringNode("in"); 
+					   if (yytext[3])
+					      unput(yytext[3]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.delete[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("delete"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.case[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("case"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.switch[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("switch"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.context[^A-Za-z_0-9]                  {
+                                           yylval->String = new QoreStringNode("context"); 
+					   if (yytext[8])
+					      unput(yytext[8]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.elements[^A-Za-z_0-9]                 {
+                                           yylval->String = new QoreStringNode("default"); 
+					   if (yytext[9])
+					      unput(yytext[9]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.default[^A-Za-z_0-9]                  {
+                                           yylval->String = new QoreStringNode("default"); 
+					   if (yytext[8])
+					      unput(yytext[8]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.map[^A-Za-z_0-9]                      {
+                                           yylval->String = new QoreStringNode("map"); 
+					   if (yytext[4])
+					      unput(yytext[4]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.select[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("select"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.keys[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("keys"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.chomp[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("chomp"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.trim[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("trim"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.push[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("push"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.pop[^A-Za-z_0-9]                      {
+                                           yylval->String = new QoreStringNode("pop"); 
+					   if (yytext[4])
+					      unput(yytext[4]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.splice[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("splice"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.shift[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("shift"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.unshift[^A-Za-z_0-9]                  {
+                                           yylval->String = new QoreStringNode("unshift"); 
+					   if (yytext[8])
+					      unput(yytext[8]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.background[^A-Za-z_0-9]               {
+                                           yylval->String = new QoreStringNode("background"); 
+					   if (yytext[11])
+					      unput(yytext[11]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.find[^A-Za-z_0-9]                     {
+                                           yylval->String = new QoreStringNode("find"); 
+					   if (yytext[5])
+					      unput(yytext[5]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.exists[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("exists"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.foldr[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("foldr"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.foldl[^A-Za-z_0-9]                    {
+                                           yylval->String = new QoreStringNode("foldl"); 
+					   if (yytext[6])
+					      unput(yytext[6]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;
@@ -653,6 +815,8 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 \%\%                                    return TOK_CONTEXT_ROW;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
 \'[^\']*\'				yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
+\$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(-1); return IMPLICIT_ARG_REF;
+\$[0-9][0-9]*                           yylval->implicit_arg = new QoreImplicitArgumentNode(strtod(yytext + 1, 0)); return IMPLICIT_ARG_REF;
 \<{WS}*=				return LOGICAL_LE;
 \>{WS}*=				return LOGICAL_GE;
 \!{WS}*=				return LOGICAL_NE;

@@ -395,6 +395,12 @@ QoreProgram *RunTimeObjectScopedMethodReferenceNode::getProgram() const
    return obj->getProgram();
 }
 
+bool RunTimeObjectScopedMethodReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
+{
+   const RunTimeObjectScopedMethodReferenceNode *vc = dynamic_cast<const RunTimeObjectScopedMethodReferenceNode *>(v);
+   return vc && vc->obj == obj && vc->method == method;
+}
+
 RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode(QoreObject *n_obj, char *n_method) : obj(n_obj), method(strdup(n_method))
 {
    //printd(5, "RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode() this=%08p obj=%08p (method=%s)\n", this, obj, method);
@@ -416,6 +422,12 @@ AbstractQoreNode *RunTimeObjectMethodReferenceNode::exec(const QoreListNode *arg
 QoreProgram *RunTimeObjectMethodReferenceNode::getProgram() const
 {
    return obj->getProgram();
+}
+
+bool RunTimeObjectMethodReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
+{
+   const RunTimeObjectMethodReferenceNode *vc = dynamic_cast<const RunTimeObjectMethodReferenceNode *>(v);
+   return vc && obj == vc->obj && !strcmp(vc->method, method);
 }
 
 UnresolvedCallReferenceNode::UnresolvedCallReferenceNode(char *n_str) : AbstractCallReferenceNode(false, true), str(n_str)
@@ -470,6 +482,12 @@ AbstractQoreNode *UserCallReferenceNode::exec(const QoreListNode *args, Exceptio
    return uf->eval(args, 0, xsink);
 }
 
+bool UserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
+{
+   const UserCallReferenceNode *vc = dynamic_cast<const UserCallReferenceNode *>(v);
+   return vc && uf == vc->uf;
+}
+
 StaticUserCallReferenceNode::StaticUserCallReferenceNode(UserFunction *n_uf, QoreProgram *n_pgm) : ResolvedCallReferenceNode(true), uf(n_uf), pgm(n_pgm)
 {
 }
@@ -512,6 +530,12 @@ AbstractQoreNode *StaticUserCallReferenceNode::exec(const QoreListNode *args, Ex
    return 0;
 }
 
+bool StaticUserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
+{
+   const StaticUserCallReferenceNode *vc = dynamic_cast<const StaticUserCallReferenceNode *>(v);
+   return vc && uf == vc->uf;
+}
+
 BuiltinCallReferenceNode::BuiltinCallReferenceNode(const BuiltinFunction *n_bf) : bf(n_bf)
 {
 }
@@ -519,6 +543,12 @@ BuiltinCallReferenceNode::BuiltinCallReferenceNode(const BuiltinFunction *n_bf) 
 AbstractQoreNode *BuiltinCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
    return bf->eval(args, xsink);
+}
+
+bool BuiltinCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
+{
+   const BuiltinCallReferenceNode *vc = dynamic_cast<const BuiltinCallReferenceNode *>(v);
+   return vc && vc->bf == bf;
 }
 
 ImportedCallReferenceNode::ImportedCallReferenceNode(ImportedFunctionCall *n_ifunc) : ifunc(n_ifunc)
@@ -538,6 +568,12 @@ ImportedCallReferenceNode::~ImportedCallReferenceNode()
 QoreProgram *ImportedCallReferenceNode::getProgram() const
 {
    return ifunc->pgm;
+}
+
+bool ImportedCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
+{
+   const ImportedCallReferenceNode *vc = dynamic_cast<const ImportedCallReferenceNode *>(v);
+   return vc && vc->ifunc == ifunc;
 }
 
 ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type)

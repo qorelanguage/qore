@@ -144,6 +144,8 @@ class QoreClosureRuntimeEnvironmentHelper {
       }
 };
 
+DLLLOCAL const QoreListNode *thread_get_implicit_args();
+
 #ifndef HAVE_UNLIMITED_THREAD_KEYS
 DLLLOCAL LocalVarValue *thread_find_lvar(const char *id);
 #endif
@@ -187,11 +189,24 @@ class ProgramContextHelper {
 
 class ArgvContextHelper {
    private:
-      LocalVar *old_argvid;
+      QoreListNode *old_argv;
+      ExceptionSink *xsink;
    
    public:
-      DLLLOCAL ArgvContextHelper(LocalVar *argvid);
+      DLLLOCAL ArgvContextHelper(QoreListNode *argv, ExceptionSink *n_xsink);
+      // calls deref(xsink) on list in destructor
       DLLLOCAL ~ArgvContextHelper();
+};
+
+class SingleArgvContextHelper {
+   private:
+      QoreListNode *old_argv;
+      ExceptionSink *xsink;
+   
+   public:
+      DLLLOCAL SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink);
+      // calls deref(xsink) on list in destructor
+      DLLLOCAL ~SingleArgvContextHelper();
 };
 
 #include <qore/intern/CallStack.h>

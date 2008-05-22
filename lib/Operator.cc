@@ -44,7 +44,8 @@ Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_NOT, 
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF, *OP_FMAP, *OP_FMAP_SELECT, *OP_FOLDR, *OP_FOLDL;
+   *OP_EXISTS, *OP_INSTANCEOF, *OP_MAP, *OP_MAP_SELECT, *OP_FOLDR, *OP_FOLDL,
+   *OP_SELECT;
 
 // call to get a node with reference count 1 (copy on write)
 static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink)
@@ -1830,27 +1831,23 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
    return ref_rv ? val.get_value()->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_fmap(const AbstractQoreNode *left, const AbstractQoreNode *arg, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink)
 {
-   qore_type_t t = left->getType();
-   if (t != NT_FUNCREF && t != NT_RUNTIME_CLOSURE) {
-      xsink->raiseException("FMAP-OPERATOR-ERROR", "first argument to the fmap operator does not evaluate to a call reference or a runtime closure (type: '%s')", left->getTypeName());
+   // conditionally evaluate argument
+   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
+   if (*xsink)
       return 0;
-   }
-   const ResolvedCallReferenceNode *ref = reinterpret_cast<const ResolvedCallReferenceNode *>(left);
 
    if (arg->getType() != NT_LIST) {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      args->push(arg->refSelf());
-      return ref->exec(*args, xsink);
+      SingleArgvContextHelper argv_helper(*arg, xsink);
+      return left->eval(xsink);
    }
 
    ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
-   ConstListIterator li(reinterpret_cast<const QoreListNode *>(arg));
+   ConstListIterator li(reinterpret_cast<const QoreListNode *>(*arg));
    while (li.next()) {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      args->push(li.getReferencedValue());
-      ReferenceHolder<AbstractQoreNode> val(ref->exec(*args, xsink), xsink);
+      SingleArgvContextHelper argv_helper(li.getValue(), xsink);
+      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       if (*xsink)
 	 return 0;
       rv->push(val.release());
@@ -1858,157 +1855,164 @@ static AbstractQoreNode *op_fmap(const AbstractQoreNode *left, const AbstractQor
    return rv.release();
 }
 
-static AbstractQoreNode *op_fmap_select(const AbstractQoreNode *left, const AbstractQoreNode *arg, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink)
 {
-   qore_type_t t = left->getType();
-   if (t != NT_FUNCREF && t != NT_RUNTIME_CLOSURE) {
-      xsink->raiseException("FMAP-OPERATOR-ERROR", "first argument to the fmap operator does not evaluate to a call reference or a runtime closure (type: '%s')", left->getTypeName());
+   assert(arg_exp->getType() == NT_LIST);
+
+   const QoreListNode *arg_list = reinterpret_cast<const QoreListNode *>(arg_exp);
+
+   // conditionally evaluate argument expression
+   QoreNodeEvalOptionalRefHolder marg(arg_list->retrieve_entry(0), xsink);
+   if (*xsink)
       return 0;
-   }
-   const ResolvedCallReferenceNode *ref = reinterpret_cast<const ResolvedCallReferenceNode *>(left);
 
-   assert(arg->getType() == NT_LIST);
-
-   const QoreListNode *arg_list = reinterpret_cast<const QoreListNode *>(arg);
-
-   const AbstractQoreNode *marg = arg_list->retrieve_entry(0);
    const AbstractQoreNode *select = arg_list->retrieve_entry(1);
 
-   if (!select || (select->getType() != NT_FUNCREF && select->getType() != NT_RUNTIME_CLOSURE)) {
-      xsink->raiseException("FMAP-OPERATOR-ERROR", "third argument to the fmap operator does not evaluate to a call reference or a runtime closure (type: '%s')", get_type_name(select));
-      return 0;
-   }
+   if (marg->getType() != NT_LIST) {
+      // check if value can be mapped
+      {
+	 SingleArgvContextHelper argv_helper(*marg, xsink);
+	 bool b = select->boolEval(xsink);
+	 if (*xsink || !b)
+	    return 0;
+      }
 
-   const ResolvedCallReferenceNode *select_ref = reinterpret_cast<const ResolvedCallReferenceNode *>(select);
-
-   if (!marg || marg->getType() != NT_LIST) {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      args->push(marg ? marg->refSelf() : 0);
-      ReferenceHolder<AbstractQoreNode> val(ref->exec(*args, xsink), xsink);
-      if (*xsink)
-	 return 0;
-      args.release();
-      args = new QoreListNode();
-      args->push(val ? val->refSelf() : 0);
-      AbstractQoreNode *select_rv = select_ref->exec(*args, xsink);
-      if (*xsink)
-	 return 0;
-      if (select_rv && select_rv->getAsBool())
-	 return val.release();
+      SingleArgvContextHelper argv_helper(*marg, xsink);
+      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
+      return *xsink ? 0 : val.release();
    }
 
    ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
-   ConstListIterator li(reinterpret_cast<const QoreListNode *>(marg));
+   ConstListIterator li(reinterpret_cast<const QoreListNode *>(*marg));
    while (li.next()) {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      args->push(li.getReferencedValue());
-      ReferenceHolder<AbstractQoreNode> val(ref->exec(*args, xsink), xsink);
-      if (*xsink)
-	 return 0;
+      const AbstractQoreNode *elem = li.getValue();
+      // check if value can be mapped
+      {
+	 SingleArgvContextHelper argv_helper(elem, xsink);
+	 bool b = select->boolEval(xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!b)
+	    continue;
+      }
 
-      args.release();
-      args = new QoreListNode();
-      args->push(val ? val->refSelf() : 0);
-      ReferenceHolder<AbstractQoreNode> select_rv(select_ref->exec(*args, xsink), xsink);
+      SingleArgvContextHelper argv_helper(elem, xsink);
+      ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       if (*xsink)
 	 return 0;
-      
-      if (select_rv && select_rv->getAsBool())
-	 rv->push(val.release());
+      rv->push(val.release());
    }
    return rv.release();
 }
 
-static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQoreNode *arg, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink)
 {
-   qore_type_t t = left->getType();
-   if (t != NT_FUNCREF && t != NT_RUNTIME_CLOSURE) {
-      xsink->raiseException("FOLDL-OPERATOR-ERROR", "first argument to the foldr operator does not evaluate to a call reference or a runtime closure (type: '%s')", left->getTypeName());
+   // conditionally evaluate argument
+   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
+   if (*xsink)
       return 0;
-   }
-   const ResolvedCallReferenceNode *ref = reinterpret_cast<const ResolvedCallReferenceNode *>(left);
 
    // return the argument if there is no list
    if (arg->getType() != NT_LIST)
-      return arg->refSelf();
+      return arg.getReferencedValue();
 
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(arg);
+   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(*arg);
 
    // returns NOTHING if the list is empty
    if (!l->size())
       return 0;
 
-   ReferenceHolder<AbstractQoreNode> result(xsink);
-   {
-      const AbstractQoreNode *t = l->retrieve_entry(0);
-      result = t ? t->refSelf() : 0;
-   }
+   ReferenceHolder<AbstractQoreNode> result(l->get_referenced_entry(0), xsink);
 
    // return the first element if the list only has one element
    if (l->size() == 1)
       return result.release();
 
-   ConstListIterator li(reinterpret_cast<const QoreListNode *>(arg));
    // skip the first element
-   li.next();
+   ConstListIterator li(l, 0);
    while (li.next()) {
       // create argument list
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+      QoreListNode *args = new QoreListNode();
       args->push(result.release());
       args->push(li.getReferencedValue());
 
-      // get result
-      result = ref->exec(*args, xsink);
+      ArgvContextHelper argv_helper(args, xsink);
+
+      result = left->eval(xsink);
       if (*xsink)
 	 return 0;
    }
    return result.release();
 }
 
-static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQoreNode *arg, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink)
 {
-   qore_type_t t = left->getType();
-   if (t != NT_FUNCREF && t != NT_RUNTIME_CLOSURE) {
-      xsink->raiseException("FOLDR-OPERATOR-ERROR", "first argument to the foldr operator does not evaluate to a call reference or a runtime closure (type: '%s')", left->getTypeName());
+   // conditionally evaluate argument
+   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
+   if (*xsink)
       return 0;
-   }
-   const ResolvedCallReferenceNode *ref = reinterpret_cast<const ResolvedCallReferenceNode *>(left);
 
    // return the argument if there is no list
    if (arg->getType() != NT_LIST)
       return arg->refSelf();
 
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(arg);
+   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(*arg);
 
    // returns NOTHING if the list is empty
    if (!l->size())
       return 0;
 
-   ReferenceHolder<AbstractQoreNode> result(xsink);
-   {
-      const AbstractQoreNode *t = l->retrieve_entry(l->size() - 1);
-      result = t ? t->refSelf() : 0;
-   }
+   ReferenceHolder<AbstractQoreNode> result(l->get_referenced_entry(l->size() - 1), xsink);
 
    // return the first element if the list only has one element
    if (l->size() == 1)
       return result.release();
 
-   ConstListIterator li(reinterpret_cast<const QoreListNode *>(arg));
+   ConstListIterator li(l);
    // skip the first element
    li.prev();
    while (li.prev()) {
       // create argument list
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+      QoreListNode *args = new QoreListNode();
       args->push(result.release());
       args->push(li.getReferencedValue());
 
-      // get result
-      result = ref->exec(*args, xsink);
+      ArgvContextHelper argv_helper(args, xsink);
+
+      result = left->eval(xsink);
       if (*xsink)
 	 return 0;
    }
    return result.release();
+}
+
+static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const AbstractQoreNode *select, bool ref_rv, ExceptionSink *xsink)
+{
+   // conditionally evaluate argument
+   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
+   if (*xsink)
+      return 0;
+
+   if (arg->getType() != NT_LIST) {
+      SingleArgvContextHelper argv_helper(*arg, xsink);
+      bool b = select->boolEval(xsink);
+      if (*xsink)
+	 return 0;
+
+      return b ? arg.getReferencedValue() : 0;
+   }
+
+   ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
+   ConstListIterator li(reinterpret_cast<const QoreListNode *>(*arg));
+   while (li.next()) {
+      SingleArgvContextHelper argv_helper(li.getValue(), xsink);
+      bool b = select->boolEval(xsink);
+      if (*xsink)
+	 return 0;
+      if (b)
+	 rv->push(li.getReferencedValue());
+   }
+   return rv.release();
 }
 
 static QoreHashNode *op_minus_hash_string(const QoreHashNode *h, const QoreString *s, ExceptionSink *xsink)
@@ -3948,17 +3952,20 @@ void OperatorList::init()
    OP_TRIM = add(new Operator(1, "trim", "trim characters from an lvalue", 0, true, true));
    OP_TRIM->addFunction(NT_ALL, NT_NONE, op_trim);
 
-   OP_FMAP = add(new Operator(2, "fmap", "map call reference or closure to a list", 1, true, false));
-   OP_FMAP->addFunction(NT_ALL, NT_ALL, op_fmap);
+   OP_MAP = add(new Operator(2, "map", "map call reference or closure to a list", 0, true, false));
+   OP_MAP->addFunction(NT_ALL, NT_ALL, op_map);
 
-   OP_FMAP_SELECT = add(new Operator(2, "fmap with select", "map call reference or closure to a list with select code expression", 1, true, false));
-   OP_FMAP_SELECT->addFunction(NT_ALL, NT_ALL, op_fmap_select);
+   OP_MAP_SELECT = add(new Operator(2, "map with select", "map call reference or closure to a list with select code expression", 0, true, false));
+   OP_MAP_SELECT->addFunction(NT_ALL, NT_ALL, op_map_select);
 
-   OP_FOLDL = add(new Operator(2, "foldl", "left fold call reference or closure on a list", 1, true, false));
+   OP_FOLDL = add(new Operator(2, "foldl", "left fold call reference or closure on a list", 0, true, false));
    OP_FOLDL->addFunction(NT_ALL, NT_ALL, op_foldl);
 
-   OP_FOLDR = add(new Operator(2, "foldr", "right fold call reference or closure on a list", 1, true, false));
+   OP_FOLDR = add(new Operator(2, "foldr", "right fold call reference or closure on a list", 0, true, false));
    OP_FOLDR->addFunction(NT_ALL, NT_ALL, op_foldr);
+
+   OP_SELECT = add(new Operator(2, "select", "select elements from a list", 0, true, false));
+   OP_SELECT->addFunction(NT_ALL, NT_ALL, op_select);
 
    // initialize all operators
    for (oplist_t::iterator i = begin(), e = end(); i != e; ++i)

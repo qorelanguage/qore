@@ -126,6 +126,7 @@ libqore_la_SOURCES = \
 	FunctionReferenceNode.cc \
 	QoreClosureParseNode.cc \
 	QoreClosureNode.cc \
+	QoreImplicitArgumentNode.cc \
 	ParseOptionMap.cc \
 	ql_thread.cc \
 	ql_io.cc \

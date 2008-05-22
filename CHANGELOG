@@ -2,6 +2,20 @@
 	* implemented support for a select code expression as an optional third
 	  argument for the new fmap operator to filter which elements are
 	  included in the resulting list
+	* implemented support for $$, $1, $2, ... expressions as references to
+	  implied arguments
+	* changed implementation of fmap, foldl, foldr to use implied arguments
+	  rather than take code references/closures as this is a much more
+	  efficient and concise syntax
+	* implemented comparison functions for runtime code references and
+	  closures
+	* implemented select operator to select elements from a list
+	* implemented a workaround in the parser to allow keywords to be used as
+	  bareword hash keys or object members (i.e. "$hash.keys" is now a legal
+	  expression)
+	* renamed fmap to map
+	* updated map operator's optional select expression to operate on the 
+	  list before mapping instead of after
 
 2008.05.20: David Nichols
 	* ensure that closures can be used anywhere call references can be used

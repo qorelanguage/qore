@@ -43,8 +43,7 @@ sub parse_command_line()
 {
     my $g = new GetOpt(opts);
     $o = $g.parse(\$ARGV);
-    if (exists $o."_ERRORS_")
-    {
+    if (exists $o."_ERRORS_") {
         printf("%s\n", $o."_ERRORS_"[0]);
         exit(1);
     }
@@ -52,8 +51,7 @@ sub parse_command_line()
 	usage();
 
     $o.iters = shift $ARGV;
-    if (elements $ARGV)
-    {
+    if (elements $ARGV) {
 	printf("error, excess arguments on command-line\n");
 	usage();
     }
@@ -66,13 +64,11 @@ sub parse_command_line()
 
 sub test_value($v1, $v2, $msg)
 {
-    if ($v1 === $v2)
-    {
+    if ($v1 === $v2) {
 	if ($o.verbose)
 	    printf("OK: %s test\n", $msg);
     }
-    else
-    {
+    else {
 	printf("ERROR: %s test failed! (%N != %N)\n", $msg, $v1, $v2);
 	#printf("%s%s", dbg_node_info($v1), dbg_node_info($v2));
 	$errors++;
@@ -101,8 +97,7 @@ sub hash_return($var)
 }
 
 class Sort {
-    hash($l, $r)
-    {
+    hash($l, $r) {
 	return $l.key1 <=> $r.key1;
     }
 }
@@ -317,7 +312,7 @@ sub global_variable_testa()
     printf("user=%s\n", $ENV{"USER"});
 }
 
-sub fmap_closure($v) { return sub($v1) { return $v * $v1; }; }
+sub map_closure($v) { return sub($v1) { return $v * $v1; }; }
 
 # operator tests
 sub operator_test()
@@ -396,16 +391,35 @@ sub operator_test()
     test_value($ni, -4, "integer -=, lhs NOTHING");
     # some array and hash tests in separate functions
 
-    # get function closure (multiply by 2)
-    my $c = fmap_closure(2);
-    # map function to list and check result
-    test_value((fmap $c, (1, 2, 3)), (2, 4, 6), "fmap operator");
-    # map function to list with select code
-    test_value((fmap $c, (1, 2, 3), sub($x) {return $x > 3;}), (4, 6), "fmap operator with select code");
-    # left fold function on list using immediate closure and check result
-    test_value((foldl sub ($x, $y) { return $x - $y; }, (2, 3, 4)), -5, "foldl operator");
-    # right fold function on list using immediate closure and check result
-    test_value((foldr sub ($x, $y) { return $x - $y; }, (2, 3, 4)), -1, "foldr operator");
+    # get function closure with bound local variable (multiply by 2)
+    my $c = map_closure(2);
+
+    # map function to list
+    test_value((map $c($1), (1, 2, 3)), (2, 4, 6), "map operator using closure");
+
+    # map immediate expression to list
+    test_value((map $1 * 2, (1, 2, 3)), (2, 4, 6), "map operator using expression");
+
+    # map function to list with optional select code as expression
+    test_value((map $c($1), (1, 2, 3), $1 > 1), (4, 6), "map operator using closure with optional select expression");
+
+    # select all elements from list greater than 1 with expression
+    test_value((select (1, 2, 3), $1 > 1), (2, 3), "select operator with expression");
+
+    # create a sinple closure to subtract the second argument from the first
+    $c = sub($x, $y) { return $x - $y; };
+
+    # left fold function on list using closure
+    test_value((foldl $c($1, $2), (2, 3, 4)), -5, "foldl operator with closure");
+
+    # left fold function on list using expression
+    test_value((foldl $1 - $2, (2, 3, 4)), -5, "foldl operator with expression");
+
+    # right fold function on list using immediate closure
+    test_value((foldr $c($1, $2), (2, 3, 4)), -1, "foldr operator with closure");
+
+    # right fold function on list using expression and implicit arguments
+    test_value((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
 }
 
 sub no_parameter_test($p)

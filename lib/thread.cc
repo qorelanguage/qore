@@ -331,8 +331,9 @@ class ThreadData
       QoreObject *current_obj;
       // current program context
       QoreProgram *current_pgm;
-      // current argvid
-      LocalVar *current_argvid;
+
+      // current implicit argument
+      QoreListNode *current_implicit_arg;
 
       // local variable data slots
       ThreadLocalVariableData lvstack;
@@ -351,7 +352,7 @@ class ThreadData
 						      parse_file(0), pgm_counter_start(0), pgm_counter_end(0),
 						      pgm_file(0), parseState(0), vstack(0), cvarstack(0),
 						      parseClass(0), catchException(0), current_code(0),
-						      current_obj(0), current_pgm(p), current_argvid(0),
+						      current_obj(0), current_pgm(p), current_implicit_arg(0),
 						      closure_parse_env(0), closure_rt_env(0)
       {
       }
@@ -828,17 +829,49 @@ CodeContextHelper::~CodeContextHelper()
    td->current_obj = old_obj;
 }
 
-ArgvContextHelper::ArgvContextHelper(LocalVar *argvid)
+ArgvContextHelper::ArgvContextHelper(QoreListNode *argv, ExceptionSink *n_xsink) : xsink(n_xsink)
 {
    ThreadData *td  = thread_data.get();
-   old_argvid = td->current_argvid;
-   td->current_argvid = argvid;
+   old_argv = td->current_implicit_arg;
+   td->current_implicit_arg = argv;
+   //printd(5, "ArgvContextHelper::ArgvContextHelper() setting argv=%08p\n", argv);
 }
 
 ArgvContextHelper::~ArgvContextHelper()
 {
    ThreadData *td  = thread_data.get();
-   td->current_argvid = old_argvid;
+   if (td->current_implicit_arg)
+      td->current_implicit_arg->deref(xsink);
+   td->current_implicit_arg = old_argv;
+   //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv=%08p\n", old_argv);
+}
+
+SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink) : xsink(n_xsink)
+{
+   ThreadData *td  = thread_data.get();
+   old_argv = td->current_implicit_arg;
+   QoreListNode *argv;
+   if (!is_nothing(val)) {
+      argv = new QoreListNode();
+      argv->push(val->refSelf());
+   }
+   else
+      argv = 0;
+   td->current_implicit_arg = argv;
+}
+
+SingleArgvContextHelper::~SingleArgvContextHelper()
+{
+   ThreadData *td  = thread_data.get();
+   if (td->current_implicit_arg)
+      td->current_implicit_arg->deref(xsink);
+   td->current_implicit_arg = old_argv;
+}
+
+const QoreListNode *thread_get_implicit_args()
+{
+   //printd(5, "thread_get_implicit_args() returning %08p\n", thread_data.get()->current_implicit_arg);
+   return thread_data.get()->current_implicit_arg;
 }
 
 #ifdef DEBUG

@@ -509,6 +509,7 @@ struct MethodNode {
       class BCANode *bcanode;
       class NamedScope *nscope;
       class QoreRegexNode *Regex;
+      class QoreImplicitArgumentNode *implicit_arg;
 }
 
 %{
@@ -616,9 +617,10 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token TOK_ON_EXIT "on_exit"
 %token TOK_ON_SUCCESS "on_success"
 %token TOK_ON_ERROR "on_error"
-%token TOK_FMAP "fmap"
+%token TOK_MAP "map"
 %token TOK_FOLDR "foldr"
 %token TOK_FOLDL "foldl"
+%token TOK_SELECT "select"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -639,6 +641,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token <nscope> BASE_CLASS_CALL "call to base class method"
 %token <Regex> REGEX "regular expression"
 %token <Regex> REGEX_EXTRACT "regular expression extraction expression"
+%token <implicit_arg> IMPLICIT_ARG_REF "implicit argument reference"
+%token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
 
 %nonassoc IFX SCOPED_REF
 %nonassoc TOK_ELSE
@@ -646,7 +650,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 // FIXME: check precedence
 %right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS
 %right '='
-%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_FMAP TOK_FOLDR TOK_FOLDL
+%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_MAP TOK_FOLDR TOK_FOLDL TOK_SELECT
 %left ','
 %right '?' ':'
 %left LOGICAL_AND LOGICAL_OR
@@ -664,7 +668,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %left '!'		      // logical not
 %right TOK_NEW TOK_BACKGROUND
 %nonassoc P_INCREMENT P_DECREMENT
-%left '{' '[' '.' '('         // list and object references, etc, defined for precedence
+%left '{' '[' '.' '(' DOT_KW_IDENTIFIER         // list and object references, etc, defined for precedence
 
 %type <sblock>      block
 %type <sblock>      statement_or_block
@@ -706,7 +710,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 
  // destructor actions for elements that need deleting when parse errors occur
 %destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
-%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY 
+%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
@@ -1740,30 +1744,30 @@ exp:    scalar
 		 $$ = makeTree(OP_SPLICE, lv, $2);
 	   }
 	}
-        | TOK_FMAP exp
+        | TOK_MAP exp
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   int len = l->size();
 	   if (!l || len < 2 || len > 3) {
-	      parse_error("invalid arguments to fmap operator, expected: 2 or 3 element list (code expression (must evaluate to call reference or runtime closure), argument, optional 'select' code expression for inclusion in resulting list), got: '%s'", get_type_name($2));
-	      $$ = makeErrorTree(OP_FMAP, $2, 0);
+	      parse_error("invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", get_type_name($2));
+	      $$ = makeErrorTree(OP_MAP, $2, 0);
 	   }
 	   else if (len == 2) {
 	      AbstractQoreNode *map_exp = l->shift();
 	      AbstractQoreNode *arg = l->shift();
-	      $$ = new QoreTreeNode(map_exp, OP_FMAP, arg);
+	      $$ = new QoreTreeNode(map_exp, OP_MAP, arg);
 	      $2->deref(0);
 	   }
 	   else {
 	      AbstractQoreNode *map_exp = l->shift();
-	      $$ = new QoreTreeNode(map_exp, OP_FMAP_SELECT, l);
+	      $$ = new QoreTreeNode(map_exp, OP_MAP_SELECT, l);
 	   }
 	}
         | TOK_FOLDR exp
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
-	      parse_error("invalid arguments to foldr operator, expected: 2-element list (code expression (must evaluate to call reference or runtime closure) and argument), got: '%s'", get_type_name($2));
+	      parse_error("invalid arguments to foldr operator, expected: 2-element list expected: 2-element list (fold expression and list expression), got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree(OP_FOLDR, $2, 0);
 	   }
 	   else {
@@ -1777,13 +1781,27 @@ exp:    scalar
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
-	      parse_error("invalid arguments to foldl operator, expected: 2-element list (code expression (must evaluate to call reference or runtime closure) and argument), got: '%s'", get_type_name($2));
+	      parse_error("invalid arguments to foldl operator, expected: 2-element list (fold expression and list expression), got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree(OP_FOLDL, $2, 0);
 	   }
 	   else {
 	      AbstractQoreNode *code_exp = l->shift();
 	      AbstractQoreNode *arg = l->shift();
 	      $$ = new QoreTreeNode(code_exp, OP_FOLDL, arg);
+	      $2->deref(0);
+	   }
+	}
+        | TOK_SELECT exp
+	{
+	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   if (!l || l->size() != 2) {
+	      parse_error("invalid arguments to select operator, expected: 2-element list (list expression and select expression) got: '%s'", get_type_name($2));
+	      $$ = makeErrorTree(OP_SELECT, $2, 0);
+	   }
+	   else {
+	      AbstractQoreNode *arg = l->shift();
+	      AbstractQoreNode *select_exp = l->shift();
+	      $$ = new QoreTreeNode(arg, OP_SELECT, select_exp);
 	      $2->deref(0);
 	   }
 	}
@@ -2081,6 +2099,10 @@ exp:    scalar
 	{
 	   $$ = process_dot($1, $3);
 	}
+        | exp DOT_KW_IDENTIFIER
+	{
+	   $$ = makeTree(OP_OBJECT_REF, $1, $2);
+	}
 	| '(' exp ')'                
         { 
 	   $$ = $2;
@@ -2108,7 +2130,7 @@ exp:    scalar
 	      parse_error("illegal closure definition (conflicts with parse option NO_CLOSURES)");
 */
 	}
-
+        | IMPLICIT_ARG_REF { $$ = $1; }
 	;
 
 string:
