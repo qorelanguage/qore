@@ -183,7 +183,7 @@ static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink)
       n->deref(xsink);
 }
 
-static inline const char *get_type_name(AbstractQoreNode *n)
+static inline const char *get_type_name(const AbstractQoreNode *n)
 {
    return n ? n->getTypeName() : "NOTHING";
 }
