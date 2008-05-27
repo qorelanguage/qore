@@ -1067,8 +1067,8 @@ int OraBindGroup::oci_exec(char *who, ub4 iters, ExceptionSink *xsink)
 	    xsink->raiseException("DBI:ORACLE:TRANSACTION-ERROR", "connection to Oracle database server lost while in a transaction");
 	    return -1;
 	 }
-	 // otherwise try to reconnect
 
+	 // otherwise try to reconnect
 	 OCILogoff(d_ora->svchp, d_ora->errhp);
 
 	 printd(5, "oci_exec() about to execute OCILogon() for reconnect\n");
