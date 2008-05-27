@@ -245,8 +245,6 @@ class OraBindNode {
       DLLLOCAL class AbstractQoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
 };
 
-static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, Datasource *ds, ExceptionSink *xsink);
-
 class OraBindGroup {
   private:
       int len;

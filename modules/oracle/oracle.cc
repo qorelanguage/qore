@@ -643,7 +643,7 @@ void OraBindGroup::parseQuery(const QoreListNode *args, class ExceptionSink *xsi
    char quote = 0;
 
    const char *p = str->getBuffer();
-   int index = 0;
+   unsigned index = 0;
    QoreString tmp(ds->getQoreEncoding());
    while (*p)
    {
