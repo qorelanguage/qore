@@ -9,7 +9,7 @@ qore 0.7.0 is a major release with major new features
 *) reimplemented variable and object locking, no more possibility of nested locks and deadlocks
 *) major performance and memory usage improvements
 *) support for closures and encapsulating the state of local variables in the closure
-*) some functional programming support: new operators: fmap, foldr, foldl, fselect
+*) some functional programming support: new operators: map, foldr, foldl, select
 *) new implicit argument references: $$ (entire argument list), $1, $2, ...
 *) new special object method: "memberNotification()", called when members are updated externally to the class
 *) qt module based on QT4

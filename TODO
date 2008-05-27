@@ -1,33 +1,31 @@
 see docs/roadmap.html
 
+* implement auto-reconnect for oracle, pgsql, mssql and other drivers (mysql has it already)
+* implement a mechanism for a thread to sleep until another thread terminates (join)
+* implement optimized foreach statement for hash key iteration
+* implement find_key operator, taking a regular expression to find a key in a hash
+* implement split operator taking regular expression
+* tag functions if they have no effect except returning a value so if the value is not used at the top level a warning may be emitted
+* add "constant" flag to functions, to allow execution in constant expressions
+* make ThreadResourceList private
+* add support for ranges [2..9]
+* add context functions
+* track include files, make sure they are only included once
+* add argument info to functions, throw errors if arguments are not correct (add parse-time argument checks)
 * have QoreStringNode::getAsString() return a standard empty string ("") when possible (also should not be reference counted)
 * remove QoreNothingNode and use 0 everywhere instead
 * implement function class hierarchies for returning different types (bool, int64, double, node)
-* change get/test_*params() to return const values
-* implement optimized foreach statement for hash key iteration
-* implement optimization to check a program for use of parse(), parseCommit() and background to convert all global variables to local to avoid locking (cannot be done)
-* make ThreadResourceList private
-* tag functions if they have no effect except returning a value so if the value is not used at the top level a warning may be emitted
-* implement find_key operator, taking a regular expression to find a key in a hash
 * add API compatibility info to to module data
 * implement a way to declare public class members (so typos with class members can be caught)
 * implement default argument values
 * update round() to allow the specification of significant digits
-* implement support for builtin methodGate methods, custom DBI Datasource method extensions
+* implement support for builtin methodGate methods, custom DBI Datasource method extensions (can already do this)
 * implement public_instanceof operator
-* implement auto-reconnect for oracle, pgsql, mssql and other drivers (mysql has it already)
-* implement a mechanism for a thread to sleep until another thread terminates (join)
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
-* add support for ranges [2..9]
 * add support for break and continue arguments to affect outer loops
 * add error code to exceptions for XML-RPC fault reporting
-* add context functions
 * allow customizable QORE_INCLUDE_DIR searches
-* track include files, make sure they are only included once
-* add argument info to functions, throw errors if arguments are not correct
-* add parse-time argument checks (instead of just run-time exceptions)
-* add "constant" flag to functions, to allow execution in constant expressions
-* implement GZFile class
+* implement GZFile and BZFile classes
 
 docs:
 * add links to HTTPClient::connect() text
@@ -38,6 +36,7 @@ docs:
 * document optimizations
 
 done 0.7.0:
+* change get/test_*params() to return const values
 * make QoreHashNode implementation private
 * change getExistingVarValue to take a ReferenceHolder argument instead of a temporary QoreNode * arg
 * implement bool_eval(), etc for VarRefNode

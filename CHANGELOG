@@ -1,4 +1,8 @@
-2005.05.22: David Nichols
+2008.05.23: David Nichols
+	* removed suport in the scanner for using some keywords as function and
+	  methods names as it broke code that should be correct
+
+2008.05.22: David Nichols
 	* implemented support for a select code expression as an optional third
 	  argument for the new fmap operator to filter which elements are
 	  included in the resulting list
