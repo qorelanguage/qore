@@ -104,7 +104,7 @@ void Datasource::setPendingConnectionValues(const Datasource *other)
 
 void Datasource::setTransactionStatus(bool t)
 {
-   printd(0, "Datasource::setTS(%d) this=%08p\n", t, this);
+   //printd(5, "Datasource::setTS(%d) this=%08p\n", t, this);
    priv->in_transaction = t;
 }
 
