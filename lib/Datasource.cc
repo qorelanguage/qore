@@ -244,14 +244,11 @@ int Datasource::open(ExceptionSink *xsink)
 
 int Datasource::close()
 {
-   if (priv->isopen)
-   {
-      if (priv->connection_aborted)
-	 priv->connection_aborted = false;
-      else
-	 priv->dsl->close(this);
+   if (priv->isopen) {
+      priv->dsl->close(this);
       priv->isopen = false;
       priv->in_transaction = false;
+      priv->connection_aborted = false;
       return 0;
    }
    return -1;

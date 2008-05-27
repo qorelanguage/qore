@@ -402,10 +402,8 @@ int ManagedDatasource::closeUnlocked(ExceptionSink *xsink)
 
    // wait for any in-progress action to complete
    wait_for_sql();
-   if (isOpen())
-   {
-      if (isInTransaction())
-      {
+   if (isOpen()) {
+      if (isInTransaction()) {
 	 if (!wasConnectionAborted()) {
 	    xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released");
 	    Datasource::rollback(xsink);
@@ -430,8 +428,7 @@ int ManagedDatasource::close()
 /*
    AutoLocker al(&ds_lock);
    // wait for any in-progress action to complete
-   if (counter)
-   {
+   if (counter) {
       while (counter)
 	 cSQL.wait(&ds_lock);      
       // in case there are other calls waiting on the condition

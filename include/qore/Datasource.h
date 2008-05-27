@@ -317,9 +317,7 @@ class Datasource
       DLLEXPORT const class DBIDriver *getDriver() const;
 
       //! should be called by the DBIDriver if the connection to the server is lost
-      /** in this case the DBIDrver must also perform the same cleanup as when a close() call is made.
-	  No DBIDriver::close() call will be made for the connection after this function is called.
-	  The DBIDriver should also raise its own exception when this call is made, as making this call will
+      /** The DBIDriver should raise its own exception when this call is made, as making this call will
 	  suppress further Qore exceptions from being raised in the Datasource destructor (at least for
 	  derived classes)
        */
