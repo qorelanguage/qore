@@ -64,7 +64,7 @@ class OracleData {
       ub2 charsetid;
 };
 
-static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, Datasource *ds, ExceptionSink *xsink)
+static int ora_checkerr(OCIError *errhp, sword status, const char *query_name, Datasource *ds, ExceptionSink *xsink)
 {
    text errbuf[512];
    sb4 errcode = 0;
@@ -75,7 +75,7 @@ static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, 
       case OCI_SUCCESS:
       case OCI_SUCCESS_WITH_INFO:
 	 // ignore SUCCESS_WITH_INFO codes
-	 break;
+	 return 0;
 
       case OCI_ERROR:
 	 OCIErrorGet((dvoid *)errhp, (ub4) 1, (text *) NULL, &errcode, errbuf, (ub4) sizeof(errbuf), OCI_HTYPE_ERROR);
@@ -103,7 +103,7 @@ static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, 
 	 xsink->raiseException("DBI:ORACLE:UNKNOWN-ERROR", "unknown OCI error code %d", status);
 	 break;
    }
-   //if (xsink->isEvent()) abort();
+   return -1;
 }
 
 static int oracle_commit(Datasource *ds, ExceptionSink *xsink)
@@ -1038,6 +1038,46 @@ QoreHashNode *OraBindGroup::getOutputHash(class ExceptionSink *xsink)
    return h;
 }
 
+int OraBindGroup::oci_exec(char *who, ub4 iters, ExceptionSink *xsink)
+{
+   OracleData *d_ora = (OracleData *)ds->getPrivateData();
+
+   int status = OCIStmtExecute(d_ora->svchp, stmthp, d_ora->errhp, iters, 0, 0, 0, OCI_DEFAULT);
+
+   if (status == OCI_ERROR) {
+      // see if server is connected
+      ub4 server_status = 0;
+      if (ora_checkerr(d_ora->errhp, OCIAttrGet(d_ora->svchp, OCI_HTYPE_SERVER, (dvoid *)&server_status, 0, OCI_ATTR_SERVER_STATUS, d_ora->errhp), who, ds, xsink))
+	 return -1;
+
+      if (server_status == OCI_SERVER_NOT_CONNECTED) {
+	 // check if a transaction was in progress
+	 if (ds->isInTransaction()) {
+	    xsink->raiseException("DBI:ORACLE:TRANSACTION-ERROR", "connection to database server lost while in a transaction");
+	    return -1;
+	 }
+	 // otherwise try to reconnect
+
+	 OCILogoff(d_ora->svchp, d_ora->errhp);
+
+	 if (ora_checkerr(d_ora->errhp, OCILogon(d_ora->envhp, d_ora->errhp, &d_ora->svchp, (text *)ds->getUsername(), strlen(ds->getUsername()), (text *)ds->getPassword(), strlen(ds->getPassword()), (text *)ds->getDBName(), strlen(ds->getDBName())), who, ds, xsink))
+	    return -1;
+
+	 int status = OCIStmtExecute(d_ora->svchp, stmthp, d_ora->errhp, iters, 0, 0, 0, OCI_DEFAULT);
+	 if (status && ora_checkerr(d_ora->errhp, status, who, ds, xsink))
+	    return -1;
+      }
+      else {
+	 ora_checkerr(d_ora->errhp, status, who, ds, xsink);
+	 return -1;
+      }
+   }
+   else if (status && ora_checkerr(d_ora->errhp, status, who, ds, xsink))
+      return -1;
+
+   return 0;
+}
+
 class AbstractQoreNode *OraBindGroup::exec(class ExceptionSink *xsink)
 {
    class AbstractQoreNode *rv;
@@ -1159,8 +1199,7 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    printd(5, "oracle_open(): user=%s pass=%s db=%s (oracle encoding=%s)\n",
 	  ds->getUsername(), ds->getPassword(), ds->getDBName(), ds->getDBEncoding() ? ds->getDBEncoding() : "(none)");
 
-   class OracleData *d_ora = new OracleData;
-   ds->setPrivateData((void *)d_ora);
+   std::auto_ptr<OracleData> d_ora(new OracleData);
 
    // locking is done on the level above with the Datasource class
    int oci_flags = OCI_DEFAULT|OCI_THREADED|OCI_NO_MUTEX;
@@ -1185,8 +1224,6 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 	 xsink->raiseException("DBI:ORACLE:UNKNOWN-CHARACTER-SET", 
 			"cannot map default OS encoding '%s' to Oracle character encoding",
 			QCS_DEFAULT->getCode());
-	 delete d_ora;
-	 ds->setPrivateData(0);
 	 return -1;
       }
       ds->setDBEncoding(nbuf);
@@ -1205,8 +1242,6 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    if (!d_ora->charsetid) {
       xsink->raiseException("DBI:ORACLE:UNKNOWN-CHARACTER-SET", "this installation of Oracle does not support the '%s' character encoding", 
 			    ds->getDBEncoding());
-      delete d_ora;
-      ds->setPrivateData(NULL);
       return -1;
    }
 
@@ -1214,8 +1249,6 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    // create environment with default character set
    if (OCIEnvNlsCreate(&d_ora->envhp, oci_flags, 0, NULL, NULL, NULL, 0, NULL, d_ora->charsetid, d_ora->charsetid) != OCI_SUCCESS) {
       xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "error creating new environment handle with encoding '%s'", ds->getDBEncoding());
-      delete d_ora;
-      ds->setPrivateData(0);
       return -1;
    }
 
@@ -1229,8 +1262,6 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
       }
       else {
 	 xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "error mapping Oracle encoding '%s' to a qore encoding: unknown encoding", ds->getDBEncoding());
-	 delete d_ora;
-	 ds->setPrivateData(0);
 	 return -1;
       }
    }
@@ -1258,8 +1289,6 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    if (OCIHandleAlloc(d_ora->envhp, (dvoid **) &d_ora->errhp, OCI_HTYPE_ERROR, 0, 0) != OCI_SUCCESS) {
       OCIHandleFree(d_ora->envhp, OCI_HTYPE_ENV);
       xsink->raiseException("DBI:ORACLE:OPEN-ERROR", "failed to allocate error handle for connection");
-      delete d_ora;
-      ds->setPrivateData(NULL);
       return -1;
    }
    //printd(5, "oracle_open() about to call OCILogon()\n");
@@ -1269,10 +1298,10 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
    if (xsink->isEvent()) {
       OCIHandleFree(d_ora->errhp, OCI_HTYPE_ERROR);
       OCIHandleFree(d_ora->envhp, OCI_HTYPE_ENV);
-      delete d_ora;
-      ds->setPrivateData(NULL);
       return -1;
    }
+
+   ds->setPrivateData((void *)d_ora.release());
 
    printd(5, "oracle_open() datasource %08p for DB=%s open (envhp=%08p)\n", ds, ds->getDBName(), d_ora->envhp);
    return 0;

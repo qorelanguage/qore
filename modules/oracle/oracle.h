@@ -250,17 +250,17 @@ static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, 
 class OraBindGroup {
   private:
       int len;
-      class OraBindNode *head, *tail;
-      class QoreString *str;
+      OraBindNode *head, *tail;
+      QoreString *str;
       OCIStmt *stmthp;
-      class Datasource *ds;
+      Datasource *ds;
       bool hasOutput;
 
       DLLLOCAL void parseOld(class QoreHashNode *h, class ExceptionSink *xsink);
       DLLLOCAL void parseQuery(const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL QoreHashNode *getOutputHash(class ExceptionSink *xsink);
 
-      DLLLOCAL inline void add(class OraBindNode *c)
+      DLLLOCAL void add(class OraBindNode *c)
       {
 	 len++;
 	 if (!tail)
@@ -269,6 +269,9 @@ class OraBindGroup {
 	    tail->next = c;
 	 tail = c;
       }
+
+      // exec with auto-reconnect (if possible)
+      DLLLOCAL int oci_exec(char *who, ub4 iters, ExceptionSink *xsink);
 
    public:
       DLLLOCAL OraBindGroup(class Datasource *ods, const QoreString *ostr, const QoreListNode *args, ExceptionSink *xsink);
