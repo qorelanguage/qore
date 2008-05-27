@@ -406,8 +406,10 @@ int ManagedDatasource::closeUnlocked(ExceptionSink *xsink)
    {
       if (isInTransaction())
       {
-	 xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released");
-	 Datasource::rollback(xsink);
+	 if (!wasConnectionAborted()) {
+	    xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released");
+	    Datasource::rollback(xsink);
+	 }
 	 remove_thread_resource(this);
 	 setTransactionStatus(false);
 	 // force-exit the transaction lock

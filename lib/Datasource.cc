@@ -32,6 +32,7 @@ struct qore_ds_private {
       bool in_transaction;
       bool isopen;
       bool autocommit;
+      bool connection_aborted;
       mutable class DBIDriver *dsl;
       const QoreEncoding *qorecharset;
       void *private_data;               // driver private data per connection
@@ -50,14 +51,8 @@ struct qore_ds_private {
 	 dbname,        // for Oracle, MySQL
 	 hostname;      // for MySQL
 
-      DLLLOCAL qore_ds_private(DBIDriver *ndsl)
+      DLLLOCAL qore_ds_private(DBIDriver *ndsl) : in_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0)
       {
-	 dsl = ndsl;
-	 isopen = false;
-	 in_transaction = false;
-	 private_data = 0;
-	 autocommit = false;
-	 qorecharset = QCS_DEFAULT;
       }
       
       DLLLOCAL ~qore_ds_private()
@@ -178,8 +173,10 @@ AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNo
       priv->dsl->autoCommit(this, xsink);
    else if (!priv->in_transaction)
    {
-      if (xsink->isException())
-	 priv->dsl->abortTransactionStart(this, xsink);
+      if (xsink->isException()) {
+	 if (!priv->connection_aborted)
+	    priv->dsl->abortTransactionStart(this, xsink);
+      }
       else
 	 priv->in_transaction = true;	 
    }
@@ -249,12 +246,27 @@ int Datasource::close()
 {
    if (priv->isopen)
    {
-      priv->dsl->close(this);
+      if (priv->connection_aborted)
+	 priv->connection_aborted = false;
+      else
+	 priv->dsl->close(this);
       priv->isopen = false;
       priv->in_transaction = false;
       return 0;
    }
    return -1;
+}
+
+void Datasource::connectionAborted()
+{
+   assert(priv->isopen);
+
+   priv->connection_aborted = true;
+}
+
+bool Datasource::wasConnectionAborted() const
+{
+   return priv->connection_aborted;
 }
 
 // forces a close and open to reset a database connection
