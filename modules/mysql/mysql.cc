@@ -87,9 +87,10 @@ class MySQLConnection {
       DLLLOCAL int reconnect(Datasource *ds, MYSQL_STMT *&stmt, const QoreString *str, class ExceptionSink *xsink)
       {	 
 	 // throw an exception if a transaction is in progress
-	 // but continue to try and reconnect as well
-	 if (ds->isInTransaction())
-	    xsink->raiseException("DBI:MYSQL:CONNECTION-ERROR", "connection timed out while in a transaction");
+	 if (ds->isInTransaction()) {
+	    xsink->raiseException("DBI:MYSQL:CONNECTION-ERROR", "connection to MySQL database server lost while in a transaction; transaction has been lost");
+	    return -1;
+	 }
 
 	 MYSQL *new_db = qore_mysql_init(ds, xsink);
 	 if (!new_db)
