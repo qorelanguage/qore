@@ -20,7 +20,7 @@ libqt_opengl_la_LDFLAGS = ${QT_LIBS} ${QT_OPENGL_LIBS} -static
 else
 pkglib_LTLIBRARIES = qt-opengl.la
 qt_opengl_la_SOURCES = $(QT_OPENGL_SOURCES)
-qt_opengl_la_LDFLAGS = -module -avoid-version ${QT_OPENGL_LIBS}
+qt_opengl_la_LDFLAGS = -module -avoid-version ${QT_OPENGL_LIBS} ${QT_LIBS}
 qt_opengl_la_LIBADD = ../qt/libqore-qt.la
 endif
 
