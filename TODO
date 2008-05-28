@@ -1,6 +1,6 @@
 see docs/roadmap.html
 
-* implement auto-reconnect for oracle, pgsql, mssql and other drivers (mysql has it already)
+* implement auto-reconnect for pgsql, mssql and other drivers (mysql has it already)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * implement optimized foreach statement for hash key iteration
 * implement find_key operator, taking a regular expression to find a key in a hash
@@ -36,6 +36,8 @@ docs:
 * document optimizations
 
 done 0.7.0:
+* implemented license tagging and checking for the qore library and modules
+* implemented auto-reconnect for oracle
 * change get/test_*params() to return const values
 * make QoreHashNode implementation private
 * change getExistingVarValue to take a ReferenceHolder argument instead of a temporary QoreNode * arg

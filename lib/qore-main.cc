@@ -47,8 +47,12 @@ int qore_trace = 0;
 int debug = 0;
 int qore_library_options = QLO_NONE;
 
-void qore_init(char *def_charset, bool show_module_errors, int n_qore_library_options)
+qore_license_t qore_license;
+
+void qore_init(qore_license_t license, char *def_charset, bool show_module_errors, int n_qore_library_options)
 {
+   qore_license = license;
+
    qore_library_options = n_qore_library_options;
 
    // initialize libxml2 library
@@ -58,7 +62,6 @@ void qore_init(char *def_charset, bool show_module_errors, int n_qore_library_op
    SSL_load_error_strings();
    OpenSSL_add_all_algorithms();
    SSL_library_init();
-   // FIXME: seed PRNG or add function to do the same
 
    // init threading infrastructure
    init_qore_threads();

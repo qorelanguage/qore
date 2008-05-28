@@ -3,6 +3,7 @@ RELEASE NOTES for qore v0.7.0
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
 qore 0.7.0 is a major release with major new features
+*) library may be used under the GPL or LGPL (enforced with license tagging on library and module initialization)
 *) stable ABI and API, cleaned-up public header files, development packages
 *) documented public API (with doxygen), documentation packages
 *) complete reimplementation of the type and operator subsystems

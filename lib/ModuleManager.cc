@@ -441,6 +441,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
       printd(5, "%s\n", str->getBuffer());
       return str;
    }
+
    // get module name
    char *name = (char *)dlsym(ptr, "qore_module_name");
    if (!name) {
@@ -450,6 +451,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
       printd(5, "%s\n", str->getBuffer());
       return str;
    }
+
    // ensure provided feature matches with expected feature
    if (feature && strcmp(feature, name)) {
       str = new QoreStringNode();
@@ -467,6 +469,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
       printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
       return str;
    }
+
    // get qore module API major number
    int *api_major = (int *)dlsym(ptr, "qore_module_api_major");
    if (!api_major) {
@@ -494,6 +497,33 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 #else
       str->sprintf("module '%s': feature '%s': API mismatch, module supports API %d.%d, however %d.%d is required", path, name, *api_major, *api_minor, QORE_MODULE_API_MAJOR, QORE_MODULE_API_MINOR);
 #endif
+      dlclose(ptr);
+      printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
+      return str;
+   }
+
+   // get license type
+   qore_license_t *module_license = (qore_license_t *)dlsym(ptr, "qore_module_license");
+   if (!module_license) {
+      str = new QoreStringNode();
+      str->sprintf("module '%s': feature '%s': missing qore_module_license symbol", path, name);
+      dlclose(ptr);
+      printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
+      return str;
+   }
+
+   qore_license_t license = *module_license;
+   if (license != QL_GPL && license != QL_LGPL) {
+      str = new QoreStringNode();
+      str->sprintf("module '%s': feature '%s': invalid qore_module_license symbol (%d)", path, name, license);
+      dlclose(ptr);
+      printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
+      return str;
+   }
+
+   if (qore_license != QL_GPL && license == QL_GPL) {
+      str = new QoreStringNode();
+      str->sprintf("module '%s': feature '%s': qore library initialized with LGPL license, but module requires GPL", path, name);
       dlclose(ptr);
       printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
       return str;

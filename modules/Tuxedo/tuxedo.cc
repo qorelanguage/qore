@@ -44,6 +44,7 @@ DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
 DLLEXPORT qore_module_init_t qore_module_init = tuxedo_module_init;
 DLLEXPORT qore_module_ns_init_t qore_module_ns_init =tuxedo_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = tuxedo_module_delete;
+DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 #endif
 
 //------------------------------------------------------------------------------

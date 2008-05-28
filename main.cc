@@ -20,6 +20,7 @@ extern int warnings, qore_lib_options;
 extern char *def_charset;
 extern char *cl_pgm, *exec_class_name;
 extern bool show_mod_errs, lock_options, exec_class, warnings_are_errors;
+extern qore_license_t license;
 
 int main(int argc, char *argv[])
 {   
@@ -29,7 +30,7 @@ int main(int argc, char *argv[])
    char *program_file_name = parse_command_line(argc, argv);
 
    // initialize Qore subsystem
-   qore_init(def_charset, show_mod_errs, qore_lib_options);
+   qore_init(license, def_charset, show_mod_errs, qore_lib_options);
    if (def_charset)
       free(def_charset);
 

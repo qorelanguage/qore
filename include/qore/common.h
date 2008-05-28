@@ -54,6 +54,10 @@ typedef unsigned qore_classid_t;
 // set of integers
 typedef std::set<int> int_set_t;
 
+enum qore_license_t { QL_GPL = 0,         //!< code to be used under the GPL license
+		      QL_LGPL = 1,        //!< code to be used under the LGPL license
+};
+
 #ifdef _MSC_VER
   #ifdef BUILDING_DLL
     #define DLLEXPORT __declspec(dllexport)

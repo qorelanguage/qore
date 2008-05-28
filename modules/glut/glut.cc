@@ -42,6 +42,7 @@ DLLEXPORT qore_module_init_t qore_module_init = glut_module_init;
 DLLEXPORT qore_module_ns_init_t qore_module_ns_init = glut_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = glut_module_delete;
 DLLEXPORT char *qore_module_dependencies[] = { "opengl", 0 };
+DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 #endif
 
 // type for mapping glut menu entries to call references

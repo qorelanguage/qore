@@ -80,6 +80,8 @@ DLLLOCAL extern QoreThreadLock lck_gethostbyname;
 DLLLOCAL extern QoreThreadLock lck_gethostbyaddr;
 #endif
 
+DLLLOCAL extern qore_license_t qore_license;
+
 #ifndef UNIX_PATH_MAX
 #define UNIX_PATH_MAX    108
 #endif

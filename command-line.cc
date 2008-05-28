@@ -21,6 +21,9 @@
 #include <libgen.h>
 #include <ctype.h>
 
+// license type for initializing the library
+qore_license_t license = QL_GPL;
+
 // list of modules to load after library initialization
 cl_mod_list_t cl_mod_list;
 
@@ -65,6 +68,8 @@ static char helpstr[] =
 "  -h, --help                   shows this help text\n"
 "  -i, --list-warnings          list all warnings and quit\n"
 "  -l, --load=arg               load module 'arg' immediately\n"
+"      --lgpl                   sets the library's license flag to LGPL,\n"
+"                               meaning that GPL modules cannot be loaded\n"
 "  -m, --show-module-errors     show error messages related to loading and\n"
 "                               initializing qore modules\n"
 "  -o, --list-parse-options     list all parse options\n"
@@ -335,6 +340,11 @@ static void do_exec_class(char *arg)
    parse_options |= PO_NO_TOP_LEVEL_STATEMENTS;
 }
 
+static void set_lgpl(char *arg)
+{
+   license = QL_LGPL;
+}
+
 #define ARG_NONE 0
 #define ARG_MAND 1
 #define ARG_OPT  2
@@ -379,6 +389,7 @@ static struct opt_struct_s {
    { 'W', "enable-all-warnings",   ARG_NONE, enable_warnings },
    { 'X', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
    { 'Y', "no-network",            ARG_NONE, do_no_network },
+   { '\0', "lgpl",                 ARG_NONE, set_lgpl },
 #ifdef DEBUG
    { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },
@@ -497,12 +508,11 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
 {
    unsigned x, option_present = 0;
    char *opt = &argv[*i][j];
-   
+
    // find option string (left side of string if there is an assignment char)
    for (x = 2; x < strlen(argv[*i]); x++)
    {
-      if (is_assign_char(argv[*i][x]))
-      {
+      if (is_assign_char(argv[*i][x])) {
 	 option_present = x + 1;
 	 opt = (char *)malloc(sizeof(char) * (x - 1));
 	 strncpy(opt, &argv[*i][2], x - 2);
@@ -512,29 +522,28 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
    }
    // if the option is not in the same argument, then increment the argument pointer
    if (!option_present)
-      (*i)++;
+      ++(*i);
 
-   for (x = 0; x < NUM_OPTS; x++)
+   for (x = 0; x < NUM_OPTS; x++) {
       if (!strcmp(options[x].long_opt, opt))
       {
-	 if (!options[x].arg)
-	 {
+	 if (!options[x].arg) {
 	    if (option_present)
 	       excess_option(x);
+	    else
+	       --(*i);
 	    options[x].opt_func(NULL);
 	 }
-	 else if (options[x].arg == ARG_OPT)
-	 {
+	 else if (options[x].arg == ARG_OPT) {
 	    char *arg = NULL;
 
 	    if (option_present)
 	       arg = get_arg(argv, i, &option_present, argc);
 	    else
-	       (*i)--;
+	       --(*i);
 	    options[x].opt_func(arg);
 	 }
-	 else
-	 {
+	 else {
 	    char *arg;
 
 	    if (!(arg = get_arg(argv, i, &option_present, argc)))
@@ -544,6 +553,7 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
 	 }
 	 break;
       }
+   }
 
    // if the option is not present, then raise an error
    if (x == NUM_OPTS)

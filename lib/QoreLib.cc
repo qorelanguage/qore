@@ -688,3 +688,8 @@ ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink
    }
    return new UserCallReferenceNode(f, pgm);
 }
+
+qore_license_t qore_get_license()
+{
+   return qore_license;
+}

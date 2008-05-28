@@ -70,6 +70,9 @@ DLLEXPORT void *q_realloc(void *ptr, size_t size);
 //! sets up the Qore ARGV and QORE_ARGV values
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
+//! returns the license type that the library has been initialized under
+DLLEXPORT qore_license_t qore_get_license();
+
 //! STL-like list containing all presently-loaded Qore features
 /** this list must be thread-safe for reading, writing under a lock
  */

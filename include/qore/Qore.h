@@ -108,7 +108,7 @@ DLLEXPORT extern char qore_target_arch[];
     @param init_options a binary "or" sum of the qore library options 
     @note This function can only be called once and must be called before any other qore facilities are used.
  */
-DLLEXPORT void qore_init(char *default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
+DLLEXPORT void qore_init(qore_license_t license = QL_GPL, char *default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
 
 //! frees all memory allocated by the library
 /*
