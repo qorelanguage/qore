@@ -21,6 +21,7 @@ else
 pkglib_LTLIBRARIES = qt-opengl.la
 qt_opengl_la_SOURCES = $(QT_OPENGL_SOURCES)
 qt_opengl_la_LDFLAGS = -module -avoid-version ${QT_OPENGL_LIBS}
+qt_opengl_la_LIBADD = ../qt/libqore-qt.la
 endif
 
 INCLUDES = -I$(top_srcdir)/include $(QT_INCLUDES) $(QT_OPENGL_INCLUDES)
