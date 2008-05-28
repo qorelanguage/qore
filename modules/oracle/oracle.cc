@@ -1064,7 +1064,7 @@ int OraBindGroup::oci_exec(char *who, ub4 iters, ExceptionSink *xsink)
 	 // check if a transaction was in progress
 	 if (ds->isInTransaction()) {
 	    ds->connectionAborted();
-	    xsink->raiseException("DBI:ORACLE:TRANSACTION-ERROR", "connection to Oracle database server lost while in a transaction");
+	    xsink->raiseException("DBI:ORACLE:TRANSACTION-ERROR", "connection to Oracle database server lost while in a transaction; transaction has been lost");
 	    return -1;
 	 }
 
