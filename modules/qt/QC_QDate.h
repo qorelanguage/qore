@@ -26,10 +26,10 @@
 
 #include <QDate>
 
-DLLLOCAL extern qore_classid_t CID_QDATE;
-DLLLOCAL extern QoreClass *QC_QDate;
+DLLEXPORT extern qore_classid_t CID_QDATE;
+DLLEXPORT extern QoreClass *QC_QDate;
 
-DLLLOCAL class QoreClass *initQDateClass();
+DLLEXPORT class QoreClass *initQDateClass();
 
 class QoreQDate : public AbstractPrivateData, public QDate
 {

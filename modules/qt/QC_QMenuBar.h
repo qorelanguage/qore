@@ -28,10 +28,10 @@
 #include "QoreAbstractQMenuBar.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QMENUBAR;
-DLLLOCAL extern class QoreClass *QC_QMenuBar;
+DLLEXPORT extern qore_classid_t CID_QMENUBAR;
+DLLEXPORT extern class QoreClass *QC_QMenuBar;
 
-DLLLOCAL class QoreClass *initQMenuBarClass(QoreClass *);
+DLLEXPORT class QoreClass *initQMenuBarClass(QoreClass *);
 
 class myQMenuBar : public QMenuBar, public QoreQWidgetExtension
 {

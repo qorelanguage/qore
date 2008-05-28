@@ -26,10 +26,10 @@
 
 #include <QDropEvent>
 
-DLLLOCAL extern qore_classid_t CID_QDROPEVENT;
-DLLLOCAL extern class QoreClass *QC_QDropEvent;
+DLLEXPORT extern qore_classid_t CID_QDROPEVENT;
+DLLEXPORT extern class QoreClass *QC_QDropEvent;
 
-DLLLOCAL class QoreClass *initQDropEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQDropEventClass(QoreClass *);
 
 class QoreQDropEvent : public AbstractPrivateData, public QDropEvent
 {

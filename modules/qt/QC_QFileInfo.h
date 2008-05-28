@@ -26,10 +26,10 @@
 
 #include <QFileInfo>
 
-DLLLOCAL extern qore_classid_t CID_QFILEINFO;
-DLLLOCAL extern class QoreClass *QC_QFileInfo;
+DLLEXPORT extern qore_classid_t CID_QFILEINFO;
+DLLEXPORT extern class QoreClass *QC_QFileInfo;
 
-DLLLOCAL class QoreClass *initQFileInfoClass();
+DLLEXPORT class QoreClass *initQFileInfoClass();
 
 class QoreQFileInfo : public AbstractPrivateData, public QFileInfo
 {

@@ -28,9 +28,9 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QTOOLBAR;
-DLLLOCAL extern QoreClass *QC_QToolBar;
-DLLLOCAL QoreNamespace *initQToolBarNS(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QTOOLBAR;
+DLLEXPORT extern QoreClass *QC_QToolBar;
+DLLEXPORT QoreNamespace *initQToolBarNS(QoreClass *);
 
 class myQToolBar : public QToolBar, public QoreQWidgetExtension
 {

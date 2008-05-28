@@ -29,9 +29,9 @@
 #include "QoreAbstractQGraphicsSimpleTextItem.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSSIMPLETEXTITEM;
-DLLLOCAL extern QoreClass *QC_QGraphicsSimpleTextItem;
-DLLLOCAL QoreClass *initQGraphicsSimpleTextItemClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSSIMPLETEXTITEM;
+DLLEXPORT extern QoreClass *QC_QGraphicsSimpleTextItem;
+DLLEXPORT QoreClass *initQGraphicsSimpleTextItemClass(QoreClass *);
 
 class myQGraphicsSimpleTextItem : public QGraphicsSimpleTextItem, public QoreQGraphicsItemExtension
 {

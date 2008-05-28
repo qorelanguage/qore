@@ -33,10 +33,10 @@
 
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QWIDGET;
-DLLLOCAL extern QoreClass *QC_QWidget;
+DLLEXPORT extern qore_classid_t CID_QWIDGET;
+DLLEXPORT extern QoreClass *QC_QWidget;
 
-DLLLOCAL class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice);
+DLLEXPORT QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice);
 
 class myQWidget : public QWidget, public QoreQWidgetExtension
 {

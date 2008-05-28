@@ -26,10 +26,10 @@
 
 #include <QMouseEvent>
 
-DLLLOCAL extern qore_classid_t CID_QMOUSEEVENT;
-DLLLOCAL extern class QoreClass *QC_QMouseEvent;
+DLLEXPORT extern qore_classid_t CID_QMOUSEEVENT;
+DLLEXPORT extern class QoreClass *QC_QMouseEvent;
 
-DLLLOCAL class QoreClass *initQMouseEventClass(class QoreClass *parent);
+DLLEXPORT class QoreClass *initQMouseEventClass(class QoreClass *parent);
 
 class QoreQMouseEvent : public AbstractPrivateData, public QMouseEvent
 {

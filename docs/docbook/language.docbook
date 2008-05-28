@@ -4072,11 +4072,11 @@ $call_ref = \$object.method_name();</programlisting>
 	</row>
 	<row>
 	  <entry><para><replaceable>length_expression</replaceable></para></entry>
-	  <entry><para>The number of elements/characters to remove.  If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed.  If this expression is present and evaluates to 0, no characters are removed.</para></entry>
+	  <entry><para>The number of elements/characters to remove.  If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed.  If this expression is present and evaluates to 0, no characters/elements are removed.</para></entry>
 	</row>
 	<row>
 	  <entry><para><replaceable>substitution_expression</replaceable></para></entry>
-	  <entry><para>For list splice, an optional element or list to substitute for the removed elements.  For string splice, an optional string to substitute for the removed characters.</para></entry>
+	  <entry><para>For list splice, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list).  For string splice, an optional string to substitute for the removed characters.</para></entry>
 	</row>
       </tbody>
     </tgroup>

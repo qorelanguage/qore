@@ -26,10 +26,10 @@
 
 #include <QStyleOptionTitleBar>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONTITLEBAR;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionTitleBar;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONTITLEBAR;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionTitleBar;
 
-DLLLOCAL class QoreClass *initQStyleOptionTitleBarClass(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionTitleBarClass(QoreClass *);
 
 class QoreQStyleOptionTitleBar : public AbstractPrivateData, public QStyleOptionTitleBar
 {

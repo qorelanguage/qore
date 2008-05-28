@@ -26,11 +26,11 @@
 
 #include <QLocale>
 
-DLLLOCAL extern qore_classid_t CID_QLOCALE;
-DLLLOCAL extern class QoreClass *QC_QLocale;
+DLLEXPORT extern qore_classid_t CID_QLOCALE;
+DLLEXPORT extern class QoreClass *QC_QLocale;
 
-DLLLOCAL class QoreClass *initQLocaleClass();
-DLLLOCAL void initQLocaleStaticFunctions();
+DLLEXPORT class QoreClass *initQLocaleClass();
+DLLEXPORT void initQLocaleStaticFunctions();
 
 class QoreQLocale : public AbstractPrivateData, public QLocale
 {

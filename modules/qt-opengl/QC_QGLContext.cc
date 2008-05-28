@@ -22,17 +22,17 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "../qt/qore-qt.h"
 
 #include "QC_QGLContext.h"
 #include "QC_QGLFormat.h"
-#include "QC_QPixmap.h"
-#include "QC_QImage.h"
-#include "QC_QColor.h"
-#include "QC_QPaintDevice.h"
+#include "../qt/QC_QPixmap.h"
+#include "../qt/QC_QImage.h"
+#include "../qt/QC_QColor.h"
+#include "../qt/QC_QPaintDevice.h"
 
 int CID_QGLCONTEXT;
-class QoreClass *QC_QGLContext = 0;
+QoreClass *QC_QGLContext = 0;
 
 //QGLContext ( const QGLFormat & format )
 static void QGLCONTEXT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

@@ -27,12 +27,12 @@
 #include <QLayoutItem>
 #include "QoreAbstractQLayoutItem.h"
 
-DLLLOCAL extern QoreClass *QC_QLayout;
-DLLLOCAL extern qore_classid_t CID_QLAYOUT;
+DLLEXPORT extern QoreClass *QC_QLayout;
+DLLEXPORT extern qore_classid_t CID_QLAYOUT;
 
-DLLLOCAL extern qore_classid_t CID_QLAYOUTITEM;
-DLLLOCAL extern QoreClass *QC_QLayoutItem;
-DLLLOCAL QoreClass *initQLayoutItemClass();
+DLLEXPORT extern qore_classid_t CID_QLAYOUTITEM;
+DLLEXPORT extern QoreClass *QC_QLayoutItem;
+DLLEXPORT QoreClass *initQLayoutItemClass();
 
 class QoreQLayoutItem : public QoreAbstractQLayoutItemData, public QLayoutItem, public QoreQLayoutItemExtension
 {

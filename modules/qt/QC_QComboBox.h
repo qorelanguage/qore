@@ -28,10 +28,10 @@
 #include "QoreAbstractQComboBox.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QCOMBOBOX;
-DLLLOCAL extern class QoreClass *QC_QComboBox;
+DLLEXPORT extern qore_classid_t CID_QCOMBOBOX;
+DLLEXPORT extern class QoreClass *QC_QComboBox;
 
-DLLLOCAL class QoreClass *initQComboBoxClass(QoreClass *);
+DLLEXPORT class QoreClass *initQComboBoxClass(QoreClass *);
 
 class myQComboBox : public QComboBox, public QoreQWidgetExtension
 {

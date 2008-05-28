@@ -31,7 +31,7 @@
 DLLEXPORT extern qore_classid_t CID_QPICTURE;
 DLLEXPORT extern QoreClass *QC_QPicture;
 
-DLLLOCAL class QoreClass *initQPictureClass(class QoreClass *qpaintdevice);
+DLLEXPORT class QoreClass *initQPictureClass(class QoreClass *qpaintdevice);
 
 class QoreQPicture : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QPicture
 {

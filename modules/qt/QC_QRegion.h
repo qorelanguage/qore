@@ -26,10 +26,10 @@
 
 #include <QRegion>
 
-DLLLOCAL extern qore_classid_t CID_QREGION;
-DLLLOCAL extern class QoreClass *QC_QRegion;
+DLLEXPORT extern qore_classid_t CID_QREGION;
+DLLEXPORT extern class QoreClass *QC_QRegion;
 
-DLLLOCAL class QoreClass *initQRegionClass();
+DLLEXPORT class QoreClass *initQRegionClass();
 
 class QoreQRegion : public AbstractPrivateData, public QRegion
 {

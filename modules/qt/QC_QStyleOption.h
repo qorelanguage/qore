@@ -26,10 +26,10 @@
 
 #include <QStyleOption>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTION;
-DLLLOCAL extern class QoreClass *QC_QStyleOption;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTION;
+DLLEXPORT extern class QoreClass *QC_QStyleOption;
 
-DLLLOCAL class QoreClass *initQStyleOptionClass();
+DLLEXPORT class QoreClass *initQStyleOptionClass();
 
 class QoreQStyleOption : public AbstractPrivateData, public QStyleOption
 {

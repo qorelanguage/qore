@@ -26,10 +26,10 @@
 
 #include <QPen>
 
-DLLLOCAL extern qore_classid_t CID_QPEN;
-DLLLOCAL extern class QoreClass *QC_QPen;
+DLLEXPORT extern qore_classid_t CID_QPEN;
+DLLEXPORT extern class QoreClass *QC_QPen;
 
-DLLLOCAL class QoreClass *initQPenClass();
+DLLEXPORT class QoreClass *initQPenClass();
 
 class QoreQPen : public AbstractPrivateData, public QPen
 {

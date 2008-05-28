@@ -28,9 +28,9 @@
 #include "QoreAbstractQListWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QLISTWIDGET;
-DLLLOCAL extern QoreClass *QC_QListWidget;
-DLLLOCAL QoreClass *initQListWidgetClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QLISTWIDGET;
+DLLEXPORT extern QoreClass *QC_QListWidget;
+DLLEXPORT QoreClass *initQListWidgetClass(QoreClass *);
 
 class myQListWidget : public QListWidget, public QoreQWidgetExtension
 {

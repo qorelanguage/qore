@@ -28,9 +28,9 @@
 #include "QoreAbstractQGraphicsEllipseItem.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSELLIPSEITEM;
-DLLLOCAL extern QoreClass *QC_QGraphicsEllipseItem;
-DLLLOCAL QoreClass *initQGraphicsEllipseItemClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSELLIPSEITEM;
+DLLEXPORT extern QoreClass *QC_QGraphicsEllipseItem;
+DLLEXPORT QoreClass *initQGraphicsEllipseItemClass(QoreClass *);
 
 class myQGraphicsEllipseItem : public QGraphicsEllipseItem, public QoreQGraphicsItemExtension
 {

@@ -27,9 +27,9 @@
 #include <QSvgGenerator>
 #include "QoreAbstractQPaintDevice.h"
 
-DLLLOCAL extern qore_classid_t CID_QSVGGENERATOR;
-DLLLOCAL extern QoreClass *QC_QSvgGenerator;
-DLLLOCAL QoreClass *initQSvgGeneratorClass();
+DLLEXPORT extern qore_classid_t CID_QSVGGENERATOR;
+DLLEXPORT extern QoreClass *QC_QSvgGenerator;
+DLLEXPORT QoreClass *initQSvgGeneratorClass();
 
 class QoreQSvgGenerator : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QSvgGenerator
 {

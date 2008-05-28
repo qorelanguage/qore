@@ -26,10 +26,10 @@
 
 #include <QPaintEvent>
 
-DLLLOCAL extern qore_classid_t CID_QPAINTEVENT;
-DLLLOCAL extern class QoreClass *QC_QPaintEvent;
+DLLEXPORT extern qore_classid_t CID_QPAINTEVENT;
+DLLEXPORT extern class QoreClass *QC_QPaintEvent;
 
-DLLLOCAL class QoreClass *initQPaintEventClass(class QoreClass *parent);
+DLLEXPORT class QoreClass *initQPaintEventClass(class QoreClass *parent);
 
 class QoreQPaintEvent : public AbstractPrivateData, public QPaintEvent
 {

@@ -27,9 +27,9 @@
 #include <QGraphicsItem>
 #include "QoreAbstractQGraphicsItem.h"
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSITEM;
-DLLLOCAL extern QoreClass *QC_QGraphicsItem;
-DLLLOCAL QoreNamespace *initQGraphicsItemNS();
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSITEM;
+DLLEXPORT extern QoreClass *QC_QGraphicsItem;
+DLLEXPORT QoreNamespace *initQGraphicsItemNS();
 
 class myQGraphicsItem : public QGraphicsItem, public QoreQGraphicsItemExtension
 {

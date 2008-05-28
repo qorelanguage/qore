@@ -27,10 +27,10 @@
 #include <QPrinter>
 #include "QoreAbstractQPaintDevice.h"
 
-DLLLOCAL extern qore_classid_t CID_QPRINTER;
-DLLLOCAL extern class QoreClass *QC_QPrinter;
+DLLEXPORT extern qore_classid_t CID_QPRINTER;
+DLLEXPORT extern class QoreClass *QC_QPrinter;
 
-DLLLOCAL class QoreClass *initQPrinterClass(QoreClass *);
+DLLEXPORT class QoreClass *initQPrinterClass(QoreClass *);
 
 class QoreQPrinter : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QPrinter
 {

@@ -28,10 +28,10 @@
 #include "QoreAbstractQCheckBox.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QCHECKBOX;
-DLLLOCAL extern class QoreClass *QC_QCheckBox;
+DLLEXPORT extern qore_classid_t CID_QCHECKBOX;
+DLLEXPORT extern class QoreClass *QC_QCheckBox;
 
-DLLLOCAL class QoreClass *initQCheckBoxClass(QoreClass *);
+DLLEXPORT class QoreClass *initQCheckBoxClass(QoreClass *);
 
 class myQCheckBox : public QCheckBox, public QoreQWidgetExtension
 {

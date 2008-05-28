@@ -26,10 +26,10 @@
 
 #include <QByteArray>
 
-DLLLOCAL extern qore_classid_t CID_QBYTEARRAY;
-DLLLOCAL extern class QoreClass *QC_QByteArray;
+DLLEXPORT extern qore_classid_t CID_QBYTEARRAY;
+DLLEXPORT extern class QoreClass *QC_QByteArray;
 
-DLLLOCAL class QoreClass *initQByteArrayClass();
+DLLEXPORT class QoreClass *initQByteArrayClass();
 
 class QoreQByteArray : public AbstractPrivateData, public QByteArray
 {

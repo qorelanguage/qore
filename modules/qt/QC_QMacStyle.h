@@ -28,10 +28,10 @@
 #include "QoreAbstractQWindowsStyle.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QMACSTYLE;
-DLLLOCAL extern class QoreClass *QC_QMacStyle;
+DLLEXPORT extern qore_classid_t CID_QMACSTYLE;
+DLLEXPORT extern class QoreClass *QC_QMacStyle;
 
-DLLLOCAL class QoreClass *initQMacStyleClass(QoreClass *);
+DLLEXPORT class QoreClass *initQMacStyleClass(QoreClass *);
 
 class myQMacStyle : public QMacStyle, public QoreQStyleExtension
 {

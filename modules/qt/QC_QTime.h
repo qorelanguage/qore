@@ -26,10 +26,10 @@
 
 #include <QTime>
 
-DLLLOCAL extern qore_classid_t CID_QTIME;
-DLLLOCAL extern QoreClass *QC_QTime;
+DLLEXPORT extern qore_classid_t CID_QTIME;
+DLLEXPORT extern QoreClass *QC_QTime;
 
-DLLLOCAL class QoreClass *initQTimeClass();
+DLLEXPORT class QoreClass *initQTimeClass();
 
 class QoreQTime : public AbstractPrivateData, public QTime
 {

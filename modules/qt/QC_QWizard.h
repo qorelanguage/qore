@@ -28,10 +28,10 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QWIZARD;
-DLLLOCAL extern class QoreClass *QC_QWizard;
+DLLEXPORT extern qore_classid_t CID_QWIZARD;
+DLLEXPORT extern class QoreClass *QC_QWizard;
 
-DLLLOCAL QoreNamespace *initQWizardNS(QoreClass *);
+DLLEXPORT QoreNamespace *initQWizardNS(QoreClass *);
 
 class myQWizard : public QWizard, public QoreQDialogExtension
 {

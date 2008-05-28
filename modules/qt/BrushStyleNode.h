@@ -26,7 +26,7 @@
 
 #include <QBrush>
 
-DLLLOCAL extern qore_type_t NT_BRUSHSTYLE;
+DLLEXPORT extern qore_type_t NT_BRUSHSTYLE;
 
 class BrushStyleNode : public SimpleValueQoreNode
 {

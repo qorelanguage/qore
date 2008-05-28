@@ -28,10 +28,10 @@
 #include "QoreAbstractQWindowsStyle.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QPLASTIQUESTYLE;
-DLLLOCAL extern class QoreClass *QC_QPlastiqueStyle;
+DLLEXPORT extern qore_classid_t CID_QPLASTIQUESTYLE;
+DLLEXPORT extern class QoreClass *QC_QPlastiqueStyle;
 
-DLLLOCAL class QoreClass *initQPlastiqueStyleClass(QoreClass *);
+DLLEXPORT class QoreClass *initQPlastiqueStyleClass(QoreClass *);
 
 class myQPlastiqueStyle : public QPlastiqueStyle, public QoreQStyleExtension
 {

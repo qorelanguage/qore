@@ -26,10 +26,10 @@
 
 #include <QPointF>
 
-DLLLOCAL extern qore_classid_t CID_QPOINTF;
-DLLLOCAL extern class QoreClass *QC_QPointF;
+DLLEXPORT extern qore_classid_t CID_QPOINTF;
+DLLEXPORT extern class QoreClass *QC_QPointF;
 
-DLLLOCAL class QoreClass *initQPointFClass();
+DLLEXPORT class QoreClass *initQPointFClass();
 
 class QoreQPointF : public AbstractPrivateData, public QPointF
 {

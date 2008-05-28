@@ -26,10 +26,10 @@
 
 #include <QTabletEvent>
 
-DLLLOCAL extern qore_classid_t CID_QTABLETEVENT;
-DLLLOCAL extern class QoreClass *QC_QTabletEvent;
+DLLEXPORT extern qore_classid_t CID_QTABLETEVENT;
+DLLEXPORT extern class QoreClass *QC_QTabletEvent;
 
-DLLLOCAL class QoreClass *initQTabletEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTabletEventClass(QoreClass *);
 
 class QoreQTabletEvent : public AbstractPrivateData, public QTabletEvent
 {

@@ -26,10 +26,10 @@
 
 #include <QStyleOptionSpinBox>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONSPINBOX;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionSpinBox;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONSPINBOX;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionSpinBox;
 
-DLLLOCAL class QoreClass *initQStyleOptionSpinBoxClass(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionSpinBoxClass(QoreClass *);
 
 class QoreQStyleOptionSpinBox : public AbstractPrivateData, public QStyleOptionSpinBox
 {

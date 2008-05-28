@@ -26,10 +26,10 @@
 
 #include <QCloseEvent>
 
-DLLLOCAL extern qore_classid_t CID_QCLOSEEVENT;
-DLLLOCAL extern class QoreClass *QC_QCloseEvent;
+DLLEXPORT extern qore_classid_t CID_QCLOSEEVENT;
+DLLEXPORT extern class QoreClass *QC_QCloseEvent;
 
-DLLLOCAL class QoreClass *initQCloseEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQCloseEventClass(QoreClass *);
 
 class QoreQCloseEvent : public AbstractPrivateData, public QCloseEvent
 {

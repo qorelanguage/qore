@@ -26,10 +26,10 @@
 
 #include <QDragEnterEvent>
 
-DLLLOCAL extern qore_classid_t CID_QDRAGENTEREVENT;
-DLLLOCAL extern class QoreClass *QC_QDragEnterEvent;
+DLLEXPORT extern qore_classid_t CID_QDRAGENTEREVENT;
+DLLEXPORT extern class QoreClass *QC_QDragEnterEvent;
 
-DLLLOCAL class QoreClass *initQDragEnterEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQDragEnterEventClass(QoreClass *);
 
 class QoreQDragEnterEvent : public AbstractPrivateData, public QDragEnterEvent
 {

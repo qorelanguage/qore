@@ -26,6 +26,6 @@
 
 #include <QFontDialog>
 
-DLLLOCAL void initQFontDialogStaticFunctions();
+DLLEXPORT void initQFontDialogStaticFunctions();
 
 #endif // _QORE_QT_QC_QFONTDIALOG_H

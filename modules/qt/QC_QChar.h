@@ -26,10 +26,10 @@
 
 #include <QChar>
 
-DLLLOCAL extern qore_classid_t CID_QCHAR;
-DLLLOCAL extern class QoreClass *QC_QChar;
+DLLEXPORT extern qore_classid_t CID_QCHAR;
+DLLEXPORT extern class QoreClass *QC_QChar;
 
-DLLLOCAL class QoreClass *initQCharClass();
+DLLEXPORT class QoreClass *initQCharClass();
 
 class QoreQChar : public AbstractPrivateData, public QChar
 {

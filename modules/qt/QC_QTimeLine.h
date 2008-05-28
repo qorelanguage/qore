@@ -28,9 +28,9 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QTIMELINE;
-DLLLOCAL extern QoreClass *QC_QTimeLine;
-DLLLOCAL QoreNamespace *initQTimeLineNS(QoreClass *qobject);
+DLLEXPORT extern int CID_QTIMELINE;
+DLLEXPORT extern QoreClass *QC_QTimeLine;
+DLLEXPORT QoreNamespace *initQTimeLineNS(QoreClass *qobject);
 
 class myQTimeLine : public QTimeLine, public QoreQObjectExtension
 {

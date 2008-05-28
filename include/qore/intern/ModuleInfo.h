@@ -53,6 +53,7 @@ class ModuleInfo {
       DLLLOCAL void ns_init(class QoreNamespace *rns, class QoreNamespace *qns) const;
       DLLLOCAL bool isBuiltin() const;
       DLLLOCAL class QoreHashNode *getHash() const;
+      DLLLOCAL const void *getPtr() const { return dlptr; }
 };
 
 #endif

@@ -28,9 +28,9 @@
 #include "QoreAbstractQGraphicsPolygonItem.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSPOLYGONITEM;
-DLLLOCAL extern QoreClass *QC_QGraphicsPolygonItem;
-DLLLOCAL QoreClass *initQGraphicsPolygonItemClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSPOLYGONITEM;
+DLLEXPORT extern QoreClass *QC_QGraphicsPolygonItem;
+DLLEXPORT QoreClass *initQGraphicsPolygonItemClass(QoreClass *);
 
 class myQGraphicsPolygonItem : public QGraphicsPolygonItem, public QoreQGraphicsItemExtension
 {

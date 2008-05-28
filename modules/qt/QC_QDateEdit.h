@@ -28,10 +28,10 @@
 #include "QoreAbstractQDateTimeEdit.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QDATEEDIT;
-DLLLOCAL extern class QoreClass *QC_QDateEdit;
+DLLEXPORT extern qore_classid_t CID_QDATEEDIT;
+DLLEXPORT extern class QoreClass *QC_QDateEdit;
 
-DLLLOCAL class QoreClass *initQDateEditClass(QoreClass *);
+DLLEXPORT class QoreClass *initQDateEditClass(QoreClass *);
 
 class myQDateEdit : public QDateEdit, public QoreQWidgetExtension
 {

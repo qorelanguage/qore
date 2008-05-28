@@ -28,10 +28,10 @@
 #include "QoreAbstractQAbstractButton.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QABSTRACTBUTTON;
-DLLLOCAL extern class QoreClass *QC_QAbstractButton;
+DLLEXPORT extern qore_classid_t CID_QABSTRACTBUTTON;
+DLLEXPORT extern class QoreClass *QC_QAbstractButton;
 
-DLLLOCAL class QoreClass *initQAbstractButtonClass(QoreClass *);
+DLLEXPORT class QoreClass *initQAbstractButtonClass(QoreClass *);
 
 class myQAbstractButton : public QAbstractButton, public QoreQWidgetExtension
 {

@@ -28,10 +28,10 @@
 #include "QoreAbstractQAction.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QACTION;
-DLLLOCAL extern class QoreClass *QC_QAction;
+DLLEXPORT extern qore_classid_t CID_QACTION;
+DLLEXPORT extern class QoreClass *QC_QAction;
 
-DLLLOCAL class QoreClass *initQActionClass(QoreClass *);
+DLLEXPORT class QoreClass *initQActionClass(QoreClass *);
 
 class myQAction : public QAction, public QoreQObjectExtension
 {

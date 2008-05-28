@@ -29,9 +29,9 @@
 #include "QoreAbstractQGraphicsLineItem.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSLINEITEM;
-DLLLOCAL extern QoreClass *QC_QGraphicsLineItem;
-DLLLOCAL QoreClass *initQGraphicsLineItemClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSLINEITEM;
+DLLEXPORT extern QoreClass *QC_QGraphicsLineItem;
+DLLEXPORT QoreClass *initQGraphicsLineItemClass(QoreClass *);
 
 class myQGraphicsLineItem : public QGraphicsLineItem, public QoreQGraphicsItemExtension
 {

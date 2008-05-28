@@ -29,9 +29,9 @@
 #include "QoreAbstractQGraphicsItemGroup.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSITEMGROUP;
-DLLLOCAL extern QoreClass *QC_QGraphicsItemGroup;
-DLLLOCAL QoreClass *initQGraphicsItemGroupClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSITEMGROUP;
+DLLEXPORT extern QoreClass *QC_QGraphicsItemGroup;
+DLLEXPORT QoreClass *initQGraphicsItemGroupClass(QoreClass *);
 
 class myQGraphicsItemGroup : public QGraphicsItemGroup, public QoreQGraphicsItemExtension
 {

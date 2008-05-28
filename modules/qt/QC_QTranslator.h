@@ -28,10 +28,10 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QTRANSLATOR;
-DLLLOCAL extern class QoreClass *QC_QTranslator;
+DLLEXPORT extern qore_classid_t CID_QTRANSLATOR;
+DLLEXPORT extern class QoreClass *QC_QTranslator;
 
-DLLLOCAL class QoreClass *initQTranslatorClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTranslatorClass(QoreClass *);
 
 class myQTranslator : public QTranslator, public QoreQObjectExtension
 {

@@ -28,13 +28,13 @@
 
 #include <QShortcut>
 
-DLLLOCAL extern qore_classid_t CID_QSHORTCUT;
-DLLLOCAL extern QoreClass *QC_QShortcut;
+DLLEXPORT extern qore_classid_t CID_QSHORTCUT;
+DLLEXPORT extern QoreClass *QC_QShortcut;
 
-DLLLOCAL class QoreClass *initQShortcutClass(class QoreClass *parent);
+DLLEXPORT class QoreClass *initQShortcutClass(class QoreClass *parent);
 
-DLLLOCAL extern void *static_void_args[];
-DLLLOCAL extern QByteArray static_void_sig;
+DLLEXPORT extern void *static_void_args[];
+DLLEXPORT extern QByteArray static_void_sig;
 
 class myQShortcut : public QShortcut, public QoreQObjectExtension
 {

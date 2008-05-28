@@ -26,10 +26,10 @@
 
 #include <QLine>
 
-DLLLOCAL extern qore_classid_t CID_QLINE;
-DLLLOCAL extern class QoreClass *QC_QLine;
+DLLEXPORT extern qore_classid_t CID_QLINE;
+DLLEXPORT extern class QoreClass *QC_QLine;
 
-DLLLOCAL class QoreClass *initQLineClass();
+DLLEXPORT class QoreClass *initQLineClass();
 
 class QoreQLine : public AbstractPrivateData, public QLine
 {

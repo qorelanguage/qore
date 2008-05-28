@@ -26,10 +26,10 @@
 
 #include <QStyleOptionSizeGrip>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONSIZEGRIP;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionSizeGrip;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONSIZEGRIP;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionSizeGrip;
 
-DLLLOCAL class QoreClass *initQStyleOptionSizeGripClass(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionSizeGripClass(QoreClass *);
 
 class QoreQStyleOptionSizeGrip : public AbstractPrivateData, public QStyleOptionSizeGrip
 {

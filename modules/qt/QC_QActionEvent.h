@@ -26,10 +26,10 @@
 
 #include <QActionEvent>
 
-DLLLOCAL extern qore_classid_t CID_QACTIONEVENT;
-DLLLOCAL extern class QoreClass *QC_QActionEvent;
+DLLEXPORT extern qore_classid_t CID_QACTIONEVENT;
+DLLEXPORT extern QoreClass *QC_QActionEvent;
 
-DLLLOCAL class QoreClass *initQActionEventClass(QoreClass *);
+DLLEXPORT QoreClass *initQActionEventClass(QoreClass *);
 
 class QoreQActionEvent : public AbstractPrivateData, public QActionEvent
 {

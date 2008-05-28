@@ -31,13 +31,13 @@
 
 #include <QLayout>
 
-DLLLOCAL extern qore_classid_t CID_QLAYOUT;
-DLLLOCAL extern QoreClass *QC_QLayout;
+DLLEXPORT extern qore_classid_t CID_QLAYOUT;
+DLLEXPORT extern QoreClass *QC_QLayout;
 
 #include "QC_QLayoutItem.h"
 
 
-DLLLOCAL QoreClass *initQLayoutClass(QoreClass *qobject, QoreClass *qlayoutitem);
+DLLEXPORT QoreClass *initQLayoutClass(QoreClass *qobject, QoreClass *qlayoutitem);
 
 class QoreQLayout;
 

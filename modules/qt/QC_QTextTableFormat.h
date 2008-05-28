@@ -26,10 +26,10 @@
 
 #include <QTextTableFormat>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTTABLEFORMAT;
-DLLLOCAL extern class QoreClass *QC_QTextTableFormat;
+DLLEXPORT extern qore_classid_t CID_QTEXTTABLEFORMAT;
+DLLEXPORT extern class QoreClass *QC_QTextTableFormat;
 
-DLLLOCAL class QoreClass *initQTextTableFormatClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTextTableFormatClass(QoreClass *);
 
 class QoreQTextTableFormat : public AbstractPrivateData, public QTextTableFormat
 {

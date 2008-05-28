@@ -26,10 +26,10 @@
 
 #include <QResizeEvent>
 
-DLLLOCAL extern qore_classid_t CID_QRESIZEEVENT;
-DLLLOCAL extern class QoreClass *QC_QResizeEvent;
+DLLEXPORT extern qore_classid_t CID_QRESIZEEVENT;
+DLLEXPORT extern class QoreClass *QC_QResizeEvent;
 
-DLLLOCAL class QoreClass *initQResizeEventClass(class QoreClass *parent);
+DLLEXPORT class QoreClass *initQResizeEventClass(class QoreClass *parent);
 
 class QoreQResizeEvent : public AbstractPrivateData, public QResizeEvent
 {

@@ -26,10 +26,10 @@
 
 #include <QFont>
 
-DLLLOCAL extern qore_classid_t CID_QFONT;
-DLLLOCAL extern QoreClass *QC_QFont;
+DLLEXPORT extern qore_classid_t CID_QFONT;
+DLLEXPORT extern QoreClass *QC_QFont;
 
-DLLLOCAL class QoreClass *initQFontClass();
+DLLEXPORT class QoreClass *initQFontClass();
 
 class QoreQFont : public AbstractPrivateData, public QFont
 {

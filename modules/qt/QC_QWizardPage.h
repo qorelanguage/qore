@@ -28,10 +28,10 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QWIZARDPAGE;
-DLLLOCAL extern class QoreClass *QC_QWizardPage;
+DLLEXPORT extern qore_classid_t CID_QWIZARDPAGE;
+DLLEXPORT extern class QoreClass *QC_QWizardPage;
 
-DLLLOCAL class QoreClass *initQWizardPageClass(QoreClass *);
+DLLEXPORT class QoreClass *initQWizardPageClass(QoreClass *);
 
 class myQWizardPage : public QWizardPage, public QoreQWidgetExtension
 {

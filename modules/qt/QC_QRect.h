@@ -26,10 +26,10 @@
 
 #include <QRect>
 
-DLLLOCAL extern qore_classid_t CID_QRECT;
-DLLLOCAL extern class QoreClass *QC_QRect;
+DLLEXPORT extern qore_classid_t CID_QRECT;
+DLLEXPORT extern class QoreClass *QC_QRect;
 
-DLLLOCAL class QoreClass *initQRectClass();
+DLLEXPORT class QoreClass *initQRectClass();
 
 class QoreQRect : public AbstractPrivateData, public QRect
 {

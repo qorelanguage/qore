@@ -26,10 +26,10 @@
 
 #include <QMoveEvent>
 
-DLLLOCAL extern qore_classid_t CID_QMOVEEVENT;
-DLLLOCAL extern class QoreClass *QC_QMoveEvent;
+DLLEXPORT extern qore_classid_t CID_QMOVEEVENT;
+DLLEXPORT extern class QoreClass *QC_QMoveEvent;
 
-DLLLOCAL class QoreClass *initQMoveEventClass(class QoreClass *parent);
+DLLEXPORT class QoreClass *initQMoveEventClass(class QoreClass *parent);
 
 class QoreQMoveEvent : public AbstractPrivateData, public QMoveEvent
 {

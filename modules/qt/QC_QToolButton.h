@@ -28,10 +28,10 @@
 #include "QoreAbstractQToolButton.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QTOOLBUTTON;
-DLLLOCAL extern class QoreClass *QC_QToolButton;
+DLLEXPORT extern qore_classid_t CID_QTOOLBUTTON;
+DLLEXPORT extern class QoreClass *QC_QToolButton;
 
-DLLLOCAL class QoreClass *initQToolButtonClass(QoreClass *);
+DLLEXPORT class QoreClass *initQToolButtonClass(QoreClass *);
 
 class myQToolButton : public QToolButton, public QoreQWidgetExtension
 {

@@ -26,10 +26,10 @@
 
 #include <QTextLength>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTLENGTH;
-DLLLOCAL extern class QoreClass *QC_QTextLength;
+DLLEXPORT extern qore_classid_t CID_QTEXTLENGTH;
+DLLEXPORT extern class QoreClass *QC_QTextLength;
 
-DLLLOCAL class QoreClass *initQTextLengthClass();
+DLLEXPORT class QoreClass *initQTextLengthClass();
 
 class QoreQTextLength : public AbstractPrivateData, public QTextLength
 {

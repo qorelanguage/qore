@@ -26,10 +26,10 @@
 
 #include <QPainter>
 
-DLLLOCAL extern qore_classid_t CID_QPAINTER;
-DLLLOCAL extern QoreClass *QC_QPainter;
+DLLEXPORT extern qore_classid_t CID_QPAINTER;
+DLLEXPORT extern QoreClass *QC_QPainter;
 
-DLLLOCAL class QoreClass *initQPainterClass();
+DLLEXPORT class QoreClass *initQPainterClass();
 
 class QoreQPainter : public AbstractPrivateData
 {

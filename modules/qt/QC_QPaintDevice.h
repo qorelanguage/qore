@@ -26,10 +26,10 @@
 
 #include "QoreAbstractQPaintDevice.h"
 
-DLLLOCAL extern qore_classid_t CID_QPAINTDEVICE;
-DLLLOCAL extern QoreClass *QC_QPaintDevice;
+DLLEXPORT extern qore_classid_t CID_QPAINTDEVICE;
+DLLEXPORT extern QoreClass *QC_QPaintDevice;
 
-DLLLOCAL class QoreClass *initQPaintDeviceClass();
+DLLEXPORT QoreClass *initQPaintDeviceClass();
 
 class QoreQtQPaintDevice : public AbstractPrivateData, public QoreAbstractQPaintDevice
 {

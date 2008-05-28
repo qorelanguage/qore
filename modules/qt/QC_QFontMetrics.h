@@ -26,10 +26,10 @@
 
 #include <QFontMetrics>
 
-DLLLOCAL extern qore_classid_t CID_QFONTMETRICS;
-DLLLOCAL extern class QoreClass *QC_QFontMetrics;
+DLLEXPORT extern qore_classid_t CID_QFONTMETRICS;
+DLLEXPORT extern class QoreClass *QC_QFontMetrics;
 
-DLLLOCAL class QoreClass *initQFontMetricsClass();
+DLLEXPORT class QoreClass *initQFontMetricsClass();
 
 class QoreQFontMetrics : public AbstractPrivateData, public QFontMetrics
 {

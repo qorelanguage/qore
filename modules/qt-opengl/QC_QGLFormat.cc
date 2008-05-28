@@ -22,12 +22,12 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "../qt/qore-qt.h"
 
 #include "QC_QGLFormat.h"
 
 int CID_QGLFORMAT;
-class QoreClass *QC_QGLFormat = 0;
+QoreClass *QC_QGLFormat = 0;
 
 //QGLFormat ()
 //QGLFormat ( QGL::FormatOptions options, int plane = 0 )

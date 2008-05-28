@@ -26,10 +26,10 @@
 
 #include <QWheelEvent>
 
-DLLLOCAL extern qore_classid_t CID_QWHEELEVENT;
-DLLLOCAL extern class QoreClass *QC_QWheelEvent;
+DLLEXPORT extern qore_classid_t CID_QWHEELEVENT;
+DLLEXPORT extern class QoreClass *QC_QWheelEvent;
 
-DLLLOCAL class QoreClass *initQWheelEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQWheelEventClass(QoreClass *);
 
 class QoreQWheelEvent : public AbstractPrivateData, public QWheelEvent
 {

@@ -26,10 +26,10 @@
 
 #include <QTimerEvent>
 
-DLLLOCAL extern qore_classid_t CID_QTIMEREVENT;
-DLLLOCAL extern class QoreClass *QC_QTimerEvent;
+DLLEXPORT extern qore_classid_t CID_QTIMEREVENT;
+DLLEXPORT extern class QoreClass *QC_QTimerEvent;
 
-DLLLOCAL class QoreClass *initQTimerEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTimerEventClass(QoreClass *);
 
 class QoreQTimerEvent : public AbstractPrivateData, public QTimerEvent
 {

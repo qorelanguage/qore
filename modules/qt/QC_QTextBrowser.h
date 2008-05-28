@@ -28,9 +28,9 @@
 #include "QoreAbstractQTextEdit.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QTEXTBROWSER;
-DLLLOCAL extern QoreClass *QC_QTextBrowser;
-DLLLOCAL QoreClass *initQTextBrowserClass(QoreClass *);
+DLLEXPORT extern int CID_QTEXTBROWSER;
+DLLEXPORT extern QoreClass *QC_QTextBrowser;
+DLLEXPORT QoreClass *initQTextBrowserClass(QoreClass *);
 
 class myQTextBrowser : public QTextBrowser, public QoreQWidgetExtension
 {

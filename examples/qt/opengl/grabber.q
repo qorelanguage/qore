@@ -1,13 +1,12 @@
 #!/usr/bin/env qore
 
-# This is basically a direct port of the QT tutorial to Qore 
-# using Qore's "qt" module.  
+# This is basically a direct port of a QT example program to Qore
+# using Qore's "qt-opengl" module.
 
-# Note that Qore's "qt" module requires QT 4.3 or above 
+# Note that Qore's "qt-opengl" module requires QT 4.3 or above with OpenGL support
 
-# use the "qt" module
-%requires qt
-%requires opengl
+# use the "qt-opengl" module (automatically loads the "qt" and "opengl" modules)
+%requires qt-opengl
 
 # this is an object-oriented program, the application class is "grabber"
 %exec-class grabber

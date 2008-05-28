@@ -26,10 +26,10 @@
 
 #include <QBrush>
 
-DLLLOCAL extern qore_classid_t CID_QBRUSH;
-DLLLOCAL extern QoreClass *QC_QBrush;
+DLLEXPORT extern qore_classid_t CID_QBRUSH;
+DLLEXPORT extern QoreClass *QC_QBrush;
 
-DLLLOCAL class QoreClass *initQBrushClass();
+DLLEXPORT class QoreClass *initQBrushClass();
 
 class QoreQBrush : public AbstractPrivateData
 {

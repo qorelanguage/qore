@@ -28,9 +28,9 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QSVGWIDGET;
-DLLLOCAL extern QoreClass *QC_QSvgWidget;
-DLLLOCAL QoreClass *initQSvgWidgetClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QSVGWIDGET;
+DLLEXPORT extern QoreClass *QC_QSvgWidget;
+DLLEXPORT QoreClass *initQSvgWidgetClass(QoreClass *);
 
 class myQSvgWidget : public QSvgWidget, public QoreQWidgetExtension
 {

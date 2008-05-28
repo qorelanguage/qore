@@ -28,10 +28,10 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QMIMEDATA;
-DLLLOCAL extern class QoreClass *QC_QMimeData;
+DLLEXPORT extern qore_classid_t CID_QMIMEDATA;
+DLLEXPORT extern class QoreClass *QC_QMimeData;
 
-DLLLOCAL class QoreClass *initQMimeDataClass(QoreClass *);
+DLLEXPORT class QoreClass *initQMimeDataClass(QoreClass *);
 
 class myQMimeData : public QMimeData, public QoreQObjectExtension
 {

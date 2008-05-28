@@ -27,9 +27,9 @@
 
 #include <QTextLayout>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTLAYOUT;
-DLLLOCAL extern QoreClass *QC_QTextLayout;
-DLLLOCAL QoreNamespace *initQTextLayoutNS();
+DLLEXPORT extern qore_classid_t CID_QTEXTLAYOUT;
+DLLEXPORT extern QoreClass *QC_QTextLayout;
+DLLEXPORT QoreNamespace *initQTextLayoutNS();
 
 class QoreQTextLayout : public AbstractPrivateData, public QTextLayout
 {

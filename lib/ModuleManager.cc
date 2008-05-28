@@ -623,12 +623,21 @@ QoreListNode *ModuleManager::getModuleList()
 {
    QoreListNode *l = 0;
    AutoLocker al(&mutex);
-   if (!map.empty())
-   {
+   if (!map.empty()) {
       l = new QoreListNode();
       for (module_map_t::iterator i = map.begin(); i != map.end(); i++)
 	 if (!i->second->isBuiltin())
 	    l->push(i->second->getHash());
    }
    return l;
+}
+
+ModuleInfo *ModuleManager::findModule(const char *name)
+{
+   return find(name);
+}
+
+void *ModuleManager::getSymbol(ModuleInfo *info, const char *name)
+{
+   return dlsym(const_cast<void *>(info->getPtr()), name);
 }

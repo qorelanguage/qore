@@ -28,9 +28,9 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QPROGRESSDIALOG;
-DLLLOCAL extern QoreClass *QC_QProgressDialog;
-DLLLOCAL QoreClass *initQProgressDialogClass(QoreClass *);
+DLLEXPORT extern int CID_QPROGRESSDIALOG;
+DLLEXPORT extern QoreClass *QC_QProgressDialog;
+DLLEXPORT QoreClass *initQProgressDialogClass(QoreClass *);
 
 class myQProgressDialog : public QProgressDialog, public QoreQDialogExtension
 {

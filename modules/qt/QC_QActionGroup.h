@@ -30,10 +30,10 @@
 
 #include <QActionGroup>
 
-DLLLOCAL extern qore_classid_t CID_QACTIONGROUP;
-DLLLOCAL extern QoreClass *QC_QActionGroup;
+DLLEXPORT extern qore_classid_t CID_QACTIONGROUP;
+DLLEXPORT extern QoreClass *QC_QActionGroup;
 
-DLLLOCAL class QoreClass *initQActionGroupClass(class QoreClass *parent);
+DLLEXPORT class QoreClass *initQActionGroupClass(class QoreClass *parent);
 
 class myQActionGroup : public QActionGroup, public QoreQObjectExtension
 {

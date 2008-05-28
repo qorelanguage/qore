@@ -26,10 +26,10 @@
 
 #include <QTextImageFormat>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTIMAGEFORMAT;
-DLLLOCAL extern class QoreClass *QC_QTextImageFormat;
+DLLEXPORT extern qore_classid_t CID_QTEXTIMAGEFORMAT;
+DLLEXPORT extern class QoreClass *QC_QTextImageFormat;
 
-DLLLOCAL class QoreClass *initQTextImageFormatClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTextImageFormatClass(QoreClass *);
 
 class QoreQTextImageFormat : public AbstractPrivateData, public QTextImageFormat
 {

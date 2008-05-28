@@ -26,10 +26,10 @@
 
 #include <QKeyEvent>
 
-DLLLOCAL extern qore_classid_t CID_QKEYEVENT;
-DLLLOCAL extern class QoreClass *QC_QKeyEvent;
+DLLEXPORT extern qore_classid_t CID_QKEYEVENT;
+DLLEXPORT extern class QoreClass *QC_QKeyEvent;
 
-DLLLOCAL class QoreClass *initQKeyEventClass(class QoreClass *parent);
+DLLEXPORT class QoreClass *initQKeyEventClass(class QoreClass *parent);
 
 class QoreQKeyEvent : public AbstractPrivateData, public QKeyEvent
 {

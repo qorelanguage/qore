@@ -28,9 +28,9 @@
 
 #include <QLinearGradient>
 
-DLLLOCAL extern int CID_QLINEARGRADIENT;
-DLLLOCAL extern QoreClass *QC_QLinearGradient;
-DLLLOCAL QoreClass *initQLinearGradientClass(QoreClass *);
+DLLEXPORT extern int CID_QLINEARGRADIENT;
+DLLEXPORT extern QoreClass *QC_QLinearGradient;
+DLLEXPORT QoreClass *initQLinearGradientClass(QoreClass *);
 
 class QoreQLinearGradient : public QoreAbstractQGradient, public QLinearGradient
 {

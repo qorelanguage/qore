@@ -28,10 +28,10 @@
 #include "QoreAbstractQHeaderView.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QHEADERVIEW;
-DLLLOCAL extern class QoreClass *QC_QHeaderView;
+DLLEXPORT extern qore_classid_t CID_QHEADERVIEW;
+DLLEXPORT extern class QoreClass *QC_QHeaderView;
 
-DLLLOCAL class QoreClass *initQHeaderViewClass(QoreClass *);
+DLLEXPORT class QoreClass *initQHeaderViewClass(QoreClass *);
 
 class myQHeaderView : public QHeaderView, public QoreQWidgetExtension
 {

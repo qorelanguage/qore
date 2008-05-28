@@ -28,9 +28,9 @@
 #include "QoreAbstractQFrame.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QSTACKEDWIDGET;
-DLLLOCAL extern QoreClass *QC_QStackedWidget;
-DLLLOCAL QoreClass *initQStackedWidgetClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QSTACKEDWIDGET;
+DLLEXPORT extern QoreClass *QC_QStackedWidget;
+DLLEXPORT QoreClass *initQStackedWidgetClass(QoreClass *);
 
 class myQStackedWidget : public QStackedWidget, public QoreQWidgetExtension
 {

@@ -28,10 +28,10 @@
 
 #include <QImage>
 
-DLLLOCAL extern qore_classid_t CID_QIMAGE;
-DLLLOCAL extern QoreClass *QC_QImage;
+DLLEXPORT extern qore_classid_t CID_QIMAGE;
+DLLEXPORT extern QoreClass *QC_QImage;
 
-DLLLOCAL class QoreClass *initQImageClass(class QoreClass *qpaintdevice);
+DLLEXPORT class QoreClass *initQImageClass(class QoreClass *qpaintdevice);
 
 class QoreQImage : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QImage
 {

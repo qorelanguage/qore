@@ -26,10 +26,10 @@
 
 #include <QContextMenuEvent>
 
-DLLLOCAL extern qore_classid_t CID_QCONTEXTMENUEVENT;
-DLLLOCAL extern class QoreClass *QC_QContextMenuEvent;
+DLLEXPORT extern qore_classid_t CID_QCONTEXTMENUEVENT;
+DLLEXPORT extern class QoreClass *QC_QContextMenuEvent;
 
-DLLLOCAL class QoreClass *initQContextMenuEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQContextMenuEventClass(QoreClass *);
 
 class QoreQContextMenuEvent : public AbstractPrivateData, public QContextMenuEvent
 {

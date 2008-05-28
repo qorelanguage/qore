@@ -26,10 +26,10 @@
 
 #include <QInputMethodEvent>
 
-DLLLOCAL extern qore_classid_t CID_QINPUTMETHODEVENT;
-DLLLOCAL extern class QoreClass *QC_QInputMethodEvent;
+DLLEXPORT extern qore_classid_t CID_QINPUTMETHODEVENT;
+DLLEXPORT extern class QoreClass *QC_QInputMethodEvent;
 
-DLLLOCAL class QoreClass *initQInputMethodEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQInputMethodEventClass(QoreClass *);
 
 class QoreQInputMethodEvent : public AbstractPrivateData, public QInputMethodEvent
 {

@@ -35,7 +35,7 @@ class QAbstractButton;
 #include "BrushStyleNode.h"
 #include "PenStyleNode.h"
 
-DLLLOCAL extern AbstractQoreNode *C_Clipboard;
+DLLEXPORT extern AbstractQoreNode *C_Clipboard;
 
 extern int static_argc;
 extern char **static_argv;
@@ -44,25 +44,25 @@ extern char **static_argv;
 
 typedef std::map<int, const char *> qt_enum_map_t;
 
-DLLLOCAL int get_qdate(const AbstractQoreNode *n, QDate &date, class ExceptionSink *xsink);
-DLLLOCAL int get_qtime(const AbstractQoreNode *n, QTime &time, class ExceptionSink *xsink);
-DLLLOCAL int get_qdatetime(const AbstractQoreNode *n, QDateTime &dt, class ExceptionSink *xsink);
-DLLLOCAL int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xsink);
-DLLLOCAL int get_qvariant(const AbstractQoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
-DLLLOCAL int get_qbytearray(const AbstractQoreNode *n, QByteArray &qba, class ExceptionSink *xsink, bool suppress_exception = false);
-DLLLOCAL int get_qchar(const AbstractQoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception = false);
-DLLLOCAL int get_qstring(const AbstractQoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception = false);
-DLLLOCAL int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &qks, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLEXPORT int get_qdate(const AbstractQoreNode *n, QDate &date, class ExceptionSink *xsink);
+DLLEXPORT int get_qtime(const AbstractQoreNode *n, QTime &time, class ExceptionSink *xsink);
+DLLEXPORT int get_qdatetime(const AbstractQoreNode *n, QDateTime &dt, class ExceptionSink *xsink);
+DLLEXPORT int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xsink);
+DLLEXPORT int get_qvariant(const AbstractQoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLEXPORT int get_qbytearray(const AbstractQoreNode *n, QByteArray &qba, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLEXPORT int get_qchar(const AbstractQoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLEXPORT int get_qstring(const AbstractQoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLEXPORT int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &qks, class ExceptionSink *xsink, bool suppress_exception = false);
 
-DLLLOCAL QoreObject *return_object(const QoreClass *qclass, AbstractPrivateData *data);
-DLLLOCAL QoreObject *return_qabstractbutton(QAbstractButton *button);
-DLLLOCAL QoreObject *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
-DLLLOCAL QoreObject *return_qobject(QObject *o);
-DLLLOCAL QoreObject *return_qstyleoption(const class QStyleOption *qso);
-DLLLOCAL QoreObject *return_qevent(class QEvent *event);
-DLLLOCAL QoreObject *return_qaction(class QAction *action);
-DLLLOCAL QoreObject *return_qwidget(class QWidget *widget, bool managed = true);
-DLLLOCAL AbstractQoreNode *return_qvariant(const QVariant &qv);
-DLLLOCAL QoreListNode *return_qstringlist(const QStringList &l);
+DLLEXPORT QoreObject *return_object(const QoreClass *qclass, AbstractPrivateData *data);
+DLLEXPORT QoreObject *return_qabstractbutton(QAbstractButton *button);
+DLLEXPORT QoreObject *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
+DLLEXPORT QoreObject *return_qobject(QObject *o);
+DLLEXPORT QoreObject *return_qstyleoption(const class QStyleOption *qso);
+DLLEXPORT QoreObject *return_qevent(class QEvent *event);
+DLLEXPORT QoreObject *return_qaction(class QAction *action);
+DLLEXPORT QoreObject *return_qwidget(class QWidget *widget, bool managed = true);
+DLLEXPORT AbstractQoreNode *return_qvariant(const QVariant &qv);
+DLLEXPORT QoreListNode *return_qstringlist(const QStringList &l);
 
 #endif

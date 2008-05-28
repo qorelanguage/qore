@@ -28,11 +28,11 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QSYSTEMTRAYICON;
-DLLLOCAL extern class QoreClass *QC_QSystemTrayIcon;
+DLLEXPORT extern qore_classid_t CID_QSYSTEMTRAYICON;
+DLLEXPORT extern class QoreClass *QC_QSystemTrayIcon;
 
-DLLLOCAL QoreNamespace *initQSystemTrayIconNS(QoreClass *);
-DLLLOCAL void initQSystemTrayIconStaticFunctions();
+DLLEXPORT QoreNamespace *initQSystemTrayIconNS(QoreClass *);
+DLLEXPORT void initQSystemTrayIconStaticFunctions();
 
 class myQSystemTrayIcon : public QSystemTrayIcon, public QoreQObjectExtension
 {

@@ -28,10 +28,10 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QDIALOG;
-DLLLOCAL extern class QoreClass *QC_QDialog;
+DLLEXPORT extern qore_classid_t CID_QDIALOG;
+DLLEXPORT extern class QoreClass *QC_QDialog;
 
-DLLLOCAL class QoreClass *initQDialogClass(QoreClass *);
+DLLEXPORT class QoreClass *initQDialogClass(QoreClass *);
 
 class myQDialog : public QDialog, public QoreQDialogExtension
 {

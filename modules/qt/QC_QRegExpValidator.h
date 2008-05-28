@@ -28,10 +28,10 @@
 #include "QoreAbstractQValidator.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QREGEXPVALIDATOR;
-DLLLOCAL extern class QoreClass *QC_QRegExpValidator;
+DLLEXPORT extern qore_classid_t CID_QREGEXPVALIDATOR;
+DLLEXPORT extern class QoreClass *QC_QRegExpValidator;
 
-DLLLOCAL class QoreClass *initQRegExpValidatorClass(QoreClass *);
+DLLEXPORT class QoreClass *initQRegExpValidatorClass(QoreClass *);
 
 class myQRegExpValidator : public QRegExpValidator, public QoreQValidatorExtension
 {

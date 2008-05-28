@@ -28,9 +28,9 @@
 #include "QoreAbstractQLayoutItem.h"
 #include "QC_QLayout.h"
 
-DLLLOCAL extern qore_classid_t CID_QWIDGETITEM;
-DLLLOCAL extern QoreClass *QC_QWidgetItem;
-DLLLOCAL QoreClass *initQWidgetItemClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QWIDGETITEM;
+DLLEXPORT extern QoreClass *QC_QWidgetItem;
+DLLEXPORT QoreClass *initQWidgetItemClass(QoreClass *);
 
 class QoreQWidgetItem : public QoreAbstractQLayoutItemData, public QWidgetItem, public QoreQLayoutItemExtension
 {

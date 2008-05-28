@@ -26,10 +26,10 @@
 
 #include <QStyleOptionViewItemV2>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONVIEWITEMV2;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionViewItemV2;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONVIEWITEMV2;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionViewItemV2;
 
-DLLLOCAL class QoreClass *initQStyleOptionViewItemV2Class(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionViewItemV2Class(QoreClass *);
 
 class QoreQStyleOptionViewItemV2 : public AbstractPrivateData, public QStyleOptionViewItemV2
 {

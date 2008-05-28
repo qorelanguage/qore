@@ -27,10 +27,10 @@
 #include <QPaintEngine>
 #include "QoreAbstractQPaintEngine.h"
 
-DLLLOCAL extern qore_classid_t CID_QPAINTENGINE;
-DLLLOCAL extern class QoreClass *QC_QPaintEngine;
+DLLEXPORT extern qore_classid_t CID_QPAINTENGINE;
+DLLEXPORT extern class QoreClass *QC_QPaintEngine;
 
-DLLLOCAL class QoreClass *initQPaintEngineClass();
+DLLEXPORT class QoreClass *initQPaintEngineClass();
 
 class QoreQtQPaintEngine : public QoreAbstractQPaintEngine
 {

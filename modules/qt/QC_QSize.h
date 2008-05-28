@@ -26,10 +26,10 @@
 
 #include <QSize>
 
-DLLLOCAL extern qore_classid_t CID_QSIZE;
-DLLLOCAL extern class QoreClass *QC_QSize;
+DLLEXPORT extern qore_classid_t CID_QSIZE;
+DLLEXPORT extern QoreClass *QC_QSize;
 
-DLLLOCAL class QoreClass *initQSizeClass();
+DLLEXPORT QoreClass *initQSizeClass();
 
 class QoreQSize : public AbstractPrivateData, public QSize
 {

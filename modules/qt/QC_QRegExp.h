@@ -26,10 +26,10 @@
 
 #include <QRegExp>
 
-DLLLOCAL extern qore_classid_t CID_QREGEXP;
-DLLLOCAL extern class QoreClass *QC_QRegExp;
+DLLEXPORT extern qore_classid_t CID_QREGEXP;
+DLLEXPORT extern class QoreClass *QC_QRegExp;
 
-DLLLOCAL class QoreClass *initQRegExpClass();
+DLLEXPORT class QoreClass *initQRegExpClass();
 
 class QoreQRegExp : public AbstractPrivateData, public QRegExp
 {

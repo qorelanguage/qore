@@ -28,11 +28,11 @@
 #include "QoreAbstractQCoreApplication.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QCOREAPPLICATION;
-DLLLOCAL extern QoreClass *QC_QCoreApplication;
+DLLEXPORT extern qore_classid_t CID_QCOREAPPLICATION;
+DLLEXPORT extern QoreClass *QC_QCoreApplication;
 
-DLLLOCAL QoreClass *initQCoreApplicationClass(QoreClass *);
-DLLLOCAL void initQCoreApplicationStaticFunctions();
+DLLEXPORT QoreClass *initQCoreApplicationClass(QoreClass *);
+DLLEXPORT void initQCoreApplicationStaticFunctions();
 
 class myQCoreApplication : public QCoreApplication, public QoreQObjectExtension
 {

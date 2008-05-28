@@ -26,10 +26,10 @@
 
 #include <QTextBlockFormat>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTBLOCKFORMAT;
-DLLLOCAL extern class QoreClass *QC_QTextBlockFormat;
+DLLEXPORT extern qore_classid_t CID_QTEXTBLOCKFORMAT;
+DLLEXPORT extern class QoreClass *QC_QTextBlockFormat;
 
-DLLLOCAL class QoreClass *initQTextBlockFormatClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTextBlockFormatClass(QoreClass *);
 
 class QoreQTextBlockFormat : public AbstractPrivateData, public QTextBlockFormat
 {

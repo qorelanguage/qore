@@ -26,9 +26,9 @@
 
 #include <QGradient>
 
-DLLLOCAL extern int CID_QGRADIENT;
-DLLLOCAL extern QoreClass *QC_QGradient;
-DLLLOCAL QoreNamespace *initQGradientNS();
+DLLEXPORT extern int CID_QGRADIENT;
+DLLEXPORT extern QoreClass *QC_QGradient;
+DLLEXPORT QoreNamespace *initQGradientNS();
 
 class QoreAbstractQGradient : public AbstractPrivateData
 {

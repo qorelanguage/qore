@@ -28,9 +28,9 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QDIALOGBUTTONBOX;
-DLLLOCAL extern QoreClass *QC_QDialogButtonBox;
-DLLLOCAL QoreNamespace *initQDialogButtonBoxNS(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QDIALOGBUTTONBOX;
+DLLEXPORT extern QoreClass *QC_QDialogButtonBox;
+DLLEXPORT QoreNamespace *initQDialogButtonBoxNS(QoreClass *);
 
 class myQDialogButtonBox : public QDialogButtonBox, public QoreQWidgetExtension
 {

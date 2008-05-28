@@ -28,8 +28,8 @@
 
 #include "qore-qt.h"
 
-DLLLOCAL qore_classid_t CID_QPALETTE;
-DLLLOCAL QoreClass *QC_QPalette = 0;
+qore_classid_t CID_QPALETTE;
+QoreClass *QC_QPalette = 0;
 
 static void QPALETTE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

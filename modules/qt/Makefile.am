@@ -1,26 +1,53 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
+QT_SOURCES = qt-module.cc
+
 if COND_SINGLE_COMPILATION_UNIT_QT
-QT_SOURCES = single-compilation-unit.cc
+QORE_QT_SOURCES = single-compilation-unit.cc
 else
-QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.cc \
-	QC_QWidget.cc QC_QFrame.cc QC_QLCDNumber.cc QC_QSlider.cc QC_QLayout.cc \
-	QC_QBoxLayout.cc QC_QVBoxLayout.cc QC_QHBoxLayout.cc QC_QGridLayout.cc \
-	QC_QBrush.cc QC_QColor.cc QC_QPaintDevice.cc QC_QRect.cc QC_QRectF.cc \
-	QC_QPainter.cc QC_QPalette.cc QoreQtDynamicMethod.cc QC_QRegion.cc \
-	QC_QPaintEvent.cc QC_QPoint.cc QC_QTimer.cc QC_QLabel.cc QC_QPicture.cc \
-	QC_QPixmap.cc QC_QMovie.cc QC_QBitmap.cc QC_QImage.cc QC_QDateTime.cc \
-	QC_QDate.cc QC_QTime.cc BrushStyleNode.cc QC_QIcon.cc QC_QKeySequence.cc \
-	QC_QAction.cc QC_QActionGroup.cc PenStyleNode.cc QC_QMouseEvent.cc \
-	QC_QEvent.cc QC_QInputEvent.cc QC_QKeyEvent.cc QC_QMoveEvent.cc \
-	QC_QResizeEvent.cc QC_QSize.cc QC_QMatrix.cc QC_QShortcut.cc \
+QORE_QT_SOURCES = qt-util.cc QC_QApplication.cc QC_QPushButton.cc \
+	QC_QFrame.cc QC_QLCDNumber.cc QC_QSlider.cc QC_QLayout.cc \
+	QC_QBoxLayout.cc QC_QVBoxLayout.cc QC_QHBoxLayout.cc
+	QC_QGridLayout.cc \
+	QC_QBrush.cc \
+	QC_QPainter.cc QC_QPalette.cc QC_QRegion.cc \
+	QC_QTimer.cc QC_QLabel.cc \
+	QC_QMovie.cc BrushStyleNode.cc \
+	QC_QKeySequence.cc \
+	QC_QAction.cc QC_QActionGroup.cc PenStyleNode.cc \
+	QC_QMatrix.cc QC_QShortcut.cc \
+	QC_QAbstractButton.cc \
+	QC_QObject.cc \
+	QC_QWidget.cc \
+	QC_QColor.cc \
+	QC_QPaintDevice.cc \
+	QC_QRect.cc \
+	QC_QRectF.cc \
+	QoreQtDynamicMethod.cc \
+	QC_QMouseEvent.cc \
+	QC_QEvent.cc \
+	QC_QInputEvent.cc \
+	QC_QKeyEvent.cc \
+	QC_QMoveEvent.cc \
+	QC_QResizeEvent.cc \
+	QC_QSize.cc \
+	QC_QPaintEvent.cc \
+	QC_QPoint.cc \
 	QC_QPointF.cc \
 	QC_QPolygon.cc \
 	QC_QPolygonF.cc \
 	QC_QLine.cc \
 	QC_QLineF.cc \
-	QC_QAbstractButton.cc \
+	QC_QIcon.cc \
+	QC_QFont.cc \
+	QC_QPixmap.cc \
+	QC_QImage.cc \
+	QC_QPicture.cc \
+	QC_QBitmap.cc \
+	QC_QDateTime.cc \
+	QC_QDate.cc \
+	QC_QTime.cc 
 	QC_QMenu.cc \
 	QC_QToolButton.cc \
 	QC_QDialog.cc \
@@ -149,19 +176,13 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QFontDialog.cc \
 	QC_QErrorMessage.cc \
 	QC_QStackedLayout.cc \
-	QC_QGLWidget.cc \
-	QC_QGLFormat.cc \
-	QC_QGLContext.cc \
-	QC_QGLColormap.cc \
 	QC_QGradient.cc \
 	QC_QLinearGradient.cc \
-	QC_QGLFramebufferObject.cc \
 	QC_QTimeLine.cc \
 	QC_QSvgRenderer.cc \
 	QC_QTextBrowser.cc \
 	QC_QLayoutItem.cc \
 	QC_QWidgetItem.cc \
-	QC_QGLPixelBuffer.cc \
 	QC_QCursor.cc \
 	QC_QStyleOptionGraphicsItem.cc \
 	QC_QTransform.cc \
@@ -191,7 +212,7 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QTextOption.cc \
 	QC_QTextLayout.cc
 if COND_MACOSX
-QT_SOURCES += QC_QMacStyle.cc
+QORE_QT_SOURCES += QC_QMacStyle.cc
 endif
 
 endif
@@ -201,9 +222,12 @@ noinst_LTLIBRARIES = libqt.la
 libqt_la_SOURCES = $(QT_SOURCES)
 libqt_la_LDFLAGS = ${QT_LIBS} -static
 else
+lib_LTLIBRARIES = libqore-qt.la
+libqore_qt_la_SOURCES = $(QORE_QT_SOURCES)
+libqore_qt_la_LDFLAGS = ${QT_LIBS}
 pkglib_LTLIBRARIES = qt.la
 qt_la_SOURCES = $(QT_SOURCES)
-qt_la_LDFLAGS = -module -avoid-version ${QT_LIBS}
+qt_la_LDFLAGS = -module -avoid-version -lqore-qt
 endif
 
 INCLUDES = -I$(top_srcdir)/include $(QT_INCLUDES)

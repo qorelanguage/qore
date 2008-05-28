@@ -25,8 +25,8 @@
 #define _QORE_QT_QC_QGLWIDGET_H
 
 #include <QGLWidget>
-#include "QoreAbstractQWidget.h"
-#include "qore-qt-events.h"
+#include "../qt/QoreAbstractQWidget.h"
+#include "../qt/qore-qt-events.h"
 
 DLLLOCAL extern int CID_QGLWIDGET;
 DLLLOCAL extern QoreClass *QC_QGLWidget;
@@ -36,8 +36,8 @@ class myQGLWidget : public QGLWidget, public QoreQWidgetExtension
 {
 #define QOREQTYPE QGLWidget
 #define MYQOREQTYPE myQGLWidget
-#include "qore-qt-metacode.h"
-#include "qore-qt-widget-events.h"
+#include "../qt/qore-qt-metacode.h"
+#include "../qt/qore-qt-widget-events.h"
 #undef MYQOREQTYPE
 #undef QOREQTYPE
 

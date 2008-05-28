@@ -28,10 +28,10 @@
 #include "QoreAbstractQPushButton.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QPUSHBUTTON;
-DLLLOCAL extern class QoreClass *QC_QPushButton;
+DLLEXPORT extern qore_classid_t CID_QPUSHBUTTON;
+DLLEXPORT extern class QoreClass *QC_QPushButton;
 
-DLLLOCAL class QoreClass *initQPushButtonClass(QoreClass *);
+DLLEXPORT class QoreClass *initQPushButtonClass(QoreClass *);
 
 class myQPushButton : public QPushButton, public QoreQWidgetExtension
 {

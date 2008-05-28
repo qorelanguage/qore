@@ -26,10 +26,10 @@
 
 #include <QFocusEvent>
 
-DLLLOCAL extern qore_classid_t CID_QFOCUSEVENT;
-DLLLOCAL extern class QoreClass *QC_QFocusEvent;
+DLLEXPORT extern qore_classid_t CID_QFOCUSEVENT;
+DLLEXPORT extern class QoreClass *QC_QFocusEvent;
 
-DLLLOCAL class QoreClass *initQFocusEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQFocusEventClass(QoreClass *);
 
 class QoreQFocusEvent : public AbstractPrivateData, public QFocusEvent
 {

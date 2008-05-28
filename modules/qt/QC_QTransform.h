@@ -26,9 +26,9 @@
 
 #include <QTransform>
 
-DLLLOCAL extern qore_classid_t CID_QTRANSFORM;
-DLLLOCAL extern QoreClass *QC_QTransform;
-DLLLOCAL QoreNamespace *initQTransformNS();
+DLLEXPORT extern qore_classid_t CID_QTRANSFORM;
+DLLEXPORT extern QoreClass *QC_QTransform;
+DLLEXPORT QoreNamespace *initQTransformNS();
 
 class QoreQTransform : public AbstractPrivateData, public QTransform
 {

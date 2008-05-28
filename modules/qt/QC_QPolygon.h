@@ -26,10 +26,10 @@
 
 #include <QPolygon>
 
-DLLLOCAL extern qore_classid_t CID_QPOLYGON;
-DLLLOCAL extern class QoreClass *QC_QPolygon;
+DLLEXPORT extern qore_classid_t CID_QPOLYGON;
+DLLEXPORT extern class QoreClass *QC_QPolygon;
 
-DLLLOCAL class QoreClass *initQPolygonClass();
+DLLEXPORT class QoreClass *initQPolygonClass();
 
 class QoreQPolygon : public AbstractPrivateData, public QPolygon
 {

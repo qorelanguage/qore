@@ -28,9 +28,9 @@
 #include "QoreAbstractQLayout.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QSTACKEDLAYOUT;
-DLLLOCAL extern QoreClass *QC_QStackedLayout;
-DLLLOCAL QoreClass *initQStackedLayoutClass(QoreClass *);
+DLLEXPORT extern int CID_QSTACKEDLAYOUT;
+DLLEXPORT extern QoreClass *QC_QStackedLayout;
+DLLEXPORT QoreClass *initQStackedLayoutClass(QoreClass *);
 
 class myQStackedLayout : public QStackedLayout, public QoreQLayoutExtension
 {

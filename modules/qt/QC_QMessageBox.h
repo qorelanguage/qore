@@ -28,11 +28,11 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QMESSAGEBOX;
-DLLLOCAL extern class QoreClass *QC_QMessageBox;
+DLLEXPORT extern qore_classid_t CID_QMESSAGEBOX;
+DLLEXPORT extern class QoreClass *QC_QMessageBox;
 
-DLLLOCAL class QoreClass *initQMessageBoxClass(QoreClass *);
-DLLLOCAL void initQMessageBoxStaticFunctions();
+DLLEXPORT class QoreClass *initQMessageBoxClass(QoreClass *);
+DLLEXPORT void initQMessageBoxStaticFunctions();
 
 class myQMessageBox : public QMessageBox, public QoreQDialogExtension
 {

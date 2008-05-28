@@ -26,10 +26,10 @@
 
 #include <QIcon>
 
-DLLLOCAL extern qore_classid_t CID_QICON;
-DLLLOCAL extern QoreClass *QC_QIcon;
+DLLEXPORT extern qore_classid_t CID_QICON;
+DLLEXPORT extern QoreClass *QC_QIcon;
 
-DLLLOCAL class QoreClass *initQIconClass();
+DLLEXPORT class QoreClass *initQIconClass();
 
 class QoreQIcon : public AbstractPrivateData, public QIcon
 {

@@ -29,9 +29,9 @@
 #include "QoreAbstractQGraphicsPixmapItem.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSPIXMAPITEM;
-DLLLOCAL extern QoreClass *QC_QGraphicsPixmapItem;
-DLLLOCAL QoreNamespace *initQGraphicsPixmapItemNS(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSPIXMAPITEM;
+DLLEXPORT extern QoreClass *QC_QGraphicsPixmapItem;
+DLLEXPORT QoreNamespace *initQGraphicsPixmapItemNS(QoreClass *);
 
 class myQGraphicsPixmapItem : public QGraphicsPixmapItem, public QoreQGraphicsItemExtension
 {

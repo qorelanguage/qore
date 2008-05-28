@@ -28,10 +28,10 @@
 #include "QoreAbstractQAbstractSpinBox.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QSPINBOX;
-DLLLOCAL extern class QoreClass *QC_QSpinBox;
+DLLEXPORT extern qore_classid_t CID_QSPINBOX;
+DLLEXPORT extern class QoreClass *QC_QSpinBox;
 
-DLLLOCAL class QoreClass *initQSpinBoxClass(QoreClass *);
+DLLEXPORT class QoreClass *initQSpinBoxClass(QoreClass *);
 
 class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
 {

@@ -26,9 +26,9 @@
 
 #include <QMatrix>
 
-DLLLOCAL extern qore_classid_t CID_QMATRIX;
-DLLLOCAL extern QoreClass *QC_QMatrix;
-DLLLOCAL QoreClass *initQMatrixClass();
+DLLEXPORT extern qore_classid_t CID_QMATRIX;
+DLLEXPORT extern QoreClass *QC_QMatrix;
+DLLEXPORT QoreClass *initQMatrixClass();
 
 class QoreQMatrix : public AbstractPrivateData, public QMatrix
 {

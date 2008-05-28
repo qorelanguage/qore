@@ -28,10 +28,10 @@
 #include "QoreAbstractQCleanlooksStyle.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QCLEANLOOKSSTYLE;
-DLLLOCAL extern QoreClass *QC_QCleanlooksStyle;
+DLLEXPORT extern qore_classid_t CID_QCLEANLOOKSSTYLE;
+DLLEXPORT extern QoreClass *QC_QCleanlooksStyle;
 
-DLLLOCAL class QoreClass *initQCleanlooksStyleClass(QoreClass *);
+DLLEXPORT class QoreClass *initQCleanlooksStyleClass(QoreClass *);
 
 class myQCleanlooksStyle : public QCleanlooksStyle, public QoreQStyleExtension
 {

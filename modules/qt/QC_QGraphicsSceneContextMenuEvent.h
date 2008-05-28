@@ -26,9 +26,9 @@
 
 #include <QGraphicsSceneContextMenuEvent>
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSSCENECONTEXTMENUEVENT;
-DLLLOCAL extern QoreClass *QC_QGraphicsSceneContextMenuEvent;
-DLLLOCAL QoreNamespace *initQGraphicsSceneContextMenuEventNS(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSSCENECONTEXTMENUEVENT;
+DLLEXPORT extern QoreClass *QC_QGraphicsSceneContextMenuEvent;
+DLLEXPORT QoreNamespace *initQGraphicsSceneContextMenuEventNS(QoreClass *);
 
 class QoreQGraphicsSceneContextMenuEvent : public AbstractPrivateData, public QGraphicsSceneContextMenuEvent
 {

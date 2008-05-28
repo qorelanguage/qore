@@ -28,9 +28,9 @@
 #include "QoreAbstractQGraphicsPathItem.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSPATHITEM;
-DLLLOCAL extern QoreClass *QC_QGraphicsPathItem;
-DLLLOCAL QoreClass *initQGraphicsPathItemClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSPATHITEM;
+DLLEXPORT extern QoreClass *QC_QGraphicsPathItem;
+DLLEXPORT QoreClass *initQGraphicsPathItemClass(QoreClass *);
 
 class myQGraphicsPathItem : public QGraphicsPathItem, public QoreQGraphicsItemExtension
 {

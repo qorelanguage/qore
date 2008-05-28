@@ -48,8 +48,8 @@
 
 #include "qore-qt.h"
 
-DLLLOCAL qore_classid_t CID_QPAINTER;
-DLLLOCAL QoreClass *QC_QPainter = 0;
+qore_classid_t CID_QPAINTER;
+QoreClass *QC_QPainter = 0;
 
 class AbstractPaintDeviceData : public AbstractPrivateData, public QoreAbstractQPaintDevice {};
 

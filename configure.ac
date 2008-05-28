@@ -149,6 +149,14 @@ AC_ARG_ENABLE([single-compilation-unit],
       esac],
   [enable_single_compilation_unit=yes])
 
+AC_ARG_ENABLE([scu],
+  [AS_HELP_STRING([--enable-scu],
+		  [short for --enable-single-compilation-unit: enable compilation as a single unit])],
+  [case "${enable_scu}" in
+       yes|no) enable_single_compilation_unit=$enable_scu;;
+       *)      AC_MSG_ERROR(bad value ${enable_scu} for --enable-scu) ;;
+      esac])
+
 AC_ARG_ENABLE([single-compilation-unit-qt],
   [AS_HELP_STRING([--enable-single-compilation-unit-qt],
 		  [enable compilation as a single unit for QT - only if you have at least 2 Gigs of RAM! (default: off)])],
@@ -157,6 +165,14 @@ AC_ARG_ENABLE([single-compilation-unit-qt],
        *)      AC_MSG_ERROR(bad value ${enable_single_compilation_unit_qt} for --enable-single-compilation-unit-qt) ;;
       esac],
   [enable_single_compilation_unit_qt=no])
+
+AC_ARG_ENABLE([scu-qt],
+  [AS_HELP_STRING([--enable-scu-qt],
+		  [short for --enable-single-compilation-unit-qt: enable compilation as a single unit for QT - only if you have at least 2 Gigs of RAM!])],
+  [case "${enable_scu_qt}" in
+       yes|no) enable_single_compilation_unit_qt=$enable_scu_qt;;
+       *)      AC_MSG_ERROR(bad value ${enable_scu_qt} for --enable-scu-qt) ;;
+      esac])
 
 AC_ARG_ENABLE([64bit],
   [AS_HELP_STRING([--enable-64bit],
@@ -1826,17 +1842,17 @@ check_ncurses()
     fi
 }
 
-AC_ARG_ENABLE([ncurses],
-  [AS_HELP_STRING([--disable-ncurses],
+AC_ARG_WITH([ncurses],
+  [AS_HELP_STRING([--without-ncurses],
                   [do not include ncurses support])],
-  [case "$enable_ncurses" in
+  [case "$with_ncurses" in
       yes|no) ;;
-      *)      AC_MSG_ERROR([bad value ${enable_ncurses} for ncurses option]) ;;
+      *)      AC_MSG_ERROR([bad value ${with_ncurses} for ncurses option]) ;;
    esac],
-   [enable_ncurses=yes])
+   [with_ncurses=yes])
 
-if test "${enable_ncurses}" = yes; then
-   enable_ncurses=no
+if test "${with_ncurses}" = yes; then
+   with_ncurses=no
    AC_MSG_CHECKING([for ncurses and panel libraries])
 
    for dir in "$NCURSES_DIR" /usr /usr/local /usr/local/ncurses /opt/gnu /opt/ncurses /usr/ncurses /sw /opt/local /usr/sfw /opt/sfw; do
@@ -1848,7 +1864,7 @@ if test "${enable_ncurses}" = yes; then
    if test -z "$ncurses_dir"; then
       AC_MSG_RESULT([not found])
    else
-      enable_ncurses=yes
+      with_ncurses=yes
       AC_DEFINE(NCURSES, 1, Define if ncurses support should be included)
 
       # check for wresize function in library
@@ -1874,182 +1890,6 @@ wresize((WINDOW *)0, 0, 0);
 	 AC_MSG_RESULT([no])
       fi
    fi
-fi
-
-AC_ARG_WITH([qt],
-    [AS_HELP_STRING([--with-qt@<:@=DIR@:>@],
-                    [QT4 base directory])],
-    [if test ! -d "${with_qt}"; then AC_MSG_ERROR(directory ${with_qt} does not exist for --with-qt); unset with_qt; fi])
-
-AC_ARG_WITH([qt-libs],
-    [AS_HELP_STRING([--with-qt-libs@<:@=DIR@:>@],
-                    [QT4 library directory])],
-    [if test ! -d "${with_qt_libs}"; then AC_MSG_ERROR(directory ${with_qt_libs} does not exist for --with-qt-libs); unset with_qt_libs; fi])
-
-AC_ARG_WITH([qt-includes],
-    [AS_HELP_STRING([--with-qt-includes@<:@=DIR@:>@],
-                    [QT4 include file parent directory])],
-    [if test ! -d "${with_qt_includes}"; then AC_MSG_ERROR(directory ${with_qt_includes} does not exist for --with-qt-includes); unset with_qt_includes; fi])
-
-check_qt_include()
-{
-    if test -f "$1/QtCore/qglobal.h" -a -f "$1/QtGui/QApplication" -a -f "$1/QtOpenGL/QtOpenGL" -a -f "$1/QtSvg/QtSvg" -a -f "$1/QtXml/QtXml"; then
-       found_qt_includes=$1
-    elif test "$2" = "err"; then
-       AC_MSG_ERROR([$1 is not a valid QT parent include directory])
-    fi
-}
-
-check_qt_lib()
-{
-    if test -f "$1/libQtCore.${SHLIB_SUFFIX}" -a "$1/libQtGui.${SHLIB_SUFFIX}" -a $1/libQtOpenGL.${SHLIB_SUFFIX} -a $1/libQtSvg.${SHLIB_SUFFIX} -a $1/libQtXml.${SHLIB_SUFFIX}; then
-       found_qt_libs=$lib
-    elif test "$2" = "err"; then
-    	AC_MSG_ERROR([$1 is not a valid QT 4 library directory])
-    fi
-}
-
-check_qt_version()
-{
-    # check qt version
-    qt_maj=`grep QT_VERSION_STR $with_qt_includes/QtCore/qglobal.h|cut -f2 -d\"|cut -f1 -d.`
-    if test -z "$qt_maj"; then
-       AC_MSG_ERROR([can't determine QT version])
-    fi
-    if test $qt_maj -ne 4; then
-       AC_MSG_ERROR([QT version $version is not supported (must be = 4)])
-    fi
-}
-
-check_qt()
-{
-    if test -z "$with_qt_includes"; then
-        inc="$1/include"
-        if test "$1" = "/"; then
-       	    inc=/usr/include
-        fi
-	check_qt_include $inc
-
-	if test -z "$found_qt_includes"; then
-	    #echo DBG: qt $1 $inc includes not found
-       	    return
-    	fi
-	with_qt_includes="$found_qt_includes"
-	unset found_qt_includes
-    fi
-
-    if test -z "$with_qt_libs"; then
-        lib="$1/lib${LIBSUFFIX}"
-
-	check_qt_lib $lib
-    	if test -z "$found_qt_libs"; then
-       	    #echo DBG: qt $1 $lib libs not found
-       	    unset with_qt_includes
-       	    return
-    	fi
-	with_qt_libs="$found_qt_libs"
-    fi
-    if test "$with_qt_libs" != "/lib${LIBSUFFIX}"; then
-        qt_app_libs=true
-    fi
-
-    check_qt_version
-}
-
-# see if we can figure out where the qt include files and libraries are
-if test "${with_qt}" != "no"; then
-   AC_MSG_CHECKING([for QT 4 includes and libraries])
-
-   if test -n "$with_qt_includes" -a -n "$with_qt_libs"; then
-      check_qt_includes "$with_qt_includes" err
-      check_qt_libs "$with_qt_libs" err
-   else
-      if test -n "$with_qt"; then
-      	 check_qt "$with_qt"
-      	 if test -z "$with_qt_includes"; then
-	    AC_MSG_ERROR([not found in $with_qt])
-      	 fi
-      else
-         # check for frameworks on darwin
-	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework -a -d /Library/Frameworks/QtGui.framework -a -d /Library/Frameworks/QtOpenGL.framework -a -d /Library/Frameworks/QtSvg.framework -a -d /Library/Frameworks/QtXml.framework; then
-	    qt_framework="/Library/Frameworks"
-	    QT_INCLUDES="-I /Library/Frameworks/QtCore.framework/Headers -I /Library/Frameworks/QtGui.framework/Headers -I /Library/Frameworks/QtOpenGL.framework/Headers -I /Library/Frameworks/QtSvg.framework/Headers -I /Library/Frameworks/QtXml.framework/Headers"
-	    QT_LIBS="-framework QtCore -framework QtGui -framework QtOpenGL -framework QtSvg -framework QtXml"
-	 else
-	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt4 /usr/qt /usr/qt4 /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
-      	       check_qt $dir
-      	       if test -n "$with_qt_includes"; then
-	          break;
-      	       fi
-   	    done
-         fi
-      fi
-   fi
-
-   if test -n "$qt_framework"; then
-      AC_MSG_RESULT([using Darwin frameworks in $qt_framework])
-      with_qt=yes
-   else
-      if test -n "$with_qt_includes"; then
-         if test -n "$qt_static"; then
-	    AC_MSG_RESULT([includes=$with_qt_includes, libs=$with_qt_libs (static)])
-      	 else
-	    AC_MSG_RESULT([includes=$with_qt_includes, libs=$with_qt_libs (shared)])
-      	 fi
-      	 with_qt=yes
-      else
-	 AC_MSG_RESULT([not found])
-         unset with_qt
-      fi
-   fi
-fi
-
-if test "${with_qt}" = yes; then
-  if test -n "$with_qt_includes" -o -n "$qt_framework"; then
-     if test -z "$QT_INCLUDES"; then
-        QT_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui -I$with_qt_includes/QtOpenGL -I$with_qt_includes/QtSvg -I$with_qt_includes/QtXml"
-     fi
-     if test -z "$QT_LIBS"; then
-	QT_LIBS="-lQtCore -lQtGui -lQtOpenGL -lQtSvg -lQtXml"
-	if test -n "$qt_app_libs"; then
-	   QT_LIBS="-L$with_qt_libs $QT_LIBS"
-	fi
-     fi
-
-     # check if C++ compiler can link with QT libs
-     SAVE_CXXFLAGS="$CXXFLAGS"
-     SAVE_LDFLAGS="$LDFLAGS"
-     CXXFLAGS="$CXXFLAGS $QT_INCLUDES"
-     LDFLAGS="$LDFLAGS $QT_LIBS"
-     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <QApplication>
-#include <QPushButton>
-	 ]],[[
-   int argc = 0;
-   char **argv = 0;
-   QApplication app(argc, argv);
-
-   QPushButton hello("Hello world!");
-   hello.resize(100, 30);
-
-   hello.show();
-   return app.exec();
-	]])], qt_links=yes, qt_links=no)
-
-     CXXFLAGS="$SAVE_CXXFLAGS"
-     LDFLAGS="$SAVE_LDFLAGS"
-
-     if test "$qt_links" = "no"; then
-        AC_MSG_ERROR([could not compile a test QT program])
-     else
-        AC_SUBST(QT_INCLUDES)
-	AC_SUBST(QT_LIBS)
-        with_qt=yes
-     fi
-  else
-     AC_MSG_WARN([no QT libraries or includes found, disabling QT support])
-     unset with_qt
-  fi
 fi
 
 AC_ARG_WITH([opengl],
@@ -2377,6 +2217,347 @@ if test "${with_glut}" = yes; then
   fi
 fi
 
+AC_ARG_WITH([qt],
+    [AS_HELP_STRING([--with-qt@<:@=DIR@:>@],
+                    [QT base directory])],
+    [if test ! -d "${with_qt}"; then AC_MSG_ERROR(directory ${with_qt} does not exist for --with-qt); unset with_qt; fi])
+
+AC_ARG_WITH([qt-libs],
+    [AS_HELP_STRING([--with-qt-libs@<:@=DIR@:>@],
+                    [QT library directory])],
+    [if test ! -d "${with_qt_libs}"; then AC_MSG_ERROR(directory ${with_qt_libs} does not exist for --with-qt-libs); unset with_qt_libs; fi])
+
+AC_ARG_WITH([qt-includes],
+    [AS_HELP_STRING([--with-qt-includes@<:@=DIR@:>@],
+                    [QT include file parent directory])],
+    [if test ! -d "${with_qt_includes}"; then AC_MSG_ERROR(directory ${with_qt_includes} does not exist for --with-qt-includes); unset with_qt_includes; fi])
+
+check_qt_include()
+{
+    if test -f "$1/QtCore/qglobal.h" -a -f "$1/QtGui/QApplication" -a -f "$1/QtSvg/QtSvg" -a -f "$1/QtXml/QtXml"; then
+       found_qt_includes=$1
+    elif test "$2" = "err"; then
+       AC_MSG_ERROR([$1 is not a valid QT parent include directory])
+    fi
+}
+
+check_qt_lib()
+{
+    if test -f "$1/libQtCore.${SHLIB_SUFFIX}" -a -f "$1/libQtGui.${SHLIB_SUFFIX}" -a -f $1/libQtSvg.${SHLIB_SUFFIX} -a -f $1/libQtXml.${SHLIB_SUFFIX}; then
+       found_qt_libs=$lib
+    elif test "$2" = "err"; then
+    	AC_MSG_ERROR([$1 is not a valid QT 4 library directory])
+    fi
+}
+
+check_qt_version()
+{
+    # check qt version
+    qt_maj=`grep QT_VERSION_STR $with_qt_includes/QtCore/qglobal.h|cut -f2 -d\"|cut -f1 -d.`
+    if test -z "$qt_maj"; then
+       AC_MSG_ERROR([can't determine QT version])
+    fi
+    if test $qt_maj -ne 4; then
+       AC_MSG_ERROR([QT version $version is not supported (must be = 4)])
+    fi
+}
+
+check_qt()
+{
+    if test -z "$with_qt_includes"; then
+        inc="$1/include"
+        if test "$1" = "/"; then
+       	    inc=/usr/include
+        fi
+	check_qt_include $inc
+
+	if test -z "$found_qt_includes"; then
+	    #echo DBG: qt $1 $inc includes not found
+       	    return
+    	fi
+	with_qt_includes="$found_qt_includes"
+	unset found_qt_includes
+    fi
+
+    if test -z "$with_qt_libs"; then
+        lib="$1/lib${LIBSUFFIX}"
+
+	check_qt_lib $lib
+    	if test -z "$found_qt_libs"; then
+       	    #echo DBG: qt $1 $lib libs not found
+       	    unset with_qt_includes
+       	    return
+    	fi
+	with_qt_libs="$found_qt_libs"
+    fi
+    if test "$with_qt_libs" != "/lib${LIBSUFFIX}"; then
+        qt_app_libs=true
+    fi
+
+    check_qt_version
+}
+
+# see if we can figure out where the qt include files and libraries are
+if test "${with_qt}" != "no"; then
+   AC_MSG_CHECKING([for QT 4 includes and libraries])
+
+   if test -n "$with_qt_includes" -a -n "$with_qt_libs"; then
+      check_qt_includes "$with_qt_includes" err
+      check_qt_libs "$with_qt_libs" err
+   else
+      if test -n "$with_qt"; then
+      	 check_qt "$with_qt"
+      	 if test -z "$with_qt_includes"; then
+	    AC_MSG_ERROR([not found in $with_qt])
+      	 fi
+      else
+         # check for frameworks on darwin
+	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework -a -d /Library/Frameworks/QtGui.framework -a -d /Library/Frameworks/QtSvg.framework -a -d /Library/Frameworks/QtXml.framework; then
+	    qt_framework="/Library/Frameworks"
+	    QT_INCLUDES="-I /Library/Frameworks/QtCore.framework/Headers -I /Library/Frameworks/QtGui.framework/Headers -I /Library/Frameworks/QtSvg.framework/Headers -I /Library/Frameworks/QtXml.framework/Headers"
+	    QT_LIBS="-framework QtCore -framework QtGui -framework QtSvg -framework QtXml"
+	 else
+	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt /usr/qt /usr/qt /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+      	       check_qt $dir
+      	       if test -n "$with_qt_includes"; then
+	          break;
+      	       fi
+   	    done
+         fi
+      fi
+   fi
+
+   if test -n "$qt_framework"; then
+      AC_MSG_RESULT([using Darwin frameworks in $qt_framework])
+      with_qt=yes
+   else
+      if test -n "$with_qt_includes"; then
+         if test -n "$qt_static"; then
+	    AC_MSG_RESULT([includes=$with_qt_includes, libs=$with_qt_libs (static)])
+      	 else
+	    AC_MSG_RESULT([includes=$with_qt_includes, libs=$with_qt_libs (shared)])
+      	 fi
+      	 with_qt=yes
+      else
+	 AC_MSG_RESULT([not found])
+         unset with_qt
+      fi
+   fi
+fi
+
+if test "${with_qt}" = yes; then
+  if test -n "$with_qt_includes" -o -n "$qt_framework"; then
+     if test -z "$QT_INCLUDES"; then
+        QT_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui -I$with_qt_includes/QtSvg -I$with_qt_includes/QtXml"
+     fi
+     if test -z "$QT_LIBS"; then
+	QT_LIBS="-lQtCore -lQtGui -lQtSvg -lQtXml"
+	if test -n "$qt_app_libs"; then
+	   QT_LIBS="-L$with_qt_libs $QT_LIBS"
+	fi
+     fi
+
+     # check if C++ compiler can link with QT libs
+     SAVE_CXXFLAGS="$CXXFLAGS"
+     SAVE_LDFLAGS="$LDFLAGS"
+     CXXFLAGS="$CXXFLAGS $QT_INCLUDES"
+     LDFLAGS="$LDFLAGS $QT_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <QApplication>
+#include <QPushButton>
+	 ]],[[
+   int argc = 0;
+   char **argv = 0;
+   QApplication app(argc, argv);
+
+   QPushButton hello("Hello world!");
+   hello.resize(100, 30);
+
+   hello.show();
+   return app.exec();
+	]])], qt_links=yes, qt_links=no)
+
+     CXXFLAGS="$SAVE_CXXFLAGS"
+     LDFLAGS="$SAVE_LDFLAGS"
+
+     if test "$qt_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test QT program])
+     else
+        AC_SUBST(QT_INCLUDES)
+	AC_SUBST(QT_LIBS)
+        with_qt=yes
+     fi
+  else
+     AC_MSG_WARN([no QT libraries or includes found, disabling QT support])
+     unset with_qt
+  fi
+fi
+
+AC_ARG_WITH([qt-opengl],
+    [AS_HELP_STRING([--with-qt-opengl@<:@=DIR@:>@],
+                    [QT OpenGL base directory])],
+    [if test ! -d "${with_qt_opengl}"; then AC_MSG_ERROR(directory ${with_qt_opengl} does not exist for --with-qt-opengl); unset with_qt_opengl; fi])
+
+AC_ARG_WITH([qt-opengl-libs],
+    [AS_HELP_STRING([--with-qt-opengl-libs@<:@=DIR@:>@],
+                    [QT OpenGL library directory])],
+    [if test ! -d "${with_qt_opengl_libs}"; then AC_MSG_ERROR(directory ${with_qt_opengl_libs} does not exist for --with-qt-opengl-libs); unset with_qt_opengl_libs; fi])
+
+AC_ARG_WITH([qt-opengl-includes],
+    [AS_HELP_STRING([--with-qt-opengl-includes@<:@=DIR@:>@],
+                    [QT OpenGL include file parent directory])],
+    [if test ! -d "${with_qt_opengl_includes}"; then AC_MSG_ERROR(directory ${with_qt_opengl_includes} does not exist for --with-qt-opengl-includes); unset with_qt_opengl_includes; fi])
+
+check_qt_opengl_include()
+{
+    if test -f "$1/QtOpenGL/QtOpenGL"; then
+       found_qt_opengl_includes=$1
+    elif test "$2" = "err"; then
+       AC_MSG_ERROR([$1 is not a valid QT OpenGL parent include directory])
+    fi
+}
+
+check_qt_opengl_lib()
+{
+    if test -f $1/libQtOpenGL.${SHLIB_SUFFIX}; then
+       found_qt_opengl_libs=$lib
+    elif test "$2" = "err"; then
+    	AC_MSG_ERROR([$1 is not a valid QT OpenGL library directory])
+    fi
+}
+
+check_qt_opengl()
+{
+    if test -z "$with_qt_opengl_includes"; then
+        inc="$1/include"
+        if test "$1" = "/"; then
+       	    inc=/usr/include
+        fi
+	check_qt_opengl_include $inc
+
+	if test -z "$found_qt_opengl_includes"; then
+	    #echo DBG: qt $1 $inc includes not found
+       	    return
+    	fi
+	with_qt_opengl_includes="$found_qt_opengl_includes"
+	unset found_qt_opengl_includes
+    fi
+
+    if test -z "$with_qt_opengl_libs"; then
+        lib="$1/lib${LIBSUFFIX}"
+
+	check_qt_opengl_lib $lib
+    	if test -z "$found_qt_opengl_libs"; then
+       	    #echo DBG: qt $1 $lib libs not found
+       	    unset with_qt_opengl_includes
+       	    return
+    	fi
+	with_qt_opengl_libs="$found_qt_opengl_libs"
+    fi
+    if test "$with_qt_opengl_libs" != "$with_qt_libs"; then
+        qt_app_opengl_libs=true
+    fi
+}
+
+# see if we can figure out where the qt include files and libraries are
+if test "${with_qt}" = "yes" -a "${with_qt_opengl}" != "no"; then
+   AC_MSG_CHECKING([for QT 4 OpenGL includes and libraries])
+
+   if test -n "$with_qt_opengl_includes" -a -n "$with_qt_opengl_libs"; then
+      check_qt_opengl_includes "$with_qt_opengl_includes" err
+      check_qt_opengl_libs "$with_qt_opengl_libs" err
+   else
+      if test -n "$with_qt_opengl"; then
+      	 check_qt_opengl "$with_qt_opengl"
+      	 if test -z "$with_qt_opengl_includes"; then
+	    AC_MSG_ERROR([not found in $with_qt_opengl])
+      	 fi
+      else
+         # check for frameworks on darwin
+	 if test -n "$darwin" -a -d /Library/Frameworks/QtOpenGL.framework; then
+	    qt_opengl_framework="/Library/Frameworks/QtOpenGL.framework"
+	 else
+	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt /usr/qt /usr/qt /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+      	       check_qt_opengl $dir
+      	       if test -n "$with_qt_opengl_includes"; then
+	          break;
+      	       fi
+   	    done
+         fi
+      fi
+   fi
+
+   if test -n "$qt_opengl_framework"; then
+      QT_OPENGL_INCLUDES="-I $qt_opengl_framework/Headers"
+      QT_OPENGL_LIBS="-framework QtOpenGL"
+      AC_MSG_RESULT([using Darwin frameworks in $qt_opengl_framework])
+      with_qt_opengl=yes
+   else
+      if test -n "$with_qt_opengl_includes"; then
+         if test -n "$qt_static"; then
+	    AC_MSG_RESULT([includes=$with_qt_opengl_includes, libs=$with_qt_opengl_libs (static)])
+      	 else
+	    AC_MSG_RESULT([includes=$with_qt_opengl_includes, libs=$with_qt_opengl_libs (shared)])
+      	 fi
+      	 with_qt_opengl=yes
+      else
+	 AC_MSG_RESULT([not found])
+         unset with_qt_opengl
+      fi
+   fi
+fi
+
+if test "${with_qt_opengl}" = yes; then
+  if test -n "$with_qt_opengl_includes" -o -n "$qt_opengl_framework"; then
+     if test -z "$QT_OPENGL_INCLUDES"; then
+        QT_OPENGL_INCLUDES="-I$with_qt_includes/QtOpenGL"
+     fi
+     if test -z "$QT_OPENGL_LIBS"; then
+        QT_OPENGL_LIBS="-lQtOpenGL"
+        if test -n "$qt_app_opengl_libs"; then
+           QT_OPENGL_LIBS="-L$with_qt_opengl_libs $QT_OPENGL_LIBS"
+        fi
+     fi
+
+     # check if C++ compiler can link with QT opengl libs
+     SAVE_CXXFLAGS="$CXXFLAGS"
+     SAVE_LDFLAGS="$LDFLAGS"
+     CXXFLAGS="$CXXFLAGS $QT_INCLUDES $QT_OPENGL_INCLUDES"
+     LDFLAGS="$LDFLAGS $QT_LIBS $QT_OPENGL_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <QApplication>
+#include <QPushButton>
+#include <QGLWidget>
+	 ]],[[
+   int argc = 0;
+   char **argv = 0;
+   QApplication app(argc, argv);
+
+   QPushButton hello("Hello world!");
+   hello.resize(100, 30);
+
+   QGLWidget test();
+
+   hello.show();
+   return app.exec();
+	]])], qt_opengl_links=yes, qt_opengl_links=no)
+
+     CXXFLAGS="$SAVE_CXXFLAGS"
+     LDFLAGS="$SAVE_LDFLAGS"
+
+     if test "$qt_opengl_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test QT OpenGL program])
+     else
+        AC_SUBST(QT_OPENGL_INCLUDES)
+	AC_SUBST(QT_OPENGL_LIBS)
+        with_qt_opengl=yes
+     fi
+  else
+     AC_MSG_WARN([no QT OpenGL libraries or includes found, disabling QT OpenGL support])
+     unset with_qt_opengl
+  fi
+fi
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
@@ -2600,7 +2781,7 @@ AC_DEFINE_UNQUOTED([BUILD], `./next_build.sh`, [build number])
 VERSION_STRING=$PACKAGE_VERSION-`cat .build`
 AC_DEFINE_UNQUOTED([VERSION_STRING], "$VERSION_STRING", [qore version string])
 
-AM_CONDITIONAL([COND_NCURSES],    [test "$enable_ncurses" = yes])
+AM_CONDITIONAL([COND_NCURSES],    [test "$with_ncurses" = yes])
 AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
@@ -2613,6 +2794,7 @@ AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_QT],         [test "$with_qt" = yes])
+AM_CONDITIONAL([COND_QT_OPENGL],  [test "$with_qt_opengl" = yes])
 AM_CONDITIONAL([COND_OPENGL],     [test "$with_opengl" = yes])
 AM_CONDITIONAL([COND_GLUT],       [test "$with_glut" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
@@ -2620,7 +2802,7 @@ AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT_QT], [test "$enable_single_compilation_unit_qt" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/opengl/Makefile modules/glut/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/qt-opengl/Makefile modules/opengl/Makefile modules/glut/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -2635,10 +2817,14 @@ show_library_feature()
 {
    printf "%-24s: " "$1"
    if test "$2" = "yes"; then
-      echo yes
+      printf "%-8s" yes
    else
-      echo disabled
+      printf disabled
    fi
+   if test -n "$3"; then
+      printf " (%s)" $3
+   fi
+   echo
 }
 
 show_library_feature optimizations $enable_optimization
@@ -2650,7 +2836,7 @@ if test "$enable_shared" = "yes"; then
    echo "*** MODULES ***"
 fi
 
-show_library_feature ncurses $enable_ncurses
+show_library_feature ncurses $with_ncurses
 show_library_feature oracle $with_oracle
 show_library_feature sybase $with_sybase
 show_library_feature mysql $with_mysql
@@ -2660,6 +2846,7 @@ show_library_feature tibrv $with_tibrv
 show_library_feature tibae $with_tibae
 show_library_feature tuxedo $with_tuxedo
 show_library_feature qt $with_qt
+show_library_feature qt-opengl $with_qt_opengl scu=$enable_single_compilation_unit_qt
 show_library_feature opengl $with_opengl
 show_library_feature glut $with_glut
 

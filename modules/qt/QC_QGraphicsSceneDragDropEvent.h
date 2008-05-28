@@ -26,9 +26,9 @@
 
 #include <QGraphicsSceneDragDropEvent>
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSSCENEDRAGDROPEVENT;
-DLLLOCAL extern QoreClass *QC_QGraphicsSceneDragDropEvent;
-DLLLOCAL QoreClass *initQGraphicsSceneDragDropEventClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSSCENEDRAGDROPEVENT;
+DLLEXPORT extern QoreClass *QC_QGraphicsSceneDragDropEvent;
+DLLEXPORT QoreClass *initQGraphicsSceneDragDropEventClass(QoreClass *);
 
 class QoreQGraphicsSceneDragDropEvent : public AbstractPrivateData, public QGraphicsSceneDragDropEvent
 {

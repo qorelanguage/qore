@@ -26,10 +26,10 @@
 
 #include <QBasicTimer>
 
-DLLLOCAL extern qore_classid_t CID_QBASICTIMER;
-DLLLOCAL extern class QoreClass *QC_QBasicTimer;
+DLLEXPORT extern qore_classid_t CID_QBASICTIMER;
+DLLEXPORT extern class QoreClass *QC_QBasicTimer;
 
-DLLLOCAL class QoreClass *initQBasicTimerClass();
+DLLEXPORT class QoreClass *initQBasicTimerClass();
 
 class QoreQBasicTimer : public AbstractPrivateData, public QBasicTimer
 {

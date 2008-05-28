@@ -60,40 +60,40 @@ struct qt_arg {
       int type;
       union qt_arg_u data;
 
-      DLLLOCAL qt_arg() : type(QQT_TYPE_VOID)
+      DLLEXPORT qt_arg() : type(QQT_TYPE_VOID)
       {
       }
-      DLLLOCAL ~qt_arg()
+      DLLEXPORT ~qt_arg()
       {
 	 if (type == QQT_TYPE_QSTRING)
 	    delete data.t_QString;
       }
-      DLLLOCAL void *set(int i)
+      DLLEXPORT void *set(int i)
       {
 	 data.t_int = i; 
 	 return reinterpret_cast<void *>(&data.t_int); 
      }
-      DLLLOCAL void *set(float f)  
+      DLLEXPORT void *set(float f)  
       { 
 	 data.t_float = f; 
 	 return reinterpret_cast<void *>(&data.t_float);
       }
-      DLLLOCAL void *set(double f)
+      DLLEXPORT void *set(double f)
       { 
 	 data.t_double = f; 
 	 return reinterpret_cast<void *>(&data.t_double);
       }
-      DLLLOCAL void *set(bool b)
+      DLLEXPORT void *set(bool b)
       { 
 	 data.t_bool = b; 
 	 return reinterpret_cast<void *>(&data.t_bool);
       }
-      DLLLOCAL void *set(const QString &str) 
+      DLLEXPORT void *set(const QString &str) 
       { 
 	 data.t_QString = new QString(str); 
 	 return reinterpret_cast<void *>(data.t_QString);
       }
-      DLLLOCAL void *set(QWidget *qw) 
+      DLLEXPORT void *set(QWidget *qw) 
       { 
 	 data.t_QWidget = qw; 
 	 return reinterpret_cast<void *>(data.t_QWidget);
@@ -106,7 +106,7 @@ struct QoreQtDynamicMethod {
    protected:
       type_list_t type_list;
 
-      DLLLOCAL static int get_type(const char *&p);
+      DLLEXPORT static int get_type(const char *&p);
 
    public:
       virtual ~QoreQtDynamicMethod()
@@ -121,17 +121,17 @@ class QoreQtDynamicSlot : public QoreQtDynamicMethod
       const QoreMethod *method;
       int return_type;
 
-      DLLLOCAL static const QoreMethod *resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink);
+      DLLEXPORT static const QoreMethod *resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink);
 
    public:
-      DLLLOCAL QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, ExceptionSink *xsink);
+      DLLEXPORT QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, ExceptionSink *xsink);
 
-      DLLLOCAL virtual ~QoreQtDynamicSlot()
+      DLLEXPORT virtual ~QoreQtDynamicSlot()
       {
       }
 
-      DLLLOCAL virtual void call(void **arguments);
-      DLLLOCAL virtual void call();
+      DLLEXPORT virtual void call(void **arguments);
+      DLLEXPORT virtual void call();
 };
 
 struct QoreQtDynamicSignal : public QoreQtDynamicMethod
@@ -139,11 +139,11 @@ struct QoreQtDynamicSignal : public QoreQtDynamicMethod
    private:
 
    public:
-      DLLLOCAL QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink);
-      DLLLOCAL virtual ~QoreQtDynamicSignal()
+      DLLEXPORT QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink);
+      DLLEXPORT virtual ~QoreQtDynamicSignal()
       {
       }
-      DLLLOCAL void emit_signal(QObject *obj, int id, const QoreListNode *args);
+      DLLEXPORT void emit_signal(QObject *obj, int id, const QoreListNode *args);
 };
 
 typedef std::vector<QoreQtDynamicMethod *> qore_qt_method_list_t;
@@ -153,18 +153,18 @@ class DynamicMethodMap : public qore_qt_method_list_t
    private:
 
    public:
-      DLLLOCAL ~DynamicMethodMap()
+      DLLEXPORT ~DynamicMethodMap()
       {
 	 for (qore_qt_method_list_t::iterator i = begin(), e = end(); i != e; ++i)
 	    delete *i;
       }
-      DLLLOCAL int addMethod(QoreQtDynamicSlot *slot)
+      DLLEXPORT int addMethod(QoreQtDynamicSlot *slot)
       {
 	 int id = size();
 	 push_back(slot);
 	 return id;
       }
-      DLLLOCAL int addMethod(QoreQtDynamicSignal *sig)
+      DLLEXPORT int addMethod(QoreQtDynamicSignal *sig)
       {
 	 int id = size();
 	 push_back(sig);
@@ -172,6 +172,6 @@ class DynamicMethodMap : public qore_qt_method_list_t
       }
 };
 
-DLLLOCAL void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, const QoreListNode *args);
+DLLEXPORT void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, const QoreListNode *args);
 
 #endif

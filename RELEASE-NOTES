@@ -18,6 +18,7 @@ qore 0.7.0 is a major release with major new features
 *) bz2 compressed data support (compression and decompression)
 *) file locking support in the File class (based on fcntl())
 *) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
+*) the Oracle database driver will now try to reconnect a lost connection to the server if not in a transaction
 
 ***********************
 *** LANGUAGE ISSUES ***

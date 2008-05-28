@@ -28,9 +28,9 @@
 #include "QoreAbstractQAbstractItemDelegate.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QABSTRACTITEMDELEGATE;
-DLLLOCAL extern class QoreClass *QC_QAbstractItemDelegate;
+DLLEXPORT extern qore_classid_t CID_QABSTRACTITEMDELEGATE;
+DLLEXPORT extern class QoreClass *QC_QAbstractItemDelegate;
 
-DLLLOCAL class QoreClass *initQAbstractItemDelegateClass(QoreClass *);
+DLLEXPORT class QoreClass *initQAbstractItemDelegateClass(QoreClass *);
 
 #endif // _QORE_QT_QC_QABSTRACTITEMDELEGATE_H

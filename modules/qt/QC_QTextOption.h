@@ -27,9 +27,9 @@
 
 #include <QTextOption>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTOPTION;
-DLLLOCAL extern QoreClass *QC_QTextOption;
-DLLLOCAL QoreNamespace *initQTextOptionNS();
+DLLEXPORT extern qore_classid_t CID_QTEXTOPTION;
+DLLEXPORT extern QoreClass *QC_QTextOption;
+DLLEXPORT QoreNamespace *initQTextOptionNS();
 
 class QoreQTextOption : public AbstractPrivateData, public QTextOption
 {

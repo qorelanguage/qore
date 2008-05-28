@@ -28,10 +28,10 @@
 #include "QoreAbstractQRadioButton.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QRADIOBUTTON;
-DLLLOCAL extern class QoreClass *QC_QRadioButton;
+DLLEXPORT extern qore_classid_t CID_QRADIOBUTTON;
+DLLEXPORT extern class QoreClass *QC_QRadioButton;
 
-DLLLOCAL class QoreClass *initQRadioButtonClass(QoreClass *);
+DLLEXPORT class QoreClass *initQRadioButtonClass(QoreClass *);
 
 class myQRadioButton : public QRadioButton, public QoreQWidgetExtension
 {

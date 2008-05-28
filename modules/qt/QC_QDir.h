@@ -26,11 +26,11 @@
 
 #include <QDir>
 
-DLLLOCAL extern qore_classid_t CID_QDIR;
-DLLLOCAL extern class QoreClass *QC_QDir;
+DLLEXPORT extern qore_classid_t CID_QDIR;
+DLLEXPORT extern class QoreClass *QC_QDir;
 
-DLLLOCAL QoreNamespace *initQDirNS();
-DLLLOCAL void initQDirStaticFunctions();
+DLLEXPORT QoreNamespace *initQDirNS();
+DLLEXPORT void initQDirStaticFunctions();
 
 class QoreQDir : public AbstractPrivateData, public QDir
 {

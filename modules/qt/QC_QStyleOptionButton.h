@@ -26,10 +26,10 @@
 
 #include <QStyleOptionButton>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONBUTTON;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionButton;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONBUTTON;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionButton;
 
-DLLLOCAL QoreNamespace *initQStyleOptionButtonNS(QoreClass *);
+DLLEXPORT QoreNamespace *initQStyleOptionButtonNS(QoreClass *);
 
 class QoreQStyleOptionButton : public AbstractPrivateData, public QStyleOptionButton
 {

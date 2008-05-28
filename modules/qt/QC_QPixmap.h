@@ -28,11 +28,11 @@
 
 #include <QPixmap>
 
-DLLLOCAL extern qore_classid_t CID_QPIXMAP;
-DLLLOCAL extern QoreClass *QC_QPixmap;
+DLLEXPORT extern qore_classid_t CID_QPIXMAP;
+DLLEXPORT extern QoreClass *QC_QPixmap;
 
-DLLLOCAL class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice);
-DLLLOCAL void initQPixmapStaticFunctions();
+DLLEXPORT class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice);
+DLLEXPORT void initQPixmapStaticFunctions();
 
 class QoreQPixmap : public QoreAbstractQPixmap, public QPixmap
 {

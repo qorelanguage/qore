@@ -28,13 +28,13 @@
 
 #include <QApplication>
 
-extern qore_classid_t CID_QAPPLICATION;
+DLLEXPORT extern qore_classid_t CID_QAPPLICATION;
 
-DLLLOCAL class QoreClass *initQApplicationClass(class QoreClass *parent);
-DLLLOCAL void initQApplicationStaticFunctions();
+DLLEXPORT QoreClass *initQApplicationClass(class QoreClass *parent);
+DLLEXPORT void initQApplicationStaticFunctions();
 
-DLLLOCAL extern void qapp_dec();
-DLLLOCAL extern AbstractQoreNode *get_qore_qapp();
+DLLEXPORT extern void qapp_dec();
+DLLEXPORT extern AbstractQoreNode *get_qore_qapp();
 
 class myQApplication : public QApplication, public QoreQObjectExtension
 {

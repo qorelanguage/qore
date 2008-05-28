@@ -26,10 +26,10 @@
 
 #include <QStyleOptionGroupBox>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONGROUPBOX;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionGroupBox;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONGROUPBOX;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionGroupBox;
 
-DLLLOCAL class QoreClass *initQStyleOptionGroupBoxClass(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionGroupBoxClass(QoreClass *);
 
 class QoreQStyleOptionGroupBox : public AbstractPrivateData, public QStyleOptionGroupBox
 {

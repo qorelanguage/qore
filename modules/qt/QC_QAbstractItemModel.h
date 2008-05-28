@@ -28,10 +28,10 @@
 #include "QoreAbstractQAbstractItemModel.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QABSTRACTITEMMODEL;
-DLLLOCAL extern class QoreClass *QC_QAbstractItemModel;
+DLLEXPORT extern qore_classid_t CID_QABSTRACTITEMMODEL;
+DLLEXPORT extern class QoreClass *QC_QAbstractItemModel;
 
-DLLLOCAL class QoreClass *initQAbstractItemModelClass(QoreClass *);
+DLLEXPORT class QoreClass *initQAbstractItemModelClass(QoreClass *);
 
 typedef QoreQtQAbstractItemModelBase<QAbstractItemModel, QoreAbstractQAbstractItemModel> QoreQtQAbstractItemModelImpl;
 

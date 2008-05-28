@@ -22,20 +22,20 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "../qt/qore-qt.h"
 
 #include "QC_QGLWidget.h"
 #include "QC_QGLContext.h"
 #include "QC_QGLFormat.h"
 #include "QC_QGLColormap.h"
-#include "QC_QWidget.h"
-#include "QC_QImage.h"
-#include "QC_QColor.h"
-#include "QC_QPixmap.h"
-#include "QC_QFont.h"
+#include "../qt/QC_QWidget.h"
+#include "../qt/QC_QImage.h"
+#include "../qt/QC_QColor.h"
+#include "../qt/QC_QPixmap.h"
+#include "../qt/QC_QFont.h"
 
 int CID_QGLWIDGET;
-class QoreClass *QC_QGLWidget = 0;
+QoreClass *QC_QGLWidget = 0;
 
 //QGLWidget ( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 )
 //QGLWidget ( QGLContext * context, QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 )

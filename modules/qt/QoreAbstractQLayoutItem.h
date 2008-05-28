@@ -29,8 +29,8 @@
 #include "QC_QRect.h"
 #include "QC_QWidget.h"
 
-DLLLOCAL extern qore_classid_t CID_QLAYOUTITEM;
-DLLLOCAL extern QoreClass *QC_QLayoutItem;
+DLLEXPORT extern qore_classid_t CID_QLAYOUTITEM;
+DLLEXPORT extern QoreClass *QC_QLayoutItem;
 
 class QoreAbstractQLayoutItem
 {

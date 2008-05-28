@@ -28,10 +28,10 @@
 #include "QoreAbstractQTextEdit.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QTEXTEDIT;
-DLLLOCAL extern class QoreClass *QC_QTextEdit;
+DLLEXPORT extern qore_classid_t CID_QTEXTEDIT;
+DLLEXPORT extern class QoreClass *QC_QTextEdit;
 
-DLLLOCAL QoreNamespace *initQTextEditNS(QoreClass *);
+DLLEXPORT QoreNamespace *initQTextEditNS(QoreClass *);
 
 class myQTextEdit : public QTextEdit, public QoreQWidgetExtension
 {

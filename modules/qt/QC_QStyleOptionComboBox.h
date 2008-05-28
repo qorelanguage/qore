@@ -26,10 +26,10 @@
 
 #include <QStyleOptionComboBox>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONCOMBOBOX;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionComboBox;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONCOMBOBOX;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionComboBox;
 
-DLLLOCAL class QoreClass *initQStyleOptionComboBoxClass(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionComboBoxClass(QoreClass *);
 
 class QoreQStyleOptionComboBox : public AbstractPrivateData, public QStyleOptionComboBox
 {

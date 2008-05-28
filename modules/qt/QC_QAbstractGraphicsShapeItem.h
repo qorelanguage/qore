@@ -30,9 +30,9 @@
 
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QABSTRACTGRAPHICSSHAPEITEM;
-DLLLOCAL extern QoreClass *QC_QAbstractGraphicsShapeItem;
-DLLLOCAL QoreClass *initQAbstractGraphicsShapeItemClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QABSTRACTGRAPHICSSHAPEITEM;
+DLLEXPORT extern QoreClass *QC_QAbstractGraphicsShapeItem;
+DLLEXPORT QoreClass *initQAbstractGraphicsShapeItemClass(QoreClass *);
 
 class myQAbstractGraphicsShapeItem : public QAbstractGraphicsShapeItem, public QoreQGraphicsItemExtension
 {

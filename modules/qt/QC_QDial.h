@@ -28,10 +28,10 @@
 #include "QoreAbstractQAbstractSlider.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QDIAL;
-DLLLOCAL extern class QoreClass *QC_QDial;
+DLLEXPORT extern qore_classid_t CID_QDIAL;
+DLLEXPORT extern class QoreClass *QC_QDial;
 
-DLLLOCAL class QoreClass *initQDialClass(QoreClass *);
+DLLEXPORT class QoreClass *initQDialClass(QoreClass *);
 
 class myQDial : public QDial, public QoreQWidgetExtension
 {

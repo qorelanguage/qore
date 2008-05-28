@@ -26,9 +26,9 @@
 
 #include <QStyleOptionGraphicsItem>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONGRAPHICSITEM;
-DLLLOCAL extern QoreClass *QC_QStyleOptionGraphicsItem;
-DLLLOCAL QoreNamespace *initQStyleOptionGraphicsItemNS(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONGRAPHICSITEM;
+DLLEXPORT extern QoreClass *QC_QStyleOptionGraphicsItem;
+DLLEXPORT QoreNamespace *initQStyleOptionGraphicsItemNS(QoreClass *);
 
 class QoreQStyleOptionGraphicsItem : public AbstractPrivateData, public QStyleOptionGraphicsItem
 {

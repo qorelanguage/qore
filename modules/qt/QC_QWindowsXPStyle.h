@@ -28,10 +28,10 @@
 #include "QoreAbstractQWindowsStyle.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QWINDOWSXPSTYLE;
-DLLLOCAL extern class QoreClass *QC_QWindowsXPStyle;
+DLLEXPORT extern qore_classid_t CID_QWINDOWSXPSTYLE;
+DLLEXPORT extern class QoreClass *QC_QWindowsXPStyle;
 
-DLLLOCAL class QoreClass *initQWindowsXPStyleClass(QoreClass *);
+DLLEXPORT class QoreClass *initQWindowsXPStyleClass(QoreClass *);
 
 class myQWindowsXPStyle : public QWindowsXPStyle, public QoreQStyleExtension
 {

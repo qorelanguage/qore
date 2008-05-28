@@ -28,10 +28,10 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QCALENDARWIDGET;
-DLLLOCAL extern class QoreClass *QC_QCalendarWidget;
+DLLEXPORT extern qore_classid_t CID_QCALENDARWIDGET;
+DLLEXPORT extern class QoreClass *QC_QCalendarWidget;
 
-DLLLOCAL class QoreClass *initQCalendarWidgetClass(QoreClass *);
+DLLEXPORT class QoreClass *initQCalendarWidgetClass(QoreClass *);
 
 class myQCalendarWidget : public QCalendarWidget, public QoreQWidgetExtension
 {

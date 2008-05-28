@@ -26,10 +26,10 @@
 
 #include <QMetaObject>
 
-DLLLOCAL extern qore_classid_t CID_QMETAOBJECT;
-DLLLOCAL extern class QoreClass *QC_QMetaObject;
+DLLEXPORT extern qore_classid_t CID_QMETAOBJECT;
+DLLEXPORT extern class QoreClass *QC_QMetaObject;
 
-DLLLOCAL class QoreClass *initQMetaObjectClass();
+DLLEXPORT class QoreClass *initQMetaObjectClass();
 
 class QoreQMetaObject : public AbstractPrivateData, public QMetaObject
 {

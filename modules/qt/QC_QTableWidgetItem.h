@@ -26,10 +26,10 @@
 
 #include <QTableWidgetItem>
 
-DLLLOCAL extern qore_classid_t CID_QTABLEWIDGETITEM;
-DLLLOCAL extern class QoreClass *QC_QTableWidgetItem;
+DLLEXPORT extern qore_classid_t CID_QTABLEWIDGETITEM;
+DLLEXPORT extern class QoreClass *QC_QTableWidgetItem;
 
-DLLLOCAL class QoreClass *initQTableWidgetItemClass();
+DLLEXPORT class QoreClass *initQTableWidgetItemClass();
 
 class QoreQTableWidgetItem : public AbstractPrivateData
 {

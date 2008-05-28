@@ -26,9 +26,9 @@
 
 #include <QGraphicsSceneMouseEvent>
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSSCENEMOUSEEVENT;
-DLLLOCAL extern QoreClass *QC_QGraphicsSceneMouseEvent;
-DLLLOCAL QoreClass *initQGraphicsSceneMouseEventClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSSCENEMOUSEEVENT;
+DLLEXPORT extern QoreClass *QC_QGraphicsSceneMouseEvent;
+DLLEXPORT QoreClass *initQGraphicsSceneMouseEventClass(QoreClass *);
 
 class QoreQGraphicsSceneMouseEvent : public AbstractPrivateData, public QGraphicsSceneMouseEvent
 {

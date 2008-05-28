@@ -26,10 +26,10 @@
 
 #include <QTextFrameFormat>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTFRAMEFORMAT;
-DLLLOCAL extern class QoreClass *QC_QTextFrameFormat;
+DLLEXPORT extern qore_classid_t CID_QTEXTFRAMEFORMAT;
+DLLEXPORT extern class QoreClass *QC_QTextFrameFormat;
 
-DLLLOCAL class QoreClass *initQTextFrameFormatClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTextFrameFormatClass(QoreClass *);
 
 class QoreQTextFrameFormat : public AbstractPrivateData, public QTextFrameFormat
 {

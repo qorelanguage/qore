@@ -26,10 +26,10 @@
 
 #include <QTextListFormat>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTLISTFORMAT;
-DLLLOCAL extern class QoreClass *QC_QTextListFormat;
+DLLEXPORT extern qore_classid_t CID_QTEXTLISTFORMAT;
+DLLEXPORT extern class QoreClass *QC_QTextListFormat;
 
-DLLLOCAL class QoreClass *initQTextListFormatClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTextListFormatClass(QoreClass *);
 
 class QoreQTextListFormat : public AbstractPrivateData, public QTextListFormat
 {

@@ -27,9 +27,9 @@
 
 #include <QTextLine>
 
-DLLLOCAL extern qore_classid_t CID_QTEXTLINE;
-DLLLOCAL extern QoreClass *QC_QTextLine;
-DLLLOCAL QoreNamespace *initQTextLineNS();
+DLLEXPORT extern qore_classid_t CID_QTEXTLINE;
+DLLEXPORT extern QoreClass *QC_QTextLine;
+DLLEXPORT QoreNamespace *initQTextLineNS();
 
 class QoreQTextLine : public AbstractPrivateData
 {

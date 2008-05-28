@@ -28,10 +28,10 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QCLIPBOARD;
-DLLLOCAL extern QoreClass *QC_QClipboard;
+DLLEXPORT extern qore_classid_t CID_QCLIPBOARD;
+DLLEXPORT extern QoreClass *QC_QClipboard;
 
-DLLLOCAL QoreClass *initQClipboardClass(QoreClass *);
+DLLEXPORT QoreClass *initQClipboardClass(QoreClass *);
 
 typedef QoreQtQObjectPrivateBase<QClipboard, QoreAbstractQObject> QoreQClipboardImpl;
 

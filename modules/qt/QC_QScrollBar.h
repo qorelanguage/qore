@@ -28,10 +28,10 @@
 #include "QoreAbstractQScrollBar.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QSCROLLBAR;
-DLLLOCAL extern class QoreClass *QC_QScrollBar;
+DLLEXPORT extern qore_classid_t CID_QSCROLLBAR;
+DLLEXPORT extern class QoreClass *QC_QScrollBar;
 
-DLLLOCAL class QoreClass *initQScrollBarClass(QoreClass *);
+DLLEXPORT class QoreClass *initQScrollBarClass(QoreClass *);
 
 class myQScrollBar : public QScrollBar, public QoreQWidgetExtension
 {

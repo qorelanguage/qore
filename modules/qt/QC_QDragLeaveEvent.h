@@ -26,10 +26,10 @@
 
 #include <QDragLeaveEvent>
 
-DLLLOCAL extern qore_classid_t CID_QDRAGLEAVEEVENT;
-DLLLOCAL extern class QoreClass *QC_QDragLeaveEvent;
+DLLEXPORT extern qore_classid_t CID_QDRAGLEAVEEVENT;
+DLLEXPORT extern class QoreClass *QC_QDragLeaveEvent;
 
-DLLLOCAL class QoreClass *initQDragLeaveEventClass(QoreClass *);
+DLLEXPORT class QoreClass *initQDragLeaveEventClass(QoreClass *);
 
 class QoreQDragLeaveEvent : public AbstractPrivateData, public QDragLeaveEvent
 {

@@ -26,10 +26,10 @@
 
 #include <QStyleOptionTabWidgetFrame>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONTABWIDGETFRAME;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionTabWidgetFrame;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONTABWIDGETFRAME;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionTabWidgetFrame;
 
-DLLLOCAL class QoreClass *initQStyleOptionTabWidgetFrameClass(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionTabWidgetFrameClass(QoreClass *);
 
 class QoreQStyleOptionTabWidgetFrame : public AbstractPrivateData, public QStyleOptionTabWidgetFrame
 {

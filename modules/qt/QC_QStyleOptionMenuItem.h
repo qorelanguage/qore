@@ -26,10 +26,10 @@
 
 #include <QStyleOptionMenuItem>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONMENUITEM;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionMenuItem;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONMENUITEM;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionMenuItem;
 
-DLLLOCAL class QoreClass *initQStyleOptionMenuItemClass(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionMenuItemClass(QoreClass *);
 
 class QoreQStyleOptionMenuItem : public AbstractPrivateData, public QStyleOptionMenuItem
 {

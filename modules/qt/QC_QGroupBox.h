@@ -28,10 +28,10 @@
 #include "QoreAbstractQGroupBox.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QGROUPBOX;
-DLLLOCAL extern class QoreClass *QC_QGroupBox;
+DLLEXPORT extern qore_classid_t CID_QGROUPBOX;
+DLLEXPORT extern class QoreClass *QC_QGroupBox;
 
-DLLLOCAL class QoreClass *initQGroupBoxClass(QoreClass *);
+DLLEXPORT class QoreClass *initQGroupBoxClass(QoreClass *);
 
 class myQGroupBox : public QGroupBox, public QoreQWidgetExtension
 {

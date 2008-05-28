@@ -28,9 +28,9 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QSVGRENDERER;
-DLLLOCAL extern QoreClass *QC_QSvgRenderer;
-DLLLOCAL QoreClass *initQSvgRendererClass(QoreClass *);
+DLLEXPORT extern int CID_QSVGRENDERER;
+DLLEXPORT extern QoreClass *QC_QSvgRenderer;
+DLLEXPORT QoreClass *initQSvgRendererClass(QoreClass *);
 
 class myQSvgRenderer : public QSvgRenderer, public QoreQObjectExtension
 {

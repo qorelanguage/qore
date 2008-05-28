@@ -28,10 +28,10 @@
 
 #include <QObject>
 
-DLLLOCAL extern qore_classid_t CID_QOBJECT;
-DLLLOCAL extern QoreClass *QC_QObject;
+DLLEXPORT extern qore_classid_t CID_QOBJECT;
+DLLEXPORT extern QoreClass *QC_QObject;
 
-DLLLOCAL class QoreClass *initQObjectClass();
+DLLEXPORT QoreClass *initQObjectClass();
 
 class myQObject : public QObject, public QoreQObjectExtension 
 {

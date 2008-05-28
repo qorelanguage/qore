@@ -26,10 +26,10 @@
 
 #include <QStyleOptionSlider>
 
-DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONSLIDER;
-DLLLOCAL extern class QoreClass *QC_QStyleOptionSlider;
+DLLEXPORT extern qore_classid_t CID_QSTYLEOPTIONSLIDER;
+DLLEXPORT extern class QoreClass *QC_QStyleOptionSlider;
 
-DLLLOCAL class QoreClass *initQStyleOptionSliderClass(QoreClass *);
+DLLEXPORT class QoreClass *initQStyleOptionSliderClass(QoreClass *);
 
 class QoreQStyleOptionSlider : public AbstractPrivateData, public QStyleOptionSlider
 {

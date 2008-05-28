@@ -28,11 +28,11 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QMOVIE;
-DLLLOCAL extern class QoreClass *QC_QMovie;
+DLLEXPORT extern qore_classid_t CID_QMOVIE;
+DLLEXPORT extern class QoreClass *QC_QMovie;
 
-DLLLOCAL class QoreClass *initQMovieClass(QoreClass *);
-DLLLOCAL void initQMovieStaticFunctions();
+DLLEXPORT class QoreClass *initQMovieClass(QoreClass *);
+DLLEXPORT void initQMovieStaticFunctions();
 
 class myQMovie : public QMovie, public QoreQObjectExtension
 {

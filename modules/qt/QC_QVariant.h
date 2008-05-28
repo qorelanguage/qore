@@ -26,10 +26,10 @@
 
 #include <QVariant>
 
-DLLLOCAL extern qore_classid_t CID_QVARIANT;
-DLLLOCAL extern class QoreClass *QC_QVariant;
+DLLEXPORT extern qore_classid_t CID_QVARIANT;
+DLLEXPORT extern class QoreClass *QC_QVariant;
 
-DLLLOCAL class QoreClass *initQVariantClass();
+DLLEXPORT class QoreClass *initQVariantClass();
 
 class QoreQVariant : public AbstractPrivateData, public QVariant
 {

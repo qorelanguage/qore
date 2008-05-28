@@ -26,10 +26,10 @@
 
 #include <QPalette>
 
-extern qore_classid_t CID_QPALETTE;
-extern QoreClass *QC_QPalette;
+DLLEXPORT extern qore_classid_t CID_QPALETTE;
+DLLEXPORT extern QoreClass *QC_QPalette;
 
-DLLLOCAL QoreNamespace *initQPaletteNS();
+DLLEXPORT QoreNamespace *initQPaletteNS();
 
 class QoreQPalette : public AbstractPrivateData
 {

@@ -26,6 +26,6 @@
 
 #include <QInputDialog>
 
-DLLLOCAL void initQInputDialogStaticFunctions();
+DLLEXPORT void initQInputDialogStaticFunctions();
 
 #endif // _QORE_QT_QC_QINPUTDIALOG_H

@@ -28,10 +28,10 @@
 #include "QoreAbstractQAbstractScrollArea.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QSCROLLAREA;
-DLLLOCAL extern class QoreClass *QC_QScrollArea;
+DLLEXPORT extern qore_classid_t CID_QSCROLLAREA;
+DLLEXPORT extern class QoreClass *QC_QScrollArea;
 
-DLLLOCAL class QoreClass *initQScrollAreaClass(QoreClass *);
+DLLEXPORT class QoreClass *initQScrollAreaClass(QoreClass *);
 
 class myQScrollArea : public QScrollArea, public QoreQWidgetExtension
 {

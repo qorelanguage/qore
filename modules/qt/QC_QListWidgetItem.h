@@ -26,9 +26,9 @@
 
 #include <QListWidgetItem>
 
-DLLLOCAL extern qore_classid_t CID_QLISTWIDGETITEM;
-DLLLOCAL extern QoreClass *QC_QListWidgetItem;
-DLLLOCAL QoreNamespace *initQListWidgetItemNS();
+DLLEXPORT extern qore_classid_t CID_QLISTWIDGETITEM;
+DLLEXPORT extern QoreClass *QC_QListWidgetItem;
+DLLEXPORT QoreNamespace *initQListWidgetItemNS();
 
 class QoreQListWidgetItem : public AbstractPrivateData
 {

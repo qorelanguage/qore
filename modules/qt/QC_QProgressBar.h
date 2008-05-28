@@ -28,10 +28,10 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QPROGRESSBAR;
-DLLLOCAL extern class QoreClass *QC_QProgressBar;
+DLLEXPORT extern qore_classid_t CID_QPROGRESSBAR;
+DLLEXPORT extern class QoreClass *QC_QProgressBar;
 
-DLLLOCAL class QoreClass *initQProgressBarClass(QoreClass *);
+DLLEXPORT class QoreClass *initQProgressBarClass(QoreClass *);
 
 class myQProgressBar : public QProgressBar, public QoreQWidgetExtension
 {

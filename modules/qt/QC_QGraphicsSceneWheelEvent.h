@@ -26,9 +26,9 @@
 
 #include <QGraphicsSceneWheelEvent>
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSSCENEWHEELEVENT;
-DLLLOCAL extern QoreClass *QC_QGraphicsSceneWheelEvent;
-DLLLOCAL QoreClass *initQGraphicsSceneWheelEventClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSSCENEWHEELEVENT;
+DLLEXPORT extern QoreClass *QC_QGraphicsSceneWheelEvent;
+DLLEXPORT QoreClass *initQGraphicsSceneWheelEventClass(QoreClass *);
 
 class QoreQGraphicsSceneWheelEvent : public AbstractPrivateData, public QGraphicsSceneWheelEvent
 {

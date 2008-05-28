@@ -59,10 +59,11 @@ if you have the open headers and libraries in a location the configure script ca
 --with-opengl=<dir>                 : directory of OpenGL installation ("opengl" module)
 --with-glut=<dir>                   : directory of GLUT installation ("glut" module)
 --with-qt=<dir>                     : directory of QT4 installation ("qt" module)
+--enable-scu-qt                     : enable single compilation unit for the qt module - only use this if you have at least 2G RAM
 
 rarely used options
 -------------------
---disable-single-compilation-unit   : to disable building all related files at once in each directory.  This is enabled by default because it normally makes for much quicker compiles and also allows the compiler to optimize based on the entire source at the same time.  However if you don't have enough (virtual) memory then you should turn it off, otherwise leave it on.
+--disable-single-compilation-unit   : to disable building all related files at once in each directory.  This is enabled by default because it normally makes for much quicker compiles and also allows the compiler to optimize based on the entire source at the same time.  However if you don't have enough memory (at least 1G RAM) then you should turn it off, otherwise leave it on.
 --enable-builtin-modules            : will include code for all modules included in the source distribution directly in the shared library - note that this requires a very recent version of libtool otherwise it will fail - normally this option should not be used (has not been tested recently, will be removed in a future release)
 
 ********************************
@@ -109,8 +110,11 @@ Note that newer SDKs may work with HP-UX PA-RISC 11.*, so the restriction on bui
 note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.
 if your ncurses is in a non-standard location, set the NCURSES_DIR environment variable before running configure.  Also can be built with Solaris curses.
 
-*) "qt": QT4 module
+*) "qt4": QT4 module
 experimental: requires at least qt 4.3 or above
+
+*) "qt4-opengl": QT4 opengl module
+experimental: opengl module for qt4 (depends on the qt4 module and the opengl module)
 
 *) "opengl": OpenGL module
 builds with OpenGL or with Mesa

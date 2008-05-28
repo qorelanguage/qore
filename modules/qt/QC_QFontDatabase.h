@@ -26,11 +26,11 @@
 
 #include <QFontDatabase>
 
-DLLLOCAL extern qore_classid_t CID_QFONTDATABASE;
-DLLLOCAL extern class QoreClass *QC_QFontDatabase;
+DLLEXPORT extern qore_classid_t CID_QFONTDATABASE;
+DLLEXPORT extern class QoreClass *QC_QFontDatabase;
 
-DLLLOCAL class QoreClass *initQFontDatabaseClass();
-DLLLOCAL void initQFontDatabaseStaticFunctions();
+DLLEXPORT class QoreClass *initQFontDatabaseClass();
+DLLEXPORT void initQFontDatabaseStaticFunctions();
 
 class QoreQFontDatabase : public AbstractPrivateData, public QFontDatabase
 {

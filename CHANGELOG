@@ -1,3 +1,12 @@
+2008.05.28: David Nichols
+	* started spliting up the qt module into sub-modules: qt-opengl is now
+	  dependent on the qt module; the majority of the functionality of the
+	  qt module is now implemented in a shared library so that symbols can
+	  be automatically shared in submodules (like qt-opengl)
+
+2008.05.27: David Nichols
+	* implemented auto-reconnect for the oracle DBI driver
+
 2008.05.23: David Nichols
 	* removed suport in the scanner for using some keywords as function and
 	  methods names as it broke code that should be correct

@@ -733,13 +733,13 @@ sub main()
         }
 
 	$of.printf("
-DLLLOCAL extern qore_classid_t CID_%s;
-DLLLOCAL extern QoreClass *QC_%s;
+DLLEXPORT extern qore_classid_t CID_%s;
+DLLEXPORT extern QoreClass *QC_%s;
 ", $func_prefix, $cn);
         if ($o.ns)
-            $of.printf("DLLLOCAL QoreNamespace *init%sNS(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
+            $of.printf("DLLEXPORT QoreNamespace *init%sNS(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
         else
-            $of.printf("DLLLOCAL QoreClass *init%sClass(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
+            $of.printf("DLLEXPORT QoreClass *init%sClass(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
 
 	if ($o.indep) {
 	    if ($o.abstract)

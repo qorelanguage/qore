@@ -32,9 +32,9 @@
 
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QSPLASHSCREEN;
-DLLLOCAL extern QoreClass *QC_QSplashScreen;
-DLLLOCAL QoreClass *initQSplashScreenClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QSPLASHSCREEN;
+DLLEXPORT extern QoreClass *QC_QSplashScreen;
+DLLEXPORT QoreClass *initQSplashScreenClass(QoreClass *);
 
 class myQSplashScreen : public QSplashScreen, public QoreQWidgetExtension
 {

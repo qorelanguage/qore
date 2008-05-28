@@ -51,3 +51,7 @@ if COND_QT
 SUBDIRS += qt
 endif
 
+if COND_QT_OPENGL
+SUBDIRS += qt-opengl
+endif
+

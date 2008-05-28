@@ -26,9 +26,9 @@
 
 #include <QGraphicsSceneHoverEvent>
 
-DLLLOCAL extern qore_classid_t CID_QGRAPHICSSCENEHOVEREVENT;
-DLLLOCAL extern QoreClass *QC_QGraphicsSceneHoverEvent;
-DLLLOCAL QoreClass *initQGraphicsSceneHoverEventClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QGRAPHICSSCENEHOVEREVENT;
+DLLEXPORT extern QoreClass *QC_QGraphicsSceneHoverEvent;
+DLLEXPORT QoreClass *initQGraphicsSceneHoverEventClass(QoreClass *);
 
 class QoreQGraphicsSceneHoverEvent : public AbstractPrivateData, public QGraphicsSceneHoverEvent
 {

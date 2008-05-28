@@ -26,10 +26,10 @@
 
 #include <QModelIndex>
 
-DLLLOCAL extern qore_classid_t CID_QMODELINDEX;
-DLLLOCAL extern class QoreClass *QC_QModelIndex;
+DLLEXPORT extern qore_classid_t CID_QMODELINDEX;
+DLLEXPORT extern class QoreClass *QC_QModelIndex;
 
-DLLLOCAL class QoreClass *initQModelIndexClass();
+DLLEXPORT class QoreClass *initQModelIndexClass();
 
 class QoreQModelIndex : public AbstractPrivateData, public QModelIndex
 {

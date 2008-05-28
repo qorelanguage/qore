@@ -26,11 +26,11 @@
 
 #include <QColor>
 
-DLLLOCAL extern qore_classid_t CID_QCOLOR;
-DLLLOCAL extern QoreClass *QC_QColor;
+DLLEXPORT extern qore_classid_t CID_QCOLOR;
+DLLEXPORT extern QoreClass *QC_QColor;
 
-DLLLOCAL class QoreClass *initQColorClass();
-DLLLOCAL void initQColorStaticFunctions();
+DLLEXPORT QoreClass *initQColorClass();
+DLLEXPORT void initQColorStaticFunctions();
 
 class QoreQColor : public AbstractPrivateData, public QColor
 {

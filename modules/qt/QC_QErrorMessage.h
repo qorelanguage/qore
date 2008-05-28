@@ -28,9 +28,9 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QERRORMESSAGE;
-DLLLOCAL extern QoreClass *QC_QErrorMessage;
-DLLLOCAL QoreClass *initQErrorMessageClass(QoreClass *);
+DLLEXPORT extern int CID_QERRORMESSAGE;
+DLLEXPORT extern QoreClass *QC_QErrorMessage;
+DLLEXPORT QoreClass *initQErrorMessageClass(QoreClass *);
 
 class myQErrorMessage : public QErrorMessage, public QoreQDialogExtension
 {

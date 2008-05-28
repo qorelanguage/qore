@@ -28,10 +28,10 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QMAINWINDOW;
-DLLLOCAL extern class QoreClass *QC_QMainWindow;
+DLLEXPORT extern qore_classid_t CID_QMAINWINDOW;
+DLLEXPORT extern class QoreClass *QC_QMainWindow;
 
-DLLLOCAL class QoreClass *initQMainWindowClass(QoreClass *);
+DLLEXPORT class QoreClass *initQMainWindowClass(QoreClass *);
 
 class myQMainWindow : public QMainWindow, public QoreQWidgetExtension
 {

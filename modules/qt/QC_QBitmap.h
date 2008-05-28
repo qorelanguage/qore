@@ -28,10 +28,10 @@
 
 #include <QBitmap>
 
-DLLLOCAL extern qore_classid_t CID_QBITMAP;
-DLLLOCAL extern QoreClass *QC_QBitmap;
+DLLEXPORT extern qore_classid_t CID_QBITMAP;
+DLLEXPORT extern QoreClass *QC_QBitmap;
 
-DLLLOCAL class QoreClass *initQBitmapClass(class QoreClass *qpaintdevice);
+DLLEXPORT class QoreClass *initQBitmapClass(class QoreClass *qpaintdevice);
 
 class QoreQBitmap : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QBitmap
 {

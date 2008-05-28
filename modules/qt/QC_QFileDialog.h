@@ -28,11 +28,11 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QFILEDIALOG;
-DLLLOCAL extern class QoreClass *QC_QFileDialog;
+DLLEXPORT extern qore_classid_t CID_QFILEDIALOG;
+DLLEXPORT extern class QoreClass *QC_QFileDialog;
 
-DLLLOCAL QoreNamespace *initQFileDialogNS(QoreClass *);
-DLLLOCAL void initQFileDialogStaticFunctions();
+DLLEXPORT QoreNamespace *initQFileDialogNS(QoreClass *);
+DLLEXPORT void initQFileDialogStaticFunctions();
 
 class myQFileDialog : public QFileDialog, public QoreQDialogExtension
 {

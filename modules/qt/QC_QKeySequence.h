@@ -26,10 +26,10 @@
 
 #include <QKeySequence>
 
-DLLLOCAL extern qore_classid_t CID_QKEYSEQUENCE;
-DLLLOCAL extern QoreClass *QC_QKeySequence;
+DLLEXPORT extern qore_classid_t CID_QKEYSEQUENCE;
+DLLEXPORT extern QoreClass *QC_QKeySequence;
 
-DLLLOCAL class QoreClass *initQKeySequenceClass();
+DLLEXPORT class QoreClass *initQKeySequenceClass();
 
 class QoreQKeySequence : public AbstractPrivateData, public QKeySequence
 {

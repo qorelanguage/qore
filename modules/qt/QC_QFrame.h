@@ -32,7 +32,7 @@
 
 DLLEXPORT extern qore_classid_t CID_QFRAME;
 
-DLLLOCAL class QoreClass *initQFrameClass(class QoreClass *parent);
+DLLEXPORT class QoreClass *initQFrameClass(class QoreClass *parent);
 
 class myQFrame : public QFrame, public QoreQWidgetExtension
 {

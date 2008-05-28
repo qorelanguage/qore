@@ -28,10 +28,10 @@
 #include "QoreAbstractQTabBar.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QTABBAR;
-DLLLOCAL extern class QoreClass *QC_QTabBar;
+DLLEXPORT extern qore_classid_t CID_QTABBAR;
+DLLEXPORT extern class QoreClass *QC_QTabBar;
 
-DLLLOCAL class QoreClass *initQTabBarClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTabBarClass(QoreClass *);
 
 class myQTabBar : public QTabBar, public QoreQWidgetExtension
 {

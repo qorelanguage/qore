@@ -32,7 +32,7 @@
 
 DLLEXPORT extern qore_classid_t CID_QLABEL;
 
-DLLLOCAL class QoreClass *initQLabelClass(class QoreClass *qframe);
+DLLEXPORT class QoreClass *initQLabelClass(class QoreClass *qframe);
 
 class myQLabel : public QLabel, public QoreQWidgetExtension
 {

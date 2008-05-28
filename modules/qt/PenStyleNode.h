@@ -26,7 +26,7 @@
 
 #include <QPen>
 
-DLLLOCAL extern qore_type_t NT_PENSTYLE;
+DLLEXPORT extern qore_type_t NT_PENSTYLE;
 
 class PenStyleNode : public SimpleValueQoreNode
 {

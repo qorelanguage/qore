@@ -492,20 +492,14 @@ noinst_HEADERS = \
 	modules/qt/QC_QFontDialog.h \
 	modules/qt/QC_QErrorMessage.h \
 	modules/qt/QC_QStackedLayout.h \
-	modules/qt/QC_QGLWidget.h \
-	modules/qt/QC_QGLFormat.h \
-	modules/qt/QC_QGLContext.h \
-	modules/qt/QC_QGLColormap.h \
 	modules/qt/QC_QGradient.h \
 	modules/qt/QC_QLinearGradient.h \
-	modules/qt/QC_QGLFramebufferObject.h \
 	modules/qt/QC_QTimeLine.h \
 	modules/qt/QC_QSvgRenderer.h \
 	modules/qt/QC_QTextBrowser.h \
 	modules/qt/QC_QLayoutItem.h \
 	modules/qt/QoreAbstractQLayoutItem.h \
 	modules/qt/QC_QWidgetItem.h \
-	modules/qt/QC_QGLPixelBuffer.h \
 	modules/qt/QC_QCursor.h \
 	modules/qt/QC_QStyleOptionGraphicsItem.h \
 	modules/qt/QC_QTransform.h \
@@ -545,6 +539,12 @@ noinst_HEADERS = \
 	modules/qt/QC_QTextLine.h \
 	modules/qt/QC_QTextOption.h \
 	modules/qt/QC_QTextLayout.h \
+	modules/qt-opengl/QC_QGLWidget.h \
+	modules/qt-opengl/QC_QGLFormat.h \
+	modules/qt-opengl/QC_QGLContext.h \
+	modules/qt-opengl/QC_QGLColormap.h \
+	modules/qt-opengl/QC_QGLFramebufferObject.h \
+	modules/qt-opengl/QC_QGLPixelBuffer.h \
 	command-line.h \
 	include/qore/Qore.h
 

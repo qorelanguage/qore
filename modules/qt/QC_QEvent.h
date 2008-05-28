@@ -28,10 +28,10 @@
 
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QEVENT;
-DLLLOCAL extern class QoreClass *QC_QEvent;
+DLLEXPORT extern qore_classid_t CID_QEVENT;
+DLLEXPORT extern class QoreClass *QC_QEvent;
 
-DLLLOCAL QoreNamespace *initQEventNS();
+DLLEXPORT QoreNamespace *initQEventNS();
 
 class QoreQEvent : public AbstractPrivateData, public QEvent
 {

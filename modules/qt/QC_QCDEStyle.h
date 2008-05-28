@@ -28,10 +28,10 @@
 #include "QoreAbstractQMotifStyle.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QCDESTYLE;
-DLLLOCAL extern class QoreClass *QC_QCDEStyle;
+DLLEXPORT extern qore_classid_t CID_QCDESTYLE;
+DLLEXPORT extern class QoreClass *QC_QCDEStyle;
 
-DLLLOCAL class QoreClass *initQCDEStyleClass(QoreClass *);
+DLLEXPORT class QoreClass *initQCDEStyleClass(QoreClass *);
 
 class myQCDEStyle : public QCDEStyle, public QoreQStyleExtension
 {

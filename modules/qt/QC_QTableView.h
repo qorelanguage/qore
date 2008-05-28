@@ -28,10 +28,10 @@
 #include "QoreAbstractQTableView.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QTABLEVIEW;
-DLLLOCAL extern QoreClass *QC_QTableView;
+DLLEXPORT extern qore_classid_t CID_QTABLEVIEW;
+DLLEXPORT extern QoreClass *QC_QTableView;
 
-DLLLOCAL class QoreClass *initQTableViewClass(QoreClass *);
+DLLEXPORT class QoreClass *initQTableViewClass(QoreClass *);
 
 class myQTableView : public QTableView, public QoreQWidgetExtension
 {

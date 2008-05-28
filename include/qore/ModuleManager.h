@@ -125,6 +125,21 @@ class ModuleManager
        */
       DLLEXPORT static QoreStringNode *loadModuleDependency(const char *name);
 
+      //! get a ModuleInfo pointer for use with getSymbol()
+      /** this function can only be called from a module's initialization function, 
+	  otherwise it is not safe and can result in a crash.
+	  @oparam name the name of the module/feature to find
+	  @return a pointer to the module information structure (0 if not found)
+      */
+      DLLEXPORT static ModuleInfo *findModule(const char *name);
+
+      //! get a pointer to a symbol
+      /** @param info a ModuleInfo pointer as returned from findModule()
+	  @param name the name of the symbol in the module
+	  @return a pointer to the symbol's memory
+      */
+      DLLEXPORT static void *getSymbol(ModuleInfo *info, const char *name);
+
       //! creates the ModuleManager object (private)
       /** private interface; not exported in the library's public API
        */

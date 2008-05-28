@@ -28,9 +28,9 @@
 #include "QoreAbstractQSplitterHandle.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern qore_classid_t CID_QSPLITTERHANDLE;
-DLLLOCAL extern QoreClass *QC_QSplitterHandle;
-DLLLOCAL QoreClass *initQSplitterHandleClass(QoreClass *);
+DLLEXPORT extern qore_classid_t CID_QSPLITTERHANDLE;
+DLLEXPORT extern QoreClass *QC_QSplitterHandle;
+DLLEXPORT QoreClass *initQSplitterHandleClass(QoreClass *);
 
 class myQSplitterHandle : public QSplitterHandle, public QoreQWidgetExtension
 {

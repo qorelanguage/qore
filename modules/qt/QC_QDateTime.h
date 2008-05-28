@@ -28,7 +28,7 @@
 
 extern qore_classid_t CID_QDATETIME;
 
-DLLLOCAL class QoreClass *initQDateTimeClass();
+DLLEXPORT class QoreClass *initQDateTimeClass();
 
 class QoreQDateTime : public AbstractPrivateData, public QDateTime
 {

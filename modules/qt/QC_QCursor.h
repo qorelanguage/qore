@@ -26,10 +26,10 @@
 
 #include <QCursor>
 
-DLLLOCAL extern qore_classid_t CID_QCURSOR;
-DLLLOCAL extern QoreClass *QC_QCursor;
-DLLLOCAL QoreClass *initQCursorClass();
-DLLLOCAL void initQCursorStaticFunctions();
+DLLEXPORT extern qore_classid_t CID_QCURSOR;
+DLLEXPORT extern QoreClass *QC_QCursor;
+DLLEXPORT QoreClass *initQCursorClass();
+DLLEXPORT void initQCursorStaticFunctions();
 
 class QoreQCursor : public AbstractPrivateData, public QCursor
 {
