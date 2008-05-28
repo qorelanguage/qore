@@ -2845,8 +2845,8 @@ show_library_feature mssql $with_freetds
 show_library_feature tibrv $with_tibrv
 show_library_feature tibae $with_tibae
 show_library_feature tuxedo $with_tuxedo
-show_library_feature qt $with_qt
-show_library_feature qt-opengl $with_qt_opengl scu=$enable_single_compilation_unit_qt
+show_library_feature qt $with_qt scu=$enable_single_compilation_unit_qt
+show_library_feature qt-opengl $with_qt_opengl
 show_library_feature opengl $with_opengl
 show_library_feature glut $with_glut
 

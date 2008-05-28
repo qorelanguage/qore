@@ -631,13 +631,3 @@ QoreListNode *ModuleManager::getModuleList()
    }
    return l;
 }
-
-ModuleInfo *ModuleManager::findModule(const char *name)
-{
-   return find(name);
-}
-
-void *ModuleManager::getSymbol(ModuleInfo *info, const char *name)
-{
-   return dlsym(const_cast<void *>(info->getPtr()), name);
-}
