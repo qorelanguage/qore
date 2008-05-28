@@ -289,11 +289,9 @@ static void do_version(char *arg)
    printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2007 David Nichols\nversion %s", qore_target_os, qore_target_arch, qore_target_bits, qore_version_string);
 
    FeatureList::iterator i = qoreFeatureList.begin();
-   if (i != qoreFeatureList.end())
-   {
+   if (i != qoreFeatureList.end()) {
       printf(" (builtin features: ");
-      while (i != qoreFeatureList.end())
-      {
+      while (i != qoreFeatureList.end()) {
 	 printf((*i).c_str());
 	 i++;
 	 if (i != qoreFeatureList.end())
