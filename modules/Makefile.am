@@ -47,8 +47,12 @@ if COND_GLUT
 SUBDIRS += glut
 endif
 
-if COND_QT
-SUBDIRS += qt
+if COND_QT_CORE
+SUBDIRS += qt-core
+endif
+
+if COND_QT_GUI
+SUBDIRS += qt-gui
 endif
 
 if COND_QT_OPENGL

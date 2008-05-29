@@ -16,15 +16,15 @@ endif
 if COND_MONOLITHIC
 noinst_LTLIBRARIES = libqt-opengl.la
 libqt_opengl_la_SOURCES = $(QT_OPENGL_SOURCES)
-libqt_opengl_la_LDFLAGS = ${QT_LIBS} ${QT_OPENGL_LIBS} -static
+libqt_opengl_la_LDFLAGS = ${QT_CORE_LIBS} ${QT_GUI_LIBS} ${QT_OPENGL_LIBS} -static
 else
 pkglib_LTLIBRARIES = qt-opengl.la
 qt_opengl_la_SOURCES = $(QT_OPENGL_SOURCES)
-qt_opengl_la_LDFLAGS = -module -avoid-version ${QT_OPENGL_LIBS} ${QT_LIBS}
-qt_opengl_la_LIBADD = ../qt/libqore-qt.la
+qt_opengl_la_LDFLAGS = -module -avoid-version ${QT_OPENGL_LIBS} ${QT_CORE_LIBS} ${QT_GUI_LIBS}
+qt_opengl_la_LIBADD = ../qt-core/libqore-qt-core.la ../qt-gui/libqore-qt-gui.la
 endif
 
-INCLUDES = -I$(top_srcdir)/include $(QT_INCLUDES) $(QT_OPENGL_INCLUDES) -I ../qt
+INCLUDES = -I$(top_srcdir)/include $(QT_CORE_INCLUDES) $(QT_GUI_INCLUDES) $(QT_OPENGL_INCLUDES) -I ../qt-core -I ../qt-gui
 
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 

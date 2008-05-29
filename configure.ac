@@ -2243,7 +2243,7 @@ check_qt_include()
 
 check_qt_lib()
 {
-    if test -f "$1/libQtCore.${SHLIB_SUFFIX}" -a -f "$1/libQtGui.${SHLIB_SUFFIX}"; then
+    if test -f "$1/libQtCore.${SHLIB_SUFFIX}"; then
        found_qt_libs=$lib
     elif test "$2" = "err"; then
     	AC_MSG_ERROR([$1 is not a valid QT 4 library directory])
@@ -2299,7 +2299,7 @@ check_qt()
 
 # see if we can figure out where the qt include files and libraries are
 if test "${with_qt}" != "no"; then
-   AC_MSG_CHECKING([for QT 4 includes and libraries])
+   AC_MSG_CHECKING([for QT 4 Core includes and libraries])
 
    if test -n "$with_qt_includes" -a -n "$with_qt_libs"; then
       check_qt_includes "$with_qt_includes" err
@@ -2312,10 +2312,8 @@ if test "${with_qt}" != "no"; then
       	 fi
       else
          # check for frameworks on darwin
-	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework -a -d /Library/Frameworks/QtGui.framework; then
-	    qt_framework="/Library/Frameworks"
-	    QT_INCLUDES="-I /Library/Frameworks/QtCore.framework/Headers -I /Library/Frameworks/QtGui.framework/Headers"
-	    QT_LIBS="-framework QtCore -framework QtGui"
+	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework; then
+	    qt_framework="/Library/Frameworks/QtCore.framework"
 	 else
 	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt /usr/qt /usr/qt /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
       	       check_qt $dir
@@ -2329,6 +2327,8 @@ if test "${with_qt}" != "no"; then
 
    if test -n "$qt_framework"; then
       AC_MSG_RESULT([using Darwin frameworks in $qt_framework])
+      QT_CORE_INCLUDES="-I $qt_framework/Headers"
+      QT_CORE_LIBS="-framework QtCore"
       with_qt=yes
    else
       if test -n "$with_qt_includes"; then
@@ -2347,21 +2347,176 @@ fi
 
 if test "${with_qt}" = yes; then
   if test -n "$with_qt_includes" -o -n "$qt_framework"; then
-     if test -z "$QT_INCLUDES"; then
-        QT_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui"
+     if test -z "$QT_CORE_INCLUDES"; then
+        QT_CORE_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui"
      fi
-     if test -z "$QT_LIBS"; then
-	QT_LIBS="-lQtCore -lQtGui"
+     if test -z "$QT_CORE_LIBS"; then
+	QT_CORE_LIBS="-lQtCore"
 	if test -n "$qt_app_libs"; then
-	   QT_LIBS="-L$with_qt_libs $QT_LIBS"
+	   QT_CORE_LIBS="-L$with_qt_libs $QT_CORE_LIBS"
 	fi
      fi
 
      # check if C++ compiler can link with QT libs
      SAVE_CXXFLAGS="$CXXFLAGS"
      SAVE_LDFLAGS="$LDFLAGS"
-     CXXFLAGS="$CXXFLAGS $QT_INCLUDES"
-     LDFLAGS="$LDFLAGS $QT_LIBS"
+     CXXFLAGS="$CXXFLAGS $QT_CORE_INCLUDES"
+     LDFLAGS="$LDFLAGS $QT_CORE_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <QCoreApplication>
+	 ]],[[
+   int argc = 0;
+   char **argv = 0;
+   QCoreApplication app(argc, argv);
+	]])], qt_core_links=yes, qt_core_links=no)
+
+     CXXFLAGS="$SAVE_CXXFLAGS"
+     LDFLAGS="$SAVE_LDFLAGS"
+
+     if test "$qt_core_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test QT Core program])
+     else
+        AC_SUBST(QT_CORE_INCLUDES)
+	AC_SUBST(QT_CORE_LIBS)
+        with_qt=yes
+     fi
+  else
+     AC_MSG_WARN([no QT Core libraries or includes found, disabling QT Core support])
+     unset with_qt
+  fi
+fi
+
+AC_ARG_WITH([qt-gui],
+    [AS_HELP_STRING([--with-qt-gui@<:@=DIR@:>@],
+                    [QT 4 Gui base directory])],
+    [if test ! -d "${with_qt_gui}"; then AC_MSG_ERROR(directory ${with_qt_gui} does not exist for --with-qt-gui); unset with_qt_gui; fi])
+
+AC_ARG_WITH([qt-gui-libs],
+    [AS_HELP_STRING([--with-qt-gui-libs@<:@=DIR@:>@],
+                    [QT 4 Gui library directory])],
+    [if test ! -d "${with_qt_gui_libs}"; then AC_MSG_ERROR(directory ${with_qt_gui_libs} does not exist for --with-qt-gui-libs); unset with_qt_gui_libs; fi])
+
+AC_ARG_WITH([qt-gui-includes],
+    [AS_HELP_STRING([--with-qt-gui-includes@<:@=DIR@:>@],
+                    [QT 4 Gui include file parent directory])],
+    [if test ! -d "${with_qt_gui_includes}"; then AC_MSG_ERROR(directory ${with_qt_gui_includes} does not exist for --with-qt-gui-includes); unset with_qt_gui_includes; fi])
+
+check_qt_gui_include()
+{
+    if test -f "$1/QtGui/QApplication"; then
+       found_qt_gui_includes=$1
+    elif test "$2" = "err"; then
+       AC_MSG_ERROR([$1 is not a valid QT Gui parent include directory])
+    fi
+}
+
+check_qt_gui_lib()
+{
+    if test -f "$1/libQtGui.${SHLIB_SUFFIX}"; then
+       found_qt_gui_libs=$lib
+    elif test "$2" = "err"; then
+    	AC_MSG_ERROR([$1 is not a valid QT 4 Gui library directory])
+    fi
+}
+
+check_qt_gui()
+{
+    if test -z "$with_qt_gui_includes"; then
+        inc="$1/include"
+        if test "$1" = "/"; then
+       	    inc=/usr/include
+        fi
+	check_qt_gui_include $inc
+
+	if test -z "$found_qt_gui_includes"; then
+	    #echo DBG: qt $1 $inc includes not found
+       	    return
+    	fi
+	with_qt_gui_includes="$found_qt_gui_includes"
+	unset found_qt_gui_includes
+    fi
+
+    if test -z "$with_qt_gui_libs"; then
+        lib="$1/lib${LIBSUFFIX}"
+
+	check_qt_gui_lib $lib
+    	if test -z "$found_qt_gui_libs"; then
+       	    #echo DBG: qt $1 $lib libs not found
+       	    unset with_qt_gui_includes
+       	    return
+    	fi
+	with_qt_gui_libs="$found_qt_libs"
+    fi
+    if test "$with_qt_gui_libs" != "/lib${LIBSUFFIX}"; then
+        qt_app_gui_libs=true
+    fi
+}
+
+# see if we can figure out where the qt include files and libraries are
+if test "${with_qt}" = "yes" -a "${with_qt_gui}" != "no"; then
+   AC_MSG_CHECKING([for QT 4 Gui includes and libraries])
+
+   if test -n "$with_qt_gui_includes" -a -n "$with_qt_gui_libs"; then
+      check_qt_gui_includes "$with_qt_gui_includes" err
+      check_qt_gui_libs "$with_qt_gui_libs" err
+   else
+      if test -n "$with_qt_gui"; then
+      	 check_qt "$with_qt_gui"
+      	 if test -z "$with_qt_gui_includes"; then
+	    AC_MSG_ERROR([not found in $with_qt_gui])
+      	 fi
+      else
+         # check for frameworks on darwin
+	 if test -n "$darwin" -a -d /Library/Frameworks/QtGui.framework; then
+	    qt_gui_framework="/Library/Frameworks/QtGui.framework"
+	 else
+	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt /usr/qt /usr/qt /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+      	       check_qt_gui $dir
+      	       if test -n "$with_qt_gui_includes"; then
+	          break;
+      	       fi
+   	    done
+         fi
+      fi
+   fi
+
+   if test -n "$qt_gui_framework"; then
+      AC_MSG_RESULT([using Darwin frameworks in $qt_gui_framework])
+      QT_GUI_INCLUDES="-I $qt_gui_framework/Headers"
+      QT_GUI_LIBS="-framework QtGui"
+      with_qt_gui=yes
+   else
+      if test -n "$with_qt_gui_includes"; then
+         if test -n "$qt_gui_static"; then
+	    AC_MSG_RESULT([includes=$with_qt_gui_includes, libs=$with_qt_gui_libs (static)])
+      	 else
+	    AC_MSG_RESULT([includes=$with_qt_gui_includes, libs=$with_qt_gui_libs (shared)])
+      	 fi
+      	 with_qt_gui=yes
+      else
+	 AC_MSG_RESULT([not found])
+         unset with_qt_gui
+      fi
+   fi
+fi
+
+if test "${with_qt_gui}" = yes; then
+  if test -n "$with_qt_gui_includes" -o -n "$qt_gui_framework"; then
+     if test -z "$QT_GUI_INCLUDES"; then
+        QT_GUI_INCLUDES="-I$with_qt_includes/QtGui"
+     fi
+     if test -z "$QT_GUI_LIBS"; then
+	QT_GUI_LIBS="-lQtGui"
+	if test -n "$qt_gui_app_libs"; then
+	   QT_GUI_LIBS="-L$with_qt_libs $QT_GUI_LIBS"
+	fi
+     fi
+
+     # check if C++ compiler can link with QT libs
+     SAVE_CXXFLAGS="$CXXFLAGS"
+     SAVE_LDFLAGS="$LDFLAGS"
+     CXXFLAGS="$CXXFLAGS $QT_CORE_INCLUDES $QT_GUI_INCLUDES"
+     LDFLAGS="$LDFLAGS $QT_CORE_LIBS $QT_GUI_LIBS"
      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <QApplication>
 #include <QPushButton>
@@ -2375,21 +2530,21 @@ if test "${with_qt}" = yes; then
 
    hello.show();
    return app.exec();
-	]])], qt_links=yes, qt_links=no)
+	]])], qt_gui_links=yes, qt_gui_links=no)
 
      CXXFLAGS="$SAVE_CXXFLAGS"
      LDFLAGS="$SAVE_LDFLAGS"
 
-     if test "$qt_links" = "no"; then
-        AC_MSG_ERROR([could not compile a test QT program])
+     if test "$qt_gui_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test QT 4 Gui program])
      else
-        AC_SUBST(QT_INCLUDES)
-	AC_SUBST(QT_LIBS)
-        with_qt=yes
+        AC_SUBST(QT_GUI_INCLUDES)
+	AC_SUBST(QT_GUI_LIBS)
+        with_qt_gui=yes
      fi
   else
-     AC_MSG_WARN([no QT libraries or includes found, disabling QT support])
-     unset with_qt
+     AC_MSG_WARN([no QT 4 Gui libraries or includes found, disabling QT 4 Gui support])
+     unset with_qt_gui
   fi
 fi
 
@@ -2460,7 +2615,7 @@ check_qt_opengl()
 }
 
 # see if we can figure out where the qt include files and libraries are
-if test "${with_qt}" = "yes" -a "${with_qt_opengl}" != "no"; then
+if test "${with_qt_gui}" = "yes" -a "${with_qt_opengl}" != "no"; then
    AC_MSG_CHECKING([for QT 4 OpenGL includes and libraries])
 
    if test -n "$with_qt_opengl_includes" -a -n "$with_qt_opengl_libs"; then
@@ -2522,8 +2677,8 @@ if test "${with_qt_opengl}" = yes; then
      # check if C++ compiler can link with QT opengl libs
      SAVE_CXXFLAGS="$CXXFLAGS"
      SAVE_LDFLAGS="$LDFLAGS"
-     CXXFLAGS="$CXXFLAGS $QT_INCLUDES $QT_OPENGL_INCLUDES"
-     LDFLAGS="$LDFLAGS $QT_LIBS $QT_OPENGL_LIBS"
+     CXXFLAGS="$CXXFLAGS $QT_CORE_INCLUDES $QT_GUI_INCLUDES $QT_OPENGL_INCLUDES"
+     LDFLAGS="$LDFLAGS $QT_CORE_LIBS $QT_GUI_LIBS $QT_OPENGL_LIBS"
      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <QApplication>
 #include <QPushButton>
@@ -2625,7 +2780,7 @@ check_qt_svg()
 }
 
 # see if we can figure out where the qt include files and libraries are
-if test "${with_qt}" = "yes" -a "${with_qt_svg}" != "no"; then
+if test "${with_qt_gui}" = "yes" -a "${with_qt_svg}" != "no"; then
    AC_MSG_CHECKING([for QT 4 SVG includes and libraries])
 
    if test -n "$with_qt_svg_includes" -a -n "$with_qt_svg_libs"; then
@@ -2688,8 +2843,8 @@ if test "${with_qt_svg}" = yes; then
      # check if C++ compiler can link with QT svg libs
      SAVE_CXXFLAGS="$CXXFLAGS"
      SAVE_LDFLAGS="$LDFLAGS"
-     CXXFLAGS="$CXXFLAGS $QT_INCLUDES $QT_SVG_INCLUDES"
-     LDFLAGS="$LDFLAGS $QT_LIBS $QT_SVG_LIBS"
+     CXXFLAGS="$CXXFLAGS $QT_CORE_INCLUDES $QT_GUI_INCLUDES $QT_SVG_INCLUDES"
+     LDFLAGS="$LDFLAGS $QT_CORE_LIBS $QT_GUI_LIBS $QT_SVG_LIBS"
      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <QApplication>
 #include <QPushButton>
@@ -2959,7 +3114,8 @@ AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
 AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
-AM_CONDITIONAL([COND_QT],         [test "$with_qt" = yes])
+AM_CONDITIONAL([COND_QT_CORE],    [test "$with_qt" = yes])
+AM_CONDITIONAL([COND_QT_GUI],     [test "$with_qt_gui" = yes])
 AM_CONDITIONAL([COND_QT_OPENGL],  [test "$with_qt_opengl" = yes])
 AM_CONDITIONAL([COND_QT_SVG],     [test "$with_qt_svg" = yes])
 AM_CONDITIONAL([COND_OPENGL],     [test "$with_opengl" = yes])
@@ -2969,7 +3125,7 @@ AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT_QT], [test "$enable_single_compilation_unit_qt" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/qt-opengl/Makefile modules/qt-svg/Makefile modules/opengl/Makefile modules/glut/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt-core/Makefile modules/qt-gui/Makefile modules/qt-opengl/Makefile modules/qt-svg/Makefile modules/opengl/Makefile modules/glut/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -3012,7 +3168,8 @@ show_library_feature mssql $with_freetds
 show_library_feature tibrv $with_tibrv
 show_library_feature tibae $with_tibae
 show_library_feature tuxedo $with_tuxedo
-show_library_feature qt $with_qt scu=$enable_single_compilation_unit_qt
+show_library_feature qt-core $with_qt
+show_library_feature qt-gui $with_qt_gui scu=$enable_single_compilation_unit_qt
 show_library_feature qt-opengl $with_qt_opengl
 show_library_feature qt-svg $with_qt_svg
 show_library_feature opengl $with_opengl

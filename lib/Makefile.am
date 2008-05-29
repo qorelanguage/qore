@@ -227,7 +227,7 @@ endif
 if COND_PGSQL
 libqore_la_LIBADD += ../modules/pgsql/libpgsql.la
 endif
-if COND_QT
-libqore_la_LIBADD += ../modules/qt/libqt.la
+if COND_QT_CORE
+libqore_la_LIBADD += ../modules/qt-core/libqt-core.la
 endif
 endif
