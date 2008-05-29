@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QGLPIXELBUFFER_H
 
 #include <QGLPixelBuffer>
-#include "../qt/QoreAbstractQPaintDevice.h"
+#include "QoreAbstractQPaintDevice.h"
 
 DLLLOCAL extern qore_classid_t CID_QGLPIXELBUFFER;
 DLLLOCAL extern QoreClass *QC_QGLPixelBuffer;

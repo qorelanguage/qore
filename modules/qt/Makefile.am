@@ -179,15 +179,12 @@ QORE_QT_SOURCES = qt-util.cc QC_QApplication.cc QC_QPushButton.cc \
 	QC_QGradient.cc \
 	QC_QLinearGradient.cc \
 	QC_QTimeLine.cc \
-	QC_QSvgRenderer.cc \
 	QC_QTextBrowser.cc \
 	QC_QLayoutItem.cc \
 	QC_QWidgetItem.cc \
 	QC_QCursor.cc \
 	QC_QStyleOptionGraphicsItem.cc \
 	QC_QTransform.cc \
-	QC_QSvgGenerator.cc \
-	QC_QSvgWidget.cc \
 	QC_QGraphicsSceneEvent.cc \
 	QC_QGraphicsSceneContextMenuEvent.cc \
 	QC_QGraphicsSceneDragDropEvent.cc \

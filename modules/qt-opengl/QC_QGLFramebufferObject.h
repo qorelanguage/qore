@@ -26,7 +26,7 @@
 
 #include <QGLFramebufferObject>
 
-#include "../qt/QoreAbstractQPaintDevice.h"
+#include "QoreAbstractQPaintDevice.h"
 
 DLLLOCAL extern int CID_QGLFRAMEBUFFEROBJECT;
 DLLLOCAL extern QoreClass *QC_QGLFramebufferObject;

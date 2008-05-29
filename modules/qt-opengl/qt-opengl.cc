@@ -1,5 +1,5 @@
 /*
-  qt.cc
+  qt-opengl.cc
   
   Qore Programming Language
 
@@ -29,9 +29,9 @@
 #include "QC_QGLFramebufferObject.h"
 #include "QC_QGLPixelBuffer.h"
 
-#include "../qt/QC_QWidget.h"
-#include "../qt/QC_QPaintDevice.h"
-#include "../qt/QC_QObject.h"
+#include "QC_QWidget.h"
+#include "QC_QPaintDevice.h"
+#include "QC_QObject.h"
 
 static class QoreStringNode *qt_opengl_module_init();
 static void qt_opengl_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);

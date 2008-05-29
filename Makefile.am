@@ -495,7 +495,6 @@ noinst_HEADERS = \
 	modules/qt/QC_QGradient.h \
 	modules/qt/QC_QLinearGradient.h \
 	modules/qt/QC_QTimeLine.h \
-	modules/qt/QC_QSvgRenderer.h \
 	modules/qt/QC_QTextBrowser.h \
 	modules/qt/QC_QLayoutItem.h \
 	modules/qt/QoreAbstractQLayoutItem.h \
@@ -503,8 +502,6 @@ noinst_HEADERS = \
 	modules/qt/QC_QCursor.h \
 	modules/qt/QC_QStyleOptionGraphicsItem.h \
 	modules/qt/QC_QTransform.h \
-	modules/qt/QC_QSvgGenerator.h \
-	modules/qt/QC_QSvgWidget.h \
 	modules/qt/QC_QGraphicsSceneEvent.h \
 	modules/qt/QC_QGraphicsSceneContextMenuEvent.h \
 	modules/qt/QC_QGraphicsSceneDragDropEvent.h \
@@ -545,6 +542,9 @@ noinst_HEADERS = \
 	modules/qt-opengl/QC_QGLColormap.h \
 	modules/qt-opengl/QC_QGLFramebufferObject.h \
 	modules/qt-opengl/QC_QGLPixelBuffer.h \
+	modules/qt-svg/QC_QSvgRenderer.h \
+	modules/qt-svg/QC_QSvgGenerator.h \
+	modules/qt-svg/QC_QSvgWidget.h \
 	command-line.h \
 	include/qore/Qore.h
 

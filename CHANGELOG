@@ -1,3 +1,7 @@
+2008.05.29: David Nichols
+	* split svg functionality out of the qt module into the new qt-svg
+	  module
+
 2008.05.28: David Nichols
 	* started spliting up the qt module into sub-modules: qt-opengl is now
 	  dependent on the qt module; the majority of the functionality of the

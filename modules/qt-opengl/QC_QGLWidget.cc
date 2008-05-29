@@ -22,17 +22,17 @@
 
 #include <qore/Qore.h>
 
-#include "../qt/qore-qt.h"
+#include "qore-qt.h"
 
 #include "QC_QGLWidget.h"
 #include "QC_QGLContext.h"
 #include "QC_QGLFormat.h"
 #include "QC_QGLColormap.h"
-#include "../qt/QC_QWidget.h"
-#include "../qt/QC_QImage.h"
-#include "../qt/QC_QColor.h"
-#include "../qt/QC_QPixmap.h"
-#include "../qt/QC_QFont.h"
+#include "QC_QWidget.h"
+#include "QC_QImage.h"
+#include "QC_QColor.h"
+#include "QC_QPixmap.h"
+#include "QC_QFont.h"
 
 int CID_QGLWIDGET;
 QoreClass *QC_QGLWidget = 0;

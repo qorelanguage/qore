@@ -55,3 +55,7 @@ if COND_QT_OPENGL
 SUBDIRS += qt-opengl
 endif
 
+if COND_QT_SVG
+SUBDIRS += qt-svg
+endif
+

@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-#include "../qt/qore-qt.h"
+#include "qore-qt.h"
 
 #include "QC_QGLFormat.h"
 

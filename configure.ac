@@ -2234,7 +2234,7 @@ AC_ARG_WITH([qt-includes],
 
 check_qt_include()
 {
-    if test -f "$1/QtCore/qglobal.h" -a -f "$1/QtGui/QApplication" -a -f "$1/QtSvg/QtSvg" -a -f "$1/QtXml/QtXml"; then
+    if test -f "$1/QtCore/qglobal.h" -a -f "$1/QtGui/QApplication"; then
        found_qt_includes=$1
     elif test "$2" = "err"; then
        AC_MSG_ERROR([$1 is not a valid QT parent include directory])
@@ -2243,7 +2243,7 @@ check_qt_include()
 
 check_qt_lib()
 {
-    if test -f "$1/libQtCore.${SHLIB_SUFFIX}" -a -f "$1/libQtGui.${SHLIB_SUFFIX}" -a -f $1/libQtSvg.${SHLIB_SUFFIX} -a -f $1/libQtXml.${SHLIB_SUFFIX}; then
+    if test -f "$1/libQtCore.${SHLIB_SUFFIX}" -a -f "$1/libQtGui.${SHLIB_SUFFIX}"; then
        found_qt_libs=$lib
     elif test "$2" = "err"; then
     	AC_MSG_ERROR([$1 is not a valid QT 4 library directory])
@@ -2312,10 +2312,10 @@ if test "${with_qt}" != "no"; then
       	 fi
       else
          # check for frameworks on darwin
-	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework -a -d /Library/Frameworks/QtGui.framework -a -d /Library/Frameworks/QtSvg.framework -a -d /Library/Frameworks/QtXml.framework; then
+	 if test -n "$darwin" -a -d /Library/Frameworks/QtCore.framework -a -d /Library/Frameworks/QtGui.framework; then
 	    qt_framework="/Library/Frameworks"
-	    QT_INCLUDES="-I /Library/Frameworks/QtCore.framework/Headers -I /Library/Frameworks/QtGui.framework/Headers -I /Library/Frameworks/QtSvg.framework/Headers -I /Library/Frameworks/QtXml.framework/Headers"
-	    QT_LIBS="-framework QtCore -framework QtGui -framework QtSvg -framework QtXml"
+	    QT_INCLUDES="-I /Library/Frameworks/QtCore.framework/Headers -I /Library/Frameworks/QtGui.framework/Headers"
+	    QT_LIBS="-framework QtCore -framework QtGui"
 	 else
 	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt /usr/qt /usr/qt /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
       	       check_qt $dir
@@ -2348,10 +2348,10 @@ fi
 if test "${with_qt}" = yes; then
   if test -n "$with_qt_includes" -o -n "$qt_framework"; then
      if test -z "$QT_INCLUDES"; then
-        QT_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui -I$with_qt_includes/QtSvg -I$with_qt_includes/QtXml"
+        QT_INCLUDES="-I$with_qt_includes/QtCore -I$with_qt_includes/QtGui"
      fi
      if test -z "$QT_LIBS"; then
-	QT_LIBS="-lQtCore -lQtGui -lQtSvg -lQtXml"
+	QT_LIBS="-lQtCore -lQtGui"
 	if test -n "$qt_app_libs"; then
 	   QT_LIBS="-L$with_qt_libs $QT_LIBS"
 	fi
@@ -2555,6 +2555,172 @@ if test "${with_qt_opengl}" = yes; then
   else
      AC_MSG_WARN([no QT OpenGL libraries or includes found, disabling QT OpenGL support])
      unset with_qt_opengl
+  fi
+fi
+
+AC_ARG_WITH([qt-svg],
+    [AS_HELP_STRING([--with-qt-svg@<:@=DIR@:>@],
+                    [QT SVG base directory])],
+    [if test ! -d "${with_qt_svg}"; then AC_MSG_ERROR(directory ${with_qt_svg} does not exist for --with-qt-svg); unset with_qt_svg; fi])
+
+AC_ARG_WITH([qt-svg-libs],
+    [AS_HELP_STRING([--with-qt-svg-libs@<:@=DIR@:>@],
+                    [QT SVG library directory])],
+    [if test ! -d "${with_qt_svg_libs}"; then AC_MSG_ERROR(directory ${with_qt_svg_libs} does not exist for --with-qt-svg-libs); unset with_qt_svg_libs; fi])
+
+AC_ARG_WITH([qt-svg-includes],
+    [AS_HELP_STRING([--with-qt-svg-includes@<:@=DIR@:>@],
+                    [QT SVG include file parent directory])],
+    [if test ! -d "${with_qt_svg_includes}"; then AC_MSG_ERROR(directory ${with_qt_svg_includes} does not exist for --with-qt-svg-includes); unset with_qt_svg_includes; fi])
+
+check_qt_svg_include()
+{
+    if test -f "$1/QtSvg/QtSvg" -a -f "$1/QtXml/QtXml"; then
+       found_qt_svg_includes=$1
+    elif test "$2" = "err"; then
+       AC_MSG_ERROR([$1 is not a valid QT SVG parent include directory])
+    fi
+}
+
+check_qt_svg_lib()
+{
+    if test -f $1/libQtSvg.${SHLIB_SUFFIX} -a -f $1/libQtXml.${SHLIB_SUFFIX}; then
+       found_qt_svg_libs=$lib
+    elif test "$2" = "err"; then
+    	AC_MSG_ERROR([$1 is not a valid QT Svg library directory])
+    fi
+}
+
+check_qt_svg()
+{
+    if test -z "$with_qt_svg_includes"; then
+        inc="$1/include"
+        if test "$1" = "/"; then
+       	    inc=/usr/include
+        fi
+	check_qt_svg_include $inc
+
+	if test -z "$found_qt_svg_includes"; then
+	    #echo DBG: qt $1 $inc includes not found
+       	    return
+    	fi
+	with_qt_svg_includes="$found_qt_svg_includes"
+	unset found_qt_svg_includes
+    fi
+
+    if test -z "$with_qt_svg_libs"; then
+        lib="$1/lib${LIBSUFFIX}"
+
+	check_qt_svg_lib $lib
+    	if test -z "$found_qt_svg_libs"; then
+       	    #echo DBG: qt $1 $lib libs not found
+       	    unset with_qt_svg_includes
+       	    return
+    	fi
+	with_qt_svg_libs="$found_qt_svg_libs"
+    fi
+    if test "$with_qt_svg_libs" != "$with_qt_libs"; then
+        qt_app_svg_libs=true
+    fi
+}
+
+# see if we can figure out where the qt include files and libraries are
+if test "${with_qt}" = "yes" -a "${with_qt_svg}" != "no"; then
+   AC_MSG_CHECKING([for QT 4 SVG includes and libraries])
+
+   if test -n "$with_qt_svg_includes" -a -n "$with_qt_svg_libs"; then
+      check_qt_svg_includes "$with_qt_svg_includes" err
+      check_qt_svg_libs "$with_qt_svg_libs" err
+   else
+      if test -n "$with_qt_svg"; then
+      	 check_qt_svg "$with_qt_svg"
+      	 if test -z "$with_qt_svg_includes"; then
+	    AC_MSG_ERROR([not found in $with_qt_svg])
+      	 fi
+      else
+         # check for frameworks on darwin
+	 if test -n "$darwin" -a -d /Library/Frameworks/QtSvg.framework -a -d /Library/Frameworks/QtXml.framework; then
+	    qt_svg_framework="/Library/Frameworks/QtSvg.framework"
+	    qt_xml_framework="/Library/Frameworks/QtXml.framework"
+	 else
+	    for dir in $QT_DIR / /usr /usr/local /opt/qt /opt/qt /usr/qt /usr/qt /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+      	       check_qt_svg $dir
+      	       if test -n "$with_qt_svg_includes"; then
+	          break;
+      	       fi
+   	    done
+         fi
+      fi
+   fi
+
+   if test -n "$qt_svg_framework"; then
+      QT_SVG_INCLUDES="-I $qt_svg_framework/Headers -I $qt_xml_framework/Headers"
+      QT_SVG_LIBS="-framework QtSvg -framework QtXml"
+      AC_MSG_RESULT([using Darwin frameworks in $qt_svg_framework])
+      with_qt_svg=yes
+   else
+      if test -n "$with_qt_svg_includes"; then
+         if test -n "$qt_static"; then
+	    AC_MSG_RESULT([includes=$with_qt_svg_includes, libs=$with_qt_svg_libs (static)])
+      	 else
+	    AC_MSG_RESULT([includes=$with_qt_svg_includes, libs=$with_qt_svg_libs (shared)])
+      	 fi
+      	 with_qt_svg=yes
+      else
+	 AC_MSG_RESULT([not found])
+         unset with_qt_svg
+      fi
+   fi
+fi
+
+if test "${with_qt_svg}" = yes; then
+  if test -n "$with_qt_svg_includes" -o -n "$qt_svg_framework"; then
+     if test -z "$QT_SVG_INCLUDES"; then
+        QT_SVG_INCLUDES="-I$with_qt_includes/QtSvg -I$with_qt_includes/QtXml"
+     fi
+     if test -z "$QT_SVG_LIBS"; then
+        QT_SVG_LIBS="-lQtSvg -lQtXml"
+        if test -n "$qt_app_svg_libs"; then
+           QT_SVG_LIBS="-L$with_qt_svg_libs $QT_SVG_LIBS"
+        fi
+     fi
+
+     # check if C++ compiler can link with QT svg libs
+     SAVE_CXXFLAGS="$CXXFLAGS"
+     SAVE_LDFLAGS="$LDFLAGS"
+     CXXFLAGS="$CXXFLAGS $QT_INCLUDES $QT_SVG_INCLUDES"
+     LDFLAGS="$LDFLAGS $QT_LIBS $QT_SVG_LIBS"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <QApplication>
+#include <QPushButton>
+#include <QSvgWidget>
+	 ]],[[
+   int argc = 0;
+   char **argv = 0;
+   QApplication app(argc, argv);
+
+   QPushButton hello("Hello world!");
+   hello.resize(100, 30);
+
+   QSvgWidget test();
+
+   hello.show();
+   return app.exec();
+	]])], qt_svg_links=yes, qt_svg_links=no)
+
+     CXXFLAGS="$SAVE_CXXFLAGS"
+     LDFLAGS="$SAVE_LDFLAGS"
+
+     if test "$qt_svg_links" = "no"; then
+        AC_MSG_ERROR([could not compile a test QT SVG program])
+     else
+        AC_SUBST(QT_SVG_INCLUDES)
+	AC_SUBST(QT_SVG_LIBS)
+        with_qt_svg=yes
+     fi
+  else
+     AC_MSG_WARN([no QT SVG libraries or includes found, disabling QT SVG support])
+     unset with_qt_svg
   fi
 fi
 
@@ -2795,6 +2961,7 @@ AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_QT],         [test "$with_qt" = yes])
 AM_CONDITIONAL([COND_QT_OPENGL],  [test "$with_qt_opengl" = yes])
+AM_CONDITIONAL([COND_QT_SVG],     [test "$with_qt_svg" = yes])
 AM_CONDITIONAL([COND_OPENGL],     [test "$with_opengl" = yes])
 AM_CONDITIONAL([COND_GLUT],       [test "$with_glut" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
@@ -2802,7 +2969,7 @@ AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT_QT], [test "$enable_single_compilation_unit_qt" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/qt-opengl/Makefile modules/opengl/Makefile modules/glut/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile modules/qt-opengl/Makefile modules/qt-svg/Makefile modules/opengl/Makefile modules/glut/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -2847,6 +3014,7 @@ show_library_feature tibae $with_tibae
 show_library_feature tuxedo $with_tuxedo
 show_library_feature qt $with_qt scu=$enable_single_compilation_unit_qt
 show_library_feature qt-opengl $with_qt_opengl
+show_library_feature qt-svg $with_qt_svg
 show_library_feature opengl $with_opengl
 show_library_feature glut $with_glut
 
@@ -2866,3 +3034,4 @@ if test "$OS" = "HP-UX" -a "$host_os" != "ia64"; then
    # delete temporary files
    rm -f libtool.tmp libtool.tmp.1
 fi
+

@@ -22,11 +22,11 @@
 
 #include <qore/Qore.h>
 
-#include "../qt/qore-qt.h"
+#include "qore-qt.h"
 
 #include "QC_QGLFramebufferObject.h"
-#include "../qt/QC_QSize.h"
-#include "../qt/QC_QImage.h"
+#include "QC_QSize.h"
+#include "QC_QImage.h"
 
 int CID_QGLFRAMEBUFFEROBJECT;
 QoreClass *QC_QGLFramebufferObject = 0;

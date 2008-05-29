@@ -176,14 +176,11 @@
 #include "QC_QStackedLayout.h"
 #include "QC_QGradient.h"
 #include "QC_QTimeLine.h"
-#include "QC_QSvgRenderer.h"
 #include "QC_QLayoutItem.h"
 #include "QC_QWidgetItem.h"
 #include "QC_QCursor.h"
 #include "QC_QStyleOptionGraphicsItem.h"
 #include "QC_QTransform.h"
-#include "QC_QSvgGenerator.h"
-#include "QC_QSvgWidget.h"
 #include "QC_QSplashScreen.h"
 #include "QC_QSplitter.h"
 #include "QC_QSplitterHandle.h"
@@ -936,13 +933,10 @@ static void init_namespace()
    qt_ns->addSystemClass(initQStackedLayoutClass(qlayout));
    qt_ns->addInitialNamespace(initQGradientNS());
    qt_ns->addInitialNamespace(initQTimeLineNS(qobject));
-   qt_ns->addSystemClass(initQSvgRendererClass(qobject));
    qt_ns->addSystemClass(initQWidgetItemClass(qlayoutitem));
    qt_ns->addSystemClass(initQCursorClass());
    qt_ns->addInitialNamespace(initQStyleOptionGraphicsItemNS(qstyleoption));
    qt_ns->addInitialNamespace(initQTransformNS());
-   qt_ns->addSystemClass(initQSvgGeneratorClass());
-   qt_ns->addSystemClass(initQSvgWidgetClass(qwidget));
    qt_ns->addSystemClass(initQSplashScreenClass(qwidget));
    qt_ns->addSystemClass(initQSplitterClass(qwidget));
    qt_ns->addSystemClass(initQSplitterHandleClass(qwidget));

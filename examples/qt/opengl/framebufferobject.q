@@ -7,6 +7,8 @@
 
 # use the "qt-opengl" module (automatically loads the "qt" and "opengl" modules)
 %requires qt-opengl
+# use the "qt-svg" module
+%requires qt-svg
 
 # this is an object-oriented program, the application class is "framebufferobject"
 %exec-class framebufferobject
@@ -37,13 +39,13 @@ class GLWidget inherits QGLWidget
 	$.connect($.anim, SIGNAL("finished()"), SLOT("animFinished()"));
 
 	$.svg_renderer = new QSvgRenderer($dir + "images/bubbles.svg", $self);
-	printf("svg_renderer valid=%N\n", $.svg_renderer.isValid());
+	#printf("svg_renderer valid=%N\n", $.svg_renderer.isValid());
 	$.connect($.svg_renderer, SIGNAL("repaintNeeded()"), SLOT("draw()"));
 
 	$.logo = new QImage($dir + "images/qt4-logo.png");
-	printf("logo valid=%N\n", !$.logo.isNull());
+	#printf("logo valid=%N\n", !$.logo.isNull());
 	$.logo = $.logo.convertToFormat(QImage::Format_ARGB32);
-	printf("logo valid=%N\n", !$.logo.isNull());
+	#printf("logo valid=%N\n", !$.logo.isNull());
 
 	$.tile_list = glGenLists(1);
 
@@ -141,7 +143,7 @@ class GLWidget inherits QGLWidget
 
 	my $w = $.logo.width();
 	my $h = $.logo.height();
-	printf("h=%n, w=%n\n", $h, $w);
+	#printf("h=%n, w=%n\n", $h, $w);
 
 	glRotatef($.rot_x, 1.0, 0.0, 0.0);
 	glRotatef($.rot_y, 0.0, 1.0, 0.0);
@@ -154,12 +156,12 @@ class GLWidget inherits QGLWidget
 	glTranslatef(-$w+1, -$h+1, 0.0);
 	for (my $y=$h-1; $y>=0; --$y) {
 	    my $line = $.logo.scanLine($y);
-	    printf("y=%n line=%n (%s)\n", $y, $line, makeBase64String($line));
+	    #printf("y=%n line=%n (%s)\n", $y, $line, makeBase64String($line));
 	    my $end = elements $line / 4;
 	    my $x = 0;
 	    while ($x < $end) {
 		my $word = getWord32($line, $x);
-		printf("line=%N (%d), x=%n word=%n\n", $line, elements $line, $x, $word);
+		#printf("line=%N (%d), x=%n word=%n\n", $line, elements $line, $x, $word);
 		glColor4ub(qRed($word), qGreen($word), qBlue($word), qAlpha($word)* 0.9);
 		glTranslatef(0.0, 0.0, $.wave[$y*$w+$x]);
 		if (qAlpha($word) > 128)
