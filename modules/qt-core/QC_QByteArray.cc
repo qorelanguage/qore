@@ -24,7 +24,7 @@
 
 #include "QC_QByteArray.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QBYTEARRAY;
 class QoreClass *QC_QByteArray = 0;

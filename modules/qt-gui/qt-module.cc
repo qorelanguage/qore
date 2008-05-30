@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 
-#include "QC_QObject.h"
 #include "QC_QApplication.h"
 #include "QC_QPushButton.h"
 #include "QC_QFont.h"
@@ -37,15 +36,10 @@
 #include "QC_QGridLayout.h"
 #include "QC_QBrush.h"
 #include "QC_QColor.h"
-#include "QC_QRect.h"
-#include "QC_QRectF.h"
 #include "QC_QPalette.h"
 #include "QC_QPaintDevice.h"
 #include "QC_QPainter.h"
-#include "QC_QPoint.h"
-#include "QC_QSize.h"
 #include "QC_QRegion.h"
-#include "QC_QTimer.h"
 #include "QC_QLabel.h"
 #include "QC_QAbstractSlider.h"
 #include "QC_QSlider.h"
@@ -55,18 +49,12 @@
 #include "QC_QMovie.h"
 #include "QC_QShortcut.h"
 #include "QC_QImage.h"
-#include "QC_QDateTime.h"
-#include "QC_QDate.h"
-#include "QC_QTime.h"
 #include "QC_QIcon.h"
 #include "QC_QKeySequence.h"
 #include "QC_QAction.h"
 #include "QC_QActionGroup.h"
-#include "QC_QPointF.h"
 #include "QC_QPolygon.h"
 #include "QC_QPolygonF.h"
-#include "QC_QLine.h"
-#include "QC_QLineF.h"
 #include "QC_QAbstractButton.h"
 #include "QC_QMenu.h"
 #include "QC_QToolButton.h"
@@ -83,20 +71,14 @@
 #include "QC_QTextImageFormat.h"
 #include "QC_QCalendarWidget.h"
 #include "QC_QStyleOption.h"
-#include "QC_QModelIndex.h"
 #include "QC_QStyleOptionViewItem.h"
 #include "QC_QStyleOptionViewItemV2.h"
-#include "QC_QAbstractItemModel.h"
 #include "QC_QAbstractItemDelegate.h"
 #include "QC_QItemDelegate.h"
 #include "QC_QComboBox.h"
 #include "QC_QCheckBox.h"
 #include "QC_QAbstractSpinBox.h"
 #include "QC_QDateTimeEdit.h"
-#include "QC_QLocale.h"
-#include "QC_QByteArray.h"
-#include "QC_QUrl.h"
-#include "QC_QVariant.h"
 #include "QC_QGroupBox.h"
 #include "QC_QDateEdit.h"
 #include "QC_QFontMetrics.h"
@@ -105,8 +87,6 @@
 #include "QC_QScrollBar.h"
 #include "QC_QAbstractScrollArea.h"
 #include "QC_QScrollArea.h"
-#include "QC_QChar.h"
-#include "QC_QMimeData.h"
 #include "QC_QClipboard.h"
 #include "QC_QFontComboBox.h"
 #include "QC_QMainWindow.h"
@@ -129,21 +109,16 @@
 #include "QC_QMessageBox.h"
 #include "QC_QStyleOptionButton.h"
 #include "QC_QFileDialog.h"
-#include "QC_QDir.h"
 #include "QC_QHeaderView.h"
-#include "QC_QMetaObject.h"
 #include "QC_QMenuBar.h"
 #include "QC_QPrinter.h"
 #include "QC_QPrintDialog.h"
-#include "QC_QRegExp.h"
 #include "QC_QValidator.h"
 #include "QC_QDoubleValidator.h"
 #include "QC_QIntValidator.h"
 #include "QC_QRegExpValidator.h"
-#include "QC_QFileInfo.h"
 #include "QC_QColorDialog.h"
 #include "QC_QInputDialog.h"
-#include "QC_QIODevice.h"
 #include "QC_QImageWriter.h"
 #include "QC_QDial.h"
 #include "QC_QStackedWidget.h"
@@ -152,20 +127,15 @@
 #include "QC_QProgressBar.h"
 #include "QC_QPainterPath.h"
 #include "QC_QPaintEngine.h"
-#include "QC_QBasicTimer.h"
 #include "QC_QTextEdit.h"
 #include "QC_QTabBar.h"
 #include "QC_QStyleOptionTab.h"
 #include "QC_QStyleOptionTabWidgetFrame.h"
 #include "QC_QTabWidget.h"
-#include "QC_QEvent.h"
 #include "QC_QDesktopWidget.h"
 #include "QC_QSystemTrayIcon.h"
 #include "QC_QWizard.h"
 #include "QC_QWizardPage.h"
-#include "QC_QTranslator.h"
-#include "QC_QLibraryInfo.h"
-#include "QC_QCoreApplication.h"
 #include "QC_QListView.h"
 #include "QC_QListWidgetItem.h"
 #include "QC_QDialogButtonBox.h"
@@ -175,7 +145,6 @@
 #include "QC_QErrorMessage.h"
 #include "QC_QStackedLayout.h"
 #include "QC_QGradient.h"
-#include "QC_QTimeLine.h"
 #include "QC_QLayoutItem.h"
 #include "QC_QWidgetItem.h"
 #include "QC_QCursor.h"
@@ -188,6 +157,13 @@
 #include "QC_QTextLine.h"
 #include "QC_QTextOption.h"
 #include "QC_QTextLayout.h"
+#include "QC_QGraphicsSceneEvent.h"
+#include "QC_QGraphicsSceneContextMenuEvent.h"
+#include "QC_QGraphicsSceneDragDropEvent.h"
+#include "QC_QGraphicsSceneHelpEvent.h"
+#include "QC_QGraphicsSceneHoverEvent.h"
+#include "QC_QGraphicsSceneMouseEvent.h"
+#include "QC_QGraphicsSceneWheelEvent.h"
 
 #include "qore-qt.h"
 
@@ -197,12 +173,12 @@
 
 #include <assert.h>
 
-static class QoreStringNode *qt_module_init();
-static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
+static QoreStringNode *qt_module_init();
+static void qt_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 static void qt_module_delete();
 
 #ifndef QORE_MONOLITHIC
-DLLEXPORT char qore_module_name[] = "qt";
+DLLEXPORT char qore_module_name[] = "qt-gui";
 DLLEXPORT char qore_module_version[] = "0.1";
 DLLEXPORT char qore_module_description[] = "QT 4 module";
 DLLEXPORT char qore_module_author[] = "David Nichols";
@@ -213,200 +189,14 @@ DLLEXPORT qore_module_init_t qore_module_init = qt_module_init;
 DLLEXPORT qore_module_ns_init_t qore_module_ns_init = qt_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = qt_module_delete;
 DLLEXPORT qore_license_t qore_module_license = QL_GPL;
+DLLEXPORT char *qore_module_dependencies[] = { "qt-core", 0 };
 #endif
-
-static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   const QoreObject *p = test_object_param(params, 0);
-   class AbstractPrivateData *spd = p ? p->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
-   QoreAbstractQObject *sender = spd ? dynamic_cast<QoreAbstractQObject *>(spd) : 0;
-   assert(!spd || sender);
-   if (!sender) {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "first argument is not a QObject");
-      return 0;
-   }
-   ReferenceHolder<AbstractPrivateData> holder1(spd, xsink);
-
-   const QoreStringNode *str = test_string_param(params, 1);
-   if (!str)
-   {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing signal string as second argument");
-      return 0;
-   }
-   const char *signal = str->getBuffer();
-
-   const QoreObject *o = test_object_param(params, 2);
-   if (!o)
-   {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing receiving object as third argument");
-      return 0;      
-   }
-   class AbstractPrivateData *rpd = o ? o->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
-   QoreAbstractQObject *receiver = rpd ? dynamic_cast<QoreAbstractQObject *>(rpd) : 0;
-   assert(!rpd || receiver);
-   if (!receiver) {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "third argument is not a QObject");
-      return 0;
-   }
-   ReferenceHolder<AbstractPrivateData> holder2(rpd, xsink);
-
-   // get member/slot name
-   str = test_string_param(params, 3);
-   if (!str)
-   {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing slot as fourth argument");
-      return 0;
-   }
-   const char *member = str->getBuffer();
-
-   /*
-   p = get_param(params, 4);
-   int conn_type = is_nothing(p) ? Qt::AutoConnection : p->getAsInt();
-
-   bool b = QObject::connect(sender->getQObject(), signal, receiver->getQObject(), member, (enum Qt::ConnectionType)conn_type);
-   return get_bool_node(b);
-   */
-   receiver->connectDynamic(sender, signal, member, xsink);
-   return 0;
-}
-
-static class AbstractQoreNode *f_SLOT(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   // get slot name
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p || !p->strlen())
-   {
-      xsink->raiseException("SLOT-ERROR", "missing slot name");
-      return 0;
-   }
-   QoreStringNode *str = new QoreStringNode("1");
-   str->concat(p->getBuffer());
-   const char *buf = str->getBuffer();
-   int slen = str->strlen();
-   if (slen < 3 || buf[slen - 1] != ')')
-      str->concat("()");
-   return str;
-}
-
-static class AbstractQoreNode *f_SIGNAL(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   // get slot name
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p || !p->strlen())
-   {
-      xsink->raiseException("SIGNAL-ERROR", "missing signal name");
-      return 0;
-   }
-   QoreStringNode *str = new QoreStringNode("2");
-   str->concat(p->getBuffer());
-   const char *buf = str->getBuffer();
-   int slen = str->strlen();
-   if (slen < 3 || buf[slen - 1] != ')')
-      str->concat("()");
-   return str;
-}
-
-static class AbstractQoreNode *f_TR(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   // get slot name
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p || !p->strlen())
-   {
-      xsink->raiseException("TR-ERROR", "missing string argument to TR()");
-      return 0;
-   }
-   return new QoreStringNode(QObject::tr(p->getBuffer()).toUtf8().data(), QCS_UTF8);
-}
 
 static class AbstractQoreNode *f_QAPP(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return get_qore_qapp();
 }
 
-static class AbstractQoreNode *f_qDebug(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
-   if (*xsink)
-      return 0;
-
-   qDebug(str->getBuffer());
-   return 0;
-}
-
-static class AbstractQoreNode *f_qWarning(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
-   if (*xsink)
-      return 0;
-
-   qWarning(str->getBuffer());
-   return 0;
-}
-
-static class AbstractQoreNode *f_qCritical(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
-   if (*xsink)
-      return 0;
-
-   qCritical(str->getBuffer());
-   return 0;
-}
-
-static class AbstractQoreNode *f_qFatal(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
-   if (*xsink)
-      return 0;
-
-   qFatal(str->getBuffer());
-   return 0;
-}
-
-static class AbstractQoreNode *f_qRound(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p = get_param(params, 0);
-   return new QoreBigIntNode(qRound(p ? p->getAsFloat() : 0.0));
-}
-
-static class AbstractQoreNode *f_qsrand(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p = get_param(params, 0);
-   qsrand(p ? p->getAsInt() : 0);
-   return 0;
-}
-
-static class AbstractQoreNode *f_qrand(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   return new QoreBigIntNode(qrand());
-}
-
-static class AbstractQoreNode *f_qSwap(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   const ReferenceNode *r0 = test_reference_param(params, 0);
-   if (!r0) {
-      xsink->raiseException("QSWAP-ERROR", "first argument must be a reference");
-      return 0;
-   }
-
-   const ReferenceNode *r1 = test_reference_param(params, 1);
-   if (!r1) {
-      xsink->raiseException("QSWAP-ERROR", "second argument must be a reference");
-      return 0;
-   }
-
-   AutoVLock vl(xsink);
-   ReferenceHelper ref0(r0, vl, xsink);
-   if (!ref0)
-      return 0;
-
-   ReferenceHelper ref1(r1, vl, xsink);
-   if (!ref1)
-      return 0;
-
-   ref0.swap(ref1);
-   return 0;
-}
 
 static AbstractQoreNode *f_QToolTip_font(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -611,15 +401,13 @@ static void init_namespace()
    qt_ns = new QoreNamespace("Qt");
 
     // the order is sensitive here as child classes need the parent IDs
-   class QoreClass *qobject, *qcoreapplication, *qwidget, *qlayout, *qframe, 
+   QoreClass *qwidget, *qlayout, *qframe, 
       *qboxlayout, *qpaintdevice, *qpixmap, *qabstractslider;
 
-   qt_ns->addSystemClass((qobject = initQObjectClass()));
-   qt_ns->addSystemClass((qcoreapplication = initQCoreApplicationClass(qobject)));
-   qt_ns->addSystemClass(initQApplicationClass(qcoreapplication));
-   qt_ns->addSystemClass(initQActionClass(qobject));
-   qt_ns->addSystemClass(initQActionGroupClass(qobject));
-   qt_ns->addSystemClass(initQShortcutClass(qobject));
+   qt_ns->addSystemClass(initQApplicationClass(QC_QCoreApplication));
+   qt_ns->addSystemClass(initQActionClass(QC_QObject));
+   qt_ns->addSystemClass(initQActionGroupClass(QC_QObject));
+   qt_ns->addSystemClass(initQShortcutClass(QC_QObject));
 
    qt_ns->addSystemClass((qpaintdevice = initQPaintDeviceClass()));
    qt_ns->addSystemClass(initQPictureClass(qpaintdevice));
@@ -627,7 +415,7 @@ static void init_namespace()
    qt_ns->addSystemClass((qpixmap = initQPixmapClass(qpaintdevice)));
    qt_ns->addSystemClass(initQBitmapClass(qpixmap));
 
-   qt_ns->addSystemClass((qwidget = initQWidgetClass(qobject, qpaintdevice)));
+   qt_ns->addSystemClass((qwidget = initQWidgetClass(QC_QObject, qpaintdevice)));
 
    qt_ns->addSystemClass((qabstractslider = initQAbstractSliderClass(qwidget)));
 
@@ -635,24 +423,12 @@ static void init_namespace()
    qt_ns->addSystemClass(initQLCDNumberClass(qframe));
    qt_ns->addSystemClass(initQLabelClass(qframe));
 
-   qt_ns->addSystemClass(initQTimerClass(qobject));
-
-   qt_ns->addSystemClass(initQRectClass());
-   qt_ns->addSystemClass(initQRectFClass());
    qt_ns->addSystemClass(initQBrushClass());
    qt_ns->addSystemClass(initQColorClass());
-   qt_ns->addSystemClass(initQPointClass());
-   qt_ns->addSystemClass(initQSizeClass());
-
-   qt_ns->addSystemClass(initQDateTimeClass());
-   qt_ns->addSystemClass(initQDateClass());
-   qt_ns->addSystemClass(initQTimeClass());
 
    qt_ns->addSystemClass(initQKeySequenceClass());
    qt_ns->addSystemClass(initQFontClass());
    qt_ns->addSystemClass(initQMatrixClass());
-
-   qt_ns->addInitialNamespace(initQEventNS());
 
    QoreNamespace *qimage = new QoreNamespace("QImage");
 
@@ -689,7 +465,7 @@ static void init_namespace()
 
    QoreNamespace *qlayout_ns = new QoreNamespace("QLayout");
 
-   qlayout_ns->addSystemClass((qlayout = initQLayoutClass(qobject, qlayoutitem)));
+   qlayout_ns->addSystemClass((qlayout = initQLayoutClass(QC_QObject, qlayoutitem)));
    qlayout_ns->addSystemClass(initQGridLayoutClass(qlayout));
 
    qlayout_ns->addSystemClass((qboxlayout = initQBoxLayoutClass(qlayout)));
@@ -715,7 +491,7 @@ static void init_namespace()
    qmovie->addConstant("CacheNone",                new QoreBigIntNode(QMovie::CacheNone));
    qmovie->addConstant("CacheAll",                 new QoreBigIntNode(QMovie::CacheAll));
 
-   qmovie->addSystemClass(initQMovieClass(qobject));
+   qmovie->addSystemClass(initQMovieClass(QC_QObject));
 
    qt_ns->addInitialNamespace(qmovie);
 
@@ -768,8 +544,6 @@ static void init_namespace()
    qsizepolicy->addConstant("ToolButton",               new QoreBigIntNode(QSizePolicy::ToolButton));
 
    qt_ns->addInitialNamespace(qsizepolicy);
-
-   qt_ns->addInitialNamespace(initQLibraryInfoNS());
 
    QoreNamespace *qicon = new QoreNamespace("QIcon");
 
@@ -841,14 +615,11 @@ static void init_namespace()
    qdialog_ns->addConstant("Rejected",   new QoreBigIntNode(QDialog::Rejected));
    qdialog_ns->addConstant("Accepted",   new QoreBigIntNode(QDialog::Accepted));
  
-   qt_ns->addInitialNamespace(initQStyleNS(qobject));
+   qt_ns->addInitialNamespace(initQStyleNS(QC_QObject));
 
    // automatically added classes
-   qt_ns->addSystemClass(initQPointFClass());
    qt_ns->addSystemClass(initQPolygonClass());
    qt_ns->addSystemClass(initQPolygonFClass());
-   qt_ns->addSystemClass(initQLineClass());
-   qt_ns->addSystemClass(initQLineFClass());
    qt_ns->addSystemClass((qabstractbutton = initQAbstractButtonClass(qwidget)));
    qt_ns->addSystemClass(initQPushButtonClass(qabstractbutton));
    qt_ns->addSystemClass(initQMenuClass(qwidget));
@@ -872,18 +643,13 @@ static void init_namespace()
    qt_ns->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
    qt_ns->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
    qt_ns->addInitialNamespace(initQStyleOptionButtonNS(qstyleoption));
-   qt_ns->addSystemClass(initQModelIndexClass());
    qt_ns->addSystemClass((qstyleoptionviewitem = initQStyleOptionViewItemClass(qstyleoption)));
    qt_ns->addSystemClass(initQStyleOptionViewItemV2Class(qstyleoptionviewitem));
-   qt_ns->addSystemClass(initQAbstractItemModelClass(qobject));
-   qt_ns->addSystemClass((qabstractitemdelegate = initQAbstractItemDelegateClass(qobject)));
+   qt_ns->addSystemClass((qabstractitemdelegate = initQAbstractItemDelegateClass(QC_QObject)));
    qt_ns->addSystemClass(initQItemDelegateClass(qabstractitemdelegate));
    qt_ns->addSystemClass((qcombobox = initQComboBoxClass(qwidget)));
    qt_ns->addSystemClass(initQCheckBoxClass(qabstractbutton));
    qt_ns->addSystemClass((qabstractspinbox = initQAbstractSpinBoxClass(qwidget)));
-   qt_ns->addSystemClass(initQByteArrayClass());
-   qt_ns->addSystemClass(initQUrlClass());
-   qt_ns->addSystemClass(initQVariantClass());
    qt_ns->addSystemClass(initQGroupBoxClass(qwidget));
    qt_ns->addSystemClass(initQFontMetricsClass());
    qt_ns->addSystemClass(initQFontDatabaseClass());
@@ -891,23 +657,17 @@ static void init_namespace()
    qt_ns->addSystemClass(initQScrollBarClass(qabstractslider));
    qt_ns->addSystemClass((qabstractscrollarea = initQAbstractScrollAreaClass(qframe)));
    qt_ns->addSystemClass(initQScrollAreaClass(qabstractscrollarea));
-   qt_ns->addSystemClass(initQMimeDataClass(qobject));
    qt_ns->addSystemClass(initQFontComboBoxClass(qcombobox));
    qt_ns->addSystemClass(initQMainWindowClass(qwidget));
    qt_ns->addSystemClass(initQRadioButtonClass(qabstractbutton));
    qt_ns->addSystemClass(initQSpinBoxClass(qabstractspinbox));
    qt_ns->addSystemClass(initQTableWidgetItemClass());
    qt_ns->addSystemClass(initQStyleOptionMenuItemClass(qstyleoption));
-   qt_ns->addInitialNamespace(initQDirNS());
-   qt_ns->addSystemClass(initQMetaObjectClass());
    qt_ns->addSystemClass(initQMenuBarClass(qwidget));
-   qt_ns->addSystemClass(initQRegExpClass());
-   qt_ns->addSystemClass((qvalidator = initQValidatorClass(qobject)));
+   qt_ns->addSystemClass((qvalidator = initQValidatorClass(QC_QObject)));
    qt_ns->addSystemClass(initQDoubleValidatorClass(qvalidator));
    qt_ns->addSystemClass(initQIntValidatorClass(qvalidator));
    qt_ns->addSystemClass(initQRegExpValidatorClass(qvalidator));
-   qt_ns->addSystemClass(initQFileInfoClass());
-   qt_ns->addSystemClass(initQIODeviceClass(qobject));
    qt_ns->addSystemClass(initQImageWriterClass());
    qt_ns->addSystemClass(initQDialClass(qabstractslider));
    qt_ns->addSystemClass(initQStackedWidgetClass(qframe));
@@ -915,7 +675,6 @@ static void init_namespace()
    qt_ns->addSystemClass(initQProgressBarClass(qwidget));
    qt_ns->addSystemClass(initQPainterPathClass());
    qt_ns->addSystemClass(initQPaintEngineClass());
-   qt_ns->addSystemClass(initQBasicTimerClass());
    qt_ns->addSystemClass(initQTabBarClass(qwidget));
    qt_ns->addSystemClass(initQStyleOptionTabClass(qstyleoption));
    qt_ns->addSystemClass(initQStyleOptionTabWidgetFrameClass(qstyleoption));
@@ -924,7 +683,6 @@ static void init_namespace()
    qt_ns->addInitialNamespace(initQTextEditNS(qabstractscrollarea));
    qt_ns->addSystemClass(initQDesktopWidgetClass(qwidget));
    qt_ns->addSystemClass(initQWizardPageClass(qwidget));
-   qt_ns->addSystemClass(initQTranslatorClass(qobject));
    qt_ns->addInitialNamespace(initQListWidgetItemNS());
    qt_ns->addInitialNamespace(initQDialogButtonBoxNS(qwidget));
    qt_ns->addInitialNamespace(initQToolBarNS(qwidget));
@@ -932,7 +690,6 @@ static void init_namespace()
    qdialog_ns->addSystemClass(initQErrorMessageClass(qdialog));
    qt_ns->addSystemClass(initQStackedLayoutClass(qlayout));
    qt_ns->addInitialNamespace(initQGradientNS());
-   qt_ns->addInitialNamespace(initQTimeLineNS(qobject));
    qt_ns->addSystemClass(initQWidgetItemClass(qlayoutitem));
    qt_ns->addSystemClass(initQCursorClass());
    qt_ns->addInitialNamespace(initQStyleOptionGraphicsItemNS(qstyleoption));
@@ -956,7 +713,7 @@ static void init_namespace()
 
    qt_ns->addInitialNamespace(qbl);
 
-   qt_ns->addInitialNamespace(initQSystemTrayIconNS(qobject));
+   qt_ns->addInitialNamespace(initQSystemTrayIconNS(QC_QObject));
 
    QoreNamespace *qdatetimeedit_ns = new QoreNamespace("QDateTimeEdit");
    
@@ -1190,6 +947,41 @@ static void init_namespace()
 
    qt_ns->addInitialNamespace(qheaderview);
 
+   // add event class hierarchy in QtGui
+   QoreClass *qinputevent, *qdropevent, *qdragmoveevent;
+   ns->addSystemClass(initQPaintEventClass(QC_QEvent));
+   ns->addSystemClass(initQMoveEventClass(QC_QEvent));
+   ns->addSystemClass(initQResizeEventClass(QC_QEvent));
+
+   ns->addSystemClass((qinputevent = initQInputEventClass(QC_QEvent)));
+   ns->addSystemClass(initQKeyEventClass(qinputevent));
+   ns->addSystemClass(initQMouseEventClass(qinputevent));
+   ns->addSystemClass(initQContextMenuEventClass(qinputevent));
+   ns->addSystemClass(initQTabletEventClass(qinputevent));
+   ns->addSystemClass(initQWheelEventClass(qinputevent));
+
+   ns->addSystemClass(initQActionEventClass(QC_QEvent));
+   ns->addSystemClass(initQCloseEventClass(QC_QEvent));
+
+   ns->addSystemClass((qdropevent = initQDropEventClass(QC_QEvent)));
+   ns->addSystemClass((qdragmoveevent = initQDragMoveEventClass(qdropevent)));
+   ns->addSystemClass(initQDragEnterEventClass(qdragmoveevent));
+
+   ns->addSystemClass(initQDragLeaveEventClass(QC_QEvent));
+   ns->addSystemClass(initQFocusEventClass(QC_QEvent));
+   ns->addSystemClass(initQHideEventClass(QC_QEvent));
+   ns->addSystemClass(initQInputMethodEventClass(QC_QEvent));
+   ns->addSystemClass(initQShowEventClass(QC_QEvent));
+   ns->addSystemClass(initQHelpEventClass(QC_QEvent));
+
+   QoreClass *qgraphicssceneevent;
+   ns->addSystemClass((qgraphicssceneevent = initQGraphicsSceneEventClass(QC_QEvent)));
+   ns->addInitialNamespace(initQGraphicsSceneContextMenuEventNS(qgraphicssceneevent));
+   ns->addSystemClass(initQGraphicsSceneDragDropEventClass(qgraphicssceneevent));
+   ns->addSystemClass(initQGraphicsSceneHelpEventClass(qgraphicssceneevent));
+   ns->addSystemClass(initQGraphicsSceneHoverEventClass(qgraphicssceneevent));
+   ns->addSystemClass(initQGraphicsSceneMouseEventClass(qgraphicssceneevent));
+   ns->addSystemClass(initQGraphicsSceneWheelEventClass(qgraphicssceneevent));
 
    QoreNamespace *qclipboard = new QoreNamespace("QClipboard");
    
@@ -1199,138 +991,9 @@ static void init_namespace()
    qclipboard->addConstant("FindBuffer",               new QoreBigIntNode(QClipboard::FindBuffer));
    qclipboard->addConstant("LastMode",                 new QoreBigIntNode(QClipboard::LastMode));
 
-   qclipboard->addSystemClass(initQClipboardClass(qobject));
+   qclipboard->addSystemClass(initQClipboardClass(QC_QObject));
 
    qt_ns->addInitialNamespace(qclipboard);
-
-   QoreNamespace *qchar = new QoreNamespace("QChar");
-   qchar->addSystemClass(initQCharClass());
-
-   // SpecialCharacter enum
-   qchar->addConstant("Null",                     new QoreBigIntNode(QChar::Null));
-   qchar->addConstant("Nbsp",                     new QoreBigIntNode(QChar::Nbsp));
-   qchar->addConstant("ReplacementCharacter",     new QoreBigIntNode(QChar::ReplacementCharacter));
-   qchar->addConstant("ObjectReplacementCharacter", new QoreBigIntNode(QChar::ObjectReplacementCharacter));
-   qchar->addConstant("ByteOrderMark",            new QoreBigIntNode(QChar::ByteOrderMark));
-   qchar->addConstant("ByteOrderSwapped",         new QoreBigIntNode(QChar::ByteOrderSwapped));
-   qchar->addConstant("ParagraphSeparator",       new QoreBigIntNode(QChar::ParagraphSeparator));
-   qchar->addConstant("LineSeparator",            new QoreBigIntNode(QChar::LineSeparator));
-
-   // Category enum
-   qchar->addConstant("NoCategory",               new QoreBigIntNode(QChar::NoCategory));
-   qchar->addConstant("Mark_NonSpacing",          new QoreBigIntNode(QChar::Mark_NonSpacing));
-   qchar->addConstant("Mark_SpacingCombining",    new QoreBigIntNode(QChar::Mark_SpacingCombining));
-   qchar->addConstant("Mark_Enclosing",           new QoreBigIntNode(QChar::Mark_Enclosing));
-   qchar->addConstant("Number_DecimalDigit",      new QoreBigIntNode(QChar::Number_DecimalDigit));
-   qchar->addConstant("Number_Letter",            new QoreBigIntNode(QChar::Number_Letter));
-   qchar->addConstant("Number_Other",             new QoreBigIntNode(QChar::Number_Other));
-   qchar->addConstant("Separator_Space",          new QoreBigIntNode(QChar::Separator_Space));
-   qchar->addConstant("Separator_Line",           new QoreBigIntNode(QChar::Separator_Line));
-   qchar->addConstant("Separator_Paragraph",      new QoreBigIntNode(QChar::Separator_Paragraph));
-   qchar->addConstant("Other_Control",            new QoreBigIntNode(QChar::Other_Control));
-   qchar->addConstant("Other_Format",             new QoreBigIntNode(QChar::Other_Format));
-   qchar->addConstant("Other_Surrogate",          new QoreBigIntNode(QChar::Other_Surrogate));
-   qchar->addConstant("Other_PrivateUse",         new QoreBigIntNode(QChar::Other_PrivateUse));
-   qchar->addConstant("Other_NotAssigned",        new QoreBigIntNode(QChar::Other_NotAssigned));
-   qchar->addConstant("Letter_Uppercase",         new QoreBigIntNode(QChar::Letter_Uppercase));
-   qchar->addConstant("Letter_Lowercase",         new QoreBigIntNode(QChar::Letter_Lowercase));
-   qchar->addConstant("Letter_Titlecase",         new QoreBigIntNode(QChar::Letter_Titlecase));
-   qchar->addConstant("Letter_Modifier",          new QoreBigIntNode(QChar::Letter_Modifier));
-   qchar->addConstant("Letter_Other",             new QoreBigIntNode(QChar::Letter_Other));
-   qchar->addConstant("Punctuation_Connector",    new QoreBigIntNode(QChar::Punctuation_Connector));
-   qchar->addConstant("Punctuation_Dash",         new QoreBigIntNode(QChar::Punctuation_Dash));
-   qchar->addConstant("Punctuation_Open",         new QoreBigIntNode(QChar::Punctuation_Open));
-   qchar->addConstant("Punctuation_Close",        new QoreBigIntNode(QChar::Punctuation_Close));
-   qchar->addConstant("Punctuation_InitialQuote", new QoreBigIntNode(QChar::Punctuation_InitialQuote));
-   qchar->addConstant("Punctuation_FinalQuote",   new QoreBigIntNode(QChar::Punctuation_FinalQuote));
-   qchar->addConstant("Punctuation_Other",        new QoreBigIntNode(QChar::Punctuation_Other));
-   qchar->addConstant("Symbol_Math",              new QoreBigIntNode(QChar::Symbol_Math));
-   qchar->addConstant("Symbol_Currency",          new QoreBigIntNode(QChar::Symbol_Currency));
-   qchar->addConstant("Symbol_Modifier",          new QoreBigIntNode(QChar::Symbol_Modifier));
-   qchar->addConstant("Symbol_Other",             new QoreBigIntNode(QChar::Symbol_Other));
-   qchar->addConstant("Punctuation_Dask",         new QoreBigIntNode(QChar::Punctuation_Dask));
-
-   // Direction enum
-   qchar->addConstant("DirL",                     new QoreBigIntNode(QChar::DirL));
-   qchar->addConstant("DirR",                     new QoreBigIntNode(QChar::DirR));
-   qchar->addConstant("DirEN",                    new QoreBigIntNode(QChar::DirEN));
-   qchar->addConstant("DirES",                    new QoreBigIntNode(QChar::DirES));
-   qchar->addConstant("DirET",                    new QoreBigIntNode(QChar::DirET));
-   qchar->addConstant("DirAN",                    new QoreBigIntNode(QChar::DirAN));
-   qchar->addConstant("DirCS",                    new QoreBigIntNode(QChar::DirCS));
-   qchar->addConstant("DirB",                     new QoreBigIntNode(QChar::DirB));
-   qchar->addConstant("DirS",                     new QoreBigIntNode(QChar::DirS));
-   qchar->addConstant("DirWS",                    new QoreBigIntNode(QChar::DirWS));
-   qchar->addConstant("DirON",                    new QoreBigIntNode(QChar::DirON));
-   qchar->addConstant("DirLRE",                   new QoreBigIntNode(QChar::DirLRE));
-   qchar->addConstant("DirLRO",                   new QoreBigIntNode(QChar::DirLRO));
-   qchar->addConstant("DirAL",                    new QoreBigIntNode(QChar::DirAL));
-   qchar->addConstant("DirRLE",                   new QoreBigIntNode(QChar::DirRLE));
-   qchar->addConstant("DirRLO",                   new QoreBigIntNode(QChar::DirRLO));
-   qchar->addConstant("DirPDF",                   new QoreBigIntNode(QChar::DirPDF));
-   qchar->addConstant("DirNSM",                   new QoreBigIntNode(QChar::DirNSM));
-   qchar->addConstant("DirBN",                    new QoreBigIntNode(QChar::DirBN));
-
-   // Decomposition enum
-   qchar->addConstant("NoDecomposition",          new QoreBigIntNode(QChar::NoDecomposition));
-   qchar->addConstant("Canonical",                new QoreBigIntNode(QChar::Canonical));
-   qchar->addConstant("Font",                     new QoreBigIntNode(QChar::Font));
-   qchar->addConstant("NoBreak",                  new QoreBigIntNode(QChar::NoBreak));
-   qchar->addConstant("Initial",                  new QoreBigIntNode(QChar::Initial));
-   qchar->addConstant("Medial",                   new QoreBigIntNode(QChar::Medial));
-   qchar->addConstant("Final",                    new QoreBigIntNode(QChar::Final));
-   qchar->addConstant("Isolated",                 new QoreBigIntNode(QChar::Isolated));
-   qchar->addConstant("Circle",                   new QoreBigIntNode(QChar::Circle));
-   qchar->addConstant("Super",                    new QoreBigIntNode(QChar::Super));
-   qchar->addConstant("Sub",                      new QoreBigIntNode(QChar::Sub));
-   qchar->addConstant("Vertical",                 new QoreBigIntNode(QChar::Vertical));
-   qchar->addConstant("Wide",                     new QoreBigIntNode(QChar::Wide));
-   qchar->addConstant("Narrow",                   new QoreBigIntNode(QChar::Narrow));
-   qchar->addConstant("Small",                    new QoreBigIntNode(QChar::Small));
-   qchar->addConstant("Square",                   new QoreBigIntNode(QChar::Square));
-   qchar->addConstant("Compat",                   new QoreBigIntNode(QChar::Compat));
-   qchar->addConstant("Fraction",                 new QoreBigIntNode(QChar::Fraction));
-
-   // Joining enum
-   qchar->addConstant("OtherJoining",             new QoreBigIntNode(QChar::OtherJoining));
-   qchar->addConstant("Dual",                     new QoreBigIntNode(QChar::Dual));
-   qchar->addConstant("Right",                    new QoreBigIntNode(QChar::Right));
-   qchar->addConstant("Center",                   new QoreBigIntNode(QChar::Center));
-
-   // Combining class
-   qchar->addConstant("Combining_BelowLeftAttached", new QoreBigIntNode(QChar::Combining_BelowLeftAttached));
-   qchar->addConstant("Combining_BelowAttached",  new QoreBigIntNode(QChar::Combining_BelowAttached));
-   qchar->addConstant("Combining_BelowRightAttached", new QoreBigIntNode(QChar::Combining_BelowRightAttached));
-   qchar->addConstant("Combining_LeftAttached",   new QoreBigIntNode(QChar::Combining_LeftAttached));
-   qchar->addConstant("Combining_RightAttached",  new QoreBigIntNode(QChar::Combining_RightAttached));
-   qchar->addConstant("Combining_AboveLeftAttached", new QoreBigIntNode(QChar::Combining_AboveLeftAttached));
-   qchar->addConstant("Combining_AboveAttached",  new QoreBigIntNode(QChar::Combining_AboveAttached));
-   qchar->addConstant("Combining_AboveRightAttached", new QoreBigIntNode(QChar::Combining_AboveRightAttached));
-   qchar->addConstant("Combining_BelowLeft",      new QoreBigIntNode(QChar::Combining_BelowLeft));
-   qchar->addConstant("Combining_Below",          new QoreBigIntNode(QChar::Combining_Below));
-   qchar->addConstant("Combining_BelowRight",     new QoreBigIntNode(QChar::Combining_BelowRight));
-   qchar->addConstant("Combining_Left",           new QoreBigIntNode(QChar::Combining_Left));
-   qchar->addConstant("Combining_Right",          new QoreBigIntNode(QChar::Combining_Right));
-   qchar->addConstant("Combining_AboveLeft",      new QoreBigIntNode(QChar::Combining_AboveLeft));
-   qchar->addConstant("Combining_Above",          new QoreBigIntNode(QChar::Combining_Above));
-   qchar->addConstant("Combining_AboveRight",     new QoreBigIntNode(QChar::Combining_AboveRight));
-   qchar->addConstant("Combining_DoubleBelow",    new QoreBigIntNode(QChar::Combining_DoubleBelow));
-   qchar->addConstant("Combining_DoubleAbove",    new QoreBigIntNode(QChar::Combining_DoubleAbove));
-   qchar->addConstant("Combining_IotaSubscript",  new QoreBigIntNode(QChar::Combining_IotaSubscript));
-
-   // UnicodeVersion
-   qchar->addConstant("Unicode_Unassigned",       new QoreBigIntNode(QChar::Unicode_Unassigned));
-   qchar->addConstant("Unicode_1_1",              new QoreBigIntNode(QChar::Unicode_1_1));
-   qchar->addConstant("Unicode_2_0",              new QoreBigIntNode(QChar::Unicode_2_0));
-   qchar->addConstant("Unicode_2_1_2",            new QoreBigIntNode(QChar::Unicode_2_1_2));
-   qchar->addConstant("Unicode_3_0",              new QoreBigIntNode(QChar::Unicode_3_0));
-   qchar->addConstant("Unicode_3_1",              new QoreBigIntNode(QChar::Unicode_3_1));
-   qchar->addConstant("Unicode_3_2",              new QoreBigIntNode(QChar::Unicode_3_2));
-   qchar->addConstant("Unicode_4_0",              new QoreBigIntNode(QChar::Unicode_4_0));
-   qchar->addConstant("Unicode_4_1",              new QoreBigIntNode(QChar::Unicode_4_1));
-   qchar->addConstant("Unicode_5_0",              new QoreBigIntNode(QChar::Unicode_5_0));
-
-   qt_ns->addInitialNamespace(qchar);
 
    QoreNamespace *qcalendarwidget = new QoreNamespace("QCalendarWidget");
 
@@ -1352,428 +1015,8 @@ static void init_namespace()
 
    qt_ns->addInitialNamespace(qcalendarwidget);
 
-   QoreNamespace *qlocale = new QoreNamespace("QLocale");
-   qlocale->addSystemClass(initQLocaleClass());
-
-   // Language enum
-   qlocale->addConstant("C",                        new QoreBigIntNode(QLocale::C));
-   qlocale->addConstant("Abkhazian",                new QoreBigIntNode(QLocale::Abkhazian));
-   qlocale->addConstant("Afan",                     new QoreBigIntNode(QLocale::Afan));
-   qlocale->addConstant("Afar",                     new QoreBigIntNode(QLocale::Afar));
-   qlocale->addConstant("Afrikaans",                new QoreBigIntNode(QLocale::Afrikaans));
-   qlocale->addConstant("Albanian",                 new QoreBigIntNode(QLocale::Albanian));
-   qlocale->addConstant("Amharic",                  new QoreBigIntNode(QLocale::Amharic));
-   qlocale->addConstant("Arabic",                   new QoreBigIntNode(QLocale::Arabic));
-   qlocale->addConstant("Armenian",                 new QoreBigIntNode(QLocale::Armenian));
-   qlocale->addConstant("Assamese",                 new QoreBigIntNode(QLocale::Assamese));
-   qlocale->addConstant("Aymara",                   new QoreBigIntNode(QLocale::Aymara));
-   qlocale->addConstant("Azerbaijani",              new QoreBigIntNode(QLocale::Azerbaijani));
-   qlocale->addConstant("Bashkir",                  new QoreBigIntNode(QLocale::Bashkir));
-   qlocale->addConstant("Basque",                   new QoreBigIntNode(QLocale::Basque));
-   qlocale->addConstant("Bengali",                  new QoreBigIntNode(QLocale::Bengali));
-   qlocale->addConstant("Bhutani",                  new QoreBigIntNode(QLocale::Bhutani));
-   qlocale->addConstant("Bihari",                   new QoreBigIntNode(QLocale::Bihari));
-   qlocale->addConstant("Bislama",                  new QoreBigIntNode(QLocale::Bislama));
-   qlocale->addConstant("Breton",                   new QoreBigIntNode(QLocale::Breton));
-   qlocale->addConstant("Bulgarian",                new QoreBigIntNode(QLocale::Bulgarian));
-   qlocale->addConstant("Burmese",                  new QoreBigIntNode(QLocale::Burmese));
-   qlocale->addConstant("Byelorussian",             new QoreBigIntNode(QLocale::Byelorussian));
-   qlocale->addConstant("Cambodian",                new QoreBigIntNode(QLocale::Cambodian));
-   qlocale->addConstant("Catalan",                  new QoreBigIntNode(QLocale::Catalan));
-   qlocale->addConstant("Chinese",                  new QoreBigIntNode(QLocale::Chinese));
-   qlocale->addConstant("Corsican",                 new QoreBigIntNode(QLocale::Corsican));
-   qlocale->addConstant("Croatian",                 new QoreBigIntNode(QLocale::Croatian));
-   qlocale->addConstant("Czech",                    new QoreBigIntNode(QLocale::Czech));
-   qlocale->addConstant("Danish",                   new QoreBigIntNode(QLocale::Danish));
-   qlocale->addConstant("Dutch",                    new QoreBigIntNode(QLocale::Dutch));
-   qlocale->addConstant("English",                  new QoreBigIntNode(QLocale::English));
-   qlocale->addConstant("Esperanto",                new QoreBigIntNode(QLocale::Esperanto));
-   qlocale->addConstant("Estonian",                 new QoreBigIntNode(QLocale::Estonian));
-   qlocale->addConstant("Faroese",                  new QoreBigIntNode(QLocale::Faroese));
-   qlocale->addConstant("FijiLanguage",             new QoreBigIntNode(QLocale::FijiLanguage));
-   qlocale->addConstant("Finnish",                  new QoreBigIntNode(QLocale::Finnish));
-   qlocale->addConstant("French",                   new QoreBigIntNode(QLocale::French));
-   qlocale->addConstant("Frisian",                  new QoreBigIntNode(QLocale::Frisian));
-   qlocale->addConstant("Gaelic",                   new QoreBigIntNode(QLocale::Gaelic));
-   qlocale->addConstant("Galician",                 new QoreBigIntNode(QLocale::Galician));
-   qlocale->addConstant("Georgian",                 new QoreBigIntNode(QLocale::Georgian));
-   qlocale->addConstant("German",                   new QoreBigIntNode(QLocale::German));
-   qlocale->addConstant("Greek",                    new QoreBigIntNode(QLocale::Greek));
-   qlocale->addConstant("Greenlandic",              new QoreBigIntNode(QLocale::Greenlandic));
-   qlocale->addConstant("Guarani",                  new QoreBigIntNode(QLocale::Guarani));
-   qlocale->addConstant("Gujarati",                 new QoreBigIntNode(QLocale::Gujarati));
-   qlocale->addConstant("Hausa",                    new QoreBigIntNode(QLocale::Hausa));
-   qlocale->addConstant("Hebrew",                   new QoreBigIntNode(QLocale::Hebrew));
-   qlocale->addConstant("Hindi",                    new QoreBigIntNode(QLocale::Hindi));
-   qlocale->addConstant("Hungarian",                new QoreBigIntNode(QLocale::Hungarian));
-   qlocale->addConstant("Icelandic",                new QoreBigIntNode(QLocale::Icelandic));
-   qlocale->addConstant("Indonesian",               new QoreBigIntNode(QLocale::Indonesian));
-   qlocale->addConstant("Interlingua",              new QoreBigIntNode(QLocale::Interlingua));
-   qlocale->addConstant("Interlingue",              new QoreBigIntNode(QLocale::Interlingue));
-   qlocale->addConstant("Inuktitut",                new QoreBigIntNode(QLocale::Inuktitut));
-   qlocale->addConstant("Inupiak",                  new QoreBigIntNode(QLocale::Inupiak));
-   qlocale->addConstant("Irish",                    new QoreBigIntNode(QLocale::Irish));
-   qlocale->addConstant("Italian",                  new QoreBigIntNode(QLocale::Italian));
-   qlocale->addConstant("Japanese",                 new QoreBigIntNode(QLocale::Japanese));
-   qlocale->addConstant("Javanese",                 new QoreBigIntNode(QLocale::Javanese));
-   qlocale->addConstant("Kannada",                  new QoreBigIntNode(QLocale::Kannada));
-   qlocale->addConstant("Kashmiri",                 new QoreBigIntNode(QLocale::Kashmiri));
-   qlocale->addConstant("Kazakh",                   new QoreBigIntNode(QLocale::Kazakh));
-   qlocale->addConstant("Kinyarwanda",              new QoreBigIntNode(QLocale::Kinyarwanda));
-   qlocale->addConstant("Kirghiz",                  new QoreBigIntNode(QLocale::Kirghiz));
-   qlocale->addConstant("Korean",                   new QoreBigIntNode(QLocale::Korean));
-   qlocale->addConstant("Kurdish",                  new QoreBigIntNode(QLocale::Kurdish));
-   qlocale->addConstant("Kurundi",                  new QoreBigIntNode(QLocale::Kurundi));
-   qlocale->addConstant("Laothian",                 new QoreBigIntNode(QLocale::Laothian));
-   qlocale->addConstant("Latin",                    new QoreBigIntNode(QLocale::Latin));
-   qlocale->addConstant("Latvian",                  new QoreBigIntNode(QLocale::Latvian));
-   qlocale->addConstant("Lingala",                  new QoreBigIntNode(QLocale::Lingala));
-   qlocale->addConstant("Lithuanian",               new QoreBigIntNode(QLocale::Lithuanian));
-   qlocale->addConstant("Macedonian",               new QoreBigIntNode(QLocale::Macedonian));
-   qlocale->addConstant("Malagasy",                 new QoreBigIntNode(QLocale::Malagasy));
-   qlocale->addConstant("Malay",                    new QoreBigIntNode(QLocale::Malay));
-   qlocale->addConstant("Malayalam",                new QoreBigIntNode(QLocale::Malayalam));
-   qlocale->addConstant("Maltese",                  new QoreBigIntNode(QLocale::Maltese));
-   qlocale->addConstant("Maori",                    new QoreBigIntNode(QLocale::Maori));
-   qlocale->addConstant("Marathi",                  new QoreBigIntNode(QLocale::Marathi));
-   qlocale->addConstant("Moldavian",                new QoreBigIntNode(QLocale::Moldavian));
-   qlocale->addConstant("Mongolian",                new QoreBigIntNode(QLocale::Mongolian));
-   qlocale->addConstant("NauruLanguage",            new QoreBigIntNode(QLocale::NauruLanguage));
-   qlocale->addConstant("Nepali",                   new QoreBigIntNode(QLocale::Nepali));
-   qlocale->addConstant("Norwegian",                new QoreBigIntNode(QLocale::Norwegian));
-   qlocale->addConstant("NorwegianBokmal",          new QoreBigIntNode(QLocale::NorwegianBokmal));
-   qlocale->addConstant("Occitan",                  new QoreBigIntNode(QLocale::Occitan));
-   qlocale->addConstant("Oriya",                    new QoreBigIntNode(QLocale::Oriya));
-   qlocale->addConstant("Pashto",                   new QoreBigIntNode(QLocale::Pashto));
-   qlocale->addConstant("Persian",                  new QoreBigIntNode(QLocale::Persian));
-   qlocale->addConstant("Polish",                   new QoreBigIntNode(QLocale::Polish));
-   qlocale->addConstant("Portuguese",               new QoreBigIntNode(QLocale::Portuguese));
-   qlocale->addConstant("Punjabi",                  new QoreBigIntNode(QLocale::Punjabi));
-   qlocale->addConstant("Quechua",                  new QoreBigIntNode(QLocale::Quechua));
-   qlocale->addConstant("RhaetoRomance",            new QoreBigIntNode(QLocale::RhaetoRomance));
-   qlocale->addConstant("Romanian",                 new QoreBigIntNode(QLocale::Romanian));
-   qlocale->addConstant("Russian",                  new QoreBigIntNode(QLocale::Russian));
-   qlocale->addConstant("Samoan",                   new QoreBigIntNode(QLocale::Samoan));
-   qlocale->addConstant("Sangho",                   new QoreBigIntNode(QLocale::Sangho));
-   qlocale->addConstant("Sanskrit",                 new QoreBigIntNode(QLocale::Sanskrit));
-   qlocale->addConstant("Serbian",                  new QoreBigIntNode(QLocale::Serbian));
-   qlocale->addConstant("SerboCroatian",            new QoreBigIntNode(QLocale::SerboCroatian));
-   qlocale->addConstant("Sesotho",                  new QoreBigIntNode(QLocale::Sesotho));
-   qlocale->addConstant("Setswana",                 new QoreBigIntNode(QLocale::Setswana));
-   qlocale->addConstant("Shona",                    new QoreBigIntNode(QLocale::Shona));
-   qlocale->addConstant("Sindhi",                   new QoreBigIntNode(QLocale::Sindhi));
-   qlocale->addConstant("Singhalese",               new QoreBigIntNode(QLocale::Singhalese));
-   qlocale->addConstant("Siswati",                  new QoreBigIntNode(QLocale::Siswati));
-   qlocale->addConstant("Slovak",                   new QoreBigIntNode(QLocale::Slovak));
-   qlocale->addConstant("Slovenian",                new QoreBigIntNode(QLocale::Slovenian));
-   qlocale->addConstant("Somali",                   new QoreBigIntNode(QLocale::Somali));
-   qlocale->addConstant("Spanish",                  new QoreBigIntNode(QLocale::Spanish));
-   qlocale->addConstant("Sundanese",                new QoreBigIntNode(QLocale::Sundanese));
-   qlocale->addConstant("Swahili",                  new QoreBigIntNode(QLocale::Swahili));
-   qlocale->addConstant("Swedish",                  new QoreBigIntNode(QLocale::Swedish));
-   qlocale->addConstant("Tagalog",                  new QoreBigIntNode(QLocale::Tagalog));
-   qlocale->addConstant("Tajik",                    new QoreBigIntNode(QLocale::Tajik));
-   qlocale->addConstant("Tamil",                    new QoreBigIntNode(QLocale::Tamil));
-   qlocale->addConstant("Tatar",                    new QoreBigIntNode(QLocale::Tatar));
-   qlocale->addConstant("Telugu",                   new QoreBigIntNode(QLocale::Telugu));
-   qlocale->addConstant("Thai",                     new QoreBigIntNode(QLocale::Thai));
-   qlocale->addConstant("Tibetan",                  new QoreBigIntNode(QLocale::Tibetan));
-   qlocale->addConstant("Tigrinya",                 new QoreBigIntNode(QLocale::Tigrinya));
-   qlocale->addConstant("TongaLanguage",            new QoreBigIntNode(QLocale::TongaLanguage));
-   qlocale->addConstant("Tsonga",                   new QoreBigIntNode(QLocale::Tsonga));
-   qlocale->addConstant("Turkish",                  new QoreBigIntNode(QLocale::Turkish));
-   qlocale->addConstant("Turkmen",                  new QoreBigIntNode(QLocale::Turkmen));
-   qlocale->addConstant("Twi",                      new QoreBigIntNode(QLocale::Twi));
-   qlocale->addConstant("Uigur",                    new QoreBigIntNode(QLocale::Uigur));
-   qlocale->addConstant("Ukrainian",                new QoreBigIntNode(QLocale::Ukrainian));
-   qlocale->addConstant("Urdu",                     new QoreBigIntNode(QLocale::Urdu));
-   qlocale->addConstant("Uzbek",                    new QoreBigIntNode(QLocale::Uzbek));
-   qlocale->addConstant("Vietnamese",               new QoreBigIntNode(QLocale::Vietnamese));
-   qlocale->addConstant("Volapuk",                  new QoreBigIntNode(QLocale::Volapuk));
-   qlocale->addConstant("Welsh",                    new QoreBigIntNode(QLocale::Welsh));
-   qlocale->addConstant("Wolof",                    new QoreBigIntNode(QLocale::Wolof));
-   qlocale->addConstant("Xhosa",                    new QoreBigIntNode(QLocale::Xhosa));
-   qlocale->addConstant("Yiddish",                  new QoreBigIntNode(QLocale::Yiddish));
-   qlocale->addConstant("Yoruba",                   new QoreBigIntNode(QLocale::Yoruba));
-   qlocale->addConstant("Zhuang",                   new QoreBigIntNode(QLocale::Zhuang));
-   qlocale->addConstant("Zulu",                     new QoreBigIntNode(QLocale::Zulu));
-   qlocale->addConstant("NorwegianNynorsk",         new QoreBigIntNode(QLocale::NorwegianNynorsk));
-   qlocale->addConstant("Nynorsk",                  new QoreBigIntNode(QLocale::Nynorsk));
-   qlocale->addConstant("Bosnian",                  new QoreBigIntNode(QLocale::Bosnian));
-   qlocale->addConstant("Divehi",                   new QoreBigIntNode(QLocale::Divehi));
-   qlocale->addConstant("Manx",                     new QoreBigIntNode(QLocale::Manx));
-   qlocale->addConstant("Cornish",                  new QoreBigIntNode(QLocale::Cornish));
-   qlocale->addConstant("Akan",                     new QoreBigIntNode(QLocale::Akan));
-   qlocale->addConstant("Konkani",                  new QoreBigIntNode(QLocale::Konkani));
-   qlocale->addConstant("Ga",                       new QoreBigIntNode(QLocale::Ga));
-   qlocale->addConstant("Igbo",                     new QoreBigIntNode(QLocale::Igbo));
-   qlocale->addConstant("Kamba",                    new QoreBigIntNode(QLocale::Kamba));
-   qlocale->addConstant("Syriac",                   new QoreBigIntNode(QLocale::Syriac));
-   qlocale->addConstant("Blin",                     new QoreBigIntNode(QLocale::Blin));
-   qlocale->addConstant("Geez",                     new QoreBigIntNode(QLocale::Geez));
-   qlocale->addConstant("Koro",                     new QoreBigIntNode(QLocale::Koro));
-   qlocale->addConstant("Sidamo",                   new QoreBigIntNode(QLocale::Sidamo));
-   qlocale->addConstant("Atsam",                    new QoreBigIntNode(QLocale::Atsam));
-   qlocale->addConstant("Tigre",                    new QoreBigIntNode(QLocale::Tigre));
-   qlocale->addConstant("Jju",                      new QoreBigIntNode(QLocale::Jju));
-   qlocale->addConstant("Friulian",                 new QoreBigIntNode(QLocale::Friulian));
-   qlocale->addConstant("Venda",                    new QoreBigIntNode(QLocale::Venda));
-   qlocale->addConstant("Ewe",                      new QoreBigIntNode(QLocale::Ewe));
-   qlocale->addConstant("Walamo",                   new QoreBigIntNode(QLocale::Walamo));
-   qlocale->addConstant("Hawaiian",                 new QoreBigIntNode(QLocale::Hawaiian));
-   qlocale->addConstant("Tyap",                     new QoreBigIntNode(QLocale::Tyap));
-   qlocale->addConstant("Chewa",                    new QoreBigIntNode(QLocale::Chewa));
-   qlocale->addConstant("LastLanguage",             new QoreBigIntNode(QLocale::LastLanguage));
-
-   // Country enum
-   qlocale->addConstant("AnyCountry",               new QoreBigIntNode(QLocale::AnyCountry));
-   qlocale->addConstant("Afghanistan",              new QoreBigIntNode(QLocale::Afghanistan));
-   qlocale->addConstant("Albania",                  new QoreBigIntNode(QLocale::Albania));
-   qlocale->addConstant("Algeria",                  new QoreBigIntNode(QLocale::Algeria));
-   qlocale->addConstant("AmericanSamoa",            new QoreBigIntNode(QLocale::AmericanSamoa));
-   qlocale->addConstant("Andorra",                  new QoreBigIntNode(QLocale::Andorra));
-   qlocale->addConstant("Angola",                   new QoreBigIntNode(QLocale::Angola));
-   qlocale->addConstant("Anguilla",                 new QoreBigIntNode(QLocale::Anguilla));
-   qlocale->addConstant("Antarctica",               new QoreBigIntNode(QLocale::Antarctica));
-   qlocale->addConstant("AntiguaAndBarbuda",        new QoreBigIntNode(QLocale::AntiguaAndBarbuda));
-   qlocale->addConstant("Argentina",                new QoreBigIntNode(QLocale::Argentina));
-   qlocale->addConstant("Armenia",                  new QoreBigIntNode(QLocale::Armenia));
-   qlocale->addConstant("Aruba",                    new QoreBigIntNode(QLocale::Aruba));
-   qlocale->addConstant("Australia",                new QoreBigIntNode(QLocale::Australia));
-   qlocale->addConstant("Austria",                  new QoreBigIntNode(QLocale::Austria));
-   qlocale->addConstant("Azerbaijan",               new QoreBigIntNode(QLocale::Azerbaijan));
-   qlocale->addConstant("Bahamas",                  new QoreBigIntNode(QLocale::Bahamas));
-   qlocale->addConstant("Bahrain",                  new QoreBigIntNode(QLocale::Bahrain));
-   qlocale->addConstant("Bangladesh",               new QoreBigIntNode(QLocale::Bangladesh));
-   qlocale->addConstant("Barbados",                 new QoreBigIntNode(QLocale::Barbados));
-   qlocale->addConstant("Belarus",                  new QoreBigIntNode(QLocale::Belarus));
-   qlocale->addConstant("Belgium",                  new QoreBigIntNode(QLocale::Belgium));
-   qlocale->addConstant("Belize",                   new QoreBigIntNode(QLocale::Belize));
-   qlocale->addConstant("Benin",                    new QoreBigIntNode(QLocale::Benin));
-   qlocale->addConstant("Bermuda",                  new QoreBigIntNode(QLocale::Bermuda));
-   qlocale->addConstant("Bhutan",                   new QoreBigIntNode(QLocale::Bhutan));
-   qlocale->addConstant("Bolivia",                  new QoreBigIntNode(QLocale::Bolivia));
-   qlocale->addConstant("BosniaAndHerzegowina",     new QoreBigIntNode(QLocale::BosniaAndHerzegowina));
-   qlocale->addConstant("Botswana",                 new QoreBigIntNode(QLocale::Botswana));
-   qlocale->addConstant("BouvetIsland",             new QoreBigIntNode(QLocale::BouvetIsland));
-   qlocale->addConstant("Brazil",                   new QoreBigIntNode(QLocale::Brazil));
-   qlocale->addConstant("BritishIndianOceanTerritory", new QoreBigIntNode(QLocale::BritishIndianOceanTerritory));
-   qlocale->addConstant("BruneiDarussalam",         new QoreBigIntNode(QLocale::BruneiDarussalam));
-   qlocale->addConstant("Bulgaria",                 new QoreBigIntNode(QLocale::Bulgaria));
-   qlocale->addConstant("BurkinaFaso",              new QoreBigIntNode(QLocale::BurkinaFaso));
-   qlocale->addConstant("Burundi",                  new QoreBigIntNode(QLocale::Burundi));
-   qlocale->addConstant("Cambodia",                 new QoreBigIntNode(QLocale::Cambodia));
-   qlocale->addConstant("Cameroon",                 new QoreBigIntNode(QLocale::Cameroon));
-   qlocale->addConstant("Canada",                   new QoreBigIntNode(QLocale::Canada));
-   qlocale->addConstant("CapeVerde",                new QoreBigIntNode(QLocale::CapeVerde));
-   qlocale->addConstant("CaymanIslands",            new QoreBigIntNode(QLocale::CaymanIslands));
-   qlocale->addConstant("CentralAfricanRepublic",   new QoreBigIntNode(QLocale::CentralAfricanRepublic));
-   qlocale->addConstant("Chad",                     new QoreBigIntNode(QLocale::Chad));
-   qlocale->addConstant("Chile",                    new QoreBigIntNode(QLocale::Chile));
-   qlocale->addConstant("China",                    new QoreBigIntNode(QLocale::China));
-   qlocale->addConstant("ChristmasIsland",          new QoreBigIntNode(QLocale::ChristmasIsland));
-   qlocale->addConstant("CocosIslands",             new QoreBigIntNode(QLocale::CocosIslands));
-   qlocale->addConstant("Colombia",                 new QoreBigIntNode(QLocale::Colombia));
-   qlocale->addConstant("Comoros",                  new QoreBigIntNode(QLocale::Comoros));
-   qlocale->addConstant("DemocraticRepublicOfCongo", new QoreBigIntNode(QLocale::DemocraticRepublicOfCongo));
-   qlocale->addConstant("PeoplesRepublicOfCongo",   new QoreBigIntNode(QLocale::PeoplesRepublicOfCongo));
-   qlocale->addConstant("CookIslands",              new QoreBigIntNode(QLocale::CookIslands));
-   qlocale->addConstant("CostaRica",                new QoreBigIntNode(QLocale::CostaRica));
-   qlocale->addConstant("IvoryCoast",               new QoreBigIntNode(QLocale::IvoryCoast));
-   qlocale->addConstant("Croatia",                  new QoreBigIntNode(QLocale::Croatia));
-   qlocale->addConstant("Cuba",                     new QoreBigIntNode(QLocale::Cuba));
-   qlocale->addConstant("Cyprus",                   new QoreBigIntNode(QLocale::Cyprus));
-   qlocale->addConstant("CzechRepublic",            new QoreBigIntNode(QLocale::CzechRepublic));
-   qlocale->addConstant("Denmark",                  new QoreBigIntNode(QLocale::Denmark));
-   qlocale->addConstant("Djibouti",                 new QoreBigIntNode(QLocale::Djibouti));
-   qlocale->addConstant("Dominica",                 new QoreBigIntNode(QLocale::Dominica));
-   qlocale->addConstant("DominicanRepublic",        new QoreBigIntNode(QLocale::DominicanRepublic));
-   qlocale->addConstant("EastTimor",                new QoreBigIntNode(QLocale::EastTimor));
-   qlocale->addConstant("Ecuador",                  new QoreBigIntNode(QLocale::Ecuador));
-   qlocale->addConstant("Egypt",                    new QoreBigIntNode(QLocale::Egypt));
-   qlocale->addConstant("ElSalvador",               new QoreBigIntNode(QLocale::ElSalvador));
-   qlocale->addConstant("EquatorialGuinea",         new QoreBigIntNode(QLocale::EquatorialGuinea));
-   qlocale->addConstant("Eritrea",                  new QoreBigIntNode(QLocale::Eritrea));
-   qlocale->addConstant("Estonia",                  new QoreBigIntNode(QLocale::Estonia));
-   qlocale->addConstant("Ethiopia",                 new QoreBigIntNode(QLocale::Ethiopia));
-   qlocale->addConstant("FalklandIslands",          new QoreBigIntNode(QLocale::FalklandIslands));
-   qlocale->addConstant("FaroeIslands",             new QoreBigIntNode(QLocale::FaroeIslands));
-   qlocale->addConstant("FijiCountry",              new QoreBigIntNode(QLocale::FijiCountry));
-   qlocale->addConstant("Finland",                  new QoreBigIntNode(QLocale::Finland));
-   qlocale->addConstant("France",                   new QoreBigIntNode(QLocale::France));
-   qlocale->addConstant("MetropolitanFrance",       new QoreBigIntNode(QLocale::MetropolitanFrance));
-   qlocale->addConstant("FrenchGuiana",             new QoreBigIntNode(QLocale::FrenchGuiana));
-   qlocale->addConstant("FrenchPolynesia",          new QoreBigIntNode(QLocale::FrenchPolynesia));
-   qlocale->addConstant("FrenchSouthernTerritories", new QoreBigIntNode(QLocale::FrenchSouthernTerritories));
-   qlocale->addConstant("Gabon",                    new QoreBigIntNode(QLocale::Gabon));
-   qlocale->addConstant("Gambia",                   new QoreBigIntNode(QLocale::Gambia));
-   qlocale->addConstant("Georgia",                  new QoreBigIntNode(QLocale::Georgia));
-   qlocale->addConstant("Germany",                  new QoreBigIntNode(QLocale::Germany));
-   qlocale->addConstant("Ghana",                    new QoreBigIntNode(QLocale::Ghana));
-   qlocale->addConstant("Gibraltar",                new QoreBigIntNode(QLocale::Gibraltar));
-   qlocale->addConstant("Greece",                   new QoreBigIntNode(QLocale::Greece));
-   qlocale->addConstant("Greenland",                new QoreBigIntNode(QLocale::Greenland));
-   qlocale->addConstant("Grenada",                  new QoreBigIntNode(QLocale::Grenada));
-   qlocale->addConstant("Guadeloupe",               new QoreBigIntNode(QLocale::Guadeloupe));
-   qlocale->addConstant("Guam",                     new QoreBigIntNode(QLocale::Guam));
-   qlocale->addConstant("Guatemala",                new QoreBigIntNode(QLocale::Guatemala));
-   qlocale->addConstant("Guinea",                   new QoreBigIntNode(QLocale::Guinea));
-   qlocale->addConstant("GuineaBissau",             new QoreBigIntNode(QLocale::GuineaBissau));
-   qlocale->addConstant("Guyana",                   new QoreBigIntNode(QLocale::Guyana));
-   qlocale->addConstant("Haiti",                    new QoreBigIntNode(QLocale::Haiti));
-   qlocale->addConstant("HeardAndMcDonaldIslands",  new QoreBigIntNode(QLocale::HeardAndMcDonaldIslands));
-   qlocale->addConstant("Honduras",                 new QoreBigIntNode(QLocale::Honduras));
-   qlocale->addConstant("HongKong",                 new QoreBigIntNode(QLocale::HongKong));
-   qlocale->addConstant("Hungary",                  new QoreBigIntNode(QLocale::Hungary));
-   qlocale->addConstant("Iceland",                  new QoreBigIntNode(QLocale::Iceland));
-   qlocale->addConstant("India",                    new QoreBigIntNode(QLocale::India));
-   qlocale->addConstant("Indonesia",                new QoreBigIntNode(QLocale::Indonesia));
-   qlocale->addConstant("Iran",                     new QoreBigIntNode(QLocale::Iran));
-   qlocale->addConstant("Iraq",                     new QoreBigIntNode(QLocale::Iraq));
-   qlocale->addConstant("Ireland",                  new QoreBigIntNode(QLocale::Ireland));
-   qlocale->addConstant("Israel",                   new QoreBigIntNode(QLocale::Israel));
-   qlocale->addConstant("Italy",                    new QoreBigIntNode(QLocale::Italy));
-   qlocale->addConstant("Jamaica",                  new QoreBigIntNode(QLocale::Jamaica));
-   qlocale->addConstant("Japan",                    new QoreBigIntNode(QLocale::Japan));
-   qlocale->addConstant("Jordan",                   new QoreBigIntNode(QLocale::Jordan));
-   qlocale->addConstant("Kazakhstan",               new QoreBigIntNode(QLocale::Kazakhstan));
-   qlocale->addConstant("Kenya",                    new QoreBigIntNode(QLocale::Kenya));
-   qlocale->addConstant("Kiribati",                 new QoreBigIntNode(QLocale::Kiribati));
-   qlocale->addConstant("DemocraticRepublicOfKorea", new QoreBigIntNode(QLocale::DemocraticRepublicOfKorea));
-   qlocale->addConstant("RepublicOfKorea",          new QoreBigIntNode(QLocale::RepublicOfKorea));
-   qlocale->addConstant("Kuwait",                   new QoreBigIntNode(QLocale::Kuwait));
-   qlocale->addConstant("Kyrgyzstan",               new QoreBigIntNode(QLocale::Kyrgyzstan));
-   qlocale->addConstant("Lao",                      new QoreBigIntNode(QLocale::Lao));
-   qlocale->addConstant("Latvia",                   new QoreBigIntNode(QLocale::Latvia));
-   qlocale->addConstant("Lebanon",                  new QoreBigIntNode(QLocale::Lebanon));
-   qlocale->addConstant("Lesotho",                  new QoreBigIntNode(QLocale::Lesotho));
-   qlocale->addConstant("Liberia",                  new QoreBigIntNode(QLocale::Liberia));
-   qlocale->addConstant("LibyanArabJamahiriya",     new QoreBigIntNode(QLocale::LibyanArabJamahiriya));
-   qlocale->addConstant("Liechtenstein",            new QoreBigIntNode(QLocale::Liechtenstein));
-   qlocale->addConstant("Lithuania",                new QoreBigIntNode(QLocale::Lithuania));
-   qlocale->addConstant("Luxembourg",               new QoreBigIntNode(QLocale::Luxembourg));
-   qlocale->addConstant("Macau",                    new QoreBigIntNode(QLocale::Macau));
-   qlocale->addConstant("Macedonia",                new QoreBigIntNode(QLocale::Macedonia));
-   qlocale->addConstant("Madagascar",               new QoreBigIntNode(QLocale::Madagascar));
-   qlocale->addConstant("Malawi",                   new QoreBigIntNode(QLocale::Malawi));
-   qlocale->addConstant("Malaysia",                 new QoreBigIntNode(QLocale::Malaysia));
-   qlocale->addConstant("Maldives",                 new QoreBigIntNode(QLocale::Maldives));
-   qlocale->addConstant("Mali",                     new QoreBigIntNode(QLocale::Mali));
-   qlocale->addConstant("Malta",                    new QoreBigIntNode(QLocale::Malta));
-   qlocale->addConstant("MarshallIslands",          new QoreBigIntNode(QLocale::MarshallIslands));
-   qlocale->addConstant("Martinique",               new QoreBigIntNode(QLocale::Martinique));
-   qlocale->addConstant("Mauritania",               new QoreBigIntNode(QLocale::Mauritania));
-   qlocale->addConstant("Mauritius",                new QoreBigIntNode(QLocale::Mauritius));
-   qlocale->addConstant("Mayotte",                  new QoreBigIntNode(QLocale::Mayotte));
-   qlocale->addConstant("Mexico",                   new QoreBigIntNode(QLocale::Mexico));
-   qlocale->addConstant("Micronesia",               new QoreBigIntNode(QLocale::Micronesia));
-   qlocale->addConstant("Moldova",                  new QoreBigIntNode(QLocale::Moldova));
-   qlocale->addConstant("Monaco",                   new QoreBigIntNode(QLocale::Monaco));
-   qlocale->addConstant("Mongolia",                 new QoreBigIntNode(QLocale::Mongolia));
-   qlocale->addConstant("Montserrat",               new QoreBigIntNode(QLocale::Montserrat));
-   qlocale->addConstant("Morocco",                  new QoreBigIntNode(QLocale::Morocco));
-   qlocale->addConstant("Mozambique",               new QoreBigIntNode(QLocale::Mozambique));
-   qlocale->addConstant("Myanmar",                  new QoreBigIntNode(QLocale::Myanmar));
-   qlocale->addConstant("Namibia",                  new QoreBigIntNode(QLocale::Namibia));
-   qlocale->addConstant("NauruCountry",             new QoreBigIntNode(QLocale::NauruCountry));
-   qlocale->addConstant("Nepal",                    new QoreBigIntNode(QLocale::Nepal));
-   qlocale->addConstant("Netherlands",              new QoreBigIntNode(QLocale::Netherlands));
-   qlocale->addConstant("NetherlandsAntilles",      new QoreBigIntNode(QLocale::NetherlandsAntilles));
-   qlocale->addConstant("NewCaledonia",             new QoreBigIntNode(QLocale::NewCaledonia));
-   qlocale->addConstant("NewZealand",               new QoreBigIntNode(QLocale::NewZealand));
-   qlocale->addConstant("Nicaragua",                new QoreBigIntNode(QLocale::Nicaragua));
-   qlocale->addConstant("Niger",                    new QoreBigIntNode(QLocale::Niger));
-   qlocale->addConstant("Nigeria",                  new QoreBigIntNode(QLocale::Nigeria));
-   qlocale->addConstant("Niue",                     new QoreBigIntNode(QLocale::Niue));
-   qlocale->addConstant("NorfolkIsland",            new QoreBigIntNode(QLocale::NorfolkIsland));
-   qlocale->addConstant("NorthernMarianaIslands",   new QoreBigIntNode(QLocale::NorthernMarianaIslands));
-   qlocale->addConstant("Norway",                   new QoreBigIntNode(QLocale::Norway));
-   qlocale->addConstant("Oman",                     new QoreBigIntNode(QLocale::Oman));
-   qlocale->addConstant("Pakistan",                 new QoreBigIntNode(QLocale::Pakistan));
-   qlocale->addConstant("Palau",                    new QoreBigIntNode(QLocale::Palau));
-   qlocale->addConstant("PalestinianTerritory",     new QoreBigIntNode(QLocale::PalestinianTerritory));
-   qlocale->addConstant("Panama",                   new QoreBigIntNode(QLocale::Panama));
-   qlocale->addConstant("PapuaNewGuinea",           new QoreBigIntNode(QLocale::PapuaNewGuinea));
-   qlocale->addConstant("Paraguay",                 new QoreBigIntNode(QLocale::Paraguay));
-   qlocale->addConstant("Peru",                     new QoreBigIntNode(QLocale::Peru));
-   qlocale->addConstant("Philippines",              new QoreBigIntNode(QLocale::Philippines));
-   qlocale->addConstant("Pitcairn",                 new QoreBigIntNode(QLocale::Pitcairn));
-   qlocale->addConstant("Poland",                   new QoreBigIntNode(QLocale::Poland));
-   qlocale->addConstant("Portugal",                 new QoreBigIntNode(QLocale::Portugal));
-   qlocale->addConstant("PuertoRico",               new QoreBigIntNode(QLocale::PuertoRico));
-   qlocale->addConstant("Qatar",                    new QoreBigIntNode(QLocale::Qatar));
-   qlocale->addConstant("Reunion",                  new QoreBigIntNode(QLocale::Reunion));
-   qlocale->addConstant("Romania",                  new QoreBigIntNode(QLocale::Romania));
-   qlocale->addConstant("RussianFederation",        new QoreBigIntNode(QLocale::RussianFederation));
-   qlocale->addConstant("Rwanda",                   new QoreBigIntNode(QLocale::Rwanda));
-   qlocale->addConstant("SaintKittsAndNevis",       new QoreBigIntNode(QLocale::SaintKittsAndNevis));
-   qlocale->addConstant("StLucia",                  new QoreBigIntNode(QLocale::StLucia));
-   qlocale->addConstant("StVincentAndTheGrenadines", new QoreBigIntNode(QLocale::StVincentAndTheGrenadines));
-   qlocale->addConstant("Samoa",                    new QoreBigIntNode(QLocale::Samoa));
-   qlocale->addConstant("SanMarino",                new QoreBigIntNode(QLocale::SanMarino));
-   qlocale->addConstant("SaoTomeAndPrincipe",       new QoreBigIntNode(QLocale::SaoTomeAndPrincipe));
-   qlocale->addConstant("SaudiArabia",              new QoreBigIntNode(QLocale::SaudiArabia));
-   qlocale->addConstant("Senegal",                  new QoreBigIntNode(QLocale::Senegal));
-   qlocale->addConstant("Seychelles",               new QoreBigIntNode(QLocale::Seychelles));
-   qlocale->addConstant("SierraLeone",              new QoreBigIntNode(QLocale::SierraLeone));
-   qlocale->addConstant("Singapore",                new QoreBigIntNode(QLocale::Singapore));
-   qlocale->addConstant("Slovakia",                 new QoreBigIntNode(QLocale::Slovakia));
-   qlocale->addConstant("Slovenia",                 new QoreBigIntNode(QLocale::Slovenia));
-   qlocale->addConstant("SolomonIslands",           new QoreBigIntNode(QLocale::SolomonIslands));
-   qlocale->addConstant("Somalia",                  new QoreBigIntNode(QLocale::Somalia));
-   qlocale->addConstant("SouthAfrica",              new QoreBigIntNode(QLocale::SouthAfrica));
-   qlocale->addConstant("SouthGeorgiaAndTheSouthSandwichIslands", new QoreBigIntNode(QLocale::SouthGeorgiaAndTheSouthSandwichIslands));
-   qlocale->addConstant("Spain",                    new QoreBigIntNode(QLocale::Spain));
-   qlocale->addConstant("SriLanka",                 new QoreBigIntNode(QLocale::SriLanka));
-   qlocale->addConstant("StHelena",                 new QoreBigIntNode(QLocale::StHelena));
-   qlocale->addConstant("StPierreAndMiquelon",      new QoreBigIntNode(QLocale::StPierreAndMiquelon));
-   qlocale->addConstant("Sudan",                    new QoreBigIntNode(QLocale::Sudan));
-   qlocale->addConstant("Suriname",                 new QoreBigIntNode(QLocale::Suriname));
-   qlocale->addConstant("SvalbardAndJanMayenIslands", new QoreBigIntNode(QLocale::SvalbardAndJanMayenIslands));
-   qlocale->addConstant("Swaziland",                new QoreBigIntNode(QLocale::Swaziland));
-   qlocale->addConstant("Sweden",                   new QoreBigIntNode(QLocale::Sweden));
-   qlocale->addConstant("Switzerland",              new QoreBigIntNode(QLocale::Switzerland));
-   qlocale->addConstant("SyrianArabRepublic",       new QoreBigIntNode(QLocale::SyrianArabRepublic));
-   qlocale->addConstant("Taiwan",                   new QoreBigIntNode(QLocale::Taiwan));
-   qlocale->addConstant("Tajikistan",               new QoreBigIntNode(QLocale::Tajikistan));
-   qlocale->addConstant("Tanzania",                 new QoreBigIntNode(QLocale::Tanzania));
-   qlocale->addConstant("Thailand",                 new QoreBigIntNode(QLocale::Thailand));
-   qlocale->addConstant("Togo",                     new QoreBigIntNode(QLocale::Togo));
-   qlocale->addConstant("Tokelau",                  new QoreBigIntNode(QLocale::Tokelau));
-   qlocale->addConstant("TongaCountry",             new QoreBigIntNode(QLocale::TongaCountry));
-   qlocale->addConstant("TrinidadAndTobago",        new QoreBigIntNode(QLocale::TrinidadAndTobago));
-   qlocale->addConstant("Tunisia",                  new QoreBigIntNode(QLocale::Tunisia));
-   qlocale->addConstant("Turkey",                   new QoreBigIntNode(QLocale::Turkey));
-   qlocale->addConstant("Turkmenistan",             new QoreBigIntNode(QLocale::Turkmenistan));
-   qlocale->addConstant("TurksAndCaicosIslands",    new QoreBigIntNode(QLocale::TurksAndCaicosIslands));
-   qlocale->addConstant("Tuvalu",                   new QoreBigIntNode(QLocale::Tuvalu));
-   qlocale->addConstant("Uganda",                   new QoreBigIntNode(QLocale::Uganda));
-   qlocale->addConstant("Ukraine",                  new QoreBigIntNode(QLocale::Ukraine));
-   qlocale->addConstant("UnitedArabEmirates",       new QoreBigIntNode(QLocale::UnitedArabEmirates));
-   qlocale->addConstant("UnitedKingdom",            new QoreBigIntNode(QLocale::UnitedKingdom));
-   qlocale->addConstant("UnitedStates",             new QoreBigIntNode(QLocale::UnitedStates));
-   qlocale->addConstant("UnitedStatesMinorOutlyingIslands", new QoreBigIntNode(QLocale::UnitedStatesMinorOutlyingIslands));
-   qlocale->addConstant("Uruguay",                  new QoreBigIntNode(QLocale::Uruguay));
-   qlocale->addConstant("Uzbekistan",               new QoreBigIntNode(QLocale::Uzbekistan));
-   qlocale->addConstant("Vanuatu",                  new QoreBigIntNode(QLocale::Vanuatu));
-   qlocale->addConstant("VaticanCityState",         new QoreBigIntNode(QLocale::VaticanCityState));
-   qlocale->addConstant("Venezuela",                new QoreBigIntNode(QLocale::Venezuela));
-   qlocale->addConstant("VietNam",                  new QoreBigIntNode(QLocale::VietNam));
-   qlocale->addConstant("BritishVirginIslands",     new QoreBigIntNode(QLocale::BritishVirginIslands));
-   qlocale->addConstant("USVirginIslands",          new QoreBigIntNode(QLocale::USVirginIslands));
-   qlocale->addConstant("WallisAndFutunaIslands",   new QoreBigIntNode(QLocale::WallisAndFutunaIslands));
-   qlocale->addConstant("WesternSahara",            new QoreBigIntNode(QLocale::WesternSahara));
-   qlocale->addConstant("Yemen",                    new QoreBigIntNode(QLocale::Yemen));
-   qlocale->addConstant("Yugoslavia",               new QoreBigIntNode(QLocale::Yugoslavia));
-   qlocale->addConstant("Zambia",                   new QoreBigIntNode(QLocale::Zambia));
-   qlocale->addConstant("Zimbabwe",                 new QoreBigIntNode(QLocale::Zimbabwe));
-   qlocale->addConstant("SerbiaAndMontenegro",      new QoreBigIntNode(QLocale::SerbiaAndMontenegro));
-   qlocale->addConstant("LastCountry",              new QoreBigIntNode(QLocale::LastCountry));
-
-   qt_ns->addInitialNamespace(qlocale);
-
    // add QFont namespaces and constants
-   class QoreNamespace *qframens = new QoreNamespace("QFrame");
+   QoreNamespace *qframens = new QoreNamespace("QFrame");
    // Shadow enum
    qframens->addConstant("Plain",    new QoreBigIntNode(QFrame::Plain));
    qframens->addConstant("Raised",   new QoreBigIntNode(QFrame::Raised));
@@ -2613,6 +1856,11 @@ static void init_namespace()
 
 static class QoreStringNode *qt_module_init()
 {
+   // add hooks to qt-core functionality
+   register_return_qvariant_hook(return_gui_qvariant);
+   register_return_qobject_hook(return_gui_qobject);
+   register_return_qevent_hook(return_gui_qevent);
+
    // add new types
    addBrushStyleType();
    addPenStyleType();
@@ -2620,19 +1868,7 @@ static class QoreStringNode *qt_module_init()
    // initialize namespace (must come after type initialization)
    init_namespace();
 
-   builtinFunctions.add("QObject_connect",            f_QObject_connect, QDOM_GUI);
-   builtinFunctions.add("SLOT",                       f_SLOT, QDOM_GUI);
-   builtinFunctions.add("SIGNAL",                     f_SIGNAL, QDOM_GUI);
-   builtinFunctions.add("TR",                         f_TR, QDOM_GUI);
    builtinFunctions.add("QAPP",                       f_QAPP, QDOM_GUI);
-   builtinFunctions.add("qDebug",                     f_qDebug, QDOM_GUI);
-   builtinFunctions.add("qWarning",                   f_qWarning, QDOM_GUI);
-   builtinFunctions.add("qCritical",                  f_qCritical, QDOM_GUI);
-   builtinFunctions.add("qFatal",                     f_qFatal, QDOM_GUI);
-   builtinFunctions.add("qRound",                     f_qRound, QDOM_GUI);
-   builtinFunctions.add("qsrand",                     f_qsrand, QDOM_GUI);
-   builtinFunctions.add("qrand",                      f_qrand, QDOM_GUI);
-   builtinFunctions.add("qSwap",                      f_qSwap, QDOM_GUI);
 
    // QToolTip static functions
    builtinFunctions.add("QToolTip_font",              f_QToolTip_font, QDOM_GUI);
@@ -2656,29 +1892,24 @@ static class QoreStringNode *qt_module_init()
    builtinFunctions.add("qRgba",                      f_qRgba, QDOM_GUI);
 
    // add static class functions as builtin functions
-   initQCoreApplicationStaticFunctions();
    initQApplicationStaticFunctions();
-   initQLocaleStaticFunctions();
    initQFontDatabaseStaticFunctions();
    initQMessageBoxStaticFunctions();
    initQPixmapStaticFunctions();
    initQFileDialogStaticFunctions();
-   initQDirStaticFunctions();
    initQMovieStaticFunctions();
    initQColorDialogStaticFunctions();
    initQInputDialogStaticFunctions();
    initQImageWriterStaticFunctions();
    initQColorStaticFunctions();
-   initQTimerStaticFunctions();
    initQSystemTrayIconStaticFunctions();
-   initQLibraryInfoStaticFunctions();
    initQFontDialogStaticFunctions();
    initQCursorStaticFunctions();
 
    return 0;
 }
 
-static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
+static void qt_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
 {
    qns->addInitialNamespace(qt_ns->copy());
 }

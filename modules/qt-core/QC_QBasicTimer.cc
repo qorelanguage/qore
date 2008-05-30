@@ -25,7 +25,7 @@
 #include "QC_QBasicTimer.h"
 #include "QC_QObject.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QBASICTIMER;
 class QoreClass *QC_QBasicTimer = 0;

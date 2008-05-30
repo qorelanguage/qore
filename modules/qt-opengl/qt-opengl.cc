@@ -48,7 +48,7 @@ DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
 DLLEXPORT qore_module_init_t qore_module_init = qt_opengl_module_init;
 DLLEXPORT qore_module_ns_init_t qore_module_ns_init = qt_opengl_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = qt_opengl_module_delete;
-DLLEXPORT char *qore_module_dependencies[] = { "qt", "opengl", 0 };
+DLLEXPORT char *qore_module_dependencies[] = { "qt-gui", "opengl", 0 };
 DLLEXPORT qore_license_t qore_module_license = QL_GPL;
 #endif
 

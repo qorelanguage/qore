@@ -23,20 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QEvent.h"
-#include "QC_QRegion.h"
 #include "QC_QRect.h"
 
-#include "QC_QGraphicsSceneEvent.h"
-#include "QC_QGraphicsSceneContextMenuEvent.h"
-#include "QC_QGraphicsSceneDragDropEvent.h"
-#include "QC_QGraphicsSceneHelpEvent.h"
-#include "QC_QGraphicsSceneHoverEvent.h"
-#include "QC_QGraphicsSceneMouseEvent.h"
-#include "QC_QGraphicsSceneWheelEvent.h"
-
 qore_classid_t CID_QEVENT;
-
-class QoreClass *QC_QEvent = 0;
+QoreClass *QC_QEvent = 0;
 
 static void QEVENT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -117,44 +107,11 @@ QoreNamespace *initQEventNS()
 {
    QoreNamespace *ns = new QoreNamespace("QEvent");
 
-   QoreClass *qevent, *qinputevent, *qdropevent, *qdragmoveevent;
+   QoreClass *qevent;
    ns->addSystemClass((qevent = initQEventClass()));
-   ns->addSystemClass(initQPaintEventClass(qevent));
-   ns->addSystemClass(initQMoveEventClass(qevent));
-   ns->addSystemClass(initQResizeEventClass(qevent));
-
-   ns->addSystemClass((qinputevent = initQInputEventClass(qevent)));
-   ns->addSystemClass(initQKeyEventClass(qinputevent));
-   ns->addSystemClass(initQMouseEventClass(qinputevent));
-   ns->addSystemClass(initQContextMenuEventClass(qinputevent));
-   ns->addSystemClass(initQTabletEventClass(qinputevent));
-   ns->addSystemClass(initQWheelEventClass(qinputevent));
-
-   ns->addSystemClass(initQActionEventClass(qevent));
-   ns->addSystemClass(initQCloseEventClass(qevent));
-
-   ns->addSystemClass((qdropevent = initQDropEventClass(qevent)));
-   ns->addSystemClass((qdragmoveevent = initQDragMoveEventClass(qdropevent)));
-   ns->addSystemClass(initQDragEnterEventClass(qdragmoveevent));
-
-   ns->addSystemClass(initQDragLeaveEventClass(qevent));
-   ns->addSystemClass(initQFocusEventClass(qevent));
-   ns->addSystemClass(initQHideEventClass(qevent));
-   ns->addSystemClass(initQInputMethodEventClass(qevent));
-   ns->addSystemClass(initQShowEventClass(qevent));
 
    ns->addSystemClass(initQChildEventClass(qevent));
    ns->addSystemClass(initQTimerEventClass(qevent));
-   ns->addSystemClass(initQHelpEventClass(qevent));
-
-   QoreClass *qgraphicssceneevent;
-   ns->addSystemClass((qgraphicssceneevent = initQGraphicsSceneEventClass(qevent)));
-   ns->addInitialNamespace(initQGraphicsSceneContextMenuEventNS(qgraphicssceneevent));
-   ns->addSystemClass(initQGraphicsSceneDragDropEventClass(qgraphicssceneevent));
-   ns->addSystemClass(initQGraphicsSceneHelpEventClass(qgraphicssceneevent));
-   ns->addSystemClass(initQGraphicsSceneHoverEventClass(qgraphicssceneevent));
-   ns->addSystemClass(initQGraphicsSceneMouseEventClass(qgraphicssceneevent));
-   ns->addSystemClass(initQGraphicsSceneWheelEventClass(qgraphicssceneevent));
 
    // Type enum
    ns->addConstant("None",                     new QoreBigIntNode(QEvent::None));

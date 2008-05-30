@@ -24,7 +24,7 @@
 
 #include "QC_QRegExp.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QREGEXP;
 class QoreClass *QC_QRegExp = 0;

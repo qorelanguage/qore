@@ -25,7 +25,7 @@
 #include "QC_QDate.h"
 #include "QC_QTime.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 DLLLOCAL qore_classid_t CID_QDATETIME;
 

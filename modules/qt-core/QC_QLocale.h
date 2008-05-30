@@ -27,9 +27,9 @@
 #include <QLocale>
 
 DLLEXPORT extern qore_classid_t CID_QLOCALE;
-DLLEXPORT extern class QoreClass *QC_QLocale;
+DLLEXPORT extern QoreClass *QC_QLocale;
 
-DLLEXPORT class QoreClass *initQLocaleClass();
+DLLEXPORT QoreNamespace *initQLocaleNS();
 DLLEXPORT void initQLocaleStaticFunctions();
 
 class QoreQLocale : public AbstractPrivateData, public QLocale

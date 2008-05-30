@@ -50,7 +50,6 @@ QORE_QT_GUI_SOURCES = qt-util.cc QC_QApplication.cc QC_QPushButton.cc \
 	QC_QTextImageFormat.cc \
 	QC_QCalendarWidget.cc \
 	QC_QStyleOption.cc \
-	QC_QModelIndex.cc \
 	QC_QStyleOptionViewItem.cc \
 	QC_QStyleOptionViewItemV2.cc \
 	QC_QAbstractItemDelegate.cc \
@@ -118,7 +117,6 @@ QORE_QT_GUI_SOURCES = qt-util.cc QC_QApplication.cc QC_QPushButton.cc \
 	QC_QRegExpValidator.cc \
 	QC_QColorDialog.cc \
 	QC_QInputDialog.cc \
-	QC_QIODevice.cc \
 	QC_QImageWriter.cc \
 	QC_QDial.cc \
 	QC_QStackedWidget.cc \
@@ -138,7 +136,6 @@ QORE_QT_GUI_SOURCES = qt-util.cc QC_QApplication.cc QC_QPushButton.cc \
 	QC_QSystemTrayIcon.cc \
 	QC_QWizard.cc \
 	QC_QWizardPage.cc \
-	QC_QTranslator.cc \
 	QC_QLibraryInfo.cc \
 	QC_QListView.cc \
 	QC_QListWidget.cc \

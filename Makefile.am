@@ -258,6 +258,7 @@ noinst_HEADERS = \
 	modules/qt-core/QoreAbstractQObject.h \
 	modules/qt-core/QoreAbstractQAbstractItemModel.h \
 	modules/qt-core/qore-qt-metacode.h \
+	modules/qt-core/qt-core.h \
 	modules/qt-core/QC_QRect.h \
 	modules/qt-core/QC_QRectF.h \
 	modules/qt-core/QC_QPoint.h \
@@ -283,6 +284,8 @@ noinst_HEADERS = \
 	modules/qt-core/QC_QTimerEvent.h \
 	modules/qt-core/QC_QLibraryInfo.h \
 	modules/qt-core/QC_QCoreApplication.h \
+	modules/qt-core/QC_QModelIndex.h \
+	modules/qt-core/QC_QTranslator.h \
 	modules/qt-core/QoreAbstractQCoreApplication.h \
 	modules/qt-core/QoreQtDynamicMethod.h \
 	modules/qt-core/QoreQtEventDispatcher.h \
@@ -382,7 +385,6 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QTextImageFormat.h \
 	modules/qt-gui/QC_QCalendarWidget.h \
 	modules/qt-gui/QC_QStyleOption.h \
-	modules/qt-gui/QC_QModelIndex.h \
 	modules/qt-gui/QC_QStyleOptionViewItem.h \
 	modules/qt-gui/QC_QStyleOptionViewItemV2.h \
 	modules/qt-gui/QC_QAbstractItemDelegate.h \
@@ -480,7 +482,6 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QSystemTrayIcon.h \
 	modules/qt-gui/QC_QWizard.h \
 	modules/qt-gui/QC_QWizardPage.h \
-	modules/qt-gui/QC_QTranslator.h \
 	modules/qt-gui/QC_QListView.h \
 	modules/qt-gui/QoreAbstractQListView.h \
 	modules/qt-gui/QC_QListWidget.h \

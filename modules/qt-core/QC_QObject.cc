@@ -23,7 +23,6 @@
 #include <qore/Qore.h>
 
 #include "QC_QObject.h"
-#include "QC_QFont.h"
 #include "QC_QMetaObject.h"
 
 qore_classid_t CID_QOBJECT;

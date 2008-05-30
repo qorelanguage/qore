@@ -25,7 +25,7 @@
 #include "QC_QUrl.h"
 #include "QC_QByteArray.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QURL;
 class QoreClass *QC_QUrl = 0;

@@ -26,7 +26,7 @@
 #include "QC_QLine.h"
 #include "QC_QPointF.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QLINEF;
 class QoreClass *QC_QLineF = 0;

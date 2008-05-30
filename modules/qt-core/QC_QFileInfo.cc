@@ -27,7 +27,7 @@
 #include "QC_QDate.h"
 #include "QC_QTime.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QFILEINFO;
 class QoreClass *QC_QFileInfo = 0;

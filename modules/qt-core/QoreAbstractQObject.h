@@ -35,8 +35,6 @@
 #include "QoreQtEventDispatcher.h"
 #include "QoreQtDynamicMethod.h"
 
-#include "qore-qt-events.h"
-
 class QoreAbstractQObject : public AbstractPrivateData
 {
    public:

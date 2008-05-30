@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include "QC_QDate.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QDATE;
 QoreClass *QC_QDate = 0;

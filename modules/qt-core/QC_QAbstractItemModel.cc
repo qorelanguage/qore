@@ -27,7 +27,7 @@
 #include "QC_QMimeData.h"
 #include "QC_QSize.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QABSTRACTITEMMODEL;
 class QoreClass *QC_QAbstractItemModel = 0;

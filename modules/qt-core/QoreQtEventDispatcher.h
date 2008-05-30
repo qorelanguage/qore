@@ -24,7 +24,7 @@
 
 #define _QORE_QOREQTEVENTDISPATCHER_H
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 class QoreQtEventDispatcher {
    protected:

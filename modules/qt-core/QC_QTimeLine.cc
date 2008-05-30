@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 #include "QC_QTimeLine.h"
 #include "QC_QObject.h"

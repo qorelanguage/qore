@@ -35,7 +35,10 @@ QORE_QT_SOURCES = qt-core.cc \
 	QC_QTimerEvent.cc \
 	QC_QLibraryInfo.cc \
 	QC_QCoreApplication.cc \
-	QC_QTimeLine.cc
+	QC_QIODevice.cc \
+	QC_QTimeLine.cc \
+	QC_QTranslator.cc \
+	QC_QModelIndex.cc
 endif
 
 if COND_MONOLITHIC

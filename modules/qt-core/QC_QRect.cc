@@ -23,12 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QRect.h"
-#include "QC_QColor.h"
 #include "QC_QPoint.h"
 #include "QC_QSize.h"
 
 qore_classid_t CID_QRECT;
-class QoreClass *QC_QRect = 0;
+QoreClass *QC_QRect = 0;
 
 //QRect ()
 //QRect ( const QPoint & topLeft, const QPoint & bottomRight )

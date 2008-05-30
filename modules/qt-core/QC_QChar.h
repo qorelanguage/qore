@@ -27,9 +27,9 @@
 #include <QChar>
 
 DLLEXPORT extern qore_classid_t CID_QCHAR;
-DLLEXPORT extern class QoreClass *QC_QChar;
+DLLEXPORT extern QoreClass *QC_QChar;
 
-DLLEXPORT class QoreClass *initQCharClass();
+DLLEXPORT QoreNamespace *initQCharNS();
 
 class QoreQChar : public AbstractPrivateData, public QChar
 {

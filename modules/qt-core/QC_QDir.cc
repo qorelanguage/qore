@@ -25,7 +25,7 @@
 #include "QC_QDir.h"
 #include "QC_QFileInfo.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QDIR;
 class QoreClass *QC_QDir = 0;

@@ -24,10 +24,10 @@
 
 #include "QC_QChar.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QCHAR;
-class QoreClass *QC_QChar = 0;
+QoreClass *QC_QChar = 0;
 
 //QChar ()
 //QChar ( char ch )
@@ -286,7 +286,7 @@ static AbstractQoreNode *QCHAR_unicodeVersion(QoreObject *self, QoreQChar *qc, c
    return new QoreBigIntNode(qc->unicodeVersion());
 }
 
-QoreClass *initQCharClass()
+static QoreClass *initQCharClass()
 {
    QC_QChar = new QoreClass("QChar", QDOM_GUI);
    CID_QCHAR = QC_QChar->getID();
@@ -330,4 +330,137 @@ QoreClass *initQCharClass()
    QC_QChar->addMethod("unicodeVersion",              (q_method_t)QCHAR_unicodeVersion);
 
    return QC_QChar;
+}
+
+QoreNamespace *initQCharNS()
+{
+   QoreNamespace *qchar = new QoreNamespace("QChar");
+
+   qchar->addSystemClass(initQCharClass());
+
+   // SpecialCharacter enum
+   qchar->addConstant("Null",                     new QoreBigIntNode(QChar::Null));
+   qchar->addConstant("Nbsp",                     new QoreBigIntNode(QChar::Nbsp));
+   qchar->addConstant("ReplacementCharacter",     new QoreBigIntNode(QChar::ReplacementCharacter));
+   qchar->addConstant("ObjectReplacementCharacter", new QoreBigIntNode(QChar::ObjectReplacementCharacter));
+   qchar->addConstant("ByteOrderMark",            new QoreBigIntNode(QChar::ByteOrderMark));
+   qchar->addConstant("ByteOrderSwapped",         new QoreBigIntNode(QChar::ByteOrderSwapped));
+   qchar->addConstant("ParagraphSeparator",       new QoreBigIntNode(QChar::ParagraphSeparator));
+   qchar->addConstant("LineSeparator",            new QoreBigIntNode(QChar::LineSeparator));
+
+   // Category enum
+   qchar->addConstant("NoCategory",               new QoreBigIntNode(QChar::NoCategory));
+   qchar->addConstant("Mark_NonSpacing",          new QoreBigIntNode(QChar::Mark_NonSpacing));
+   qchar->addConstant("Mark_SpacingCombining",    new QoreBigIntNode(QChar::Mark_SpacingCombining));
+   qchar->addConstant("Mark_Enclosing",           new QoreBigIntNode(QChar::Mark_Enclosing));
+   qchar->addConstant("Number_DecimalDigit",      new QoreBigIntNode(QChar::Number_DecimalDigit));
+   qchar->addConstant("Number_Letter",            new QoreBigIntNode(QChar::Number_Letter));
+   qchar->addConstant("Number_Other",             new QoreBigIntNode(QChar::Number_Other));
+   qchar->addConstant("Separator_Space",          new QoreBigIntNode(QChar::Separator_Space));
+   qchar->addConstant("Separator_Line",           new QoreBigIntNode(QChar::Separator_Line));
+   qchar->addConstant("Separator_Paragraph",      new QoreBigIntNode(QChar::Separator_Paragraph));
+   qchar->addConstant("Other_Control",            new QoreBigIntNode(QChar::Other_Control));
+   qchar->addConstant("Other_Format",             new QoreBigIntNode(QChar::Other_Format));
+   qchar->addConstant("Other_Surrogate",          new QoreBigIntNode(QChar::Other_Surrogate));
+   qchar->addConstant("Other_PrivateUse",         new QoreBigIntNode(QChar::Other_PrivateUse));
+   qchar->addConstant("Other_NotAssigned",        new QoreBigIntNode(QChar::Other_NotAssigned));
+   qchar->addConstant("Letter_Uppercase",         new QoreBigIntNode(QChar::Letter_Uppercase));
+   qchar->addConstant("Letter_Lowercase",         new QoreBigIntNode(QChar::Letter_Lowercase));
+   qchar->addConstant("Letter_Titlecase",         new QoreBigIntNode(QChar::Letter_Titlecase));
+   qchar->addConstant("Letter_Modifier",          new QoreBigIntNode(QChar::Letter_Modifier));
+   qchar->addConstant("Letter_Other",             new QoreBigIntNode(QChar::Letter_Other));
+   qchar->addConstant("Punctuation_Connector",    new QoreBigIntNode(QChar::Punctuation_Connector));
+   qchar->addConstant("Punctuation_Dash",         new QoreBigIntNode(QChar::Punctuation_Dash));
+   qchar->addConstant("Punctuation_Open",         new QoreBigIntNode(QChar::Punctuation_Open));
+   qchar->addConstant("Punctuation_Close",        new QoreBigIntNode(QChar::Punctuation_Close));
+   qchar->addConstant("Punctuation_InitialQuote", new QoreBigIntNode(QChar::Punctuation_InitialQuote));
+   qchar->addConstant("Punctuation_FinalQuote",   new QoreBigIntNode(QChar::Punctuation_FinalQuote));
+   qchar->addConstant("Punctuation_Other",        new QoreBigIntNode(QChar::Punctuation_Other));
+   qchar->addConstant("Symbol_Math",              new QoreBigIntNode(QChar::Symbol_Math));
+   qchar->addConstant("Symbol_Currency",          new QoreBigIntNode(QChar::Symbol_Currency));
+   qchar->addConstant("Symbol_Modifier",          new QoreBigIntNode(QChar::Symbol_Modifier));
+   qchar->addConstant("Symbol_Other",             new QoreBigIntNode(QChar::Symbol_Other));
+   qchar->addConstant("Punctuation_Dask",         new QoreBigIntNode(QChar::Punctuation_Dask));
+
+   // Direction enum
+   qchar->addConstant("DirL",                     new QoreBigIntNode(QChar::DirL));
+   qchar->addConstant("DirR",                     new QoreBigIntNode(QChar::DirR));
+   qchar->addConstant("DirEN",                    new QoreBigIntNode(QChar::DirEN));
+   qchar->addConstant("DirES",                    new QoreBigIntNode(QChar::DirES));
+   qchar->addConstant("DirET",                    new QoreBigIntNode(QChar::DirET));
+   qchar->addConstant("DirAN",                    new QoreBigIntNode(QChar::DirAN));
+   qchar->addConstant("DirCS",                    new QoreBigIntNode(QChar::DirCS));
+   qchar->addConstant("DirB",                     new QoreBigIntNode(QChar::DirB));
+   qchar->addConstant("DirS",                     new QoreBigIntNode(QChar::DirS));
+   qchar->addConstant("DirWS",                    new QoreBigIntNode(QChar::DirWS));
+   qchar->addConstant("DirON",                    new QoreBigIntNode(QChar::DirON));
+   qchar->addConstant("DirLRE",                   new QoreBigIntNode(QChar::DirLRE));
+   qchar->addConstant("DirLRO",                   new QoreBigIntNode(QChar::DirLRO));
+   qchar->addConstant("DirAL",                    new QoreBigIntNode(QChar::DirAL));
+   qchar->addConstant("DirRLE",                   new QoreBigIntNode(QChar::DirRLE));
+   qchar->addConstant("DirRLO",                   new QoreBigIntNode(QChar::DirRLO));
+   qchar->addConstant("DirPDF",                   new QoreBigIntNode(QChar::DirPDF));
+   qchar->addConstant("DirNSM",                   new QoreBigIntNode(QChar::DirNSM));
+   qchar->addConstant("DirBN",                    new QoreBigIntNode(QChar::DirBN));
+
+   // Decomposition enum
+   qchar->addConstant("NoDecomposition",          new QoreBigIntNode(QChar::NoDecomposition));
+   qchar->addConstant("Canonical",                new QoreBigIntNode(QChar::Canonical));
+   qchar->addConstant("Font",                     new QoreBigIntNode(QChar::Font));
+   qchar->addConstant("NoBreak",                  new QoreBigIntNode(QChar::NoBreak));
+   qchar->addConstant("Initial",                  new QoreBigIntNode(QChar::Initial));
+   qchar->addConstant("Medial",                   new QoreBigIntNode(QChar::Medial));
+   qchar->addConstant("Final",                    new QoreBigIntNode(QChar::Final));
+   qchar->addConstant("Isolated",                 new QoreBigIntNode(QChar::Isolated));
+   qchar->addConstant("Circle",                   new QoreBigIntNode(QChar::Circle));
+   qchar->addConstant("Super",                    new QoreBigIntNode(QChar::Super));
+   qchar->addConstant("Sub",                      new QoreBigIntNode(QChar::Sub));
+   qchar->addConstant("Vertical",                 new QoreBigIntNode(QChar::Vertical));
+   qchar->addConstant("Wide",                     new QoreBigIntNode(QChar::Wide));
+   qchar->addConstant("Narrow",                   new QoreBigIntNode(QChar::Narrow));
+   qchar->addConstant("Small",                    new QoreBigIntNode(QChar::Small));
+   qchar->addConstant("Square",                   new QoreBigIntNode(QChar::Square));
+   qchar->addConstant("Compat",                   new QoreBigIntNode(QChar::Compat));
+   qchar->addConstant("Fraction",                 new QoreBigIntNode(QChar::Fraction));
+
+   // Joining enum
+   qchar->addConstant("OtherJoining",             new QoreBigIntNode(QChar::OtherJoining));
+   qchar->addConstant("Dual",                     new QoreBigIntNode(QChar::Dual));
+   qchar->addConstant("Right",                    new QoreBigIntNode(QChar::Right));
+   qchar->addConstant("Center",                   new QoreBigIntNode(QChar::Center));
+
+   // Combining class
+   qchar->addConstant("Combining_BelowLeftAttached", new QoreBigIntNode(QChar::Combining_BelowLeftAttached));
+   qchar->addConstant("Combining_BelowAttached",  new QoreBigIntNode(QChar::Combining_BelowAttached));
+   qchar->addConstant("Combining_BelowRightAttached", new QoreBigIntNode(QChar::Combining_BelowRightAttached));
+   qchar->addConstant("Combining_LeftAttached",   new QoreBigIntNode(QChar::Combining_LeftAttached));
+   qchar->addConstant("Combining_RightAttached",  new QoreBigIntNode(QChar::Combining_RightAttached));
+   qchar->addConstant("Combining_AboveLeftAttached", new QoreBigIntNode(QChar::Combining_AboveLeftAttached));
+   qchar->addConstant("Combining_AboveAttached",  new QoreBigIntNode(QChar::Combining_AboveAttached));
+   qchar->addConstant("Combining_AboveRightAttached", new QoreBigIntNode(QChar::Combining_AboveRightAttached));
+   qchar->addConstant("Combining_BelowLeft",      new QoreBigIntNode(QChar::Combining_BelowLeft));
+   qchar->addConstant("Combining_Below",          new QoreBigIntNode(QChar::Combining_Below));
+   qchar->addConstant("Combining_BelowRight",     new QoreBigIntNode(QChar::Combining_BelowRight));
+   qchar->addConstant("Combining_Left",           new QoreBigIntNode(QChar::Combining_Left));
+   qchar->addConstant("Combining_Right",          new QoreBigIntNode(QChar::Combining_Right));
+   qchar->addConstant("Combining_AboveLeft",      new QoreBigIntNode(QChar::Combining_AboveLeft));
+   qchar->addConstant("Combining_Above",          new QoreBigIntNode(QChar::Combining_Above));
+   qchar->addConstant("Combining_AboveRight",     new QoreBigIntNode(QChar::Combining_AboveRight));
+   qchar->addConstant("Combining_DoubleBelow",    new QoreBigIntNode(QChar::Combining_DoubleBelow));
+   qchar->addConstant("Combining_DoubleAbove",    new QoreBigIntNode(QChar::Combining_DoubleAbove));
+   qchar->addConstant("Combining_IotaSubscript",  new QoreBigIntNode(QChar::Combining_IotaSubscript));
+
+   // UnicodeVersion
+   qchar->addConstant("Unicode_Unassigned",       new QoreBigIntNode(QChar::Unicode_Unassigned));
+   qchar->addConstant("Unicode_1_1",              new QoreBigIntNode(QChar::Unicode_1_1));
+   qchar->addConstant("Unicode_2_0",              new QoreBigIntNode(QChar::Unicode_2_0));
+   qchar->addConstant("Unicode_2_1_2",            new QoreBigIntNode(QChar::Unicode_2_1_2));
+   qchar->addConstant("Unicode_3_0",              new QoreBigIntNode(QChar::Unicode_3_0));
+   qchar->addConstant("Unicode_3_1",              new QoreBigIntNode(QChar::Unicode_3_1));
+   qchar->addConstant("Unicode_3_2",              new QoreBigIntNode(QChar::Unicode_3_2));
+   qchar->addConstant("Unicode_4_0",              new QoreBigIntNode(QChar::Unicode_4_0));
+   qchar->addConstant("Unicode_4_1",              new QoreBigIntNode(QChar::Unicode_4_1));
+   qchar->addConstant("Unicode_5_0",              new QoreBigIntNode(QChar::Unicode_5_0));
+
+   return qchar;
 }

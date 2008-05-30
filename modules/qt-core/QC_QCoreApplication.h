@@ -26,7 +26,6 @@
 
 #include <QCoreApplication>
 #include "QoreAbstractQCoreApplication.h"
-#include "qore-qt-events.h"
 
 DLLEXPORT extern qore_classid_t CID_QCOREAPPLICATION;
 DLLEXPORT extern QoreClass *QC_QCoreApplication;

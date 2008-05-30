@@ -39,7 +39,7 @@
 #include "QC_QChar.h"
 #include "QC_QUrl.h"
 
-#include "qore-qt.h"
+#include "qt-core.h"
 
 qore_classid_t CID_QVARIANT;
 class QoreClass *QC_QVariant = 0;

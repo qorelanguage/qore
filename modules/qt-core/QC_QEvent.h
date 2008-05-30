@@ -26,10 +26,8 @@
 
 #include <QEvent>
 
-#include "qore-qt-events.h"
-
 DLLEXPORT extern qore_classid_t CID_QEVENT;
-DLLEXPORT extern class QoreClass *QC_QEvent;
+DLLEXPORT extern QoreClass *QC_QEvent;
 
 DLLEXPORT QoreNamespace *initQEventNS();
 
