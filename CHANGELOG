@@ -1,3 +1,6 @@
+2008.06.02: David Nichols
+	* split the qt module into qt-gui and qt-core
+
 2008.05.29: David Nichols
 	* split svg functionality out of the qt module into the new qt-svg
 	  module
