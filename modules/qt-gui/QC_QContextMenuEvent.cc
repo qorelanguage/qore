@@ -25,7 +25,7 @@
 #include "QC_QContextMenuEvent.h"
 #include "QC_QPoint.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QCONTEXTMENUEVENT;
 class QoreClass *QC_QContextMenuEvent = 0;

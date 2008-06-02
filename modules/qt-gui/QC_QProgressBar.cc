@@ -25,7 +25,7 @@
 #include "QC_QProgressBar.h"
 #include "QC_QWidget.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPROGRESSBAR;
 class QoreClass *QC_QProgressBar = 0;

@@ -1,12 +1,12 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
-QT_SOURCES = qt-module.cc
+QT_SOURCES = qt-gui-module.cc
 
 if COND_SINGLE_COMPILATION_UNIT_QT
 QORE_QT_GUI_SOURCES = single-compilation-unit.cc
 else
-QORE_QT_GUI_SOURCES = qt-util.cc QC_QApplication.cc QC_QPushButton.cc \
+QORE_QT_GUI_SOURCES = qt-gui-util.cc QC_QApplication.cc QC_QPushButton.cc \
 	QC_QFrame.cc QC_QLCDNumber.cc QC_QSlider.cc QC_QLayout.cc \
 	QC_QBoxLayout.cc QC_QVBoxLayout.cc QC_QHBoxLayout.cc
 	QC_QGridLayout.cc \
@@ -194,7 +194,7 @@ libqore_qt_gui_la_LDFLAGS = ${QT_CORE_LIBS} ${QT_GUI_LIBS}
 pkglib_LTLIBRARIES = qt-gui.la
 qt_gui_la_SOURCES = $(QT_SOURCES)
 qt_gui_la_LDFLAGS = -module -avoid-version -lqore-qt-gui
-qt_gui_la_LIBADD = ../qt-core/libqt-core.la
+qt_gui_la_LIBADD = ../qt-core/libqore-qt-core.la
 endif
 
 INCLUDES = -I$(top_srcdir)/include $(QT_CORE_INCLUDES) $(QT_GUI_INCLUDES) -I ../qt-core

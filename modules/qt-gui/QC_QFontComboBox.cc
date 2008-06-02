@@ -26,7 +26,7 @@
 #include "QC_QWidget.h"
 #include "QC_QFont.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QFONTCOMBOBOX;
 class QoreClass *QC_QFontComboBox = 0;

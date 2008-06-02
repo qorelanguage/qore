@@ -46,7 +46,7 @@
 #include "QC_QLine.h"
 #include "QC_QLineF.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPAINTER;
 QoreClass *QC_QPainter = 0;

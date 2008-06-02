@@ -29,7 +29,7 @@
 #include "QC_QObject.h"
 #include "QC_QIcon.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QMENUBAR;
 class QoreClass *QC_QMenuBar = 0;

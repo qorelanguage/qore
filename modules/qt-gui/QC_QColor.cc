@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 #include "QC_QColor.h"
 
 qore_classid_t CID_QCOLOR;

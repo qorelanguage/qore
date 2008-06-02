@@ -26,7 +26,7 @@
 #include "QC_QStyleOption.h"
 #include "QC_QWidget.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QMOTIFSTYLE;
 QoreClass *QC_QMotifStyle = 0;

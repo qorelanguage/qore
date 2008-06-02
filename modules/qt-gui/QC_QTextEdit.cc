@@ -33,7 +33,7 @@
 #include "QC_QColor.h"
 #include "QC_QTextBrowser.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTEXTEDIT;
 class QoreClass *QC_QTextEdit = 0;

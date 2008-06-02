@@ -35,6 +35,10 @@
 #include "QoreQtEventDispatcher.h"
 #include "QoreQtDynamicMethod.h"
 
+#include "QC_QEvent.h"
+#include "QC_QChildEvent.h"
+#include "QC_QTimerEvent.h"
+
 class QoreAbstractQObject : public AbstractPrivateData
 {
    public:

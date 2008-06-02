@@ -27,7 +27,7 @@
 #include "QC_QMenu.h"
 #include "QC_QAction.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTOOLBUTTON;
 class QoreClass *QC_QToolButton = 0;

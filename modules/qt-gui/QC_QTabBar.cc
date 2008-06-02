@@ -30,7 +30,7 @@
 #include "QC_QRect.h"
 #include "QC_QStyleOptionTab.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTABBAR;
 class QoreClass *QC_QTabBar = 0;

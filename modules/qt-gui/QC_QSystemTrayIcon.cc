@@ -28,7 +28,7 @@
 #include "QC_QRect.h"
 #include "QC_QIcon.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QSYSTEMTRAYICON;
 class QoreClass *QC_QSystemTrayIcon = 0;

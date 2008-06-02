@@ -27,7 +27,7 @@
 #include "QC_QPixmap.h"
 #include "QC_QMimeData.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QCLIPBOARD;
 class QoreClass *QC_QClipboard = 0;

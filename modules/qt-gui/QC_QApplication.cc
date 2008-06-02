@@ -32,9 +32,6 @@
 
 qore_classid_t CID_QAPPLICATION;
 
-DLLLOCAL int static_argc    = 0;
-DLLLOCAL char **static_argv = 0;
-
 static QoreThreadLock qapp_lock;
 static QoreObject *qore_qapp = 0;
 
@@ -62,8 +59,11 @@ static void QA_constructor(class QoreObject *self, const QoreListNode *params, E
       return;
    }
 
-   QoreQApplication *qa = new QoreQApplication(self);
-   self->setPrivate(CID_QAPPLICATION, qa);
+   // get argument list
+   const QoreListNode *args = test_list_param(params, 0);
+   QoreQtArgs *qt_args = new QoreQtArgs(args);
+
+   self->setPrivate(CID_QAPPLICATION, new QoreQApplication(self, qt_args));
    qore_qapp = self;
 }
 

@@ -1,5 +1,5 @@
 /*
- QoreAbstractQObject.h
+ QoreQtDynamicMethod.h
  
  Qore Programming Language
  
@@ -27,80 +27,76 @@
 #include <QString>
 #include <QObject>
 #include <QDate>
-#include <QWidget>
-#include <QListWidgetItem>
 
+#include <string>
 #include <vector>
 
-#define QQT_TYPE_UNKNOWN             -1
-#define QQT_TYPE_VOID                 0
-#define QQT_TYPE_INT                  1
-#define QQT_TYPE_LONG                 2
-#define QQT_TYPE_BOOL                 3
-#define QQT_TYPE_FLOAT                4
-#define QQT_TYPE_DOUBLE               5
-#define QQT_TYPE_P_CHAR               6
-#define QQT_TYPE_QDATE                7
-#define QQT_TYPE_QFONT                8
-#define QQT_TYPE_QSTRING              9
-#define QQT_TYPE_P_QWIDGET           10
-#define QQT_TYPE_P_QLISTWIDGETITEM   11
-#define QQT_TYPE_QREAL               12
-
-union qt_arg_u {
-      int t_int;
-      float t_float;
-      double t_double;
-      bool t_bool;
-      QString *t_QString;
-      QWidget *t_QWidget;
-};
-
-struct qt_arg {
-      int type;
-      union qt_arg_u data;
-
-      DLLEXPORT qt_arg() : type(QQT_TYPE_VOID)
-      {
-      }
-      DLLEXPORT ~qt_arg()
-      {
-	 if (type == QQT_TYPE_QSTRING)
-	    delete data.t_QString;
-      }
-      DLLEXPORT void *set(int i)
-      {
-	 data.t_int = i; 
-	 return reinterpret_cast<void *>(&data.t_int); 
-     }
-      DLLEXPORT void *set(float f)  
-      { 
-	 data.t_float = f; 
-	 return reinterpret_cast<void *>(&data.t_float);
-      }
-      DLLEXPORT void *set(double f)
-      { 
-	 data.t_double = f; 
-	 return reinterpret_cast<void *>(&data.t_double);
-      }
-      DLLEXPORT void *set(bool b)
-      { 
-	 data.t_bool = b; 
-	 return reinterpret_cast<void *>(&data.t_bool);
-      }
-      DLLEXPORT void *set(const QString &str) 
-      { 
-	 data.t_QString = new QString(str); 
-	 return reinterpret_cast<void *>(data.t_QString);
-      }
+/*
       DLLEXPORT void *set(QWidget *qw) 
       { 
 	 data.t_QWidget = qw; 
 	 return reinterpret_cast<void *>(data.t_QWidget);
       }
+*/
+
+class QoreQtAbstractDynamicTypeHelper {
+   protected:
+      std::string type_name;
+
+   public:
+      DLLLOCAL QoreQtAbstractDynamicTypeHelper(const char *name) : type_name(name)
+      {
+      }
+      virtual ~QoreQtAbstractDynamicTypeHelper() {}
+      virtual void add_qore_arg(QoreListNode &args, void *arg) = 0;
+      virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val) = 0;
+      virtual void del_arg(void *ptr) = 0;
+      virtual void do_return(void *rv, const AbstractQoreNode *val) = 0;
+
+      DLLLOCAL bool identify(const char *&p)
+      {
+	 if (!strncmp(type_name.c_str(), p, type_name.size())) {
+	    p += type_name.size();
+	    return true;
+	 }
+	 return false;
+      }
+
+      DLLLOCAL const char *get_name() const { return type_name.c_str(); }
 };
 
-typedef std::vector<int> type_list_t;
+class QoreQtInt : public QoreQtAbstractDynamicTypeHelper
+{
+   protected:
+      DLLLOCAL QoreQtInt(const char *n) : QoreQtAbstractDynamicTypeHelper(n)
+      {
+      }
+
+   public:
+      DLLLOCAL QoreQtInt() : QoreQtAbstractDynamicTypeHelper("int")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 int *ptr = reinterpret_cast<int *>(arg);
+	 args.push(new QoreBigIntNode(*ptr));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 save = (void *)(val ? val->getAsInt() : 0);
+	 ptr = &save;
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 int *ptr = reinterpret_cast<int *>(rv);
+	 *ptr = val ? val->getAsInt() : 0;
+      }
+};
+
+typedef std::vector<QoreQtAbstractDynamicTypeHelper *> type_list_t;
 
 struct QoreQtDynamicMethod {
    protected:
@@ -119,7 +115,7 @@ class QoreQtDynamicSlot : public QoreQtDynamicMethod
    private:
       QoreObject *qore_obj;
       const QoreMethod *method;
-      int return_type;
+      QoreQtAbstractDynamicTypeHelper *return_type;
 
       DLLEXPORT static const QoreMethod *resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink);
 

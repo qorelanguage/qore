@@ -5,7 +5,7 @@
 
 # Note that Qore's "qt-opengl" module requires QT 4.3 or above with OpenGL support
 
-# use the "qt-opengl" module (automatically loads the "qt" and "opengl" modules)
+# use the "qt-opengl" module (automatically loads the "qt-gui" and "opengl" modules)
 %requires qt-opengl
 
 # this is an object-oriented program, the application class is "hellogl"

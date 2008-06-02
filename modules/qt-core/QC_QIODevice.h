@@ -26,12 +26,11 @@
 
 #include <QIODevice>
 #include "QoreAbstractQIODevice.h"
-#include "qore-qt-events.h"
 
 DLLEXPORT extern qore_classid_t CID_QIODEVICE;
-DLLEXPORT extern class QoreClass *QC_QIODevice;
+DLLEXPORT extern QoreClass *QC_QIODevice;
 
-DLLEXPORT class QoreClass *initQIODeviceClass(QoreClass *);
+DLLEXPORT QoreClass *initQIODeviceClass(QoreClass *);
 
 typedef QoreQtQIODeviceBase<QIODevice, QoreAbstractQIODevice> QoreQtQIODeviceImpl;
 

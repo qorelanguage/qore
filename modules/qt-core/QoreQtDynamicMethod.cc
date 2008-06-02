@@ -22,80 +22,386 @@
 
 #include <qore/Qore.h>
 
-#include "QoreQtDynamicMethod.h"
+#include "qt-core.h"
 
-#include "QC_QFont.h"
-#include "QC_QListWidgetItem.h"
-#include "QC_QWidget.h"
+#include "QoreQtDynamicMethod.h"
 
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 
-int QoreQtDynamicMethod::get_type(const char *&p)
-{
-   int rt;
-   if (!strncmp("int", p, 3)) {
-      rt = QQT_TYPE_INT;
-      p += 3;  
-   }
-   else if (!strncmp("bool", p, 4)) {
-      rt = QQT_TYPE_BOOL;
-      p += 4;
-   }
-   else if (!strncmp("float", p, 5)) {
-      rt = QQT_TYPE_FLOAT;
-      p += 5;
-   }
-   else if (!strncmp("double", p, 5)) {
-      rt = QQT_TYPE_DOUBLE;
-      p += 5;
-   }
-   else if (!strncmp("char*", p, 5)) {
-      rt = QQT_TYPE_P_CHAR;	
-      p += 5;
-   }
-   else if (!strncmp("const char*", p, 11)) {
-      rt = QQT_TYPE_P_CHAR;	
-      p += 11;
-   }
-   else if (!strncmp("QDate", p, 5)) {
-      rt = QQT_TYPE_QDATE;
-      p += 5;
-   }
-   else if (!strncmp("QFont", p, 5)) {
-      rt = QQT_TYPE_QFONT;
-      p += 5;
-   }
-   else if (!strncmp("QString", p, 7)) {
-      rt = QQT_TYPE_QSTRING;
-      p += 7;
-   }
-   else if (!strncmp("QSystemTrayIcon::ActivationReason", p, 33)) {
-      rt = QQT_TYPE_INT;
-      p += 33;
-   }
-   else if (!strncmp("QListWidgetItem*", p, 16)) {
-      rt = QQT_TYPE_P_QLISTWIDGETITEM;
-      p += 16;
-   }
-   else if (!strncmp("qreal", p, 5)) {
-      rt = QQT_TYPE_QREAL;
-      p += 5;
-   }
-   else {
-      //printd(5, "QoreQtDynamicMethod::get_type(%s) unknown type error!\n", p);
-      return QQT_TYPE_UNKNOWN;
-   }
+typedef safe_dslist<QoreQtAbstractDynamicTypeHelper *> qore_qt_type_list_t;
 
-   while (*p && *p != ',' && *p != ')')
-      ++p;
-   if (*p) ++p;
-   while (*p && isblank(*p))
-      ++p;
-	 
-   //printd(5, "get_type(%s) returning %d\n", op, rt);
-   return rt;
+class QoreQtTypeList : public qore_qt_type_list_t
+{
+   public:
+      DLLLOCAL QoreQtTypeList();
+
+      DLLLOCAL QoreQtAbstractDynamicTypeHelper *identify(const char *&p)
+      {
+	 for (qore_qt_type_list_t::iterator i = begin(), e = end(); i != e; ++i) {
+	    if ((*i)->identify(p))
+	       return *i;
+	 }
+	 return 0;
+      }
+};
+
+static QoreQtTypeList qqt_type_list;
+
+class QoreQtVoid : public QoreQtAbstractDynamicTypeHelper
+{
+   public:
+      DLLLOCAL QoreQtVoid() : QoreQtAbstractDynamicTypeHelper("void")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 args.push(0);
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 ptr = 0;
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+      }
+};
+
+DLLLOCAL QoreQtVoid qqt_void;
+
+DLLLOCAL QoreQtInt qqt_int;
+
+class QoreQtLong : public QoreQtAbstractDynamicTypeHelper
+{
+   public:
+      DLLLOCAL QoreQtLong() : QoreQtAbstractDynamicTypeHelper("long")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 long *ptr = reinterpret_cast<long *>(arg);
+	 args.push(new QoreBigIntNode(*ptr));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 save = (void *)(val ? (long)val->getAsBigInt() : 0);
+	 ptr = &save;
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 long *ptr = reinterpret_cast<long *>(rv);
+	 *ptr = val ? val->getAsInt() : 0;
+      }
+};
+
+DLLLOCAL QoreQtLong qqt_long;
+
+class QoreQtBool : public QoreQtAbstractDynamicTypeHelper
+{
+   public:
+      DLLLOCAL QoreQtBool() : QoreQtAbstractDynamicTypeHelper("bool")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 bool *ptr = reinterpret_cast<bool *>(arg);
+	 args.push(get_bool_node(*ptr));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 save = (void *)(val ? val->getAsBool() : 0);
+	 ptr = &save;
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 bool *ptr = reinterpret_cast<bool *>(rv);
+	 *ptr = val ? val->getAsBool() : 0;
+      }
+};
+
+DLLLOCAL QoreQtBool qqt_bool;
+
+class QoreQtFloat : public QoreQtAbstractDynamicTypeHelper
+{
+   public:
+      DLLLOCAL QoreQtFloat() : QoreQtAbstractDynamicTypeHelper("float")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 float *ptr = reinterpret_cast<float *>(arg);
+	 args.push(new QoreFloatNode(*ptr));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 save = malloc(sizeof(float));
+	 float *p = (float *)save;
+	 *p = val ? (float)val->getAsFloat() : 0.0;
+	 ptr = save;
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+	 free(ptr);
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 float *ptr = reinterpret_cast<float *>(rv);
+	 *ptr = val ? (float)val->getAsFloat() : 0;
+      }
+};
+
+DLLLOCAL QoreQtFloat qqt_float;
+
+class QoreQtDouble : public QoreQtAbstractDynamicTypeHelper
+{
+   public:
+      DLLLOCAL QoreQtDouble() : QoreQtAbstractDynamicTypeHelper("double")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 double *ptr = reinterpret_cast<double *>(arg);
+	 args.push(new QoreFloatNode(*ptr));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 save = malloc(sizeof(double));
+	 double *p = (double *)save;
+	 *p = val ? val->getAsFloat() : 0.0;
+	 ptr = save;
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+	 free(ptr);
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 double *ptr = reinterpret_cast<double *>(rv);
+	 *ptr = val ? val->getAsFloat() : 0;
+      }
+};
+
+DLLLOCAL QoreQtDouble qqt_double;
+
+class QoreQtQReal : public QoreQtAbstractDynamicTypeHelper
+{
+   public:
+      DLLLOCAL QoreQtQReal() : QoreQtAbstractDynamicTypeHelper("qreal")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 qreal *ptr = reinterpret_cast<qreal *>(arg);
+	 args.push(new QoreFloatNode(*ptr));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 save = malloc(sizeof(qreal));
+	 qreal *p = (double *)save;
+	 *p = val ? (qreal)val->getAsFloat() : 0.0;
+	 ptr = save;
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+	 free(ptr);
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 qreal *ptr = reinterpret_cast<qreal *>(rv);
+	 *ptr = val ? (qreal)val->getAsFloat() : 0;
+      }
+};
+
+DLLLOCAL QoreQtQReal qqt_qreal;
+
+struct string_saver
+{
+      QoreStringNode *v;
+      char *p;
+
+      DLLLOCAL string_saver(const AbstractQoreNode *val)
+      {
+	 QoreStringNodeValueHelper str(val);
+	 v = str.getReferencedValue();
+	 p = (char *)v->getBuffer();
+      }
+      DLLLOCAL ~string_saver() { v->deref(); }
+      DLLLOCAL char *get_ptr() { return p; }
+};
+
+class QoreQtCharPtr : public QoreQtAbstractDynamicTypeHelper
+{
+   protected:
+      DLLLOCAL QoreQtCharPtr(const char *n) : QoreQtAbstractDynamicTypeHelper(n)
+      {
+      }
+
+   public:
+      DLLLOCAL QoreQtCharPtr() : QoreQtAbstractDynamicTypeHelper("char*")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 char **ptr = reinterpret_cast<char **>(arg);
+	 args.push(new QoreStringNode(*ptr));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 string_saver *ss = new string_saver(val);
+	 ptr = ss->get_ptr();
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+	 string_saver *ss = (string_saver *)(ptr);
+	 delete ss;
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 assert(false);
+	 //char **ptr = reinterpret_cast<char **>(rv);
+	 // *ptr = (val && val->getType() == NT_STRING) ? reinterpret_cast<const QoreStringNode *
+      }
+};
+
+DLLLOCAL QoreQtCharPtr qqt_char_ptr;
+
+class QoreQtConstCharPtr : public QoreQtCharPtr
+{
+   public:
+      DLLLOCAL QoreQtConstCharPtr() : QoreQtCharPtr("const char*")
+      {
+      }
+};
+
+DLLLOCAL QoreQtConstCharPtr qqt_const_char_ptr;
+
+class QoreQtQString : public QoreQtAbstractDynamicTypeHelper
+{
+   protected:
+      DLLLOCAL QoreQtQString(const char *n) : QoreQtAbstractDynamicTypeHelper(n)
+      {
+      }
+
+   public:
+      DLLLOCAL QoreQtQString() : QoreQtAbstractDynamicTypeHelper("QString")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 QString *qstr = reinterpret_cast<QString *>(arg);
+	 //printd(5, "slot argument string: %08p: %d\n", qstr, qstr->length());
+	 //printd(5, "slot argument string: '%s'\n", qstr->toUtf8().data());
+	 args.push(new QoreStringNode(qstr->toUtf8().data(), QCS_UTF8));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 ExceptionSink xsink;
+
+	 QString str;
+	 get_qstring(val, str, &xsink);
+         QString *p = new QString();
+	 save = (void *)p;
+	 ptr = save;
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+	 QString *p = (QString *)ptr;
+	 delete p;
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 assert(false);
+      }
+};
+
+DLLLOCAL QoreQtQString qqt_qstring;
+
+class QoreQtConstQStringRef : public QoreQtQString
+{
+   public:
+      DLLLOCAL QoreQtConstQStringRef() : QoreQtQString("const QString&")
+      {
+      }
+};
+
+DLLLOCAL QoreQtConstQStringRef qqt_const_qstring_ref;
+
+class QoreQtQDate : public QoreQtAbstractDynamicTypeHelper
+{
+   public:
+      DLLLOCAL QoreQtQDate() : QoreQtAbstractDynamicTypeHelper("QDate")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+	 QDate *qdate = reinterpret_cast<QDate *>(arg);
+	 args.push(new DateTimeNode(qdate->year(), qdate->month(), qdate->day()));
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+	 assert(false);
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+	 assert(false);
+      }
+};
+
+DLLLOCAL QoreQtQDate qqt_qdate;
+
+/*
+class QoreQt : public QoreQtAbstractDynamicTypeHelper
+{
+   public:
+      DLLLOCAL QoreQt() : QoreQtAbstractDynamicTypeHelper("")
+      {
+      }
+      DLLLOCAL virtual void add_qore_arg(QoreListNode &args, void *arg)
+      {
+      }
+      DLLLOCAL virtual void add_qt_arg(void *&ptr, void *&save, const AbstractQoreNode *val)
+      {
+      }
+      DLLLOCAL virtual void del_arg(void *ptr)
+      {
+      }
+      DLLLOCAL virtual void do_return(void *rv, const AbstractQoreNode *val)
+      {
+      }
+};
+*/
+
+QoreQtTypeList::QoreQtTypeList()
+{
+   push_back(&qqt_void);
+   push_back(&qqt_int);
+   push_back(&qqt_long);
+   push_back(&qqt_bool);
+   push_back(&qqt_float);
+   push_back(&qqt_double);
+   push_back(&qqt_qreal);
+   push_back(&qqt_char_ptr);
+   push_back(&qqt_const_char_ptr);
+   push_back(&qqt_qstring);
+   push_back(&qqt_qdate);
+}
+
+void register_qqt_dynamic_type(QoreQtAbstractDynamicTypeHelper *t)
+{
+   qqt_type_list.push_back(t);
 }
 
 const QoreMethod *QoreQtDynamicSlot::resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink)
@@ -121,7 +427,7 @@ const QoreMethod *QoreQtDynamicSlot::resolveMethod(QoreObject *n_qore_obj, const
    return meth;
 }
 
-QoreQtDynamicSlot::QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, ExceptionSink *xsink) : qore_obj(n_qore_obj), return_type(QQT_TYPE_UNKNOWN)
+QoreQtDynamicSlot::QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, ExceptionSink *xsink) : qore_obj(n_qore_obj), return_type(0)
 {
    if (!sig)
       return;
@@ -133,7 +439,7 @@ QoreQtDynamicSlot::QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, Ex
    if (!p)
       return;
    if (*p == '(') {
-      return_type = QQT_TYPE_VOID;
+      return_type = &qqt_void;
       method = resolveMethod(qore_obj, sig, xsink);
       if (!method)
 	 return;
@@ -155,15 +461,15 @@ QoreQtDynamicSlot::QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, Ex
 	 return;
 
       const char *tmp = sig;
-      return_type = get_type(tmp);
+      return_type = qqt_type_list.identify(tmp);
    }
    ++p;
    while (*p && isblank(*p))
       ++p;
    if (*p != ')') 
       while (*p) {
-	 int tc = get_type(p);
-	 if (tc == QQT_TYPE_UNKNOWN) {
+	 QoreQtAbstractDynamicTypeHelper *tc = qqt_type_list.identify(p);
+	 if (!tc) {
 	    QoreStringNode *desc = new QoreStringNode("cannot resolve argument type '");
 	    char *x = strchrs(p, " ,)");
 	    if (x)
@@ -187,76 +493,13 @@ void QoreQtDynamicSlot::call(void **arguments)
    ReferenceHolder<QoreListNode> args(type_list.empty() ? 0 : new QoreListNode(), &xsink);
    for (int i = 0, e = type_list.size(); i < e; ++i)
    {
-      if (type_list[i] == QQT_TYPE_INT) {
-	 int *ptr = reinterpret_cast<int *>(arguments[i + 1]);
-	 args->push(new QoreBigIntNode(*ptr));
-      }
-      else if (type_list[i] == QQT_TYPE_LONG) {
-	 long *ptr = reinterpret_cast<long *>(arguments[i + 1]);
-	 args->push(new QoreBigIntNode(*ptr));
-      }
-      else if (type_list[i] == QQT_TYPE_BOOL) {
-	 bool *ptr = reinterpret_cast<bool *>(arguments[i + 1]);
-	 args->push(get_bool_node(*ptr));
-      }
-      else if (type_list[i] == QQT_TYPE_FLOAT) {
-	 float *ptr = reinterpret_cast<float *>(arguments[i + 1]);
-	 args->push(new QoreFloatNode((double)*ptr));
-      }
-      else if (type_list[i] == QQT_TYPE_DOUBLE) {
-	 double *ptr = reinterpret_cast<double *>(arguments[i + 1]);
-	 args->push(new QoreFloatNode((double)*ptr));
-      }
-      else if (type_list[i] == QQT_TYPE_P_CHAR) {
-	 char **ptr = reinterpret_cast<char **>(arguments[i + 1]);
-	 args->push(new QoreStringNode(*ptr));
-      }
-      else if (type_list[i] == QQT_TYPE_QSTRING) {
-	 QString *qstr = reinterpret_cast<QString *>(arguments[i + 1]);
-	 //printd(5, "slot argument string: %08p: %d\n", qstr, qstr->length());
-	 //printd(5, "slot argument string: '%s'\n", qstr->toUtf8().data());
-	 args->push(new QoreStringNode(qstr->toUtf8().data(), QCS_UTF8));
-      }
-      else if (type_list[i] == QQT_TYPE_QDATE) {
-	 QDate *qdate = reinterpret_cast<QDate *>(arguments[i + 1]);
-	 args->push(new DateTimeNode(qdate->year(), qdate->month(), qdate->day()));
-      }
-      else if (type_list[i] == QQT_TYPE_QFONT) {
-	 QFont *qfont = reinterpret_cast<QFont *>(arguments[i + 1]);
-
-	 QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
-	 QoreQFont *q_qf = new QoreQFont(*qfont);
-	 o_qf->setPrivate(CID_QFONT, q_qf);
-
-	 args->push(o_qf);
-      }
-      else if (type_list[i] == QQT_TYPE_P_QLISTWIDGETITEM) {
-	 QListWidgetItem *qlwi = *(reinterpret_cast<QListWidgetItem **>(arguments[i + 1]));
-	 
-	 QoreObject *o_qlwi = new QoreObject(QC_QListWidgetItem, getProgram());
-	 QoreQListWidgetItem *q_qlwi = new QoreQListWidgetItem(qlwi);
-	 o_qlwi->setPrivate(CID_QLISTWIDGETITEM, q_qlwi);
-
-	 args->push(o_qlwi);
-      }
-      else if (type_list[i] == QQT_TYPE_QREAL) {
-	 qreal *ptr = reinterpret_cast<qreal *>(arguments[i + 1]);
-	 args->push(new QoreFloatNode(*ptr));
-      }
-      else {
-	 printd(0, "QoreQtDynamicSlot::call() ignoring argument %d type %d\n", i, type_list[i]);
-	 args->push(0);
-      }
+      assert(type_list[i]);
+      type_list[i]->add_qore_arg(*(*args), arguments[i + 1]);
    }
    ReferenceHolder<AbstractQoreNode> rv(qore_obj->evalMethod(*method, *args, &xsink), &xsink);
-   if (return_type == QQT_TYPE_INT) {
-      int *ptr = reinterpret_cast<int *>(arguments[0]);
-      *ptr = *rv ? rv->getAsInt() : 0;
-   }
-   else if (return_type == QQT_TYPE_BOOL) {
-      bool *ptr = reinterpret_cast<bool *>(arguments[0]);
-      *ptr = *rv ? rv->getAsBool() : 0;
-   }
+
+   if (return_type)
+      return_type->do_return(arguments[0], *rv);
 }
 
 void QoreQtDynamicSlot::call()
@@ -283,71 +526,51 @@ QoreQtDynamicSignal::QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink)
    while (*p && isblank(*p))
       ++p;
    if (*p != ')') 
-
-   while (*p) {
-      int at = get_type(p);
-      if (at == QQT_TYPE_UNKNOWN) {
-	 QoreStringNode *desc = new QoreStringNode("cannot resolve argument type '");
-	 char *x = strchrs(p, " ,)");
-	 if (x)
-	    desc->concat(p, x - p);
-	 else
-	    desc->concat("unknown");
-	 desc->sprintf("' in '%s'", sig);
-	 xsink->raiseException("DYNAMIC-SIGNAL-ERROR", desc);
-	 break;
+      while (*p) {
+	 QoreQtAbstractDynamicTypeHelper *at = qqt_type_list.identify(p);
+	 if (!at) {
+	    QoreStringNode *desc = new QoreStringNode("cannot resolve argument type '");
+	    char *x = strchrs(p, " ,)");
+	    if (x)
+	       desc->concat(p, x - p);
+	    else
+	       desc->concat("unknown");
+	    desc->sprintf("' in '%s'", sig);
+	    xsink->raiseException("DYNAMIC-SIGNAL-ERROR", desc);
+	    break;
+	 }
+	 printd(0, "resolved type '%s' in '%s'\n", at->get_name(), sig);
+	 type_list.push_back(at);
       }
-      type_list.push_back(at);
-   }
 }
 
 void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, const QoreListNode *args)
 {
    int num_args = type_list.size();
    void *sig_args[num_args + 1];
-   qt_arg arg_list[num_args];
+   void *save_args[num_args];
 
    // return return value to 0
    sig_args[0] = 0;
 
    // iterate through signal parameters to build argument list
-   for (int i = 0; i < num_args; ++i)
-   {
+   for (int i = 0; i < num_args; ++i) {
       // get argument QoreNode
       const AbstractQoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
 
-      switch (type_list[i])
-      {
-	 case QQT_TYPE_INT:
-	    sig_args[i + 1] = arg_list[i].set(n ? n->getAsInt() : 0);
-	    break;
-	 case QQT_TYPE_FLOAT:
-	    sig_args[i + 1] = arg_list[i].set((float)(n ? n->getAsFloat() : 0.0));
-	    break;
-	 case QQT_TYPE_DOUBLE:
-	    sig_args[i + 1] = arg_list[i].set((double)(n ? n->getAsFloat() : 0.0));
-	    break;
-	 case QQT_TYPE_BOOL:
-	    sig_args[i + 1] = arg_list[i].set(n ? n->getAsBool() : false);
-	    break;
-	 case QQT_TYPE_QSTRING: {
-	    ExceptionSink xsink;
+#ifdef DEBUG
+      if (!type_list[i])
+	 printd(0, "QoreQtDynamicSignal::emit_signal() unsupported type\n");
+#endif
+      assert(type_list[i]);
 
-	    QString str;
-	    get_qstring(n, str, &xsink);
-	    sig_args[i + 1] = arg_list[i].set(str);
-
-	    break;
-	 }
-	 case QQT_TYPE_QREAL:
-	    sig_args[i + 1] = arg_list[i].set((double)(n ? n->getAsFloat() : 0.0));
-	    break;
-	 default:
-	    printd(0, "QoreQtDynamicSignal::emit_signal() unsupported type=%d\n", type_list[i]);
-	    assert(false);
-      }
+      type_list[i]->add_qt_arg(sig_args[i + 1], save_args[i], n);
    }
    QMetaObject::activate(obj, id, id, sig_args);
+
+   // iterate through signal parameters to delete temporary values
+   for (int i = 0; i < num_args; ++i)
+      type_list[i]->del_arg(save_args[i]);
 }
 
 void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, const QoreListNode *args)
@@ -356,7 +579,9 @@ void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, c
 
    int num_args = params.size();
    void *sig_args[num_args + 1];
-   qt_arg arg_list[num_args];
+   void *save_args[num_args];
+
+   QoreQtAbstractDynamicTypeHelper *tlist[num_args];
 
    // return return value to 0
    sig_args[0] = 0;
@@ -369,32 +594,31 @@ void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, c
       // get argument QoreNode
       const AbstractQoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
       const char *str = params[i].data();
-      
-      if (!strcmp(str, "int"))
-	 sig_args[i + 1] = arg_list[i].set(n ? n->getAsInt() : 0);
-      else if (!strcmp(str, "float"))
-	 sig_args[i + 1] = arg_list[i].set((float)(n ? n->getAsFloat() : 0.0));
-      else if (!strcmp(str, "double"))
-	 sig_args[i + 1] = arg_list[i].set((double)(n ? n->getAsFloat() : 0.0));
-      else if (!strcmp(str, "bool"))
-	 sig_args[i + 1] = arg_list[i].set(n ? n->getAsBool() : false);
-      else if (!strcmp(str, "QString") || !strcmp(str, "const QString&"))
-      {
-	 QString str;
-	 get_qstring(n, str, &xsink);
-	 sig_args[i + 1] = arg_list[i].set(str);
-      }
-      else if (!strcmp(str, "QWidget*"))
+
+      // get type
+      tlist[i] = qqt_type_list.identify(str);
+
+#ifdef DEBUG
+      if (!tlist[i])
+	 printd(0, "QoreQtDynamicSignal::emit_signal() unsupported type='%s'\n", str);
+#endif
+      assert(tlist[i]);
+
+      tlist[i]->add_qt_arg(sig_args[i + 1], save_args[i], n);
+
+/*      
+      if (!strcmp(str, "QWidget*"))
       {
 	 QoreQWidget *widget = (n && n->getType() == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<const QoreObject *>(n))->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
 	 sig_args[i + 1] = arg_list[i].set(widget);
       }
-      else {
-	 printd(0, "emit_static_signal() i=%d, unsupported C++ type=%s\n", i, str);
-	 assert(false);
-      }
+*/
    }
 	 
    QMetaObject::activate(sender, signalId, signalId, sig_args);
+
+   // iterate through signal parameters to delete temporary values
+   for (int i = 0; i < num_args; ++i)
+      tlist[i]->del_arg(save_args[i]);
 }
 

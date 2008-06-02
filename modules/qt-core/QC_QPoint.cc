@@ -23,12 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QPoint.h"
-#include "QC_QColor.h"
 
 #include "qt-core.h"
 
 qore_classid_t CID_QPOINT;
-class QoreClass *QC_QPoint = 0;
+QoreClass *QC_QPoint = 0;
 
 static void QPOINT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -48,7 +47,7 @@ static void QPOINT_constructor(class QoreObject *self, const QoreListNode *param
    self->setPrivate(CID_QPOINT, qr);
 }
 
-static void QPOINT_copy(class QoreObject *self, class QoreObject *old, class QoreQPoint *qr, ExceptionSink *xsink)
+static void QPOINT_copy(QoreObject *self, QoreObject *old, QoreQPoint *qr, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QPOINT, new QoreQPoint(*qr));
    //xsink->raiseException("QPOINT-COPY-ERROR", "objects of this class cannot be copied");

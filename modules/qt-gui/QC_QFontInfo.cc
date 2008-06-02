@@ -25,7 +25,7 @@
 #include "QC_QFontInfo.h"
 #include "QC_QFont.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QFONTINFO;
 class QoreClass *QC_QFontInfo = 0;

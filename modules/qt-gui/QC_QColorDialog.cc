@@ -26,7 +26,7 @@
 #include "QC_QColor.h"
 #include "QC_QWidget.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 //QRgb customColor ( int i )
 static AbstractQoreNode *f_QColorDialog_customColor(const QoreListNode *params, ExceptionSink *xsink)

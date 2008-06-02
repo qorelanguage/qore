@@ -24,13 +24,13 @@
 
 #define _QORE_QC_QTIMER_H
 
-#include "QoreAbstractQLayout.h"
+#include "QoreAbstractQObject.h"
 
 #include <QTimer>
 
 DLLEXPORT extern qore_classid_t CID_QTIMER;
 
-DLLEXPORT class QoreClass *initQTimerClass(class QoreClass *qobject);
+DLLEXPORT QoreClass *initQTimerClass(QoreClass *qobject);
 DLLEXPORT void initQTimerStaticFunctions();
 
 class myQTimer : public QTimer, public QoreQObjectExtension

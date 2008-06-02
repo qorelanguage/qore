@@ -26,7 +26,7 @@
 #include "QC_QWidget.h"
 #include "QC_QTextCharFormat.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QCALENDARWIDGET;
 class QoreClass *QC_QCalendarWidget = 0;

@@ -28,7 +28,7 @@
 #include "QC_QMenu.h"
 #include "QC_QPoint.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QLINEEDIT;
 class QoreClass *QC_QLineEdit = 0;

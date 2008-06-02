@@ -31,6 +31,7 @@ QORE_QT_SOURCES = qt-core.cc \
 	QC_QDir.cc \
 	QC_QRegExp.cc \
 	QC_QFileInfo.cc \
+	QC_QTimer.cc \
 	QC_QChildEvent.cc \
 	QC_QTimerEvent.cc \
 	QC_QLibraryInfo.cc \

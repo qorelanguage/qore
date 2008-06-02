@@ -26,7 +26,7 @@
 #include "QC_QColor.h"
 #include "QC_QBrush.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPALETTE;
 QoreClass *QC_QPalette = 0;

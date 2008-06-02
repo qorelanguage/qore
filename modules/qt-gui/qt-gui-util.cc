@@ -1,5 +1,5 @@
 /*
-  qt-util.cc
+  qt-gui-util.cc
   
   Qore Programming Language
 
@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 #include "QC_QAbstractButton.h"
 //#include "QC_QAccessibleEvent.h"
@@ -379,6 +379,9 @@ AbstractQoreNode *return_gui_qvariant(const QVariant &qv)
       //case QVariant::Transform:
          //return return_object(QC_QTransform, new QTransform(qv.value<QVariant::Transform>()));
       //case QVariant::UserType:
+
+      default:
+	 break;
    }
    return 0;
 }
@@ -415,7 +418,7 @@ QoreObject *return_gui_qobject(QObject *o)
 {
    // see what subclass it is
    QWidget *qw = dynamic_cast<QWidget *>(o);
-   rerturn qw ? return_qwidget_intern(qw) : 0;
+   return qw ? return_qwidget_intern(qw) : 0;
 }
 
 // returns a QoreObject tagged as the appropriate QWidget subclass

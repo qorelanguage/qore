@@ -29,7 +29,7 @@
 #include "QC_QAbstractItemDelegate.h"
 #include "QC_QLineEdit.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QCOMBOBOX;
 class QoreClass *QC_QComboBox = 0;

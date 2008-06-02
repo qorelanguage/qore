@@ -28,7 +28,7 @@
 #include "QC_QAbstractButton.h"
 #include "QC_QPixmap.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QWIZARD;
 class QoreClass *QC_QWizard = 0;

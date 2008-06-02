@@ -29,7 +29,7 @@
 #include "QC_QFont.h"
 #include "QC_QSize.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTABLEWIDGETITEM;
 class QoreClass *QC_QTableWidgetItem = 0;

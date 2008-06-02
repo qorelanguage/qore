@@ -29,7 +29,7 @@
 #include "QC_QRegion.h"
 #include "QC_QFont.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPAINTERPATH;
 class QoreClass *QC_QPainterPath = 0;

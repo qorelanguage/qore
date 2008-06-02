@@ -28,7 +28,7 @@
 #include "QC_QStyleOptionTabWidgetFrame.h"
 #include "QC_QTabBar.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTABWIDGET;
 class QoreClass *QC_QTabWidget = 0;

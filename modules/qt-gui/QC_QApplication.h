@@ -46,16 +46,39 @@ class myQApplication : public QApplication, public QoreQObjectExtension
 
       DLLLOCAL myQApplication(QoreObject *obj, int &argc, char **argv) : QApplication(argc, argv), QoreQObjectExtension(obj, this)
       {
-	 
       }
 };
 
-typedef QoreQCoreApplicationBase<myQApplication, QoreAbstractQCoreApplication> QoreQApplicationImpl;
+class myQApplicationWithArgs : public myQApplication
+{
+   private:
+      QoreQtArgs *qt_args;
+
+   public:
+      DLLLOCAL myQApplicationWithArgs(QoreObject *obj, int &argc, char **argv) : myQApplication(obj, argc, argv), qt_args(0)
+      {
+      }
+      
+      DLLLOCAL myQApplicationWithArgs(QoreObject *obj, QoreQtArgs *n_qt_args) : myQApplication(obj, n_qt_args->get_argc(), n_qt_args->get_argv()), qt_args(n_qt_args)
+      {
+      }
+
+      DLLLOCAL virtual ~myQApplicationWithArgs()
+      {
+         delete qt_args;
+      }
+};
+
+typedef QoreQCoreApplicationBase<myQApplicationWithArgs, QoreAbstractQCoreApplication> QoreQApplicationImpl;
 
 class QoreQApplication : public QoreQApplicationImpl
 {
    public:
-      DLLLOCAL QoreQApplication(QoreObject *obj) : QoreQApplicationImpl(new myQApplication(obj, static_argc, static_argv))
+      DLLLOCAL QoreQApplication(QoreObject *obj, int& argc, char ** argv) : QoreQApplicationImpl(new myQApplicationWithArgs(obj, argc, argv))
+      {
+      }
+
+      DLLLOCAL QoreQApplication(QoreObject *obj, QoreQtArgs *qt_args) : QoreQApplicationImpl(new myQApplicationWithArgs(obj, qt_args))
       {
       }
 

@@ -29,12 +29,16 @@
 #include "qt-core.h"
 
 qore_classid_t CID_QCOREAPPLICATION;
-class QoreClass *QC_QCoreApplication = 0;
+QoreClass *QC_QCoreApplication = 0;
 
 //QCoreApplication ( int & argc, char ** argv )
 static void QCOREAPPLICATION_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   self->setPrivate(CID_QCOREAPPLICATION, new QoreQCoreApplication(self));
+   // get argument list
+   const QoreListNode *args = test_list_param(params, 0);
+   QoreQtArgs *qt_args = new QoreQtArgs(args);
+
+   self->setPrivate(CID_QCOREAPPLICATION, new QoreQCoreApplication(self, qt_args));
 }
 
 static void QCOREAPPLICATION_copy(class QoreObject *self, class QoreObject *old, class QoreAbstractQCoreApplication *qca, ExceptionSink *xsink)

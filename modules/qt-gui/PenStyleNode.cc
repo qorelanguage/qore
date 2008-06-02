@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 #include "PenStyleNode.h"
 
 static qt_enum_map_t psmap;

@@ -29,10 +29,11 @@
 #include <QList>
 #include <QStringList>
 
+DLLEXPORT extern QoreNamespace *QtNS, *QEventNS;
+
 DLLEXPORT int get_qdate(const AbstractQoreNode *n, QDate &date, class ExceptionSink *xsink);
 DLLEXPORT int get_qtime(const AbstractQoreNode *n, QTime &time, class ExceptionSink *xsink);
 DLLEXPORT int get_qdatetime(const AbstractQoreNode *n, QDateTime &dt, class ExceptionSink *xsink);
-DLLEXPORT int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xsink);
 DLLEXPORT int get_qvariant(const AbstractQoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
 DLLEXPORT int get_qbytearray(const AbstractQoreNode *n, QByteArray &qba, class ExceptionSink *xsink, bool suppress_exception = false);
 DLLEXPORT int get_qchar(const AbstractQoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception = false);
@@ -52,5 +53,56 @@ typedef QoreObject *(*return_qevent_hook_t)(QEvent *e);
 DLLEXPORT void register_return_qvariant_hook(return_qvariant_hook_t hook);
 DLLEXPORT void register_return_qobject_hook(return_qobject_hook_t hook);
 DLLEXPORT void register_return_qevent_hook(return_qevent_hook_t hook);
+
+class QoreQtAbstractDynamicTypeHelper;
+
+DLLEXPORT void register_qqt_dynamic_type(QoreQtAbstractDynamicTypeHelper *t);
+
+class QoreQtArgs {
+   private:
+      int argc;
+      char **argv;
+      QoreListNode *new_args;
+
+   public:
+      DLLLOCAL QoreQtArgs() : argc(0), argv(0), new_args(0)
+      {
+      }
+
+      DLLLOCAL QoreQtArgs(const QoreListNode *args)
+      {
+	 if (!args || !args->size()) {
+	    argc = 0;
+	    argv = 0;
+	    new_args = 0;
+	    return;
+	 }
+
+	 argc = args->size();
+	 argv = new char*[argc];	 
+	 new_args = new QoreListNode();
+
+	 ConstListIterator li(args);
+	 while (li.next()) {
+	    QoreStringNodeValueHelper str(li.getValue());
+	    QoreStringNode *p = str.getReferencedValue();
+	    new_args->push(p);
+	    argv[li.index()] = (char *)p->getBuffer();
+	 }
+      }
+
+      DLLLOCAL ~QoreQtArgs()
+      {
+	 if (argv)
+	    delete [] argv;
+	 if (new_args) {
+	    ExceptionSink xsink;
+	    new_args->deref(&xsink);
+	 }
+      }
+
+      int &get_argc() { return argc; }
+      char **get_argv() { return argv; } 
+};
 
 #endif

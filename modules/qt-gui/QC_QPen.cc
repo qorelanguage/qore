@@ -26,7 +26,7 @@
 #include "QC_QBrush.h"
 #include "QC_QColor.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPEN;
 class QoreClass *QC_QPen = 0;

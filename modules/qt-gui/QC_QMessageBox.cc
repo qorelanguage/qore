@@ -31,7 +31,7 @@
 #include "QC_QPixmap.h"
 #include "QC_QAbstractButton.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QMESSAGEBOX;
 class QoreClass *QC_QMessageBox = 0;

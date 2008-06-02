@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt-gui.h"
+
 #include "QC_QLayout.h"
 #include "QC_QRect.h"
 

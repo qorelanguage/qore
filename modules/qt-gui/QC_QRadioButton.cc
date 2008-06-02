@@ -25,7 +25,7 @@
 #include "QC_QRadioButton.h"
 #include "QC_QWidget.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QRADIOBUTTON;
 class QoreClass *QC_QRadioButton = 0;

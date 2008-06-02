@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 #include "QC_QMatrix.h"
 #include "QC_QRect.h"

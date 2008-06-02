@@ -27,7 +27,7 @@
 #include "QC_QByteArray.h"
 #include "QC_QImage.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QIMAGEWRITER;
 class QoreClass *QC_QImageWriter = 0;

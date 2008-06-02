@@ -27,7 +27,7 @@
 #include "QC_QPoint.h"
 #include "QC_QRect.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QDESKTOPWIDGET;
 class QoreClass *QC_QDesktopWidget = 0;

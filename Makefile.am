@@ -278,14 +278,20 @@ noinst_HEADERS = \
 	modules/qt-core/QC_QChar.h \
 	modules/qt-core/QC_QDir.h \
 	modules/qt-core/QC_QRegExp.h \
+	modules/qt-core/QC_QMetaObject.h \
 	modules/qt-core/QC_QFileInfo.h \
+	modules/qt-core/QC_QTimer.h \
 	modules/qt-core/QC_QBasicTimer.h \
 	modules/qt-core/QC_QChildEvent.h \
+	modules/qt-core/QC_QMimeData.h \
 	modules/qt-core/QC_QTimerEvent.h \
 	modules/qt-core/QC_QLibraryInfo.h \
 	modules/qt-core/QC_QCoreApplication.h \
 	modules/qt-core/QC_QModelIndex.h \
 	modules/qt-core/QC_QTranslator.h \
+	modules/qt-core/QC_QTimeLine.h \
+	modules/qt-core/QC_QIODevice.h \
+	modules/qt-core/QoreAbstractQIODevice.h \
 	modules/qt-core/QoreAbstractQCoreApplication.h \
 	modules/qt-core/QoreQtDynamicMethod.h \
 	modules/qt-core/QoreQtEventDispatcher.h \
@@ -353,14 +359,13 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QKeyEvent.h \
 	modules/qt-gui/QC_QMoveEvent.h \
 	modules/qt-gui/QC_QResizeEvent.h \
-	modules/qt-gui/QC_QTimer.h \
 	modules/qt-gui/QC_QLabel.h \
 	modules/qt-gui/QC_QPicture.h \
 	modules/qt-gui/QC_QPixmap.h \
 	modules/qt-gui/QC_QMovie.h \
 	modules/qt-gui/QC_QBitmap.h \
 	modules/qt-gui/QC_QShortcut.h \
-	modules/qt-gui/qore-qt.h \
+	modules/qt-gui/qore-qt-gui.h \
 	modules/qt-gui/QC_QIcon.h \
 	modules/qt-gui/QC_QKeySequence.h \
 	modules/qt-gui/QC_QAction.h \
@@ -404,8 +409,7 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QActionEvent.h \
 	modules/qt-gui/QC_QCloseEvent.h \
 	modules/qt-gui/QC_QContextMenuEvent.h \
-	modules/qt-gui/QC_QDropEvent.h \
-	modules/qt-gui/QC_QMimeData.h \
+	modules/qt-gui/QC_QDropEvent.h \	
 	modules/qt-gui/QC_QDragMoveEvent.h \
 	modules/qt-gui/QC_QDragEnterEvent.h \
 	modules/qt-gui/QC_QDragLeaveEvent.h \
@@ -449,7 +453,6 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QFileDialog.h \
 	modules/qt-gui/QC_QHeaderView.h \
 	modules/qt-gui/QoreAbstractQHeaderView.h \
-	modules/qt-gui/QC_QMetaObject.h \
 	modules/qt-gui/QC_QMenuBar.h \
 	modules/qt-gui/QoreAbstractQMenuBar.h \
 	modules/qt-gui/QC_QPrinter.h \
@@ -460,8 +463,6 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QRegExpValidator.h \
 	modules/qt-gui/QC_QColorDialog.h \
 	modules/qt-gui/QC_QInputDialog.h \
-	modules/qt-gui/QC_QIODevice.h \
-	modules/qt-gui/QoreAbstractQIODevice.h \
 	modules/qt-gui/QC_QImageWriter.h \
 	modules/qt-gui/QC_QImage.h \
 	modules/qt-gui/QC_QDial.h \
@@ -495,7 +496,6 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QStackedLayout.h \
 	modules/qt-gui/QC_QGradient.h \
 	modules/qt-gui/QC_QLinearGradient.h \
-	modules/qt-gui/QC_QTimeLine.h \
 	modules/qt-gui/QC_QTextBrowser.h \
 	modules/qt-gui/QC_QLayoutItem.h \
 	modules/qt-gui/QoreAbstractQLayoutItem.h \

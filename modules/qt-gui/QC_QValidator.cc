@@ -26,7 +26,7 @@
 #include "QC_QObject.h"
 #include "QC_QLocale.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QVALIDATOR;
 class QoreClass *QC_QValidator = 0;

@@ -25,7 +25,7 @@
 #include "QC_QPrinter.h"
 #include "QC_QRect.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPRINTER;
 class QoreClass *QC_QPrinter = 0;

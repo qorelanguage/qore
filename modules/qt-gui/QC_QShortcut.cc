@@ -26,7 +26,7 @@
 #include "QC_QKeySequence.h"
 #include "QC_QWidget.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QSHORTCUT;
 class QoreClass *QC_QShortcut = 0;

@@ -28,7 +28,7 @@
 #include "QC_QPalette.h"
 #include "QC_QFontMetrics.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QSTYLEOPTION;
 QoreClass *QC_QStyleOption = 0;

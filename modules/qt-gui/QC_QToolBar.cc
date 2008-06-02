@@ -29,7 +29,7 @@
 #include "QC_QPoint.h"
 #include "QC_QIcon.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTOOLBAR;
 class QoreClass *QC_QToolBar = 0;

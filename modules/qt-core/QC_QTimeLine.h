@@ -26,7 +26,6 @@
 
 #include <QTimeLine>
 #include "QoreAbstractQObject.h"
-#include "qore-qt-events.h"
 
 DLLEXPORT extern int CID_QTIMELINE;
 DLLEXPORT extern QoreClass *QC_QTimeLine;

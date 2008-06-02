@@ -28,7 +28,7 @@
 #include "QC_QByteArray.h"
 #include "QC_QAbstractItemDelegate.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QFILEDIALOG;
 class QoreClass *QC_QFileDialog = 0;

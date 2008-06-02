@@ -22,10 +22,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt-gui.h"
+
 #include "QC_QCDEStyle.h"
 
 qore_classid_t CID_QCDESTYLE;
-class QoreClass *QC_QCDEStyle = 0;
+QoreClass *QC_QCDEStyle = 0;
 
 //QCDEStyle ( bool useHighlightCols = false )
 static void QCDESTYLE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

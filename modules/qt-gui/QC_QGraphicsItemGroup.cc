@@ -23,7 +23,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 #include "QC_QGraphicsItemGroup.h"
 #include "QC_QGraphicsItem.h"

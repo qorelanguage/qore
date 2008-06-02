@@ -26,7 +26,7 @@
 #include "QC_QObject.h"
 #include "QC_QRegExp.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QREGEXPVALIDATOR;
 class QoreClass *QC_QRegExpValidator = 0;

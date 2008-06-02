@@ -27,7 +27,7 @@
 #include "QC_QMenuBar.h"
 #include "QC_QByteArray.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QMAINWINDOW;
 class QoreClass *QC_QMainWindow = 0;

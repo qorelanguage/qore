@@ -27,7 +27,7 @@
 #include "QC_QObject.h"
 #include "QC_QIcon.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QACTIONGROUP;
 QoreClass *QC_QActionGroup = 0;

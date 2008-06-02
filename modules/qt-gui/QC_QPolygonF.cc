@@ -27,7 +27,7 @@
 #include "QC_QRectF.h"
 #include "QC_QPolygon.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPOLYGONF;
 class QoreClass *QC_QPolygonF = 0;

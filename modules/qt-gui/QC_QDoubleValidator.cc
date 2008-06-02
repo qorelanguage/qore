@@ -25,7 +25,7 @@
 #include "QC_QDoubleValidator.h"
 #include "QC_QObject.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QDOUBLEVALIDATOR;
 class QoreClass *QC_QDoubleValidator = 0;

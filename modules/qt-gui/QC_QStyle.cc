@@ -22,11 +22,11 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt-gui.h"
+
 #include "QC_QStyle.h"
 #include "QC_QStyleOption.h"
 #include "QC_QWidget.h"
-
-#include "qore-qt.h"
 
 qore_classid_t CID_QSTYLE;
 class QoreClass *QC_QStyle = 0;

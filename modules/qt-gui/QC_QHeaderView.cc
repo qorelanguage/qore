@@ -27,7 +27,7 @@
 #include "QC_QByteArray.h"
 #include "QC_QPoint.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QHEADERVIEW;
 class QoreClass *QC_QHeaderView = 0;

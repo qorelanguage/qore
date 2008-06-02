@@ -22,14 +22,14 @@
 
 #include <qore/Qore.h>
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 #include "QC_QStyleOptionButton.h"
 #include "QC_QStyleOption.h"
 #include "QC_QIcon.h"
 #include "QC_QSize.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QSTYLEOPTIONBUTTON;
 QoreClass *QC_QStyleOptionButton = 0;

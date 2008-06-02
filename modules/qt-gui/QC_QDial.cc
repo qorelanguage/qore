@@ -26,7 +26,7 @@
 #include "QC_QWidget.h"
 #include "QC_QStyleOptionSlider.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QDIAL;
 class QoreClass *QC_QDial = 0;

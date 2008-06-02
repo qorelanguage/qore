@@ -29,7 +29,7 @@
 #include "QC_QSize.h"
 #include "QC_QWidget.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QABSTRACTITEMDELEGATE;
 class QoreClass *QC_QAbstractItemDelegate = 0;

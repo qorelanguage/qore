@@ -26,7 +26,7 @@
 #include "QC_QIcon.h"
 #include "QC_QKeySequence.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QABSTRACTBUTTON;
 class QoreClass *QC_QAbstractButton = 0;

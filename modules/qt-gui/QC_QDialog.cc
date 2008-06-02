@@ -25,7 +25,7 @@
 #include "QC_QDialog.h"
 #include "QC_QWidget.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QDIALOG;
 class QoreClass *QC_QDialog = 0;

@@ -24,7 +24,6 @@
 
 #include "QC_QRectF.h"
 #include "QC_QRect.h"
-#include "QC_QColor.h"
 
 qore_classid_t CID_QRECTF;
 QoreClass *QC_QRectF = 0;

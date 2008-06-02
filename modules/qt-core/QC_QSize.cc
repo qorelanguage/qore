@@ -25,11 +25,9 @@
 #include "qt-core.h"
 
 #include "QC_QSize.h"
-#include "QC_QColor.h"
 
 qore_classid_t CID_QSIZE;
 QoreClass *QC_QSize = 0;
-
 
 static void QSIZE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

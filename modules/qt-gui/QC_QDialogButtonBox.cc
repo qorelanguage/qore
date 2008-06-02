@@ -27,7 +27,7 @@
 #include "QC_QAbstractButton.h"
 #include "QC_QPushButton.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QDIALOGBUTTONBOX;
 class QoreClass *QC_QDialogButtonBox = 0;

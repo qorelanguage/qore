@@ -46,6 +46,8 @@
 //#include "QC_QStringList.h"
 #include "QC_QUrl.h"
 
+QoreNamespace *QtNS = 0, *QEventNS = 0;
+
 typedef safe_dslist<return_qvariant_hook_t> qv_hook_list_t;
 typedef safe_dslist<return_qobject_hook_t> qo_hook_list_t;
 typedef safe_dslist<return_qevent_hook_t> qe_hook_list_t;
@@ -54,7 +56,7 @@ static qv_hook_list_t qvariant_hooks;
 static qo_hook_list_t qobject_hooks;
 static qe_hook_list_t qevent_hooks;
 
-int get_qdate(const AbstractQoreNode *n, QDate &date, class ExceptionSink *xsink)
+int get_qdate(const AbstractQoreNode *n, QDate &date, ExceptionSink *xsink)
 {
    {
       const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(n);
@@ -511,3 +513,19 @@ QoreListNode *return_qstringlist(const QStringList &l)
       ql->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return ql;
 }
+
+void register_return_qvariant_hook(return_qvariant_hook_t hook)
+{
+   qvariant_hooks.push_back(hook);
+}
+
+void register_return_qobject_hook(return_qobject_hook_t hook)
+{
+   qobject_hooks.push_back(hook);
+}
+
+void register_return_qevent_hook(return_qevent_hook_t hook)
+{
+   qevent_hooks.push_back(hook);
+}
+

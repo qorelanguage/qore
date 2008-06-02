@@ -28,7 +28,7 @@
 #include "QC_QPainter.h"
 #include "QC_QRect.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QICON;
 QoreClass *QC_QIcon = 0;

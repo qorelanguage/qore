@@ -26,7 +26,7 @@
 #include "QC_QBrush.h"
 #include "QC_QTextLength.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTEXTFRAMEFORMAT;
 class QoreClass *QC_QTextFrameFormat = 0;

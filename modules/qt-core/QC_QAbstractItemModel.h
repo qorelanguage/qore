@@ -26,12 +26,11 @@
 
 #include <QAbstractItemModel>
 #include "QoreAbstractQAbstractItemModel.h"
-#include "qore-qt-events.h"
 
 DLLEXPORT extern qore_classid_t CID_QABSTRACTITEMMODEL;
-DLLEXPORT extern class QoreClass *QC_QAbstractItemModel;
+DLLEXPORT extern QoreClass *QC_QAbstractItemModel;
 
-DLLEXPORT class QoreClass *initQAbstractItemModelClass(QoreClass *);
+DLLEXPORT QoreClass *initQAbstractItemModelClass(QoreClass *);
 
 typedef QoreQtQAbstractItemModelBase<QAbstractItemModel, QoreAbstractQAbstractItemModel> QoreQtQAbstractItemModelImpl;
 

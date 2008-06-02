@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt-gui.h"
+
 #include "QC_QPlastiqueStyle.h"
 
 qore_classid_t CID_QPLASTIQUESTYLE;

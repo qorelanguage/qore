@@ -27,7 +27,7 @@
 #include "QC_QFont.h"
 #include "QC_QColor.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTEXTCHARFORMAT;
 class QoreClass *QC_QTextCharFormat = 0;

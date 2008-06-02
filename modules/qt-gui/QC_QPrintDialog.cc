@@ -26,7 +26,7 @@
 #include "QC_QPrinter.h"
 #include "QC_QWidget.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPRINTDIALOG;
 class QoreClass *QC_QPrintDialog = 0;

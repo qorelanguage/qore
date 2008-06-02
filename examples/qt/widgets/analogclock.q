@@ -5,8 +5,8 @@
 
 # Note that Qore's "qt" module requires QT 4.3 or above 
 
-# use the "qt" module
-%requires qt
+# use the "qt-gui" module
+%requires qt-gui
 
 # this is an object-oriented program, the application class is "analog_clock_example"
 %exec-class analog_clock_example

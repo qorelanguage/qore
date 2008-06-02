@@ -33,9 +33,6 @@
 
 DLLEXPORT extern AbstractQoreNode *C_Clipboard;
 
-extern int static_argc;
-extern char **static_argv;
-
 #include <map>
 
 typedef std::map<int, const char *> qt_enum_map_t;
@@ -48,6 +45,7 @@ class QAction;
 class QWidget;
 
 DLLEXPORT int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &qks, ExceptionSink *xsink, bool suppress_exception = false);
+DLLEXPORT int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xsink);
 
 DLLEXPORT QoreObject *return_qabstractbutton(QAbstractButton *button);
 DLLEXPORT QoreObject *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink);

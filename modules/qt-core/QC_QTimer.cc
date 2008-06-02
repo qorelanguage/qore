@@ -23,8 +23,6 @@
 #include <qore/Qore.h>
 
 #include "QC_QTimer.h"
-#include "QC_QFont.h"
-#include "QC_QWidget.h"
 #include "QC_QObject.h"
 
 qore_classid_t CID_QTIMER;

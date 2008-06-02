@@ -71,22 +71,49 @@ class AutoNamespaceList ANSL;
 struct qore_ns_private {
       std::string name;
 
-      class ConstantList   *constant;
       class QoreClassList  *classList;
+      class ConstantList   *constant;
       class QoreNamespaceList  *nsl;
-      class QoreNamespace      *next;
 
       // pending lists
-      class ConstantList   *pendConstant;
       class QoreClassList  *pendClassList;
+      class ConstantList   *pendConstant;
       class QoreNamespaceList  *pendNSL;
 
-      DLLLOCAL qore_ns_private()
+      class QoreNamespace      *next;
+
+      DLLLOCAL qore_ns_private(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nsl) :
+	 name(n), 
+	 classList(ocl), constant(cl), nsl(nnsl), 
+	 pendClassList(pend_ocl), pendConstant(pend_cl), pendNSL(pend_nsl), next(0)
       {
-	 next = 0;
-	 pendConstant = new ConstantList();
-	 pendClassList = new QoreClassList();
-	 pendNSL = new QoreNamespaceList();
+	 assert(classList);
+	 assert(constant);
+	 assert(nsl);
+	 assert(pendClassList);
+	 assert(pendConstant);
+	 assert(pendNSL);
+      }
+      DLLLOCAL qore_ns_private(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) :
+	 name(n),
+	 classList(ocl), constant(cl), nsl(nnsl), 
+	 pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
+      {
+	 assert(classList);
+	 assert(constant);
+	 assert(nsl);
+      }
+      DLLLOCAL qore_ns_private(const char *n) :
+	 name(n),
+	 classList(new QoreClassList), constant(new ConstantList), nsl(new QoreNamespaceList), 
+	 pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
+      {
+      }
+
+      DLLLOCAL qore_ns_private() :
+	 classList(new QoreClassList), constant(new ConstantList), nsl(new QoreNamespaceList), 
+	 pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
+      {
       }
 
       DLLLOCAL ~qore_ns_private()
@@ -105,33 +132,24 @@ struct qore_ns_private {
 
 QoreNamespace::QoreNamespace() : priv(new qore_ns_private)
 {
-   priv->classList  = new QoreClassList();
-   priv->constant   = new ConstantList();
-   priv->nsl        = new QoreNamespaceList();
 }
 
-QoreNamespace::QoreNamespace(const char *n) : priv(new qore_ns_private)
+QoreNamespace::QoreNamespace(const char *n) : priv(new qore_ns_private(n))
 {
-   priv->name       = n;
-   priv->classList  = new QoreClassList();
-   priv->constant   = new ConstantList();
-   priv->nsl        = new QoreNamespaceList();
 }
 
-QoreNamespace::QoreNamespace(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) : priv(new qore_ns_private)
+QoreNamespace::QoreNamespace(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nsl) : priv(new qore_ns_private(n, ocl, cl, nnsl, pend_ocl, pend_cl, pend_nsl))
 {
-   priv->name       = n;
-   priv->classList  = ocl;
-   priv->constant   = cl;
-   priv->nsl        = nnsl;
 }
 
+/*
 QoreNamespace::QoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) : priv(new qore_ns_private)
 {
    priv->classList  = ocl;
    priv->constant   = cl;
    priv->nsl        = nnsl;
 }
+*/
 
 QoreNamespace::~QoreNamespace()
 {
@@ -378,7 +396,8 @@ class QoreNamespace *QoreNamespaceList::find(const char *name)
 
 class QoreNamespace *QoreNamespace::copy(int po) const
 {
-   return new QoreNamespace(priv->name.c_str(), priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po));
+   return new QoreNamespace(priv->name.c_str(), priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po), 
+			    priv->pendClassList->copy(po), priv->pendConstant->copy(), priv->pendNSL->copy(po));
 }
 
 class QoreNamespaceList *QoreNamespaceList::copy(int po)
@@ -1704,7 +1723,7 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
 }
 
 // private constructor
-RootQoreNamespace::RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) : QoreNamespace(ocl, cl, nnsl)
+RootQoreNamespace::RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nsl) : QoreNamespace("", ocl, cl, nnsl, pend_ocl, pend_cl, pend_nsl)
 {
    qoreNS = priv->nsl->find("Qore");
 }
@@ -1720,7 +1739,7 @@ class QoreNamespace *RootQoreNamespace::rootGetQoreNamespace() const
 
 class RootQoreNamespace *RootQoreNamespace::copy(int po) const
 {
-   return new RootQoreNamespace(priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po));
+   return new RootQoreNamespace(priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po), priv->pendClassList->copy(po), priv->pendConstant->copy(), priv->pendNSL->copy(po));
 }
 
 #ifdef DEBUG_TESTS

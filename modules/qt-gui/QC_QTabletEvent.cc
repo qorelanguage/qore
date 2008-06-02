@@ -26,7 +26,7 @@
 #include "QC_QPoint.h"
 #include "QC_QPointF.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTABLETEVENT;
 class QoreClass *QC_QTabletEvent = 0;

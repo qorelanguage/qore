@@ -25,7 +25,7 @@
 #include "QC_QHelpEvent.h"
 #include "QC_QPoint.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QHELPEVENT;
 class QoreClass *QC_QHelpEvent = 0;

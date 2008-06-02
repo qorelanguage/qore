@@ -34,7 +34,7 @@
 #include "QC_QTextImageFormat.h"
 #include "QC_QTextTableFormat.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QTEXTFORMAT;
 class QoreClass *QC_QTextFormat = 0;

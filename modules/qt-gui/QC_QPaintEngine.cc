@@ -34,7 +34,7 @@
 #include "QC_QImage.h"
 #include "QC_QPaintDevice.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QPAINTENGINE;
 class QoreClass *QC_QPaintEngine = 0;

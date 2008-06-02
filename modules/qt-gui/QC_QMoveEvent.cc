@@ -27,7 +27,7 @@
 #include "QC_QRect.h"
 #include "QC_QPoint.h"
 
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QMOVEEVENT;
 

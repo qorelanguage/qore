@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 #include "QC_QFont.h"
-#include "qore-qt.h"
+#include "qore-qt-gui.h"
 
 qore_classid_t CID_QFONT;
 QoreClass *QC_QFont = 0;
