@@ -40,8 +40,17 @@ class QoreQtTypeList : public qore_qt_type_list_t
       DLLLOCAL QoreQtAbstractDynamicTypeHelper *identify(const char *&p)
       {
 	 for (qore_qt_type_list_t::iterator i = begin(), e = end(); i != e; ++i) {
-	    if ((*i)->identify(p))
+	    if ((*i)->identify(p)) {
+
+	       // skip to next argument
+	       while (*p && *p != ',' && *p != ')')
+		  ++p;
+	       if (*p) ++p;
+	       while (*p && isblank(*p))
+		  ++p;
+
 	       return *i;
+	    }
 	 }
 	 return 0;
       }
@@ -539,7 +548,7 @@ QoreQtDynamicSignal::QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink)
 	    xsink->raiseException("DYNAMIC-SIGNAL-ERROR", desc);
 	    break;
 	 }
-	 printd(0, "resolved type '%s' in '%s'\n", at->get_name(), sig);
+	 //printd(0, "resolved type '%s' in '%s'\n", at->get_name(), sig);
 	 type_list.push_back(at);
       }
 }
