@@ -1705,6 +1705,7 @@ sub do_tests()
     }
     catch ()
     {
+	++$errors;
 	$counter.dec();
 	rethrow;	
     }
@@ -1714,11 +1715,11 @@ sub do_tests()
 sub main()
 {
     parse_command_line();
-    printf("QORE v%s Test Script\n", Qore::VersionString);
+    printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n", Qore::VersionString, 
+	   $o.threads, $o.threads == 1 ? "" : "s", $o.iters, $o.iters == 1 ? "" : "s");
 
     $counter = new Counter();
-    while ($o.threads--)
-    {
+    while ($o.threads--) {
 	$counter.inc();
 	background do_tests();
     }
