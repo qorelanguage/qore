@@ -262,39 +262,39 @@ const AbstractQoreNode *QoreHashNode::getKeyValueExistence(const QoreString *key
    return const_cast<QoreHashNode *>(this)->getKeyValueExistence(key, exists, xsink);
 }
 
-void QoreHashNode::setKeyValue(const QoreString *key, AbstractQoreNode *value, ExceptionSink *xsink)
+void QoreHashNode::setKeyValue(const QoreString *key, AbstractQoreNode *val, ExceptionSink *xsink)
 {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return;
 
-   setKeyValue(tmp->getBuffer(), value, xsink);
+   setKeyValue(tmp->getBuffer(), val, xsink);
 }
 
-void QoreHashNode::setKeyValue(const char *key, AbstractQoreNode *value, ExceptionSink *xsink)
+void QoreHashNode::setKeyValue(const char *key, AbstractQoreNode *val, ExceptionSink *xsink)
 {
    AbstractQoreNode **v = priv->getKeyValuePtr(key);
-   //printd(5, "QoreHashNode::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, value, v, *v);
+   //printd(5, "QoreHashNode::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, val, v, *v);
    if (*v)
       (*v)->deref(xsink);
-   *v = value;
+   *v = val;
 }
 
-AbstractQoreNode *QoreHashNode::swapKeyValue(const QoreString *key, AbstractQoreNode *value, ExceptionSink *xsink)
+AbstractQoreNode *QoreHashNode::swapKeyValue(const QoreString *key, AbstractQoreNode *val, ExceptionSink *xsink)
 {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return 0;
 
-   return swapKeyValue(tmp->getBuffer(), value);
+   return swapKeyValue(tmp->getBuffer(), val);
 }
 
-AbstractQoreNode *QoreHashNode::swapKeyValue(const char *key, AbstractQoreNode *value)
+AbstractQoreNode *QoreHashNode::swapKeyValue(const char *key, AbstractQoreNode *val)
 {
    AbstractQoreNode **v = priv->getKeyValuePtr(key);
-   //printd(5, "QoreHashNode::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, value, v, *v);
+   //printd(5, "QoreHashNode::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, val, v, *v);
    AbstractQoreNode *rv = *v;
-   *v = value;
+   *v = val;
    return rv;
 }
 

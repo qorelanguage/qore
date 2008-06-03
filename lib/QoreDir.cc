@@ -243,7 +243,7 @@ int QoreDir::create(int mode, ExceptionSink *xsink) {
 
 
 // list entries of the directory where d points to
-// the filter willl be applied to struct dirent->d_type for filtering out
+// the filter will be applied to struct dirent->d_type (on Linux) for filtering.
 // directories '.' and '..' will be skipped
 //QoreListNode* QoreDir::list(Dir *d, int d_filter, ExceptionSink *xsink) {
 QoreListNode* QoreDir::list(int d_filter, ExceptionSink *xsink, const QoreString *regex, int regex_options) {
@@ -265,16 +265,34 @@ QoreListNode* QoreDir::list(int d_filter, ExceptionSink *xsink, const QoreString
   ReferenceHolder<QoreListNode> lst(new QoreListNode(), xsink);
 
   DIR *dptr=opendir(dir);
-  if(!dptr) {
+  if (!dptr) {
     xsink->raiseException("DIR-READ-ERROR", "error opening directory for reading: %s", strerror(errno));
     return 0;
   }
   ON_BLOCK_EXIT(closedir, dptr);
 
   struct dirent *de;
-  while((de=readdir(dptr))) {
-    if(strcmp(de->d_name, ".") && strcmp(de->d_name, "..")) {
-      if(de->d_type & d_filter) {
+  while ((de=readdir(dptr))) {
+     if (strcmp(de->d_name, ".") && strcmp(de->d_name, "..")) {
+#ifdef HAVE_DIRENT_D_TYPE
+	if (de->d_type & d_filter) {
+#else
+	bool ok = true;
+	// if we are filtering out directories, then we have to stat the file
+	if (d_filter != -1) {
+	   QoreString fname(dir);
+	   fname.concat('/');
+	   fname.concat(de->d_name);
+	   struct stat buf;
+	   int rc = stat(fname.getBuffer(), &buf);
+	   if (!rc) {
+	      xsink->raiseException("DIR-READ-ERROR", "stat() failed on '%s': %s", fname.getBuffer(), strerror(errno));
+	      return 0;
+	   }
+	   ok = !S_ISDIR(buf.st_mode);
+	}
+	if (ok) {
+#endif
 	 // if there is a regular expression, see if the name matches
 	 if (regex) {
 	    QoreString targ(de->d_name, priv->charset);

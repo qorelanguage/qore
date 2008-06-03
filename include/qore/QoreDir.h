@@ -29,6 +29,16 @@
 #include <string>
 #include <vector>
 
+#ifndef HAVE_DIRENT_D_TYPE
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#ifndef DT_DIR
+#define DT_DIR 1
+#endif
+#endif
+
 //! provides controlled access to file data through Qore data structures
 /** Each file has a default character encoding associated with it.  String data
     read from the file will be tagged with this encoding.  String data written to
@@ -118,9 +128,6 @@ class QoreDir {
 
       //! changes ownership of the file (if possible)
       //DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
-
-
-
 };
 
 #endif  // _QORE_QOREDIR_H

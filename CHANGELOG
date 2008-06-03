@@ -1,3 +1,6 @@
+2008.06.03: David Nichols
+	* compile fixes for Solaris and SunPro CC
+
 2008.06.02: David Nichols
 	* split the qt module into qt-gui and qt-core
 

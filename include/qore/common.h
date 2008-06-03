@@ -55,7 +55,7 @@ typedef unsigned qore_classid_t;
 typedef std::set<int> int_set_t;
 
 enum qore_license_t { QL_GPL = 0,         //!< code to be used under the GPL license
-		      QL_LGPL = 1,        //!< code to be used under the LGPL license
+		      QL_LGPL = 1         //!< code to be used under the LGPL license
 };
 
 #ifdef _MSC_VER

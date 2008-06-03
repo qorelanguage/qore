@@ -201,7 +201,7 @@ class BCEAList : public bceamap_t
    public:
       DLLLOCAL inline void deref(ExceptionSink *xsink);
       // evaluates arguments, returns -1 if an exception was thrown
-      DLLLOCAL inline int add(class QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink);
+      DLLLOCAL inline int add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink);
       DLLLOCAL inline QoreListNode *findArgs(const QoreClass *qc, bool *aexeced);
 };
 
@@ -237,7 +237,7 @@ QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced)
    return 0;
 }
 
-inline int BCEAList::add(class QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink)
+inline int BCEAList::add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink)
 {
    // see if class already exists in the list
    bceamap_t::iterator i = find(qc);

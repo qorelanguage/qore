@@ -34,7 +34,7 @@ class QoreReferenceCounter
       mutable int references;
 #ifndef HAVE_ATOMIC_MACROS
       //! pthread lock to ensure atomicity of updates for architectures where we don't have an atomic increment and decrement implementation
-      class QoreThreadLock mRO;
+      mutable QoreThreadLock mRO;
 #endif
 
    public:

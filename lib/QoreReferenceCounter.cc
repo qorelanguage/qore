@@ -25,16 +25,10 @@
 QoreReferenceCounter::QoreReferenceCounter()
 {
    references = 1;
-#if !defined(HAVE_ATOMIC_MACROS)
-   ropriv = new qore_ro_private;
-#endif
 }
 
 QoreReferenceCounter::~QoreReferenceCounter()
 {
-#if !defined(HAVE_ATOMIC_MACROS)
-   delete ropriv;
-#endif
 }
 
 void QoreReferenceCounter::ROreference() const

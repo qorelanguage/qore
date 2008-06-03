@@ -60,7 +60,7 @@ class QoreNamespace
       DLLLOCAL QoreNamespace *findNamespace(const char *name) const;
       DLLLOCAL QoreNamespace *resolveNameScope(NamedScope *name) const;
       DLLLOCAL AbstractQoreNode *getConstantValue(const char *name) const;
-      DLLLOCAL QoreNamespace(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *cl, QoreNamespaceList *nnsl);
+      DLLLOCAL QoreNamespace(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nnsl);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreNamespace(const QoreNamespace&);

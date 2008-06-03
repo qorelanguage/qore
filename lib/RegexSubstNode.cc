@@ -74,9 +74,9 @@ RegexSubstNode::~RegexSubstNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int RegexSubstNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
+int RegexSubstNode::getAsString(QoreString &mstr, int foff, ExceptionSink *xsink) const
 {
-   str.sprintf("regular expression substitution expression (0x%08p)", this);
+   mstr.sprintf("regular expression substitution expression (0x%08p)", this);
    return 0;
 }
 
