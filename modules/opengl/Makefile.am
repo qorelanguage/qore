@@ -17,7 +17,7 @@ opengl_la_SOURCES = $(OPENGL_SOURCES)
 opengl_la_LDFLAGS = -module -avoid-version ${OPENGL_LIBS}
 endif
 
-INCLUDES = -I$(top_srcdir)/include $(OPENGL_INCLUDES) $(OPENSSL_CPPFLAGS)
+INCLUDES = -I$(top_srcdir)/include $(OPENGL_INCLUDES)
 
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 

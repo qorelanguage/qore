@@ -17,7 +17,7 @@ glut_la_SOURCES = $(GLUT_SOURCES)
 glut_la_LDFLAGS = -module -avoid-version ${GLUT_LIBS}
 endif
 
-INCLUDES = -I$(top_srcdir)/include $(GLUT_INCLUDES) $(OPENSSL_CPPFLAGS)
+INCLUDES = -I$(top_srcdir)/include $(GLUT_INCLUDES)
 
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 

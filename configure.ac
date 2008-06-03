@@ -381,8 +381,8 @@ find_openssl()
     else
 	AC_MSG_ERROR([not found])
     fi
-    AC_SUBST(OPENSSL_LDFLAGS)
-    AC_SUBST(OPENSSL_CPPFLAGS)   
+    LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
+    CPPFLAGS="$CPPCLAGS $OPENSSL_CPPFLAGS"
 }
 
 # see if we can figure out where the openssl library is
@@ -780,7 +780,7 @@ if test -n "$with_tibrv"; then
    SAVE_CPPFLAGS="$CPPFLAGS"
    SAVE_LDFLAGS="$LDFLAGS"
    CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
-   LDFLAGS="$LDFLAGS $TIBRV_LDFLAGS $TIBRVCPP_LDFLAGS $OPENSSL_LDFLAGS"
+   LDFLAGS="$LDFLAGS $TIBRV_LDFLAGS $TIBRVCPP_LDFLAGS"
 
    # hack to work around a bug in 64-bit g++ on linux? - if libtibrvcpp is not last on the compile line the link will fail for some reason
    SAVE_LIBS="$LIBS"
@@ -1106,10 +1106,10 @@ if test -n "$with_tuxedo"; then
    CPPFLAGS="$CPPFLAGS $TUXEDO_CPPFLAGS"
 
    case "$tux_ver" in
-      8.*) LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort" 
+      8.*) LDFLAGS="$LDFLAGS $TUXEDO_LIBS -lgiconv -lusort" 
 	   ;;
       9.*|unknown|*)
-           LDFLAGS="$LDFLAGS $TUXEDO_LIBS $OPENSSL_LDFLAGS -lgiconv -lusort -lutrace"
+           LDFLAGS="$LDFLAGS $TUXEDO_LIBS -lgiconv -lusort -lutrace"
 	   ;;
    esac
 
