@@ -2065,7 +2065,7 @@ fi
 AC_ARG_WITH([glut],
     [AS_HELP_STRING([--with-glut@<:@=DIR@:>@],
                     [glut base directory])],
-    [if test ! -d "${with_glut}"; then AC_MSG_ERROR(directory ${with_glut} does not exist for --with-glut); unset with_glut; fi])
+    [if test "${with_glut}" != "no" -a ! -d "${with_glut}"; then AC_MSG_ERROR(directory ${with_glut} does not exist for --with-glut); unset with_glut; fi])
 
 AC_ARG_WITH([glut-libs],
     [AS_HELP_STRING([--with-glut-libs@<:@=DIR@:>@],
@@ -2092,7 +2092,7 @@ check_glut_include()
 
 check_glut_lib()
 {
-    if test -f "$1/libGL.${SHLIB_SUFFIX}" -a "$1/libGLU.${SHLIB_SUFFIX}"; then
+    if test -f "$1/libglut.${SHLIB_SUFFIX}"; then
        found_glut_libs=$lib
     elif test "$2" = "err"; then
     	AC_MSG_ERROR([$1 is not a valid glut library directory])
@@ -2183,12 +2183,12 @@ fi
 if test "${with_glut}" = yes; then
   if test -n "$with_glut_includes" -o -n "$glut_framework"; then
      if test -z "$GLUT_INCLUDES"; then
-        GLUT_INCLUDES="-I$with_glut_includes"
+        GLUT_INCLUDES="-I$with_glut_includes $OPENGL_INCLUDES"
      fi
      if test -z "$GLUT_LIBS"; then
 	GLUT_LIBS="-lglut"
 	if test -n "$glut_app_libs"; then
-	   GLUT_LIBS="-L$with_glut_libs $GLUT_LIBS"
+	   GLUT_LIBS="-L$with_glut_libs $GLUT_LIBS $OPENGL_LIBS"
 	fi
      fi
 
