@@ -381,7 +381,7 @@ find_openssl()
     else
 	AC_MSG_ERROR([not found])
     fi
-    LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
+    AC_SUBST(OPENSSL_LDFLAGS)
     CPPFLAGS="$CPPCLAGS $OPENSSL_CPPFLAGS"
 }
 
@@ -1895,7 +1895,7 @@ fi
 AC_ARG_WITH([opengl],
     [AS_HELP_STRING([--with-opengl@<:@=DIR@:>@],
                     [OpenGL base directory])],
-    [if test ! -d "${with_opengl}"; then AC_MSG_ERROR(directory ${with_opengl} does not exist for --with-opengl); unset with_opengl; fi])
+    [if test "${with_opengl}" != "no" -a ! -d "${with_opengl}"; then AC_MSG_ERROR(directory ${with_opengl} does not exist for --with-opengl); unset with_opengl; fi])
 
 AC_ARG_WITH([opengl-libs],
     [AS_HELP_STRING([--with-opengl-libs@<:@=DIR@:>@],
@@ -2133,7 +2133,7 @@ check_glut()
 }
 
 # see if we can figure out where the glut include files and libraries are
-if test "${with_glut}" != "no"; then
+if test "${with_opengl}" = "yes" -a "${with_glut}" != "no"; then
    AC_MSG_CHECKING([for glut includes and libraries])
 
    if test -n "$with_glut_includes" -a -n "$with_glut_libs"; then
