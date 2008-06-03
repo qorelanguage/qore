@@ -1180,7 +1180,7 @@ static AbstractQoreNode *f_glGenProgramsARB(const QoreListNode *params, Exceptio
    const AbstractQoreNode *p = get_param(params, 0);
    GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
 
-   GLuint programs[n];
+   GLuint *programs = (GLuint *)alloca(sizeof(GLuint) * n);
    glGenProgramsARB(n, programs);
 
    if (n == 1)
@@ -3436,7 +3436,7 @@ static AbstractQoreNode *f_glGenFramebuffersEXT(const QoreListNode *params, Exce
    const AbstractQoreNode *p = get_param(params, 0);
    GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
 
-   GLuint framebuffers[n];
+   GLuint *framebuffers = (GLuint *)alloca(sizeof(GLuint) * n);
    glGenFramebuffersEXT(n, framebuffers);
 
    if (n == 1)
@@ -3595,6 +3595,7 @@ static AbstractQoreNode *f_glRenderbufferStorageMultisampleEXT(const QoreListNod
    return 0;
 }
 
+#ifdef HAVE_GLPROGRAMPARAMETERIEXT
 //void glProgramParameteriEXT (GLuint program, GLenum pname, GLint value);
 static AbstractQoreNode *f_glProgramParameteriEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -3656,6 +3657,7 @@ static AbstractQoreNode *f_glFramebufferTextureFaceEXT(const QoreListNode *param
    glFramebufferTextureFaceEXT(target, attachment, texture, level, face);
    return 0;
 }
+#endif
 
 #ifdef HAVE_GLBINDBUFFEREXT
 //void glBindBufferRangeEXT (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
@@ -3792,6 +3794,7 @@ static AbstractQoreNode *f_glGetBooleanIndexedvEXT(const QoreListNode *params, E
 }
 */
 
+#ifdef HAVE_GLUNIFORMBUFFEREXT
 //void glUniformBufferEXT (GLuint program, GLint location, GLuint buffer);
 static AbstractQoreNode *f_glUniformBufferEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -3826,7 +3829,9 @@ static AbstractQoreNode *f_glGetUniformOffsetEXT(const QoreListNode *params, Exc
    ??? return new QoreBigIntNode(glGetUniformOffsetEXT(program, location));
 }
 */
+#endif
 
+#ifdef HAVE_GLCLEARCOLOREXT
 //void glClearColorIiEXT ( GLint r, GLint g, GLint b, GLint a );
 static AbstractQoreNode *f_glClearColorIiEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -3856,6 +3861,7 @@ static AbstractQoreNode *f_glClearColorIuiEXT(const QoreListNode *params, Except
    glClearColorIuiEXT(r, g, b, a);
    return 0;
 }
+#endif
 
 /*
 //void glTexParameterIivEXT ( GLenum target, GLenum pname, GLint *params );
@@ -3917,6 +3923,7 @@ static AbstractQoreNode *f_glGetTexParameterIiuvEXT(const QoreListNode *params, 
 }
 */
 
+#ifdef HAVE_GLVERTEXATTRIBEXT
 //void glVertexAttribI1iEXT (GLuint index, GLint x);
 static AbstractQoreNode *f_glVertexAttribI1iEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -4233,7 +4240,9 @@ static AbstractQoreNode *f_glGetVertexAttribIuivEXT(const QoreListNode *params, 
    return 0;
 }
 */
+#endif
 
+#ifdef HAVE_GLUNIFORMEXT
 //void glUniform1uiEXT (GLint location, GLuint v0);
 static AbstractQoreNode *f_glUniform1uiEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -4349,6 +4358,7 @@ static AbstractQoreNode *f_glUniform4uivEXT(const QoreListNode *params, Exceptio
    return 0;
 }
 */
+#endif
 
 /*
 //void glGetUniformuivEXT (GLuint program, GLint location, GLuint *params);
@@ -5511,10 +5521,12 @@ void initOpenGLExt()
    builtinFunctions.add("glGenerateMipmapEXT",          f_glGenerateMipmapEXT, QDOM_GUI);
    builtinFunctions.add("glBlitFramebufferEXT",         f_glBlitFramebufferEXT, QDOM_GUI);
    builtinFunctions.add("glRenderbufferStorageMultisampleEXT", f_glRenderbufferStorageMultisampleEXT, QDOM_GUI);
+#ifdef HAVE_GLPROGRAMPARAMETERIEXT
    builtinFunctions.add("glProgramParameteriEXT",       f_glProgramParameteriEXT, QDOM_GUI);
    builtinFunctions.add("glFramebufferTextureEXT",      f_glFramebufferTextureEXT, QDOM_GUI);
    builtinFunctions.add("glFramebufferTextureLayerEXT", f_glFramebufferTextureLayerEXT, QDOM_GUI);
    builtinFunctions.add("glFramebufferTextureFaceEXT",  f_glFramebufferTextureFaceEXT, QDOM_GUI);
+#endif
 #ifdef HAVE_GLBINDBUFFEREXT
    builtinFunctions.add("glBindBufferRangeEXT",         f_glBindBufferRangeEXT, QDOM_GUI);
    builtinFunctions.add("glBindBufferOffsetEXT",        f_glBindBufferOffsetEXT, QDOM_GUI);
@@ -5528,15 +5540,20 @@ void initOpenGLExt()
    //builtinFunctions.add("glGetTransformFeedbackVaryingEXT", f_glGetTransformFeedbackVaryingEXT, QDOM_GUI);
    //builtinFunctions.add("glGetIntegerIndexedvEXT",      f_glGetIntegerIndexedvEXT, QDOM_GUI);
    //builtinFunctions.add("glGetBooleanIndexedvEXT",      f_glGetBooleanIndexedvEXT, QDOM_GUI);
+#ifdef HAVE_GLUNIFORMBUFFEREXT
    builtinFunctions.add("glUniformBufferEXT",           f_glUniformBufferEXT, QDOM_GUI);
    builtinFunctions.add("glGetUniformBufferSizeEXT",    f_glGetUniformBufferSizeEXT, QDOM_GUI);
    //builtinFunctions.add("glGetUniformOffsetEXT",        f_glGetUniformOffsetEXT, QDOM_GUI);
+#endif
+#ifdef HAVE_GLCLEARCOLOREXT
    builtinFunctions.add("glClearColorIiEXT",            f_glClearColorIiEXT, QDOM_GUI);
    builtinFunctions.add("glClearColorIuiEXT",           f_glClearColorIuiEXT, QDOM_GUI);
+#endif
    //builtinFunctions.add("glTexParameterIivEXT",         f_glTexParameterIivEXT, QDOM_GUI);
    //builtinFunctions.add("glTexParameterIuivEXT",        f_glTexParameterIuivEXT, QDOM_GUI);
    //builtinFunctions.add("glGetTexParameterIivEXT",      f_glGetTexParameterIivEXT, QDOM_GUI);
    //builtinFunctions.add("glGetTexParameterIiuvEXT",     f_glGetTexParameterIiuvEXT, QDOM_GUI);
+#ifdef HAVE_GLVERTEXATTRIBEXT
    builtinFunctions.add("glVertexAttribI1iEXT",         f_glVertexAttribI1iEXT, QDOM_GUI);
    builtinFunctions.add("glVertexAttribI2iEXT",         f_glVertexAttribI2iEXT, QDOM_GUI);
    builtinFunctions.add("glVertexAttribI3iEXT",         f_glVertexAttribI3iEXT, QDOM_GUI);
@@ -5560,6 +5577,8 @@ void initOpenGLExt()
    //builtinFunctions.add("glVertexAttribIPointerEXT",    f_glVertexAttribIPointerEXT, QDOM_GUI);
    //builtinFunctions.add("glGetVertexAttribIivEXT",      f_glGetVertexAttribIivEXT, QDOM_GUI);
    //builtinFunctions.add("glGetVertexAttribIuivEXT",     f_glGetVertexAttribIuivEXT, QDOM_GUI);
+#endif
+#ifdef HAVE_GLUNIFORMEXT
    builtinFunctions.add("glUniform1uiEXT",              f_glUniform1uiEXT, QDOM_GUI);
    builtinFunctions.add("glUniform2uiEXT",              f_glUniform2uiEXT, QDOM_GUI);
    builtinFunctions.add("glUniform3uiEXT",              f_glUniform3uiEXT, QDOM_GUI);
@@ -5569,6 +5588,7 @@ void initOpenGLExt()
    //builtinFunctions.add("glUniform3uivEXT",             f_glUniform3uivEXT, QDOM_GUI);
    //builtinFunctions.add("glUniform4uivEXT",             f_glUniform4uivEXT, QDOM_GUI);
    //builtinFunctions.add("glGetUniformuivEXT",           f_glGetUniformuivEXT, QDOM_GUI);
+#endif
    //builtinFunctions.add("glBindFragDataLocationEXT",    f_glBindFragDataLocationEXT, QDOM_GUI);
    //builtinFunctions.add("glGetFragDataLocationEXT",     f_glGetFragDataLocationEXT, QDOM_GUI);
 #ifdef HAVE_GL_APPLE_FUNCS

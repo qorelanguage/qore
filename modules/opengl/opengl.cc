@@ -24,6 +24,8 @@
 
 #include "qore-opengl.h"
 
+#include <alloca.h>
+
 static QoreStringNode *opengl_module_init();
 static void opengl_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 static void opengl_module_delete();
@@ -1077,7 +1079,7 @@ static AbstractQoreNode *f_glLightfv(const QoreListNode *params, ExceptionSink *
       return 0;      
    }
 
-   GLfloat a[num];
+   GLfloat *a = (GLfloat *)alloca(sizeof(GLfloat) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       a[i] = p ? p->getAsFloat() : 0.0;
@@ -1106,7 +1108,7 @@ static AbstractQoreNode *f_glLightiv(const QoreListNode *params, ExceptionSink *
       return 0;      
    }
 
-   GLint a[num];
+   GLint *a = (GLint *)alloca(sizeof(GLint) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       a[i] = p ? p->getAsBigInt() : 0;
@@ -1154,7 +1156,7 @@ static AbstractQoreNode *f_glMaterialfv(const QoreListNode *params, ExceptionSin
       return 0;      
    }
 
-   GLfloat a[num];
+   GLfloat *a = (GLfloat *)alloca(sizeof(GLfloat) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       a[i] = p ? p->getAsFloat() : 0.0;
@@ -1182,7 +1184,7 @@ static AbstractQoreNode *f_glMaterialiv(const QoreListNode *params, ExceptionSin
       return 0;      
    }
 
-   GLint a[num];
+   GLint *a = (GLint *)alloca(sizeof(GLint) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       a[i] = p ? p->getAsBigInt() : 0;
@@ -1223,7 +1225,7 @@ static AbstractQoreNode *f_glLightModelfv(const QoreListNode *params, ExceptionS
       return 0;      
    }
 
-   GLfloat a[num];
+   GLfloat *a = (GLfloat *)alloca(sizeof(GLfloat) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       a[i] = p ? p->getAsFloat() : 0.0;
@@ -1249,7 +1251,7 @@ static AbstractQoreNode *f_glLightModeliv(const QoreListNode *params, ExceptionS
       return 0;
    }
 
-   GLint a[num];
+   GLint *a = (GLint *)alloca(sizeof(GLint) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       a[i] = p ? p->getAsBigInt() : 0;
@@ -1662,7 +1664,7 @@ static AbstractQoreNode *f_glGetBooleanv(const QoreListNode *params, ExceptionSi
       return 0;
    }
 
-   GLboolean parms[num];
+   GLboolean *parms = (GLboolean *)alloca(sizeof(GLboolean) * num);
    glGetBooleanv(pname, parms);
 
    if (num == 1)
@@ -1696,7 +1698,7 @@ static AbstractQoreNode *f_glGetDoublev(const QoreListNode *params, ExceptionSin
       return 0;
    }
 
-   GLdouble parms[num];
+   GLdouble *parms = (GLdouble *)alloca(sizeof(GLdouble) * num);
    glGetDoublev(pname, parms);
 
    if (num == 1)
@@ -1730,7 +1732,7 @@ static AbstractQoreNode *f_glGetFloatv(const QoreListNode *params, ExceptionSink
       return 0;
    }
 
-   GLfloat parms[num];
+   GLfloat *parms = (GLfloat *)alloca(sizeof(GLfloat) * num);
    glGetFloatv(pname, parms);
 
    if (num == 1)
@@ -1763,8 +1765,8 @@ static AbstractQoreNode *f_glGetIntegerv(const QoreListNode *params, ExceptionSi
       xsink->raiseException("GLGETINTEGERV-ERROR", "unrecognized parameter code %d", (int)pname);
       return 0;
    }
-
-   GLint parms[num];
+ 
+   GLint *parms = (GLint *)alloca(sizeof(GLint) * num);
    glGetIntegerv(pname, parms);
 
    if (num == 1)
@@ -1847,7 +1849,7 @@ static AbstractQoreNode *f_glTexEnvfv(const QoreListNode *params, ExceptionSink 
       return 0;      
    }
 
-   GLfloat parms[num];
+   GLfloat *parms = (GLfloat *)alloca(sizeof(GLfloat) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       parms[i] = p ? p->getAsFloat() : 0.0;
@@ -1877,7 +1879,7 @@ static AbstractQoreNode *f_glTexEnviv(const QoreListNode *params, ExceptionSink 
       return 0;      
    }
 
-   GLint parms[num];
+   GLint *parms = (GLint *)alloca(sizeof(GLint) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       parms[i] = p ? p->getAsInt() : 0;
@@ -2408,7 +2410,7 @@ static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionS
  
    switch (type) {
       case GL_BYTE: {
-	 GLbyte array[size];
+	 GLbyte *array = (GLbyte *)alloca(sizeof(GLbyte) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -2418,7 +2420,7 @@ static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionS
       }
 
       case GL_UNSIGNED_BYTE: {
-	 GLubyte array[size];
+	 GLubyte *array = (GLubyte *)alloca(sizeof(GLubyte) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -2428,7 +2430,7 @@ static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionS
       }
 
       case GL_SHORT: {
-	 GLshort array[size];
+	 GLshort *array = (GLshort *)alloca(sizeof(GLshort) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -2438,7 +2440,7 @@ static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionS
       }
 
       case GL_UNSIGNED_SHORT: {
-	 GLushort array[size];
+	 GLushort *array = (GLushort *)alloca(sizeof(GLushort) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -2448,7 +2450,7 @@ static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionS
       }
 
       case GL_INT: {
-	 GLint array[size];
+	 GLint *array = (GLint *)alloca(sizeof(GLint) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -2458,7 +2460,7 @@ static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionS
       }
 
       case GL_UNSIGNED_INT: {
-	 GLuint array[size];
+	 GLuint *array = (GLuint *)alloca(sizeof(GLuint) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -2468,7 +2470,7 @@ static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionS
       }
 
       case GL_FLOAT: {
-	 GLfloat array[size];
+	 GLfloat *array = (GLfloat *)alloca(sizeof(GLfloat) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsFloat() : 0.0;	    
@@ -2478,7 +2480,7 @@ static AbstractQoreNode *f_glColorPointer(const QoreListNode *params, ExceptionS
       }
 
       case GL_DOUBLE: {
-	 GLdouble array[size];
+	 GLdouble *array = (GLdouble *)alloca(sizeof(GLdouble) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsFloat() : 0.0;	    
@@ -3156,7 +3158,7 @@ static AbstractQoreNode *f_glFogfv(const QoreListNode *params, ExceptionSink *xs
       return 0;      
    }
 
-   GLfloat parms[num];
+   GLfloat *parms = (GLfloat *)alloca(sizeof(GLfloat) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       parms[i] = p ? p->getAsFloat() : 0.0;
@@ -3195,7 +3197,7 @@ static AbstractQoreNode *f_glFogiv(const QoreListNode *params, ExceptionSink *xs
       return 0;      
    }
 
-   GLint parms[num];
+   GLint *parms = (GLint *)alloca(sizeof(GLint) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       parms[i] = p ? p->getAsInt() : 0;
@@ -3220,7 +3222,7 @@ static AbstractQoreNode *f_glGenTextures(const QoreListNode *params, ExceptionSi
    const AbstractQoreNode *p = get_param(params, 0);
    GLsizei n = (GLsizei)(p ? p->getAsInt() : 0);
 
-   GLuint textures[n];
+   GLuint *textures = (GLuint *)alloca(sizeof(GLuint) * n);
    glGenTextures(n, textures);
 
    if (n == 1)
@@ -3708,7 +3710,7 @@ static AbstractQoreNode *f_glGetTexLevelParameterfv(const QoreListNode *params, 
       return 0;
    }
 
-   GLfloat parms[num];
+   GLfloat *parms = (GLfloat *)alloca(sizeof(GLfloat) * num);
    glGetTexLevelParameterfv(target, level, pname, parms);
 
    if (num == 1)
@@ -3738,7 +3740,7 @@ static AbstractQoreNode *f_glGetTexLevelParameteriv(const QoreListNode *params, 
       return 0;
    }
 
-   GLint parms[num];
+   GLint *parms = (GLint *)alloca(sizeof(GLint) * num);
    glGetTexLevelParameteriv(target, level, pname, parms);
 
    if (num == 1)
@@ -5345,7 +5347,7 @@ static AbstractQoreNode *f_glTexCoordPointer(const QoreListNode *params, Excepti
  
    switch (type) {
       case GL_SHORT: {
-	 GLshort array[size];
+	 GLshort *array = (GLshort *)alloca(sizeof(GLshort) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -5355,7 +5357,7 @@ static AbstractQoreNode *f_glTexCoordPointer(const QoreListNode *params, Excepti
       }
 
       case GL_INT: {
-	 GLint array[size];
+	 GLint *array = (GLint *)alloca(sizeof(GLint) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -5365,7 +5367,7 @@ static AbstractQoreNode *f_glTexCoordPointer(const QoreListNode *params, Excepti
       }
 
       case GL_FLOAT: {
-	 GLfloat array[size];
+	 GLfloat *array = (GLfloat *)alloca(sizeof(GLfloat) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsFloat() : 0.0;	    
@@ -5375,7 +5377,7 @@ static AbstractQoreNode *f_glTexCoordPointer(const QoreListNode *params, Excepti
       }
 
       case GL_DOUBLE: {
-	 GLdouble array[size];
+	 GLdouble *array = (GLdouble *)alloca(sizeof(GLdouble) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsFloat() : 0.0;	    
@@ -5439,7 +5441,7 @@ static AbstractQoreNode *f_glTexGendv(const QoreListNode *params, ExceptionSink 
       return 0;
    }
    
-   GLdouble parms[num];
+   GLdouble *parms = (GLdouble *)alloca(sizeof(GLdouble) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *n = l->retrieve_entry(i);
       parms[i] = n ? n->getAsFloat() : 0;
@@ -5482,7 +5484,7 @@ static AbstractQoreNode *f_glTexGenfv(const QoreListNode *params, ExceptionSink 
       return 0;
    }
    
-   GLfloat parms[num];
+   GLfloat *parms = (GLfloat *)alloca(sizeof(GLfloat) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *n = l->retrieve_entry(i);
       parms[i] = n ? n->getAsFloat() : 0;
@@ -5525,7 +5527,7 @@ static AbstractQoreNode *f_glTexGeniv(const QoreListNode *params, ExceptionSink 
       return 0;
    }
    
-   GLint parms[num];
+   GLint *parms = (GLint *)alloca(sizeof(GLint) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *n = l->retrieve_entry(i);
       parms[i] = n ? n->getAsInt() : 0;
@@ -5737,7 +5739,7 @@ static AbstractQoreNode *f_glTexParameterfv(const QoreListNode *params, Exceptio
       return 0;
    }
    
-   GLfloat parms[num];
+   GLfloat *parms = (GLfloat *)alloca(sizeof(GLfloat) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *n = l->retrieve_entry(i);
       parms[i] = n ? n->getAsFloat() : 0;
@@ -5780,7 +5782,7 @@ static AbstractQoreNode *f_glTexParameteriv(const QoreListNode *params, Exceptio
       return 0;
    }
    
-   GLint parms[num];
+   GLint *parms = (GLint *)alloca(sizeof(GLint) * num);
    for (int i = 0; i < num; ++i) {
       const AbstractQoreNode *n = l->retrieve_entry(i);
       parms[i] = n ? n->getAsInt() : 0;
@@ -6066,7 +6068,7 @@ static AbstractQoreNode *f_glVertexPointer(const QoreListNode *params, Exception
  
    switch (type) {
       case GL_SHORT: {
-	 GLshort array[size];
+	 GLshort *array = (GLshort *)alloca(sizeof(GLshort) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -6076,7 +6078,7 @@ static AbstractQoreNode *f_glVertexPointer(const QoreListNode *params, Exception
       }
 
       case GL_INT: {
-	 GLint array[size];
+	 GLint *array = (GLint *)alloca(sizeof(GLint) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsInt() : 0;	    
@@ -6086,7 +6088,7 @@ static AbstractQoreNode *f_glVertexPointer(const QoreListNode *params, Exception
       }
 
       case GL_FLOAT: {
-	 GLfloat array[size];
+	 GLfloat *array = (GLfloat *)alloca(sizeof(GLfloat) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsFloat() : 0.0;	    
@@ -6096,7 +6098,7 @@ static AbstractQoreNode *f_glVertexPointer(const QoreListNode *params, Exception
       }
 
       case GL_DOUBLE: {
-	 GLdouble array[size];
+	 GLdouble *array = (GLdouble *)alloca(sizeof(GLdouble) * size);
 	 for (int i = 0; i < size; ++i) {
 	    const AbstractQoreNode *p = l->retrieve_entry(i);
 	    array[i] = p ? p->getAsFloat() : 0.0;	    
