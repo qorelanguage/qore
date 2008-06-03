@@ -409,7 +409,7 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QActionEvent.h \
 	modules/qt-gui/QC_QCloseEvent.h \
 	modules/qt-gui/QC_QContextMenuEvent.h \
-	modules/qt-gui/QC_QDropEvent.h \	
+	modules/qt-gui/QC_QDropEvent.h \
 	modules/qt-gui/QC_QDragMoveEvent.h \
 	modules/qt-gui/QC_QDragEnterEvent.h \
 	modules/qt-gui/QC_QDragLeaveEvent.h \
