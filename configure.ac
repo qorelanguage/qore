@@ -1915,6 +1915,8 @@ check_opengl_include()
        found_opengl_includes=$1/GL
     elif test -f "$1/OpenGL/gl.h"; then
        found_opengl_includes=$1/OpenGL
+    elif test -f "$1/mesa/gl.h"; then
+       found_opengl_includes=$1/mesa
     elif test "$2" = "err"; then
        AC_MSG_ERROR([$1 is not a valid OpenGL parent include directory])
     fi
@@ -1993,7 +1995,7 @@ if test "${with_opengl}" != "no"; then
 	    OPENGL_INCLUDES="-I /System/Library/Frameworks/OpenGL.framework/Headers"
 	    OPENGL_LIBS="-framework OpenGL"
 	 else
-	    for dir in $OPENGL_DIR / /usr /usr/local /opt/opengl /usr/opengl /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+	    for dir in $OPENGL_DIR / /usr /usr/X11 /usr/X11R6 /usr/local /opt/opengl /usr/opengl /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
       	       check_opengl $dir
       	       if test -n "$with_opengl_includes"; then
 	          break;
@@ -2150,7 +2152,7 @@ if test "${with_glut}" != "no"; then
 	    GLUT_INCLUDES="-I /System/Library/Frameworks/GLUT.framework/Headers"
 	    GLUT_LIBS="-framework GLUT"
 	 else
-	    for dir in $GLUT_DIR / /usr /usr/local /opt/glut /usr/glut /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
+	    for dir in $GLUT_DIR / /usr /usr/X11 /usr/X11R6 /usr/local /opt/glut /usr/glut /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
       	       check_glut $dir
       	       if test -n "$with_glut_includes"; then
 	          break;
