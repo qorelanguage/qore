@@ -92,11 +92,13 @@ void delete_qore_types()
 // 0 = equal, 1 = not equal
 bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink)
 {
-   if (is_nothing(l))
+   if (is_nothing(l)) {
       if (is_nothing(r))
          return 0;
       else
          return 1;
+   }
+
    if (is_nothing(r))
       return 1;
 

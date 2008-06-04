@@ -662,7 +662,7 @@ class Operator {
       opfunc_list_t functions;
       int (*opMatrix)[NUM_VALUE_TYPES];
       bool effect, lvalue;
-      char *name, *description;
+      const char *name, *description;
       int args;
       int evalArgs;
 
@@ -680,7 +680,7 @@ class Operator {
 	  @param n_effect if the operator modifies anything
 	  @param n_lvalue if the operator requires an lvalue on the left side (for modification, ex: $a =~ s/x/p/ )
        */
-      DLLLOCAL Operator(int arg, char *n, char *desc, int n_evalArgs, bool n_effect, bool n_lvalue = false);
+      DLLLOCAL Operator(int arg, const char *n, const char *desc, int n_evalArgs, bool n_effect, bool n_lvalue = false);
       DLLLOCAL ~Operator();
       DLLLOCAL void init();
       DLLLOCAL bool hasEffect() const;
@@ -819,8 +819,8 @@ class Operator {
       DLLLOCAL bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) const;
       DLLLOCAL int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) const;
       DLLLOCAL double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) const;
-      DLLLOCAL char *getName() const;
-      DLLLOCAL char *getDescription() const;
+      DLLLOCAL const char *getName() const;
+      DLLLOCAL const char *getDescription() const;
 };
 
 #endif

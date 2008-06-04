@@ -26,6 +26,8 @@
 
 #define _QORE_QOREDIR_H
 
+#include <dirent.h>
+
 #include <string>
 #include <vector>
 

@@ -126,7 +126,7 @@ ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore
 // builtin module info node - when features are compiled into the library
 ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del)
 {
-   filename = "<builtin>";
+   filename = (char *)"<builtin>";
    name = fn;
    api_major = QORE_MODULE_API_MAJOR;
    api_minor = QORE_MODULE_API_MINOR;

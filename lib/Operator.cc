@@ -247,11 +247,12 @@ static bool op_absolute_log_eq(const AbstractQoreNode *left, const AbstractQoreN
    if (*xsink)
       return false;
 
-   if (is_nothing(*lnp))
+   if (is_nothing(*lnp)) {
       if (is_nothing(*rnp))
 	 return true;
       else 
 	 return false;
+   }
    
    if (is_nothing(*rnp))
       return false;
@@ -3365,7 +3366,7 @@ double FloatOperatorFunction::float_eval(const AbstractQoreNode *left, const Abs
    return op_func(left, right, xsink);
 }
 
-Operator::Operator(int arg, char *n, char *desc, int n_evalArgs, bool n_effect, bool n_lvalue)
+Operator::Operator(int arg, const char *n, const char *desc, int n_evalArgs, bool n_effect, bool n_lvalue)
 {
    args = arg;
    name = n;
@@ -3395,12 +3396,12 @@ bool Operator::needsLValue() const
    return lvalue;
 }
 
-char *Operator::getName() const
+const char *Operator::getName() const
 {
    return name;
 }
 
-char *Operator::getDescription() const
+const char *Operator::getDescription() const
 {
    return description;
 }

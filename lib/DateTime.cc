@@ -28,8 +28,8 @@
 #include <string.h>
 
 struct date_s {
-   char *long_name;
-   char *abbr;
+   const char *long_name;
+   const char *abbr;
 };
 
 const int DateTime::month_lengths[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };

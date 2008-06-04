@@ -264,7 +264,7 @@ static QoreHashNode *map_sbuf_to_hash(struct stat *sbuf)
    h->setKeyValue("blksize", new QoreBigIntNode(sbuf->st_blksize), 0);
    h->setKeyValue("blocks",  new QoreBigIntNode(sbuf->st_blocks), 0);
 
-   char *type;
+   const char *type;
    if (S_ISBLK(sbuf->st_mode))
       type = "BLOCK-DEVICE";
    else if (S_ISDIR(sbuf->st_mode))

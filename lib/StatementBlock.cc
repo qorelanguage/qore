@@ -40,10 +40,10 @@
 class CVNode 
 {
    public:
-      char *name;
+      const char *name;
       CVNode *next;
       
-      DLLLOCAL CVNode(char *n) { name = n; }
+      DLLLOCAL CVNode(const char *n) { name = n; }
 };
 
 // parse variable stack
@@ -166,9 +166,9 @@ void StatementBlock::exec()
    exec(&xsink);
 }
 
-void push_cvar(char *name)
+void push_cvar(const char *name)
 {
-   class CVNode *cvn = new CVNode(name);
+   CVNode *cvn = new CVNode(name);
    cvn->next = getCVarStack();
    updateCVarStack(cvn);
 }
@@ -180,7 +180,7 @@ void pop_cvar()
    delete cvn;
 }
 
-LocalVar *push_local_var(char *name, bool check_dup)
+LocalVar *push_local_var(const char *name, bool check_dup)
 {
    VNode *vnode;
 
@@ -219,7 +219,7 @@ LocalVar *pop_local_var()
    return rc;
 }
 
-LocalVar *find_local_var(char *name, bool &in_closure)
+LocalVar *find_local_var(const char *name, bool &in_closure)
 {
    VNode *vnode = getVStack();
    ClosureParseEnvironment *cenv = thread_get_closure_parse_env();

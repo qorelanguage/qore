@@ -29,7 +29,7 @@
 
 qore_classid_t CID_SOCKET;
 
-static inline AbstractQoreNode *doReadResult(int rc, int64 val, char *method_name, ExceptionSink *xsink)
+static inline AbstractQoreNode *doReadResult(int rc, int64 val, const char *method_name, ExceptionSink *xsink)
 {
    if (rc > 0)
       return new QoreBigIntNode(val);

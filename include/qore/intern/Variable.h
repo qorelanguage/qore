@@ -135,11 +135,12 @@ class LValueHelper {
       DLLLOCAL const qore_type_t get_type() const { return *v ? (*v)->getType() : NT_NOTHING; }
       DLLLOCAL bool check_type(const qore_type_t t) const
       {
-	 if (!(*v))
+	 if (!(*v)) {
 	    if (t == NT_NOTHING)
 	       return true;
 	    else
 	       return false;
+	 }
 	 return t == (*v)->getType();
       }
       DLLLOCAL bool is_nothing() const { return ::is_nothing(*v); }

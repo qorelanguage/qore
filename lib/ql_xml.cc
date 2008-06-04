@@ -962,7 +962,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
    {
       int nt = xmlTextReaderNodeType(reader);
       // get node name
-      char *name = (char *)xmlTextReaderConstName(reader);
+      const char *name = (const char *)xmlTextReaderConstName(reader);
       if (!name)
 	 name = "--";
 
@@ -1045,7 +1045,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 	    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 	    while (xmlTextReaderMoveToNextAttribute(reader) == 1)
 	    {
-	       char *name = (char *)xmlTextReaderConstName(reader);
+	       const char *name = (const char *)xmlTextReaderConstName(reader);
 	       QoreStringNode *value = getXmlString(reader, data_ccsid, xsink);
 	       if (!value)
 		  return 0;
@@ -1064,9 +1064,8 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 	 int depth = xmlTextReaderDepth(reader);
 	 xstack->checkDepth(depth);
 
-	 char *str = (char *)xmlTextReaderConstValue(reader);
-	 if (str)
-	 {
+	 const char *str = (const char *)xmlTextReaderConstValue(reader);
+	 if (str) {
 	    QoreStringNode *val = getXmlString(reader, data_ccsid, xsink);
 	    if (!val)
 	       return 0;
@@ -1108,9 +1107,8 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 	 int depth = xmlTextReaderDepth(reader);
 	 xstack->checkDepth(depth);
 
-	 char *str = (char *)xmlTextReaderConstValue(reader);
-	 if (str)
-	 {
+	 const char *str = (const char *)xmlTextReaderConstValue(reader);
+	 if (str) {
 	    QoreStringNode *val = getXmlString(reader, data_ccsid, xsink);
 	    if (!val)
 	       return 0;
@@ -1161,7 +1159,7 @@ static inline int qore_xmlRead(xmlTextReader *reader, ExceptionSink *xsink)
    return 0;
 }
 
-static inline int qore_xmlRead(xmlTextReader *reader, char *info, ExceptionSink *xsink)
+static inline int qore_xmlRead(xmlTextReader *reader, const char *info, ExceptionSink *xsink)
 {
    int rc = xmlTextReaderRead(reader);
    if (rc != 1)
@@ -1199,9 +1197,9 @@ static inline int qore_xmlReadNode(xmlTextReader *reader, ExceptionSink *xsink)
    return nt;
 }
 
-static inline int qore_xmlCheckName(xmlTextReader *reader, char *member, ExceptionSink *xsink)
+static inline int qore_xmlCheckName(xmlTextReader *reader, const char *member, ExceptionSink *xsink)
 {
-   char *name = (char *)xmlTextReaderConstName(reader);
+   const char *name = (const char *)xmlTextReaderConstName(reader);
    if (!name)
    {
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "expecting element '%s', got NOTHING", member);
@@ -1246,7 +1244,6 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, const Q
       if (qore_xmlRead(reader, xsink))
 	 return;
 
-      char *member_name;
       if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
       {
 	 xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "error parsing XML string, expecting struct 'name'");
@@ -1269,9 +1266,8 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, const Q
 	 return;
       }
 
-      member_name = (char *)xmlTextReaderConstValue(reader);
-      if (!member_name)
-      {
+      const char *member_name = (const char *)xmlTextReaderConstValue(reader);
+      if (!member_name) {
 	 xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "empty member name in struct");
 	 return;
       }
@@ -1613,7 +1609,7 @@ static void getXMLRPCBoolean(xmlTextReader *reader, class XmlRpcValue *v, Except
 
    if (nt == XML_READER_TYPE_TEXT)
    {
-      char *str = (char *)xmlTextReaderConstValue(reader);
+      const char *str = (const char *)xmlTextReaderConstValue(reader);
       if (str)
       {
 	 //printd(5, "** got boolean '%s'\n", str);
@@ -1642,9 +1638,8 @@ static void getXMLRPCInt(xmlTextReader *reader, class XmlRpcValue *v, ExceptionS
 
    if (nt == XML_READER_TYPE_TEXT)
    {
-      char *str = (char *)xmlTextReaderConstValue(reader);
-      if (str)
-      {
+      const char *str = (const char *)xmlTextReaderConstValue(reader);
+      if (str) {
 	 //printd(5, "** got int '%s'\n", str);
 	 // note that we can parse 64-bit integers here, which is not conformant to the standard
 	 v->set(new QoreBigIntNode(strtoll(str, 0, 10)));
@@ -1672,9 +1667,8 @@ static void getXMLRPCDouble(xmlTextReader *reader, class XmlRpcValue *v, Excepti
 
    if (nt == XML_READER_TYPE_TEXT)
    {
-      char *str = (char *)xmlTextReaderConstValue(reader);
-      if (str)
-      {
+      const char *str = (const char *)xmlTextReaderConstValue(reader);
+      if (str) {
 	 //printd(5, "** got float '%s'\n", str);
 	 v->set(new QoreFloatNode(atof(str)));
       }
@@ -1702,9 +1696,8 @@ static void getXMLRPCDate(xmlTextReader *reader, class XmlRpcValue *v, Exception
 
    if (nt == XML_READER_TYPE_TEXT)
    {
-      char *str = (char *)xmlTextReaderConstValue(reader);
-      if (str)
-      {
+      const char *str = (const char *)xmlTextReaderConstValue(reader);
+      if (str) {
 	 // printd(5, "** got date '%s'\n", str);
 	 QoreString qstr(str);
 	 // ex: 20060414T12:48:14
@@ -1751,9 +1744,8 @@ static void getXMLRPCBase64(xmlTextReader *reader, class XmlRpcValue *v, Excepti
 
    if (nt == XML_READER_TYPE_TEXT)
    {
-      char *str = (char *)xmlTextReaderConstValue(reader);
-      if (str)
-      {
+      const char *str = (const char *)xmlTextReaderConstValue(reader);
+      if (str) {
 	 //printd(5, "** got base64 '%s'\n", str);
 	 BinaryNode *b = parseBase64(str, strlen(str), xsink);
 	 if (!b)
@@ -1776,7 +1768,7 @@ static void getXMLRPCBase64(xmlTextReader *reader, class XmlRpcValue *v, Excepti
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "extra information in base64 (%d)", nt);
 }
 
-static void doEmptyValue(class XmlRpcValue *v, char *name, int depth, ExceptionSink *xsink)
+static void doEmptyValue(class XmlRpcValue *v, const char *name, int depth, ExceptionSink *xsink)
 {
    if (!strcmp(name, "string"))
       v->set(null_string());
@@ -1812,9 +1804,8 @@ static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, cons
       int depth = xmlTextReaderDepth(reader);
       
       // get xmlrpc type name
-      char *name = (char *)xmlTextReaderConstName(reader);
-      if (!name)
-      {
+      const char *name = (const char *)xmlTextReaderConstName(reader);
+      if (!name) {
 	 xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "expecting type name, got NOTHING at level %d", depth);
 	 return;
       }
@@ -2226,13 +2217,13 @@ static AbstractQoreNode *f_parseXMLRPCValue(const QoreListNode *params, Exceptio
    return v.getValue();
 }
 
-static inline AbstractQoreNode *qore_xml_exception(char *ex, char *info, ExceptionSink *xsink)
+static inline AbstractQoreNode *qore_xml_exception(const char *ex, const char *info, ExceptionSink *xsink)
 {
    xsink->raiseException(ex, "error parsing XML string: %s", info);
    return 0;
 }
 
-static inline AbstractQoreNode *qore_xml_exception(char *ex, ExceptionSink *xsink)
+static inline AbstractQoreNode *qore_xml_exception(const char *ex, ExceptionSink *xsink)
 {
    xsink->raiseException(ex, "error parsing XML string");
    return 0;
@@ -2289,7 +2280,7 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_TEXT)
       return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting method name", xsink);
 
-   char *method_name = (char *)xmlTextReaderConstValue(reader);
+   const char *method_name = (const char *)xmlTextReaderConstValue(reader);
    if (!method_name)
       return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting method name", xsink);
 
@@ -2385,9 +2376,8 @@ AbstractQoreNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding 
    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_ELEMENT)
       return qore_xml_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' or 'fault' element", xsink);
 
-   char *name = (char *)xmlTextReaderConstName(reader);
-   if (!name)
-   {
+   const char *name = (const char *)xmlTextReaderConstName(reader);
+   if (!name) {
       xsink->raiseException("PARSE-XML-RPC-RESPONSE-ERROR", "missing 'params' or 'fault' element tag");
       return 0;
    }

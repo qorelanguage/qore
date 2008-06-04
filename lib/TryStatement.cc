@@ -91,11 +91,12 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
        rc = finally->execImpl(return_value, xsink);
     }
     */
-   if (trv)
+   if (trv) {
       if (*return_value) // NOTE: return value overridden in the catch block!
 	 trv->deref(xsink);
       else
 	 *return_value = trv;
+   }
    traceout("TryStatement::execImpl()");
    return rc;
 }

@@ -42,7 +42,7 @@ class BaseHelper {
       unsigned char *input;
       int input_len;
 
-      DLLLOCAL int getInput(char *err, const QoreListNode *params, ExceptionSink *xsink, bool include_null = true)
+      DLLLOCAL int getInput(const char *err, const QoreListNode *params, ExceptionSink *xsink, bool include_null = true)
       {
 	 const AbstractQoreNode *pt = get_param(params, 0);
 
@@ -79,12 +79,12 @@ class DigestHelper : public BaseHelper
       unsigned int md_len;
 
    public:
-      DLLLOCAL int getData(char *err, const QoreListNode *params, ExceptionSink *xsink)
+      DLLLOCAL int getData(const char *err, const QoreListNode *params, ExceptionSink *xsink)
       {
 	 return getInput(err, params, xsink, false);
       }
       
-      DLLLOCAL int doDigest(char *err, const EVP_MD *md, ExceptionSink *xsink)
+      DLLLOCAL int doDigest(const char *err, const EVP_MD *md, ExceptionSink *xsink)
       {
 	 EVP_MD_CTX mdctx;
 	 EVP_MD_CTX_init(&mdctx);
@@ -130,7 +130,7 @@ class CryptoHelper : public BaseHelper
 	 return n == 1 ? "first" : (n == 2 ? "second" : "third");
       }
 
-      DLLLOCAL int getKey(char *err, const QoreListNode *params, int n, ExceptionSink *xsink)
+      DLLLOCAL int getKey(const char *err, const QoreListNode *params, int n, ExceptionSink *xsink)
       {
 	 const AbstractQoreNode *pt = get_param(params, n);
 
@@ -161,7 +161,7 @@ class CryptoHelper : public BaseHelper
       }
 
       // get initialization vector
-      DLLLOCAL int getIV(char *err, const QoreListNode *params, int n, ExceptionSink *xsink)
+      DLLLOCAL int getIV(const char *err, const QoreListNode *params, int n, ExceptionSink *xsink)
       {
 	 const AbstractQoreNode *pt = get_param(params, n);
 	 if (is_nothing(pt))
@@ -231,30 +231,30 @@ class CryptoHelper : public BaseHelper
 	 return str;
       }
 
-      DLLLOCAL int getSingleKey(char *err, const QoreListNode *params, ExceptionSink *xsink)
+      DLLLOCAL int getSingleKey(const char *err, const QoreListNode *params, ExceptionSink *xsink)
       {
 	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getIV(err, params, 2, xsink))
 	    return -1;
 	 return 0;
       }
 
-      DLLLOCAL int getTwoKeys(char *err, const QoreListNode *params, ExceptionSink *xsink)
+      DLLLOCAL int getTwoKeys(const char *err, const QoreListNode *params, ExceptionSink *xsink)
       {
 	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getIV(err, params, 3, xsink))
 	    return -1;
 	 return 0;
       }
 
-      DLLLOCAL int getThreeKeys(char *err, const QoreListNode *params, ExceptionSink *xsink)
+      DLLLOCAL int getThreeKeys(const char *err, const QoreListNode *params, ExceptionSink *xsink)
       {
 	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getKey(err, params, 3, xsink) || getIV(err, params, 4, xsink))
 	    return -1;
 	 return 0;
       }
 
-      DLLLOCAL int doCipher(const EVP_CIPHER *type, char *cipher, int do_crypt, ExceptionSink *xsink)
+      DLLLOCAL int doCipher(const EVP_CIPHER *type, const char *cipher, int do_crypt, ExceptionSink *xsink)
       {
-	 char *err = (char *)(do_crypt ? "ENCRYPT-ERROR" : "DECRYPT-ERROR");
+	 const char *err = (do_crypt ? "ENCRYPT-ERROR" : "DECRYPT-ERROR");
 
 	 EVP_CIPHER_CTX ctx;
 	 EVP_CIPHER_CTX_init(&ctx);
@@ -297,7 +297,7 @@ class CryptoHelper : public BaseHelper
 	 return 0;
       }
 
-      DLLLOCAL int checkKeyLen(char *err, int n, int len, ExceptionSink *xsink)
+      DLLLOCAL int checkKeyLen(const char *err, int n, int len, ExceptionSink *xsink)
       {
 	 if (keylen[n] < len)
 	 {
