@@ -166,11 +166,12 @@ class QoreQObjectExtension : public QoreQtEventDispatcher
 
 	 int targetId = is_signal ? getSignalIndex(receiver, theSlot) : getSlotIndex(receiver, theSlot, xsink);
 	 if (targetId < 0) {
-	    if (!*xsink)
+	    if (!*xsink) {
 	       if (is_signal)
 		  xsink->raiseException("QT-CONNECT-ERROR", "target signal '%s' does not exist", slot + 1);
 	       else
 		  xsink->raiseException("QT-CONNECT-ERROR", "target slot '%s' does not exist", slot + 1);
+	    }
 	    return -1;
 	 }
 
@@ -372,11 +373,12 @@ class QoreQtQObjectPrivateBase : public V
 
          int targetId = is_signal ? getSignalIndex(theSlot) : getSlotIndex(theSlot, xsink);
          if (targetId < 0) {
-            if (!*xsink)
+            if (!*xsink) {
                if (is_signal)
                   xsink->raiseException("QT-CONNECT-ERROR", "target signal '%s' does not exist", slot + 1);
                else
                   xsink->raiseException("QT-CONNECT-ERROR", "target slot '%s' does not exist", slot + 1);
+	    }
             return -1;
          }
 

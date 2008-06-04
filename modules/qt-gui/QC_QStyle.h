@@ -24,7 +24,10 @@
 
 #define _QORE_QT_QC_QSTYLE_H
 
+#include "qore-qt-gui.h"
+
 #include <QStyle>
+
 #include "QoreAbstractQStyle.h"
 #include "qore-qt-events.h"
 

@@ -26,6 +26,8 @@
 
 #define _QORE_QC_QLAYOUT_H
 
+#include "qore-qt-gui.h"
+
 #include "QoreAbstractQLayout.h"
 #include "QC_QLayoutItem.h"
 

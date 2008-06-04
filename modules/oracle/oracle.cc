@@ -35,6 +35,8 @@
 #include <strings.h>
 #include <assert.h>
 
+#include <memory>
+
 #ifndef QORE_MONOLITHIC
 DLLEXPORT char qore_module_name[] = "oracle";
 DLLEXPORT char qore_module_version[] = "0.6";
