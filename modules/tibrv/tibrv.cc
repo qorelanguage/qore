@@ -111,7 +111,7 @@ static class AbstractQoreNode *f_tibrvSetUserCertWithKey(const QoreListNode *par
 }
 #endif
 
-static QoreHashNode *tibrv_hash_helper(char *key, const AbstractQoreNode *val)
+static QoreHashNode *tibrv_hash_helper(const char *key, const AbstractQoreNode *val)
 {
    QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("^type^", new QoreStringNode(key), NULL);

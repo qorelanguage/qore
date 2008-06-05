@@ -60,7 +60,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
 
 #ifdef DEBUG
       QoreThreadLocalStorage<QoreString> thread_local_storage;
-      void addSQL(char *cmd, const QoreString *sql);
+      void addSQL(const char *cmd, const QoreString *sql);
       void resetSQL();
 #endif
 

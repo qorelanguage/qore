@@ -269,7 +269,7 @@ class OraBindGroup {
       }
 
       // exec with auto-reconnect (if possible)
-      DLLLOCAL int oci_exec(char *who, ub4 iters, ExceptionSink *xsink);
+      DLLLOCAL int oci_exec(const char *who, ub4 iters, ExceptionSink *xsink);
 
    public:
       DLLLOCAL OraBindGroup(class Datasource *ods, const QoreString *ostr, const QoreListNode *args, ExceptionSink *xsink);

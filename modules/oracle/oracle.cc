@@ -1040,7 +1040,7 @@ QoreHashNode *OraBindGroup::getOutputHash(ExceptionSink *xsink)
    return h;
 }
 
-int OraBindGroup::oci_exec(char *who, ub4 iters, ExceptionSink *xsink)
+int OraBindGroup::oci_exec(const char *who, ub4 iters, ExceptionSink *xsink)
 {
    OracleData *d_ora = (OracleData *)ds->getPrivateData();
 

@@ -53,6 +53,7 @@ class VarRefNode : public ParseNode
 	    class Var *var;    // for global variables
       } ref;
 
+      // takes over memory for "n"
       DLLLOCAL VarRefNode(char *n, int t);
 
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
