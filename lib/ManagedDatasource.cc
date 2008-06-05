@@ -283,11 +283,12 @@ AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const Qor
       rv = Datasource::exec(query_str, args, xsink);
 
       // save thread resource if we just started a transaction
-      if (!getAutoCommit() && start_transaction)
+      if (!getAutoCommit() && start_transaction) {
 	 if (isInTransaction())
 	    set_thread_resource(this);
 	 else
 	    releaseLock();
+      }
 
       endDBAction();
    }
@@ -303,11 +304,12 @@ void ManagedDatasource::beginTransaction(ExceptionSink *xsink)
       bool start_transaction = !isInTransaction();
 
       // save thread resource if we just started a transaction
-      if (!Datasource::beginTransaction(xsink) && start_transaction)
+      if (!Datasource::beginTransaction(xsink) && start_transaction) {
 	 if (isInTransaction())
 	    set_thread_resource(this);
 	 else
 	    releaseLock();
+      }
 	    
       endDBAction();
    }

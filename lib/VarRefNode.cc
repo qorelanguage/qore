@@ -30,8 +30,7 @@ VarRefNode::VarRefNode(char *nme, int typ) : ParseNode(NT_VARREF)
 
 VarRefNode::~VarRefNode()
 {
-   if (name)
-   {
+   if (name) {
       printd(3, "VarRefNode::~VarRefNode() deleting variable reference %08p %s\n", name, name);
       free(name);
    }

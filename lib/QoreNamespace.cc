@@ -940,7 +940,7 @@ class QoreClass *RootQoreNamespace::parseFindScopedClass(class NamedScope *nscop
       int m = 0;
       oc = rootFindScopedClass(nscope, &m);
 
-      if (!oc)
+      if (!oc) {
 	 if (m != (nscope->elements - 1))
 	    parse_error("cannot resolve namespace '%s' in '%s()'", nscope->strlist[m], nscope->ostr);
 	 else
@@ -956,6 +956,7 @@ class QoreClass *RootQoreNamespace::parseFindScopedClass(class NamedScope *nscop
 	    err.concat("'");
 	    parse_error(err.getBuffer());
 	 }
+      }
    }
    printd(5, "RootQoreNamespace::parseFindScopedClass('%s') returning %08p\n", nscope->ostr, oc);
    return oc;
@@ -968,7 +969,7 @@ class QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(class NamedSc
    int m = 0;
    oc = rootFindScopedClassWithMethod(scname, &m);
    
-   if (!oc)
+   if (!oc) {
       if (m != (scname->elements - 1))
 	 parse_error("cannot resolve namespace '%s' in '%s()'", scname->strlist[m], scname->ostr);
       else
@@ -984,6 +985,7 @@ class QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(class NamedSc
 	 err.concat("'");
 	 parse_error(err.getBuffer());
       }
+   }
    
    printd(5, "RootQoreNamespace::parseFindScopedClassWithMethod('%s') returning %08p\n", scname->ostr, oc);
    return oc;

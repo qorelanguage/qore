@@ -747,14 +747,14 @@ void DateTime::getISOWeek(int &yr, int &week, int &wday) const
    
    int offset = jan1 > 4 ? jan1 - 9 : jan1 - 2;
    week = ((dn + offset) / 7) + 1;
-   if (week == 53)
+   if (week == 53) {
       if ((jan1 == 4 && !isLeapYear(yr)) || (jan1 == 3 && isLeapYear(yr)))
 	 return;
-      else
-      {
+      else {
 	 yr++;
 	 week = 1;
       }
+   }
 }
 
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
@@ -888,11 +888,12 @@ bool DateTime::isLeapYear(int year)
    if (year < 1582)
       return (year % 4) ? false : true;
 #endif
-   if (!(year % 100))
+   if (!(year % 100)) {
       if (!(year % 400))
 	 return true;
       else
 	 return false;
+   }
    return (year % 4) ? false : true;
 }
 

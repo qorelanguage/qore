@@ -97,7 +97,7 @@ void DatasourcePool::destructor(ExceptionSink *xsink)
 }
 
 #ifdef DEBUG
-void DatasourcePool::addSQL(char *cmd, const QoreString *sql)
+void DatasourcePool::addSQL(const char *cmd, const QoreString *sql)
 {
    QoreString *str = thread_local_storage.get();
    if (!str)

@@ -272,16 +272,18 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 
       if (!found)
       {
-	 if (e->file)
+	 if (e->file) {
 	    if (e->start_line == e->end_line)
 	       printe(" at %s:%d", e->file, e->start_line);
 	    else
 	       printe(" at %s:%d-%d", e->file, e->start_line, e->end_line);
-	 else if (e->start_line)
+	 }
+	 else if (e->start_line) {
 	    if (e->start_line == e->end_line)
 	       printe(" on line %d", e->start_line);
 	    else
 	       printe(" on lines %d through %d", e->start_line, e->end_line);
+	 }
 	 printe("\n");
       }
       
@@ -395,16 +397,18 @@ void ExceptionSink::defaultWarningHandler(QoreException *e)
    {
       printe("warning encountered ");
 
-      if (e->file)
+      if (e->file) {
 	 if (e->start_line == e->end_line)
 	    printe("at %s:%d", e->file, e->start_line);
 	 else
 	    printe("at %s:%d-%d", e->file, e->start_line, e->end_line);
-      else if (e->start_line)
+      }
+      else if (e->start_line) {
 	 if (e->start_line == e->end_line)
 	    printe("on line %d", e->start_line);
 	 else
 	    printe("on line %d-%d", e->start_line, e->end_line);
+      }
       printe("\n");
 
       QoreStringNode *err  = reinterpret_cast<QoreStringNode *>(e->err);

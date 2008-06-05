@@ -33,7 +33,7 @@ struct lvih_intern {
       {
 	 printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %08p (val=%08p type='%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
 	 lv.instantiate(val);
-	 VarRefNode *vr = new VarRefNode("ref_arg_helper", VT_LOCAL);
+	 VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
 	 vr->ref.id = &lv;
 	 ref = new ReferenceNode(vr);
       }

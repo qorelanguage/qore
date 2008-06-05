@@ -288,7 +288,7 @@ static AbstractQoreNode *f_hash_values(const QoreListNode *params, ExceptionSink
    return l;
 }
 
-void do_zlib_exception(int rc, char *func, ExceptionSink *xsink)
+void do_zlib_exception(int rc, const char *func, ExceptionSink *xsink)
 {
    QoreStringNode *desc = new QoreStringNode();
    desc->sprintf("%s(): ", func);

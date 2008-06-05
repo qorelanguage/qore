@@ -335,7 +335,7 @@ inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_del
 {
    printd(5, "BCList::parseInit(%s) this=%08p empty=%d, bcal=%08p\n", cls->getName(), this, empty(), bcal);
    for (bclist_t::iterator i = begin(); i != end(); i++) {
-      if (!(*i)->sclass)
+      if (!(*i)->sclass) {
 	 if ((*i)->cname) {
 	    (*i)->sclass = getRootNS()->parseFindScopedClass((*i)->cname);
 	    printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cname->ostr, (*i)->sclass);
@@ -348,6 +348,7 @@ inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_del
 	    free((*i)->cstr);
 	    (*i)->cstr = 0;
 	 }
+      }
       // recursively add base classes to special method list
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
@@ -1170,7 +1171,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       return 0;      
    }
 
-   if (external)
+   if (external) {
       if (w->isPrivate()) {
 	 xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", priv->name, nme);
 	 return 0;
@@ -1179,6 +1180,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
 	 xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class of %s", nme, priv->name);
 	 return 0;
       }
+   }
 
    return self->evalMethod(*w, args, xsink);
 }

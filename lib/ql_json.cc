@@ -33,7 +33,7 @@
 // qore only supports JSON with UTF-8 
 
 // returns 0 for OK
-static int cmp_rest_token(const char *&p, char *tok)
+static int cmp_rest_token(const char *&p, const char *tok)
 {
    p++;
    while (*tok)

@@ -41,7 +41,7 @@ static char default_whitespace[] = { ' ', '\t', '\n', '\r', '\v', '\0' };
 
 struct code_table {
       char symbol;
-      char *code;
+      const char *code;
       unsigned len;
 };
 
@@ -236,11 +236,12 @@ QoreString::~QoreString()
 int QoreString::compare(const QoreString *str) const
 {
    // empty strings are always equal even if the character encoding is different
-   if (!priv->len)
+   if (!priv->len) {
       if (!str->priv->len)
 	 return 0;
       else
 	 return 1;
+   }
 
    if (str->priv->charset != priv->charset)
       return 1;
@@ -250,11 +251,13 @@ int QoreString::compare(const QoreString *str) const
 
 int QoreString::compare(const char *str) const
 {
-   if (!priv->buf)
+   if (!priv->buf) {
       if (!str)
 	 return 0;
       else
 	 return 1;
+   }
+
    return strcmp(priv->buf, str);
 }
 
@@ -1292,11 +1295,12 @@ void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, const Q
 // NULL values sorted at end
 int QoreString::compareSoft(const QoreString *str, ExceptionSink *xsink) const
 {
-   if (!priv->buf)
+   if (!priv->buf) {
       if (!str->priv->buf)
 	 return 0;
       else
 	 return 1;
+   }
 
    TempEncodingHelper t(str, priv->charset, xsink);
    if (*xsink)

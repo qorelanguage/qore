@@ -163,7 +163,7 @@ QoreHashNode *QoreSSLCertificate::getPurposeHash() const
       X509_PURPOSE *pt = X509_PURPOSE_get0(i);
       
       int id = X509_PURPOSE_get_id(pt);
-      char *name, *nameca;
+      const char *name, *nameca;
       switch (id)
       {
 	 case X509_PURPOSE_SSL_CLIENT:

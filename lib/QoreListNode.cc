@@ -944,11 +944,12 @@ int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
       if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
 	 return -1;
       
-      if (i != (priv->length - 1))
+      if (i != (priv->length - 1)) {
 	 if (foff != FMT_NONE)
 	    str.concat('\n');
 	 else
 	    str.concat(", ");
+      }
    }
    if (foff == FMT_NONE)
       str.concat(')');

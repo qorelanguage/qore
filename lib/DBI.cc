@@ -41,7 +41,7 @@ DLLEXPORT DBIDriverList DBI;
 struct dbi_cap_hash
 {
    int cap;
-   char *desc;
+   const char *desc;
 };
 
 struct dbi_cap_hash dbi_cap_list[] =

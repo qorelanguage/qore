@@ -29,12 +29,12 @@
 // for the getpwuid function
 static class QoreThreadLock lck_getpwuid;
 
-static inline void assign_value(QoreHashNode *h, char *key, char *val)
+static inline void assign_value(QoreHashNode *h, const char *key, char *val)
 {
    h->setKeyValue(key, new QoreStringNode(val), 0);
 }
 
-static inline void assign_value(QoreHashNode *h, char *key, int val)
+static inline void assign_value(QoreHashNode *h, const char *key, int val)
 {
    h->setKeyValue(key, new QoreBigIntNode(val), 0);
 }

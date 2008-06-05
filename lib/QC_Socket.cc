@@ -572,7 +572,7 @@ static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, class mySocket
    const void *ptr = 0;
    int size = 0;
 
-   if (p4)
+   if (p4) {
       if (p4->getType() == NT_STRING)
       {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p4);
@@ -585,6 +585,7 @@ static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, class mySocket
 	 ptr = b->getPtr();
 	 size = b->size();
       }
+   }
 
    int rc = s->sendHTTPMessage(method, path, http_version, headers, ptr, size);
    if (rc == -2)
@@ -641,7 +642,7 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, class mySocke
    const void *ptr = 0;
    int size = 0;
 
-   if (p4)
+   if (p4) {
       if (p4->getType() == NT_STRING)
       {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p4);
@@ -654,6 +655,7 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, class mySocke
 	 ptr = b->getPtr();
 	 size = b->size();
       }
+   }
 
    int rc = s->sendHTTPResponse(status_code, status_desc, http_version, headers, ptr, size);
    if (rc == -2)
