@@ -13,13 +13,14 @@ qore 0.7.0 is a major release with major new features
 *) some functional programming support: new operators: map, foldr, foldl, select
 *) new implicit argument references: $$ (entire argument list), $1, $2, ...
 *) new special object method: "memberNotification()", called when members are updated externally to the class
-*) qt module based on QT4
+*) qt-core, qt-gui, qt-opengl, qt-svg modules based on QT4
 *) opengl module
 *) glut module
 *) bz2 compressed data support (compression and decompression)
 *) file locking support in the File class (based on fcntl())
 *) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
 *) the Oracle database driver will now try to reconnect a lost connection to the server if not in a transaction
+*) 64-bits are the default on x86_64 CPUs
 
 ***********************
 *** LANGUAGE ISSUES ***
@@ -47,7 +48,7 @@ TIBRV
 -----
 The "tibrv" module provides direct TIBCO Rendezvous support, allowing qore programs to send and receive Rendezvous messages directly.
 * Linux: supported on 32-bit and 64-bit builds of qore
-* Solaris: supported on 32-bit builds (FIXME: add 64-bit solaris build support)
+* Solaris: supported on 32-bit builds
 * OS X: supported on 32-bit builds
 
 TIBAE
@@ -90,17 +91,20 @@ The "sybase" and "mssql" DBI drivers are built from the same source code.  They 
 *) stored procedure support with direct binding and retrieving values
 *) these drivers also support executing multiple queries within a single command and returning all results in a special format, see the Qore Programmer's Reference Manual for more information
 
-QT
---
-experimental: The QT module enables Qore programs to implement graphical user interfaces.  It requires QT 4.3 or better to build and run.
+QT-CORE, QT-GUI, QT-OPENGL, QT-SVG
+----------------------------------
+experimental: The QT modules enables Qore programs to implement graphical user interfaces.  It requires QT 4.3 or better to build and run.
+see many examples under examples/qt
 
 OPENGL
 ------
 experimental: exports OpenGL functionality to qore scripts
+see examples under examples/opengl
 
 GLUT
 ----
 exports the entire GLUT API to qore, including all callback functions
+see examples under examples/opengl
 
 NCURSES
 -------
@@ -122,9 +126,8 @@ experimental: provides the "Panel" and "Window" classes along with many function
 
 The file docs/roadmap.html contains line-by-line feature information.  Generally, qore should hit version 1.0 when:
 *) the bugs listed in this file are resolved
-*) have more robust DBI drivers (PostgresSQL, Sybase should be added)
+*) have more robust DBI drivers
 *) binding and fetching has been implemented with explicit APIs so Qore programs can handle data sets larger than available memory
-*) signal-handling support has been implemented (for UNIX platforms at least)
 
 
 *********************
@@ -853,7 +856,7 @@ will return ( "name" : "Smith" )
 mixed elements and text can now be serialized and deserialized without data loss (except whitespace is still not retained) - for example, now it's possible to deserialize (parse) a docbook xml file and then reserialize it (generate the XML from the Qore data structure) without losing information (this was not possible with previous versions of qore).
 
 *) 64-bit build support on x86_64 (AMD64, etc)
-native 64-bit binaries can now be built on Linux x86_64 - the build system has been modified to be able to correctly find paths and set directory names for 64-bit libraries if the --enable-64bit configure option is used.  By default 32-bit builds are made unless the --enable-64bit option is passed to configure.
+native 64-bit binaries can now be built on Linux x86_64 - the build system has been modified to be able to correctly find paths and set directory names for 64-bit libraries if the --enable-64bit configure option is used.  By default 64-bit builds are made on x86_64 CPUs unless the --disable-64bit option is passed to the configure script
 
 *) %requires error reporting improved
 if any requested features cannot be loaded, then only exceptions related to missing features will be reported.  this avoids possibly hundreds (or more) exceptions in large programs where features cannot be loaded (i.e. unresolved classes, functions, etc)

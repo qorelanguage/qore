@@ -1,3 +1,7 @@
+2008.06.05: David Nichols
+	* warning fixes for g++ 4.3
+	* enabled 64-bit builds by default on x86_64 CPUs
+
 2008.06.03: David Nichols
 	* compile fixes for Solaris and SunPro CC
 
@@ -16,6 +20,9 @@
 
 2008.05.27: David Nichols
 	* implemented auto-reconnect for the oracle DBI driver
+	* improved library support for DBI drivers supporting auto-reconnect
+	  when a server connection is lost and the driver is not in a
+	  transaction
 
 2008.05.23: David Nichols
 	* removed suport in the scanner for using some keywords as function and

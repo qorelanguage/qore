@@ -176,16 +176,20 @@ AC_ARG_ENABLE([scu-qt],
 
 AC_ARG_ENABLE([64bit],
   [AS_HELP_STRING([--enable-64bit],
-		  [enable 64bit support (default: off)])],
+		  [enable 64bit support (default: auto)])],
   [case "${enable_64bit}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_64bit} for --enable-64bit) ;;
       esac],
-  [enable_64bit=no])
+  [enable_64bit=auto])
 
-# turn on 64-bit by default if compiling on itanium
-if test "$host_cpu" = "ia64"; then
-   enable_64bit=yes
+if test "$enable_64bit" = "auto"; then
+   # turn on 64-bit by default if compiling on itanium or x86_64
+   if test "$host_cpu" = "ia64" -o "$host_cpu" = "x86_64"; then
+      enable_64bit=yes
+   else
+      enable_64bit=no
+   fi
 fi
 
 # see if we know how to set flags properly for different hosts and architectures
