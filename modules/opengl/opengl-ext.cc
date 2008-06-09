@@ -3551,6 +3551,7 @@ static AbstractQoreNode *f_glGenerateMipmapEXT(const QoreListNode *params, Excep
    return 0;
 }
 
+#ifdef GLBLITFRAMEBUFFEREXT
 //void glBlitFramebufferEXT (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 static AbstractQoreNode *f_glBlitFramebufferEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -3577,7 +3578,9 @@ static AbstractQoreNode *f_glBlitFramebufferEXT(const QoreListNode *params, Exce
    glBlitFramebufferEXT(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
    return 0;
 }
+#endif
 
+#ifdef GLRENDERBUFFERSTORAGEMULTISAMPLEEXT
 //void glRenderbufferStorageMultisampleEXT (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 static AbstractQoreNode *f_glRenderbufferStorageMultisampleEXT(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -3594,6 +3597,7 @@ static AbstractQoreNode *f_glRenderbufferStorageMultisampleEXT(const QoreListNod
    glRenderbufferStorageMultisampleEXT(target, samples, internalformat, width, height);
    return 0;
 }
+#endif
 
 #ifdef HAVE_GLPROGRAMPARAMETERIEXT
 //void glProgramParameteriEXT (GLuint program, GLenum pname, GLint value);
@@ -5519,8 +5523,12 @@ void initOpenGLExt()
    builtinFunctions.add("glFramebufferRenderbufferEXT", f_glFramebufferRenderbufferEXT, QDOM_GUI);
    //builtinFunctions.add("glGetFramebufferAttachmentParameterivEXT", f_glGetFramebufferAttachmentParameterivEXT, QDOM_GUI);
    builtinFunctions.add("glGenerateMipmapEXT",          f_glGenerateMipmapEXT, QDOM_GUI);
+#ifdef GLBLITFRAMEBUFFEREXT
    builtinFunctions.add("glBlitFramebufferEXT",         f_glBlitFramebufferEXT, QDOM_GUI);
+#endif
+#ifdef GLRENDERBUFFERSTORAGEMULTISAMPLEEXT
    builtinFunctions.add("glRenderbufferStorageMultisampleEXT", f_glRenderbufferStorageMultisampleEXT, QDOM_GUI);
+#endif
 #ifdef HAVE_GLPROGRAMPARAMETERIEXT
    builtinFunctions.add("glProgramParameteriEXT",       f_glProgramParameteriEXT, QDOM_GUI);
    builtinFunctions.add("glFramebufferTextureEXT",      f_glFramebufferTextureEXT, QDOM_GUI);

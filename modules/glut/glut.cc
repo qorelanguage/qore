@@ -41,7 +41,7 @@ DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
 DLLEXPORT qore_module_init_t qore_module_init = glut_module_init;
 DLLEXPORT qore_module_ns_init_t qore_module_ns_init = glut_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = glut_module_delete;
-DLLEXPORT char *qore_module_dependencies[] = { "opengl", 0 };
+DLLEXPORT const char *qore_module_dependencies[] = { "opengl", 0 };
 DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 #endif
 
@@ -885,6 +885,7 @@ static AbstractQoreNode *f_glutForceJoystickFunc(const QoreListNode *params, Exc
 //void glutInit(int *argcp, char **argv)
 static AbstractQoreNode *f_glutInit(const QoreListNode *params, ExceptionSink *xsink)
 {
+   // FIXME: process real arguments
    static int argc = 1;
    static char *argv[] = { "gears.q", 0 };
    glutInit(&argc, argv);

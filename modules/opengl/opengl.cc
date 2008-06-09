@@ -4872,7 +4872,9 @@ static int get_bits_per_pixel(GLenum type)
       case GL_UNSIGNED_INT_8_8_8_8_REV:
       case GL_UNSIGNED_INT_10_10_10_2:
       case GL_UNSIGNED_INT_2_10_10_10_REV:
+#ifdef GL_UNSIGNED_INT_24_8_EXT
       case GL_UNSIGNED_INT_24_8_EXT:
+#endif
       case GL_UNSIGNED_INT_S8_S8_8_8_NV:
       case GL_UNSIGNED_INT_8_8_S8_S8_REV_NV:
 	 return 32;

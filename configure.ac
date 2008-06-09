@@ -1938,9 +1938,9 @@ check_opengl_lib()
 check_opengl_version()
 {
     # check opengl version
-    opengl_ver=`grep GL_VERSION_2_1.*1 $with_opengl_includes/*.h`
+    opengl_ver=`grep define.*GL_VERSION_1_3.*1 $with_opengl_includes/*.h`
     if test -z "$opengl_ver"; then
-       AC_MSG_ERROR([can't find OpenGL API version 2.1])
+       AC_MSG_ERROR([can't find OpenGL API version 1.3])
     fi
 }
 

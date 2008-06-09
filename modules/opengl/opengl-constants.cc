@@ -1048,28 +1048,73 @@ void addOpenGLConstants()
    opengl_ns.addConstant("GL_STENCIL_BACK_PASS_DEPTH_FAIL",            new QoreBigIntNode(GL_STENCIL_BACK_PASS_DEPTH_FAIL));
    opengl_ns.addConstant("GL_STENCIL_BACK_PASS_DEPTH_PASS",            new QoreBigIntNode(GL_STENCIL_BACK_PASS_DEPTH_PASS));
    opengl_ns.addConstant("GL_STENCIL_BACK_WRITEMASK",                  new QoreBigIntNode(GL_STENCIL_BACK_WRITEMASK));
-   opengl_ns.addConstant("GL_CURRENT_RASTER_SECONDARY_COLOR",          new QoreBigIntNode(GL_CURRENT_RASTER_SECONDARY_COLOR));
-   opengl_ns.addConstant("GL_PIXEL_PACK_BUFFER",                       new QoreBigIntNode(GL_PIXEL_PACK_BUFFER));
-   opengl_ns.addConstant("GL_PIXEL_UNPACK_BUFFER",                     new QoreBigIntNode(GL_PIXEL_UNPACK_BUFFER));
-   opengl_ns.addConstant("GL_PIXEL_PACK_BUFFER_BINDING",               new QoreBigIntNode(GL_PIXEL_PACK_BUFFER_BINDING));
-   opengl_ns.addConstant("GL_PIXEL_UNPACK_BUFFER_BINDING",             new QoreBigIntNode(GL_PIXEL_UNPACK_BUFFER_BINDING));
-   opengl_ns.addConstant("GL_FLOAT_MAT2x3",                            new QoreBigIntNode(GL_FLOAT_MAT2x3));
-   opengl_ns.addConstant("GL_FLOAT_MAT2x4",                            new QoreBigIntNode(GL_FLOAT_MAT2x4));
-   opengl_ns.addConstant("GL_FLOAT_MAT3x2",                            new QoreBigIntNode(GL_FLOAT_MAT3x2));
-   opengl_ns.addConstant("GL_FLOAT_MAT3x4",                            new QoreBigIntNode(GL_FLOAT_MAT3x4));
-   opengl_ns.addConstant("GL_FLOAT_MAT4x2",                            new QoreBigIntNode(GL_FLOAT_MAT4x2));
-   opengl_ns.addConstant("GL_FLOAT_MAT4x3",                            new QoreBigIntNode(GL_FLOAT_MAT4x3));
-   opengl_ns.addConstant("GL_SRGB",                                    new QoreBigIntNode(GL_SRGB));
-   opengl_ns.addConstant("GL_SRGB8",                                   new QoreBigIntNode(GL_SRGB8));
-   opengl_ns.addConstant("GL_SRGB_ALPHA",                              new QoreBigIntNode(GL_SRGB_ALPHA));
-   opengl_ns.addConstant("GL_SRGB8_ALPHA8",                            new QoreBigIntNode(GL_SRGB8_ALPHA8));
-   opengl_ns.addConstant("GL_SLUMINANCE_ALPHA",                        new QoreBigIntNode(GL_SLUMINANCE_ALPHA));
-   opengl_ns.addConstant("GL_SLUMINANCE8_ALPHA8",                      new QoreBigIntNode(GL_SLUMINANCE8_ALPHA8));
-   opengl_ns.addConstant("GL_SLUMINANCE",                              new QoreBigIntNode(GL_SLUMINANCE));
-   opengl_ns.addConstant("GL_SLUMINANCE8",                             new QoreBigIntNode(GL_SLUMINANCE8));
-   opengl_ns.addConstant("GL_COMPRESSED_SRGB",                         new QoreBigIntNode(GL_COMPRESSED_SRGB));
-   opengl_ns.addConstant("GL_COMPRESSED_SRGB_ALPHA",                   new QoreBigIntNode(GL_COMPRESSED_SRGB_ALPHA));
-   opengl_ns.addConstant("GL_COMPRESSED_SLUMINANCE",                   new QoreBigIntNode(GL_COMPRESSED_SLUMINANCE));
-   opengl_ns.addConstant("GL_COMPRESSED_SLUMINANCE_ALPHA",             new QoreBigIntNode(GL_COMPRESSED_SLUMINANCE_ALPHA));
-
+#ifdef GL_CURRENT_RASTER_SECONDARY_COLOR
+   opengl_ns.addConstant("GL_CURRENT_RASTER_SECONDARY_COLOR", new QoreBigIntNode(GL_CURRENT_RASTER_SECONDARY_COLOR));
+#endif
+#ifdef GL_PIXEL_PACK_BUFFER
+   opengl_ns.addConstant("GL_PIXEL_PACK_BUFFER",              new QoreBigIntNode(GL_PIXEL_PACK_BUFFER));
+#endif
+#ifdef GL_PIXEL_UNPACK_BUFFER
+   opengl_ns.addConstant("GL_PIXEL_UNPACK_BUFFER",            new QoreBigIntNode(GL_PIXEL_UNPACK_BUFFER));
+#endif
+#ifdef GL_PIXEL_PACK_BUFFER_BINDING
+   opengl_ns.addConstant("GL_PIXEL_PACK_BUFFER_BINDING",      new QoreBigIntNode(GL_PIXEL_PACK_BUFFER_BINDING));
+#endif
+#ifdef GL_PIXEL_UNPACK_BUFFER_BINDING
+   opengl_ns.addConstant("GL_PIXEL_UNPACK_BUFFER_BINDING",    new QoreBigIntNode(GL_PIXEL_UNPACK_BUFFER_BINDING));
+#endif
+#ifdef GL_FLOAT_MAT2x3
+   opengl_ns.addConstant("GL_FLOAT_MAT2x3",                   new QoreBigIntNode(GL_FLOAT_MAT2x3));
+#endif
+#ifdef GL_FLOAT_MAT2x4
+   opengl_ns.addConstant("GL_FLOAT_MAT2x4",                   new QoreBigIntNode(GL_FLOAT_MAT2x4));
+#endif
+#ifdef GL_FLOAT_MAT3x2
+   opengl_ns.addConstant("GL_FLOAT_MAT3x2",                   new QoreBigIntNode(GL_FLOAT_MAT3x2));
+#endif
+#ifdef GL_FLOAT_MAT3x4
+   opengl_ns.addConstant("GL_FLOAT_MAT3x4",                   new QoreBigIntNode(GL_FLOAT_MAT3x4));
+#endif
+#ifdef GL_FLOAT_MAT4x2
+   opengl_ns.addConstant("GL_FLOAT_MAT4x2",                   new QoreBigIntNode(GL_FLOAT_MAT4x2));
+#endif
+#ifdef GL_FLOAT_MAT4x3
+   opengl_ns.addConstant("GL_FLOAT_MAT4x3",                   new QoreBigIntNode(GL_FLOAT_MAT4x3));
+#endif
+#ifdef GL_SRGB
+   opengl_ns.addConstant("GL_SRGB",                           new QoreBigIntNode(GL_SRGB));
+#endif
+#ifdef GL_SRGB8
+   opengl_ns.addConstant("GL_SRGB8",                          new QoreBigIntNode(GL_SRGB8));
+#endif
+#ifdef GL_SRGB_ALPHA
+   opengl_ns.addConstant("GL_SRGB_ALPHA",                     new QoreBigIntNode(GL_SRGB_ALPHA));
+#endif
+#ifdef GL_SRGB8_ALPHA8
+   opengl_ns.addConstant("GL_SRGB8_ALPHA8",                   new QoreBigIntNode(GL_SRGB8_ALPHA8));
+#endif
+#ifdef GL_SLUMINANCE_ALPHA
+   opengl_ns.addConstant("GL_SLUMINANCE_ALPHA",               new QoreBigIntNode(GL_SLUMINANCE_ALPHA));
+#endif
+#ifdef GL_SLUMINANCE8_ALPHA8
+   opengl_ns.addConstant("GL_SLUMINANCE8_ALPHA8",             new QoreBigIntNode(GL_SLUMINANCE8_ALPHA8));
+#endif
+#ifdef GL_SLUMINANCE
+   opengl_ns.addConstant("GL_SLUMINANCE",                     new QoreBigIntNode(GL_SLUMINANCE));
+#endif
+#ifdef GL_SLUMINANCE8
+   opengl_ns.addConstant("GL_SLUMINANCE8",                    new QoreBigIntNode(GL_SLUMINANCE8));
+#endif
+#ifdef GL_COMPRESSED_SRGB
+   opengl_ns.addConstant("GL_COMPRESSED_SRGB",               new QoreBigIntNode(GL_COMPRESSED_SRGB));
+#endif
+#ifdef GL_COMPRESSED_SRGB_ALPHA
+   opengl_ns.addConstant("GL_COMPRESSED_SRGB_ALPHA",         new QoreBigIntNode(GL_COMPRESSED_SRGB_ALPHA));
+#endif
+#ifdef GL_COMPRESSED_SLUMINANCE
+   opengl_ns.addConstant("GL_COMPRESSED_SLUMINANCE",         new QoreBigIntNode(GL_COMPRESSED_SLUMINANCE));
+#endif
+#ifdef GL_COMPRESSED_SLUMINANCE_ALPHA
+   opengl_ns.addConstant("GL_COMPRESSED_SLUMINANCE_ALPHA",   new QoreBigIntNode(GL_COMPRESSED_SLUMINANCE_ALPHA));
+#endif
 }
