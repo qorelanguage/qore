@@ -22,11 +22,12 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt-gui.h"
+
 #include "QC_QDropEvent.h"
 #include "QC_QMimeData.h"
 #include "QC_QPoint.h"
-
-#include "qore-qt-gui.h"
+#include "QC_QWidget.h"
 
 qore_classid_t CID_QDROPEVENT;
 class QoreClass *QC_QDropEvent = 0;

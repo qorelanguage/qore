@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include "qore-qt-gui.h"
+
 #include "QC_QCleanlooksStyle.h"
 
 qore_classid_t CID_QCLEANLOOKSSTYLE;

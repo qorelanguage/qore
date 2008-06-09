@@ -8,11 +8,11 @@ QORE_QT_GUI_SOURCES = single-compilation-unit.cc
 else
 QORE_QT_GUI_SOURCES = qt-gui-util.cc QC_QApplication.cc QC_QPushButton.cc \
 	QC_QFrame.cc QC_QLCDNumber.cc QC_QSlider.cc QC_QLayout.cc \
-	QC_QBoxLayout.cc QC_QVBoxLayout.cc QC_QHBoxLayout.cc
+	QC_QBoxLayout.cc QC_QVBoxLayout.cc QC_QHBoxLayout.cc \
 	QC_QGridLayout.cc \
 	QC_QBrush.cc \
 	QC_QPainter.cc QC_QPalette.cc QC_QRegion.cc \
-	QC_QTimer.cc QC_QLabel.cc \
+	QC_QLabel.cc \
 	QC_QMovie.cc BrushStyleNode.cc \
 	QC_QKeySequence.cc \
 	QC_QAction.cc QC_QActionGroup.cc PenStyleNode.cc \
@@ -70,7 +70,6 @@ QORE_QT_GUI_SOURCES = qt-gui-util.cc QC_QApplication.cc QC_QPushButton.cc \
 	QC_QCloseEvent.cc \
 	QC_QContextMenuEvent.cc \
 	QC_QDropEvent.cc \
-	QC_QMimeData.cc \
 	QC_QDragMoveEvent.cc \
 	QC_QDragEnterEvent.cc \
 	QC_QDragLeaveEvent.cc \
@@ -136,7 +135,6 @@ QORE_QT_GUI_SOURCES = qt-gui-util.cc QC_QApplication.cc QC_QPushButton.cc \
 	QC_QSystemTrayIcon.cc \
 	QC_QWizard.cc \
 	QC_QWizardPage.cc \
-	QC_QLibraryInfo.cc \
 	QC_QListView.cc \
 	QC_QListWidget.cc \
 	QC_QListWidgetItem.cc \
