@@ -39,7 +39,7 @@ class ClosureRuntimeEnvironment {
       DLLLOCAL void del(ExceptionSink *xsink);
 };
 
-class QoreClosureNode : ResolvedCallReferenceNode
+class QoreClosureNode : public ResolvedCallReferenceNode
 {
    private:
       QoreProgram *pgm;
@@ -99,7 +99,7 @@ class QoreClosureNode : ResolvedCallReferenceNode
       }
 };
 
-class QoreObjectClosureNode : ResolvedCallReferenceNode
+class QoreObjectClosureNode : public ResolvedCallReferenceNode
 {
    private:
       QoreObject *obj;

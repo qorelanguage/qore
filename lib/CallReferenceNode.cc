@@ -70,9 +70,8 @@ AbstractQoreNode *CallReferenceCallNode::evalImpl(ExceptionSink *xsink) const
       return 0;
 
    ResolvedCallReferenceNode *r = dynamic_cast<ResolvedCallReferenceNode *>(*lv);
-   if (!r)
-   {
-      xsink->raiseException("REFERENCE-CALL-ERROR", "expression does not evaluate to a call reference (evaluated to type '%s')", lv ? lv->getTypeName() : "NOTHING");
+   if (!r) {
+      xsink->raiseException("REFERENCE-CALL-ERROR", "expression does not evaluate to a call reference (evaluated to type '%s')", lv ? lv->getTypeName() : "NOTHING"); 
       return 0;
    }
    return r->exec(args, xsink);

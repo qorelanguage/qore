@@ -172,7 +172,7 @@ static void makeXMLString(QoreString *str, const QoreHashNode *h, int indent, co
 
 static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, ExceptionSink *xsink)
 {
-   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
+   //printd(5, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
    qore_type_t ntype = n ? n->getType() : 0;
 
@@ -210,7 +210,7 @@ static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, Except
 
 static void concatSimpleCDataValue(QoreString *str, const AbstractQoreNode *n, ExceptionSink *xsink)
 {
-   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
+   //printd(5, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
    qore_type_t ntype = n ? n->getType() : 0;
 
@@ -526,7 +526,7 @@ static AbstractQoreNode *f_makeXMLString(const QoreListNode *params, ExceptionSi
    }
    else
       makeXMLString(str, pobj, 0, ccs, 0, xsink);
-   //printd(0, "f_makeXMLString() returning %s\n", str->getBuffer());
+   //printd(5, "f_makeXMLString() returning %s\n", str->getBuffer());
    traceout("f_makeXMLString()");
    return str;
 }
@@ -646,10 +646,10 @@ static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHashNode 
 	 {
 	    return;	    
 	 }
-	 //printd(0, "addXMLRPCValueInternHashInternal() converted %s->%s, \"%s\"->\"%s\"\n", member->getEncoding()->getCode(), ccs->getCode(), member->getBuffer(), ns->getBuffer());
+	 //printd(5, "addXMLRPCValueInternHashInternal() converted %s->%s, \"%s\"->\"%s\"\n", member->getEncoding()->getCode(), ccs->getCode(), member->getBuffer(), ns->getBuffer());
 	 member.reset(ns);
       }
-      //else printd(0, "addXMLRPCValueInternHashInternal() not converting %sx \"%s\"\n", member->getEncoding()->getCode(), member->getBuffer());
+      //else printd(5, "addXMLRPCValueInternHashInternal() not converting %sx \"%s\"\n", member->getEncoding()->getCode(), member->getBuffer());
       // indent
       if (format)
          str->addch(' ', indent + 2);
@@ -691,7 +691,7 @@ static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int
       str->sprintf("<boolean>%d</boolean>", reinterpret_cast<const QoreBoolNode *>(n)->getValue());
 
    else if (ntype == NT_INT)
-      str->sprintf("<i4>%d</i4>", reinterpret_cast<const QoreBigIntNode *>(n)->val);
+      str->sprintf("<i4>%lld</i4>", reinterpret_cast<const QoreBigIntNode *>(n)->val);
 
    else if (ntype == NT_STRING)
    {
@@ -1953,7 +1953,7 @@ static AbstractQoreNode *f_makeFormattedXMLRPCFaultResponseString(const QoreList
    }
    int code = p0 ? p0->getAsInt() : 0;
    const QoreEncoding *ccsid = p1->getEncoding();
-   //printd(0, "ccsid=%016x (%s) (%s) code=%d\n", ccsid, ccsid->getCode(), ((QoreStringNode *)p1)->getBuffer(), code);
+   //printd(5, "ccsid=%016x (%s) (%s) code=%d\n", ccsid, ccsid->getCode(), ((QoreStringNode *)p1)->getBuffer(), code);
 
    // for speed, the XML is created directly here
    QoreStringNode *str = new QoreStringNode(ccsid);
