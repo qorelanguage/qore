@@ -349,7 +349,7 @@ static void set_lgpl(char *arg)
 
 static struct opt_struct_s {
       char short_opt;
-      char *long_opt;
+      const char *long_opt;
       int arg;
       void (*opt_func)(char *arg);
 } options[] = {
