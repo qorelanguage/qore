@@ -1176,7 +1176,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    return rv;
 }
 
-AbstractQoreNode *QoreProgram::callFunction(UserFunction *ufc, const QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreListNode *args, ExceptionSink *xsink)
 {
    // we assign the args to 0 below so that they will not be deleted
    SimpleRefHolder<FunctionCallNode> fc(new FunctionCallNode(ufc, const_cast<QoreListNode *>(args)));

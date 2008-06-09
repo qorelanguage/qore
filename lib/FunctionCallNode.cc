@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-FunctionCallNode::FunctionCallNode(UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(const UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
 {
    ftype = FC_USER;
    f.ufunc = u;
@@ -67,7 +67,7 @@ FunctionCallNode::FunctionCallNode(char *name, QoreListNode *a) : ParseNode(NT_F
    args = a;
 }
 
-FunctionCallNode::FunctionCallNode(QoreProgram *p, class UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(QoreProgram *p, const UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
 {
    ftype = FC_IMPORTED;
    f.ifunc = new ImportedFunctionCall(p, u);

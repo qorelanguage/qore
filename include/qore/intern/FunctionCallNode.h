@@ -28,11 +28,11 @@
 
 class ImportedFunctionCall {
    public:
-      class QoreProgram *pgm;
-      class UserFunction *func;
+      QoreProgram *pgm;
+      const UserFunction *func;
 
-      DLLLOCAL ImportedFunctionCall(class QoreProgram *p, class UserFunction *f) { pgm = p; func = f; }
-      DLLLOCAL class AbstractQoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL ImportedFunctionCall(QoreProgram *p, const UserFunction *f) { pgm = p; func = f; }
+      DLLLOCAL class AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 class SelfFunctionCall {
@@ -42,10 +42,10 @@ class SelfFunctionCall {
       const class QoreMethod *func;
 
       DLLLOCAL SelfFunctionCall(char *n);
-      DLLLOCAL SelfFunctionCall(class NamedScope *n);
+      DLLLOCAL SelfFunctionCall(NamedScope *n);
       DLLLOCAL SelfFunctionCall(const QoreMethod *f);
       DLLLOCAL ~SelfFunctionCall();
-      DLLLOCAL class AbstractQoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL void resolve();
       DLLLOCAL char *takeName();
       DLLLOCAL class NamedScope *takeNScope();
@@ -56,13 +56,13 @@ class FunctionCallNode : public ParseNode
 {
    protected:
       // eval(): return value requires a deref(xsink)
-      DLLLOCAL virtual class AbstractQoreNode *evalImpl(class ExceptionSink *) const;
+      DLLLOCAL virtual class AbstractQoreNode *evalImpl(ExceptionSink *) const;
 
       //! optionally evaluates the argument
       /** return value requires a deref(xsink) if needs_deref is true
 	  @see AbstractQoreNode::eval()
       */
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
       DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
       DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
@@ -71,7 +71,7 @@ class FunctionCallNode : public ParseNode
 
    public:
       union uFCall {
-	    class UserFunction *ufunc;
+	    const UserFunction *ufunc;
 	    const BuiltinFunction *bfunc;
 	    class SelfFunctionCall *sfunc;
 	    class ImportedFunctionCall *ifunc;
@@ -80,20 +80,20 @@ class FunctionCallNode : public ParseNode
       QoreListNode *args;
       int ftype;
 
-      DLLLOCAL FunctionCallNode(class UserFunction *u, QoreListNode *a);
+      DLLLOCAL FunctionCallNode(const UserFunction *u, QoreListNode *a);
       DLLLOCAL FunctionCallNode(const BuiltinFunction *b, QoreListNode *a);
 
       // "self" in-object function call constructors
       DLLLOCAL FunctionCallNode(QoreListNode *a, char *name);
       DLLLOCAL FunctionCallNode(QoreListNode *a, class NamedScope *n);
-      DLLLOCAL FunctionCallNode(const class QoreMethod *func, QoreListNode *a);
+      DLLLOCAL FunctionCallNode(const QoreMethod *func, QoreListNode *a);
 
       // normal function call constructor
       DLLLOCAL FunctionCallNode(char *name, QoreListNode *a);
       // method call constructor
       DLLLOCAL FunctionCallNode(char *n_c_str);
       
-      DLLLOCAL FunctionCallNode(class QoreProgram *p, class UserFunction *u, QoreListNode *a);
+      DLLLOCAL FunctionCallNode(class QoreProgram *p, const UserFunction *u, QoreListNode *a);
 
       DLLLOCAL virtual ~FunctionCallNode();
 
@@ -101,10 +101,10 @@ class FunctionCallNode : public ParseNode
       // the ExceptionSink is only needed for QoreObject where a method may be executed
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
       // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
 
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;

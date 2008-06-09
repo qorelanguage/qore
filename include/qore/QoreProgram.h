@@ -29,8 +29,6 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/Restrictions.h>
 
-class AbstractCallReferenceNode;
-
 // warnings - must correspond with the string order in QoreProgram.cc
 #define QP_WARN_NONE                     0
 #define QP_WARN_WARNING_MASK_UNCHANGED   (1 << 0)   //!< when the warning mask is attempted to be changed but it's locked
@@ -50,6 +48,7 @@ DLLEXPORT extern unsigned qore_num_warnings;
 //! returns the warning code corresponding to the string passed (0 if no match was made)
 DLLEXPORT int get_warning_code(const char *str);
 
+class AbstractCallReferenceNode;
 class LocalVar;
 class ExceptionSink;
 class QoreListNode;
@@ -57,6 +56,9 @@ class QoreNamespace;
 class RootQoreNamespace;
 class QoreStringNode;
 class QoreHashNode;
+class FunctionCallNode;
+class AbstractStatement;
+class UnresolvedCallReferenceNode;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -408,19 +410,19 @@ class QoreProgram : public AbstractPrivateData
 	 @param args the argument to the function (can be 0)
 	 @param xsink if a Qore-language exception is raised, the error information is added here
        */
-      DLLLOCAL AbstractQoreNode *callFunction(class UserFunction *func, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *callFunction(const UserFunction *func, const QoreListNode *args, ExceptionSink *xsink);
 
       DLLLOCAL LocalVar *createLocalVar(const char *name);
 
-      DLLLOCAL void registerUserFunction(class UserFunction *u);
-      DLLLOCAL void resolveFunction(class FunctionCallNode *f);      
-      DLLLOCAL AbstractCallReferenceNode *resolveCallReference(class UnresolvedCallReferenceNode *fr);      
+      DLLLOCAL void registerUserFunction(UserFunction *u);
+      DLLLOCAL void resolveFunction(FunctionCallNode *f);      
+      DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedCallReferenceNode *fr);      
       DLLLOCAL void addGlobalVarDef(const char *name);
-      DLLLOCAL void addStatement(class AbstractStatement *s);
+      DLLLOCAL void addStatement(AbstractStatement *s);
       DLLLOCAL class Var *findGlobalVar(const char *name);
       DLLLOCAL class Var *checkGlobalVar(const char *name);
       DLLLOCAL class Var *createGlobalVar(const char *name);
-      DLLLOCAL void importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly);
+      DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
       DLLLOCAL void makeParseException(const char *err, QoreStringNode *desc);
       DLLLOCAL void makeParseException(int sline, int eline, QoreStringNode *desc);
       DLLLOCAL void makeParseException(QoreStringNode *desc);

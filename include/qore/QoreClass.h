@@ -54,6 +54,7 @@ DLLEXPORT extern qore_classid_t CID_XMLRPCCLIENT;
 class BCList;
 class BCSMList;
 class QoreObject;
+class QoreClass;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -66,16 +67,14 @@ class QoreMethod {
       //! private implementation of the method
       struct qore_method_private *priv;
 
-      //! private constructor
-      DLLLOCAL QoreMethod(const class QoreClass *p_class);
-
-      DLLLOCAL void userInit(UserFunction *u, int p);
-
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreMethod(const QoreMethod&);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreMethod& operator=(const QoreMethod&);
+
+      //! private constructor
+      DLLLOCAL QoreMethod(const QoreClass *p_class, UserFunction *u, bool n_priv, bool n_static);
 
       //! evaluates the method and returns the result
       /** should only be called by QoreObject; use QoreObject::evalMethod(const QoreMethod &meth, const QoreListNode *args, ExceptionSink *xsink) instead
@@ -106,11 +105,17 @@ class QoreMethod {
        */
       DLLEXPORT bool isBuiltin() const;
 
-      //! returns true if the method is a private method of the class
+      //! returns true if the method is private
       /**
-	 @return true if the method is a private method of the class
+	 @return true if the method is private
        */
       DLLEXPORT bool isPrivate() const;
+
+      //! returns true if the method is static
+      /**
+	 @return true if the method is static
+       */
+      DLLEXPORT bool isStatic() const;
 
       //! returns the method's name
       /**
@@ -118,8 +123,8 @@ class QoreMethod {
        */
       DLLEXPORT const char *getName() const;
 
-      DLLLOCAL QoreMethod(class UserFunction *u, int p);
-      DLLLOCAL QoreMethod(const class QoreClass *p_class, class BuiltinMethod *b, bool n_priv = false);
+      DLLLOCAL QoreMethod(UserFunction *u, bool n_priv, bool n_static);
+      DLLLOCAL QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv = false, bool n_static = false);
       DLLLOCAL ~QoreMethod();
       DLLLOCAL int getType() const;
       DLLLOCAL bool inMethod(const QoreObject *self) const;
@@ -135,6 +140,8 @@ class QoreMethod {
       // only called when method is user
       DLLLOCAL const QoreClass *get_class() const;
       DLLLOCAL void assign_class(const QoreClass *p_class);
+      DLLLOCAL const BuiltinFunction *getStaticBuiltinFunction() const;
+      DLLLOCAL const UserFunction *getStaticUserFunction() const;
 };
 
 //! defines a Qore-language class
@@ -160,7 +167,7 @@ class QoreClass{
 
       // private constructor only called when the class is copied
       DLLLOCAL QoreClass(qore_classid_t id, const char *nme);
-      DLLLOCAL const class QoreMethod *parseFindMethod(const char *name);
+      DLLLOCAL const QoreMethod *parseFindMethod(const char *name);
       DLLLOCAL void insertMethod(class QoreMethod *o);
       DLLLOCAL AbstractQoreNode *evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL const QoreMethod *resolveSelfMethodIntern(const char *nme);
@@ -223,11 +230,20 @@ class QoreClass{
 	  // and then casted to (q_method_t) in the addMethod call:
 	  QC_AutoLock->addMethod("lock", (q_method_t)AL_lock);
 	  @endcode
+	  @see Qoreclass::addStaticMethod()
 	  @see QoreClass::setConstructor()
 	  @see QoreClass::setDestructor()
 	  @see QoreClass::setCopy()
        */
       DLLEXPORT void addMethod(const char *n_name, q_method_t meth, bool priv = false);
+
+      //! adds a builtin static method to a class
+      /**
+	  @param n_name the name of the method, must be unique in the class
+	  @param meth the method to be added
+	  @param priv if true then the method will be added as a private method	  
+       */
+      DLLEXPORT void addStaticMethod(const char *n_name, q_method_t meth, bool priv = false);
 
       //! sets the builtin destructor method for the class
       /** you only need to implement destructor methods if the destructor should destroy the object

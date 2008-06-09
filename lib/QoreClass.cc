@@ -75,7 +75,8 @@ struct qore_qc_private {
 	    hm.erase(i);
 	    i = hm.begin();
 	    delete m;
-	 }   
+	 }
+
 	 // delete private member list
 	 strset_t::iterator j = pmm.begin();
 	 while (j != pmm.end()) {
@@ -85,12 +86,14 @@ struct qore_qc_private {
 	    //printd(5, "QoreClass::~QoreClass() freeing private member %08p '%s'\n", n, n);
 	    free(n);
 	 }
+
 	 while ((j = pending_pmm.begin()) != pending_pmm.end()) {
 	    char *n = *j;
 	    pending_pmm.erase(j);
 	    //printd(5, "QoreClass::~QoreClass() freeing pending private member %08p '%s'\n", n, n);
 	    free(n);
 	 }
+
 	 // delete any pending methods
 	 delete_pending_methods();
 	 free(name);
@@ -126,6 +129,17 @@ struct qore_qc_private {
 	    memberNotification = m;
       }
 
+      // checks for all special methods except constructor & destructor
+      DLLLOCAL bool checkSpecialStaticIntern(const QoreMethod *m)
+      {
+	 // set quick pointers
+	 if ((!methodGate && !strcmp(m->getName(), "methodGate"))
+	     || (!memberGate && !strcmp(m->getName(), "memberGate"))
+	     || (!memberNotification && !strcmp(m->getName(), "memberNotification")))
+	    return true;
+	 return false;
+      }
+
       // checks for all special methods
       DLLLOCAL void checkSpecial(const QoreMethod *m)
       {
@@ -142,28 +156,38 @@ struct qore_qc_private {
 };
 
 struct qore_method_private {
-      int type;
-      union {
-	    class UserFunction *userFunc;
-	    class BuiltinMethod *builtin;
-      } func;
-      bool priv_flag;
-      char *name;
       const QoreClass *parent_class;
+      int type;
+      union mf_u {
+	    UserFunction *userFunc;
+	    BuiltinMethod *builtin;
 
-      DLLLOCAL qore_method_private(const QoreClass *p_class) : parent_class(p_class)
+	    DLLLOCAL mf_u(UserFunction *u) : userFunc(u) {}
+	    DLLLOCAL mf_u(BuiltinMethod *b) : builtin(b) {}
+      } func;
+      bool priv_flag, static_flag;
+
+      DLLLOCAL qore_method_private(const QoreClass *p_class, UserFunction *uf, bool n_priv, bool n_static) : parent_class(p_class), type(OTF_USER), func(uf), priv_flag(n_priv), static_flag(n_static)
+      {
+      }
+
+      DLLLOCAL qore_method_private(UserFunction *uf, bool n_priv, bool n_static) : parent_class(0), type(OTF_USER), func(uf), priv_flag(n_priv), static_flag(n_static)
+      {
+      }
+
+      DLLLOCAL qore_method_private(const QoreClass *n_class, BuiltinMethod *b, bool n_priv, bool n_static) : parent_class(n_class), type(OTF_BUILTIN), func(b), static_flag(n_static)
       {
       }
 
       DLLLOCAL ~qore_method_private()
       {
-	 if (name && type != OTF_BUILTIN)
-	    free(name);
 	 if (type == OTF_USER)
 	    func.userFunc->deref();
 	 else
 	    func.builtin->deref();
       }
+
+      DLLLOCAL const char *getName() const { return type == OTF_USER ? func.userFunc->getName() : func.builtin->getName(); }
 };
 
 // BCEANode
@@ -692,30 +716,17 @@ void QoreClass::parseRollback()
    priv->delete_pending_methods();
 }
 
-void QoreMethod::userInit(UserFunction *u, int p)
-{
-   priv->name = strdup(u->getName());
-   priv->type = OTF_USER;
-   priv->func.userFunc = u;
-   priv->priv_flag = p;
-}
-
-QoreMethod::QoreMethod(const QoreClass *p_class) : priv(new qore_method_private(p_class))
+QoreMethod::QoreMethod(const QoreClass *p_class, UserFunction *u, bool n_priv, bool n_static) : priv(new qore_method_private(p_class, u, n_priv, n_static))
 {
 }
 
-QoreMethod::QoreMethod(UserFunction *u, int p) : priv(new qore_method_private(0))
+// created at parse time, parent class assigned when method attached to class
+QoreMethod::QoreMethod(UserFunction *u, bool n_priv, bool n_static) : priv(new qore_method_private(u, n_priv, n_static))
 {
-   // created at parse time, parent class assigned when method attached to class
-   userInit(u, p);
 }
 
-QoreMethod::QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv) : priv(new qore_method_private(p_class))
+QoreMethod::QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv, bool n_static) : priv(new qore_method_private(p_class, b, n_priv, n_static))
 {
-   priv->name = (char *)b->getName();
-   priv->type = OTF_BUILTIN;
-   priv->func.builtin = b;
-   priv->priv_flag = n_priv;
 }
 
 QoreMethod::~QoreMethod()
@@ -743,9 +754,14 @@ bool QoreMethod::isPrivate() const
    return priv->priv_flag; 
 }
 
+bool QoreMethod::isStatic() const
+{
+   return priv->static_flag;
+}
+
 const char *QoreMethod::getName() const
 {
-   return priv->name;
+   return priv->getName();
 }
 
 const QoreClass *QoreMethod::get_class() const
@@ -803,17 +819,13 @@ void QoreMethod::parseInitConstructor(class BCList *bcl)
 
 QoreMethod *QoreMethod::copy(const QoreClass *p_class) const
 {
-   class QoreMethod *nof;
    if (priv->type == OTF_USER) {
       priv->func.userFunc->ROreference();
-      nof = new QoreMethod(p_class);
-      nof->userInit(priv->func.userFunc, priv->priv_flag);
+      return new QoreMethod(p_class, priv->func.userFunc, priv->priv_flag, priv->static_flag);
    }
-   else {
-      priv->func.builtin->ROreference();
-      nof = new QoreMethod(p_class, priv->func.builtin);
-   }
-   return nof;
+
+   priv->func.builtin->ROreference();
+   return new QoreMethod(p_class, priv->func.builtin, priv->priv_flag, priv->static_flag);
 }
 
 static inline const QoreClass *getStackClass()
@@ -981,7 +993,7 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    tracein("QoreMethod::eval()");
 #ifdef DEBUG
    const char *oname = self->getClass()->getName();
-   printd(5, "QoreMethod::eval() %s::%s() (object=%08p, pgm=%08p)\n", oname, priv->name, self, self->getProgram());
+   printd(5, "QoreMethod::eval() %s::%s() (object=%08p, pgm=%08p)\n", oname, getName(), self, self->getProgram());
 #endif
 
    {
@@ -1006,13 +1018,13 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
 
 	 rv = self->evalBuiltinMethodWithPrivateData(priv->func.builtin, *new_args, xsink);      
 	 if (xsink->isException())
-	    xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), priv->name, o_fn, o_ln, o_eln);
+	    xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), getName(), o_fn, o_ln, o_eln);
       }
    }
    
 #ifdef DEBUG
    printd(5, "QoreMethod::eval() %s::%s() returning %08p (type=%s, refs=%d)\n",
-	  oname, priv->name, rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
+	  oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
 #endif
    traceout("QoreMethod::eval()");
    return rv;
@@ -1023,7 +1035,7 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
    tracein("QoreMethod::evalConstructor()");
 #ifdef DEBUG
    const char *oname = self->getClass()->getName();
-   printd(5, "QoreMethod::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", oname, priv->name, self, self->getProgram());
+   printd(5, "QoreMethod::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", oname, getName(), self, self->getProgram());
 #endif
 
    if (priv->type == OTF_USER)
@@ -1040,7 +1052,7 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
    }
 
 #ifdef DEBUG
-   printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", oname, priv->name);
+   printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", oname, getName());
 #endif
    traceout("QoreMethod::evalConstructor()");
 }
@@ -1448,7 +1460,7 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme)
    const QoreMethod *m = findLocalMethod(nme);
 #ifdef DEBUG
    if (m)
-      printd(5, "QoreClass::resolveSelfMethod(%s) resolved to %s::%s() %08p\n", nme, priv->name, nme, m);
+      printd(5, "QoreClass::resolveSelfMethod(%s) resolved to %s::%s() %08p\n", nme, getName(), nme, m);
 #endif
    bool err = false;
    if (m && (m == priv->constructor || m == priv->destructor))
@@ -1463,7 +1475,7 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme)
 	 hm_method_t::iterator i = priv->hm_pending.find(nme);
 	 if (i != priv->hm_pending.end()) {
 	    m = i->second;
-	    printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending method %s::%s() %08p\n", nme, priv->name, nme, m);
+	    printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending method %s::%s() %08p\n", nme, getName(), nme, m);
 	 }
       }
    }
@@ -1539,7 +1551,11 @@ void QoreClass::addMethod(QoreMethod *m)
    if (!strcmp(m->getName(), "constructor") || dst) {
       if (m->isPrivate())
 	 parseException("ILLEGAL-PRIVATE-METHOD", "%s methods cannot be private", m->getName());
+      if (m->isStatic())
+	 parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", m->getName());
    }
+   else if (m->isStatic() && priv->checkSpecialStaticIntern(m))
+      parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", m->getName());
 
    // if the method already exists or the user is trying to define a user destructor on a system object
    // (system objects without explicit destructors have an implicit default system destructor that cannot be overridden)
@@ -1568,7 +1584,7 @@ int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
    return 0;
 }
 
-// adds a builtin method to the class - no duplicate checking is made
+// adds a builtin method to the class (duplicate checking is made in debug mode and causes an abort)
 void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag)
 {
    assert(strcmp(nme, "constructor"));
@@ -1581,6 +1597,22 @@ void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag)
    insertMethod(o);
    // check for special methods (except constructor and destructor)
    priv->checkSpecialIntern(o);
+}
+
+// adds a builtin static method to the class
+void QoreClass::addStaticMethod(const char *nme, q_method_t m, bool priv_flag)
+{
+   assert(strcmp(nme, "constructor"));
+   assert(strcmp(nme, "destructor"));
+   assert(strcmp(nme, "copy"));
+
+   priv->sys = true;
+   BuiltinMethod *b = new BuiltinMethod(this, nme, m);
+   QoreMethod *o = new QoreMethod(this, b, priv_flag, true);
+   insertMethod(o);
+
+   // check for special methods (except constructor and destructor) and abort if found
+   assert(!priv->checkSpecialStaticIntern(o));
 }
 
 // sets a builtin function as constructor - no duplicate checking is made

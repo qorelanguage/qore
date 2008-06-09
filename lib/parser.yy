@@ -411,6 +411,7 @@ static bool hasEffect(class AbstractQoreNode *n)
 
 #define OFM_PRIVATE 1
 #define OFM_SYNCED  2
+#define OFM_STATIC  4
 
 static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAList *bcal, StatementBlock *b)
 {
@@ -424,7 +425,7 @@ static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAL
 	 delete b;
    }
    else {
-      class QoreMethod *method = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE);
+      QoreMethod *method = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE, mod & OFM_STATIC);
       
       if (getRootNS()->addMethodToClass(name, method, bcal))
       {
@@ -443,9 +444,9 @@ struct MethodNode {
       // base class argument list for constructors
       class BCAList *bcal;
 
-      DLLLOCAL inline MethodNode(class UserFunction *f, int p, class BCAList *bl) : bcal(bl)
+      DLLLOCAL inline MethodNode(class UserFunction *f, bool n_priv, bool n_static, class BCAList *bl) : bcal(bl)
       {
-	 m = new QoreMethod(f, p);
+	 m = new QoreMethod(f, n_priv, n_static);
       }
       DLLLOCAL inline ~MethodNode()
       {
@@ -1282,25 +1283,25 @@ method_definition:
 	{
 	   if ($6 && strcmp($2, "constructor"))
 	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new MethodNode(new UserFunction($2, new Paramlist($4), $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $6);
+	   $$ = new MethodNode(new UserFunction($2, new Paramlist($4), $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $6);
 	}
 	| IDENTIFIER '(' myexp ')' base_constructor_list block
         {
 	   if ($5 && strcmp($1, "constructor"))
 	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new MethodNode(new UserFunction($1, new Paramlist($3), $6), 0, $5);
+	   $$ = new MethodNode(new UserFunction($1, new Paramlist($3), $6), false, false, $5);
 	}
 	| method_modifiers KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list block
 	{
 	   if ($5 && strcmp($2, "constructor"))
 	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new MethodNode(new UserFunction($2, new Paramlist($3), $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $5);
+	   $$ = new MethodNode(new UserFunction($2, new Paramlist($3), $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $5);
 	}
 	| KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list block
         {
 	   if ($4 && strcmp($1, "constructor"))
 	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new MethodNode(new UserFunction($1, new Paramlist($2), $5), 0, $4);
+	   $$ = new MethodNode(new UserFunction($1, new Paramlist($2), $5), false, false, $4);
 	}
 	;
 
