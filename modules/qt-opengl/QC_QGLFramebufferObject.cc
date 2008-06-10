@@ -132,6 +132,12 @@ static AbstractQoreNode *QGLFRAMEBUFFEROBJECT_toImage(QoreObject *self, QoreQGLF
    return return_object(QC_QImage, new QoreQImage(qglfo->toImage()));
 }
 
+//bool hasOpenGLFramebufferObjects ()
+static AbstractQoreNode *f_QGLFramebufferObject_hasOpenGLFramebufferObjects(const QoreListNode *params, ExceptionSink *xsink)
+{
+   return get_bool_node(QGLFramebufferObject::hasOpenGLFramebufferObjects());
+}
+
 static QoreClass *initQGLFramebufferObjectClass(QoreClass *qpaintdevice)
 {
    QC_QGLFramebufferObject = new QoreClass("QGLFramebufferObject", QDOM_GUI);
@@ -151,6 +157,9 @@ static QoreClass *initQGLFramebufferObjectClass(QoreClass *qpaintdevice)
    QC_QGLFramebufferObject->addMethod("texture",                     (q_method_t)QGLFRAMEBUFFEROBJECT_texture);
    QC_QGLFramebufferObject->addMethod("toImage",                     (q_method_t)QGLFRAMEBUFFEROBJECT_toImage);
 
+   // static methods
+   QC_QGLFramebufferObject->addStaticMethod("hasOpenGLFramebufferObjects",  f_QGLFramebufferObject_hasOpenGLFramebufferObjects);
+
    return QC_QGLFramebufferObject;
 }
 
@@ -165,15 +174,4 @@ QoreNamespace *initQGLFramebufferObjectNS(QoreClass *qpaintdevice)
    ns->addConstant("Depth",                    new QoreBigIntNode(QGLFramebufferObject::Depth));
 
    return ns;
-}
-
-//bool hasOpenGLFramebufferObjects ()
-static AbstractQoreNode *f_QGLFramebufferObject_hasOpenGLFramebufferObjects(const QoreListNode *params, ExceptionSink *xsink)
-{
-   return get_bool_node(QGLFramebufferObject::hasOpenGLFramebufferObjects());
-}
-
-void initQGLFramebufferObjectStaticFunctions()
-{
-   builtinFunctions.add("QGLFramebufferObject_hasOpenGLFramebufferObjects",  f_QGLFramebufferObject_hasOpenGLFramebufferObjects, QDOM_GUI);
 }

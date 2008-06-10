@@ -32,7 +32,6 @@ DLLEXPORT extern qore_classid_t CID_QFILEDIALOG;
 DLLEXPORT extern class QoreClass *QC_QFileDialog;
 
 DLLEXPORT QoreNamespace *initQFileDialogNS(QoreClass *);
-DLLEXPORT void initQFileDialogStaticFunctions();
 
 class myQFileDialog : public QFileDialog, public QoreQDialogExtension
 {

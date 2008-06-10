@@ -71,12 +71,12 @@ class AutoNamespaceList ANSL;
 struct qore_ns_private {
       std::string name;
 
-      class QoreClassList  *classList;
+      QoreClassList  *classList;
       class ConstantList   *constant;
       class QoreNamespaceList  *nsl;
 
       // pending lists
-      class QoreClassList  *pendClassList;
+      QoreClassList  *pendClassList;
       class ConstantList   *pendConstant;
       class QoreNamespaceList  *pendNSL;
 
@@ -209,7 +209,7 @@ void QoreNamespace::addConstant(class NamedScope *nscope, AbstractQoreNode *valu
 }
 
 // public, only called in single-threaded initialization
-void QoreNamespace::addSystemClass(class QoreClass *oc)
+void QoreNamespace::addSystemClass(QoreClass *oc)
 {
    tracein("QoreNamespace::addSystemClass()");
 
@@ -223,7 +223,7 @@ void QoreNamespace::addSystemClass(class QoreClass *oc)
 }
 
 // public, only called when parsing for unattached namespaces
-void QoreNamespace::addClass(class NamedScope *n, class QoreClass *oc)
+void QoreNamespace::addClass(class NamedScope *n, QoreClass *oc)
 {
    //printd(5, "QoreNamespace::addClass() adding ns=%s (%s, %08p)\n", n->ostr, oc->getName(), oc);
    class QoreNamespace *sns = resolveNameScope(n);
@@ -643,9 +643,9 @@ AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(class NamedSco
 
 /*
 // parseFindOTInNSL()
-class QoreClass *parseFindOTInNSL(class QoreNamespaceList *nsl, const char *otname)
+QoreClass *parseFindOTInNSL(class QoreNamespaceList *nsl, const char *otname)
 {
-   class QoreClass *ot;
+   QoreClass *ot;
    // see if a match can be found at the first level
    for (int i = 0; i < nsl->num_namespaces; i++)
       if ((ot = nsl->nslist[i]->priv->classList->find(otname)))
@@ -664,7 +664,7 @@ class QoreClass *parseFindOTInNSL(class QoreNamespaceList *nsl, const char *otna
 // QoreNamespaceList::parseFindScopedClassWithMethod()
 // does a recursive breadth-first search to resolve a namespace containing the given class name
 // note: is only called with a namespace specifier
-class QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedScope *name, int *matched) const
+QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedScope *name, int *matched) const
 {
    QoreClass *oc = 0;
 
@@ -697,7 +697,7 @@ class QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedSc
 // does a recursive breadth-first search to resolve a namespace containing the given class name
 // note: is only called with a namespace specifier
 /*
-class QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedScope *name, int *matched, class QoreClassList **plist, bool *is_pending)
+QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedScope *name, int *matched, QoreClassList **plist, bool *is_pending)
 {
    QoreClass *oc = 0;
 
@@ -728,9 +728,9 @@ class QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedSc
 */
 
 /*
-class QoreClass *QoreNamespaceList::parseFindClass(const char *ocname, class QoreClassList **plist, bool *is_pending)
+QoreClass *QoreNamespaceList::parseFindClass(const char *ocname, QoreClassList **plist, bool *is_pending)
 {
-   class QoreClass *oc = 0;
+   QoreClass *oc = 0;
 
    // see if a match can be found at the first level
    QoreNamespace *w = head;
@@ -768,9 +768,9 @@ class QoreClass *QoreNamespaceList::parseFindClass(const char *ocname, class Qor
 }
 */
 
-class QoreClass *QoreNamespaceList::parseFindClass(const char *ocname)
+QoreClass *QoreNamespaceList::parseFindClass(const char *ocname)
 {
-   class QoreClass *oc = 0;
+   QoreClass *oc = 0;
 
    // see if a match can be found at the first level
    QoreNamespace *w = head;
@@ -801,9 +801,9 @@ class QoreClass *QoreNamespaceList::parseFindClass(const char *ocname)
    return oc;
 }
 
-class QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname)
+QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname)
 {
-   class QoreClass *oc = 0;
+   QoreClass *oc = 0;
 
    // see if a match can be found at the first level
    QoreNamespace *w = head;
@@ -837,9 +837,9 @@ class QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname)
 // QoreNamespaceList::parseFindScopedClass()
 // does a recursive breadth-first search to resolve a namespace with the given object type
 // note: is only called with a namespace specifier
-class QoreClass *QoreNamespaceList::parseFindScopedClass(class NamedScope *name, int *matched)
+QoreClass *QoreNamespaceList::parseFindScopedClass(class NamedScope *name, int *matched)
 {
-   class QoreClass *oc = 0;
+   QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
    QoreNamespace *w = head;
@@ -866,7 +866,7 @@ class QoreClass *QoreNamespaceList::parseFindScopedClass(class NamedScope *name,
    return oc;
 }
 
-QoreObject *get_file_constant(class QoreClass *fc, int fd)
+QoreObject *get_file_constant(QoreClass *fc, int fd)
 {
    return fc->execSystemConstructor(fd);
 }
@@ -875,9 +875,9 @@ QoreObject *get_file_constant(class QoreClass *fc, int fd)
 int RootQoreNamespace::addMethodToClass(class NamedScope *scname, class QoreMethod *qcmethod, class BCAList *bcal)
 {
    // find class
-   //class QoreClassList *plist;
+   //QoreClassList *plist;
    //bool is_pending = false;
-   class QoreClass *oc;
+   QoreClass *oc;
 
    const char *cname  = scname->strlist[scname->elements - 2];
    const char *method = scname->strlist[scname->elements - 1];
@@ -916,18 +916,18 @@ int RootQoreNamespace::addMethodToClass(class NamedScope *scname, class QoreMeth
    return 0;
 }
 
-class QoreClass *RootQoreNamespace::parseFindClass(const char *cname) const
+QoreClass *RootQoreNamespace::parseFindClass(const char *cname) const
 {
-   class QoreClass *oc = rootFindClass(cname);
+   QoreClass *oc = rootFindClass(cname);
    if (!oc)
       parse_error("reference to undefined class '%s'", cname);
 
    return oc;
 }
 
-class QoreClass *RootQoreNamespace::parseFindScopedClass(class NamedScope *nscope) const
+QoreClass *RootQoreNamespace::parseFindScopedClass(class NamedScope *nscope) const
 {
-   class QoreClass *oc;
+   QoreClass *oc;
    // if there is no namespace specified, then just find class
    if (nscope->elements == 1)
    {
@@ -962,9 +962,9 @@ class QoreClass *RootQoreNamespace::parseFindScopedClass(class NamedScope *nscop
    return oc;
 }
 
-class QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(class NamedScope *scname) const
+QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(class NamedScope *scname) const
 {
-   class QoreClass *oc;
+   QoreClass *oc;
 
    int m = 0;
    oc = rootFindScopedClassWithMethod(scname, &m);
@@ -1171,7 +1171,7 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *scname,
 
 // public, only called either in single-threaded initialization or
 // while the program-level parse lock is held
-void QoreNamespace::addClass(class QoreClass *oc)
+void QoreNamespace::addClass(QoreClass *oc)
 {
    tracein("QoreNamespace::addClass()");
    //printd(5, "QoreNamespace::addClass() adding str=%s (%08p)\n", oc->name, oc);
@@ -1264,7 +1264,7 @@ class QoreNamespace *QoreNamespace::parseMatchNamespace(class NamedScope *nscope
 }
 
 /*
-class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched, class QoreClassList **plist, bool *is_pending) const
+QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched, QoreClassList **plist, bool *is_pending) const
 {
    printd(5, "QoreNamespace::parseMatchScopedClassWithMethod(this=%08p) %s class=%s (%s)\n", this, priv->name.c_str(), nscope->strlist[nscope->elements - 2], nscope->ostr);
 
@@ -1291,7 +1291,7 @@ class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope
       }
    }
    // check last namespaces
-   class QoreClass *rv = ns->priv->pendClassList->find(nscope->strlist[nscope->elements - 2]);
+   QoreClass *rv = ns->priv->pendClassList->find(nscope->strlist[nscope->elements - 2]);
    if (rv)
    {
       (*plist) = ns->priv->classList;
@@ -1305,7 +1305,7 @@ class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope
 }
 */
 
-class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched) const
+QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched) const
 {
    printd(5, "QoreNamespace::parseMatchScopedClassWithMethod(this=%08p) %s class=%s (%s)\n", this, priv->name.c_str(), nscope->strlist[nscope->elements - 2], nscope->ostr);
 
@@ -1332,14 +1332,14 @@ class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope
       }
    }
    // check last namespaces
-   class QoreClass *rv = ns->priv->pendClassList->find(nscope->strlist[nscope->elements - 2]);
+   QoreClass *rv = ns->priv->pendClassList->find(nscope->strlist[nscope->elements - 2]);
    if (!rv)
       rv = ns->priv->classList->find(nscope->strlist[nscope->elements - 2]);
 
    return rv;
 }
 
-class QoreClass *QoreNamespace::parseMatchScopedClass(class NamedScope *nscope, int *matched) const
+QoreClass *QoreNamespace::parseMatchScopedClass(class NamedScope *nscope, int *matched) const
 {
    if (strcmp(nscope->strlist[0], priv->name.c_str()))
       return 0;
@@ -1364,7 +1364,7 @@ class QoreClass *QoreNamespace::parseMatchScopedClass(class NamedScope *nscope, 
 	    (*matched) = i + 1;
       }
    }
-   class QoreClass *rv = ns->priv->classList->find(nscope->strlist[nscope->elements - 1]);
+   QoreClass *rv = ns->priv->classList->find(nscope->strlist[nscope->elements - 1]);
    if (!rv)
       rv = ns->priv->pendClassList->find(nscope->strlist[nscope->elements - 1]);
    return rv;
@@ -1450,7 +1450,7 @@ AbstractQoreNode *RootQoreNamespace::rootFindConstantValue(const char *cname) co
 }
 
 // only called with RootNS
-void RootQoreNamespace::rootAddClass(class NamedScope *nscope, class QoreClass *oc)
+void RootQoreNamespace::rootAddClass(class NamedScope *nscope, QoreClass *oc)
 {
    tracein("RootQoreNamespace::rootAddClass()");
 
@@ -1483,7 +1483,7 @@ void RootQoreNamespace::rootAddConstant(class NamedScope *nscope, AbstractQoreNo
 }
 
 // public
-class QoreClass *RootQoreNamespace::rootFindClass(const char *ocname) const
+QoreClass *RootQoreNamespace::rootFindClass(const char *ocname) const
 {
    tracein("RootQoreNamespace::rootFindClass");
    QoreClass *oc;
@@ -1495,7 +1495,7 @@ class QoreClass *RootQoreNamespace::rootFindClass(const char *ocname) const
    return oc;
 }
 
-class QoreClass *RootQoreNamespace::rootFindChangeClass(const char *ocname)
+QoreClass *RootQoreNamespace::rootFindChangeClass(const char *ocname)
 {
    tracein("RootQoreNamespace::rootFindChangeClass");
    QoreClass *oc;
@@ -1506,28 +1506,6 @@ class QoreClass *RootQoreNamespace::rootFindChangeClass(const char *ocname)
    traceout("RootQoreNamespace::rootFindChangeClass");
    return oc;
 }
-
-/*
-// public
-class QoreClass *RootQoreNamespace::rootFindClass(const char *ocname, class QoreClassList **plist, bool *is_pending)
-{
-   tracein("RootQoreNamespace::rootFindClass()");
-
-   QoreClass *oc;
-   if ((oc = priv->pendClassList->find(ocname)))
-   {
-      (*plist) = priv->classList;
-      (*is_pending) = true;
-   }
-   else if ((oc = priv->classList->find(ocname)))
-      (*plist) = priv->pendClassList;
-   else if (!(oc = priv->nsl->parseFindClass(ocname, plist, is_pending)))
-      oc = priv->pendNSL->parseFindClass(ocname, plist, is_pending);
-
-   traceout("RootQoreNamespace::rootFindClass()");
-   return oc;
-}
-*/
 
 class QoreNamespace *RootQoreNamespace::rootResolveNamespace(class NamedScope *nscope)
 {
@@ -1547,21 +1525,8 @@ class QoreNamespace *RootQoreNamespace::rootResolveNamespace(class NamedScope *n
    return ns;
 }
 
-/*
-// public
-class QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(class NamedScope *nscope, int *matched, class QoreClassList **plist, bool *is_pending)
-{
-   QoreClass *oc;
-
-   if (!(oc = parseMatchScopedClassWithMethod(nscope, matched, plist, is_pending))
-       && !(oc = priv->nsl->parseFindScopedClassWithMethod(nscope, matched, plist, is_pending)))
-      oc = priv->pendNSL->parseFindScopedClassWithMethod(nscope, matched, plist, is_pending);
-   return oc;
-}
-*/
-
-// public
-class QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(class NamedScope *nscope, int *matched) const
+// private
+QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(class NamedScope *nscope, int *matched) const
 {
    QoreClass *oc;
 
@@ -1571,9 +1536,9 @@ class QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(class NamedSco
    return oc;
 }
 
-// public
+// private
 // will always be called with a namespace (nscope->elements > 1)
-class QoreClass *RootQoreNamespace::rootFindScopedClass(class NamedScope *nscope, int *matched) const
+QoreClass *RootQoreNamespace::rootFindScopedClass(class NamedScope *nscope, int *matched) const
 {
    QoreClass *oc = parseMatchScopedClass(nscope, matched);
    if (!oc && !(oc = priv->nsl->parseFindScopedClass(nscope, matched)))
@@ -1581,7 +1546,7 @@ class QoreClass *RootQoreNamespace::rootFindScopedClass(class NamedScope *nscope
    return oc;
 }
 
-// public, will always be called with nscope->elements > 1
+// private, will always be called with nscope->elements > 1
 AbstractQoreNode *RootQoreNamespace::rootFindScopedConstantValue(class NamedScope *nscope, int *matched) const
 {
    AbstractQoreNode *rv = parseMatchScopedConstantValue(nscope, matched);
@@ -1605,7 +1570,7 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
 
    class QoreNamespace *qns = new QoreNamespace("Qore");
 
-   class QoreClass *File;
+   QoreClass *File;
    // add system object types
    qns->addSystemClass(initSocketClass());
    qns->addSystemClass(initSSLCertificateClass());
@@ -1621,7 +1586,7 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    qns->addSystemClass(initAutoWriteLockClass());
 
    // add HTTPClient namespace
-   class QoreClass *http_client_class;
+   QoreClass *http_client_class;
    qns->addSystemClass((http_client_class = initHTTPClientClass()));
    qns->addSystemClass(initXmlRpcClientClass(http_client_class));
    qns->addSystemClass(initJsonRpcClientClass(http_client_class));

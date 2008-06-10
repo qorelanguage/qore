@@ -511,57 +511,6 @@ static AbstractQoreNode *QPIXMAP_width(QoreObject *self, QoreAbstractQPixmap *qp
 //   return new QoreBigIntNode(qp->getQPixmap()->x11PictureHandle());
 //}
 
-class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
-{
-   tracein("initQPixmapClass()");
-   
-   QC_QPixmap = new QoreClass("QPixmap", QDOM_GUI);
-   CID_QPIXMAP = QC_QPixmap->getID();
-
-   QC_QPixmap->addBuiltinVirtualBaseClass(qpaintdevice);
-
-   QC_QPixmap->setConstructor(QPIXMAP_constructor);
-   QC_QPixmap->setCopy((q_copy_t)QPIXMAP_copy);
-
-   QC_QPixmap->addMethod("alphaChannel",                (q_method_t)QPIXMAP_alphaChannel);
-   QC_QPixmap->addMethod("cacheKey",                    (q_method_t)QPIXMAP_cacheKey);
-   QC_QPixmap->addMethod("qt_copy",                     (q_method_t)QPIXMAP_QT_copy);
-   QC_QPixmap->addMethod("createHeuristicMask",         (q_method_t)QPIXMAP_createHeuristicMask);
-   QC_QPixmap->addMethod("createMaskFromColor",         (q_method_t)QPIXMAP_createMaskFromColor);
-   //QC_QPixmap->addMethod("data_ptr",                    (q_method_t)QPIXMAP_data_ptr);
-   QC_QPixmap->addMethod("depth",                       (q_method_t)QPIXMAP_depth);
-   QC_QPixmap->addMethod("detach",                      (q_method_t)QPIXMAP_detach);
-   QC_QPixmap->addMethod("fill",                        (q_method_t)QPIXMAP_fill);
-   //QC_QPixmap->addMethod("handle",                      (q_method_t)QPIXMAP_handle);
-   QC_QPixmap->addMethod("hasAlpha",                    (q_method_t)QPIXMAP_hasAlpha);
-   QC_QPixmap->addMethod("hasAlphaChannel",             (q_method_t)QPIXMAP_hasAlphaChannel);
-   QC_QPixmap->addMethod("height",                      (q_method_t)QPIXMAP_height);
-   QC_QPixmap->addMethod("isNull",                      (q_method_t)QPIXMAP_isNull);
-   QC_QPixmap->addMethod("isQBitmap",                   (q_method_t)QPIXMAP_isQBitmap);
-   QC_QPixmap->addMethod("load",                        (q_method_t)QPIXMAP_load);
-   //QC_QPixmap->addMethod("loadFromData",                (q_method_t)QPIXMAP_loadFromData);
-   QC_QPixmap->addMethod("mask",                        (q_method_t)QPIXMAP_mask);
-   QC_QPixmap->addMethod("rect",                        (q_method_t)QPIXMAP_rect);
-   QC_QPixmap->addMethod("save",                        (q_method_t)QPIXMAP_save);
-   QC_QPixmap->addMethod("scaled",                      (q_method_t)QPIXMAP_scaled);
-   QC_QPixmap->addMethod("scaledToHeight",              (q_method_t)QPIXMAP_scaledToHeight);
-   QC_QPixmap->addMethod("scaledToWidth",               (q_method_t)QPIXMAP_scaledToWidth);
-   QC_QPixmap->addMethod("setAlphaChannel",             (q_method_t)QPIXMAP_setAlphaChannel);
-   QC_QPixmap->addMethod("setMask",                     (q_method_t)QPIXMAP_setMask);
-   QC_QPixmap->addMethod("size",                        (q_method_t)QPIXMAP_size);
-   QC_QPixmap->addMethod("toImage",                     (q_method_t)QPIXMAP_toImage);
-   //QC_QPixmap->addMethod("toMacCGImageRef",             (q_method_t)QPIXMAP_toMacCGImageRef);
-   //QC_QPixmap->addMethod("toWinHBITMAP",                (q_method_t)QPIXMAP_toWinHBITMAP);
-   //QC_QPixmap->addMethod("transformed",                 (q_method_t)QPIXMAP_transformed);
-   QC_QPixmap->addMethod("width",                       (q_method_t)QPIXMAP_width);
-   //QC_QPixmap->addMethod("x11Info",                     (q_method_t)QPIXMAP_x11Info);
-   //QC_QPixmap->addMethod("x11PictureHandle",            (q_method_t)QPIXMAP_x11PictureHandle);
-
-
-   traceout("initQPixmapClass()");
-   return QC_QPixmap;
-}
-
 //int defaultDepth ()
 static AbstractQoreNode *f_QPixmap_defaultDepth(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -652,13 +601,61 @@ static AbstractQoreNode *f_QPixmap_grabWindow(const QoreListNode *params, Except
    return o_qp;
 }
 
-void initQPixmapStaticFunctions()
+QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
 {
-   builtinFunctions.add("QPixmap_defaultDepth",                 f_QPixmap_defaultDepth, QDOM_GUI);
-   builtinFunctions.add("QPixmap_fromImage",                    f_QPixmap_fromImage, QDOM_GUI);
-   //builtinFunctions.add("QPixmap_fromMacCGImageRef",            f_QPixmap_fromMacCGImageRef, QDOM_GUI);
-   //builtinFunctions.add("QPixmap_fromWinHBITMAP",               f_QPixmap_fromWinHBITMAP, QDOM_GUI);
-   builtinFunctions.add("QPixmap_grabWidget",                   f_QPixmap_grabWidget, QDOM_GUI);
-   builtinFunctions.add("QPixmap_grabWindow",                   f_QPixmap_grabWindow, QDOM_GUI);
-   //builtinFunctions.add("QPixmap_trueMatrix",                   f_QPixmap_trueMatrix, QDOM_GUI);
+   tracein("initQPixmapClass()");
+   
+   QC_QPixmap = new QoreClass("QPixmap", QDOM_GUI);
+   CID_QPIXMAP = QC_QPixmap->getID();
+
+   QC_QPixmap->addBuiltinVirtualBaseClass(qpaintdevice);
+
+   QC_QPixmap->setConstructor(QPIXMAP_constructor);
+   QC_QPixmap->setCopy((q_copy_t)QPIXMAP_copy);
+
+   QC_QPixmap->addMethod("alphaChannel",                (q_method_t)QPIXMAP_alphaChannel);
+   QC_QPixmap->addMethod("cacheKey",                    (q_method_t)QPIXMAP_cacheKey);
+   QC_QPixmap->addMethod("qt_copy",                     (q_method_t)QPIXMAP_QT_copy);
+   QC_QPixmap->addMethod("createHeuristicMask",         (q_method_t)QPIXMAP_createHeuristicMask);
+   QC_QPixmap->addMethod("createMaskFromColor",         (q_method_t)QPIXMAP_createMaskFromColor);
+   //QC_QPixmap->addMethod("data_ptr",                    (q_method_t)QPIXMAP_data_ptr);
+   QC_QPixmap->addMethod("depth",                       (q_method_t)QPIXMAP_depth);
+   QC_QPixmap->addMethod("detach",                      (q_method_t)QPIXMAP_detach);
+   QC_QPixmap->addMethod("fill",                        (q_method_t)QPIXMAP_fill);
+   //QC_QPixmap->addMethod("handle",                      (q_method_t)QPIXMAP_handle);
+   QC_QPixmap->addMethod("hasAlpha",                    (q_method_t)QPIXMAP_hasAlpha);
+   QC_QPixmap->addMethod("hasAlphaChannel",             (q_method_t)QPIXMAP_hasAlphaChannel);
+   QC_QPixmap->addMethod("height",                      (q_method_t)QPIXMAP_height);
+   QC_QPixmap->addMethod("isNull",                      (q_method_t)QPIXMAP_isNull);
+   QC_QPixmap->addMethod("isQBitmap",                   (q_method_t)QPIXMAP_isQBitmap);
+   QC_QPixmap->addMethod("load",                        (q_method_t)QPIXMAP_load);
+   //QC_QPixmap->addMethod("loadFromData",                (q_method_t)QPIXMAP_loadFromData);
+   QC_QPixmap->addMethod("mask",                        (q_method_t)QPIXMAP_mask);
+   QC_QPixmap->addMethod("rect",                        (q_method_t)QPIXMAP_rect);
+   QC_QPixmap->addMethod("save",                        (q_method_t)QPIXMAP_save);
+   QC_QPixmap->addMethod("scaled",                      (q_method_t)QPIXMAP_scaled);
+   QC_QPixmap->addMethod("scaledToHeight",              (q_method_t)QPIXMAP_scaledToHeight);
+   QC_QPixmap->addMethod("scaledToWidth",               (q_method_t)QPIXMAP_scaledToWidth);
+   QC_QPixmap->addMethod("setAlphaChannel",             (q_method_t)QPIXMAP_setAlphaChannel);
+   QC_QPixmap->addMethod("setMask",                     (q_method_t)QPIXMAP_setMask);
+   QC_QPixmap->addMethod("size",                        (q_method_t)QPIXMAP_size);
+   QC_QPixmap->addMethod("toImage",                     (q_method_t)QPIXMAP_toImage);
+   //QC_QPixmap->addMethod("toMacCGImageRef",             (q_method_t)QPIXMAP_toMacCGImageRef);
+   //QC_QPixmap->addMethod("toWinHBITMAP",                (q_method_t)QPIXMAP_toWinHBITMAP);
+   //QC_QPixmap->addMethod("transformed",                 (q_method_t)QPIXMAP_transformed);
+   QC_QPixmap->addMethod("width",                       (q_method_t)QPIXMAP_width);
+   //QC_QPixmap->addMethod("x11Info",                     (q_method_t)QPIXMAP_x11Info);
+   //QC_QPixmap->addMethod("x11PictureHandle",            (q_method_t)QPIXMAP_x11PictureHandle);
+
+   // static methods
+   QC_QPixmap->addStaticMethod("defaultDepth",                 f_QPixmap_defaultDepth);
+   QC_QPixmap->addStaticMethod("fromImage",                    f_QPixmap_fromImage);
+   //QC_QPixmap->addStaticMethod("fromMacCGImageRef",            f_QPixmap_fromMacCGImageRef);
+   //QC_QPixmap->addStaticMethod("fromWinHBITMAP",               f_QPixmap_fromWinHBITMAP);
+   QC_QPixmap->addStaticMethod("grabWidget",                   f_QPixmap_grabWidget);
+   QC_QPixmap->addStaticMethod("grabWindow",                   f_QPixmap_grabWindow);
+   //QC_QPixmap->addStaticMethod("trueMatrix",                   f_QPixmap_trueMatrix);
+
+   traceout("initQPixmapClass()");
+   return QC_QPixmap;
 }

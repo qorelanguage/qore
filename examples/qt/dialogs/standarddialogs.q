@@ -169,7 +169,7 @@ class Dialog inherits QDialog
     setInteger()
     {
 	my $ok;
-	my $i = QInputDialog_getInteger($self, TR("QInputDialog::getInteger()"),
+	my $i = QInputDialog::getInteger($self, TR("QInputDialog::getInteger()"),
 					TR("Percentage:"), 25, 0, 100, 1, \$ok);
 	if ($ok)
 	    $.integerLabel.setText(sprintf("%d", $i));
@@ -178,7 +178,7 @@ class Dialog inherits QDialog
     setDouble()
     {
 	my $ok;
-	my $d = QInputDialog_getDouble($self, TR("QInputDialog::getDouble()"),
+	my $d = QInputDialog::getDouble($self, TR("QInputDialog::getDouble()"),
 				       TR("Amount:"), 37.56, -10000, 10000, 2, \$ok);
 	if ($ok)
 	    $.doubleLabel.setText(sprintf("%.2f", $d));
@@ -189,7 +189,7 @@ class Dialog inherits QDialog
 	my $items = (TR("Spring"), TR("Summer"), TR("Fall"), TR("Winter"));
 
 	my $ok;
-	my $item = QInputDialog_getItem($self, TR("QInputDialog::getItem()"),
+	my $item = QInputDialog::getItem($self, TR("QInputDialog::getItem()"),
 					TR("Season:"), $items, 0, False, \$ok);
 	if ($ok && strlen($item))
 	    $.itemLabel.setText($item);
@@ -198,16 +198,16 @@ class Dialog inherits QDialog
     setText()
     {
 	my $ok;
-	my $text = QInputDialog_getText($self, TR("QInputDialog::getText()"),
+	my $text = QInputDialog::getText($self, TR("QInputDialog::getText()"),
 					TR("User name:"), QLineEdit::Normal,
-					QDir_home().dirName(), \$ok);
+					QDir::home().dirName(), \$ok);
 	if ($ok && strlen($text))
 	    $.textLabel.setText($text);
     }
 
     setColor()
     {
-	my $color = QColorDialog_getColor(Qt::green, $self);
+	my $color = QColorDialog::getColor(Qt::green, $self);
 	if ($color.isValid()) {
 	    $.colorLabel.setText($color.name());
 	    $.colorLabel.setPalette(new QPalette($color));
@@ -218,7 +218,7 @@ class Dialog inherits QDialog
     setFont()
     {
 	my $ok;
-	my $font = QFontDialog_getFont(\$ok, new QFont($.fontLabel.text()), $self);
+	my $font = QFontDialog::getFont(\$ok, new QFont($.fontLabel.text()), $self);
 	if ($ok) {
 	    $.fontLabel.setText($font.key());
 	    $.fontLabel.setFont($font);
@@ -230,7 +230,7 @@ class Dialog inherits QDialog
 	my $options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly;
 	if (!$.native.isChecked())
 	    $options |= QFileDialog::DontUseNativeDialog;
-	my $directory = QFileDialog_getExistingDirectory($self,
+	my $directory = QFileDialog::getExistingDirectory($self,
 							 TR("QFileDialog::getExistingDirectory()"),
 							 $.directoryLabel.text(),
 							 $options);
@@ -244,7 +244,7 @@ class Dialog inherits QDialog
 	if (!$.native.isChecked())
 	    $options |= QFileDialog::DontUseNativeDialog;
 	my $selectedFilter;
-	my $fileName = QFileDialog_getOpenFileName($self,
+	my $fileName = QFileDialog::getOpenFileName($self,
 						   TR("QFileDialog::getOpenFileName()"),
 						   $.openFileNameLabel.text(),
 						   TR("All Files (*);;Text Files (*.txt)"),
@@ -260,7 +260,7 @@ class Dialog inherits QDialog
 	if (!$.native.isChecked())
 	    $options |= QFileDialog::DontUseNativeDialog;
 	my $selectedFilter;
-	my $files = QFileDialog_getOpenFileNames($self, TR("QFileDialog::getOpenFileNames()"),
+	my $files = QFileDialog::getOpenFileNames($self, TR("QFileDialog::getOpenFileNames()"),
 						 $.openFilesPath,
 						 TR("All Files (*);;Text Files (*.txt)"),
 						 \$selectedFilter,
@@ -277,7 +277,7 @@ class Dialog inherits QDialog
 	if (!$.native.isChecked())
 	    $options |= QFileDialog::DontUseNativeDialog;
 	my $selectedFilter;
-	my $fileName = QFileDialog_getSaveFileName($self,
+	my $fileName = QFileDialog::getSaveFileName($self,
 						   TR("QFileDialog::getSaveFileName()"),
 						   $.saveFileNameLabel.text(),
 						   TR("All Files (*);;Text Files (*.txt)"),
@@ -290,7 +290,7 @@ class Dialog inherits QDialog
     criticalMessage()
     {
 	my $reply;
-	$reply = QMessageBox_critical($self, TR("QMessageBox::critical()"),
+	$reply = QMessageBox::critical($self, TR("QMessageBox::critical()"),
 				      $.message,
 				      QMessageBox::Abort | QMessageBox::Retry | QMessageBox::Ignore);
 	if ($reply == QMessageBox::Abort)
@@ -304,7 +304,7 @@ class Dialog inherits QDialog
     informationMessage()
     {
 	my $reply;
-	$reply = QMessageBox_information($self, TR("QMessageBox::information()"), $.message);
+	$reply = QMessageBox::information($self, TR("QMessageBox::information()"), $.message);
 	if ($reply == QMessageBox::Ok)
 	    $.informationLabel.setText(TR("OK"));
 	else
@@ -314,7 +314,7 @@ class Dialog inherits QDialog
     questionMessage()
     {
 	my $reply;
-	$reply = QMessageBox_question($self, TR("QMessageBox::question()"),
+	$reply = QMessageBox::question($self, TR("QMessageBox::question()"),
 				      $.message,
 				      QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 	if ($reply == QMessageBox::Yes)
@@ -356,10 +356,10 @@ class standarddialog_example inherits QApplication
 {
     constructor()
     {
-	my $translatorFileName = "qt_" + QLocale_system().name();
+	my $translatorFileName = "qt_" + QLocale::system().name();
 	my $translator = new QTranslator($self);
-	if ($translator.load($translatorFileName, QLibraryInfo_location(QLibraryInfo::TranslationsPath)))
-	    QCoreApplication_installTranslator($translator);
+	if ($translator.load($translatorFileName, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+	    QCoreApplication::installTranslator($translator);
 
 	my $dialog = new Dialog();
 	$dialog.exec();

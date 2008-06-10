@@ -329,11 +329,9 @@ QoreClass *initQFontDatabaseClass()
    QC_QFontDatabase->addMethod("weight",                      (q_method_t)QFONTDATABASE_weight);
    QC_QFontDatabase->addMethod("writingSystems",              (q_method_t)QFONTDATABASE_writingSystems);
 
+   // static methods
+   QC_QFontDatabase->addStaticMethod("standardSizes",     f_QFontDatabase_standardSizes);
+
    return QC_QFontDatabase;
 }
 
-void initQFontDatabaseStaticFunctions()
-{
-   // add static functions as builtin methods
-   builtinFunctions.add("QFontDatabase_standardSizes",     f_QFontDatabase_standardSizes, QDOM_GUI);
-}

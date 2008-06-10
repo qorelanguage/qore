@@ -62,15 +62,15 @@ class Screenshot inherits QWidget
 	    $.hide();
 	$.newScreenshotButton.setDisabled(True);
 
-	QTimer_singleShot($.delaySpinBox.value() * 1000, $self, SLOT("shootScreen()"));
+	QTimer::singleShot($.delaySpinBox.value() * 1000, $self, SLOT("shootScreen()"));
     }
 
     saveScreenshot()
     {
 	my $format = "png";
-	my $initialPath = QDir_currentPath() + TR("/untitled.") + $format;
+	my $initialPath = QDir::currentPath() + TR("/untitled.") + $format;
 
-	my $fileName = QFileDialog_getSaveFileName($self, TR("Save As"),
+	my $fileName = QFileDialog::getSaveFileName($self, TR("Save As"),
 						   $initialPath,
 						   sprintf(TR("%s Files (*.%s);;All Files (*)"), toupper($format), $format));
 	if (!strlen($fileName))
@@ -80,9 +80,9 @@ class Screenshot inherits QWidget
     shootScreen()
     {
 	if ($.delaySpinBox.value() != 0)
-	    QApplication_beep();
+	    QApplication::beep();
 
-	$.originalPixmap = QPixmap_grabWindow(QApplication_desktop().winId());
+	$.originalPixmap = QPixmap::grabWindow(QApplication::desktop().winId());
 	$.updateScreenshotLabel();
 
 	$.newScreenshotButton.setDisabled(False);

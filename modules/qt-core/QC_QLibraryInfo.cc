@@ -24,26 +24,6 @@
 
 #include "QC_QLibraryInfo.h"
 
-QoreNamespace *initQLibraryInfoNS()
-{
-   QoreNamespace *ns = new QoreNamespace("QLibraryInfo");
-
-   // LibraryLocation enum
-   ns->addConstant("PrefixPath",               new QoreBigIntNode(QLibraryInfo::PrefixPath));
-   ns->addConstant("DocumentationPath",        new QoreBigIntNode(QLibraryInfo::DocumentationPath));
-   ns->addConstant("HeadersPath",              new QoreBigIntNode(QLibraryInfo::HeadersPath));
-   ns->addConstant("LibrariesPath",            new QoreBigIntNode(QLibraryInfo::LibrariesPath));
-   ns->addConstant("BinariesPath",             new QoreBigIntNode(QLibraryInfo::BinariesPath));
-   ns->addConstant("PluginsPath",              new QoreBigIntNode(QLibraryInfo::PluginsPath));
-   ns->addConstant("DataPath",                 new QoreBigIntNode(QLibraryInfo::DataPath));
-   ns->addConstant("TranslationsPath",         new QoreBigIntNode(QLibraryInfo::TranslationsPath));
-   ns->addConstant("SettingsPath",             new QoreBigIntNode(QLibraryInfo::SettingsPath));
-   ns->addConstant("DemosPath",                new QoreBigIntNode(QLibraryInfo::DemosPath));
-   ns->addConstant("ExamplesPath",             new QoreBigIntNode(QLibraryInfo::ExamplesPath));
-
-   return ns;
-}
-
 //QString buildKey ()
 static AbstractQoreNode *f_QLibraryInfo_buildKey(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -70,10 +50,32 @@ static AbstractQoreNode *f_QLibraryInfo_location(const QoreListNode *params, Exc
    return new QoreStringNode(QLibraryInfo::location(loc).toUtf8().data(), QCS_UTF8);
 }
 
-void initQLibraryInfoStaticFunctions()
+QoreNamespace *initQLibraryInfoNS()
 {
-   builtinFunctions.add("QLibraryInfo_buildKey",                     f_QLibraryInfo_buildKey, QDOM_GUI);
-   builtinFunctions.add("QLibraryInfo_licensedProducts",             f_QLibraryInfo_licensedProducts, QDOM_GUI);
-   builtinFunctions.add("QLibraryInfo_licensee",                     f_QLibraryInfo_licensee, QDOM_GUI);
-   builtinFunctions.add("QLibraryInfo_location",                     f_QLibraryInfo_location, QDOM_GUI);
+   QoreNamespace *ns = new QoreNamespace("QLibraryInfo");
+
+   // LibraryLocation enum
+   ns->addConstant("PrefixPath",               new QoreBigIntNode(QLibraryInfo::PrefixPath));
+   ns->addConstant("DocumentationPath",        new QoreBigIntNode(QLibraryInfo::DocumentationPath));
+   ns->addConstant("HeadersPath",              new QoreBigIntNode(QLibraryInfo::HeadersPath));
+   ns->addConstant("LibrariesPath",            new QoreBigIntNode(QLibraryInfo::LibrariesPath));
+   ns->addConstant("BinariesPath",             new QoreBigIntNode(QLibraryInfo::BinariesPath));
+   ns->addConstant("PluginsPath",              new QoreBigIntNode(QLibraryInfo::PluginsPath));
+   ns->addConstant("DataPath",                 new QoreBigIntNode(QLibraryInfo::DataPath));
+   ns->addConstant("TranslationsPath",         new QoreBigIntNode(QLibraryInfo::TranslationsPath));
+   ns->addConstant("SettingsPath",             new QoreBigIntNode(QLibraryInfo::SettingsPath));
+   ns->addConstant("DemosPath",                new QoreBigIntNode(QLibraryInfo::DemosPath));
+   ns->addConstant("ExamplesPath",             new QoreBigIntNode(QLibraryInfo::ExamplesPath));
+
+   QoreClass *QC_QLibraryInfo = new QoreClass("QLibraryInfo", QDOM_GUI);
+
+   QC_QLibraryInfo->addStaticMethod("buildKey",                     f_QLibraryInfo_buildKey);
+   QC_QLibraryInfo->addStaticMethod("licensedProducts",             f_QLibraryInfo_licensedProducts);
+   QC_QLibraryInfo->addStaticMethod("licensee",                     f_QLibraryInfo_licensee);
+   QC_QLibraryInfo->addStaticMethod("location",                     f_QLibraryInfo_location);
+
+   ns->addSystemClass(QC_QLibraryInfo);
+
+   return ns;
 }
+

@@ -257,7 +257,7 @@ class GLWidget inherits QGLWidget
 
     timerEvent()
     {
-	if (QApplication_mouseButtons() != 0)
+	if (QApplication::mouseButtons() != 0)
 	    return;
 
 	if ($scale_in && $.scale > 35.0)
@@ -299,13 +299,13 @@ class framebufferobject inherits QApplication
         our $dir = get_script_dir();
 	our $scale_in = True;
 
-	if (!QGLFormat_hasOpenGL()) {
-	    QMessageBox_information(0, "OpenGL framebuffer objects",
+	if (!QGLFormat::hasOpenGL()) {
+	    QMessageBox::information(0, "OpenGL framebuffer objects",
 				    "this system does not support OpenGL");
 	    return -1;
 	}
-	if (!QGLFramebufferObject_hasOpenGLFramebufferObjects()) {
-	    QMessageBox_information(0, "OpenGL framebuffer objects",
+	if (!QGLFramebufferObject::hasOpenGLFramebufferObjects()) {
+	    QMessageBox::information(0, "OpenGL framebuffer objects",
 				    "this system does not support framebuffer objects.");
 	    return -1;
 	}

@@ -46,13 +46,11 @@ QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0)
 
 void QoreParserLocation::updatePosition(int f)
 {
-   if (!explicit_first)
-   {
+   if (!explicit_first) {
       first_line = f;
       update_parse_location(f, f);
    }
-   else
-   {
+   else {
       update_parse_location(first_line, f);
       explicit_first = false;
    }
@@ -212,14 +210,12 @@ static inline char *trim(char *str)
    char *n = strdup(str);
    // find end of string
    int l = strlen(n);
-   if (l)
-   {
+   if (l) {
       char *e = n + l - 1;
       while ((*e) == ' ' || (*e) == '\t')
 	 *(e--) = '\0';
    }
-   if (!n[0])
-   {
+   if (!n[0]) {
       free(n);
       n = 0;
    }
@@ -611,6 +607,7 @@ map                                     return TOK_MAP;
 foldr                                   return TOK_FOLDR;
 foldl                                   return TOK_FOLDL;
 select                                  return TOK_SELECT;
+static                                  return TOK_STATIC;
 class\(                                 yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;
 private\(                               yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN;
 new\(                                   yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN;
@@ -629,7 +626,8 @@ map\(                                   yylval->string = strdup("map"); return K
 foldr\(                                 yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN;
 foldl\(                                 yylval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN;
 select\(                                yylval->string = strdup("select"); return KW_IDENTIFIER_OPENPAREN;
-default\(                               yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
+default{WS}*\(                          yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
+static{WS}*\(                           yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN;
 \.new[^A-Za-z_0-9]                      {
                                            yylval->String = new QoreStringNode("new"); 
 					   if (yytext[4])
@@ -762,6 +760,12 @@ default\(                               yylval->string = strdup("default"); retu
 					      unput(yytext[6]);
 					   return DOT_KW_IDENTIFIER;
                                         }
+\.static[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("static"); 
+					   if (yytext[7])
+					      unput(yytext[7]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;
@@ -771,6 +775,12 @@ PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yyte
 P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
+({WORD}::)+{WORD}{WS}*\(                {
+                                           int l = strlen(yytext);
+					   yytext[l - 1] = '\0';
+                                           yylval->string = trim(yytext);
+					   return STATIC_METHOD_CALL;
+		                        }
 {DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, 0); return QFLOAT;
 0[0-7]+				        yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER;
 {DIGIT}+				yylval->integer = strtoll(yytext, 0, 10); return INTEGER;

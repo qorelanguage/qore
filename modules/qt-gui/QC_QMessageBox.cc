@@ -438,46 +438,6 @@ static AbstractQoreNode *QMESSAGEBOX_exec(QoreObject *self, QoreQMessageBox *qmb
    return new QoreBigIntNode(qmb->qobj->exec());
 }
 
-QoreClass *initQMessageBoxClass(QoreClass *qdialog)
-{
-   QC_QMessageBox = new QoreClass("QMessageBox", QDOM_GUI);
-   CID_QMESSAGEBOX = QC_QMessageBox->getID();
-
-   QC_QMessageBox->addBuiltinVirtualBaseClass(qdialog);
-
-   QC_QMessageBox->setConstructor(QMESSAGEBOX_constructor);
-   QC_QMessageBox->setCopy((q_copy_t)QMESSAGEBOX_copy);
-
-   QC_QMessageBox->addMethod("addButton",                   (q_method_t)QMESSAGEBOX_addButton);
-   QC_QMessageBox->addMethod("button",                      (q_method_t)QMESSAGEBOX_button);
-   QC_QMessageBox->addMethod("clickedButton",               (q_method_t)QMESSAGEBOX_clickedButton);
-   QC_QMessageBox->addMethod("defaultButton",               (q_method_t)QMESSAGEBOX_defaultButton);
-   QC_QMessageBox->addMethod("detailedText",                (q_method_t)QMESSAGEBOX_detailedText);
-   QC_QMessageBox->addMethod("escapeButton",                (q_method_t)QMESSAGEBOX_escapeButton);
-   QC_QMessageBox->addMethod("icon",                        (q_method_t)QMESSAGEBOX_icon);
-   QC_QMessageBox->addMethod("iconPixmap",                  (q_method_t)QMESSAGEBOX_iconPixmap);
-   QC_QMessageBox->addMethod("informativeText",             (q_method_t)QMESSAGEBOX_informativeText);
-   QC_QMessageBox->addMethod("removeButton",                (q_method_t)QMESSAGEBOX_removeButton);
-   //QC_QMessageBox->addMethod("setDefaultButton",            (q_method_t)QMESSAGEBOX_setDefaultButton);
-   QC_QMessageBox->addMethod("setDetailedText",             (q_method_t)QMESSAGEBOX_setDetailedText);
-   QC_QMessageBox->addMethod("setEscapeButton",             (q_method_t)QMESSAGEBOX_setEscapeButton);
-   QC_QMessageBox->addMethod("setIcon",                     (q_method_t)QMESSAGEBOX_setIcon);
-   QC_QMessageBox->addMethod("setIconPixmap",               (q_method_t)QMESSAGEBOX_setIconPixmap);
-   QC_QMessageBox->addMethod("setInformativeText",          (q_method_t)QMESSAGEBOX_setInformativeText);
-   QC_QMessageBox->addMethod("setStandardButtons",          (q_method_t)QMESSAGEBOX_setStandardButtons);
-   QC_QMessageBox->addMethod("setText",                     (q_method_t)QMESSAGEBOX_setText);
-   QC_QMessageBox->addMethod("setTextFormat",               (q_method_t)QMESSAGEBOX_setTextFormat);
-   QC_QMessageBox->addMethod("setWindowModality",           (q_method_t)QMESSAGEBOX_setWindowModality);
-   QC_QMessageBox->addMethod("setWindowTitle",              (q_method_t)QMESSAGEBOX_setWindowTitle);
-   //QC_QMessageBox->addMethod("standardButton",              (q_method_t)QMESSAGEBOX_standardButton);
-   //QC_QMessageBox->addMethod("standardButtons",             (q_method_t)QMESSAGEBOX_standardButtons);
-   QC_QMessageBox->addMethod("text",                        (q_method_t)QMESSAGEBOX_text);
-   QC_QMessageBox->addMethod("textFormat",                  (q_method_t)QMESSAGEBOX_textFormat);
-   QC_QMessageBox->addMethod("exec",                        (q_method_t)QMESSAGEBOX_exec);
-
-   return QC_QMessageBox;
-}
-
 //void about ( QWidget * parent, const QString & title, const QString & text )
 static AbstractQoreNode *f_QMessageBox_about(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -623,13 +583,50 @@ static AbstractQoreNode *f_QMessageBox_warning(const QoreListNode *params, Excep
    return new QoreBigIntNode(QMessageBox::warning(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, title, text, buttons, defaultButton));
 }
 
-void initQMessageBoxStaticFunctions()
+QoreClass *initQMessageBoxClass(QoreClass *qdialog)
 {
-   // add builtin functions
-   builtinFunctions.add("QMessageBox_about",       f_QMessageBox_about, QDOM_GUI);
-   builtinFunctions.add("QMessageBox_aboutQt",     f_QMessageBox_aboutQt, QDOM_GUI);
-   builtinFunctions.add("QMessageBox_critical",    f_QMessageBox_critical, QDOM_GUI);
-   builtinFunctions.add("QMessageBox_information", f_QMessageBox_information, QDOM_GUI);
-   builtinFunctions.add("QMessageBox_question",    f_QMessageBox_question, QDOM_GUI);
-   builtinFunctions.add("QMessageBox_warning",     f_QMessageBox_warning, QDOM_GUI);
+   QC_QMessageBox = new QoreClass("QMessageBox", QDOM_GUI);
+   CID_QMESSAGEBOX = QC_QMessageBox->getID();
+
+   QC_QMessageBox->addBuiltinVirtualBaseClass(qdialog);
+
+   QC_QMessageBox->setConstructor(QMESSAGEBOX_constructor);
+   QC_QMessageBox->setCopy((q_copy_t)QMESSAGEBOX_copy);
+
+   QC_QMessageBox->addMethod("addButton",                   (q_method_t)QMESSAGEBOX_addButton);
+   QC_QMessageBox->addMethod("button",                      (q_method_t)QMESSAGEBOX_button);
+   QC_QMessageBox->addMethod("clickedButton",               (q_method_t)QMESSAGEBOX_clickedButton);
+   QC_QMessageBox->addMethod("defaultButton",               (q_method_t)QMESSAGEBOX_defaultButton);
+   QC_QMessageBox->addMethod("detailedText",                (q_method_t)QMESSAGEBOX_detailedText);
+   QC_QMessageBox->addMethod("escapeButton",                (q_method_t)QMESSAGEBOX_escapeButton);
+   QC_QMessageBox->addMethod("icon",                        (q_method_t)QMESSAGEBOX_icon);
+   QC_QMessageBox->addMethod("iconPixmap",                  (q_method_t)QMESSAGEBOX_iconPixmap);
+   QC_QMessageBox->addMethod("informativeText",             (q_method_t)QMESSAGEBOX_informativeText);
+   QC_QMessageBox->addMethod("removeButton",                (q_method_t)QMESSAGEBOX_removeButton);
+   //QC_QMessageBox->addMethod("setDefaultButton",            (q_method_t)QMESSAGEBOX_setDefaultButton);
+   QC_QMessageBox->addMethod("setDetailedText",             (q_method_t)QMESSAGEBOX_setDetailedText);
+   QC_QMessageBox->addMethod("setEscapeButton",             (q_method_t)QMESSAGEBOX_setEscapeButton);
+   QC_QMessageBox->addMethod("setIcon",                     (q_method_t)QMESSAGEBOX_setIcon);
+   QC_QMessageBox->addMethod("setIconPixmap",               (q_method_t)QMESSAGEBOX_setIconPixmap);
+   QC_QMessageBox->addMethod("setInformativeText",          (q_method_t)QMESSAGEBOX_setInformativeText);
+   QC_QMessageBox->addMethod("setStandardButtons",          (q_method_t)QMESSAGEBOX_setStandardButtons);
+   QC_QMessageBox->addMethod("setText",                     (q_method_t)QMESSAGEBOX_setText);
+   QC_QMessageBox->addMethod("setTextFormat",               (q_method_t)QMESSAGEBOX_setTextFormat);
+   QC_QMessageBox->addMethod("setWindowModality",           (q_method_t)QMESSAGEBOX_setWindowModality);
+   QC_QMessageBox->addMethod("setWindowTitle",              (q_method_t)QMESSAGEBOX_setWindowTitle);
+   //QC_QMessageBox->addMethod("standardButton",              (q_method_t)QMESSAGEBOX_standardButton);
+   //QC_QMessageBox->addMethod("standardButtons",             (q_method_t)QMESSAGEBOX_standardButtons);
+   QC_QMessageBox->addMethod("text",                        (q_method_t)QMESSAGEBOX_text);
+   QC_QMessageBox->addMethod("textFormat",                  (q_method_t)QMESSAGEBOX_textFormat);
+   QC_QMessageBox->addMethod("exec",                        (q_method_t)QMESSAGEBOX_exec);
+
+   // static methods
+   QC_QMessageBox->addStaticMethod("about",       f_QMessageBox_about);
+   QC_QMessageBox->addStaticMethod("aboutQt",     f_QMessageBox_aboutQt);
+   QC_QMessageBox->addStaticMethod("critical",    f_QMessageBox_critical);
+   QC_QMessageBox->addStaticMethod("information", f_QMessageBox_information);
+   QC_QMessageBox->addStaticMethod("question",    f_QMessageBox_question);
+   QC_QMessageBox->addStaticMethod("warning",     f_QMessageBox_warning);
+
+   return QC_QMessageBox;
 }

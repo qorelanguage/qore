@@ -448,40 +448,10 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       return lvids;
    }
 
-   if (ntype == NT_FUNCTION_CALL) {
-      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(*node);
+   if (ntype == NT_FUNCTION_CALL || ntype == NT_METHOD_CALL || ntype == NT_STATIC_METHOD_CALL) {
+      AbstractFunctionCallNode *f = reinterpret_cast<AbstractFunctionCallNode *>(*node);
 
-      if (f->getFunctionType() == FC_SELF) {
-	 if (!oflag)
-	    parse_error("cannot call member function \"%s\" out of an object member function definition", 
-			f->f.sfunc->name);
-	 else
-	    f->f.sfunc->resolve();
-      }
-      else if (f->getFunctionType() == FC_UNRESOLVED)
-	 getProgram()->resolveFunction(f);
-      
-      if (f->args) {
-	 bool needs_eval = f->args->needs_eval();
-	 for (unsigned i = 0; i < f->args->size(); i++) {
-	    AbstractQoreNode **n = f->args->get_entry_ptr(i);
-	    if (*n) {
-	       if ((*n)->getType() == NT_REFERENCE) {
-		  if (!f->existsUserParam(i))
-		     parse_error("not enough parameters in \"%s\" to accept reference expression", f->getName());
-		  lvids += process_node(n, oflag, pflag | PF_REFERENCE_OK);
-	       }
-	       else
-		  lvids += process_node(n, oflag, pflag);
-	       if (!needs_eval && (*n)->needs_eval()) {
-		  f->args->setNeedsEval();
-		  needs_eval = true;
-	       }
-	    }
-	 }
-      }
-
-      return lvids;
+      return f->parseInit(oflag, pflag);
    }
 
    // for the "new" operator
@@ -577,7 +547,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
    else if (ntype == NT_OBJMETHREF)
       reinterpret_cast<AbstractParseObjectMethodReferenceNode *>(*node)->parseInit(oflag, pflag);
    else if (ntype == NT_FUNCREF)
-      (*node) = reinterpret_cast<UnresolvedCallReferenceNode *>(*node)->resolve();
+      (*node) = reinterpret_cast<AbstractUnresolvedCallReferenceNode *>(*node)->resolve();
    else if (ntype == NT_FUNCREFCALL)
       reinterpret_cast<CallReferenceCallNode *>(*node)->parseInit(oflag, pflag);
    else if (ntype == NT_CLOSURE)

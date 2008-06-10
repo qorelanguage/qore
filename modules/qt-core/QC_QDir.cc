@@ -399,93 +399,6 @@ static AbstractQoreNode *QDIR_sorting(QoreObject *self, QoreQDir *qd, const Qore
    return new QoreBigIntNode(qd->sorting());
 }
 
-static QoreClass *initQDirClass()
-{
-   QC_QDir = new QoreClass("QDir", QDOM_GUI);
-   CID_QDIR = QC_QDir->getID();
-
-   QC_QDir->setConstructor(QDIR_constructor);
-   QC_QDir->setCopy((q_copy_t)QDIR_copy);
-
-   QC_QDir->addMethod("absoluteFilePath",            (q_method_t)QDIR_absoluteFilePath);
-   QC_QDir->addMethod("absolutePath",                (q_method_t)QDIR_absolutePath);
-   QC_QDir->addMethod("canonicalPath",               (q_method_t)QDIR_canonicalPath);
-   QC_QDir->addMethod("cd",                          (q_method_t)QDIR_cd);
-   QC_QDir->addMethod("cdUp",                        (q_method_t)QDIR_cdUp);
-   QC_QDir->addMethod("count",                       (q_method_t)QDIR_count);
-   QC_QDir->addMethod("dirName",                     (q_method_t)QDIR_dirName);
-   QC_QDir->addMethod("entryInfoList",               (q_method_t)QDIR_entryInfoList);
-   QC_QDir->addMethod("entryList",                   (q_method_t)QDIR_entryList);
-   QC_QDir->addMethod("exists",                      (q_method_t)QDIR_exists);
-   QC_QDir->addMethod("filePath",                    (q_method_t)QDIR_filePath);
-   QC_QDir->addMethod("filter",                      (q_method_t)QDIR_filter);
-   QC_QDir->addMethod("isAbsolute",                  (q_method_t)QDIR_isAbsolute);
-   QC_QDir->addMethod("isReadable",                  (q_method_t)QDIR_isReadable);
-   QC_QDir->addMethod("isRelative",                  (q_method_t)QDIR_isRelative);
-   QC_QDir->addMethod("isRoot",                      (q_method_t)QDIR_isRoot);
-   QC_QDir->addMethod("makeAbsolute",                (q_method_t)QDIR_makeAbsolute);
-   QC_QDir->addMethod("mkdir",                       (q_method_t)QDIR_mkdir);
-   QC_QDir->addMethod("mkpath",                      (q_method_t)QDIR_mkpath);
-   QC_QDir->addMethod("nameFilters",                 (q_method_t)QDIR_nameFilters);
-   QC_QDir->addMethod("path",                        (q_method_t)QDIR_path);
-   QC_QDir->addMethod("refresh",                     (q_method_t)QDIR_refresh);
-   QC_QDir->addMethod("relativeFilePath",            (q_method_t)QDIR_relativeFilePath);
-   QC_QDir->addMethod("remove",                      (q_method_t)QDIR_remove);
-   QC_QDir->addMethod("rename",                      (q_method_t)QDIR_rename);
-   QC_QDir->addMethod("rmdir",                       (q_method_t)QDIR_rmdir);
-   QC_QDir->addMethod("rmpath",                      (q_method_t)QDIR_rmpath);
-   QC_QDir->addMethod("setFilter",                   (q_method_t)QDIR_setFilter);
-   QC_QDir->addMethod("setNameFilters",              (q_method_t)QDIR_setNameFilters);
-   QC_QDir->addMethod("setPath",                     (q_method_t)QDIR_setPath);
-   QC_QDir->addMethod("setSorting",                  (q_method_t)QDIR_setSorting);
-   QC_QDir->addMethod("sorting",                     (q_method_t)QDIR_sorting);
-
-   return QC_QDir;
-}
-
-QoreNamespace *initQDirNS()
-{
-   QoreNamespace *qdirns = new QoreNamespace("QDir");
-   
-   qdirns->addSystemClass(initQDirClass());
-
-   // Filter enum
-   qdirns->addConstant("Dirs",                     new QoreBigIntNode(QDir::Dirs));
-   qdirns->addConstant("Files",                    new QoreBigIntNode(QDir::Files));
-   qdirns->addConstant("Drives",                   new QoreBigIntNode(QDir::Drives));
-   qdirns->addConstant("NoSymLinks",               new QoreBigIntNode(QDir::NoSymLinks));
-   qdirns->addConstant("AllEntries",               new QoreBigIntNode(QDir::AllEntries));
-   qdirns->addConstant("TypeMask",                 new QoreBigIntNode(QDir::TypeMask));
-   qdirns->addConstant("Readable",                 new QoreBigIntNode(QDir::Readable));
-   qdirns->addConstant("Writable",                 new QoreBigIntNode(QDir::Writable));
-   qdirns->addConstant("Executable",               new QoreBigIntNode(QDir::Executable));
-   qdirns->addConstant("PermissionMask",           new QoreBigIntNode(QDir::PermissionMask));
-   qdirns->addConstant("Modified",                 new QoreBigIntNode(QDir::Modified));
-   qdirns->addConstant("Hidden",                   new QoreBigIntNode(QDir::Hidden));
-   qdirns->addConstant("System",                   new QoreBigIntNode(QDir::System));
-   qdirns->addConstant("AccessMask",               new QoreBigIntNode(QDir::AccessMask));
-   qdirns->addConstant("AllDirs",                  new QoreBigIntNode(QDir::AllDirs));
-   qdirns->addConstant("CaseSensitive",            new QoreBigIntNode(QDir::CaseSensitive));
-   qdirns->addConstant("NoDotAndDotDot",           new QoreBigIntNode(QDir::NoDotAndDotDot));
-   qdirns->addConstant("NoFilter",                 new QoreBigIntNode(QDir::NoFilter));
-
-   // SortFlag enum
-   qdirns->addConstant("Name",                     new QoreBigIntNode(QDir::Name));
-   qdirns->addConstant("Time",                     new QoreBigIntNode(QDir::Time));
-   qdirns->addConstant("Size",                     new QoreBigIntNode(QDir::Size));
-   qdirns->addConstant("Unsorted",                 new QoreBigIntNode(QDir::Unsorted));
-   qdirns->addConstant("SortByMask",               new QoreBigIntNode(QDir::SortByMask));
-   qdirns->addConstant("DirsFirst",                new QoreBigIntNode(QDir::DirsFirst));
-   qdirns->addConstant("Reversed",                 new QoreBigIntNode(QDir::Reversed));
-   qdirns->addConstant("IgnoreCase",               new QoreBigIntNode(QDir::IgnoreCase));
-   qdirns->addConstant("DirsLast",                 new QoreBigIntNode(QDir::DirsLast));
-   qdirns->addConstant("LocaleAware",              new QoreBigIntNode(QDir::LocaleAware));
-   qdirns->addConstant("Type",                     new QoreBigIntNode(QDir::Type));
-   qdirns->addConstant("NoSort",                   new QoreBigIntNode(QDir::NoSort));
-
-   return qdirns;
-}
-
 //void addSearchPath ( const QString & prefix, const QString & path )
 static AbstractQoreNode *f_QDir_addSearchPath(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -694,26 +607,111 @@ static AbstractQoreNode *f_QDir_toNativeSeparators(const QoreListNode *params, E
    return new QoreStringNode(QDir::toNativeSeparators(pathName).toUtf8().data(), QCS_UTF8);
 }
 
-void initQDirStaticFunctions()
+static QoreClass *initQDirClass()
 {
-   builtinFunctions.add("QDir_addSearchPath",                f_QDir_addSearchPath, QDOM_GUI);
-   builtinFunctions.add("QDir_cleanPath",                    f_QDir_cleanPath, QDOM_GUI);
-   builtinFunctions.add("QDir_current",                      f_QDir_current, QDOM_GUI);
-   builtinFunctions.add("QDir_currentPath",                  f_QDir_currentPath, QDOM_GUI);
-   builtinFunctions.add("QDir_drives",                       f_QDir_drives, QDOM_GUI);
-   builtinFunctions.add("QDir_fromNativeSeparators",         f_QDir_fromNativeSeparators, QDOM_GUI);
-   builtinFunctions.add("QDir_home",                         f_QDir_home, QDOM_GUI);
-   builtinFunctions.add("QDir_homePath",                     f_QDir_homePath, QDOM_GUI);
-   builtinFunctions.add("QDir_isAbsolutePath",               f_QDir_isAbsolutePath, QDOM_GUI);
-   builtinFunctions.add("QDir_isRelativePath",               f_QDir_isRelativePath, QDOM_GUI);
-   builtinFunctions.add("QDir_match",                        f_QDir_match, QDOM_GUI);
-   builtinFunctions.add("QDir_root",                         f_QDir_root, QDOM_GUI);
-   builtinFunctions.add("QDir_rootPath",                     f_QDir_rootPath, QDOM_GUI);
-   builtinFunctions.add("QDir_searchPaths",                  f_QDir_searchPaths, QDOM_GUI);
-   builtinFunctions.add("QDir_separator",                    f_QDir_separator, QDOM_GUI);
-   builtinFunctions.add("QDir_setCurrent",                   f_QDir_setCurrent, QDOM_GUI);
-   builtinFunctions.add("QDir_setSearchPaths",               f_QDir_setSearchPaths, QDOM_GUI);
-   builtinFunctions.add("QDir_temp",                         f_QDir_temp, QDOM_GUI);
-   builtinFunctions.add("QDir_tempPath",                     f_QDir_tempPath, QDOM_GUI);
-   builtinFunctions.add("QDir_toNativeSeparators",           f_QDir_toNativeSeparators, QDOM_GUI);
+   QC_QDir = new QoreClass("QDir", QDOM_GUI);
+   CID_QDIR = QC_QDir->getID();
+
+   QC_QDir->setConstructor(QDIR_constructor);
+   QC_QDir->setCopy((q_copy_t)QDIR_copy);
+
+   QC_QDir->addMethod("absoluteFilePath",            (q_method_t)QDIR_absoluteFilePath);
+   QC_QDir->addMethod("absolutePath",                (q_method_t)QDIR_absolutePath);
+   QC_QDir->addMethod("canonicalPath",               (q_method_t)QDIR_canonicalPath);
+   QC_QDir->addMethod("cd",                          (q_method_t)QDIR_cd);
+   QC_QDir->addMethod("cdUp",                        (q_method_t)QDIR_cdUp);
+   QC_QDir->addMethod("count",                       (q_method_t)QDIR_count);
+   QC_QDir->addMethod("dirName",                     (q_method_t)QDIR_dirName);
+   QC_QDir->addMethod("entryInfoList",               (q_method_t)QDIR_entryInfoList);
+   QC_QDir->addMethod("entryList",                   (q_method_t)QDIR_entryList);
+   QC_QDir->addMethod("exists",                      (q_method_t)QDIR_exists);
+   QC_QDir->addMethod("filePath",                    (q_method_t)QDIR_filePath);
+   QC_QDir->addMethod("filter",                      (q_method_t)QDIR_filter);
+   QC_QDir->addMethod("isAbsolute",                  (q_method_t)QDIR_isAbsolute);
+   QC_QDir->addMethod("isReadable",                  (q_method_t)QDIR_isReadable);
+   QC_QDir->addMethod("isRelative",                  (q_method_t)QDIR_isRelative);
+   QC_QDir->addMethod("isRoot",                      (q_method_t)QDIR_isRoot);
+   QC_QDir->addMethod("makeAbsolute",                (q_method_t)QDIR_makeAbsolute);
+   QC_QDir->addMethod("mkdir",                       (q_method_t)QDIR_mkdir);
+   QC_QDir->addMethod("mkpath",                      (q_method_t)QDIR_mkpath);
+   QC_QDir->addMethod("nameFilters",                 (q_method_t)QDIR_nameFilters);
+   QC_QDir->addMethod("path",                        (q_method_t)QDIR_path);
+   QC_QDir->addMethod("refresh",                     (q_method_t)QDIR_refresh);
+   QC_QDir->addMethod("relativeFilePath",            (q_method_t)QDIR_relativeFilePath);
+   QC_QDir->addMethod("remove",                      (q_method_t)QDIR_remove);
+   QC_QDir->addMethod("rename",                      (q_method_t)QDIR_rename);
+   QC_QDir->addMethod("rmdir",                       (q_method_t)QDIR_rmdir);
+   QC_QDir->addMethod("rmpath",                      (q_method_t)QDIR_rmpath);
+   QC_QDir->addMethod("setFilter",                   (q_method_t)QDIR_setFilter);
+   QC_QDir->addMethod("setNameFilters",              (q_method_t)QDIR_setNameFilters);
+   QC_QDir->addMethod("setPath",                     (q_method_t)QDIR_setPath);
+   QC_QDir->addMethod("setSorting",                  (q_method_t)QDIR_setSorting);
+   QC_QDir->addMethod("sorting",                     (q_method_t)QDIR_sorting);
+
+   // static functions
+   QC_QDir->addStaticMethod("addSearchPath",                f_QDir_addSearchPath);
+   QC_QDir->addStaticMethod("cleanPath",                    f_QDir_cleanPath);
+   QC_QDir->addStaticMethod("current",                      f_QDir_current);
+   QC_QDir->addStaticMethod("currentPath",                  f_QDir_currentPath);
+   QC_QDir->addStaticMethod("drives",                       f_QDir_drives);
+   QC_QDir->addStaticMethod("fromNativeSeparators",         f_QDir_fromNativeSeparators);
+   QC_QDir->addStaticMethod("home",                         f_QDir_home);
+   QC_QDir->addStaticMethod("homePath",                     f_QDir_homePath);
+   QC_QDir->addStaticMethod("isAbsolutePath",               f_QDir_isAbsolutePath);
+   QC_QDir->addStaticMethod("isRelativePath",               f_QDir_isRelativePath);
+   QC_QDir->addStaticMethod("match",                        f_QDir_match);
+   QC_QDir->addStaticMethod("root",                         f_QDir_root);
+   QC_QDir->addStaticMethod("rootPath",                     f_QDir_rootPath);
+   QC_QDir->addStaticMethod("searchPaths",                  f_QDir_searchPaths);
+   QC_QDir->addStaticMethod("separator",                    f_QDir_separator);
+   QC_QDir->addStaticMethod("setCurrent",                   f_QDir_setCurrent);
+   QC_QDir->addStaticMethod("setSearchPaths",               f_QDir_setSearchPaths);
+   QC_QDir->addStaticMethod("temp",                         f_QDir_temp);
+   QC_QDir->addStaticMethod("tempPath",                     f_QDir_tempPath);
+   QC_QDir->addStaticMethod("toNativeSeparators",           f_QDir_toNativeSeparators);
+
+   return QC_QDir;
+}
+
+QoreNamespace *initQDirNS()
+{
+   QoreNamespace *qdirns = new QoreNamespace("QDir");
+   
+   qdirns->addSystemClass(initQDirClass());
+
+   // Filter enum
+   qdirns->addConstant("Dirs",                     new QoreBigIntNode(QDir::Dirs));
+   qdirns->addConstant("Files",                    new QoreBigIntNode(QDir::Files));
+   qdirns->addConstant("Drives",                   new QoreBigIntNode(QDir::Drives));
+   qdirns->addConstant("NoSymLinks",               new QoreBigIntNode(QDir::NoSymLinks));
+   qdirns->addConstant("AllEntries",               new QoreBigIntNode(QDir::AllEntries));
+   qdirns->addConstant("TypeMask",                 new QoreBigIntNode(QDir::TypeMask));
+   qdirns->addConstant("Readable",                 new QoreBigIntNode(QDir::Readable));
+   qdirns->addConstant("Writable",                 new QoreBigIntNode(QDir::Writable));
+   qdirns->addConstant("Executable",               new QoreBigIntNode(QDir::Executable));
+   qdirns->addConstant("PermissionMask",           new QoreBigIntNode(QDir::PermissionMask));
+   qdirns->addConstant("Modified",                 new QoreBigIntNode(QDir::Modified));
+   qdirns->addConstant("Hidden",                   new QoreBigIntNode(QDir::Hidden));
+   qdirns->addConstant("System",                   new QoreBigIntNode(QDir::System));
+   qdirns->addConstant("AccessMask",               new QoreBigIntNode(QDir::AccessMask));
+   qdirns->addConstant("AllDirs",                  new QoreBigIntNode(QDir::AllDirs));
+   qdirns->addConstant("CaseSensitive",            new QoreBigIntNode(QDir::CaseSensitive));
+   qdirns->addConstant("NoDotAndDotDot",           new QoreBigIntNode(QDir::NoDotAndDotDot));
+   qdirns->addConstant("NoFilter",                 new QoreBigIntNode(QDir::NoFilter));
+
+   // SortFlag enum
+   qdirns->addConstant("Name",                     new QoreBigIntNode(QDir::Name));
+   qdirns->addConstant("Time",                     new QoreBigIntNode(QDir::Time));
+   qdirns->addConstant("Size",                     new QoreBigIntNode(QDir::Size));
+   qdirns->addConstant("Unsorted",                 new QoreBigIntNode(QDir::Unsorted));
+   qdirns->addConstant("SortByMask",               new QoreBigIntNode(QDir::SortByMask));
+   qdirns->addConstant("DirsFirst",                new QoreBigIntNode(QDir::DirsFirst));
+   qdirns->addConstant("Reversed",                 new QoreBigIntNode(QDir::Reversed));
+   qdirns->addConstant("IgnoreCase",               new QoreBigIntNode(QDir::IgnoreCase));
+   qdirns->addConstant("DirsLast",                 new QoreBigIntNode(QDir::DirsLast));
+   qdirns->addConstant("LocaleAware",              new QoreBigIntNode(QDir::LocaleAware));
+   qdirns->addConstant("Type",                     new QoreBigIntNode(QDir::Type));
+   qdirns->addConstant("NoSort",                   new QoreBigIntNode(QDir::NoSort));
+
+   return qdirns;
 }

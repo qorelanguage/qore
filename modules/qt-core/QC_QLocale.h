@@ -30,7 +30,6 @@ DLLEXPORT extern qore_classid_t CID_QLOCALE;
 DLLEXPORT extern QoreClass *QC_QLocale;
 
 DLLEXPORT QoreNamespace *initQLocaleNS();
-DLLEXPORT void initQLocaleStaticFunctions();
 
 class QoreQLocale : public AbstractPrivateData, public QLocale
 {

@@ -40,14 +40,14 @@ class ImageViewer inherits QMainWindow
     
     open()
     {
-	my $fileName = QFileDialog_getOpenFileName($self, TR("Open File"), QDir_currentPath());
+	my $fileName = QFileDialog::getOpenFileName($self, TR("Open File"), QDir::currentPath());
 	if (strlen($fileName)) {
 	    my $image = new QImage($fileName);
 	    if ($image.isNull()) {
-		QMessageBox_information($self, TR("Image Viewer"), TR(sprintf("Cannot load %n.", $fileName)));
+		QMessageBox::information($self, TR("Image Viewer"), TR(sprintf("Cannot load %n.", $fileName)));
 		return;
 	    }
-	    $.imageLabel.setPixmap(QPixmap_fromImage($image));
+	    $.imageLabel.setPixmap(QPixmap::fromImage($image));
 	    $.scaleFactor = 1.0;
 
 	    $.printAct.setEnabled(True);
@@ -104,7 +104,7 @@ class ImageViewer inherits QMainWindow
 
     about()
     {
-	QMessageBox_about($self, TR("About Image Viewer"),
+	QMessageBox::about($self, TR("About Image Viewer"),
 			  TR("<p>The <b>Image Viewer</b> example shows how to combine QLabel and QScrollArea to display an image. QLabel is typically used for displaying a text, but it can also display an image. QScrollArea provides a scrolling view around another widget. If the child widget exceeds the size of the frame, QScrollArea automatically provides scroll bars. </p><p>The example demonstrates how QLabel's ability to scale its contents (QLabel::scaledContents), and QScrollArea's ability to automatically resize its contents (QScrollArea::widgetResizable), can be used to implement zooming and scaling features. </p><p>In addition the example shows how to use QPainter to print an image.</p>"));
     }
 

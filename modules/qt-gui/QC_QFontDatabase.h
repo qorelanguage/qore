@@ -27,10 +27,9 @@
 #include <QFontDatabase>
 
 DLLEXPORT extern qore_classid_t CID_QFONTDATABASE;
-DLLEXPORT extern class QoreClass *QC_QFontDatabase;
+DLLEXPORT extern QoreClass *QC_QFontDatabase;
 
-DLLEXPORT class QoreClass *initQFontDatabaseClass();
-DLLEXPORT void initQFontDatabaseStaticFunctions();
+DLLEXPORT QoreClass *initQFontDatabaseClass();
 
 class QoreQFontDatabase : public AbstractPrivateData, public QFontDatabase
 {

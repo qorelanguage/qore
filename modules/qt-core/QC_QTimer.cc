@@ -115,31 +115,6 @@ static AbstractQoreNode *QTIMER_stop(QoreObject *self, QoreQTimer *qt, const Qor
    return 0;
 }
 
-class QoreClass *initQTimerClass(class QoreClass *qobject)
-{
-   tracein("initQTimerClass()");
-   
-   class QoreClass *QC_QTimer = new QoreClass("QTimer", QDOM_GUI);
-   CID_QTIMER = QC_QTimer->getID();
-
-   QC_QTimer->addBuiltinVirtualBaseClass(qobject);
-
-   QC_QTimer->setConstructor(QTIMER_constructor);
-   QC_QTimer->setCopy((q_copy_t)QTIMER_copy);
-
-   QC_QTimer->addMethod("interval",                    (q_method_t)QTIMER_interval);
-   QC_QTimer->addMethod("isActive",                    (q_method_t)QTIMER_isActive);
-   QC_QTimer->addMethod("isSingleShot",                (q_method_t)QTIMER_isSingleShot);
-   QC_QTimer->addMethod("setInterval",                 (q_method_t)QTIMER_setInterval);
-   QC_QTimer->addMethod("setSingleShot",               (q_method_t)QTIMER_setSingleShot);
-   QC_QTimer->addMethod("timerId",                     (q_method_t)QTIMER_timerId);
-   QC_QTimer->addMethod("start",                       (q_method_t)QTIMER_start);
-   QC_QTimer->addMethod("stop",                        (q_method_t)QTIMER_stop);
-
-   traceout("initQTimerClass()");
-   return QC_QTimer;
-}
-
 //void singleShot ( int msec, QObject * receiver, const char * member )
 static AbstractQoreNode *f_QTimer_singleShot(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -169,7 +144,31 @@ static AbstractQoreNode *f_QTimer_singleShot(const QoreListNode *params, Excepti
    return 0;
 }
 
-void initQTimerStaticFunctions()
+QoreClass *initQTimerClass(class QoreClass *qobject)
 {
-   builtinFunctions.add("QTimer_singleShot",                   f_QTimer_singleShot, QDOM_GUI);
+   tracein("initQTimerClass()");
+   
+   QoreClass *QC_QTimer = new QoreClass("QTimer", QDOM_GUI);
+   CID_QTIMER = QC_QTimer->getID();
+
+   QC_QTimer->addBuiltinVirtualBaseClass(qobject);
+
+   QC_QTimer->setConstructor(QTIMER_constructor);
+   QC_QTimer->setCopy((q_copy_t)QTIMER_copy);
+
+   QC_QTimer->addMethod("interval",                    (q_method_t)QTIMER_interval);
+   QC_QTimer->addMethod("isActive",                    (q_method_t)QTIMER_isActive);
+   QC_QTimer->addMethod("isSingleShot",                (q_method_t)QTIMER_isSingleShot);
+   QC_QTimer->addMethod("setInterval",                 (q_method_t)QTIMER_setInterval);
+   QC_QTimer->addMethod("setSingleShot",               (q_method_t)QTIMER_setSingleShot);
+   QC_QTimer->addMethod("timerId",                     (q_method_t)QTIMER_timerId);
+   QC_QTimer->addMethod("start",                       (q_method_t)QTIMER_start);
+   QC_QTimer->addMethod("stop",                        (q_method_t)QTIMER_stop);
+
+   // static functions
+   QC_QTimer->addStaticMethod("singleShot",            f_QTimer_singleShot);
+
+   traceout("initQTimerClass()");
+   return QC_QTimer;
 }
+

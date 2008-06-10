@@ -245,6 +245,18 @@ static AbstractQoreNode *QIMAGEWRITER_write(QoreObject *self, QoreQImageWriter *
    return get_bool_node(qiw->write(*(static_cast<QImage *>(image))));
 }
 
+//QList<QByteArray> supportedImageFormats ()
+static AbstractQoreNode *f_QImageWriter_supportedImageFormats(const QoreListNode *params, ExceptionSink *xsink)
+{
+   QoreListNode *ql = new QoreListNode();
+
+   QList<QByteArray> l = QImageWriter::supportedImageFormats();
+   for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)
+      ql->push(new QoreStringNode((*i).data()));
+
+   return ql;
+}
+
 QoreClass *initQImageWriterClass()
 {
    QC_QImageWriter = new QoreClass("QImageWriter", QDOM_GUI);
@@ -272,22 +284,8 @@ QoreClass *initQImageWriterClass()
    QC_QImageWriter->addMethod("supportsOption",              (q_method_t)QIMAGEWRITER_supportsOption);
    QC_QImageWriter->addMethod("write",                       (q_method_t)QIMAGEWRITER_write);
 
+   // static methods
+   QC_QImageWriter->addStaticMethod("supportedImageFormats", f_QImageWriter_supportedImageFormats);
+
    return QC_QImageWriter;
-}
-
-//QList<QByteArray> supportedImageFormats ()
-static AbstractQoreNode *f_QImageWriter_supportedImageFormats(const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreListNode *ql = new QoreListNode();
-
-   QList<QByteArray> l = QImageWriter::supportedImageFormats();
-   for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)
-      ql->push(new QoreStringNode((*i).data()));
-
-   return ql;
-}
-
-void initQImageWriterStaticFunctions()
-{
-   builtinFunctions.add("QImageWriter_supportedImageFormats", f_QImageWriter_supportedImageFormats, QDOM_GUI);
 }

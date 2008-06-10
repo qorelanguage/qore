@@ -28,7 +28,7 @@
 #include "qore-qt-gui.h"
 
 qore_classid_t CID_QINPUTDIALOG;
-class QoreClass *QC_QInputDialog = 0;
+QoreClass *QC_QInputDialog = 0;
 
 //double getDouble ( QWidget * parent, const QString & title, const QString & label, double value = 0, double minValue = -2147483647, double maxValue = 2147483647, int decimals = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
 static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionSink *xsink)
@@ -253,10 +253,14 @@ static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, Exce
    return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);
 }
 
-void initQInputDialogStaticFunctions()
+QoreClass *initQInputDialogClass()
 {
-   builtinFunctions.add("QInputDialog_getDouble",      f_QInputDialog_getDouble, QDOM_GUI);
-   builtinFunctions.add("QInputDialog_getInteger",     f_QInputDialog_getInteger, QDOM_GUI);
-   builtinFunctions.add("QInputDialog_getItem",        f_QInputDialog_getItem, QDOM_GUI);
-   builtinFunctions.add("QInputDialog_getText",        f_QInputDialog_getText, QDOM_GUI);
+   QoreClass *QC_QInputDialog = new QoreClass("QInputDialog", QDOM_GUI);
+
+   QC_QInputDialog->addStaticMethod("getDouble",      f_QInputDialog_getDouble);
+   QC_QInputDialog->addStaticMethod("getInteger",     f_QInputDialog_getInteger);
+   QC_QInputDialog->addStaticMethod("getItem",        f_QInputDialog_getItem);
+   QC_QInputDialog->addStaticMethod("getText",        f_QInputDialog_getText);
+
+   return QC_QInputDialog;
 }

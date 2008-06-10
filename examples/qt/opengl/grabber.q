@@ -330,7 +330,7 @@ class MainWindow inherits QMainWindow
     grabFrameBuffer()
     {
 	my $image = $.glWidget.grabFrameBuffer();
-	$.setPixmap(QPixmap_fromImage($image));
+	$.setPixmap(QPixmap::fromImage($image));
     }
 
     clearPixmap()
@@ -340,7 +340,7 @@ class MainWindow inherits QMainWindow
 
     about()
     {
-	QMessageBox_about($self, TR("About Grabber"),
+	QMessageBox::about($self, TR("About Grabber"),
 			  TR("The <b>Grabber</b> example demonstrates two approaches for "
 			     "rendering OpenGL into a Qt pixmap."));
     }
@@ -409,7 +409,7 @@ class MainWindow inherits QMainWindow
     getSize()
     {
 	my $ok;
-	my $text = QInputDialog_getText($self, TR("Grabber"),
+	my $text = QInputDialog::getText($self, TR("Grabber"),
 					TR("Enter pixmap size:"),
 					QLineEdit::Normal,
 					sprintf(TR("%d x %d"), $.glWidget.width(), $.glWidget.height()),

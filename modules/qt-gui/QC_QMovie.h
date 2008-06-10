@@ -32,7 +32,6 @@ DLLEXPORT extern qore_classid_t CID_QMOVIE;
 DLLEXPORT extern class QoreClass *QC_QMovie;
 
 DLLEXPORT class QoreClass *initQMovieClass(QoreClass *);
-DLLEXPORT void initQMovieStaticFunctions();
 
 class myQMovie : public QMovie, public QoreQObjectExtension
 {

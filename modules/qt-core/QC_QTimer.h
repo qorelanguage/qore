@@ -31,7 +31,6 @@
 DLLEXPORT extern qore_classid_t CID_QTIMER;
 
 DLLEXPORT QoreClass *initQTimerClass(QoreClass *qobject);
-DLLEXPORT void initQTimerStaticFunctions();
 
 class myQTimer : public QTimer, public QoreQObjectExtension
 {

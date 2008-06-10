@@ -70,10 +70,6 @@ static QoreStringNode *qt_opengl_module_init()
    // initialize namespace
    init_namespace();
 
-   initQGLFramebufferObjectStaticFunctions();
-   initQGLFormatStaticFunctions();
-   initQGLPixelBufferStaticFunctions();
-
    return 0;
 }
 

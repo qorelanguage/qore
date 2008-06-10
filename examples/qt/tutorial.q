@@ -32,8 +32,8 @@ class LCDRange inherits QWidget
 	$.label = new QLabel();
 	$.label.setAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
-	QObject_connect($.slider, SIGNAL("valueChanged(int)"), $lcd, SLOT("display(int)"));
-	QObject_connect($.slider, SIGNAL("valueChanged(int)"), $self, SIGNAL("valueChanged(int)"));
+	QObject::static_connect($.slider, SIGNAL("valueChanged(int)"), $lcd, SLOT("display(int)"));
+	QObject::static_connect($.slider, SIGNAL("valueChanged(int)"), $self, SIGNAL("valueChanged(int)"));
 
 	my $layout = new QVBoxLayout();
 	$layout.addWidget($lcd);
@@ -361,7 +361,7 @@ class GameBoard inherits QWidget
 	my $quit = new QPushButton(TR("&Quit"));
 	$quit.setFont(new QFont("Times", 18, QFont::Bold));
 
-	QObject_connect($quit, SIGNAL("clicked()"), QAPP(), SLOT("quit()"));
+	QObject::static_connect($quit, SIGNAL("clicked()"), QAPP(), SLOT("quit()"));
 
 	my $angle = new LCDRange(TR("ANGLE"));
 	$angle.setRange(5, 70);
@@ -374,8 +374,8 @@ class GameBoard inherits QWidget
 
 	$.cannonField = new CannonField();
 
-	QObject_connect($angle,       SIGNAL("valueChanged(int)"), $.cannonField, SLOT("setAngle(int)"));
-	QObject_connect($.cannonField, SIGNAL("angleChanged(int)"), $angle,       SLOT("setValue(int)"));
+	QObject::static_connect($angle,       SIGNAL("valueChanged(int)"), $.cannonField, SLOT("setAngle(int)"));
+	QObject::static_connect($.cannonField, SIGNAL("angleChanged(int)"), $angle,       SLOT("setValue(int)"));
 
 	$.cannonField.connect($force, SIGNAL("valueChanged(int)"), SLOT("setForce(int)"));
 	$force.connect($.cannonField, SIGNAL("forceChanged(int)"), SLOT("setValue(int)"));

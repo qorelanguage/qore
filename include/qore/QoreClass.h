@@ -62,6 +62,7 @@ class QoreClass;
  */
 class QoreMethod {
       friend class QoreObject;
+      friend class StaticMethodCallNode;
 
    private:
       //! private implementation of the method
@@ -83,10 +84,9 @@ class QoreMethod {
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the result of the evaluation (can be 0)
        */
-      DLLEXPORT AbstractQoreNode *eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
 
    public:
-
       //! returns true if the method is synchronized (has a recursive thread lock associated with it)
       /**
 	 @return true if the method is synchronized (has a recursive thread lock associated with it)
@@ -137,11 +137,11 @@ class QoreMethod {
       DLLLOCAL QoreMethod *copy(const class QoreClass *p_class) const;
       DLLLOCAL void parseInit();
       DLLLOCAL void parseInitConstructor(BCList *bcl);
-      // only called when method is user
       DLLLOCAL const QoreClass *get_class() const;
       DLLLOCAL void assign_class(const QoreClass *p_class);
       DLLLOCAL const BuiltinFunction *getStaticBuiltinFunction() const;
       DLLLOCAL const UserFunction *getStaticUserFunction() const;
+      DLLLOCAL bool existsUserParam(int i) const;
 };
 
 //! defines a Qore-language class
@@ -155,7 +155,6 @@ class QoreClass{
       friend class QoreObject;
 
    private:
-
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreClass(const QoreClass&);
 
@@ -167,7 +166,10 @@ class QoreClass{
 
       // private constructor only called when the class is copied
       DLLLOCAL QoreClass(qore_classid_t id, const char *nme);
+
+      // looks in current and pending method lists, only for local class
       DLLLOCAL const QoreMethod *parseFindMethod(const char *name);
+
       DLLLOCAL void insertMethod(class QoreMethod *o);
       DLLLOCAL AbstractQoreNode *evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL const QoreMethod *resolveSelfMethodIntern(const char *nme);
@@ -243,7 +245,7 @@ class QoreClass{
 	  @param meth the method to be added
 	  @param priv if true then the method will be added as a private method	  
        */
-      DLLEXPORT void addStaticMethod(const char *n_name, q_method_t meth, bool priv = false);
+      DLLEXPORT void addStaticMethod(const char *n_name, q_func_t meth, bool priv = false);
 
       //! sets the builtin destructor method for the class
       /** you only need to implement destructor methods if the destructor should destroy the object
@@ -414,8 +416,10 @@ class QoreClass{
       DLLLOCAL void addDomain(int dom);
       DLLLOCAL QoreClass *copyAndDeref();
       DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
-      // used when parsing
+
+      // used when parsing, finds committed methods within the entire class hierarchy (local class plus base classes)
       DLLLOCAL const QoreMethod *findParseMethod(const char *nme);
+
       // returns 0 for success, -1 for error
       DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);
       // only called when parsing, sets the name of the class
@@ -437,6 +441,8 @@ class QoreClass{
       DLLLOCAL bool has_delete_blocker() const;
       // one-time initialization
       DLLLOCAL void initialize();
+      // looks in current and pending method lists for the entire hierarchy (local class plus base classes)
+      DLLLOCAL const QoreMethod *parseFindMethodTree(const char *name);
 };
 
 #endif // _QORE_QORECLASS_H

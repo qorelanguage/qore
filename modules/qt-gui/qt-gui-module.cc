@@ -421,6 +421,8 @@ static void init_namespace()
    qt_ns.addSystemClass(initQBrushClass());
    qt_ns.addSystemClass(initQColorClass());
 
+   qt_ns.addSystemClass(initQColorDialogClass());
+
    qt_ns.addSystemClass(initQKeySequenceClass());
    qt_ns.addSystemClass(initQMatrixClass());
 
@@ -591,6 +593,9 @@ static void init_namespace()
    qdialog_ns->addSystemClass((qdialog = initQDialogClass(qwidget)));
    qdialog_ns->addInitialNamespace(initQFileDialogNS(qdialog));
    qdialog_ns->addSystemClass(initQPrintDialogClass(qdialog));
+
+   qdialog_ns->addSystemClass(initQFontDialogClass());
+   qdialog_ns->addSystemClass(initQInputDialogClass());
 
    qdialog_ns->addConstant("Rejected",   new QoreBigIntNode(QDialog::Rejected));
    qdialog_ns->addConstant("Accepted",   new QoreBigIntNode(QDialog::Accepted));
@@ -1121,6 +1126,22 @@ static void init_namespace()
    qslider->addConstant("TicksBothSides",           new QoreBigIntNode(QSlider::TicksBothSides));
 
    qslider->addSystemClass(initQSliderClass(qabstractslider));
+
+   QoreClass *QC_QToolTip = new QoreClass("QToolTip", QDOM_GUI);
+   // QToolTip static methods
+   QC_QToolTip->addStaticMethod("font",              f_QToolTip_font);
+   QC_QToolTip->addStaticMethod("hideText",          f_QToolTip_hideText);
+   QC_QToolTip->addStaticMethod("palette",           f_QToolTip_palette);
+   QC_QToolTip->addStaticMethod("setFont",           f_QToolTip_setFont);
+   QC_QToolTip->addStaticMethod("setPalette",        f_QToolTip_setPalette);
+   QC_QToolTip->addStaticMethod("showText",          f_QToolTip_showText);
+   qt_ns.addSystemClass(QC_QToolTip);
+
+   QoreClass *QC_QStyleFactory = new QoreClass("QStyleFactory", QDOM_GUI);
+   // QStyleFactory static functions
+   QC_QStyleFactory->addStaticMethod("create",       f_QStyleFactory_create);
+   QC_QStyleFactory->addStaticMethod("keys",         f_QStyleFactory_keys);
+   qt_ns.addSystemClass(QC_QStyleFactory);
 
    qt_ns.addInitialNamespace(qslider);
 
@@ -1994,18 +2015,6 @@ static class QoreStringNode *qt_module_init()
 
    builtinFunctions.add("QAPP",                       f_QAPP, QDOM_GUI);
 
-   // QToolTip static functions
-   builtinFunctions.add("QToolTip_font",              f_QToolTip_font, QDOM_GUI);
-   builtinFunctions.add("QToolTip_hideText",          f_QToolTip_hideText, QDOM_GUI);
-   builtinFunctions.add("QToolTip_palette",           f_QToolTip_palette, QDOM_GUI);
-   builtinFunctions.add("QToolTip_setFont",           f_QToolTip_setFont, QDOM_GUI);
-   builtinFunctions.add("QToolTip_setPalette",        f_QToolTip_setPalette, QDOM_GUI);
-   builtinFunctions.add("QToolTip_showText",          f_QToolTip_showText, QDOM_GUI);
-
-   // QStyleFactory static functions
-   builtinFunctions.add("QStyleFactory_create",       f_QStyleFactory_create, QDOM_GUI);
-   builtinFunctions.add("QStyleFactory_keys",         f_QStyleFactory_keys, QDOM_GUI);
-
    builtinFunctions.add("qAlpha",                     f_qAlpha, QDOM_GUI);
    builtinFunctions.add("qBlue",                      f_qBlue, QDOM_GUI);
    builtinFunctions.add("qGray",                      f_qGray, QDOM_GUI);
@@ -2014,21 +2023,6 @@ static class QoreStringNode *qt_module_init()
    builtinFunctions.add("qRed",                       f_qRed, QDOM_GUI);
    builtinFunctions.add("qRgb",                       f_qRgb, QDOM_GUI);
    builtinFunctions.add("qRgba",                      f_qRgba, QDOM_GUI);
-
-   // add static class functions as builtin functions
-   initQApplicationStaticFunctions();
-   initQFontDatabaseStaticFunctions();
-   initQMessageBoxStaticFunctions();
-   initQPixmapStaticFunctions();
-   initQFileDialogStaticFunctions();
-   initQMovieStaticFunctions();
-   initQColorDialogStaticFunctions();
-   initQInputDialogStaticFunctions();
-   initQImageWriterStaticFunctions();
-   initQColorStaticFunctions();
-   initQSystemTrayIconStaticFunctions();
-   initQFontDialogStaticFunctions();
-   initQCursorStaticFunctions();
 
    return 0;
 }

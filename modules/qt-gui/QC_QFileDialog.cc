@@ -442,95 +442,6 @@ static AbstractQoreNode *QFILEDIALOG_viewMode(QoreObject *self, QoreQFileDialog 
    return new QoreBigIntNode(qfd->qobj->viewMode());
 }
 
-static QoreClass *initQFileDialogClass(QoreClass *qdialog)
-{
-   QC_QFileDialog = new QoreClass("QFileDialog", QDOM_GUI);
-   CID_QFILEDIALOG = QC_QFileDialog->getID();
-
-   QC_QFileDialog->addBuiltinVirtualBaseClass(qdialog);
-
-   QC_QFileDialog->setConstructor(QFILEDIALOG_constructor);
-   QC_QFileDialog->setCopy((q_copy_t)QFILEDIALOG_copy);
-
-   QC_QFileDialog->addMethod("acceptMode",                  (q_method_t)QFILEDIALOG_acceptMode);
-   QC_QFileDialog->addMethod("confirmOverwrite",            (q_method_t)QFILEDIALOG_confirmOverwrite);
-   QC_QFileDialog->addMethod("defaultSuffix",               (q_method_t)QFILEDIALOG_defaultSuffix);
-   QC_QFileDialog->addMethod("directory",                   (q_method_t)QFILEDIALOG_directory);
-   QC_QFileDialog->addMethod("fileMode",                    (q_method_t)QFILEDIALOG_fileMode);
-   QC_QFileDialog->addMethod("filters",                     (q_method_t)QFILEDIALOG_filters);
-   QC_QFileDialog->addMethod("history",                     (q_method_t)QFILEDIALOG_history);
-   //QC_QFileDialog->addMethod("iconProvider",                (q_method_t)QFILEDIALOG_iconProvider);
-   QC_QFileDialog->addMethod("isReadOnly",                  (q_method_t)QFILEDIALOG_isReadOnly);
-   QC_QFileDialog->addMethod("itemDelegate",                (q_method_t)QFILEDIALOG_itemDelegate);
-   QC_QFileDialog->addMethod("labelText",                   (q_method_t)QFILEDIALOG_labelText);
-   //QC_QFileDialog->addMethod("proxyModel",                  (q_method_t)QFILEDIALOG_proxyModel);
-   QC_QFileDialog->addMethod("resolveSymlinks",             (q_method_t)QFILEDIALOG_resolveSymlinks);
-   QC_QFileDialog->addMethod("restoreState",                (q_method_t)QFILEDIALOG_restoreState);
-   QC_QFileDialog->addMethod("saveState",                   (q_method_t)QFILEDIALOG_saveState);
-   QC_QFileDialog->addMethod("selectFile",                  (q_method_t)QFILEDIALOG_selectFile);
-   QC_QFileDialog->addMethod("selectFilter",                (q_method_t)QFILEDIALOG_selectFilter);
-   QC_QFileDialog->addMethod("selectedFiles",               (q_method_t)QFILEDIALOG_selectedFiles);
-   QC_QFileDialog->addMethod("selectedFilter",              (q_method_t)QFILEDIALOG_selectedFilter);
-   QC_QFileDialog->addMethod("setAcceptMode",               (q_method_t)QFILEDIALOG_setAcceptMode);
-   QC_QFileDialog->addMethod("setConfirmOverwrite",         (q_method_t)QFILEDIALOG_setConfirmOverwrite);
-   QC_QFileDialog->addMethod("setDefaultSuffix",            (q_method_t)QFILEDIALOG_setDefaultSuffix);
-   QC_QFileDialog->addMethod("setDirectory",                (q_method_t)QFILEDIALOG_setDirectory);
-   QC_QFileDialog->addMethod("setFileMode",                 (q_method_t)QFILEDIALOG_setFileMode);
-   QC_QFileDialog->addMethod("setFilter",                   (q_method_t)QFILEDIALOG_setFilter);
-   QC_QFileDialog->addMethod("setFilters",                  (q_method_t)QFILEDIALOG_setFilters);
-   QC_QFileDialog->addMethod("setHistory",                  (q_method_t)QFILEDIALOG_setHistory);
-   //QC_QFileDialog->addMethod("setIconProvider",             (q_method_t)QFILEDIALOG_setIconProvider);
-   QC_QFileDialog->addMethod("setItemDelegate",             (q_method_t)QFILEDIALOG_setItemDelegate);
-   QC_QFileDialog->addMethod("setLabelText",                (q_method_t)QFILEDIALOG_setLabelText);
-   //QC_QFileDialog->addMethod("setProxyModel",               (q_method_t)QFILEDIALOG_setProxyModel);
-   QC_QFileDialog->addMethod("setReadOnly",                 (q_method_t)QFILEDIALOG_setReadOnly);
-   QC_QFileDialog->addMethod("setResolveSymlinks",          (q_method_t)QFILEDIALOG_setResolveSymlinks);
-   //QC_QFileDialog->addMethod("setSidebarUrls",              (q_method_t)QFILEDIALOG_setSidebarUrls);
-   QC_QFileDialog->addMethod("setViewMode",                 (q_method_t)QFILEDIALOG_setViewMode);
-   //QC_QFileDialog->addMethod("sidebarUrls",                 (q_method_t)QFILEDIALOG_sidebarUrls);
-   QC_QFileDialog->addMethod("viewMode",                    (q_method_t)QFILEDIALOG_viewMode);
-
-   return QC_QFileDialog;
-}
-
-QoreNamespace *initQFileDialogNS(QoreClass *qdialog)
-{
-   QoreNamespace *ns = new QoreNamespace("QFileDialog");
-   
-   ns->addSystemClass(initQFileDialogClass(qdialog));
-
-   // ViewMode enum
-   ns->addConstant("Detail",                   new QoreBigIntNode(QFileDialog::Detail));
-   ns->addConstant("List",                     new QoreBigIntNode(QFileDialog::List));
-
-   // FileMode enum
-   ns->addConstant("AnyFile",                  new QoreBigIntNode(QFileDialog::AnyFile));
-   ns->addConstant("ExistingFile",             new QoreBigIntNode(QFileDialog::ExistingFile));
-   ns->addConstant("Directory",                new QoreBigIntNode(QFileDialog::Directory));
-   ns->addConstant("ExistingFiles",            new QoreBigIntNode(QFileDialog::ExistingFiles));
-   ns->addConstant("DirectoryOnly",            new QoreBigIntNode(QFileDialog::DirectoryOnly));
-
-   // AcceptMode enum
-   ns->addConstant("AcceptOpen",               new QoreBigIntNode(QFileDialog::AcceptOpen));
-   ns->addConstant("AcceptSave",               new QoreBigIntNode(QFileDialog::AcceptSave));
-
-   // DialogLabel enum
-   ns->addConstant("LookIn",                   new QoreBigIntNode(QFileDialog::LookIn));
-   ns->addConstant("FileName",                 new QoreBigIntNode(QFileDialog::FileName));
-   ns->addConstant("FileType",                 new QoreBigIntNode(QFileDialog::FileType));
-   ns->addConstant("Accept",                   new QoreBigIntNode(QFileDialog::Accept));
-   ns->addConstant("Reject",                   new QoreBigIntNode(QFileDialog::Reject));
-
-   // Option enum
-   ns->addConstant("ShowDirsOnly",             new QoreBigIntNode(QFileDialog::ShowDirsOnly));
-   ns->addConstant("DontResolveSymlinks",      new QoreBigIntNode(QFileDialog::DontResolveSymlinks));
-   ns->addConstant("DontConfirmOverwrite",     new QoreBigIntNode(QFileDialog::DontConfirmOverwrite));
-   ns->addConstant("DontUseSheet",             new QoreBigIntNode(QFileDialog::DontUseSheet));
-   ns->addConstant("DontUseNativeDialog",      new QoreBigIntNode(QFileDialog::DontUseNativeDialog));
-
-   return ns;
-}
-
 //QString getExistingDirectory ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), Options options = ShowDirsOnly )
 static AbstractQoreNode *f_QFileDialog_getExistingDirectory(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -696,11 +607,97 @@ static AbstractQoreNode *f_QFileDialog_getSaveFileName(const QoreListNode *param
    return str.release();
 }
 
-void initQFileDialogStaticFunctions()
+static QoreClass *initQFileDialogClass(QoreClass *qdialog)
 {
-   builtinFunctions.add("QFileDialog_getExistingDirectory",         f_QFileDialog_getExistingDirectory, QDOM_GUI);
-   builtinFunctions.add("QFileDialog_getOpenFileName",              f_QFileDialog_getOpenFileName, QDOM_GUI);
-   builtinFunctions.add("QFileDialog_getOpenFileNames",             f_QFileDialog_getOpenFileNames, QDOM_GUI);
-   builtinFunctions.add("QFileDialog_getSaveFileName",              f_QFileDialog_getSaveFileName, QDOM_GUI);
+   QC_QFileDialog = new QoreClass("QFileDialog", QDOM_GUI);
+   CID_QFILEDIALOG = QC_QFileDialog->getID();
+
+   QC_QFileDialog->addBuiltinVirtualBaseClass(qdialog);
+
+   QC_QFileDialog->setConstructor(QFILEDIALOG_constructor);
+   QC_QFileDialog->setCopy((q_copy_t)QFILEDIALOG_copy);
+
+   QC_QFileDialog->addMethod("acceptMode",                  (q_method_t)QFILEDIALOG_acceptMode);
+   QC_QFileDialog->addMethod("confirmOverwrite",            (q_method_t)QFILEDIALOG_confirmOverwrite);
+   QC_QFileDialog->addMethod("defaultSuffix",               (q_method_t)QFILEDIALOG_defaultSuffix);
+   QC_QFileDialog->addMethod("directory",                   (q_method_t)QFILEDIALOG_directory);
+   QC_QFileDialog->addMethod("fileMode",                    (q_method_t)QFILEDIALOG_fileMode);
+   QC_QFileDialog->addMethod("filters",                     (q_method_t)QFILEDIALOG_filters);
+   QC_QFileDialog->addMethod("history",                     (q_method_t)QFILEDIALOG_history);
+   //QC_QFileDialog->addMethod("iconProvider",                (q_method_t)QFILEDIALOG_iconProvider);
+   QC_QFileDialog->addMethod("isReadOnly",                  (q_method_t)QFILEDIALOG_isReadOnly);
+   QC_QFileDialog->addMethod("itemDelegate",                (q_method_t)QFILEDIALOG_itemDelegate);
+   QC_QFileDialog->addMethod("labelText",                   (q_method_t)QFILEDIALOG_labelText);
+   //QC_QFileDialog->addMethod("proxyModel",                  (q_method_t)QFILEDIALOG_proxyModel);
+   QC_QFileDialog->addMethod("resolveSymlinks",             (q_method_t)QFILEDIALOG_resolveSymlinks);
+   QC_QFileDialog->addMethod("restoreState",                (q_method_t)QFILEDIALOG_restoreState);
+   QC_QFileDialog->addMethod("saveState",                   (q_method_t)QFILEDIALOG_saveState);
+   QC_QFileDialog->addMethod("selectFile",                  (q_method_t)QFILEDIALOG_selectFile);
+   QC_QFileDialog->addMethod("selectFilter",                (q_method_t)QFILEDIALOG_selectFilter);
+   QC_QFileDialog->addMethod("selectedFiles",               (q_method_t)QFILEDIALOG_selectedFiles);
+   QC_QFileDialog->addMethod("selectedFilter",              (q_method_t)QFILEDIALOG_selectedFilter);
+   QC_QFileDialog->addMethod("setAcceptMode",               (q_method_t)QFILEDIALOG_setAcceptMode);
+   QC_QFileDialog->addMethod("setConfirmOverwrite",         (q_method_t)QFILEDIALOG_setConfirmOverwrite);
+   QC_QFileDialog->addMethod("setDefaultSuffix",            (q_method_t)QFILEDIALOG_setDefaultSuffix);
+   QC_QFileDialog->addMethod("setDirectory",                (q_method_t)QFILEDIALOG_setDirectory);
+   QC_QFileDialog->addMethod("setFileMode",                 (q_method_t)QFILEDIALOG_setFileMode);
+   QC_QFileDialog->addMethod("setFilter",                   (q_method_t)QFILEDIALOG_setFilter);
+   QC_QFileDialog->addMethod("setFilters",                  (q_method_t)QFILEDIALOG_setFilters);
+   QC_QFileDialog->addMethod("setHistory",                  (q_method_t)QFILEDIALOG_setHistory);
+   //QC_QFileDialog->addMethod("setIconProvider",             (q_method_t)QFILEDIALOG_setIconProvider);
+   QC_QFileDialog->addMethod("setItemDelegate",             (q_method_t)QFILEDIALOG_setItemDelegate);
+   QC_QFileDialog->addMethod("setLabelText",                (q_method_t)QFILEDIALOG_setLabelText);
+   //QC_QFileDialog->addMethod("setProxyModel",               (q_method_t)QFILEDIALOG_setProxyModel);
+   QC_QFileDialog->addMethod("setReadOnly",                 (q_method_t)QFILEDIALOG_setReadOnly);
+   QC_QFileDialog->addMethod("setResolveSymlinks",          (q_method_t)QFILEDIALOG_setResolveSymlinks);
+   //QC_QFileDialog->addMethod("setSidebarUrls",              (q_method_t)QFILEDIALOG_setSidebarUrls);
+   QC_QFileDialog->addMethod("setViewMode",                 (q_method_t)QFILEDIALOG_setViewMode);
+   //QC_QFileDialog->addMethod("sidebarUrls",                 (q_method_t)QFILEDIALOG_sidebarUrls);
+   QC_QFileDialog->addMethod("viewMode",                    (q_method_t)QFILEDIALOG_viewMode);
+
+   // static methods
+   QC_QFileDialog->addStaticMethod("getExistingDirectory",         f_QFileDialog_getExistingDirectory);
+   QC_QFileDialog->addStaticMethod("getOpenFileName",              f_QFileDialog_getOpenFileName);
+   QC_QFileDialog->addStaticMethod("getOpenFileNames",             f_QFileDialog_getOpenFileNames);
+   QC_QFileDialog->addStaticMethod("getSaveFileName",              f_QFileDialog_getSaveFileName);
+
+   return QC_QFileDialog;
 }
 
+QoreNamespace *initQFileDialogNS(QoreClass *qdialog)
+{
+   QoreNamespace *ns = new QoreNamespace("QFileDialog");
+   
+   ns->addSystemClass(initQFileDialogClass(qdialog));
+
+   // ViewMode enum
+   ns->addConstant("Detail",                   new QoreBigIntNode(QFileDialog::Detail));
+   ns->addConstant("List",                     new QoreBigIntNode(QFileDialog::List));
+
+   // FileMode enum
+   ns->addConstant("AnyFile",                  new QoreBigIntNode(QFileDialog::AnyFile));
+   ns->addConstant("ExistingFile",             new QoreBigIntNode(QFileDialog::ExistingFile));
+   ns->addConstant("Directory",                new QoreBigIntNode(QFileDialog::Directory));
+   ns->addConstant("ExistingFiles",            new QoreBigIntNode(QFileDialog::ExistingFiles));
+   ns->addConstant("DirectoryOnly",            new QoreBigIntNode(QFileDialog::DirectoryOnly));
+
+   // AcceptMode enum
+   ns->addConstant("AcceptOpen",               new QoreBigIntNode(QFileDialog::AcceptOpen));
+   ns->addConstant("AcceptSave",               new QoreBigIntNode(QFileDialog::AcceptSave));
+
+   // DialogLabel enum
+   ns->addConstant("LookIn",                   new QoreBigIntNode(QFileDialog::LookIn));
+   ns->addConstant("FileName",                 new QoreBigIntNode(QFileDialog::FileName));
+   ns->addConstant("FileType",                 new QoreBigIntNode(QFileDialog::FileType));
+   ns->addConstant("Accept",                   new QoreBigIntNode(QFileDialog::Accept));
+   ns->addConstant("Reject",                   new QoreBigIntNode(QFileDialog::Reject));
+
+   // Option enum
+   ns->addConstant("ShowDirsOnly",             new QoreBigIntNode(QFileDialog::ShowDirsOnly));
+   ns->addConstant("DontResolveSymlinks",      new QoreBigIntNode(QFileDialog::DontResolveSymlinks));
+   ns->addConstant("DontConfirmOverwrite",     new QoreBigIntNode(QFileDialog::DontConfirmOverwrite));
+   ns->addConstant("DontUseSheet",             new QoreBigIntNode(QFileDialog::DontUseSheet));
+   ns->addConstant("DontUseNativeDialog",      new QoreBigIntNode(QFileDialog::DontUseNativeDialog));
+
+   return ns;
+}

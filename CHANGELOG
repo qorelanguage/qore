@@ -1,3 +1,6 @@
+2008.06.10: David Nichols
+	* implemented static class methods
+
 2008.06.09: David Nichols
 	* configure and compile fixes for Sun Studio CC
 	* started adding infrastructure changes to allow for "static" class

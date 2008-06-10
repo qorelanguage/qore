@@ -196,6 +196,12 @@ static AbstractQoreNode *QGLPIXELBUFFER_updateDynamicTexture(QoreObject *self, Q
    return 0;
 }
 
+//bool hasOpenGLPbuffers ()
+static AbstractQoreNode *f_QGLPixelBuffer_hasOpenGLPbuffers(const QoreListNode *params, ExceptionSink *xsink)
+{
+   return get_bool_node(QGLPixelBuffer::hasOpenGLPbuffers());
+}
+
 QoreClass *initQGLPixelBufferClass(QoreClass *qpaintdevice)
 {
    QC_QGLPixelBuffer = new QoreClass("QGLPixelBuffer", QDOM_GUI);
@@ -220,16 +226,8 @@ QoreClass *initQGLPixelBufferClass(QoreClass *qpaintdevice)
    QC_QGLPixelBuffer->addMethod("toImage",                     (q_method_t)QGLPIXELBUFFER_toImage);
    QC_QGLPixelBuffer->addMethod("updateDynamicTexture",        (q_method_t)QGLPIXELBUFFER_updateDynamicTexture);
 
+   // static methods
+   QC_QGLPixelBuffer->addStaticMethod("hasOpenGLPbuffers",     f_QGLPixelBuffer_hasOpenGLPbuffers);
+
    return QC_QGLPixelBuffer;
-}
-
-//bool hasOpenGLPbuffers ()
-static AbstractQoreNode *f_QGLPixelBuffer_hasOpenGLPbuffers(const QoreListNode *params, ExceptionSink *xsink)
-{
-   return get_bool_node(QGLPixelBuffer::hasOpenGLPbuffers());
-}
-
-void initQGLPixelBufferStaticFunctions()
-{
-   builtinFunctions.add("QGLPixelBuffer_hasOpenGLPbuffers",            f_QGLPixelBuffer_hasOpenGLPbuffers);
 }

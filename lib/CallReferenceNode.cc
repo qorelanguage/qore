@@ -429,7 +429,7 @@ bool RunTimeObjectMethodReferenceNode::is_equal_hard(const AbstractQoreNode *v, 
    return vc && obj == vc->obj && !strcmp(vc->method, method);
 }
 
-UnresolvedCallReferenceNode::UnresolvedCallReferenceNode(char *n_str) : AbstractCallReferenceNode(false, true), str(n_str)
+UnresolvedCallReferenceNode::UnresolvedCallReferenceNode(char *n_str) : AbstractUnresolvedCallReferenceNode(false, true), str(n_str)
 {
 }
 
@@ -456,7 +456,7 @@ void UnresolvedCallReferenceNode::derefImpl(ExceptionSink *xsink)
 }
 */
 
-UserCallReferenceNode::UserCallReferenceNode(UserFunction *n_uf, QoreProgram *n_pgm) : uf(n_uf), pgm(n_pgm)
+UserCallReferenceNode::UserCallReferenceNode(const UserFunction *n_uf, QoreProgram *n_pgm) : uf(n_uf), pgm(n_pgm)
 {
    //printd(5, "UserCallReferenceNode::UserCallReferenceNode() this=%08p (%s) calling QoreProgram::depRef() pgm=%08p\n", this, uf->getName(), pgm);
    pgm->depRef();
@@ -487,7 +487,50 @@ bool UserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSi
    return vc && uf == vc->uf;
 }
 
-StaticUserCallReferenceNode::StaticUserCallReferenceNode(UserFunction *n_uf, QoreProgram *n_pgm) : ResolvedCallReferenceNode(true), uf(n_uf), pgm(n_pgm)
+UnresolvedStaticMethodCallReferenceNode::UnresolvedStaticMethodCallReferenceNode(NamedScope *n_scope) : AbstractUnresolvedCallReferenceNode(false, true), scope(n_scope)
+{
+}
+
+UnresolvedStaticMethodCallReferenceNode::~UnresolvedStaticMethodCallReferenceNode()
+{
+   delete scope;
+}
+
+AbstractCallReferenceNode *UnresolvedStaticMethodCallReferenceNode::resolve()
+{
+   QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
+   if (!qc)
+      return 0;
+   
+   const QoreMethod *qm = qc->parseFindMethodTree(scope->getIdentifier());
+   if (!qm) {
+      parseException("INVALID-METHOD", "class '%s' has no method '%s'", qc->getName(), scope->getIdentifier());
+      return 0;
+   }
+
+   if (!qm->isStatic()) {
+      parseException("NON-STATIC-METHOD-ERROR", "method %s::%s() is not static and therefore cannot be called with static call syntax", qc->getName(), scope->getIdentifier());
+      return 0;
+   }
+
+   // check class capabilities against parse options
+   if (qc->getDomain() & getProgram()->getParseOptions()) {
+      parseException("class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
+      return 0;
+   }
+
+   return qm->getType() == OTF_USER 
+      ? (AbstractCallReferenceNode *)new UserCallReferenceNode(qm->getStaticUserFunction(), getProgram())
+      : (AbstractCallReferenceNode *)new BuiltinCallReferenceNode(qm->getStaticBuiltinFunction());
+}
+
+void UnresolvedStaticMethodCallReferenceNode::deref()
+{
+   assert(is_unique());
+   delete this;
+}
+
+StaticUserCallReferenceNode::StaticUserCallReferenceNode(const UserFunction *n_uf, QoreProgram *n_pgm) : ResolvedCallReferenceNode(true), uf(n_uf), pgm(n_pgm)
 {
 }
 

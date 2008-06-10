@@ -100,24 +100,6 @@ static AbstractQoreNode *QCOREAPPLICATION_winEventFilter(QoreObject *self, QoreA
 }
 */
 
-QoreClass *initQCoreApplicationClass(QoreClass *qobject)
-{
-   QC_QCoreApplication = new QoreClass("QCoreApplication", QDOM_GUI);
-   CID_QCOREAPPLICATION = QC_QCoreApplication->getID();
-
-   QC_QCoreApplication->addBuiltinVirtualBaseClass(qobject);
-
-   QC_QCoreApplication->setConstructor(QCOREAPPLICATION_constructor);
-   QC_QCoreApplication->setCopy((q_copy_t)QCOREAPPLICATION_copy);
-
-   //QC_QCoreApplication->addMethod("filterEvent",                 (q_method_t)QCOREAPPLICATION_filterEvent);
-   QC_QCoreApplication->addMethod("notify",                      (q_method_t)QCOREAPPLICATION_notify);
-   //QC_QCoreApplication->addMethod("setEventFilter",              (q_method_t)QCOREAPPLICATION_setEventFilter);
-   //QC_QCoreApplication->addMethod("winEventFilter",              (q_method_t)QCOREAPPLICATION_winEventFilter);
-
-   return QC_QCoreApplication;
-}
-
 //void addLibraryPath ( const QString & path )
 static AbstractQoreNode *f_QCoreApplication_addLibraryPath(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -504,36 +486,52 @@ static AbstractQoreNode *f_QCoreApplication_translate(const QoreListNode *params
    return new QoreStringNode(QCoreApplication::translate(context, sourceText, comment, encoding, n).toUtf8().data(), QCS_UTF8);
 }
 
-void initQCoreApplicationStaticFunctions()
+QoreClass *initQCoreApplicationClass(QoreClass *qobject)
 {
-   builtinFunctions.add("QCoreApplication_addLibraryPath",               f_QCoreApplication_addLibraryPath, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_applicationDirPath",           f_QCoreApplication_applicationDirPath, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_applicationFilePath",          f_QCoreApplication_applicationFilePath, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_applicationName",              f_QCoreApplication_applicationName, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_arguments",                    f_QCoreApplication_arguments, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_closingDown",                  f_QCoreApplication_closingDown, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_exec",                         f_QCoreApplication_exec, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_exit",                         f_QCoreApplication_exit, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_flush",                        f_QCoreApplication_flush, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_hasPendingEvents",             f_QCoreApplication_hasPendingEvents, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_installTranslator",            f_QCoreApplication_installTranslator, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_instance",                     f_QCoreApplication_instance, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_libraryPaths",                 f_QCoreApplication_libraryPaths, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_organizationDomain",           f_QCoreApplication_organizationDomain, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_organizationName",             f_QCoreApplication_organizationName, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_postEvent",                    f_QCoreApplication_postEvent, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_processEvents",                f_QCoreApplication_processEvents, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_removeLibraryPath",            f_QCoreApplication_removeLibraryPath, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_removePostedEvents",           f_QCoreApplication_removePostedEvents, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_removeTranslator",             f_QCoreApplication_removeTranslator, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_sendEvent",                    f_QCoreApplication_sendEvent, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_sendPostedEvents",             f_QCoreApplication_sendPostedEvents, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_setApplicationName",           f_QCoreApplication_setApplicationName, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_setAttribute",                 f_QCoreApplication_setAttribute, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_setLibraryPaths",              f_QCoreApplication_setLibraryPaths, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_setOrganizationDomain",        f_QCoreApplication_setOrganizationDomain, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_setOrganizationName",          f_QCoreApplication_setOrganizationName, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_startingUp",                   f_QCoreApplication_startingUp, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_testAttribute",                f_QCoreApplication_testAttribute, QDOM_GUI);
-   builtinFunctions.add("QCoreApplication_translate",                    f_QCoreApplication_translate, QDOM_GUI);
+   QC_QCoreApplication = new QoreClass("QCoreApplication", QDOM_GUI);
+   CID_QCOREAPPLICATION = QC_QCoreApplication->getID();
+
+   QC_QCoreApplication->addBuiltinVirtualBaseClass(qobject);
+
+   QC_QCoreApplication->setConstructor(QCOREAPPLICATION_constructor);
+   QC_QCoreApplication->setCopy((q_copy_t)QCOREAPPLICATION_copy);
+
+   //QC_QCoreApplication->addMethod("filterEvent",                 (q_method_t)QCOREAPPLICATION_filterEvent);
+   QC_QCoreApplication->addMethod("notify",                      (q_method_t)QCOREAPPLICATION_notify);
+   //QC_QCoreApplication->addMethod("setEventFilter",              (q_method_t)QCOREAPPLICATION_setEventFilter);
+   //QC_QCoreApplication->addMethod("winEventFilter",              (q_method_t)QCOREAPPLICATION_winEventFilter);
+
+   // static methods
+   QC_QCoreApplication->addStaticMethod("addLibraryPath",               f_QCoreApplication_addLibraryPath);
+   QC_QCoreApplication->addStaticMethod("applicationDirPath",           f_QCoreApplication_applicationDirPath);
+   QC_QCoreApplication->addStaticMethod("applicationFilePath",          f_QCoreApplication_applicationFilePath);
+   QC_QCoreApplication->addStaticMethod("applicationName",              f_QCoreApplication_applicationName);
+   QC_QCoreApplication->addStaticMethod("arguments",                    f_QCoreApplication_arguments);
+   QC_QCoreApplication->addStaticMethod("closingDown",                  f_QCoreApplication_closingDown);
+   QC_QCoreApplication->addStaticMethod("exec",                         f_QCoreApplication_exec);
+   QC_QCoreApplication->addStaticMethod("exit",                         f_QCoreApplication_exit);
+   QC_QCoreApplication->addStaticMethod("flush",                        f_QCoreApplication_flush);
+   QC_QCoreApplication->addStaticMethod("hasPendingEvents",             f_QCoreApplication_hasPendingEvents);
+   QC_QCoreApplication->addStaticMethod("installTranslator",            f_QCoreApplication_installTranslator);
+   QC_QCoreApplication->addStaticMethod("instance",                     f_QCoreApplication_instance);
+   QC_QCoreApplication->addStaticMethod("libraryPaths",                 f_QCoreApplication_libraryPaths);
+   QC_QCoreApplication->addStaticMethod("organizationDomain",           f_QCoreApplication_organizationDomain);
+   QC_QCoreApplication->addStaticMethod("organizationName",             f_QCoreApplication_organizationName);
+   QC_QCoreApplication->addStaticMethod("postEvent",                    f_QCoreApplication_postEvent);
+   QC_QCoreApplication->addStaticMethod("processEvents",                f_QCoreApplication_processEvents);
+   QC_QCoreApplication->addStaticMethod("removeLibraryPath",            f_QCoreApplication_removeLibraryPath);
+   QC_QCoreApplication->addStaticMethod("removePostedEvents",           f_QCoreApplication_removePostedEvents);
+   QC_QCoreApplication->addStaticMethod("removeTranslator",             f_QCoreApplication_removeTranslator);
+   QC_QCoreApplication->addStaticMethod("sendEvent",                    f_QCoreApplication_sendEvent);
+   QC_QCoreApplication->addStaticMethod("sendPostedEvents",             f_QCoreApplication_sendPostedEvents);
+   QC_QCoreApplication->addStaticMethod("setApplicationName",           f_QCoreApplication_setApplicationName);
+   QC_QCoreApplication->addStaticMethod("setAttribute",                 f_QCoreApplication_setAttribute);
+   QC_QCoreApplication->addStaticMethod("setLibraryPaths",              f_QCoreApplication_setLibraryPaths);
+   QC_QCoreApplication->addStaticMethod("setOrganizationDomain",        f_QCoreApplication_setOrganizationDomain);
+   QC_QCoreApplication->addStaticMethod("setOrganizationName",          f_QCoreApplication_setOrganizationName);
+   QC_QCoreApplication->addStaticMethod("startingUp",                   f_QCoreApplication_startingUp);
+   QC_QCoreApplication->addStaticMethod("testAttribute",                f_QCoreApplication_testAttribute);
+   QC_QCoreApplication->addStaticMethod("translate",                    f_QCoreApplication_translate);
+
+   return QC_QCoreApplication;
 }

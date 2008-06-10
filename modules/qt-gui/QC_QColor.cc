@@ -592,79 +592,6 @@ static AbstractQoreNode *QCOLOR_darker(QoreObject *self, QoreQColor *qc, const Q
    return o_qc;
 }
 
-class QoreClass *initQColorClass()
-{
-   tracein("initQColorClass()");
-   
-   QC_QColor = new QoreClass("QColor", QDOM_GUI);
-   CID_QCOLOR = QC_QColor->getID();
-   QC_QColor->setConstructor(QCOLOR_constructor);
-   QC_QColor->setCopy((q_copy_t)QCOLOR_copy);
-
-   QC_QColor->addMethod("alpha",                       (q_method_t)QCOLOR_alpha);
-   QC_QColor->addMethod("alphaF",                      (q_method_t)QCOLOR_alphaF);
-   QC_QColor->addMethod("black",                       (q_method_t)QCOLOR_black);
-   QC_QColor->addMethod("blackF",                      (q_method_t)QCOLOR_blackF);
-   QC_QColor->addMethod("blue",                        (q_method_t)QCOLOR_blue);
-   QC_QColor->addMethod("blueF",                       (q_method_t)QCOLOR_blueF);
-   QC_QColor->addMethod("convertTo",                   (q_method_t)QCOLOR_convertTo);
-   QC_QColor->addMethod("cyan",                        (q_method_t)QCOLOR_cyan);
-   QC_QColor->addMethod("cyanF",                       (q_method_t)QCOLOR_cyanF);
-   //QC_QColor->addMethod("darker",                      (q_method_t)QCOLOR_darker);
-   //QC_QColor->addMethod("getCmyk",                     (q_method_t)QCOLOR_getCmyk);
-   //QC_QColor->addMethod("getCmykF",                    (q_method_t)QCOLOR_getCmykF);
-   //QC_QColor->addMethod("getHsv",                      (q_method_t)QCOLOR_getHsv);
-   //QC_QColor->addMethod("getHsvF",                     (q_method_t)QCOLOR_getHsvF);
-   //QC_QColor->addMethod("getRgb",                      (q_method_t)QCOLOR_getRgb);
-   //QC_QColor->addMethod("getRgbF",                     (q_method_t)QCOLOR_getRgbF);
-   QC_QColor->addMethod("green",                       (q_method_t)QCOLOR_green);
-   QC_QColor->addMethod("greenF",                      (q_method_t)QCOLOR_greenF);
-   QC_QColor->addMethod("hue",                         (q_method_t)QCOLOR_hue);
-   QC_QColor->addMethod("hueF",                        (q_method_t)QCOLOR_hueF);
-   QC_QColor->addMethod("isValid",                     (q_method_t)QCOLOR_isValid);
-   QC_QColor->addMethod("magenta",                     (q_method_t)QCOLOR_magenta);
-   QC_QColor->addMethod("magentaF",                    (q_method_t)QCOLOR_magentaF);
-   QC_QColor->addMethod("name",                        (q_method_t)QCOLOR_name);
-   QC_QColor->addMethod("red",                         (q_method_t)QCOLOR_red);
-   QC_QColor->addMethod("redF",                        (q_method_t)QCOLOR_redF);
-   QC_QColor->addMethod("rgb",                         (q_method_t)QCOLOR_rgb);
-   QC_QColor->addMethod("rgba",                        (q_method_t)QCOLOR_rgba);
-   QC_QColor->addMethod("saturation",                  (q_method_t)QCOLOR_saturation);
-   QC_QColor->addMethod("saturationF",                 (q_method_t)QCOLOR_saturationF);
-   QC_QColor->addMethod("setAlpha",                    (q_method_t)QCOLOR_setAlpha);
-   QC_QColor->addMethod("setAlphaF",                   (q_method_t)QCOLOR_setAlphaF);
-   QC_QColor->addMethod("setBlue",                     (q_method_t)QCOLOR_setBlue);
-   QC_QColor->addMethod("setBlueF",                    (q_method_t)QCOLOR_setBlueF);
-   QC_QColor->addMethod("setCmyk",                     (q_method_t)QCOLOR_setCmyk);
-   QC_QColor->addMethod("setCmykF",                    (q_method_t)QCOLOR_setCmykF);
-   QC_QColor->addMethod("setGreen",                    (q_method_t)QCOLOR_setGreen);
-   QC_QColor->addMethod("setGreenF",                   (q_method_t)QCOLOR_setGreenF);
-   QC_QColor->addMethod("setHsv",                      (q_method_t)QCOLOR_setHsv);
-   QC_QColor->addMethod("setHsvF",                     (q_method_t)QCOLOR_setHsvF);
-   QC_QColor->addMethod("setNamedColor",               (q_method_t)QCOLOR_setNamedColor);
-   QC_QColor->addMethod("setRed",                      (q_method_t)QCOLOR_setRed);
-   QC_QColor->addMethod("setRedF",                     (q_method_t)QCOLOR_setRedF);
-   QC_QColor->addMethod("setRgb",                      (q_method_t)QCOLOR_setRgb);
-   QC_QColor->addMethod("setRgbF",                     (q_method_t)QCOLOR_setRgbF);
-   QC_QColor->addMethod("setRgba",                     (q_method_t)QCOLOR_setRgba);
-   //QC_QColor->addMethod("spec",                        (q_method_t)QCOLOR_spec);
-   //QC_QColor->addMethod("toCmyk",                      (q_method_t)QCOLOR_toCmyk);
-   //QC_QColor->addMethod("toHsv",                       (q_method_t)QCOLOR_toHsv);
-   //QC_QColor->addMethod("toRgb",                       (q_method_t)QCOLOR_toRgb);
-   QC_QColor->addMethod("value",                       (q_method_t)QCOLOR_value);
-   QC_QColor->addMethod("valueF",                      (q_method_t)QCOLOR_valueF);
-   QC_QColor->addMethod("yellow",                      (q_method_t)QCOLOR_yellow);
-   QC_QColor->addMethod("yellowF",                     (q_method_t)QCOLOR_yellowF);
-
-   QC_QColor->addMethod("light",                       (q_method_t)QCOLOR_light);
-   QC_QColor->addMethod("lighter",                     (q_method_t)QCOLOR_lighter);
-   QC_QColor->addMethod("dark",                        (q_method_t)QCOLOR_dark);
-   QC_QColor->addMethod("darker",                      (q_method_t)QCOLOR_darker);
-
-   traceout("initQColorClass()");
-   return QC_QColor;
-}
-
 #ifdef Q_WS_X11
 //bool allowX11ColorNames ()
 static AbstractQoreNode *f_QColor_allowX11ColorNames(const QoreListNode *params, ExceptionSink *xsink)
@@ -812,20 +739,91 @@ static AbstractQoreNode *f_QColor_setAllowX11ColorNames(const QoreListNode *para
 }
 #endif
 
-void initQColorStaticFunctions()
+QoreClass *initQColorClass()
 {
+   tracein("initQColorClass()");
+   
+   QC_QColor = new QoreClass("QColor", QDOM_GUI);
+   CID_QCOLOR = QC_QColor->getID();
+   QC_QColor->setConstructor(QCOLOR_constructor);
+   QC_QColor->setCopy((q_copy_t)QCOLOR_copy);
+
+   QC_QColor->addMethod("alpha",                       (q_method_t)QCOLOR_alpha);
+   QC_QColor->addMethod("alphaF",                      (q_method_t)QCOLOR_alphaF);
+   QC_QColor->addMethod("black",                       (q_method_t)QCOLOR_black);
+   QC_QColor->addMethod("blackF",                      (q_method_t)QCOLOR_blackF);
+   QC_QColor->addMethod("blue",                        (q_method_t)QCOLOR_blue);
+   QC_QColor->addMethod("blueF",                       (q_method_t)QCOLOR_blueF);
+   QC_QColor->addMethod("convertTo",                   (q_method_t)QCOLOR_convertTo);
+   QC_QColor->addMethod("cyan",                        (q_method_t)QCOLOR_cyan);
+   QC_QColor->addMethod("cyanF",                       (q_method_t)QCOLOR_cyanF);
+   //QC_QColor->addMethod("darker",                      (q_method_t)QCOLOR_darker);
+   //QC_QColor->addMethod("getCmyk",                     (q_method_t)QCOLOR_getCmyk);
+   //QC_QColor->addMethod("getCmykF",                    (q_method_t)QCOLOR_getCmykF);
+   //QC_QColor->addMethod("getHsv",                      (q_method_t)QCOLOR_getHsv);
+   //QC_QColor->addMethod("getHsvF",                     (q_method_t)QCOLOR_getHsvF);
+   //QC_QColor->addMethod("getRgb",                      (q_method_t)QCOLOR_getRgb);
+   //QC_QColor->addMethod("getRgbF",                     (q_method_t)QCOLOR_getRgbF);
+   QC_QColor->addMethod("green",                       (q_method_t)QCOLOR_green);
+   QC_QColor->addMethod("greenF",                      (q_method_t)QCOLOR_greenF);
+   QC_QColor->addMethod("hue",                         (q_method_t)QCOLOR_hue);
+   QC_QColor->addMethod("hueF",                        (q_method_t)QCOLOR_hueF);
+   QC_QColor->addMethod("isValid",                     (q_method_t)QCOLOR_isValid);
+   QC_QColor->addMethod("magenta",                     (q_method_t)QCOLOR_magenta);
+   QC_QColor->addMethod("magentaF",                    (q_method_t)QCOLOR_magentaF);
+   QC_QColor->addMethod("name",                        (q_method_t)QCOLOR_name);
+   QC_QColor->addMethod("red",                         (q_method_t)QCOLOR_red);
+   QC_QColor->addMethod("redF",                        (q_method_t)QCOLOR_redF);
+   QC_QColor->addMethod("rgb",                         (q_method_t)QCOLOR_rgb);
+   QC_QColor->addMethod("rgba",                        (q_method_t)QCOLOR_rgba);
+   QC_QColor->addMethod("saturation",                  (q_method_t)QCOLOR_saturation);
+   QC_QColor->addMethod("saturationF",                 (q_method_t)QCOLOR_saturationF);
+   QC_QColor->addMethod("setAlpha",                    (q_method_t)QCOLOR_setAlpha);
+   QC_QColor->addMethod("setAlphaF",                   (q_method_t)QCOLOR_setAlphaF);
+   QC_QColor->addMethod("setBlue",                     (q_method_t)QCOLOR_setBlue);
+   QC_QColor->addMethod("setBlueF",                    (q_method_t)QCOLOR_setBlueF);
+   QC_QColor->addMethod("setCmyk",                     (q_method_t)QCOLOR_setCmyk);
+   QC_QColor->addMethod("setCmykF",                    (q_method_t)QCOLOR_setCmykF);
+   QC_QColor->addMethod("setGreen",                    (q_method_t)QCOLOR_setGreen);
+   QC_QColor->addMethod("setGreenF",                   (q_method_t)QCOLOR_setGreenF);
+   QC_QColor->addMethod("setHsv",                      (q_method_t)QCOLOR_setHsv);
+   QC_QColor->addMethod("setHsvF",                     (q_method_t)QCOLOR_setHsvF);
+   QC_QColor->addMethod("setNamedColor",               (q_method_t)QCOLOR_setNamedColor);
+   QC_QColor->addMethod("setRed",                      (q_method_t)QCOLOR_setRed);
+   QC_QColor->addMethod("setRedF",                     (q_method_t)QCOLOR_setRedF);
+   QC_QColor->addMethod("setRgb",                      (q_method_t)QCOLOR_setRgb);
+   QC_QColor->addMethod("setRgbF",                     (q_method_t)QCOLOR_setRgbF);
+   QC_QColor->addMethod("setRgba",                     (q_method_t)QCOLOR_setRgba);
+   //QC_QColor->addMethod("spec",                        (q_method_t)QCOLOR_spec);
+   //QC_QColor->addMethod("toCmyk",                      (q_method_t)QCOLOR_toCmyk);
+   //QC_QColor->addMethod("toHsv",                       (q_method_t)QCOLOR_toHsv);
+   //QC_QColor->addMethod("toRgb",                       (q_method_t)QCOLOR_toRgb);
+   QC_QColor->addMethod("value",                       (q_method_t)QCOLOR_value);
+   QC_QColor->addMethod("valueF",                      (q_method_t)QCOLOR_valueF);
+   QC_QColor->addMethod("yellow",                      (q_method_t)QCOLOR_yellow);
+   QC_QColor->addMethod("yellowF",                     (q_method_t)QCOLOR_yellowF);
+
+   QC_QColor->addMethod("light",                       (q_method_t)QCOLOR_light);
+   QC_QColor->addMethod("lighter",                     (q_method_t)QCOLOR_lighter);
+   QC_QColor->addMethod("dark",                        (q_method_t)QCOLOR_dark);
+   QC_QColor->addMethod("darker",                      (q_method_t)QCOLOR_darker);
+
+   // static methods
 #ifdef Q_WS_X11
-   builtinFunctions.add("QColor_allowX11ColorNames",           f_QColor_allowX11ColorNames, QDOM_GUI);
+   QC_QColor->addStaticMethod("allowX11ColorNames",           f_QColor_allowX11ColorNames);
 #endif
-   builtinFunctions.add("QColor_colorNames",                   f_QColor_colorNames, QDOM_GUI);
-   builtinFunctions.add("QColor_fromCmyk",                     f_QColor_fromCmyk, QDOM_GUI);
-   builtinFunctions.add("QColor_fromCmykF",                    f_QColor_fromCmykF, QDOM_GUI);
-   builtinFunctions.add("QColor_fromHsv",                      f_QColor_fromHsv, QDOM_GUI);
-   builtinFunctions.add("QColor_fromHsvF",                     f_QColor_fromHsvF, QDOM_GUI);
-   builtinFunctions.add("QColor_fromRgb",                      f_QColor_fromRgb, QDOM_GUI);
-   builtinFunctions.add("QColor_fromRgbF",                     f_QColor_fromRgbF, QDOM_GUI);
-   builtinFunctions.add("QColor_fromRgba",                     f_QColor_fromRgba, QDOM_GUI);
+   QC_QColor->addStaticMethod("colorNames",                   f_QColor_colorNames);
+   QC_QColor->addStaticMethod("fromCmyk",                     f_QColor_fromCmyk);
+   QC_QColor->addStaticMethod("fromCmykF",                    f_QColor_fromCmykF);
+   QC_QColor->addStaticMethod("fromHsv",                      f_QColor_fromHsv);
+   QC_QColor->addStaticMethod("fromHsvF",                     f_QColor_fromHsvF);
+   QC_QColor->addStaticMethod("fromRgb",                      f_QColor_fromRgb);
+   QC_QColor->addStaticMethod("fromRgbF",                     f_QColor_fromRgbF);
+   QC_QColor->addStaticMethod("fromRgba",                     f_QColor_fromRgba);
 #ifdef Q_WS_X11
-   builtinFunctions.add("QColor_setAllowX11ColorNames",        f_QColor_setAllowX11ColorNames, QDOM_GUI);
+   QC_QColor->addStaticMethod("setAllowX11ColorNames",        f_QColor_setAllowX11ColorNames);
 #endif
+
+   traceout("initQColorClass()");
+   return QC_QColor;
 }

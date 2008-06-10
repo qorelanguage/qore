@@ -43,7 +43,7 @@ class MainWindow inherits QMainWindow
     open()
     {
 	if ($.maybeSave()) {
-	    my $fileName = QFileDialog_getOpenFileName($self, TR("Open File"), QDir_currentPath());
+	    my $fileName = QFileDialog::getOpenFileName($self, TR("Open File"), QDir::currentPath());
 	    if (strlen($fileName))
 		$.scribbleArea.openImage($fileName);
 	}
@@ -58,7 +58,7 @@ class MainWindow inherits QMainWindow
 
     penColor()
     {
-	my $newColor = QColorDialog_getColor($.scribbleArea.penColor());
+	my $newColor = QColorDialog::getColor($.scribbleArea.penColor());
 	if ($newColor.isValid())
 	    $.scribbleArea.setPenColor($newColor);
     }
@@ -66,14 +66,14 @@ class MainWindow inherits QMainWindow
     penWidth()
     {
 	my $ok;
-        my $newWidth = QInputDialog_getInteger($self, TR("Scribble"), TR("Select pen width:"), $.scribbleArea.penWidth(), 1, 50, 1, \$ok);
+        my $newWidth = QInputDialog::getInteger($self, TR("Scribble"), TR("Select pen width:"), $.scribbleArea.penWidth(), 1, 50, 1, \$ok);
 	if ($ok)
 	    $.scribbleArea.setPenWidth($newWidth);
     }
 
     about()
     {
-	QMessageBox_about($self, TR("About Scribble"),
+	QMessageBox::about($self, TR("About Scribble"),
 			  TR("<p>The <b>Scribble</b> example shows how to use QMainWindow as the base widget for an application, and how to reimplement some of QWidget's event handlers to receive the events generated for the application's widgets:</p><p> We reimplement the mouse event handlers to facilitate drawing, the paint event handler to update the application and the resize event handler to optimize the application's appearance. In addition we reimplement the close event handler to intercept the close events before terminating the application.</p><p> The example also demonstrates how to use QPainter to draw an image in real time, as well as to repaint widgets.</p>"));
     }
 
@@ -83,7 +83,7 @@ class MainWindow inherits QMainWindow
 	$.openAct.setShortcut(TR("Ctrl+O"));
 	$.connect($.openAct, SIGNAL("triggered()"), SLOT("open()"));
 
-	foreach my $format in (QImageWriter_supportedImageFormats()) {
+	foreach my $format in (QImageWriter::supportedImageFormats()) {
 	    my $text = TR(sprintf("%s...", toupper($format)));
 
 	    my $action = new QAction($text, $self);
@@ -147,7 +147,7 @@ class MainWindow inherits QMainWindow
     maybeSave()
     {
 	if ($.scribbleArea.isModified()) {
-	    my $ret = QMessageBox_warning($self, TR("Scribble"),
+	    my $ret = QMessageBox::warning($self, TR("Scribble"),
 					  TR("The image has been modified.\nDo you want to save your changes?"),
 					  QMessageBox::Save | QMessageBox::Discard
 					  | QMessageBox::Cancel);
@@ -162,9 +162,9 @@ class MainWindow inherits QMainWindow
 
     saveFile($fileFormat)
     {
-	my $initialPath = QDir_currentPath() + "/untitled." + $fileFormat;
+	my $initialPath = QDir::currentPath() + "/untitled." + $fileFormat;
 
-	my $fileName = QFileDialog_getSaveFileName($self, TR("Save As"),
+	my $fileName = QFileDialog::getSaveFileName($self, TR("Save As"),
 						   $initialPath,
 						   TR(sprintf("%s Files (*.%s);;All Files (*)", 
 							      toupper($fileFormat), $fileFormat)));

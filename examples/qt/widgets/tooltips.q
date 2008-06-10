@@ -64,9 +64,9 @@ class SortingBox inherits QWidget
 	if ($event.type() == QEvent::ToolTip) {
 	    my $index = $.itemAt($event.pos());
 	    if ($index != -1)
-		QToolTip_showText($event.globalPos(), $.shapeItems[$index].toolTip());
+		QToolTip::showText($event.globalPos(), $.shapeItems[$index].toolTip());
 	    else
-		QToolTip_hideText();
+		QToolTip::hideText();
 	}
 	return QWidget::$.event($event);
     }
@@ -216,12 +216,12 @@ class SortingBox inherits QWidget
     
     private initialItemColor()
     {
-	return QColor_fromHsv((((elements $.shapeItems) + 1) * 85) % 256, 255, 190);
+	return QColor::fromHsv((((elements $.shapeItems) + 1) * 85) % 256, 255, 190);
     }
     
     private randomItemColor()
     {
-	return QColor_fromHsv(qrand() % 256, 255, 190);
+	return QColor::fromHsv(qrand() % 256, 255, 190);
     }
 }
 

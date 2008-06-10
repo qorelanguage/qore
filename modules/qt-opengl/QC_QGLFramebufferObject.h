@@ -30,8 +30,8 @@
 
 DLLLOCAL extern int CID_QGLFRAMEBUFFEROBJECT;
 DLLLOCAL extern QoreClass *QC_QGLFramebufferObject;
+
 DLLLOCAL QoreNamespace *initQGLFramebufferObjectNS(QoreClass *);
-DLLLOCAL void initQGLFramebufferObjectStaticFunctions();
 
 class QoreQGLFramebufferObject : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QGLFramebufferObject
 {

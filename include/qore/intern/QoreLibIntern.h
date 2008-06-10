@@ -35,6 +35,12 @@ typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 #define NT_NONE  -1
 #define NT_ALL   -2
 
+// the following functions are implemented in support.cc
+DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
+DLLLOCAL void parse_error(const char *fmt, ...);
+DLLLOCAL void parseException(const char *err, const char *fmt, ...);
+DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
+
 #include <qore/intern/ParseNode.h>
 #include <qore/intern/CallReferenceCallNode.h>
 #include <qore/intern/CallReferenceNode.h>
@@ -112,12 +118,6 @@ DLLLOCAL void print_node(FILE *fp, const AbstractQoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
 DLLLOCAL ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink);
-
-// the following functions are implemented in support.cc
-DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
-DLLLOCAL void parse_error(const char *fmt, ...);
-DLLLOCAL void parseException(const char *err, const char *fmt, ...);
-DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
 DLLLOCAL class AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
 

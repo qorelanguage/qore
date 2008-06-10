@@ -96,7 +96,7 @@ class ClassWizard inherits QWizard
 	my $filename = $outputDir + "/" + $header;
 	my $headerFile = new File();
 	if ($headerFile.open($filename, O_CREAT | O_TRUNC | O_WRONLY)) {
-	    QMessageBox_warning(0, TR("Simple Wizard"),
+	    QMessageBox::warning(0, TR("Simple Wizard"),
 				sprintf(TR("Cannot write file %s:\n%s"), $filename, strerror(errno())));
 	    return;
 	}
@@ -150,7 +150,7 @@ class ClassWizard inherits QWizard
 	$filename = $outputDir + "/" + $implementation;
 	my $implementationFile = new File();
 	if ($implementationFile.open($filename, O_CREAT | O_WRONLY | O_TRUNC)) {
-	    QMessageBox_warning(0, TR("Simple Wizard"), sprintf(TR("Cannot write file %s:\n%s"), $filename, strerror(errno())));
+	    QMessageBox::warning(0, TR("Simple Wizard"), sprintf(TR("Cannot write file %s:\n%s"), $filename, strerror(errno())));
 	    return;
 	}
 	$implementationFile.write($block);
@@ -360,7 +360,7 @@ class OutputFilesPage inherits QWizardPage
 	my $className = $.field("className");
 	$.headerLineEdit.setText(tolower($className) + ".h");
 	$.implementationLineEdit.setText(tolower($className) + ".cpp");
-	$.outputDirLineEdit.setText(QDir_tempPath());
+	$.outputDirLineEdit.setText(QDir::tempPath());
     }
 }
 
@@ -396,10 +396,10 @@ class classwizard_example inherits QApplication
 	our $dir = get_script_dir();
 
 	my $translatorFileName = "qt_";
-	$translatorFileName += QLocale_system().name();
+	$translatorFileName += QLocale::system().name();
 	my $translator = new QTranslator(QAPP());
-	if ($translator.load($translatorFileName, QLibraryInfo_location(QLibraryInfo::TranslationsPath)))
-	    QCoreApplication_installTranslator($translator);
+	if ($translator.load($translatorFileName, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+	    QCoreApplication::installTranslator($translator);
 	
 	my $wizard = new ClassWizard();
 	$wizard.show();

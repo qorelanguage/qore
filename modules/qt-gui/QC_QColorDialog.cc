@@ -101,12 +101,16 @@ static AbstractQoreNode *f_QColorDialog_setStandardColor(const QoreListNode *par
    return 0;
 }
 
-void initQColorDialogStaticFunctions()
+QoreClass *initQColorDialogClass()
 {
-   builtinFunctions.add("QColorDialog_customColor",                  f_QColorDialog_customColor, QDOM_GUI);
-   builtinFunctions.add("QColorDialog_customCount",                  f_QColorDialog_customCount, QDOM_GUI);
-   builtinFunctions.add("QColorDialog_getColor",                     f_QColorDialog_getColor, QDOM_GUI);
-   //builtinFunctions.add("QColorDialog_getRgba",                      f_QColorDialog_getRgba, QDOM_GUI);
-   builtinFunctions.add("QColorDialog_setCustomColor",               f_QColorDialog_setCustomColor, QDOM_GUI);
-   builtinFunctions.add("QColorDialog_setStandardColor",             f_QColorDialog_setStandardColor, QDOM_GUI);
+   QoreClass *QC_QColorDialog = new QoreClass("QColorDialog", QDOM_GUI);
+
+   QC_QColorDialog->addStaticMethod("customColor",       f_QColorDialog_customColor);
+   QC_QColorDialog->addStaticMethod("customCount",       f_QColorDialog_customCount);
+   QC_QColorDialog->addStaticMethod("getColor",          f_QColorDialog_getColor);
+   //QC_QColorDialog->addStaticMethod("getRgba",           f_QColorDialog_getRgba);
+   QC_QColorDialog->addStaticMethod("setCustomColor",    f_QColorDialog_setCustomColor);
+   QC_QColorDialog->addStaticMethod("setStandardColor",  f_QColorDialog_setStandardColor);
+
+   return QC_QColorDialog;
 }

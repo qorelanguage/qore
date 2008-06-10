@@ -33,8 +33,8 @@ class GLWidget inherits QGLWidget
 	$.yRot = 0;
 	$.zRot = 0;
 
-	$.trolltechGreen = QColor_fromCmykF(0.40, 0.0, 1.0, 0.0);
-	$.trolltechPurple = QColor_fromCmykF(0.39, 0.39, 0.0, 0.0);
+	$.trolltechGreen = QColor::fromCmykF(0.40, 0.0, 1.0, 0.0);
+	$.trolltechPurple = QColor::fromCmykF(0.39, 0.39, 0.0, 0.0);
     }
 
     destructor()

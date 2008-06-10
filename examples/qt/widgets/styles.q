@@ -252,11 +252,11 @@ class WidgetGallery inherits QDialog
 
     constructor($parent) : QDialog($parent)
     {
-	$.originalPalette = QApplication_palette();
+	$.originalPalette = QApplication::palette();
 
 	$.styleComboBox = new QComboBox();
 	$.styleComboBox.addItem("NorwegianWood");
-	$.styleComboBox.addItems(QStyleFactory_keys());
+	$.styleComboBox.addItems(QStyleFactory::keys());
 
 	$.styleLabel = new QLabel(TR("&Style:"));
 	$.styleLabel.setBuddy($.styleComboBox);
@@ -306,9 +306,9 @@ class WidgetGallery inherits QDialog
     changeStyle($styleName)
     {
 	if ($styleName == "NorwegianWood") {
-	    QApplication_setStyle(new NorwegianWoodStyle());
+	    QApplication::setStyle(new NorwegianWoodStyle());
 	} else {
-	    QApplication_setStyle(QStyleFactory_create($styleName));
+	    QApplication::setStyle(QStyleFactory::create($styleName));
 	}
 	$.changePalette();
     }
@@ -316,9 +316,9 @@ class WidgetGallery inherits QDialog
     changePalette()
     {
 	if ($.useStylePaletteCheckBox.isChecked())
-	    QApplication_setPalette(QApplication_style().standardPalette());
+	    QApplication::setPalette(QApplication::style().standardPalette());
 	else
-	    QApplication_setPalette($.originalPalette);
+	    QApplication::setPalette($.originalPalette);
     }
 
     advanceProgressBar()
@@ -461,7 +461,7 @@ class styles_example inherits QApplication
       
 	# check for texture resources
 	if (!is_file($dir + "images/woodbackground.png") || !is_file($dir + "images/woodbutton.png")) {
-	    QMessageBox_information(0, TR("Style Example"), TR("Cannot load bitmap resources required for style; try running in the same directory as the script"));
+	    QMessageBox::information(0, TR("Style Example"), TR("Cannot load bitmap resources required for style; try running in the same directory as the script"));
 	    exit(1);
 	}
 

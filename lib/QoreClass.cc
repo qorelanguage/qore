@@ -188,6 +188,39 @@ struct qore_method_private {
       }
 
       DLLLOCAL const char *getName() const { return type == OTF_USER ? func.userFunc->getName() : func.builtin->getName(); }
+
+      DLLLOCAL void parseInit()
+      {
+	 // must be called even if func.userFunc->statements is NULL
+	 if (!static_flag)
+	    func.userFunc->statements->parseInitMethod(func.userFunc->params, 0);
+	 else
+	    func.userFunc->statements->parseInit(func.userFunc->params);
+      }
+
+      DLLLOCAL const UserFunction *getStaticUserFunction() const
+      {
+	 assert(static_flag);
+	 assert(type == OTF_USER);
+
+	 return func.userFunc;
+      }
+
+      DLLLOCAL const BuiltinFunction *getStaticBuiltinFunction() const
+      {
+	 assert(static_flag);
+	 assert(type == OTF_BUILTIN);
+
+	 return func.builtin;
+      }
+
+      DLLLOCAL bool existsUserParam(int i) const
+      {
+	 if (type != OTF_USER)
+	    return true;
+
+	 return func.userFunc->params->num_params > i;
+      }
 };
 
 // BCEANode
@@ -330,11 +363,11 @@ BCList::BCList(class BCNode *n)
    push_back(n);
 }
 
-inline BCList::BCList()
+BCList::BCList()
 {
 }
 
-inline BCList::~BCList()
+BCList::~BCList()
 {
    bclist_t::iterator i;
    while ((i = begin()) != end()) {
@@ -344,7 +377,7 @@ inline BCList::~BCList()
    }
 }
 
-inline void BCList::ref() const
+void BCList::ref() const
 {
    ROreference();
 }
@@ -355,7 +388,7 @@ void BCList::deref()
       delete this;
 }
 
-inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_delete_blocker)
+void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_delete_blocker)
 {
    printd(5, "BCList::parseInit(%s) this=%08p empty=%d, bcal=%08p\n", cls->getName(), this, empty(), bcal);
    for (bclist_t::iterator i = begin(); i != end(); i++) {
@@ -406,7 +439,7 @@ inline void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_del
 }
 
 // called at run time
-inline const QoreMethod *BCList::findMethod(const char *name) const
+const QoreMethod *BCList::findMethod(const char *name) const
 {
    for (bclist_t::const_iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
@@ -422,7 +455,7 @@ inline const QoreMethod *BCList::findMethod(const char *name) const
 }
 
 // called at parse time
-inline const QoreMethod *BCList::findParseMethod(const char *name)
+const QoreMethod *BCList::findParseMethod(const char *name)
 {
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
@@ -435,8 +468,21 @@ inline const QoreMethod *BCList::findParseMethod(const char *name)
    return 0;
 }
 
+const QoreMethod *BCList::parseFindMethodTree(const char *name)
+{
+   for (bclist_t::iterator i = begin(); i != end(); i++) {
+      if ((*i)->sclass) {
+	 (*i)->sclass->initialize();
+	 const QoreMethod *m;
+	 if ((m = (*i)->sclass->parseFindMethodTree(name)))
+	    return m;
+      }
+   }
+   return 0;
+}
+
 // only called at run-time
-inline const QoreMethod *BCList::findMethod(const char *name, bool &priv) const
+const QoreMethod *BCList::findMethod(const char *name, bool &priv) const
 {
    for (bclist_t::const_iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
@@ -586,12 +632,11 @@ const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const
 const QoreMethod *QoreClass::findParseMethod(const char *nme)
 {
    const QoreMethod *w;
-   if (!(w = findLocalMethod(nme))) {
-      // search superclasses
-      if (priv->scl)
-	 w = priv->scl->findParseMethod(nme);
-   }
-   return w;
+   if ((w = findLocalMethod(nme)))
+      return w;
+
+   // search superclasses
+   return priv->scl ? priv->scl->findParseMethod(nme) : 0;
 }
 
 // only called when parsing
@@ -677,6 +722,21 @@ const QoreMethod *QoreClass::parseFindMethod(const char *nme)
       return i->second;
 
    return 0;
+}
+
+const QoreMethod *QoreClass::parseFindMethodTree(const char *nme)
+{
+   const QoreMethod *m;
+   if ((m = findLocalMethod(nme)))
+      return m;
+
+   // look in pending methods
+   hm_method_t::iterator i = priv->hm_pending.find(nme);
+   if (i != priv->hm_pending.end())
+      return i->second;
+
+   // search superclasses
+   return priv->scl ? priv->scl->parseFindMethodTree(nme) : 0;
 }
 
 void QoreClass::addBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs)
@@ -807,8 +867,7 @@ void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) co
 
 void QoreMethod::parseInit()
 {
-   // must be called even if func.userFunc->statements is NULL
-   priv->func.userFunc->statements->parseInitMethod(priv->func.userFunc->params, 0);
+   priv->parseInit();
 }
 
 void QoreMethod::parseInitConstructor(class BCList *bcl)
@@ -988,14 +1047,16 @@ QoreClass *QoreClass::getClass(qore_classid_t cid) const
 
 AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
-   AbstractQoreNode *rv = 0;
-
    tracein("QoreMethod::eval()");
 #ifdef DEBUG
-   const char *oname = self->getClass()->getName();
-   printd(5, "QoreMethod::eval() %s::%s() (object=%08p, pgm=%08p)\n", oname, getName(), self, self->getProgram());
+   const char *oname = self ? self->getClass()->getName() : "<n/a: static>";
+   printd(5, "QoreMethod::eval() %s::%s() (object=%08p, pgm=%08p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
 #endif
 
+   if (isStatic())
+      return priv->type == OTF_USER ? priv->func.userFunc->eval(args, 0, xsink) : priv->func.builtin->eval(args, xsink);
+
+   AbstractQoreNode *rv = 0;
    {
       // switch to new program for imported objects
       ProgramContextHelper pch(self->getProgram());
@@ -1100,6 +1161,21 @@ void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const
       }
 #endif
    }
+}
+
+const UserFunction *QoreMethod::getStaticUserFunction() const
+{
+   return priv->getStaticUserFunction();
+}
+
+const BuiltinFunction *QoreMethod::getStaticBuiltinFunction() const
+{
+   return priv->getStaticBuiltinFunction();
+}
+
+bool QoreMethod::existsUserParam(int i) const
+{
+   return priv->existsUserParam(i);
 }
 
 QoreClass *QoreClass::copyAndDeref()
@@ -1600,11 +1676,12 @@ void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag)
 }
 
 // adds a builtin static method to the class
-void QoreClass::addStaticMethod(const char *nme, q_method_t m, bool priv_flag)
+void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag)
 {
    assert(strcmp(nme, "constructor"));
    assert(strcmp(nme, "destructor"));
    assert(strcmp(nme, "copy"));
+
 
    priv->sys = true;
    BuiltinMethod *b = new BuiltinMethod(this, nme, m);

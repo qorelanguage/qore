@@ -206,6 +206,18 @@ static AbstractQoreNode *QSYSTEMTRAYICON_show(QoreObject *self, QoreQSystemTrayI
    return 0;
 }
 
+//bool isSystemTrayAvailable ()
+static AbstractQoreNode *f_QSystemTrayIcon_isSystemTrayAvailable(const QoreListNode *params, ExceptionSink *xsink)
+{
+   return get_bool_node(QSystemTrayIcon::isSystemTrayAvailable());
+}
+
+//bool supportsMessages ()
+static AbstractQoreNode *f_QSystemTrayIcon_supportsMessages(const QoreListNode *params, ExceptionSink *xsink)
+{
+   return get_bool_node(QSystemTrayIcon::supportsMessages());
+}
+
 static QoreClass *initQSystemTrayIconClass(QoreClass *qobject)
 {
    QC_QSystemTrayIcon = new QoreClass("QSystemTrayIcon", QDOM_GUI);
@@ -228,6 +240,10 @@ static QoreClass *initQSystemTrayIconClass(QoreClass *qobject)
    QC_QSystemTrayIcon->addMethod("hide",                        (q_method_t)QSYSTEMTRAYICON_hide);
    QC_QSystemTrayIcon->addMethod("setVisible",                  (q_method_t)QSYSTEMTRAYICON_setVisible);
    QC_QSystemTrayIcon->addMethod("show",                        (q_method_t)QSYSTEMTRAYICON_show);
+
+   // static functions
+   QC_QSystemTrayIcon->addStaticMethod("isSystemTrayAvailable",  f_QSystemTrayIcon_isSystemTrayAvailable);
+   QC_QSystemTrayIcon->addStaticMethod("supportsMessages",       f_QSystemTrayIcon_supportsMessages);
 
    return QC_QSystemTrayIcon;
 }
@@ -252,22 +268,4 @@ QoreNamespace *initQSystemTrayIconNS(QoreClass *qobject)
    ns->addConstant("Critical",                 new QoreBigIntNode(QSystemTrayIcon::Critical));
 
    return ns;
-}
-
-//bool isSystemTrayAvailable ()
-static AbstractQoreNode *f_QSystemTrayIcon_isSystemTrayAvailable(const QoreListNode *params, ExceptionSink *xsink)
-{
-   return get_bool_node(QSystemTrayIcon::isSystemTrayAvailable());
-}
-
-//bool supportsMessages ()
-static AbstractQoreNode *f_QSystemTrayIcon_supportsMessages(const QoreListNode *params, ExceptionSink *xsink)
-{
-   return get_bool_node(QSystemTrayIcon::supportsMessages());
-}
-
-void initQSystemTrayIconStaticFunctions()
-{
-   builtinFunctions.add("QSystemTrayIcon_isSystemTrayAvailable",        f_QSystemTrayIcon_isSystemTrayAvailable, QDOM_GUI);
-   builtinFunctions.add("QSystemTrayIcon_supportsMessages",             f_QSystemTrayIcon_supportsMessages, QDOM_GUI);
 }

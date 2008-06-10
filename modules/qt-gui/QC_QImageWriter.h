@@ -30,7 +30,6 @@ DLLEXPORT extern qore_classid_t CID_QIMAGEWRITER;
 DLLEXPORT extern class QoreClass *QC_QImageWriter;
 
 DLLEXPORT class QoreClass *initQImageWriterClass();
-DLLEXPORT void initQImageWriterStaticFunctions();
 
 class QoreQImageWriter : public AbstractPrivateData, public QImageWriter
 {

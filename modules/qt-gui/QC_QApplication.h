@@ -31,7 +31,6 @@
 DLLEXPORT extern qore_classid_t CID_QAPPLICATION;
 
 DLLEXPORT QoreClass *initQApplicationClass(class QoreClass *parent);
-DLLEXPORT void initQApplicationStaticFunctions();
 
 DLLEXPORT extern void qapp_dec();
 DLLEXPORT extern AbstractQoreNode *get_qore_qapp();

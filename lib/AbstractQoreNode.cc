@@ -357,7 +357,7 @@ static inline AbstractQoreNode *crlr_tree_copy(const QoreTreeNode *n, ExceptionS
 
 static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink *xsink)
 {
-   QoreListNode *na = n->args ? crlr_list_copy(n->args, xsink) : 0;
+   QoreListNode *na = n->getArgs() ? crlr_list_copy(n->getArgs(), xsink) : 0;
 
    switch (n->getFunctionType())
    {

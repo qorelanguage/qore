@@ -48,20 +48,16 @@ class SelfFunctionCall {
       DLLLOCAL class AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL void resolve();
       DLLLOCAL char *takeName();
-      DLLLOCAL class NamedScope *takeNScope();
+      DLLLOCAL NamedScope *takeNScope();
 };
 
-// FIXME: split this into different function call subclasses
-class FunctionCallNode : public ParseNode
+class AbstractFunctionCallNode : public ParseNode
 {
    protected:
-      // eval(): return value requires a deref(xsink)
-      DLLLOCAL virtual class AbstractQoreNode *evalImpl(ExceptionSink *) const;
+      QoreListNode *args;
 
-      //! optionally evaluates the argument
-      /** return value requires a deref(xsink) if needs_deref is true
-	  @see AbstractQoreNode::eval()
-      */
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const = 0;
+
       DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
       DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
@@ -69,15 +65,65 @@ class FunctionCallNode : public ParseNode
       DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
+      DLLLOCAL virtual bool existsUserParam(int i) const
+      {
+	 return true;
+      }
+
+      DLLLOCAL int parseArgs(LocalVar *oflag, int pflag)
+      {
+	 if (!args)
+	    return 0;
+
+	 int lvids = 0;
+
+	 bool needs_eval = args->needs_eval();
+	 for (unsigned i = 0; i < args->size(); ++i) {
+	    AbstractQoreNode **n = args->get_entry_ptr(i);
+	    if (*n) {
+	       if ((*n)->getType() == NT_REFERENCE) {
+		  if (!existsUserParam(i))
+		     parse_error("not enough parameters in '%s' to accept reference expression", getName());
+		  lvids += process_node(n, oflag, pflag | PF_REFERENCE_OK);
+	       }
+	       else
+		  lvids += process_node(n, oflag, pflag);
+	       if (!needs_eval && (*n)->needs_eval()) {
+		  args->setNeedsEval();
+		  needs_eval = true;
+	       }
+	    }
+	 }
+
+	 return lvids;
+      }
+
+   public:
+      DLLLOCAL AbstractFunctionCallNode(qore_type_t t, QoreListNode *n_args) : ParseNode(t), args(n_args) {}
+      
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag) = 0;
+      DLLLOCAL virtual const char *getName() const = 0;
+
+      DLLLOCAL const QoreListNode *getArgs() const { return args; }
+};
+
+// FIXME: split this into different function call subclasses
+class FunctionCallNode : public AbstractFunctionCallNode
+{
+   protected:
+      // eval(): return value requires a deref(xsink)
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const;
+
+      DLLLOCAL virtual bool existsUserParam(int i) const;
+
    public:
       union uFCall {
 	    const UserFunction *ufunc;
 	    const BuiltinFunction *bfunc;
-	    class SelfFunctionCall *sfunc;
-	    class ImportedFunctionCall *ifunc;
+	    SelfFunctionCall *sfunc;
+	    ImportedFunctionCall *ifunc;
 	    char *c_str;
       } f;
-      QoreListNode *args;
       int ftype;
 
       DLLLOCAL FunctionCallNode(const UserFunction *u, QoreListNode *a);
@@ -90,32 +136,186 @@ class FunctionCallNode : public ParseNode
 
       // normal function call constructor
       DLLLOCAL FunctionCallNode(char *name, QoreListNode *a);
-      // method call constructor
-      DLLLOCAL FunctionCallNode(char *n_c_str);
       
-      DLLLOCAL FunctionCallNode(class QoreProgram *p, const UserFunction *u, QoreListNode *a);
+      DLLLOCAL FunctionCallNode(QoreProgram *p, const UserFunction *u, QoreListNode *a);
 
       DLLLOCAL virtual ~FunctionCallNode();
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
 
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
-      // to transform an "unresolved" function to a "method" type
-      DLLLOCAL void parseMakeMethod();
-      DLLLOCAL class AbstractQoreNode *parseMakeNewObject();
-      DLLLOCAL int existsUserParam(int i) const;
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag);
+
+      DLLLOCAL virtual const char *getName() const;
+
+      DLLLOCAL AbstractQoreNode *parseMakeNewObject();
       DLLLOCAL int getFunctionType() const;
-      DLLLOCAL const char *getName() const;
+
+      // FIXME: delete when unresolved function call node implemented properly
       DLLLOCAL char *takeName();
+
+      // FIXME: delete when unresolved function call node implemented properly
+      DLLLOCAL QoreListNode *take_args()
+      {
+	 QoreListNode *rv = args;
+	 args = 0;
+	 return rv;
+      }
+};
+
+class MethodCallNode : public AbstractFunctionCallNode
+{
+   protected:
+      char *c_str;
+
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const
+      {
+	 assert(false);
+	 return 0;
+      }
+
+   public:
+      DLLLOCAL MethodCallNode(char *name, QoreListNode *n_args) : AbstractFunctionCallNode(NT_METHOD_CALL, n_args), c_str(name)
+      {
+	 //printd(0, "MethodCallNode::MethodCallNode() this=%08p name='%s' args=%08p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
+      }
+
+      DLLLOCAL virtual ~MethodCallNode()
+      {
+	 if (c_str)
+	    free(c_str);
+      }
+
+      DLLLOCAL virtual const char *getName() const
+      {
+	 return c_str ? c_str : "copy";
+      }
+
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag)
+      {
+	 return parseArgs(oflag, pflag);   
+      }
+
+      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
+      {
+	 str.sprintf("'%s' method call (0x%08p)", getName(), this);
+	 return 0;
+      }
+
+      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const
+      {
+	 del = true;
+	 QoreString *rv = new QoreString();
+	 getAsString(*rv, foff, xsink);
+	 return rv;
+      }
+
+      // returns the type name as a c string
+      DLLLOCAL virtual const char *getTypeName() const
+      {
+	 return getStaticTypeName();
+      }
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "method call";
+      }
+};
+
+class StaticMethodCallNode : public AbstractFunctionCallNode
+{
+   protected:
+      NamedScope *scope;
+      const QoreMethod *method;
+
+      DLLLOCAL virtual class AbstractQoreNode *evalImpl(ExceptionSink *xsink) const
+      {
+	 return method->eval(0, args, xsink);
+      }
+
+      DLLLOCAL virtual bool existsUserParam(int i) const
+      {
+	 return method->existsUserParam(i);
+      }
+
+   public:
+      DLLLOCAL StaticMethodCallNode(char *str, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(new NamedScope(str)), method(0)
+      {
+      }
+
+      DLLLOCAL virtual ~StaticMethodCallNode()
+      {
+	 delete scope;
+      }
+      
+      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
+      {
+	 str.sprintf("static method call %s::%s() (0x%08p)", method->get_class()->getName(), method->getName(), this);
+	 return 0;
+      }
+
+      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const
+      {
+	 del = true;
+	 QoreString *rv = new QoreString();
+	 getAsString(*rv, foff, xsink);
+	 return rv;
+      }
+
+      DLLLOCAL virtual const char *getName() const
+      {
+	 return method->getName();
+      }
+
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag)
+      {
+	 QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
+	 if (!qc)
+	    return 0;
+   
+	 method = qc->parseFindMethodTree(scope->getIdentifier());
+	 if (!method) {
+	    parseException("INVALID-METHOD", "class '%s' has no method '%s'", qc->getName(), scope->getIdentifier());
+	    return 0;
+	 }
+
+	 if (!method->isStatic()) {
+	    parseException("NON-STATIC-METHOD-ERROR", "method %s::%s() is not static and therefore cannot be called with static call syntax", qc->getName(), scope->getIdentifier());
+	    return 0;
+	 }
+	 delete scope;
+	 scope = 0;
+
+	 // check class capabilities against parse options
+	 if (qc->getDomain() & getProgram()->getParseOptions()) {
+	    parseException("class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
+	    return 0;
+	 }
+
+	 return parseArgs(oflag, pflag);   
+      }
+
+      // returns the type name as a c string
+      DLLLOCAL virtual const char *getTypeName() const
+      {
+	 return getStaticTypeName();
+      }
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "static method call";
+      }
+
+      DLLLOCAL NamedScope *takeScope()
+      {
+	 NamedScope *rv = scope;
+	 scope = 0;
+	 return rv;
+      }
 };
 
 #endif

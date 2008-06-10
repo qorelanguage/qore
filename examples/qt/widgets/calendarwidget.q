@@ -163,11 +163,11 @@ class Window inherits QWidget
 	my $index = 0;
 	for (my $lang = QLocale::C; $lang <= QLocale::LastLanguage; ++$lang) {
 
-	    my $countries = QLocale_countriesForLanguage($lang);
+	    my $countries = QLocale::countriesForLanguage($lang);
 	    foreach my $country in ($countries) {
-		my $label = QLocale_languageToString($lang);
+		my $label = QLocale::languageToString($lang);
 		$label += "/";
-		$label += QLocale_countryToString($country);
+		$label += QLocale::countryToString($country);
 		my $locale = new QLocale($lang, $country);
 		if ($.locale().language() == $lang && $.locale().country() == $country)
 		    $curLocaleIndex = $index;

@@ -31,7 +31,6 @@ DLLEXPORT extern qore_classid_t CID_QCOREAPPLICATION;
 DLLEXPORT extern QoreClass *QC_QCoreApplication;
 
 DLLEXPORT QoreClass *initQCoreApplicationClass(QoreClass *);
-DLLEXPORT void initQCoreApplicationStaticFunctions();
 
 class myQCoreApplication : public QCoreApplication, public QoreQObjectExtension
 {

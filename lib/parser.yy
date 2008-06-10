@@ -277,12 +277,12 @@ class MemberList : private strset_t
       }
 };
 
-static inline void addConstant(class NamedScope *name, class AbstractQoreNode *value)
+static inline void addConstant(NamedScope *name, AbstractQoreNode *value)
 {
    getRootNS()->rootAddConstant(name, value);
 }
 
-static inline void addClass(class NamedScope *name, class QoreClass *oc)
+static inline void addClass(NamedScope *name, QoreClass *oc)
 {
    getRootNS()->rootAddClass(name, oc);
 }
@@ -296,20 +296,22 @@ static inline class QoreClass *parseFindClass(char *name)
    return c;
 }
 
-static AbstractQoreNode *process_dot(class AbstractQoreNode *l, class AbstractQoreNode *r)
+static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r)
 {
    qore_type_t rtype = r->getType();
    if (rtype == NT_BAREWORD) {
       BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
-      class AbstractQoreNode *rv = makeTree(OP_OBJECT_REF, l, b->makeQoreStringNode());
+      AbstractQoreNode *rv = makeTree(OP_OBJECT_REF, l, b->makeQoreStringNode());
       b->deref();
       return rv;
    }
-   else if (rtype == NT_FUNCTION_CALL) {
+
+   if (rtype == NT_FUNCTION_CALL) {
       FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(r);
       if (f->getFunctionType() == FC_UNRESOLVED) {
-	 f->parseMakeMethod();
-	 return makeTree(OP_OBJECT_FUNC_REF, l, r);
+	 MethodCallNode *m = new MethodCallNode(f->takeName(), f->take_args());
+	 f->deref();
+	 return makeTree(OP_OBJECT_FUNC_REF, l, m);
       }
    }
 
@@ -399,7 +401,8 @@ static bool hasEffect(class AbstractQoreNode *n)
 {
    // check for expressions with no effect
    qore_type_t ntype = n->getType();
-   if (ntype == NT_FUNCTION_CALL || ntype == NT_FIND || ntype == NT_FUNCREFCALL)
+   if (ntype == NT_FUNCTION_CALL || ntype == NT_STATIC_METHOD_CALL 
+       || ntype == NT_FIND || ntype == NT_FUNCREFCALL)
       return true;
 
    if (ntype == NT_TREE)
@@ -576,6 +579,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token TOK_DEFAULT "default"
 %token TOK_INHERITS "inherits"
 %token TOK_ELSE "else"
+%token TOK_STATIC "static"
 
 // operator tokens
 %token P_INCREMENT "++ operator"
@@ -644,6 +648,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token <Regex> REGEX_EXTRACT "regular expression extraction expression"
 %token <implicit_arg> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
+%token <string> STATIC_METHOD_CALL "static method call"
 
 %nonassoc IFX SCOPED_REF
 %nonassoc TOK_ELSE
@@ -713,7 +718,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
-%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
+%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname STATIC_METHOD_CALL
 
 %%
 top_level_commands:
@@ -1363,6 +1368,7 @@ method_modifiers:
 method_modifier:
 	TOK_PRIVATE { $$ = OFM_PRIVATE; }
         | TOK_SYNCHRONIZED { $$ = OFM_SYNCED; }
+        | TOK_STATIC { $$ = OFM_STATIC; }
         ;
 
 sub_def:
@@ -1848,6 +1854,10 @@ exp:    scalar
 	   else
 	      $$ = makeTree(OP_POST_DECREMENT, $1, 0);
         }
+        | STATIC_METHOD_CALL myexp ')'
+	{
+	   $$ = new StaticMethodCallNode($1, makeArgs($2));
+	}
 	| exp '(' myexp ')'
         {
 	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
@@ -1898,10 +1908,9 @@ exp:    scalar
 		 str->deref();
 		 
 		 //printd(5, "method call to %s: tree=%s, args=%08p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
-		 
-		 FunctionCallNode *fc = new FunctionCallNode(cstr);
-		 fc->args = makeArgs($3);
-		 tree->right = fc;
+
+		 MethodCallNode *mc = new MethodCallNode(cstr, makeArgs($3));
+		 tree->right = mc;
 		 tree->op = OP_OBJECT_FUNC_REF;
 		 $$ = $1;
 	      }
@@ -1991,30 +2000,36 @@ exp:    scalar
 	   qore_type_t t = $2 ? $2->getType() : 0;
 	   //printd(5, "backslash exp line %d, type %s\n", @2.first_line, $2->getTypeName());
 
-	   if (t == NT_FUNCTION_CALL)
-	   {
+	   if (t == NT_FUNCTION_CALL) {
 	      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>($2);
-	      if (f->args)
-	      {
+	      if (f->getArgs()) {
 		 parse_error("argument given to call reference");
 		 $$ = $2;
 	      }
-	      else
-	      {
+	      else {
 		 if (f->getFunctionType() == FC_UNRESOLVED)
 		    $$ = new UnresolvedCallReferenceNode(f->takeName());
-		 else // must be self call
-		 {
+		 else {// must be self call
 		    assert(f->getFunctionType() == FC_SELF);
 		    if (f->f.sfunc->name)
 		       $$ = new ParseSelfMethodReferenceNode(f->f.sfunc->takeName());
-		    else
-		    {
+		    else {
 		       assert(f->f.sfunc->ns);
 		       $$ = new ParseScopedSelfMethodReferenceNode(f->f.sfunc->takeNScope());
 		    }
 		 }
 		 f->deref();
+	      }
+	   }
+	   else if (t == NT_STATIC_METHOD_CALL) {
+	      StaticMethodCallNode *m = reinterpret_cast<StaticMethodCallNode *>($2);
+	      if (m->getArgs()) {
+		 parse_error("argument given to static method call reference");
+		 $$ = $2;
+	      }
+	      else {
+		 $$ = new UnresolvedStaticMethodCallReferenceNode(m->takeScope());
+		 m->deref();
 	      }
 	   }
 	   else {
@@ -2026,7 +2041,7 @@ exp:    scalar
 		    assert(tree->right->getType() == NT_FUNCTION_CALL);
 		    FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(tree->right);
 		    if (f->getFunctionType() == FC_METHOD) {
-		       if (f->args) {
+		       if (f->getArgs()) {
 			  parse_error("argument given to call reference");
 			  $$ = $2;
 		       }

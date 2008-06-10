@@ -1143,22 +1143,18 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 
    if (ufc) // we assign the args to 0 below so that they will not be deleted
       fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args));
-   else
-   {
+   else {
       const BuiltinFunction *bfc;
-      if ((bfc = builtinFunctions.find(name)))
-      {
+      if ((bfc = builtinFunctions.find(name))) {
 	 // check parse options & function type
-	 if (bfc->getType() & priv->parse_options) 
-	 {
+	 if (bfc->getType() & priv->parse_options) {
 	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s'", name);
 	    return 0;
 	 }
 	 // we assign the args to 0 below so that they will not be deleted
 	 fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args));
       }
-      else
-      {
+      else {
 	 xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
 	 return 0;
       }
@@ -1171,7 +1167,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    }
 
    // let caller delete function arguments if necessary
-   fc->args = 0;
+   fc->take_args();
 
    return rv;
 }
@@ -1188,7 +1184,7 @@ AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreL
    }
    
    // let caller delete function arguments if necessary
-   fc->args = 0;
+   fc->take_args();
 
    return rv;
 }

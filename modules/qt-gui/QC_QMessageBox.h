@@ -29,10 +29,9 @@
 #include "qore-qt-events.h"
 
 DLLEXPORT extern qore_classid_t CID_QMESSAGEBOX;
-DLLEXPORT extern class QoreClass *QC_QMessageBox;
+DLLEXPORT extern QoreClass *QC_QMessageBox;
 
-DLLEXPORT class QoreClass *initQMessageBoxClass(QoreClass *);
-DLLEXPORT void initQMessageBoxStaticFunctions();
+DLLEXPORT QoreClass *initQMessageBoxClass(QoreClass *);
 
 class myQMessageBox : public QMessageBox, public QoreQDialogExtension
 {

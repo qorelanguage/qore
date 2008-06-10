@@ -30,7 +30,6 @@ DLLEXPORT extern qore_classid_t CID_QDIR;
 DLLEXPORT extern class QoreClass *QC_QDir;
 
 DLLEXPORT QoreNamespace *initQDirNS();
-DLLEXPORT void initQDirStaticFunctions();
 
 class QoreQDir : public AbstractPrivateData, public QDir
 {

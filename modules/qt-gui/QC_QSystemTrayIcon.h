@@ -32,7 +32,6 @@ DLLEXPORT extern qore_classid_t CID_QSYSTEMTRAYICON;
 DLLEXPORT extern class QoreClass *QC_QSystemTrayIcon;
 
 DLLEXPORT QoreNamespace *initQSystemTrayIconNS(QoreClass *);
-DLLEXPORT void initQSystemTrayIconStaticFunctions();
 
 class myQSystemTrayIcon : public QSystemTrayIcon, public QoreQObjectExtension
 {

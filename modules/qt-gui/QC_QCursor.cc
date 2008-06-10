@@ -136,25 +136,6 @@ static AbstractQoreNode *QCURSOR_shape(QoreObject *self, QoreQCursor *qc, const 
    return new QoreBigIntNode(qc->shape());
 }
 
-QoreClass *initQCursorClass()
-{
-   QC_QCursor = new QoreClass("QCursor", QDOM_GUI);
-   CID_QCURSOR = QC_QCursor->getID();
-
-   QC_QCursor->setConstructor(QCURSOR_constructor);
-   QC_QCursor->setCopy((q_copy_t)QCURSOR_copy);
-
-   QC_QCursor->addMethod("bitmap",                      (q_method_t)QCURSOR_bitmap);
-   //QC_QCursor->addMethod("handle",                      (q_method_t)QCURSOR_handle);
-   QC_QCursor->addMethod("hotSpot",                     (q_method_t)QCURSOR_hotSpot);
-   QC_QCursor->addMethod("mask",                        (q_method_t)QCURSOR_mask);
-   QC_QCursor->addMethod("pixmap",                      (q_method_t)QCURSOR_pixmap);
-   QC_QCursor->addMethod("setShape",                    (q_method_t)QCURSOR_setShape);
-   QC_QCursor->addMethod("shape",                       (q_method_t)QCURSOR_shape);
-
-   return QC_QCursor;
-}
-
 //QPoint pos ()
 static AbstractQoreNode *f_QCursor_pos(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -184,8 +165,26 @@ static AbstractQoreNode *f_QCursor_setPos(const QoreListNode *params, ExceptionS
    return 0;
 }
 
-void initQCursorStaticFunctions()
+QoreClass *initQCursorClass()
 {
-   builtinFunctions.add("QCursor_pos",     f_QCursor_pos);
-   builtinFunctions.add("QCursor_setPos",  f_QCursor_setPos);
+   QC_QCursor = new QoreClass("QCursor", QDOM_GUI);
+   CID_QCURSOR = QC_QCursor->getID();
+
+   QC_QCursor->setConstructor(QCURSOR_constructor);
+   QC_QCursor->setCopy((q_copy_t)QCURSOR_copy);
+
+   QC_QCursor->addMethod("bitmap",                      (q_method_t)QCURSOR_bitmap);
+   //QC_QCursor->addMethod("handle",                      (q_method_t)QCURSOR_handle);
+   QC_QCursor->addMethod("hotSpot",                     (q_method_t)QCURSOR_hotSpot);
+   QC_QCursor->addMethod("mask",                        (q_method_t)QCURSOR_mask);
+   QC_QCursor->addMethod("pixmap",                      (q_method_t)QCURSOR_pixmap);
+   QC_QCursor->addMethod("setShape",                    (q_method_t)QCURSOR_setShape);
+   QC_QCursor->addMethod("shape",                       (q_method_t)QCURSOR_shape);
+
+   // static methods
+   QC_QCursor->addStaticMethod("pos",     f_QCursor_pos);
+   QC_QCursor->addStaticMethod("setPos",  f_QCursor_setPos);
+
+   return QC_QCursor;
 }
+

@@ -28,8 +28,8 @@
 
 DLLEXPORT extern qore_classid_t CID_QCURSOR;
 DLLEXPORT extern QoreClass *QC_QCursor;
+
 DLLEXPORT QoreClass *initQCursorClass();
-DLLEXPORT void initQCursorStaticFunctions();
 
 class QoreQCursor : public AbstractPrivateData, public QCursor
 {

@@ -31,8 +31,6 @@ DLLLOCAL extern QoreClass *QC_QGLFormat;
 DLLLOCAL QoreNamespace *initQGLFormatNS();
 DLLLOCAL QoreNamespace *initQGLNS();
 
-DLLLOCAL void  initQGLFormatStaticFunctions();
-
 class QoreQGLFormat : public AbstractPrivateData, public QGLFormat
 {
    public:

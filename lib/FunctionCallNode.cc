@@ -22,63 +22,80 @@
 
 #include <qore/Qore.h>
 
-FunctionCallNode::FunctionCallNode(const UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+// evalImpl(): return value requires a deref(xsink) if not 0
+AbstractQoreNode *AbstractFunctionCallNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+{
+   needs_deref = true;
+   return evalImpl(xsink);
+}
+
+int64 AbstractFunctionCallNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(evalImpl(xsink), xsink);
+   return rv ? rv->getAsBigInt() : 0;
+}
+
+int AbstractFunctionCallNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(evalImpl(xsink), xsink);
+   return rv ? rv->getAsInt() : 0;
+}
+
+bool AbstractFunctionCallNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(evalImpl(xsink), xsink);
+   return rv ? rv->getAsBool() : 0;
+}
+
+double AbstractFunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(evalImpl(xsink), xsink);
+   return rv ? rv->getAsFloat() : 0;
+}
+
+FunctionCallNode::FunctionCallNode(const UserFunction *u, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a)
 {
    ftype = FC_USER;
    f.ufunc = u;
-   args = a;
 }
 
-FunctionCallNode::FunctionCallNode(const BuiltinFunction *b, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(const BuiltinFunction *b, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a)
 {
    ftype = FC_BUILTIN;
    f.bfunc = b;
-   args = a;
 }
 
-FunctionCallNode::FunctionCallNode(QoreListNode *a, char *name) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(QoreListNode *a, char *name) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a)
 {
    printd(5, "FunctionCallNode::FunctionCallNode(a=%08p, name=%s) FC_SELF this=%08p\n", a, name, this);
    ftype = FC_SELF;
    f.sfunc = new SelfFunctionCall(name);
-   args = a;
 }
 
-FunctionCallNode::FunctionCallNode(QoreListNode *a, class NamedScope *n) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(QoreListNode *a, class NamedScope *n) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a)
 {
    printd(5, "FunctionCallNode::FunctionCallNode(a=%08p, n=%s) FC_SELF this=%08p\n", a, n->ostr, this);
    ftype = FC_SELF;
    f.sfunc = new SelfFunctionCall(n);
-   args = a;
 }
 
-FunctionCallNode::FunctionCallNode(const QoreMethod *m, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(const QoreMethod *m, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a)
 {
    printd(5, "FunctionCallNode::FunctionCallNode(a=%08p, method=%08p %s) FC_SELF this=%08p\n", a, m, m->getName(), this);
    ftype = FC_SELF;
    f.sfunc = new SelfFunctionCall(m);
-   args = a;
 }
 
-FunctionCallNode::FunctionCallNode(char *name, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(char *name, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a)
 {
    ftype = FC_UNRESOLVED;
    f.c_str = name;
-   args = a;
 }
 
-FunctionCallNode::FunctionCallNode(QoreProgram *p, const UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(QoreProgram *p, const UserFunction *u, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a)
 {
    ftype = FC_IMPORTED;
    f.ifunc = new ImportedFunctionCall(p, u);
-   args = a;
-}
-
-FunctionCallNode::FunctionCallNode(char *n_c_str) : ParseNode(NT_FUNCTION_CALL)
-{
-   ftype = FC_METHOD;
-   f.c_str = n_c_str;
-   args = 0;
 }
 
 FunctionCallNode::~FunctionCallNode()
@@ -101,7 +118,6 @@ FunctionCallNode::~FunctionCallNode()
       case FC_SELF:
 	 delete f.sfunc;
 	 break;
-      case FC_METHOD:
       case FC_UNRESOLVED:
 	 if (f.c_str)
 	    free(f.c_str);
@@ -119,11 +135,6 @@ char *FunctionCallNode::takeName()
    return str;
 }
 
-void FunctionCallNode::parseMakeMethod()
-{
-   ftype = FC_METHOD;
-}
-
 // makes a "new" operator call from a function call
 AbstractQoreNode *FunctionCallNode::parseMakeNewObject()
 {
@@ -133,13 +144,13 @@ AbstractQoreNode *FunctionCallNode::parseMakeNewObject()
    return rv;
 }
 
-int FunctionCallNode::existsUserParam(int i) const
+bool FunctionCallNode::existsUserParam(int i) const
 {
    if (ftype == FC_USER)
       return f.ufunc->params->num_params > i;
    if (ftype == FC_IMPORTED)
       return f.ifunc->func->params->num_params > i;
-   return 1;
+   return true;
 }
 
 int FunctionCallNode::getFunctionType() const
@@ -160,8 +171,7 @@ const char *FunctionCallNode::getName() const
       case FC_IMPORTED:
 	 return f.ifunc->func->getName();
       case FC_UNRESOLVED:
-      case FC_METHOD:
-	 return f.c_str ? f.c_str : (char *)"copy";
+	 return f.c_str ? f.c_str : "copy";
    }
    return 0;
 }
@@ -210,33 +220,16 @@ AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const
    return 0;
 }
 
-// evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *FunctionCallNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+int FunctionCallNode::parseInit(LocalVar *oflag, int pflag)
 {
-   needs_deref = true;
-   return FunctionCallNode::evalImpl(xsink);
-}
-
-int64 FunctionCallNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
-   ReferenceHolder<AbstractQoreNode> rv(FunctionCallNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
-}
-
-int FunctionCallNode::integerEvalImpl(ExceptionSink *xsink) const
-{
-   ReferenceHolder<AbstractQoreNode> rv(FunctionCallNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
-}
-
-bool FunctionCallNode::boolEvalImpl(ExceptionSink *xsink) const
-{
-   ReferenceHolder<AbstractQoreNode> rv(FunctionCallNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
-}
-
-double FunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const
-{
-   ReferenceHolder<AbstractQoreNode> rv(FunctionCallNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
+   if (ftype == FC_SELF) {
+      if (!oflag)
+	 parse_error("cannot call member function '%s' out of an object member function definition", f.sfunc->name);
+      else
+	 f.sfunc->resolve();
+   }
+   else if (getFunctionType() == FC_UNRESOLVED)
+      getProgram()->resolveFunction(this);
+   
+   return parseArgs(oflag, pflag);   
 }

@@ -204,7 +204,7 @@ class MainWindow inherits QMainWindow
     }
     about()
     {
-	QMessageBox_about($self, TR("About Icons"), TR("The <b>Icons</b> example illustrates how Qt renders an icon in different modes (active, normal, disabled, and selected) and states (on and off) based on a set of images."));
+	QMessageBox::about($self, TR("About Icons"), TR("The <b>Icons</b> example illustrates how Qt renders an icon in different modes (active, normal, disabled, and selected) and states (on and off) based on a set of images."));
     }
 
     changeStyle($checked)
@@ -213,10 +213,10 @@ class MainWindow inherits QMainWindow
 	    return;
 
 	my $action = $.sender();
-	my $style = QStyleFactory_create($action.data());
+	my $style = QStyleFactory::create($action.data());
 	#Q_ASSERT(style);
 
-	QApplication_setStyle($style);
+	QApplication::setStyle($style);
 
 	my $size = $style.pixelMetric(QStyle::PM_SmallIconSize);
 	$.smallRadioButton.setText(TR(sprintf("Small (%d x %d)", $size, $size)));
@@ -264,7 +264,7 @@ class MainWindow inherits QMainWindow
 	    } else {
 		$metric = QStyle::PM_TabBarIconSize;
 	    }
-	    $extent = QApplication_style().pixelMetric($metric);
+	    $extent = QApplication::style().pixelMetric($metric);
 	}
 	$.previewArea.setSize(new QSize($extent, $extent));
 	$.otherSpinBox.setEnabled($.otherRadioButton.isChecked());
@@ -301,7 +301,7 @@ class MainWindow inherits QMainWindow
 		my $fileName = $item0.data(Qt::UserRole);
 		my $image = new QImage($fileName);
 		if (!$image.isNull())
-		    $icon.addPixmap(QPixmap_fromImage($image), $mode, $state);
+		    $icon.addPixmap(QPixmap::fromImage($image), $mode, $state);
 	    }
 	}
 
@@ -310,7 +310,7 @@ class MainWindow inherits QMainWindow
 
     addImages()
     {
-	my $fileNames = QFileDialog_getOpenFileNames($self, TR("Open Images"), "", TR("Images (*.png *.xpm *.jpg);;All Files (*)"));
+	my $fileNames = QFileDialog::getOpenFileNames($self, TR("Open Images"), "", TR("Images (*.png *.xpm *.jpg);;All Files (*)"));
 	foreach my $fileName in ($fileNames) {
 	    my $row = $.imagesTable.rowCount();
 	    $.imagesTable.setRowCount($row + 1);
@@ -449,7 +449,7 @@ class MainWindow inherits QMainWindow
 	$.connect($.exitAct, SIGNAL("triggered()"), SLOT("close()"));
 
 	$.styleActionGroup = new QActionGroup($self);
-	foreach my $styleName in (QStyleFactory_keys()) {
+	foreach my $styleName in (QStyleFactory::keys()) {
 	    my $action = new QAction($.styleActionGroup);
 	    $action.setText(sprintf(TR("%s Style"), $styleName));
 	    $action.setData($styleName);
@@ -500,10 +500,10 @@ class MainWindow inherits QMainWindow
     {
 	foreach my $action in ($.styleActionGroup.actions()) {
 	    my $styleName = $action.data();
-	    my $candidate = QStyleFactory_create($styleName);
+	    my $candidate = QStyleFactory::create($styleName);
 	    #Q_ASSERT(candidate);
 	    if ($candidate.metaObject().className()
-		== QApplication_style().metaObject().className()) {
+		== QApplication::style().metaObject().className()) {
 		$action.trigger();
 		return;
 	    }

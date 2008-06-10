@@ -29,9 +29,8 @@
 
 DLLLOCAL extern qore_classid_t CID_QGLPIXELBUFFER;
 DLLLOCAL extern QoreClass *QC_QGLPixelBuffer;
-DLLLOCAL QoreClass *initQGLPixelBufferClass(QoreClass *qpaintdevice);
 
-DLLLOCAL void initQGLPixelBufferStaticFunctions();
+DLLLOCAL QoreClass *initQGLPixelBufferClass(QoreClass *qpaintdevice);
 
 class QoreQGLPixelBuffer : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QGLPixelBuffer
 {

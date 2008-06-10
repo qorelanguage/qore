@@ -28,7 +28,7 @@ class Window inherits QDialog
 
 	$.fileComboBox = $.createComboBox(TR("*"));
 	$.textComboBox = $.createComboBox("");
-	$.directoryComboBox = $.createComboBox(QDir_currentPath());
+	$.directoryComboBox = $.createComboBox(QDir::currentPath());
 
 	$.fileLabel = new QLabel(TR("Named:"));
 	$.textLabel = new QLabel(TR("Containing text:"));
@@ -60,7 +60,7 @@ class Window inherits QDialog
 
     browse()
     {
-	my $directory = QFileDialog_getExistingDirectory($self, TR("Find Files"), QDir_currentPath());
+	my $directory = QFileDialog::getExistingDirectory($self, TR("Find Files"), QDir::currentPath());
 	if (strlen($directory)) {
 	    $.directoryComboBox.addItem($directory);
 	    $.directoryComboBox.setCurrentIndex($.directoryComboBox.currentIndex() + 1);
@@ -99,7 +99,7 @@ class Window inherits QDialog
 	for (my $i = 0; $i < elements $files; ++$i) {
 	    $progressDialog.setValue($i);
 	    $progressDialog.setLabelText(sprintf(TR("Searching file number %d of %d..."), $i, elements $files));
-	    QCoreApplication_processEvents();
+	    QCoreApplication::processEvents();
 
 	    if ($progressDialog.wasCanceled())
 		break;

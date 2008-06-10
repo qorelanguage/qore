@@ -72,30 +72,6 @@ static void QA_copy(class QoreObject *self, class QoreObject *old, class QoreQAp
    xsink->raiseException("QAPPLICATION-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class AbstractQoreNode *QA_exec(class QoreObject *self, class QoreQApplication *qa, const QoreListNode *params, ExceptionSink *xsink)
-{
-   qa->qobj->exec();
-   return 0;
-}
-
-class QoreClass *initQApplicationClass(class QoreClass *qcoreapplication)
-{
-   tracein("initQApplicationClass()");
-   
-   class QoreClass *QC_QApplication = new QoreClass("QApplication", QDOM_GUI);
-   CID_QAPPLICATION = QC_QApplication->getID();
-
-   QC_QApplication->addBuiltinVirtualBaseClass(qcoreapplication);
-
-   QC_QApplication->setConstructor(QA_constructor);
-   QC_QApplication->setCopy((q_copy_t)QA_copy);
-
-   QC_QApplication->addMethod("exec",    (q_method_t)QA_exec);
-
-   traceout("initQApplicationClass()");
-   return QC_QApplication;
-}
-
 //QWidget * activeModalWidget ()
 static AbstractQoreNode *f_QApplication_activeModalWidget(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -741,11 +717,11 @@ static AbstractQoreNode *f_QApplication_topLevelAt(const QoreListNode *params, E
 //   ??? return new QoreBigIntNode(QApplication::topLevelWidgets());
 //}
 
-////Type type ()
-//static AbstractQoreNode *f_QApplication_type(const QoreListNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreBigIntNode(QApplication::type());
-//}
+//Type type ()
+static AbstractQoreNode *f_QApplication_type(const QoreListNode *params, ExceptionSink *xsink)
+{
+   return new QoreBigIntNode(QApplication::type());
+}
 
 //int wheelScrollLines ()
 static AbstractQoreNode *f_QApplication_wheelScrollLines(const QoreListNode *params, ExceptionSink *xsink)
@@ -797,77 +773,87 @@ static AbstractQoreNode *f_QApplication_windowIcon(const QoreListNode *params, E
    return o_qi;
 }
 
-
-
-void initQApplicationStaticFunctions()
+QoreClass *initQApplicationClass(class QoreClass *qcoreapplication)
 {
-   // add builtin functions (static member functions in C++)
-   builtinFunctions.add("QApplication_activeModalWidget",            f_QApplication_activeModalWidget, QDOM_GUI);
-   builtinFunctions.add("QApplication_activePopupWidget",            f_QApplication_activePopupWidget, QDOM_GUI);
-   builtinFunctions.add("QApplication_activeWindow",                 f_QApplication_activeWindow, QDOM_GUI);
-   builtinFunctions.add("QApplication_alert",                        f_QApplication_alert, QDOM_GUI);
-   //builtinFunctions.add("QApplication_allWidgets",                   f_QApplication_allWidgets, QDOM_GUI);
-   builtinFunctions.add("QApplication_beep",                         f_QApplication_beep, QDOM_GUI);
-   //builtinFunctions.add("QApplication_changeOverrideCursor",         f_QApplication_changeOverrideCursor, QDOM_GUI);
-   builtinFunctions.add("QApplication_clipboard",                    f_QApplication_clipboard, QDOM_GUI);
-   builtinFunctions.add("QApplication_colorSpec",                    f_QApplication_colorSpec, QDOM_GUI);
-   builtinFunctions.add("QApplication_cursorFlashTime",              f_QApplication_cursorFlashTime, QDOM_GUI);
-   builtinFunctions.add("QApplication_desktop",                      f_QApplication_desktop, QDOM_GUI);
-   builtinFunctions.add("QApplication_desktopSettingsAware",         f_QApplication_desktopSettingsAware, QDOM_GUI);
-   builtinFunctions.add("QApplication_doubleClickInterval",          f_QApplication_doubleClickInterval, QDOM_GUI);
-   builtinFunctions.add("QApplication_exec",                         f_QApplication_exec, QDOM_GUI);
-   builtinFunctions.add("QApplication_focusWidget",                  f_QApplication_focusWidget, QDOM_GUI);
-   builtinFunctions.add("QApplication_font",                         f_QApplication_font, QDOM_GUI);
-   builtinFunctions.add("QApplication_fontMetrics",                  f_QApplication_fontMetrics, QDOM_GUI);
-   builtinFunctions.add("QApplication_globalStrut",                  f_QApplication_globalStrut, QDOM_GUI);
-   builtinFunctions.add("QApplication_isEffectEnabled",              f_QApplication_isEffectEnabled, QDOM_GUI);
-   builtinFunctions.add("QApplication_isLeftToRight",                f_QApplication_isLeftToRight, QDOM_GUI);
-   builtinFunctions.add("QApplication_isRightToLeft",                f_QApplication_isRightToLeft, QDOM_GUI);
-   builtinFunctions.add("QApplication_keyboardInputDirection",       f_QApplication_keyboardInputDirection, QDOM_GUI);
-   builtinFunctions.add("QApplication_keyboardInputInterval",        f_QApplication_keyboardInputInterval, QDOM_GUI);
-   builtinFunctions.add("QApplication_keyboardInputLocale",          f_QApplication_keyboardInputLocale, QDOM_GUI);
-   builtinFunctions.add("QApplication_keyboardModifiers",            f_QApplication_keyboardModifiers, QDOM_GUI);
-#ifdef QT_KEYPAD_NAVIGATION
-   builtinFunctions.add("QApplication_keypadNavigationEnabled",      f_QApplication_keypadNavigationEnabled, QDOM_GUI);
-#endif
-   builtinFunctions.add("QApplication_layoutDirection",              f_QApplication_layoutDirection, QDOM_GUI);
-   builtinFunctions.add("QApplication_mouseButtons",                 f_QApplication_mouseButtons, QDOM_GUI);
-   //builtinFunctions.add("QApplication_overrideCursor",               f_QApplication_overrideCursor, QDOM_GUI);
-   builtinFunctions.add("QApplication_palette",                      f_QApplication_palette, QDOM_GUI);
-   builtinFunctions.add("QApplication_quitOnLastWindowClosed",       f_QApplication_quitOnLastWindowClosed, QDOM_GUI);
-   //builtinFunctions.add("QApplication_qwsDecoration",                f_QApplication_qwsDecoration, QDOM_GUI);
-   //builtinFunctions.add("QApplication_qwsSetDecoration",             f_QApplication_qwsSetDecoration, QDOM_GUI);
-   builtinFunctions.add("QApplication_restoreOverrideCursor",        f_QApplication_restoreOverrideCursor, QDOM_GUI);
-   builtinFunctions.add("QApplication_setActiveWindow",              f_QApplication_setActiveWindow, QDOM_GUI);
-   builtinFunctions.add("QApplication_setColorSpec",                 f_QApplication_setColorSpec, QDOM_GUI);
-   builtinFunctions.add("QApplication_setCursorFlashTime",           f_QApplication_setCursorFlashTime, QDOM_GUI);
-   builtinFunctions.add("QApplication_setDesktopSettingsAware",      f_QApplication_setDesktopSettingsAware, QDOM_GUI);
-   builtinFunctions.add("QApplication_setDoubleClickInterval",       f_QApplication_setDoubleClickInterval, QDOM_GUI);
-   builtinFunctions.add("QApplication_setEffectEnabled",             f_QApplication_setEffectEnabled, QDOM_GUI);
-   builtinFunctions.add("QApplication_setFont",                      f_QApplication_setFont, QDOM_GUI);
-   //builtinFunctions.add("QApplication_setGlobalStrut",               f_QApplication_setGlobalStrut, QDOM_GUI);
-   builtinFunctions.add("QApplication_setKeyboardInputInterval",     f_QApplication_setKeyboardInputInterval, QDOM_GUI);
-#ifdef QT_KEYPAD_NAVIGATION
-   builtinFunctions.add("QApplication_setKeypadNavigationEnabled",   f_QApplication_setKeypadNavigationEnabled, QDOM_GUI);
-#endif
-   builtinFunctions.add("QApplication_setLayoutDirection",           f_QApplication_setLayoutDirection, QDOM_GUI);
-   //builtinFunctions.add("QApplication_setOverrideCursor",            f_QApplication_setOverrideCursor, QDOM_GUI);
-   builtinFunctions.add("QApplication_setPalette",                   f_QApplication_setPalette, QDOM_GUI);
-   builtinFunctions.add("QApplication_setQuitOnLastWindowClosed",    f_QApplication_setQuitOnLastWindowClosed, QDOM_GUI);
-   builtinFunctions.add("QApplication_setStartDragDistance",         f_QApplication_setStartDragDistance, QDOM_GUI);
-   builtinFunctions.add("QApplication_setStartDragTime",             f_QApplication_setStartDragTime, QDOM_GUI);
-   builtinFunctions.add("QApplication_setStyle",                     f_QApplication_setStyle, QDOM_GUI);
-   builtinFunctions.add("QApplication_setWheelScrollLines",          f_QApplication_setWheelScrollLines, QDOM_GUI);
-   builtinFunctions.add("QApplication_setWindowIcon",                f_QApplication_setWindowIcon, QDOM_GUI);
-   builtinFunctions.add("QApplication_startDragDistance",            f_QApplication_startDragDistance, QDOM_GUI);
-   builtinFunctions.add("QApplication_startDragTime",                f_QApplication_startDragTime, QDOM_GUI);
-   builtinFunctions.add("QApplication_style",                        f_QApplication_style, QDOM_GUI);
-   builtinFunctions.add("QApplication_syncX",                        f_QApplication_syncX, QDOM_GUI);
-   builtinFunctions.add("QApplication_topLevelAt",                   f_QApplication_topLevelAt, QDOM_GUI);
-   //builtinFunctions.add("QApplication_topLevelWidgets",              f_QApplication_topLevelWidgets, QDOM_GUI);
-   //builtinFunctions.add("QApplication_type",                         f_QApplication_type, QDOM_GUI);
-   builtinFunctions.add("QApplication_wheelScrollLines",             f_QApplication_wheelScrollLines, QDOM_GUI);
-   builtinFunctions.add("QApplication_widgetAt",                     f_QApplication_widgetAt, QDOM_GUI);
-   builtinFunctions.add("QApplication_windowIcon",                   f_QApplication_windowIcon, QDOM_GUI);
-}
+   tracein("initQApplicationClass()");
+   
+   QoreClass *QC_QApplication = new QoreClass("QApplication", QDOM_GUI);
+   CID_QAPPLICATION = QC_QApplication->getID();
 
+   QC_QApplication->addBuiltinVirtualBaseClass(qcoreapplication);
+
+   QC_QApplication->setConstructor(QA_constructor);
+   QC_QApplication->setCopy((q_copy_t)QA_copy);
+
+   // static functions
+   QC_QApplication->addStaticMethod("activeModalWidget",            f_QApplication_activeModalWidget);
+   QC_QApplication->addStaticMethod("activePopupWidget",            f_QApplication_activePopupWidget);
+   QC_QApplication->addStaticMethod("activeWindow",                 f_QApplication_activeWindow);
+   QC_QApplication->addStaticMethod("alert",                        f_QApplication_alert);
+   //QC_QApplication->addStaticMethod("allWidgets",                   f_QApplication_allWidgets);
+   QC_QApplication->addStaticMethod("beep",                         f_QApplication_beep);
+   //QC_QApplication->addStaticMethod("changeOverrideCursor",         f_QApplication_changeOverrideCursor);
+   QC_QApplication->addStaticMethod("clipboard",                    f_QApplication_clipboard);
+   QC_QApplication->addStaticMethod("colorSpec",                    f_QApplication_colorSpec);
+   QC_QApplication->addStaticMethod("cursorFlashTime",              f_QApplication_cursorFlashTime);
+   QC_QApplication->addStaticMethod("desktop",                      f_QApplication_desktop);
+   QC_QApplication->addStaticMethod("desktopSettingsAware",         f_QApplication_desktopSettingsAware);
+   QC_QApplication->addStaticMethod("doubleClickInterval",          f_QApplication_doubleClickInterval);
+   QC_QApplication->addStaticMethod("exec",                         f_QApplication_exec);
+   QC_QApplication->addStaticMethod("focusWidget",                  f_QApplication_focusWidget);
+   QC_QApplication->addStaticMethod("font",                         f_QApplication_font);
+   QC_QApplication->addStaticMethod("fontMetrics",                  f_QApplication_fontMetrics);
+   QC_QApplication->addStaticMethod("globalStrut",                  f_QApplication_globalStrut);
+   QC_QApplication->addStaticMethod("isEffectEnabled",              f_QApplication_isEffectEnabled);
+   QC_QApplication->addStaticMethod("isLeftToRight",                f_QApplication_isLeftToRight);
+   QC_QApplication->addStaticMethod("isRightToLeft",                f_QApplication_isRightToLeft);
+   QC_QApplication->addStaticMethod("keyboardInputDirection",       f_QApplication_keyboardInputDirection);
+   QC_QApplication->addStaticMethod("keyboardInputInterval",        f_QApplication_keyboardInputInterval);
+   QC_QApplication->addStaticMethod("keyboardInputLocale",          f_QApplication_keyboardInputLocale);
+   QC_QApplication->addStaticMethod("keyboardModifiers",            f_QApplication_keyboardModifiers);
+#ifdef QT_KEYPAD_NAVIGATION
+   QC_QApplication->addStaticMethod("keypadNavigationEnabled",      f_QApplication_keypadNavigationEnabled);
+#endif
+   QC_QApplication->addStaticMethod("layoutDirection",              f_QApplication_layoutDirection);
+   QC_QApplication->addStaticMethod("mouseButtons",                 f_QApplication_mouseButtons);
+   //QC_QApplication->addStaticMethod("overrideCursor",               f_QApplication_overrideCursor);
+   QC_QApplication->addStaticMethod("palette",                      f_QApplication_palette);
+   QC_QApplication->addStaticMethod("quitOnLastWindowClosed",       f_QApplication_quitOnLastWindowClosed);
+   //QC_QApplication->addStaticMethod("qwsDecoration",                f_QApplication_qwsDecoration);
+   //QC_QApplication->addStaticMethod("qwsSetDecoration",             f_QApplication_qwsSetDecoration);
+   QC_QApplication->addStaticMethod("restoreOverrideCursor",        f_QApplication_restoreOverrideCursor);
+   QC_QApplication->addStaticMethod("setActiveWindow",              f_QApplication_setActiveWindow);
+   QC_QApplication->addStaticMethod("setColorSpec",                 f_QApplication_setColorSpec);
+   QC_QApplication->addStaticMethod("setCursorFlashTime",           f_QApplication_setCursorFlashTime);
+   QC_QApplication->addStaticMethod("setDesktopSettingsAware",      f_QApplication_setDesktopSettingsAware);
+   QC_QApplication->addStaticMethod("setDoubleClickInterval",       f_QApplication_setDoubleClickInterval);
+   QC_QApplication->addStaticMethod("setEffectEnabled",             f_QApplication_setEffectEnabled);
+   QC_QApplication->addStaticMethod("setFont",                      f_QApplication_setFont);
+   //QC_QApplication->addStaticMethod("setGlobalStrut",               f_QApplication_setGlobalStrut);
+   QC_QApplication->addStaticMethod("setKeyboardInputInterval",     f_QApplication_setKeyboardInputInterval);
+#ifdef QT_KEYPAD_NAVIGATION
+   QC_QApplication->addStaticMethod("setKeypadNavigationEnabled",   f_QApplication_setKeypadNavigationEnabled);
+#endif
+   QC_QApplication->addStaticMethod("setLayoutDirection",           f_QApplication_setLayoutDirection);
+   //QC_QApplication->addStaticMethod("setOverrideCursor",            f_QApplication_setOverrideCursor);
+   QC_QApplication->addStaticMethod("setPalette",                   f_QApplication_setPalette);
+   QC_QApplication->addStaticMethod("setQuitOnLastWindowClosed",    f_QApplication_setQuitOnLastWindowClosed);
+   QC_QApplication->addStaticMethod("setStartDragDistance",         f_QApplication_setStartDragDistance);
+   QC_QApplication->addStaticMethod("setStartDragTime",             f_QApplication_setStartDragTime);
+   QC_QApplication->addStaticMethod("setStyle",                     f_QApplication_setStyle);
+   QC_QApplication->addStaticMethod("setWheelScrollLines",          f_QApplication_setWheelScrollLines);
+   QC_QApplication->addStaticMethod("setWindowIcon",                f_QApplication_setWindowIcon);
+   QC_QApplication->addStaticMethod("startDragDistance",            f_QApplication_startDragDistance);
+   QC_QApplication->addStaticMethod("startDragTime",                f_QApplication_startDragTime);
+   QC_QApplication->addStaticMethod("style",                        f_QApplication_style);
+   QC_QApplication->addStaticMethod("syncX",                        f_QApplication_syncX);
+   QC_QApplication->addStaticMethod("topLevelAt",                   f_QApplication_topLevelAt);
+   //QC_QApplication->addStaticMethod("topLevelWidgets",              f_QApplication_topLevelWidgets);
+   QC_QApplication->addStaticMethod("type",                         f_QApplication_type);
+   QC_QApplication->addStaticMethod("wheelScrollLines",             f_QApplication_wheelScrollLines);
+   QC_QApplication->addStaticMethod("widgetAt",                     f_QApplication_widgetAt);
+   QC_QApplication->addStaticMethod("windowIcon",                   f_QApplication_windowIcon);
+
+   traceout("initQApplicationClass()");
+   return QC_QApplication;
+}

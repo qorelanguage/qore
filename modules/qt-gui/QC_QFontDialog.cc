@@ -117,7 +117,11 @@ static AbstractQoreNode *f_QFontDialog_getFont(const QoreListNode *params, Excep
    return return_object(QC_QFont, new QoreQFont(f));
 }
 
-void initQFontDialogStaticFunctions()
+QoreClass *initQFontDialogClass()
 {
-   builtinFunctions.add("QFontDialog_getFont",  f_QFontDialog_getFont, QDOM_GUI);
+   QoreClass *QC_QFontDialog = new QoreClass("QFontDialog", QDOM_GUI);
+
+   QC_QFontDialog->addStaticMethod("getFont",  f_QFontDialog_getFont);
+
+   return QC_QFontDialog;
 }

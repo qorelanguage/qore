@@ -30,7 +30,6 @@ DLLEXPORT extern qore_classid_t CID_QCOLOR;
 DLLEXPORT extern QoreClass *QC_QColor;
 
 DLLEXPORT QoreClass *initQColorClass();
-DLLEXPORT void initQColorStaticFunctions();
 
 class QoreQColor : public AbstractPrivateData, public QColor
 {

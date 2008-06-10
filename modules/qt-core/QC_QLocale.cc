@@ -334,42 +334,6 @@ static AbstractQoreNode *f_QLocale_countryToString(const QoreListNode *params, c
    return new QoreStringNode(QLocale::countryToString(country).toUtf8().data(), QCS_UTF8);
 }
 
-static QoreClass *initQLocaleClass()
-{
-   QC_QLocale = new QoreClass("QLocale", QDOM_GUI);
-   CID_QLOCALE = QC_QLocale->getID();
-
-   QC_QLocale->setConstructor(QLOCALE_constructor);
-   QC_QLocale->setCopy((q_copy_t)QLOCALE_copy);
-
-   QC_QLocale->addMethod("country",                     (q_method_t)QLOCALE_country);
-   QC_QLocale->addMethod("dateFormat",                  (q_method_t)QLOCALE_dateFormat);
-   QC_QLocale->addMethod("dayName",                     (q_method_t)QLOCALE_dayName);
-   QC_QLocale->addMethod("decimalPoint",                (q_method_t)QLOCALE_decimalPoint);
-   QC_QLocale->addMethod("exponential",                 (q_method_t)QLOCALE_exponential);
-   QC_QLocale->addMethod("groupSeparator",              (q_method_t)QLOCALE_groupSeparator);
-   QC_QLocale->addMethod("language",                    (q_method_t)QLOCALE_language);
-   QC_QLocale->addMethod("monthName",                   (q_method_t)QLOCALE_monthName);
-   QC_QLocale->addMethod("name",                        (q_method_t)QLOCALE_name);
-   QC_QLocale->addMethod("negativeSign",                (q_method_t)QLOCALE_negativeSign);
-   QC_QLocale->addMethod("numberOptions",               (q_method_t)QLOCALE_numberOptions);
-   QC_QLocale->addMethod("percent",                     (q_method_t)QLOCALE_percent);
-   QC_QLocale->addMethod("setNumberOptions",            (q_method_t)QLOCALE_setNumberOptions);
-   QC_QLocale->addMethod("timeFormat",                  (q_method_t)QLOCALE_timeFormat);
-   QC_QLocale->addMethod("toDouble",                    (q_method_t)QLOCALE_toDouble);
-   QC_QLocale->addMethod("toFloat",                     (q_method_t)QLOCALE_toDouble);
-   QC_QLocale->addMethod("toInt",                       (q_method_t)QLOCALE_toLongLong);
-   QC_QLocale->addMethod("toLongLong",                  (q_method_t)QLOCALE_toLongLong);
-   QC_QLocale->addMethod("toShort",                     (q_method_t)QLOCALE_toLongLong);
-   //QC_QLocale->addMethod("toString",                    (q_method_t)QLOCALE_toString);
-   QC_QLocale->addMethod("toUInt",                      (q_method_t)QLOCALE_toLongLong);
-   QC_QLocale->addMethod("toULongLong",                 (q_method_t)QLOCALE_toLongLong);
-   QC_QLocale->addMethod("toUShort",                    (q_method_t)QLOCALE_toLongLong);
-   QC_QLocale->addMethod("zeroDigit",                   (q_method_t)QLOCALE_zeroDigit);
-
-   return QC_QLocale;
-}
-
 //QLocale c ()
 static AbstractQoreNode *f_QLocale_c(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -403,15 +367,48 @@ static AbstractQoreNode *f_QLocale_system(const QoreListNode *params, ExceptionS
    return o_ql;
 }
 
-void initQLocaleStaticFunctions()
+static QoreClass *initQLocaleClass()
 {
-   // add builtin functions
-   builtinFunctions.add("QLocale_countriesForLanguage",       f_QLocale_countriesForLanguage, QDOM_GUI);
-   builtinFunctions.add("QLocale_languageToString",           f_QLocale_languageToString, QDOM_GUI);
-   builtinFunctions.add("QLocale_countryToString",            f_QLocale_countryToString, QDOM_GUI);
-   builtinFunctions.add("QLocale_c",                          f_QLocale_c, QDOM_GUI);
-   builtinFunctions.add("QLocale_setDefault",                 f_QLocale_setDefault, QDOM_GUI);
-   builtinFunctions.add("QLocale_system",                     f_QLocale_system, QDOM_GUI);
+   QC_QLocale = new QoreClass("QLocale", QDOM_GUI);
+   CID_QLOCALE = QC_QLocale->getID();
+
+   QC_QLocale->setConstructor(QLOCALE_constructor);
+   QC_QLocale->setCopy((q_copy_t)QLOCALE_copy);
+
+   QC_QLocale->addMethod("country",                     (q_method_t)QLOCALE_country);
+   QC_QLocale->addMethod("dateFormat",                  (q_method_t)QLOCALE_dateFormat);
+   QC_QLocale->addMethod("dayName",                     (q_method_t)QLOCALE_dayName);
+   QC_QLocale->addMethod("decimalPoint",                (q_method_t)QLOCALE_decimalPoint);
+   QC_QLocale->addMethod("exponential",                 (q_method_t)QLOCALE_exponential);
+   QC_QLocale->addMethod("groupSeparator",              (q_method_t)QLOCALE_groupSeparator);
+   QC_QLocale->addMethod("language",                    (q_method_t)QLOCALE_language);
+   QC_QLocale->addMethod("monthName",                   (q_method_t)QLOCALE_monthName);
+   QC_QLocale->addMethod("name",                        (q_method_t)QLOCALE_name);
+   QC_QLocale->addMethod("negativeSign",                (q_method_t)QLOCALE_negativeSign);
+   QC_QLocale->addMethod("numberOptions",               (q_method_t)QLOCALE_numberOptions);
+   QC_QLocale->addMethod("percent",                     (q_method_t)QLOCALE_percent);
+   QC_QLocale->addMethod("setNumberOptions",            (q_method_t)QLOCALE_setNumberOptions);
+   QC_QLocale->addMethod("timeFormat",                  (q_method_t)QLOCALE_timeFormat);
+   QC_QLocale->addMethod("toDouble",                    (q_method_t)QLOCALE_toDouble);
+   QC_QLocale->addMethod("toFloat",                     (q_method_t)QLOCALE_toDouble);
+   QC_QLocale->addMethod("toInt",                       (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("toLongLong",                  (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("toShort",                     (q_method_t)QLOCALE_toLongLong);
+   //QC_QLocale->addMethod("toString",                    (q_method_t)QLOCALE_toString);
+   QC_QLocale->addMethod("toUInt",                      (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("toULongLong",                 (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("toUShort",                    (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("zeroDigit",                   (q_method_t)QLOCALE_zeroDigit);
+
+   // static methods
+   QC_QLocale->addStaticMethod("countriesForLanguage",       f_QLocale_countriesForLanguage);
+   QC_QLocale->addStaticMethod("languageToString",           f_QLocale_languageToString);
+   QC_QLocale->addStaticMethod("countryToString",            f_QLocale_countryToString);
+   QC_QLocale->addStaticMethod("c",                          f_QLocale_c);
+   QC_QLocale->addStaticMethod("setDefault",                 f_QLocale_setDefault);
+   QC_QLocale->addStaticMethod("system",                     f_QLocale_system);
+
+   return QC_QLocale;
 }
 
 QoreNamespace *initQLocaleNS()

@@ -702,7 +702,7 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
    if (*xsink)
       return 0;
 
-   assert(func && func->getType() == NT_FUNCTION_CALL);
+   assert(func && func->getType() == NT_METHOD_CALL);
    const FunctionCallNode *f = reinterpret_cast<const FunctionCallNode *>(func);
 
    if (*op && (*op)->getType() == NT_HASH) {
@@ -711,7 +711,7 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
       // see if the hash member is a call reference
       const AbstractQoreNode *ref = h->getKeyValue(f->f.c_str);
       if (ref && (ref->getType() == NT_FUNCREF || ref->getType() == NT_RUNTIME_CLOSURE))
-	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->exec(f->args, xsink);
+	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->exec(f->getArgs(), xsink);
    }
 
    if (!(*op) || (*op)->getType() != NT_OBJECT) {
@@ -722,7 +722,7 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
    }
 
    QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
-   return o->evalMethod(f->f.c_str, f->args, xsink);
+   return o->evalMethod(f->f.c_str, f->getArgs(), xsink);
 }
 
 static AbstractQoreNode *op_new_object(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)

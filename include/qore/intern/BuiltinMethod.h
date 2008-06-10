@@ -42,6 +42,9 @@ class BuiltinMethod : public BuiltinFunction, public QoreReferenceCounter
       DLLLOCAL BuiltinMethod(QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
       DLLLOCAL BuiltinMethod(QoreClass *c, q_delete_blocker_t m) : BuiltinFunction(m), myclass(c) {}
 
+      // for static methods
+      DLLLOCAL BuiltinMethod(QoreClass *c, const char *n_name, q_func_t m) : BuiltinFunction(n_name, m, QDOM_DEFAULT), myclass(c) {}
+
       DLLLOCAL void deref();
 };
 

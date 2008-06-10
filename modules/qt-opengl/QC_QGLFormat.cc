@@ -368,112 +368,6 @@ static AbstractQoreNode *QGLFORMAT_testOption(QoreObject *self, QoreQGLFormat *q
    return get_bool_node(qglf->testOption(opt));
 }
 
-static QoreClass *initQGLFormatClass()
-{
-   QC_QGLFormat = new QoreClass("QGLFormat", QDOM_GUI);
-   CID_QGLFORMAT = QC_QGLFormat->getID();
-
-   QC_QGLFormat->setConstructor(QGLFORMAT_constructor);
-   QC_QGLFormat->setCopy((q_copy_t)QGLFORMAT_copy);
-
-   QC_QGLFormat->addMethod("accum",                       (q_method_t)QGLFORMAT_accum);
-   QC_QGLFormat->addMethod("accumBufferSize",             (q_method_t)QGLFORMAT_accumBufferSize);
-   QC_QGLFormat->addMethod("alpha",                       (q_method_t)QGLFORMAT_alpha);
-   QC_QGLFormat->addMethod("alphaBufferSize",             (q_method_t)QGLFORMAT_alphaBufferSize);
-   QC_QGLFormat->addMethod("blueBufferSize",              (q_method_t)QGLFORMAT_blueBufferSize);
-   QC_QGLFormat->addMethod("depth",                       (q_method_t)QGLFORMAT_depth);
-   QC_QGLFormat->addMethod("depthBufferSize",             (q_method_t)QGLFORMAT_depthBufferSize);
-   QC_QGLFormat->addMethod("directRendering",             (q_method_t)QGLFORMAT_directRendering);
-   QC_QGLFormat->addMethod("doubleBuffer",                (q_method_t)QGLFORMAT_doubleBuffer);
-   QC_QGLFormat->addMethod("greenBufferSize",             (q_method_t)QGLFORMAT_greenBufferSize);
-   QC_QGLFormat->addMethod("hasOverlay",                  (q_method_t)QGLFORMAT_hasOverlay);
-   QC_QGLFormat->addMethod("plane",                       (q_method_t)QGLFORMAT_plane);
-   QC_QGLFormat->addMethod("redBufferSize",               (q_method_t)QGLFORMAT_redBufferSize);
-   QC_QGLFormat->addMethod("rgba",                        (q_method_t)QGLFORMAT_rgba);
-   QC_QGLFormat->addMethod("sampleBuffers",               (q_method_t)QGLFORMAT_sampleBuffers);
-   QC_QGLFormat->addMethod("samples",                     (q_method_t)QGLFORMAT_samples);
-   QC_QGLFormat->addMethod("setAccum",                    (q_method_t)QGLFORMAT_setAccum);
-   QC_QGLFormat->addMethod("setAccumBufferSize",          (q_method_t)QGLFORMAT_setAccumBufferSize);
-   QC_QGLFormat->addMethod("setAlpha",                    (q_method_t)QGLFORMAT_setAlpha);
-   QC_QGLFormat->addMethod("setAlphaBufferSize",          (q_method_t)QGLFORMAT_setAlphaBufferSize);
-   QC_QGLFormat->addMethod("setBlueBufferSize",           (q_method_t)QGLFORMAT_setBlueBufferSize);
-   QC_QGLFormat->addMethod("setDepth",                    (q_method_t)QGLFORMAT_setDepth);
-   QC_QGLFormat->addMethod("setDepthBufferSize",          (q_method_t)QGLFORMAT_setDepthBufferSize);
-   QC_QGLFormat->addMethod("setDirectRendering",          (q_method_t)QGLFORMAT_setDirectRendering);
-   QC_QGLFormat->addMethod("setDoubleBuffer",             (q_method_t)QGLFORMAT_setDoubleBuffer);
-   QC_QGLFormat->addMethod("setGreenBufferSize",          (q_method_t)QGLFORMAT_setGreenBufferSize);
-   QC_QGLFormat->addMethod("setOption",                   (q_method_t)QGLFORMAT_setOption);
-   QC_QGLFormat->addMethod("setOverlay",                  (q_method_t)QGLFORMAT_setOverlay);
-   QC_QGLFormat->addMethod("setPlane",                    (q_method_t)QGLFORMAT_setPlane);
-   QC_QGLFormat->addMethod("setRedBufferSize",            (q_method_t)QGLFORMAT_setRedBufferSize);
-   QC_QGLFormat->addMethod("setRgba",                     (q_method_t)QGLFORMAT_setRgba);
-   QC_QGLFormat->addMethod("setSampleBuffers",            (q_method_t)QGLFORMAT_setSampleBuffers);
-   QC_QGLFormat->addMethod("setSamples",                  (q_method_t)QGLFORMAT_setSamples);
-   QC_QGLFormat->addMethod("setStencil",                  (q_method_t)QGLFORMAT_setStencil);
-   QC_QGLFormat->addMethod("setStencilBufferSize",        (q_method_t)QGLFORMAT_setStencilBufferSize);
-   QC_QGLFormat->addMethod("setStereo",                   (q_method_t)QGLFORMAT_setStereo);
-   QC_QGLFormat->addMethod("setSwapInterval",             (q_method_t)QGLFORMAT_setSwapInterval);
-   QC_QGLFormat->addMethod("stencil",                     (q_method_t)QGLFORMAT_stencil);
-   QC_QGLFormat->addMethod("stencilBufferSize",           (q_method_t)QGLFORMAT_stencilBufferSize);
-   QC_QGLFormat->addMethod("stereo",                      (q_method_t)QGLFORMAT_stereo);
-   QC_QGLFormat->addMethod("swapInterval",                (q_method_t)QGLFORMAT_swapInterval);
-   QC_QGLFormat->addMethod("testOption",                  (q_method_t)QGLFORMAT_testOption);
-
-   return QC_QGLFormat;
-}
-
-QoreNamespace *initQGLNS()
-{
-   QoreNamespace *ns = new QoreNamespace("QGL");
-
-   // FormatOption namespace
-   ns->addConstant("DoubleBuffer",             new QoreBigIntNode(QGL::DoubleBuffer));
-   ns->addConstant("DepthBuffer",              new QoreBigIntNode(QGL::DepthBuffer));
-   ns->addConstant("Rgba",                     new QoreBigIntNode(QGL::Rgba));
-   ns->addConstant("AlphaChannel",             new QoreBigIntNode(QGL::AlphaChannel));
-   ns->addConstant("AccumBuffer",              new QoreBigIntNode(QGL::AccumBuffer));
-   ns->addConstant("StencilBuffer",            new QoreBigIntNode(QGL::StencilBuffer));
-   ns->addConstant("StereoBuffers",            new QoreBigIntNode(QGL::StereoBuffers));
-   ns->addConstant("DirectRendering",          new QoreBigIntNode(QGL::DirectRendering));
-   ns->addConstant("HasOverlay",               new QoreBigIntNode(QGL::HasOverlay));
-   ns->addConstant("SampleBuffers",            new QoreBigIntNode(QGL::SampleBuffers));
-   ns->addConstant("SingleBuffer",             new QoreBigIntNode(QGL::SingleBuffer));
-   ns->addConstant("NoDepthBuffer",            new QoreBigIntNode(QGL::NoDepthBuffer));
-   ns->addConstant("ColorIndex",               new QoreBigIntNode(QGL::ColorIndex));
-   ns->addConstant("NoAlphaChannel",           new QoreBigIntNode(QGL::NoAlphaChannel));
-   ns->addConstant("NoAccumBuffer",            new QoreBigIntNode(QGL::NoAccumBuffer));
-   ns->addConstant("NoStencilBuffer",          new QoreBigIntNode(QGL::NoStencilBuffer));
-   ns->addConstant("NoStereoBuffers",          new QoreBigIntNode(QGL::NoStereoBuffers));
-   ns->addConstant("IndirectRendering",        new QoreBigIntNode(QGL::IndirectRendering));
-   ns->addConstant("NoOverlay",                new QoreBigIntNode(QGL::NoOverlay));
-   ns->addConstant("NoSampleBuffers",          new QoreBigIntNode(QGL::NoSampleBuffers));
-
-   return ns;
-}
-
-QoreNamespace *initQGLFormatNS()
-{
-   QoreNamespace *ns = new QoreNamespace("QGLFormat");
-   ns->addSystemClass(initQGLFormatClass());
-
-   // OpenGLVersionFlag enum
-   ns->addConstant("OpenGL_Version_None",      new QoreBigIntNode(QGLFormat::OpenGL_Version_None));
-   ns->addConstant("OpenGL_Version_1_1",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_1));
-   ns->addConstant("OpenGL_Version_1_2",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_2));
-   ns->addConstant("OpenGL_Version_1_3",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_3));
-   ns->addConstant("OpenGL_Version_1_4",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_4));
-   ns->addConstant("OpenGL_Version_1_5",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_5));
-   ns->addConstant("OpenGL_Version_2_0",       new QoreBigIntNode(QGLFormat::OpenGL_Version_2_0));
-   ns->addConstant("OpenGL_Version_2_1",       new QoreBigIntNode(QGLFormat::OpenGL_Version_2_1));
-   ns->addConstant("OpenGL_ES_Common_Version_1_0", new QoreBigIntNode(QGLFormat::OpenGL_ES_Common_Version_1_0));
-   ns->addConstant("OpenGL_ES_CommonLite_Version_1_0", new QoreBigIntNode(QGLFormat::OpenGL_ES_CommonLite_Version_1_0));
-   ns->addConstant("OpenGL_ES_Common_Version_1_1", new QoreBigIntNode(QGLFormat::OpenGL_ES_Common_Version_1_1));
-   ns->addConstant("OpenGL_ES_CommonLite_Version_1_1", new QoreBigIntNode(QGLFormat::OpenGL_ES_CommonLite_Version_1_1));
-   ns->addConstant("OpenGL_ES_Version_2_0",    new QoreBigIntNode(QGLFormat::OpenGL_ES_Version_2_0));
-
-   return ns;
-}
-
 //QGLFormat defaultFormat ()
 static AbstractQoreNode *f_QGLFormat_defaultFormat(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -534,13 +428,117 @@ static AbstractQoreNode *f_QGLFormat_setDefaultOverlayFormat(const QoreListNode 
    return 0;
 }
 
-void initQGLFormatStaticFunctions()
+static QoreClass *initQGLFormatClass()
 {
-   builtinFunctions.add("QGLFormat_defaultFormat",                f_QGLFormat_defaultFormat, QDOM_GUI);
-   builtinFunctions.add("QGLFormat_defaultOverlayFormat",         f_QGLFormat_defaultOverlayFormat, QDOM_GUI);
-   builtinFunctions.add("QGLFormat_hasOpenGL",                    f_QGLFormat_hasOpenGL, QDOM_GUI);
-   builtinFunctions.add("QGLFormat_hasOpenGLOverlays",            f_QGLFormat_hasOpenGLOverlays, QDOM_GUI);
-   builtinFunctions.add("QGLFormat_openGLVersionFlags",           f_QGLFormat_openGLVersionFlags, QDOM_GUI);
-   builtinFunctions.add("QGLFormat_setDefaultFormat",             f_QGLFormat_setDefaultFormat, QDOM_GUI);
-   builtinFunctions.add("QGLFormat_setDefaultOverlayFormat",      f_QGLFormat_setDefaultOverlayFormat, QDOM_GUI);
+   QC_QGLFormat = new QoreClass("QGLFormat", QDOM_GUI);
+   CID_QGLFORMAT = QC_QGLFormat->getID();
+
+   QC_QGLFormat->setConstructor(QGLFORMAT_constructor);
+   QC_QGLFormat->setCopy((q_copy_t)QGLFORMAT_copy);
+
+   QC_QGLFormat->addMethod("accum",                       (q_method_t)QGLFORMAT_accum);
+   QC_QGLFormat->addMethod("accumBufferSize",             (q_method_t)QGLFORMAT_accumBufferSize);
+   QC_QGLFormat->addMethod("alpha",                       (q_method_t)QGLFORMAT_alpha);
+   QC_QGLFormat->addMethod("alphaBufferSize",             (q_method_t)QGLFORMAT_alphaBufferSize);
+   QC_QGLFormat->addMethod("blueBufferSize",              (q_method_t)QGLFORMAT_blueBufferSize);
+   QC_QGLFormat->addMethod("depth",                       (q_method_t)QGLFORMAT_depth);
+   QC_QGLFormat->addMethod("depthBufferSize",             (q_method_t)QGLFORMAT_depthBufferSize);
+   QC_QGLFormat->addMethod("directRendering",             (q_method_t)QGLFORMAT_directRendering);
+   QC_QGLFormat->addMethod("doubleBuffer",                (q_method_t)QGLFORMAT_doubleBuffer);
+   QC_QGLFormat->addMethod("greenBufferSize",             (q_method_t)QGLFORMAT_greenBufferSize);
+   QC_QGLFormat->addMethod("hasOverlay",                  (q_method_t)QGLFORMAT_hasOverlay);
+   QC_QGLFormat->addMethod("plane",                       (q_method_t)QGLFORMAT_plane);
+   QC_QGLFormat->addMethod("redBufferSize",               (q_method_t)QGLFORMAT_redBufferSize);
+   QC_QGLFormat->addMethod("rgba",                        (q_method_t)QGLFORMAT_rgba);
+   QC_QGLFormat->addMethod("sampleBuffers",               (q_method_t)QGLFORMAT_sampleBuffers);
+   QC_QGLFormat->addMethod("samples",                     (q_method_t)QGLFORMAT_samples);
+   QC_QGLFormat->addMethod("setAccum",                    (q_method_t)QGLFORMAT_setAccum);
+   QC_QGLFormat->addMethod("setAccumBufferSize",          (q_method_t)QGLFORMAT_setAccumBufferSize);
+   QC_QGLFormat->addMethod("setAlpha",                    (q_method_t)QGLFORMAT_setAlpha);
+   QC_QGLFormat->addMethod("setAlphaBufferSize",          (q_method_t)QGLFORMAT_setAlphaBufferSize);
+   QC_QGLFormat->addMethod("setBlueBufferSize",           (q_method_t)QGLFORMAT_setBlueBufferSize);
+   QC_QGLFormat->addMethod("setDepth",                    (q_method_t)QGLFORMAT_setDepth);
+   QC_QGLFormat->addMethod("setDepthBufferSize",          (q_method_t)QGLFORMAT_setDepthBufferSize);
+   QC_QGLFormat->addMethod("setDirectRendering",          (q_method_t)QGLFORMAT_setDirectRendering);
+   QC_QGLFormat->addMethod("setDoubleBuffer",             (q_method_t)QGLFORMAT_setDoubleBuffer);
+   QC_QGLFormat->addMethod("setGreenBufferSize",          (q_method_t)QGLFORMAT_setGreenBufferSize);
+   QC_QGLFormat->addMethod("setOption",                   (q_method_t)QGLFORMAT_setOption);
+   QC_QGLFormat->addMethod("setOverlay",                  (q_method_t)QGLFORMAT_setOverlay);
+   QC_QGLFormat->addMethod("setPlane",                    (q_method_t)QGLFORMAT_setPlane);
+   QC_QGLFormat->addMethod("setRedBufferSize",            (q_method_t)QGLFORMAT_setRedBufferSize);
+   QC_QGLFormat->addMethod("setRgba",                     (q_method_t)QGLFORMAT_setRgba);
+   QC_QGLFormat->addMethod("setSampleBuffers",            (q_method_t)QGLFORMAT_setSampleBuffers);
+   QC_QGLFormat->addMethod("setSamples",                  (q_method_t)QGLFORMAT_setSamples);
+   QC_QGLFormat->addMethod("setStencil",                  (q_method_t)QGLFORMAT_setStencil);
+   QC_QGLFormat->addMethod("setStencilBufferSize",        (q_method_t)QGLFORMAT_setStencilBufferSize);
+   QC_QGLFormat->addMethod("setStereo",                   (q_method_t)QGLFORMAT_setStereo);
+   QC_QGLFormat->addMethod("setSwapInterval",             (q_method_t)QGLFORMAT_setSwapInterval);
+   QC_QGLFormat->addMethod("stencil",                     (q_method_t)QGLFORMAT_stencil);
+   QC_QGLFormat->addMethod("stencilBufferSize",           (q_method_t)QGLFORMAT_stencilBufferSize);
+   QC_QGLFormat->addMethod("stereo",                      (q_method_t)QGLFORMAT_stereo);
+   QC_QGLFormat->addMethod("swapInterval",                (q_method_t)QGLFORMAT_swapInterval);
+   QC_QGLFormat->addMethod("testOption",                  (q_method_t)QGLFORMAT_testOption);
+
+   // static methods
+   QC_QGLFormat->addStaticMethod("defaultFormat",                f_QGLFormat_defaultFormat);
+   QC_QGLFormat->addStaticMethod("defaultOverlayFormat",         f_QGLFormat_defaultOverlayFormat);
+   QC_QGLFormat->addStaticMethod("hasOpenGL",                    f_QGLFormat_hasOpenGL);
+   QC_QGLFormat->addStaticMethod("hasOpenGLOverlays",            f_QGLFormat_hasOpenGLOverlays);
+   QC_QGLFormat->addStaticMethod("openGLVersionFlags",           f_QGLFormat_openGLVersionFlags);
+   QC_QGLFormat->addStaticMethod("setDefaultFormat",             f_QGLFormat_setDefaultFormat);
+   QC_QGLFormat->addStaticMethod("setDefaultOverlayFormat",      f_QGLFormat_setDefaultOverlayFormat);
+
+   return QC_QGLFormat;
+}
+
+QoreNamespace *initQGLNS()
+{
+   QoreNamespace *ns = new QoreNamespace("QGL");
+
+   // FormatOption namespace
+   ns->addConstant("DoubleBuffer",             new QoreBigIntNode(QGL::DoubleBuffer));
+   ns->addConstant("DepthBuffer",              new QoreBigIntNode(QGL::DepthBuffer));
+   ns->addConstant("Rgba",                     new QoreBigIntNode(QGL::Rgba));
+   ns->addConstant("AlphaChannel",             new QoreBigIntNode(QGL::AlphaChannel));
+   ns->addConstant("AccumBuffer",              new QoreBigIntNode(QGL::AccumBuffer));
+   ns->addConstant("StencilBuffer",            new QoreBigIntNode(QGL::StencilBuffer));
+   ns->addConstant("StereoBuffers",            new QoreBigIntNode(QGL::StereoBuffers));
+   ns->addConstant("DirectRendering",          new QoreBigIntNode(QGL::DirectRendering));
+   ns->addConstant("HasOverlay",               new QoreBigIntNode(QGL::HasOverlay));
+   ns->addConstant("SampleBuffers",            new QoreBigIntNode(QGL::SampleBuffers));
+   ns->addConstant("SingleBuffer",             new QoreBigIntNode(QGL::SingleBuffer));
+   ns->addConstant("NoDepthBuffer",            new QoreBigIntNode(QGL::NoDepthBuffer));
+   ns->addConstant("ColorIndex",               new QoreBigIntNode(QGL::ColorIndex));
+   ns->addConstant("NoAlphaChannel",           new QoreBigIntNode(QGL::NoAlphaChannel));
+   ns->addConstant("NoAccumBuffer",            new QoreBigIntNode(QGL::NoAccumBuffer));
+   ns->addConstant("NoStencilBuffer",          new QoreBigIntNode(QGL::NoStencilBuffer));
+   ns->addConstant("NoStereoBuffers",          new QoreBigIntNode(QGL::NoStereoBuffers));
+   ns->addConstant("IndirectRendering",        new QoreBigIntNode(QGL::IndirectRendering));
+   ns->addConstant("NoOverlay",                new QoreBigIntNode(QGL::NoOverlay));
+   ns->addConstant("NoSampleBuffers",          new QoreBigIntNode(QGL::NoSampleBuffers));
+
+   return ns;
+}
+
+QoreNamespace *initQGLFormatNS()
+{
+   QoreNamespace *ns = new QoreNamespace("QGLFormat");
+   ns->addSystemClass(initQGLFormatClass());
+
+   // OpenGLVersionFlag enum
+   ns->addConstant("OpenGL_Version_None",      new QoreBigIntNode(QGLFormat::OpenGL_Version_None));
+   ns->addConstant("OpenGL_Version_1_1",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_1));
+   ns->addConstant("OpenGL_Version_1_2",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_2));
+   ns->addConstant("OpenGL_Version_1_3",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_3));
+   ns->addConstant("OpenGL_Version_1_4",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_4));
+   ns->addConstant("OpenGL_Version_1_5",       new QoreBigIntNode(QGLFormat::OpenGL_Version_1_5));
+   ns->addConstant("OpenGL_Version_2_0",       new QoreBigIntNode(QGLFormat::OpenGL_Version_2_0));
+   ns->addConstant("OpenGL_Version_2_1",       new QoreBigIntNode(QGLFormat::OpenGL_Version_2_1));
+   ns->addConstant("OpenGL_ES_Common_Version_1_0", new QoreBigIntNode(QGLFormat::OpenGL_ES_Common_Version_1_0));
+   ns->addConstant("OpenGL_ES_CommonLite_Version_1_0", new QoreBigIntNode(QGLFormat::OpenGL_ES_CommonLite_Version_1_0));
+   ns->addConstant("OpenGL_ES_Common_Version_1_1", new QoreBigIntNode(QGLFormat::OpenGL_ES_Common_Version_1_1));
+   ns->addConstant("OpenGL_ES_CommonLite_Version_1_1", new QoreBigIntNode(QGLFormat::OpenGL_ES_CommonLite_Version_1_1));
+   ns->addConstant("OpenGL_ES_Version_2_0",    new QoreBigIntNode(QGLFormat::OpenGL_ES_Version_2_0));
+
+   return ns;
 }

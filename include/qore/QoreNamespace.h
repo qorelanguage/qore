@@ -168,6 +168,11 @@ class RootQoreNamespace : public QoreNamespace
       DLLLOCAL void addQoreNamespace(QoreNamespace *qns);
       // private constructor
       DLLLOCAL RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nsl);
+      DLLLOCAL QoreClass *rootFindScopedClassWithMethod(NamedScope *nscope, int *matched) const;
+      DLLLOCAL QoreClass *rootFindScopedClass(NamedScope *name, int *matched) const;
+      DLLLOCAL QoreClass *rootFindChangeClass(const char *name);
+      DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name) const;
+      DLLLOCAL AbstractQoreNode *rootFindScopedConstantValue(NamedScope *name, int *matched) const;
 
    public:
       //! returns a pointer to the QoreNamespace for the "Qore" namespace
@@ -180,11 +185,6 @@ class RootQoreNamespace : public QoreNamespace
       DLLLOCAL ~RootQoreNamespace();
       DLLLOCAL RootQoreNamespace *copy(int po = 0) const;
       DLLLOCAL QoreClass *rootFindClass(const char *name) const;
-      DLLLOCAL QoreClass *rootFindChangeClass(const char *name);
-      DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name) const;
-      DLLLOCAL AbstractQoreNode *rootFindScopedConstantValue(NamedScope *name, int *matched) const;
-      DLLLOCAL QoreClass *rootFindScopedClass(NamedScope *name, int *matched) const;
-      DLLLOCAL QoreClass *rootFindScopedClassWithMethod(NamedScope *nscope, int *matched) const;
       DLLLOCAL void rootAddClass(NamedScope *name, QoreClass *oc);
       DLLLOCAL void rootAddConstant(NamedScope *name, AbstractQoreNode *value);
       DLLLOCAL AbstractQoreNode *findConstantValue(NamedScope *name, int level) const;

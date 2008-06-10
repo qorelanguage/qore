@@ -26,6 +26,6 @@
 
 #include <QColorDialog>
 
-DLLEXPORT void initQColorDialogStaticFunctions();
+DLLEXPORT QoreClass *initQColorDialogClass();
 
 #endif // _QORE_QT_QC_QCOLORDIALOG_H

@@ -62,7 +62,7 @@ class Window inherits QWidget
     private closeEvent($event)
     {
 	if ($.trayIcon.isVisible()) {
-	    QMessageBox_information($self, TR("Systray"),
+	    QMessageBox::information($self, TR("Systray"),
 				    TR("The program will keep running in the "
 				       "system tray. To terminate the program, "
 				       "choose <b>Quit</b> in the context menu "
@@ -107,7 +107,7 @@ class Window inherits QWidget
 
     private messageClicked()
     {
-	QMessageBox_information(0, TR("Systray"),
+	QMessageBox::information(0, TR("Systray"),
 				TR("Sorry, I already gave what help I could.\n"
 				   "Maybe you should try asking a human?"));
     }
@@ -225,8 +225,8 @@ class systray_example inherits QApplication
     {
         our $dir = get_script_dir();
 
-	if (!QSystemTrayIcon_isSystemTrayAvailable()) {
-	    QMessageBox_critical(0, TR("Systray"),
+	if (!QSystemTrayIcon::isSystemTrayAvailable()) {
+	    QMessageBox::critical(0, TR("Systray"),
 				 TR("I couldn't detect any system tray on this system."));
 	    return;
 	}

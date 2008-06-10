@@ -139,18 +139,23 @@ class BCList : public QoreReferenceCounter, public bclist_t
       class BCSMList sml;
 
       DLLLOCAL BCList(class BCNode *n);
-      DLLLOCAL inline BCList();
-      DLLLOCAL inline void parseInit(QoreClass *thisclass, class BCAList *bcal, bool &has_delete_blocker);
-      DLLLOCAL inline const QoreMethod *resolveSelfMethod(const char *name);
-      DLLLOCAL inline const QoreMethod *findParseMethod(const char *name);
-      DLLLOCAL inline const QoreMethod *findMethod(const char *name) const;
-      DLLLOCAL inline const QoreMethod *findMethod(const char *name, bool &p) const;
-      DLLLOCAL inline bool match(class BCANode *bca);
-      DLLLOCAL inline void execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const;
+      DLLLOCAL BCList();
+      DLLLOCAL void parseInit(QoreClass *thisclass, class BCAList *bcal, bool &has_delete_blocker);
+      DLLLOCAL const QoreMethod *resolveSelfMethod(const char *name);
+
+      // only looks in committed method lists
+      DLLLOCAL const QoreMethod *findParseMethod(const char *name);
+
+      // looks in committed and pending method lists
+      DLLLOCAL const QoreMethod *parseFindMethodTree(const char *name);
+      DLLLOCAL const QoreMethod *findMethod(const char *name) const;
+      DLLLOCAL const QoreMethod *findMethod(const char *name, bool &p) const;
+      DLLLOCAL bool match(class BCANode *bca);
+      DLLLOCAL void execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const;
       DLLLOCAL void execConstructorsWithArgs(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const;
       DLLLOCAL bool execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const;
-      DLLLOCAL inline bool isPrivateMember(const char *str) const;
-      DLLLOCAL inline void ref() const;
+      DLLLOCAL bool isPrivateMember(const char *str) const;
+      DLLLOCAL void ref() const;
       DLLLOCAL void deref();
 };
 

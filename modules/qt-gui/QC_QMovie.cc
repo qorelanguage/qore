@@ -310,6 +310,17 @@ static AbstractQoreNode *QMOVIE_stop(QoreObject *self, QoreQMovie *qm, const Qor
    return 0;
 }
 
+static AbstractQoreNode *f_QMovie_supportedFormats(const QoreListNode *params, ExceptionSink *xsink)
+{
+   QoreListNode *ql = new QoreListNode();
+
+   QList<QByteArray> l = QMovie::supportedFormats();
+   for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)
+      ql->push(new QoreStringNode((*i).data()));
+
+   return ql;
+}
+
 QoreClass *initQMovieClass(QoreClass *qobject)
 {
    QC_QMovie = new QoreClass("QMovie", QDOM_GUI);
@@ -349,21 +360,8 @@ QoreClass *initQMovieClass(QoreClass *qobject)
    QC_QMovie->addMethod("start",                       (q_method_t)QMOVIE_start);
    QC_QMovie->addMethod("stop",                        (q_method_t)QMOVIE_stop);
 
+   // static methods
+   QC_QMovie->addStaticMethod("supportedFormats", f_QMovie_supportedFormats);
+
    return QC_QMovie;
-}
-
-static AbstractQoreNode *f_QMovie_supportedFormats(const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreListNode *ql = new QoreListNode();
-
-   QList<QByteArray> l = QMovie::supportedFormats();
-   for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)
-      ql->push(new QoreStringNode((*i).data()));
-
-   return ql;
-}
-
-void initQMovieStaticFunctions()
-{
-   builtinFunctions.add("QMovie_supportedFormats", f_QMovie_supportedFormats, QDOM_GUI);
 }

@@ -54,7 +54,7 @@ class MoviePlayer inherits QWidget
 
     open()
     {
-	my $fileName = QFileDialog_getOpenFileName($self, TR("Open a Movie"), $.currentMovieDirectory);
+	my $fileName = QFileDialog::getOpenFileName($self, TR("Open a Movie"), $.currentMovieDirectory);
 	if (strlen(!$fileName))
 	    $.openFile($fileName);
     }

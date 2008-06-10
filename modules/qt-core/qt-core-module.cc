@@ -72,61 +72,6 @@ DLLEXPORT qore_module_delete_t qore_module_delete = qt_core_module_delete;
 DLLEXPORT qore_license_t qore_module_license = QL_GPL;
 #endif
 
-static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, class ExceptionSink *xsink)
-{
-   const QoreObject *p = test_object_param(params, 0);
-   class AbstractPrivateData *spd = p ? p->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
-   QoreAbstractQObject *sender = spd ? dynamic_cast<QoreAbstractQObject *>(spd) : 0;
-   assert(!spd || sender);
-   if (!sender) {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "first argument is not a QObject");
-      return 0;
-   }
-   ReferenceHolder<AbstractPrivateData> holder1(spd, xsink);
-
-   const QoreStringNode *str = test_string_param(params, 1);
-   if (!str)
-   {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing signal string as second argument");
-      return 0;
-   }
-   const char *signal = str->getBuffer();
-
-   const QoreObject *o = test_object_param(params, 2);
-   if (!o)
-   {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing receiving object as third argument");
-      return 0;      
-   }
-   class AbstractPrivateData *rpd = o ? o->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
-   QoreAbstractQObject *receiver = rpd ? dynamic_cast<QoreAbstractQObject *>(rpd) : 0;
-   assert(!rpd || receiver);
-   if (!receiver) {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "third argument is not a QObject");
-      return 0;
-   }
-   ReferenceHolder<AbstractPrivateData> holder2(rpd, xsink);
-
-   // get member/slot name
-   str = test_string_param(params, 3);
-   if (!str)
-   {
-      xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing slot as fourth argument");
-      return 0;
-   }
-   const char *member = str->getBuffer();
-
-   /*
-   p = get_param(params, 4);
-   int conn_type = is_nothing(p) ? Qt::AutoConnection : p->getAsInt();
-
-   bool b = QObject::connect(sender->getQObject(), signal, receiver->getQObject(), member, (enum Qt::ConnectionType)conn_type);
-   return get_bool_node(b);
-   */
-   receiver->connectDynamic(sender, signal, member, xsink);
-   return 0;
-}
-
 static class AbstractQoreNode *f_SLOT(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get slot name
@@ -325,7 +270,6 @@ static QoreStringNode *qt_core_module_init()
 {
    init_namespace();
 
-   builtinFunctions.add("QObject_connect",            f_QObject_connect, QDOM_GUI);
    builtinFunctions.add("SLOT",                       f_SLOT, QDOM_GUI);
    builtinFunctions.add("SIGNAL",                     f_SIGNAL, QDOM_GUI);
    builtinFunctions.add("TR",                         f_TR, QDOM_GUI);
@@ -337,13 +281,6 @@ static QoreStringNode *qt_core_module_init()
    builtinFunctions.add("qsrand",                     f_qsrand, QDOM_GUI);
    builtinFunctions.add("qrand",                      f_qrand, QDOM_GUI);
    builtinFunctions.add("qSwap",                      f_qSwap, QDOM_GUI);
-
-   // add static class functions as builtin functions
-   initQCoreApplicationStaticFunctions();
-   initQLocaleStaticFunctions();
-   initQDirStaticFunctions();
-   initQLibraryInfoStaticFunctions();
-   initQTimerStaticFunctions();
 
    return 0;
 }

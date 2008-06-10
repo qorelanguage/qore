@@ -78,7 +78,7 @@ class CharacterWidget inherits QWidget
 
 	my $text = sprintf("<p>Character: <span style=\"font-size: 24pt; font-family: %s\">%s</span><p>Value: 0x%x", 
 			   $.displayFont.family(), $key, $key);
-	QToolTip_showText($event.globalPos(), $text, $self);
+	QToolTip::showText($event.globalPos(), $text, $self);
     }
 
     mousePressEvent($event)
@@ -160,7 +160,7 @@ class MainWindow inherits QMainWindow
 	$.lineEdit = new QLineEdit();
 	my $clipboardButton = new QPushButton(TR("&To clipboard"));
 
-	$.clipboard = QApplication_clipboard();
+	$.clipboard = QApplication::clipboard();
 
 	$.connect($.fontCombo, SIGNAL("currentFontChanged(const QFont &)"), SLOT("findStyles(const QFont &)"));
 	$.connect($.fontCombo, SIGNAL("currentFontChanged(const QFont &)"), SLOT("findSizes(const QFont &)"));
@@ -226,7 +226,7 @@ class MainWindow inherits QMainWindow
 
 	my $size;
 	if ($fontDatabase.isSmoothlyScalable($font.family(), $fontDatabase.styleString($font))) {
-	    foreach $size in (QFontDatabase_standardSizes()) {
+	    foreach $size in (QFontDatabase::standardSizes()) {
 		$.sizeCombo.addItem(string($size));
 		$.sizeCombo.setEditable(True);
 	    }
