@@ -1,5 +1,12 @@
+2008.06.11: David Nichols
+	* added class prefix in exception text when an exception occurs in a
+	  static method
+
 2008.06.10: David Nichols
 	* implemented static class methods
+	* updated all QT static methods to belong to the relevant class as 
+	  static methods instead of being added as regular functions prefixed
+	  by the class name
 
 2008.06.09: David Nichols
 	* configure and compile fixes for Sun Studio CC

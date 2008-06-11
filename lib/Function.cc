@@ -418,7 +418,7 @@ void BuiltinFunction::evalSystemDestructor(QoreObject *self, AbstractPrivateData
    code.destructor(self, private_data, xsink);
 }
 
-AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink *xsink, const char *class_name) const
 {
    AbstractQoreNode *rv;
    ExceptionSink newsink;
@@ -455,7 +455,7 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
    }
 
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, 0, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_BUILTIN, class_name ? class_name : 0, name, o_fn, o_ln, o_eln);
    
    traceout("BuiltinFunction::eval(Node)");
    return rv;
@@ -581,7 +581,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClassName()) : 0, getName(), o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClassName()) : (class_name ? class_name : 0), getName(), o_fn, o_ln, o_eln);
    
    return val;
 }

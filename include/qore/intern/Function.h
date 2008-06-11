@@ -80,7 +80,7 @@ class BuiltinFunction
       DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;
       DLLLOCAL void evalSystemDestructor(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const;
       DLLLOCAL class AbstractQoreNode *evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-      DLLLOCAL class AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink, const char *class_name = 0) const;
       DLLLOCAL int getType() const { return type; }
       DLLLOCAL const char *getName() const { return name; }
 };

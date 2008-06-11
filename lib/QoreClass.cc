@@ -1054,7 +1054,7 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
 #endif
 
    if (isStatic())
-      return priv->type == OTF_USER ? priv->func.userFunc->eval(args, 0, xsink) : priv->func.builtin->eval(args, xsink);
+      return priv->type == OTF_USER ? priv->func.userFunc->eval(args, 0, xsink, priv->parent_class->getName()) : priv->func.builtin->eval(args, xsink, priv->parent_class->getName());
 
    AbstractQoreNode *rv = 0;
    {
