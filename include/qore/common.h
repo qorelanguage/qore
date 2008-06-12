@@ -51,9 +51,10 @@ typedef long qore_offset_t;
 //! used for the unique class ID for QoreClass objects
 typedef unsigned qore_classid_t;
 
-// set of integers
+//! set of integers
 typedef std::set<int> int_set_t;
 
+//! qore library and module license type identifiers
 enum qore_license_t { QL_GPL = 0,         //!< code to be used under the GPL license
 		      QL_LGPL = 1         //!< code to be used under the LGPL license
 };

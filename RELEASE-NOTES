@@ -21,7 +21,8 @@ qore 0.7.0 is a major release with major new features
 *) file locking support in the File class (based on fcntl())
 *) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
 *) the Oracle database driver will now try to reconnect a lost connection to the server if not in a transaction
-*) 64-bits are the default on x86_64 CPUs
+*) 64-bit builds are the default on x86_64 CPUs
+
 
 ***********************
 *** LANGUAGE ISSUES ***
@@ -29,7 +30,7 @@ qore 0.7.0 is a major release with major new features
 
 Out of Memory Errors
 --------------------
-*) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs, however work has begun on handling out of memory errors starting in v0.5.2
+*) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs, however work has begun on handling out of memory errors starting in v0.5.2.  Of particular note is running out of thread stack space (which causes a crash); program-controlled thread stack space needs to be implemented in order to address this shortcoming
 
 References, Copying, Passing by Value
 -------------------------------------

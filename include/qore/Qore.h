@@ -103,7 +103,8 @@ DLLEXPORT extern char qore_target_arch[];
 #define QLO_DISABLE_SIGNAL_HANDLING 1 << 0  //!< disable qore signal handling entirely
 
 //! initializes the Qore library
-/** @param default_encoding the default character encoding for the library, if 0 then the environment variables QORE_CHARSET and LANG will be processed, in that order, to determine the default character encoding.  If no character encoding can be determined from either of these environment variables, UTF-8 will be used as the default.
+/** @param license the license that the library will be used under; note that if the license type is QL_LGPL, then modules tagged with QL_GPL cannot be loaded 
+    @param default_encoding the default character encoding for the library, if 0 then the environment variables QORE_CHARSET and LANG will be processed, in that order, to determine the default character encoding.  If no character encoding can be determined from either of these environment variables, UTF-8 will be used as the default.
     @param show_module_errors if true then any errors loading qore modules will be output to stdout
     @param init_options a binary "or" sum of the qore library options 
     @note This function can only be called once and must be called before any other qore facilities are used.

@@ -24,6 +24,7 @@
 #include <qore/intern/QC_File.h>
 
 qore_classid_t CID_FILE;
+QoreClass *QC_File = 0;
 
 static void FILE_system_constructor(QoreObject *self, int fd, va_list args)
 {
@@ -576,58 +577,60 @@ static AbstractQoreNode *FILE_chown(QoreObject *self, class File *f, const QoreL
    return 0;
 }
 
-class QoreClass *initFileClass()
+QoreClass *initFileClass()
 {
    tracein("initFileClass()");
 
-   class QoreClass *QC_FILE = new QoreClass("File", QDOM_FILESYSTEM);
-   CID_FILE = QC_FILE->getID();
-   QC_FILE->setSystemConstructor(FILE_system_constructor);
-   QC_FILE->setConstructor(FILE_constructor);
-   QC_FILE->setCopy((q_copy_t)FILE_copy);
-   QC_FILE->addMethod("open",              (q_method_t)FILE_open);
-   QC_FILE->addMethod("open2",             (q_method_t)FILE_open2);
-   QC_FILE->addMethod("close",             (q_method_t)FILE_close);
-   QC_FILE->addMethod("sync",              (q_method_t)FILE_sync);
-   QC_FILE->addMethod("read",              (q_method_t)FILE_read);
-   QC_FILE->addMethod("readu1",            (q_method_t)FILE_readu1);
-   QC_FILE->addMethod("readu2",            (q_method_t)FILE_readu2);
-   QC_FILE->addMethod("readu4",            (q_method_t)FILE_readu4);
-   QC_FILE->addMethod("readu2LSB",         (q_method_t)FILE_readu2LSB);
-   QC_FILE->addMethod("readu4LSB",         (q_method_t)FILE_readu4LSB);
-   QC_FILE->addMethod("readi1",            (q_method_t)FILE_readi1);
-   QC_FILE->addMethod("readi2",            (q_method_t)FILE_readi2);
-   QC_FILE->addMethod("readi4",            (q_method_t)FILE_readi4);
-   QC_FILE->addMethod("readi8",            (q_method_t)FILE_readi8);
-   QC_FILE->addMethod("readi2LSB",         (q_method_t)FILE_readi2LSB);
-   QC_FILE->addMethod("readi4LSB",         (q_method_t)FILE_readi4LSB);
-   QC_FILE->addMethod("readi8LSB",         (q_method_t)FILE_readi8LSB);
-   QC_FILE->addMethod("readBinary",        (q_method_t)FILE_readBinary);
-   QC_FILE->addMethod("write",             (q_method_t)FILE_write);
-   QC_FILE->addMethod("writei1",           (q_method_t)FILE_writei1);
-   QC_FILE->addMethod("writei2",           (q_method_t)FILE_writei2);
-   QC_FILE->addMethod("writei4",           (q_method_t)FILE_writei4);
-   QC_FILE->addMethod("writei8",           (q_method_t)FILE_writei8);
-   QC_FILE->addMethod("writei2LSB",        (q_method_t)FILE_writei2LSB);
-   QC_FILE->addMethod("writei4LSB",        (q_method_t)FILE_writei4LSB);
-   QC_FILE->addMethod("writei8LSB",        (q_method_t)FILE_writei8LSB);
-   QC_FILE->addMethod("readLine",          (q_method_t)FILE_readLine);
-   QC_FILE->addMethod("setCharset",        (q_method_t)FILE_setCharset);
-   QC_FILE->addMethod("getCharset",        (q_method_t)FILE_getCharset);
-   QC_FILE->addMethod("setPos",            (q_method_t)FILE_setPos);
-   //QC_FILE->addMethod("setPosFromEnd",     (q_method_t)FILE_setPosFromEnd);
-   //QC_FILE->addMethod("setPosFromCurrent", (q_method_t)FILE_setPosFromCurrent);
-   QC_FILE->addMethod("getPos",            (q_method_t)FILE_getPos);
-   QC_FILE->addMethod("getchar",           (q_method_t)FILE_getchar);
-   QC_FILE->addMethod("printf",            (q_method_t)FILE_printf);
-   QC_FILE->addMethod("vprintf",           (q_method_t)FILE_vprintf);
-   QC_FILE->addMethod("f_printf",          (q_method_t)FILE_f_printf);
-   QC_FILE->addMethod("f_vprintf",         (q_method_t)FILE_f_vprintf);
-   QC_FILE->addMethod("lock",              (q_method_t)FILE_lock);
-   QC_FILE->addMethod("lockBlocking",      (q_method_t)FILE_lockBlocking);
-   QC_FILE->addMethod("getLockInfo",       (q_method_t)FILE_getLockInfo);
-   QC_FILE->addMethod("chown",             (q_method_t)FILE_chown);
+   QC_File = new QoreClass("File", QDOM_FILESYSTEM);
+   CID_FILE = QC_File->getID();
+
+   QC_File->setSystemConstructor(FILE_system_constructor);
+   QC_File->setConstructor(FILE_constructor);
+   QC_File->setCopy((q_copy_t)FILE_copy);
+
+   QC_File->addMethod("open",              (q_method_t)FILE_open);
+   QC_File->addMethod("open2",             (q_method_t)FILE_open2);
+   QC_File->addMethod("close",             (q_method_t)FILE_close);
+   QC_File->addMethod("sync",              (q_method_t)FILE_sync);
+   QC_File->addMethod("read",              (q_method_t)FILE_read);
+   QC_File->addMethod("readu1",            (q_method_t)FILE_readu1);
+   QC_File->addMethod("readu2",            (q_method_t)FILE_readu2);
+   QC_File->addMethod("readu4",            (q_method_t)FILE_readu4);
+   QC_File->addMethod("readu2LSB",         (q_method_t)FILE_readu2LSB);
+   QC_File->addMethod("readu4LSB",         (q_method_t)FILE_readu4LSB);
+   QC_File->addMethod("readi1",            (q_method_t)FILE_readi1);
+   QC_File->addMethod("readi2",            (q_method_t)FILE_readi2);
+   QC_File->addMethod("readi4",            (q_method_t)FILE_readi4);
+   QC_File->addMethod("readi8",            (q_method_t)FILE_readi8);
+   QC_File->addMethod("readi2LSB",         (q_method_t)FILE_readi2LSB);
+   QC_File->addMethod("readi4LSB",         (q_method_t)FILE_readi4LSB);
+   QC_File->addMethod("readi8LSB",         (q_method_t)FILE_readi8LSB);
+   QC_File->addMethod("readBinary",        (q_method_t)FILE_readBinary);
+   QC_File->addMethod("write",             (q_method_t)FILE_write);
+   QC_File->addMethod("writei1",           (q_method_t)FILE_writei1);
+   QC_File->addMethod("writei2",           (q_method_t)FILE_writei2);
+   QC_File->addMethod("writei4",           (q_method_t)FILE_writei4);
+   QC_File->addMethod("writei8",           (q_method_t)FILE_writei8);
+   QC_File->addMethod("writei2LSB",        (q_method_t)FILE_writei2LSB);
+   QC_File->addMethod("writei4LSB",        (q_method_t)FILE_writei4LSB);
+   QC_File->addMethod("writei8LSB",        (q_method_t)FILE_writei8LSB);
+   QC_File->addMethod("readLine",          (q_method_t)FILE_readLine);
+   QC_File->addMethod("setCharset",        (q_method_t)FILE_setCharset);
+   QC_File->addMethod("getCharset",        (q_method_t)FILE_getCharset);
+   QC_File->addMethod("setPos",            (q_method_t)FILE_setPos);
+   //QC_File->addMethod("setPosFromEnd",     (q_method_t)FILE_setPosFromEnd);
+   //QC_File->addMethod("setPosFromCurrent", (q_method_t)FILE_setPosFromCurrent);
+   QC_File->addMethod("getPos",            (q_method_t)FILE_getPos);
+   QC_File->addMethod("getchar",           (q_method_t)FILE_getchar);
+   QC_File->addMethod("printf",            (q_method_t)FILE_printf);
+   QC_File->addMethod("vprintf",           (q_method_t)FILE_vprintf);
+   QC_File->addMethod("f_printf",          (q_method_t)FILE_f_printf);
+   QC_File->addMethod("f_vprintf",         (q_method_t)FILE_f_vprintf);
+   QC_File->addMethod("lock",              (q_method_t)FILE_lock);
+   QC_File->addMethod("lockBlocking",      (q_method_t)FILE_lockBlocking);
+   QC_File->addMethod("getLockInfo",       (q_method_t)FILE_getLockInfo);
+   QC_File->addMethod("chown",             (q_method_t)FILE_chown);
 
    traceout("initFileClass()");
-   return QC_FILE;
+   return QC_File;
 }

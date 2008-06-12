@@ -123,7 +123,7 @@ libqore_la_SOURCES = \
 	SystemEnvironment.cc \
 	SmartMutex.cc \
 	QoreCounter.cc \
-	FunctionReferenceNode.cc \
+	CallReferenceNode.cc \
 	QoreClosureParseNode.cc \
 	QoreClosureNode.cc \
 	QoreImplicitArgumentNode.cc \

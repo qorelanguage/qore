@@ -2885,6 +2885,28 @@ if test "${with_qt_svg}" = yes; then
   fi
 fi
 
+AC_ARG_WITH([doxygen],
+    [AS_HELP_STRING([--with-doxygen@<:@=PATH@:>@],
+                    [path to doxygen binary])],
+    [if test "${with_doxygen}" != "no" -a ! -x "${with_doxygen}"; then AC_MSG_ERROR(${with_doxygen} is not an executable in --with-doxygen); unset with_doxygen; fi ],
+    [with_doxygen=auto])
+
+if test "${with_doxygen}" = "auto"; then
+   AC_MSG_CHECKING([for doxygen to build API documentation])
+   # check for doxygen
+   with_doxygen=`which doxygen`
+   if test -n "$with_doxygen"; then
+      doxy_version=`$with_doxygen --version`
+      AC_MSG_RESULT([found $with_doxygen $doxy_version])
+   else
+      AC_MSG_RESULT([not found])
+   fi
+fi
+
+if test -n "${with_doxygen}"; then
+   AC_SUBST(DOXYGEN_CMD, $with_doxygen)
+fi
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
@@ -2941,7 +2963,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 
 # Check definition of gethostbyaddr_r (glibc2 defines this with 8 arguments)
 ac_save_CXXFLAGS="$CXXFLAGS"
-AC_CACHE_CHECK([style of gethost* routines], qore_gethost_style,
+AC_CACHE_CHECK([style of gethost* routines], qore_cv_gethost_style,
 AC_LANG_PUSH([C++])
 
 # Do not treat warnings as errors if we are linking against other libc
@@ -2968,10 +2990,10 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [[int skr;
  struct hostent *foo = gethostbyaddr_r((const char *) 0,
   0, 0, (struct hostent *) 0, (char *) NULL,  0, &skr); return (foo == 0);]])],
-qore_gethost_style=solaris, qore_gethost_style=other))
+qore_cv_gethost_style=solaris, qore_cv_gethost_style=other))
 AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
-if test "$qore_gethost_style" = "solaris"
+if test "$qore_cv_gethost_style" = "solaris"
 then
   AC_DEFINE([HAVE_SOLARIS_STYLE_GETHOST], [1],
             [Solaris defines gethostbyaddr_r with 7 arguments. glibc2 defines this with 8 arguments])
@@ -2979,7 +3001,7 @@ fi
 
 # Check definition of gethostbyname_r (glibc2.0.100 is different from Solaris)
 ac_save_CXXFLAGS="$CXXFLAGS"
-AC_CACHE_CHECK([style of gethostname_r routines], qore_gethostname_style,
+AC_CACHE_CHECK([style of gethostname_r routines], qore_cv_gethostname_style,
 AC_LANG_PUSH([C++])
 if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
@@ -3000,10 +3022,10 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 
  skr = gethostbyname_r((const char *) 0,
   (struct hostent*) 0, (char*) 0, 0, (struct hostent **) 0, &skr);]])],
-qore_gethostname_style=glibc2, qore_gethostname_style=other))
+qore_cv_gethostname_style=glibc2, qore_cv_gethostname_style=other))
 AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
-if test "$qore_gethostname_style" = "glibc2"
+if test "$qore_cv_gethostname_style" = "glibc2"
 then
   AC_DEFINE([HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE], [1],
             [Solaris define gethostbyname_r with 5 arguments. glibc2 defines this with 6 arguments])
@@ -3011,7 +3033,7 @@ fi
 
 # Check 3rd argument of getthostbyname_r
 ac_save_CXXFLAGS="$CXXFLAGS"
-AC_CACHE_CHECK([3 argument to gethostname_r routines], qore_gethostname_arg,
+AC_CACHE_CHECK([3 argument to gethostname_r routines], qore_cv_gethostname_arg,
 AC_LANG_PUSH([C++])
 if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
@@ -3030,10 +3052,10 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 #include <netdb.h>]],
 [[int skr;
  skr = gethostbyname_r((const char *) 0, (struct hostent*) 0, (struct hostent_data*) 0);]])],
-qore_gethostname_arg=hostent_data, qore_gethostname_arg=char))
+qore_cv_gethostname_arg=hostent_data, qore_cv_gethostname_arg=char))
 AC_LANG_POP([C++])
 CXXFLAGS="$ac_save_CXXFLAGS"
-if test "$qore_gethostname_arg" = "hostent_data"
+if test "$qore_cv_gethostname_arg" = "hostent_data"
 then
   AC_DEFINE([HAVE_GETHOSTBYNAME_R_RETURN_INT], [1],
             [In OSF 4.0f the 3'd argument to gethostname_r is hostent_data *])
@@ -3130,6 +3152,7 @@ AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builti
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT_QT], [test "$enable_single_compilation_unit_qt" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
+AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
 
 AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt-core/Makefile modules/qt-gui/Makefile modules/qt-opengl/Makefile modules/qt-svg/Makefile modules/opengl/Makefile modules/glut/Makefile])
 AC_OUTPUT

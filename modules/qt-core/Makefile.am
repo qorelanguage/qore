@@ -6,7 +6,7 @@ QT_SOURCES = qt-core-module.cc
 if COND_SINGLE_COMPILATION_UNIT
 QORE_QT_SOURCES = single-compilation-unit.cc
 else
-QORE_QT_SOURCES = qt-core.cc \
+QORE_QT_SOURCES = qt-core-util.cc \
 	QC_QObject.cc \
 	QC_QRect.cc \
 	QC_QRectF.cc \

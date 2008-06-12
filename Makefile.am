@@ -1,5 +1,6 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
+includedir = $(prefix)/include/qore
 
 ## use automake to create the Makefile.in for configure
 
@@ -9,7 +10,17 @@ SUBDIRS = modules lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-noinst_HEADERS = \
+DOXYFILES = \
+	doxygen/Doxyfile \
+	doxygen/mainpage.doxygen \
+	doxygen/10_embedding.doxygen \
+	doxygen/20_qore_data.doxygen \
+	doxygen/30_qore_builtin_functions.doxygen \
+	doxygen/40_class_implementation.doxygen \
+	doxygen/70_qore_modules.doxygen \
+	doxygen/75_dbi_drivers.doxygen
+
+include_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
 	include/qore/ReferenceHelper.h \
 	include/qore/qore_thread.h \
@@ -45,10 +56,7 @@ noinst_HEADERS = \
 	include/qore/ModuleManager.h \
 	include/qore/QoreNamespace.h \
 	include/qore/QoreObject.h \
-	include/qore/macros-i386.h \
-	include/qore/macros-powerpc.h \
-	include/qore/macros-sparc.h \
-	include/qore/macros-none.h \
+	include/qore/macros.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreNet.h \
 	include/qore/QoreURL.h \
@@ -70,13 +78,19 @@ noinst_HEADERS = \
 	include/qore/QoreHTTPClient.h \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \
-	include/qore/minitest.hpp \
 	include/qore/ReferenceHolder.h \
 	include/qore/QoreSSLCertificate.h \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
-	include/qore/QoreDir.h \
+	include/qore/QoreDir.h
+
+noinst_HEADERS = \
+	include/qore/minitest.hpp \
+	include/qore/macros-i386.h \
+	include/qore/macros-powerpc.h \
+	include/qore/macros-sparc.h \
+	include/qore/macros-none.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/qore_thread_intern.h \
@@ -550,6 +564,7 @@ noinst_HEADERS = \
 	include/qore/Qore.h
 
 EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
+	COPYING.LGPL COPYING.GPL \
         test/thread-object-test.q \
         test/create-iso-8859-1-file.q \
         test/empty.q \
@@ -587,29 +602,67 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/inherit2.q \
 	examples/getopt.q \
 	examples/worm.q \
-	examples/qt/analogclock.q \
-	examples/qt/calculator.q \
-	examples/qt/calendarwidget.q \
-	examples/qt/charactermap.q \
-	examples/qt/digitalclock.q \
-	examples/qt/groupbox.q \
-	examples/qt/icons.q \
-	examples/qt/imageviewer.q \
-	examples/qt/lineedits.q \
-	examples/qt/movieplayer.q \
-	examples/qt/scribble.q \
-	examples/qt/shapedclock.q \
-	examples/qt/sliders.q \
-	examples/qt/spinboxes.q \
-	examples/qt/styles.q \
-	examples/qt/tutorial.q \
-	examples/qt/images/open.png \
-	examples/qt/images/pause.png \
-	examples/qt/images/play.png \
-	examples/qt/images/quit.png \
-	examples/qt/images/stop.png \
-	examples/qt/images/woodbackground.png \
-	examples/qt/images/woodbutton.png \
+	examples/qt//desktop/images/bad.svg \
+	examples/qt//desktop/images/heart.svg \
+	examples/qt//desktop/images/trash.svg \
+	examples/qt//desktop/screenshot.q \
+	examples/qt//desktop/systray.q \
+	examples/qt//dialogs/classwizard.q \
+	examples/qt//dialogs/configdialog.q \
+	examples/qt//dialogs/extension.q \
+	examples/qt//dialogs/findfiles.q \
+	examples/qt//dialogs/images/background.png \
+	examples/qt//dialogs/images/banner.png \
+	examples/qt//dialogs/images/config.png \
+	examples/qt//dialogs/images/logo1.png \
+	examples/qt//dialogs/images/logo2.png \
+	examples/qt//dialogs/images/logo3.png \
+	examples/qt//dialogs/images/query.png \
+	examples/qt//dialogs/images/update.png \
+	examples/qt//dialogs/images/watermark1.png \
+	examples/qt//dialogs/images/watermark2.png \
+	examples/qt//dialogs/standarddialogs.q \
+	examples/qt//dialogs/tabdialog.q \
+	examples/qt//layouts/basiclayouts.q \
+	examples/qt//layouts/borderlayout.q \
+	examples/qt//opengl/2dpainting.q \
+	examples/qt//opengl/framebufferobject.q \
+	examples/qt//opengl/framebufferobject2.q \
+	examples/qt//opengl/grabber.q \
+	examples/qt//opengl/hellogl.q \
+	examples/qt//opengl/images/bubbles.svg \
+	examples/qt//opengl/images/cubelogo.png \
+	examples/qt//opengl/images/qt4-logo.png \
+	examples/qt//tutorial.q \
+	examples/qt//widgets/analogclock.q \
+	examples/qt//widgets/calculator.q \
+	examples/qt//widgets/calendarwidget.q \
+	examples/qt//widgets/charactermap.q \
+	examples/qt//widgets/digitalclock.q \
+	examples/qt//widgets/groupbox.q \
+	examples/qt//widgets/icons.q \
+	examples/qt//widgets/images/circle.png \
+	examples/qt//widgets/images/open.png \
+	examples/qt//widgets/images/pause.png \
+	examples/qt//widgets/images/play.png \
+	examples/qt//widgets/images/quit.png \
+	examples/qt//widgets/images/square.png \
+	examples/qt//widgets/images/stop.png \
+	examples/qt//widgets/images/triangle.png \
+	examples/qt//widgets/images/woodbackground.png \
+	examples/qt//widgets/images/woodbutton.png \
+	examples/qt//widgets/imageviewer.q \
+	examples/qt//widgets/lineedits.q \
+	examples/qt//widgets/movieplayer.q \
+	examples/qt//widgets/scribble.q \
+	examples/qt//widgets/shapedclock.q \
+	examples/qt//widgets/sliders.q \
+	examples/qt//widgets/spinboxes.q \
+	examples/qt//widgets/styles.q \
+	examples/qt//widgets/tetrix.q \
+	examples/qt//widgets/tooltips.q \
+	examples/qt//widgets/wiggly.q \
+	examples/qt//widgets/windowflags.q \
 	docs/qore.html \
 	docs/qore-style.css \
 	docs/img/acrobat_a.gif \
@@ -622,11 +675,29 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/img/scrollup_a.gif \
 	docs/img/scrollup.gif \
 	docs/img/word.gif \
-	docs/roadmap.html \
+	docs/library/ \
 	qore-0.7.0-1.spec \
+	$(DOXYFILES) \
 	CHANGELOG
 
+if COND_DOXYGEN
+DX_CLEANFILES = docs/library
+
+docs/library/html/index.html: $(INCLUDE_HEADERS) $(DOXYFILES)
+	$(DOXYGEN_CMD) doxygen/Doxyfile
+
+doxygen-doc: docs/library/html/index.html
+
+else
+doxygen-doc:
+	echo no doxygen support
+endif
+
+MOSTLYCLEANFILES = $(DX_CLEANFILES)
+
 dist_man_MANS = qore.1
+
+$(dist_man_MANS): doxygen-doc
 
 qore_LDADD = lib/libqore.la ${PTHREAD_LIBS}
 

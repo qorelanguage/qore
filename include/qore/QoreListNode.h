@@ -511,6 +511,7 @@ class ListIterator
 
 //! For use on the stack only: iterates through elements of a const QoreListNode
 /**
+   @code
    // iterate forward through the list
    ConstListIterator li(l);
    while (li.next()) {

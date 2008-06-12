@@ -69,17 +69,10 @@ class QoreDir {
 	 @param cs the encoding to use for this directory
 	 @param xsink if an out of memory error occurs in the constructor
       */
-      DLLEXPORT QoreDir(const class QoreEncoding *cs, ExceptionSink *xsink);
+      DLLEXPORT QoreDir(const QoreEncoding *cs, ExceptionSink *xsink);
 
       //! closes the directory and frees all memory allocated to the object
       DLLEXPORT ~QoreDir();
-
-      //! opens the directory and returnes 0 for success, non-zero for error
-      /**
-	 @param cs the encoding to use for this directory
-	 @return 0 for success, throws exception on error
-      */
-      //DLLEXPORT int open(const class QoreEncoding *cs = QCS_DEFAULT, class ExceptionSink *xsink);      
 
       //! changes the directory in relation to the current
       /**
@@ -94,42 +87,24 @@ class QoreDir {
       DLLEXPORT int exists(); // check if the directory exists
       DLLEXPORT int create(int, ExceptionSink*);
 
-      DLLEXPORT const char* dirname() const;//, class ExceptionSink *xsink);
-
-      //      DLLEXPORT int mkdir(const char* dir);//, class ExceptionSink *xsink);
-      //     DLLEXPORT int rmdir(const char* dir);//, class ExceptionSink *xsink);
-      //      DLLEXPORT int unlink(const char* file);//, class ExceptionSink *xsink);
-
+      DLLEXPORT const char* dirname() const;
 
       //! returns the encoding used for the directory
-      DLLEXPORT const class QoreEncoding *getEncoding() const;
-
-      // for internal use a wrapper for list
-      DLLLOCAL class QoreListNode* list(int, ExceptionSink *xsink, const QoreString *regex = 0, int regex_options = 0);
-
-      //returns a list of all directory entries including directories and files
-      //DLLEXPORT class QoreListNode* list() const;
-
-      // returns a list of all directory file, symlink etc entries
-      //DLLEXPORT class QoreListNode* listFiles() const;
-
-      //! returns a list of all directory subdirectory entries
-      DLLEXPORT class QoreListNode* listDirs() const;
-
+      DLLEXPORT const QoreEncoding *getEncoding() const;
       
       //!returns a new file in this directory
       /**
+	 @param xsink if errors occur, qore-language exception information is added here
 	 @param fn the name of the file to be opened
 	 @param flags the flags to use when opening the file
 	 @param mode the mode mask to use when opening the file
 	 @param cs the encoding to use for the file
 	 @return the File class, throws an exception on error
       */
-      DLLEXPORT class QoreFile openFile(class ExceptionSink *xsink, const char* fn, int flags=O_RDONLY, int mode=0777, const QoreEncoding *cs=QCS_DEFAULT);
-      
+      DLLEXPORT QoreFile openFile(ExceptionSink *xsink, const char* fn, int flags=O_RDONLY, int mode=0777, const QoreEncoding *cs=QCS_DEFAULT);
 
-      //! changes ownership of the file (if possible)
-      //DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
+      // for internal use a wrapper for list
+      DLLLOCAL QoreListNode* list(int, ExceptionSink *xsink, const QoreString *regex = 0, int regex_options = 0);
 };
 
 #endif  // _QORE_QOREDIR_H

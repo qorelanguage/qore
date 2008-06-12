@@ -26,8 +26,6 @@
 
 qore_classid_t CID_DIR;
 
-
-
 static void DIR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
   // get character set name if available
   const QoreEncoding *cs;
@@ -335,50 +333,48 @@ static AbstractQoreNode *DIR_openFile(QoreObject *self, class Dir *d, const Qore
   std::string fname=std::string(d->dirname())+"/"+std::string(p0_str);
   int r=f->open2(xsink, fname.c_str(), flags, mode, charset);
   if(r!=0) {
-    f.release(); // release the object
-    return 0;
+     f.release(); // release the object
+     return 0;
   }
 
   // create the qoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
-  //QoreObject *o=new QoreObject(QC_File, getProgram()); // does not work. QC_File not defined
-  QoreObject *o=new QoreObject(getRootNS()->rootFindClass("File"), getProgram());
+  QoreObject *o=new QoreObject(QC_File, getProgram());
   o->setPrivate(CID_FILE, f.release());
-
   return o;
 }
 
 // openDir(subdirectory, [encoding])
 static AbstractQoreNode *DIR_openDir(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-  const QoreStringNode *p0;
-  p0 = test_string_param(params, 0);
-  if(!p0) {
-    xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "expecting string filename as first argument of Dir::openDir()");
-    return 0;
-  }
+   const QoreStringNode *p0;
+   p0 = test_string_param(params, 0);
+   if(!p0) {
+      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "expecting string filename as first argument of Dir::openDir()");
+      return 0;
+   }
 
-  // check if there is a path delimiter in
-  const char *p0_str=p0->getBuffer();  
-  if(strchr(p0_str, '/')) {
-    xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only filenames without path are allowed");
-    return 0;
-  }
-  
-  const QoreStringNode *pstr = test_string_param(params, 1);
-  const QoreEncoding *charset;
-  if (pstr)
-    charset = QEM.findCreate(pstr);
-  else
-    charset = d->getEncoding();
-                                                                                                                  
-  // open the file with exception
-  ReferenceHolder<Dir> dc(new Dir(charset, xsink), xsink);
-  dc->chdir((std::string(d->dirname())+"/"+std::string(p0_str)).c_str(), xsink);
-
-  // create the qoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
-  QoreObject *o=new QoreObject(getRootNS()->rootFindClass("Dir"), getProgram());
-  o->setPrivate(CID_DIR, dc.release());
-
-  return o;
+   // check if there is a path delimiter in
+   const char *p0_str=p0->getBuffer();  
+   if(strchr(p0_str, '/')) {
+      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only filenames without path are allowed");
+      return 0;
+   }
+   
+   const QoreStringNode *pstr = test_string_param(params, 1);
+   const QoreEncoding *charset;
+   if (pstr)
+      charset = QEM.findCreate(pstr);
+   else
+      charset = d->getEncoding();
+   
+   // open the file with exception
+   ReferenceHolder<Dir> dc(new Dir(charset, xsink), xsink);
+   dc->chdir((std::string(d->dirname())+"/"+std::string(p0_str)).c_str(), xsink);
+   
+   // create the qoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
+   QoreObject *o=new QoreObject(getRootNS()->rootFindClass("Dir"), getProgram());
+   o->setPrivate(CID_DIR, dc.release());
+   
+   return o;
 }
 
 // removeFile(filename): remove the file

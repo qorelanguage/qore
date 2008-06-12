@@ -1,3 +1,7 @@
+2008.06.12: David Nichols
+	* added doxygen support to configure.ac and Makefile.am
+	* initial (untested) updates to spec file
+
 2008.06.11: David Nichols
 	* added class prefix in exception text when an exception occurs in a
 	  static method
