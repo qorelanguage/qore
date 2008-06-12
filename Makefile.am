@@ -104,6 +104,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreTreeNode.h \
 	include/qore/intern/BarewordNode.h \
 	include/qore/intern/SelfVarrefNode.h \
+	include/qore/intern/VarRefNode.h \
 	include/qore/intern/BackquoteNode.h \
 	include/qore/intern/ContextrefNode.h \
 	include/qore/intern/ContextRowNode.h \
@@ -178,6 +179,8 @@ noinst_HEADERS = \
 	include/qore/intern/QoreClosureNode.h \
 	include/qore/intern/QoreClosureParseNode.h \
 	include/qore/intern/QoreImplicitArgumentNode.h \
+	include/qore/intern/qore_string_private.h \
+	include/qore/intern/qore_date_private.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
@@ -526,6 +529,7 @@ noinst_HEADERS = \
 	modules/qt-gui/QC_QGraphicsSceneWheelEvent.h \
 	modules/qt-gui/QC_QSplashScreen.h \
 	modules/qt-gui/QC_QSplitter.h \
+	modules/qt-gui/QoreAbstractQSplitter.h \
 	modules/qt-gui/QC_QSplitterHandle.h \
 	modules/qt-gui/QoreAbstractQSplitterHandle.h \
 	modules/qt-gui/QC_QGraphicsItem.h \
@@ -564,6 +568,8 @@ noinst_HEADERS = \
 	include/qore/Qore.h
 
 EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
+	CHANGELOG AUTHORS \
+	README README-LICENSE \
 	COPYING.LGPL COPYING.GPL \
         test/thread-object-test.q \
         test/create-iso-8859-1-file.q \
@@ -677,8 +683,7 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/img/word.gif \
 	docs/library/ \
 	qore-0.7.0-1.spec \
-	$(DOXYFILES) \
-	CHANGELOG
+	$(DOXYFILES)
 
 if COND_DOXYGEN
 DX_CLEANFILES = docs/library

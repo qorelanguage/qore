@@ -19,9 +19,7 @@ QORE_QT_SOURCES = qt-core-util.cc \
 	QC_QLineF.cc \
 	QC_QDateTime.cc \
 	QC_QDate.cc \
-	QC_QTime.cc 
-	QoreAbstractQAbstractItemModel.cc \
-	QoreAbstractQObject.cc \
+	QC_QTime.cc \
 	QC_QAbstractItemModel.cc \
 	QC_QLocale.cc \
 	QC_QByteArray.cc \
@@ -39,7 +37,10 @@ QORE_QT_SOURCES = qt-core-util.cc \
 	QC_QIODevice.cc \
 	QC_QTimeLine.cc \
 	QC_QTranslator.cc \
-	QC_QModelIndex.cc
+	QC_QModelIndex.cc \
+	QC_QMimeData.cc \
+	QC_QBasicTimer.cc \
+	QC_QMetaObject.cc
 endif
 
 if COND_MONOLITHIC

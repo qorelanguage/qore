@@ -2226,7 +2226,7 @@ fi
 AC_ARG_WITH([qt],
     [AS_HELP_STRING([--with-qt@<:@=DIR@:>@],
                     [QT base directory])],
-    [if test ! -d "${with_qt}"; then AC_MSG_ERROR(directory ${with_qt} does not exist for --with-qt); unset with_qt; fi])
+    [if test "${with_qt}" != "no" -a ! -d "${with_qt}"; then AC_MSG_ERROR(directory ${with_qt} does not exist for --with-qt); unset with_qt; fi])
 
 AC_ARG_WITH([qt-libs],
     [AS_HELP_STRING([--with-qt-libs@<:@=DIR@:>@],

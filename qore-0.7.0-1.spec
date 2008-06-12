@@ -15,7 +15,7 @@ Summary: Qore Programming Language
 Name: qore
 Version: 0.7.0
 Release: 1%{dist}
-License: LGPL
+License: LGPL or GPL
 Group: Development/Languages
 URL: http://www.qoretechnologies.com/qore
 Source: http://prdownloads.sourceforge.net/qore/qore-%{version}-src.tar.gz
@@ -244,6 +244,7 @@ databases.
 Summary: OpenGL module for Qore
 Group: Development/Languages
 Requires: %{name}-libs = %{version}-%{release}
+Requires: mesa-libGL
 
 %description opengl-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -271,6 +272,7 @@ Summary: GLUT module for Qore
 Group: Development/Languages
 Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-opengl-module = %{version}-%{release}
+Requires: freeglut
 
 %description glut-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -296,7 +298,9 @@ functionality.
 %package qt-core-module
 Summary: QT4 core module for Qore
 Group: Development/Languages
+License: GPL
 Requires: %{name}-libs = %{version}-%{release}
+Requires: qt >= 4.3.1
 
 %description qt-core-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -315,12 +319,18 @@ This module provides functionality enabling qore scripts/programs to use functio
 %files qt-core-module
 %defattr(-,root,root,-)
 %{_libdir}/qore-%{version}/qt-core.qmod
-%endif
+%{_libdir}/libqore-qt-core.so.0.0.0
+%{_libdir}/libqore-qt-core.so.0
+%{_libdir}/libqore-qt-core.so
+%{_libdir}/libqore-qt-core.la
 
 %package qt-gui-module
 Summary: QT4 GUI module for Qore
 Group: Development/Languages
+License: GPL
 Requires: %{name}-libs = %{version}-%{release}
+Requires: %{name}-qt-core-module = %{version}-%{release}
+Requires: qt-x11 >= 4.3.1
 
 %description qt-gui-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -339,13 +349,19 @@ This module provides functionality enabling qore scripts/programs to use functio
 %files qt-gui-module
 %defattr(-,root,root,-)
 %{_libdir}/qore-%{version}/qt-gui.qmod
-%endif
+%{_libdir}/libqore-qt-gui.so.0.0.0
+%{_libdir}/libqore-qt-gui.so.0
+%{_libdir}/libqore-qt-gui.so
+%{_libdir}/libqore-qt-gui.la
 
 %package qt-opengl-module
 Summary: QT4 opengl module for Qore
 Group: Development/Languages
+License: GPL
 Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-opengl-module = %{version}-%{release}
+Requires: %{name}-qt-gui-module = %{version}-%{release}
+Requires: qt-x11 >= 4.3.1
 
 %description qt-opengl-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -364,12 +380,14 @@ This module provides functionality enabling qore scripts/programs to use functio
 %files qt-opengl-module
 %defattr(-,root,root,-)
 %{_libdir}/qore-%{version}/qt-opengl.qmod
-%endif
 
 %package qt-svg-module
-Summary: QT4 svg module for Qore
+Summary: QT4 SVG module for Qore
 Group: Development/Languages
+License: GPL
 Requires: %{name}-libs = %{version}-%{release}
+Requires: %{name}-qt-gui-module = %{version}-%{release}
+Requires: qt-x11 >= 4.3.1
 
 %description qt-svg-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -382,7 +400,8 @@ exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
 in date arithmetic, character encoding (including proper UTF-8) support, and
 much more.
 
-This module provides functionality enabling qore scripts/programs to use functionality provided by the QT4 SVG library.
+This module provides functionality enabling qore scripts/programs to use 
+functionality provided by the QT4 SVG library.
 
 
 %files qt-svg-module
@@ -487,19 +506,43 @@ exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
 in date arithmetic, character encoding (including proper UTF-8) support, and
 much more.
 
-This module provides the qore library required for all clients using qore functionality.
+This module provides the qore library required for all clients using qore
+functionality.
 
 %files libs
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.4.0.0
 %{_libdir}/libqore.so.4
 %{_libdir}/libqore.la
-%doc COPYING.LGPL COPYING.GPL README README-LICENSE RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE docs/library
+%doc COPYING.LGPL COPYING.GPL README README-LICENSE RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
 
+%package doc
+Summary: API documentation, programming language reference, and Qore example programs
+Group: Development/Languages
+
+%description doc
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+This module provides API documentation, programming language reference, and
+example programs
+
+
+%files doc
+%defattr(-,root,root,-)
+%doc docs/library docs/qore-style.css docs/img docs/qore.html examples/ test/ 
 
 %package devel
-Summary: The header files for the qore library
+Summary: The header files needed to compile programs using the qore library
 Group: Development/Languages
+Requires: %{name}-libs = %{version}-%{release}
 
 %description devel
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -512,7 +555,8 @@ exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
 in date arithmetic, character encoding (including proper UTF-8) support, and
 much more.
 
-This module provides header files needed to compile client programs using the Qore library.
+This module provides header files needed to compile client programs using the
+Qore library.
 
 %files devel
 %defattr(-,root,root,-)
@@ -546,7 +590,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc docs/qore-style.css docs/img docs/qore.html examples/ test/
 /usr/bin/qore
 /usr/share/man/man1/qore.1.gz
 
