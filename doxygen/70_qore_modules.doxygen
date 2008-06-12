@@ -14,6 +14,7 @@
     - char \c qore_module_url[] - a URL for the module
     - int \c qore_module_api_major - must be assigned to \ref QORE_MODULE_API_MAJOR
     - int \c qore_module_api_minor - must be assigned to \ref QORE_MODULE_API_MINOR
+    - \ref qore_license_t \c qore_module_license - must be assigned to either \ref QL_GPL or \ref QL_LGPL according to the license the module requires; if the module links with GPL code, then \ref QL_GPL must be used; otherwise if it is compatible with the LGPL then \ref QL_LGPL must be used
 
     The functions are as follows:
     - \ref qore_module_init_t \c qore_module_init - the module initialization function
@@ -31,6 +32,7 @@
     DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
     DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
     DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
+    DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 
     DLLEXPORT qore_module_init_t qore_module_init = ncurses_module_init;
     DLLEXPORT qore_module_ns_init_t qore_module_ns_init = ncurses_module_ns_init;

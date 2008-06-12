@@ -31,6 +31,8 @@
 */
 
 //! base class for Qore's 2 boolean classes: QoreBoolTrueNode and QoreBoolFalseNode
+/** @note this class cannot be instantiated; use get_bool_node() to get a pointer to an object of a subclass
+ */
 class QoreBoolNode : public UniqueValueQoreNode
 {
    private:
@@ -97,7 +99,8 @@ class QoreBoolNode : public UniqueValueQoreNode
 };
 
 //! Qore's boolean "true" node, unique, not dynamically-allocated, not reference-counted
-/** there can only be one of these in the entire Qore library
+/** @note This class cannot be instantiated (there can only be one of these objects in the entire Qore library).
+    Use get_bool_node() or simply &True to acquire a pointer to this object
  */
 class QoreBoolTrueNode : public QoreBoolNode
 {
@@ -106,7 +109,8 @@ class QoreBoolTrueNode : public QoreBoolNode
 };
 
 //! Qore's boolean "false" node, unique, not dynamically-allocated, not reference-counted
-/** there can only be one of these in the entire Qore library
+/** @note This class cannot be instantiated (there can only be one of these objects in the entire Qore library).
+    Use get_bool_node() or simply &False to acquire a pointer to this object
  */
 class QoreBoolFalseNode : public QoreBoolNode
 {

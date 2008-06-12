@@ -109,7 +109,7 @@
 
     @subsection regular_class_methods Regular Class Methods
 
-    Regular, or non-special class methods (the constructor, destructor, and copy method are special methods, all other methods are regular methods; note that it's currently not possible to define builtin memberGate or methodGate methods, this restriction will be lifted in a future version of the Qore library) are defined in a similar manner.  A pointer to the QoreObject is passed to the method, along with the private data and an ExceptionSink pointer in case the method needs to raise a Qore-language exception.
+    Regular, or non-special class methods (the constructor, destructor, and copy method are special methods that have special functions to add them to a QoreClass object, all other methods are regular methods) are defined in a similar manner.  In the function signature for these methods, a pointer to the QoreObject is passed, along with the private data and an ExceptionSink pointer in case the method needs to raise a Qore-language exception.
 
     As with functions, if the method raises a Qore-language exception against the ExceptionSink pointer, the return value should be 0.  Argument handling is the same as with builtin functions.
 
@@ -120,6 +120,24 @@
     @endcode
 
     Note the cast to q_method_t so that "SmartLock *" can be given directly in the function signature.
+
+    @subsection static_class_methods Static Class Methods
+
+    Static class methods have the same signature as builtin functions, and are added with the QoreClass::addStaticMethod() function as in the following example:
+
+    @code
+       static AbstractQoreNode *f_QDir_tempPath(const QoreListNode *params, ExceptionSink *xsink)
+       {
+          return new QoreStringNode(QDir::tempPath().toUtf8().data(), QCS_UTF8);
+       }
+
+       static QoreClass *initQDirClass()
+       {
+          QC_QDir = new QoreClass("QDir", QDOM_GUI);
+	  QC_QDir->addStaticMethod("tempPath", f_QDir_tempPath);
+	  return QC_QDir;
+       }
+    @endcode
 
     @subsection object_threading_issues Threading Issues in Class Implementation
 

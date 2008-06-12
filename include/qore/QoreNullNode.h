@@ -31,10 +31,11 @@
 */
 
 //! Qore's SQL "NULL" parse tree/value type, not-referenced counted, not dynamically allocated
-/** there will only be one single QoreNullNode object instantiated and used
-    everywhere in the Qore library.
-    This value can be represented in Qore code as the keyword NULL
-    NOTE: NULL is not equal to NOTHING
+/** This class cannot be instantiated; there will only be one single QoreNullNode object instantiated and used
+    everywhere in the Qore library; use the null() function or simply &Null to acquire a pointer to an object
+    of this class.
+    This value can be represented in Qore code as the keyword "NULL".
+    NOTE: Qore's "NULL" is not equal to "NOTHING"
     @see QoreNothingNode
  */
 class QoreNullNode : public UniqueValueQoreNode

@@ -6,8 +6,9 @@
     The first step is to initialize the library.  To do this, call qore_init() as follows (note that this function can only be called once and must be called before any other functionality of the Qore library is used):
 
     @code
-    // qore_init() optionally takes several arguments as well
-    qore_init();
+    // qore_init() called using the library under the GPL license, appropriate for a GPL program
+    // qore_init() optionally takes several other arguments as well
+    qore_init(QL_GPL);
     @endcode
 
     When your program terminates, you should call qore_cleanup() as follows:

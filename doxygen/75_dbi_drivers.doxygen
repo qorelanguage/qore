@@ -52,7 +52,7 @@
    }
    @endcode
    
-   @note Any functions requiring an open connection (\ref dbi_select "select", \ref dbi_select_rows "select_rows", \ref dbi_exec "exec", \ref dbi_commit "commit", \ref dbi_rollback "rollback", and \ref dbi_get_server_version "get_server_version") will have a connection opened implicitly before the call is executed by the Qore library.  Therefore any function requiring an open database connection can assume that the connection has already been established (and therefore that the private data representing the state of the connection) is available.
+   @note Any functions requiring an open connection (\ref dbi_select "select", \ref dbi_select_rows "select_rows", \ref dbi_exec "exec", \ref dbi_commit "commit", \ref dbi_rollback "rollback", and \ref dbi_get_server_version "get_server_version") will have a connection opened implicitly before the call is executed by the Qore library.  Therefore any function requiring an open database connection can assume that the connection has already been established (and therefore that the private data representing the state of the connection is available).
 
    @subsection dbi_open DBI Open Method
 

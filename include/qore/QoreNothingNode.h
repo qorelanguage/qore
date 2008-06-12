@@ -31,10 +31,12 @@
 */
 
 //! Qore's SQL "NOTHING" parse tree/value type, not-referenced counted, not dynamically allocated
-/** there will only be one single QoreNothingNode object instantiated and used
-    everywhere in the Qore library.
-    This value can be represented in Qore code as the keyword NOTHING
-    NOTE: NULL is not equal to NOTHING
+/** This class cannot be instantiated; there will only be one single QoreNothingNode object instantiated and used
+    everywhere in the Qore library.  Use the nothing() function or simply &Nothing to acquire a pointer to an 
+    object of this class.
+    This value can be represented in Qore code as the keyword "NOTHING"
+    @note Qore's "NULL" is not equal to "NOTHING"
+    @note in C++ code, use the is_nothing() function to test an AbstractQoreNode* to see if it's "NOTHING" (because also a null pointer is equivalent to NOTHING)
     @see QoreNullNode
  */
 class QoreNothingNode : public UniqueValueQoreNode
