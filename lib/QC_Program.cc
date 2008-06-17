@@ -73,7 +73,7 @@ static AbstractQoreNode *PROGRAM_parse(QoreObject *self, QoreProgram *p, const Q
    if (!wsink.isException())
       return 0;
 
-   class QoreException *e = wsink.catchException();
+   QoreException *e = wsink.catchException();
    AbstractQoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
@@ -107,7 +107,7 @@ static AbstractQoreNode *PROGRAM_parsePending(QoreObject *self, QoreProgram *p, 
    if (!wsink.isException())
       return 0;
 
-   class QoreException *e = wsink.catchException();
+   QoreException *e = wsink.catchException();
    AbstractQoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
@@ -127,7 +127,7 @@ static AbstractQoreNode *PROGRAM_parseCommit(QoreObject *self, QoreProgram *p, c
    if (!wsink.isException())
       return 0;
 
-   class QoreException *e = wsink.catchException();
+   QoreException *e = wsink.catchException();
    AbstractQoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
@@ -241,7 +241,7 @@ static AbstractQoreNode *PROGRAM_getUserFunctionList(QoreObject *self, QoreProgr
    return p->getUserFunctionList();
 }
 
-static class QoreClass *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static QoreClass *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    int opt = p0 ? p0->getAsInt() : PO_DEFAULT;
@@ -250,7 +250,12 @@ static class QoreClass *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p
    return 0;
 }
 
-static class QoreClass *PROGRAM_disableParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static QoreClass *PROGRAM_getParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+{
+   return new QoreBigIntNode(p->getParseOptions());
+}
+
+static QoreClass *PROGRAM_disableParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    int opt = p0 ? p0->getAsInt() : PO_DEFAULT;
@@ -273,6 +278,12 @@ static AbstractQoreNode *PROGRAM_getScriptDir(QoreObject *self, QoreProgram *p, 
    return str ? new QoreStringNode(str) : 0;
 }
 
+static AbstractQoreNode *PROGRAM_lockOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+{
+   p->lockOptions();
+   return 0;
+}
+
 QoreClass *initProgramClass()
 {
    tracein("initProgramClass()");
@@ -292,10 +303,12 @@ QoreClass *initProgramClass()
    QC_PROGRAM->addMethod("importFunction",       (q_method_t)PROGRAM_importFunction);
    QC_PROGRAM->addMethod("importGlobalVariable", (q_method_t)PROGRAM_importGlobalVariable);
    QC_PROGRAM->addMethod("getUserFunctionList",  (q_method_t)PROGRAM_getUserFunctionList);
+   QC_PROGRAM->addMethod("getParseOptions",      (q_method_t)PROGRAM_getParseOptions);
    QC_PROGRAM->addMethod("setParseOptions",      (q_method_t)PROGRAM_setParseOptions);
    QC_PROGRAM->addMethod("disableParseOptions",  (q_method_t)PROGRAM_disableParseOptions);
    QC_PROGRAM->addMethod("setScriptDir",         (q_method_t)PROGRAM_setScriptDir);
    QC_PROGRAM->addMethod("getScriptDir",         (q_method_t)PROGRAM_getScriptDir);
+   QC_PROGRAM->addMethod("lockOptions",          (q_method_t)PROGRAM_lockOptions);
 
    traceout("initProgramClass()");
    return QC_PROGRAM;

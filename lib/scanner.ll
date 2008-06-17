@@ -300,6 +300,8 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 ^%no-network{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_NETWORK);
 ^%no-child-restrictions{WS}*$           getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS);
 ^%no-database{WS}*$                     getProgram()->parseSetParseOptions(PO_NO_DATABASE);
+^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
+^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
 ^%enable-all-warnings{WS}*$             { 
                                            if (getProgram()->setWarningMask(-1))

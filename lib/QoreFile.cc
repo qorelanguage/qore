@@ -107,7 +107,7 @@ int QoreFile::lock(const struct flock &fl, ExceptionSink *xsink)
    }
 
    int rc = fcntl(priv->fd, F_SETLK, &fl);
-   if (rc)
+   if (rc && rc != EACCES)
       xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: %s", strerror(errno));
    return rc;
 }

@@ -1,3 +1,8 @@
+2008.06.17: David Nichols
+	* major documenation updates
+	* illegal accesses to private static methods now throw an exception at
+	  parse time instead of at run time
+
 2008.06.12: David Nichols
 	* added doxygen support to configure.ac and Makefile.am
 	* initial (untested) updates to spec file

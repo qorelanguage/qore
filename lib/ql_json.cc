@@ -1,5 +1,5 @@
 /*
-  lib/ql_xml.cc
+  lib/ql_json.cc
 
   Qore JSON (JavaScript QoreObject Notation) functions
 

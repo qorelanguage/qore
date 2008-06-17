@@ -39,12 +39,28 @@ class ClosureRuntimeEnvironment {
       DLLLOCAL void del(ExceptionSink *xsink);
 };
 
-class QoreClosureNode : public ResolvedCallReferenceNode
+class QoreClosureBase : public ResolvedCallReferenceNode
+{
+   protected:
+      const QoreClosureParseNode *closure;
+
+   public:
+      //! constructor is not exported outside the library
+      DLLLOCAL QoreClosureBase(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF, const QoreClosureParseNode *n_closure) : ResolvedCallReferenceNode(n_needs_eval, n_type), closure(n_closure)
+      {
+      }
+      
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+         return "closure";
+      }      
+};
+
+class QoreClosureNode : public QoreClosureBase
 {
    private:
-      QoreProgram *pgm;
       mutable ClosureRuntimeEnvironment closure_env;
-      const QoreClosureParseNode *closure;
+      QoreProgram *pgm;
 
       DLLLOCAL QoreClosureNode(const QoreClosureNode&); // not implemented
       DLLLOCAL QoreClosureNode& operator=(const QoreClosureNode&); // not implemented
@@ -83,11 +99,6 @@ class QoreClosureNode : public ResolvedCallReferenceNode
 
       DLLLOCAL bool isLambda() const { return closure->isLambda(); }
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
-         return "runtime function closure";
-      }
-
       DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
       {
 	 return QoreClosureNode::is_equal_hard(v, xsink);
@@ -99,12 +110,11 @@ class QoreClosureNode : public ResolvedCallReferenceNode
       }
 };
 
-class QoreObjectClosureNode : public ResolvedCallReferenceNode
+class QoreObjectClosureNode : public QoreClosureBase
 {
    private:
-      QoreObject *obj;
       mutable ClosureRuntimeEnvironment closure_env;
-      const QoreClosureParseNode *closure;
+      QoreObject *obj;
 
       DLLLOCAL QoreObjectClosureNode(const QoreClosureNode&); // not implemented
       DLLLOCAL QoreObjectClosureNode& operator=(const QoreClosureNode&); // not implemented
@@ -142,11 +152,6 @@ class QoreObjectClosureNode : public ResolvedCallReferenceNode
       }
 
       DLLLOCAL bool isLambda() const { return closure->isLambda(); }
-
-      DLLLOCAL static const char *getStaticTypeName()
-      {
-         return "runtime function closure";
-      }
 
       DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
       {

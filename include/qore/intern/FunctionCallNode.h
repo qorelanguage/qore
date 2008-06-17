@@ -276,19 +276,25 @@ class StaticMethodCallNode : public AbstractFunctionCallNode
 	 QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
 	 if (!qc)
 	    return 0;
-   
+
 	 method = qc->parseFindMethodTree(scope->getIdentifier());
 	 if (!method) {
 	    parseException("INVALID-METHOD", "class '%s' has no method '%s'", qc->getName(), scope->getIdentifier());
 	    return 0;
 	 }
 
-	 if (!method->isStatic()) {
-	    parseException("NON-STATIC-METHOD-ERROR", "method %s::%s() is not static and therefore cannot be called with static call syntax", qc->getName(), scope->getIdentifier());
-	    return 0;
-	 }
 	 delete scope;
 	 scope = 0;
+
+	 if (!method->isStatic()) {
+	    parseException("NON-STATIC-METHOD-ERROR", "method %s::%s() is not static and therefore cannot be called with static call syntax", qc->getName(), method->getName());
+	    return 0;
+	 }
+
+	 if (method->isPrivate() && qc != getParseClass()) {
+	    parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
+	    return 0;
+	 }
 
 	 // check class capabilities against parse options
 	 if (qc->getDomain() & getProgram()->getParseOptions()) {

@@ -536,8 +536,10 @@ static AbstractQoreNode *FILE_lock(QoreObject *self, class File *f, const QoreLi
    if (lock_intern(fl, params, xsink))
       return 0;
 
-   f->lock(fl, xsink);
-   return 0;
+   int rc = f->lock(fl, xsink);
+   if (*xsink)
+      return 0;
+   return new QoreBigIntNode(rc);
 }
 
 static AbstractQoreNode *FILE_lockBlocking(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)

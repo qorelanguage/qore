@@ -14,6 +14,7 @@ qore 0.7.0 is a major release with major new features
 *) new implicit argument references: $$ (entire argument list), $1, $2, ...
 *) new special object method: "memberNotification()", called when members are updated externally to the class
 *) "static" class methods are now supported
+*) dereference string characters with [] operator
 *) qt-core, qt-gui, qt-opengl, qt-svg modules based on QT4
 *) opengl module
 *) glut module
