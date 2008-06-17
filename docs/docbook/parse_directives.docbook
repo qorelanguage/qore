@@ -76,6 +76,10 @@
 	  <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>--no-global-vars</code> command-line option.</para></entry>
 	</row>
 	<row>
+	  <entry><para><link linkend="no-gui"><code>%no-gui</code></link></para></entry>
+	  <entry><para>Disallows functionality that draws graphics to the display.  Equivalent to parse option <code>PO_NO_GUI</code> and the <code>-pno-gui</code> command-line option.</para></entry>
+	</row>
+	<row>
 	  <entry><para><link linkend="no-namespace-defs"><code>%no-namespace-defs</code></link></para></entry>
 	  <entry><para>Disallows new namespace definitions.  Equivalent to <code>PO_NO_NAMESPACE_DEFS</code> and the <code>--no-namespace-defs</code> command-line option.</para></entry>
 	</row>
@@ -95,6 +99,12 @@
 	  <entry><para><link linkend="no-subroutine-defs"><code>%no-subroutine-defs</code></link></para></entry>
 	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
 	</row>
+
+	<row>
+	  <entry><para><link linkend="no-terminal-io"><code>%no-terminal-io</code></link></para></entry>
+	  <entry><para>Disallows access to terminal I/O (see <link linkend="no-terminal-io"><code>%no-terminal-io</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_TERMINAL_IO</code> and the <code>-pno-terminal-io</code> command-line option.</para></entry>
+	</row>
+
 	<row>
 	  <entry><para><link linkend="no-thread-classes"><code>%no-thread-classes</code></link></para></entry>
 	  <entry><para>Disallows access to thread classes (see <link linkend="no-thread-classes"><code>%no-thread-classes</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
@@ -578,36 +588,64 @@
 	      </thead>
 	      <tbody>
 		<row>
+		  <entry><para><link linkend="Qore_Dir_Class">Dir</link> class</para></entry>
+		  <entry><para>The Dir class is not available.</para></entry>
+		</row>
+		<row>
 		  <entry><para><link linkend="Qore_File_Class">File</link> class</para></entry>
 		  <entry><para>The File class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_file">is_file()</link></para></entry>
-		  <entry><para>The is_file() function is not available.</para></entry>
+		  <entry><para><link linkend="chdir">chdir()</link></para></entry>
+		  <entry><para>The chdir() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_dir">is_dir()</link></para></entry>
-		  <entry><para>The is_dir() function is not available.</para></entry>
+		  <entry><para><link linkend="chmod">chmod()</link></para></entry>
+		  <entry><para>The chmod() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_socket">is_socket()</link></para></entry>
-		  <entry><para>The is_socket() function is not available.</para></entry>
+		  <entry><para><link linkend="chown">chown()</link></para></entry>
+		  <entry><para>The chown() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_pipe">is_pipe()</link></para></entry>
-		  <entry><para>The is_pipe() function is not available.</para></entry>
+		  <entry><para><link linkend="glob">glob()</link></para></entry>
+		  <entry><para>The glob() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_dev">is_dev()</link></para></entry>
-		  <entry><para>The is_dev() function is not available.</para></entry>
+		  <entry><para><link linkend="hlstat">hlstat()</link></para></entry>
+		  <entry><para>The hlstat() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="hstat">hstat()</link></para></entry>
+		  <entry><para>The hstat() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_bdev">is_cdev()</link></para></entry>
+		  <entry><para>The is_cdev() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_cdev">is_bdev()</link></para></entry>
 		  <entry><para>The is_bdev() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="is_bdev">is_cdev()</link></para></entry>
-		  <entry><para>The is_cdev() function is not available.</para></entry>
+		  <entry><para><link linkend="is_dev">is_dev()</link></para></entry>
+		  <entry><para>The is_dev() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_executable">is_executable()</link></para></entry>
+		  <entry><para>The is_executable() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_dir">is_dir()</link></para></entry>
+		  <entry><para>The is_dir() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_file">is_file()</link></para></entry>
+		  <entry><para>The is_file() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="is_pipe">is_pipe()</link></para></entry>
+		  <entry><para>The is_pipe() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_link">is_link()</link></para></entry>
@@ -618,56 +656,24 @@
 		  <entry><para>The is_readable() function is not available.</para></entry>
 		</row>
 		<row>
+		  <entry><para><link linkend="is_socket">is_socket()</link></para></entry>
+		  <entry><para>The is_socket() function is not available.</para></entry>
+		</row>
+		<row>
 		  <entry><para><link linkend="is_writeable">is_writeable()</link></para></entry>
 		  <entry><para>The is_writeable() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="is_executable">is_executable()</link></para></entry>
-		  <entry><para>The is_executable() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="stat">stat()</link></para></entry>
-		  <entry><para>The stat() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="lstat">lstat()</link></para></entry>
 		  <entry><para>The lstat() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="hstat">hstat()</link></para></entry>
-		  <entry><para>The hstat() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="hlstat">hlstat()</link></para></entry>
-		  <entry><para>The hlstat() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="glob">glob()</link></para></entry>
-		  <entry><para>The glob() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="unlink">unlink()</link></para></entry>
-		  <entry><para>The unlink() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="umask">umask()</link></para></entry>
-		  <entry><para>The umask() function is not available.</para></entry>
-		</row>
-		<row>
 		  <entry><para><link linkend="mkdir">mkdir()</link></para></entry>
 		  <entry><para>The mkdir() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="rmdir">rmdir()</link></para></entry>
-		  <entry><para>The rmdir() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="chmod">chmod()</link></para></entry>
-		  <entry><para>The chdir() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="chdir">chdir()</link></para></entry>
-		  <entry><para>The chdir() function is not available.</para></entry>
+		  <entry><para><link linkend="mkfifo">mkfifo()</link></para></entry>
+		  <entry><para>The mkfifo() function is not available.</para></entry>
 		</row>
 <!--
 		<row>
@@ -676,8 +682,20 @@
 		</row>
 -->
 		<row>
-		  <entry><para><link linkend="mkfifo">mkfifo()</link></para></entry>
-		  <entry><para>The mkfifo() function is not available.</para></entry>
+		  <entry><para><link linkend="rmdir">rmdir()</link></para></entry>
+		  <entry><para>The rmdir() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="stat">stat()</link></para></entry>
+		  <entry><para>The stat() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="umask">umask()</link></para></entry>
+		  <entry><para>The umask() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="unlink">unlink()</link></para></entry>
+		  <entry><para>The unlink() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -687,7 +705,6 @@
       </varlistentry>
     </variablelist>
   </sect2>
-
 
   <sect2 id="no-global-vars">
     <title>no-global-vars</title>
@@ -718,6 +735,37 @@
       </varlistentry>
     </variablelist>
   </sect2>
+
+  <sect2 id="no-gui">
+    <title>no-gui</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-gui</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--set-parse-option=no-gui, -pno-gui</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_GUI</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows the use of functionality that draws graphics to the display (this functionality is not implemented in the qore library; only implemented in modules).</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+
   <sect2 id="no-namespace-defs">
     <title>no-namespace-defs</title>
     <variablelist>
@@ -878,20 +926,8 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="exit">exit()</link></para></entry>
-		  <entry><para>The exit() function is not available.</para></entry>
-		</row>
-		<row>
 		  <entry><para><link linkend="abort">abort()</link></para></entry>
 		  <entry><para>The abort() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="sleep">sleep()</link></para></entry>
-		  <entry><para>The sleep() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="usleep">usleep()</link></para></entry>
-		  <entry><para>The usleep() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="fork">fork()</link></para></entry>
@@ -902,12 +938,40 @@
 		  <entry><para>The exec() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
-		  <entry><para>The set_signal_handler() function is not available.</para></entry>
+		  <entry><para><link linkend="exit">exit()</link></para></entry>
+		  <entry><para>The exit() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="remove_signal_handler">remove_signal_handler()</link></para></entry>
 		  <entry><para>The remove_signal_handler() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
+		  <entry><para>The set_signal_handler() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="setegid">setegid()</link></para></entry>
+		  <entry><para>The setegid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="seteuid">seteuid()</link></para></entry>
+		  <entry><para>The seteuid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="setgid">setgid()</link></para></entry>
+		  <entry><para>The setgid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="setuid">setuid()</link></para></entry>
+		  <entry><para>The setuid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="sleep">sleep()</link></para></entry>
+		  <entry><para>The sleep() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="usleep">usleep()</link></para></entry>
+		  <entry><para>The usleep() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -942,6 +1006,82 @@
 	<term>Description</term>
 	<listitem>
 	  <para>Disallows subroutine (function) definitions.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect2>
+
+  <sect2 id="no-terminal-io">
+    <title>no-terminal-io</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-terminal-io</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--set-parse-option=no-terminal-io, -pno-terminal-io</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code>PO_NO_TERMINAL_IO</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to terminal input and output.</para>
+	  <table>
+	    <title>Unavailable Features with no-terminal-io</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="flush">flush()</link></para></entry>
+		  <entry><para>The flush() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="f_printf">f_printf()</link></para></entry>
+		  <entry><para>The f_printf() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="printf">print()</link></para></entry>
+		  <entry><para>The print() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="printf">printf()</link></para></entry>
+		  <entry><para>The printf() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="vprintf">vprintf()</link></para></entry>
+		  <entry><para>The vprintf() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="stdin_constant">stdin</link></para></entry>
+		  <entry><para>The stdin constant is not accessible.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="stdout_constant">stdout</link></para></entry>
+		  <entry><para>The stdout constant is not accessible.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="stderr_constant">stderr</link></para></entry>
+		  <entry><para>The stderr constant is not accessible.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>  
+
 	</listitem>
       </varlistentry>
     </variablelist>

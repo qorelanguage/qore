@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+  <sect1 id="glut_Module">
+    <title>glut Module</title>
+
+    <para>The glut module exports GLUT functionality to qore.</para>
+
+  </sect1>

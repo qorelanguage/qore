@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+  <sect1 id="qt-svg_Module">
+    <title>qt-svg Module</title>
+
+    <para>The qt-svg module exports QT SVG library functionality to qore.</para>
+
+    <para>This module is experimental.</para>
+
+  </sect1>

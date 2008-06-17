@@ -24,6 +24,7 @@
         <row><entry><para><link linkend="Cryptographic_Functions">Cryptographic Functions</link></para></entry></row>
         <row><entry><para><link linkend="Digest_Functions">Digest Functions</link></para></entry></row>
         <row><entry><para><link linkend="Filesystem_Functions">Filesystem Functions</link></para></entry></row>
+        <row><entry><para><link linkend="Data_Compression_Functions">Data Compression Functions</link></para></entry></row>
         <row><entry><para><link linkend="Miscellaneous_Functions">Miscellaneous Functions</link></para></entry></row>
         <row><entry><para><link linkend="Threading_Functions">Threading Functions</link></para></entry></row>
         <row><entry><para><link linkend="XML_Functions">XML Functions</link></para></entry></row>
@@ -281,7 +282,7 @@
             <para>Y</para>
           </entry>
           <entry>
-            <para>Calls a function or a <link linkend="call_references">call reference</link> and returns the return value, passing the remaining arguments after the function name to the function (or <link linkend="call_references">call reference</link>).</para>
+            <para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, passing the remaining arguments after the function name to the function (or <link linkend="call_references">call reference</link>).</para>
           </entry>
         </row>
         <row>
@@ -295,7 +296,7 @@
             <para>Y</para>
           </entry>
           <entry>
-            <para>Calls a function or <link linkend="call_references">call reference</link> and returns the return value, using the argument after the function name as a list of arguments to pass to the function (or <link linkend="call_references">call reference</link>).</para>
+            <para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, using the argument after the function name as a list of arguments to pass to the function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link>.</para>
           </entry>
         </row>
         <row>
@@ -421,6 +422,14 @@
           <entry><para>N</para></entry>
           <entry><para>Removes the trailing end-of-line indicator from a string and returns the new string (also see the <link linkend="Chomp_Operator">chomp</link> operator); also accepts variable references to do modifications in-place.</para></entry>
         </row>
+
+        <row>
+          <entry><para><link linkend="chown">chown()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Changes the user and group owners of a file (if the current user has permission to do so), follows symbolic links.</para></entry>
+        </row>
+
         <row>
           <entry><para><link linkend="chr">chr()</link></para></entry>
           <entry><para>String</para></entry>
@@ -1075,7 +1084,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the name of the default character set encoding.</para>
+            <para>Returns the name of the default character encoding.</para>
           </entry>
         </row>
         <row>
@@ -1176,20 +1185,17 @@
         </entry>
       </row>
       <row>
-        <entry>
-          <para>
-            <link linkend="get_seconds">get_seconds()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Integer</para>
-        </entry>
-        <entry>
-          <para>N</para>
-        </entry>
-        <entry>
-          <para>Returns an integer value representing the seconds value of the date passed (can be either a relative or absolute date).</para>
-        </entry>
+        <entry><para><link linkend="get_seconds">get_seconds()</link></para></entry>
+        <entry><para>Integer</para></entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns an integer value representing the seconds value of the date passed (can be either a relative or absolute date).</para></entry>
+      </row>
+
+      <row>
+        <entry><para><link linkend="get_script_dir">get_script_dir()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns a string giving the directory from which the current &quot;parent&quot; script was executed.</para></entry>
       </row>
 
 
@@ -1990,6 +1996,14 @@
             <para>Sends a signal to a process (default: SIGHUP)</para>
           </entry>
         </row>
+
+        <row>
+          <entry><para><link linkend="lchown">lchown()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Changes the user and group owners of a file (if the current user has permission to do so), does not follow symbolic links.</para></entry>
+        </row>
+
         <row>
           <entry>
             <para>
@@ -2636,7 +2650,7 @@
           <entry><para><link linkend="min">min()</link></para></entry>
           <entry><para>Any</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the minumum value in a list (see also <link linkend="max">max()</link>); one variant takes an optional <link linkend="call_references">call reference</link> to process lists of complex data types.</para></entry>
+          <entry><para>Returns the minumum value in a list (see also <link linkend="max">max()</link>); one variant takes an optional <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> to process lists of complex data types.</para></entry>
         </row>
         <row>
           <entry>
@@ -3353,37 +3367,64 @@
         </entry>
       </row>
       <row>
-        <entry>
-          <para>
-            <link linkend="SHA1">SHA1()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
-        <entry>
-          <para>Returns the SHA1 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
-        </entry>
+        <entry><para><link linkend="SHA1">SHA1()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA1 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
-
       <row>
-        <entry>
-          <para>
-            <link linkend="SHA1_bin">SHA1_bin()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Binary</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
-        <entry>
-          <para>Returns the SHA1 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para>
-        </entry>
+        <entry><para><link linkend="SHA1_bin">SHA1_bin()</link></para></entry>
+        <entry><para>Binary</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA1 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="SHA224">SHA224()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA224 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="SHA224_bin">SHA224_bin()</link></para></entry>
+        <entry><para>Binary</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA224 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="SHA256">SHA256()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA256 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="SHA256_bin">SHA256_bin()</link></para></entry>
+        <entry><para>Binary</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA256 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="SHA384">SHA384()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA384 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="SHA384_bin">SHA384_bin()</link></para></entry>
+        <entry><para>Binary</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA384 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="SHA512">SHA512()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA512 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="SHA512_bin">SHA512_bin()</link></para></entry>
+        <entry><para>Binary</para></entry>
+        <entry><para>Y</para></entry>
+        <entry><para>Returns the SHA512 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
 
         <row>
@@ -3406,25 +3447,25 @@
           <entry><para><link linkend="sort">sort()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Sorts a list in ascending order (unstable); optionally takes a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
+          <entry><para>Sorts a list in ascending order (unstable); optionally takes a <link linkend="closures">closure</link> or a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortDescending">sortDescending()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Sorts a list in descending order (unstable); optionally takes a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
+          <entry><para>Sorts a list in descending order (unstable); optionally takes a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortDescendingStable">sortDescendingStable()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Performs a descending stable sort on a list and returns the new list; optionally takes a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
+          <entry><para>Performs a descending stable sort on a list and returns the new list; optionally takes a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortStable">sortStable()</link></para></entry>
           <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Performs an ascending stable sort on a list and returns the new list; optionally takes a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
+          <entry><para>Performs an ascending stable sort on a list and returns the new list; optionally takes a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry>
@@ -5173,6 +5214,12 @@
 	<programlisting>f_printf("%5s\n", "long string"); # will print "long \n", respecting the 5-character field width</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-terminal-io"><code>PO_NO_TERMINAL_IO</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table><title>Arguments and Return Values for f_printf()</title>
@@ -5266,6 +5313,12 @@
 	<programlisting>flush();</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-terminal-io"><code>PO_NO_TERMINAL_IO</code></link></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
   <table><title>Arguments and Return Values for flush()</title>
@@ -5310,6 +5363,12 @@
       <term>Example</term>
       <listitem>
 	<programlisting>print("hello\n"); # do not use formatting with this function</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-terminal-io"><code>PO_NO_TERMINAL_IO</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5369,6 +5428,12 @@
       <term>Example</term>
       <listitem>
 	<programlisting>printf("%5s\n", "a long string"); # will output "a long string", exceeding the field width</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-terminal-io"><code>PO_NO_TERMINAL_IO</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -5467,6 +5532,12 @@
       <term>Example</term>
       <listitem>
 	<programlisting>vprintf("%5s %3d\n", ("a long string", 5000)); # outputs "a long string 5000", exceeding field width of 5</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-terminal-io"><code>PO_NO_TERMINAL_IO</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8084,7 +8155,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String, String, [Integer]</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>If the substring is found, returns the byte position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are byte positions, not character positions, which may differ for multi-byte character sets.</para></entry>
+              <entry><para>If the substring is found, returns the byte position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are byte positions, not character positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8128,7 +8199,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String, String, [Integer]</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>Returns the starting byte position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are byte positions, not character positions, which may differ for multi-byte character sets.</para></entry>
+              <entry><para>Returns the starting byte position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are byte positions, not character positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8380,7 +8451,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String, String, [Integer]</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>If the substring is found, returns the position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are character positions, not byte positions, which may differ for multi-byte character sets.</para></entry>
+              <entry><para>If the substring is found, returns the position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are character positions, not byte positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8440,7 +8511,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the length in characters for the string passed.  Note that the byte length may differ from the character length with multi-byte character sets.  For byte length of a string, see  <link linkend="strlen">strlen()</link>.</para>
+	<para>Returns the length in characters for the string passed.  Note that the byte length may differ from the character length with multi-byte character encodings.  For byte length of a string, see  <link linkend="strlen">strlen()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8814,7 +8885,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String, String, [Integer]</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>Returns the starting character position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are character positions, not byte positions, which may differ for multi-byte character sets.</para></entry>
+              <entry><para>Returns the starting character position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are character positions, not byte positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8877,7 +8948,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the length in bytes of the string argument.  Note that the byte length may differ from the character length with multi-byte character sets.  For the character length of a string, see  <link linkend="length">length()</link>.</para>
+	<para>Returns the length in bytes of the string argument.  Note that the byte length may differ from the character length with multi-byte character encodings.  For the character length of a string, see  <link linkend="length">length()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10173,6 +10244,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>setegid($egid);</programlisting>
         </listitem>
       </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for setegid()</title>
@@ -10243,6 +10320,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <listitem>
           <programlisting>seteuid($euid);</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -10325,6 +10408,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <programlisting>setgid($gid);</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for setgid()</title>
@@ -10405,6 +10494,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <listitem>
           <programlisting>setuid($uid);</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="no-process-control"><code>PO_NO_PROCESS_CONTROL</code></link></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -14645,7 +14740,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </table>
   </sect2>
   <sect2 id="SHA1_bin">
-    <title>SHA_bin1()</title>
+    <title>SHA1_bin()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
@@ -14726,11 +14821,660 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </table>
   </sect2>
 
+  <sect2 id="SHA224">
+    <title>SHA224()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA224 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA224(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = SHA224("hello"); # "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA224()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA224 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA224()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA224-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA224_bin">
+    <title>SHA224_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA224 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA224_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = SHA224_bin("hello"); # &lt;ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA224_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA224 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA224_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA224-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA256">
+    <title>SHA256()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA256 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA256(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = SHA256("hello"); # "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA256()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA256 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA256()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA256-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA256_bin">
+    <title>SHA256_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA256 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA256_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = SHA256_bin("hello"); # &lt;2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA256_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA256 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA256_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA256-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA384">
+    <title>SHA384()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA384 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA384(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = SHA384("hello"); # "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA384()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA384 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA384()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA384-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA384_bin">
+    <title>SHA384_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA384 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA384_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = SHA384_bin("hello"); # &lt;59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA384_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA384 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA384_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA384-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA512">
+    <title>SHA512()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA512 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA512(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$str = SHA512("hello"); # "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA512()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA512 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA512()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA512-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="SHA512_bin">
+    <title>SHA512_bin()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns the SHA512 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <programlisting>SHA512_bin(<replaceable>string | binary</replaceable>)</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bin = SHA512_bin("hello"); # &lt;9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043&gt;</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for SHA512_bin()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>String | Binary</para>
+            </entry>
+            <entry>
+              <para>String</para>
+            </entry>
+            <entry>
+              <para>Returns the SHA512 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <title>Exceptions thrown by SHA512_bin()</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>err</para>
+            </entry>
+            <entry>
+              <para>desc</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <code>SHA512-DIGEST-ERROR</code>
+              </para>
+            </entry>
+            <entry>
+              <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
   </sect1>
 
   <sect1 id="Filesystem_Functions">
     <title>Filesystem Functions</title>
-    <para>The following functions return information about or are related to the filesystem.  See the <link linkend="Qore_File_Class">File class</link> for a class enabling files to be created, read or written to.</para>
+    <para>The following functions return information about or are related to the filesystem.  See the <link linkend="Qore_File_Class">File class</link> for a class enabling files to be created, read or written, and the <link linkend="Qore_Dir_Class">Dir class</link> allowing directories to be manipulated.</para>
 
 <sect2 id="chdir">
   <title>chdir()</title>
@@ -14869,6 +15613,78 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <row>
 	<entry><para><code>CHMOD-PARAMETER-ERROR</code></para></entry>
 	<entry><para>Either the filename or the mode was missing from the call.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="chown">
+  <title>chown()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Changes the user and group owners of a file, if the current user has permission to do so (normally only the superuser can change the user owner), follows symbolic links.  For a version of this function that does not follow symbolic links, see the <link linkend="lchown">lchown()</link> function.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>chown(<replaceable>filepath, user_id, group_id</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>chown("/bin/login", 0, 0);</programlisting>
+      </listitem>
+    </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for chown()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String, Integer, Integer</para></entry>
+    <entry><para>Integer</para></entry>
+    <entry><para>Changes the owner and group of the file passed.  Returns 0 if successful.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+  <table><title>Exceptions Thrown by chown()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>CHOWN-PARAMETER-ERROR</code></para></entry>
+	<entry><para>Expecting a string as the first argument.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -15714,6 +16530,78 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </table>
   </sect2>
 
+<sect2 id="lchown">
+  <title>lchown()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Changes the user and group owners of a file, if the current user has permission to do so (normally only the superuser can change the user owner), does not follow symbolic links.  For a version of this function that follows symbolic links, see the <link linkend="chown">chown()</link> function.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>lchown(<replaceable>filepath, user_id, group_id</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>lchown("/bin/login", 0, 0);</programlisting>
+      </listitem>
+    </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
+	</listitem>
+      </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for lchown()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String, Integer, Integer</para></entry>
+    <entry><para>Integer</para></entry>
+    <entry><para>Changes the owner and group of the file passed.  Returns 0 if successful.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+  <table><title>Exceptions Thrown by lchown()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>CHOWN-PARAMETER-ERROR</code></para></entry>
+	<entry><para>Expecting a string as the first argument.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
 <sect2 id="lstat">
 <title>lstat()</title>
 
@@ -16089,6 +16977,591 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
   </sect1>
 
+  <sect1 id="Data_Compression_Functions">
+    <title>Data Compression Functions</title>
+      <para>This section documents functions for compressing and uncompressing data.</para>
+
+<sect2 id="compress">
+  <title>compress()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Performs zlib-based &quot;deflate&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).  Note that strings are compressed without the trailing null character.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>compress(<replaceable>string | binary, [level]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bin = compress("hello");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for compress()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Compresses the input data and returns a binary object.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the highest compression level.  If this argument is not present then a default value of 6 is assumed.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by compress()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>ZLIB-LEVEL-ERROR</code></para></entry>
+	<entry><para>the compression level is invalid (must be between 1 - 9 inclusive).</para></entry>
+      </row>
+      <row>
+	<entry><para><code>ZLIB-ERROR</code></para></entry>
+	<entry><para>zlib returned an error while processing.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+    <sect2 id="gunzip_to_binary">
+      <title>gunzip_to_binary()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Uncompresses gzipped data using zlib functions and returns a binary object of the uncompressed data.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>gunzip_to_binary(<replaceable>binary</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bin = gunzip_to_binary($data);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments and Return Values for gunzip_to_binary()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>binary</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  
+      <table><title>Exceptions Thrown by gunzip_to_binary()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>ZLIB-ERROR</code></para></entry>
+	    <entry><para>zlib returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="gunzip_to_string">
+      <title>gunzip_to_string()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Uncompresses gzipped data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>gunzip_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = gunzip_to_string($gzipped_string);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments and Return Values for gunzip_to_string()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table><title>Exceptions Thrown by gunzip_to_string()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>ZLIB-ERROR</code></para></entry>
+	    <entry><para>zlib returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+      
+    </sect2>
+
+    <sect2 id="gzip">
+      <title>gzip()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Performs zlib-based &quot;gzip&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).  Note that strings are compressed without the trailing null character.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>gzip(<replaceable>string | binary, [level]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bin = gzip($data);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments and Return Values for gzip()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Compresses the input data and returns a binary object of the gzipped data.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the highest compression level.  If this argument is not present then a default value of 6 is assumed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table><title>Exceptions Thrown by gzip()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>ZLIB-LEVEL-ERROR</code></para></entry>
+	    <entry><para>the compression level is invalid (must be between 1 - 9 inclusive).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>ZLIB-ERROR</code></para></entry>
+	    <entry><para>zlib returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+      
+    </sect2>
+
+    <sect2 id="bunzip2_to_binary">
+      <title>bunzip2_to_binary()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Uncompresses data compressed with bzip2 and returns a binary object of the uncompressed data.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>bunzip2_to_binary(<replaceable>binary</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bin = bunzip2_to_binary($data);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments and Return Values for bunzip2_to_binary()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>binary</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  
+      <table><title>Exceptions Thrown by bunzip2_to_binary()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>BZIP2-DECOMPRESS-ERROR</code></para></entry>
+	    <entry><para>libbz2 returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="bunzip2_to_string">
+      <title>bunzip2_to_string()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Uncompresses data compressed with bzip2 and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>bunzip2_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$str = bunzip2_to_string($gzipped_string);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments and Return Values for bunzip2_to_string()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table><title>Exceptions Thrown by bunzip2_to_string()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>BZIP2-DECOMPRESS-ERROR</code></para></entry>
+	    <entry><para>libbz2 returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+      
+    </sect2>
+
+    <sect2 id="bzip2">
+      <title>bzip2()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Performs &quot;bzip2&quot; data compression and returns a binary object of the compressed data.  The optional second argument specifies the compression buffer size as an argument from 1 - 9; if no second argument is given, then the maximum buffer size is assumed (default: 9).  Note that strings are compressed without the trailing null character.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>bzip2(<replaceable>string | binary, [level]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bin = bzip2($data);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments and Return Values for bzip2()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument Type</para></entry>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>Compresses the input data and returns a binary object of the bzip2 data.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the largest compression buffer size.  If this argument is not present then a default value of 9 is assumed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table><title>Exceptions Thrown by bzip2()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>BZLIB2-LEVEL-ERROR</code></para></entry>
+	    <entry><para>the compression level is invalid (must be between 1 - 9 inclusive).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>BZLIB2-COMPRESSION-ERROR</code></para></entry>
+	    <entry><para>zlib returned an error while processing.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+      
+    </sect2>
+
+<sect2 id="uncompress_to_binary">
+  <title>uncompress_to_binary()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Uncompresses data using zlib functions and returns a binary object of the uncompressed data.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>uncompress_to_binary(<replaceable>binary</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$bin = uncompress_to_binary($compressed_data);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for uncompress_to_binary()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>binary</replaceable></para></entry>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by uncompress_to_binary()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>ZLIB-ERROR</code></para></entry>
+	<entry><para>zlib returned an error while processing.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="uncompress_to_string">
+  <title>uncompress_to_string()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Uncompresses data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>uncompress_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = uncompress_to_string($compressed_data);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for uncompress_to_string()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
+	  <entry><para>Binary</para></entry>
+	  <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by uncompress_to_string()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>ZLIB-ERROR</code></para></entry>
+	<entry><para>zlib returned an error while processing.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+  </sect1>
+
 <sect1 id="Miscellaneous_Functions">
 <title>Miscellaneous Functions</title>
 <para></para>
@@ -16172,7 +17645,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Calls a function or <link linkend="call_references">call reference</link> and returns the return value, using the optional second argument as a list of arguments for the function (or <link linkend="call_references">call reference</link>) to be called.</para>
+	<para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, using the optional second argument as a list of arguments for the function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> to be called.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -16204,9 +17677,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
       <tbody>
 	<row>
-	  <entry><para>String | <link linkend="call_references">call reference</link>, [List]</para></entry>
+	  <entry><para>String | <link linkend="closures">closure</link> | <link linkend="call_references">call reference</link>, [List]</para></entry>
 	  <entry><para>Any (depends on function)</para></entry>
-	  <entry><para>Executes the given function or <link linkend="call_references">call reference</link> using any second argument as the list of arguments.</para></entry>  
+	  <entry><para>Executes the given function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> using any second argument as the list of arguments.</para></entry>  
 	</row>
       </tbody>
     </tgroup>
@@ -16246,7 +17719,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Calls a function or a <link linkend="call_references">call reference</link> and returns the return value, passing the remaining arguments after the function name to the function (or <link linkend="call_references">call reference</link>).</para>
+	<para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, passing the remaining arguments after the function name to the function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -16278,9 +17751,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String | <link linkend="call_references">call reference</link>, Any</para></entry>
+    <entry><para>String | <link linkend="closures">closure</link> | <link linkend="call_references">call reference</link>, Any</para></entry>
     <entry><para>Any (depends on function)</para></entry>
-    <entry><para>Executes the given function or <link linkend="call_references">call reference</link> with the remainder of the arguments as the arguments to the function (or <link linkend="call_references">call reference</link>) to be called.</para></entry>
+    <entry><para>Executes the given function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> with the remainder of the arguments as the arguments to the function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> to be called.</para></entry>
   </row>
 
 </tbody>
@@ -16470,72 +17943,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
-<sect2 id="compress">
-  <title>compress()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Performs zlib-based &quot;deflate&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).  Note that strings are compressed without the trailing null character.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>compress(<replaceable>string | binary, [level]</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$bin = compress("hello");</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for compress()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
-	  <entry><para>Binary</para></entry>
-	  <entry><para>Compresses the input data and returns a binary object.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the highest compression level.  If this argument is not present then a default value of 6 is assumed.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-  <table><title>Exceptions Thrown by compress()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>ZLIB-LEVEL-ERROR</code></para></entry>
-	<entry><para>the compression level is invalid (must be between 1 - 9 inclusive).</para></entry>
-      </row>
-      <row>
-	<entry><para><code>ZLIB-ERROR</code></para></entry>
-	<entry><para>zlib returned an error while processing.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
-
-</sect2>
 <sect2 id="existsFunction">
 <title>existsFunction()</title>
 
@@ -17030,7 +18437,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the name of the default character set encoding for the currently-running Qore process.</para>
+	<para>Returns the name of the default character encoding for the currently-running Qore process.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17062,7 +18469,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <row>
     <entry><para>n/a</para></entry>
     <entry><para>String</para></entry>
-    <entry><para>Returns the name of the default character set encoding.</para></entry>
+    <entry><para>Returns the name of the default character encoding.</para></entry>
   </row>
 
 </tbody>
@@ -17129,198 +18536,52 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <para>This function does not throw any exceptions.</para>
     </sect2>
 
-    <sect2 id="gunzip_to_binary">
-      <title>gunzip_to_binary()</title>
+    <sect2 id="get_script_dir">
+      <title>get_script_dir()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Uncompresses gzipped data using zlib functions and returns a binary object of the uncompressed data.</para>
+	    <para>Returns the name of the directory from which the current &quot;parent&quot; script was executed.  Returns NOTHING if the parent script is unknown (i.e. no parent script, script read from stdin, etc).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>gunzip_to_binary(<replaceable>binary</replaceable>)</programlisting>
+	    <programlisting>get_script_dir()</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$bin = gunzip_to_binary($data);</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-
-      <table>
-	<title>Arguments and Return Values for gunzip_to_binary()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument Type</para></entry>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><replaceable>binary</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
-	      <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-  
-      <table><title>Exceptions Thrown by gunzip_to_binary()</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	<thead>
-	  <row>
-	    <entry><para>err</para></entry>
-	    <entry><para>desc</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><para><code>ZLIB-ERROR</code></para></entry>
-	    <entry><para>zlib returned an error while processing.</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-      </table>
-
-    </sect2>
-
-    <sect2 id="gunzip_to_string">
-      <title>gunzip_to_string()</title>
-
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Uncompresses gzipped data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>gunzip_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Example</term>
-	  <listitem>
-	    <programlisting>$str = gunzip_to_string($gzipped_string);</programlisting>
+	    <programlisting>$dir = get_script_dir();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
       
-      <table>
-	<title>Arguments and Return Values for gunzip_to_string()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument Type</para></entry>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
-	      <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-      
-      <table><title>Exceptions Thrown by gunzip_to_string()</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <table><title>Arguments and Return Values for get_script_dir()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	<thead>
 	  <row>
-	    <entry><para>err</para></entry>
-	    <entry><para>desc</para></entry>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><code>ZLIB-ERROR</code></para></entry>
-	    <entry><para>zlib returned an error while processing.</para></entry>
+	    <entry><para>n/a</para></entry>
+	    <entry><para>String or NOTHING</para></entry>
+	    <entry><para>Returns the name of the directory for the current script, or NOTHING if unknown.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
       </table>
+      <para>This function does not throw any exceptions.</para>
       
     </sect2>
 
-    <sect2 id="gzip">
-      <title>gzip()</title>
-
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Performs zlib-based &quot;gzip&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).  Note that strings are compressed without the trailing null character.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>gzip(<replaceable>string | binary, [level]</replaceable>)</programlisting>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Example</term>
-	  <listitem>
-	    <programlisting>$bin = gzip($data);</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-      
-      <table>
-	<title>Arguments and Return Values for gzip()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument Type</para></entry>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
-	      <entry><para>Compresses the input data and returns a binary object of the gzipped data.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the highest compression level.  If this argument is not present then a default value of 6 is assumed.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-      
-      <table><title>Exceptions Thrown by gzip()</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	<thead>
-	  <row>
-	    <entry><para>err</para></entry>
-	    <entry><para>desc</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><para><code>ZLIB-LEVEL-ERROR</code></para></entry>
-	    <entry><para>the compression level is invalid (must be between 1 - 9 inclusive).</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code>ZLIB-ERROR</code></para></entry>
-	    <entry><para>zlib returned an error while processing.</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-      </table>
-      
-    </sect2>
 
     <sect2 id="hash_values">
       <title>hash_values()</title>
@@ -17690,7 +18951,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Returns the maximum value in a list (see also <link linkend="min">min()</link>).  Without a callback reference, this function will only work on basic data types.  A <link linkend="call_references">call reference</link> can be used to find the maximum value of a list of complex data types.  The <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
+	  <para>Returns the maximum value in a list (see also <link linkend="min">min()</link>).  Without a callback, this function will only work on basic data types.  A <link linkend="closures">closure</link>  or <link linkend="call_references">call reference</link> can be used to find the maximum value of a list of complex data types.  The <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -17722,7 +18983,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para><replaceable>list, [callback]</replaceable></para></entry>
 	    <entry><para>Any</para></entry>
-	    <entry><para>Finds the maxmimum value in the list and returns that value.  The list must be made up of basic data types unless a <link linkend="call_references">call reference</link> is used as described above.</para></entry>
+	    <entry><para>Finds the maxmimum value in the list and returns that value.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used as described above.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><replaceable>elem1, elem2[, ...]</replaceable></para></entry>
@@ -17732,7 +18993,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</tbody>
       </tgroup>
     </table>
-    <para>This function does not throw any exceptions (note a <link linkend="call_references">call reference</link> could throw an exception).</para>
+    <para>This function does not throw any exceptions (note a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> could throw an exception).</para>
   </sect2>
 
   <sect2 id="min">
@@ -17741,7 +19002,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Returns the minumum value in a list (see also <link linkend="max">max()</link>).  Without a callback reference, this function will only work on basic data types.  A <link linkend="call_references">call reference</link> can be used to find the minimum value of a list of complex data types.  The <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
+	  <para>Returns the minumum value in a list (see also <link linkend="max">max()</link>).  Without a callback, this function will only work on basic data types.  A <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> can be used to find the minimum value of a list of complex data types.  The <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than, equal to, or greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -17773,17 +19034,17 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para><replaceable>list, [callback]</replaceable></para></entry>
 	    <entry><para>Any</para></entry>
-	    <entry><para>Finds the minimum value in the list and returns that value.  The list must be made up of basic data types unless a <link linkend="call_references">call reference</link> is used as described above.</para></entry>
+	    <entry><para>Finds the minimum value in the list and returns that value.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used as described above.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><replaceable>elem1, elem2[, ...]</replaceable></para></entry>
 	    <entry><para>Any</para></entry>
-	    <entry><para>Finds the minimum value in the list of simple data types passed as top-level arguments to the function and returns that value.  No <link linkend="call_references">call reference</link> can be specified with this variant.</para></entry>
+	    <entry><para>Finds the minimum value in the list of simple data types passed as top-level arguments to the function and returns that value.  No <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> can be specified with this variant.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
     </table>
-    <para>This function does not throw any exceptions (note that a <link linkend="call_references">call reference</link> could throw an exception).</para>
+    <para>This function does not throw any exceptions (note that a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> could throw an exception).</para>
   </sect2>
 
 <sect2 id="parse">
@@ -18253,13 +19514,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Sets or replaces a signal handler according to the signal number and <link linkend="call_references">call reference</link> (function or object method reference) passed.  By the time this function returns, changes to the signal handling thread have already been effected.  See <link linkend="signal_handling">Signal Handling</link> for more information.</para>
+	<para>Sets or replaces a signal handler according to the signal number and <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> (function or object method reference) passed.  By the time this function returns, changes to the signal handling thread have already been effected.  See <link linkend="signal_handling">Signal Handling</link> for more information.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>set_signal_handler(<replaceable>signal, call_reference</replaceable>)</programlisting>
+	<programlisting>set_signal_handler(<replaceable>signal, closure | call_reference</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -18289,7 +19550,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>Integer, <link linkend="call_references">Call Reference</link></para></entry>
+    <entry><para>Integer, <link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link></para></entry>
     <entry><para>n/a</para></entry>
     <entry><para>The signal number to process and reference to the code to execute when the signal is raised.</para></entry>
   </row>
@@ -18307,7 +19568,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs an unstable sort in ascending order and returns the new list (for a stable version see <link linkend="sortStable">sortStable()</link>).  Without a callback reference, this function will only sort basic data types.  A <link linkend="call_references">call reference</link> can be used to sort complex data types.  The <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	<para>Performs an unstable sort in ascending order and returns the new list (for a stable version see <link linkend="sortStable">sortStable()</link>).  Without a callback, this function will only sort basic data types.  A <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> can be used to sort complex data types.  The <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -18335,9 +19596,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>List, [<link linkend="call_references">Call Reference</link>]</para></entry>
+	  <entry><para>List, [<link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link>]</para></entry>
 	  <entry><para>List</para></entry>
-	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="call_references">call reference</link> is used.</para></entry>
+	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -18351,7 +19612,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Performs an unstable sort in descending order and returns the new list (for a stable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A <link linkend="call_references">call reference</link> can be used to sort complex data types.  The <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	  <para>Performs an unstable sort in descending order and returns the new list (for a stable version see <link linkend="sortDescendingStable">sortDescendingStable()</link>).  Without a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> can be used to sort complex data types.  The <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -18379,9 +19640,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>List, [<link linkend="call_references">Call Reference</link>]</para></entry>
+	    <entry><para>List, [<link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link>]</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="call_references">call reference</link> is used.</para></entry>
+	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -18395,7 +19656,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Performs a stable sort in descending order and returns the new list (for an unstable version see <link linkend="sortDescending">sortDescending()</link>).  Without a <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A <link linkend="call_references">call reference</link> can be used to sort complex data types.  The <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	  <para>Performs a stable sort in descending order and returns the new list (for an unstable version see <link linkend="sortDescending">sortDescending()</link>).  Without a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> can be used to sort complex data types.  The <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -18423,9 +19684,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>List, [<link linkend="call_references">Call Reference</link>]</para></entry>
+	    <entry><para>List, [<link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link>]</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="call_references">call reference</link> is used.</para></entry>
+	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -18439,7 +19700,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a stable sort in ascending order and returns the new list (for an unstable version see <link linkend="sort">sort()</link>).  Without a <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A <link linkend="call_references">call reference</link> can be used to sort complex data types.  The <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
+	<para>Performs a stable sort in ascending order and returns the new list (for an unstable version see <link linkend="sort">sort()</link>).  Without a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link>, this function will only sort basic data types.  A <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> can be used to sort complex data types.  The <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> must accept two arguments and must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -18467,9 +19728,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>List, [<link linkend="call_references">Call Reference</link>]</para></entry>
+	  <entry><para>List, [<link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link>]</para></entry>
 	  <entry><para>List</para></entry>
-	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="call_references">call reference</link> is used.</para></entry>
+	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -18583,131 +19844,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <para>This function does not throw any exceptions.</para>
     </sect2>
 
-<sect2 id="uncompress_to_binary">
-  <title>uncompress_to_binary()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Uncompresses data using zlib functions and returns a binary object of the uncompressed data.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>uncompress_to_binary(<replaceable>binary</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$bin = uncompress_to_binary($compressed_data);</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for uncompress_to_binary()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><replaceable>binary</replaceable></para></entry>
-	  <entry><para>Binary</para></entry>
-	  <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-  <table><title>Exceptions Thrown by uncompress_to_binary()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>ZLIB-ERROR</code></para></entry>
-	<entry><para>zlib returned an error while processing.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
-
-</sect2>
-
-<sect2 id="uncompress_to_string">
-  <title>uncompress_to_string()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Uncompresses data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>uncompress_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$str = uncompress_to_string($compressed_data);</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for uncompress_to_string()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
-	  <entry><para>Binary</para></entry>
-	  <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-  <table><title>Exceptions Thrown by uncompress_to_string()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>ZLIB-ERROR</code></para></entry>
-	<entry><para>zlib returned an error while processing.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
-
-</sect2>
 </sect1>
 
 <sect1 id="Threading_Functions">

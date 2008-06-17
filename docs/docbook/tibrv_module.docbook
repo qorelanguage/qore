@@ -467,7 +467,7 @@
 
   <sect2 id="TibrvSender_Class">
     <title>Tibrv::TibrvSender Class</title>
-    <para>The TibrvSender object is used to send messages using the TIBCO Rendezvous reliable messaging protocol.  Each TibrvSender object is set with a string encoding value, which is by default set to the default encoding for qore (see <link linkend="Qore_Strings_and_Character_Set_Encoding">Qore Strings and Character Set Encoding</link>).  Any strings received by this object will be assumed to be in this encoding and any strings sent will be convert to this encoding if necessary.  To set or check the encoding for TibrvSender objects, see the <link linkend="TibrvSender_setStringEncoding">TibrvSender::setStringEncoding()</link> and <link linkend="TibrvSender_getStringEncoding">TibrvSender::getStringEncoding()</link> methods.</para>
+    <para>The TibrvSender object is used to send messages using the TIBCO Rendezvous reliable messaging protocol.  Each TibrvSender object is set with a string encoding value, which is by default set to the default encoding for qore (see <link linkend="Qore_Strings_and_Character_Encoding">Qore Strings and Character Encoding</link>).  Any strings received by this object will be assumed to be in this encoding and any strings sent will be convert to this encoding if necessary.  To set or check the encoding for TibrvSender objects, see the <link linkend="TibrvSender_setStringEncoding">TibrvSender::setStringEncoding()</link> and <link linkend="TibrvSender_getStringEncoding">TibrvSender::getStringEncoding()</link> methods.</para>
     <table>
       <title>TibrvSender Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
@@ -1309,7 +1309,7 @@
 
   <sect2 id="TibrvListener_Class">
     <title>Tibrv::TibrvListener Class</title>
-    <para>The TibrvListener object is used to receive messages using the TIBCO Rendezvous reliable messaging protocol.  To send messages, use the <link linkend="TibrvSender_Class">TibrvSender Class</link>.  Each TibrvListener object is set with a string encoding value, which is by default set to the default encoding for qore (see <link linkend="Qore_Strings_and_Character_Set_Encoding">Qore Strings and Character Set Encoding</link>).  Any strings received by this object will be assumed to be in this encoding.  To set or check the encoding for TibrvListener objects, see the <link linkend="TibrvListener_setStringEncoding">TibrvListener::setStringEncoding()</link> and <link linkend="TibrvListener_getStringEncoding">TibrvListener::getStringEncoding()</link> methods.</para>
+    <para>The TibrvListener object is used to receive messages using the TIBCO Rendezvous reliable messaging protocol.  To send messages, use the <link linkend="TibrvSender_Class">TibrvSender Class</link>.  Each TibrvListener object is set with a string encoding value, which is by default set to the default encoding for qore (see <link linkend="Qore_Strings_and_Character_Encoding">Qore Strings and Character Encoding</link>).  Any strings received by this object will be assumed to be in this encoding.  To set or check the encoding for TibrvListener objects, see the <link linkend="TibrvListener_setStringEncoding">TibrvListener::setStringEncoding()</link> and <link linkend="TibrvListener_getStringEncoding">TibrvListener::getStringEncoding()</link> methods.</para>
     <table>
       <title>TibrvListener Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
@@ -2185,7 +2185,7 @@
 
   <sect2 id="TibrvCmSender_Class">
     <title>Tibrv::TibrvCmSender Class</title>
-    <para>The TibrvCmSender object is used to send certified messages using the TIBCO Rendezvous certified messaging protocol.  Each TibrvCmSender object is set with a string encoding value, which is by default set to the default encoding for qore (see <link linkend="Qore_Strings_and_Character_Set_Encoding">Qore Strings and Character Set Encoding</link>).  Any strings received by this object will be assumed to be in this encoding and any strings sent will be convert to this encoding if necessary.  To set or check the encoding for TibrvSender objects, see the <link linkend="TibrvSender_setStringEncoding">TibrvSender::setStringEncoding()</link> and <link linkend="TibrvSender_getStringEncoding">TibrvSender::getStringEncoding()</link> methods.</para>
+    <para>The TibrvCmSender object is used to send certified messages using the TIBCO Rendezvous certified messaging protocol.  Each TibrvCmSender object is set with a string encoding value, which is by default set to the default encoding for qore (see <link linkend="Qore_Strings_and_Character_Encoding">Qore Strings and Character Encoding</link>).  Any strings received by this object will be assumed to be in this encoding and any strings sent will be convert to this encoding if necessary.  To set or check the encoding for TibrvSender objects, see the <link linkend="TibrvSender_setStringEncoding">TibrvSender::setStringEncoding()</link> and <link linkend="TibrvSender_getStringEncoding">TibrvSender::getStringEncoding()</link> methods.</para>
     <table>
       <title>TibrvCmSender Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
@@ -4154,7 +4154,7 @@
 
   <sect2 id="TibrvCmListener_Class">
     <title>Tibrv::TibrvCmListener Class</title>
-    <para>The TibrvCmListener object is used to receive certified messages.  To send certified messages, use the <link linkend="TibrvCmSender_Class">TibrvCmSender Class</link>.  Each TibrvCmListener object is set with a string encoding value, which is by default set to the default encoding for qore (see <link linkend="Qore_Strings_and_Character_Set_Encoding">Qore Strings and Character Set Encoding</link>).  Any strings received by this object will be assumed to be in this encoding.  To set or check the encoding for TibrvCmListener objects, see the <link linkend="TibrvCmListener_setStringEncoding">TibrvCmListener::setStringEncoding()</link> and <link linkend="TibrvCmListener_getStringEncoding">TibrvCmListener::getStringEncoding()</link> methods.</para>
+    <para>The TibrvCmListener object is used to receive certified messages.  To send certified messages, use the <link linkend="TibrvCmSender_Class">TibrvCmSender Class</link>.  Each TibrvCmListener object is set with a string encoding value, which is by default set to the default encoding for qore (see <link linkend="Qore_Strings_and_Character_Encoding">Qore Strings and Character Encoding</link>).  Any strings received by this object will be assumed to be in this encoding.  To set or check the encoding for TibrvCmListener objects, see the <link linkend="TibrvCmListener_setStringEncoding">TibrvCmListener::setStringEncoding()</link> and <link linkend="TibrvCmListener_getStringEncoding">TibrvCmListener::getStringEncoding()</link> methods.</para>
     <table>
       <title>TibrvCmListener Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">

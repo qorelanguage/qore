@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+  <sect1 id="opengl_Module">
+    <title>opengl Module</title>
+
+    <para>The opengl module exports OpenGL functionality to qore.</para>
+
+  </sect1>

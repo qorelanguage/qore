@@ -40,7 +40,7 @@
 	</row>
 	<row>
 	  <entry><para><code>unreachable-code</code></para></entry>
-	  <entry><para>Raised when code is defined that can never be executed (for example, code following a <command>return</command> or <command>thread_exit</command>statement).</para></entry>
+	  <entry><para>Raised when code is defined that can never be executed (for example, code following a <command>return</command> or <command>thread_exit</command> statement).</para></entry>
 	</row>
       </tbody>
     </tgroup>

@@ -5,6 +5,7 @@
   <!ENTITY bookinfo         SYSTEM "bookinfo.docbook">
   <!ENTITY introduction     SYSTEM "introduction.docbook">
   <!ENTITY language         SYSTEM "language.docbook">
+  <!ENTITY operators        SYSTEM "operators.docbook">
   <!ENTITY function_lib     SYSTEM "function_lib.docbook">
   <!ENTITY class_lib        SYSTEM "class_lib.docbook">
   <!ENTITY modules          SYSTEM "modules.docbook">
@@ -17,6 +18,12 @@
   <!ENTITY sybase_module    SYSTEM "sybase_module.docbook">
   <!ENTITY mssql_module     SYSTEM "mssql_module.docbook">
   <!ENTITY tuxedo_module    SYSTEM "tuxedo_module.docbook">
+  <!ENTITY opengl_module    SYSTEM "opengl_module.docbook">
+  <!ENTITY glut_module      SYSTEM "glut_module.docbook">
+  <!ENTITY qt-core_module   SYSTEM "qt-core_module.docbook">
+  <!ENTITY qt-gui_module    SYSTEM "qt-gui_module.docbook">
+  <!ENTITY qt-opengl_module SYSTEM "qt-opengl_module.docbook">
+  <!ENTITY qt-svg_module    SYSTEM "qt-svg_module.docbook">
   <!ENTITY command_line     SYSTEM "command_line.docbook">
   <!ENTITY parse_directives SYSTEM "parse_directives.docbook">
   <!ENTITY warnings         SYSTEM "warnings.docbook">

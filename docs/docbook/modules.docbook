@@ -33,4 +33,16 @@
 
   &tuxedo_module;
 
+  &opengl_module;
+
+  &glut_module;
+
+  &qt-core_module;
+
+  &qt-gui_module;
+
+  &qt-opengl_module;
+
+  &qt-svg_module;
+
 </chapter>

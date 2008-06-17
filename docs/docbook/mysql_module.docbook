@@ -169,7 +169,7 @@ printf(&quot;%N\n&quot;, $result);</programlisting>
         <row>
 	  <entry><para><link linkend="String"><code>Type::String</code></link></para></entry>
 	  <entry><para><code>MYSQL_TYPE_STRING</code></para></entry>
-	  <entry><para>string data is mapped directly after any character set conversions (if necessary)</para></entry>
+	  <entry><para>string data is mapped directly after any character encoding conversions (if necessary)</para></entry>
 	</row>
         <row>
 	  <entry><para><link linkend="Date"><code>Type::Date</code></link></para></entry>

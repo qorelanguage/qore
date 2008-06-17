@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+  <sect1 id="qt-opengl_Module">
+    <title>qt-opengl Module</title>
+
+    <para>The qt-opengl module exports QT OpenGL library functionality to qore.</para>
+
+    <para>This module is experimental.</para>
+
+  </sect1>

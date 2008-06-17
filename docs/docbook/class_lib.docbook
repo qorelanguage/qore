@@ -14,103 +14,103 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="Qore_File_Class">File Class</link></para></entry>
+	    <entry><para><link linkend="Qore_File_Class">File</link></para></entry>
 	    <entry><para>For reading and writing files.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_Class">File Class</link></para></entry>
-	    <entry><para>For handling of directories like listing files and creating/removing subdirectories.</para></entry>
+	    <entry><para><link linkend="Qore_Dir_Class">Dir</link></para></entry>
+	    <entry><para>For handling of directories, listing files, and creating/removing subdirectories.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_Class">FtpClient Class</link></para></entry>
+	    <entry><para><link linkend="Qore_FtpClient_Class">FtpClient</link></para></entry>
 	    <entry><para>For communicating with FTP servers.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::GetOpt_Class">GetOpt Class</link></para></entry>
+	    <entry><para><link linkend="Qore::GetOpt_Class">GetOpt</link></para></entry>
 	    <entry><para>For processing command-line options.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Program_Class">Program Class</link></para></entry>
+	    <entry><para><link linkend="Qore_Program_Class">Program</link></para></entry>
 	    <entry><para>For parsing and executing application-embedded or user-supplied logic.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_Class">Socket Class</link></para></entry>
+	    <entry><para><link linkend="Qore_Socket_Class">Socket</link></para></entry>
 	    <entry><para>For communication with IPv4 sockets with and without TSL/SSL encryption.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="HTTPClient_Class">HTTPClient Class</link></para></entry>
+	    <entry><para><link linkend="HTTPClient_Class">HTTPClient</link></para></entry>
 	    <entry><para>For communication with HTTP servers with and without TSL/SSL encryption.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="XmlRpcClient_Class">XmlRpclient Class</link></para></entry>
+	    <entry><para><link linkend="XmlRpcClient_Class">XmlRpclient</link></para></entry>
 	    <entry><para>For communication using the XML-RPC protocol with and without TSL/SSL encryption.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="JsonRpcClient_Class">JsonRpclient Class</link></para></entry>
+	    <entry><para><link linkend="JsonRpcClient_Class">JsonRpclient</link></para></entry>
 	    <entry><para>For communication using the JSON-RPC protocol with and without TSL/SSL encryption.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="SSLCertificate_Class">SSLCertificate Class</link></para></entry>
+	    <entry><para><link linkend="SSLCertificate_Class">SSLCertificate</link></para></entry>
 	    <entry><para>For working with X.509 certificates.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="SSLPrivateKey_Class">SSLPrivateKey Class</link></para></entry>
+	    <entry><para><link linkend="SSLPrivateKey_Class">SSLPrivateKey</link></para></entry>
 	    <entry><para>For working with private key data.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::SQL::Datasource_Class">SQL::Datasource Class</link></para></entry>
+	    <entry><para><link linkend="Qore::SQL::Datasource_Class">SQL::Datasource</link></para></entry>
 	    <entry><para>For working with databases; provides the user interface to qore DBI drivers.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="DatasourcePool_Class">SQL::DatasourcePool Class</link></para></entry>
+	    <entry><para><link linkend="DatasourcePool_Class">SQL::DatasourcePool</link></para></entry>
 	    <entry><para>Provides transparent per-thread, per-transaction Datasource connection pooling.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoGate_Class">Thread::AutoGate Class</link></para></entry>
-	    <entry><para>A helper class for the <link linkend="Qore::Thread::Gate_Class">Gate Class</link> for exception-safe Gate handling.</para></entry>
+	    <entry><para><link linkend="Qore::Thread::AutoGate_Class">Thread::AutoGate</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Qore::Thread::Gate_Class">Gate</link> class for exception-safe Gate handling.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoLock_Class">Thread::AutoLock Class</link></para></entry>
-	    <entry><para>A helper class for the <link linkend="Qore::Thread::Mutex_Class">Mutex Class</link> for exception-safe Mutex handling.</para></entry>
+	    <entry><para><link linkend="Qore::Thread::AutoLock_Class">Thread::AutoLock</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Qore::Thread::Mutex_Class">Mutex</link> class for exception-safe Mutex handling.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">Thread::AutoReadLock Class</link></para></entry>
-	    <entry><para>A helper class for the <link linkend="Qore::Thread::RWLock_Class">RWLock Class</link> for exception-safe read lock handling.</para></entry>
+	    <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">Thread::AutoReadLock</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Qore::Thread::RWLock_Class">RWLock</link> class for exception-safe read lock handling.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoWriteLock_Class">Thread::AutoWriteLock Class</link></para></entry>
-	    <entry><para>A helper class for the <link linkend="Qore::Thread::RWLock_Class">RWLock Class</link> for exception-safe write lock handling.</para></entry>
+	    <entry><para><link linkend="Qore::Thread::AutoWriteLock_Class">Thread::AutoWriteLock</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Qore::Thread::RWLock_Class">RWLock</link> class for exception-safe write lock handling.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Condition_Class">Thread::Condition Class</link></para></entry>
+	    <entry><para><link linkend="Qore::Thread::Condition_Class">Thread::Condition</link></para></entry>
 	    <entry><para>For blocking a thread until a condition becomes true.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Counter_Class">Thread::Counter Class</link></para></entry>
+	    <entry><para><link linkend="Qore::Thread::Counter_Class">Thread::Counter</link></para></entry>
 	    <entry><para>For blocking a thread until a counter becomes zero.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Gate_Class">Thread::Gate Class</link></para></entry>
+	    <entry><para><link linkend="Qore::Thread::Gate_Class">Thread::Gate</link></para></entry>
 	    <entry><para>A reentrant thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Mutex_Class">Thread::Mutex Class</link></para></entry>
+	    <entry><para><link linkend="Qore::Thread::Mutex_Class">Thread::Mutex</link></para></entry>
 	    <entry><para>A simple thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Queue_Class">Thread::Queue Class</link></para></entry>
+	    <entry><para><link linkend="Qore::Thread::Queue_Class">Thread::Queue</link></para></entry>
 	    <entry><para>A blocking, thread-safe queue class, useful for message passing (can also be used as a stack).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::RMutex_Class">Thread::RMutex Class</link></para></entry>
+	    <entry><para><link linkend="Qore::Thread::RMutex_Class">Thread::RMutex</link></para></entry>
 	    <entry><para>DEPRECATED: A reentrant thread lock; use Gate instead.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::RWLock_Class">Thread::RWLock Class</link></para></entry>
+	    <entry><para><link linkend="Qore::Thread::RWLock_Class">Thread::RWLock</link></para></entry>
 	    <entry><para>A read-write thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Sequence_Class">Thread::Sequence Class</link></para></entry>
+	    <entry><para><link linkend="Qore::Thread::Sequence_Class">Thread::Sequence</link></para></entry>
 	    <entry><para>A thread-safe integral counter.</para></entry>
 	  </row>
 	</tbody>
@@ -183,17 +183,17 @@
 	  </row>
 	</thead>
 	<tbody>
-	  <row>
+	  <row id="stdin_constant">
 	    <entry><para><code>stdin</code></para></entry>
 	    <entry><para>File Object</para></entry>
 	    <entry><para>Standard input File object.</para></entry>
 	  </row>
-	  <row>
+	  <row id="stdout_constant">
 	    <entry><para><code>stdout</code></para></entry>
 	    <entry><para>File Object</para></entry>
 	    <entry><para>Standard output File object.</para></entry>
 	  </row>
-	  <row>
+	  <row id="stderr_constant">
 	    <entry><para><code>stderr</code></para></entry>
 	    <entry><para>File Object</para></entry>
 	    <entry><para>Standard error File object.</para></entry>
@@ -758,18 +758,14 @@
 	    <entry><para><code>Qore::Type::CallReference</code></para></entry>
 	    <entry><para><link linkend="call_references">call references</link></para></entry>
 	  </row>
+	  <row>
+	    <entry><para><code>Qore::Type::Closure</code></para></entry>
+	    <entry><para><link linkend="closures">closures</link></para></entry>
+	  </row>
 	</tbody>
       </tgroup>
     </table>
   </sect1>
-
-
-
-
-
-
-
-
 
   <sect1 id="Qore_File_Class">
     <title>Qore::File Class</title>
@@ -778,11 +774,13 @@
 
     <para>The File class allows Qore programs to read, write, and create files.</para>
 
-    <para>File objects can be created and/or opened with a specific character set, that means that any string 
-    reads from the file will create string data tagged with the file's character 
-    set, and any string data written to the file will be converted to that character 
-    set before written if necessary. If no character set is specified, then the 
-    default Qore character set is assumed for the file.</para>
+    <para>File objects can be created and/or opened with a specific 
+    <link linkend="Qore_Strings_and_Character_Encoding">character encoding</link>, 
+    meaning that any string read from the file will be tagged with the file's character 
+    encoding, and any string data written to the file will be transparently converted 
+    to that character encoding before being written (if necessary). If no character
+    encoding is specified, then the default Qore character encoding is assumed for the
+    file.</para>
 
     <table>
       <title>Qore::File Method Overview</title>
@@ -798,7 +796,7 @@
 	  <row>
 	    <entry><para><link linkend="Qore_File_constructor">File::constructor()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Creates the object and optionally sets the file's character set.</para></entry>
+	    <entry><para>Creates the object and optionally sets the file's character encoding.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_destructor">File::destructor()</link></para></entry>
@@ -808,7 +806,12 @@
 	  <row>
 	    <entry><para><link linkend="Qore_File_copy">File::copy()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Creates a new file object with the same character set specification as the original, otherwise no other information is copied.</para></entry>
+	    <entry><para>Creates a new file object with the same character encoding specification as the original, otherwise no other information is copied.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_chown">File::chown()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Changes the user and group owners of the file on the filesystem (if the current user has sufficient permission to do so).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_close">File::close()</link></para></entry>
@@ -831,9 +834,29 @@
 	    <entry><para>Reads one character from the file</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Qore_File_getCharset">File::getCharset()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the character encoding for the file</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_getLockInfo">File::getLockInfo()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a hash of lock information.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Qore_File_getPos">File::getPos()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current file position (in bytes)</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_lock">File::lock()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Attempts to lock the file according to the arguments passed, does not block.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_lockBlocking">File::lockBlocking()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Attempts to lock the file according to the arguments passed, blocking.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_open">File::open()</link></para></entry>
@@ -854,16 +877,6 @@
 	    <entry><para><link linkend="Qore_File_readBinary">File::readBinary()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a certain number of bytes from the file and returns binary data.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore_File_printf">File::printf()</link></para></entry>
-	    <entry><para>Y</para></entry>
-	    <entry><para>Writes a formatted string to the file.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore_File_read">File::read()</link></para></entry>
-	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a certain amount of string data from the file.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_readi1">File::readi1()</link></para></entry>
@@ -936,24 +949,19 @@
 	    <entry><para>Reads until an EOL marker is found</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_getCharset">File::getCharset()</link></para></entry>
-	    <entry><para>N</para></entry>
-	    <entry><para>Returns the character set for the file</para></entry>
-	  </row>
-	  <row>
 	    <entry><para><link linkend="Qore_File_setCharset">File::setCharset()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Sets the character set for the file.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore_File_sync">File::sync()</link></para></entry>
-	    <entry><para>N</para></entry>
-	    <entry><para>Flushes the file's buffer to disk.</para></entry>
+	    <entry><para>Sets the character encoding for the file.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_setPos">File::setPos()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the current file position (in bytes).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_File_sync">File::sync()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Flushes the file's buffer to disk.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_File_vprintf">File::vprintf()</link></para></entry>
@@ -1042,13 +1050,35 @@
       </tgroup>
     </table>
 
+    <table id="File_Locking_Constants">
+      <title>File Locking Constants in the Qore Namespace</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>      
+	<tbody>
+	  <row>
+	    <entry><para><code>F_RDLCK</code></para></entry>
+	    <entry><para>Use for read-only locking.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>F_WRLCK</code></para></entry>
+	    <entry><para>Use for exclusive write locking.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <sect2 id="Qore_File_constructor">
       <title>File::constructor()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates the File object. It accepts one optional argument that will set the default character set encoding for the file (only affects reading and writing string data).</para>
+	    <para>Creates the File object. It accepts one optional argument that will set the default character encoding for the file (only affects reading and writing string data).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1079,7 +1109,7 @@
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The character set encoding for the file.  Any strings written to the file will be converted to this character set encoding if necessary.</para></entry>
+	      <entry><para>The character encoding for the file.  Any strings written to the file will be converted to this character encoding if necessary.</para></entry>
 	    </row>
 	    
 	  </tbody>
@@ -1136,7 +1166,7 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates a new File object with the same character set spcification as the original.</para>
+	    <para>Creates a new File object with the same character encoding specification as the original.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1185,11 +1215,98 @@
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
-	      <entry><para>The new File object created with the same character set specification as the original object.</para></entry>
+	      <entry><para>The new File object created with the same character encoding specification as the original object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
+    </sect2>
+
+    <sect2 id="Qore_File_chown">
+      <title>File::chown()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Changes the file's user and group owner (if the user has sufficient permissions to do so).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::chown(<replaceable>user_id, group_id</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$f.chown(0, 0);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::chown()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>user_id</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The user id of the user to change to.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>group_id</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The group id of the user to change to.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for File::chown()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return a value; if an error occurs, an exception is thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by File::chown()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-CHOWN-ERROR</code></para></entry>
+	      <entry><para>File is not open or the chown operation failed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore_File_close">
@@ -1502,7 +1619,7 @@
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns the character set encoding for the file.</para>
+	    <para>Returns the character encoding for the file.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1553,11 +1670,93 @@
 	  <tbody>
 	    <row>
 	      <entry><para>String</para></entry>
-	      <entry><para>The character set encoding for the file.</para></entry>
+	      <entry><para>The character encoding for the file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
+    </sect2>
+
+    <sect2 id="Qore_File_getLockInfo">
+      <title>File::getLockInfo()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns a hash of lock information for the file.  The hash contains the following keys: start, len, pid, type, whence.  If no lock is set on the file, the key type has the value F_UNLCK.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::getLockInfo()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> $hash = $f.getLockInfo();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::getLockInfo()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for File::getLockInfo()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>The hash contains the following keys: start, len, pid, type, whence.  If no lock is set on the file, the key type has the value F_UNLCK.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by File::getLockInfo()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-LOCK-ERROR</code></para></entry>
+	      <entry><para>File is not open or the fcntl operation failed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore_File_getPos">
@@ -1623,6 +1822,206 @@
 	  </tbody>
 	</tgroup>
       </table>
+    </sect2>
+
+    <sect2 id="Qore_File_lock">
+      <title>File::lock()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Locks or unlocks a portion of the file or the entire file, for reading or writing, non-blocking.  The file must be opened in the appropriate mode before this call or the call will fail with an exception.  For a blocking version of this method, see <link linkend="Qore_File_lockBlocking">File::lockBlocking()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::lock(<replaceable>type, [start, [len]]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># lock the entire file exclusively
+$f.lock(F_WRLCK);
+
+# lock a section of the file for reading, start byte 512, 2K range
+$f.lock(F_RDLCK, 512, 2048);
+
+# release all locks
+$f.lock(F_UNLCK);
+</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::lock()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>type</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Type of lock (or unlock), see <link linkend="File_Locking_Constants">File locking constants</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>start</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Start byte for lock, 0 is the default (start of file).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>len</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Length in bytes for range to lock, 0 is the default (rest of file).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for File::lock()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Int</para></entry>
+	      <entry><para>Returns 0 for success, EACCES if the lock would block (only in the case that the lock would block is no exception thrown and EACCES returned).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by File::lock()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-LOCK-ERROR</code></para></entry>
+	      <entry><para>File is not open, lock length is negative, or the fcntl operation failed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Qore_File_lockBlocking">
+      <title>File::lockBlocking()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Locks or unlocks a portion of the file or the entire file, for reading or writing, blocking.  The file must be opened in the appropriate mode before this call or the call will fail with an exception.  For a non-blocking version of this method, see <link linkend="Qore_File_lock">File::lock()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::lockBlocking(<replaceable>type, [start, [len]]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># lock the entire file exclusively
+$f.lockBlocking(F_WRLCK);
+
+# lock a section of the file for reading, start byte 512, 2K range
+$f.lockBlocking(F_RDLCK, 512, 2048);
+
+# release all locks
+$f.lockBlocking(F_UNLCK);
+</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::lockBlocking()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>type</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Type of lock (or unlock), see <link linkend="File_Locking_Constants">File locking constants</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>start</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Start byte for lock, 0 is the default (start of file).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>len</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Length in bytes for range to lock, 0 is the default (rest of file).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Value for File::lockBlocking()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return a value; exceptions are thrown if errors occur.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by File::lockBlocking()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-LOCK-ERROR</code></para></entry>
+	      <entry><para>File is not open, lock length is negative, or the fcntl operation failed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Qore_File_printf">
@@ -1722,7 +2121,7 @@
 	  <listitem>
 	    <para>Opens the file in the mode given. 
 	    Aditionally, the file permissions can be given if the file is to be created, and 
-	    optionally the file's default character set can be specified.</para>
+	    optionally the file's default character encoding can be specified.</para>
 	    </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1770,7 +2169,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	    <row>
 	      <entry><para><replaceable>charset</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The name of the default character set for this file.</para></entry>
+	      <entry><para>The name of the default character encoding for this file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3054,7 +3453,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the character set encoding for the file.</para>
+	    <para>Sets the characte encoding for the file.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3086,7 +3485,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The character set encoding for the file.</para></entry>
+	      <entry><para>The character encoding for the file.</para></entry>
 	    </row>
 	    
 	  </tbody>
@@ -3985,8 +4384,8 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 
     <para>The Dir class allows Qore programs to list and manipulate directories.</para>
 
-    <para>Directory objects can be created/opened with a specific character set. This means that any entry read from the directory
-    will be tagged with the directory's character set. If no character set is given the default Qore character set is assumed.</para>
+    <para>Directory objects can be created/opened with a specific character encoding. This means that any entry read from the directory
+    will be tagged with the directory's character encoding. If no character encoding is given the default Qore character encoding is assumed.</para>
 
     <table>
       <title>Qore::Dir Method Overview</title>
@@ -4002,7 +4401,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	  <row>
 	    <entry><para><link linkend="Qore_Dir_constructor">Dir::constructor()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Create a Directory object with the optional character set. It points to the directory the script is started.</para></entry>
+	    <entry><para>Create a Directory object with the optional character encoding. It points to the directory the script is started.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Dir_destructor">Dir::destructor()</link></para></entry>
@@ -4012,7 +4411,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	  <row>
 	    <entry><para><link linkend="Qore_Dir_copy">Dir::copy()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Creates a new directory object with the same character set specification and the same path as the original.</para></entry>
+	    <entry><para>Creates a new directory object with the same character encoding specification and the same path as the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Dir_chdir">Dir::chdir()</link></para></entry>
@@ -4101,7 +4500,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates a Dir object. It accepts one optional argument that will set the default character set encoding for the directory.</para>
+	    <para>Creates a Dir object. It accepts one optional argument that will set the default character encoding encoding for the directory.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4132,7 +4531,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The character set encoding for the directory.  Any entry of the directory will be converted to this character set encoding if necessary.</para></entry>
+	      <entry><para>The character encoding for the directory.  Any entry of the directory will be converted to this character encoding if necessary.</para></entry>
 	    </row>
 	    
 	  </tbody>
@@ -4191,7 +4590,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates a new Dir object with the same character set spcification and path as the original.</para>
+	    <para>Creates a new Dir object with the same character encoding specification and path as the original.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4240,7 +4639,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
-	      <entry><para>The new Dir object created with the same character set specification and path as the original object.</para></entry>
+	      <entry><para>The new Dir object created with the same character encoding specification and path as the original object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5329,7 +5728,7 @@ $sd_list=$sd.list();
 	    <row>
 	      <entry><para><replaceable>charset</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The name of the default character set for this directory.</para></entry>
+	      <entry><para>The name of the default character encoding for this directory.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5433,7 +5832,7 @@ $f=$d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0633, "UTF-8");
 	    <row>
 	      <entry><para><replaceable>charset</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The name of the default character set for this file.</para></entry>
+	      <entry><para>The name of the default character encoding for this file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5936,7 +6335,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     <para>Once the URL (at least the hostname) has been set, the <link linkend="Qore_FtpClient_connect">FtpClient::connect() method</link> must be called to connect and login to the FTP server.</para>
 
-    <para>Objects of this class are capable of making encrypted FTPS connections according to RFC-4217.  TLS/SSL encrypted control and data connection will be attempted if the protocol is set to 'ftps' or the <link linkend="FtpClient_setSecure">FtpClient::setSecure() method</link> is called before connecting.</para>
+    <para>Objects of this class are capable of making encrypted FTPS connections according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink>.  TLS/SSL encrypted control and data connection will be attempted if the protocol is set to 'ftps' or the <link linkend="FtpClient_setSecure">FtpClient::setSecure() method</link> is called before connecting.</para>
 
     <para>Note that 'sftp', or FTP over ssh, is not supported with this class; FTPS is an extension of the FTP protocol to allow for secure connections; while 'sftp' is FTP over an encrypted ssh connection.</para>
 
@@ -6107,7 +6506,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Sets the object to only try to make data connections using EPSV (RFC-2428 extended passive) mode.</para>
+              <para>Sets the object to only try to make data connections using EPSV (<ulink url="http://www.ietf.org/rfc/rfc2428.txt">RFC-2428</ulink> extended passive) mode.</para>
             </entry>
           </row>
           <row>
@@ -6120,7 +6519,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Sets the object to only try to make data connections using PASV (RFC-959 passive) mode.</para>
+              <para>Sets the object to only try to make data connections using PASV (<ulink url="http://www.ietf.org/rfc/rfc0959.txt">RFC-959</ulink> passive) mode.</para>
             </entry>
           </row>
           <row>
@@ -7356,7 +7755,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the object to only try to make data connections using EPSV (RFC-2428 extended passive) mode.</para>
+            <para>Sets the object to only try to make data connections using EPSV (<ulink url="http://www.ietf.org/rfc/rfc2428.txt">RFC-2428</ulink> extended passive) mode.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7435,7 +7834,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the object to only try to make data connections using PASV (RFC-959 passive) mode.</para>
+            <para>Sets the object to only try to make data connections using PASV (<ulink url="http://www.ietf.org/rfc/rfc0959.txt">RFC-959</ulink> passive) mode.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9038,7 +9437,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  <row id="PO_NO_NEW">
 	    <entry><para>PO_NO_NEW</para></entry>
 	    <entry><para><link linkend="no-new"><code>no-new</code></link></para></entry>
-	    <entry><para>Disallows use of the <command>new</command> operator.</para></entry>
+	    <entry><para>Disallows use of the <link linkend="New_Object_Operator"><command>new</command></link> operator.</para></entry>
 	  </row>
 	  <row id="PO_NO_SYSTEM_CLASSES">
 	    <entry><para>PO_NO_SYSTEM_CLASSES</para></entry>
@@ -9090,6 +9489,16 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para><link linkend="no-database"><code>no-database</code></link></para></entry>
 	    <entry><para>Disallows access to database functionality.</para></entry>
 	  </row>
+	  <row id="PO_NO_GUI">
+	    <entry><para>PO_NO_GUI</para></entry>
+	    <entry><para><link linkend="no-gui"><code>no-gui</code></link></para></entry>
+	    <entry><para>Disallows access to functionality that draws graphics to the display.</para></entry>
+	  </row>
+	  <row id="PO_NO_TERMINAL_IO">
+	    <entry><para>PO_NO_TERMINAL_IO</para></entry>
+	    <entry><para><link linkend="no-terminal-io"><code>no-terminal-io</code></link></para></entry>
+	    <entry><para>Disallows access to reading from and/or writing to the terminal.</para></entry>
+	  </row>
 	  
 	</tbody>
       </tgroup>
@@ -9123,26 +9532,6 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para>Throws an exception to prevent objects of this class from being copied.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Program_parse">Program::parse()</link></para></entry>
-	    <entry><para>Y</para></entry>
-	    <entry><para>Performs a complete parse and commit of the string passed</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore_Program_parsePending">Program::parsePending()</link></para></entry>
-	    <entry><para>Y</para></entry>
-	    <entry><para>Performs a 1st stage parse of the string passed</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore_Program_parseRollback">Program::parseRollback()</link></para></entry>
-	    <entry><para>Y</para></entry>
-	    <entry><para>Rolls back all pending changes to the program object</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="Qore_Program_parseCommit">Program::parseCommit()</link></para></entry>
-	    <entry><para>Y</para></entry>
-	    <entry><para>Commits all pending changes to the program object.</para></entry>
-	  </row>
-	  <row>
 	    <entry><para><link linkend="Qore_Program_callFunction">Program::callFunction()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Calls a function in the program object and returns the return value.</para></entry>
@@ -9152,16 +9541,37 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Calls a function in the program object with the arguments given as a list</para></entry>
 	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Program_disableParseOptions">Program::disableParseOptions()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Removes the given parse options to the current parse option mask.</para></entry>
+	  </row>
+
 	  <row>
 	    <entry><para><link linkend="Qore_Program_existsFunction">Program::existsFunction()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Checks if a user function exists in the program object</para></entry>
 	  </row>
+
 	  <row>
-	    <entry><para><link linkend="Qore_Program_run">Program::run()</link></para></entry>
-	    <entry><para>Y</para></entry>
-	    <entry><para>Runs the top-level code of the program object</para></entry>
+	    <entry><para><link linkend="Qore_Program_getParseOptions">Program::getParseOptions()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns a code of parse options set in the object.</para></entry>
 	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Program_getScriptDir">Program::getScriptDir()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the current script directory (if any).</para></entry>
+	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Program_getUserFunctionList">Program::getUserFunctionList()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns a list of all user functions defined in the program object.</para></entry>
+	  </row>
+
 	  <row>
 	    <entry><para><link linkend="Qore_Program_importFunction">Program::importFunction()</link></para></entry>
 	    <entry><para>Y</para></entry>
@@ -9173,10 +9583,50 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para>Imports a global variable into the Program object's space.  If the variable is an object, then any methods 
 	    called will run in the parent's space.</para></entry>
 	  </row>
+
 	  <row>
-	    <entry><para><link linkend="Qore_Program_getUserFunctionList">Program::getUserFunctionList()</link></para></entry>
+	    <entry><para><link linkend="Qore_Program_lockOptions">Program::lockOptions()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns a list of all user functions defined in the program object.</para></entry>
+	    <entry><para>Locks parse options so that they cannot be changed.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Program_parse">Program::parse()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Performs a complete parse and commit of the string passed</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Program_parseCommit">Program::parseCommit()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Commits all pending changes to the program object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Program_parsePending">Program::parsePending()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Performs a 1st stage parse of the string passed</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Qore_Program_parseRollback">Program::parseRollback()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Rolls back all pending changes to the program object</para></entry>
+	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Program_run">Program::run()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Runs the top-level code of the program object</para></entry>
+	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Program_setParseOptions">Program::setParseOptions()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Adds the given parse options to the current parse option mask.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Program_setScriptDir">Program::setScriptDir()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the script directory for the object.</para></entry>
 	  </row>
 	  
 	</tbody>
@@ -9334,318 +9784,6 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <row>
 	      <entry><para><code>PROGRAM-COPY-ERROR</code></para></entry>
 	      <entry><para>Objects of this class cannot be copied.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
-
-    <sect2 id="Qore_Program_parse">
-      <title>Program::parse()</title>
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Parses the string argument and adds the code to the program object.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>Program::parse(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Example</term>
-	  <listitem>
-	    <programlisting>$pgm.parse($code, "label");</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-
-      <table>
-	<title>Arguments for Program::parse()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><replaceable>string</replaceable></para></entry>
-	      <entry><para>String</para></entry>
-	      <entry><para>The code to parse.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><replaceable>label</replaceable></para></entry>
-	      <entry><para>String</para></entry>
-	      <entry><para>The code to parse.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for Program::parse()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Exceptions Thrown by Program::parse()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>PARSE-ERROR</code></para></entry>
-	      <entry><para>An error occurred parsing the text.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
-
-    <sect2 id="Qore_Program_parsePending">
-      <title>Program::parsePending()</title>
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object.  References are resolved in the <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link> method.  If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>Program::parsePending(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Example</term>
-	  <listitem>
-	    <programlisting>$pgm.parsePending($code, "label");</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-
-      <table>
-	<title>Arguments for Program::parsePending()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><replaceable>string</replaceable></para></entry>
-	      <entry><para>String</para></entry>
-	      <entry><para>The code to parse.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><replaceable>label</replaceable></para></entry>
-	      <entry><para>String</para></entry>
-	      <entry><para>The code to parse.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for Program::parsePending()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Exceptions Thrown by Program::parsePending()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>PARSE-ERROR</code></para></entry>
-	      <entry><para>An error occurred parsing the text.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
-
-    <sect2 id="Qore_Program_parseRollback">
-      <title>Program::parseRollback()</title>
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Rolls back any pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> that has not yet been committed to the Program object with <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link></para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>Program::parseRollback()</programlisting>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Example</term>
-	  <listitem>
-	    <programlisting>$pgm.parseRollback();</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-
-      <table>
-	<title>Arguments for Program::parseRollback()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for Program::parseRollback()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-    </sect2>
-
-    <sect2 id="Qore_Program_parseCommit">
-      <title>Program::parseCommit()</title>
-      <variablelist>
-	<varlistentry>
-	  <term>Synopsis</term>
-	  <listitem>
-	    <para>Commits and pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> to the Program object and resolves all outstanding references in the pending code.  An exception in this method causes all pending code to be rolled back immediately.</para>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Usage</term>
-	  <listitem>
-	    <programlisting>Program::parseCommit()</programlisting>
-	  </listitem>
-	</varlistentry>
-	<varlistentry>
-	  <term>Example</term>
-	  <listitem>
-	    <programlisting>$pgm.parseCommit();</programlisting>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-
-      <table>
-	<title>Arguments for Program::parseCommit()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for Program::parseCommit()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Exceptions Thrown by Program::parseCommit()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>PARSE-ERROR</code></para></entry>
-	      <entry><para>An error occurred parsing the text.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9830,6 +9968,88 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
+    <sect2 id="Qore_Program_disableParseOptions">
+      <title>Program::disableParseOptions()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Disables <link linkend="Parse_Options">parse options</link> in the parse option mask for the Program object.  An exception is thrown if parse options have been locked (for example with <link linkend="Qore_Program_lockOptions">Program::lockOptions()</link>).   For a reciprocal method that sets parse options, see <link linkend="Qore_Program_setParseOptions">Program::setParseOptions()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::disableParseOptions(<replaceable>options</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># allow threading and GUI operations
+$pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::disableParseOptions()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>options</replaceable></para></entry>
+	      <entry><para>Int</para></entry>
+	      <entry><para> A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to disable in the parse option mask for the current object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::disableParseOptions()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value; if an error occurs an exception is raised.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Program::disableParseOptions()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>OPTIONS-LOCKED</code></para></entry>
+	      <entry><para>Parse options have been locked and cannot be changed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
     <sect2 id="Qore_Program_existsFunction">
       <title>Program::existsFunction()</title>
       <variablelist>
@@ -9892,31 +10112,31 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_run">
-      <title>Program::run()</title>
+    <sect2 id="Qore_Program_getParseOptions">
+      <title>Program::getParseOptions()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Runs the program and optionally returns a value if the top-level code exits with a <command>return</command> statement.</para>
+	    <para>Returns the current binary-or <link linkend="Parse_Options">parse option mask</link> for the Program object.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Program::run()</programlisting>
+	    <programlisting>Program::getParseOptions()</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$pgm.run();</programlisting>
+	    <programlisting>$mask = $pgm.getParseOptions();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
-	<title>Arguments for Program::run()</title>
+	<title>Arguments for Program::getParseOptions()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -9936,7 +10156,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
 
       <table>
-	<title>Return Values for Program::run()</title>
+	<title>Return Values for Program::getParseOptions()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -9946,8 +10166,135 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Any</para></entry>
-	      <entry><para>Depends on the program - any final <command>return</command> statement will return a value to this method.</para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>A mask of all <link linkend="Parse_Options">parse options</link> set (combined with binary or) for the current object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Program_getScriptDir">
+      <title>Program::getScriptDir()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Gets the script directory set with <link linkend="Qore_Program_setScriptDir">Program::setScriptDir()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_dir">get_script_dir()</link> function.  The value returned should normally include the trailing '/' character.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::getScriptDir()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> $dir = $pgm.setScriptDir();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::getScriptDir()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::getScriptDir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The current script directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Qore_Program_getUserFunctionList">
+      <title>Program::getUserFunctionList()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns a list of all user functions defined in the Program object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::getUserFunctionList()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$list = $pgm.getUserFunctionList();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::getUserFunctionList()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::getUserFunctionList()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>List</para></entry>
+	      <entry><para>A list of strings giving the names of all functions implemented in the program object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10132,31 +10479,31 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_getUserFunctionList">
-      <title>Program::getUserFunctionList()</title>
+    <sect2 id="Qore_Program_lockOptions">
+      <title>Program::lockOptions()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns a list of all user functions defined in the Program object.</para>
+	    <para>Locks <link linkend="Parse_Options">parse options</link> so they cannot be changed.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Program::getUserFunctionList()</programlisting>
+	    <programlisting>Program::lockParseOptions()</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$list = $pgm.getUserFunctionList();</programlisting>
+	    <programlisting>$pgm.lockParseOptions();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
-	<title>Arguments for Program::getUserFunctionList()</title>
+	<title>Arguments for Program::lockParseOptions()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -10176,7 +10523,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
 
       <table>
-	<title>Return Values for Program::getUserFunctionList()</title>
+	<title>Return Values for Program::lockOptions()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -10186,13 +10533,538 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
-	      <entry><para>A list of strings giving the names of all functions implemented in the program object.</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value; it always succeeds.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Qore_Program_parse">
+      <title>Program::parse()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Parses the string argument and adds the code to the program object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::parse(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.parse($code, "label");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::parse()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>string</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The code to parse.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>label</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The code to parse.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::parse()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Program::parse()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>PARSE-ERROR</code></para></entry>
+	      <entry><para>An error occurred parsing the text.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
     </sect2>
+
+    <sect2 id="Qore_Program_parseCommit">
+      <title>Program::parseCommit()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Commits and pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> to the Program object and resolves all outstanding references in the pending code.  An exception in this method causes all pending code to be rolled back immediately.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::parseCommit()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.parseCommit();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::parseCommit()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::parseCommit()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Program::parseCommit()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>PARSE-ERROR</code></para></entry>
+	      <entry><para>An error occurred parsing the text.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Program_parsePending">
+      <title>Program::parsePending()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object.  References are resolved in the <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link> method.  If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::parsePending(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.parsePending($code, "label");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::parsePending()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>string</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The code to parse.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>label</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The code to parse.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::parsePending()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Program::parsePending()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>PARSE-ERROR</code></para></entry>
+	      <entry><para>An error occurred parsing the text.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Program_parseRollback">
+      <title>Program::parseRollback()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Rolls back any pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> that has not yet been committed to the Program object with <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::parseRollback()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.parseRollback();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::parseRollback()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::parseRollback()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Program_run">
+      <title>Program::run()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Runs the program and optionally returns a value if the top-level code exits with a <command>return</command> statement.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::run()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.run();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::run()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::run()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Any</para></entry>
+	      <entry><para>Depends on the program - any final <command>return</command> statement will return a value to this method.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Qore_Program_setParseOptions">
+      <title>Program::setParseOptions()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets <link linkend="Parse_Options">parse options</link> in the parse option mask for the Program object.  An exception is thrown if parse options have been locked (for example with <link linkend="Qore_Program_lockOptions">Program::lockOptions()</link>).  For a reciprocal method that disables parse options, see <link linkend="Qore_Program_disableParseOptions">Program::disableParseOptions()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::setParseOptions(<replaceable>options</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># disallow threading and GUI operations
+$pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::setParseOptions()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>options</replaceable></para></entry>
+	      <entry><para>Int</para></entry>
+	      <entry><para> A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to set in the parse option mask for the current object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::setParseOptions()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method returns no value; if an error occurs an exception is raised.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Program::setParseOptions()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>OPTIONS-LOCKED</code></para></entry>
+	      <entry><para>Parse options have been locked and cannot be changed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Qore_Program_setScriptDir">
+      <title>Program::setScriptDir()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets the script directory for later retrieval with <link linkend="Qore_Program_getScriptDir">Program::getScriptDir()</link> or in the Qore program code with the <link linkend="get_script_dir">get_script_dir()</link> function.  The argument should include the trailing '/' character.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::setScriptDir(<replaceable>path_string</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.setScriptDir("./");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::setScriptDir()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>path_string</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The path of the directory name for the current script.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::setScriptDir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
   </sect1>
   
   <sect1 id="Qore_Socket_Class">
@@ -10204,7 +11076,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     <programlisting><command>my</command> $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds</programlisting>
 
-    <para>Socket objects can automatically convert character set encodings if desired when sending string data with <link linkend="Qore_Socket_send">Socket::send()</link>.  Use the <link linkend="Qore_Socket_setCharset">Socket::setCharset()</link> method to set the character set encoding for the socket.  If a character set encoding is set, and string data is read with the <link linkend="Qore_Socket_recv">Socket::recv()</link> method, then it will be tagged with the encoding of the socket as well.</para>
+    <para>Socket objects can automatically convert character encodings if desired when sending string data with <link linkend="Qore_Socket_send">Socket::send()</link>.  Use the <link linkend="Qore_Socket_setCharset">Socket::setCharset()</link> method to set the character encoding for the socket.  If a character encoding is set, and string data is read with the <link linkend="Qore_Socket_recv">Socket::recv()</link> method, then it will be tagged with the encoding of the socket as well.</para>
     
     <para>Client applications should call <link linkend="Qore_Socket_connect">Socket::connect()</link> to connect to a remote port or a UNIX domain socket (socket file on the local server).  However, if the remote end is expecting a TLS/SSL connection, use <link linkend="Socket_connectSSL">Socket::connectSSL()</link> instead.</para>
 
@@ -10447,12 +11319,12 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_getCharset">Socket::getCharset()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the character set encoding for the socket.</para></entry>
+	    <entry><para>Returns the character encoding for the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_setCharset">Socket::setCharset()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Sets the character set encoding for the socket.</para></entry>
+	    <entry><para>Sets the character encoding for the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore_Socket_getSocket">Socket::getSocket()</link></para></entry>
@@ -14404,7 +15276,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns the character set encoding for the socket.</para>
+	    <para>Returns the character encoding for the socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14455,7 +15327,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para>String</para></entry>
-	      <entry><para>The character set encoding for the file.</para></entry>
+	      <entry><para>The character encoding for the file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -14469,7 +15341,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the character set encoding for the socket.  If any string data is sent over the socket with <link linkend="Qore_Socket_send">Socket::send()</link>, then the character encoding will be automatically converted if needed.</para>
+	    <para>Sets the character encoding for the socket.  If any string data is sent over the socket with <link linkend="Qore_Socket_send">Socket::send()</link>, then the character encoding will be automatically converted if needed.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14501,7 +15373,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The character set encoding for the file.</para></entry>
+	      <entry><para>The character encoding for the file.</para></entry>
 	    </row>
 	    
 	  </tbody>
@@ -14608,7 +15480,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <para>Objects of this class are thread-safe and support serializing multiple simultaneous requests from many threads.  If a request is in progress and another thread attempts to make a request at the same time, the second thread will block until the first is complete.  Therefore the total amount of time a thread could wait for a response in a multi-threaded context could be greater than the read timeout value.</para>
 
-    <para>This class understands and automatically decodes &quot;deflate&quot; and &quot;gzip&quot; content encodings as well.</para>
+    <para>This class understands and automatically decodes &quot;deflate&quot;, &quot;gzip&quot;, and &quot;bzip2&quot; content encodings as well.</para>
 
     <para>The default read timeout value is 300,000 milliseconds (5 minutes).  Note that the read timeout value applies to individual packets; for this reason for large transfers the overall read time could exceed the read timeout value.</para>
 
@@ -14690,7 +15562,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </row>
 	  <row>
 	    <entry><para><code>Accept-Encoding</code></para></entry>
-	    <entry><para><code>deflate,gzip</code></para></entry>
+	    <entry><para><code>deflate,gzip,bzip2</code></para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -21060,7 +21932,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<tbody>
 	  <row>
 	    <entry><para>SQL::DBI_CAP_CHARSET_SUPPORT</para></entry>
-	    <entry><para>Indicates that the DBI driver supports proper character set encoding conversions.</para></entry>
+	    <entry><para>Indicates that the DBI driver supports proper character encoding conversions.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>SQL::DBI_CAP_TRANSACTION_MANAGEMENT</para></entry>
@@ -23207,7 +24079,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the database-specific character set encoding to use for the connection.  Invalid character set encoding names will cause an exception to be thrown when the connection is opened.</para>
+	    <para>Sets the database-specific character encoding to use for the connection.  Invalid character encoding names will cause an exception to be thrown when the connection is opened.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
