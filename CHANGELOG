@@ -1,3 +1,6 @@
+2008.06.18: David Nichols
+	* fixed out-of-line method definition parsing
+
 2008.06.17: David Nichols
 	* major documenation updates
 	* illegal accesses to private static methods now throw an exception at

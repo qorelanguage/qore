@@ -648,7 +648,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %token <Regex> REGEX_EXTRACT "regular expression extraction expression"
 %token <implicit_arg> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
-%token <string> STATIC_METHOD_CALL "static method call"
 
 %nonassoc IFX SCOPED_REF
 %nonassoc TOK_ELSE
@@ -718,7 +717,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
-%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname STATIC_METHOD_CALL
+%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
 %%
 top_level_commands:
@@ -1854,10 +1853,6 @@ exp:    scalar
 	   else
 	      $$ = makeTree(OP_POST_DECREMENT, $1, 0);
         }
-        | STATIC_METHOD_CALL myexp ')'
-	{
-	   $$ = new StaticMethodCallNode($1, makeArgs($2));
-	}
 	| exp '(' myexp ')'
         {
 	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
@@ -1877,8 +1872,9 @@ exp:    scalar
 	      // take NamedScope from node and delete node
 	      NamedScope *ns = c->takeName();
 	      c->deref();
-	      printd(5, "parsing scoped class call (for new) %s()\n", ns->ostr);
-	      $$ = new ScopedObjectCallNode(ns, makeArgs($3));	      
+	      assert(ns->elements > 1);
+	      printd(5, "parsing scoped call (static method or new object call) %s()\n", ns->ostr);
+	      $$ = new StaticMethodCallNode(ns, makeArgs($3));
 	   }
 	   else if (t == NT_SELF_VARREF)
 	   {
@@ -2072,20 +2068,20 @@ exp:    scalar
         | TOK_NEW exp //function_call
         {
 	   qore_type_t t = $2 ? $2->getType() : 0;
-	   if (t == NT_SCOPE_REF)
-	   { 
-	      $$ = makeTree(OP_NEW, $2, 0); 
+	   if (t == NT_STATIC_METHOD_CALL) {
+	      StaticMethodCallNode *smc = reinterpret_cast<StaticMethodCallNode *>($2);
+	      ScopedObjectCallNode *new_exp = new ScopedObjectCallNode(smc->takeScope(), smc->takeArgs());	      
+	      smc->deref();
+	      $$ = makeTree(OP_NEW, new_exp, 0); 
 	      // see if new can be used
 	      if (checkParseOption(PO_NO_NEW))
 		 parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
 	   }
-	   else if (t != NT_FUNCTION_CALL)
-	   {
+	   else if (t != NT_FUNCTION_CALL) {
 	      parse_error("invalid expression after 'new' operator (%s)", $2 ? $2->getTypeName() : "<nothing>");
 	      $$ = $2;
 	   }
-	   else
-	   {
+	   else {
 	      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>($2);
 	      $$ = makeTree(OP_NEW, f->parseMakeNewObject(), 0);
 	      f->deref();

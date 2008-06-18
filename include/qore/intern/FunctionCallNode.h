@@ -100,7 +100,15 @@ class AbstractFunctionCallNode : public ParseNode
 
    public:
       DLLLOCAL AbstractFunctionCallNode(qore_type_t t, QoreListNode *n_args) : ParseNode(t), args(n_args) {}
-      
+      DLLLOCAL virtual ~AbstractFunctionCallNode()
+      {
+	 // there could be an object here in the case of a background expression
+	 if (args) {
+	    ExceptionSink xsink;
+	    args->deref(&xsink);
+	 }
+      }
+     
       DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag) = 0;
       DLLLOCAL virtual const char *getName() const = 0;
 
@@ -243,7 +251,7 @@ class StaticMethodCallNode : public AbstractFunctionCallNode
       }
 
    public:
-      DLLLOCAL StaticMethodCallNode(char *str, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(new NamedScope(str)), method(0)
+      DLLLOCAL StaticMethodCallNode(NamedScope *n_scope, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(n_scope), method(0)
       {
       }
 
@@ -320,6 +328,13 @@ class StaticMethodCallNode : public AbstractFunctionCallNode
       {
 	 NamedScope *rv = scope;
 	 scope = 0;
+	 return rv;
+      }
+
+      DLLLOCAL QoreListNode *takeArgs()
+      {
+	 QoreListNode *rv = args;
+	 args = 0;
 	 return rv;
       }
 };

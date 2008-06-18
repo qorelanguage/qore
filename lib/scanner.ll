@@ -29,14 +29,6 @@
   so a thread-safe scanner can be generated
 
   see: http://flex.sourceforge.net/
-
-({WORD}::)+{WORD}{WS}*\(                {
-                                           int l = strlen(yytext);
-					   yytext[l - 1] = '\0';
-                                           yylval->string = trim(yytext);
-					   return STATIC_METHOD_CALL;
-		                        }
-
 */
 
 #include <qore/Qore.h>

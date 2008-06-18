@@ -103,13 +103,6 @@ FunctionCallNode::~FunctionCallNode()
    printd(5, "FunctionCallNode::~FunctionCallNode(): ftype=%d args=%08p (%s)\n",
 	  ftype, args, (ftype == FC_UNRESOLVED && f.c_str) ? f.c_str : "(null)");
 
-   // there could be an object here in the case of a background expression
-   if (args)
-   {
-      ExceptionSink xsink;
-      args->deref(&xsink);
-   }
-
    switch (ftype)
    {
       case FC_USER:
