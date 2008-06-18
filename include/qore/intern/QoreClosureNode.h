@@ -46,7 +46,7 @@ class QoreClosureBase : public ResolvedCallReferenceNode
 
    public:
       //! constructor is not exported outside the library
-      DLLLOCAL QoreClosureBase(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF, const QoreClosureParseNode *n_closure) : ResolvedCallReferenceNode(n_needs_eval, n_type), closure(n_closure)
+      DLLLOCAL QoreClosureBase(const QoreClosureParseNode *n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure)
       {
       }
       

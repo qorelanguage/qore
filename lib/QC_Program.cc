@@ -241,7 +241,7 @@ static AbstractQoreNode *PROGRAM_getUserFunctionList(QoreObject *self, QoreProgr
    return p->getUserFunctionList();
 }
 
-static QoreClass *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    int opt = p0 ? p0->getAsInt() : PO_DEFAULT;
@@ -250,12 +250,12 @@ static QoreClass *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p, cons
    return 0;
 }
 
-static QoreClass *PROGRAM_getParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_getParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(p->getParseOptions());
 }
 
-static QoreClass *PROGRAM_disableParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_disableParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    int opt = p0 ? p0->getAsInt() : PO_DEFAULT;

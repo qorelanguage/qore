@@ -28,7 +28,15 @@
   requires flex 2.5.31 or better (2.5.35 recommended, 2.5.4 will not work) 
   so a thread-safe scanner can be generated
 
-  see: http://lex.sourceforge.net/
+  see: http://flex.sourceforge.net/
+
+({WORD}::)+{WORD}{WS}*\(                {
+                                           int l = strlen(yytext);
+					   yytext[l - 1] = '\0';
+                                           yylval->string = trim(yytext);
+					   return STATIC_METHOD_CALL;
+		                        }
+
 */
 
 #include <qore/Qore.h>
@@ -777,12 +785,6 @@ PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yyte
 P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
-({WORD}::)+{WORD}{WS}*\(                {
-                                           int l = strlen(yytext);
-					   yytext[l - 1] = '\0';
-                                           yylval->string = trim(yytext);
-					   return STATIC_METHOD_CALL;
-		                        }
 {DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, 0); return QFLOAT;
 0[0-7]+				        yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER;
 {DIGIT}+				yylval->integer = strtoll(yytext, 0, 10); return INTEGER;

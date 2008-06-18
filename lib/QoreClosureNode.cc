@@ -53,7 +53,7 @@ void ClosureRuntimeEnvironment::del(ExceptionSink *xsink)
 #endif
 }
 
-QoreClosureNode::QoreClosureNode(const QoreClosureParseNode *n_closure) : QoreClosureBase(false, NT_RUNTIME_CLOSURE, n_closure), closure_env(n_closure->getVList()), pgm(::getProgram())
+QoreClosureNode::QoreClosureNode(const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), pgm(::getProgram())
 {
    pgm->depRef();
 }
@@ -75,7 +75,7 @@ AbstractQoreNode *QoreClosureNode::exec(const QoreListNode *args, ExceptionSink 
    return closure->exec(args, 0, xsink);
 }
 
-QoreObjectClosureNode::QoreObjectClosureNode(QoreObject *n_obj, const QoreClosureParseNode *n_closure) : QoreClosureBase(false, NT_RUNTIME_CLOSURE, n_closure), closure_env(n_closure->getVList()), obj(n_obj)
+QoreObjectClosureNode::QoreObjectClosureNode(QoreObject *n_obj, const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), obj(n_obj)
 {
    obj->ref();
 }
