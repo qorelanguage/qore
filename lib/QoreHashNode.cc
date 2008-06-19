@@ -650,12 +650,12 @@ int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
    str.concat("hash: ");
    if (foff != FMT_NONE) {
       qore_size_t elements = size();
-      str.sprintf("(%ul member%s)\n", elements, elements == 1 ? "" : "s");
+      str.sprintf("(%lu member%s)\n", elements, elements == 1 ? "" : "s");
    }
    else
       str.concat('(');
    
-   class ConstHashIterator hi(this);
+   ConstHashIterator hi(this);
    
    bool first = false;
    while (hi.next()) {
