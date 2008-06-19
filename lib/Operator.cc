@@ -1910,7 +1910,7 @@ static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQo
 {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (*xsink)
+   if (!arg || *xsink)
       return 0;
 
    // return the argument if there is no list
@@ -1950,7 +1950,7 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
 {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (*xsink)
+   if (!arg || *xsink)
       return 0;
 
    // return the argument if there is no list
