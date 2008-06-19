@@ -1991,7 +1991,7 @@ static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const Abstra
 {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (*xsink)
+   if (!arg || *xsink)
       return 0;
 
    if (arg->getType() != NT_LIST) {
