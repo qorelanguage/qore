@@ -5,4 +5,2134 @@
 
     <para>The opengl module exports OpenGL functionality to qore.</para>
 
+    <para>This module must be used with another module such as the <link linkend="glut_Module">glut</link> module or the <link linkend="qt-opengl_Module">qt-opengl</link> module to actually draw to the display.</para>
+
+    <para>This module provides GL, GLU, and EXT functions.  Note that most of the C++ code for this module was generated automatically by a Qore sciprt that scanned the header files and generated the C++ module code based on the function prototypes (by generating the C++ binding s to create qore functions) and the defines (by generating C++ code to create Qore constants).</para>
+
+    <para>This manual does not document the OpenGL API at the moment.  The Qore OpenGL API corresponds basically 1:1 to the C API, with exceptions docmented here.  Please see OpenGL API documentation for details on the API.  Differences between the C and Qore OpenGL APIs are mainly related to handling of pointers in C.  Note that not all OpenGL functions are mapped yet to Qore; most functions that take pointers require hand-coding to export to Qore properly, and only enough of those functions that could not be automatically bound in Qore have been ported to Qore to run the example programs (found in the Qore source distribution in <code>examples/opengl</code>).  If you need some more functions (or have any questions) feel free to send me an email at david_nichols@users.sourceforge.net.</para>
+
+    <para>GL functions that end in &quot;v&quot; that set values (such as glMaterialfv(), glMaterialiv(), glLightModeliv(), etc) take lists instead of a pointer argument; the number of elements in the list is determined automatically.  For functions that take different parameter codes and there each parameter code could require a list of a different size, then the number of elements required in the list argument is determined by the parameter code value, therefore if the Qore module does not recognize the parameter code (and therefore does not know how many parameters to bind to the OpenGL call), a run-time exception will be thrown.  For example, if a call is made to glFogfv() with parameter code not equal to GL_FOG_COLOR, GL_FOG_INDEX, GL_FOG_END, GL_FOG_START, GL_FOG_DENSITY, or GL_FOG_MODE, then a run-time exception will be raised as the Qore module does not know how many elements should be present in the list argument (this was a design decision to make the module safer - just binding a list based on the number of elements passed could leave the program vulnerable to memory errors/crashes in such code if the programmer accidentally passes a list that is too small; in general Qore makes every effort to make it impossible to crash the Qore process through making programming mistakes in Qore code).</para>
+
+    <para>GL functions that end in &quot;v&quot; that read values (such as glGetBooleanv(), glGetDoublev(), glGetFloatv(), getGetIntegerv(), glGetTexLevelParameterfvI(), etc) do not require a trailing list argument, instead they return a list directly (unlike the C functions which have a return type of <code>void</code>).  As with the setting functions, unknown parameter codes will cause run-time exceptions to be thrown.</para>
+
+    <para>Note that if a function does not appear in the following lists it has not yet been bound to Qore (possibly because one of the parameters requires a pointer argument and the bindings have not yet been made by hand).</para>
+
+    <table>
+      <title>GL Functions</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+	<thead>
+	  <row>
+	    <entry><para>Function Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>glAccum()</para></entry>
+	    <entry><para>operate on the accumulation buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glActiveTexture()</para></entry>
+	    <entry><para>select active texture unit</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glAlphaFunc()</para></entry>
+	    <entry><para>specify the alpha test function</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glArrayElement()</para></entry>
+	    <entry><para>render a vertex using the specified vertex array element</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glAttachShader()</para></entry>
+	    <entry><para>Attaches a shader object to a program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBegin()</para></entry>
+	    <entry><para>delimit the vertices of a primitive or a group of like primitives</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBeginQuery()</para></entry>
+	    <entry><para>delimit the boundaries of a query object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindBuffer()</para></entry>
+	    <entry><para>bind a named buffer object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindTexture()</para></entry>
+	    <entry><para>bind a named texture to a texturing target</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBitmap()</para></entry>
+	    <entry><para>draw a bitmap</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendColor()</para></entry>
+	    <entry><para>set the blend color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendEquation()</para></entry>
+	    <entry><para>specify the equation used for both the RGB blend equation and the Alpha blend equation</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendEquationSeparate()</para></entry>
+	    <entry><para>set the RGB blend equation and the alpha blend equation separately</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendFunc()</para></entry>
+	    <entry><para>specify pixel arithmetic</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendFuncSeparate()</para></entry>
+	    <entry><para>specify pixel arithmetic for RGB and alpha components separately</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCallList()</para></entry>
+	    <entry><para>execute a display list</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClear()</para></entry>
+	    <entry><para>clear buffers to preset values</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClearAccum()</para></entry>
+	    <entry><para>specify clear values for the accumulation buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClearColor()</para></entry>
+	    <entry><para>specify clear values for the color buffers</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClearDepth()</para></entry>
+	    <entry><para>specify the clear value for the depth buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClearIndex()</para></entry>
+	    <entry><para>specify the clear value for the color index buffers</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClearStencil()</para></entry>
+	    <entry><para>specify the clear value for the stencil buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClientActiveTexture()</para></entry>
+	    <entry><para>select active texture unit</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3b()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3bv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3d()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3dv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3f()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3fv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3i()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3iv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3s()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3sv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3ub()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3ubv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3ui()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3uiv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3us()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor3usv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4b()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4bv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4d()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4dv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4f()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4fv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4i()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4iv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4s()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4sv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4ub()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4ubv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4ui()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4uiv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4us()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColor4usv()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColorMask()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColorMaterial()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glColorPointer()</para></entry>
+	    <entry><para>set the current color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCompileShader()</para></entry>
+	    <entry><para>Compiles a shader object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glConvolutionParameterf()</para></entry>
+	    <entry><para>set convolution parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glConvolutionParameteri()</para></entry>
+	    <entry><para>set convolution parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyColorSubTable()</para></entry>
+	    <entry><para>respecify a portion of a color table</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyColorTable()</para></entry>
+	    <entry><para>copy pixels into a color table</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyConvolutionFilter1D()</para></entry>
+	    <entry><para>glCopyConvolutionFilter1D — copy pixels into a one-dimensional convolution filter</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyConvolutionFilter2D()</para></entry>
+	    <entry><para>glCopyConvolutionFilter2D — copy pixels into a two-dimensional convolution filter</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyPixels()</para></entry>
+	    <entry><para>copy pixels in the frame buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyTexImage1D()</para></entry>
+	    <entry><para>glCopyTexImage1D — copy pixels into a 1D texture image</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyTexImage2D()</para></entry>
+	    <entry><para>glCopyTexImage2D — copy pixels into a 2D texture image</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyTexSubImage1D()</para></entry>
+	    <entry><para>glCopyTexSubImage1D — copy a one-dimensional texture subimage</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyTexSubImage2D()</para></entry>
+	    <entry><para>glCopyTexSubImage2D — copy a two-dimensional texture subimage</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCopyTexSubImage3D()</para></entry>
+	    <entry><para>glCopyTexSubImage3D — copy a three-dimensional texture subimage</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCreateProgram()</para></entry>
+	    <entry><para>Creates a program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCreateShader()</para></entry>
+	    <entry><para>Creates a shader object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCullFace()</para></entry>
+	    <entry><para>specify whether front- or back-facing facets can be culled</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDeleteLists()</para></entry>
+	    <entry><para>delete a contiguous group of display lists</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDeleteProgram()</para></entry>
+	    <entry><para>Deletes a program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDeleteShader()</para></entry>
+	    <entry><para>Deletes a shader object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDepthFunc()</para></entry>
+	    <entry><para>specify the value used for depth buffer comparisons</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDepthMask()</para></entry>
+	    <entry><para>enable or disable writing into the depth buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDepthRange()</para></entry>
+	    <entry><para>specify mapping of depth values from normalized device coordinates to window coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDetachShader()</para></entry>
+	    <entry><para>Detaches a shader object from a program object to which it is attached</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDisable()</para></entry>
+	    <entry><para>enable or disable server-side GL capabilities</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDisableClientState()</para></entry>
+	    <entry><para>enable or disable client-side capability</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDisableVertexAttribArray()</para></entry>
+	    <entry><para>Enable or disable a generic vertex attribute array</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDrawArrays()</para></entry>
+	    <entry><para>render primitives from array data</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDrawBuffer()</para></entry>
+	    <entry><para>specify which color buffers are to be drawn into</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEdgeFlag()</para></entry>
+	    <entry><para>flag edges as either boundary or nonboundary</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEnable()</para></entry>
+	    <entry><para>enable or disable server-side GL capabilities</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEnableClientState()</para></entry>
+	    <entry><para>enable or disable client-side capability</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEnableVertexAttribArray()</para></entry>
+	    <entry><para>Enable or disable a generic vertex attribute array</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEnd()</para></entry>
+	    <entry><para>delimit the vertices of a primitive or a group of like primitives</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEndList()</para></entry>
+	    <entry><para>create or replace a display list</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEndQuery()</para></entry>
+	    <entry><para>delimit the boundaries of a query object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEvalCoord1d()</para></entry>
+	    <entry><para>evaluate enabled one- and two-dimensional maps</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEvalCoord1f()</para></entry>
+	    <entry><para>evaluate enabled one- and two-dimensional maps</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEvalCoord2d()</para></entry>
+	    <entry><para>evaluate enabled one- and two-dimensional maps</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEvalCoord2f()</para></entry>
+	    <entry><para>evaluate enabled one- and two-dimensional maps</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEvalMesh1()</para></entry>
+	    <entry><para>compute a one- or two-dimensional grid of points or lines</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEvalMesh2()</para></entry>
+	    <entry><para>compute a one- or two-dimensional grid of points or lines</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEvalPoint1()</para></entry>
+	    <entry><para>generate and evaluate a single point in a mesh</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEvalPoint2()</para></entry>
+	    <entry><para>generate and evaluate a single point in a mesh</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFinish()</para></entry>
+	    <entry><para>block until all GL execution is complete</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFlush()</para></entry>
+	    <entry><para>force execution of GL commands in finite time</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFogCoordd()</para></entry>
+	    <entry><para>set the current fog coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFogCoordf()</para></entry>
+	    <entry><para>set the current fog coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFogf()</para></entry>
+	    <entry><para>specify fog parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFogfv()</para></entry>
+	    <entry><para>specify fog parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFogi()</para></entry>
+	    <entry><para>specify fog parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFogiv()</para></entry>
+	    <entry><para>specify fog parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFrontFace()</para></entry>
+	    <entry><para>define front- and back-facing polygons</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFrustum()</para></entry>
+	    <entry><para>multiply the current matrix by a perspective matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGenLists()</para></entry>
+	    <entry><para>generate a contiguous set of empty display lists</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGenTextures()</para></entry>
+	    <entry><para>generate texture names</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetBooleanv()</para></entry>
+	    <entry><para>return the value or values of a selected parameter</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetDoublev()</para></entry>
+	    <entry><para>return the value or values of a selected parameter</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetError()</para></entry>
+	    <entry><para>return error information</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetFloatv()</para></entry>
+	    <entry><para>return the value or values of a selected parameter</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetIntegerv()</para></entry>
+	    <entry><para>return the value or values of a selected parameter</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetString()</para></entry>
+	    <entry><para>return a string describing the current GL connection</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetTexLevelParameterfv()</para></entry>
+	    <entry><para>return texture parameter values for a specific level of detail</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetTexLevelParameteriv()</para></entry>
+	    <entry><para>return texture parameter values for a specific level of detail</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glHint()</para></entry>
+	    <entry><para>specify implementation-specific hints</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glHistogram()</para></entry>
+	    <entry><para>define histogram table</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIndexMask()</para></entry>
+	    <entry><para>control the writing of individual bits in the color index buffers</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIndexd()</para></entry>
+	    <entry><para>set the current color index</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIndexf()</para></entry>
+	    <entry><para>set the current color index</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIndexi()</para></entry>
+	    <entry><para>set the current color index</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIndexs()</para></entry>
+	    <entry><para>set the current color index</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIndexub()</para></entry>
+	    <entry><para>set the current color index</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glInitNames()</para></entry>
+	    <entry><para>initialize the name stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsBuffer()</para></entry>
+	    <entry><para>determine if a name corresponds to a buffer object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsEnabled()</para></entry>
+	    <entry><para>test whether a capability is enabled</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsList()</para></entry>
+	    <entry><para>determine if a name corresponds to a display list</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsProgram()</para></entry>
+	    <entry><para>Determines if a name corresponds to a program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsQuery()</para></entry>
+	    <entry><para>determine if a name corresponds to a query object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsShader()</para></entry>
+	    <entry><para>Determines if a name corresponds to a shader object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsTexture()</para></entry>
+	    <entry><para>determine if a name corresponds to a texture</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLightModelf()</para></entry>
+	    <entry><para>set the lighting model parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLightModelfv()</para></entry>
+	    <entry><para>set the lighting model parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLightModeli()</para></entry>
+	    <entry><para>set the lighting model parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLightModeliv()</para></entry>
+	    <entry><para>set the lighting model parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLightf()</para></entry>
+	    <entry><para>set light source parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLightfv()</para></entry>
+	    <entry><para>set light source parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLighti()</para></entry>
+	    <entry><para>set light source parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLightiv()</para></entry>
+	    <entry><para>set light source parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLineStipple()</para></entry>
+	    <entry><para>specify the line stipple pattern</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLineWidth()</para></entry>
+	    <entry><para>specify the width of rasterized lines</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLinkProgram()</para></entry>
+	    <entry><para>Links a program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glListBase()</para></entry>
+	    <entry><para></para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLoadIdentity()</para></entry>
+	    <entry><para>replace the current matrix with the identity matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLoadMatrixd()</para></entry>
+	    <entry><para>replace the current matrix with the specified matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLoadMatrixf()</para></entry>
+	    <entry><para>replace the current matrix with the specified matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLoadName()</para></entry>
+	    <entry><para>load a name onto the name stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLogicOp()</para></entry>
+	    <entry><para>specify a logical pixel operation for color index rendering</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMapGrid1d()</para></entry>
+	    <entry><para>define a one- or two-dimensional mesh</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMapGrid1f()</para></entry>
+	    <entry><para>define a one- or two-dimensional mesh</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMapGrid2d()</para></entry>
+	    <entry><para>define a one- or two-dimensional mesh</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMapGrid2f()</para></entry>
+	    <entry><para>define a one- or two-dimensional mesh</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMaterialf()</para></entry>
+	    <entry><para>specify material parameters for the lighting model</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMaterialfv()</para></entry>
+	    <entry><para>specify material parameters for the lighting model</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMateriali()</para></entry>
+	    <entry><para>specify material parameters for the lighting model</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMaterialiv()</para></entry>
+	    <entry><para>specify material parameters for the lighting model</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMatrixMode()</para></entry>
+	    <entry><para>specify which matrix is the current matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMinmax()</para></entry>
+	    <entry><para>define minmax table</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultMatrixd()</para></entry>
+	    <entry><para>multiply the current matrix with the specified matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultMatrixf()</para></entry>
+	    <entry><para>multiply the current matrix with the specified matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord1d()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord1f()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord1i()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord1s()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord2d()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord2f()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord2i()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord2s()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord3d()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord3f()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord3i()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord3s()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord4d()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord4f()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord4i()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord4s()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNewList()</para></entry>
+	    <entry><para>create or replace a display list</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3b()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3bv()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3d()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3dv()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3f()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3fv()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3i()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3iv()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3s()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glNormal3sv()</para></entry>
+	    <entry><para>set the current normal vector</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glOrtho()</para></entry>
+	    <entry><para>multiply the current matrix with an orthographic matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPassThrough()</para></entry>
+	    <entry><para>place a marker in the feedback buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPixelStoref()</para></entry>
+	    <entry><para>set pixel storage modes</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPixelStorei()</para></entry>
+	    <entry><para>set pixel storage modes</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPixelTransferf()</para></entry>
+	    <entry><para>set pixel transfer modes</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPixelTransferi()</para></entry>
+	    <entry><para>set pixel transfer modes</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPixelZoom()</para></entry>
+	    <entry><para>specify the pixel zoom factors</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPointParameterf()</para></entry>
+	    <entry><para>specify point parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPointParameteri()</para></entry>
+	    <entry><para>specify point parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPointSize()</para></entry>
+	    <entry><para>specify the diameter of rasterized points</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPolygonMode()</para></entry>
+	    <entry><para>select a polygon rasterization mode</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPolygonOffset()</para></entry>
+	    <entry><para>set the scale and units used to calculate depth values</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPopAttrib()</para></entry>
+	    <entry><para>push and pop the server attribute stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPopClientAttrib()</para></entry>
+	    <entry><para>push and pop the client attribute stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPopMatrix()</para></entry>
+	    <entry><para>push and pop the current matrix stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPopName()</para></entry>
+	    <entry><para>push and pop the name stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPushAttrib()</para></entry>
+	    <entry><para>push and pop the server attribute stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPushClientAttrib()</para></entry>
+	    <entry><para>push and pop the client attribute stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPushMatrix()</para></entry>
+	    <entry><para>push and pop the current matrix stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPushName()</para></entry>
+	    <entry><para>push and pop the name stack</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos2d()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos2f()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos2i()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos2s()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos3d()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos3f()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos3i()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos3s()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos4d()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos4f()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos4i()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRasterPos4s()</para></entry>
+	    <entry><para>specify the raster position for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glReadBuffer()</para></entry>
+	    <entry><para>select a color buffer source for pixels</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glReadPixels()</para></entry>
+	    <entry><para>read a block of pixels from the frame buffer</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRectd()</para></entry>
+	    <entry><para>draw a rectangle</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRectf()</para></entry>
+	    <entry><para>draw a rectangle</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRecti()</para></entry>
+	    <entry><para>draw a rectangle</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRects()</para></entry>
+	    <entry><para>draw a rectangle</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glResetHistogram()</para></entry>
+	    <entry><para>reset histogram table entries to zero</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glResetMinmax()</para></entry>
+	    <entry><para>reset minmax table entries to initial values</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRotated()</para></entry>
+	    <entry><para>multiply the current matrix by a rotation matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRotatef()</para></entry>
+	    <entry><para>multiply the current matrix by a rotation matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSampleCoverage()</para></entry>
+	    <entry><para>specify multisample coverage parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSamplePass()</para></entry>
+	    <entry><para></para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glScaled()</para></entry>
+	    <entry><para>multiply the current matrix by a general scaling matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glScalef()</para></entry>
+	    <entry><para>multiply the current matrix by a general scaling matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glScissor()</para></entry>
+	    <entry><para>define the scissor box</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3b()</para></entry>
+	    <entry><para>set the current secondary color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3d()</para></entry>
+	    <entry><para>set the current secondary color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3f()</para></entry>
+	    <entry><para>set the current secondary color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3i()</para></entry>
+	    <entry><para>set the current secondary color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3s()</para></entry>
+	    <entry><para>set the current secondary color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3ub()</para></entry>
+	    <entry><para>set the current secondary color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3ui()</para></entry>
+	    <entry><para>set the current secondary color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3us()</para></entry>
+	    <entry><para>set the current secondary color</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glShadeModel()</para></entry>
+	    <entry><para>select flat or smooth shading</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glStencilFunc()</para></entry>
+	    <entry><para>set front and back function and reference value for stencil testing</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glStencilFuncSeparate()</para></entry>
+	    <entry><para>set front and/or back function and reference value for stencil testing</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glStencilMask()</para></entry>
+	    <entry><para>control the front and back writing of individual bits in the stencil planes</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glStencilMaskSeparate()</para></entry>
+	    <entry><para>control the front and/or back writing of individual bits in the stencil planes</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glStencilOp()</para></entry>
+	    <entry><para>set front and back stencil test actions</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glStencilOpSeparate()</para></entry>
+	    <entry><para>set front and/or back stencil test actions</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord1d()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord1f()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord1i()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord1s()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord2d()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord2f()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord2i()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord2s()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord3d()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord3f()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord3i()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord3s()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord4d()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord4f()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord4i()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoord4s()</para></entry>
+	    <entry><para>set the current texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexCoordPointer()</para></entry>
+	    <entry><para>define an array of texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexEnvf()</para></entry>
+	    <entry><para>set texture environment parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexEnvfv()</para></entry>
+	    <entry><para>set texture environment parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexEnvi()</para></entry>
+	    <entry><para>set texture environment parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexEnviv()</para></entry>
+	    <entry><para>set texture environment parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexGend()</para></entry>
+	    <entry><para>control the generation of texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexGendv()</para></entry>
+	    <entry><para>control the generation of texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexGenf()</para></entry>
+	    <entry><para>control the generation of texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexGenfv()</para></entry>
+	    <entry><para>control the generation of texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexGeni()</para></entry>
+	    <entry><para>control the generation of texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexGeniv()</para></entry>
+	    <entry><para>control the generation of texture coordinates</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexImage1D()</para></entry>
+	    <entry><para>glTexImage1D — specify a one-dimensional texture image</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexImage2D()</para></entry>
+	    <entry><para>glTexImage2D — specify a two-dimensional texture image</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexImage3D()</para></entry>
+	    <entry><para>glTexImage3D — specify a three-dimensional texture image</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexParameterf()</para></entry>
+	    <entry><para>set texture parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexParameterfv()</para></entry>
+	    <entry><para>set texture parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexParameteri()</para></entry>
+	    <entry><para>set texture parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTexParameteriv()</para></entry>
+	    <entry><para>set texture parameters</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTranslated()</para></entry>
+	    <entry><para>multiply the current matrix by a translation matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTranslatef()</para></entry>
+	    <entry><para>multiply the current matrix by a translation matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform1f()</para></entry>
+	    <entry><para>Specify the value of a uniform variable for the current program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform1i()</para></entry>
+	    <entry><para>Specify the value of a uniform variable for the current program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform2f()</para></entry>
+	    <entry><para>Specify the value of a uniform variable for the current program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform2i()</para></entry>
+	    <entry><para>Specify the value of a uniform variable for the current program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform3f()</para></entry>
+	    <entry><para>Specify the value of a uniform variable for the current program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform3i()</para></entry>
+	    <entry><para>Specify the value of a uniform variable for the current program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform4f()</para></entry>
+	    <entry><para>Specify the value of a uniform variable for the current program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform4i()</para></entry>
+	    <entry><para>Specify the value of a uniform variable for the current program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUseProgram()</para></entry>
+	    <entry><para>Installs a program object as part of current rendering state</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glValidateProgram()</para></entry>
+	    <entry><para>Validates a program object</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex2d()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex2dv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex2f()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex2fv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex2i()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex2iv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex2s()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex2sv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex3d()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex3dv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex3f()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex3fv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex3i()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex3iv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex3s()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex3sv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex4d()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex4dv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex4f()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex4fv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex4i()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex4iv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex4s()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertex4sv()</para></entry>
+	    <entry><para>specify a vertex</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib1d()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib1f()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib1s()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib2d()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib2f()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib2s()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib3d()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib3f()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib3s()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib4Nub()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib4d()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib4f()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib4s()</para></entry>
+	    <entry><para>Specifies the value of a generic vertex attribute</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexPointer()</para></entry>
+	    <entry><para>define an array of vertex data</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glViewport()</para></entry>
+	    <entry><para>set the viewport</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos2d()</para></entry>
+	    <entry><para>specify the raster position in window coordinates for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos2f()</para></entry>
+	    <entry><para>specify the raster position in window coordinates for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos2i()</para></entry>
+	    <entry><para>specify the raster position in window coordinates for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos2s()</para></entry>
+	    <entry><para>specify the raster position in window coordinates for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos3d()</para></entry>
+	    <entry><para>specify the raster position in window coordinates for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos3f()</para></entry>
+	    <entry><para>specify the raster position in window coordinates for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos3i()</para></entry>
+	    <entry><para>specify the raster position in window coordinates for pixel operations</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos3s()</para></entry>
+	    <entry><para>specify the raster position in window coordinates for pixel operations</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <para>Note that very few GLU functions have been bound to Qore so far as most of them take pointer arguments, and very few of these functions were required to make the example programs work.</para>
+
+    <table>
+      <title>GLU Functions</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+	<thead>
+	  <row>
+	    <entry><para>Function Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>gluErrorString()</para></entry>
+	    <entry><para>produce an error string from a GL or GLU error code</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>gluGetString()</para></entry>
+	    <entry><para>return a string describing the GLU version or GLU extensions </para></entry>
+	  </row>
+	  <row>
+	    <entry><para>gluLookAt()</para></entry>
+	    <entry><para>define a viewing transformation</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>gluOrtho2D()</para></entry>
+	    <entry><para>gluOrtho2D — define a 2D orthographic projection matrix</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>gluPerspective()</para></entry>
+	    <entry><para>set up a perspective projection matrix</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <para>Many more EXT functions have Qore bindings already, but unfortunately I have no idea where to find the documentation.</para>
+
+    <table>
+      <title>EXT Functions</title>
+      <tgroup cols="2" align="left" colsep="1" rowsep="1">
+	<thead>
+	  <row>
+	    <entry><para>Function Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>glActiveStencilFaceEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glActiveTextureARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glAttachObjectARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBeginQueryARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBeginTransformFeedbackEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindBufferARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindBufferBaseEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindBufferOffsetEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindBufferRangeEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindFramebufferEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindProgramARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindRenderbufferEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBindVertexArrayAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendColorEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendEquationEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendEquationSeparateATI()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendEquationSeparateEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlendFuncSeparateEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBlitFramebufferEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glBufferParameteriAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCheckFramebufferStatusEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClearColorIiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClearColorIuiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glClientActiveTextureARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCombinerInputNV()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCombinerOutputNV()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCombinerParameterfNV()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCombinerParameteriNV()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glCompileShaderARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDeleteObjectARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDepthBoundsEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDetachObjectARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDisableVertexAttribAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDisableVertexAttribArrayARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDrawElementArrayAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glDrawRangeElementArrayAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEnableVertexAttribAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEnableVertexAttribArrayARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEndQueryARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glEndTransformFeedbackEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFinalCombinerInputNV()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFinishFenceAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFinishObjectAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFinishRenderAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFlushMappedBufferRangeAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFlushRenderAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFogCoorddEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFogCoordfEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFramebufferRenderbufferEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFramebufferTexture1DEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFramebufferTexture2DEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFramebufferTexture3DEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFramebufferTextureEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFramebufferTextureFaceEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glFramebufferTextureLayerEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGenFramebuffersEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGenProgramsARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGenerateMipmapEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glGetUniformBufferSizeEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsBufferARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsFenceAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsFramebufferEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsProgramARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsQueryARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsRenderbufferEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsVertexArrayAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glIsVertexAttribEnabledAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLinkProgramARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glLockArraysEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord1dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord1fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord1iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord1sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord2dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord2fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord2iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord2sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord3dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord3fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord3iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord3sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord4dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord4fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord4iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glMultiTexCoord4sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glObjectPurgeableAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glObjectUnpurgeableAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPNTrianglesfATI()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPNTrianglesfATIX()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPNTrianglesiATI()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPNTrianglesiATIX()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPointParameterfARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glPointParameteriNV()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glProgramEnvParameter4dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glProgramEnvParameter4fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glProgramLocalParameter4dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glProgramLocalParameter4fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glProgramParameteriEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glProgramStringARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRenderbufferStorageEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glRenderbufferStorageMultisampleEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSampleCoverageARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSamplePassARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3bEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3dEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3fEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3iEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3sEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3ubEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSecondaryColor3usEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSetFenceAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glStencilFuncSeparateATI()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glStencilOpSeparateATI()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glSwapAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTestFenceAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glTestObjectAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform1fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform1iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform1uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform2fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform2iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform2uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform3fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform3iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform3uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform4fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform4iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniform4uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUniformBufferEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUnlockArraysEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUnmapBufferARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glUseProgramObjectARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glValidateProgramARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexArrayParameteriAPPLE()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib1dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib1fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib1sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib2dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib2fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib2sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib3dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib3fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib3sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib4NubARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib4dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib4fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttrib4sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttribI1iEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttribI1uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttribI2iEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttribI2uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttribI3iEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttribI3uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttribI4iEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexAttribI4uiEXT()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glVertexBlendARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos2dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos2fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos2iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos2sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos3dARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos3fARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos3iARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>glWindowPos3sARB()</para></entry>
+	    <entry><para>no description available</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
   </sect1>
