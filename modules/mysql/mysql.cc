@@ -52,6 +52,10 @@ DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
 DLLEXPORT qore_module_init_t qore_module_init = qore_mysql_module_init;
 DLLEXPORT qore_module_ns_init_t qore_module_ns_init = qore_mysql_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = qore_mysql_module_delete;
+#ifdef HAVE_MYSQL_CLIENT_LICENSE
+DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
+#else
+DLLEXPORT qore_license_t qore_module_license = QL_GPL;
 #endif
 
 // driver capabilities
