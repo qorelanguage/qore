@@ -57,6 +57,7 @@ DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 #else
 DLLEXPORT qore_license_t qore_module_license = QL_GPL;
 #endif
+#endif
 
 // driver capabilities
 // FIXME: implement support for newer MySQL features!
