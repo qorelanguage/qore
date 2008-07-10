@@ -60,6 +60,35 @@ static void JRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, 
    xsink->raiseException("JSONRPCCLIENT-COPY-ERROR", "copying JsonRpcClient objects is not yet supported.");
 }
 
+static AbstractQoreNode *make_jsonrpc_call(QoreHTTPClient *client, QoreStringNode *msg, QoreHashNode *info, ExceptionSink *xsink)
+{
+   ReferenceHolder<QoreHashNode> response(client->send("POST", 0, 0, msg->getBuffer(), msg->strlen(), true, info, xsink), xsink);
+   if (!response)
+      return 0;
+
+   ReferenceHolder<AbstractQoreNode> ans(response->takeKeyValue("body"), xsink);
+
+   if (!ans)
+      return 0;
+   
+   if (ans->getType() != NT_STRING) {
+      xsink->raiseException("JSONRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
+      return 0;
+   }
+
+   // parse JSON-RPC response   
+   AbstractQoreNode *rv = parseJSONValue(reinterpret_cast<QoreStringNode *>(*ans), xsink);
+   if (!rv)
+      return 0;
+
+   if (info) {
+      info->setKeyValue("response_headers", response.release(), xsink);
+      info->setKeyValue("response", ans.release(), xsink);
+   }
+
+   return rv;
+}
+
 static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
@@ -70,19 +99,8 @@ static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, 
    SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestStringArgs(params, xsink));
    if (!msg)
       return 0;
-   // send the message to the server and get the response as an JSON string
-   ReferenceHolder<AbstractQoreNode> ans(client->post(0, 0, msg->getBuffer(), msg->strlen(), xsink), xsink);
-   if (!ans)
-      return 0;
 
-   QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
-   if (!str) {
-      xsink->raiseException("JSONRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
-      return 0;
-   }
-
-   // parse JSON-RPC response
-   return parseJSONValue(str, xsink);
+   return make_jsonrpc_call(client, *msg, 0, xsink);
 }
 
 static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
@@ -92,22 +110,97 @@ static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, cons
       return 0;
 
    // create the outgoing message in JSON-RPC call format
-   SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestStringArgs(params, xsink));
+   SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestString(params, xsink));
    if (!msg)
       return 0;
-   // send the message to the server and get the response as an JSON string
-   ReferenceHolder<AbstractQoreNode> ans(client->post(0, 0, msg->getBuffer(), msg->strlen(), xsink), xsink);
-   if (!ans)
-      return 0;
 
-   QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
-   if (!str) {
-      xsink->raiseException("JSONRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
+   return make_jsonrpc_call(client, *msg, 0, xsink);
+}
+
+static AbstractQoreNode *JRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+{
+   // get info reference
+   const ReferenceNode *ref = test_reference_param(params, 0);
+   if (!ref) {
+      xsink->raiseException("JSONRPC-CALLWITHINFO-ERROR", "expecting a reference as the first parameter to JsonRpcClient::callArgsWithInfo()");
       return 0;
    }
 
-   // parse JSON-RPC response
-   return parseJSONValue(str, xsink);
+   // get arguments
+   ReferenceHolder<QoreListNode> args(params->copyListFrom(1), xsink);
+
+   // create the outgoing message in JSON-RPC call format
+   SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestStringArgs(*args, xsink));
+   if (!msg)
+      return 0;
+
+   ReferenceHolder<QoreHashNode> info(new QoreHashNode, xsink);
+
+   client->connect(xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   // send the message to the server and get the response as an XML string
+   ReferenceHolder<AbstractQoreNode> rv(make_jsonrpc_call(client, *msg, *info, xsink), xsink);
+   if (!rv)
+      return 0;
+
+   // set request key
+   info->setKeyValue("request", msg.release(), xsink);
+
+   // write info hash to reference
+   AutoVLock vl(xsink);
+   ReferenceHelper rh(ref, vl, xsink);
+   if (!rh)
+      return 0;
+
+   if (rh.assign(info.release(), xsink))
+      return 0;   
+
+   return rv.release();
+}
+
+static AbstractQoreNode *JRC_callWithInfo(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+{
+   // get info reference
+   const ReferenceNode *ref = test_reference_param(params, 0);
+   if (!ref) {
+      xsink->raiseException("JSONRPC-CALLWITHINFO-ERROR", "expecting a reference as the first parameter to JsonRpcClient::callArgsWithInfo()");
+      return 0;
+   }
+
+   // get arguments
+   ReferenceHolder<QoreListNode> args(params->copyListFrom(1), xsink);
+
+   // create the outgoing message in JSON-RPC call format
+   SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestString(*args, xsink));
+   if (!msg)
+      return 0;
+
+   ReferenceHolder<QoreHashNode> info(new QoreHashNode, xsink);
+
+   client->connect(xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   // send the message to the server and get the response as an XML string
+   ReferenceHolder<AbstractQoreNode> rv(make_jsonrpc_call(client, *msg, *info, xsink), xsink);
+   if (!rv)
+      return 0;
+
+   // set request key
+   info->setKeyValue("request", msg.release(), xsink);
+
+   // write info hash to reference
+   AutoVLock vl(xsink);
+   ReferenceHelper rh(ref, vl, xsink);
+   if (!rh)
+      return 0;
+
+   if (rh.assign(info.release(), xsink))
+      return 0;   
+
+   return rv.release();
 }
 
 QoreClass *initJsonRpcClientClass(class QoreClass *http_client)
@@ -119,8 +212,10 @@ QoreClass *initJsonRpcClientClass(class QoreClass *http_client)
 
     client->setConstructor(JRC_constructor);
     client->setCopy((q_copy_t)JRC_copy);
-    client->addMethod("callArgs", (q_method_t)JRC_callArgs);
-    client->addMethod("call",     (q_method_t)JRC_call);
+    client->addMethod("callArgs",         (q_method_t)JRC_callArgs);
+    client->addMethod("call",             (q_method_t)JRC_call);
+    client->addMethod("callArgsWithInfo", (q_method_t)JRC_callArgsWithInfo);
+    client->addMethod("callWithInfo",     (q_method_t)JRC_callWithInfo);
 
     return client;
 } 

@@ -108,23 +108,20 @@ static AbstractQoreNode *HC_disconnect(QoreObject *self, class QoreHTTPClient *c
    return 0;
 }
 
-// send(data, method, path, headers, [getbody])
+// send(data, method, path, headers, [getbody], [info_reference])
 static AbstractQoreNode *HC_send(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    const void *ptr = 0;
    int size = 0;
    const AbstractQoreNode *p = get_param(params, 0);
-   if (!is_nothing(p))
-   {
-      if (p->getType() == NT_STRING)
-      {
+   if (!is_nothing(p)) {
+      if (p->getType() == NT_STRING) {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
 	 assert(str);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
-      else if (p->getType() == NT_BINARY)
-      {
+      else if (p->getType() == NT_BINARY) {
 	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
          ptr = b->getPtr();
          size = b->size();
@@ -133,8 +130,7 @@ static AbstractQoreNode *HC_send(QoreObject *self, class QoreHTTPClient *client,
    }
    
    const QoreStringNode *pstr = test_string_param(params, 1);
-   if (!pstr)
-   {
+   if (!pstr) {
       xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "expecting method name as second parameter");
       return 0;
    }
@@ -148,45 +144,101 @@ static AbstractQoreNode *HC_send(QoreObject *self, class QoreHTTPClient *client,
    p = get_param(params, 4);
    bool getbody = p ? p->getAsBool() : false;
 
-   return client->send(meth, path, ph, ptr, size, getbody, xsink);
+   QoreHashNode *info = 0;
+   const ReferenceNode *ref = test_reference_param(params, 5);
+   if (ref)
+      info = new QoreHashNode();
+
+   ReferenceHolder<AbstractQoreNode> rv(client->send(meth, path, ph, ptr, size, getbody, info, xsink), xsink);
+   if (!rv || *xsink)
+      return 0;
+
+   if (ref) {
+      AutoVLock vl(xsink);
+      ReferenceHelper rh(ref, vl, xsink);
+      if (!rh)
+	 return 0;
+
+      if (rh.assign(info, xsink))
+	 return 0;
+   }
+
+   return rv.release();
 }
 
-// get(path, headers)
+// get(path, headers, [info_reference])
 static AbstractQoreNode *HC_get(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *pstr = test_string_param(params, 0);
-   if (!pstr)
-   {
+   if (!pstr) {
       xsink->raiseException("HTTP-CLIENT-GET-ERROR", "expecting path as first parameter");
       return 0;
    }
    const char *path = pstr->getBuffer();
 
    const QoreHashNode *ph = test_hash_param(params, 1);
-   return client->get(path, ph, xsink);
+
+   QoreHashNode *info = 0;
+   const ReferenceNode *ref = test_reference_param(params, 2);
+   if (ref)
+      info = new QoreHashNode();
+
+   ReferenceHolder<AbstractQoreNode> rv(client->get(path, ph, info, xsink), xsink);
+   if (!rv || *xsink)
+      return 0;
+
+   if (ref) {
+      AutoVLock vl(xsink);
+      ReferenceHelper rh(ref, vl, xsink);
+      if (!rh)
+	 return 0;
+
+      if (rh.assign(info, xsink))
+	 return 0;
+   }
+
+   return rv.release();
 }
 
-// head(path, headers)
+// head(path, headers, [info_reference])
 static AbstractQoreNode *HC_head(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *pstr = test_string_param(params, 0);
-   if (!pstr)
-   {
+   if (!pstr) {
       xsink->raiseException("HTTP-CLIENT-HEAD-ERROR", "expecting path as first parameter");
       return 0;
    }
    const char *path = pstr->getBuffer();
 
    const QoreHashNode *ph = test_hash_param(params, 1);
-   return client->head(path, ph, xsink);
+
+   QoreHashNode *info = 0;
+   const ReferenceNode *ref = test_reference_param(params, 2);
+   if (ref)
+      info = new QoreHashNode();
+
+   ReferenceHolder<AbstractQoreNode> rv(client->head(path, ph, info, xsink), xsink);
+   if (!rv || *xsink)
+      return 0;
+
+   if (ref) {
+      AutoVLock vl(xsink);
+      ReferenceHelper rh(ref, vl, xsink);
+      if (!rh)
+	 return 0;
+
+      if (rh.assign(info, xsink))
+	 return 0;
+   }
+
+   return rv.release();
 }
 
-// post(path, data, headers)
+// post(path, data, headers, [info_reference])
 static AbstractQoreNode *HC_post(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *pstr = test_string_param(params, 0);
-   if (!pstr)
-   {
+   if (!pstr) {
       xsink->raiseException("HTTP-CLIENT-POST-ERROR", "expecting path as first parameter");
       return 0;
    }
@@ -195,29 +247,45 @@ static AbstractQoreNode *HC_post(QoreObject *self, class QoreHTTPClient *client,
    const void *ptr = 0;
    int size = 0;
    const AbstractQoreNode *p = get_param(params, 1);
-   if (!is_nothing(p))
-   {
-      if (p->getType() == NT_STRING)
-      {
+   if (!is_nothing(p)) {
+      if (p->getType() == NT_STRING) {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
-      else if (p->getType() == NT_BINARY)
-      {
+      else if (p->getType() == NT_BINARY) {
 	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
          ptr = b->getPtr();
          size = b->size();
       }
-      else
-      {
+      else {
 	 xsink->raiseException("HTTP-CLIENT-POST-ERROR", "expecting string or binary as second argument for message data");
 	 return 0;
       }
    }
 
    const QoreHashNode *ph = test_hash_param(params, 2);
-   return client->post(path, ph, ptr, size, xsink);
+
+   QoreHashNode *info = 0;
+   const ReferenceNode *ref = test_reference_param(params, 3);
+   if (ref)
+      info = new QoreHashNode();
+
+   ReferenceHolder<AbstractQoreNode> rv(client->post(path, ph, ptr, size, info, xsink), xsink);
+   if (!rv || *xsink)
+      return 0;
+
+   if (ref) {
+      AutoVLock vl(xsink);
+      ReferenceHelper rh(ref, vl, xsink);
+      if (!rh)
+	 return 0;
+
+      if (rh.assign(info, xsink))
+	 return 0;
+   }
+
+   return rv.release();
 }
 
 static AbstractQoreNode *HC_setTimeout(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)

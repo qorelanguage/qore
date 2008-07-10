@@ -539,8 +539,7 @@ static AbstractQoreNode *f_parseJSON(const QoreListNode *params, ExceptionSink *
 QoreStringNode *makeJSONRPC11RequestStringArgs(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-   {
+   if (!(p0 = test_string_param(params, 0))) {
       xsink->raiseException("MAKE-JSONRPC11-REQUEST-STRING-ERROR", "expecting method name as first parameter");
       return 0;
    }
@@ -556,8 +555,7 @@ QoreStringNode *makeJSONRPC11RequestStringArgs(const QoreListNode *params, Excep
 
    // params key should come last
    str->concat(", \"params\" : ");
-   if (!is_nothing(p1))
-   {
+   if (!is_nothing(p1)) {
       if (doJSONValue(*str, p1, -1, xsink))
 	 return 0;
    }
@@ -570,8 +568,7 @@ QoreStringNode *makeJSONRPC11RequestStringArgs(const QoreListNode *params, Excep
 QoreStringNode *makeJSONRPC11RequestString(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-   {
+   if (!(p0 = test_string_param(params, 0))) {
       xsink->raiseException("MAKE-JSONRPC11-REQUEST-STRING-ERROR", "expecting method name as first parameter");
       return 0;
    }
@@ -587,8 +584,7 @@ QoreStringNode *makeJSONRPC11RequestString(const QoreListNode *params, Exception
 
    // params key should come last
    str->concat(", \"params\" : ");
-   if (num_params(params) > 1)
-   {
+   if (num_params(params) > 1) {
       ReferenceHolder<QoreListNode> new_params(params->copyListFrom(1), xsink);
 
       if (doJSONValue(*str, *new_params, -1, xsink))

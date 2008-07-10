@@ -59,6 +59,34 @@ static void XRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, 
    xsink->raiseException("XMLRPCCLIENT-COPY-ERROR", "copying XmlRpcClient objects is not yet supported.");
 }
 
+static QoreHashNode *make_xmlrpc_call(QoreHTTPClient *client, QoreStringNode *msg, QoreHashNode *info, ExceptionSink *xsink)
+{
+   ReferenceHolder<QoreHashNode> response(client->send("POST", 0, 0, msg->getBuffer(), msg->strlen(), true, info, xsink), xsink);
+   if (!response)
+      return 0;
+
+   ReferenceHolder<AbstractQoreNode> ans(response->takeKeyValue("body"), xsink);
+   if (!ans)
+      return 0;
+   
+   if (ans->getType() != NT_STRING) {
+      xsink->raiseException("XMLRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
+      return 0;
+   }
+
+   // parse XML-RPC response   
+   QoreHashNode *rv = parseXMLRPCResponse(reinterpret_cast<QoreStringNode *>(*ans), QCS_DEFAULT, xsink);
+   if (!rv)
+      return 0;
+
+   if (info) {
+      info->setKeyValue("response_headers", response.release(), xsink);
+      info->setKeyValue("response", ans.release(), xsink);
+   }
+
+   return rv;
+}
+
 static AbstractQoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
@@ -69,19 +97,9 @@ static AbstractQoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, 
    QoreStringNodeHolder msg(makeXMLRPCCallStringArgs(client->getEncoding(), params, xsink));
    if (!msg)
       return 0;
-   // send the message to the server and get the response as an XML string
-   ReferenceHolder<AbstractQoreNode> ans(client->post(0, 0, msg->getBuffer(), msg->strlen(), xsink), xsink);
-   if (!ans)
-      return 0;
-   
-   QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
-   if (!str) {
-      xsink->raiseException("XMLRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
-      return 0;
-   }
 
-   // parse XML-RPC response   
-   return parseXMLRPCResponse(str, QCS_DEFAULT, xsink);
+   // send the message to the server and get the response as an XML string
+   return make_xmlrpc_call(client, *msg, 0, xsink);
 }
 
 static AbstractQoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
@@ -94,22 +112,98 @@ static AbstractQoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, cons
    QoreStringNodeHolder msg(makeXMLRPCCallString(client->getEncoding(), params, xsink));
    if (!msg)
       return 0;
-   // send the message to the server and get the response as an XML string
-   ReferenceHolder<AbstractQoreNode> ans(client->post(0, 0, msg->getBuffer(), msg->strlen(), xsink), xsink);
-   if (!ans)
-      return 0;
 
-   QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
-   if (!str) {
-      xsink->raiseException("XMLRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
+   // send the message to the server and get the response as an XML string
+   return make_xmlrpc_call(client, *msg, 0, xsink);
+}
+
+static AbstractQoreNode *XRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+{
+   // get info reference
+   const ReferenceNode *ref = test_reference_param(params, 0);
+   if (!ref) {
+      xsink->raiseException("JSONRPC-CALLWITHINFO-ERROR", "expecting a reference as the first parameter to JsonRpcClient::callArgsWithInfo()");
       return 0;
    }
 
-   // parse XML-RPC response
-   return parseXMLRPCResponse(str, QCS_DEFAULT, xsink);
+   // get arguments
+   ReferenceHolder<QoreListNode> args(params->copyListFrom(1), xsink);
+
+   // create the outgoing message in XML-RPC call format
+   QoreStringNodeHolder msg(makeXMLRPCCallStringArgs(client->getEncoding(), *args, xsink));
+   if (!msg)
+      return 0;
+
+   ReferenceHolder<QoreHashNode> info(new QoreHashNode, xsink);
+
+   client->connect(xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   // send the message to the server and get the response as an XML string
+   ReferenceHolder<QoreHashNode> rv(make_xmlrpc_call(client, *msg, *info, xsink), xsink);
+   if (!rv)
+      return 0;
+
+   // set request key
+   info->setKeyValue("request", msg.release(), xsink);
+
+   // write info hash to reference
+   AutoVLock vl(xsink);
+   ReferenceHelper rh(ref, vl, xsink);
+   if (!rh)
+      return 0;
+
+   if (rh.assign(info.release(), xsink))
+      return 0;   
+
+   return rv.release();
 }
 
-class QoreClass *initXmlRpcClientClass(class QoreClass *http_client)
+static AbstractQoreNode *XRC_callWithInfo(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+{
+   // get info reference
+   const ReferenceNode *ref = test_reference_param(params, 0);
+   if (!ref) {
+      xsink->raiseException("JSONRPC-CALLWITHINFO-ERROR", "expecting a reference as the first parameter to JsonRpcClient::callArgsWithInfo()");
+      return 0;
+   }
+
+   // get arguments
+   ReferenceHolder<QoreListNode> args(params->copyListFrom(1), xsink);
+
+   // create the outgoing message in XML-RPC call format
+   QoreStringNodeHolder msg(makeXMLRPCCallString(client->getEncoding(), *args, xsink));
+   if (!msg)
+      return 0;
+
+   ReferenceHolder<QoreHashNode> info(new QoreHashNode, xsink);
+
+   client->connect(xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   // send the message to the server and get the response as an XML string
+   ReferenceHolder<QoreHashNode> rv(make_xmlrpc_call(client, *msg, *info, xsink), xsink);
+   if (!rv)
+      return 0;
+
+   // set request key
+   info->setKeyValue("request", msg.release(), xsink);
+
+   // write info hash to reference
+   AutoVLock vl(xsink);
+   ReferenceHelper rh(ref, vl, xsink);
+   if (!rh)
+      return 0;
+
+   if (rh.assign(info.release(), xsink))
+      return 0;   
+
+   return rv.release();
+}
+
+QoreClass *initXmlRpcClientClass(class QoreClass *http_client)
 {
    QoreClass* client = new QoreClass("XmlRpcClient", QDOM_NETWORK); 
    CID_XMLRPCCLIENT = client->getID();
@@ -118,8 +212,10 @@ class QoreClass *initXmlRpcClientClass(class QoreClass *http_client)
 
    client->setConstructor(XRC_constructor);
    client->setCopy((q_copy_t)XRC_copy);
-   client->addMethod("callArgs", (q_method_t)XRC_callArgs);
-   client->addMethod("call",     (q_method_t)XRC_call);
+   client->addMethod("callArgs",         (q_method_t)XRC_callArgs);
+   client->addMethod("call",             (q_method_t)XRC_call);
+   client->addMethod("callArgsWithInfo", (q_method_t)XRC_callArgsWithInfo);
+   client->addMethod("callWithInfo",     (q_method_t)XRC_callWithInfo);
 
    return client;
 } 
