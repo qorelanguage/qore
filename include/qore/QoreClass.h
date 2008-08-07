@@ -452,6 +452,8 @@ class QoreClass {
       DLLLOCAL void initialize();
       // looks in current and pending method lists for the entire hierarchy (local class plus base classes)
       DLLLOCAL const QoreMethod *parseFindMethodTree(const char *name);
+      // returns true if the class passed is equal to or in the class' hierarchy - to be called only at parse time or under the program's parse lock
+      DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
 };
 
 #endif // _QORE_QORECLASS_H

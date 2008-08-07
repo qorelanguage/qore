@@ -596,6 +596,14 @@ void BCList::execConstructorsWithArgs(QoreObject *o, class BCEAList *bceal, Exce
    execConstructors(o, bceal, xsink);
 }
 
+bool BCList::parseCheckHierarchy(const QoreClass *cls) const
+{
+   for (bclist_t::const_iterator i = begin(); i != end(); ++i)
+      if ((*i)->sclass->parseCheckHierarchy(cls))
+	 return true;
+   return false;
+}
+
 BCAList::BCAList(class BCANode *n)
 {
    push_back(n);
@@ -1870,6 +1878,14 @@ void QoreClass::parseSetBaseClassList(class BCList *bcl)
 {
    assert(!priv->scl);
    priv->scl = bcl;
+}
+
+bool QoreClass::parseCheckHierarchy(const QoreClass *cls) const
+{
+   if (cls == this)
+      return true;
+
+   return priv->scl ? priv->scl->parseCheckHierarchy(cls) : false;
 }
 
 #ifdef QORE_CLASS_SYNCHRONOUS

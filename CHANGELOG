@@ -1,3 +1,6 @@
+2008.08.07: David Nichols
+	* fixed resolution of private static methods from within a subclass
+
 2008.08.06: David Nichols
 	* made QoreDir class thread-safe, fixed directory and file filtering
 	* made QoreFile class thread-safe

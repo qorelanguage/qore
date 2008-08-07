@@ -306,9 +306,12 @@ class StaticMethodCallNode : public AbstractFunctionCallNode
 	    return 0;
 	 }
 
-	 if (method->isPrivate() && qc != getParseClass()) {
-	    parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
-	    return 0;
+	 if (method->isPrivate()) {
+	    const QoreClass *cls = getParseClass();
+	    if (!cls || !cls->parseCheckHierarchy(qc)) {
+	       parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
+	       return 0;
+	    }
 	 }
 
 	 // check class capabilities against parse options

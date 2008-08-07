@@ -834,7 +834,7 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
       str.concat("<NO MEMBERS>");
    else {
       if (foff != FMT_NONE)
-         str.sprintf(" (%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
+         str.sprintf("(%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
       else
          str.concat('(');
 

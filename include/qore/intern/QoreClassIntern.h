@@ -158,6 +158,7 @@ class BCList : public QoreReferenceCounter, public bclist_t
       DLLLOCAL void execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const;
       DLLLOCAL void execConstructorsWithArgs(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const;
       DLLLOCAL bool execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const;
+      DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
       DLLLOCAL bool isPrivateMember(const char *str) const;
       DLLLOCAL void ref() const;
       DLLLOCAL void deref();
