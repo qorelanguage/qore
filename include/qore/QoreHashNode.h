@@ -276,14 +276,16 @@ class QoreHashNode : public AbstractQoreNode
 	  @param key the key to set the value for
 	  @param value the value to assign to the key, must be already referenced for the assignment
 	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @note the assignment is made even if an exception occurs when dereferencing the old value
        */
       DLLEXPORT void setKeyValue(const QoreString *key, AbstractQoreNode *value, ExceptionSink *xsink);
 
       //! sets the value of "key" to "value"
-      /** A Qore-language exception could be thrown if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception)
+      /** A Qore-language exception could be thrown if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception).
 	  @param key the key to set the value for (assumed to be in QCS_DEFAULT encoding)
 	  @param value the value to assign to the key, must be already referenced for the assignment
 	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+	  @note the assignment is made even if an exception occurs when dereferencing the old value
        */
       DLLEXPORT void setKeyValue(const char *key, AbstractQoreNode *value, ExceptionSink *xsink);
 

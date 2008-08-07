@@ -1,4 +1,4 @@
-#/*
+/*
   QC_Socket.h
 
   Qore Programming Language
@@ -26,8 +26,7 @@
 
 #define _QORE_CLASS_SOCKET_H
 
-DLLLOCAL class QoreClass *initSocketClass();
-
+DLLLOCAL QoreClass *initSocketClass();
 DLLEXPORT extern qore_classid_t CID_SOCKET;
 
 #include <qore/QoreSocket.h>
@@ -39,11 +38,10 @@ DLLEXPORT extern qore_classid_t CID_SOCKET;
 class mySocket : public AbstractPrivateData, public QoreThreadLock
 {
    private:
-      class QoreSocket *socket;
-      class QoreSSLCertificate *cert;
-      class QoreSSLPrivateKey *pk;
+      QoreSocket *socket;
+      QoreSSLCertificate *cert;
+      QoreSSLPrivateKey *pk;
 
-      DLLLOCAL void init();
       DLLLOCAL mySocket(class QoreSocket *s);
 
    protected:
@@ -51,6 +49,7 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock
 
    public:
       DLLLOCAL mySocket();      
+
       DLLLOCAL int connect(const char *name, class ExceptionSink *xsink = NULL);
       DLLLOCAL int connectINET(const char *host, int port, class ExceptionSink *xsink = NULL);
       DLLLOCAL int connectUNIX(const char *p, class ExceptionSink *xsink = NULL);
@@ -135,6 +134,7 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock
       DLLLOCAL void setCertificate(class QoreSSLCertificate *c);
       // p must be already referenced before this call
       DLLLOCAL void setPrivateKey(class QoreSSLPrivateKey *p);
+
 };
 
 #endif // _QORE_CLASS_QORESOCKET_H

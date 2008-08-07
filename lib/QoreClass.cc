@@ -44,19 +44,26 @@ struct qore_qc_private {
 	 *copyMethod, *methodGate, *memberGate, *deleteBlocker,
 	 *memberNotification;
 
-      qore_classid_t classID,     // class ID
-         methodID;                // for subclasses of builtin classes that will not have their own private data,
-                                  //   instead they will get the private data from this class
-      bool sys,                   // system class?
-	 initialized,             // is initialized?
-	 has_delete_blocker,      // has a delete_blocker function somewhere in the hierarchy?
-	 synchronous_class;       // should all class methods be wrapped in a recursive thread lock?
-      int domain;                 // capabilities of builtin class to use in the context of parse restrictions
-      QoreReferenceCounter nref;  // namespace references
+      qore_classid_t classID,          // class ID
+         methodID;                     // for subclasses of builtin classes that will not have their own private data,
+                                       //   instead they will get the private data from this class
+      bool sys,                        // system class?
+	 initialized,                  // is initialized?
+	 has_delete_blocker,           // has a delete_blocker function somewhere in the hierarchy?
+#ifdef QORE_CLASS_SYNCHRONOUS
+	 synchronous_class,            // should all class methods be wrapped in a recursive thread lock?
+	 has_synchronous_in_hierarchy, // is there at least one class somewhere in the hierarchy requiring the recursive lock?
+#endif
+	 ;
+      int domain;                      // capabilities of builtin class to use in the context of parse restrictions
+      QoreReferenceCounter nref;       // namespace references
 
       DLLLOCAL qore_qc_private(const char *nme, int dom = QDOM_DEFAULT) : bcal(0), scl(0), 
 									  sys(false), initialized(false), has_delete_blocker(false), 
-									  synchronous_class(false), domain(dom)
+#ifdef QORE_CLASS_SYNCHRONOUS
+									  synchronous_class(false), has_synchronous_in_hierarchy(false), 
+#endif
+									  domain(dom)
       {
 	 name = nme ? strdup(nme) : 0;
 
@@ -175,7 +182,7 @@ struct qore_method_private {
       {
       }
 
-      DLLLOCAL qore_method_private(const QoreClass *n_class, BuiltinMethod *b, bool n_priv, bool n_static) : parent_class(n_class), type(OTF_BUILTIN), func(b), static_flag(n_static)
+      DLLLOCAL qore_method_private(const QoreClass *n_class, BuiltinMethod *b, bool n_priv, bool n_static) : parent_class(n_class), type(OTF_BUILTIN), func(b), priv_flag(n_priv), static_flag(n_static)
       {
       }
 
@@ -221,6 +228,24 @@ struct qore_method_private {
 
 	 return func.userFunc->params->num_params > i;
       }
+};
+
+class VRMutexHelper {
+   private:
+      VRMutex *m;
+
+   public:
+      DLLLOCAL VRMutexHelper(VRMutex *n_m, ExceptionSink *xsink) : m(n_m)
+      {
+	 if (m && m->enter(xsink))
+	    m = 0;
+      }
+      DLLLOCAL ~VRMutexHelper()
+      {
+	 if (m)
+	    m->exit();
+      }
+      DLLLOCAL operator bool() const { return m != 0; }
 };
 
 // BCEANode
@@ -277,10 +302,8 @@ inline BCEANode::BCEANode()
 QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced)
 {
    bceamap_t::iterator i = find(qc);
-   if (i != end())
-   {
-      if (i->second->execed)
-      {
+   if (i != end()) {
+      if (i->second->execed) {
 	 *aexeced = true;
 	 return 0;
       }
@@ -311,8 +334,7 @@ inline int BCEAList::add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *
 inline void BCEAList::deref(ExceptionSink *xsink)
 {
    bceamap_t::iterator i;
-   while ((i = begin()) != end())
-   {
+   while ((i = begin()) != end()) {
       BCEANode *n = i->second;
       erase(i);
       
@@ -388,7 +410,11 @@ void BCList::deref()
       delete this;
 }
 
-void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_delete_blocker)
+void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_delete_blocker
+#ifdef QORE_CLASS_SYNCHRONOUS
+, bool &has_synchronous_in_hierarchy
+#endif
+)
 {
    printd(5, "BCList::parseInit(%s) this=%08p empty=%d, bcal=%08p\n", cls->getName(), this, empty(), bcal);
    for (bclist_t::iterator i = begin(); i != end(); i++) {
@@ -411,6 +437,10 @@ void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_delete_blo
 	 (*i)->sclass->initialize();
 	 if (!has_delete_blocker && (*i)->sclass->has_delete_blocker())
 	    has_delete_blocker = true;
+#ifdef QORE_CLASS_SYNCHRONOUS
+	 if (!has_synchronous_in_hierarchy && (*i)->sclass->has_synchronous_in_hierarchy())
+	    has_synchronous_in_hierarchy = true;
+#endif
          (*i)->sclass->addBaseClassesToSubclass(cls, (*i)->is_virtual);
 	 // include all subclass domains in this class' domain
 	 cls->addDomain((*i)->sclass->getDomain());
@@ -861,8 +891,15 @@ void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) co
    AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->func.builtin->myclass->getID(), xsink);
    //printd(5, "QoreMethod::evalSystemDestructor() class=%s (%08p) id=%d ptr=%08p\n", priv->func.builtin->myclass->getName(), priv->func.builtin->myclass, priv->func.builtin->myclass->getID(), ptr);
    // NOTE: ptr may be null for builtin subclasses without private data
-   if (ptr)
+   if (ptr) {
+#ifdef QORE_CLASS_SYNCHRONOUS
+      // grab class synchronous lock if appropriate
+      bool lck = priv->parent_class->is_synchronous_class();
+      VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
+      assert(!(lck && !vh));
+#endif
       priv->func.builtin->evalSystemDestructor(self, ptr, xsink);
+   }
 }
 
 void QoreMethod::parseInit()
@@ -1061,8 +1098,13 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
       // switch to new program for imported objects
       ProgramContextHelper pch(self->getProgram());
 
-      if (priv->type == OTF_USER)
+      if (priv->type == OTF_USER) {
+	 // ignore class synchronous flags for user methods - currently only possible
+	 // with builtin classes and therefore only affects builtin code
+	 // allowing it to be used in user methods could open up the possibility for deadlocks
+	 // on the destructor, which we would like to avoid
 	 rv = priv->func.userFunc->eval(args, self, xsink, priv->parent_class->getName());
+      }
       else {
 	 // save current program location in case there's an exception
 	 const char *o_fn = get_pgm_file();
@@ -1077,7 +1119,15 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
 	 // reset program position after arguments are evaluted
 	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);   
 
-	 rv = self->evalBuiltinMethodWithPrivateData(priv->func.builtin, *new_args, xsink);      
+	 {
+#ifdef QORE_CLASS_SYNCHRONOUS
+	    // grab class synchronous lock if appropriate
+	    bool lck = priv->parent_class->is_synchronous_class();
+	    VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
+	    assert(!(lck && !vh));
+#endif
+	    rv = self->evalBuiltinMethodWithPrivateData(priv->func.builtin, *new_args, xsink);
+	 }
 	 if (xsink->isException())
 	    xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), getName(), o_fn, o_ln, o_eln);
       }
@@ -1125,8 +1175,16 @@ void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsin
 
    if (priv->type == OTF_USER)
       priv->func.userFunc->evalCopy(old, self, priv->parent_class->getName(), xsink);
-   else // builtin function
+   else { 
+      // builtin function
+#ifdef QORE_CLASS_SYNCHRONOUS
+      // grab class synchronous lock if appropriate
+      bool lck = priv->parent_class->is_synchronous_class();
+      VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
+      assert(!(lck && !vh));
+#endif
       old->evalCopyMethodWithPrivateData(priv->func.builtin, self, priv->parent_class->getName(), xsink);
+   }
 }
 
 bool QoreMethod::evalDeleteBlocker(QoreObject *self) const
@@ -1142,15 +1200,21 @@ void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const
 
    if (priv->type == OTF_USER)
       priv->func.userFunc->eval(0, self, xsink, priv->parent_class->getName());
-   else // builtin function
-   {
+   else { // builtin function
       AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->parent_class->getID(), xsink);
-      if (ptr)
+      if (ptr) {
+#ifdef QORE_CLASS_SYNCHRONOUS
+	 // grab class synchronous lock if appropriate
+	 bool lck = priv->parent_class->is_synchronous_class();
+	 VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
+	 assert(!(lck && !vh));
+#endif
 	 priv->func.builtin->evalDestructor(self, ptr, priv->parent_class->getName(), xsink);
+      }
 #if DEBUG
       // this case should be impossible to reach
-      else if (!xsink->isException() && priv->parent_class->getID() == priv->parent_class->getIDForMethod()) // do not throw an exception if the class has no private data
-      {
+      // do not throw an exception if the class has no private data
+      else if (!xsink->isException() && priv->parent_class->getID() == priv->parent_class->getIDForMethod()) {
 	 assert(false);
 #if 0
 	 if (self->getClass() == priv->parent_class)
@@ -1682,7 +1746,6 @@ void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag)
    assert(strcmp(nme, "destructor"));
    assert(strcmp(nme, "copy"));
 
-
    priv->sys = true;
    BuiltinMethod *b = new BuiltinMethod(this, nme, m);
    QoreMethod *o = new QoreMethod(this, b, priv_flag, true);
@@ -1743,9 +1806,13 @@ void QoreClass::initialize()
 {
    if (!priv->initialized) {
       printd(5, "QoreClass::parseInit() %s this=%08p pending size=%d, scl=%08p, bcal=%08p\n", priv->name, this, priv->hm_pending.size(), priv->scl, priv->bcal);
-      if (priv->scl)
+      if (priv->scl) {
+#ifdef QORE_CLASS_SYNCHRONOUS
+	 priv->scl->parseInit(this, priv->bcal, priv->has_delete_blocker, priv->has_synchronous_in_hierarchy);
+#else
 	 priv->scl->parseInit(this, priv->bcal, priv->has_delete_blocker);
-
+#endif
+      }
       if (!priv->sys && priv->domain & getProgram()->getParseOptions())
 	 parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", priv->name);
       priv->initialized = true;
@@ -1804,3 +1871,23 @@ void QoreClass::parseSetBaseClassList(class BCList *bcl)
    assert(!priv->scl);
    priv->scl = bcl;
 }
+
+#ifdef QORE_CLASS_SYNCHRONOUS
+void QoreClass::setSynchronousClass()
+{
+   assert(!priv->synchronous_class);
+
+   priv->synchronous_class = true;
+   priv->has_synchronous_in_hierarchy = true;
+}
+
+bool QoreClass::has_synchronous_in_hierarchy() const
+{
+   return priv->has_synchronous_in_hierarchy;
+}
+
+bool QoreClass::is_synchronous_class() const
+{
+   return priv->synchronous_class;
+}
+#endif

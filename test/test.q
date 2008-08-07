@@ -11,6 +11,7 @@
 our $to = new Test("program-test.q");
 our $ro = new Test("readonly");
 our ($o, $errors, $counter);
+our $thash;
 
 my $x[10] = 1;
 
@@ -73,6 +74,7 @@ sub test_value($v1, $v2, $msg)
 	#printf("%s%s", dbg_node_info($v1), dbg_node_info($v2));
 	$errors++;
     }
+    $thash.$msg = True;
 }
 
 sub test1() { return 1;} sub test2() { return 2; } 
@@ -1726,7 +1728,10 @@ sub main()
 
     $counter.waitForZero();
 
-    printf("%d error%s encountered.\n", $errors, $errors == 1 ? "" : "s");
+    my $ntests = elements $thash;
+    printf("%d error%s encountered in %d test%s.\n",
+	   $errors, $errors == 1 ? "" : "s", 
+	   $ntests, $ntests == 1 ? "" : "s");
 }
 
 main();

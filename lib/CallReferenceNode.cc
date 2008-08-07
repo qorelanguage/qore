@@ -376,11 +376,13 @@ int ParseScopedSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag)
 
 RunTimeObjectScopedMethodReferenceNode::RunTimeObjectScopedMethodReferenceNode(QoreObject *n_obj, const QoreMethod *n_method) : obj(n_obj), method(n_method)
 {
+   printd(5, "RunTimeObjectScopedMethodReferenceNode::RunTimeObjectScopedMethodReferenceNode() this=%08p obj=%08p\n", this, obj);
    obj->tRef();
 }
 
 RunTimeObjectScopedMethodReferenceNode::~RunTimeObjectScopedMethodReferenceNode()
 {
+   printd(5, "RunTimeObjectScopedMethodReferenceNode::~RunTimeObjectScopedMethodReferenceNode() this=%08p obj=%08p\n", this, obj);
    obj->tDeref();
 }
 
@@ -402,13 +404,13 @@ bool RunTimeObjectScopedMethodReferenceNode::is_equal_hard(const AbstractQoreNod
 
 RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode(QoreObject *n_obj, char *n_method) : obj(n_obj), method(strdup(n_method))
 {
-   //printd(5, "RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode() this=%08p obj=%08p (method=%s)\n", this, obj, method);
+   printd(5, "RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode() this=%08p obj=%08p (method=%s)\n", this, obj, method);
    obj->tRef();
 }
 
 RunTimeObjectMethodReferenceNode::~RunTimeObjectMethodReferenceNode()
 {
-   //printd(5, "RunTimeObjectMethodReferenceNode::~RunTimeObjectMethodReferenceNode() this=%08p obj=%08p (method=%s)\n", this, obj, method);
+   printd(5, "RunTimeObjectMethodReferenceNode::~RunTimeObjectMethodReferenceNode() this=%08p obj=%08p (method=%s)\n", this, obj, method);
    obj->tDeref();
    free(method);
 }

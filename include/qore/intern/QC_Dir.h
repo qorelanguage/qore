@@ -35,8 +35,9 @@ class Dir : public AbstractPrivateData, public QoreDir {
       DLLLOCAL virtual ~Dir() {}
 
    public:
-      DLLLOCAL inline Dir(const class QoreEncoding *cs, ExceptionSink *xsink) : QoreDir(cs, xsink) {}
-      //DLLLOCAL const QoreEncoding* getEncoding();
+      DLLLOCAL Dir(ExceptionSink *xsink, const QoreEncoding *cs = QCS_DEFAULT, const char *dir = 0) : QoreDir(xsink, cs, dir) {}
+      
+      DLLLOCAL Dir(ExceptionSink *xsink, const Dir &old) : QoreDir(xsink, old) {}
 };
 
 

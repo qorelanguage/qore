@@ -387,6 +387,7 @@ QoreClass *initHTTPClientClass()
    QoreHTTPClient::static_init();
 
    QoreClass* client = new QoreClass("HTTPClient", QDOM_NETWORK);
+   // no need to set the class synchronous flag because the QoreHTTPClient class is already thread-safe
    CID_HTTPCLIENT = client->getID();
 
    client->setConstructor(HC_constructor);

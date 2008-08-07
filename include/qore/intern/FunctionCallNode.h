@@ -222,6 +222,13 @@ class MethodCallNode : public AbstractFunctionCallNode
 	 return rv;
       }
 
+      DLLLOCAL char *takeName() 
+      {
+	 char *rv = c_str;
+	 c_str = 0;
+	 return rv;
+      }
+
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const
       {

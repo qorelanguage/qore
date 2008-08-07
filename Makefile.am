@@ -44,6 +44,7 @@ include_HEADERS = \
 	include/qore/QoreString.h \
 	include/qore/common.h \
 	include/qore/config.h \
+	include/qore/unix-config.h \
 	include/qore/QoreEncoding.h \
 	include/qore/DateTime.h \
 	include/qore/support.h \
@@ -83,7 +84,8 @@ include_HEADERS = \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
-	include/qore/QoreDir.h
+	include/qore/QoreDir.h \
+	include/qore/Qore.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
@@ -564,8 +566,7 @@ noinst_HEADERS = \
 	modules/qt-svg/QC_QSvgRenderer.h \
 	modules/qt-svg/QC_QSvgGenerator.h \
 	modules/qt-svg/QC_QSvgWidget.h \
-	command-line.h \
-	include/qore/Qore.h
+	command-line.h
 
 EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	CHANGELOG AUTHORS \

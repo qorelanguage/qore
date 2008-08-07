@@ -7,7 +7,7 @@
 
     @code
     // qore_init() called using the library under the GPL license, appropriate for a GPL program
-    // qore_init() optionally takes several other arguments as well
+    // qore_init() optionally takes several other arguments as well - initializes the openssl and libxml2 libraries as well
     qore_init(QL_GPL);
     @endcode
 

@@ -40,25 +40,27 @@ typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
 // mapping from qore class ID to the object data
 typedef std::map<qore_classid_t, private_pair_t> keymap_t;
 
-// map from tid to call count
-//typedef std::map<int, int> tidmap_t;
-
 class KeyList;
 
 struct qore_object_private {
       const QoreClass *theclass;
       int status;
       mutable QoreThreadLock m;
+#ifdef QORE_CLASS_SYNCHRONOUS
       mutable VRMutex *sync_vrm;
+#endif
       KeyList *privateData;
       QoreReferenceCounter tRefs;  // reference-references
       QoreHashNode *data;
       QoreProgram *pgm;
-      bool system_object, delete_blocker_run;
+      bool system_object, delete_blocker_run, tderef_done;
 
       DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
-	 theclass(oc), status(OS_OK), sync_vrm(0), privateData(0), data(n_data), pgm(p),
-	 system_object(!p), delete_blocker_run(false)
+	 theclass(oc), status(OS_OK), 
+#ifdef QORE_CLASS_SYNCHRONOUS
+	 sync_vrm(oc->has_synchronous_in_hierarchy() ? new VRMutex : 0),
+#endif 
+	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), tderef_done(false)
       {
 	 printd(5, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, p, oc->getName());
 	 /* instead of referencing the class, we reference the program, because the
@@ -283,27 +285,6 @@ const QoreClass *QoreObject::getClass(qore_classid_t cid) const
    return priv->theclass->getClass(cid);
 }
 
-/*
-class TAutoLocker {
-   private:
-      //! the pointer to the lock that will be managed
-      QoreThreadLock *lck;
-   public:
-      //! creates the object and grabs the lock
-      DLLLOCAL TAutoLocker(QoreThreadLock &l) : lck(&l)
-      {
-         lck->lock();
-	 //printd(0, "Object lock %08p locked   (auto)\n", lck);
-      }
-      //! destroys the object and grabs the lock
-      DLLLOCAL ~TAutoLocker()
-      {
-	 //printd(0, "Object lock %08p unlocked (auto)\n", lck);
-         lck->unlock();
-      }
-};
-*/
-
 AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink *xsink)
 {
    // make sure to convert string encoding if necessary to default character set
@@ -399,14 +380,16 @@ void QoreObject::doDelete(ExceptionSink *xsink)
 bool QoreObject::derefImpl(ExceptionSink *xsink)
 {
    printd(5, "QoreObject::derefImpl() this=%08p, class=%s references=0 status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
-
    {
       SafeLocker sl(priv->m);
-      //printd(0, "Object lock %08p locked   (safe)\n", &priv->m);
       if (priv->status != OS_OK) {
-	 //printd(0, "Object lock %08p unlocked (safe)\n", &priv->m);
+	 // only execute tDeref() once per object
+	 bool need_tderef = !priv->tderef_done;
+	 if (need_tderef)
+	    priv->tderef_done = true;
 	 sl.unlock();
-	 tDeref();
+	 if (need_tderef)
+	    tDeref();
 	 return false;
       }
 
@@ -426,14 +409,24 @@ bool QoreObject::derefImpl(ExceptionSink *xsink)
       ROreference();
 
       // mark status as in destructor
-      priv->status = gettid();      
+      priv->status = gettid();
 
       //printd(0, "Object lock %08p unlocked (safe)\n", &priv->m);
    }
 
    doDeleteIntern(xsink);
-   if (ROdereference())
-      tDeref();
+   if (ROdereference()) {
+      // check if we can execute tDeref()
+      bool need_tderef;
+      {
+	 AutoLocker al(priv->m);
+	 need_tderef = !priv->tderef_done;
+	 if (need_tderef)
+	    priv->tderef_done = true;
+      }
+      if (need_tderef)
+	 tDeref();
+   }
 
    return false;
 }
@@ -798,7 +791,7 @@ void QoreObject::cleanup(ExceptionSink *xsink, QoreHashNode *td)
       priv->pgm = 0;
 #endif
    }
-   
+
    td->deref(xsink);
 }
 
@@ -950,3 +943,10 @@ void QoreObject::execMemberNotification(const char *member, ExceptionSink *xsink
 {
    priv->theclass->execMemberNotification(this, member, xsink);
 }
+
+#ifdef QORE_CLASS_SYNCHRONOUS
+VRMutex *QoreObject::getClassSyncLock()
+{
+   return priv->sync_vrm;
+}
+#endif

@@ -29,6 +29,8 @@
 #define _QORE_QOREOBJECT_H
 
 class AutoVLock;
+class VRMutex;
+class BuiltinMethod;
 
 //! the implementation of Qore's object data type, reference counted, dynamically-allocated only
 /** objects in Qore are unique unless copied explicitly (similar to Java)
@@ -202,14 +204,14 @@ class QoreObject : public AbstractQoreNode
 	 @param obj the object to compare
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT bool compareSoft(const class QoreObject *obj, ExceptionSink *xsink) const;
+      DLLEXPORT bool compareSoft(const QoreObject *obj, ExceptionSink *xsink) const;
 
       //! tests for equality ("deep compare" including all contained values) with possible type conversion of contained elements (hard compare)
       /**
 	 @param obj the object to compare
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT bool compareHard(const class QoreObject *obj, ExceptionSink *xsink) const;
+      DLLEXPORT bool compareHard(const QoreObject *obj, ExceptionSink *xsink) const;
 
       //! returns the value of the given member with the reference count incremented, the caller owns the AbstractQoreNode (reference) returned
       /**
@@ -377,10 +379,10 @@ class QoreObject : public AbstractQoreNode
 	 @param args the arguments for the method
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink);
 
       //! called on the old object (this) to acquire private data, copy method called on "self" (new copy)
-      DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, ExceptionSink *xsink);
+      DLLLOCAL void evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *self, const char *class_name, ExceptionSink *xsink);
 
       //! concatenates info about private data to a string
       /**
@@ -451,6 +453,9 @@ class QoreObject : public AbstractQoreNode
 
       //! executes the member notification on the object the given member
       DLLLOCAL void execMemberNotification(const char *member, ExceptionSink *xsink);
+
+      //! returns the class-synchronous lock (if any) for the object
+      DLLLOCAL VRMutex *getClassSyncLock();
 };
 
 #endif

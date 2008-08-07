@@ -25,16 +25,12 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Socket.h>
 
-void mySocket::init()
+mySocket::mySocket(QoreSocket *s) : socket(s), cert(0), pk(0)
 {
-   cert = 0;
-   pk = 0;
 }
 
-mySocket::mySocket(class QoreSocket *s)
+mySocket::mySocket() : socket(new QoreSocket()), cert(0), pk(0)
 {
-   socket = s;
-   init();
 }
 
 mySocket::~mySocket()
@@ -45,12 +41,6 @@ mySocket::~mySocket()
       pk->deref();
    
    delete socket;
-}
-
-mySocket::mySocket()
-{
-   socket = new QoreSocket();
-   init();
 }
 
 int mySocket::connect(const char *name, ExceptionSink *xsink)

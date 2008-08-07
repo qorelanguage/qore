@@ -88,11 +88,11 @@ void VarRefNode::resolve()
 AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL) {
-      printd(5, "VarRefNode::eval() lvar %08p (%s)\n", ref.id, ref.id);
+      printd(5, "VarRefNode::eval() lvar %08p (%s)\n", ref.id, ref.id->getName());
       return ref.id->eval(xsink);
    }
    if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
+      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id->getName());
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->eval(xsink);
    }

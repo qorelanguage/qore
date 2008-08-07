@@ -30,60 +30,49 @@ static void DIR_constructor(QoreObject *self, const QoreListNode *params, Except
   // get character set name if available
   const QoreEncoding *cs;
   const QoreStringNode *p0 = test_string_param(params, 0);
-  if(p0) {
+  if (p0) {
     cs = QEM.findCreate(p0);
   }
   else {
     cs = QCS_DEFAULT;
   }
-  
-  SimpleRefHolder<Dir> d(new Dir(cs, xsink));
+
+  SimpleRefHolder<Dir> d(new Dir(xsink, cs));
   if (*xsink)
      return;
   self->setPrivate(CID_DIR, d.release());
 }
 
 static void DIR_copy(QoreObject *self, QoreObject *old, class Dir *d, ExceptionSink *xsink) {
-  //self->setPrivate(CID_DIR, new Dir(d->getEncoding()));
-  SimpleRefHolder<Dir> nd(new Dir(d->getEncoding(), xsink));
-  if (*xsink)
-     return;
-  if (d->dirname())
-     nd->chdir(d->dirname(), xsink);
-  self->setPrivate(CID_DIR, nd.release());
+   SimpleRefHolder<Dir> nd(new Dir(xsink, *d));
+   if (*xsink)
+      return;
+  
+   self->setPrivate(CID_DIR, nd.release());
 }
-
-
-// ---------------------------------
-
 
 // chDir(dirname)
 static AbstractQoreNode *DIR_chdir(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
   const QoreStringNode *p0;
 
   p0 = test_string_param(params, 0);
-  if(!p0) {
+  if (!p0) {
     xsink->raiseException("DIR-OPEN-PARAMETER-ERROR", "expecting string dirname argument for Dir::chDir()");
     return 0;
   }
 
-  return get_bool_node(d->chdir(p0->getBuffer(), xsink) ? 0: 1);
+  return get_bool_node(d->chdir(p0->getBuffer(), xsink) ? 0 : 1);
 }
 
 // path(): returns the actual directory name
 static AbstractQoreNode *DIR_path(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-   const char *dir = d->dirname();
-   return dir ? new QoreStringNode(dir) : 0;
+   return d->dirname();
 }
 
 // exists(): return 0 if the ch-dired directory exists
 static AbstractQoreNode *DIR_exists(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
   return get_bool_node(d->checkPath()? 0: 1); 
 }
-
-
-// ---------------------------------
-
 
 // create([mode]): create all the directories in the path
 static AbstractQoreNode *DIR_create(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
@@ -101,34 +90,31 @@ static AbstractQoreNode *DIR_create(QoreObject *self, class Dir *d, const QoreLi
 // chmod(mode)
 static AbstractQoreNode *DIR_chmod(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
   const AbstractQoreNode *p0 = get_param(params, 0);
-  if(!p0) {
-    xsink->raiseException("DIR-CHMOD-PARAMETER-ERROR", "expecting mode as parameter of Dir::chmod()");
+  if (is_nothing(p0)) {
+    xsink->raiseException("DIR-CHMOD-PARAMETER-ERROR", "expecting integer mode as sole argument to Dir::chmod()");
     return 0;
   }
 
-  if(chmod(d->dirname(), p0->getAsInt())) {
-    xsink->raiseException("DIR-CHMOD-ERROR", "error in Dir::chmod(): %s", strerror(errno));
-    return 0;
-  }
+  d->chmod(p0->getAsInt(), xsink);
 
   return 0;
 }
 
 // chown(username|userid)
 static AbstractQoreNode *DIR_chown(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-  const AbstractQoreNode *p=get_param(params, 0);
+  const AbstractQoreNode *p = get_param(params, 0);
   int uid;
-  if(is_nothing(p)) {
+  if (is_nothing(p)) {
     xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "expecting username or userid as parameter of Dir::chown()");
     return 0;
   }
 
-  if(p->getType()==NT_INT) {
+  if (p->getType()==NT_INT) {
     uid=p->getAsInt();
   }
-  else if(p->getType()==NT_STRING) {
+  else if (p->getType()==NT_STRING) {
     struct passwd *pwd=getpwnam(((QoreStringNode*)p)->getBuffer());   // Try getting UID for username
-    if(pwd == NULL) {
+    if (pwd == NULL) {
       xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "no userid found for user '%s'", ((QoreStringNode*)p)->getBuffer());
       return 0;
     }    
@@ -139,29 +125,26 @@ static AbstractQoreNode *DIR_chown(QoreObject *self, class Dir *d, const QoreLis
     return 0;
   }
 
-  if(chown(d->dirname(), uid, (gid_t)-1)) {
-    xsink->raiseException("DIR-CHOWN-ERROR", "error in Dir::chown(): %s", strerror(errno));
-    return 0;
-  }
+  d->chown(uid, (gid_t)-1, xsink);
 
   return 0;
 }
 
 // chgrp(groupname|groupid)
 static AbstractQoreNode *DIR_chgrp(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-  const AbstractQoreNode *p=get_param(params, 0);
+  const AbstractQoreNode *p = get_param(params, 0);
   int gid;
-  if(is_nothing(p)) {
+  if (is_nothing(p)) {
     xsink->raiseException("DIR-CHGRP-PARAMETER-ERROR", "expecting groupname or groupid as parameter of Dir::chgrp()");
     return 0;
   }
 
-  if(p->getType()==NT_INT) {
+  if (p->getType()==NT_INT) {
     gid=p->getAsInt();
   }
-  else if(p->getType()==NT_STRING) {
+  else if (p->getType()==NT_STRING) {
     struct passwd *pwd=getpwnam(((QoreStringNode*)p)->getBuffer());   // Try getting GID for name
-    if(pwd == NULL) {
+    if (pwd == NULL) {
       xsink->raiseException("DIR-CHGRP-PARAMETER-ERROR", "no groupid found for group '%s'", ((QoreStringNode*)p)->getBuffer());
       return 0;
     }    
@@ -172,104 +155,76 @@ static AbstractQoreNode *DIR_chgrp(QoreObject *self, class Dir *d, const QoreLis
     return 0;
   }
 
-  if(chown(d->dirname(), (uid_t)-1, gid)) {
-    xsink->raiseException("DIR-CHGRP-ERROR", "error in Dir::chgrp(): %s", strerror(errno));
-    return 0;
-  }
+  d->chown((uid_t)-1, gid, xsink);
 
   return 0;
 }
 
-
-// ---------------------------------
-
-
 // mkdir(dirname, [mode]): make subdirectory with given mode
 static AbstractQoreNode *DIR_mkdir(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = test_string_param(params, 0);
-   if(!p0) {
+   if (!p0) {
       xsink->raiseException("DIR-MKDIR-PARAMETER-ERROR", "expecting string as first parameter of mkdir");
       return 0;
    }
 
    // check if there is a path delimiter in
    const char *dname=p0->getBuffer();
-   if(strchr(dname, '/')) {
-     xsink->raiseException("DIR-MKDIR-PARAMETER-ERROR", "only direct subdirectories are allowed");
+   if (strchr(dname, '/')) {
+     xsink->raiseException("DIR-MKDIR-PARAMETER-ERROR", "only single, direct subdirectories are allowed");
      return 0;
    }
 
-   int mode;
+   // get mode parameter (if any, default = 0777)
    const AbstractQoreNode *p1 = get_param(params, 1);
-   if(p1) {
-      mode = p1->getAsInt();
-   }
-   else {
-      mode = 0777;
-   }
 
-  std::string path=std::string(d->dirname())+"/"+std::string(dname);
-  if(mkdir(path.c_str(), mode)) {
-    xsink->raiseException("DIR-MKDIR-ERROR", "error on creating subdirectory '%s' in '%s': %s", p0->getBuffer(), d->dirname(), strerror(errno));
-    return 0;
-  }
-
-  return 0;
+   std::string path = d->getPath(dname);
+   d->mkdir(xsink, path.c_str(), p1 ? p1->getAsInt() : 0777);
+   return 0;
 }
 
 // rmdir(dirname): remove direct subdirectory
 static AbstractQoreNode *DIR_rmdir(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
   const QoreStringNode *p0 = test_string_param(params, 0);
-  if(!p0) {
+  if (!p0) {
     xsink->raiseException("DIR-RMDIR-PARAMETER-ERROR", "expecting string as first parameter of rmdir");
     return 0;
   }
   
   // check if there is a path delimiter in
   const char *dname=p0->getBuffer();  
-  if(strchr(dname, '/')) {
+  if (strchr(dname, '/')) {
     xsink->raiseException("DIR-RMDIR-PARAMETER-ERROR", "only direct subdirectories are allowed");
     return 0;
   }
-  
-  std::string path=std::string(d->dirname())+"/"+std::string(dname);
-  if(rmdir(path.c_str())) {
-    xsink->raiseException("DIR-RMDIR-ERROR", "error on removing subdirectory '%s' in '%s': %s", p0->getBuffer(), d->dirname(), strerror(errno));
-    return 0;
-  }
+
+  d->rmdir(dname, xsink);
 
   return 0;
 }
-
-
-// ---------------------------------
-
 
 // list()
 // lists all files and directories, but ignores '.' and '..'
 static AbstractQoreNode *DIR_list(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    // check for optional regular expression string
-   const QoreStringNode *p0;
-   p0 = test_string_param(params, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (p0) {
       const AbstractQoreNode *p1 = get_param(params, 1);
-      return d->list(-1, xsink, p0, p1 ? p1->getAsInt() : 0);
+      return d->list(xsink, -1, p0, p1 ? p1->getAsInt() : 0);
    }
-   return d->list(-1, xsink);
+   return d->list(xsink, -1);
 }
-
 
 // listFiles()
 // lists all files
 static AbstractQoreNode *DIR_listFiles(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    // check for optional regular expression string
-   const QoreStringNode *p0;
-   p0 = test_string_param(params, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (p0) {
       const AbstractQoreNode *p1 = get_param(params, 1);
-      return d->list(-1^DT_DIR, xsink, p0, p1 ? p1->getAsInt() : 0);
+      return d->list(xsink, -1^S_IFDIR, p0, p1 ? p1->getAsInt() : 0);
    }
-  return d->list(-1^DT_DIR, xsink);
+   return d->list(xsink, -1^S_IFDIR);
 }
 
 
@@ -277,34 +232,27 @@ static AbstractQoreNode *DIR_listFiles(QoreObject *self, class Dir *d, const Qor
 // lists all directoreis but ignore '.' and '..'
 static AbstractQoreNode *DIR_listDirs(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    // check for optional regular expression string
-   const QoreStringNode *p0;
-   p0 = test_string_param(params, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (p0) {
       const AbstractQoreNode *p1 = get_param(params, 1);
-      return d->list(DT_DIR, xsink, p0, p1 ? p1->getAsInt() : 0);
+      return d->list(xsink, S_IFDIR, p0, p1 ? p1->getAsInt() : 0);
    }
-  return d->list(DT_DIR, xsink);
+   return d->list(xsink, S_IFDIR);
 }
-
-
-// ---------------------------------
-
 
 // openFile(filename, [flags, mode, charset])
 // throw exception from File::open2()
 static AbstractQoreNode *DIR_openFile(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-
-  const QoreStringNode *p0;
-  p0 = test_string_param(params, 0);
-  if(!p0) {
+  const QoreStringNode *p0 = test_string_param(params, 0);
+  if (!p0) {
     xsink->raiseException("DIR-OPENFILE-PARAMETER-ERROR", "expecting string filename as first argument of Dir::openFile()");
     return 0;
   }
 
   // check if there is a path delimiter in
-  const char *p0_str=p0->getBuffer();  
-  if(strchr(p0_str, '/')) {
-    xsink->raiseException("DIR-OPENFILE-PARAMETER-ERROR", "only filenames without path are allowed");
+  const char *fname=p0->getBuffer();  
+  if (strchr(fname, '/')) {
+    xsink->raiseException("DIR-OPENFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '/' characters) are allowed");
     return 0;
   }
   
@@ -327,18 +275,19 @@ static AbstractQoreNode *DIR_openFile(QoreObject *self, class Dir *d, const Qore
     charset = QEM.findCreate(pstr);
   else
     charset = QCS_DEFAULT;
-                                                                                                                  
+
   // open the file with exception
   ReferenceHolder<File> f(new File(charset), xsink);
-  std::string fname=std::string(d->dirname())+"/"+std::string(p0_str);
-  int r=f->open2(xsink, fname.c_str(), flags, mode, charset);
-  if(r!=0) {
+  std::string path = d->getPath(fname);
+
+  int r = f->open2(xsink, path.c_str(), flags, mode, charset);
+  if (r!=0) {
      f.release(); // release the object
      return 0;
   }
 
-  // create the qoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
-  QoreObject *o=new QoreObject(QC_File, getProgram());
+  // create the QoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
+  QoreObject *o = new QoreObject(QC_File, getProgram());
   o->setPrivate(CID_FILE, f.release());
   return o;
 }
@@ -347,15 +296,15 @@ static AbstractQoreNode *DIR_openFile(QoreObject *self, class Dir *d, const Qore
 static AbstractQoreNode *DIR_openDir(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    p0 = test_string_param(params, 0);
-   if(!p0) {
-      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "expecting string filename as first argument of Dir::openDir()");
+   if (!p0) {
+      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "expecting string directory name as first argument of Dir::openDir()");
       return 0;
    }
 
    // check if there is a path delimiter in
-   const char *p0_str=p0->getBuffer();  
-   if(strchr(p0_str, '/')) {
-      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only filenames without path are allowed");
+   const char *dirname=p0->getBuffer();  
+   if (strchr(dirname, '/')) {
+      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only direct directory names without path (i.e. without '/' characters) are allowed");
       return 0;
    }
    
@@ -365,10 +314,9 @@ static AbstractQoreNode *DIR_openDir(QoreObject *self, class Dir *d, const QoreL
       charset = QEM.findCreate(pstr);
    else
       charset = d->getEncoding();
-   
+
    // open the file with exception
-   ReferenceHolder<Dir> dc(new Dir(charset, xsink), xsink);
-   dc->chdir((std::string(d->dirname())+"/"+std::string(p0_str)).c_str(), xsink);
+   ReferenceHolder<Dir> dc(new Dir(xsink, charset, d->getPath(dirname).c_str()), xsink);
    
    // create the qoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
    QoreObject *o=new QoreObject(getRootNS()->rootFindClass("Dir"), getProgram());
@@ -380,40 +328,36 @@ static AbstractQoreNode *DIR_openDir(QoreObject *self, class Dir *d, const QoreL
 // removeFile(filename): remove the file
 static AbstractQoreNode *DIR_removeFile(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
   const QoreStringNode *p0;
-  if(!(p0 = test_string_param(params, 0))) {
+  if (!(p0 = test_string_param(params, 0))) {
     return 0;
   }
 
   // check if there is a path delimiter in
-  const char *p0_str=p0->getBuffer();  
-  if(strchr(p0_str, '/')) {
-    xsink->raiseException("DIR-REMOVEFILE-PARAMETER-ERROR", "only filenames without path are allowed");
+  const char *fname = p0->getBuffer();  
+  if (strchr(fname, '/')) {
+    xsink->raiseException("DIR-REMOVEFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '/' characters) are allowed");
     return 0;
   }
 
-  std::string fname=std::string(d->dirname())+"/"+std::string(p0_str);
-  errno=0; // clear errno flag
-  if(unlink(fname.c_str()) && errno!=ENOENT) {
-    xsink->raiseException("DIR-REMOVEFILE-ERROR", "error on removing file '%s': %s", p0->getBuffer(), strerror(errno));
-    return 0;
+  std::string path = d->getPath(fname);
+  errno = 0; // clear errno flag
+  if (unlink(path.c_str()) && errno != ENOENT) {
+     xsink->raiseException("DIR-REMOVEFILE-ERROR", "error on removing file '%s': %s", p0->getBuffer(), strerror(errno));
+     return 0;
   }
+
   // if an errno was set it must be ENOENT at this point.
   // so we return that no file is removed
-  return get_bool_node(errno? 0: 1);
+  return get_bool_node(errno ? 0 : 1);
 }
 
-
-// ---------------------------------
-
-
 // init the class
-class QoreClass *initDirClass() {
+QoreClass *initDirClass() {
    tracein("initDirClass()");
 
-   class QoreClass *QC_DIR = new QoreClass("Dir", QDOM_FILESYSTEM);
+   QoreClass *QC_DIR = new QoreClass("Dir", QDOM_FILESYSTEM);
    CID_DIR = QC_DIR->getID();
 
-   //QC_DIR->setSystemConstructor(DIR_system_constructor);
    QC_DIR->setConstructor(DIR_constructor);
    QC_DIR->setCopy((q_copy_t)DIR_copy);
 

@@ -1,3 +1,17 @@
+2008.08.06: David Nichols
+	* made QoreDir class thread-safe, fixed directory and file filtering
+	* made QoreFile class thread-safe
+	* removed synchronous class tagging because the implementation was very
+	  inefficient
+
+2008.07.13: David Nichols
+        * new functions: inlist() and inlist_hard()
+	* implemented tagging classes as "synchronous" to allow builtin classes
+	  to have automatic thread locks on all methods (except constructors)
+	* removed explicit locking from the Socket class (tagged as synchronous)
+	* tagged the File and Dir classes as synchronous classes to ensure
+	  proper locking
+
 2008.06.26: David Nichols
         * initial glut module documentation
 

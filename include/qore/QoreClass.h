@@ -149,7 +149,7 @@ class QoreMethod {
     or in C++ (builtin classes), or both, as in the case of a builtin class that
     also has user methods.
  */
-class QoreClass{
+class QoreClass {
       friend class BCList;
       friend class BCSMList;
       friend class QoreObject;
@@ -409,6 +409,11 @@ class QoreClass{
       */
       DLLEXPORT void addBuiltinVirtualBaseClass(QoreClass *qc);
 
+      //! call this function if your builtin class requires *all* methods (except the constructor) to be run in an RMutex lock
+      /** use this for classes that require exclusive access to the private data in all functions
+       */
+      DLLEXPORT void setSynchronousClass();
+
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(QoreMethod *f);
       DLLLOCAL const QoreMethod *resolveSelfMethod(const char *nme);
@@ -439,6 +444,10 @@ class QoreClass{
       DLLLOCAL BCSMList *getBCSMList() const;
       // returns true if the class has a delete_blocker function (somewhere in the hierarchy)
       DLLLOCAL bool has_delete_blocker() const;
+      // returns true if the class has a synchronous class somewhere in the class' hierarchy
+      DLLLOCAL bool has_synchronous_in_hierarchy() const;
+      // returns true if the class itself is synchronous
+      DLLLOCAL bool is_synchronous_class() const;
       // one-time initialization
       DLLLOCAL void initialize();
       // looks in current and pending method lists for the entire hierarchy (local class plus base classes)

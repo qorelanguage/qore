@@ -1,14 +1,12 @@
 /*
   QoreFile.h
 
-  File object
+  thread-safe File object
 
   Qore Programming Language
 
   Copyright 2003 - 2008 David Nichols
   
-  FIXME: normalize methods to raise exceptions when file operations are attempted on a closed file
-
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -43,14 +41,18 @@ class QoreFile {
    private:
       //! private implementation
       struct qore_qf_private *priv;
-
+      
+   protected:
+      // unlocked
       DLLLOCAL int readChar();
-      // reads a buffer of the given size
+      // reads a buffer of the given size, unlocked
       DLLLOCAL char *readBlock(int &size);
-      // returns -1 for error
+      // returns -1 for error, unlocked
       DLLLOCAL int check_read_open(class ExceptionSink *xsink);
-      // returns -1 for error
+      // returns -1 for error, unlocked
       DLLLOCAL int check_write_open(class ExceptionSink *xsink);
+      // unlocked close
+      DLLLOCAL int close_intern();
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreFile(const QoreFile&);
@@ -355,10 +357,10 @@ class QoreFile {
 	 FIXME: reads a single byte, not a character
 	 @return a new string consisting of the single character read from the file
        */
-      DLLEXPORT class QoreStringNode *getchar();
+      DLLEXPORT QoreStringNode *getchar();
 
       //! returns the filename of the file being read
-      DLLEXPORT const char *getFileName() const;
+      DLLEXPORT QoreStringNode *getFileName() const;
 
       //! changes ownership of the file (if possible)
       DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);

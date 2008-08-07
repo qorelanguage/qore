@@ -2034,25 +2034,23 @@ exp:    scalar
 	      if (t == NT_TREE) {
 		 QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>($2);
 		 if (tree->op == OP_OBJECT_FUNC_REF) {
-		    assert(tree->right->getType() == NT_FUNCTION_CALL);
-		    FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(tree->right);
-		    if (f->getFunctionType() == FC_METHOD) {
-		       if (f->getArgs()) {
-			  parse_error("argument given to call reference");
-			  $$ = $2;
-		       }
-		       else { // rewrite as a call reference
-			  // take components of tree and delete tree
-			  class AbstractQoreNode *exp = tree->left;
-			  tree->left = 0;
-			  char *meth = f->takeName();
-			  f->deref();
-			  tree->right = 0;
-			  $2->deref(0);
-			  $$ = new ParseObjectMethodReferenceNode(exp, meth);
-			  //printd(5, "made parse object method reference: exp=%08p meth=%s (node=%08p)\n", exp, meth, $$);
-			  make_ref = false;
-		       }
+		    assert(tree->right->getType() == NT_METHOD_CALL);
+		    MethodCallNode *m = reinterpret_cast<MethodCallNode *>(tree->right);
+		    if (m->getArgs()) {
+		       parse_error("argument given to call reference");
+		       $$ = $2;
+		    }
+		    else { // rewrite as a call reference
+		       // take components of tree and delete tree
+		       AbstractQoreNode *exp = tree->left;
+		       tree->left = 0;
+		       char *meth = m->takeName();
+		       m->deref();
+		       tree->right = 0;
+		       tree->deref();
+		       $$ = new ParseObjectMethodReferenceNode(exp, meth);
+		       //printd(5, "made parse object method reference: exp=%08p meth=%s (node=%08p)\n", exp, meth, $$);
+		       make_ref = false;
 		    }
 		 }
 	      }

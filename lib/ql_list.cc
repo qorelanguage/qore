@@ -239,6 +239,45 @@ static AbstractQoreNode *f_reverse(const QoreListNode *params, ExceptionSink *xs
    return 0;
 }
 
+static AbstractQoreNode *f_inlist(const QoreListNode *params, ExceptionSink *xsink)
+{ 
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+
+   if (!p1 || p1->getType() != NT_LIST)
+      return get_bool_node(OP_LOG_EQ->bool_eval(p0, p1, xsink));
+
+   ConstListIterator li(reinterpret_cast<const QoreListNode *>(p1));
+   while (li.next()) {
+      bool b = OP_LOG_EQ->bool_eval(p0, li.getValue(), xsink);
+      if (*xsink)
+	 return 0;
+      if (b)
+	 return &True;
+   }
+   return &False;
+}
+
+static AbstractQoreNode *f_inlist_hard(const QoreListNode *params, ExceptionSink *xsink)
+{ 
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+
+   if (!p1 || p1->getType() != NT_LIST)
+      return get_bool_node(OP_ABSOLUTE_EQ->bool_eval(p0, p1, xsink));
+
+   ConstListIterator li(reinterpret_cast<const QoreListNode *>(p1));
+   while (li.next()) {
+      bool b = OP_ABSOLUTE_EQ->bool_eval(p0, li.getValue(), xsink);
+      if (*xsink)
+	 return 0;
+      if (b)
+	 return &True;
+   }
+   return &False;
+}
+
+
 void init_list_functions()
 {
    builtinFunctions.add("sort", f_sort);
@@ -248,5 +287,7 @@ void init_list_functions()
    builtinFunctions.add("min", f_min);
    builtinFunctions.add("max", f_max);
    builtinFunctions.add("reverse", f_reverse);
+   builtinFunctions.add("inlist", f_inlist);
+   builtinFunctions.add("inlist_hard", f_inlist_hard);
 }
 

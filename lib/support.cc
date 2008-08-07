@@ -31,6 +31,12 @@
 
 extern bool threads_initialized;
 
+#define QORE_SERIALIZE_DEBUGGING_OUTPUT 1
+
+#ifdef QORE_SERIALIZE_DEBUGGING_OUTPUT
+static QoreThreadLock debug_output_lock;
+#endif
+
 int printe(const char *fmt, ...)
 {
    va_list args;
@@ -67,6 +73,9 @@ int print_debug(int level, const char *fmt, ...)
 	 break;
    }
 
+#ifdef QORE_SERIALIZE_DEBUGGING_OUTPUT
+   AutoLocker al(debug_output_lock);
+#endif
    if (threads_initialized) fprintf(stderr, "TID %d: ", gettid());
    fputs(buf.getBuffer(), stderr);
    fflush(stderr);

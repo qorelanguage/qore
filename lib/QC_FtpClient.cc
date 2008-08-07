@@ -360,12 +360,14 @@ static AbstractQoreNode *FC_setModePORT(QoreObject *self, class QoreFtpClientCla
    return 0;
 }
 
-class QoreClass *initFtpClientClass()
+QoreClass *initFtpClientClass()
 {
    tracein("initFtpClientClass()");
-
-   class QoreClass *QC_FTPCLIENT = new QoreClass("FtpClient", QDOM_NETWORK);
+   
+   QoreClass *QC_FTPCLIENT = new QoreClass("FtpClient", QDOM_NETWORK);
+   // no need to set the class synchronous flag because the QoreFtpClient class is already thread-safe 
    CID_FTPCLIENT = QC_FTPCLIENT->getID();
+
    QC_FTPCLIENT->setConstructor(FC_constructor);
    QC_FTPCLIENT->setCopy((q_copy_t)FC_copy);
    QC_FTPCLIENT->addMethod("connect",               (q_method_t)FC_connect);
