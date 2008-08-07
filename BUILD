@@ -37,7 +37,7 @@ if you have the open headers and libraries in a location the configure script ca
 
 "configure" Option Overview
 ---------------------------
---enable-64bit                      : to build a 64-bit binary (support for x86_64, sparc, and pa-risc architectures) - the default is to build a 32-bit binary even on 64-bit platforms
+--enable-64bit                      : to build a 64-bit binary (support for x86_64, sparc, and pa-risc architectures)
 --disable-static                    : to disable builing a static libqore.a library
 --disable-debug                     : to disable debugging code - if you are not planning on debugging the qore language itself then it is highly advised to include this flag, as enabling debugging in qore slows down the language a great deal
 --prefix=<dir>                      : default=/usr/local = qore in /usr/local/bin, libraries in /usr/local/lib, modules in /usr/local/lib/qore-<ver>/
@@ -142,8 +142,7 @@ there are no particular issues on Linux, this is the main development platform.
 Various distributions have been tested: FC3-8, Gentoo, Ubuntu, ARCH, etc
 
 *) Darwin - OS/X
-I use fink to provide libtool 1.5.10 (libtool14 package), which works for me to build shared libraries and shared modules on Darwin.  I was not able to make a build with any other version of libtool on Darwin (particularly not the version of libtool that comes with OS/X - i.e. /usr/bin/glibtool on OS/X 10.4.2 is version 1.5 and did not work for me).  Also this version seems to have a bug: it created modules with a suffix of *.so instead of *.dylib.  I have built in a workaround for this in the configure.ac script, under darwin, when builind modules, the module suffix is set to .so...
-Older builds worked fine with 10.3.8, currently the new version with shared libraries & modules has been tested only on 10.[4-5].* with g++ 4.0.1 (with some fink/macports components) on i386 and ppc
+there are no particular issues on newer version of OS/X (10.5+), just make sure you have the prerequisite libraries and header files available - this applies to PCRE on newer versions of OS/X.  On older versions (10.4 and earlier), you'll also need to ensure that you have at least libtool 1.5.10 when building from svn, get it from fink or macports as you like.
 NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096)
 
 *) Solaris:
