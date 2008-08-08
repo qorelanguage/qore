@@ -57,22 +57,36 @@ class Base1 {
 	printf("Base1::constructor(%n)\n", $a);
 	$.a = $a;
     }
+
     destructor()
     {
 	printf("Base1::destructor() (%n)\n", $.a);
     }
+
     copy()
     {
 	printf("Base1::copy() (%n)\n", $.a);
 	$.a = $.a + "-copy";
     }
+
     hello()
     {
 	printf("Base1 hello (%n)\n", $.a);
     }
+
+    # note that "Base1" here is just a regular method, the constructor
+    # is always named "constructor"
     Base1($a)
     {
 	printf("Base1::Base1() (%n) %n\n", $.a, $a);
+    }
+
+    # "static" functions are not associated with an object; they are
+    # like regular functions and can be called outside the class (if
+    # they are not private)
+    static test()
+    {
+	printf("Base1::test() static function\n");
     }
 }
 
@@ -99,6 +113,9 @@ class Base2 {
     {
 	printf("Base2 hello (%n)\n", $.b);
     }
+
+    # note that "Base2" here is just a regular method, the constructor
+    # is always named "constructor"
     Base2($a)
     {
 	printf("Base2::Base2() (%n) %n\n", $.b, $a);
@@ -133,6 +150,9 @@ class Mid::Mid inherits Base1, Base2
 	Base2::$.hello();
 	printf("Mid hello (%n)\n", $.m);
     }
+
+    # note that "Mid" here is just a regular method, the constructor
+    # is always named "constructor"
     Mid($a)
     {
 	$.Base1("Mid");

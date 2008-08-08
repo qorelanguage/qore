@@ -112,12 +112,11 @@ class LocalVarValue {
 	    discard(val.value, xsink);
 	    return;
 	 }
-	 else {
-	    //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' reference expression vexp=%08p\n", this, id, val.ref.vexp);
-	    val.ref.vexp->deref(xsink);
-	    if (val.ref.obj)
-	       val.ref.obj->tDeref();
-	 }
+
+	 //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' reference expression vexp=%08p\n", this, id, val.ref.vexp);
+	 val.ref.vexp->deref(xsink);
+	 if (val.ref.obj)
+	    val.ref.obj->tDeref();
       }
 
       DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink)

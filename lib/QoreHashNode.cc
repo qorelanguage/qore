@@ -77,6 +77,8 @@ struct qore_hash_private {
 	 om->next = 0;
 	 om->prev = tail;
 	 om->key = strdup(key);
+	 assert(hm.find(om->key) == hm.end());
+
 	 if (tail)
 	    tail->next = om;
 	 else

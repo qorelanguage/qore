@@ -220,134 +220,132 @@ void QoreSignalManager::signal_handler_thread()
 
    sigset_t c_mask;
    int sig;
-   ExceptionSink xsink;
-
-   // acquire lock to copy signal mask
-   SafeLocker sl(&mutex);
-
-   // reload copy of the signal mask for the sigwait command
-   memcpy(&c_mask, &mask, sizeof(sigset_t));
-   // block only signals we are catching in this thread
-   pthread_sigmask(SIG_SETMASK, &c_mask, 0);
-
-#ifdef DARWIN
-   /* why do we call sigprocmask on Darwin?
-      it seems that Darwin has a bug in handling per-thread signal masks.  
-      Even though we explicitly set this thread's signal mask to unblock all signals
-      we are not explicitly catching (including QORE_STATUS_SIGNAL, currently set to
-      SIGSYS), no signal is delivered that is not in our list.  For example (on
-      Darwin only), if we are catching SIGUSR1 with a Qore signal handler (therefore
-      it's included in c_mask and blocked in this thread, because it will be also
-      included in sigwait below) and have no handler for SIGUSR2, if we send a 
-      SIGUSR2 to the process, unless we cann sigprocmask here and below after 
-      pthread_sigmask, the SIGUSR2 will also be blocked (even through the signal 
-      thread's signal mask explicitly allows for it to be delivered to this thread),
-      instead of being delivered to the process and triggering the default action - 
-      terminate the process.  The workaround (discovered with trial and error) is to
-      call sigprocmask after every call to pthread_sigmask in the signal handler 
-      thread  */
-   sigprocmask(SIG_SETMASK, &c_mask, 0);
-#endif
-
-   while (true)
    {
-      if (cmd != C_None)
-      {
-	 sig_cmd_e c = cmd;
-	 cmd = C_None;
-	 // check command
-	 if (c == C_Exit)
-	    break;
-	 if (c == C_Reload)
-	 {
-	    memcpy(&c_mask, &mask, sizeof(sigset_t));
-	    // block only signals we are catching in this thread
-	    pthread_sigmask(SIG_SETMASK, &c_mask, 0);
+      ExceptionSink xsink;
+
+      // acquire lock to copy signal mask
+      SafeLocker sl(&mutex);
+
+      // reload copy of the signal mask for the sigwait command
+      memcpy(&c_mask, &mask, sizeof(sigset_t));
+      // block only signals we are catching in this thread
+      pthread_sigmask(SIG_SETMASK, &c_mask, 0);
+
 #ifdef DARWIN
-	    // see above for reasoning behind calling sigprocmask on Darwin
-	    sigprocmask(SIG_SETMASK, &c_mask, 0);
+      /* why do we call sigprocmask on Darwin?
+	 it seems that Darwin has a bug in handling per-thread signal masks.  
+	 Even though we explicitly set this thread's signal mask to unblock all signals
+	 we are not explicitly catching (including QORE_STATUS_SIGNAL, currently set to
+	 SIGSYS), no signal is delivered that is not in our list.  For example (on
+	 Darwin only), if we are catching SIGUSR1 with a Qore signal handler (therefore
+	 it's included in c_mask and blocked in this thread, because it will be also
+	 included in sigwait below) and have no handler for SIGUSR2, if we send a 
+	 SIGUSR2 to the process, unless we cann sigprocmask here and below after 
+	 pthread_sigmask, the SIGUSR2 will also be blocked (even through the signal 
+	 thread's signal mask explicitly allows for it to be delivered to this thread),
+	 instead of being delivered to the process and triggering the default action - 
+	 terminate the process.  The workaround (discovered with trial and error) is to
+	 call sigprocmask after every call to pthread_sigmask in the signal handler 
+	 thread  */
+      sigprocmask(SIG_SETMASK, &c_mask, 0);
 #endif
-	    // confirm that the mask has been updated so updates are atomic
-	    cond.signal();
+
+      while (true) {
+	 if (cmd != C_None) {
+	    sig_cmd_e c = cmd;
+	    cmd = C_None;
+	    // check command
+	    if (c == C_Exit)
+	       break;
+	    if (c == C_Reload) {
+	       memcpy(&c_mask, &mask, sizeof(sigset_t));
+	       // block only signals we are catching in this thread
+	       pthread_sigmask(SIG_SETMASK, &c_mask, 0);
+#ifdef DARWIN
+	       // see above for reasoning behind calling sigprocmask on Darwin
+	       sigprocmask(SIG_SETMASK, &c_mask, 0);
+#endif
+	       // confirm that the mask has been updated so updates are atomic
+	       cond.signal();
+	    }
+	 }
+	 
+	 // unlock to call sigwait
+	 sl.unlock();
+	 
+	 //printd(5, "about to call sigwait()\n");
+	 sigwait(&c_mask, &sig);
+	 
+	 // reacquire lock to check command and handler status
+	 sl.lock();
+	 
+	 //printd(5, "sigwait() sig=%d (cmd=%d)\n", sig, cmd);
+	 if (sig == QORE_STATUS_SIGNAL && cmd != C_None)
+	    continue;
+	 
+	 //printd(5, "signal %d received (handler=%d)\n", sig, handlers[sig].isSet());
+	 if (!handlers[sig].isSet())
+	    continue;
+	 
+	 // set in progress status while in the lock
+	 assert(handlers[sig].status == QoreSignalHandler::SH_OK);
+	 handlers[sig].status = QoreSignalHandler::SH_InProgress;
+	 
+	 // unlock to run handler code
+	 sl.unlock();
+	 
+	 // create thread-local storage if possible
+	 // FIXME: set thread-local stora
+	 QoreProgram *pgm = handlers[sig].getProgram();
+	 if (pgm)
+	    pgm->startThread();
+	 
+	 handlers[sig].runHandler(sig, &xsink);
+	 
+	 // delete thread-local storage, if any
+	 if (pgm)
+	    pgm->endThread(&xsink);
+	 
+	 // cleanup thread resources
+	 purge_thread_resources(&xsink);
+	 
+	 // consume exceptions and reset exception sink
+	 xsink.handleExceptions();
+	 
+	 // reacquire lock to check handler status
+	 sl.lock();
+	 
+	 if (handlers[sig].status == QoreSignalHandler::SH_InProgress)
+	    handlers[sig].status = QoreSignalHandler::SH_OK;
+	 else {
+#ifdef DEBUG
+	    if (handlers[sig].status != QoreSignalHandler::SH_Delete)
+	       printd(0, "error: status=%d (sig=%d)\n", handlers[sig].status, sig);
+#endif
+	    assert(handlers[sig].status == QoreSignalHandler::SH_Delete);
+	    handlers[sig].del(sig, &xsink);
 	 }
       }
-
-      // unlock to call sigwait
+      
+      thread_running = false;
+      tid = -1;
       sl.unlock();
       
-      //printd(5, "about to call sigwait()\n");
-      sigwait(&c_mask, &sig);
-
-      // reacquire lock to check command and handler status
-      sl.lock();
+      printd(5, "signal handler thread terminating\n");
       
-      //printd(5, "sigwait() sig=%d (cmd=%d)\n", sig, cmd);
-      if (sig == QORE_STATUS_SIGNAL && cmd != C_None)
-	 continue;
-
-      //printd(5, "signal %d received (handler=%d)\n", sig, handlers[sig].isSet());
-      if (!handlers[sig].isSet())
-	 continue;
-
-      // set in progress status while in the lock
-      assert(handlers[sig].status == QoreSignalHandler::SH_OK);
-      handlers[sig].status = QoreSignalHandler::SH_InProgress;
-
-      // unlock to run handler code
-      sl.unlock();
-
-      // create thread-local storage if possible
-	 // FIXME: set thread-local stora
-      QoreProgram *pgm = handlers[sig].getProgram();
-      if (pgm)
-	 pgm->startThread();
+      // delete internal thread data structure
+      delete_thread_data();
       
-      handlers[sig].runHandler(sig, &xsink);
-
-      // delete thread-local storage, if any
-      if (pgm)
-	 pgm->endThread(&xsink);
+      // deregister_thread
+      deregister_signal_thread();
       
-      // cleanup thread resources
-      purge_thread_resources(&xsink);
-
-      // consume exceptions and reset exception sink
-      xsink.handleExceptions();
-
-      // reacquire lock to check handler status
-      sl.lock();
-
-      if (handlers[sig].status == QoreSignalHandler::SH_InProgress)
-	 handlers[sig].status = QoreSignalHandler::SH_OK;
-      else
-      {
-#ifdef DEBUG
-	 if (handlers[sig].status != QoreSignalHandler::SH_Delete)
-	    printd(0, "error: status=%d (sig=%d)\n", handlers[sig].status, sig);
-#endif
-	 assert(handlers[sig].status == QoreSignalHandler::SH_Delete);
-	 handlers[sig].del(sig, &xsink);
-      }
+      // run thread cleanup handlers
+      tclist.exec();
+      
+      tcount.dec();
+      //printf("signal handler thread %d stopped (count=%d)\n", c_tid, tcount.getCount());fflush(stdout);
+      pthread_exit(0);
    }
-
-   thread_running = false;
-   tid = -1;
-   sl.unlock();
-
-   printd(5, "signal handler thread terminating\n");
-   
-   // delete internal thread data structure
-   delete_thread_data();
-
-   // deregister_thread
-   deregister_signal_thread();
-
-   // run thread cleanup handlers
-   tclist.exec();
-
-   tcount.dec();
-   //printf("signal handler thread %d stopped (count=%d)\n", c_tid, tcount.getCount());fflush(stdout);
-   pthread_exit(0);
 }
 
 extern "C" void *sig_thread(void *x)

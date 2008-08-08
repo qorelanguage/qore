@@ -52,7 +52,7 @@ class LVListInstantiator {
 	 for (int i = 0; i < l->num_lvars; ++i)
 	    l->lv[i]->instantiate(0);
       }
-      
+
       DLLLOCAL ~LVListInstantiator()
       {
 	 for (int i = 0; i < l->num_lvars; ++i)
