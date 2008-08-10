@@ -27,8 +27,11 @@
 
 class FeatureList qoreFeatureList;
 
+#define cpp_str(s) #s
+#define cpp_xstr(s) cpp_str(s)
+
 // global library variables
-char qore_version_string[] = VERSION_STRING;
+char qore_version_string[] = VERSION "-" cpp_xstr(BUILD);
 int qore_version_major     = VERSION_MAJOR;
 int qore_version_minor     = VERSION_MINOR;
 int qore_version_sub       = VERSION_SUB;

@@ -3126,9 +3126,6 @@ AC_DEFINE_UNQUOTED([TARGET_ARCH], "$ARCH", [host type])
 AC_DEFINE_UNQUOTED([TARGET_OS], "$OS", [host type])
 AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
 
-VERSION_STRING=$PACKAGE_VERSION-`cat .build`
-AC_DEFINE_UNQUOTED([VERSION_STRING], "$VERSION_STRING", [qore version string])
-
 AM_CONDITIONAL([COND_NCURSES],    [test "$with_ncurses" = yes])
 AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])

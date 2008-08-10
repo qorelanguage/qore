@@ -18,7 +18,7 @@ make_file()
 # see if svnversion is available
 which svnversion >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then
-    build=`svnversion|sed s/M//`
+    build=`svnversion|sed s/M//|sed s/:.*$//`
     if [ $build != "exported" ]; then
 	make_file $file
 	ok=1
