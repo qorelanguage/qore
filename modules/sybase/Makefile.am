@@ -49,6 +49,11 @@ AM_CXXFLAGS += -g
 endif
 endif
 
+BUILT_SOURCES = dummy
+
+dummy:
+	$(top_srcdir)/next_build.sh
+
 if !COND_MONOLITHIC
 install-exec-hook:
 if COND_SYBASE

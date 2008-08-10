@@ -3,6 +3,11 @@ pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
 
 SUBDIRS =
 
+BUILT_SOURCES = dummy
+
+dummy:
+	$(top_srcdir)/next_build.sh
+
 INCLUDES = -I$(top_srcdir)/include
 AM_YFLAGS = -d
 

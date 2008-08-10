@@ -85,6 +85,7 @@ include_HEADERS = \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
 	include/qore/QoreDir.h \
+	include/qore/svn-revision.h \
 	include/qore/Qore.h
 
 noinst_HEADERS = \
@@ -685,6 +686,11 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/library/ \
 	qore-0.7.0-1.spec \
 	$(DOXYFILES)
+
+BUILT_SOURCES = dummy
+
+dummy:
+	next_build.sh
 
 if COND_DOXYGEN
 DX_CLEANFILES = docs/library

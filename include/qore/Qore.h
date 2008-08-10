@@ -29,6 +29,7 @@
 */
 
 #include <qore/common.h>
+#include <qore/svn-revision.h>
 #include <qore/QoreEncoding.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/AbstractQoreNode.h>

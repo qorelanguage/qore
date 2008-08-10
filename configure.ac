@@ -3118,14 +3118,13 @@ VERSION_MAJOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f1 -d.`
 VERSION_MINOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f2 -d.`
 VERSION_SUB=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f3 -d.`
 
-# generate next build number
+# set version information
 AC_DEFINE_UNQUOTED([VERSION_MAJOR], $VERSION_MAJOR, [major version number])
 AC_DEFINE_UNQUOTED([VERSION_MINOR], $VERSION_MINOR, [minor version number])
 AC_DEFINE_UNQUOTED([VERSION_SUB], $VERSION_SUB, [sub version number])
 AC_DEFINE_UNQUOTED([TARGET_ARCH], "$ARCH", [host type])
 AC_DEFINE_UNQUOTED([TARGET_OS], "$OS", [host type])
 AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
-AC_DEFINE_UNQUOTED([BUILD], `./next_build.sh`, [build number])
 
 VERSION_STRING=$PACKAGE_VERSION-`cat .build`
 AC_DEFINE_UNQUOTED([VERSION_STRING], "$VERSION_STRING", [qore version string])

@@ -47,6 +47,11 @@ AM_CXXFLAGS += -g
 endif
 endif
 
+BUILT_SOURCES = dummy
+
+dummy:
+	$(top_srcdir)/next_build.sh
+
 if !COND_MONOLITHIC
 install-exec-hook:
 	mv $(pkglibdir)/tibrv.$(MODULE_SUFFIX) $(pkglibdir)/tibrv.qmod

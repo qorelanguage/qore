@@ -1,3 +1,6 @@
+2008.08.10: David Nichols
+	* fixed build to use subversion revision for BUILD tag
+
 2008.08.07: David Nichols
 	* fixed resolution of private static methods from within a subclass
 
