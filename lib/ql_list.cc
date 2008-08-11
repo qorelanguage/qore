@@ -244,7 +244,11 @@ static AbstractQoreNode *f_inlist(const QoreListNode *params, ExceptionSink *xsi
    const AbstractQoreNode *p0 = get_param(params, 0);
    const AbstractQoreNode *p1 = get_param(params, 1);
 
-   if (!p1 || p1->getType() != NT_LIST)
+   // always return False if 2nd argument is NOTHING
+   if (is_nothing(p1))
+      return &False;
+
+   if (p1->getType() != NT_LIST)
       return get_bool_node(OP_LOG_EQ->bool_eval(p0, p1, xsink));
 
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(p1));
@@ -263,7 +267,11 @@ static AbstractQoreNode *f_inlist_hard(const QoreListNode *params, ExceptionSink
    const AbstractQoreNode *p0 = get_param(params, 0);
    const AbstractQoreNode *p1 = get_param(params, 1);
 
-   if (!p1 || p1->getType() != NT_LIST)
+   // always return False if 2nd argument is NOTHING
+   if (is_nothing(p1))
+      return &False;
+
+   if (p1->getType() != NT_LIST)
       return get_bool_node(OP_ABSOLUTE_EQ->bool_eval(p0, p1, xsink));
 
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(p1));

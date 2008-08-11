@@ -552,8 +552,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 ArgvContextHelper argv_helper(argv.release(), xsink);
 
 	 // enter gate if necessary
-	 if (!synchronized || (gate->enter(xsink) >= 0))
-	 {
+	 if (!synchronized || (gate->enter(xsink) >= 0)) {
 	    // execute function
 	    val = statements->exec(xsink);
 

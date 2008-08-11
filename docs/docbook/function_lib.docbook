@@ -1753,20 +1753,22 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="index">index()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns the character position of a substring within a string and takes an optional starting offset</para>
-          </entry>
+          <entry><para><link linkend="index">index()</link></para></entry>
+          <entry><para>Int</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the character position of a substring within a string and takes an optional starting offset</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="inlist">inlist()</link></para></entry>
+          <entry><para>Boolean</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns True if the first argument is a member of the second argument list using comparisons with type conversions.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="inlist_hard">inlist_hard()</link></para></entry>
+          <entry><para>Boolean</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns True if the first argument is a member of the second argument list using comparisons without type conversions.</para></entry>
         </row>
         <row>
           <entry>
@@ -18832,7 +18834,116 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </tgroup>
   </table>
   <para>This function does not throw any exceptions.</para>
+</sect2>
 
+<sect2 id="inlist">
+  <title>inlist()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if the first argument is a member of the second argument list; types are converted if necessary.  If the second argument is NOTHING, then False is returned unconditionally (i.e. even if the first argument is NOTHING as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments.  For a version of this function that requires types to be equal for the comparison to succeed, see <link linkend="inlist_hard">inlist_hard()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>inlist(<replaceable>value, list</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>my $bool = inlist(123, (True, "123", False); # this will return True</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for inlist()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><replaceable>value, list</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>Returns True if <replaceable>value</replaceable> is a member of <replaceable>list</replaceable>; types are converted if necessary.</para></entry>
+            </row>
+            <row>
+	      <entry><para><replaceable>value, NOTHING</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>Always returns False.</para></entry>
+            </row>
+            <row>
+	      <entry><para><replaceable>value1, value2</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>Returns the value of the comparison of <replaceable>value1</replaceable> with <replaceable>value2</replaceable>; types are converted if necessary.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+  <para>This function does not throw any exceptions.</para>
+</sect2>
+
+<sect2 id="inlist_hard">
+  <title>inlist_hard()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Tests if the first argument is a member of the second argument list; no type conversions are performed (i.e. the comparison fails if types are not equal).  If the second argument is NOTHING, then False is returned unconditionally (i.e. even if the first argument is NOTHING as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments (types must be equal).  For a &quot:soft&quot; version of this function that performs type conversions when doing the comparison, see <link linkend="inlist">inlist()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>inlist_hard(<replaceable>value, list</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>my $bool = inlist_hard(123, (True, "123", False); # this will return False</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for inlist_hard()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><replaceable>value, list</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>Returns True if <replaceable>value</replaceable> is a member of <replaceable>list</replaceable>; no type conversions are performed (the comparison fails if types are not equal).</para></entry>
+            </row>
+            <row>
+	      <entry><para><replaceable>value, NOTHING</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>Always returns False.</para></entry>
+            </row>
+            <row>
+	      <entry><para><replaceable>value1, value2</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>Returns the value of the comparison of <replaceable>value1</replaceable> with <replaceable>value2</replaceable>; no type conversions are performed (the comparison fails if the types are not equal).</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+  <para>This function does not throw any exceptions.</para>
 </sect2>
 
 <sect2 id="load_module">
