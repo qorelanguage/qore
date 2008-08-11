@@ -92,13 +92,13 @@ class ExceptionSink {
        */
       DLLEXPORT AbstractQoreNode* raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...);
 
-      //! appends a Qore-language exception to the list; takes owenership of the "desc" argument
+      //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
       /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
 	  @param err the exception code string
-	  @param desc the description string for the exception
+	  @param desc the description string for the exception; the ExceptionSink argument takes ownership of the reference count
 	  @return always returns 0
        */
-      DLLEXPORT AbstractQoreNode *raiseException(const char *err, class QoreStringNode *desc);
+      DLLEXPORT AbstractQoreNode *raiseException(const char *err, QoreStringNode *desc);
 
       //! sets the "thread_exit" flag; will cause the current thread to terminate
       DLLEXPORT void raiseThreadExit();

@@ -494,13 +494,38 @@ class TempEncodingHelper {
       bool temp;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      TempEncodingHelper(const TempEncodingHelper &);
+      DLLLOCAL TempEncodingHelper(const TempEncodingHelper &);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      TempEncodingHelper& operator=(const TempEncodingHelper &);
+      DLLLOCAL TempEncodingHelper& operator=(const TempEncodingHelper &);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      void *operator new(size_t);
+      DLLLOCAL void *operator new(size_t);
+
+      //! discards the internal state
+      DLLLOCAL void discard_intern()
+      {
+	 if (temp && str)
+	    delete str;
+      }
+
+      //! sets the internal state
+      /**
+	 @param s a pointer to the QoreString input value
+	 @param qe the QoreEncoding required
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLLOCAL void set_intern(const QoreString *s, const QoreEncoding *qe, ExceptionSink *xsink)
+      {
+	 if (s->getEncoding() != qe) {
+	    str = s->convertEncoding(qe, xsink);
+	    temp = true;
+	 }
+	 else {
+	    str = const_cast<QoreString *>(s);
+	    temp = false;
+	 }
+      }
 
    public:
       //! converts the given string to the required encoding if necessary
@@ -511,23 +536,33 @@ class TempEncodingHelper {
        */
       DLLLOCAL TempEncodingHelper(const QoreString *s, const QoreEncoding *qe, ExceptionSink *xsink)
       {
-	 if (s->getEncoding() != qe)
-	 {
-	    str = s->convertEncoding(qe, xsink);
-	    temp = true;
-	 }
-	 else
-	 {
-	    str = const_cast<QoreString *>(s);
-	    temp = false;
-	 }
+	 set_intern(s, qe, xsink);
+      }
+
+      //! creates an empty TempEncodingHelperObject that may be initialized with TempEncodingHelper::set() later
+      DLLLOCAL TempEncodingHelper() : str(0)
+      {
       }
 
       //! deletes any temporary string being managed by the object
       DLLLOCAL ~TempEncodingHelper()
       {
-	 if (temp && str)
-	    delete str;
+	 discard_intern();
+      }
+
+      //! discards any current state and sets and converts (if necessary) a new string to the desired encoding
+      /**
+	 @param s a pointer to the QoreString input value
+	 @param qe the QoreEncoding required
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @return 0=OK, -1=an error occurred and a Qore-language exception was raised
+       */
+      DLLLOCAL int set(const QoreString *s, const QoreEncoding *qe, ExceptionSink *xsink)
+      {
+	 discard_intern();
+
+	 set_intern(s, qe, xsink);
+	 return str != 0;
       }
 
       //! returns true if a temporary string is being managed

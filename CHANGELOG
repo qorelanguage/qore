@@ -1,6 +1,11 @@
 2008.08.11: David Nichols
 	* fixed inlist() and inlist_hard() to return False unconditionally if
 	  the second argument is NOTHING
+	* improved XML generation; top-level elements may not have attributes
+	* improved XML parse error reporting; detailed information about errors
+	  is now included in the exception text
+	* added parseXMLWithSchema() and validateXMLWithSchema() functions to
+	  allow XML to be parsed and validated against an XSD schema
 
 2008.08.10: David Nichols
 	* fixed build to use subversion revision for BUILD tag
