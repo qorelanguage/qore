@@ -1381,8 +1381,20 @@ sub constant_tests()
     test_value(hexp2, (1, 2, 3), "evaluated constant hash");
 }
 
+const xsd = '<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema targetNamespace="http://qoretechnologies.com/test/namespace" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="TestElement">
+    <xsd:complexType>
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:string"/>
+      </xsd:simpleContent>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
+';
+
 sub xml_tests()
-{ 
+{
     my $o = ( "test" : 1, 
 	      "gee" : "philly", 
 	      "marguile" : 1.0392,
@@ -1420,6 +1432,9 @@ sub xml_tests()
     test_value(parseXMLRPCResponse($str), $fr, "second makeXMLRPCResponse() and parseXMLRPCResponse()");
     $o = ( "xml" : ($o + ( "^cdata^" : "this string contains special characters &<> etc" )) );
     test_value($o == parseXML(makeXMLString($o)), True, "xml serialization with cdata");
+
+    $o = ( "ns:TestElement" : ( "^attributes^" : ( "xmlns:ns" : "http://qoretechnologies.com/test/namespace" ), "^value^" : "testing" ) );
+    test_value(parseXMLWithSchema(makeXMLString($o), xsd), $o, "parseXMLWithSchema()");
 }
 
 sub json_tests()

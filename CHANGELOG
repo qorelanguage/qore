@@ -1,3 +1,8 @@
+2008.08.12: David Nichols
+	* removed badly-implemented verifyXMLWithSchema(), need to implement
+	  XSDSchema class
+	* added test for parseXMLWithSchema() to test/test.q
+
 2008.08.11: David Nichols
 	* fixed inlist() and inlist_hard() to return False unconditionally if
 	  the second argument is NOTHING

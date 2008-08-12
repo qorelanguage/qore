@@ -2302,8 +2302,7 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
       return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", xsink);
 
    // if the methodCall end element was not found
-   if (nt != XML_READER_TYPE_END_ELEMENT)
-   {
+   if (nt != XML_READER_TYPE_END_ELEMENT) {
       if ((nt = reader.nodeType()) != XML_READER_TYPE_ELEMENT)
 	 return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'params' element", xsink);
 
@@ -2317,11 +2316,9 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
       if ((nt = reader.readXmlRpcNode(xsink)) == -1)
 	 return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", xsink);
       
-      class XmlRpcValue v;
-      if (reader.depth())
-      {
-	 if (nt != XML_READER_TYPE_END_ELEMENT)
-	 {
+      XmlRpcValue v;
+      if (reader.depth()) {
+	 if (nt != XML_READER_TYPE_END_ELEMENT) {
 	    if (nt != XML_READER_TYPE_ELEMENT)
 	       return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'params' element", xsink);
 	    
@@ -2511,67 +2508,6 @@ static AbstractQoreNode *f_parseXMLRPCResponse(const QoreListNode *params, Excep
    return parseXMLRPCResponse(p0, ccsid, xsink);
 }
 
-static AbstractQoreNode *f_verifyXMLWithSchema(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0) {
-      xsink->raiseException("VERIFY-XML-WITH-SCHEMA-ERROR", "expecting XML string as first argument to verifyXMLWithSchema()");
-      return 0;
-   }
-
-   const QoreStringNode *p1 = test_string_param(params, 1);
-   if (!p1) {
-      xsink->raiseException("VERIFY-XML-WITH-SCHEMA-ERROR", "expecting XML schema string (xsd) as second argument to verifyXMLWithSchema()");
-      return 0;
-   }
-
-   // convert to UTF-8 
-   TempEncodingHelper str(p0, QCS_UTF8, xsink);
-   if (!str)
-      return 0;
-
-   TempEncodingHelper xsd(p1, QCS_UTF8, xsink);
-   if (!xsd)
-      return 0;
-
-   QoreXmlSchemaContext schema(xsd->getBuffer(), xsd->strlen());
-   if (!schema) {
-      xsink->raiseException("XML-SCHEMA-ERROR", "XML schema passed as second argument to verifyXMLWithSchema() could not be parsed");
-      return 0;
-   }
-
-   // set up a reader, add the schema, and parse the entire XML until the end
-   QoreXmlReader reader(str->getBuffer(), QORE_XML_READER_PARAMS, xsink);
-   if (!reader)
-      return 0;
-
-   int rc = reader.setSchema(schema.getSchema());
-   if (rc < 0) {
-      if (!*xsink)
-	 xsink->raiseException("XML-SCHEMA-ERROR", "XML schema passed as second argument to verifyXMLWithSchema() could not be validated");      
-      return 0;
-   }
-
-   rc = reader.read();
-   if (rc != 1) {
-      if (!*xsink)
-	 xsink->raiseException("PARSE-XML-EXCEPTION", "cannot parse XML string");
-      return 0;
-   }
-
-   // FIXME: this is inefficient, do not need to create the qore data structure
-   xml_stack xstack;
-   rc = getXMLData(&reader, &xstack, QCS_UTF8, xsink);
-
-   if (rc) {
-      if (!*xsink)
-	 xsink->raiseException("PARSE-XML-EXCEPTION", "parse error parsing XML string");
-      return 0;
-   }
-
-   return 0;
-}
-
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml_string, xsd_string [, output encoding])
 static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, ExceptionSink *xsink)
@@ -2668,6 +2604,5 @@ void init_xml_functions()
    builtinFunctions.add("parseXMLRPCCall",                        f_parseXMLRPCCall);
    builtinFunctions.add("parseXMLRPCResponse",                    f_parseXMLRPCResponse);
 
-   builtinFunctions.add("verifyXMLWithSchema",                    f_verifyXMLWithSchema);
    builtinFunctions.add("parseXMLWithSchema",                     f_parseXMLWithSchema);
 }
