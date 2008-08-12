@@ -15484,6 +15484,8 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <para>The default read timeout value is 300,000 milliseconds (5 minutes).  Note that the read timeout value applies to individual packets; for this reason for large transfers the overall read time could exceed the read timeout value.</para>
 
+    <para>When an exception is thrown (for example, a response code of &lt; 200 or &gt;= 400 is received from the server), any message body returned will be in the &quot;arg&quot; key of the <link linkend="Exception_Hash">exception hash</link>.</para>
+
     <para>This class understands the protocols in the following table.</para>
 
     <table id="HTTPClient_Protocols">

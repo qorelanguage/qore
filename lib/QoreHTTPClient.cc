@@ -298,6 +298,11 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink)
 int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink)
 {
    QoreURL url(str);
+   if (!url.getHost()) {
+      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "missing host specification in URL");
+      return -1;
+   }
+
    if (!url.isValid()) {
       xsink->raiseException("HTTP-CLIENT-URL-ERROR", "url parameter cannot be parsed");
       return -1;
@@ -427,6 +432,11 @@ bool QoreHTTPClient::isHTTP11() const
 int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, ExceptionSink *xsink) 
 { 
    QoreURL url(pstr);
+   if (!url.getHost()) {
+      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "missing host specification in proxy URL");
+      return -1;
+   }
+
    if (!url.isValid()) {
       xsink->raiseException("HTTP-CLIENT-URL-ERROR", "proxy URL '%s' cannot be parsed", pstr);
       return -1;
@@ -908,14 +918,6 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       return 0;
    }
 
-   if (code < 200 || code >= 300) {
-      sl.unlock();
-      v = ans->getKeyValue("status_message");
-      const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
-      xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "HTTP status code %d received: message: %s", code, mess);
-      return 0;
-   }
-
    // process content-type
    v = ans->getKeyValue("content-type");
    // see if there is a character set specification in the content-type header
@@ -1050,6 +1052,13 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       }
       bobj->deref();
       body = str;
+   }
+
+   if (code < 200 || code >= 300) {
+      v = ans->getKeyValue("status_message");
+      const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
+      xsink->raiseExceptionArg("HTTP-CLIENT-RECEIVE-ERROR", body, "HTTP status code %d received: message: %s", code, mess);
+      return 0;
    }
       
    if (body)

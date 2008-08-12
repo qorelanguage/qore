@@ -42,8 +42,7 @@ int printe(const char *fmt, ...)
    va_list args;
    QoreString buf;
 
-   while (true)
-   {
+   while (true) {
       va_start(args, fmt);
       int rc = buf.vsprintf(fmt, args);
       va_end(args);
@@ -64,8 +63,7 @@ int print_debug(int level, const char *fmt, ...)
    va_list args;
    QoreString buf;
 
-   while (true)
-   {
+   while (true) {
       va_start(args, fmt);
       int rc = buf.vsprintf(fmt, args);
       va_end(args);

@@ -491,8 +491,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	    if (!*xsink)
 	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
 	 }
-	 else
-	 {
+	 else {
 	    n = n->eval(xsink);
 	    if (!xsink->isEvent())
 	       params->lv[i]->instantiate(n);
@@ -500,12 +499,11 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 // the above if block will only instantiate the local variable if no
 	 // exceptions have occurred. therefore here we do the cleanup the rest
 	 // of any already instantiated local variables if an exception does occur
-	 if (*xsink)
-	 {
+	 if (*xsink) {
 	    if (n)
 	       n->deref(xsink);
-	    while (i--)
-	       params->lv[i - 1]->uninstantiate(xsink);
+	    while (i)
+	       params->lv[--i]->uninstantiate(xsink);
 	    return 0;
 	 }
       }

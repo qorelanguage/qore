@@ -2,6 +2,13 @@
 	* removed badly-implemented verifyXMLWithSchema(), need to implement
 	  XSDSchema class
 	* added test for parseXMLWithSchema() to test/test.q
+	* fixed HTTPClient to read body on error responses if present and
+	  include in the "arg" key in the exception hash
+	* fixed constant resolution to only increment the recursive counter when
+	  recursivey resolving a constant
+	* fixed constant expression evaluation
+	* updated the QoreURL class to correctly parse strings that give only a
+	  path
 
 2008.08.11: David Nichols
 	* fixed inlist() and inlist_hard() to return False unconditionally if

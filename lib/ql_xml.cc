@@ -37,16 +37,46 @@
 #define QORE_XML_READER_PARAMS XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NOBLANKS
 #endif
 
-DLLLOCAL void qore_xml_error_func(ExceptionSink *xsink, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator)
+#if 0
+// does not work well, produces ugly,. uninformative output
+static void qore_xml_structured_error_func(ExceptionSink *xsink, xmlErrorPtr error)
+{
+   QoreStringNode *desc = new QoreStringNode;
+
+   if (error->line)
+      desc->sprintf("line %d: ", error->line);
+
+   if (error->int2)
+      desc->sprintf("column %d: ", error->int2);
+
+   desc->concat(error->message);
+   desc->chomp();
+   
+   if (error->str1)
+      desc->sprintf(", %s", error->str1);
+
+   if (error->str2)
+      desc->sprintf(", %s", error->str1);
+
+   if (error->str3)
+      desc->sprintf(", %s", error->str1);
+
+   xsink->raiseException("PARSE-XML-EXCEPTION", desc);
+}
+#endif
+
+static void qore_xml_error_func(ExceptionSink *xsink, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator)
 {
    if (severity == XML_PARSER_SEVERITY_VALIDITY_WARNING
        || severity == XML_PARSER_SEVERITY_WARNING) {
       printd(1, "XML parser warning: %s", msg);
       return;
    }
+   if (*xsink)
+      return;
    QoreStringNode *desc = new QoreStringNode(msg);
    desc->chomp();
-   xsink->raiseException("XML-PARSE-EXCEPTION", desc);
+   xsink->raiseException("PARSE-XML-EXCEPTION", desc);
 }
 
 class QoreXmlReader {
@@ -172,16 +202,59 @@ class QoreXmlReader {
       }
 };
 
+static void qore_xml_schema_error_func(ExceptionSink *xsink, const char *msg, ...)
+{
+   if (*xsink)
+      return;
+
+   va_list args;
+   QoreStringNode *desc = new QoreStringNode;
+
+   while (true) {
+      va_start(args, msg);
+      int rc = desc->vsprintf(msg, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   desc->chomp();
+
+   xsink->raiseException("XML-SCHEMA-PARSE-ERROR", desc);
+}
+
+static void qore_xml_schema_warning_func(ExceptionSink *xsink, const char *msg, ...)
+{
+#ifdef DEBUG
+   va_list args;
+   QoreString buf;
+
+   while (true) {
+      va_start(args, msg);
+      int rc = buf.vsprintf(msg, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+
+   printf("%s", buf.getBuffer());
+#endif
+}
+
 class QoreXmlSchemaContext {
    protected:
       xmlSchemaPtr schema;
 
    public:
-      DLLLOCAL QoreXmlSchemaContext(const char *xsd, int size) : schema(0)
+      DLLLOCAL QoreXmlSchemaContext(const char *xsd, int size, ExceptionSink *xsink) : schema(0)
       {
 	 xmlSchemaParserCtxtPtr scp = xmlSchemaNewMemParserCtxt(xsd, size);
 	 if (!scp)
 	    return;
+
+	 //xmlSchemaSetParserStructuredErrors(scp, (xmlStructuredErrorFunc)qore_xml_structured_error_func, xsink);
+
+	 xmlSchemaSetParserErrors(scp, (xmlSchemaValidityErrorFunc)qore_xml_schema_error_func, 
+				 (xmlSchemaValidityErrorFunc)qore_xml_schema_warning_func , xsink);
 
 	 schema = xmlSchemaParse(scp);
 
@@ -2541,7 +2614,7 @@ static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, Except
    if (!xsd)
       return 0;
 
-   QoreXmlSchemaContext schema(xsd->getBuffer(), xsd->strlen());
+   QoreXmlSchemaContext schema(xsd->getBuffer(), xsd->strlen(), xsink);
    if (!schema) {
       if (!*xsink)
 	 xsink->raiseException("XML-SCHEMA-ERROR", "XML schema passed as second argument to parseXMLWithSchema() could not be parsed");

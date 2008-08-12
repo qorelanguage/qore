@@ -484,32 +484,29 @@ void QoreNamespace::addInitialNamespace(class QoreNamespace *ns)
 
 static int parseInitConstantHash(QoreHashNode *h, int level)
 {
-   class RootQoreNamespace *rns = getRootNS();
+   RootQoreNamespace *rns = getRootNS();
 
    HashIterator hi(h);
    while (hi.next()) {
       const char *k = hi.getKey();
       AbstractQoreNode **value = hi.getValuePtr();
 
-      if (rns->parseInitConstantValue(value, level + 1))
+      if (rns->parseInitConstantValue(value, level))
 	 return -1;
 
       ReferenceHolder<AbstractQoreNode> n(0);
       // resolve constant references in keys
-      if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
-      {
+      if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
 	 // FIXME: add new entry points to RootQoreNamespace so it's not necessary to create these temporary AbstractQoreNode values
-	 if (k[0] == HE_TAG_CONST)
-	 {
+	 if (k[0] == HE_TAG_CONST) {
 	    n = new BarewordNode(strdup(k + 1));
 	 }
 	 else
 	    n = new ConstantNode(strdup(k + 1));
-	 if (rns->parseInitConstantValue(n.getPtrPtr(), level + 1))
+	 if (rns->parseInitConstantValue(n.getPtrPtr(), level))
 	    return -1;
 
-	 if (n)
-	 {
+	 if (n) {
 	    QoreStringValueHelper str(*n);
 	 
 	    // reference value for new hash
@@ -529,7 +526,7 @@ static int parseInitConstantHash(QoreHashNode *h, int level)
 
 // QoreNamespaceList::parseResolveNamespace()
 // does a recursive breadth-first search to resolve a namespace declaration
-class QoreNamespace *QoreNamespaceList::parseResolveNamespace(class NamedScope *name, int *matched)
+QoreNamespace *QoreNamespaceList::parseResolveNamespace(class NamedScope *name, int *matched)
 {
    tracein("QoreNamespaceList::parseResolveNamespace()");
 
@@ -998,61 +995,55 @@ int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
       return 0;
 
    // check recurse level and throw an error if it's too deep
-   if (level >= MAX_RECURSION_DEPTH)
-   {
+   if (level >= MAX_RECURSION_DEPTH) {
       parse_error("maximum recursion level exceeded resolving constant definition");
       return -1;
    }
 
-   while (true)
-   {
+   //printd(5, "constant %08p resolving type '%s'\n", val, *val ? (*val)->getTypeName() : "null");
+
+   while (true) {
       qore_type_t vtype = (*val)->getType();
-      if (vtype == NT_BAREWORD)
-      {
+      if (vtype == NT_BAREWORD) {
+	 //printd(5, "constant %08p has recursive definition '%s'\n", val, reinterpret_cast<BarewordNode *>(*val)->str);
 	 if (resolveSimpleConstant(val, level + 1))
 	    return -1;
       }
-      else if (vtype == NT_CONSTANT)
-      {
+      else if (vtype == NT_CONSTANT) {
+	 //printd(5, "constant %08p has recursive definition '%s'\n", val, reinterpret_cast<ConstantNode *>(*val)->scoped_ref->ostr);
 	 if (resolveScopedConstant(val, level + 1))
 	    return -1;
       }
       else
 	 break;
+      //printd(5, "constant %08p resolved to type '%s'\n", val, *val ? (*val)->getTypeName() : "null");
    }
 
    qore_type_t vtype = (*val)->getType();
    if (vtype == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
-      for (unsigned i = 0; i < l->size(); i++)
-      {
-	 if (parseInitConstantValue(l->get_entry_ptr(i), level + 1))
+      for (unsigned i = 0; i < l->size(); i++) {
+	 if (parseInitConstantValue(l->get_entry_ptr(i), level))
 	    return -1;
       }
-      return 0;
    }
-
-   if (vtype == NT_HASH) {
+   else if (vtype == NT_HASH) {
       QoreHashNode *h = reinterpret_cast<QoreHashNode *>(*val);
       if (parseInitConstantHash(h, level))
 	 return -1;
-      return 0;
    }
-
-   if (vtype == NT_TREE)
-   {
+   else if (vtype == NT_TREE) {
       QoreTreeNode *tree =reinterpret_cast<QoreTreeNode *>(*val);
-      if (parseInitConstantValue(&(tree->left), level + 1))
+      if (parseInitConstantValue(&(tree->left), level))
 	 return -1;
       if (tree->right)
-	 if (parseInitConstantValue(&(tree->right), level + 1))
+	 if (parseInitConstantValue(&(tree->right), level))
 	    return -1;
-      return 0;
    }
 
    // if it's an expression or container type, then evaluate in case it contains immediate expressions
-   if (vtype == NT_TREE || vtype == NT_LIST || vtype == NT_HASH)
-   {
+   if (vtype == NT_TREE || vtype == NT_LIST || vtype == NT_HASH) {
+      //printd(5, "evaluating constant expression %08p\n", *val);
       ExceptionSink xsink;
       AbstractQoreNode *n = (*val)->eval(&xsink);
       (*val)->deref(&xsink);

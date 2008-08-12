@@ -75,27 +75,29 @@ class HashElement {
       char *key;
       class AbstractQoreNode *value;
  
-      DLLLOCAL HashElement(class AbstractQoreNode *k, class AbstractQoreNode *v);
-      DLLLOCAL HashElement(int tag, char *constant, class AbstractQoreNode *v);
+      DLLLOCAL HashElement(class AbstractQoreNode *k, AbstractQoreNode *v);
+      DLLLOCAL HashElement(int tag, char *constant, AbstractQoreNode *v);
       DLLLOCAL ~HashElement();
 };
 
-static QoreTreeNode *makeErrorTree(class Operator *op, class AbstractQoreNode *left, class AbstractQoreNode *right)
+static QoreTreeNode *makeErrorTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right)
 {
    return new QoreTreeNode(left, op, right);
 }
 
-static class AbstractQoreNode *makeTree(class Operator *op, class AbstractQoreNode *left, class AbstractQoreNode *right)
+static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right)
 {
    //tracein("makeTree()");
-   //printd(5, "makeTree(): l=%08p, r=%08p, op=%s\n", left, right, op->getName());
+   printd(5, "makeTree(): l=%08p (%s, value=%d), r=%08p (%s, value=%d), op=%s\n", 
+	  left, left->getTypeName(), left->is_value(), 
+	  right, right ? right->getTypeName() : "n/a", right ? right->is_value() : false, op->getName());
 
    // if both nodes are values, then evaluate immediately
    if (left->is_value() && (!right || right->is_value()))
    {
       ExceptionSink xsink;
 
-      class AbstractQoreNode *n_node = op->eval(left, right, true, &xsink);
+      AbstractQoreNode *n_node = op->eval(left, right, true, &xsink);
       //printd(5, "makeTree(): l=%08p (%s), r=%08p (%s), op=%s, returning %08p\n", left, left->getTypeName(), right, right ? right->getTypeName() : "n/a", op->getName(), n_node);
       left->deref(0);
       if (right)

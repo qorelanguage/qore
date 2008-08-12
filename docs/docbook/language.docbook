@@ -2668,7 +2668,7 @@ sub test() {
 
   <para>The exception hash contains the following members:</para>
 
-  <table>
+  <table id="Exception_Hash">
     <title>Exception Hash Keys</title>
     <tgroup cols='3' align='left' colsep='1' rowsep='1'>
       <thead>
@@ -2712,7 +2712,7 @@ sub test() {
 	<row>
 	  <entry><para><code>arg</code></para></entry>
 	  <entry><para>any</para></entry>
-	  <entry><para>This key is populated with the value of the third expression of the <command>throw</command> statement (if a list was thrown).  For system exceptions, this is not populated.</para></entry>
+	  <entry><para>This key is populated with the value of the third expression of the <command>throw</command> statement (if a list was thrown).  For system exceptions, this is populated for some exceptions where additional information is provided.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -2758,7 +2758,7 @@ sub test() {
     </tgroup>
   </table>
 
-  <para>System exceptions always throw 2 values, populating the "err" and "desc" keys of the exception hash, giving the exception string code and the exception description string, respectively. User exceptions have no restrictions, any values given in the throw statement will be mapped to exception keys as per the table above.</para>
+  <para>System exceptions always throw 2 values, populating the &quot;err&quot; and &quot;desc&quot; keys of the exception hash, giving the exception string code and the exception description string, respectively, and occassionally, depending on the function, the &quot;arg&quot; key may be populated with supporting information.  User exceptions have no restrictions, any values given in the throw statement will be mapped to exception keys as per the table above.</para>
 
   <para>See the <link linkend="on_exit_Statements">on_exit statement</link>, <link linkend="on_success_Statements">on_success statement</link>, and <link linkend="on_error_Statements">on_error statement</link> for statements that allow for exception-safe and exception-dependent cleanup in Qore code.</para>
 

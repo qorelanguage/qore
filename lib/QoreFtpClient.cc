@@ -137,19 +137,16 @@ struct qore_ftp_private {
       DLLLOCAL void setURLInternal(const QoreString *url_str, ExceptionSink *xsink)
       {
 	 QoreURL url(url_str);
-	 if (!url.isValid())
-	 {
+	 if (!url.getHost()) {
 	    xsink->raiseException("FTP-URL-ERROR", "no hostname given in URL '%s'", url_str->getBuffer());
 	    return;
 	 }
 	 
 	 // verify protocol
-	 if (url.getProtocol())
-	 {
+	 if (url.getProtocol()) {
 	    if (!url.getProtocol()->compare("ftps"))
 	       secure = secure_data = true;
-	    else if (url.getProtocol()->compare("ftp"))
-	    {
+	    else if (url.getProtocol()->compare("ftp")) {
 	       xsink->raiseException("UNSUPPORTED-PROTOCOL", "'%s' not supported (expected 'ftp' or 'ftps')", url.getProtocol()->getBuffer());
 	       return;
 	    }

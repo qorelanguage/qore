@@ -1383,7 +1383,7 @@ sub constant_tests()
 
 const xsd = '<?xml version="1.0" encoding="utf-8"?>
 <xsd:schema targetNamespace="http://qoretechnologies.com/test/namespace" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:element name="TestElement">
+  <xsd:elementq name="TestElement">
     <xsd:complexType>
       <xsd:simpleContent>
         <xsd:extension base="xsd:string"/>
