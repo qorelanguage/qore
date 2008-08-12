@@ -459,7 +459,7 @@ int parseInitConstantHash(class Hash *h, int level)
 
       class QoreNode **value = h->getKeyValuePtr(k);
 
-      if (rns->parseInitConstantValue(value, level + 1))
+      if (rns->parseInitConstantValue(value, level))
 	 return -1;
 
       // resolve constant references in keys
@@ -473,7 +473,7 @@ int parseInitConstantHash(class Hash *h, int level)
 	 }
 	 else
 	    n = new QoreNode(new NamedScope(strdup(k + 1)));
-	 if (rns->parseInitConstantValue(&n, level + 1))
+	 if (rns->parseInitConstantValue(&n, level))
 	 {
 	    if (n)
 	       n->deref(NULL);
@@ -1005,7 +1005,7 @@ int RootNamespace::parseInitConstantValue(class QoreNode **val, int level)
    if ((*val)->type == NT_LIST)
       for (int i = 0; i < (*val)->val.list->size(); i++)
       {
-	 if (parseInitConstantValue((*val)->val.list->get_entry_ptr(i), level + 1))
+	 if (parseInitConstantValue((*val)->val.list->get_entry_ptr(i), level))
 	    return -1;
       }
    else if ((*val)->type == NT_HASH)
@@ -1015,10 +1015,10 @@ int RootNamespace::parseInitConstantValue(class QoreNode **val, int level)
    }
    else if ((*val)->type == NT_TREE)
    {
-      if (parseInitConstantValue(&((*val)->val.tree->left), level + 1))
+      if (parseInitConstantValue(&((*val)->val.tree->left), level))
 	 return -1;
       if ((*val)->val.tree->right)
-	 if (parseInitConstantValue(&((*val)->val.tree->right), level + 1))
+	 if (parseInitConstantValue(&((*val)->val.tree->right), level))
 	    return -1;
    }
    // if it's an expression or container type, then evaluate in case it contains immediate expressions

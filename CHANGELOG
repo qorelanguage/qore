@@ -1,3 +1,7 @@
+2008.08.12: David Nichols
+	* fixed constant resolution to only increment the recursive count
+	  when a constant is recursively defined
+
 2008.02.14: David Nichols
 	* fixed a memory leak the use of Object::evalData() when an exception
 	  occurs
