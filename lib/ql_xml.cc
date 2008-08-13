@@ -27,6 +27,7 @@
 
 #include <libxml/xmlreader.h>
 #include <libxml/xmlwriter.h>
+#include <libxml/xmlschemas.h>
 
 #include <string.h>
 #include <memory>
@@ -151,10 +152,12 @@ class QoreXmlReader {
 	 return xmlTextReaderMoveToNextAttribute(reader);
       }
 
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
       DLLLOCAL int setSchema(xmlSchemaPtr schema)
       {
 	 return xmlTextReaderSetSchema(reader, schema);
       }
+#endif
 
       DLLLOCAL int readXmlRpc(ExceptionSink *xsink)
       {
@@ -2581,6 +2584,7 @@ static AbstractQoreNode *f_parseXMLRPCResponse(const QoreListNode *params, Excep
    return parseXMLRPCResponse(p0, ccsid, xsink);
 }
 
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml_string, xsd_string [, output encoding])
 static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, ExceptionSink *xsink)
@@ -2650,6 +2654,7 @@ static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, Except
 
    return xstack.getVal();
 }
+#endif
 
 void init_xml_functions()
 {
@@ -2677,5 +2682,7 @@ void init_xml_functions()
    builtinFunctions.add("parseXMLRPCCall",                        f_parseXMLRPCCall);
    builtinFunctions.add("parseXMLRPCResponse",                    f_parseXMLRPCResponse);
 
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
    builtinFunctions.add("parseXMLWithSchema",                     f_parseXMLWithSchema);
+#endif
 }

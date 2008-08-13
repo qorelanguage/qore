@@ -488,6 +488,7 @@ fi
 
 set_libxml2_cppflags()
 {
+    LIBXML2_INC_DIR=$1
     if test "$1" != "/usr/include"; then
         LIBXML2_CPPFLAGS=-I$1
     fi
@@ -565,7 +566,17 @@ for dir in "${with_libxml2_dir}" /usr / /usr/local /opt/gnu /opt/libxml2 /usr/lo
         break
     fi
 done
-if test -z "$LIBXML2_LDFLAGS"; then
+if test -n "$LIBXML2_LDFLAGS"; then
+   # check for xmlTextReaderSetSchema()
+   AC_MSG_CHECKING([for xmlTextReaderSetSchema()])
+   file=`grep xmlTextReaderSetSchema $LIBXML2_INC_DIR/libxml/*.h`
+   if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLTEXTREADERSETSCHEMA, 1, [Define if libxml2 defines xmlTextReaderSetSchema])
+      AC_MSG_RESULT([found])
+   else
+      AC_MSG_RESULT([not found])
+   fi
+else
     AC_MSG_ERROR([no libxml2 library found])
 fi
 
