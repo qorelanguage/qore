@@ -1,6 +1,7 @@
 2008.08.13: David Nichols
 	* added configure check for xmlTextReaderSetSchema() to disable
 	  parseXMLWithSchema() if this function is not present in libxml2
+	* enhanced QoreSSLCertificate class, exported most functions
 
 2008.08.12: David Nichols
 	* removed badly-implemented verifyXMLWithSchema(), need to implement

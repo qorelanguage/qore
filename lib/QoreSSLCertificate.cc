@@ -36,6 +36,26 @@ struct qore_sslcert_private {
       }
 };
 
+class QoreBIO {
+   protected:
+      BIO *b;
+
+      DLLLOCAL QoreBIO(BIO *n_b) : b(n_b) {}
+
+   public:
+      DLLLOCAL ~QoreBIO() { if (b) BIO_free(b); }
+      DLLLOCAL int writePEMX509(X509 *cert) { return PEM_write_bio_X509(b, cert); }
+      DLLLOCAL long getMemData(char **buf) { return BIO_get_mem_data(b, buf); }
+      DLLLOCAL X509 *getX509(X509 **x) { return d2i_X509_bio(b, x); }
+};
+
+class QoreMemBIO : public QoreBIO
+{
+   public:
+      DLLLOCAL QoreMemBIO() : QoreBIO(BIO_new(BIO_s_mem())) {}
+      DLLLOCAL QoreMemBIO(const BinaryNode *b) : QoreBIO(BIO_new_mem_buf((void *)b->getPtr(), (int)b->size())) {}
+};
+
 QoreSSLCertificate::~QoreSSLCertificate()
 {
    delete priv;
@@ -45,11 +65,22 @@ QoreSSLCertificate::QoreSSLCertificate(X509 *c) : priv(new qore_sslcert_private(
 {
 }
 
+QoreSSLCertificate::QoreSSLCertificate(const BinaryNode *bin, ExceptionSink *xsink) : priv(new qore_sslcert_private(0))
+{
+   const unsigned char *p = (const unsigned char *)bin->getPtr();
+   priv->cert = d2i_X509(0, &p, (int)bin->size());
+   if (!priv->cert) {
+      long e = ERR_get_error();
+      char buf[121];
+      ERR_error_string(e, buf);
+      xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", buf);
+   }
+}
+
 QoreSSLCertificate::QoreSSLCertificate(const char *fn, ExceptionSink *xsink) : priv(new qore_sslcert_private(0))
 {
    FILE *fp = fopen(fn, "r");
-   if (!fp)
-   {
+   if (!fp) {
       xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "'%s': %s", fn, strerror(errno));
       return;
    }
@@ -59,6 +90,8 @@ QoreSSLCertificate::QoreSSLCertificate(const char *fn, ExceptionSink *xsink) : p
    if (!priv->cert)
       xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "error parsing certificate file '%s'", fn);
 }
+
+QoreSSLCertificate::operator bool() const { return (bool)priv->cert; }
 
 AbstractQoreNode *QoreSSLCertificate::doPurposeValue(int id, int ca) const
 {
@@ -79,19 +112,17 @@ X509 *QoreSSLCertificate::getData() const
 
 QoreStringNode *QoreSSLCertificate::getPEM(ExceptionSink *xsink) const
 {
-   BIO *bp = BIO_new(BIO_s_mem());
-   if (!PEM_write_bio_X509(bp, priv->cert))
-   {
-      BIO_free(bp);
+   QoreMemBIO b;
+   
+   if (!b.writePEMX509(priv->cert)) {
       xsink->raiseException("X509-ERROR", "could not create PEM string from X509 certificate data");
       return 0;
    }
+
    char *buf;
-   long len = BIO_get_mem_data(bp, &buf);
+   long len = b.getMemData(&buf);
    
-   QoreStringNode *str = new QoreStringNode(buf, (int)len);
-   BIO_free(bp);
-   return str;
+   return new QoreStringNode(buf, (int)len);
 }
 
 QoreHashNode *QoreSSLCertificate::getSubjectHash() const
@@ -121,8 +152,8 @@ class DateTimeNode *QoreSSLCertificate::getNotBeforeDate() const
 
 class DateTimeNode *QoreSSLCertificate::getNotAfterDate() const
 {
-   return ASN1_TIME_to_DateTime(X509_get_notAfter(priv->cert));
-}
+   return ASN1_TIME_to_DateTime(X509_get_notAfter(priv->cert));}
+
 
 QoreStringNode *QoreSSLCertificate::getSignatureType() const
 {
@@ -144,13 +175,23 @@ QoreStringNode *QoreSSLCertificate::getPublicKeyAlgorithm() const
    return ASN1_OBJECT_to_QoreStringNode(priv->cert->cert_info->key->algor->algorithm);
 }
 
-class BinaryNode *QoreSSLCertificate::getPublicKey() const
+BinaryNode *QoreSSLCertificate::getPublicKey() const
 {
    int len = priv->cert->cert_info->key->public_key->length;
    char *buf = (char *)malloc(len);
    if (!buf)
       return 0;
    memcpy(buf, priv->cert->cert_info->key->public_key->data, len);
+   return new BinaryNode(buf, len);
+}
+
+BinaryNode *QoreSSLCertificate::getPrivateKey() const
+{
+   int len = priv->cert->cert_info->key->private_key->length;
+   char *buf = (char *)malloc(len);
+   if (!buf)
+      return 0;
+   memcpy(buf, priv->cert->cert_info->key->private_key->data, len);
    return new BinaryNode(buf, len);
 }
 

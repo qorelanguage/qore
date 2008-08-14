@@ -36,7 +36,7 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       //! private implementation of the class
       struct qore_sslcert_private *priv; 
 
-      DLLLOCAL class AbstractQoreNode *doPurposeValue(int id, int ca) const;
+      DLLLOCAL AbstractQoreNode *doPurposeValue(int id, int ca) const;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreSSLCertificate(const QoreSSLCertificate&);
@@ -49,48 +49,68 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       DLLLOCAL virtual ~QoreSSLCertificate();
 
    public:
+      //! creates the object from a pointer to an X509 data structure, the QoreSSLCertificate object takes ownership of the X509 pointer
+      /** @param c a pointer to an X509 data structure, the QoreSSLCertificate object takes ownership of the X509 pointer
+       */
+      DLLEXPORT QoreSSLCertificate(X509 *c);
+
+      //! creates the object from a pointer to a BinaryNode object
+      /** @param bin a pointer to a BinaryNode object with the raw binary certificate information
+	  @param xsink Qore-language exceptions are raised here in case of errors
+       */
+      DLLEXPORT QoreSSLCertificate(const BinaryNode *bin, ExceptionSink *xsink);
+
+      //! creates the object from a filename
+      /** @param fn the filename of the certificate file in PEM format
+	  @param xsink Qore-language exceptions are raised here in case of errors
+      */
+      DLLLOCAL QoreSSLCertificate(const char *fn, ExceptionSink *xsink);
+
+      //! returns true if the object is valid, false if not
+      DLLEXPORT operator bool() const;
+
       //! returns a string in PEM format representing the certificate; caller owns the QoreStringNode reference returned
       /** @return a string in PEM format representing the certificate; caller owns the QoreStringNode reference returned
        */
-      DLLEXPORT class QoreStringNode *getPEM(class ExceptionSink *xsink) const;
-
-      DLLLOCAL QoreSSLCertificate(X509 *c);
-      DLLLOCAL QoreSSLCertificate(const char *fn, class ExceptionSink *xsink);
+      DLLEXPORT QoreStringNode *getPEM(ExceptionSink *xsink) const;
 
       // caller does NOT own the X509 pointer returned; "const" cannot be used because of the openssl API does not support it
-      DLLLOCAL X509 *getData() const;
+      DLLEXPORT X509 *getData() const;
 
       // caller owns value returned
-      DLLLOCAL class QoreHashNode *getSubjectHash() const;
+      DLLEXPORT QoreHashNode *getSubjectHash() const;
 
       // caller owns value returned
-      DLLLOCAL class QoreHashNode *getIssuerHash() const;
-      DLLLOCAL int64 getSerialNumber() const;
-      DLLLOCAL int64 getVersion() const;
+      DLLEXPORT QoreHashNode *getIssuerHash() const;
+      DLLEXPORT int64 getSerialNumber() const;
+      DLLEXPORT int64 getVersion() const;
 
       // caller owns value returned
-      DLLLOCAL class QoreHashNode *getPurposeHash() const;
+      DLLEXPORT QoreHashNode *getPurposeHash() const;
 
       // caller owns value returned
-      DLLLOCAL class DateTimeNode *getNotBeforeDate() const;
+      DLLEXPORT DateTimeNode *getNotBeforeDate() const;
 
       // caller owns value returned
-      DLLLOCAL class DateTimeNode *getNotAfterDate() const;
+      DLLEXPORT DateTimeNode *getNotAfterDate() const;
 
       // caller owns value returned
-      DLLLOCAL class QoreStringNode *getSignatureType() const;
+      DLLEXPORT QoreStringNode *getSignatureType() const;
 
       // caller owns value returned
-      DLLLOCAL class BinaryNode *getSignature() const;
+      DLLEXPORT BinaryNode *getSignature() const;
 
       // caller owns value returned
-      DLLLOCAL class QoreStringNode *getPublicKeyAlgorithm() const;
+      DLLEXPORT QoreStringNode *getPublicKeyAlgorithm() const;
 
       // caller owns value returned
-      DLLLOCAL class BinaryNode *getPublicKey() const;
+      DLLEXPORT BinaryNode *getPublicKey() const;
 
       // caller owns value returned
-      DLLLOCAL class QoreHashNode *getInfo() const;
+      DLLEXPORT BinaryNode *getPrivateKey() const;
+
+      // caller owns value returned
+      DLLEXPORT QoreHashNode *getInfo() const;
 };
 
 #endif
