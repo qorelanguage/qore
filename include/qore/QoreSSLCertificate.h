@@ -107,9 +107,6 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       DLLEXPORT BinaryNode *getPublicKey() const;
 
       // caller owns value returned
-      DLLEXPORT BinaryNode *getPrivateKey() const;
-
-      // caller owns value returned
       DLLEXPORT QoreHashNode *getInfo() const;
 };
 

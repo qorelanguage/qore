@@ -185,16 +185,6 @@ BinaryNode *QoreSSLCertificate::getPublicKey() const
    return new BinaryNode(buf, len);
 }
 
-BinaryNode *QoreSSLCertificate::getPrivateKey() const
-{
-   int len = priv->cert->cert_info->key->private_key->length;
-   char *buf = (char *)malloc(len);
-   if (!buf)
-      return 0;
-   memcpy(buf, priv->cert->cert_info->key->private_key->data, len);
-   return new BinaryNode(buf, len);
-}
-
 QoreHashNode *QoreSSLCertificate::getPurposeHash() const
 {
    QoreHashNode *h = new QoreHashNode();
