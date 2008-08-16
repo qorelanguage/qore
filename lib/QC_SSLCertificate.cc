@@ -32,21 +32,28 @@ void createSSLCertificateObject(QoreObject *self, X509 *cert)
 }
 */
 
-// syntax: SSLCertificate(filename)
+// syntax: SSLCertificate(filename|binary)
 static void SSLCERT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-   {
-      xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "expecting file name as argument");
-      return;
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   if (p0) {
+      qore_type_t t = p0->getType();
+      if (t == NT_STRING) {
+	 SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(reinterpret_cast<const QoreStringNode *>(p0)->getBuffer(), xsink));
+	 if (!*xsink)
+	    self->setPrivate(CID_SSLCERTIFICATE, qc.release());	    
+	 return;
+      }
+
+      if (t == NT_BINARY) {
+	 SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(reinterpret_cast<const BinaryNode *>(p0), xsink));
+	 if (!*xsink)
+	    self->setPrivate(CID_SSLCERTIFICATE, qc.release());	    
+	 return;
+      }
    }
-   
-   QoreSSLCertificate *qc = new QoreSSLCertificate(p0->getBuffer(), xsink);
-   if (xsink->isEvent())
-      qc->deref();
-   else
-      self->setPrivate(CID_SSLCERTIFICATE, qc);
+
+   xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "expecting file name or binary objcet in DER format as sole argument to SLLCertificate::constructor");
 }
 
 static void SSLCERT_copy(QoreObject *self, QoreObject *old, class QoreSSLCertificate *s, ExceptionSink *xsink)

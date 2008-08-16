@@ -1,6 +1,7 @@
 2008.08.15: David Nichols
 	* fixed ModuleManager to assume a file name if a '/' character appears
 	  anywhere in the string
+	* updated SSLCertificate::constructor() to accept a binary object
 
 2008.08.13: David Nichols
 	* added configure check for xmlTextReaderSetSchema() to disable
