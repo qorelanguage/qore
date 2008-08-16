@@ -1,3 +1,7 @@
+2008.08.15: David Nichols
+	* fixed ModuleManager to assume a file name if a '/' character appears
+	  anywhere in the string
+
 2008.08.13: David Nichols
 	* added configure check for xmlTextReaderSetSchema() to disable
 	  parseXMLWithSchema() if this function is not present in libxml2

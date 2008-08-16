@@ -381,7 +381,7 @@ QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *p
    QoreStringNode *errstr;
 
    // see if this is actually a path
-   if (name[0] == '/') {
+   if (strchr(name, '/')) {
       if ((errstr = loadModuleFromPath(name, 0, &mi, pgm)))
 	 return errstr;
       
