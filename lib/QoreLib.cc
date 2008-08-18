@@ -39,6 +39,7 @@ int qore_build_number      = BUILD;
 int qore_target_bits       = TARGET_BITS;
 char qore_target_os[]      = TARGET_OS;
 char qore_target_arch[]    = TARGET_ARCH;
+char qore_module_dir[]     = MODULE_DIR;
 
 DLLLOCAL QoreListNode *ARGV = 0;
 DLLLOCAL QoreListNode *QORE_ARGV = 0;

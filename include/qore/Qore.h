@@ -100,6 +100,9 @@ DLLEXPORT extern char qore_target_os[];
 //! the build target machine architecture name
 DLLEXPORT extern char qore_target_arch[];
 
+//! the qore module directory
+DLLEXPORT extern char qore_module_dir[];
+
 #define QLO_NONE                    0       //!< no options (default)
 #define QLO_DISABLE_SIGNAL_HANDLING 1 << 0  //!< disable qore signal handling entirely
 

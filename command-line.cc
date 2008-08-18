@@ -65,13 +65,14 @@ static char helpstr[] =
 "  -a, --show-aliases           displays the list of character sets aliases\n"
 "  -c, --charset=arg            sets default character set encoding\n"
 "  -e, --exec=arg               execute program given on command-line\n"
-"  -h, --help                   shows this help text\n"
+"  -h, --help                   shows this help text and exit\n"
 "  -i, --list-warnings          list all warnings and quit\n"
 "  -l, --load=arg               load module 'arg' immediately\n"
 "      --lgpl                   sets the library's license flag to LGPL,\n"
 "                               meaning that GPL modules cannot be loaded\n"
-"  -m, --show-module-errors     show error messages related to loading and\n"
+"  -m, --show-module-errors     shows error messages related to loading and\n"
 "                               initializing qore modules\n"
+"      --module-dir             show qore module directory and exit\n"
 "  -o, --list-parse-options     list all parse options\n"
 "  -p, --set-parse-option=arg   set parse option\n"
 "  -r, --warnings-are-errors    treat warnings as errors\n"
@@ -127,11 +128,16 @@ static void do_trace(char *arg)
 }
 #endif
 
+static void show_module_dir(char *arg)
+{
+   printf("%s\n", qore_module_dir);
+   exit(0);
+}
+
 static void set_parse_option(char *arg)
 {
    int code = ParseOptionMap::find_code(arg);
-   if (code == -1)
-   {
+   if (code == -1) {
       printf("unknown parse option '%s', use -L or --list-parse-options\n", arg);
       exit(1);
    }
@@ -174,8 +180,7 @@ static void enable_warnings(char *arg)
 static void enable_warning(char *arg)
 {
    int code = get_warning_code(arg);
-   if (!code)
-   {
+   if (!code) {
       printf("cannot enable unknown warning '%s'\n", arg);
       exit(1);
    }
@@ -388,6 +393,7 @@ static struct opt_struct_s {
    { 'X', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
    { 'Y', "no-network",            ARG_NONE, do_no_network },
    { '\0', "lgpl",                 ARG_NONE, set_lgpl },
+   { '\0', "module-dir",           ARG_NONE, show_module_dir },
 #ifdef DEBUG
    { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },

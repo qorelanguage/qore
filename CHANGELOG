@@ -1,3 +1,8 @@
+2008.08.18: David Nichols
+	* added --module-dir command-line option to print out the qore module
+	  directory
+	* exported qore_module_dir symbol to give the module directory location
+
 2008.08.15: David Nichols
 	* fixed ModuleManager to assume a file name if a '/' character appears
 	  anywhere in the string

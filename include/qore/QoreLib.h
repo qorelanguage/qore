@@ -44,10 +44,10 @@
 DLLEXPORT char *make_class_name(const char *fn);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT class QoreStringNode *q_sprintf(const class QoreListNode *params, int field, int offset, class ExceptionSink *xsink);
+DLLEXPORT QoreStringNode *q_sprintf(const class QoreListNode *params, int field, int offset, class ExceptionSink *xsink);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT class QoreStringNode *q_vsprintf(const class QoreListNode *params, int field, int offset, class ExceptionSink *xsink);
+DLLEXPORT QoreStringNode *q_vsprintf(const class QoreListNode *params, int field, int offset, class ExceptionSink *xsink);
 
 //! thread-safe version of "localtime()"
 DLLEXPORT struct tm *q_localtime(const time_t *clock, struct tm *tms);
