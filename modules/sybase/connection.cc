@@ -50,8 +50,7 @@ connection::~connection()
    CS_RETCODE ret = CS_SUCCEED;
 
    if (m_connection) {
-      if (connected)
-      {
+      if (connected) {
 	 ret = ct_close(m_connection, CS_UNUSED);
 	 if (ret != CS_SUCCEED)
 	 {
@@ -65,8 +64,7 @@ connection::~connection()
 
    if (m_context) {
       ret = ct_exit(m_context, CS_UNUSED);
-      if (ret != CS_SUCCEED)
-      {
+      if (ret != CS_SUCCEED) {
 	 ret = ct_exit(m_context, CS_FORCE_EXIT);
 	 assert(ret == CS_SUCCEED);
       }
@@ -111,7 +109,7 @@ int connection::direct_execute(const char* sql_text, ExceptionSink* xsink)
    return purge_messages(xsink);
 }
 
-AbstractQoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreListNode *qore_args, bool need_list, ExceptionSink* xsink)
+AbstractQoreNode *connection::exec_intern(QoreString *cmd_text, const QoreListNode *qore_args, bool need_list, ExceptionSink* xsink)
 {
    sybase_query query;
    if (query.init(cmd_text, qore_args, xsink))
@@ -142,7 +140,7 @@ AbstractQoreNode *connection::exec_intern(class QoreString *cmd_text, const Qore
 AbstractQoreNode *connection::exec(const QoreString *cmd, const QoreListNode *parameters, ExceptionSink *xsink)
 {
    // copy the string here for intrusive editing, convert encoding too if necessary
-   class QoreString *query = cmd->convertEncoding(enc, xsink);
+   QoreString *query = cmd->convertEncoding(enc, xsink);
    if (!query)
       return 0;
 
@@ -153,7 +151,7 @@ AbstractQoreNode *connection::exec(const QoreString *cmd, const QoreListNode *pa
 AbstractQoreNode *connection::exec_rows(const QoreString *cmd, const QoreListNode *parameters, ExceptionSink *xsink)
 {
    // copy the string here for intrusive editing, convert encoding too if necessary
-   class QoreString *query = cmd->convertEncoding(enc, xsink);
+   QoreString *query = cmd->convertEncoding(enc, xsink);
    if (!query)
       return 0;
 
@@ -297,12 +295,10 @@ int connection::purge_messages(ExceptionSink *xsink)
    CS_RETCODE ret = ct_diag(m_connection, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num);
    assert(ret == CS_SUCCEED);
    CS_CLIENTMSG cmsg;
-   for (int i = 1; i <= num; ++i)
-   {
+   for (int i = 1; i <= num; ++i) {
       ret = ct_diag(m_connection, CS_GET, CS_CLIENTMSG_TYPE, i, &cmsg);
       assert(ret == CS_SUCCEED);
-      if (CS_SEVERITY(cmsg.msgnumber) > 10)
-      {
+      if (CS_SEVERITY(cmsg.msgnumber) > 10) {
 	 QoreStringNode *desc = new QoreStringNode();
 	 desc->sprintf("client message %d, severity %d: %s", CS_NUMBER(cmsg.msgnumber), CS_SEVERITY(cmsg.msgnumber), cmsg.msgstring);
 	 if (cmsg.osstringlen)
@@ -319,12 +315,10 @@ int connection::purge_messages(ExceptionSink *xsink)
    ret = ct_diag(m_connection, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num);
    assert(ret == CS_SUCCEED);
    CS_SERVERMSG smsg;
-   for (int i = 1; i <= num; ++i)
-   {
+   for (int i = 1; i <= num; ++i) {
       ret = ct_diag(m_connection, CS_GET, CS_SERVERMSG_TYPE, i, &smsg);
       assert(ret == CS_SUCCEED);
-      if (smsg.severity > 10)
-      {
+      if (smsg.severity > 10) {
 	 QoreStringNode *desc = new QoreStringNode();
 	 desc->sprintf("server message %d, ", smsg.msgnumber);
 	 if (smsg.line)
@@ -343,15 +337,13 @@ int connection::purge_messages(ExceptionSink *xsink)
 
 int connection::do_exception(ExceptionSink *xsink, const char *err, const char *fmt, ...)
 {
-   class QoreStringNode *estr = new QoreStringNode();
+   QoreStringNode *estr = new QoreStringNode();
    va_list args;
-   while (fmt)
-   {
+   while (fmt) {
       va_start(args, fmt);
       int rc = estr->vsprintf(fmt, args);
       va_end(args);
-      if (!rc)
-      {
+      if (!rc) {
 	 estr->concat(": ");
          break;
       }
@@ -362,8 +354,7 @@ int connection::do_exception(ExceptionSink *xsink, const char *err, const char *
    CS_RETCODE ret = ct_diag(m_connection, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num);
    assert(ret == CS_SUCCEED);
    CS_CLIENTMSG cmsg;
-   for (int i = 1; i <= num; ++i)
-   {
+   for (int i = 1; i <= num; ++i) {
       ret = ct_diag(m_connection, CS_GET, CS_CLIENTMSG_TYPE, i, &cmsg);
       assert(ret == CS_SUCCEED);
       int severity = CS_SEVERITY(cmsg.msgnumber);
@@ -381,8 +372,7 @@ int connection::do_exception(ExceptionSink *xsink, const char *err, const char *
    ret = ct_diag(m_connection, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num);
    assert(ret == CS_SUCCEED);
    CS_SERVERMSG smsg;
-   for (int i = 1; i <= num; ++i)
-   {
+   for (int i = 1; i <= num; ++i) {
       ret = ct_diag(m_connection, CS_GET, CS_SERVERMSG_TYPE, i, &smsg);
       assert(ret == CS_SUCCEED);
       if (smsg.severity <= 10)
