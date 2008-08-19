@@ -1,3 +1,7 @@
+2008.08.19: David Nichols
+	* fixed freetds compile with newer versions (removed hack to use private
+	  data structures to set locale with older versions)
+
 2008.08.18: David Nichols
 	* added --module-dir command-line option to print out the qore module
 	  directory
