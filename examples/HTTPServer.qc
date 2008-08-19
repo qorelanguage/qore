@@ -1,7 +1,12 @@
 # HTTP multi-threaded server class definition
+
 # note that this server suffers from the following limitations, among others:
-# *) not really HTTP 1.1 compliant
-# *) no real content-type handling
+# *) not really HTTP 1.1 compliant although claims to be
+# *) no mime/multipart handling (needs to be fixed in qore)
+
+# changes for v0.2.4:
+# * improved Content-Type handling
+# * improved URL/path support
 
 # changes for v0.2.3:
 # * bzip2 content-encoding support 
@@ -20,7 +25,7 @@
 
 namespace HTTPServer
 {
-    const Version = "0.2.2";
+    const Version = "0.2.4";
 
     const ReadTimeout = 30000;  # recvs timeout after 30 seconds
     const PollTimeout = 5000;   # check for exit every 5 seconds while waiting
@@ -101,8 +106,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 	    $sock = int($sock);
 
 	# create SSL certificate and private key objects from PEM files if passed
-	if (strlen($cert))
-	{
+	if (strlen($cert)) {
 	    $.cert = new SSLCertificate($cert);
 	    $.setCertificate($.cert);
 	    if (strlen($key))
@@ -121,7 +125,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 
 	# save socket port/path
 	$.socket = $sock;
-	
+
 	# connection counter
 	$.cThreads = new Counter();
 	
@@ -159,8 +163,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		$s.connect($.socket);
 	    $s.send("quit");
 	}
-	catch ($ex)
-	{
+	catch ($ex) {
 	    printf("LISTENER-SHUTDOWN-ERROR: %s: %s\n", $ex.err, $ex.desc);
 	}
     }
@@ -194,11 +197,9 @@ class HTTPServer::Listener inherits Qore::Socket {
     private mainThread()
     {
 	# start listening
-	while (True)
-	{
+	while (True) {
 	    my $r;
-	    try
-	    {
+	    try {
 		if ($.ssl)
 		{
 		    $r = $.acceptSSL();
@@ -217,17 +218,17 @@ class HTTPServer::Listener inherits Qore::Socket {
 		continue;
 
 	    # DEBUG
-	    #printf("listener(%s): accepting HTTP connection from %s (%s)\n", $.socket, $r.source);
+	    #printf("HTTP DEBUG: listener(%s): accepting HTTP connection from %s (%s)\n", $.socket, $r.source);
 	    #$.log("accepting HTTP connection from %s", $r.source);
 	    
 	    $.cThreads.inc();
 	    background $.connectionThread($r);
 	}
-	#printf("Listener::mainThread() closing socket %s\n", $.socket);
+	#printf("HTTP DEBUG: Listener::mainThread() closing socket %s\n", $.socket);
 	$.shutdown();
 	$.close();
 	$.cThreads.dec();
-	#printf("Listener::mainThread() TID %d terminating\n", gettid());
+	#printf("HTTP DEBUG: Listener::mainThread() TID %d terminating\n", gettid());
     }
 
     # thread for handling communication per connection
@@ -241,8 +242,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 	my ($hdr, $body);
 	
 	try {
-	    while (True)
-	    {
+	    while (True) {
 		if ($.exit)
 		    break;
 		
@@ -255,8 +255,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		try {
 		    $hdr = $s.readHTTPHeader(HTTPServer::ReadTimeout);
 		}
-		catch ($ex)
-		{
+		catch ($ex) {
 		    # according to RFC 2616, sec 8.1.2.1 clients claiming http 1.1 protocol compatibility
 		    # SHOULD only close the connection after sending a "connection: close" header, but in 
 		    # case they don't, we simply close the connection silently
@@ -269,8 +268,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		}
 
 		# log error and close connection on timeout
-		if (!exists $hdr)
-		{
+		if (!exists $hdr) {
 		    my $err = sprintf("timed out reading HTTP header after %d ms", HTTPServer::ReadTimeout);
 		    my $str = sprintf("%s from %s via %s", $err, $s.source, $.socket);
 		    $.logError($str);
@@ -279,8 +277,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		}
 		#printf("HTTP DEBUG: id: %d, hdr=%n\n", $context.id, $hdr);
 
-		if (type($hdr) != Type::Hash)
-		{
+		if (type($hdr) != Type::Hash) {
 		    my $err = "malformed HTTP header received";
 		    my $str = sprintf("%s from %s via %s", $err, $s.source, $.socket);
 		    $.logError($str);
@@ -295,17 +292,14 @@ class HTTPServer::Listener inherits Qore::Socket {
 		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
 		/*
-		if (elements (my $xl = ($hdr.path =~ x/(%[0-9a-fA-F][0-9a-fA-F])/)))
-		{
-		    foreach my $x in ($xl)
-		    {
+		if (elements (my $xl = ($hdr.path =~ x/(%[0-9a-fA-F][0-9a-fA-F])/))) {
+		    foreach my $x in ($xl) {
 			my $i = index($hdr.path, $x);
 			#printf("x=%n i=%d %n %n %n\n", $x, $i, substr($hdr.path, 0, $i), chr(hexToInt(substr($x, 1))), substr($hdr.path, $i + 3));
 			try {
 			    $hdr.path = substr($hdr.path, 0, $i) + chr(hexToInt(substr($x, 1))) + substr($hdr.path, $i + 3);
 			}
-			catch ()
-			{
+			catch () {
 			    # break if there are invalid hex digits
 			    break;
 			}
@@ -314,25 +308,20 @@ class HTTPServer::Listener inherits Qore::Socket {
 		*/
 
 		# check for authentication info
-		if (exists $.rbac && $.rbac.requires_authentication())
-		{
-		    if (exists $hdr.authorization)
-		    {
-			if ($hdr.authorization !~ /basic /i)
-			{
+		if (exists $.rbac && $.rbac.requires_authentication()) {
+		    if (exists $hdr.authorization) {
+			if ($hdr.authorization !~ /basic /i) {
 			    $.serv.sendHTTPError($s, 401, "Only basic authentication is supported", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
 			    break;
 			}
 			my $bstr = ($hdr.authorization =~ x/basic (.*)/i)[0];
-			if (!strlen($bstr))
-			{
+			if (!strlen($bstr)) {
 			    $.serv.sendHTTPError($s, 401, "Authentication is required to access this server", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
 			    break;
 			}
 			my $str = parseBase64StringToString($bstr);
 			my $i = index($str, ":");
-			if ($i == -1)
-			{
+			if ($i == -1) {
 			    $.serv.sendHTTPError($s, 401, "Authentication is required to access this server", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
 			    break;
 			}
@@ -341,10 +330,8 @@ class HTTPServer::Listener inherits Qore::Socket {
 			my $roles;
 			try
 			    $roles = $.rbac.authenticate($user, $pass);
-			catch ($ex)
-			{
-			    if ($ex.err == "AUTHENTICATION-ERROR")
-			    {
+			catch ($ex) {
+			    if ($ex.err == "AUTHENTICATION-ERROR") {
 				$.serv.sendHTTPError($s, 401, "Authentication is required to access this server", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
 				break;
 			    }
@@ -358,28 +345,24 @@ class HTTPServer::Listener inherits Qore::Socket {
 			$context += ( "user"  : $user,
 				      "roles" : $roles );
 		    }
-		    else if (!exists get_thread_data("rbac_authorized_user"))
-		    {
+		    else if (!exists get_thread_data("rbac_authorized_user")) {
 			my ($roles, $user);
 			# only try ip-based authentication if the connection is not already authenticated
 			try {
 			    $roles = $.rbac.authenticate_by_ip($s.source, \$user);
 			}
-			catch ($ex)
-			{
+			catch ($ex) {
 			    # log the error
 			    my $str = sprintf("%s: %s: received from %s via %s", $ex.err, $ex.desc, $s.source, $.socket);
 			    $.logError($str);
 			}
-			if (elements $roles)
-			{
+			if (elements $roles) {
 			    # save username in thread-local data
 			    save_thread_data(("rbac_authorized_user" : $user));
 			    $context += ( "user"  : $user,
 					  "roles" : $roles );
 			}
-			else
-			{
+			else {
 			    $.serv.sendHTTPError($s, 401, "Authentication is required to access this server", True, ( "WWW-Authenticate" : sprintf("Basic realm=\"%s\"", $.rbac.getRealm())));
 			    break;
 			}
@@ -390,10 +373,8 @@ class HTTPServer::Listener inherits Qore::Socket {
 		# split content-type fields
 		my $ct = split(";", $hdr."content-type");
 		trim $ct;
-		foreach my $c in (\$ct)
-		{
-		    if ($c =~ /charset=/)
-		    {
+		foreach my $c in (\$ct)	{
+		    if ($c =~ /charset=/) {
 			$c =~ s/charset=//;
 			$s.setCharset($c);
 			$context.encoding = $c;
@@ -408,10 +389,9 @@ class HTTPServer::Listener inherits Qore::Socket {
 		trim $conn;
 
 		my $close = (inlist("close", $conn) || ($hdr.http_version != "1.1" && !inlist("keep-alive", $conn)));
-		#printf("conn=%n, close=%n\n", $conn, $close);
+		#printf("HTTP DEBUG: conn=%n, close=%n\n", $conn, $close);
 
-		if ($hdr.method != "POST" && ($hdr."content-length" || $hdr."transfer-encoding" == "chunked"))
-		{
+		if ($hdr.method != "POST" && ($hdr."content-length" || $hdr."transfer-encoding" == "chunked")) {
 		    my $err = sprintf("body sent with %s method", $hdr.method);
 		    my $str = sprintf("%s: received from %s via %s (header=%n)", $err, $s.source, $.socket, $hdr);
 		    $.logError($str);
@@ -420,8 +400,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		}
 
 		# check if the content-encoding header is misused to specify the character encoding
-		if ($hdr."content-encoding" =~ /iso-/i || $hdr."content-encoding" =~ /utf-/i)
-		{
+		if ($hdr."content-encoding" =~ /iso-/i || $hdr."content-encoding" =~ /utf-/i) {
 		    $.setCharset($hdr."content-encoding");
 		    $context.encoding = $hdr."content-encoding";
 		    delete $hdr."content-encoding";
@@ -439,8 +418,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    break;
 		
 		case "POST":
-		    if ($hdr."transfer-encoding" == "chunked")
-		    {
+		    if ($hdr."transfer-encoding" == "chunked") {
 			try {
 			    if (exists $hdr."content-encoding")
 				$hdr += $s.readHTTPChunkedBodyBinary(HTTPServer::ReadTimeout);
@@ -449,8 +427,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 			    $body = $hdr.body;
 			    $hdr -= "body";
 			}
-			catch ($ex)
-			{
+			catch ($ex) {
 			    my $etxt = sprintf("error reading chunked body in POST: %s: %s", $ex.err, $ex.desc);
 			    my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
 			    $.logError($str);
@@ -459,8 +436,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 			    break;
 			}
 		    }
-		    else if (!$hdr."content-length")
-		    {
+		    else if (!$hdr."content-length") {
 			my $err = "missing body (no 'Content-Length' header, no chunked encoding)";
 			my $str = sprintf("%s: received from %s via %s (header=%n)", $err, $s.source, $.socket, $hdr);
 			$.logError($str);
@@ -468,19 +444,17 @@ class HTTPServer::Listener inherits Qore::Socket {
 			$close = True;
 			break;
 		    }
-		    else
-		    {
+		    else {
 			try {
 			    if (exists $hdr."content-encoding")
 				$body = $s.recvBinary($hdr."content-length", HTTPServer::ReadTimeout);
 			    else
 				$body = $s.recv($hdr."content-length", HTTPServer::ReadTimeout);
-			    #printf("%s\n", $body);
+			    #printf("HTTP DEBUG: %s\n", $body);
 			    if (!exists $body)
 				throw "SOCKET-TIMEOUT", sprintf("expected %d bytes, got timeout", $hdr."content-length");
 			}
-			catch ($ex)
-			{
+			catch ($ex) {
 			    my $etxt = sprintf("error reading body in POST (Content-Length: %d): %s: %s", $hdr."content-length", $ex.err, $ex.desc);
 			    my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
 			    $.logError($str);
@@ -491,12 +465,10 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    }
 		    #printf("HTTP DEBUG: id: %d, body: %n\n", $context.id, substr($body, 0, 80));
 		    # handle content-encoding
-		    if (exists $hdr."content-encoding")
-		    {
-			#printf("context=%n\nhdr=%n\nSHA1(body)=%n, body=%N\n", $context, $hdr, SHA1($body), $body);
+		    if (exists $hdr."content-encoding") {
+			#printf("HTTP DEBUG: context=%n\nhdr=%n\nSHA1(body)=%n, body=%N\n", $context, $hdr, SHA1($body), $body);
 			try {
-			    switch ($hdr."content-encoding")
-			    {
+			    switch ($hdr."content-encoding") {
 				case "deflate":
 				case "x-deflate":
 				    $body = uncompress_to_string(binary($body));
@@ -515,8 +487,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 				    throw "UNSUPPORTED-CONTENT-ENCODING", "don't know how to handle this content-encoding";
 			    }
 			}
-			catch ($ex)
-			{
+			catch ($ex) {
 			    my $etxt = sprintf("error processing content encoding %s: %s: %s", $hdr."content-encoding", $ex.err, $ex.desc);
 			    my $str = sprintf("%s: received from %s via %s (header=%n)", $etxt, $s.source, $.socket, $hdr);
 			    $.logError($str);
@@ -541,8 +512,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    break;
 	    }
 	}
-	catch ($ex)
-	{
+	catch ($ex) {
 	    my $etxt = sprintf("%s: %s", $ex.err, $ex.desc);
 	    my $str = sprintf("%s: received from %s via %s", $etxt, $s.source, $.socket);
 	    $.logError($str);
@@ -670,8 +640,7 @@ class HTTPServer::HTTPServer {
 
     private log()
     {
-	if (exists $.logfunc)
-	{
+	if (exists $.logfunc) {
 	    $argv[0] = "HTTPServer: " + $argv[0];
 	    call_function_args($.logfunc, $argv);
 	}
@@ -679,8 +648,7 @@ class HTTPServer::HTTPServer {
     
     private logError()
     {
-	if (exists $.errlogfunc)
-	{
+	if (exists $.errlogfunc) {
 	    $argv[0] = "HTTPServer: " + $argv[0];
 	    call_function_args($.errlogfunc, $argv);
 	}
@@ -688,8 +656,7 @@ class HTTPServer::HTTPServer {
     
     logArgs($args)
     {
-	if (exists $.logfunc)
-	{
+	if (exists $.logfunc) {
 	    $args[0] = "HTTPServer: " + $args[0];
 	    call_function_args($.logfunc, $args);
 	}
@@ -697,8 +664,7 @@ class HTTPServer::HTTPServer {
     
     logErrorArgs($args)
     {
-	if (exists $.errlogfunc)
-	{
+	if (exists $.errlogfunc) {
 	    $args[0] = "HTTPServer: " + $args[0];
 	    call_function_args($.errlogfunc, $args);
 	}
@@ -741,8 +707,7 @@ class HTTPServer::HTTPServer {
         try {
             $s.sendHTTPResponse($code, HTTPServer::HTTPCodes.$code, "1.1", $hdr, $str);
         }
-        catch ($ex)
-        {
+        catch ($ex) {
             if ($ex.err != "SOCKET-SEND-ERROR") {
 		my $estr = sprintf("%s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
 		$.logError($estr);
@@ -753,14 +718,12 @@ class HTTPServer::HTTPServer {
     handleRequest($s, $context, $hdr, $body, $close, $head)
     {
 	# handle accept-encoding to compress data if necessary
-	if (exists $hdr."accept-encoding")
-	{
+	if (exists $hdr."accept-encoding") {
 	    # remove all writespace
 	    $hdr."accept-encoding" =~ s/\s//g;
 	    my $mq = 0;
 	    my $me;
-	    foreach my $acc in (split(",", $hdr."accept-encoding"))
-	    {
+	    foreach my $acc in (split(",", $hdr."accept-encoding")) {
 		my $q;
 		# get encoding
 		my $enc = $acc =~ x/^(\w+|\*)/[0];
@@ -770,8 +733,7 @@ class HTTPServer::HTTPServer {
 		# get q value
 		$q = $acc =~ x/;q=(.*)$/[0];
 		$q = exists $q ? float($q) : 1.0;
-		if ($q > $mq)
-		{
+		if ($q > $mq) {
 		    if ($enc =~ /x-/)
 			$enc =~ s/x-//;
 		    $me = $enc;
@@ -788,16 +750,16 @@ class HTTPServer::HTTPServer {
 	    ( "logfunc"    : $.logfunc,
 	      "errlogfunc" : $.errlogfunc );
 
+        # parse the path in the request
+        my $url = parseURL($hdr.path);
+
 	# find a handler for the request
 	my $m;
-	
-	#printf("handleRequest() hdr=%n, handlers=%n\n", $hdr, $.handlers);
-	foreach my $h in (keys $.handlers)
-	{
-	    if (exists $hdr."content-type" && $hdr."content-type" == $.handlers.$h.content)
-	    {
-		if (strlen($.handlers.$h.url) && strlen($hdr.path) && regex($hdr.path, $.handlers.$h.url))
-		{
+	#printf("HTTP DEBUG: handleRequest() hdr=%n, handlers=%n\n", $hdr, $.handlers);
+	foreach my $h in (keys $.handlers) {
+            #printf("HTTP DEBUG: %s: ct=%n, path=%n, hurlre=%n, hcon=%n (url=%n)\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.content, $url);
+	    if (exists $hdr."content-type" && $hdr."content-type" == $.handlers.$h.content) {
+		if (strlen($.handlers.$h.url) && strlen($url.path) && regex($url.path, $.handlers.$h.url)) {
 		    $m = $h;
 		    break;
 		}
@@ -805,25 +767,22 @@ class HTTPServer::HTTPServer {
 		    $m = $h;
 		continue;
 	    }
-	    if (strlen($.handlers.$h.url) && strlen($hdr.path) 
-		&& regex($hdr.path, $.handlers.$h.url))
+	    if (strlen($.handlers.$h.url) && strlen($url.path) 
+		&& regex($url.path, $.handlers.$h.url))
 		if (!exists $m)
 	            $m = $h;
 	}
 	try {
 	    my $rv;
 	    
-	    #printf("handler=%n: context=%n, hdr=%n, body=%n\n", $m, $context, $hdr, $body);
-	    #printf("BEFORE handler=%s", dbg_node_info($.handlers.$m));
-	    if (!exists $m)
-	    {
-		if (exists $.defaultHandler)
-		{
+	    #printf("HTTP DEBUG: handler=%n: context=%n, hdr=%n, body=%n\n", $m, $context, $hdr, $body);
+	    #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info($.handlers.$m));
+	    if (!exists $m) {
+		if (exists $.defaultHandler) {
 		    $m = $.defaultHandler.name;
 		    $rv = $.defaultHandler.obj.handleRequest($context, $hdr, $body, \$close);
 		}
-		else
-		{
+		else {
 		    $m = "default";
 		    $rv = $.defaultHandler($context, $hdr, $body, \$close);
 		}
@@ -834,27 +793,23 @@ class HTTPServer::HTTPServer {
 	    if (type($rv) == Type::String)
 		$rv = ( "code" : 200,
 			"body" : $rv );
-	    else if (!exists HTTPCodes.($rv.code)) # if the handler returns an invalid hash
-
-	    {
+	    else if (!exists HTTPCodes.($rv.code)) { # if the handler returns an invalid hash
 		my $str = sprintf("%s handler returned an invalid response", $m);
 		$.sendHTTPError($s, 500, $str, $close);
 		$.logError($str);
 		return;
 	    }
 
-	    #printf("handler %s returned: %n\n", $m, $rv);
+	    #printf("HTTP DEBUG: handler %s returned: %n\n", $m, $rv);
 
 	    $rv.hdr.Server = $.httpserverstring;
-	    if ($rv.code != 200)
-	    {
+	    if ($rv.code != 200) {
 		if (!exists $rv.body)
 		    $rv.body = sprintf("unknown error in %s handler", $m);
 		
 		$.sendHTTPError($s, $rv.code, $rv.body, $close);
 	    }
-	    else
-	    {
+	    else {
 		#printf("\n\n\n**** REQUEST: %N\n", $body);
 		#printf("\n\n\n**** RESPONSE: %N\n", $rv.body);
 		if ($close)
@@ -870,8 +825,7 @@ class HTTPServer::HTTPServer {
 
 		if ($head)
 		    $s.sendHTTPResponse($rv.code, HTTPServer::HTTPCodes.($rv.code), "1.1", $rv.hdr);
-		else
-		{
+		else {
 		    if ($context.encoding == "deflate") {
 			$rv.hdr += ( "Content-Encoding" : "deflate" );
 			$rv.body = compress($rv.body);
@@ -894,12 +848,10 @@ class HTTPServer::HTTPServer {
 	    if (exists $rv.errlog)
 		$.logError("%s (from %s): %s", $m, $s.source, $rv.errlog);
 	}
-	catch ($ex)
-	{
+	catch ($ex) {
 	    my $str = sprintf("handler: %s: %s:%d: %s: %s", $m, $ex.file, $ex.line, $ex.err, $ex.desc);
 	    $.sendHTTPError($s, 500, $str);
 	    $.logError($str);
 	}
     }
-
 }
