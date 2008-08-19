@@ -6,12 +6,20 @@ file=$dir/include/qore/svn-revision.h
 
 ok=0
 
-make_file()
+if [ "$1" = "-b" ]; then
+    show_build=1
+else
+    show_build=0
+fi
+
+make_file() 
 {
     crev=`cat $file|cut -b15- 2>/dev/null`
     if [ "$crev" != "$build" ]; then
 	printf "#define BUILD %s\n" $build > $1
 	echo svn revision changed to $build in $file
+    elif [ $show_build -eq 1 ]; then
+	echo $build
     fi
 }
 
