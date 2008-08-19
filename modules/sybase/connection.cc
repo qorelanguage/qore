@@ -38,16 +38,6 @@
 
 static QoreString ver_str("begin tran select @@version commit tran");
 
-#ifdef FREETDS
-#include <tds.h>  // needed for the TDSLOGIN structure, to set connection encoding
-
-// WARNING: hack into freetds internals, needed to set connection encoding
-struct tds_cs_connection {
-      CS_CONTEXT *ctx;
-      TDSLOGIN *tds_login;
-};
-#endif
-
 //------------------------------------------------------------------------------
 connection::connection()
    : m_context(0), m_connection(0), connected(false)
@@ -121,7 +111,7 @@ int connection::direct_execute(const char* sql_text, ExceptionSink* xsink)
    return purge_messages(xsink);
 }
 
-class AbstractQoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreListNode *qore_args, bool need_list, class ExceptionSink* xsink)
+AbstractQoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreListNode *qore_args, bool need_list, ExceptionSink* xsink)
 {
    sybase_query query;
    if (query.init(cmd_text, qore_args, xsink))
@@ -149,7 +139,7 @@ class AbstractQoreNode *connection::exec_intern(class QoreString *cmd_text, cons
    return result.release();
 }
 
-class AbstractQoreNode *connection::exec(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink)
+AbstractQoreNode *connection::exec(const QoreString *cmd, const QoreListNode *parameters, ExceptionSink *xsink)
 {
    // copy the string here for intrusive editing, convert encoding too if necessary
    class QoreString *query = cmd->convertEncoding(enc, xsink);
@@ -160,7 +150,7 @@ class AbstractQoreNode *connection::exec(const QoreString *cmd, const QoreListNo
    return exec_intern(query, parameters, false, xsink);
 }
 
-class AbstractQoreNode *connection::exec_rows(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink)
+AbstractQoreNode *connection::exec_rows(const QoreString *cmd, const QoreListNode *parameters, ExceptionSink *xsink)
 {
    // copy the string here for intrusive editing, convert encoding too if necessary
    class QoreString *query = cmd->convertEncoding(enc, xsink);
@@ -172,19 +162,19 @@ class AbstractQoreNode *connection::exec_rows(const QoreString *cmd, const QoreL
 }
 
 // returns 0=OK, -1=error (exception raised)                                                                                                                                      
-int connection::commit(class ExceptionSink *xsink)
+int connection::commit(ExceptionSink *xsink)
 {
    return direct_execute("commit", xsink);
 }
 
 // returns 0=OK, -1=error (exception raised)                                                                                                                                      
-int connection::rollback(class ExceptionSink *xsink)
+int connection::rollback(ExceptionSink *xsink)
 {
    return direct_execute("rollback", xsink);
 }
 
 // Post-constructor initialization 
-int connection::init(const char* username, const char* password, const char* dbname, const char *db_encoding, const QoreEncoding *n_enc, class ExceptionSink* xsink)
+int connection::init(const char* username, const char* password, const char* dbname, const char *db_encoding, const QoreEncoding *n_enc, ExceptionSink* xsink)
 {
   assert(!m_connection);
   assert(!m_context);
@@ -245,7 +235,7 @@ int connection::init(const char* username, const char* password, const char* dbn
       }
    }
 
-#ifdef SYB_HAVE_LOCALE
+#if defined(SYBASE) || defined(FREETDS_LOCALE)
    CS_LOCALE *m_charset_locale = 0;
 
    ret = cs_loc_alloc(m_context, &m_charset_locale);
@@ -271,14 +261,6 @@ int connection::init(const char* username, const char* password, const char* dbn
 
    ret = cs_loc_drop(m_context, m_charset_locale);
    assert(ret == CS_SUCCEED);
-#else
-   // WARNING! hack into freetds internals that may change with future versions
-   // here we set the character encoding we expect for the connection to db_encoding
-   // FIXME: get rid of this hack
-   tds_cs_connection *tconn = (tds_cs_connection *)m_connection;
-   //printd(5, "sc=%08p (%s)\n", tconn->tds_login->server_charset, tconn->tds_login->server_charset ? (char *)tconn->tds_login->server_charset : "n/a");
-   tconn->tds_login->server_charset = (DSTR)strdup(db_encoding);
-   //tds_dstr_copy(&tconn->tds_login->server_charset, db_encoding);
 #endif
 
    ret = ct_connect(m_connection, (CS_CHAR*)dbname,  strlen(dbname));
@@ -307,7 +289,7 @@ int connection::init(const char* username, const char* password, const char* dbn
 }
 
 // purges all outstanding messages using ct_diag
-int connection::purge_messages(class ExceptionSink *xsink)
+int connection::purge_messages(ExceptionSink *xsink)
 {
    int rc = 0;
    // make sure no messages have severity > 10
@@ -359,7 +341,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
    return rc;
 }
 
-int connection::do_exception(class ExceptionSink *xsink, const char *err, const char *fmt, ...)
+int connection::do_exception(ExceptionSink *xsink, const char *err, const char *fmt, ...)
 {
    class QoreStringNode *estr = new QoreStringNode();
    va_list args;
@@ -473,7 +455,7 @@ CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
 
 // get client version
 #define CLIENT_VER_LEN 240
-QoreStringNode *connection::get_client_version(class ExceptionSink *xsink)
+QoreStringNode *connection::get_client_version(ExceptionSink *xsink)
 {
    char *buf = (char *)malloc(sizeof(char) * CLIENT_VER_LEN);
    CS_INT olen;
@@ -487,9 +469,9 @@ QoreStringNode *connection::get_client_version(class ExceptionSink *xsink)
    return new QoreStringNode(buf);
 }
 
-class AbstractQoreNode *connection::get_server_version(class ExceptionSink *xsink)
+AbstractQoreNode *connection::get_server_version(ExceptionSink *xsink)
 {
-   class AbstractQoreNode *res = exec_intern(&ver_str, 0, true, xsink);
+   AbstractQoreNode *res = exec_intern(&ver_str, 0, true, xsink);
    if (!res)
       return 0;
    assert(res->getType() == NT_HASH);
