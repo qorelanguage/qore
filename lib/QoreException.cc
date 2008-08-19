@@ -236,7 +236,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 
    while (e)
    {
-      printe("unhandled QORE %s exception thrown", e->type == ET_USER ? "User" : "System");
+      printe("unhandled QORE %s exception thrown in TID %d", e->type == ET_USER ? "User" : "System", gettid());
 
       QoreListNode *cs = e->callStack;
       bool found = false;
