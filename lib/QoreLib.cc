@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreLib.h>
+#include <qore/svn-revision.h>
 
 #include <string.h>
 

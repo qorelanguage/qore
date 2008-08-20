@@ -329,6 +329,7 @@ class ThreadData
       const char *current_code;
       // current object context
       QoreObject *current_obj;
+
       // current program context
       QoreProgram *current_pgm;
 
@@ -1227,10 +1228,10 @@ void init_qore_threads()
    traceout("qore_init_threads()");
 }
 
-class QoreNamespace *get_thread_ns()
+QoreNamespace *get_thread_ns()
 {
    // create Qore::Thread namespace
-   class QoreNamespace *Thread = new QoreNamespace("Thread");
+   QoreNamespace *Thread = new QoreNamespace("Thread");
 
    Thread->addSystemClass(initQueueClass());
    Thread->addSystemClass(initMutexClass());

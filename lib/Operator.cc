@@ -1560,7 +1560,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
       return 0;
    }
 
-   // no exception can occurr here
+   // no exception can occur here
    val.ensure_unique();
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());

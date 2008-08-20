@@ -121,8 +121,7 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
 {
    SafeLocker sl(&l);
    // if there is no data, then wait for condition variable
-   while (!head)
-   {
+   while (!head) {
       int rc;
       ++waiting;
       if (timeout_ms)
@@ -130,8 +129,7 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
       else
 	 rc = cond.wait(&l);
       --waiting;
-      if (rc)
-      {	 
+      if (rc) {	 
 	 // lock has timed out, unlock and return -1
 	 sl.unlock();
 	 printd(5, "QoreQueue::shift() timed out after %dms waiting on another thread to release the lock\n", timeout_ms);
@@ -139,8 +137,7 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
 	    *to = true;
 	 return 0;
       }
-      if (len == Queue_Deleted)
-      {
+      if (len == Queue_Deleted) {
 	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
 	 return 0;
       }

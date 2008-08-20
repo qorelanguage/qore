@@ -166,14 +166,17 @@ struct qore_hash_private {
 
 QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH, !ne, ne), priv(new qore_hash_private)
 {
+   printd(0, "QoreHashNode::QoreHashNode(%d) this=%08p\n", ne, this);
 }
 
 QoreHashNode::QoreHashNode() : AbstractQoreNode(NT_HASH, true, false), priv(new qore_hash_private)
 { 
+   printd(0, "QoreHashNode::QoreHashNode() this=%08p\n", this);
 }
 
 QoreHashNode::~QoreHashNode()
 {
+   printd(0, "QoreHashNode::~QoreHashNode() this=%08p\n", this);
    delete priv;
 }
 
