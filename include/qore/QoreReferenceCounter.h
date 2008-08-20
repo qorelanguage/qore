@@ -27,6 +27,8 @@
 #include <qore/common.h>
 #include <qore/macros.h>
 
+class QoreThreadLock;
+
 //! provides atomic reference counting to Qore objects
 class QoreReferenceCounter 
 {
