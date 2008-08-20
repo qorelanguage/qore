@@ -39,28 +39,31 @@ class QoreThreadLock {
       pthread_mutex_t ptm_lock;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreThreadLock(const QoreThreadLock&);
-
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreThreadLock& operator=(const QoreThreadLock&);
 
    public:
       //! creates the lock
-      DLLEXPORT QoreThreadLock()
+      DLLLOCAL QoreThreadLock()
       {
 	 pthread_mutex_init(&ptm_lock, 0);
       }
 
       //! destroys the lock
-      DLLEXPORT ~QoreThreadLock()
+      DLLLOCAL ~QoreThreadLock()
       {
 	 pthread_mutex_destroy(&ptm_lock);
+      }
+
+      //! creates a new object (not based on the original lock status)
+      DLLLOCAL QoreThreadLock(const QoreThreadLock&)
+      {
+	 pthread_mutex_init(&ptm_lock, 0);
       }
 
       //! grabs the lock (assumes that the lock is unlocked)
       /** no error checking happens here; if you grab the lock twice it will deadlock
        */
-      DLLEXPORT void lock()
+      DLLLOCAL void lock()
       {
 	 pthread_mutex_lock(&ptm_lock);
       }
@@ -68,7 +71,7 @@ class QoreThreadLock {
       //! releases the lock (assumes that the lock is locked)
       /** no error checking is implemented here
        */
-      DLLEXPORT void unlock()
+      DLLLOCAL void unlock()
       {
 	 pthread_mutex_unlock(&ptm_lock);
       }
@@ -77,7 +80,7 @@ class QoreThreadLock {
       /**
 	 @return 0 if the lock was acquired, a non-zero error number if the lock was not acquired
        */
-      DLLEXPORT int trylock()
+      DLLLOCAL int trylock()
       {
 	 return pthread_mutex_trylock(&ptm_lock);
       }
