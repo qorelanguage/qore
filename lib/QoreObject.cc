@@ -654,9 +654,10 @@ void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink)
 
 AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, ExceptionSink *xsink) const
 {
+   AutoLocker al(priv->m);
+
    printd(5, "QoreObject::getReferencedMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
 	  this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
-   AutoLocker al(priv->m);
 
    if (priv->status == OS_DELETED) {
       makeAccessDeletedObjectException(xsink, mem, priv->theclass->getName());
