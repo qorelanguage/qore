@@ -171,7 +171,7 @@ class CodeContextHelper {
 class ObjectSubstitutionHelper {
    private:
       QoreObject *old_obj;
-   
+
    public:
       DLLLOCAL ObjectSubstitutionHelper(QoreObject *obj);
       DLLLOCAL ~ObjectSubstitutionHelper();
