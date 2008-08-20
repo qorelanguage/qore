@@ -462,30 +462,27 @@ static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned arg
 {
    unsigned x;
 
-   if (isblank(argv[*i][*j]))
-   {
+   if (isblank(argv[*i][*j])) {
       do 
 	 (*j)++;
       while (isblank(argv[*i][*j]));
-      if (argv[*i][*j] == '-')
-	 if (argv[*i][*j] == '-')
-	 {
+      if (argv[*i][*j] == '-') {
+	 if (argv[*i][*j] == '-') {
 	    process_str_opt(argv, i, *j + 1, argc);
 	    return 1;
 	 }
 	 else
 	    (*j)++;
+      }
    }
 
    char c = argv[*i][*j];
 
    for (x = 0; x < NUM_OPTS; x++)
-      if (options[x].short_opt == c)
-      {
+      if (options[x].short_opt == c) {
 	 //printf("found '%c' %s (%d)\n", c, options[x].long_opt, options[x].arg);
 	 if (options[x].arg == ARG_MAND || 
-	     (options[x].arg == ARG_OPT && (argv[*i][(*j) + 1] == '=')))
-	 {
+	     (options[x].arg == ARG_OPT && (argv[*i][(*j) + 1] == '='))) {
 	    char *arg;
 
 	    // increment string index
@@ -514,8 +511,7 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
    char *opt = &argv[*i][j];
 
    // find option string (left side of string if there is an assignment char)
-   for (x = 2; x < strlen(argv[*i]); x++)
-   {
+   for (x = 2; x < strlen(argv[*i]); x++) {
       if (is_assign_char(argv[*i][x])) {
 	 option_present = x + 1;
 	 opt = (char *)malloc(sizeof(char) * (x - 1));
@@ -529,8 +525,7 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
       ++(*i);
 
    for (x = 0; x < NUM_OPTS; x++) {
-      if (!strcmp(options[x].long_opt, opt))
-      {
+      if (!strcmp(options[x].long_opt, opt)) {
 	 if (!options[x].arg) {
 	    if (option_present)
 	       excess_option(x);
@@ -579,29 +574,22 @@ char *parse_command_line(unsigned argc, char *argv[])
    unsigned i = 1;
 
    // check all arguments
-   for (; i < argc; i++)
-   {
+   for (; i < argc; i++) {
       printd(5, "parse_command_line() %d/%d=%s\n", i, argc, argv[i]);
-      if (argv[i][0] == '-')
-      {
-	 if (!argv[i][1])
-	 {
+      if (argv[i][0] == '-') {
+	 if (!argv[i][1]) {
 	    i++;
 	    break;
 	 }
-	 else
-	 {
-	    if (argv[i][1] == '-')
-	    {
-	       if (!argv[i][2])
-	       {
+	 else {
+	    if (argv[i][1] == '-') {
+	       if (!argv[i][2]) {
 		  i++;
 		  break;
 	       }
 	       process_str_opt(argv, &i, 2, argc);
 	    }
-	    else
-	    {
+	    else {
 	       unsigned j;
 
 	       for (j = 1; j < strlen(argv[i]); j++)		  
@@ -610,8 +598,7 @@ char *parse_command_line(unsigned argc, char *argv[])
 	    }
 	 }
       }
-      else
-      {
+      else {
 	 // only set the file name if the --exec option has not been set
 	 if (!cl_pgm)
 	    fn = strdup(argv[i++]);
@@ -622,8 +609,7 @@ char *parse_command_line(unsigned argc, char *argv[])
    if (i < argc)
       qore_setup_argv(i, argc, argv);
 
-   if (opt_errors)
-   {
+   if (opt_errors) {
       printe(suggest, pn);
       exit(1);
    }
