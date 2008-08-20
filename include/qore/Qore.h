@@ -29,7 +29,6 @@
 */
 
 #include <qore/common.h>
-#include <qore/svn-revision.h>
 #include <qore/QoreEncoding.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/AbstractQoreNode.h>
@@ -116,7 +115,7 @@ DLLEXPORT extern char qore_module_dir[];
     @note The license value must be QL_LGPL unless the program using Qore is a GPL program, in which case QL_GPL may be used (the default)
     @see qore_cleanup()
  */
-DLLEXPORT void qore_init(qore_license_t license = QL_GPL, char *default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
+DLLEXPORT void qore_init(qore_license_t license = QL_GPL, const char *default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
 
 //! frees all memory allocated by the library
 /** @note The openssl and libxml2 libraries are cleaned up as well

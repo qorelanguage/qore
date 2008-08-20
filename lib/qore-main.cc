@@ -49,7 +49,7 @@ int qore_library_options = QLO_NONE;
 
 qore_license_t qore_license;
 
-void qore_init(qore_license_t license, char *def_charset, bool show_module_errors, int n_qore_library_options)
+void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options)
 {
    qore_license = license;
 
