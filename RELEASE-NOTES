@@ -2,15 +2,17 @@ RELEASE NOTES for qore v0.7.0
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
-qore 0.7.0 is a major release with major new features
-*) library may be used under the GPL or LGPL (enforced with license tagging on library and module initialization)
+qore 0.7.0 is a major release with major new features.
+
+release overview:
 *) stable ABI and API, cleaned-up public header files, development packages
+*) library may be used under the GPL or LGPL (enforced with license tagging on library and module initialization)
 *) documented public API (with doxygen), documentation packages
 *) complete reimplementation of the type and operator subsystems
 *) reimplemented variable and object locking, no more possibility of nested locks and deadlocks
 *) major performance and memory usage improvements
 *) support for closures and encapsulating the state of local variables in the closure
-*) some functional programming support: new operators: map, foldr, foldl, select
+*) some (quasi) functional programming support: new operators: map, foldr, foldl, select
 *) new implicit argument references: $$ (entire argument list), $1, $2, ...
 *) new special object method: "memberNotification()", called when members are updated externally to the class
 *) "static" class methods are now supported
@@ -23,7 +25,122 @@ qore 0.7.0 is a major release with major new features
 *) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
 *) the Oracle database driver will now try to reconnect a lost connection to the server if not in a transaction
 *) 64-bit builds are the default on x86_64 CPUs
+*) module dependencies
+*) XML improvements, some XSD support
+*) lots of bug fixes, new functions, new clases, class improvements, etc
 
+*) stable ABI and API, cleaned-up public header files, development packages
+finally Qore is useful for what it was designed to be in the first place: for embedding code in arbitrary applications.
+With a public, stable, and documented API, qore can be used by anyone that wants to support logic embedding in their application.
+Relevant classes exported by the Qore API now have private implementations, separating the interface from the implementation.
+"const correctness" has been liberally applied to the API as well.
+Modules may now be packaged and delivered separately from Qore.
+
+Development packages (rpms) are now available as well.
+
+*) library may be used under the GPL or LGPL 
+With this release, the qore library may be used under either the GPL or LGPL licenses.  
+When calling qore_init() to initialize the library, you have to pass a license argument.
+When the qore library is initialized with the LGPL license, no licenses tagged as requiring the GPL license can be loaded.
+
+*) documented public API (with doxygen), documentation packages
+The Qore API documentation is generated with doxygen directly from the Qore header files.
+
+Documentation packages (rpms) are now available as well.
+
+*) complete reimplementation of the type and operator subsystems
+The internal type and operator subsystems have been streamlined and improved for this release.
+
+*) reimplemented variable and object locking, no more possibility of nested locks and deadlocks
+Internal locking in Qore was simplified by eliminating nested locks and the possibility of deadlocking based on internal locks.
+
+*) major performance and memory usage improvements
+Performance of Qore code has been significantly improved for this release.  Additionally, the qore library uses less memory than in previous versions.
+
+*) support for closures and encapsulating the state of local variables in the closure
+Closures are now supported, ex:
+
+my $a = sub () { return $x + $y * 3; };
+
+the local variable $a can be returned as a return value of a function or called like a call reference.  If the closure references local variables from outside the closure's scope, when the closure is created the values of those variables are encapsulated in the closure and can be used normally.  Such encapsulated local variables can also be used in other threads (normally Qore local variables are local to the thread they are declared in).
+
+*) some (quasi) functional programming support: new operators: map, foldr, foldl, select
+These operators provide advanced and efficient list processing functionality to Qore.
+
+  +) map: "maps" an expression onto a list and returns a list of the results of evaluting the expression on each element of the list
+  +) foldr and foldl: "fold" an expression on a list, evaluting each new element of the list with the result of the last evaluation and the new element
+  +) select: creates a new list from a list
+
+*) new implicit argument references: $$ (entire argument list), $1, $2, ...
+Implicit arguments are used primary with the new list operators (map, foldr, foldl, and select), but can also be used in functions now as well.
+
+*) new special object method: "memberNotification()", called when members are updated externally to the class
+Objects can now be notified if public members are modified from outside the object's scope by declaring a new special method: "memberNotification()"
+
+*) "static" class methods are now supported
+Static class methods are not associated with an object; they are like regular functions attached to a class.
+Static methods may also be private.
+
+This allows programmers to write more efficient object-oriented programs and also addresses some Qore programmers' desire to put functions in namespaces (functions cannot be declared in a Qore namespace).
+
+*) dereference string characters with [] operator
+To get a single character of a string, the [] operator may be used, similar to how it's used with lists.
+
+*) qt-core, qt-gui, qt-opengl, qt-svg modules based on QT4
+Experimental modules that allow GUI programs to be developed with Qore
+(see examples in examples/qt/)
+
+*) opengl module
+Provides opengl functionality to Qore, to be used with the glut module or with the qt-opengl module
+(see examples in examples/opengl/)
+
+*) glut module
+Allows opengl programs to be written entirely in qore
+(see examples in examples/opengl/)
+
+*) bz2 compressed data support (compression and decompression)
+libbz2 is now required to run qore, and bz2 includes are required to build qore
+new functions provided: bzip2(), bunzip2_to_binary(), bunzip2_to_string() 
+
+*) improvements to the File class 
+file locking support in the File class (based on fcntl()), more
+new File class members:
+  +) File::lock()
+  +) File::lockBlocking()
+  +) File::getLockInfo()
+  +) File::chown()
+
+*) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
+if Qore is built with an appropriate version of openssl, support for these new digest algorithms is supplied through the following functions:
+  +) SHA224()
+  +) SHA224_bin()
+  +) SHA256()
+  +) SHA256_bin()
+  +) SHA384()
+  +) SHA384_bin()
+  +) SHA512()
+  +) SHA512_bin()
+
+*) the Oracle database driver will now try to reconnect a lost connection to the server if not in a transaction
+automatic reconnects are supported if the Datasource is not in a transaction, in a manner similar to that already provided by the mysql driver
+
+*) 64-bit builds are the default on x86_64 CPUs
+the configure script will automatically set the build to a 64-bit target if the CPU is detected to be x86_64
+
+*) XML improvements, XSD support
+  +) parseXMLWithSchema() - new function supports parsing an XML string based on an XSD schema
+  +) improved XML generation, top-level elements may now have attributes
+  +) improved XML parse error reporting, more detaila and context is now reported in the exception strings
+
+*) bug fixes, new functions, class improvements
+  +) Qore revision tag now reflects the svn version used to make the build (instead of a meaningless private build number that was different on each machine).
+  +) new "Dir" class for manipulating and traversing directories (by Wolfgang Ritzinger).
+  +) inlist() and inlist_hard() functions for checking if a value is in a list
+  +) HTTPClient now understand bzip content encoding
+  +) new chown() and lchown() functions
+  +) new Program restrictions: PO_NO_TERMINAL_IO and PO_NO_GUI
+  +) "-" operator updated: hash - list and hash -= list now work to delete multiple hash keys in a single (atomic) expression
+  +) major updates to internal object and class code to allow for c++ class hierarchies to be properly reflected as Qore class hierarchies (used extensively by the qt modules, for example)
 
 ***********************
 *** LANGUAGE ISSUES ***
