@@ -137,11 +137,11 @@ class KeyList
       }
 };
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT, false, false), priv(new qore_object_private(oc, p, new QoreHashNode()))
+QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(oc, p, new QoreHashNode()))
 {
 }
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *h) : AbstractQoreNode(NT_OBJECT, false, false), priv(new qore_object_private(oc, p, h))
+QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *h) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(oc, p, h))
 {
 }
 
@@ -341,7 +341,7 @@ bool QoreObject::compareHard(const QoreObject *obj, ExceptionSink *xsink) const
    return !(this == obj);
 }
 
-// lock already held
+// lock not already held
 void QoreObject::doDeleteIntern(ExceptionSink *xsink)
 {
    printd(5, "QoreObject::doDeleteIntern(this=%08p) execing destructor()\n", this);   
@@ -376,24 +376,35 @@ void QoreObject::doDelete(ExceptionSink *xsink)
    doDeleteIntern(xsink);
 }
 
-void QoreObject::reacquireRef() const
+void QoreObject::customRef() const
 {
    AutoLocker al(priv->m);
-   if (!reference_count())
+   if (!references)
       tRef();
-   ROreference();
+   ++references;
 }
 
-// does a deep dereference and executes the destructor if necessary
 bool QoreObject::derefImpl(ExceptionSink *xsink)
 {
-   printd(5, "QoreObject::derefImpl() this=%08p, class=%s references=0 status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
+   // should never be called
+   assert(false);
+   return false;
+}
+
+// manages the custom dereference and executes the destructor if necessary
+void QoreObject::customDeref(ExceptionSink *xsink)
+{
    {
       SafeLocker sl(priv->m);
+      printd(5, "QoreObject::customDeref() this=%08p, class=%s references=%d->%d status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), references, references - 1, priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
+
+      if (--references)
+	 return;
+
       if (priv->status != OS_OK) {
 	 sl.unlock();
 	 tDeref();
-	 return false;
+	 return;
       }
 
       // if the scope deletion is blocked, then do not run the destructor
@@ -402,14 +413,11 @@ bool QoreObject::derefImpl(ExceptionSink *xsink)
 	    //printd(5, "QoreObject::derefImpl() this=%08p class=%s blocking delete\n", this, getClassName());
 	    priv->delete_blocker_run = true;
 	    //printd(0, "Object lock %08p unlocked (safe)\n", &priv->m);
-	    return false;
+	    return;
 	 }
       }
 
       //printd(5, "QoreObject::derefImpl() class=%s this=%08p going out of scope\n", getClassName(), this);
-
-      // reference for destructor
-      ROreference();
 
       // mark status as in destructor
       priv->status = gettid();
@@ -418,42 +426,41 @@ bool QoreObject::derefImpl(ExceptionSink *xsink)
    }
 
    doDeleteIntern(xsink);
-   if (ROdereference())
-      tDeref();
 
-   return false;
+   tDeref();
 }
 
 // this method is called when there is an exception in a constructor and the object should be deleted
 void QoreObject::obliterate(ExceptionSink *xsink)
 {
    printd(5, "QoreObject::obliterate(this=%08p) class=%s %d->%d\n", this, priv->theclass->getName(), references, references - 1);
+   
+   {
+      SafeLocker sl(priv->m);
+      if (--references)
+	 return;
 
-   if (ROdereference()) {
-      {
-	 SafeLocker sl(priv->m);
-	 //printd(0, "Object lock %08p locked   (safe)\n", &priv->m);
-	 printd(5, "QoreObject::obliterate() class=%s deleting this=%08p\n", priv->theclass->getName(), this);
+      //printd(0, "Object lock %08p locked   (safe)\n", &priv->m);
+      printd(5, "QoreObject::obliterate() class=%s deleting this=%08p\n", priv->theclass->getName(), this);
 
-	 if (priv->status == OS_OK) {
-	    priv->status = OS_DELETED;
-	    QoreHashNode *td = priv->data;
-	    priv->data = 0;
-	    //printd(0, "Object lock %08p unlocked (safe)\n", &priv->m);
-	    sl.unlock();
-
-	    if (priv->privateData)
-	       priv->privateData->derefAll(xsink);
-
-	    cleanup(xsink, td);
-	 }
-	 else {
-	    printd(5, "QoreObject::obliterate() %08p data=%08p status=%d\n", this, priv->data, priv->status);
-	    //printd(0, "Object lock %08p unlocked (safe)\n", &priv->m);
-	 }
+      if (priv->status == OS_OK) {
+	 priv->status = OS_DELETED;
+	 QoreHashNode *td = priv->data;
+	 priv->data = 0;
+	 //printd(0, "Object lock %08p unlocked (safe)\n", &priv->m);
+	 sl.unlock();
+	 
+	 if (priv->privateData)
+	    priv->privateData->derefAll(xsink);
+	 
+	 cleanup(xsink, td);
       }
-      tDeref();
+      else {
+	 printd(5, "QoreObject::obliterate() %08p data=%08p status=%d\n", this, priv->data, priv->status);
+	 //printd(0, "Object lock %08p unlocked (safe)\n", &priv->m);
+      }
    }
+   tDeref();
 }
 
 class qore_object_lock_handoff_manager {

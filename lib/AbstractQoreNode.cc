@@ -32,7 +32,7 @@
 #if TRACK_REFS
 #endif
 
-AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), reserved(false)
+AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers)
 {
 #if TRACK_REFS
    printd(5, "AbstractQoreNode::ref() %08p type=%d (0->1)\n", this, type);
@@ -59,11 +59,8 @@ void AbstractQoreNode::ref() const
 #endif
 #endif
    if (!there_can_be_only_one) {
-      // note that reacquireRef() can be called more than once as the
-      // check for 0 is not atomic - atomicity must be guaranteed by
-      // the reacquireRef() implementation
-      if (!reference_count())
-	 reacquireRef();
+      if (custom_reference_handlers)
+	 customRef();
       else
 	 ROreference();
    }
@@ -80,7 +77,12 @@ bool AbstractQoreNode::derefImpl(ExceptionSink *xsink)
    return true;
 }
 
-void AbstractQoreNode::reacquireRef() const
+void AbstractQoreNode::customRef() const
+{
+   assert(false);
+}
+
+void AbstractQoreNode::customDeref(ExceptionSink *xsink)
 {
    assert(false);
 }
@@ -92,7 +94,7 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
 #if TRACK_REFS
    if (type == NT_STRING) printd(5, "AbstractQoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
    else if (type == NT_OBJECT)
-      printd(5, "QoreObject::deref() %08p class=%s (%d->%d)\n", this, ((QoreObject *)this)->getClassName(), references, references - 1);
+      printd(5, "QoreObject::deref() %08p class=%s (%d->%d) %d\n", this, ((QoreObject *)this)->getClassName(), references, references - 1, custom_reference_handlers);
    else
       printd(5, "AbstractQoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
 
@@ -114,9 +116,11 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
       assert(is_unique());
       return;
    }
-      
-   if (ROdereference())
-   {
+   
+   if (custom_reference_handlers) {
+      customDeref(xsink);
+   }
+   else if (ROdereference()) {
       if (type < NUM_SIMPLE_TYPES || derefImpl(xsink))
 	 delete this;
    }
