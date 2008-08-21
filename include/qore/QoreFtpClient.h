@@ -59,20 +59,20 @@ class QoreFtpClient : public QoreThreadLock
       //! private implementation of the object
       struct qore_ftp_private *priv;
 
-      DLLLOCAL class QoreStringNode *getResponse(class ExceptionSink *xsink);
-      DLLLOCAL class QoreStringNode *sendMsg(const char *cmd, const char *arg, class ExceptionSink *xsink);
-      DLLLOCAL void stripEOL(class QoreString *str);
-      //DLLLOCAL int connectDataLongPassive(class ExceptionSink *xsink);
-      DLLLOCAL int connectDataExtendedPassive(class ExceptionSink *xsink);
-      DLLLOCAL int connectDataPassive(class ExceptionSink *xsink);
-      DLLLOCAL int connectDataPort(class ExceptionSink *xsink);
-      DLLLOCAL int connectData(class ExceptionSink *xsink);
-      DLLLOCAL int acceptDataConnection(class ExceptionSink *xsink);
-      DLLLOCAL int setBinaryMode(bool t, class ExceptionSink *xsink);
+      DLLLOCAL QoreStringNode *getResponse(ExceptionSink *xsink);
+      DLLLOCAL QoreStringNode *sendMsg(const char *cmd, const char *arg, ExceptionSink *xsink);
+      DLLLOCAL void stripEOL(QoreString *str);
+      //DLLLOCAL int connectDataLongPassive(ExceptionSink *xsink);
+      DLLLOCAL int connectDataExtendedPassive(ExceptionSink *xsink);
+      DLLLOCAL int connectDataPassive(ExceptionSink *xsink);
+      DLLLOCAL int connectDataPort(ExceptionSink *xsink);
+      DLLLOCAL int connectData(ExceptionSink *xsink);
+      DLLLOCAL int acceptDataConnection(ExceptionSink *xsink);
+      DLLLOCAL int setBinaryMode(bool t, ExceptionSink *xsink);
       DLLLOCAL int disconnectInternal();
-      DLLLOCAL int connectIntern(class FtpResp *resp, class ExceptionSink *xsink);
-      DLLLOCAL int doAuth(class FtpResp *resp, class ExceptionSink *xsink);
-      DLLLOCAL int doProt(class FtpResp *resp, class ExceptionSink *xsink);
+      DLLLOCAL int connectIntern(class FtpResp *resp, ExceptionSink *xsink);
+      DLLLOCAL int doAuth(class FtpResp *resp, ExceptionSink *xsink);
+      DLLLOCAL int doProt(class FtpResp *resp, ExceptionSink *xsink);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreFtpClient(const QoreFtpClient&);
@@ -87,7 +87,7 @@ class QoreFtpClient : public QoreThreadLock
 	  @param url the URL string to use to set connection parameters
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT QoreFtpClient(const QoreString *url, class ExceptionSink *xsink);
+      DLLEXPORT QoreFtpClient(const QoreString *url, ExceptionSink *xsink);
 
       //! disconnects from the host if necessary and frees all memory associated with the object
       DLLEXPORT ~QoreFtpClient();
@@ -97,7 +97,7 @@ class QoreFtpClient : public QoreThreadLock
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
-      DLLEXPORT int connect(class ExceptionSink *xsink);
+      DLLEXPORT int connect(ExceptionSink *xsink);
 
       //! disconnects from the remote host if connected
       /**
@@ -112,14 +112,14 @@ class QoreFtpClient : public QoreThreadLock
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
-      DLLEXPORT int cwd(const char *dir, class ExceptionSink *xsink);
+      DLLEXPORT int cwd(const char *dir, ExceptionSink *xsink);
 
       //! returns the working directory on the remote host (caller owns the reference count returned)
       /** the connection must be already established before this function is called or an error will be raised.
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return a string giving the working directory on the remote host (caller owns the reference count returned), 0 if an error occured
        */
-      DLLEXPORT class QoreStringNode *pwd(class ExceptionSink *xsink);
+      DLLEXPORT QoreStringNode *pwd(ExceptionSink *xsink);
 
       //! sends a file from the local filesystem to the remote server
       /** the connection must be already established before this function is called or an error will be raised.
@@ -128,7 +128,7 @@ class QoreFtpClient : public QoreThreadLock
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
-      DLLEXPORT int put(const char *localpath, const char *remotename, class ExceptionSink *xsink);
+      DLLEXPORT int put(const char *localpath, const char *remotename, ExceptionSink *xsink);
 
       //! gets a file from the remote server and saves it on the local filesystem
       /** the connection must be already established before this function is called or an error will be raised.
@@ -137,7 +137,7 @@ class QoreFtpClient : public QoreThreadLock
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
-      DLLEXPORT int get(const char *remotepath, const char *localname, class ExceptionSink *xsink);
+      DLLEXPORT int get(const char *remotepath, const char *localname, ExceptionSink *xsink);
 
       //! returns a string listing the directory contents on the remote host (caller owns the reference count returned)
       /** the connection must be already established before this function is called or an error will be raised.
@@ -146,7 +146,7 @@ class QoreFtpClient : public QoreThreadLock
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return a string giving the directory listing on the remote host (caller owns the reference count returned), 0 if an error occured
        */
-      DLLEXPORT class QoreStringNode *list(const char *path, bool long_list, class ExceptionSink *xsink);
+      DLLEXPORT QoreStringNode *list(const char *path, bool long_list, ExceptionSink *xsink);
 
       //! deletes the given file on the remote server
       /** the connection must be already established before this function is called or an error will be raised.
@@ -154,13 +154,8 @@ class QoreFtpClient : public QoreThreadLock
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
-      DLLEXPORT int del(const char *file, class ExceptionSink *xsink);
+      DLLEXPORT int del(const char *file, ExceptionSink *xsink);
  
-      //DLLEXPORT int cdup(class ExceptionSink *xsink);
-      //DLLEXPORT int rename(char *old, char *name, class ExceptionSink *xsink);
-      //DLLEXPORT int mkdir(char *dir, class ExceptionSink *xsink);
-      //DLLEXPORT int rmdir(char *dir, class ExceptionSink *xsink);
-
       //! returns the port number connection parameter
       DLLEXPORT int getPort() const;
 
@@ -179,13 +174,13 @@ class QoreFtpClient : public QoreThreadLock
 	  @param url the URL string to use to set connection parameters
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void setURL(const QoreString *url, class ExceptionSink *xsink);
+      DLLEXPORT void setURL(const QoreString *url, ExceptionSink *xsink);
 
       //! returns a URL string representing the current connection parameters, caller owns the reference count returned
       /** this function always returns a value
 	  @return a URL string representing the current connection parameters, caller owns the reference count returned
        */
-      DLLEXPORT class QoreStringNode *getURL() const;
+      DLLEXPORT QoreStringNode *getURL() const;
 
       //! sets the port connection parameter
       DLLEXPORT void setPort(int p);
