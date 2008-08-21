@@ -53,14 +53,14 @@ struct qore_object_private {
       QoreReferenceCounter tRefs;  // reference-references
       QoreHashNode *data;
       QoreProgram *pgm;
-      bool system_object, delete_blocker_run, tderef_done;
+      bool system_object, delete_blocker_run;
 
       DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
 	 theclass(oc), status(OS_OK), 
 #ifdef QORE_CLASS_SYNCHRONOUS
 	 sync_vrm(oc->has_synchronous_in_hierarchy() ? new VRMutex : 0),
 #endif 
-	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), tderef_done(false)
+	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false)
       {
 	 printd(5, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, p, oc->getName());
 	 /* instead of referencing the class, we reference the program, because the
@@ -376,6 +376,14 @@ void QoreObject::doDelete(ExceptionSink *xsink)
    doDeleteIntern(xsink);
 }
 
+void QoreObject::reacquireRef() const
+{
+   AutoLocker al(priv->m);
+   if (!reference_count())
+      tRef();
+   ROreference();
+}
+
 // does a deep dereference and executes the destructor if necessary
 bool QoreObject::derefImpl(ExceptionSink *xsink)
 {
@@ -383,13 +391,8 @@ bool QoreObject::derefImpl(ExceptionSink *xsink)
    {
       SafeLocker sl(priv->m);
       if (priv->status != OS_OK) {
-	 // only execute tDeref() once per object
-	 bool need_tderef = !priv->tderef_done;
-	 if (need_tderef)
-	    priv->tderef_done = true;
 	 sl.unlock();
-	 if (need_tderef)
-	    tDeref();
+	 tDeref();
 	 return false;
       }
 
@@ -415,18 +418,8 @@ bool QoreObject::derefImpl(ExceptionSink *xsink)
    }
 
    doDeleteIntern(xsink);
-   if (ROdereference()) {
-      // check if we can execute tDeref()
-      bool need_tderef;
-      {
-	 AutoLocker al(priv->m);
-	 need_tderef = !priv->tderef_done;
-	 if (need_tderef)
-	    priv->tderef_done = true;
-      }
-      if (need_tderef)
-	 tDeref();
-   }
+   if (ROdereference())
+      tDeref();
 
    return false;
 }

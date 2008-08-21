@@ -20,9 +20,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_NODE_H
+#ifndef _QORE_ABSTRACTQORENODE_H
 
-#define _QORE_NODE_H
+#define _QORE_ABSTRACTQORENODE_H
 
 #include <qore/common.h>
 #include <qore/QoreReferenceCounter.h>
@@ -127,6 +127,13 @@ class AbstractQoreNode : public QoreReferenceCounter
        */
       DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
 
+      //! special processing when the object's reference count transitions from 0-1
+      /** only called when reacquire_reference = true.
+	  The default implementation does nothing (calls assert(false) in debug
+	  mode)
+       */
+      DLLEXPORT virtual void reacquireRef() const;
+
    protected:
       //! the type of the object
       /**
@@ -142,6 +149,9 @@ class AbstractQoreNode : public QoreReferenceCounter
 
       //! if this is set to true, then reference counting is turned off for objects of this class
       bool there_can_be_only_one : 1;
+
+      //! reserved for future use
+      bool reserved : 1;
 
       //! default destructor does nothing
       /**

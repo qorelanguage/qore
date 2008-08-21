@@ -32,7 +32,7 @@
 #if TRACK_REFS
 #endif
 
-AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one)
+AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), reserved(false)
 {
 #if TRACK_REFS
    printd(5, "AbstractQoreNode::ref() %08p type=%d (0->1)\n", this, type);
@@ -58,8 +58,15 @@ void AbstractQoreNode::ref() const
       printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
 #endif
 #endif
-   if (!there_can_be_only_one)
-      ROreference();
+   if (!there_can_be_only_one) {
+      // note that reacquireRef() can be called more than once as the
+      // check for 0 is not atomic - atomicity must be guaranteed by
+      // the reacquireRef() implementation
+      if (!reference_count())
+	 reacquireRef();
+      else
+	 ROreference();
+   }
 }
 
 AbstractQoreNode *AbstractQoreNode::refSelf() const
@@ -71,6 +78,11 @@ AbstractQoreNode *AbstractQoreNode::refSelf() const
 bool AbstractQoreNode::derefImpl(ExceptionSink *xsink)
 {
    return true;
+}
+
+void AbstractQoreNode::reacquireRef() const
+{
+   assert(false);
 }
 
 void AbstractQoreNode::deref(ExceptionSink *xsink)

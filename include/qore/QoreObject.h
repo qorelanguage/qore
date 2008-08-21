@@ -104,6 +104,10 @@ class QoreObject : public AbstractQoreNode
        */
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
+      //! increments tRef() if the scope reference is reacquired from 0
+      DLLLOCAL void reacquireRef() const;
+
+      //! destructor
       DLLLOCAL virtual ~QoreObject();
 
    public:

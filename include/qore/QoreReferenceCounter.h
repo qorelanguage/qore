@@ -54,7 +54,7 @@ class QoreReferenceCounter
       { 
 	 return references; 
       }
-      
+
       //! returns true if the reference count is 1
       /**
 	 @return returns true if the reference count is 1
@@ -70,6 +70,7 @@ class QoreReferenceCounter
       //! atomically decrements the reference count
       /**
 	 returns true if the reference count is now zero
+	 @return true if the reference count is now zero
        */
       DLLEXPORT bool ROdereference() const;
 };
