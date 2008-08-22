@@ -77,7 +77,7 @@ int SmartMutex::releaseImpl(class ExceptionSink *xsink)
    if (tid != mtid)
    {
       // getName() for possible inheritance
-      xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock is held by tid %d", mtid, tid, getName());
+      xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock is held by tid %d", mtid, getName(), tid);
       return -1;
    }
    return 0;
