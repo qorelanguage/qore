@@ -1,3 +1,7 @@
+2008.08.22: David Nichols
+	* fixed a bug in an exception string in the Mutex class that could
+	  cause a core dump
+
 2008.08.12: David Nichols
 	* fixed constant resolution to only increment the recursive count
 	  when a constant is recursively defined
