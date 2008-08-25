@@ -397,7 +397,8 @@ static AbstractQoreNode *f_umask(const QoreListNode *params, ExceptionSink *xsin
 
 static AbstractQoreNode *f_rand(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBigIntNode(random());
+   // return a random 64-bit integer by calling random() twice
+   return new QoreBigIntNode(random() + (((int64)random()) << 32));
 }
 
 static AbstractQoreNode *f_srand(const QoreListNode *params, ExceptionSink *xsink)
