@@ -1,3 +1,6 @@
+2008.08.26: David Nichols
+	* added BinaryNode::prepend() method
+
 2008.08.25: David Nichols
 	* updated rand() to return a random 64-bit integer by calling random()
 	  twice; once for each 32-bit portion of the return value

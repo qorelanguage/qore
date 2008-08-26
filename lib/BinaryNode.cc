@@ -83,6 +83,16 @@ void BinaryNode::append(const BinaryNode *b)
    append(b->ptr, b->len);
 }
 
+void BinaryNode::prepend(const void *nptr, unsigned long size)
+{
+   ptr = realloc(ptr, len + size);
+   // move memory forward
+   memmove((char *)ptr + size, ptr, len);
+   // copy new memory to beginning
+   memcpy((char *)ptr, nptr, size);
+   len += size;
+}
+
 void *BinaryNode::giveBuffer()
 {
    void *p = ptr;
