@@ -198,7 +198,7 @@ void DateTime::format(QoreString &str, const char *fmt) const
 {
    struct tm nt;
 
-   tracein("DateTime::format()");
+   QORE_TRACE("DateTime::format()");
 
    const char *s = fmt;
    while (*s)
@@ -391,7 +391,7 @@ void DateTime::format(QoreString &str, const char *fmt) const
    }
 
    printd(5, "DateTime::format() returning \"%s\"\n", str.getBuffer());
-   traceout("DateTime::format()");
+
 }
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)

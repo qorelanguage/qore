@@ -101,17 +101,17 @@ class QoreStringNode *tibae_module_init()
 
 void tibae_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
-   tracein("tibae_module_ns_init()");
+   QORE_TRACE("tibae_module_ns_init()");
 
    qns->addInitialNamespace(tibns->copy());
 
-   traceout("tibae_module_nsinit()");
+
 }
 
 void tibae_module_delete()
 {
-   tracein("tibae_module_delete()");
+   QORE_TRACE("tibae_module_delete()");
    delete tibns;
-   traceout("tibae_module_delete()");
+
 }
 

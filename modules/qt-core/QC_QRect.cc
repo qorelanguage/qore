@@ -749,7 +749,7 @@ static AbstractQoreNode *QRECT_y(QoreObject *self, QoreQRect *qr, const QoreList
 
 class QoreClass *initQRectClass()
 {
-   tracein("initQRectClass()");
+   QORE_TRACE("initQRectClass()");
    
    QC_QRect = new QoreClass("QRect", QDOM_GUI);
    CID_QRECT = QC_QRect->getID();
@@ -810,6 +810,6 @@ class QoreClass *initQRectClass()
    QC_QRect->addMethod("x",                           (q_method_t)QRECT_x);
    QC_QRect->addMethod("y",                           (q_method_t)QRECT_y);
 
-   traceout("initQRectClass()");
+
    return QC_QRect;
 }

@@ -648,7 +648,7 @@ static void init_namespace()
 
 class QoreStringNode *ncurses_module_init()
 {
-   tracein("ncurses_module_init()");
+   QORE_TRACE("ncurses_module_init()");
 
    init_namespace();
 
@@ -714,7 +714,7 @@ class QoreStringNode *ncurses_module_init()
    builtinFunctions.add("getmouse",  f_getmouse, QDOM_TERMINAL_IO);
 #endif // NCURSES_MOUSE_VERSION
 
-   traceout("ncurses_module_init()");
+
    return 0;
 }
 
@@ -725,7 +725,7 @@ void ncurses_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 
 void ncurses_module_delete()
 {
-   tracein("ncurses_module_delete()");
+   QORE_TRACE("ncurses_module_delete()");
    q_nc_init.close();
-   traceout("ncurses_module_delete()");
+
 }

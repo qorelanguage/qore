@@ -25,9 +25,9 @@
 #define QORE_CONFIG_H
 
 #ifdef WIN32
-#include <qore/win32-config.h>
+#include <qore/intern/win32-config.h>
 #else
-#include <qore/unix-config.h>
+#include <qore/intern/unix-config.h>
 #endif
 
 #endif

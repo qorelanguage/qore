@@ -172,7 +172,7 @@ static AbstractQoreNode *QLCDNUMBER_setSmallDecimalPoint(QoreObject *self, QoreQ
 
 class QoreClass *initQLCDNumberClass(class QoreClass *qframe)
 {
-   tracein("initQLCDNumberClass()");
+   QORE_TRACE("initQLCDNumberClass()");
    
    class QoreClass *QC_QLCDNumber = new QoreClass("QLCDNumber", QDOM_GUI);
    CID_QLCDNUMBER = QC_QLCDNumber->getID();
@@ -199,6 +199,6 @@ class QoreClass *initQLCDNumberClass(class QoreClass *qframe)
    QC_QLCDNumber->addMethod("setOctMode",             (q_method_t)QLCDNUMBER_setOctMode);
    QC_QLCDNumber->addMethod("setSmallDecimalPoint",   (q_method_t)QLCDNUMBER_setSmallDecimalPoint);
 
-   traceout("initQLCDNumberClass()");
+
    return QC_QLCDNumber;
 }

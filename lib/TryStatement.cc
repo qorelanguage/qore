@@ -48,7 +48,7 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
 {
    AbstractQoreNode *trv = 0;
    
-   tracein("TryStatement::execImpl()");
+   QORE_TRACE("TryStatement::execImpl()");
    int rc = 0;
    if (try_block)
       rc = try_block->execImpl(&trv, xsink);
@@ -97,7 +97,7 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
       else
 	 *return_value = trv;
    }
-   traceout("TryStatement::execImpl()");
+
    return rc;
 }
 

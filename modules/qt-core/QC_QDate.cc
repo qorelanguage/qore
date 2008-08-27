@@ -204,7 +204,7 @@ static AbstractQoreNode *QDATE_year(QoreObject *self, QoreQDate *qd, const QoreL
 
 class QoreClass *initQDateClass()
 {
-   tracein("initQDateClass()");
+   QORE_TRACE("initQDateClass()");
    
    QC_QDate = new QoreClass("QDate", QDOM_GUI);
    CID_QDATE = QC_QDate->getID();
@@ -229,6 +229,6 @@ class QoreClass *initQDateClass()
    //QC_QDate->addMethod("weekNumber",                  (q_method_t)QDATE_weekNumber);
    QC_QDate->addMethod("year",                        (q_method_t)QDATE_year);
 
-   traceout("initQDateClass()");
+
    return QC_QDate;
 }

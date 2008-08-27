@@ -280,7 +280,7 @@ BuiltinFunction::BuiltinFunction(q_delete_blocker_t m)
 
 void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
 {
-   tracein("BuiltinFunction::evalConstructor()");
+   QORE_TRACE("BuiltinFunction::evalConstructor()");
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -304,7 +304,7 @@ void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args
 	 xsink->addStackInfo(CT_BUILTIN, class_name, "constructor", o_fn, o_ln, o_eln);
    }
    
-   traceout("BuiltinFunction::evalConstructor()");
+
 }
 
 void BuiltinFunction::evalSystemConstructor(QoreObject *self, int val, va_list args) const
@@ -315,7 +315,7 @@ void BuiltinFunction::evalSystemConstructor(QoreObject *self, int val, va_list a
 /*
 AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
-   tracein("BuiltinFunction::evalWithArgs()");
+   QORE_TRACE("BuiltinFunction::evalWithArgs()");
    printd(2, "BuiltinFunction::evalWithArgs() calling builtin function \"%s\"\n", name);
 
    // save current program location in case there's an exception
@@ -338,7 +338,7 @@ AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreList
    if (xsink->isException())
       xsink->addStackInfo(CT_BUILTIN, self ? self->getClassName() : 0, name, o_fn, o_ln, o_eln);
 
-   traceout("BuiltinFunction::evalWithArgs()");
+
    return rv;
 }
 */
@@ -360,7 +360,7 @@ AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, AbstractPrivateD
 
 void BuiltinFunction::evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const
 {
-   tracein("BuiltinFunction::evalDestructor()");
+   QORE_TRACE("BuiltinFunction::evalDestructor()");
    
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -380,12 +380,12 @@ void BuiltinFunction::evalDestructor(QoreObject *self, AbstractPrivateData *priv
    if (xsink->isException())
       xsink->addStackInfo(CT_BUILTIN, class_name, "destructor", o_fn, o_ln, o_eln);
    
-   traceout("BuiltinFunction::destructor()");
+
 }
 
 void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const
 {
-   tracein("BuiltinFunction::evalCopy()");
+   QORE_TRACE("BuiltinFunction::evalCopy()");
    
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -405,7 +405,7 @@ void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, AbstractPrivat
    if (xsink->isException())
       xsink->addStackInfo(CT_BUILTIN, class_name, "copy", o_fn, o_ln, o_eln);
    
-   traceout("BuiltinFunction::evalCopy()");
+
 }
 
 bool BuiltinFunction::evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const
@@ -423,7 +423,7 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
    AbstractQoreNode *rv;
    ExceptionSink newsink;
 
-   tracein("BuiltinFunction::eval(Node)");
+   QORE_TRACE("BuiltinFunction::eval(Node)");
    printd(3, "BuiltinFunction::eval(Node) calling builtin function \"%s\"\n", name);
    
    //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->getTypeName() : "(null)");
@@ -457,14 +457,14 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
    if (xsink->isException())
       xsink->addStackInfo(CT_BUILTIN, class_name ? class_name : 0, name, o_fn, o_ln, o_eln);
    
-   traceout("BuiltinFunction::eval(Node)");
+
    return rv;
 }
 
 // calls a user function
 AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name) const
 {
-   tracein("UserFunction::eval()");
+   QORE_TRACE("UserFunction::eval()");
    printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", getName(), args, args ? args->size() : 0);
 
    // save current program location in case there's an exception
@@ -586,7 +586,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 // this function will set up user copy constructor calls
 void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const
 {
-   tracein("UserFunction::evalCopy()");
+   QORE_TRACE("UserFunction::evalCopy()");
    printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", getName(), params->num_params, old);
 
    // save current program location in case there's an exception
@@ -650,13 +650,13 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
    if (xsink->isException())
       xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
    
-   traceout("UserFunction::evalCopy()");
+
 }
 
 // calls a user constructor method
 AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
 {
-   tracein("UserFunction::evalConstructor()");
+   QORE_TRACE("UserFunction::evalConstructor()");
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", class_name, getName(), args, args ? args->size() : 0);
 
    // save current program location in case there's an exception
@@ -698,7 +698,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	       n->deref(xsink);
 	    for (int j = i; j; j--)
 	       params->lv[j - 1]->uninstantiate(xsink);
-	    traceout("UserFunction::evalConstructor()");
+
 	    return 0;
 	 }
       }
@@ -786,7 +786,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    if (xsink->isException())
       xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
    
-   traceout("UserFunction::evalConstructor()");
+
    return val;
 }
 

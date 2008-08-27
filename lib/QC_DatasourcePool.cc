@@ -271,7 +271,7 @@ static AbstractQoreNode *DSP_inTransaction(QoreObject *self, class DatasourcePoo
 
 class QoreClass *initDatasourcePoolClass()
 {
-   tracein("initDatasourcePoolClass()");
+   QORE_TRACE("initDatasourcePoolClass()");
 
    class QoreClass *QC_DATASOURCEPOOL = new QoreClass("DatasourcePool", QDOM_DATABASE);
    CID_DATASOURCEPOOL = QC_DATASOURCEPOOL->getID();
@@ -303,6 +303,6 @@ class QoreClass *initDatasourcePoolClass()
    QC_DATASOURCEPOOL->addMethod("getClientVersion",  (q_method_t)DSP_getClientVersion);
    QC_DATASOURCEPOOL->addMethod("inTransaction",     (q_method_t)DSP_inTransaction);
 
-   traceout("initDatasourcePoolClass()");
+
    return QC_DATASOURCEPOOL;
 }

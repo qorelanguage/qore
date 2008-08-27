@@ -48,7 +48,7 @@ static AbstractQoreNode *QINPUTEVENT_modifiers(QoreObject *self, QoreQInputEvent
 
 class QoreClass *initQInputEventClass(class QoreClass *qevent)
 {
-   tracein("initQInputEventClass()");
+   QORE_TRACE("initQInputEventClass()");
    
    QC_QInputEvent = new QoreClass("QInputEvent", QDOM_GUI);
    CID_QINPUTEVENT = QC_QInputEvent->getID();
@@ -60,6 +60,6 @@ class QoreClass *initQInputEventClass(class QoreClass *qevent)
 
    QC_QInputEvent->addMethod("modifiers",                   (q_method_t)QINPUTEVENT_modifiers);
 
-   traceout("initQInputEventClass()");
+
    return QC_QInputEvent;
 }

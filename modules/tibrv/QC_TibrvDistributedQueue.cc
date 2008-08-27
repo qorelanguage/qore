@@ -31,7 +31,7 @@ qore_classid_t CID_TIBRVDQ;
 // syntax: name, [desc, service, network, daemon] 
 void TIBRVDQ_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBRVDQ_constructor");
+   QORE_TRACE("TIBRVDQ_constructor");
 
    const QoreStringNode *str = test_string_param(params, 0);
    if (!str)
@@ -110,7 +110,7 @@ void TIBRVDQ_constructor(class QoreObject *self, const QoreListNode *params, cla
    else
       self->setPrivate(CID_TIBRVDQ, qdq);
 
-   traceout("TIBRVDQ_constructor");
+
 }
 
 void TIBRVDQ_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvDistributedQueue *dq, ExceptionSink *xsink)
@@ -162,7 +162,7 @@ class AbstractQoreNode *TIBRVDQ_getWorkerTasks(class QoreObject *self, class Qor
 
 class QoreClass *initTibrvDistributedQueueClass()
 {
-   tracein("initTibrvDistributedQueueClass()");
+   QORE_TRACE("initTibrvDistributedQueueClass()");
 
    class QoreClass *QC_TIBRVDQ = new QoreClass("TibrvDistributedQueue", QDOM_NETWORK);
    CID_TIBRVDQ = QC_TIBRVDQ->getID();
@@ -173,6 +173,6 @@ class QoreClass *initTibrvDistributedQueueClass()
    QC_TIBRVDQ->addMethod("getWorkerWeight",  (q_method_t)TIBRVDQ_getWorkerWeight);
    QC_TIBRVDQ->addMethod("getWorkerTasks",   (q_method_t)TIBRVDQ_getWorkerTasks);
 
-   traceout("initTibrvDistributedQueueClass()");
+
    return QC_TIBRVDQ;
 }

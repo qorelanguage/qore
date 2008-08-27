@@ -330,7 +330,7 @@ static AbstractQoreNode *DS_inTransaction(QoreObject *self, class ManagedDatasou
 
 class QoreClass *initDatasourceClass()
 {
-   tracein("initDatasourceClass()");
+   QORE_TRACE("initDatasourceClass()");
 
    class QoreClass *QC_DATASOURCE = new QoreClass("Datasource", QDOM_DATABASE);
    CID_DATASOURCE = QC_DATASOURCE->getID();
@@ -375,6 +375,6 @@ class QoreClass *initDatasourceClass()
    QC_DATASOURCE->addMethod("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout);
    QC_DATASOURCE->addMethod("getTransactionLockTimeout", (q_method_t)DS_getTransactionLockTimeout);
 
-   traceout("initDatasourceClass()");
+
    return QC_DATASOURCE;
 }

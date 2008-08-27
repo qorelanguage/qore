@@ -147,7 +147,7 @@ QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *h) : A
 
 QoreObject::~QoreObject()
 {
-   //tracein("QoreObject::~QoreObject()");
+   //QORE_TRACE("QoreObject::~QoreObject()");
    //printd(5, "QoreObject::~QoreObject() this=%08p, pgm=%08p, class=%s\n", this, priv->pgm, priv->theclass->getName());
    delete priv;
 }

@@ -100,7 +100,7 @@ static AbstractQoreNode *CONDITION_wait_count(QoreObject *self, class Condition 
 
 class QoreClass *initConditionClass()
 {
-   tracein("initConditionClass()");
+   QORE_TRACE("initConditionClass()");
 
    class QoreClass *QC_CONDITION = new QoreClass("Condition", QDOM_THREAD_CLASS);
    CID_CONDITION = QC_CONDITION->getID();
@@ -112,6 +112,6 @@ class QoreClass *initConditionClass()
    QC_CONDITION->addMethod("wait",          (q_method_t)CONDITION_wait);
    QC_CONDITION->addMethod("wait_count",    (q_method_t)CONDITION_wait_count);
 
-   traceout("initConditionClass()");
+
    return QC_CONDITION;
 }

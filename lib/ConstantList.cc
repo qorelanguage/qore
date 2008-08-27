@@ -38,9 +38,9 @@ void ConstantList::remove(hm_qn_t::iterator i)
 
 ConstantList::~ConstantList()
 {
-   //tracein("ConstantList::~ConstantList()");
+   //QORE_TRACE("ConstantList::~ConstantList()");
    deleteAll();
-   //traceout("ConstantList::~ConstantList()");
+
 }
 
 //  NOTE: since constants cannot hold objects (only immediate values)

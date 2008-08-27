@@ -158,7 +158,7 @@ static AbstractQoreNode *QFRAME_setMidLineWidth(QoreObject *self, QoreAbstractQF
 
 class QoreClass *initQFrameClass(class QoreClass *qwidget)
 {
-   tracein("initQFrameClass()");
+   QORE_TRACE("initQFrameClass()");
    
    class QoreClass *QC_QFrame = new QoreClass("QFrame", QDOM_GUI);
    CID_QFRAME = QC_QFrame->getID();
@@ -182,6 +182,6 @@ class QoreClass *initQFrameClass(class QoreClass *qwidget)
    QC_QFrame->addMethod("setLineWidth",                (q_method_t)QFRAME_setLineWidth);
    QC_QFrame->addMethod("setMidLineWidth",             (q_method_t)QFRAME_setMidLineWidth);
 
-   traceout("initQFrameClass()");
+
    return QC_QFrame;
 }

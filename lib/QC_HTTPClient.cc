@@ -381,7 +381,7 @@ AbstractQoreNode *f_getMaxRedirects(QoreObject *self, class QoreHTTPClient *clie
 //-----------------------------------------------------------------------------
 QoreClass *initHTTPClientClass()
 {
-   tracein("initHTTPClientClass");
+   QORE_TRACE("initHTTPClientClass");
 
    // initialize static data structures in the QoreHTTPClient class
    QoreHTTPClient::static_init();
@@ -419,7 +419,7 @@ QoreClass *initHTTPClientClass()
    client->addMethod("setMaxRedirects",        (q_method_t)f_setMaxRedirects);
    client->addMethod("getMaxRedirects",        (q_method_t)f_getMaxRedirects);
 
-   traceout("initHTTPClientClass");
+
    return client;
 }
 

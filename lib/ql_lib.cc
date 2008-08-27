@@ -294,14 +294,14 @@ static AbstractQoreNode *f_stat(const QoreListNode *params, ExceptionSink *xsink
    if (!(p0 = test_string_param(params, 0)))
       return 0;
 
-   tracein("f_stat()");
+   QORE_TRACE("f_stat()");
    struct stat sbuf;
    int rc;
 
    if ((rc = stat(p0->getBuffer(), &sbuf)))
       return 0;
 
-   traceout("f_stat()");
+
    return map_sbuf_to_list(&sbuf);
 }
 
@@ -311,14 +311,14 @@ static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsin
    if (!(p0 = test_string_param(params, 0)))
       return 0;
 
-   tracein("f_lstat()");
+   QORE_TRACE("f_lstat()");
    struct stat sbuf;
    int rc;
 
    if ((rc = lstat(p0->getBuffer(), &sbuf)))
       return 0;
 
-   traceout("f_lstat()");
+
    return map_sbuf_to_list(&sbuf);
 }
 
@@ -328,14 +328,14 @@ static AbstractQoreNode *f_hstat(const QoreListNode *params, ExceptionSink *xsin
    if (!(p0 = test_string_param(params, 0)))
       return 0;
 
-   tracein("f_hstat()");
+   QORE_TRACE("f_hstat()");
    struct stat sbuf;
    int rc;
 
    if ((rc = stat(p0->getBuffer(), &sbuf)))
       return 0;
 
-   traceout("f_hstat()");
+
    return map_sbuf_to_hash(&sbuf);
 }
 
@@ -345,14 +345,14 @@ static AbstractQoreNode *f_hlstat(const QoreListNode *params, ExceptionSink *xsi
    if (!(p0 = test_string_param(params, 0)))
       return 0;
 
-   tracein("f_hlstat()");
+   QORE_TRACE("f_hlstat()");
    struct stat sbuf;
    int rc;
 
    if ((rc = lstat(p0->getBuffer(), &sbuf)))
       return 0;
 
-   traceout("f_hstat()");
+
    return map_sbuf_to_hash(&sbuf);
 }
 

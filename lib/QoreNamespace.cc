@@ -153,9 +153,9 @@ QoreNamespace::QoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespace
 
 QoreNamespace::~QoreNamespace()
 {
-   //tracein("QoreNamespace::~QoreNamespace()");
+   //QORE_TRACE("QoreNamespace::~QoreNamespace()");
    delete priv;
-   //traceout("QoreNamespace::~QoreNamespace()");
+
 }
 
 const char *QoreNamespace::getName() const
@@ -211,7 +211,7 @@ void QoreNamespace::addConstant(class NamedScope *nscope, AbstractQoreNode *valu
 // public, only called in single-threaded initialization
 void QoreNamespace::addSystemClass(QoreClass *oc)
 {
-   tracein("QoreNamespace::addSystemClass()");
+   QORE_TRACE("QoreNamespace::addSystemClass()");
 
 #ifdef DEBUG
    if (priv->classList->add(oc))
@@ -219,7 +219,7 @@ void QoreNamespace::addSystemClass(QoreClass *oc)
 #else
    priv->classList->add(oc);
 #endif
-   traceout("QoreNamespace::addSystemClass()");
+
 }
 
 // public, only called when parsing for unattached namespaces
@@ -377,7 +377,7 @@ void QoreNamespaceList::add(class QoreNamespace *ns)
 
 class QoreNamespace *QoreNamespaceList::find(const char *name)
 {
-   tracein("QoreNamespaceList::find()");
+   QORE_TRACE("QoreNamespaceList::find()");
    printd(5, "QoreNamespaceList::find(%s)\n", name);
 
    class QoreNamespace *w = head;
@@ -390,7 +390,7 @@ class QoreNamespace *QoreNamespaceList::find(const char *name)
    }
 
    printd(5, "QoreNamespaceList::find(%s) returning %08p\n", name, w);
-   traceout("QoreNamespaceList::find()");
+
    return w;
 }
 
@@ -528,7 +528,7 @@ static int parseInitConstantHash(QoreHashNode *h, int level)
 // does a recursive breadth-first search to resolve a namespace declaration
 QoreNamespace *QoreNamespaceList::parseResolveNamespace(class NamedScope *name, int *matched)
 {
-   tracein("QoreNamespaceList::parseResolveNamespace()");
+   QORE_TRACE("QoreNamespaceList::parseResolveNamespace()");
 
    class QoreNamespace *w = head, *ns = 0;
 
@@ -556,14 +556,14 @@ QoreNamespace *QoreNamespaceList::parseResolveNamespace(class NamedScope *name, 
       }
    }
 
-   traceout("QoreNamespaceList::parseResolveNamespace()");
+
    return ns;
 }
 
 // QoreNamespaceList::parseFindConstantValue()
 AbstractQoreNode *QoreNamespaceList::parseFindConstantValue(const char *cname)
 {
-   tracein("QoreNamespaceList::parseFindConstantValue()");
+   QORE_TRACE("QoreNamespaceList::parseFindConstantValue()");
    
    AbstractQoreNode *rv = 0;
    class QoreNamespace *w = head;
@@ -588,7 +588,7 @@ AbstractQoreNode *QoreNamespaceList::parseFindConstantValue(const char *cname)
       }
    }
 
-   traceout("QoreNamespaceList::parseFindConstantValue()");
+
    return rv;
 }
 
@@ -608,7 +608,7 @@ AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(class NamedSco
 {
    AbstractQoreNode *rv = 0;
 
-   tracein("QoreNamespaceList::parseFindScopedConstantValue()");
+   QORE_TRACE("QoreNamespaceList::parseFindScopedConstantValue()");
    printd(5, "QoreNamespaceList::parseFindScopedConstantValue(this=%08p) target: %s\n", this, name->ostr);
 
    //showNSL(this);
@@ -634,7 +634,7 @@ AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(class NamedSco
       }
    }
 
-   traceout("QoreNamespaceList::parseFindScopedConstantValue()");
+
    return rv;
 }
 
@@ -1164,7 +1164,7 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *scname,
 // while the program-level parse lock is held
 void QoreNamespace::addClass(QoreClass *oc)
 {
-   tracein("QoreNamespace::addClass()");
+   QORE_TRACE("QoreNamespace::addClass()");
    //printd(5, "QoreNamespace::addClass() adding str=%s (%08p)\n", oc->name, oc);
    // raise an exception if object name collides with a namespace
    if (priv->nsl->find(oc->getName()))
@@ -1187,7 +1187,7 @@ void QoreNamespace::addClass(QoreClass *oc)
       parse_error("class '%s' is already pending in namespace '%s'", oc->getName(), priv->name.c_str());
       delete oc;
    }
-   traceout("QoreNamespace::addClass()");
+
 }
 
 void QoreNamespace::assimilate(class QoreNamespace *ns)
@@ -1443,7 +1443,7 @@ AbstractQoreNode *RootQoreNamespace::rootFindConstantValue(const char *cname) co
 // only called with RootNS
 void RootQoreNamespace::rootAddClass(class NamedScope *nscope, QoreClass *oc)
 {
-   tracein("RootQoreNamespace::rootAddClass()");
+   QORE_TRACE("RootQoreNamespace::rootAddClass()");
 
    class QoreNamespace *sns = rootResolveNamespace(nscope);
 
@@ -1456,7 +1456,7 @@ void RootQoreNamespace::rootAddClass(class NamedScope *nscope, QoreClass *oc)
    else
       delete oc;
 
-   traceout("RootQoreNamespace::rootAddClass()");
+
 }
 
 void RootQoreNamespace::rootAddConstant(class NamedScope *nscope, AbstractQoreNode *value)
@@ -1476,25 +1476,25 @@ void RootQoreNamespace::rootAddConstant(class NamedScope *nscope, AbstractQoreNo
 // public
 QoreClass *RootQoreNamespace::rootFindClass(const char *ocname) const
 {
-   tracein("RootQoreNamespace::rootFindClass");
+   QORE_TRACE("RootQoreNamespace::rootFindClass");
    QoreClass *oc;
    if (!(oc = priv->classList->find(ocname))
        && !(oc = priv->pendClassList->find(ocname))
        && !(oc = priv->nsl->parseFindClass(ocname)))
       oc = priv->pendNSL->parseFindClass(ocname);
-   traceout("RootQoreNamespace::rootFindClass");
+
    return oc;
 }
 
 QoreClass *RootQoreNamespace::rootFindChangeClass(const char *ocname)
 {
-   tracein("RootQoreNamespace::rootFindChangeClass");
+   QORE_TRACE("RootQoreNamespace::rootFindChangeClass");
    QoreClass *oc;
    if (!(oc = priv->classList->findChange(ocname))
        && !(oc = priv->pendClassList->find(ocname))
        && !(oc = priv->nsl->parseFindChangeClass(ocname)))
       oc = priv->pendNSL->parseFindClass(ocname);
-   traceout("RootQoreNamespace::rootFindChangeClass");
+
    return oc;
 }
 
@@ -1555,7 +1555,7 @@ void RootQoreNamespace::addQoreNamespace(class QoreNamespace *qns)
 // sets up the root namespace
 RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespace()
 {
-   tracein("RootQoreNamespace::RootNamespace");
+   QORE_TRACE("RootQoreNamespace::RootNamespace");
 
    priv->name = "";
 
@@ -1677,7 +1677,7 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    ANSL.init(this, qns);
 
    *QoreNS = qns;
-   traceout("RootQoreNamespace::RootNamespace");
+
 }
 
 // private constructor

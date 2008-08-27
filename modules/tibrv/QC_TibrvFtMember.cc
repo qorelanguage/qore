@@ -31,7 +31,7 @@ qore_classid_t CID_TIBRVFTMEMBER;
 // syntax: subject, [desc, service, network, daemon] 
 static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBRVFTMEMBER_constructor");
+   QORE_TRACE("TIBRVFTMEMBER_constructor");
 
    const QoreStringNode *str = test_string_param(params, 0);
    if (!str)
@@ -123,15 +123,15 @@ static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreListNode
    else
       self->setPrivate(CID_TIBRVFTMEMBER, qftmember);
 
-   traceout("TIBRVFTMEMBER_constructor");
+
 }
 
 static void TIBRVFTMEMBER_destructor(class QoreObject *self, class QoreTibrvFtMember *ftm, class ExceptionSink *xsink)
 {
-   tracein("TIBRVFTMEMBER_destructor()");
+   QORE_TRACE("TIBRVFTMEMBER_destructor()");
    ftm->stop();
    ftm->deref();
-   traceout("TIBRVFTMEMBER_destructor()");
+
 }
 
 static void TIBRVFTMEMBER_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvFtMember *ftm, ExceptionSink *xsink)
@@ -170,7 +170,7 @@ class AbstractQoreNode *TIBRVFTMEMBER_setWeight(class QoreObject *self, class Qo
 
 class QoreClass *initTibrvFtMemberClass()
 {
-   tracein("initTibrvFtMemberClass()");
+   QORE_TRACE("initTibrvFtMemberClass()");
 
    class QoreClass *QC_TIBRVFTMEMBER = new QoreClass("TibrvFtMember", QDOM_NETWORK);
    CID_TIBRVFTMEMBER = QC_TIBRVFTMEMBER->getID();
@@ -182,6 +182,6 @@ class QoreClass *initTibrvFtMemberClass()
    QC_TIBRVFTMEMBER->addMethod("getGroupName",  (q_method_t)TIBRVFTMEMBER_getGroupName);
    QC_TIBRVFTMEMBER->addMethod("setWeight",     (q_method_t)TIBRVFTMEMBER_setWeight);
 
-   traceout("initTibrvFtMemberClass()");
+
    return QC_TIBRVFTMEMBER;
 }

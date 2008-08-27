@@ -31,7 +31,7 @@ qore_classid_t CID_TIBRVSENDER;
 // syntax: [desc, service, network, daemon] 
 void TIBRVSENDER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBRVSENDER_constructor");
+   QORE_TRACE("TIBRVSENDER_constructor");
 
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
    const QoreStringNode *pt = test_string_param(params, 0);
@@ -54,7 +54,7 @@ void TIBRVSENDER_constructor(class QoreObject *self, const QoreListNode *params,
    else
       self->setPrivate(CID_TIBRVSENDER, qsender);
 
-   traceout("TIBRVSENDER_constructor");
+
 }
 
 void TIBRVSENDER_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvSender *trvs, ExceptionSink *xsink)
@@ -125,7 +125,7 @@ class AbstractQoreNode *TIBRVSENDER_getStringEncoding(class QoreObject *self, cl
 
 class QoreClass *initTibrvSenderClass()
 {
-   tracein("initTibrvSenderClass()");
+   QORE_TRACE("initTibrvSenderClass()");
 
    class QoreClass *QC_TIBRVSENDER = new QoreClass("TibrvSender", QDOM_NETWORK);
    CID_TIBRVSENDER = QC_TIBRVSENDER->getID();
@@ -136,6 +136,6 @@ class QoreClass *initTibrvSenderClass()
    QC_TIBRVSENDER->addMethod("setStringEncoding",         (q_method_t)TIBRVSENDER_setStringEncoding);
    QC_TIBRVSENDER->addMethod("getStringEncoding",         (q_method_t)TIBRVSENDER_getStringEncoding);
 
-   traceout("initTibrvSenderClass()");
+
    return QC_TIBRVSENDER;
 }

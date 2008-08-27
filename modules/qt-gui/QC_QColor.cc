@@ -741,7 +741,7 @@ static AbstractQoreNode *f_QColor_setAllowX11ColorNames(const QoreListNode *para
 
 QoreClass *initQColorClass()
 {
-   tracein("initQColorClass()");
+   QORE_TRACE("initQColorClass()");
    
    QC_QColor = new QoreClass("QColor", QDOM_GUI);
    CID_QCOLOR = QC_QColor->getID();
@@ -824,6 +824,6 @@ QoreClass *initQColorClass()
    QC_QColor->addStaticMethod("setAllowX11ColorNames",        f_QColor_setAllowX11ColorNames);
 #endif
 
-   traceout("initQColorClass()");
+
    return QC_QColor;
 }

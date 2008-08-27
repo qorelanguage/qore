@@ -85,7 +85,7 @@ static AbstractQoreNode *QEVENT_type(QoreObject *self, QoreQEvent *qe, const Qor
 
 static class QoreClass *initQEventClass()
 {
-   tracein("initQEventClass()");
+   QORE_TRACE("initQEventClass()");
    
    QC_QEvent = new QoreClass("QEvent", QDOM_GUI);
    CID_QEVENT = QC_QEvent->getID();
@@ -99,7 +99,7 @@ static class QoreClass *initQEventClass()
    QC_QEvent->addMethod("spontaneous",                 (q_method_t)QEVENT_spontaneous);
    QC_QEvent->addMethod("type",                        (q_method_t)QEVENT_type);
 
-   traceout("initQEventClass()");
+
    return QC_QEvent;
 }
 

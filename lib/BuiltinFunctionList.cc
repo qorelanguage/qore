@@ -117,7 +117,7 @@ inline int BuiltinFunctionList::size()
 
 void BuiltinFunctionList::init()
 {
-   tracein("BuiltinFunctionList::init()");
+   QORE_TRACE("BuiltinFunctionList::init()");
 
    init_string_functions();
    init_io_functions();
@@ -142,5 +142,5 @@ void BuiltinFunctionList::init()
 #endif
    init_done = true;
 
-   traceout("BuiltinFunctionList::init()");
+
 }

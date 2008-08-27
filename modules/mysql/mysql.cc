@@ -967,7 +967,7 @@ static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res, 
 
 static class AbstractQoreNode *qore_mysql_do_sql(const Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
-   tracein("qore_mysql_do_sql()");
+   QORE_TRACE("qore_mysql_do_sql()");
 
    TempEncodingHelper tqstr(qstr, ds->getQoreEncoding(), xsink);
    if (!tqstr)
@@ -1004,7 +1004,7 @@ static class AbstractQoreNode *qore_mysql_do_sql(const Datasource *ds, const Qor
       mysql_commit(db);
 #endif
 
-   traceout("qore_mysql_do_sql()");
+
    return rv;
 }
 
@@ -1018,12 +1018,12 @@ static class AbstractQoreNode *qore_mysql_do_sql_horizontal(const Datasource *ds
 /*
 static class QoreHashNode *qore_mysql_describe(Datasource *ds, char *table_name, ExceptionSink *xsink)
 {
-   tracein("qore_mysql_describe()");
+   QORE_TRACE("qore_mysql_describe()");
 
    checkInit();
    xsink->raiseException("DBI:MYSQL:NOT-IMPLEMENTED", "sorry, not implemented yet");
 
-   traceout("qore_mysql_describe()");
+
    return NULL;
 }
 */
@@ -1089,7 +1089,7 @@ static int qore_mysql_open_datasource(Datasource *ds, ExceptionSink *xsink)
 
 static int qore_mysql_close_datasource(Datasource *ds)
 {
-   tracein("qore_mysql_close_datasource()");
+   QORE_TRACE("qore_mysql_close_datasource()");
 
    checkInit();
 
@@ -1100,7 +1100,7 @@ static int qore_mysql_close_datasource(Datasource *ds)
    delete d_mysql;
    ds->setPrivateData(NULL);
    
-   traceout("qore_mysql_close_datasource()");
+
 
    return 0;
 }
@@ -1145,14 +1145,14 @@ QoreStringNode *qore_mysql_module_init()
 
 void qore_mysql_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
-   tracein("qore_mysql_module_ns_init()");
+   QORE_TRACE("qore_mysql_module_ns_init()");
    // nothing to do at the moment
-   traceout("qore_mysql_module_ns_init()");
+
 }
 
 void qore_mysql_module_delete()
 {
-   tracein("qore_mysql_module_delete()");
+   QORE_TRACE("qore_mysql_module_delete()");
 
    //printf("mysql delete\n");
 
@@ -1162,7 +1162,7 @@ void qore_mysql_module_delete()
    pthread_key_delete(ptk_mysql);
 
    //DBI_deregisterDriver(DBID_MYSQL);
-   traceout("qore_mysql_module_delete()");
+
 }
 
 

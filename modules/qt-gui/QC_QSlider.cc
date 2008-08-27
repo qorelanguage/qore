@@ -98,7 +98,7 @@ static AbstractQoreNode *QSLIDER_tickPosition(QoreObject *self, QoreQSlider *qs,
 
 class QoreClass *initQSliderClass(class QoreClass *qabstractslider)
 {
-   tracein("initQSliderClass()");
+   QORE_TRACE("initQSliderClass()");
    
    class QoreClass *QC_QSlider = new QoreClass("QSlider", QDOM_GUI);
 
@@ -114,6 +114,6 @@ class QoreClass *initQSliderClass(class QoreClass *qabstractslider)
    QC_QSlider->addMethod("tickInterval",                (q_method_t)QSLIDER_tickInterval);
    QC_QSlider->addMethod("tickPosition",                (q_method_t)QSLIDER_tickPosition);
 
-   traceout("initQSliderClass()");
+
    return QC_QSlider;
 }

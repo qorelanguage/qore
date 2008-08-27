@@ -70,7 +70,7 @@ QoreApp::QoreApp(MAppProperties *pMAP, const char *name, QoreHashNode *clh,
 
 QoreApp::~QoreApp()
 {
-   tracein("QoreApp::~QoreApp()");
+   QORE_TRACE("QoreApp::~QoreApp()");
    printd(5, "QoreApp::~QoreApp() this=%08p session=%s\n", this, session_name);
 
    remove_pending_calls(this); // pending operations async calls
@@ -101,13 +101,13 @@ QoreApp::~QoreApp()
    
    delete appProps;
    
-   traceout("QoreApp::~QoreApp()");
+
 }
 
 void QoreApp::deref(ExceptionSink *xsink)
 {
    //printd(5, "QoreApp::deref() this=%08p session=%s, refs=%d -> %d\n", this, session_name, reference_count(), reference_count() - 1);
-   //tracein("QoreApp::deref()");
+   //QORE_TRACE("QoreApp::deref()");
    if (ROdereference())
    {
       try {
@@ -280,7 +280,7 @@ class MData *QoreApp::do_type(int type_code, const AbstractQoreNode *v, Exceptio
 // FIXME: currently no comparison is done between the expected type and the provided type
 MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
-   //tracein("QoreApp::do_primitive_type()");
+   //QORE_TRACE("QoreApp::do_primitive_type()");
 
    if (!v)
       return NULL;
@@ -402,13 +402,13 @@ lass '%s'", pcd->getFullName().c_str(), cn);
 
    xsink->raiseException("TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type '%s' (TIBCO type '%s')", v->getTypeName(), pcd->getShortName().c_str());
 
-   //traceout("QoreApp::do_primitive_type()");
+
    return 0;
 }
 
 MTree *QoreApp::make_MTree(const char *class_name, const AbstractQoreNode *value, ExceptionSink *xsink)
 {
-   tracein("QoreApp::make_MTree");
+   QORE_TRACE("QoreApp::make_MTree");
 
    const MBaseClassDescription *mbcd;
 
@@ -456,7 +456,7 @@ MTree *QoreApp::make_MTree(const char *class_name, const AbstractQoreNode *value
    if (md)
       delete md;
 
-   traceout("QoreApp::make_MTree");
+
    return mt;
 }
 
@@ -465,7 +465,7 @@ class AbstractQoreNode *QoreApp::map_mtree_to_node(MTree *msg, ExceptionSink *xs
 {
    class AbstractQoreNode *rv;
 
-   tracein("QoreApp::map_mtree_to_node()");
+   QORE_TRACE("QoreApp::map_mtree_to_node()");
 
    MDataFactory mdf(mcr);
    if (msg)
@@ -479,7 +479,7 @@ class AbstractQoreNode *QoreApp::map_mtree_to_node(MTree *msg, ExceptionSink *xs
    else
       rv = NULL;
 
-   traceout("QoreApp::map_mtree_to_node()");
+
    return rv;
 }
 
@@ -531,10 +531,10 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, const
 
 MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
-   tracein("QoreApp::instantiate_modeledclass()");
+   QORE_TRACE("QoreApp::instantiate_modeledclass()");
    if (is_nothing(v))
    {
-      traceout("QoreApp::instantiate_modeledclass()");
+
       return new MInstance(mcr, mcd->getFullName());
    }
    const QoreHashNode *h;
@@ -569,7 +569,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, co
 				  "error instantiating TIBCO class '%s', hash key '%s' is not an attribute of this class",
 				  mcd->getFullName().c_str(), key);
             delete ma;
-            traceout("QoreApp::instantiate_modeledclass()");
+
             return NULL;
          }
          printd(5, "QoreApp::instantiate_modeledclass(): instantiating %s member %s (%08p %s)\n",
@@ -592,21 +592,21 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, co
    catch (MException &te)
    {
       delete ma;
-      traceout("QoreApp::instantiate_modeledclass()");
+
       throw te;
    }
 
-   traceout("QoreApp::instantiate_modeledclass()");
+
    return ma;
 }
 
 MData *QoreApp::instantiate_union(const MUnionDescription *mud, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
-   tracein("QoreApp::instantiate_union()");
+   QORE_TRACE("QoreApp::instantiate_union()");
 
    if (is_nothing(v))
    {
-      traceout("QoreApp::instantiate_union()");
+
       return new MUnion(mcr, mud->getFullName());
    }
    const QoreHashNode *h;
@@ -653,13 +653,13 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, const AbstractQo
          delete md;
    }
 
-   traceout("QoreApp::instantiate_union()");
+
    return mu;
 }
 
 class MData *QoreApp::instantiate_class(const AbstractQoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink)
 {
-   tracein("QoreApp::instantiate_class()");
+   QORE_TRACE("QoreApp::instantiate_class()");
    printd(5, "QoreApp::instantiate_class() mbcd=%08p %s: %08p (%s)\n", mbcd, mbcd->getFullName().c_str(), v, v ? v->getTypeName() : "(null)");
 
    const MPrimitiveClassDescription *pcd;
@@ -687,13 +687,13 @@ class MData *QoreApp::instantiate_class(const AbstractQoreNode *v, const MBaseCl
       assert(false);
    }
 
-   traceout("QoreApp::instantiate_class()");
+
    return rv;
 }
 
 void QoreApp::onInitialization() throw (MException)
 {
-   tracein("QoreApp::onInitialization()");
+   QORE_TRACE("QoreApp::onInitialization()");
    try
    {
 #ifdef TIBCO_EXPLICIT_CREATE_SESSION
@@ -716,7 +716,7 @@ void QoreApp::onInitialization() throw (MException)
       assert(false);
    }
 #endif
-   traceout("QoreApp::onInitialization()");
+
 }
 
 class AbstractQoreNode *QoreApp::sendWithSyncReply(const char *function_name, const AbstractQoreNode *value, int timeout, ExceptionSink *xsink)
@@ -886,7 +886,7 @@ QoreHashNode *QoreApp::receive(const char *subj, unsigned long timeout, Exceptio
 {
    QoreHashNode *rv = NULL;
 
-   tracein("QoreApp::receive()");
+   QORE_TRACE("QoreApp::receive()");
    try {
       rcv_lock.lock();
       try {
@@ -923,7 +923,7 @@ QoreHashNode *QoreApp::receive(const char *subj, unsigned long timeout, Exceptio
       {
 	 if (!mySession->nextEvent(timeout))
 	 {
-	    traceout("QoreApp::receive()");
+
 	    return NULL;
 	 }
       }
@@ -958,13 +958,13 @@ QoreHashNode *QoreApp::receive(const char *subj, unsigned long timeout, Exceptio
       xsink->raiseException("TIBCO-EXCEPTION", "%s, %s", 
 			    tib_e.getType().c_str(), tib_e.getDescription().c_str());
    }
-   traceout("QoreApp::receive()");
+
    return rv;
 }
 
 void QoreEventHandler::onEvent(const MEvent &refEvent)
 {
- tracein("QoreEventHandler::onEvent()");
+ QORE_TRACE("QoreEventHandler::onEvent()");
  try {
   const MDataEvent *mde;
   const MExceptionEvent *mee;
@@ -1009,7 +1009,7 @@ void QoreEventHandler::onEvent(const MEvent &refEvent)
     xsink.raiseException("TIBCO-EXCEPTION", "%s, %s",
       tib_e.getType().c_str(), tib_e.getDescription().c_str());
   }
-  traceout("QoreEventHandler::onEvent()");
+
 }
 
 

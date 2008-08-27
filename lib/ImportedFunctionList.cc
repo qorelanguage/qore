@@ -48,12 +48,12 @@ ImportedFunctionList::~ImportedFunctionList()
 
 void ImportedFunctionList::add(QoreProgram *pgm, class UserFunction *func)
 {
-   tracein("ImportedFunctionList::add()");
+   QORE_TRACE("ImportedFunctionList::add()");
    
    ImportedFunctionNode *n = new ImportedFunctionNode(pgm, func);
    insert(std::make_pair(func->getName(), n));
    
-   traceout("ImportedFunctionList::add()");
+
 }
 
 class ImportedFunctionNode *ImportedFunctionList::findNode(const char *name) const

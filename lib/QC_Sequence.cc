@@ -53,7 +53,7 @@ static AbstractQoreNode *SEQUENCE_getCurrent(QoreObject *self, class QoreSequenc
 
 class QoreClass *initSequenceClass()
 {
-   tracein("initSequenceClass()");
+   QORE_TRACE("initSequenceClass()");
 
    // note that this class does not block therefore has no QDOM_THREAD
    class QoreClass *QC_SEQUENCE = new QoreClass("Sequence");
@@ -63,6 +63,6 @@ class QoreClass *initSequenceClass()
    QC_SEQUENCE->addMethod("next",          (q_method_t)SEQUENCE_next);
    QC_SEQUENCE->addMethod("getCurrent",    (q_method_t)SEQUENCE_getCurrent);
 
-   traceout("initSequenceClass()");
+
    return QC_SEQUENCE;
 }

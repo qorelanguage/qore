@@ -118,7 +118,7 @@ static AbstractQoreNode *RWLOCK_getWriteWaiting(QoreObject *self, class RWLock *
 
 class QoreClass *initRWLockClass()
 {
-   tracein("initRWLockClass()");
+   QORE_TRACE("initRWLockClass()");
 
    class QoreClass *QC_RWLOCK = new QoreClass("RWLock", QDOM_THREAD_CLASS);
    CID_RWLOCK = QC_RWLOCK->getID();
@@ -135,6 +135,6 @@ class QoreClass *initRWLockClass()
    QC_RWLOCK->addMethod("getReadWaiting",  (q_method_t)RWLOCK_getReadWaiting);
    QC_RWLOCK->addMethod("getWriteWaiting", (q_method_t)RWLOCK_getWriteWaiting);
 
-   traceout("initRWLockClass()");
+
    return QC_RWLOCK;
 }

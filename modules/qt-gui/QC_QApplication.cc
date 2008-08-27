@@ -775,7 +775,7 @@ static AbstractQoreNode *f_QApplication_windowIcon(const QoreListNode *params, E
 
 QoreClass *initQApplicationClass(class QoreClass *qcoreapplication)
 {
-   tracein("initQApplicationClass()");
+   QORE_TRACE("initQApplicationClass()");
    
    QoreClass *QC_QApplication = new QoreClass("QApplication", QDOM_GUI);
    CID_QAPPLICATION = QC_QApplication->getID();
@@ -854,6 +854,6 @@ QoreClass *initQApplicationClass(class QoreClass *qcoreapplication)
    QC_QApplication->addStaticMethod("widgetAt",                     f_QApplication_widgetAt);
    QC_QApplication->addStaticMethod("windowIcon",                   f_QApplication_windowIcon);
 
-   traceout("initQApplicationClass()");
+
    return QC_QApplication;
 }

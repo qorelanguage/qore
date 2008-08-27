@@ -339,7 +339,7 @@ static AbstractQoreNode *QGRIDLAYOUT_verticalSpacing(QoreObject *self, QoreQGrid
 
 class QoreClass *initQGridLayoutClass(class QoreClass *qlayout)
 {
-   tracein("initQGridLayoutClass()");
+   QORE_TRACE("initQGridLayoutClass()");
    
    class QoreClass *QC_QGridLayout = new QoreClass("QGridLayout", QDOM_GUI);
    CID_QGRIDLAYOUT = QC_QGridLayout->getID();
@@ -373,6 +373,6 @@ class QoreClass *initQGridLayoutClass(class QoreClass *qlayout)
    QC_QGridLayout->addMethod("spacing",                     (q_method_t)QGRIDLAYOUT_spacing);
    QC_QGridLayout->addMethod("verticalSpacing",             (q_method_t)QGRIDLAYOUT_verticalSpacing);
 
-   traceout("initQGridLayoutClass()");
+
    return QC_QGridLayout;
 }

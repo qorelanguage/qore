@@ -111,7 +111,7 @@ class Var *GlobalVariableList::findVar(const char *name)
 // used for resolving unflagged global variables
 class Var *GlobalVariableList::checkVar(const char *name, int *new_var)
 {
-   tracein("GlobalVariableList::checkVar()");
+   QORE_TRACE("GlobalVariableList::checkVar()");
    class Var *var;
    
    if (!(var = findVar(name)))
@@ -119,7 +119,7 @@ class Var *GlobalVariableList::checkVar(const char *name, int *new_var)
       *new_var = 1;
       var = newVar(name);
    }
-   traceout("GlobalVariableList::checkVar()");
+
    return var;
 }
 

@@ -43,7 +43,7 @@ struct node_row_list_s {
 
 Context::~Context()
 {
-   tracein("Context::~Context()");
+   QORE_TRACE("Context::~Context()");
 
    assert(get_context_stack());
    update_context_stack(get_context_stack()->next);
@@ -74,7 +74,7 @@ Context::~Context()
    else if (row_list)
       free(row_list);
 
-   traceout("Context::~Context()");
+
 }
 
 int Context::check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx)
@@ -82,7 +82,7 @@ int Context::check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx)
    AbstractQoreNode *val;
    int rc;
    
-   tracein("Context::check_condition()");
+   QORE_TRACE("Context::check_condition()");
    val = cond->eval(xsinkx);
    if (xsinkx->isEvent())
    {
@@ -96,7 +96,7 @@ int Context::check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx)
    }
    else
       rc = 0;
-   traceout("Context::check_condition()");
+
    return rc;
 }
 
@@ -215,7 +215,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type)
 {
    int sense = 1, i;
 
-   tracein("Context::Sort()");
+   QORE_TRACE("Context::Sort()");
       
    printd(5, "sorting context (%d row(s)) (type=%d)\n", 
 	  //query->name,
@@ -261,7 +261,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type)
    }
 
    delete [] list;
-   traceout("Context::Sort()");
+
 }
 
 /*
@@ -284,7 +284,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
    //int sense, lcolumn = -1, fcolumn = -1
    //class Key *key = 0;
 
-   tracein("Context::Context()");
+   QORE_TRACE("Context::Context()");
    //e = ex;
    group_pos = max_group_pos = max_pos = pos = master_max_pos = 0;
    row_list = 0;
@@ -536,7 +536,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
    }
    pos = 0;
    printd(5, "Context::Context() max_pos = %d\n", max_pos);
-   traceout("Context::Context()");
+
 }
 
 int Context::next_summary()

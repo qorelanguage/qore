@@ -32,7 +32,7 @@
 // FIXME: check err?
 int q_gethostbyname(const char *host, struct in_addr *sin_addr)
 {
-   tracein("q_gethostbyname()");
+   QORE_TRACE("q_gethostbyname()");
    
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
@@ -45,14 +45,14 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr)
    {
       // NOTE: ERANGE means that the buffer was too small
       //printd(5, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
-      traceout("q_gethostbyname()");
+
       return -1;
    }
 # else // assume Solaris-style gethostbyname_r
    if (!gethostbyname_r(host, &he, buf, NET_BUFSIZE, &err))
    {
       printd(5, "q_gethostbyname() Solaris gethostbyname_r() returned NULL");
-      traceout("q_gethostbyname()");
+
       return -1;
    }
 # endif // HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
@@ -64,13 +64,13 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr)
    {
       //herror("q_gethostbyname()");
       lck_gethostbyname.unlock();
-      traceout("q_gethostbyname()");
+
       return -1;
    }
    memcpy((char *)sin_addr, (char *)he->h_addr, he->h_length);
    lck_gethostbyname.unlock();
 #endif
-   traceout("q_gethostbyname()");
+
    return 0;
 }
 

@@ -199,7 +199,7 @@ static AbstractQoreNode *QACTIONGROUP_setVisible(QoreObject *self, QoreQActionGr
 
 class QoreClass *initQActionGroupClass(class QoreClass *qobject)
 {
-   tracein("initQActionGroupClass()");
+   QORE_TRACE("initQActionGroupClass()");
    
    QC_QActionGroup = new QoreClass("QActionGroup", QDOM_GUI);
    CID_QACTIONGROUP = QC_QActionGroup->getID();
@@ -223,6 +223,6 @@ class QoreClass *initQActionGroupClass(class QoreClass *qobject)
    QC_QActionGroup->addMethod("setExclusive",                (q_method_t)QACTIONGROUP_setExclusive);
    QC_QActionGroup->addMethod("setVisible",                  (q_method_t)QACTIONGROUP_setVisible);
 
-   traceout("initQActionGroupClass()");
+
    return QC_QActionGroup;
 }

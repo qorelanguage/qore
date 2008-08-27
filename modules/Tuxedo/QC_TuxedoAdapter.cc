@@ -77,7 +77,7 @@ static void TUXEDOTEST_destructor(QoreObject *self, QoreTuxedoTest* test, Except
 static void TUXEDO_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-CONSTRUCTOR";
-  tracein(err_name);
+  QORE_TRACE(err_name);
   
   const QoreHashNode *h = test_hash_param(params, 0);
   if (!h) {
@@ -92,7 +92,7 @@ static void TUXEDO_constructor(QoreObject *self, const QoreListNode *params, Exc
   }
 
   self->setPrivate(CID_TUXEDOADAPTER, adapter);
-  traceout(err_name);
+
 }
 
 #ifdef DEBUG
@@ -198,9 +198,9 @@ TEST()
 //------------------------------------------------------------------------------
 static void TUXEDO_destructor(QoreObject *self, QoreTuxedoAdapter* adapter, ExceptionSink *xsink)
 {
-  tracein("TUXEDO_destructor");
+  QORE_TRACE("TUXEDO_destructor");
   adapter->deref();
-  traceout("TUXEDO_destructor");
+
 }
 
 //------------------------------------------------------------------------------
@@ -1076,7 +1076,7 @@ QoreClass* initDummyTestClass()
 //-----------------------------------------------------------------------------
 class QoreClass* initTuxedoAdapterClass()
 {
-  tracein("initTuxedoAdapterClass");
+  QORE_TRACE("initTuxedoAdapterClass");
   QoreClass* adapter = new QoreClass("TuxedoAdapter", QDOM_NETWORK);
   CID_TUXEDOADAPTER = adapter->getID();  
 
@@ -1135,7 +1135,7 @@ class QoreClass* initTuxedoAdapterClass()
   adapter->addMethod("setUnchainedTxTransactions", (q_method_t)setUnchainedTxTransactions);
   adapter->addMethod("setTxTransactionTimeout", (q_method_t)setTxTransactionsTimeout);
 
-  traceout("initTuxedoAdapterClass");
+
   return adapter;
 }
 

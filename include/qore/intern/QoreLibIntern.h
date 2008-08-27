@@ -24,6 +24,35 @@
 
 #define _QORE_QORELIBINTERN_H
 
+#include <qore/intern/config.h>
+
+#ifndef HAVE_ATOLL
+#ifdef HAVE_STRTOIMAX
+#include <inttypes.h>
+static inline long long atoll(const char *str)
+{
+   return strtoimax(str, 0, 10);
+}
+#else
+static inline long long atoll(const char *str)
+{
+   long long i;
+   sscanf(str, "%lld", &i);
+   return i;
+}
+#endif
+#endif
+
+#if !defined(HAVE_STRTOLL) && defined(HAVE_STRTOIMAX)
+#include <inttypes.h>
+#define strtoll strtoimax
+#endif
+
+// use umem for memory allocation if available
+#ifdef HAVE_UMEM_H
+#include <umem.h>
+#endif
+
 #include <list>
 
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };

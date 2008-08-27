@@ -91,15 +91,15 @@ class QoreStringNode *tibrv_module_init()
 
 void tibrv_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
-   tracein("tibrv_module_ns_init()");
+   QORE_TRACE("tibrv_module_ns_init()");
    qns->addInitialNamespace(tibns->copy());
-   traceout("tibrv_module_nsinit()");
+
 }
 
 void tibrv_module_delete()
 {
-   tracein("tibrv_module_delete()");
+   QORE_TRACE("tibrv_module_delete()");
    Tibrv::close();
    delete tibns;
-   traceout("tibrv_module_delete()");
+
 }

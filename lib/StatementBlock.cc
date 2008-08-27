@@ -93,7 +93,7 @@ StatementBlock::StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1)
 
 void StatementBlock::addStatement(class AbstractStatement *s)
 {
-   //tracein("StatementBlock::addStatement()");
+   //QORE_TRACE("StatementBlock::addStatement()");
    if (s)
    {
       statement_list.push_back(s);
@@ -102,24 +102,24 @@ void StatementBlock::addStatement(class AbstractStatement *s)
 	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
    }
    
-   //traceout("StatementBlock::addStatement()");
+
 }
 
 StatementBlock::~StatementBlock()
 {
-   //tracein("StatementBlock::~StatementBlock()");
+   //QORE_TRACE("StatementBlock::~StatementBlock()");
 
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
       delete *i;
    
    if (lvars)
       delete lvars;
-   //traceout("StatementBlock::~StatementBlock()");
+
 }
 
 int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   tracein("StatementBlock::execImpl()");
+   QORE_TRACE("StatementBlock::execImpl()");
    int rc = 0;
 
    assert(xsink);
@@ -155,7 +155,7 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 	 rc = nrc;
    }
 
-   traceout("StatementBlock::execImpl()");
+
    return rc;
 }
 
@@ -560,7 +560,7 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
 
-   tracein("StatementBlock::parseInitImpl()");
+   QORE_TRACE("StatementBlock::parseInitImpl()");
    printd(4, "StatementBlock::parseInitImpl(b=%08p, oflag=%d)\n", this, oflag);
 
    class AbstractStatement *ret = 0;
@@ -577,14 +577,14 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag)
 
    //printd(5, "StatementBlock::parseInitImpl(this=%08p): done (lvars=%08p, %d vars, vstack = %08p)\n", this, lvars, lvids, getVStack());
 
-   traceout("StatementBlock::parseInitImpl()");
+
    return 0;
 }
 
 // can also be called with this=NULL
 void StatementBlock::parseInit(Paramlist *params)
 {
-   tracein("StatementBlock::parseInit()");
+   QORE_TRACE("StatementBlock::parseInit()");
    if (params->num_params)
       params->lv = new lvar_ptr_t[params->num_params];
    else
@@ -612,13 +612,13 @@ void StatementBlock::parseInit(Paramlist *params)
    // pop argv param off stack
    pop_local_var();
 
-   traceout("StatementBlock::parseInit()");
+
 }
 
 // can also be called with this=NULL
 void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl)
 {
-   tracein("StatementBlock::parseInit()");
+   QORE_TRACE("StatementBlock::parseInit()");
    if (params->num_params)
       params->lv = new lvar_ptr_t[params->num_params];
    else
@@ -674,7 +674,7 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl)
    // pop $self id off stack
    pop_local_var();
 
-   traceout("StatementBlock::parseInit()");
+
 }
 
 // can also be called with this=NULL

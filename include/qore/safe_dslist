@@ -24,8 +24,6 @@
 
 #define _QORE_SAFE_DSLIST
 
-#include <qore/config.h>
-
 #include <stdlib.h>
 #include <string.h>
 

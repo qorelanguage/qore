@@ -1050,7 +1050,7 @@ int QoreString::substr_simple(QoreString *ns, qore_offset_t offset) const
 
 int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, qore_offset_t length) const
 {
-   tracein("QoreString::substr_complex(offset, length)");
+   QORE_TRACE("QoreString::substr_complex(offset, length)");
    printd(5, "QoreString::substr_complex(offset=%d, length=%d) string=\"%s\" (this=%08p priv->len=%d)\n", 
 	  offset, length, priv->buf, this, priv->len);
 

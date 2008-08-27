@@ -303,7 +303,7 @@ static AbstractQoreNode *QREGION_xored(QoreObject *self, QoreQRegion *qr, const 
 
 class QoreClass *initQRegionClass()
 {
-   tracein("initQRegionClass()");
+   QORE_TRACE("initQRegionClass()");
    
    QC_QRegion = new QoreClass("QRegion", QDOM_GUI);
    CID_QREGION = QC_QRegion->getID();
@@ -327,6 +327,6 @@ class QoreClass *initQRegionClass()
    QC_QRegion->addMethod("united",                      (q_method_t)QREGION_united);
    QC_QRegion->addMethod("xored",                       (q_method_t)QREGION_xored);
 
-   traceout("initQRegionClass()");
+
    return QC_QRegion;
 }

@@ -476,8 +476,6 @@ inline void QPartQoreListNode::addVariableReference(char *&p, ExceptionSink *xsi
 
 inline QPartQoreListNode::QPartQoreListNode(char *query, ExceptionSink *xsink)
 {
-   tracein("QPartQoreListNode::QPartQoreListNode()");
-
    len = 0;
    allocated = 0;
    pl = NULL;
@@ -595,7 +593,6 @@ inline QoreString *QPartQoreListNode::getSQL(ExceptionSink *xsink, int dyn)
 
 inline Query::Query(char *nme, class Datasource *ds, char *qstr, int stc, ExceptionSink *xsink)
 {
-   tracein("Query::Query()");
    printd(5, "Query::Query(\"%s\", %08p, %08p=%s)\n", nme, ds, qstr, qstr);
    name = nme ? strdup(nme) : NULL;
    regustered = 0;
@@ -627,12 +624,10 @@ inline Query::Query(char *nme, class Datasource *ds, char *qstr, int stc, Except
    }
 
    if (l) delete l;
-   traceout("Query::Query()");
 }
 
 inline Query::~Query()
 {
-   //tracein("Query::~Query()");
    if (name)
       free(name);
    datasource->deref();
@@ -641,7 +636,6 @@ inline Query::~Query()
    if (qpl)
       delete qpl;
    delete_keys();
-   //traceout("Query::~Query()");
 }
 
 inline class QoreHashNode *Query::exec(ExceptionSink *xsink)

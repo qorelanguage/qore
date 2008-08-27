@@ -28,8 +28,6 @@
     provides type and other definitions for the Qore library
  */
 
-#include <qore/config.h>
-
 #include <string.h>
 
 #include <string>
@@ -78,11 +76,6 @@ enum qore_license_t { QL_GPL = 0,         //!< code to be used under the GPL lic
 
 #define _Q_MAKE_STRING(x) #x
 #define MAKE_STRING_FROM_SYMBOL(x) _Q_MAKE_STRING(x)
-
-// use umem for memory allocation if available
-#ifdef HAVE_UMEM_H
-#include <umem.h>
-#endif
 
 class AbstractQoreNode;
 class QoreListNode;
@@ -236,26 +229,6 @@ typedef void (*q_copy_t)(QoreObject *self, QoreObject *old, AbstractPrivateData 
  */
 typedef bool (*q_delete_blocker_t)(QoreObject *self, AbstractPrivateData *private_data);
 
-#ifndef HAVE_ATOLL
-#ifdef HAVE_STRTOIMAX
-#include <inttypes.h>
-static inline long long atoll(const char *str)
-{
-   return strtoimax(str, 0, 10);
-}
-#else
-static inline long long atoll(const char *str)
-{
-   long long i;
-   sscanf(str, "%lld", &i);
-   return i;
-}
-#endif
-#endif
-
-#if !defined(HAVE_STRTOLL) && defined(HAVE_STRTOIMAX)
-#include <inttypes.h>
-#define strtoll strtoimax
-#endif
+DLLEXPORT long long q_atoll(const char *str);
 
 #endif // _QORE_COMMON_H

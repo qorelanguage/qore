@@ -131,7 +131,7 @@ static AbstractQoreNode *QPOINT_subtract(QoreObject *self, QoreQPoint *qp, const
 
 class QoreClass *initQPointClass()
 {
-   tracein("initQPointClass()");
+   QORE_TRACE("initQPointClass()");
    
    QC_QPoint = new QoreClass("QPoint", QDOM_GUI);
    CID_QPOINT = QC_QPoint->getID();
@@ -151,6 +151,6 @@ class QoreClass *initQPointClass()
    QC_QPoint->addMethod("unaryMinus",                  (q_method_t)QPOINT_unaryMinus);
    QC_QPoint->addMethod("subtract",                    (q_method_t)QPOINT_subtract);
 
-   traceout("initQPointClass()");
+
    return QC_QPoint;
 }

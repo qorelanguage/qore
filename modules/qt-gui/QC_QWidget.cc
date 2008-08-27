@@ -2596,7 +2596,7 @@ static AbstractQoreNode *QWIDGET_wheelEvent(QoreObject *self, QoreQWidget *qw, c
 
 class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice)
 {
-   tracein("initQWidgetClass()");
+   QORE_TRACE("initQWidgetClass()");
    
    QC_QWidget = new QoreClass("QWidget", QDOM_GUI);
    CID_QWIDGET = QC_QWidget->getID();
@@ -2841,6 +2841,6 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("tabletEvent",             (q_method_t)QWIDGET_tabletEvent, true);
    QC_QWidget->addMethod("wheelEvent",              (q_method_t)QWIDGET_wheelEvent, true);
 
-   traceout("initQWidgetClass()");
+
    return QC_QWidget;
 }

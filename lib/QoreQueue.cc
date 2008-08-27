@@ -44,9 +44,9 @@ QoreQueue::QoreQueue() : head(0), tail(0), len(0), waiting(0)
 // be accessing them
 QoreQueue::~QoreQueue()
 {
-   tracein("QoreQueue::~QoreQueue()");
+   QORE_TRACE("QoreQueue::~QoreQueue()");
    //printd(5, "QoreQueue %08p has head=%08p tail=%08p len=%d\n", this, head, tail, len);
-   traceout("QoreQueue::~QoreQueue()");
+
 }
 
 void QoreQueue::push(const AbstractQoreNode *n)

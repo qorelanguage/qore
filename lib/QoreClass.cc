@@ -1092,7 +1092,7 @@ QoreClass *QoreClass::getClass(qore_classid_t cid) const
 
 AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
-   tracein("QoreMethod::eval()");
+   QORE_TRACE("QoreMethod::eval()");
 #ifdef DEBUG
    const char *oname = self ? self->getClass()->getName() : "<n/a: static>";
    printd(5, "QoreMethod::eval() %s::%s() (object=%08p, pgm=%08p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
@@ -1145,13 +1145,13 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    printd(5, "QoreMethod::eval() %s::%s() returning %08p (type=%s, refs=%d)\n",
 	  oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
 #endif
-   traceout("QoreMethod::eval()");
+
    return rv;
 }
 
 void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
 {
-   tracein("QoreMethod::evalConstructor()");
+   QORE_TRACE("QoreMethod::evalConstructor()");
 #ifdef DEBUG
    const char *oname = self->getClass()->getName();
    printd(5, "QoreMethod::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", oname, getName(), self, self->getProgram());
@@ -1173,7 +1173,7 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
 #ifdef DEBUG
    printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", oname, getName());
 #endif
-   traceout("QoreMethod::evalConstructor()");
+
 }
 
 void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const
@@ -1252,7 +1252,7 @@ bool QoreMethod::existsUserParam(int i) const
 
 QoreClass *QoreClass::copyAndDeref()
 {
-   tracein("QoreClass::copyAndDeref");
+   QORE_TRACE("QoreClass::copyAndDeref");
    QoreClass *noc = new QoreClass(priv->classID, priv->name);
    noc->priv->methodID = priv->methodID;
 
@@ -1308,7 +1308,7 @@ inline void QoreClass::addDomain(int dom)
 
 AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
 {
-   tracein("QoreClass::evalMethod()");
+   QORE_TRACE("QoreClass::evalMethod()");
    const QoreMethod *w;
    int external = (this != getStackClass());
    printd(5, "QoreClass::evalMethod() %s::%s() %s call attempted\n", priv->name, nme, external ? "external" : "internal" );

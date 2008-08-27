@@ -82,7 +82,7 @@ static AbstractQoreNode *QMOVEEVENT_pos(QoreObject *self, QoreQMoveEvent *qme, c
 
 class QoreClass *initQMoveEventClass(class QoreClass *qevent)
 {
-   tracein("initQMoveEventClass()");
+   QORE_TRACE("initQMoveEventClass()");
    
    QC_QMoveEvent = new QoreClass("QMoveEvent", QDOM_GUI);
    CID_QMOVEEVENT = QC_QMoveEvent->getID();
@@ -95,6 +95,6 @@ class QoreClass *initQMoveEventClass(class QoreClass *qevent)
    QC_QMoveEvent->addMethod("oldPos",                      (q_method_t)QMOVEEVENT_oldPos);
    QC_QMoveEvent->addMethod("pos",                         (q_method_t)QMOVEEVENT_pos);
 
-   traceout("initQMoveEventClass()");
+
    return QC_QMoveEvent;
 }

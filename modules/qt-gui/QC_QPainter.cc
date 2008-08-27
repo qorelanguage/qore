@@ -1866,7 +1866,7 @@ static AbstractQoreNode *QPAINTER_worldMatrixEnabled(QoreObject *self, QoreQPain
 
 class QoreClass *initQPainterClass()
 {
-   tracein("initQPainterClass()");
+   QORE_TRACE("initQPainterClass()");
    
    QC_QPainter = new QoreClass("QPainter", QDOM_GUI);
    CID_QPAINTER = QC_QPainter->getID();
@@ -1963,6 +1963,6 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("worldMatrixEnabled",          (q_method_t)QPAINTER_worldMatrixEnabled);
    //QC_QPainter->addMethod("worldTransform",              (q_method_t)QPAINTER_worldTransform);
 
-   traceout("initQPainterClass()");
+
    return QC_QPainter;
 }

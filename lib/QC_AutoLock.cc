@@ -75,7 +75,7 @@ static AbstractQoreNode *AL_unlock(QoreObject *self, class QoreAutoLock *m, cons
 
 class QoreClass *initAutoLockClass()
 {
-   tracein("initAutoLockClass()");
+   QORE_TRACE("initAutoLockClass()");
    
    class QoreClass *QC_AutoLock = new QoreClass("AutoLock", QDOM_THREAD_CLASS);
    CID_AUTOLOCK = QC_AutoLock->getID();
@@ -86,6 +86,6 @@ class QoreClass *initAutoLockClass()
    QC_AutoLock->addMethod("trylock",       (q_method_t)AL_trylock);
    QC_AutoLock->addMethod("unlock",        (q_method_t)AL_unlock);
    
-   traceout("initAutoLockClass()");
+
    return QC_AutoLock;
 }

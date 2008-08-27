@@ -161,7 +161,7 @@ int ContextStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 
 int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
-   tracein("ContextStatement::parseInitImpl()");
+   QORE_TRACE("ContextStatement::parseInitImpl()");
    
    int lvids = 0;
    
@@ -190,6 +190,6 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag)
    lvars = new LVList(lvids);
    
    pop_cvar();
-   traceout("ContextStatement::parseInitImpl()");
+
    return 0;
 }

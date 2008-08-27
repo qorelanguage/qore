@@ -141,7 +141,7 @@ static AbstractQoreNode *QMOUSEEVENT_y(QoreObject *self, QoreQMouseEvent *qme, c
 
 class QoreClass *initQMouseEventClass(class QoreClass *qinputevent)
 {
-   tracein("initQMouseEventClass()");
+   QORE_TRACE("initQMouseEventClass()");
    
    QC_QMouseEvent = new QoreClass("QMouseEvent", QDOM_GUI);
    CID_QMOUSEEVENT = QC_QMouseEvent->getID();
@@ -160,6 +160,6 @@ class QoreClass *initQMouseEventClass(class QoreClass *qinputevent)
    QC_QMouseEvent->addMethod("x",                           (q_method_t)QMOUSEEVENT_x);
    QC_QMouseEvent->addMethod("y",                           (q_method_t)QMOUSEEVENT_y);
 
-   traceout("initQMouseEventClass()");
+
    return QC_QMouseEvent;
 }

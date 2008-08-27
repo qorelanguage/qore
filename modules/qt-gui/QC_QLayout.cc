@@ -325,7 +325,7 @@ static AbstractQoreNode *QLAYOUT_setMargin(QoreObject *self, QoreAbstractQLayout
 
 QoreClass *initQLayoutClass(QoreClass *qobject, QoreClass *qlayoutitem)
 {
-   tracein("initQLayoutClass()");
+   QORE_TRACE("initQLayoutClass()");
    
    QC_QLayout = new QoreClass("QLayout", QDOM_GUI);
    CID_QLAYOUT = QC_QLayout->getID();
@@ -362,6 +362,6 @@ QoreClass *initQLayoutClass(QoreClass *qobject, QoreClass *qlayoutitem)
    QC_QLayout->addMethod("update",                      (q_method_t)QLAYOUT_update);
 
 
-   traceout("initQLayoutClass()");
+
    return QC_QLayout;
 }

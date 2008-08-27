@@ -286,7 +286,7 @@ static AbstractQoreNode *PROGRAM_lockOptions(QoreObject *self, QoreProgram *p, c
 
 QoreClass *initProgramClass()
 {
-   tracein("initProgramClass()");
+   QORE_TRACE("initProgramClass()");
 
    QoreClass *QC_PROGRAM = new QoreClass("Program");
    CID_PROGRAM = QC_PROGRAM->getID();
@@ -310,6 +310,6 @@ QoreClass *initProgramClass()
    QC_PROGRAM->addMethod("getScriptDir",         (q_method_t)PROGRAM_getScriptDir);
    QC_PROGRAM->addMethod("lockOptions",          (q_method_t)PROGRAM_lockOptions);
 
-   traceout("initProgramClass()");
+
    return QC_PROGRAM;
 }

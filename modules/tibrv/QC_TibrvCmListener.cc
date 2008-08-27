@@ -31,7 +31,7 @@ qore_classid_t CID_TIBRVCMLISTENER;
 // syntax: subject, [cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon] 
 void TIBRVCMLISTENER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBRVCMLISTENER_constructor");
+   QORE_TRACE("TIBRVCMLISTENER_constructor");
 
    const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -83,7 +83,7 @@ void TIBRVCMLISTENER_constructor(class QoreObject *self, const QoreListNode *par
    else
       self->setPrivate(CID_TIBRVCMLISTENER, qcmlistener);
 
-   traceout("TIBRVCMLISTENER_constructor");
+
 }
 
 static void TIBRVCMLISTENER_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvCmListener *cml, ExceptionSink *xsink)
@@ -153,7 +153,7 @@ static AbstractQoreNode *TIBRVCMLISTENER_getName(class QoreObject *self, class Q
 
 class QoreClass *initTibrvCmListenerClass()
 {
-   tracein("initTibrvCmListenerClass()");
+   QORE_TRACE("initTibrvCmListenerClass()");
 
    class QoreClass *QC_TIBRVCMLISTENER = new QoreClass("TibrvCmListener", QDOM_NETWORK);
    CID_TIBRVCMLISTENER = QC_TIBRVCMLISTENER->getID();
@@ -167,6 +167,6 @@ class QoreClass *initTibrvCmListenerClass()
    QC_TIBRVCMLISTENER->addMethod("syncLedger",         (q_method_t)TIBRVCMLISTENER_syncLedger);
    QC_TIBRVCMLISTENER->addMethod("getName",            (q_method_t)TIBRVCMLISTENER_getName);
 
-   traceout("initTibrvCmListenerClass()");
+
    return QC_TIBRVCMLISTENER;
 }

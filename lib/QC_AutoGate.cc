@@ -58,7 +58,7 @@ static void AG_copy(QoreObject *self, QoreObject *old, class QoreAutoGate *m, Ex
 
 class QoreClass *initAutoGateClass()
 {
-   tracein("initAutoGateClass()");
+   QORE_TRACE("initAutoGateClass()");
    
    class QoreClass *QC_AutoGate = new QoreClass("AutoGate", QDOM_THREAD_CLASS);
    CID_AUTOGATE = QC_AutoGate->getID();
@@ -66,6 +66,6 @@ class QoreClass *initAutoGateClass()
    QC_AutoGate->setDestructor((q_destructor_t)AG_destructor);
    QC_AutoGate->setCopy((q_copy_t)AG_copy);
    
-   traceout("initAutoGateClass()");
+
    return QC_AutoGate;
 }

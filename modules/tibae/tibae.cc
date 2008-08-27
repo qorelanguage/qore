@@ -165,7 +165,7 @@ class AbstractQoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
 
 void set_properties(MAppProperties *appProperties, const QoreHashNode *h, TibCommandLine &tcl, ExceptionSink *xsink)
 {
-   tracein("set_properties()");
+   QORE_TRACE("set_properties()");
 
    // variable hash for overridding global variables
    const QoreHashNode *vh = NULL;
@@ -238,5 +238,5 @@ void set_properties(MAppProperties *appProperties, const QoreHashNode *h, TibCom
    //appProperties->setDefaultStringEncoding(MEncoding::M_ASCII);
    //appProperties->setDefaultStringEncoding(MEncoding::M_LATIN_1);
 
-   traceout("set_properties()");
+
 }

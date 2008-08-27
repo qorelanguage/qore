@@ -727,14 +727,14 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
 
 static AbstractQoreNode *op_new_object(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
-   tracein("op_new_object()");
+   QORE_TRACE("op_new_object()");
    
    assert(left->getType() == NT_SCOPE_REF);
    const ScopedObjectCallNode *c = reinterpret_cast<const ScopedObjectCallNode *>(left);
    AbstractQoreNode *rv = c->oc->execConstructor(c->args, xsink);
    printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, c->oc->getName());
    // if there's an exception, the constructor will delete the object without the destructor
-   traceout("op_new_object()");
+
    return rv;
 }
 
@@ -809,7 +809,7 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
 	 return 0;
    }
 
-   // traceout("op_list_assignment()");
+
    return ref_rv ? new_value.getReferencedValue() : 0;
 }
 
@@ -992,14 +992,14 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
 
    // here we know that v has a value
 
-   // traceout("op_minus_equals()");
+
    // reference return value and return
    return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   //tracein("op_and_equals()");
+   //QORE_TRACE("op_and_equals()");
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
       return 0;
@@ -1283,7 +1283,7 @@ static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, cons
 
 static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   //tracein("op_shift_right_equals()");
+   //QORE_TRACE("op_shift_right_equals()");
 
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
@@ -1575,7 +1575,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
 
 static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
-   //tracein("op_shift()");
+   //QORE_TRACE("op_shift()");
    printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
@@ -1624,7 +1624,7 @@ static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQore
 
 static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink)
 {
-   //tracein("op_push()");
+   //QORE_TRACE("op_push()");
    printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    QoreNodeEvalOptionalRefHolder value(elem, xsink);
@@ -1726,7 +1726,7 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
 
 static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, ExceptionSink *xsink)
 {
-   //tracein("op_chomp()");
+   //QORE_TRACE("op_chomp()");
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(arg, xsink);
@@ -1780,7 +1780,7 @@ static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, Ex
 
 static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
-   //tracein("op_trim()");
+   //QORE_TRACE("op_trim()");
    
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(arg, xsink);
@@ -3637,7 +3637,7 @@ int Operator::findFunction(qore_type_t ltype, qore_type_t rtype) const
 {
    int m = -1;
    
-   //tracein("Operator::findFunction()");
+   //QORE_TRACE("Operator::findFunction()");
    // loop through all operator functions
    
    for (int i = 0, size = functions.size(); i < size; i++)
@@ -3662,7 +3662,7 @@ int Operator::findFunction(qore_type_t ltype, qore_type_t rtype) const
       * (row 0), and try to convert the arguments, otherwise return the best 
       * partial match
       */
-   //traceout("Operator::findFunction()");
+
    return m == -1 ? 0 : m;
 }
 
@@ -3709,7 +3709,7 @@ class Operator *OperatorList::add(class Operator *o)
 // registers the system operators and system operator functions
 void OperatorList::init()
 {
-   tracein("OperatorList::init()");
+   QORE_TRACE("OperatorList::init()");
    
    OP_LOG_AND = add(new Operator(2, "&&", "logical-and", 0, false));
    OP_LOG_AND->addEffectFunction(op_log_and);
@@ -3972,5 +3972,5 @@ void OperatorList::init()
    for (oplist_t::iterator i = begin(), e = end(); i != e; ++i)
       (*i)->init();
 
-   traceout("OperatorList::init()");
+
 }

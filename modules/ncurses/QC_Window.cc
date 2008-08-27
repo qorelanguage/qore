@@ -374,7 +374,7 @@ class AbstractQoreNode *WC_nodelay(class QoreObject *self, class Window *w, cons
 
 class QoreClass *initWindowClass()
 {
-   tracein("initWindowClass()");
+   QORE_TRACE("initWindowClass()");
 
    class QoreClass *QC_WINDOW = new QoreClass("Window", QDOM_TERMINAL_IO);
    CID_WINDOW = QC_WINDOW->getID();
@@ -426,6 +426,6 @@ class QoreClass *initWindowClass()
    QC_WINDOW->addMethod("getBegX",            (q_method_t)WC_getBegX);
    QC_WINDOW->addMethod("nodelay",            (q_method_t)WC_nodelay);
 
-   traceout("initWindowClass()");
+
    return QC_WINDOW;
 }

@@ -532,7 +532,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
 // hardcoded to SOCK_STREAM (tcp only)
 int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink)
 {
-   tracein("QoreSocket::connectINET()");
+   QORE_TRACE("QoreSocket::connectINET()");
 
    // close socket if already open
    close();
@@ -548,7 +548,7 @@ int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink)
    {
       if (xsink)
 	 xsink->raiseException("SOCKET-CONNECT-ERROR", "cannot resolve hostname '%s'", host);
-      traceout("QoreSocket::connectINET()");
+
       return -1;
    }
 
@@ -557,7 +557,7 @@ int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink)
       priv->sock = 0;
       if (xsink)
 	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
-      traceout("QoreSocket::connectINET()");
+
       return -1;
    }
 
@@ -567,19 +567,19 @@ int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink)
       priv->sock = 0;
       if (xsink)
 	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
-      traceout("QoreSocket::connectINET()");
+
       return -1;
    }
    priv->type = AF_INET;
    priv->port = prt;
    printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d) success, sock=%d\n", this, host, priv->port, priv->sock);
-   traceout("QoreSocket::connectINET()");
+
    return 0;
 }
 
 int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink)
 {
-   tracein("connectUNIX()");
+   QORE_TRACE("connectUNIX()");
 
    // close socket if already open
    close();
@@ -597,7 +597,7 @@ int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink)
       priv->sock = 0;
       if (xsink)
 	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
-      traceout("connectUNIX()");
+
       return -1;
    }
    if ((::connect(priv->sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un))) == -1)
@@ -606,13 +606,13 @@ int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink)
       priv->sock = 0;
       if (xsink)
 	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
-      traceout("connectUNIX()");
+
       return -1;
    }
    // save file name for deleting when socket is closed
    priv->socketname = addr.sun_path;
    priv->type = AF_UNIX;
-   traceout("connectUNIX()");
+
    return 0;
 }
 
@@ -2075,16 +2075,16 @@ QoreSocket *QoreSocket::acceptSSL(class SocketSource *source, X509 *cert, EVP_PK
 // accept a connection and replace the socket with the new connection
 int QoreSocket::acceptAndReplace(class SocketSource *source)
 {
-   tracein("QoreSocket::acceptAndReplace()");
+   QORE_TRACE("QoreSocket::acceptAndReplace()");
    int rc = acceptInternal(source);
    if (rc == -1)
    {
-      traceout("QoreSocket::acceptAndReplace()");
+
       return -1;
    }
    closeInternal();
    priv->sock = rc;
-   traceout("QoreSocket::acceptAndReplace()");
+
    return 0;
 }
 

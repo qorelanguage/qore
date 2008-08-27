@@ -273,7 +273,7 @@ static void init_namespace()
 
 QoreStringNode *sybase_module_init()
 {
-   tracein("sybase_module_init()");
+   QORE_TRACE("sybase_module_init()");
 
    // init_namespace();
    
@@ -300,7 +300,7 @@ QoreStringNode *sybase_module_init()
    DBID_SYBASE = DBI.registerDriver("mssql", methods, DBI_SYBASE_CAPS);
 #endif
 
-   traceout("sybase_module_init()");
+
    return 0;
 }
 
@@ -309,14 +309,14 @@ void sybase_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
 /*
   // this is commented out because the constants are not needed (or documented) at the moment
   // maybe later we can use them
-   tracein("sybase_module_ns_init()");
+   QORE_TRACE("sybase_module_ns_init()");
    qns->addInitialNamespace(sybase->copy());
-   traceout("sybase_module_ns_init()");
+
 */
 }
 
 void sybase_module_delete()
 {
-   tracein("sybase_module_delete()");
-   traceout("sybase_module_delete()");
+   QORE_TRACE("sybase_module_delete()");
+
 }

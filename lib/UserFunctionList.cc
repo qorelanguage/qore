@@ -45,14 +45,14 @@ void UserFunctionList::del()
 
 void UserFunctionList::add(class UserFunction *func)
 {
-   tracein("UserFunctionList::add()");
+   QORE_TRACE("UserFunctionList::add()");
    
    if (find(func->getName()))
       parse_error("user function '%s' has already been defined", func->getName());
    else
       pmap[func->getName()] = func;
    
-   traceout("UserFunctionList::add()");
+
 }
 
 class UserFunction *UserFunctionList::find(const char *name)
@@ -73,7 +73,7 @@ class UserFunction *UserFunctionList::find(const char *name)
 
 QoreListNode *UserFunctionList::getList()
 {
-   tracein("UserFunctionList::getList()");
+   QORE_TRACE("UserFunctionList::getList()");
    
    QoreListNode *l = new QoreListNode();
    hm_uf_t::iterator i = fmap.begin();
@@ -83,14 +83,14 @@ QoreListNode *UserFunctionList::getList()
       i++;
    }
    
-   traceout("UserFunctionList::getList()");
+
    return l;
 }
 
 // unlocked
 void UserFunctionList::parseInit()
 {
-   tracein("UserFunctionList::parseInit()");
+   QORE_TRACE("UserFunctionList::parseInit()");
    
    hm_uf_t::iterator i = pmap.begin();
    while (i != pmap.end())
@@ -100,7 +100,7 @@ void UserFunctionList::parseInit()
       i++;
    }
    
-   traceout("UserFunctionList::parseInit()");
+
 }
 
 // unlocked
@@ -118,7 +118,7 @@ void UserFunctionList::parseCommit()
 // unlocked
 void UserFunctionList::parseRollback()
 {
-   tracein("UserFunctionList::parseRollback()");
+   QORE_TRACE("UserFunctionList::parseRollback()");
    hm_uf_t::iterator i = pmap.begin();
    while (i != pmap.end())
    {
@@ -127,5 +127,5 @@ void UserFunctionList::parseRollback()
       uf->deref();
       i = pmap.begin();
    }
-   traceout("UserFunctionList::parseRollback()");
+
 }

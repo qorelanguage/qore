@@ -535,7 +535,7 @@ static AbstractQoreNode *QPALETTE_windowText(QoreObject *self, QoreQPalette *qp,
 
 static class QoreClass *initQPaletteClass()
 {
-   tracein("initQPaletteClass()");
+   QORE_TRACE("initQPaletteClass()");
    
    QC_QPalette = new QoreClass("QPalette", QDOM_GUI);
    CID_QPALETTE = QC_QPalette->getID();
@@ -575,7 +575,7 @@ static class QoreClass *initQPaletteClass()
    QC_QPalette->addMethod("window",                      (q_method_t)QPALETTE_window);
    QC_QPalette->addMethod("windowText",                  (q_method_t)QPALETTE_windowText);
 
-   traceout("initQPaletteClass()");
+
    return QC_QPalette;
 }
 

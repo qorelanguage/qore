@@ -128,7 +128,7 @@ static AbstractQoreNode *SSLCERT_getNotAfterDate(QoreObject *self, QoreSSLCertif
 
 QoreClass *initSSLCertificateClass()
 {
-   tracein("initSSLCertificateClass()");
+   QORE_TRACE("initSSLCertificateClass()");
 
    QoreClass *QC_SSLCERTIFICATE = new QoreClass("SSLCertificate");
    CID_SSLCERTIFICATE = QC_SSLCERTIFICATE->getID();

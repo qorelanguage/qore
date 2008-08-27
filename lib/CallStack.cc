@@ -99,24 +99,24 @@ CallStack::~CallStack()
 
 void CallStack::push(CallNode *c)
 {
-   tracein("CallStack::push()");
+   QORE_TRACE("CallStack::push()");
    c->next = 0;
    c->prev = tail;
    if (tail)
       tail->next = c;
    tail = c;
-   traceout("CallStack::push()");
+
 }
 
 void CallStack::pop(ExceptionSink *xsink)
 {
-   tracein("CallStack::pop()");
+   QORE_TRACE("CallStack::pop()");
    CallNode *c = tail;
    tail = tail->prev;
    if (tail)
       tail->next = 0;
    c->objectDeref(xsink);
-   traceout("CallStack::pop()");
+
 }
 
 QoreListNode *CallStack::getCallStack() const

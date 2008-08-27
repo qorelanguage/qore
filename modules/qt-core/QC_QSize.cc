@@ -222,7 +222,7 @@ static AbstractQoreNode *QSIZE_subtractEquals(QoreObject *self, QoreQSize *qs, c
 
 class QoreClass *initQSizeClass()
 {
-   tracein("initQSizeClass()");
+   QORE_TRACE("initQSizeClass()");
    
    QC_QSize = new QoreClass("QSize", QDOM_GUI);
    CID_QSIZE = QC_QSize->getID();
@@ -247,6 +247,6 @@ class QoreClass *initQSizeClass()
    QC_QSize->addMethod("subtract",                    (q_method_t)QSIZE_subtract);
    QC_QSize->addMethod("subtractEquals",              (q_method_t)QSIZE_subtractEquals);
 
-   traceout("initQSizeClass()");
+
    return QC_QSize;
 }

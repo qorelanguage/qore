@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/svn-revision.h>
+#include <qore/intern/svn-revision.h>
 
 #include <string.h>
 
@@ -597,19 +597,19 @@ void initENV(char *env[])
       }
       i++;
    }
-   //traceout("initProgramGlobalVars()");
+
 }
 
 void delete_global_variables()
 {
-   tracein("delete_global_variables()");
+   QORE_TRACE("delete_global_variables()");
    if (QORE_ARGV)
       QORE_ARGV->deref(0);
    if (ARGV)
       ARGV->deref(0);
    if (ENV)
       ENV->deref(0);
-   traceout("delete_global_variables()");
+
 }
 
 struct tm *q_localtime(const time_t *clock, struct tm *tms)
@@ -697,3 +697,8 @@ qore_license_t qore_get_license()
 {
    return qore_license;
 }
+
+long long q_atoll(const char *str) {
+   return atoll(str);
+}
+

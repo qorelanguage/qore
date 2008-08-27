@@ -73,9 +73,9 @@ static AbstractQoreNode *f_printf(const QoreListNode *params, ExceptionSink *xsi
 {
    AbstractQoreNode *node;
 
-   tracein("f_printf()");
+   QORE_TRACE("f_printf()");
    print_node(stdout, node = f_sprintf(params, xsink)); 
-   traceout("f_printf()");
+
    return node;
 }
 
@@ -83,9 +83,9 @@ static AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSink *xs
 {
    AbstractQoreNode *node;
 
-   tracein("f_vprintf()");
+   QORE_TRACE("f_vprintf()");
    print_node(stdout, node = f_vsprintf(params, xsink)); 
-   traceout("f_vprintf()");
+
    return node;
 }
 

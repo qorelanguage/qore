@@ -1,3 +1,9 @@
+2008.08.27: David Nichols
+	* removed internal macros tracein() and traceout() and replaced with a
+	  single QORE_TRACE() macro that uses ON_BLOCK_EXIT() to do the traceout()
+	* made config headers private
+	* made svn-revision header private
+
 2008.08.26: David Nichols
 	* added BinaryNode::prepend() method
 

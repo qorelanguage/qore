@@ -121,7 +121,7 @@ static AbstractQoreNode *QKEYEVENT_text(QoreObject *self, QoreQKeyEvent *qke, co
 
 class QoreClass *initQKeyEventClass(class QoreClass *qinputevent)
 {
-   tracein("initQKeyEventClass()");
+   QORE_TRACE("initQKeyEventClass()");
    
    QC_QKeyEvent = new QoreClass("QKeyEvent", QDOM_GUI);
    CID_QKEYEVENT = QC_QKeyEvent->getID();
@@ -141,6 +141,6 @@ class QoreClass *initQKeyEventClass(class QoreClass *qinputevent)
    QC_QKeyEvent->addMethod("nativeVirtualKey",            (q_method_t)QKEYEVENT_nativeVirtualKey);
    QC_QKeyEvent->addMethod("text",                        (q_method_t)QKEYEVENT_text);
 
-   traceout("initQKeyEventClass()");
+
    return QC_QKeyEvent;
 }

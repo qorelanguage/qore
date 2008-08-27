@@ -179,7 +179,7 @@ static AbstractQoreNode *QPICTURE_size(QoreObject *self, QoreQPicture *qp, const
 
 class QoreClass *initQPictureClass(class QoreClass *qpaintdevice)
 {
-   tracein("initQPictureClass()");
+   QORE_TRACE("initQPictureClass()");
    
    QC_QPicture = new QoreClass("QPicture", QDOM_GUI);
    CID_QPICTURE = QC_QPicture->getID();
@@ -200,6 +200,6 @@ class QoreClass *initQPictureClass(class QoreClass *qpaintdevice)
    QC_QPicture->addMethod("setData",                     (q_method_t)QPICTURE_setData);
    QC_QPicture->addMethod("size",                        (q_method_t)QPICTURE_size);
 
-   traceout("initQPictureClass()");
+
    return QC_QPicture;
 }

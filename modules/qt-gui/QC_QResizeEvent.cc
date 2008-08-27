@@ -59,7 +59,7 @@ static AbstractQoreNode *QRESIZEEVENT_size(QoreObject *self, QoreQResizeEvent *q
 
 class QoreClass *initQResizeEventClass(class QoreClass *qevent)
 {
-   tracein("initQResizeEventClass()");
+   QORE_TRACE("initQResizeEventClass()");
    
    QC_QResizeEvent = new QoreClass("QResizeEvent", QDOM_GUI);
    CID_QRESIZEEVENT = QC_QResizeEvent->getID();
@@ -72,6 +72,6 @@ class QoreClass *initQResizeEventClass(class QoreClass *qevent)
    QC_QResizeEvent->addMethod("oldSize",                     (q_method_t)QRESIZEEVENT_oldSize);
    QC_QResizeEvent->addMethod("size",                        (q_method_t)QRESIZEEVENT_size);
 
-   traceout("initQResizeEventClass()");
+
    return QC_QResizeEvent;
 }

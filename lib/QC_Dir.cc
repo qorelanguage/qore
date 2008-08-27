@@ -353,7 +353,7 @@ static AbstractQoreNode *DIR_removeFile(QoreObject *self, class Dir *d, const Qo
 
 // init the class
 QoreClass *initDirClass() {
-   tracein("initDirClass()");
+   QORE_TRACE("initDirClass()");
 
    QoreClass *QC_DIR = new QoreClass("Dir", QDOM_FILESYSTEM);
    CID_DIR = QC_DIR->getID();
@@ -381,6 +381,6 @@ QoreClass *initDirClass() {
    QC_DIR->addMethod("openFile",	(q_method_t)DIR_openFile);
    QC_DIR->addMethod("removeFile",	(q_method_t)DIR_removeFile);
 
-   traceout("initDirClass()");
+
    return QC_DIR;
 }

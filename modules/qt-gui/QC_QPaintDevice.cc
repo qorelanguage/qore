@@ -118,7 +118,7 @@ static AbstractQoreNode *QPAINTDEVICE_widthMM(QoreObject *self, QoreAbstractQPai
 
 class QoreClass *initQPaintDeviceClass()
 {
-   tracein("initQPaintDeviceClass()");
+   QORE_TRACE("initQPaintDeviceClass()");
    
    QC_QPaintDevice = new QoreClass("QPaintDevice", QDOM_GUI);
    CID_QPAINTDEVICE = QC_QPaintDevice->getID();
@@ -138,7 +138,7 @@ class QoreClass *initQPaintDeviceClass()
    QC_QPaintDevice->addMethod("width",                       (q_method_t)QPAINTDEVICE_width);
    QC_QPaintDevice->addMethod("widthMM",                     (q_method_t)QPAINTDEVICE_widthMM);
 
-   traceout("initQPaintDeviceClass()");
+
    return QC_QPaintDevice;
 }
 

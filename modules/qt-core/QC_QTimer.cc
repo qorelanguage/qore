@@ -146,7 +146,7 @@ static AbstractQoreNode *f_QTimer_singleShot(const QoreListNode *params, Excepti
 
 QoreClass *initQTimerClass(class QoreClass *qobject)
 {
-   tracein("initQTimerClass()");
+   QORE_TRACE("initQTimerClass()");
    
    QoreClass *QC_QTimer = new QoreClass("QTimer", QDOM_GUI);
    CID_QTIMER = QC_QTimer->getID();
@@ -168,7 +168,7 @@ QoreClass *initQTimerClass(class QoreClass *qobject)
    // static functions
    QC_QTimer->addStaticMethod("singleShot",            f_QTimer_singleShot);
 
-   traceout("initQTimerClass()");
+
    return QC_QTimer;
 }
 

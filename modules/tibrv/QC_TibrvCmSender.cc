@@ -31,7 +31,7 @@ qore_classid_t CID_TIBRVCMSENDER;
 // syntax: [cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon] 
 void TIBRVCMSENDER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBRVCMSENDER_constructor");
+   QORE_TRACE("TIBRVCMSENDER_constructor");
 
    const char *cmName = NULL, *ledgerName = NULL, *relayAgent = NULL;
    bool requestOld, syncLedger;
@@ -75,7 +75,7 @@ void TIBRVCMSENDER_constructor(class QoreObject *self, const QoreListNode *param
    else
       self->setPrivate(CID_TIBRVCMSENDER, qcmsender);
 
-   traceout("TIBRVCMSENDER_constructor");
+
 }
 
 void TIBRVCMSENDER_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvCmSender *cms, ExceptionSink *xsink)
@@ -247,7 +247,7 @@ class AbstractQoreNode *TIBRVCMSENDER_syncLedger(class QoreObject *self, class Q
 
 class QoreClass *initTibrvCmSenderClass()
 {
-   tracein("initTibrvCmSenderClass()");
+   QORE_TRACE("initTibrvCmSenderClass()");
 
    class QoreClass *QC_TIBRVCMSENDER = new QoreClass("TibrvCmSender", QDOM_NETWORK);
    CID_TIBRVCMSENDER = QC_TIBRVCMSENDER->getID();
@@ -268,6 +268,6 @@ class QoreClass *initTibrvCmSenderClass()
    QC_TIBRVCMSENDER->addMethod("removeSendState",           (q_method_t)TIBRVCMSENDER_removeSendState);
    QC_TIBRVCMSENDER->addMethod("syncLedger",                (q_method_t)TIBRVCMSENDER_syncLedger);
 
-   traceout("initTibrvCmSenderClass()");
+
    return QC_TIBRVCMSENDER;
 }

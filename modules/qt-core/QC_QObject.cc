@@ -533,7 +533,7 @@ static AbstractQoreNode *f_QObject_connect(const QoreListNode *params, class Exc
 
 class QoreClass *initQObjectClass()
 {
-   tracein("initQObjectClass()");
+   QORE_TRACE("initQObjectClass()");
    
    QC_QObject = new QoreClass("QObject", QDOM_GUI);
    CID_QOBJECT = QC_QObject->getID();
@@ -584,6 +584,6 @@ class QoreClass *initQObjectClass()
    // static methods
    QC_QObject->addStaticMethod("static_connect", f_QObject_connect);
 
-   traceout("initQObjectClass()");
+
    return QC_QObject;
 }

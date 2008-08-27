@@ -883,7 +883,7 @@ static AbstractQoreNode *SOCKET_setPrivateKey(QoreObject *self, mySocket *s, con
 
 QoreClass *initSocketClass()
 {
-   tracein("initSocketClass()");
+   QORE_TRACE("initSocketClass()");
 
    QoreClass *QC_SOCKET = new QoreClass("Socket", QDOM_NETWORK);
    CID_SOCKET = QC_SOCKET->getID();
@@ -944,6 +944,6 @@ QoreClass *initSocketClass()
    QC_SOCKET->addMethod("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey);
    QC_SOCKET->addMethod("isOpen",                    (q_method_t)SOCKET_isOpen);
 
-   traceout("initSocketClass()");
+
    return QC_SOCKET;
 }

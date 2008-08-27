@@ -5,7 +5,11 @@ AC_INIT([qore], [0.7.0],
         [David Nichols <nicholsman@gmail.com>],
         [qore])
 AM_INIT_AUTOMAKE
-AC_CONFIG_HEADER(include/qore/unix-config.h)
+AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
+
+# fix default include dir
+DEFAULT_INCLUDES="-I\${top_builddir}/include/qore"
+AC_SUBST([DEFAULT_INCLUDES])
 
 AC_PROG_LEX
 ##AC_PROG_MAKE_SET

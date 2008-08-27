@@ -83,7 +83,7 @@ static AbstractQoreNode *QPAINTEVENT_region(QoreObject *self, QoreQPaintEvent *q
 
 class QoreClass *initQPaintEventClass(class QoreClass *qevent)
 {
-   tracein("initQPaintEventClass()");
+   QORE_TRACE("initQPaintEventClass()");
    
    QC_QPaintEvent = new QoreClass("QPaintEvent", QDOM_GUI);
    CID_QPAINTEVENT = QC_QPaintEvent->getID();
@@ -96,6 +96,6 @@ class QoreClass *initQPaintEventClass(class QoreClass *qevent)
    QC_QPaintEvent->addMethod("rect",                        (q_method_t)QPAINTEVENT_rect);
    QC_QPaintEvent->addMethod("region",                      (q_method_t)QPAINTEVENT_region);
 
-   traceout("initQPaintEventClass()");
+
    return QC_QPaintEvent;
 }

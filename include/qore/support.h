@@ -44,18 +44,15 @@ DLLEXPORT extern int debug;
 #ifdef DEBUG
 #define printd print_debug
 
-#define tracein(a) trace_function(TRACE_IN, a)
-#define traceout(a) trace_function(TRACE_OUT, a)
+#define QORE_TRACE(a) { trace_function(TRACE_IN, a); ON_BLOCK_EXIT(trace_function, TRACE_OUT, a); }
 
 #else
 #ifdef __GNUC__
 #define printd(args...)
-#define tracein(args...)
-#define traceout(args...)
+#define QORE_TRACE(args...)
 #else
 #define printd(args, ...)
-#define tracein(x)
-#define traceout(x)
+#define QORE_TRACE(x)
 #endif
 #endif
 

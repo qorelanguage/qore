@@ -338,7 +338,7 @@ static AbstractQoreNode *QLABEL_setText(QoreObject *self, QoreQLabel *ql, const 
 
 class QoreClass *initQLabelClass(class QoreClass *qframe)
 {
-   tracein("initQLabelClass()");
+   QORE_TRACE("initQLabelClass()");
    
    class QoreClass *QC_QLabel = new QoreClass("QLabel", QDOM_GUI);
    CID_QLABEL = QC_QLabel->getID();
@@ -377,6 +377,6 @@ class QoreClass *initQLabelClass(class QoreClass *qframe)
    QC_QLabel->addMethod("setPixmap",                   (q_method_t)QLABEL_setPixmap);
    QC_QLabel->addMethod("setText",                     (q_method_t)QLABEL_setText);
 
-   traceout("initQLabelClass()");
+
    return QC_QLabel;
 }

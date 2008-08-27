@@ -102,7 +102,7 @@ static AbstractQoreNode *QUEUE_getWaiting(QoreObject *self, class Queue *q, cons
 
 class QoreClass *initQueueClass()
 {
-   tracein("initQueueClass()");
+   QORE_TRACE("initQueueClass()");
 
    class QoreClass *QC_QUEUE = new QoreClass("Queue", QDOM_THREAD_CLASS);
    CID_QUEUE = QC_QUEUE->getID();
@@ -116,6 +116,6 @@ class QoreClass *initQueueClass()
    QC_QUEUE->addMethod("size",          (q_method_t)QUEUE_size);
    QC_QUEUE->addMethod("getWaiting",    (q_method_t)QUEUE_getWaiting);
 
-   traceout("initQueueClass()");
+
    return QC_QUEUE;
 }

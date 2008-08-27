@@ -603,7 +603,7 @@ static AbstractQoreNode *f_QPixmap_grabWindow(const QoreListNode *params, Except
 
 QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
 {
-   tracein("initQPixmapClass()");
+   QORE_TRACE("initQPixmapClass()");
    
    QC_QPixmap = new QoreClass("QPixmap", QDOM_GUI);
    CID_QPIXMAP = QC_QPixmap->getID();
@@ -656,6 +656,6 @@ QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
    QC_QPixmap->addStaticMethod("grabWindow",                   f_QPixmap_grabWindow);
    //QC_QPixmap->addStaticMethod("trueMatrix",                   f_QPixmap_trueMatrix);
 
-   traceout("initQPixmapClass()");
+
    return QC_QPixmap;
 }

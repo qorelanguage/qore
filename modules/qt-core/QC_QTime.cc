@@ -194,7 +194,7 @@ static AbstractQoreNode *QTIME_toString(QoreObject *self, QoreQTime *qt, const Q
 
 class QoreClass *initQTimeClass()
 {
-   tracein("initQTimeClass()");
+   QORE_TRACE("initQTimeClass()");
    
    QC_QTime = new QoreClass("QTime", QDOM_GUI);
    CID_QTIME = QC_QTime->getID();
@@ -217,6 +217,6 @@ class QoreClass *initQTimeClass()
    QC_QTime->addMethod("start",                       (q_method_t)QTIME_start);
    QC_QTime->addMethod("toString",                    (q_method_t)QTIME_toString);
 
-   traceout("initQTimeClass()");
+
    return QC_QTime;
 }

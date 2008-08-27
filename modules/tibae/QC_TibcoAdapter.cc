@@ -34,7 +34,7 @@ qore_classid_t CID_TIBAE;
 // usage: new TibcoAdapter(session-name, properties, classlist, [, service, network, daemon])
 void TIBAE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   tracein("TIBAE_constructor");
+   QORE_TRACE("TIBAE_constructor");
 
    const char *session_name, *service = NULL, *network = NULL, *daemon = NULL;
    const QoreStringNode *p0;
@@ -44,7 +44,7 @@ void TIBAE_constructor(class QoreObject *self, const QoreListNode *params, Excep
    if (!(p0 = test_string_param(params, 0)) || !(p1 = test_hash_param(params, 1)))
    {
       xsink->raiseException("TIBCO-PARAMETER-ERROR", "invalid parameters passed to Tibco() constructor, expecting session name (string), properties (object), [classlist (object), service (string), network (string), daemon (string)]");
-      traceout("TIBAE_constructor");
+
       return;
    }
 
@@ -113,12 +113,12 @@ void TIBAE_constructor(class QoreObject *self, const QoreListNode *params, Excep
 			 te.getType().c_str(), te.getDescription().c_str());
       if (myQoreApp)
 	 myQoreApp->deref(xsink);
-      traceout("TIBAE_constructor");
+
       return;
    }
    self->setPrivate(CID_TIBAE, myQoreApp);
    printd(5, "TIBAE_constructor() this=%08p myQoreApp=%08p\n", self, myQoreApp);
-   traceout("TIBAE_constructor");
+
 }
 
 void TIBAE_copy(class QoreObject *self, class QoreObject *old, class QoreApp *myQoreApp, class ExceptionSink *xsink)
@@ -378,7 +378,7 @@ static AbstractQoreNode* TIBAE_operationsGetAsyncCallResult(QoreObject* self, Qo
 
 class QoreClass *initTibcoAdapterClass()
 {
-   tracein("initTibcoAdapterClass()");
+   QORE_TRACE("initTibcoAdapterClass()");
 
    class QoreClass *QC_TIBAE = new QoreClass("TibcoAdapter", QDOM_NETWORK);
    CID_TIBAE = QC_TIBAE->getID();
@@ -399,7 +399,7 @@ class QoreClass *initTibcoAdapterClass()
    QC_TIBAE->addMethod("getAsyncOperationCallResult", (q_method_t)TIBAE_operationsGetAsyncCallResult);
    */
 
-   traceout("initTibcoAdapterClass()");
+
    return QC_TIBAE;
 }
 

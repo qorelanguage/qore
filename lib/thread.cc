@@ -1203,7 +1203,7 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
 
 void init_qore_threads()
 {
-   tracein("qore_init_threads()");
+   QORE_TRACE("qore_init_threads()");
 
    // setup parent thread data
    register_thread(get_thread_entry(), pthread_self(), 0);
@@ -1225,7 +1225,7 @@ void init_qore_threads()
    threads_initialized = true;
 #endif
 
-   traceout("qore_init_threads()");
+
 }
 
 QoreNamespace *get_thread_ns()
@@ -1251,7 +1251,7 @@ void delete_qore_threads()
    // mark threading as inactive
    threads_initialized = false;
 #endif
-   tracein("delete_qore_threads()");
+   QORE_TRACE("delete_qore_threads()");
 
    ExceptionSink xsink;
    purge_thread_resources(&xsink);
@@ -1267,7 +1267,7 @@ void delete_qore_threads()
 
    thread_list[1].cleanup();
 
-   traceout("delete_qore_threads()");
+
 }
 
 QoreListNode *get_thread_list()

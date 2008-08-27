@@ -636,7 +636,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 
 void ModuleManager::cleanup()
 {
-   tracein("ModuleManager::cleanup()");
+   QORE_TRACE("ModuleManager::cleanup()");
 
    module_map_t::iterator i;
    while ((i = map.begin()) != map.end())
@@ -646,7 +646,7 @@ void ModuleManager::cleanup()
       delete m;
    }
 
-   traceout("ModuleManager::cleanup()");
+
 }
 
 QoreListNode *ModuleManager::getModuleList()

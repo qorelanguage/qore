@@ -417,7 +417,7 @@ AbstractQoreNode *PC_clrtobot(class QoreObject *self, class Panel *p, const Qore
 
 class QoreClass *initPanelClass()
 {
-   tracein("initPanelClass()");
+   QORE_TRACE("initPanelClass()");
 
    class QoreClass *QC_PANEL = new QoreClass("Panel", QDOM_TERMINAL_IO);
    CID_PANEL = QC_PANEL->getID();
@@ -477,6 +477,6 @@ class QoreClass *initPanelClass()
    QC_PANEL->addMethod("clrtoeol",           (q_method_t)PC_clrtoeol);
    QC_PANEL->addMethod("clrtobot",           (q_method_t)PC_clrtobot);
 
-   traceout("initPanelClass()");
+
    return QC_PANEL;
 }

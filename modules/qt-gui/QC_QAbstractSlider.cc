@@ -223,7 +223,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setValue(QoreObject *self, QoreAbstract
 
 class QoreClass *initQAbstractSliderClass(class QoreClass *qwidget)
 {
-   tracein("initQAbstractSliderClass()");
+   QORE_TRACE("initQAbstractSliderClass()");
    
    class QoreClass *QC_QAbstractSlider = new QoreClass("QAbstractSlider", QDOM_GUI);
 
@@ -261,6 +261,6 @@ class QoreClass *initQAbstractSliderClass(class QoreClass *qwidget)
    QC_QAbstractSlider->addMethod("setOrientation",              (q_method_t)QABSTRACTSLIDER_setOrientation);
    QC_QAbstractSlider->addMethod("setValue",                    (q_method_t)QABSTRACTSLIDER_setValue);
 
-   traceout("initQAbstractSliderClass()");
+
    return QC_QAbstractSlider;
 }

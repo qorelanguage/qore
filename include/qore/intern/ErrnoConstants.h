@@ -27,9 +27,7 @@
 // this function will set up the Qore system namespace
 static inline class QoreNamespace *get_errno_ns()
 {
-   tracein("get_errno_ns()");
-
-   class QoreNamespace *Err = new QoreNamespace("Err");
+   QoreNamespace *Err = new QoreNamespace("Err");
 
 #ifdef EPERM
    Err->addConstant("EPERM", new QoreBigIntNode(EPERM));
@@ -404,7 +402,6 @@ static inline class QoreNamespace *get_errno_ns()
    Err->addConstant("EMEDIUMTYPE", new QoreBigIntNode(EMEDIUMTYPE));
 #endif
 
-   traceout("get_errno_ns");
    return Err;
 }
 

@@ -58,7 +58,7 @@ static void AWL_copy(QoreObject *self, QoreObject *old, class QoreAutoWriteLock 
 
 class QoreClass *initAutoWriteLockClass()
 {
-   tracein("initAutoWriteLockClass()");
+   QORE_TRACE("initAutoWriteLockClass()");
    
    class QoreClass *QC_AutoWriteLock = new QoreClass("AutoWriteLock", QDOM_THREAD_CLASS);
    CID_AUTOWRITELOCK = QC_AutoWriteLock->getID();
@@ -66,6 +66,6 @@ class QoreClass *initAutoWriteLockClass()
    QC_AutoWriteLock->setDestructor((q_destructor_t)AWL_destructor);
    QC_AutoWriteLock->setCopy((q_copy_t)AWL_copy);
    
-   traceout("initAutoWriteLockClass()");
+
    return QC_AutoWriteLock;
 }

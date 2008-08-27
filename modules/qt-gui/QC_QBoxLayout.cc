@@ -247,7 +247,7 @@ static AbstractQoreNode *QBOXLAYOUT_spacing(QoreObject *self, QoreAbstractQBoxLa
 
 class QoreClass *initQBoxLayoutClass(class QoreClass *qlayout)
 {
-   tracein("initQBoxLayoutClass()");
+   QORE_TRACE("initQBoxLayoutClass()");
    
    class QoreClass *QC_QBoxLayout = new QoreClass("QBoxLayout", QDOM_GUI);
    CID_QBOXLAYOUT = QC_QBoxLayout->getID();
@@ -272,6 +272,6 @@ class QoreClass *initQBoxLayoutClass(class QoreClass *qlayout)
    QC_QBoxLayout->addMethod("setStretchFactor",             (q_method_t)QBOXLAYOUT_setStretchFactor);
    QC_QBoxLayout->addMethod("spacing",                      (q_method_t)QBOXLAYOUT_spacing);
 
-   traceout("initQBoxLayoutClass()");
+
    return QC_QBoxLayout;
 }

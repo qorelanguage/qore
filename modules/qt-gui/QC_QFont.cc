@@ -420,7 +420,7 @@ static AbstractQoreNode *QFONT_weight(QoreObject *self, QoreQFont *qf, const Qor
 
 class QoreClass *initQFontClass()
 {
-   tracein("initQFontClass()");
+   QORE_TRACE("initQFontClass()");
    
    QC_QFont = new QoreClass("QFont", QDOM_GUI);
    CID_QFONT = QC_QFont->getID();
@@ -478,6 +478,6 @@ class QoreClass *initQFontClass()
    QC_QFont->addMethod("underline",                   (q_method_t)QFONT_underline);
    QC_QFont->addMethod("weight",                      (q_method_t)QFONT_weight);
 
-   traceout("initQFontClass()");
+
    return QC_QFont;
 }

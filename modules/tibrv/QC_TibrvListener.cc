@@ -31,7 +31,7 @@ qore_classid_t CID_TIBRVLISTENER;
 // syntax: subject, [desc, service, network, daemon] 
 void TIBRVLISTENER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBRVLISTENER_constructor");
+   QORE_TRACE("TIBRVLISTENER_constructor");
 
    const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -62,7 +62,7 @@ void TIBRVLISTENER_constructor(class QoreObject *self, const QoreListNode *param
    else
       self->setPrivate(CID_TIBRVLISTENER, qlistener);
 
-   traceout("TIBRVLISTENER_constructor");
+
 }
 
 void TIBRVLISTENER_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvListener *trvl, ExceptionSink *xsink)
@@ -116,7 +116,7 @@ class AbstractQoreNode *TIBRVLISTENER_getStringEncoding(class QoreObject *self, 
 
 class QoreClass *initTibrvListenerClass()
 {
-   tracein("initTibrvListenerClass()");
+   QORE_TRACE("initTibrvListenerClass()");
 
    class QoreClass *QC_TIBRVLISTENER = new QoreClass("TibrvListener", QDOM_NETWORK);
    CID_TIBRVLISTENER = QC_TIBRVLISTENER->getID();
@@ -128,6 +128,6 @@ class QoreClass *initTibrvListenerClass()
    QC_TIBRVLISTENER->addMethod("setStringEncoding",  (q_method_t)TIBRVLISTENER_setStringEncoding);
    QC_TIBRVLISTENER->addMethod("getStringEncoding",  (q_method_t)TIBRVLISTENER_getStringEncoding);
 
-   traceout("initTibrvListenerClass()");
+
    return QC_TIBRVLISTENER;
 }

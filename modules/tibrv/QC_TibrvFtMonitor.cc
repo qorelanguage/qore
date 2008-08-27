@@ -31,7 +31,7 @@ qore_classid_t CID_TIBRVFTMONITOR;
 // syntax: group name, lostInterval, [service, network, daemon, desc] 
 static void TIBRVFTMONITOR_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
-   tracein("TIBRVFTMONITOR_constructor");
+   QORE_TRACE("TIBRVFTMONITOR_constructor");
 
    const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -71,15 +71,15 @@ static void TIBRVFTMONITOR_constructor(class QoreObject *self, const QoreListNod
    else
       self->setPrivate(CID_TIBRVFTMONITOR, qftmonitor);
 
-   traceout("TIBRVFTMONITOR_constructor");
+
 }
 
 static void TIBRVFTMONITOR_destructor(class QoreObject *self, class QoreTibrvFtMonitor *ftm, class ExceptionSink *xsink)
 {
-   tracein("TIBRVFTMONITOR_destructor()");
+   QORE_TRACE("TIBRVFTMONITOR_destructor()");
    ftm->stop();
    ftm->deref();
-   traceout("TIBRVFTMONITOR_destructor()");
+
 }
 
 static void TIBRVFTMONITOR_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvFtMonitor *ftm, ExceptionSink *xsink)
@@ -109,7 +109,7 @@ class AbstractQoreNode *TIBRVFTMONITOR_getGroupName(class QoreObject *self, clas
 
 class QoreClass *initTibrvFtMonitorClass()
 {
-   tracein("initTibrvFtMonitorClass()");
+   QORE_TRACE("initTibrvFtMonitorClass()");
 
    class QoreClass *QC_TIBRVFTMONITOR = new QoreClass("TibrvFtMonitor", QDOM_NETWORK);
    CID_TIBRVFTMONITOR = QC_TIBRVFTMONITOR->getID();
@@ -120,6 +120,6 @@ class QoreClass *initTibrvFtMonitorClass()
    QC_TIBRVFTMONITOR->addMethod("stop",          (q_method_t)TIBRVFTMONITOR_stop);
    QC_TIBRVFTMONITOR->addMethod("getGroupName",  (q_method_t)TIBRVFTMONITOR_getGroupName);
 
-   traceout("initTibrvFtMonitorClass()");
+
    return QC_TIBRVFTMONITOR;
 }

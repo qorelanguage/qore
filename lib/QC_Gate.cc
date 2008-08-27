@@ -77,7 +77,7 @@ static AbstractQoreNode *GATE_numWaiting(QoreObject *self, class QoreGate *g, co
 
 class QoreClass *initGateClass()
 {
-   tracein("initGateClass()");
+   QORE_TRACE("initGateClass()");
 
    class QoreClass *QC_GATE = new QoreClass("Gate", QDOM_THREAD_CLASS);
    CID_GATE = QC_GATE->getID();
@@ -90,7 +90,7 @@ class QoreClass *initGateClass()
    QC_GATE->addMethod("numInside",     (q_method_t)GATE_numInside);
    QC_GATE->addMethod("numWaiting",    (q_method_t)GATE_numWaiting);
 
-   traceout("initGateClass()");
+
    return QC_GATE;
 }
 

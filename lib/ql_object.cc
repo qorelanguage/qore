@@ -106,10 +106,10 @@ static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, Exce
 
 void init_object_functions()
 {
-   tracein("init_object_functions()");
+   QORE_TRACE("init_object_functions()");
    
    builtinFunctions.add("getMethodList", f_getMethodList);
    builtinFunctions.add("callObjectMethod", f_callObjectMethod);
    builtinFunctions.add("callObjectMethodArgs", f_callObjectMethodArgs);
-   traceout("init_object_functions()");
+
 }

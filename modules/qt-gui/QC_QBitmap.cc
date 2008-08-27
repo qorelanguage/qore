@@ -93,7 +93,7 @@ static AbstractQoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, const 
 
 class QoreClass *initQBitmapClass(class QoreClass *qpixmap)
 {
-   tracein("initQBitmapClass()");
+   QORE_TRACE("initQBitmapClass()");
    
    QC_QBitmap = new QoreClass("QBitmap", QDOM_GUI);
    CID_QBITMAP = QC_QBitmap->getID();
@@ -107,6 +107,6 @@ class QoreClass *initQBitmapClass(class QoreClass *qpixmap)
    QC_QBitmap->addMethod("clear",                       (q_method_t)QBITMAP_clear);
    //QC_QBitmap->addMethod("transformed",                 (q_method_t)QBITMAP_transformed);
 
-   traceout("initQBitmapClass()");
+
    return QC_QBitmap;
 }

@@ -58,7 +58,7 @@ static void ARL_copy(QoreObject *self, QoreObject *old, class QoreAutoReadLock *
 
 class QoreClass *initAutoReadLockClass()
 {
-   tracein("initAutoReadLockClass()");
+   QORE_TRACE("initAutoReadLockClass()");
    
    class QoreClass *QC_AutoReadLock = new QoreClass("AutoReadLock", QDOM_THREAD_CLASS);
    CID_AUTOREADLOCK = QC_AutoReadLock->getID();
@@ -66,6 +66,6 @@ class QoreClass *initAutoReadLockClass()
    QC_AutoReadLock->setDestructor((q_destructor_t)ARL_destructor);
    QC_AutoReadLock->setCopy((q_copy_t)ARL_copy);
    
-   traceout("initAutoReadLockClass()");
+
    return QC_AutoReadLock;
 }

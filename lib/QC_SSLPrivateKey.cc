@@ -82,7 +82,7 @@ static AbstractQoreNode *SSLPKEY_getBitLength(QoreObject *self, class QoreSSLPri
 
 class QoreClass *initSSLPrivateKeyClass()
 {
-   tracein("initSSLPrivateKeyClass()");
+   QORE_TRACE("initSSLPrivateKeyClass()");
 
    class QoreClass *QC_SSLPRIVATEKEY = new QoreClass("SSLPrivateKey");
    CID_SSLPRIVATEKEY = QC_SSLPRIVATEKEY->getID();
@@ -93,6 +93,6 @@ class QoreClass *initSSLPrivateKeyClass()
    QC_SSLPRIVATEKEY->addMethod("getBitLength",     (q_method_t)SSLPKEY_getBitLength);
    QC_SSLPRIVATEKEY->addMethod("getInfo",          (q_method_t)SSLPKEY_getInfo);
 
-   traceout("initSSLPrivateKeyClass()");
+
    return QC_SSLPRIVATEKEY;
 }

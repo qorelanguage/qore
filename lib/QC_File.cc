@@ -581,7 +581,7 @@ static AbstractQoreNode *FILE_chown(QoreObject *self, class File *f, const QoreL
 
 QoreClass *initFileClass()
 {
-   tracein("initFileClass()");
+   QORE_TRACE("initFileClass()");
 
    QC_File = new QoreClass("File", QDOM_FILESYSTEM);
    CID_FILE = QC_File->getID();
@@ -633,6 +633,6 @@ QoreClass *initFileClass()
    QC_File->addMethod("getLockInfo",       (q_method_t)FILE_getLockInfo);
    QC_File->addMethod("chown",             (q_method_t)FILE_chown);
 
-   traceout("initFileClass()");
+
    return QC_File;
 }

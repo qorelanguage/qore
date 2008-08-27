@@ -259,7 +259,7 @@ static AbstractQoreNode *QICON_pixmap(QoreObject *self, QoreQIcon *qi, const Qor
 
 class QoreClass *initQIconClass()
 {
-   tracein("initQIconClass()");
+   QORE_TRACE("initQIconClass()");
    
    QC_QIcon = new QoreClass("QIcon", QDOM_GUI);
    CID_QICON = QC_QIcon->getID();
@@ -274,6 +274,6 @@ class QoreClass *initQIconClass()
    QC_QIcon->addMethod("isNull",                      (q_method_t)QICON_isNull);
    QC_QIcon->addMethod("paint",                       (q_method_t)QICON_paint);
    QC_QIcon->addMethod("pixmap",                      (q_method_t)QICON_pixmap);
-   traceout("initQIconClass()");
+
    return QC_QIcon;
 }

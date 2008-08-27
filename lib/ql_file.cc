@@ -136,7 +136,7 @@ static AbstractQoreNode *f_is_writeable(const QoreListNode *params, ExceptionSin
    if (!(p0 = test_string_param(params, 0)))
       return 0;
    
-   tracein("f_stat()");
+   QORE_TRACE("f_stat()");
    struct stat sbuf;
    int rc;
    

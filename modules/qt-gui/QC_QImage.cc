@@ -732,7 +732,7 @@ static AbstractQoreNode *QIMAGE_width(QoreObject *self, QoreQImage *qi, const Qo
 
 class QoreClass *initQImageClass(class QoreClass *qpaintdevice)
 {
-   tracein("initQImageClass()");
+   QORE_TRACE("initQImageClass()");
    
    QC_QImage = new QoreClass("QImage", QDOM_GUI);
    CID_QIMAGE = QC_QImage->getID();
@@ -796,6 +796,6 @@ class QoreClass *initQImageClass(class QoreClass *qpaintdevice)
    QC_QImage->addMethod("valid",                       (q_method_t)QIMAGE_valid);
    QC_QImage->addMethod("width",                       (q_method_t)QIMAGE_width);
 
-   traceout("initQImageClass()");
+
    return QC_QImage;
 }

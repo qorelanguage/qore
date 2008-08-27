@@ -270,7 +270,7 @@ static AbstractQoreNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreLis
 
 class QoreClass *initGetOptClass()
 {
-   tracein("initGetOptClass()");
+   QORE_TRACE("initGetOptClass()");
 
    class QoreClass *QC_GETOPT = new QoreClass("GetOpt");
    CID_GETOPT = QC_GETOPT->getID();
@@ -278,6 +278,6 @@ class QoreClass *initGetOptClass()
    QC_GETOPT->setCopy((q_copy_t)GETOPT_copy);
    QC_GETOPT->addMethod("parse",         (q_method_t)GETOPT_parse);
 
-   traceout("initGetOptClass()");
+
    return QC_GETOPT;
 }

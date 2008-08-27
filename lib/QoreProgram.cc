@@ -261,7 +261,7 @@ struct qore_program_private {
       // caller must have grabbed the lock and put the current program on the program stack
       int internParseCommit()
       {
-	 tracein("QoreProgram::internParseCommit()");
+	 QORE_TRACE("QoreProgram::internParseCommit()");
 	 printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, parseSink->isEvent());
 	 // if the first stage of parsing has already failed, 
 	 // then don't go forward
@@ -551,38 +551,38 @@ void QoreProgram::addGlobalVarDef(const char *name)
 
 void QoreProgram::makeParseException(const char *err, QoreStringNode *desc)
 {
-   tracein("QoreProgram::makeParseException()");
+   QORE_TRACE("QoreProgram::makeParseException()");
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception)
    {
       class QoreException *ne = new ParseException(err, d.release());
       priv->parseSink->raiseException(ne);
    }
-   traceout("QoreProgram::makeParseException()");
+
 }
 
 void QoreProgram::makeParseException(QoreStringNode *desc)
 {
-   tracein("QoreProgram::makeParseException()");
+   QORE_TRACE("QoreProgram::makeParseException()");
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception)
    {
       class QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
       priv->parseSink->raiseException(ne);
    }
-   traceout("QoreProgram::makeParseException()");
+
 }
 
 void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc)
 {
-   tracein("QoreProgram::makeParseException()");
+   QORE_TRACE("QoreProgram::makeParseException()");
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception)
    {
       class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
       priv->parseSink->raiseException(ne);
    }
-   traceout("QoreProgram::makeParseException()");
+
 }
 
 void QoreProgram::addParseException(ExceptionSink *xsink)
@@ -604,7 +604,7 @@ void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, 
    //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->warn_mask=%d priv->warnSink=%08p %s\n", code, warn, fmt, priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
    if (!priv->warnSink || !(code & priv->warn_mask))
       return;
-   tracein("QoreProgram::makeParseWarning()");
+   QORE_TRACE("QoreProgram::makeParseWarning()");
    QoreStringNode *desc = new QoreStringNode();
    while (true)
    {
@@ -617,7 +617,7 @@ void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, 
    }
    class QoreException *ne = new ParseException(warn, desc);
    priv->warnSink->raiseException(ne);
-   traceout("QoreProgram::makeParseWarning()");
+
 }
 
 void QoreProgram::addParseWarning(int code, ExceptionSink *xsink)
@@ -629,7 +629,7 @@ void QoreProgram::addParseWarning(int code, ExceptionSink *xsink)
 
 void QoreProgram::cannotProvideFeature(QoreStringNode *desc)
 {
-   tracein("QoreProgram::cannotProvideFeature()");
+   QORE_TRACE("QoreProgram::cannotProvideFeature()");
    
    if (!priv->requires_exception)
    {
@@ -640,7 +640,7 @@ void QoreProgram::cannotProvideFeature(QoreStringNode *desc)
    class QoreException *ne = new ParseException("CANNOT-PROVIDE-FEATURE", desc);
    priv->parseSink->raiseException(ne);
    
-   traceout("QoreProgram::cannotProvideFeature()");
+
 }
 
 class UserFunction *QoreProgram::findUserFunction(const char *name)
@@ -892,7 +892,7 @@ void QoreProgram::endThread(ExceptionSink *xsink)
 // called during parsing (priv->plock already grabbed)
 void QoreProgram::resolveFunction(FunctionCallNode *f)
 {
-   tracein("QoreProgram::resolveFunction()");
+   QORE_TRACE("QoreProgram::resolveFunction()");
    char *fname = f->f.c_str;
 
    class UserFunction *ufc;
@@ -902,7 +902,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
       f->ftype = FC_USER;
       f->f.ufunc = ufc;
       free(fname);
-      traceout("QoreProgram::resolveFunction()");
+
       return;
    }
 
@@ -913,7 +913,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
       f->ftype = FC_IMPORTED;
       f->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
       free(fname);
-      traceout("QoreProgram::resolveFunction()");
+
       return;
    }
 
@@ -929,13 +929,13 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
 	 parse_error("parse options do not allow access to builtin function '%s'", fname);
 
       free(fname);
-      traceout("QoreProgram::resolveFunction()");
+
       return;
    }
 
    // cannot find function, throw exception
    parse_error("function '%s()' cannot be found", fname);
-   traceout("QoreProgram::resolveFunction()");
+
 }
 
 // called during parsing (plock already grabbed)
@@ -1072,7 +1072,7 @@ void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsin
 
 void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *wS, int wm)
 {
-   tracein("QoreProgram::parseFile()");
+   QORE_TRACE("QoreProgram::parseFile()");
 
    printd(5, "QoreProgram::parseFile(%s)\n", filename);
 

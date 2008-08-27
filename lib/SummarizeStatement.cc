@@ -64,7 +64,7 @@ int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink 
 
 int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
-   tracein("SummarizeStatement::parseInit()");
+   QORE_TRACE("SummarizeStatement::parseInit()");
    
    int lvids = 0;
    
@@ -92,6 +92,6 @@ int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag)
    lvars = new LVList(lvids);
    
    pop_cvar();
-   traceout("SummarizeStatement::parseInit()");
+
    return 0;
 }

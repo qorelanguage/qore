@@ -2,7 +2,7 @@
 
 dir=`dirname $0`
 
-file=$dir/include/qore/svn-revision.h
+file=$dir/include/qore/intern/svn-revision.h
 
 ok=0
 

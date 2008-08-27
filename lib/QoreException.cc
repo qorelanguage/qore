@@ -190,7 +190,7 @@ QoreException::QoreException(class QoreException *old, ExceptionSink *xsink)
 
 QoreHashNode *QoreException::makeExceptionObject()
 {
-   tracein("makeExceptionObject()");
+   QORE_TRACE("makeExceptionObject()");
 
    QoreHashNode *h = new QoreHashNode();
 
@@ -211,16 +211,16 @@ QoreHashNode *QoreException::makeExceptionObject()
    if (next)
       h->setKeyValue("next", next->makeExceptionObject(), 0);
 
-   traceout("makeExceptionObject()");
+
    return h;
 }
 
 QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *xsink)
 {
-   tracein("makeExceptionObjectAndDelete()");
+   QORE_TRACE("makeExceptionObjectAndDelete()");
    QoreHashNode *rv = makeExceptionObject();
    del(xsink);
-   traceout("makeExceptionObjectAndDelete()");
+
    return rv;
 }
 

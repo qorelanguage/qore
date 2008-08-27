@@ -89,7 +89,7 @@ void AbstractQoreNode::customDeref(ExceptionSink *xsink)
 
 void AbstractQoreNode::deref(ExceptionSink *xsink)
 {
-   //tracein("AbstractQoreNode::deref()");
+   //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS
    if (type == NT_STRING) printd(5, "AbstractQoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
@@ -125,7 +125,7 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
 	 delete this;
    }
 
-   //traceout("AbstractQoreNode::deref()");
+
 }
 
 // AbstractQoreNode::eval(): return value requires a dereference

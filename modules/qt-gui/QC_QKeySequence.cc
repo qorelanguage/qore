@@ -101,7 +101,7 @@ static AbstractQoreNode *QKEYSEQUENCE_toString(QoreObject *self, QoreQKeySequenc
 
 class QoreClass *initQKeySequenceClass()
 {
-   tracein("initQKeySequenceClass()");
+   QORE_TRACE("initQKeySequenceClass()");
    
    QC_QKeySequence = new QoreClass("QKeySequence", QDOM_GUI);
    CID_QKEYSEQUENCE = QC_QKeySequence->getID();
@@ -114,6 +114,6 @@ class QoreClass *initQKeySequenceClass()
    QC_QKeySequence->addMethod("matches",                     (q_method_t)QKEYSEQUENCE_matches);
    QC_QKeySequence->addMethod("toString",                    (q_method_t)QKEYSEQUENCE_toString);
 
-   traceout("initQKeySequenceClass()");
+
    return QC_QKeySequence;
 }

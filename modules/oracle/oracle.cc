@@ -133,7 +133,7 @@ static int oracle_rollback(Datasource *ds, ExceptionSink *xsink)
 
 OraColumns::OraColumns(OCIStmt *stmthp, Datasource *ds, const char *str, ExceptionSink *xsink)
 {
-   tracein("OraColumns::OraColumns()");
+   QORE_TRACE("OraColumns::OraColumns()");
 
    len = 0;
    head = tail = NULL;
@@ -172,12 +172,12 @@ OraColumns::OraColumns(OCIStmt *stmthp, Datasource *ds, const char *str, Excepti
       add((char *)col_name, col_name_len, col_max_size, dtype);
    }
 
-   traceout("OraColumns::OraColumns()");
+
 }
 
 void OraColumns::define(OCIStmt *stmthp, Datasource *ds, const char *str, ExceptionSink *xsink)
 {
-   //tracein("OraColumne::define()");
+   //QORE_TRACE("OraColumne::define()");
 
    OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
@@ -287,7 +287,7 @@ void OraColumns::define(OCIStmt *stmthp, Datasource *ds, const char *str, Except
       w = w->next;
       i++;
    }
-   //traceout("OraColumns::define()");
+
 }
 
 static class DateTimeNode *convert_date_time(unsigned char *str)
@@ -1344,7 +1344,7 @@ static int oracle_open(Datasource *ds, ExceptionSink *xsink)
 
 static int oracle_close(Datasource *ds)
 {
-   tracein("oracle_close()");
+   QORE_TRACE("oracle_close()");
 
    OracleData *d_ora = (OracleData *)ds->getPrivateData();
 
@@ -1356,7 +1356,7 @@ static int oracle_close(Datasource *ds)
    delete d_ora;
    ds->setPrivateData(NULL);
 
-   traceout("oracle_close()");
+
    return 0;
 }
 
@@ -1397,7 +1397,7 @@ static AbstractQoreNode *oracle_get_client_version(const Datasource *ds, Excepti
 
 QoreStringNode *oracle_module_init()
 {
-   tracein("oracle_module_init()");
+   QORE_TRACE("oracle_module_init()");
 
    // register driver with DBI subsystem
    class qore_dbi_method_list methods;
@@ -1415,21 +1415,21 @@ QoreStringNode *oracle_module_init()
    
    DBID_ORACLE = DBI.registerDriver("oracle", methods, DBI_ORACLE_CAPS);
 
-   traceout("oracle_module_init()");
+
    return NULL;
 }
 
 void oracle_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
 {
-   tracein("oracle_module_ns_init()");
+   QORE_TRACE("oracle_module_ns_init()");
    // nothing to do at the moment
-   traceout("oracle_module_ns_init()");
+
 }
 
 
 void oracle_module_delete()
 {
-   tracein("oracle_module_delete()");
+   QORE_TRACE("oracle_module_delete()");
    //DBI_deregisterDriver(DBID_ORACLE);
-   traceout("oracle_module_delete()");
+
 }

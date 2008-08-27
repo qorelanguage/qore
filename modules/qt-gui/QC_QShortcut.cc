@@ -196,7 +196,7 @@ static AbstractQoreNode *QSHORTCUT_whatsThis(QoreObject *self, QoreQShortcut *qs
 
 class QoreClass *initQShortcutClass(class QoreClass *qobject)
 {
-   tracein("initQShortcutClass()");
+   QORE_TRACE("initQShortcutClass()");
    
    QC_QShortcut = new QoreClass("QShortcut", QDOM_GUI);
    CID_QSHORTCUT = QC_QShortcut->getID();
@@ -219,6 +219,6 @@ class QoreClass *initQShortcutClass(class QoreClass *qobject)
    QC_QShortcut->addMethod("setWhatsThis",                (q_method_t)QSHORTCUT_setWhatsThis);
    QC_QShortcut->addMethod("whatsThis",                   (q_method_t)QSHORTCUT_whatsThis);
 
-   traceout("initQShortcutClass()");
+
    return QC_QShortcut;
 }

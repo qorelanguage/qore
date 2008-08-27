@@ -473,7 +473,7 @@ static int doJSONValue(class QoreString *str, const AbstractQoreNode *v, int for
 
 static AbstractQoreNode *f_makeJSONString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   tracein("f_makeJSONString()");
+   QORE_TRACE("f_makeJSONString()");
    const AbstractQoreNode *val = get_param(params, 0);
 
    const QoreStringNode *pcs;
@@ -491,7 +491,7 @@ static AbstractQoreNode *f_makeJSONString(const QoreListNode *params, ExceptionS
 
 static AbstractQoreNode *f_makeFormattedJSONString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   tracein("f_makeFormattedJSONString()");
+   QORE_TRACE("f_makeFormattedJSONString()");
    const AbstractQoreNode *val = get_param(params, 0);
 
    const QoreStringNode *pcs;

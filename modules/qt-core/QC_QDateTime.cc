@@ -299,7 +299,7 @@ static AbstractQoreNode *QDATETIME_toUTC(QoreObject *self, QoreQDateTime *qdt, c
 
 class QoreClass *initQDateTimeClass()
 {
-   tracein("initQDateTimeClass()");
+   QORE_TRACE("initQDateTimeClass()");
    
    class QoreClass *QC_QDateTime = new QoreClass("QDateTime", QDOM_GUI);
    CID_QDATETIME = QC_QDateTime->getID();
@@ -328,6 +328,6 @@ class QoreClass *initQDateTimeClass()
    QC_QDateTime->addMethod("toTime_t",                    (q_method_t)QDATETIME_toTime_t);
    QC_QDateTime->addMethod("toUTC",                       (q_method_t)QDATETIME_toUTC);
 
-   traceout("initQDateTimeClass()");
+
    return QC_QDateTime;
 }

@@ -81,7 +81,7 @@ static AbstractQoreNode *COUNTER_getWaiting(QoreObject *self, class Counter *c, 
 
 class QoreClass *initCounterClass()
 {
-   tracein("initCounterClass()");
+   QORE_TRACE("initCounterClass()");
 
    class QoreClass *QC_COUNTER = new QoreClass("Counter", QDOM_THREAD_CLASS);
    CID_COUNTER = QC_COUNTER->getID();
@@ -95,6 +95,6 @@ class QoreClass *initCounterClass()
    QC_COUNTER->addMethod("getCount",      (q_method_t)COUNTER_getCount);
    QC_COUNTER->addMethod("getWaiting",    (q_method_t)COUNTER_getWaiting);
 
-   traceout("initCounterClass()");
+
    return QC_COUNTER;
 }

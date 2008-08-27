@@ -362,7 +362,7 @@ static AbstractQoreNode *FC_setModePORT(QoreObject *self, class QoreFtpClientCla
 
 QoreClass *initFtpClientClass()
 {
-   tracein("initFtpClientClass()");
+   QORE_TRACE("initFtpClientClass()");
    
    QoreClass *QC_FTPCLIENT = new QoreClass("FtpClient", QDOM_NETWORK);
    // no need to set the class synchronous flag because the QoreFtpClient class is already thread-safe 
@@ -402,6 +402,6 @@ QoreClass *initFtpClientClass()
    QC_FTPCLIENT->addMethod("setModePASV",           (q_method_t)FC_setModePASV );
    QC_FTPCLIENT->addMethod("setModePORT",           (q_method_t)FC_setModePORT );
 
-   traceout("initFtpClientClass()");
+
    return QC_FTPCLIENT;
 }

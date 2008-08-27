@@ -292,7 +292,7 @@ static AbstractQoreNode *QBRUSH_textureImage(QoreObject *self, QoreQBrush *qb, c
 
 class QoreClass *initQBrushClass()
 {
-   tracein("initQBrushClass()");
+   QORE_TRACE("initQBrushClass()");
    
    QC_QBrush = new QoreClass("QBrush", QDOM_GUI);
    CID_QBRUSH = QC_QBrush->getID();
@@ -316,6 +316,6 @@ class QoreClass *initQBrushClass()
    QC_QBrush->addMethod("textureImage",                (q_method_t)QBRUSH_textureImage);
    //QC_QBrush->addMethod("transform",                   (q_method_t)QBRUSH_transform);
 
-   traceout("initQBrushClass()");
+
    return QC_QBrush;
 }

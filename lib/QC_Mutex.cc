@@ -71,7 +71,7 @@ static AbstractQoreNode *MUTEX_unlock(QoreObject *self, class SmartMutex *m, con
 
 class QoreClass *initMutexClass()
 {
-   tracein("initMutexClass()");
+   QORE_TRACE("initMutexClass()");
 
    class QoreClass *QC_MUTEX = new QoreClass("Mutex", QDOM_THREAD_CLASS);
    CID_MUTEX = QC_MUTEX->getID();
@@ -82,6 +82,6 @@ class QoreClass *initMutexClass()
    QC_MUTEX->addMethod("trylock",       (q_method_t)MUTEX_trylock);
    QC_MUTEX->addMethod("unlock",        (q_method_t)MUTEX_unlock);
 
-   traceout("initMutexClass()");
+
    return QC_MUTEX;
 }

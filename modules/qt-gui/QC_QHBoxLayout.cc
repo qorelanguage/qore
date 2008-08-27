@@ -52,7 +52,7 @@ static void QHBOXL_copy(class QoreObject *self, class QoreObject *old, class Qor
 
 class QoreClass *initQHBoxLayoutClass(class QoreClass *qboxlayout)
 {
-   tracein("initQHBoxLayoutClass()");
+   QORE_TRACE("initQHBoxLayoutClass()");
    
    class QoreClass *QC_QHBoxLayout = new QoreClass("QHBoxLayout", QDOM_GUI);
    CID_QHBOXLAYOUT = QC_QHBoxLayout->getID();
@@ -62,6 +62,6 @@ class QoreClass *initQHBoxLayoutClass(class QoreClass *qboxlayout)
    QC_QHBoxLayout->setConstructor(QHBOXL_constructor);
    QC_QHBoxLayout->setCopy((q_copy_t)QHBOXL_copy);
 
-   traceout("initQHBoxLayoutClass()");
+
    return QC_QHBoxLayout;
 }

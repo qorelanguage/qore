@@ -55,7 +55,6 @@
 #include <qore/QoreNamespace.h>
 #include <qore/ExceptionSink.h>
 #include <qore/BinaryNode.h>
-#include <qore/support.h>
 #include <qore/QoreString.h>
 #include <qore/DateTime.h>
 #include <qore/QoreType.h>
@@ -128,5 +127,7 @@ DLLEXPORT void qore_cleanup();
 #ifdef _QORE_LIB_INTERN
 #include <qore/intern/QoreLibIntern.h>
 #endif
+
+#include <qore/support.h>
 
 #endif  // _QORE_QORE_H
