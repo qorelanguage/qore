@@ -42,6 +42,7 @@ include_HEADERS = \
 	include/qore/QoreThreadLocalStorage.h \
 	include/qore/QoreClass.h \
 	include/qore/QoreString.h \
+	include/qore/qore-version.h \
 	include/qore/common.h \
 	include/qore/QoreEncoding.h \
 	include/qore/DateTime.h \

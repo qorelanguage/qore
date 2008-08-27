@@ -2,7 +2,10 @@
 
 dir=`dirname $0`
 
-file=$dir/include/qore/intern/svn-revision.h
+qore_inc="$dir/include/qore"
+file="$qore_inc/intern/svn-revision.h"
+version_file="$qore_inc/qore-version.h"
+version_tmp="$qore_inc/qore-version.h.tmp"
 
 ok=0
 
@@ -14,12 +17,35 @@ fi
 
 make_file() 
 {
-    crev=`cat $file|cut -b15- 2>/dev/null`
+    crev=`cat "$file"|cut -b15- 2>/dev/null`
     if [ "$crev" != "$build" ]; then
 	printf "#define BUILD %s\n" $build > $1
 	echo svn revision changed to $build in $file
     elif [ $show_build -eq 1 ]; then
 	echo $build
+    fi
+}
+
+make_version()
+{
+    major=`grep define.VERSION_MAJOR "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
+    minor=`grep define.VERSION_MINOR "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
+    sub=`grep define.VERSION_SUB "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
+
+    printf "#ifndef _QORE_VERSION_H\n#define _QORE_VERSION_H\n#define QORE_VERSION_MAJOR %s\n#define QORE_VERSION_MINOR %s\n#define QORE_VERSION_SUB %s\n#endif\n" $major $minor $sub > "$version_tmp"
+    create=yes
+    if [ -f "$version_file" ]; then
+	diff -q "$version_tmp" "$version_file" >/dev/null
+	if [ $? -eq 0 ]; then
+	    create=no
+	fi
+    fi
+
+    if [ "$create" = "yes" ]; then
+	mv "$version_tmp" "$version_file"
+	printf "created $version_file for qore %s.%s.%s\n" $major $minor $sub
+    else
+	rm "$version_tmp"
     fi
 }
 
@@ -42,3 +68,6 @@ if [ $ok -ne 1 ]; then
 	make_file $build
     fi
 fi
+
+make_version
+
