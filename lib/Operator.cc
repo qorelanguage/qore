@@ -642,16 +642,26 @@ static AbstractQoreNode *op_list_ref(const AbstractQoreNode *left, const Abstrac
    QoreNodeEvalOptionalRefHolder lp(left, xsink);
 
    // return 0 if left side is not a list or string (or exception)
-   if (!lp || *xsink || (lp->getType() != NT_LIST && lp->getType() != NT_STRING))
+   if (!lp || *xsink)
+      return 0;
+
+   qore_type_t t = lp->getType();
+   if (t != NT_LIST && t != NT_STRING && t != NT_BINARY)
       return 0;
 
    AbstractQoreNode *rv = 0;
    int ind = index->integerEval(xsink);
    if (!*xsink) {
       // get value
-      if (lp->getType() == NT_LIST) {
+      if (t == NT_LIST) {
 	 const QoreListNode *l = reinterpret_cast<const QoreListNode *>(*lp);
 	 rv = l->get_referenced_entry(ind);
+      }
+      else if (t == NT_BINARY) {
+	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(*lp);
+	 if (ind < 0 || (unsigned)ind >= b->size())
+	    return 0;
+	 return new QoreBigIntNode(((unsigned char *)b->getPtr())[ind]);
       }
       else if (ind >= 0) {
 	 const QoreStringNode *lpstr = reinterpret_cast<const QoreStringNode *>(*lp);

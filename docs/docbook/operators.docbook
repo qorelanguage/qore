@@ -42,7 +42,7 @@
   <row>
     <entry><para>[]</para></entry>
     <entry><para>1</para></entry>
-    <entry><para><link linkend='List_Dereference_Operator'>list element dereference operator</link></para></entry>
+    <entry><para><link linkend='List_Dereference_Operator'>list element, string, and binary dereference operator</link></para></entry>
     <entry><code>$list[1]</code></entry>
   </row>
   <row>
@@ -663,13 +663,13 @@
 
 </sect2>
 <sect2 id="List_Dereference_Operator">
-  <title>List or String Dereference Operator ([])</title>
+  <title>List, String, and Binary Dereference Operator ([])</title>
 
   <variablelist>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Retrieves the value of a list element or the given character of a string.</para>
+	<para>Retrieves the value of a list element, the given character of a string, or the integer value of a byte for a binary object.  If the index value is not valid for the argument, NOTHING is returned.  Note that this operator only works as a list dereferencing operator in lvalue expressions; you cannot assign a character or a byte value to strings or binaries using this operator.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -677,6 +677,7 @@
       <listitem>
 	<programlisting><replaceable>list_expression[expression]</replaceable>
 <replaceable>string_expression[expression]</replaceable></programlisting>
+<replaceable>binary_expression[expression]</replaceable></programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -684,6 +685,7 @@
       <listitem>
 	<programlisting>printf("%s\n", $list[2]);
 printf("%s\n", $str[2]);
+printf("0x%x\n", $binary[2]);
 </programlisting>
       </listitem>
     </varlistentry>
@@ -707,6 +709,10 @@ printf("%s\n", $str[2]);
 	  <entry><para><replaceable>string_expression</replaceable></para></entry>
 	  <entry><para>If the string_expression evaluates to a string, then the offset_expression will be used to return the given character from the list; note that multi-byte characters with UTF-8 are properly respected with this operator.</para></entry>
 	</row>
+	<row>
+	  <entry><para><replaceable>binary_expression</replaceable></para></entry>
+	  <entry><para>If the binary_expression evaluates to a string, then the offset_expression will be used to return the integer value of the byte given from the binary object.</para></entry>
+	</row>
 
 	<row>
 	  <entry><para><replaceable>expression</replaceable></para></entry>
@@ -716,7 +722,7 @@ printf("%s\n", $str[2]);
     </tgroup>
   </table>
 
-  <para>This operator does not throw any exceptions; if the first expression does not evaluate to either a list or a string, then no value is returned.</para>
+  <para>This operator does not throw any exceptions; if the first expression does not evaluate to either a list, string, or binary, then no value is returned.</para>
 </sect2>
 
 <sect2 id="Pre_Increment_Operator">

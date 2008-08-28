@@ -1,3 +1,7 @@
+2008.08.28: David Nichols
+	* updated [] operator to dereference binaries and return the byte value
+	  at the given location 
+
 2008.08.27: David Nichols
 	* removed internal macros tracein() and traceout() and replaced with a
 	  single QORE_TRACE() macro that uses ON_BLOCK_EXIT() to do the traceout()

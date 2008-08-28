@@ -255,6 +255,11 @@ sub array_tests()
     test_value($l1, (11, 12, 9, 2, 3), "sixth list splice");
     splice $l1, -4, -2, (21, 22, 23);
     test_value($l1, (11, 21, 22, 23, 2, 3), "seventh list splice");
+
+    $a = "hello";
+    test_value($a[2], "l", "string element dereference");
+    $a = binary($a);
+    test_value($a[4], ord("o"), "binary byte dereference");
 }
 
 sub hash_tests()

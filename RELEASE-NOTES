@@ -83,8 +83,12 @@ Static methods may also be private.
 
 This allows programmers to write more efficient object-oriented programs and also addresses some Qore programmers' desire to put functions in namespaces (functions cannot be declared in a Qore namespace).
 
-*) dereference string characters with [] operator
+*) dereference string characters and binary bytes with [] operator
 To get a single character of a string, the [] operator may be used, similar to how it's used with lists.
+To get the value of a byte, the [] operator may be used as well.
+
+Note that the [] operator when used in an lvalue expression will always convert its argument to a list
+(i.e. $string[1] = "a" or $binary[1] = 0x1f will not work yet - assuming $string is a string and $binary is a binary)
 
 *) qt-core, qt-gui, qt-opengl, qt-svg modules based on QT4
 Experimental modules that allow GUI programs to be developed with Qore
@@ -130,7 +134,7 @@ the configure script will automatically set the build to a 64-bit target if the 
 *) XML improvements, XSD support
   +) parseXMLWithSchema() - new function supports parsing an XML string based on an XSD schema
   +) improved XML generation, top-level elements may now have attributes
-  +) improved XML parse error reporting, more detaila and context is now reported in the exception strings
+  +) improved XML parse error reporting, more details are included and context is now reported in the exception strings
 
 *) bug fixes, new functions, class improvements
   +) Qore revision tag now reflects the svn version used to make the build (instead of a meaningless private build number that was different on each machine).
@@ -138,6 +142,7 @@ the configure script will automatically set the build to a 64-bit target if the 
   +) inlist() and inlist_hard() functions for checking if a value is in a list
   +) HTTPClient now understand bzip content encoding
   +) new chown() and lchown() functions
+  +) parseURL() improvements
   +) new Program restrictions: PO_NO_TERMINAL_IO and PO_NO_GUI
   +) "-" operator updated: hash - list and hash -= list now work to delete multiple hash keys in a single (atomic) expression
   +) major updates to internal object and class code to allow for c++ class hierarchies to be properly reflected as Qore class hierarchies (used extensively by the qt modules, for example)
