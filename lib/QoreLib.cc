@@ -25,21 +25,21 @@
 
 #include <string.h>
 
-class FeatureList qoreFeatureList;
+FeatureList qoreFeatureList;
 
 #define cpp_str(s) #s
 #define cpp_xstr(s) cpp_str(s)
 
 // global library variables
-char qore_version_string[] = VERSION "-" cpp_xstr(BUILD);
-int qore_version_major     = VERSION_MAJOR;
-int qore_version_minor     = VERSION_MINOR;
-int qore_version_sub       = VERSION_SUB;
-int qore_build_number      = BUILD;
-int qore_target_bits       = TARGET_BITS;
-char qore_target_os[]      = TARGET_OS;
-char qore_target_arch[]    = TARGET_ARCH;
-char qore_module_dir[]     = MODULE_DIR;
+const char qore_version_string[] = VERSION "-" cpp_xstr(BUILD);
+int qore_version_major           = VERSION_MAJOR;
+int qore_version_minor           = VERSION_MINOR;
+int qore_version_sub             = VERSION_SUB;
+int qore_build_number            = BUILD;
+int qore_target_bits             = TARGET_BITS;
+const char qore_target_os[]      = TARGET_OS;
+const char qore_target_arch[]    = TARGET_ARCH;
+const char qore_module_dir[]     = MODULE_DIR;
 
 DLLLOCAL QoreListNode *ARGV = 0;
 DLLLOCAL QoreListNode *QORE_ARGV = 0;
@@ -77,6 +77,11 @@ static inline int get_number(char **param)
 #define P_INCLUDE_PLUS      2
 #define P_SPACE_FILL        4
 #define P_ZERO_FILL         8
+
+bool qore_has_debug()
+{
+   return (bool)DEBUG;
+}
 
 FeatureList::FeatureList()
 {

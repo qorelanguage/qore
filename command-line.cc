@@ -58,11 +58,12 @@ static char *pn;
 
 static int opt_errors = 0;
 
-static char usage[] = "usage: %s [option(s)]... [program file]\n";
-static char suggest[] = "try '%s -h' for more information.\n";
+static const char usage[] = "usage: %s [option(s)]... [program file]\n";
+static const char suggest[] = "try '%s -h' for more information.\n";
 
-static char helpstr[] = 
+static const char helpstr[] = 
 "  -a, --show-aliases           displays the list of character sets aliases\n"
+"  -b, --disable-signals        disables signal handling\n"
 "  -c, --charset=arg            sets default character set encoding\n"
 "  -e, --exec=arg               execute program given on command-line\n"
 "  -h, --help                   shows this help text and exit\n"
@@ -102,13 +103,11 @@ static char helpstr[] =
 "  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
 "  -T, --no-threads             disallow thread access and control\n"
 "  -X, --no-thread-classes      disallow access to thread classes\n" 
-"  -Y, --no-network             disallow access to the network\n"
-#ifdef DEBUG
-"\n DEBUGGING OPTIONS:\n"
+"  -Y, --no-network             disallow access to the network\n";
+
+static char debugstr[] = "\n DEBUGGING OPTIONS:\n"
 "  -d, --debug=arg              sets debugging level (higher number = more output)\n"
 "  -t, --trace                  turns on function tracing\n" 
-"  -b, --disable-signals        disables signal handling\n"
-#endif
 ;
 
 static inline void show_usage()
@@ -116,7 +115,6 @@ static inline void show_usage()
    printf(usage, pn);
 }
 
-#ifdef DEBUG
 static void do_debug(char *arg)
 {
    debug = atoi(arg);
@@ -126,7 +124,6 @@ static void do_trace(char *arg)
 {
    qore_trace = 1;
 }
-#endif
 
 static void show_module_dir(char *arg)
 {
@@ -154,6 +151,8 @@ static void do_help(char *arg)
 {
    show_usage();
    printf(helpstr);
+   if (qore_has_debug())
+      printf(debugstr);
    exit(0);
 }
 
@@ -394,11 +393,10 @@ static struct opt_struct_s {
    { 'Y', "no-network",            ARG_NONE, do_no_network },
    { '\0', "lgpl",                 ARG_NONE, set_lgpl },
    { '\0', "module-dir",           ARG_NONE, show_module_dir },
-#ifdef DEBUG
+// debugging options
    { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },
    { 't', "trace",                 ARG_NONE, do_trace },
-#endif
 };
 
 #define NUM_OPTS (sizeof(options) / sizeof(struct opt_struct_s))
