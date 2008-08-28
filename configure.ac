@@ -2909,7 +2909,7 @@ AC_ARG_WITH([doxygen],
 if test "${with_doxygen}" = "auto"; then
    AC_MSG_CHECKING([for doxygen to build API documentation])
    # check for doxygen
-   with_doxygen=`which doxygen`
+   with_doxygen=`which doxygen 2>/dev/null`
    if test -n "$with_doxygen"; then
       doxy_version=`$with_doxygen --version`
       AC_MSG_RESULT([found $with_doxygen $doxy_version])
