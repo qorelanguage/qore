@@ -75,7 +75,7 @@
 #include <qore/ReferenceHelper.h>
 
 //! the complete version string of the qore library
-DLLEXPORT extern char qore_version_string[];
+DLLEXPORT extern const char qore_version_string[];
 
 //! the major version number of the qore library
 DLLEXPORT extern int qore_version_major;
@@ -93,13 +93,16 @@ DLLEXPORT extern int qore_build_number;
 DLLEXPORT extern int qore_target_bits;
 
 //! the build target Operating System name
-DLLEXPORT extern char qore_target_os[];
+DLLEXPORT extern const char qore_target_os[];
 
 //! the build target machine architecture name
-DLLEXPORT extern char qore_target_arch[];
+DLLEXPORT extern const char qore_target_arch[];
 
 //! the qore module directory
-DLLEXPORT extern char qore_module_dir[];
+DLLEXPORT extern const char qore_module_dir[];
+
+//! if the qore library includes debugging or not
+DLLEXPORT bool qore_has_debug();
 
 #define QLO_NONE                    0       //!< no options (default)
 #define QLO_DISABLE_SIGNAL_HANDLING 1 << 0  //!< disable qore signal handling entirely
