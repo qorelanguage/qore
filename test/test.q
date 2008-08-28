@@ -1085,7 +1085,8 @@ sub string_tests()
 
 sub pwd_tests()
 {
-    test_value(getpwuid(0).pw_name, "root", "getpwuid()");
+    # getpwuid(0).pw_name may not always be "root"
+    test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
 }
 
 sub simple_shift()

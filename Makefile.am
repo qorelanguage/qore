@@ -692,7 +692,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 BUILT_SOURCES = dummy
 
 dummy:
-	next_build.sh
+	./next_build.sh
 
 if COND_DOXYGEN
 DX_CLEANFILES = docs/library
