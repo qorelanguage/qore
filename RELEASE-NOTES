@@ -146,13 +146,21 @@ the configure script will automatically set the build to a 64-bit target if the 
 *** LANGUAGE ISSUES ***
 ***********************
 
+Thread Stacks
+-------------
+*) BUG: when the thread stack space is exhausted, the program will simply crash.  Currently qore is vulnerable to this, as it is heavily threaded and uses the stack often to save thread state, so a program like: 'sub a() { a(); } a();' will cause a core dump fairly quickly
+
 Out of Memory Errors
 --------------------
 *) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs, however work has begun on handling out of memory errors starting in v0.5.2.  Of particular note is running out of thread stack space (which causes a crash); program-controlled thread stack space needs to be implemented in order to address this shortcoming
 
+Object Comparisons
+------------------
+Note that the comparison operator == (and ===) will only report True if the two objects are the same object - future versions of Qore will support a mechanism to allow objects to implement their own handling for operators like these.
+
 References, Copying, Passing by Value
 -------------------------------------
-Unlike some other languages requiring garbage collection, Qore uses a deterministic reference-counted architecture for memory management.  When the references on a value node reach 0, that object is deleted.  When arguments to a function or method are passed by value, internally, for all value types other than an object (instantiation of a Qore class), the reference count is atomically incremented and the same value node is passed to the function or method.  In this case, if that value node is changed, then the value is copied and the changes are made to the copy.  So, for all value node types other than objects, a copy-on-write approach is used.  However objects are always passed by reference.  There is always only one copy of each object unless the object is explicitly copied.  In this sense, Qore acts like Java as far as I am aware.
+Unlike some other languages requiring garbage collection, Qore uses a deterministic reference-counted architecture for memory management.  When the references on a value node reach 0, that object is deleted.  When arguments to a function or method are passed by value, internally, for all value types other than an object (instantiation of a Qore class), the reference count is atomically incremented and the same value node is passed to the function or method.  In this case, if that value node is changed, then the value is copied and the changes are made to the copy.  So, for all value node types other than objects, a copy-on-write approach is used.  However objects are always passed by reference.  There is always only one copy of each object unless the object is explicitly copied.  In this sense, Qore acts like Java as far as I am aware (actually, like Java, a copy of a reference is passed when an object is passed as the argument to another function).
 
 Parsing
 -------
