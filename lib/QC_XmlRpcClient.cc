@@ -122,7 +122,7 @@ static AbstractQoreNode *XRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *
    // get info reference
    const ReferenceNode *ref = test_reference_param(params, 0);
    if (!ref) {
-      xsink->raiseException("JSONRPC-CALLWITHINFO-ERROR", "expecting a reference as the first parameter to JsonRpcClient::callArgsWithInfo()");
+      xsink->raiseException("XMLRPC-CALLWITHINFO-ERROR", "expecting a reference as the first parameter to XmlRpcClient::callArgsWithInfo()");
       return 0;
    }
 
@@ -165,7 +165,7 @@ static AbstractQoreNode *XRC_callWithInfo(QoreObject *self, QoreHTTPClient *clie
    // get info reference
    const ReferenceNode *ref = test_reference_param(params, 0);
    if (!ref) {
-      xsink->raiseException("JSONRPC-CALLWITHINFO-ERROR", "expecting a reference as the first parameter to JsonRpcClient::callArgsWithInfo()");
+      xsink->raiseException("XMLRPC-CALLWITHINFO-ERROR", "expecting a reference as the first parameter to XmlRpcClient::callWithInfo()");
       return 0;
    }
 

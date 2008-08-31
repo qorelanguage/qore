@@ -61,7 +61,7 @@
 	</row>
 	<row>
 	  <entry><para><link linkend="no-database"><code>%no-database</code></link></para></entry>
-	  <entry><para>Disallows access to database functionality (for example the <link linkend="Qore::SQL::Datasource_Class">Datasource class</link>.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>--no-database</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to database functionality (for example the <link linkend="Datasource_Class">Datasource class</link>.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>--no-database</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><link linkend="no-external-process"><code>%no-external-process</code></link></para></entry>
@@ -481,7 +481,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes is restricted.</para>
+	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes is restricted.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -588,11 +588,11 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="Qore_Dir_Class">Dir</link> class</para></entry>
+		  <entry><para><link linkend="Dir_Class">Dir</link> class</para></entry>
 		  <entry><para>The Dir class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore_File_Class">File</link> class</para></entry>
+		  <entry><para><link linkend="File_Class">File</link> class</para></entry>
 		  <entry><para>The File class is not available.</para></entry>
 		</row>
 		<row>
@@ -833,7 +833,7 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="Qore_FtpClient_Class">FtpClient</link> class</para></entry>
+		  <entry><para><link linkend="FtpClient_Class">FtpClient</link> class</para></entry>
 		  <entry><para>The FtpClient class is not available.</para></entry>
 		</row>
 		<row>
@@ -849,7 +849,7 @@
 		  <entry><para>The JsonRpcClient class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore_Socket_Class">Socket</link> class</para></entry>
+		  <entry><para><link linkend="Socket_Class">Socket</link> class</para></entry>
 		  <entry><para>The Socket class is not available.</para></entry>
 		</row>
 	      </tbody>
@@ -1122,7 +1122,7 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::AutoGate_Class">AutoGate</link> class</para></entry>
+		  <entry><para><link linkend="AutoGate_Class">AutoGate</link> class</para></entry>
 		  <entry><para>The AutoGate class is not available.</para></entry>
 		</row>
 		<row>
@@ -1146,7 +1146,7 @@
 		  <entry><para>The Counter class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::Mutex_Class">Mutex</link> class</para></entry>
+		  <entry><para><link linkend="Mutex_Class">Mutex</link> class</para></entry>
 		  <entry><para>The Mutex class is not available.</para></entry>
 		</row>
 		<row>

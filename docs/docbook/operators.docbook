@@ -676,7 +676,7 @@
       <term>Syntax</term>
       <listitem>
 	<programlisting><replaceable>list_expression[expression]</replaceable>
-<replaceable>string_expression[expression]</replaceable></programlisting>
+<replaceable>string_expression[expression]</replaceable>
 <replaceable>binary_expression[expression]</replaceable></programlisting>
       </listitem>
     </varlistentry>

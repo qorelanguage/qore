@@ -14,19 +14,19 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="Qore_File_Class">File</link></para></entry>
+	    <entry><para><link linkend="File_Class">File</link></para></entry>
 	    <entry><para>For reading and writing files.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_Class">Dir</link></para></entry>
+	    <entry><para><link linkend="Dir_Class">Dir</link></para></entry>
 	    <entry><para>For handling of directories, listing files, and creating/removing subdirectories.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_Class">FtpClient</link></para></entry>
+	    <entry><para><link linkend="FtpClient_Class">FtpClient</link></para></entry>
 	    <entry><para>For communicating with FTP servers.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::GetOpt_Class">GetOpt</link></para></entry>
+	    <entry><para><link linkend="GetOpt_Class">GetOpt</link></para></entry>
 	    <entry><para>For processing command-line options.</para></entry>
 	  </row>
 	  <row>
@@ -34,7 +34,7 @@
 	    <entry><para>For parsing and executing application-embedded or user-supplied logic.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_Class">Socket</link></para></entry>
+	    <entry><para><link linkend="Socket_Class">Socket</link></para></entry>
 	    <entry><para>For communication with IPv4 sockets with and without TSL/SSL encryption.</para></entry>
 	  </row>
 	  <row>
@@ -58,7 +58,7 @@
 	    <entry><para>For working with private key data.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::SQL::Datasource_Class">SQL::Datasource</link></para></entry>
+	    <entry><para><link linkend="Datasource_Class">SQL::Datasource</link></para></entry>
 	    <entry><para>For working with databases; provides the user interface to qore DBI drivers.</para></entry>
 	  </row>
 	  <row>
@@ -66,12 +66,12 @@
 	    <entry><para>Provides transparent per-thread, per-transaction Datasource connection pooling.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoGate_Class">Thread::AutoGate</link></para></entry>
-	    <entry><para>A helper class for the <link linkend="Qore::Thread::Gate_Class">Gate</link> class for exception-safe Gate handling.</para></entry>
+	    <entry><para><link linkend="AutoGate_Class">Thread::AutoGate</link></para></entry>
+	    <entry><para>A helper class for the <link linkend="Gate_Class">Gate</link> class for exception-safe Gate handling.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::AutoLock_Class">Thread::AutoLock</link></para></entry>
-	    <entry><para>A helper class for the <link linkend="Qore::Thread::Mutex_Class">Mutex</link> class for exception-safe Mutex handling.</para></entry>
+	    <entry><para>A helper class for the <link linkend="Mutex_Class">Mutex</link> class for exception-safe Mutex handling.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">Thread::AutoReadLock</link></para></entry>
@@ -90,11 +90,11 @@
 	    <entry><para>For blocking a thread until a counter becomes zero.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Gate_Class">Thread::Gate</link></para></entry>
+	    <entry><para><link linkend="Gate_Class">Thread::Gate</link></para></entry>
 	    <entry><para>A reentrant thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Mutex_Class">Thread::Mutex</link></para></entry>
+	    <entry><para><link linkend="Mutex_Class">Thread::Mutex</link></para></entry>
 	    <entry><para>A simple thread lock.</para></entry>
 	  </row>
 	  <row>
@@ -767,7 +767,7 @@
     </table>
   </sect1>
 
-  <sect1 id="Qore_File_Class">
+  <sect1 id="File_Class">
     <title>Qore::File Class</title>
 
     <para>Note: This class is not available with the <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link> parse option.</para>
@@ -794,217 +794,217 @@
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="Qore_File_constructor">File::constructor()</link></para></entry>
+	    <entry><para><link linkend="File_constructor">File::constructor()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates the object and optionally sets the file's character encoding.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_destructor">File::destructor()</link></para></entry>
+	    <entry><para><link linkend="File_destructor">File::destructor()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Closes the file if it is open and destroys the file object.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_copy">File::copy()</link></para></entry>
+	    <entry><para><link linkend="File_copy">File::copy()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates a new file object with the same character encoding specification as the original, otherwise no other information is copied.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_chown">File::chown()</link></para></entry>
+	    <entry><para><link linkend="File_chown">File::chown()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Changes the user and group owners of the file on the filesystem (if the current user has sufficient permission to do so).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_close">File::close()</link></para></entry>
+	    <entry><para><link linkend="File_close">File::close()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Closes the file object</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_f_printf">File::f_printf()</link></para></entry>
+	    <entry><para><link linkend="File_f_printf">File::f_printf()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a formatted string to a file, enforces hard field limits.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_f_vprintf">File::f_vprintf()</link></para></entry>
+	    <entry><para><link linkend="File_f_vprintf">File::f_vprintf()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a formatted string to a file, where the second argument is the formatting argument list, enforces hard field limits.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_getchar">File::getchar()</link></para></entry>
+	    <entry><para><link linkend="File_getchar">File::getchar()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Reads one character from the file</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_getCharset">File::getCharset()</link></para></entry>
+	    <entry><para><link linkend="File_getCharset">File::getCharset()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the character encoding for the file</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_getLockInfo">File::getLockInfo()</link></para></entry>
+	    <entry><para><link linkend="File_getLockInfo">File::getLockInfo()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns a hash of lock information.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_getPos">File::getPos()</link></para></entry>
+	    <entry><para><link linkend="File_getPos">File::getPos()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current file position (in bytes)</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_lock">File::lock()</link></para></entry>
+	    <entry><para><link linkend="File_lock">File::lock()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Attempts to lock the file according to the arguments passed, does not block.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_lockBlocking">File::lockBlocking()</link></para></entry>
+	    <entry><para><link linkend="File_lockBlocking">File::lockBlocking()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Attempts to lock the file according to the arguments passed, blocking.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_open">File::open()</link></para></entry>
+	    <entry><para><link linkend="File_open">File::open()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Opens a file in a particular mode</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_printf">File::printf()</link></para></entry>
+	    <entry><para><link linkend="File_printf">File::printf()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a formatted string to a file.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_read">File::read()</link></para></entry>
+	    <entry><para><link linkend="File_read">File::read()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a certain number of bytes from the file and returns a string.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readBinary">File::readBinary()</link></para></entry>
+	    <entry><para><link linkend="File_readBinary">File::readBinary()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a certain number of bytes from the file and returns binary data.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readi1">File::readi1()</link></para></entry>
+	    <entry><para><link linkend="File_readi1">File::readi1()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 1-byte signed integer from the file.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readi2">File::readi2()</link></para></entry>
+	    <entry><para><link linkend="File_readi2">File::readi2()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 2-byte signed integer from the file in big-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readi4">File::readi4()</link></para></entry>
+	    <entry><para><link linkend="File_readi4">File::readi4()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 4-byte signed integer from the file in big-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readi8">File::readi8()</link></para></entry>
+	    <entry><para><link linkend="File_readi8">File::readi8()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads an 8-byte signed integer from the file in big-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readi2LSB">File::readi2LSB()</link></para></entry>
+	    <entry><para><link linkend="File_readi2LSB">File::readi2LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 2-byte signed integer from the file in little-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readi4LSB">File::readi4LSB()</link></para></entry>
+	    <entry><para><link linkend="File_readi4LSB">File::readi4LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 4-byte signed integer from the file in little-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readi8LSB">File::readi8LSB()</link></para></entry>
+	    <entry><para><link linkend="File_readi8LSB">File::readi8LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads an 8-byte signed integer from the file in little-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readu1">File::readu1()</link></para></entry>
+	    <entry><para><link linkend="File_readu1">File::readu1()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 1-byte unsigned integer from the file.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readu2">File::readu2()</link></para></entry>
+	    <entry><para><link linkend="File_readu2">File::readu2()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 2-byte unsigned integer from the file in big-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readu4">File::readu4()</link></para></entry>
+	    <entry><para><link linkend="File_readu4">File::readu4()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 4-byte unsigned integer from the file in big-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readu2LSB">File::readu2LSB()</link></para></entry>
+	    <entry><para><link linkend="File_readu2LSB">File::readu2LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 2-byte unsigned integer from the file in little-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readu4LSB">File::readu4LSB()</link></para></entry>
+	    <entry><para><link linkend="File_readu4LSB">File::readu4LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a 4-byte unsigned integer from the file in little-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readBinary">File::readBinary()</link></para></entry>
+	    <entry><para><link linkend="File_readBinary">File::readBinary()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Read a certain amount of data and return a binary object.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_readLine">File::readLine()</link></para></entry>
+	    <entry><para><link linkend="File_readLine">File::readLine()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads until an EOL marker is found</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_setCharset">File::setCharset()</link></para></entry>
+	    <entry><para><link linkend="File_setCharset">File::setCharset()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the character encoding for the file.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_setPos">File::setPos()</link></para></entry>
+	    <entry><para><link linkend="File_setPos">File::setPos()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the current file position (in bytes).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_sync">File::sync()</link></para></entry>
+	    <entry><para><link linkend="File_sync">File::sync()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Flushes the file's buffer to disk.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_vprintf">File::vprintf()</link></para></entry>
+	    <entry><para><link linkend="File_vprintf">File::vprintf()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a formatted string to a file, where the second argument is the formatting argument list.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_write">File::write()</link></para></entry>
+	    <entry><para><link linkend="File_write">File::write()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes string or binary data to a file</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_writei1">File::writei1()</link></para></entry>
+	    <entry><para><link linkend="File_writei1">File::writei1()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a 1-byte integer to the file.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_writei2">File::writei2()</link></para></entry>
+	    <entry><para><link linkend="File_writei2">File::writei2()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a 2-byte integer in big-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_writei4">File::writei4()</link></para></entry>
+	    <entry><para><link linkend="File_writei4">File::writei4()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a 4-byte integer in big-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_writei4">File::writei8()</link></para></entry>
+	    <entry><para><link linkend="File_writei4">File::writei8()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes an 8-byte integer in big-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_writei2LSB">File::writei2LSB()</link></para></entry>
+	    <entry><para><link linkend="File_writei2LSB">File::writei2LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a 2-byte integer in little-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_writei4LSB">File::writei4LSB()</link></para></entry>
+	    <entry><para><link linkend="File_writei4LSB">File::writei4LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes a 4-byte integer in little-endian format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_File_writei8LSB">File::writei8LSB()</link></para></entry>
+	    <entry><para><link linkend="File_writei8LSB">File::writei8LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes an 8-byte integer in little-endian format.</para></entry>
 	  </row>
@@ -1072,7 +1072,7 @@
       </tgroup>
     </table>
 
-    <sect2 id="Qore_File_constructor">
+    <sect2 id="File_constructor">
       <title>File::constructor()</title>
       <variablelist>
 	<varlistentry>
@@ -1135,7 +1135,7 @@
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_destructor">
+    <sect2 id="File_destructor">
       <title>File::destructor()</title>
 
       <variablelist>
@@ -1160,7 +1160,7 @@
       </variablelist>
     </sect2>
 
-    <sect2 id="Qore_File_copy">
+    <sect2 id="File_copy">
       <title>File::copy()</title>
       <variablelist>
 	<varlistentry>
@@ -1222,7 +1222,7 @@
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_chown">
+    <sect2 id="File_chown">
       <title>File::chown()</title>
 
      <variablelist>
@@ -1309,14 +1309,14 @@
 
     </sect2>
 
-    <sect2 id="Qore_File_close">
+    <sect2 id="File_close">
       <title>File::close()</title>
 
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Closes the file object if it's open.  Note that this is automatically called by <link linkend="Qore_File_destructor">File::destructor()</link>.</para>
+	    <para>Closes the file object if it's open.  Note that this is automatically called by <link linkend="File_destructor">File::destructor()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1372,7 +1372,7 @@
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_f_printf">
+    <sect2 id="File_f_printf">
       <title>File::f_printf()</title>
 
      <variablelist>
@@ -1460,7 +1460,7 @@
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_f_vprintf">
+    <sect2 id="File_f_vprintf">
       <title>File::f_vprintf()</title>
       
      <variablelist>
@@ -1547,7 +1547,7 @@
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_getchar">
+    <sect2 id="File_getchar">
       <title>File::getchar()</title><para></para>
 
      <variablelist>
@@ -1612,7 +1612,7 @@
       </table>
     </sect2>
     
-    <sect2 id="Qore_File_getCharset">
+    <sect2 id="File_getCharset">
       <title>File::getCharset()</title>
       
      <variablelist>
@@ -1677,7 +1677,7 @@
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_getLockInfo">
+    <sect2 id="File_getLockInfo">
       <title>File::getLockInfo()</title>
 
      <variablelist>
@@ -1759,7 +1759,7 @@
 
     </sect2>
 
-    <sect2 id="Qore_File_getPos">
+    <sect2 id="File_getPos">
       <title>File::getPos()</title>
       
      <variablelist>
@@ -1824,14 +1824,14 @@
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_lock">
+    <sect2 id="File_lock">
       <title>File::lock()</title>
 
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Locks or unlocks a portion of the file or the entire file, for reading or writing, non-blocking.  The file must be opened in the appropriate mode before this call or the call will fail with an exception.  For a blocking version of this method, see <link linkend="Qore_File_lockBlocking">File::lockBlocking()</link>.</para>
+	    <para>Locks or unlocks a portion of the file or the entire file, for reading or writing, non-blocking.  The file must be opened in the appropriate mode before this call or the call will fail with an exception.  For a blocking version of this method, see <link linkend="File_lockBlocking">File::lockBlocking()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1924,14 +1924,14 @@ $f.lock(F_UNLCK);
 
     </sect2>
 
-    <sect2 id="Qore_File_lockBlocking">
+    <sect2 id="File_lockBlocking">
       <title>File::lockBlocking()</title>
 
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Locks or unlocks a portion of the file or the entire file, for reading or writing, blocking.  The file must be opened in the appropriate mode before this call or the call will fail with an exception.  For a non-blocking version of this method, see <link linkend="Qore_File_lock">File::lock()</link>.</para>
+	    <para>Locks or unlocks a portion of the file or the entire file, for reading or writing, blocking.  The file must be opened in the appropriate mode before this call or the call will fail with an exception.  For a non-blocking version of this method, see <link linkend="File_lock">File::lock()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2024,14 +2024,14 @@ $f.lockBlocking(F_UNLCK);
 
     </sect2>
 
-    <sect2 id="Qore_File_printf">
+    <sect2 id="File_printf">
       <title>File::printf()</title>
       
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Writes a formatted string with soft field widths to the file.  See <link linkend="Qore_File_f_printf">File::f_printf()</link> for a similar method that enforces field widths.  See <link linkend="String_Formatting">String Formatting</link> for more information about the format string.</para>
+	    <para>Writes a formatted string with soft field widths to the file.  See <link linkend="File_f_printf">File::f_printf()</link> for a similar method that enforces field widths.  See <link linkend="String_Formatting">String Formatting</link> for more information about the format string.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2112,7 +2112,7 @@ $f.lockBlocking(F_UNLCK);
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_open">
+    <sect2 id="File_open">
       <title>File::open()</title>
 
       <variablelist>
@@ -2212,14 +2212,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
 
     </sect2>
-    <sect2 id="Qore_File_read">
+    <sect2 id="File_read">
       <title>File::read()</title>
       
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a certain amount of string data from the file; the size argument is required.  To read binary data, use the <link linkend="Qore_File_readBinary">File::readBinary()</link> method.</para>
+	    <para>Reads a certain amount of string data from the file; the size argument is required.  To read binary data, use the <link linkend="File_readBinary">File::readBinary()</link> method.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2300,7 +2300,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 
     </sect2>
 
-    <sect2 id="Qore_File_readi1">
+    <sect2 id="File_readi1">
       <title>File::readi1()</title>
       
       <variablelist>
@@ -2382,14 +2382,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readi2">
+    <sect2 id="File_readi2">
       <title>File::readi2()</title>
       
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 2-byte signed integer from the file in big-endian (MSB, network byte order) format.  See <link linkend="Qore_File_readi2LSB">File::readi2LSB()</link> for an equivalent method reading a 2-byte signed integer in little-endian (LSB) format.</para>
+	    <para>Reads a 2-byte signed integer from the file in big-endian (MSB, network byte order) format.  See <link linkend="File_readi2LSB">File::readi2LSB()</link> for an equivalent method reading a 2-byte signed integer in little-endian (LSB) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2464,14 +2464,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readi4">
+    <sect2 id="File_readi4">
       <title>File::readi4()</title>
       
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="Qore_File_readi4LSB">File::readi4LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
+	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="File_readi4LSB">File::readi4LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2546,14 +2546,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readi8">
+    <sect2 id="File_readi8">
       <title>File::readi8()</title>
       
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="Qore_File_readi8LSB">File::readi8LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
+	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="File_readi8LSB">File::readi8LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2628,14 +2628,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readi2LSB">
+    <sect2 id="File_readi2LSB">
       <title>File::readi2LSB()</title>
       
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 2-byte signed integer from the file in little-endian (LSB) format.  See <link linkend="Qore_File_readi2">File::readi2()</link> for an equivalent method reading a 2-byte signed integer in big-endian (MSB, network byte order) format.</para>
+	    <para>Reads a 2-byte signed integer from the file in little-endian (LSB) format.  See <link linkend="File_readi2">File::readi2()</link> for an equivalent method reading a 2-byte signed integer in big-endian (MSB, network byte order) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2708,14 +2708,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readi4LSB">
+    <sect2 id="File_readi4LSB">
       <title>File::readi4LSB()</title>
       
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 4-byte signed integer from the file in little-endian format.  See <link linkend="Qore_File_readi4">File::readi4()</link> for an equivalent method reading a 4-byte signed integer in big-endian (MSB, network byte order) format.</para>
+	    <para>Reads a 4-byte signed integer from the file in little-endian format.  See <link linkend="File_readi4">File::readi4()</link> for an equivalent method reading a 4-byte signed integer in big-endian (MSB, network byte order) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2788,14 +2788,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readi8LSB">
+    <sect2 id="File_readi8LSB">
       <title>File::readi8LSB()</title>
       
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads an 8-byte signed integer from the file in little-endian format.  See <link linkend="Qore_File_readi8">File::readi8()</link> for an equivalent method reading a 8-byte signed integer in big-endian (MSB, network byte order) format.</para>
+	    <para>Reads an 8-byte signed integer from the file in little-endian format.  See <link linkend="File_readi8">File::readi8()</link> for an equivalent method reading a 8-byte signed integer in big-endian (MSB, network byte order) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2867,7 +2867,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	</tgroup>
       </table>
     </sect2>
-    <sect2 id="Qore_File_readu1">
+    <sect2 id="File_readu1">
       <title>File::readu1()</title>
       
       <variablelist>
@@ -2949,14 +2949,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readu2">
+    <sect2 id="File_readu2">
       <title>File::readu2()</title>
       
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 2-byte signed integer from the file in big-endian (MSB, network byte order) format.  See <link linkend="Qore_File_readu2LSB">File::readu2LSB()</link> for an equivalent method reading a 2-byte signed integer in little-endian (LSB) format.</para>
+	    <para>Reads a 2-byte signed integer from the file in big-endian (MSB, network byte order) format.  See <link linkend="File_readu2LSB">File::readu2LSB()</link> for an equivalent method reading a 2-byte signed integer in little-endian (LSB) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3031,14 +3031,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readu4">
+    <sect2 id="File_readu4">
       <title>File::readu4()</title>
       
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="Qore_File_readu4LSB">File::readu4LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
+	    <para>Reads a 4-byte signed integer from the file in big-endian format.  See <link linkend="File_readu4LSB">File::readu4LSB()</link> for an equivalent method reading a 4-byte signed integer in little-endian (LSB) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3113,14 +3113,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readu2LSB">
+    <sect2 id="File_readu2LSB">
       <title>File::readu2LSB()</title>
       
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 2-byte signed integer from the file in little-endian (LSB) format.  See <link linkend="Qore_File_readu2">File::readu2()</link> for an equivalent method reading a 2-byte signed integer in big-endian (MSB, network byte order) format.</para>
+	    <para>Reads a 2-byte signed integer from the file in little-endian (LSB) format.  See <link linkend="File_readu2">File::readu2()</link> for an equivalent method reading a 2-byte signed integer in big-endian (MSB, network byte order) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3193,14 +3193,14 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readu4LSB">
+    <sect2 id="File_readu4LSB">
       <title>File::readu4LSB()</title>
       
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 4-byte unsigned integer from the file in little-endian format.  See <link linkend="Qore_File_readu4">File::readu4()</link> for an equivalent method reading a 4-byte signed integer in big-endian (MSB, network byte order) format.</para>
+	    <para>Reads a 4-byte unsigned integer from the file in little-endian format.  See <link linkend="File_readu4">File::readu4()</link> for an equivalent method reading a 4-byte signed integer in big-endian (MSB, network byte order) format.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3273,7 +3273,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readBinary">
+    <sect2 id="File_readBinary">
       <title>File::readBinary()</title>
       
      <variablelist>
@@ -3358,7 +3358,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_readLine">
+    <sect2 id="File_readLine">
       <title>File::readLine()</title>
       
      <variablelist>
@@ -3446,7 +3446,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_setCharset">
+    <sect2 id="File_setCharset">
       <title>File::setCharset()</title>
       
      <variablelist>
@@ -3511,7 +3511,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_setPos">
+    <sect2 id="File_setPos">
       <title>File::setPos()</title>
       
      <variablelist>
@@ -3574,7 +3574,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_sync">
+    <sect2 id="File_sync">
       <title>File::sync()</title>
 
      <variablelist>
@@ -3637,7 +3637,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_vprintf">
+    <sect2 id="File_vprintf">
       <title>File::vprintf()</title>
       
      <variablelist>
@@ -3723,7 +3723,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_write">
+    <sect2 id="File_write">
       <title>File::write()</title>
       
       <variablelist>
@@ -3809,7 +3809,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_writei1">
+    <sect2 id="File_writei1">
       <title>File::writei1()</title>
       
       <variablelist>
@@ -3889,7 +3889,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_writei2">
+    <sect2 id="File_writei2">
       <title>File::writei2()</title>
       
      <variablelist>
@@ -3970,7 +3970,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_writei4">
+    <sect2 id="File_writei4">
       <title>File::writei4()</title>
       
      <variablelist>
@@ -4051,7 +4051,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_writei8">
+    <sect2 id="File_writei8">
       <title>File::writei8()</title>
       
      <variablelist>
@@ -4132,7 +4132,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_writei2LSB">
+    <sect2 id="File_writei2LSB">
       <title>File::writei2LSB()</title>
       
      <variablelist>
@@ -4212,7 +4212,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_writei4LSB">
+    <sect2 id="File_writei4LSB">
       <title>File::writei4LSB()</title>
       
      <variablelist>
@@ -4293,7 +4293,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
       </table>
     </sect2>
 
-    <sect2 id="Qore_File_writei8LSB">
+    <sect2 id="File_writei8LSB">
       <title>File::writei8LSB()</title>
       
      <variablelist>
@@ -4377,7 +4377,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
   </sect1>
 
 
-  <sect1 id="Qore_Dir_Class">
+  <sect1 id="Dir_Class">
     <title>Qore::Dir Class</title>
 
     <para>Note: This class is not available with the <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link> parse option.</para>
@@ -4399,93 +4399,93 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_constructor">Dir::constructor()</link></para></entry>
+	    <entry><para><link linkend="Dir_constructor">Dir::constructor()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Create a Directory object with the optional character encoding. It points to the directory the script is started.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_destructor">Dir::destructor()</link></para></entry>
+	    <entry><para><link linkend="Dir_destructor">Dir::destructor()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Destroys the directory object.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_copy">Dir::copy()</link></para></entry>
+	    <entry><para><link linkend="Dir_copy">Dir::copy()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates a new directory object with the same character encoding specification and the same path as the original.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_chdir">Dir::chdir()</link></para></entry>
+	    <entry><para><link linkend="Dir_chdir">Dir::chdir()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Change the path of the directory. The path specification can be relative or absolute (with leading '/'). This path not necessarily needs to exist.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_path">Dir::path()</link></para></entry>
+	    <entry><para><link linkend="Dir_path">Dir::path()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Return the current path of the object. The path is stripped of all '.' and '..' entries.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_exists">Dir::exists()</link></para></entry>
+	    <entry><para><link linkend="Dir_exists">Dir::exists()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Checks if the path in the object is an openable directory.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_create">Dir::create()</link></para></entry>
+	    <entry><para><link linkend="Dir_create">Dir::create()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Try to create all directories of the object if they do not exist yet.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_chown">Dir::chown()</link></para></entry>
+	    <entry><para><link linkend="Dir_chown">Dir::chown()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Change the ownership of the directory to the given user.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_chgrp">Dir::chgrp()</link></para></entry>
+	    <entry><para><link linkend="Dir_chgrp">Dir::chgrp()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Change the group membership of the directory to the given group.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_chmod">Dir::chmod()</link></para></entry>
+	    <entry><para><link linkend="Dir_chmod">Dir::chmod()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Change the permissions of the directory to the given mode.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_mkdir">Dir::mkdir()</link></para></entry>
+	    <entry><para><link linkend="Dir_mkdir">Dir::mkdir()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Create a subdirectory with the name in the directory.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_rmdir">Dir::rmdir()</link></para></entry>
+	    <entry><para><link linkend="Dir_rmdir">Dir::rmdir()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Delete an empty subdirectory with the name in the directory.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_list">Dir::list()</link></para></entry>
+	    <entry><para><link linkend="Dir_list">Dir::list()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get all entries in this directory, except '.' and '..' directories (takes an optional regular expression filter).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_listFiles">Dir::listFiles()</link></para></entry>
+	    <entry><para><link linkend="Dir_listFiles">Dir::listFiles()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get all entries in the directory which are not subdirectories (takes an optional regular expression filter).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_listDirs">Dir::listDirs()</link></para></entry>
+	    <entry><para><link linkend="Dir_listDirs">Dir::listDirs()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get all entries in the directory which are subdirectories, except '.' and '..' directories (takes an optional regular expression filter).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_openDir">Dir::openDir()</link></para></entry>
+	    <entry><para><link linkend="Dir_openDir">Dir::openDir()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get a Dir object as an subdir entry of the current directory.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_openFile">Dir::openFile()</link></para></entry>
+	    <entry><para><link linkend="Dir_openFile">Dir::openFile()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get a File object which represents a file in the directory.</para></entry>
 	  </row>
 
 	  <row>
-	    <entry><para><link linkend="Qore_Dir_removeFile">Dir::removeFile()</link></para></entry>
+	    <entry><para><link linkend="Dir_removeFile">Dir::removeFile()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Remove (unlink) a file in this directory.</para></entry>
 	  </row>
@@ -4494,7 +4494,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
     </table>
 
 
-    <sect2 id="Qore_Dir_constructor">
+    <sect2 id="Dir_constructor">
       <title>Dir::constructor()</title>
       <variablelist>
 	<varlistentry>
@@ -4558,7 +4558,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
     </sect2>
 
 
-    <sect2 id="Qore_Dir_destructor">
+    <sect2 id="Dir_destructor">
       <title>Dir::destructor()</title>
 
       <variablelist>
@@ -4584,7 +4584,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
     </sect2>
 
 
-    <sect2 id="Qore_Dir_copy">
+    <sect2 id="Dir_copy">
       <title>Dir::copy()</title>
       <variablelist>
 	<varlistentry>
@@ -4647,7 +4647,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
     </sect2>
 
 
-    <sect2 id="Qore_Dir_chdir">
+    <sect2 id="Dir_chdir">
       <title>Dir::chdir()</title>
 
      <variablelist>
@@ -4707,7 +4707,7 @@ if($d.chdir("../doc")) {
 	  <tbody>
 	    <row>
 	      <entry><para>Boolean</para></entry>
-	      <entry><para>True if the new path is openable as directory (see <link linkend="Qore_Dir_exists">exists()</link>).</para></entry>
+	      <entry><para>True if the new path is openable as directory (see <link linkend="Dir_exists">exists()</link>).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4715,7 +4715,7 @@ if($d.chdir("../doc")) {
     </sect2>
 
 
-    <sect2 id="Qore_Dir_path">
+    <sect2 id="Dir_path">
       <title>Dir::path()</title>
 
      <variablelist>
@@ -4779,7 +4779,7 @@ if($d.chdir("../doc")) {
     </sect2>
 
 
-    <sect2 id="Qore_Dir_exists">
+    <sect2 id="Dir_exists">
       <title>Dir::exists()</title>
 
      <variablelist>
@@ -4848,7 +4848,7 @@ if(!$d.exists()) {
     </sect2>
 
 
-    <sect2 id="Qore_Dir_create">
+    <sect2 id="Dir_create">
       <title>Dir::create()</title>
 
      <variablelist>
@@ -4935,7 +4935,7 @@ if(!$d.exists()) {
     </sect2>
 
 
-    <sect2 id="Qore_Dir_chown">
+    <sect2 id="Dir_chown">
       <title>Dir::chown()</title>
 
      <variablelist>
@@ -5032,7 +5032,7 @@ $d.chown("nobody");
     </sect2>
 
 
-    <sect2 id="Qore_Dir_chgrp">
+    <sect2 id="Dir_chgrp">
       <title>Dir::chgrp()</title>
 
      <variablelist>
@@ -5129,7 +5129,7 @@ $d.chgrp("nogroup");
     </sect2>
 
 
-    <sect2 id="Qore_Dir_chmod">
+    <sect2 id="Dir_chmod">
       <title>Dir::chmod()</title>
 
      <variablelist>
@@ -5219,7 +5219,7 @@ $d.chmod(0711); # set mode to u(rwx) and go(x)
     </sect2>
 
 
-    <sect2 id="Qore_Dir_mkdir">
+    <sect2 id="Dir_mkdir">
       <title>Dir::mkdir()</title>
 
      <variablelist>
@@ -5316,7 +5316,7 @@ $d.mkdir("newSubDir", 0755);
     </sect2>
 
 
-    <sect2 id="Qore_Dir_rmdir">
+    <sect2 id="Dir_rmdir">
       <title>Dir::rmdir()</title>
 
      <variablelist>
@@ -5406,7 +5406,7 @@ $d.rmdir("emptySubdir");
     </sect2>
 
 
-    <sect2 id="Qore_Dir_list">
+    <sect2 id="Dir_list">
       <title>Dir::list()</title>
 
      <variablelist>
@@ -5497,7 +5497,7 @@ foreach my $e in ( $d.list() ) {
     </sect2>
 
 
-    <sect2 id="Qore_Dir_listFiles">
+    <sect2 id="Dir_listFiles">
       <title>Dir::listFiles()</title>
 
      <variablelist>
@@ -5588,7 +5588,7 @@ foreach my $e in ( $d.listFiles() ) {
     </sect2>
 
 
-    <sect2 id="Qore_Dir_listDirs">
+    <sect2 id="Dir_listDirs">
       <title>Dir::listDirs()</title>
 
      <variablelist>
@@ -5679,7 +5679,7 @@ foreach my $e in ( $d.listDirs() ) {
     </sect2>
 
 
-    <sect2 id="Qore_Dir_openDir">
+    <sect2 id="Dir_openDir">
       <title>Dir::openDir()</title>
 
      <variablelist>
@@ -5772,7 +5772,7 @@ $sd_list=$sd.list();
     </sect2>
 
 
-    <sect2 id="Qore_Dir_openFile">
+    <sect2 id="Dir_openFile">
       <title>Dir::openFile()</title>
 
      <variablelist>
@@ -5882,7 +5882,7 @@ $f=$d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0633, "UTF-8");
     </sect2>
 
 
-    <sect2 id="Qore_Dir_removeFile">
+    <sect2 id="Dir_removeFile">
       <title>Dir::removeFile()</title>
 
      <variablelist>
@@ -5974,7 +5974,7 @@ $d.removeFile("myTestFile.dat");
 
 
 
-  <sect1 id="Qore::GetOpt_Class">
+  <sect1 id="GetOpt_Class">
     <title>Qore::GetOpt Class</title>
     
     <para>The GetOpt class provides an easy way to process POSIX-style command-line options in Qore scripts/programs.</para>
@@ -5993,17 +5993,17 @@ $d.removeFile("myTestFile.dat");
 
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="GetOpt::constructor">GetOpt::constructor()</link></para></entry>
+	    <entry><para><link linkend="GetOpt_constructor">GetOpt::constructor()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the GetOpt object with the option hash passed.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_GetOpt_destructor">GetOpt::destructor()</link></para></entry>
+	    <entry><para><link linkend="GetOpt_destructor">GetOpt::destructor()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Destroys the object.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_GetOpt_copy">GetOpt::copy()</link></para></entry>
+	    <entry><para><link linkend="GetOpt_copy">GetOpt::copy()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Throws an exception; objects of this class cannot be copied.</para></entry>
 	  </row>
@@ -6017,7 +6017,7 @@ $d.removeFile("myTestFile.dat");
       </tgroup>
     </table>
 
-    <sect2 id="GetOpt::constructor">
+    <sect2 id="GetOpt_constructor">
       <title>GetOpt::constructor()</title>
 
       <variablelist>
@@ -6134,7 +6134,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_GetOpt_destructor">
+    <sect2 id="GetOpt_destructor">
       <title>GetOpt::destructor()</title>
 
       <variablelist>
@@ -6159,7 +6159,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </variablelist>
     </sect2>
 
-    <sect2 id="Qore_GetOpt_copy">
+    <sect2 id="GetOpt_copy">
       <title>GetOpt::copy()</title>
 
       <variablelist>
@@ -6292,7 +6292,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
     </sect2>
   </sect1>
 
-  <sect1 id="Qore_FtpClient_Class">
+  <sect1 id="FtpClient_Class">
     <title>Qore::FtpClient Class</title>
 
     <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
@@ -6333,7 +6333,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </tgroup>
     </table>
 
-    <para>Once the URL (at least the hostname) has been set, the <link linkend="Qore_FtpClient_connect">FtpClient::connect() method</link> must be called to connect and login to the FTP server.</para>
+    <para>Once the URL (at least the hostname) has been set, the <link linkend="FtpClient_connect">FtpClient::connect() method</link> must be called to connect and login to the FTP server.</para>
 
     <para>Objects of this class are capable of making encrypted FTPS connections according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink>.  TLS/SSL encrypted control and data connection will be attempted if the protocol is set to 'ftps' or the <link linkend="FtpClient_setSecure">FtpClient::setSecure() method</link> is called before connecting.</para>
 
@@ -6355,27 +6355,27 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_constructor">FtpClient::constructor()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_constructor">FtpClient::constructor()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates object and optionally initializes URL</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_destructor">FtpClient::destructor()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_destructor">FtpClient::destructor()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Destroys the object.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_copy">FtpClient::copy()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_copy">FtpClient::copy()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Throws an exception to prevent copying of objects this class.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_connect">FtpClient::connect()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_connect">FtpClient::connect()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Connects and logs in to FTP server</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_disconnect">FtpClient::disconnect()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_disconnect">FtpClient::disconnect()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Disconnects from the FTP server.</para></entry>
 	  </row>
@@ -6536,87 +6536,87 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
             </entry>
           </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_list">FtpClient::list()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_list">FtpClient::list()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a list of files from the FTP server in the server's long format.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_nlst">FtpClient::nlst()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_nlst">FtpClient::nlst()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a list of file names from the FTP server.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_pwd">FtpClient::pwd()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_pwd">FtpClient::pwd()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns the server-side current working directory.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_cwd">FtpClient::cwd()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_cwd">FtpClient::cwd()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Changes the current working directory on the server.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_get">FtpClient::get()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_get">FtpClient::get()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a file from the FTP server.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_put">FtpClient::put()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_put">FtpClient::put()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Transfers a file to the FTP server.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_del">FtpClient::del()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_del">FtpClient::del()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Deletes a file from the FTP server</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_setUserName">FtpClient::setUserName()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_setUserName">FtpClient::setUserName()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the user name to use</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_setPassword">FtpClient::setPassword()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_setPassword">FtpClient::setPassword()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the password to use</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_setHostName">FtpClient::setHostName()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_setHostName">FtpClient::setHostName()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the hostname to connect to</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_setPort">FtpClient::setPort()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_setPort">FtpClient::setPort()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the port to connect to</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_setURL">FtpClient::setURL()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_setURL">FtpClient::setURL()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sets the URL</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_getUserName">FtpClient::getUserName()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_getUserName">FtpClient::getUserName()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current user name</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_getPassword">FtpClient::getPassword()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_getPassword">FtpClient::getPassword()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current password</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_getHostName">FtpClient::getHostName()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_getHostName">FtpClient::getHostName()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current hostname</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_getPort">FtpClient::getPort()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_getPort">FtpClient::getPort()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current port</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_FtpClient_getURL">FtpClient::getURL()</link></para></entry>
+	    <entry><para><link linkend="FtpClient_getURL">FtpClient::getURL()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current FTP URL</para></entry>
 	  </row>
@@ -6625,7 +6625,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </tgroup>
     </table>
 
-    <sect2 id="Qore_FtpClient_constructor">
+    <sect2 id="FtpClient_constructor">
       <title>FtpClient::constructor()</title>
       
       <variablelist>
@@ -6711,7 +6711,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_FtpClient_destructor">
+    <sect2 id="FtpClient_destructor">
       <title>FtpClient::destructor()</title>
 
       <variablelist>
@@ -6736,7 +6736,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </variablelist>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_copy">
+    <sect2 id="FtpClient_copy">
       <title>FtpClient::copy()</title>
 
       <variablelist>
@@ -6805,7 +6805,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_connect">
+    <sect2 id="FtpClient_connect">
       <title>FtpClient::connect()</title>
 
       <variablelist>
@@ -6894,7 +6894,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_disconnect">
+    <sect2 id="FtpClient_disconnect">
       <title>FtpClient::disconnect()</title>
 
       <variablelist>
@@ -7987,7 +7987,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_list">
+    <sect2 id="FtpClient_list">
       <title>FtpClient::list()</title>
       
       <variablelist>
@@ -8076,7 +8076,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
       
     </sect2>
-    <sect2 id="Qore_FtpClient_nlst">
+    <sect2 id="FtpClient_nlst">
       <title>FtpClient::nlst()</title>
 
       <variablelist>
@@ -8165,7 +8165,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
 
     </sect2>
-    <sect2 id="Qore_FtpClient_pwd">
+    <sect2 id="FtpClient_pwd">
       <title>FtpClient::pwd()</title>
 
       <variablelist>
@@ -8255,7 +8255,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_FtpClient_cwd">
+    <sect2 id="FtpClient_cwd">
       <title>FtpClient::cwd()</title>
       <variablelist>
 	<varlistentry>
@@ -8347,7 +8347,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_get">
+    <sect2 id="FtpClient_get">
       <title>FtpClient::get()</title>
       <variablelist>
 	<varlistentry>
@@ -8448,7 +8448,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_put">
+    <sect2 id="FtpClient_put">
       <title>FtpClient::put()</title>
       <variablelist>
 	<varlistentry>
@@ -8553,7 +8553,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_del">
+    <sect2 id="FtpClient_del">
       <title>FtpClient::del()</title>
       <variablelist>
 	<varlistentry>
@@ -8645,7 +8645,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_setUserName">
+    <sect2 id="FtpClient_setUserName">
       <title>FtpClient::setUserName()</title>
       <variablelist>
 	<varlistentry>
@@ -8725,7 +8725,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_setPassword">
+    <sect2 id="FtpClient_setPassword">
       <title>FtpClient::setPassword()</title>
       <variablelist>
 	<varlistentry>
@@ -8805,7 +8805,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_setHostName">
+    <sect2 id="FtpClient_setHostName">
       <title>FtpClient::setHostName()</title>
       <variablelist>
 	<varlistentry>
@@ -8885,7 +8885,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_setPort">
+    <sect2 id="FtpClient_setPort">
       <title>FtpClient::setPort()</title>
       <variablelist>
 	<varlistentry>
@@ -8965,7 +8965,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_setURL">
+    <sect2 id="FtpClient_setURL">
       <title>FtpClient::setURL()</title>
       <variablelist>
 	<varlistentry>
@@ -9053,7 +9053,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_getUserName">
+    <sect2 id="FtpClient_getUserName">
       <title>FtpClient::getUserName()</title>
       <variablelist>
 	<varlistentry>
@@ -9115,7 +9115,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_getPassword">
+    <sect2 id="FtpClient_getPassword">
       <title>FtpClient::getPassword()</title>
       <variablelist>
 	<varlistentry>
@@ -9177,7 +9177,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_getHostName">
+    <sect2 id="FtpClient_getHostName">
       <title>FtpClient::getHostName()</title>
       <variablelist>
 	<varlistentry>
@@ -9239,7 +9239,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_getPort">
+    <sect2 id="FtpClient_getPort">
       <title>FtpClient::getPort()</title>
       <variablelist>
 	<varlistentry>
@@ -9301,7 +9301,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_FtpClient_getURL">
+    <sect2 id="FtpClient_getURL">
       <title>FtpClient::getURL()</title>
       <variablelist>
 	<varlistentry>
@@ -11067,20 +11067,20 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
   </sect1>
   
-  <sect1 id="Qore_Socket_Class">
+  <sect1 id="Socket_Class">
     <title>Qore::Socket Class</title>
     
     <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
-    <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Qore_Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:</para>
+    <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:</para>
 
     <programlisting><command>my</command> $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds</programlisting>
 
-    <para>Socket objects can automatically convert character encodings if desired when sending string data with <link linkend="Qore_Socket_send">Socket::send()</link>.  Use the <link linkend="Qore_Socket_setCharset">Socket::setCharset()</link> method to set the character encoding for the socket.  If a character encoding is set, and string data is read with the <link linkend="Qore_Socket_recv">Socket::recv()</link> method, then it will be tagged with the encoding of the socket as well.</para>
+    <para>Socket objects can automatically convert character encodings if desired when sending string data with <link linkend="Socket_send">Socket::send()</link>.  Use the <link linkend="Socket_setCharset">Socket::setCharset()</link> method to set the character encoding for the socket.  If a character encoding is set, and string data is read with the <link linkend="Socket_recv">Socket::recv()</link> method, then it will be tagged with the encoding of the socket as well.</para>
     
-    <para>Client applications should call <link linkend="Qore_Socket_connect">Socket::connect()</link> to connect to a remote port or a UNIX domain socket (socket file on the local server).  However, if the remote end is expecting a TLS/SSL connection, use <link linkend="Socket_connectSSL">Socket::connectSSL()</link> instead.</para>
+    <para>Client applications should call <link linkend="Socket_connect">Socket::connect()</link> to connect to a remote port or a UNIX domain socket (socket file on the local server).  However, if the remote end is expecting a TLS/SSL connection, use <link linkend="Socket_connectSSL">Socket::connectSSL()</link> instead.</para>
 
-    <para>Server applications should call <link linkend="Qore_Socket_bind">Socket::bind()</link>, <link linkend="Qore_Socket_listen">Socket::listen()</link>, and  <link linkend="Qore_Socket_accept">Socket::accept()</link> in this order to accept incoming connections.  Normally a new thread should be started after the Socket::accept() call to handle the new connection in a separate thread (Socket::accept() returns a new Socket object for the accepted connection).</para>
+    <para>Server applications should call <link linkend="Socket_bind">Socket::bind()</link>, <link linkend="Socket_listen">Socket::listen()</link>, and  <link linkend="Socket_accept">Socket::accept()</link> in this order to accept incoming connections.  Normally a new thread should be started after the Socket::accept() call to handle the new connection in a separate thread (Socket::accept() returns a new Socket object for the accepted connection).</para>
 
     <para>To support TLS/SSL server connections, first set the certificate and private key with the <link linkend="Socket_setCertificate">Socket::setCertificate()</link> and <link linkend="Socket_setPrivateKey">Socket::setPrivateKey()</link> methods (see the <link linkend="SSLCertificate_Class">SSLCertificate Class</link> and the <link linkend="SSLPrivateKey_Class">SSLPrivateKey Class</link> for more information on the parameters required for these methods).  Then <link linkend="Socket_acceptSSL">Socket::acceptSSL()</link> should be called after the socket is in a listening state to accept client connections and negotiate a TLS/SSL connection.</para>
 
@@ -11098,22 +11098,22 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_constructor">Socket::constructor()</link></para></entry>
+	    <entry><para><link linkend="Socket_constructor">Socket::constructor()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates the socket object</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_destructor">Socket::destructor()</link></para></entry>
+	    <entry><para><link linkend="Socket_destructor">Socket::destructor()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Closes the socket if it's open and destroys the object.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_copy">Socket::copy()</link></para></entry>
+	    <entry><para><link linkend="Socket_copy">Socket::copy()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates a new Socket object, not based on the parent.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_connect">Socket::connect()</link></para></entry>
+	    <entry><para><link linkend="Socket_connect">Socket::connect()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Connects to a remote port or UNIX domain socket file.</para></entry>
 	  </row>
@@ -11131,12 +11131,12 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
             </entry>
           </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_bind">Socket::bind()</link></para></entry>
+	    <entry><para><link linkend="Socket_bind">Socket::bind()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Binds the socket to a port or UNIX domain socket file.  If the second parameter is True, then the socket will set the SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a TIME_WAIT state).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_accept">Socket::accept()</link></para></entry>
+	    <entry><para><link linkend="Socket_accept">Socket::accept()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Accepts connections on a listening socket.</para></entry>
 	  </row>
@@ -11167,167 +11167,167 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
             </entry>
           </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_listen">Socket::listen()</link></para></entry>
+	    <entry><para><link linkend="Socket_listen">Socket::listen()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Listens for connections on the socket</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_isDataAvailable">Socket::isDataAvailable()</link></para></entry>
+	    <entry><para><link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns True or False depending on whether there is data to be read on the socket</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_send">Socket::send()</link></para></entry>
+	    <entry><para><link linkend="Socket_send">Socket::send()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends string or binary data over the socket</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendi1">Socket::sendi1()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendi1">Socket::sendi1()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 1-byte integer over the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendi2">Socket::sendi2()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendi2">Socket::sendi2()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 2-byte (16-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendi4">Socket::sendi4()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendi4">Socket::sendi4()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 4-byte (32-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendi8">Socket::sendi8()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendi8">Socket::sendi8()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an 8-byte (64-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendi2LSB">Socket::sendi2LSB()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendi2LSB">Socket::sendi2LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 2-byte (16-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendi4LSB">Socket::sendi4LSB()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendi4LSB">Socket::sendi4LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 4-byte (32-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendi8LSB">Socket::sendi8LSB()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendi8LSB">Socket::sendi8LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an 8-byte (64-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendHTTPMessage">Socket::sendHTTPMessage()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendHTTPMessage">Socket::sendHTTPMessage()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an HTTP message with a method and user-defined headers given as a hash</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_sendHTTPResponse">Socket::sendHTTPResponse()</link></para></entry>
+	    <entry><para><link linkend="Socket_sendHTTPResponse">Socket::sendHTTPResponse()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an HTTP response with user-defined headers given as a hash</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recv">Socket::recv()</link></para></entry>
+	    <entry><para><link linkend="Socket_recv">Socket::recv()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data from the socket and returns a string</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvi1">Socket::recvi1()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvi1">Socket::recvi1()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 1-byte signed integer from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvi2">Socket::recvi2()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvi2">Socket::recvi2()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvi4">Socket::recvi4()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvi4">Socket::recvi4()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvi8">Socket::recvi8()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvi8">Socket::recvi8()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvi2LSB">Socket::recvi2LSB()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvi2LSB">Socket::recvi2LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvi4LSB">Socket::recvi4LSB()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvi4LSB">Socket::recvi4LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvi8LSB">Socket::recvi8LSB()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvi8LSB">Socket::recvi8LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives an 8-byte (64-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvu1">Socket::recvu1()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvu1">Socket::recvu1()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 1-byte unsigned integer from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvu2">Socket::recvu2()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvu2">Socket::recvu2()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvu4">Socket::recvu4()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvu4">Socket::recvu4()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvu2LSB">Socket::recvu2LSB()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvu2LSB">Socket::recvu2LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvu4LSB">Socket::recvu4LSB()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvu4LSB">Socket::recvu4LSB()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_recvBinary">Socket::recvBinary()</link></para></entry>
+	    <entry><para><link linkend="Socket_recvBinary">Socket::recvBinary()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data on a socket and returns a binary object</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_readHTTPHeader">Socket::readHTTPHeader()</link></para></entry>
+	    <entry><para><link linkend="Socket_readHTTPHeader">Socket::readHTTPHeader()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Retuns a hash representing the data in the HTTP header read</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_getPort">Socket::getPort()</link></para></entry>
+	    <entry><para><link linkend="Socket_getPort">Socket::getPort()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the port number of the socket for INET sockets.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_shutdown">Socket::shutdown()</link></para></entry>
+	    <entry><para><link linkend="Socket_shutdown">Socket::shutdown()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Ensures that a socket will be closed even if shared with other processes.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_close">Socket::close()</link></para></entry>
+	    <entry><para><link linkend="Socket_close">Socket::close()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Closes the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_getCharset">Socket::getCharset()</link></para></entry>
+	    <entry><para><link linkend="Socket_getCharset">Socket::getCharset()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the character encoding for the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_setCharset">Socket::setCharset()</link></para></entry>
+	    <entry><para><link linkend="Socket_setCharset">Socket::setCharset()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the character encoding for the socket.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore_Socket_getSocket">Socket::getSocket()</link></para></entry>
+	    <entry><para><link linkend="Socket_getSocket">Socket::getSocket()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the socket file descriptor number.</para></entry>
 	  </row>	
@@ -11426,7 +11426,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </tgroup>
     </table>
     
-    <sect2 id="Qore_Socket_constructor">
+    <sect2 id="Socket_constructor">
       <title>Socket::constructor()</title>
       <variablelist>
 	<varlistentry>
@@ -11488,14 +11488,14 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_destructor">
+    <sect2 id="Socket_destructor">
       <title>Socket::destructor()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Closes the socket if it's open and destroys the object.  If the socket was a UNIX domain socket, and was created with <link linkend="Qore_Socket_bind">Socket::bind()</link>, then the socket file will be deleted as well.</para>
+	    <para>Closes the socket if it's open and destroys the object.  If the socket was a UNIX domain socket, and was created with <link linkend="Socket_bind">Socket::bind()</link>, then the socket file will be deleted as well.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11513,7 +11513,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </variablelist>
     </sect2>
 
-    <sect2 id="Qore_Socket_copy">
+    <sect2 id="Socket_copy">
       <title>Socket::copy()</title>
 
       <variablelist>
@@ -11576,7 +11576,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_bind">
+    <sect2 id="Socket_bind">
       <title>Socket::bind()</title>
       <variablelist>
 	<varlistentry>
@@ -11678,13 +11678,13 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_accept">
+    <sect2 id="Socket_accept">
       <title>Socket::accept()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Accepts connections on a listening socket (see <link linkend="Qore_Socket_listen">Socket::listen()</link>).</para>
+	    <para>Accepts connections on a listening socket (see <link linkend="Socket_listen">Socket::listen()</link>).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11865,7 +11865,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_connect">
+    <sect2 id="Socket_connect">
       <title>Socket::connect()</title>
       <variablelist>
 	<varlistentry>
@@ -12072,13 +12072,13 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_listen">
+    <sect2 id="Socket_listen">
       <title>Socket::listen()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Listens for new connections on a bound socket (see <link linkend="Qore_Socket_bind">Socket::bind())</link></para>
+	    <para>Listens for new connections on a bound socket (see <link linkend="Socket_bind">Socket::bind())</link></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -12816,13 +12816,13 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_isDataAvailable">
+    <sect2 id="Socket_isDataAvailable">
       <title>Socket::isDataAvailable()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns True is data is available on the socket, takes an optional timeout.  With a timeout of zero this method can be used for non-blocking polling the socket for data (can also be used to poll for new connections before <link linkend="Qore_Socket_accept">Socket::accept()</link>).</para>
+	    <para>Returns True is data is available on the socket, takes an optional timeout.  With a timeout of zero this method can be used for non-blocking polling the socket for data (can also be used to poll for new connections before <link linkend="Socket_accept">Socket::accept()</link>).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -12878,7 +12878,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_send">
+    <sect2 id="Socket_send">
       <title>Socket::send()</title>
       <variablelist>
 	<varlistentry>
@@ -12967,7 +12967,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendi1">
+    <sect2 id="Socket_sendi1">
       <title>Socket::sendi1()</title>
       <variablelist>
 	<varlistentry>
@@ -13047,7 +13047,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendi2">
+    <sect2 id="Socket_sendi2">
       <title>Socket::sendi2()</title>
       <variablelist>
 	<varlistentry>
@@ -13127,7 +13127,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendi4">
+    <sect2 id="Socket_sendi4">
       <title>Socket::sendi4()</title>
       <variablelist>
 	<varlistentry>
@@ -13207,7 +13207,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendi8">
+    <sect2 id="Socket_sendi8">
       <title>Socket::sendi8()</title>
       <variablelist>
 	<varlistentry>
@@ -13287,7 +13287,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendi2LSB">
+    <sect2 id="Socket_sendi2LSB">
       <title>Socket::sendi2LSB()</title>
       <variablelist>
 	<varlistentry>
@@ -13367,7 +13367,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendi4LSB">
+    <sect2 id="Socket_sendi4LSB">
       <title>Socket::sendi4LSB()</title>
       <variablelist>
 	<varlistentry>
@@ -13447,7 +13447,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendi8LSB">
+    <sect2 id="Socket_sendi8LSB">
       <title>Socket::sendi8LSB()</title>
       <variablelist>
 	<varlistentry>
@@ -13527,7 +13527,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendHTTPMessage">
+    <sect2 id="Socket_sendHTTPMessage">
       <title>Socket::sendHTTPMessage()</title>
       <variablelist>
 	<varlistentry>
@@ -13640,7 +13640,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_sendHTTPResponse">
+    <sect2 id="Socket_sendHTTPResponse">
       <title>Socket::sendHTTPResponse()</title>
       <variablelist>
 	<varlistentry>
@@ -13753,7 +13753,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recv">
+    <sect2 id="Socket_recv">
       <title>Socket::recv()</title>
       <variablelist>
 	<varlistentry>
@@ -13846,7 +13846,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvBinary">
+    <sect2 id="Socket_recvBinary">
       <title>Socket::recvBinary()</title>
       <variablelist>
 	<varlistentry>
@@ -13939,7 +13939,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvi1">
+    <sect2 id="Socket_recvi1">
       <title>Socket::recvi1()</title>
       <variablelist>
 	<varlistentry>
@@ -14027,7 +14027,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvi2">
+    <sect2 id="Socket_recvi2">
       <title>Socket::recvi2()</title>
       <variablelist>
 	<varlistentry>
@@ -14115,7 +14115,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvi4">
+    <sect2 id="Socket_recvi4">
       <title>Socket::recvi4()</title>
       <variablelist>
 	<varlistentry>
@@ -14203,7 +14203,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvi8">
+    <sect2 id="Socket_recvi8">
       <title>Socket::recvi8()</title>
       <variablelist>
 	<varlistentry>
@@ -14291,7 +14291,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvi2LSB">
+    <sect2 id="Socket_recvi2LSB">
       <title>Socket::recvi2LSB()</title>
       <variablelist>
 	<varlistentry>
@@ -14379,7 +14379,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvi4LSB">
+    <sect2 id="Socket_recvi4LSB">
       <title>Socket::recvi4LSB()</title>
       <variablelist>
 	<varlistentry>
@@ -14467,7 +14467,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvi8LSB">
+    <sect2 id="Socket_recvi8LSB">
       <title>Socket::recvi8LSB()</title>
       <variablelist>
 	<varlistentry>
@@ -14555,7 +14555,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvu1">
+    <sect2 id="Socket_recvu1">
       <title>Socket::recvu1()</title>
       <variablelist>
 	<varlistentry>
@@ -14643,7 +14643,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvu2">
+    <sect2 id="Socket_recvu2">
       <title>Socket::recvu2()</title>
       <variablelist>
 	<varlistentry>
@@ -14731,7 +14731,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvu4">
+    <sect2 id="Socket_recvu4">
       <title>Socket::recvu4()</title>
       <variablelist>
 	<varlistentry>
@@ -14819,7 +14819,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvu2LSB">
+    <sect2 id="Socket_recvu2LSB">
       <title>Socket::recvu2LSB()</title>
       <variablelist>
 	<varlistentry>
@@ -14907,7 +14907,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_recvu4LSB">
+    <sect2 id="Socket_recvu4LSB">
       <title>Socket::recvu4LSB()</title>
       <variablelist>
 	<varlistentry>
@@ -14995,7 +14995,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_readHTTPHeader">
+    <sect2 id="Socket_readHTTPHeader">
       <title>Socket::readHTTPHeader()</title>
       <variablelist>
 	<varlistentry>
@@ -15083,7 +15083,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_getPort">
+    <sect2 id="Socket_getPort">
       <title>Socket::getPort()</title>      
       <variablelist>
 	<varlistentry>
@@ -15145,7 +15145,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_shutdown">
+    <sect2 id="Socket_shutdown">
       <title>Socket::shutdown()</title>      
       <variablelist>
 	<varlistentry>
@@ -15207,13 +15207,13 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_close">
+    <sect2 id="Socket_close">
       <title>Socket::close()</title>      
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Closes an open socket.  Also deletes the UNIX domain socket file if it was created by a call to <link linkend="Qore_Socket_bind">Socket::bind()</link></para>
+	    <para>Closes an open socket.  Also deletes the UNIX domain socket file if it was created by a call to <link linkend="Socket_bind">Socket::bind()</link></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15269,7 +15269,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_getCharset">
+    <sect2 id="Socket_getCharset">
       <title>Socket::getCharset()</title>
       
      <variablelist>
@@ -15334,14 +15334,14 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_setCharset">
+    <sect2 id="Socket_setCharset">
       <title>Socket::setCharset()</title>
       
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the character encoding for the socket.  If any string data is sent over the socket with <link linkend="Qore_Socket_send">Socket::send()</link>, then the character encoding will be automatically converted if needed.</para>
+	    <para>Sets the character encoding for the socket.  If any string data is sent over the socket with <link linkend="Socket_send">Socket::send()</link>, then the character encoding will be automatically converted if needed.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15399,7 +15399,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Socket_getSocket">
+    <sect2 id="Socket_getSocket">
       <title>Socket::getSocket()</title>      
       <variablelist>
 	<varlistentry>
@@ -15675,7 +15675,7 @@ $sock.bind("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or <link linkend="HTTPClient_setSecure">HTTPClient::setSecure()</link> was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the <link linkend="Qore_Socket_connect">Socket::connect()</link> method (or <link linkend="Socket_connectSSL">Socket::connectSSL()</link> for secure connections).</para>
+              <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or <link linkend="HTTPClient_setSecure">HTTPClient::setSecure()</link> was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the <link linkend="Socket_connect">Socket::connect()</link> method (or <link linkend="Socket_connectSSL">Socket::connectSSL()</link> for secure connections).</para>
             </entry>
           </row>
           <row>
@@ -16809,7 +16809,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the Socket::connect() method (or Socket::connectSSL() for secure connections).</para>
+            <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or <link linkend="HTTPClient_setSecure">HTTPClient::setSecure()</link> was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the <link linkend="Socket_connect">Socket::connect()</link> method (or <link linkend="Socket_connectSSL">Socket::connectSSL()</link> for secure connections).</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -16998,7 +16998,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>HTTPClient::get(<replaceable>path, [headers]</replaceable>)</programlisting>
+            <programlisting>HTTPClient::get(<replaceable>path, [headers], [info_reference]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17039,17 +17039,14 @@ $sock.bind("/tmp/socket");</programlisting>
               </entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[headers]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>Hash</para>
-              </entry>
-              <entry>
-                <para>An optional hash of headers to include in the message.</para>
-              </entry>
+	      <entry><para><replaceable>[headers]</replaceable></para></entry>
+              <entry><para>Hash</para></entry>
+	      <entry><para>An optional hash of headers to include in the message.</para></entry>
+            </row>
+            <row>
+	      <entry><para><replaceable>[info_reference]</replaceable></para></entry>
+              <entry><para>LValue Reference</para></entry>
+	      <entry><para>An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -17260,7 +17257,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>HTTPClient::post(<replaceable>path, message, [headers]</replaceable>)</programlisting>
+            <programlisting>HTTPClient::post(<replaceable>path, message, [headers], [info_reference]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -17319,6 +17316,11 @@ $sock.bind("/tmp/socket");</programlisting>
               <entry>
                 <para>An optional hash of headers to include in the message.</para>
               </entry>
+            </row>
+            <row>
+	      <entry><para><replaceable>[info_reference]</replaceable></para></entry>
+              <entry><para>LValue Reference</para></entry>
+	      <entry><para>An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -17398,7 +17400,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>HTTPClient::send(<replaceable>message, method, path, [headers], [get_body]</replaceable>)</programlisting>
+            <programlisting>HTTPClient::send(<replaceable>message, method, path, [headers], [get_body], [info_reference]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17489,6 +17491,11 @@ $sock.bind("/tmp/socket");</programlisting>
               <entry>
                 <para>if set to True (default is False), then even if the server did not return a 'Content-Length' header in the response, the object will try to read a message body from the socket anyway.  Use this only with broken servers that send messages bodies without a 'Content-Length' header.</para>
               </entry>
+            </row>
+            <row>
+	      <entry><para><replaceable>[info_reference]</replaceable></para></entry>
+              <entry><para>LValue Reference</para></entry>
+	      <entry><para>An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -18625,30 +18632,24 @@ $sock.bind("/tmp/socket");</programlisting>
             </entry>
           </row>
           <row>
-            <entry>
-              <para>
-                <link linkend="XmlRpcClient_call">XmlRpcClient::call()</link>
-              </para>
-            </entry>
-            <entry>
-              <para>Y</para>
-            </entry>
-            <entry>
-              <para>Calls a remote method using a variable number of arguments for the method arguments and returns the response as qore data structure.</para>
-            </entry>
+            <entry><para><link linkend="XmlRpcClient_call">XmlRpcClient::call()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Calls a remote method using a variable number of arguments for the method arguments and returns the response as qore data structure.</para></entry>
           </row>
           <row>
-            <entry>
-              <para>
-                <link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs()</link>
-              </para>
-            </entry>
-            <entry>
-              <para>Y</para>
-            </entry>
-            <entry>
-              <para>Calls a remote method using a single value after the method name for the method arguments and returns the response as qore data structure.</para>
-            </entry>
+            <entry><para><link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Calls a remote method using a single value after the method name for the method arguments and returns the response as qore data structure.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="XmlRpcClient_callWithInfo">XmlRpcClient::callWithInfo()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Same as the <link linkend="XmlRpcClient_call">XmlRpcClient::call()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="XmlRpcClient_callArgsWithInfo">XmlRpcClient::callArgsWithInfo()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Same as the <link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
           </row>
         </tbody>
       </tgroup>
@@ -19095,6 +19096,206 @@ $sock.bind("/tmp/socket");</programlisting>
         </tgroup>
       </table>
     </sect2>
+
+    <sect2 id="XmlRpcClient_callWithInfo">
+      <title>XmlRpcClient::callWithInfo()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Like the <link linkend="XmlRpcClient_call">XmlRpcClient::call()</link> method, except requires an lvalue reference as the first argument that will be used as an output variable providing information about the HTTP request and response made to effect the XML-RPC call.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlRpcClient::callWithInfo(<replaceable>lvalue_ref, method_name, [args...]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$result = $xrc.callWithInfo(\$info, "method.name", $arg1, $arg2);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlRpcClient::callWithInfo()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><replaceable>lvalue_ref</replaceable></para></entry>
+              <entry><para>LValue Reference</para></entry>
+              <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para></entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>method_name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The XML-RPC method name to call</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[args...]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Any</para>
+              </entry>
+              <entry>
+                <para>Optional arguments for the method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlRpcClient::callWithInfo()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>If the call was successful, the response information will be found in the key 'params'.  If an error occurred then the error information can be found under the 'fault' key.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlRpcClient_callArgsWithInfo">
+      <title>XmlRpcClient::callArgsWithInfo()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Like the <link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs()</link> method, except requires an lvalue reference as the first argument that will be used as an output variable providing information about the HTTP request and response made to effect the XML-RPC call.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlRpcClient::callArgsWithInfo(<replaceable>lvalue_ref, method_name, [arg_list]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$result = $xrc.callArgsWithInfo(\$info, "method.name", $arg_list);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlRpcClient::callArgsWithInfo()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><replaceable>lvalue_ref</replaceable></para></entry>
+              <entry><para>LValue Reference</para></entry>
+              <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para></entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>method_name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The XML-RPC method name to call</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[arg_list]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>List or Any</para>
+              </entry>
+              <entry>
+                <para>An optional list (or single value) of arguments for the method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlRpcClient::callArgswithInfo()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>If the call was successful, the response information will be found in the key 'params'.  If an error occurred then the error information can be found under the 'fault' key.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
   </sect1>
 
   <sect1 id="JsonRpcClient_Class">
@@ -19247,6 +19448,16 @@ $sock.bind("/tmp/socket");</programlisting>
             <entry>
               <para>Calls a remote method using a single value after the method name for the method arguments and returns the response as qore data structure.</para>
             </entry>
+          </row>
+          <row>
+            <entry><para><link linkend="JsonRpcClient_callWithInfo">JsonRpcClient::callWithInfo()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Same as the <link linkend="JsonRpcClient_call">JsonRpcClient::call()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="JsonRpcClient_callArgsWithInfo">JsonRpcClient::callArgsWithInfo()</link></para></entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Same as the <link linkend="JsonRpcClient_callArgs">JsonRpcClient::callArgs()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
           </row>
         </tbody>
       </tgroup>
@@ -19669,6 +19880,196 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
       <table>
         <title>Return Values for JsonRpcClient::callArgs()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Any</para>
+              </entry>
+              <entry>
+                <para>The information returned by the JSON-RPC method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="JsonRpcClient_callWithInfo">
+      <title>JsonRpcClient::callWithInfo()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Like the <link linkend="JsonRpcClient_call">JsonRpcClient::call()</link> method, except requires an lvalue reference as the first argument that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>JsonRpcClient::callWithInfo(<replaceable>lvalue_reference, method_name, [arg1, arg2...</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$result = $jrc.callWithInfo(\$info, "method_name", $arg1, $arg2);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for JsonRpcClient::callWithInfo()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><replaceable>lvalue_reference</replaceable></para></entry>
+              <entry><para>LValue Reference</para></entry>
+              <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para></entry>
+            </row>
+            <row>
+	      <entry><para><replaceable>method_name</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>The JSON-RPC method name to call</para></entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[arg_list]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>List or Any</para>
+              </entry>
+              <entry>
+                <para>An optional list (or single value) of arguments for the method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for JsonRpcClient::callWithInfo()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>The information returned by the JSON-RPC method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="JsonRpcClient_callArgsWithInfo">
+      <title>JsonRpcClient::callArgswithInfo()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Like the <link linkend="JsonRpcClient_callArgs">JsonRpcClient::callArgs()</link> method, except requires an lvalue reference as the first argument that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>JsonRpcClient::callArgsWithInfo(<replaceable>lvalue_reference, method_name, [arg_list]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$result = $jrc.callArgsWithInfo(\$info, "method_name", $arg_list);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for JsonRpcClient::callArgsWithInfo()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><replaceable>lvalue_reference</replaceable></para></entry>
+              <entry><para>LValue Reference</para></entry>
+              <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para></entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>method_name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The JSON-RPC method name to call</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>[arg_list]</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>List or Any</para>
+              </entry>
+              <entry>
+                <para>An optional list (or single value) of arguments for the method.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for JsonRpcClient::callArgsWithInfo()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -21961,7 +22362,7 @@ $sock.bind("/tmp/socket");</programlisting>
     </table>
   </sect1>
 
-  <sect1 id="Qore::SQL::Datasource_Class">
+  <sect1 id="Datasource_Class">
     <title>Qore::SQL::Datasource Class</title>
     
     <para>Note: This class is not available with the <link linkend="no-database"><code>PO_NO_DATABASE</code></link> parse option.</para>
@@ -24585,11 +24986,11 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
     
     <para>Note: This class is not available with the <link linkend="no-database"><code>PO_NO_DATABASE</code></link> parse option.</para>
 
-    <para>The DatasourcePool class provides transparent per-thread, per-transaction <link linkend="Qore::SQL::Datasource_Class">Datasource</link> connection pooling.</para> 
+    <para>The DatasourcePool class provides transparent per-thread, per-transaction <link linkend="Datasource_Class">Datasource</link> connection pooling.</para> 
 
-    <para>In most cases, the DatasourcePool class can be used as a drop-in replacement for the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object.  If no Datasource is available, the calling thread will block until a Datasource comes available.</para>
+    <para>In most cases, the DatasourcePool class can be used as a drop-in replacement for the <link linkend="Datasource_Class">Datasource</link> class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object.  If no Datasource is available, the calling thread will block until a Datasource comes available.</para>
 
-    <para>Note that the same principles apply to SQL and database driver usage as with the Datasource class, see the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> class documentation for more information.</para>
+    <para>Note that the same principles apply to SQL and database driver usage as with the Datasource class, see the <link linkend="Datasource_Class">Datasource</link> class documentation for more information.</para>
 
     <para>The DatasourcePool class uses Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it.  If Qore user code enters a transaction with a DatasourcePool object and the thread terminates without closing the transaction (via <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link>), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.</para>
 
@@ -26406,12 +26807,12 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
     </sect2>
   </sect1>
 
-  <sect1 id="Qore::Thread::AutoGate_Class">
+  <sect1 id="AutoGate_Class">
     <title>Qore::Thread::AutoGate Class</title>
 
     <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
-    <para>AutoGate objects, when used along with a <link linkend="Qore::Thread::Gate_Class">Gate</link> object, allow Qore programmers to safely enter and exit a gate lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoGate object is created.  AutoGate objects enter the gate lock for the lifetime of the AutoGate object.  For this reason, it is only appropriate to assign an AutoGate object to a local variable, so when the local variable goes out of scope, the AutoGate object will be deleted and the gate automatically exited.</para>
+    <para>AutoGate objects, when used along with a <link linkend="Gate_Class">Gate</link> object, allow Qore programmers to safely enter and exit a gate lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoGate object is created.  AutoGate objects enter the gate lock for the lifetime of the AutoGate object.  For this reason, it is only appropriate to assign an AutoGate object to a local variable, so when the local variable goes out of scope, the AutoGate object will be deleted and the gate automatically exited.</para>
 
     <para>For example:</para>
 
@@ -26468,7 +26869,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates the AutoGate object based on the <link linkend="Qore::Thread::Gate_Class">Gate</link> argument passed and immediately calls <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link>.</para>
+	    <para>Creates the AutoGate object based on the <link linkend="Gate_Class">Gate</link> argument passed and immediately calls <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -26498,7 +26899,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>gate_object</replaceable></para></entry>
-	      <entry><para><link linkend="Qore::Thread::Gate_Class">Gate</link></para></entry>
+	      <entry><para><link linkend="Gate_Class">Gate</link></para></entry>
 	      <entry><para>The Gate object to enter for the lifetime of the AutoGate object.</para></entry>
 	    </row>
 	  </tbody>
@@ -26627,7 +27028,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
-    <para>AutoLock objects, when used along with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> object, allow Qore programmers to safely acquire and release a Mutex lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoLock object is created.  AutoLock objects are helper objects that acquire a Mutex for the lifetime of the object.  For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the Mutex will be automatically released.</para>
+    <para>AutoLock objects, when used along with a <link linkend="Mutex_Class">Mutex</link> object, allow Qore programmers to safely acquire and release a Mutex lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoLock object is created.  AutoLock objects are helper objects that acquire a Mutex for the lifetime of the object.  For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the Mutex will be automatically released.</para>
 
     <para>For example:</para>
 
@@ -26713,7 +27114,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>$mutex</replaceable></para></entry>
-	      <entry><para><link linkend="Qore::Thread::Mutex_Class">Mutex</link></para></entry>
+	      <entry><para><link linkend="Mutex_Class">Mutex</link></para></entry>
 	      <entry><para>The Mutex object to manage for the lifetime of this object.</para></entry>
 	    </row>
 	  </tbody>
@@ -27272,7 +27673,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
-    <para>Condition objects, when used along with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> object, allow Qore threads to sleep until a certain condition becomes true.</para>
+    <para>Condition objects, when used along with a <link linkend="Mutex_Class">Mutex</link> object, allow Qore threads to sleep until a certain condition becomes true.</para>
 
     <table>
       <title>Qore::Thread::Condition Method Overview</title>
@@ -27647,7 +28048,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks a thread on the Condition object.  Must be called with a <link linkend="Qore::Thread::Mutex_Class">Mutex</link> argument, and the Mutex must be locked before the call.  This method will atomically unlock the Mutex object and wait on this Condition object to be woken up with a <link linkend="Qore::Thread::Condition::signal">Condition::signal()</link> or <link linkend="Qore::Thread::Condition::broadcast">Condition::broadcast()</link> method call in another thread.  At this point, the Mutex will be reacquired before control returns to the blocked thread.  The wait condition should always be tested again when the thread is unblocked.</para>
+	    <para>Blocks a thread on the Condition object.  Must be called with a <link linkend="Mutex_Class">Mutex</link> argument, and the Mutex must be locked before the call.  This method will atomically unlock the Mutex object and wait on this Condition object to be woken up with a <link linkend="Qore::Thread::Condition::signal">Condition::signal()</link> or <link linkend="Qore::Thread::Condition::broadcast">Condition::broadcast()</link> method call in another thread.  At this point, the Mutex will be reacquired before control returns to the blocked thread.  The wait condition should always be tested again when the thread is unblocked.</para>
 	    <para>Also accepts an optional timeout value in milliseconds.   Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Also if the call times out, the Mutex will also be acquired when the Condition::wait() call returns and a non-zero return value will be returned.</para>
 	  </listitem>
 	</varlistentry>
@@ -29895,7 +30296,7 @@ $mutex.unlock();</programlisting>
     </sect2>
   </sect1>
 
-  <sect1 id="Qore::Thread::Mutex_Class">
+  <sect1 id="Mutex_Class">
     <title>Qore::Thread::Mutex Class</title>
 
     <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
@@ -30365,7 +30766,7 @@ $mutex.unlock();</programlisting>
 
   <sect1 id="Qore::Thread::RMutex_Class">
     <title>Qore::Thread::RMutex Class</title>
-    <para>DEPRECATED: use the <link linkend="Qore::Thread::Gate_Class">Gate</link> class instead.</para>
+    <para>DEPRECATED: use the <link linkend="Gate_Class">Gate</link> class instead.</para>
 
     <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
@@ -30695,14 +31096,14 @@ $mutex.unlock();</programlisting>
 
   </sect1>
 
-  <sect1 id="Qore::Thread::Gate_Class">
+  <sect1 id="Gate_Class">
     <title>Qore::Thread::Gate Class</title>
 
     <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
 
     <para>The Gate class implements a reentrant thread lock.  Once a thread grabs the lock, it can call the <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link> method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls <link linkend="Qore::Thread::Gate::exit">Gate::exit()</link> an equal number of times to <link linkend="Qore::Thread::Gate::enter">Gate::enter()</link> calls.</para>
 
-    <para>See the <link linkend="Qore::Thread::AutoGate_Class">AutoGate class</link> for a class that assists in exception-safe Gate locking.</para>
+    <para>See the <link linkend="AutoGate_Class">AutoGate class</link> for a class that assists in exception-safe Gate locking.</para>
 
     <para>Additionally, the <link linkend="on_exit_Statements"><command>on_exit</command></link> statement can provide exception-safe Gate handling at the lexical block level as in the following example:</para>
 

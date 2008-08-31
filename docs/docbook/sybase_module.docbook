@@ -2,7 +2,7 @@
   <sect1 id="sybase_Module">
     <title>sybase Module</title>
     
-    <para>The sybase module provides a Qore DBI driver allowing Qore programs to access Sybase databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
+    <para>The sybase module provides a Qore DBI driver allowing Qore programs to access Sybase databases through the <link linkend="Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
 
     <para>Example of creating a Sybase Datasource:</para>
 

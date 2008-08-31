@@ -3,7 +3,7 @@
   <sect1 id="oracle_Module">
     <title>oracle Module</title>
 
-    <para>The oracle module provides an Oracle driver to Qore's DBI system, allowing Qore programs to take access Oracle databases through the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
+    <para>The oracle module provides an Oracle driver to Qore's DBI system, allowing Qore programs to take access Oracle databases through the <link linkend="Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
 
     <para>Example of creating an Oracle Datasource:</para>
 

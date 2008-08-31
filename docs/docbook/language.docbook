@@ -16,7 +16,7 @@
 
     <para>Qore can be used a a traditional subroutine-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and subroutines, Qore also supports nested namespaces, classes, multiple inheritance, overriding base class constructor arguments, private members and methods, and static class methods.</para>
     
-    <para>All elements of Qore are designed to work together seamlessly: <link linkend="Qore::SQL::Datasource_Class">database access</link>, <link linkend="XML_Integration">XML transformations</link>, <link linkend="Qore_Socket_Class">socket communication</link>, <link linkend="Qore_Program_Class">embedding logic</link> in subprograms, <link linkend="Regular_Expressions">regular expressions</link>, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
+    <para>All elements of Qore are designed to work together seamlessly: <link linkend="Datasource_Class">database access</link>, <link linkend="XML_Integration">XML transformations</link>, <link linkend="Socket_Class">socket communication</link>, <link linkend="Qore_Program_Class">embedding logic</link> in subprograms, <link linkend="Regular_Expressions">regular expressions</link>, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
 
     <para>Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see <link linkend='Operators'>Operators</link> for more information.</para>
 
@@ -82,7 +82,7 @@
     <para>Modules shipping with Qore include <link linkend="oracle_Module"><code>oracle</code></link>, <link linkend="mysql_Module"><code>mysql</code></link>, <link linkend="pgsql_Module"><code>pgsql</code></link>, <link linkend="sybase_Module"><code>sybase</code></link>, <link linkend="mssql_Module"><code>mssql</code></link>, <link linkend="ncurses_Module"><code>ncurses</code></link>, <link linkend="tibrv_Module"><code>tibrv</code></link>, <link linkend="tibae_Module"><code>tibae</code></link>, <link linkend="Tuxedo_Module"><code>tuxedo</code></link>, <link linkend="opengl_Module"><code>opengl</code></link>, <link linkend="glut_Module"><code>glut</code></link>, <link linkend="qt-core_Module"><code>qt-core</code></link>, <link linkend="qt-gui_Module"><code>qt-gui</code></link>, <link linkend="qt-opengl_Module"><code>qt-opengl</code></link>, and <link linkend="qt-svg_Module"><code>qt-svg</code></link>.</para>
     <para>To load a module at parse time (normally required for most modules), use the <link linkend="requires"><code>%requires</code></link> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
     <para>Use the <link linkend="load_module">load_module()</link> function to load Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the <link linkend="requires"><code>%requires</code></link> directive.</para>
-    <para>Also note that DBI drivers are loaded on demand by the <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
+    <para>Also note that DBI drivers are loaded on demand by the <link linkend="Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
   </sect1>
   
   <sect1 id="Include_Files">
@@ -235,7 +235,7 @@
 	    <entry><para><code>$ARGV</code></para></entry>
 	    <entry><para>Global</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>script command-line arguments (use the <link linkend='Qore::GetOpt_Class'>GetOpt Class</link> to parse command-line arguments)</para></entry>
+	    <entry><para>script command-line arguments (use the <link linkend='GetOpt_Class'>GetOpt Class</link> to parse command-line arguments)</para></entry>
 	  </row>
 	  <row id="QORE_ARGV">
 	    <entry><para><code>$QORE_ARGV</code></para></entry>
@@ -253,7 +253,7 @@
       </tgroup>
     </table>
 
-    <note><para><code>$STDERR</code> and <code>$STDOUT</code> have been removed from Qore.  Use the <link linkend="Qore_IO_Constants">I/O constants</link> <command>stderr</command>, <command>stdout</command>, and <command>stdin</command> constants of the <link linkend='Qore_File_Class'>File Class</link> instead.</para></note>
+    <note><para><code>$STDERR</code> and <code>$STDOUT</code> have been removed from Qore.  Use the <link linkend="Qore_IO_Constants">I/O constants</link> <command>stderr</command>, <command>stdout</command>, and <command>stdin</command> constants of the <link linkend='File_Class'>File Class</link> instead.</para></note>
 
 <sect2 id="Lexical_Scope">
 <title>Lexical Scope</title>
@@ -502,13 +502,13 @@ language, either by an addition to this data type, or by adding another date typ
 
   <para>This data can be manipulated by being written and read from File, Socket, and Datasource objects, or converted and parsed to/from base64 encoded strings using the <link linkend="makeBase64String">makeBase64String()</link> and <link linkend="parseBase64String">parseBase64String()</link> functions, or compressed and decompressed using the <link linkend="compress">compress()</link>, <link linkend="gzip">gzip()</link>, <link linkend="bzip2">bzip2()</link>, etc. functions, and processed by most <link linkend="Cryptographic_Functions">cryptographic funtions</link>, among others.</para>
 
-  <para>Binary objects can be read from a File object using the <link linkend="Qore_File_readBinary">File::readBinary()</link> method and can be written using the <link linkend="Qore_File_write">File::write()</link> method.  Please see the <link linkend='Qore_File_Class'>File Class</link> for more information.</para>
+  <para>Binary objects can be read from a File object using the <link linkend="File_readBinary">File::readBinary()</link> method and can be written using the <link linkend="File_write">File::write()</link> method.  Please see the <link linkend='File_Class'>File Class</link> for more information.</para>
   
-  <para>Binary objects can be read from a Socket object using the <link linkend="Qore_Socket_recvBinary">Socket::recvBinary()</link> method and can be written using the <link linkend="Qore_Socket_send">Socket::send()</link> method. Please see the <link linkend="Qore_Socket_Class">Socket Class</link> for more information.</para>
+  <para>Binary objects can be read from a Socket object using the <link linkend="Socket_recvBinary">Socket::recvBinary()</link> method and can be written using the <link linkend="Socket_send">Socket::send()</link> method. Please see the <link linkend="Socket_Class">Socket Class</link> for more information.</para>
 
   <para>Binary objects can be sent and received using classes provided by the <link linkend="tibrv_Module">tibrv</link> and <link linkend="tibae_Module">tibae</link> modules as well.</para>
 
-  <para>The <link linkend="Qore::SQL::Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes can also be used to read and write Binary objects as BLOBs.</para>
+  <para>The <link linkend="Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes can also be used to read and write Binary objects as BLOBs.</para>
 
   <para>Note that this is not an exhaustive list; see the function and class library documentation for more examples.</para>
 
@@ -657,9 +657,9 @@ language, either by an addition to this data type, or by adding another date typ
   
   <para>The <link linkend='TibrvSender_Class'>TibrvSender Class</link>, <link linkend='TibrvListener_Class'>TibrvListener Class</link>, <link linkend='TibrvCmSender_Class'>TibrvCmSender Class</link>, and the <link linkend='TibrvCmListener_Class'>TibrvCmListener Class</link> will convert and tag strings to the encoding set for instantiated objects of these classes.</para>
   
-  <para>The <link linkend='Qore::SQL::Datasource_Class'>Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).</para>
+  <para>The <link linkend='Datasource_Class'>Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).</para>
   
-  <para>The <link linkend='Qore_File_Class'>File</link> and <link linkend='Qore_Socket_Class'>Socket</link> classes translate character encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.</para>
+  <para>The <link linkend='File_Class'>File</link> and <link linkend='Socket_Class'>Socket</link> classes translate character encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.</para>
   
   <para>The <link linkend='HTTPClient_Class'>HTTPClient Class</link> will translate character encodings to the encoding specified for the HTTPClient object, if any has been set, as well as tagging strings received with the object's encoding.  Additionally, if an HTTP server response specifies a specific encoding to use, the encoding will be automatically set to this encoding as well.</para>
   
@@ -2529,7 +2529,7 @@ sub test() {
   <sect2 id="Thread_Synchronization_and_Inter-Thread_Communication">
     <title>Thread Synchronization and Inter-Thread Communication</title>
 
-    <para>The <command>synchronized</command> keyword can be used before subroutine or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time.  As in Java, this keyword can also be used safely with recursive functions and methods (internally a <link linkend="Qore::Thread::Gate_Class">Gate</link>-like object is used to guarantee thread-exclusivity and allow recursion).</para>
+    <para>The <command>synchronized</command> keyword can be used before subroutine or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time.  As in Java, this keyword can also be used safely with recursive functions and methods (internally a <link linkend="Gate_Class">Gate</link>-like object is used to guarantee thread-exclusivity and allow recursion).</para>
 
     <para>The following classes are useful when developing multi-threaded Qore programs:</para>
 
@@ -2544,11 +2544,11 @@ sub test() {
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Mutex_Class">Mutex</link></para></entry>
+	    <entry><para><link linkend="Mutex_Class">Mutex</link></para></entry>
 	    <entry><para>A mutual-exclusion thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Gate_Class">Gate</link></para></entry>
+	    <entry><para><link linkend="Gate_Class">Gate</link></para></entry>
 	    <entry><para>A recursive thread lock.</para></entry>
 	  </row>
 	  <row>
@@ -2569,7 +2569,7 @@ sub test() {
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::RMutex_Class">RMutex</link></para></entry>
-	    <entry><para>DEPRECATED in favor of the <link linkend="Qore::Thread::Gate_Class">Gate</link> class: A recursive mutual-exclusion thread lock.</para></entry>
+	    <entry><para>DEPRECATED in favor of the <link linkend="Gate_Class">Gate</link> class: A recursive mutual-exclusion thread lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Sequence_Class">Sequence</link></para></entry>
@@ -2580,7 +2580,7 @@ sub test() {
 	    <entry><para>A helper class to automatically release Mutex locks when the AutoLock object is deleted.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoGate_Class">AutoGate</link></para></entry>
+	    <entry><para><link linkend="AutoGate_Class">AutoGate</link></para></entry>
 	    <entry><para>A helper class to automatically exit Gate locks when the AutoGate object is deleted.</para></entry>
 	  </row>
 	  <row>
@@ -2762,7 +2762,7 @@ sub test() {
 
   <para>See the <link linkend="on_exit_Statements">on_exit statement</link>, <link linkend="on_success_Statements">on_success statement</link>, and <link linkend="on_error_Statements">on_error statement</link> for statements that allow for exception-safe and exception-dependent cleanup in Qore code.</para>
 
-  <para>Classes that assist in exception-safe lock handling are the <link linkend="Qore::Thread::AutoLock_Class">AutoLock class</link>, the <link linkend="Qore::Thread::AutoGate_Class">AutoGate class</link>, the <link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock class</link>, and the <link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock class</link>.</para>
+  <para>Classes that assist in exception-safe lock handling are the <link linkend="Qore::Thread::AutoLock_Class">AutoLock class</link>, the <link linkend="AutoGate_Class">AutoGate class</link>, the <link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock class</link>, and the <link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock class</link>.</para>
 
 </sect1>
 

@@ -5186,7 +5186,7 @@
 <sect1 id="Output_Functions">
   <title>Output Functions</title>
 
-  <para>The functions in this section operate only on stdout.  For generic file I/O please see the <link linkend="Qore_File_Class">File class</link>.</para>
+  <para>The functions in this section operate only on stdout.  For generic file I/O please see the <link linkend="File_Class">File class</link>.</para>
 
   <sect2 id="f_printf">
   <title>f_printf()</title>
@@ -15518,7 +15518,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
   <sect1 id="Filesystem_Functions">
     <title>Filesystem Functions</title>
-    <para>The following functions return information about or are related to the filesystem.  See the <link linkend="Qore_File_Class">File class</link> for a class enabling files to be created, read or written, and the <link linkend="Qore_Dir_Class">Dir class</link> allowing directories to be manipulated.</para>
+    <para>The following functions return information about or are related to the filesystem.  See the <link linkend="File_Class">File class</link> for a class enabling files to be created, read or written, and the <link linkend="Dir_Class">Dir class</link> allowing directories to be manipulated.</para>
 
 <sect2 id="chdir">
   <title>chdir()</title>
