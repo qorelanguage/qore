@@ -273,9 +273,6 @@ noinst_HEADERS = \
 	modules/sybase/sybase_query.h \
 	modules/sybase/common_constants.h \
 	modules/sybase/row_output_buffers.h \
-	modules/opengl/qore-opengl.h \
-	modules/glut/qore-glut.h \
-	modules/glut/GlutVoidPtrType.h \
 	modules/qt-core/QC_QObject.h \
 	modules/qt-core/QoreAbstractQObject.h \
 	modules/qt-core/QoreAbstractQAbstractItemModel.h \

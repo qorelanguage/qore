@@ -39,14 +39,6 @@ if COND_SYBASE_DIR
 SUBDIRS += sybase
 endif
 
-if COND_OPENGL
-SUBDIRS += opengl
-endif
-
-if COND_GLUT
-SUBDIRS += glut
-endif
-
 if COND_QT_CORE
 SUBDIRS += qt-core
 endif
