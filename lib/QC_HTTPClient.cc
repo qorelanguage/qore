@@ -144,24 +144,27 @@ static AbstractQoreNode *HC_send(QoreObject *self, class QoreHTTPClient *client,
    p = get_param(params, 4);
    bool getbody = p ? p->getAsBool() : false;
 
-   QoreHashNode *info = 0;
+   ReferenceHolder<QoreHashNode> info(xsink);
    const ReferenceNode *ref = test_reference_param(params, 5);
    if (ref)
       info = new QoreHashNode();
 
-   ReferenceHolder<AbstractQoreNode> rv(client->send(meth, path, ph, ptr, size, getbody, info, xsink), xsink);
-   if (!rv || *xsink)
-      return 0;
+   ReferenceHolder<AbstractQoreNode> rv(client->send(meth, path, ph, ptr, size, getbody, *info, xsink), xsink);
 
+   // write info to reference first
    if (ref) {
       AutoVLock vl(xsink);
       ReferenceHelper rh(ref, vl, xsink);
       if (!rh)
 	 return 0;
 
-      if (rh.assign(info, xsink))
+      if (rh.assign(info.release(), xsink))
 	 return 0;
    }
+
+   // return 0 if an exception occured
+   if (!rv || *xsink)
+      return 0;
 
    return rv.release();
 }
@@ -178,24 +181,27 @@ static AbstractQoreNode *HC_get(QoreObject *self, class QoreHTTPClient *client, 
 
    const QoreHashNode *ph = test_hash_param(params, 1);
 
-   QoreHashNode *info = 0;
+   ReferenceHolder<QoreHashNode> info(xsink);
    const ReferenceNode *ref = test_reference_param(params, 2);
    if (ref)
       info = new QoreHashNode();
 
-   ReferenceHolder<AbstractQoreNode> rv(client->get(path, ph, info, xsink), xsink);
-   if (!rv || *xsink)
-      return 0;
+   ReferenceHolder<AbstractQoreNode> rv(client->get(path, ph, *info, xsink), xsink);
 
+   // write info to reference first
    if (ref) {
       AutoVLock vl(xsink);
       ReferenceHelper rh(ref, vl, xsink);
       if (!rh)
 	 return 0;
 
-      if (rh.assign(info, xsink))
+      if (rh.assign(info.release(), xsink))
 	 return 0;
    }
+
+   // return 0 if an exception occured
+   if (!rv || *xsink)
+      return 0;
 
    return rv.release();
 }
@@ -212,24 +218,27 @@ static AbstractQoreNode *HC_head(QoreObject *self, class QoreHTTPClient *client,
 
    const QoreHashNode *ph = test_hash_param(params, 1);
 
-   QoreHashNode *info = 0;
+   ReferenceHolder<QoreHashNode> info(xsink);
    const ReferenceNode *ref = test_reference_param(params, 2);
    if (ref)
       info = new QoreHashNode();
 
-   ReferenceHolder<AbstractQoreNode> rv(client->head(path, ph, info, xsink), xsink);
-   if (!rv || *xsink)
-      return 0;
+   ReferenceHolder<AbstractQoreNode> rv(client->head(path, ph, *info, xsink), xsink);
 
+   // write info to reference first
    if (ref) {
       AutoVLock vl(xsink);
       ReferenceHelper rh(ref, vl, xsink);
       if (!rh)
 	 return 0;
 
-      if (rh.assign(info, xsink))
+      if (rh.assign(info.release(), xsink))
 	 return 0;
    }
+
+   // return 0 if an exception occured
+   if (!rv || *xsink)
+      return 0;
 
    return rv.release();
 }
@@ -266,24 +275,27 @@ static AbstractQoreNode *HC_post(QoreObject *self, class QoreHTTPClient *client,
 
    const QoreHashNode *ph = test_hash_param(params, 2);
 
-   QoreHashNode *info = 0;
+   ReferenceHolder<QoreHashNode> info(xsink);
    const ReferenceNode *ref = test_reference_param(params, 3);
    if (ref)
       info = new QoreHashNode();
 
-   ReferenceHolder<AbstractQoreNode> rv(client->post(path, ph, ptr, size, info, xsink), xsink);
-   if (!rv || *xsink)
-      return 0;
+   ReferenceHolder<AbstractQoreNode> rv(client->post(path, ph, ptr, size, *info, xsink), xsink);
 
+   // write info to reference first
    if (ref) {
       AutoVLock vl(xsink);
       ReferenceHelper rh(ref, vl, xsink);
       if (!rh)
 	 return 0;
 
-      if (rh.assign(info, xsink))
+      if (rh.assign(info.release(), xsink))
 	 return 0;
    }
+
+   // return 0 if an exception occured
+   if (!rv || *xsink)
+      return 0;
 
    return rv.release();
 }

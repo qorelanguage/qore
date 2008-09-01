@@ -742,6 +742,8 @@ AbstractQoreNode *QoreHTTPClient::getHostHeaderValue()
 
 QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink)
 {
+   //printd(5, "QoreHTTPClient::send_internal(meth=%s, mpath=%s, info=%08p)\n", meth, mpath, info);
+   
    // check if method is valid
    ccharcase_set_t::const_iterator i = method_set.find(meth);
    if (i == method_set.end()) {
@@ -851,9 +853,21 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       if (!host_override)
 	 nh.setKeyValue("Host", getHostHeaderValue(), xsink);
 
+      if (info) {
+	 info->setKeyValue("headers", nh.copy(), xsink);
+	 if (*xsink)
+	    return 0;
+      }
+
       ans = getResponseHeader(meth, mpath, nh, data, size, code, xsink);
       if (!ans)
 	 return 0;
+
+      if (info) {
+	 info->setKeyValue("response-headers", ans->refSelf(), xsink);
+	 if (*xsink)
+	    return 0;
+      }
 
       if (code >= 300 && code < 400) {
 	 if (++redirect_count > priv->max_redirects)
@@ -897,12 +911,6 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 // set mpath to NULL so that the new path will be taken
 	 mpath = 0;
 	 continue;
-      }
-
-      if (info) {
-	 info->setKeyValue("headers", nh.copy(), xsink);
-	 if (*xsink)
-	    return 0;
       }
 
       break;

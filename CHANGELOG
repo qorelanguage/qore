@@ -1,6 +1,8 @@
 2008.09.01: David Nichols
 	* started moving modules into separate projects
-	* moves glut and opengl modules into separate projects
+	* moved glut and opengl modules into separate projects
+	* fixed a memory leak in exception handling in the HTTPClient class
+	* fixed "info" reference handling in the HTTPClient class
 
 2008.08.28: David Nichols
 	* updated [] operator to dereference binaries and return the byte value
