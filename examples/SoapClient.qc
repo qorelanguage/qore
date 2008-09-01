@@ -86,19 +86,21 @@ class SoapClient::SoapClient {
 	$.hc = new HTTPClient(( "url" : $.url ));
     }
    
-    call($operation, $h)
+    call($operation, $h, $info)
     {
 	my $op = $.wsdl.portType.$.svc.operations.$operation;
 	if (!exists $op)
 	    throw "SOAP-CLIENT-ERROR", sprintf("operation %n does not exist (operations defined by service %n: %n)", 
 					       $operation, $.svc, keys $.wsdl.portType.$.svc.operations);
-	
+
 	my $msg = $op.serializeRequest($h);
+	# we have to write the request key after the HTTPClient::post() call
+	on_exit $info.request = $msg;
 	
-	#printf("DEBUG url=%n, msg=%n\n", $.url, $msg);
-	my $ans = $.hc.post($.url, $msg, SoapClient::Headers);
-	
-	#printf("DEBUG ans=%n\n", $ans);
-	return $op.deserializeResponse(parseXML($ans));
+	#printf("DEBUG url=%n, msg=%n\n", $.url, $info.request);
+	$info.response = $.hc.post($.url, $msg, SoapClient::Headers, \$info);
+
+	#printf("DEBUG ans=%n\n", $info.response);
+	return $op.deserializeResponse(parseXML($info.response));
     }
 }
