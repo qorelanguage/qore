@@ -60,7 +60,7 @@ if [ $? -eq 0 ]; then
 fi
 
 if [ $ok -ne 1 ]; then
-    if [ ! -f $file ]; then
+    if [ -f $file ]; then
 	build=`cat $file|cut -b15-`
     else
 	echo WARNING! $file not found and svnversion is not available
