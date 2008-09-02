@@ -80,7 +80,11 @@ static inline int get_number(char **param)
 
 bool qore_has_debug()
 {
-   return (bool)DEBUG;
+#ifdef DEBUG
+   return true;
+#else
+   return false;
+#endif
 }
 
 FeatureList::FeatureList()
