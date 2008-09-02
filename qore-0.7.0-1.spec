@@ -85,10 +85,6 @@ BuildRequires: postgresql-devel
 %if 0%{?with_mssql}
 BuildRequires: freetds-devel
 %endif
-%if 0%{?with_opengl}
-BuildRequires: mesa-libGL-devel
-BuildRequires: mesa-libGLU-devel
-%endif
 %if 0%{?with_qt4}
 BuildRequires: qt-devel >= 4.3.1
 %endif
@@ -281,33 +277,6 @@ databases.
 %files mssql-module
 %defattr(-,root,root,-)
 %{module_dir}/mssql.qmod
-%endif
-
-%if 0%{?with_opengl}
-%package opengl-module
-Summary: OpenGL module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-Requires: mesa-libGL
-
-%description opengl-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-This module provides functionality enabling qore scripts/programs to use OpenGL
-functionality.
-
-
-%files opengl-module
-%defattr(-,root,root,-)
-%{module_dir}/opengl.qmod
 %endif
 
 %if 0%{?with_qt4}

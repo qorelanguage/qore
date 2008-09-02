@@ -161,4 +161,4 @@ Modules
 -------
 On platforms that support building shared libraries, modules are stored in a subdirectory named "qore-<ver>" of the library directoy.
 Modules are installed with the extension *.qmod
-Note that modules are (as of version 0.7.0 of qore) delivered separately from the qore library, see the file MODULES for more information.
+Note that modules are (as of version 0.7.0 of qore) delivered separately from the qore library, see the file README-MODULES for more information.

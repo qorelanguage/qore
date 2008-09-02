@@ -6,10 +6,10 @@ updated: 2008-09-02
 This document contains some general information on the Qore language.  Please refer to the following files/locations for specific information:
 
 README-SVN: learn how to build qore from svn sources
+README-MODULES: information about qore modules (delivered separately from the qore library)
 WHATISQORE: general description of the Qore programming language
 RELEASE-NOTES: release notes, known issues, etc
 BUILD: information on how to build and install qore from sources - some quick information below
-MODULES: information about qore modules (delivered separately from the qore library)
 docs/qore.html: Qore Programming Language Reference Manual built from the docbook sources (docbook sources are only in svn at the moment).
 docs/library/html/index.html: API documentation for qore's public API (built during the build process if you have doxygen)
 test/: test scripts.  test/test.q is the main regression test script; testing is not yet automated...
@@ -28,7 +28,7 @@ examples/: many example Qore scripts/programs.
  * requires openssl headers and libraries
  * requires zlib & bzlib headers and libraries
  * optionally support for Oracle, MySQL, PostgreSQL, Sybase, MS SQL Server, ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvous, TIBCO AE Adapters, and Bea Tuxedo can be built
-(see MODULES for details)
+(see README-MODULES for details)
 
 
 ***************

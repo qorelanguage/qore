@@ -1,6 +1,6 @@
 RELEASE NOTES for qore v0.7.0
 
-NOTE: modules are now delivered separately from the qore library, see the file MODULES for more information
+NOTE: modules are now delivered separately from the qore library, see the file README-MODULES for more information
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
 qore 0.7.0 is a major release with major new features.
@@ -18,7 +18,7 @@ release overview:
 *) new special object method: "memberNotification()", called when members are updated externally to the class
 *) "static" class methods are now supported
 *) dereference string characters with [] operator
-*) new qt-core, qt-gui, qt-opengl, qt-svg, opengl, glut, asn1, and xmlsec modules (delivered separately, see the file MODULES for more information)
+*) new qt-core, qt-gui, qt-opengl, qt-svg, opengl, glut, asn1, and xmlsec modules (delivered separately, see the file README-MODULES for more information)
 *) bz2 compressed data support (compression and decompression)
 *) file locking support in the File class (based on fcntl())
 *) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
@@ -90,7 +90,7 @@ Note that the [] operator when used in an lvalue expression will always convert 
 
 *) new modules: qt-core, qt-gui, qt-opengl, qt-svg, opengl, glut, asn1, and xmlsec
 QT modules are based on QT4
-all modules are now delivered separately from the qore library, see the file MODULES for more information
+all modules are now delivered separately from the qore library, see the file README-MODULES for more information
 
 *) bz2 compressed data support (compression and decompression)
 libbz2 is now required to run qore, and bz2 includes are required to build qore
