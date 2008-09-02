@@ -56,9 +56,6 @@ if you have the open headers and libraries in a location the configure script ca
 --with-tuxedo=<dir>                 : directory of Bea Tuxedo installation ("tuxedo" module)
 --with-sybase=<dir>                 : directory of Sybase or Sybase OCS installation ("sybase" module)
 --with-freetds=<dir>                : directory of FreeTDS installation ("mssql" module)
---with-opengl=<dir>                 : directory of OpenGL installation ("opengl" module)
---with-glut=<dir>                   : directory of GLUT installation ("glut" module)
---with-qt=<dir>                     : directory of QT4 installation ("qt" module)
 --enable-scu-qt                     : enable single compilation unit for the qt module - only use this if you have at least 2G RAM
 
 rarely used options
@@ -109,18 +106,6 @@ Note that newer SDKs may work with HP-UX PA-RISC 11.*, so the restriction on bui
 *) "ncurses": ncurses module
 note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.
 if your ncurses is in a non-standard location, set the NCURSES_DIR environment variable before running configure.  Also can be built with Solaris curses.
-
-*) "qt4": QT4 module
-experimental: requires at least qt 4.3 or above
-
-*) "qt4-opengl": QT4 opengl module
-experimental: opengl module for qt4 (depends on the qt4 module and the opengl module)
-
-*) "opengl": OpenGL module
-builds with OpenGL or with Mesa
-
-*) "glut": GLUT module
-builds with with GLUT or with freeglut
 
 To build qore, run the following commands:
 
@@ -176,3 +161,4 @@ Modules
 -------
 On platforms that support building shared libraries, modules are stored in a subdirectory named "qore-<ver>" of the library directoy.
 Modules are installed with the extension *.qmod
+Note that modules are (as of version 0.7.0 of qore) delivered separately from the qore library, see the file MODULES for more information.

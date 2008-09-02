@@ -4,7 +4,7 @@ to rebuild qore from subversion, the following tools are required:
 * autoconf 2.59 (or better)
 * libtool 1.5.10 or better (possibly earlier versions of libtool will work depending on your platform - I cannot get qore to build on Darwin with libtool versions earlier than 1.5.10 from fink)
 
-NOTE that you may need GNU m4 1.4.4 or better; this may be dependent on automake or autoconf; I was not able to build qore from subversion on Darwin with the supplied m4 1.4.2
+** NOTE that you may need GNU m4 1.4.4 or better; this may be dependent on automake or autoconf; I was not able to build qore from subversion on Darwin with the supplied m4 1.4.2
 
 if these dependencies are met, then execute ./reconf.sh in the current directory, which will build the configure file
 then you can:
@@ -14,9 +14,15 @@ make install
 
 as usual...
 
-** NOTE: modules from different svn versions of qore may not be compatible even though they have the same API version label.  This is because when I start a new release where I know I'm going to update the module API I will increase the API numbers immediately, but the actual binary format may change until the release date.  Therefore it's best to delete all binary modules before installing a new release, just in case.
+** NOTE: now that qore has stable API and ABIs, modules have been moved to separate svn projects; you can find module source here:
+* https://qore.svn.sourceforge.net/svnroot/qore/module-qt
+* https://qore.svn.sourceforge.net/svnroot/qore/module-glut
+* https://qore.svn.sourceforge.net/svnroot/qore/module-opengl
+* https://qore.svn.sourceforge.net/svnroot/qore/module-asn1
+* https://qore.svn.sourceforge.net/svnroot/qore/module-xmlsec
+
+** NOTE: modules from different svn versions of qore may not be compatible even though they have the same API version label.  This is because when I start a new release where I know I'm going to update the module API I will increase the API numbers immediately, but the actual binary format may change until the release date.  Therefore if you are building code from qore svn, it's best to delete all binary modules before installing a new release, just in case.
 
 ** NOTE: as of qore 0.6.2 no modules are in the "$libdir/qore-$ver/auto" (ex: /usr/lib/qore-0.6.2/auto), so any svn modules there should be deleted
 
 for any problems or questions send me an email at: david_nichols@users.sourceforge.net
-

@@ -1,5 +1,5 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
-pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
+pkglibdir = $(libdir)/$(mypkglibdir)
 
 if COND_SINGLE_COMPILATION_UNIT
 SYBASE_SOURCES = single-compilation-unit.cc

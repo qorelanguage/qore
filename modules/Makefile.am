@@ -1,5 +1,5 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
-pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
+pkglibdir = $(libdir)/$(mypkglibdir)
 
 SUBDIRS =
 
@@ -38,20 +38,3 @@ endif
 if COND_SYBASE_DIR
 SUBDIRS += sybase
 endif
-
-if COND_QT_CORE
-SUBDIRS += qt-core
-endif
-
-if COND_QT_GUI
-SUBDIRS += qt-gui
-endif
-
-if COND_QT_OPENGL
-SUBDIRS += qt-opengl
-endif
-
-if COND_QT_SVG
-SUBDIRS += qt-svg
-endif
-

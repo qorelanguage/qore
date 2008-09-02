@@ -1,15 +1,58 @@
+%define module_api 0.4
+%define module_dir %{_libdir}/qore-module-api-%{module_api}
+
 %define with_ncurses    1
 %define with_mysql      1
 %define with_pgsql      1
 %define with_mssql      1
-%define with_qt4        1
-%define with_opengl     1
-%define with_glut       1
+%define with_qt4        0
+%define with_opengl     0
 %define with_oracle     1
 %define with_sybase     1
 %define with_tibae      0
-%define with_tibrv      1
+%define with_tibrv      0
 %define with_tuxedo     0
+
+%if 0%{?sles_version}
+
+%if 0%{?sles_version} == 10
+%define dist .sle10
+%endif
+
+%if 0%{?sles_version} == 9
+%define dist .sle9
+%endif
+
+%else
+%if 0%{?suse_version}
+
+%if 0%{?suse_version} == 1100
+%define dist .opensuse11
+%endif
+
+%if 0%{?suse_version} == 1030
+%define dist .opensuse10.3
+%endif
+
+%if 0%{?suse_version} == 1020
+%define dist .opensuse10.2
+%endif
+
+%if 0%{?suse_version} == 1010
+%define dist .suse10.1
+%endif
+
+%if 0%{?suse_version} == 1000
+%define dist .suse10
+%endif
+
+%if 0%{?suse_version} == 930
+%define dist .suse9.3
+%endif
+
+%endif
+
+%endif
 
 Summary: Qore Programming Language
 Name: qore
@@ -18,7 +61,7 @@ Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages
 URL: http://www.qoretechnologies.com/qore
-Source: http://prdownloads.sourceforge.net/qore/qore-%{version}-src.tar.gz
+Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.gz
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
@@ -28,7 +71,11 @@ BuildRequires: openssl-devel
 BuildRequires: pcre-devel
 BuildRequires: libxml2-devel
 BuildRequires: zlib-devel
+%if 0%{?suse_version}
+BuildRequires: libbz2-devel
+%else
 BuildRequires: bzip2-devel
+%endif
 %if 0%{?with_mysql}
 BuildRequires: mysql-devel
 %endif
@@ -41,9 +88,6 @@ BuildRequires: freetds-devel
 %if 0%{?with_opengl}
 BuildRequires: mesa-libGL-devel
 BuildRequires: mesa-libGLU-devel
-%endif
-%if 0%{?with_glut}
-BuildRequires: freeglut-devel
 %endif
 %if 0%{?with_qt4}
 BuildRequires: qt-devel >= 4.3.1
@@ -96,7 +140,7 @@ use of the ncurses module with Qore threading is still experimental.
 
 %files ncurses-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/ncurses.qmod
+%{module_dir}/ncurses.qmod
 %endif
 
 %if 0%{?with_oracle}
@@ -123,7 +167,7 @@ prodedure and function execution, etc.
 
 %files oracle-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/oracle.qmod
+%{module_dir}/oracle.qmod
 %endif
 
 %if 0%{?with_mysql}
@@ -151,7 +195,7 @@ stored procedure execution.
 
 %files mysql-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/mysql.qmod
+%{module_dir}/mysql.qmod
 %endif
 
 %if 0%{?with_pgsql}
@@ -179,7 +223,7 @@ stored prodedure and function execution, etc.
 
 %files pgsql-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/pgsql.qmod
+%{module_dir}/pgsql.qmod
 %endif
 
 %if 0%{?with_sybase}
@@ -206,7 +250,7 @@ prodedure and function execution, etc.
 
 %files sybase-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/sybase.qmod
+%{module_dir}/sybase.qmod
 %endif
 
 %if 0%{?with_mssql}
@@ -236,7 +280,7 @@ databases.
 
 %files mssql-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/mssql.qmod
+%{module_dir}/mssql.qmod
 %endif
 
 %if 0%{?with_opengl}
@@ -263,35 +307,7 @@ functionality.
 
 %files opengl-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/opengl.qmod
-%endif
-
-%if 0%{?with_glut}
-%package glut-module
-Summary: GLUT module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-Requires: %{name}-opengl-module = %{version}-%{release}
-Requires: freeglut
-
-%description glut-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-This module provides functionality enabling qore scripts/programs to use GLUT
-functionality.
-
-
-%files glut-module
-%defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/glut.qmod
+%{module_dir}/opengl.qmod
 %endif
 
 %if 0%{?with_qt4}
@@ -318,7 +334,7 @@ This module provides functionality enabling qore scripts/programs to use functio
 
 %files qt-core-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/qt-core.qmod
+%{module_dir}/qt-core.qmod
 %{_libdir}/libqore-qt-core.so.0.0.0
 %{_libdir}/libqore-qt-core.so.0
 %{_libdir}/libqore-qt-core.so
@@ -348,7 +364,7 @@ This module provides functionality enabling qore scripts/programs to use functio
 
 %files qt-gui-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/qt-gui.qmod
+%{module_dir}/qt-gui.qmod
 %{_libdir}/libqore-qt-gui.so.0.0.0
 %{_libdir}/libqore-qt-gui.so.0
 %{_libdir}/libqore-qt-gui.so
@@ -379,7 +395,7 @@ This module provides functionality enabling qore scripts/programs to use functio
 
 %files qt-opengl-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/qt-opengl.qmod
+%{module_dir}/qt-opengl.qmod
 
 %package qt-svg-module
 Summary: QT4 SVG module for Qore
@@ -406,7 +422,7 @@ functionality provided by the QT4 SVG library.
 
 %files qt-svg-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/qt-svg.qmod
+%{module_dir}/qt-svg.qmod
 %endif
 
 %if 0%{?with_tibae}
@@ -433,7 +449,7 @@ to communicate with (or implement) TIBCO Adapters.
 
 %files tibae-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/tibae.qmod
+%{module_dir}/tibae.qmod
 %endif
 %endif
 
@@ -462,7 +478,7 @@ etc.
 
 %files tibrv-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/tibrv.qmod
+%{module_dir}/tibrv.qmod
 %endif
 
 %if 0%{?with_tuxedo}
@@ -488,12 +504,13 @@ using the BEA Tuxedo(R) client API.
 
 %files tuxedo-module
 %defattr(-,root,root,-)
-%{_libdir}/qore-%{version}/tuxedo.qmod
+%{module_dir}/tuxedo.qmod
 %endif
 
 %package libs
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages
+Provides: qore-module-api-%{module_api}
 
 %description libs
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -578,8 +595,8 @@ c64=--enable-64bit
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/bin
-mkdir -p $RPM_BUILD_ROOT/%{_libdir}/qore-%{version}
-mkdir -p $RPM_BUILD_ROOT/%{_libdir}/qore-%{version}/auto
+mkdir -p $RPM_BUILD_ROOT/%{module_dir}
+mkdir -p $RPM_BUILD_ROOT/%{module_dir}/auto
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/examples
 mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/test
@@ -594,6 +611,10 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Tue Sep 2 2008 David Nichols <david_nichols@users.sourceforge.net>
+- fixed dist tag for suse distributions
+- updated for new module directory, added qore-module-api-* capability
+
 * Thu Jun 12 2008 David Nichols <david_nichols@users.sourceforge.net>
 - added new modules
 

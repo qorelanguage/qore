@@ -1,6 +1,14 @@
+2008.09.02: David Nichols
+	* moved qt modules to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-qt)
+	* module directory changed to $libdir/qore-module-api-$(ver) where
+	  $(ver) is the module API version (currently 0.4)
+
 2008.09.01: David Nichols
 	* started moving modules into separate projects
 	* moved glut and opengl modules into separate projects
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-opengl)
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-glut)
 	* fixed a memory leak in exception handling in the HTTPClient class
 	* fixed "info" reference handling in the HTTPClient class
 

@@ -1,5 +1,6 @@
 RELEASE NOTES for qore v0.7.0
 
+NOTE: modules are now delivered separately from the qore library, see the file MODULES for more information
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
 qore 0.7.0 is a major release with major new features.
@@ -17,13 +18,10 @@ release overview:
 *) new special object method: "memberNotification()", called when members are updated externally to the class
 *) "static" class methods are now supported
 *) dereference string characters with [] operator
-*) qt-core, qt-gui, qt-opengl, qt-svg modules based on QT4
-*) opengl module
-*) glut module
+*) new qt-core, qt-gui, qt-opengl, qt-svg, opengl, glut, asn1, and xmlsec modules (delivered separately, see the file MODULES for more information)
 *) bz2 compressed data support (compression and decompression)
 *) file locking support in the File class (based on fcntl())
 *) support for SHA224, SHA256, SHA384, and SHA512 digest algorithms
-*) the Oracle database driver will now try to reconnect a lost connection to the server if not in a transaction
 *) 64-bit builds are the default on x86_64 CPUs
 *) module dependencies
 *) XML improvements, some XSD support
@@ -90,17 +88,9 @@ To get the value of a byte, the [] operator may be used as well.
 Note that the [] operator when used in an lvalue expression will always convert its argument to a list
 (i.e. $string[1] = "a" or $binary[1] = 0x1f will not work yet - assuming $string is a string and $binary is a binary)
 
-*) qt-core, qt-gui, qt-opengl, qt-svg modules based on QT4
-Experimental modules that allow GUI programs to be developed with Qore
-(see examples in examples/qt/)
-
-*) opengl module
-Provides opengl functionality to Qore, to be used with the glut module or with the qt-opengl module
-(see examples in examples/opengl/)
-
-*) glut module
-Allows opengl programs to be written entirely in qore
-(see examples in examples/opengl/)
+*) new modules: qt-core, qt-gui, qt-opengl, qt-svg, opengl, glut, asn1, and xmlsec
+QT modules are based on QT4
+all modules are now delivered separately from the qore library, see the file MODULES for more information
 
 *) bz2 compressed data support (compression and decompression)
 libbz2 is now required to run qore, and bz2 includes are required to build qore
@@ -124,9 +114,6 @@ if Qore is built with an appropriate version of openssl, support for these new d
   +) SHA384_bin()
   +) SHA512()
   +) SHA512_bin()
-
-*) the Oracle database driver will now try to reconnect a lost connection to the server if not in a transaction
-automatic reconnects are supported if the Datasource is not in a transaction, in a manner similar to that already provided by the mysql driver
 
 *) 64-bit builds are the default on x86_64 CPUs
 the configure script will automatically set the build to a 64-bit target if the CPU is detected to be x86_64

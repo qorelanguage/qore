@@ -2122,6 +2122,14 @@ if test "$enable_shared" = "no" -o "$enable_builtin_modules" = "yes"; then
    AC_DEFINE(QORE_MONOLITHIC, 1, Define to 1 if all modules should be statically linked into the libqore.a library)
 fi
 
+# get module API version to set pkglibdir
+MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
+MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
+mypkglibdir=qore-module-api-$MODULE_API_MAJOR.$MODULE_API_MINOR
+AC_SUBST([MODULE_API_MAJOR])
+AC_SUBST([MODULE_API_MINOR])
+AC_SUBST([mypkglibdir])
+
 # save more version information in config.h
 VERSION_MAJOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f1 -d.`
 VERSION_MINOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f2 -d.`

@@ -1,5 +1,5 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
-pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
+pkglibdir = $(libdir)/$(mypkglibdir)
 
 ORACLE_SOURCES = oracle.cc
 

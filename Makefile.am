@@ -1,5 +1,5 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
-pkglibdir = $(libdir)/@PACKAGE@-@VERSION@
+pkglibdir = $(libdir)/$(mypkglibdir)
 includedir = $(prefix)/include/qore
 
 ## use automake to create the Makefile.in for configure
@@ -316,67 +316,6 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/inherit2.q \
 	examples/getopt.q \
 	examples/worm.q \
-	examples/qt//desktop/images/bad.svg \
-	examples/qt//desktop/images/heart.svg \
-	examples/qt//desktop/images/trash.svg \
-	examples/qt//desktop/screenshot.q \
-	examples/qt//desktop/systray.q \
-	examples/qt//dialogs/classwizard.q \
-	examples/qt//dialogs/configdialog.q \
-	examples/qt//dialogs/extension.q \
-	examples/qt//dialogs/findfiles.q \
-	examples/qt//dialogs/images/background.png \
-	examples/qt//dialogs/images/banner.png \
-	examples/qt//dialogs/images/config.png \
-	examples/qt//dialogs/images/logo1.png \
-	examples/qt//dialogs/images/logo2.png \
-	examples/qt//dialogs/images/logo3.png \
-	examples/qt//dialogs/images/query.png \
-	examples/qt//dialogs/images/update.png \
-	examples/qt//dialogs/images/watermark1.png \
-	examples/qt//dialogs/images/watermark2.png \
-	examples/qt//dialogs/standarddialogs.q \
-	examples/qt//dialogs/tabdialog.q \
-	examples/qt//layouts/basiclayouts.q \
-	examples/qt//layouts/borderlayout.q \
-	examples/qt//opengl/2dpainting.q \
-	examples/qt//opengl/framebufferobject.q \
-	examples/qt//opengl/framebufferobject2.q \
-	examples/qt//opengl/grabber.q \
-	examples/qt//opengl/hellogl.q \
-	examples/qt//opengl/images/bubbles.svg \
-	examples/qt//opengl/images/cubelogo.png \
-	examples/qt//opengl/images/qt4-logo.png \
-	examples/qt//tutorial.q \
-	examples/qt//widgets/analogclock.q \
-	examples/qt//widgets/calculator.q \
-	examples/qt//widgets/calendarwidget.q \
-	examples/qt//widgets/charactermap.q \
-	examples/qt//widgets/digitalclock.q \
-	examples/qt//widgets/groupbox.q \
-	examples/qt//widgets/icons.q \
-	examples/qt//widgets/images/circle.png \
-	examples/qt//widgets/images/open.png \
-	examples/qt//widgets/images/pause.png \
-	examples/qt//widgets/images/play.png \
-	examples/qt//widgets/images/quit.png \
-	examples/qt//widgets/images/square.png \
-	examples/qt//widgets/images/stop.png \
-	examples/qt//widgets/images/triangle.png \
-	examples/qt//widgets/images/woodbackground.png \
-	examples/qt//widgets/images/woodbutton.png \
-	examples/qt//widgets/imageviewer.q \
-	examples/qt//widgets/lineedits.q \
-	examples/qt//widgets/movieplayer.q \
-	examples/qt//widgets/scribble.q \
-	examples/qt//widgets/shapedclock.q \
-	examples/qt//widgets/sliders.q \
-	examples/qt//widgets/spinboxes.q \
-	examples/qt//widgets/styles.q \
-	examples/qt//widgets/tetrix.q \
-	examples/qt//widgets/tooltips.q \
-	examples/qt//widgets/wiggly.q \
-	examples/qt//widgets/windowflags.q \
 	docs/qore.html \
 	docs/qore-style.css \
 	docs/img/acrobat_a.gif \

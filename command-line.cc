@@ -74,11 +74,13 @@ static const char helpstr[] =
 "  -m, --show-module-errors     shows error messages related to loading and\n"
 "                               initializing qore modules\n"
 "      --module-dir             show qore module directory and exit\n"
+"      --module-api             show qore module API version and exit\n"
 "  -o, --list-parse-options     list all parse options\n"
 "  -p, --set-parse-option=arg   set parse option\n"
 "  -r, --warnings-are-errors    treat warnings as errors\n"
 "  -s, --show-charsets          displays the list of known character sets\n"
 "  -V, --version                show program version information and quit\n"
+"      --short-version          show short version information and quit\n"
 "  -W, --enable-all-warnings    turn on all warnings (recommended)\n"
 "  -w, --enable-warning=arg     turn on warning given by argument\n"
 "  -x, --exec-class[=arg]       instantiate class with same name as file name\n"
@@ -128,6 +130,12 @@ static void do_trace(char *arg)
 static void show_module_dir(char *arg)
 {
    printf("%s\n", qore_module_dir);
+   exit(0);
+}
+
+static void show_module_api(char *arg)
+{
+   printf("%d.%d\n", QORE_MODULE_API_MAJOR, QORE_MODULE_API_MINOR);
    exit(0);
 }
 
@@ -288,6 +296,12 @@ static void do_lock_options(char *arg)
    lock_options = true;
 }
 
+static void short_version(char *arg)
+{
+   printf("%s\n", qore_version_string);
+   exit(0);
+}
+
 static void do_version(char *arg)
 {
    printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2007 David Nichols\nversion %s", qore_target_os, qore_target_arch, qore_target_bits, qore_version_string);
@@ -393,6 +407,8 @@ static struct opt_struct_s {
    { 'Y', "no-network",            ARG_NONE, do_no_network },
    { '\0', "lgpl",                 ARG_NONE, set_lgpl },
    { '\0', "module-dir",           ARG_NONE, show_module_dir },
+   { '\0', "short-version",        ARG_NONE, short_version },
+   { '\0', "module-api",           ARG_NONE, show_module_api },
 // debugging options
    { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },

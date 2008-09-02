@@ -7,5 +7,3 @@ When the library is initialized under the LGPL license, modules requiring the GP
 
 Closed-source programs may not initialize the library using the GPL license, as this would be a violation of the GPL license which does not allow linking with closed-source programs.
 
-Note that all qt graphics under the examples/qt directory are redistributed under the terms of the GPL only and the copyright belongs to Trolltech.
-
