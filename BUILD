@@ -47,7 +47,6 @@ if you have the open headers and libraries in a location the configure script ca
 --with-oracle=<dir>                 : directory of Oracle installation ("oracle" module)
 --with-oracle-instant-client=<dir>  : directory of Oracle Instant Client installation ("oracle" module)
 --with-mysql=<dir>                  : directory of MySQL installation ("mysql" module)
---with-pgsql=<dir>	            : directory of PostgreSQL installation ("pgsql" module)
 --with-sybase=<dir>                 : directory of Sybase OCS installation ("sybase" module)
 --with-sybase=<dir>                 : directory of Sybase or Sybase OCS installation ("sybase" module)
 --with-freetds=<dir>                : directory of FreeTDS installation ("mssql" module)
@@ -75,19 +74,6 @@ If you have MySQL 3.3+ or better you can build in MySQL support.  With MySQL 4.1
 If your mysql installation is in a non-standard location, set the MYSQL_DIR environment variable to the location of the installation before running configure.
 Note that you have to use g++ 4.0.* on Darwin to link with newer versions of the MySQL libraries
 MySQL support in qore is good and well tested.
-
-*) "pgsql": PostgreSQL DBI module requires PostgreSQL 7+ client libraries and headers
-If your PostgreSQL libraries are in a non-standard location you can use the --with-pgsql configure option or set the PGSQL_DIR environment variable.
-The Qore pgsql driver uses binary communication with PostgreSQL servers and sets per-connection variables on server settings (i.e. it automatically determines if the server is using floats or 64-bit integers for time values, etc)
-PostgreSQL support in qore is good and well tested.
-
-*) "sybase": Sybase DBI module requires Sybase OCS 15+ client libraries and headers (not tested with earlier versions, however it may work)
-Use --with-sybase or set the SYBASE and SYBASE_OCS environment variables to build the "sybase" module.  note that the sybase module has not been tested with x86_64 builds yet
-
-*) "mssql": FreeTDS-based Sybase and Microsoft SQL Server driver, requires FreeTDS headers and libraries
-User --with-freetds or set the FREETDS environment variable to your FreeTDS installation to build the "mssql" module.  Note that the "mssql" driver is built from the same source as the "sybase" driver and can be used to connect to sybase and MS SQL Server databases
-only tested so far with freetds 0.64, sybase ASE 15.0.1 and MS SQL Server 2005 SP2 (express edition)
-FreeTDS website: http://www.freetds.org
 
 To build qore, run the following commands:
 

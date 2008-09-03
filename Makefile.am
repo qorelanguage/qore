@@ -233,9 +233,6 @@ noinst_HEADERS = \
 	modules/oracle/oracle-module.h \
 	modules/mysql/qore-mysql-module.h \
 	modules/mysql/qore-mysql.h \
-	modules/pgsql/pgsql.h \
-	modules/pgsql/QorePGConnection.h \
-	modules/pgsql/QorePGMapper.h \
 	command-line.h
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \

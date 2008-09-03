@@ -946,192 +946,6 @@ MYSQL mysql; mysql_init(&mysql);
   fi
 fi
 
-AC_ARG_WITH([pgsql],
-    [AS_HELP_STRING([--with-pgsql@<:@=DIR@:>@],
-                    [PostgreSQL base directory])],
-    [if test ! -d "${with_pgsql}"; then AC_MSG_ERROR(directory ${with_pgsql} does not exist for --with-pgsql); unset with_pgsql; fi])
-
-check_pgsql()
-{
-    inc="$1/include"
-    if test "$1" = "/"; then
-       inc=/usr/include
-    fi
-    pdir=`ls -d $inc/postgres* 2>/dev/null | grep -v _ext.h | tail -1` 
-    if test -n "$pdir"; then
-       alt_inc=$pdir
-    fi
-    #echo DBG: checking $1 inc=$inc alt_inc=$alt_inc
-    if test -f "$inc/libpq-fe.h"; then
-       with_pgsql_includes=$inc
-    elif test -n "$alt_inc" -a -f "$alt_inc/libpq-fe.h"; then
-       with_pgsql_includes=$alt_inc
-    elif test -f "$inc/postgresql/libpq-fe.h"; then
-       with_pgsql_includes=$inc/postgresql
-    elif test -f "$inc/pgsql/libpq-fe.h"; then
-       with_pgsql_includes=$inc/pgsql
-    fi
-    if test -z "$with_pgsql_includes"; then
-       #echo DBG: pgsql $1 $inc not found
-       return
-    else
-       # check for server include files
-       if test -d "$with_pgsql_includes/server"; then
-	  with_pgsql_server_includes="$with_pgsql_includes/server"
-       elif test -d "$with_pgsql_includes/pgsql/server"; then
-	  with_pgsql_server_includes="$with_pgsql_includes/pgsql/server"
-       elif test -d "$with_pgsql_includes/postgresql/server"; then
-	  with_pgsql_server_includes="$with_pgsql_includes/postgresql/server"
-       else
-          #echo DBG: pgsql $1 $inc server includes not found
-          unset with_pgsql_includes
-          return
-       fi
-    fi
-
-    lib="$1/lib${LIBSUFFIX}"
-
-    pdir=`ls -d $lib/postgres* 2>/dev/null |tail -1` 
-    if test -n "$pdir"; then
-       alt_lib=$pdir
-    fi
-
-    if test -f "$lib/libpq.${SHLIB_SUFFIX}" -o -f "$lib/libpq.so"; then
-       with_pgsql_libs=$lib
-    elif test -f "$lib/postgresql/libpq.${SHLIB_SUFFIX}"; then
-       with_pgsql_libs=$lib/postgresql
-    elif test -f "$lib/pgsql/libpq.${SHLIB_SUFFIX}"; then
-       with_pgsql_libs=$lib/pgsql
-    elif test -f "$lib/libpq.a"; then
-       with_pgsql_libs=$lib
-       pgsql_static=1
-    elif test -f "$lib/postgresql/libpq.a"; then
-       with_pgsql_libs=$lib/postgresql
-       pgsql_static=1
-    elif test -f "$lib/pgsql/libpq.a"; then
-       with_pgsql_libs=$lib/pgsql
-       pgsql_static=1
-    elif test -n "$alt_lib"; then
-       if test -f "$alt_lib/libpq.${SHLIB_SUFFIX}" -o -f "$alt_lib/libpq.so"; then
-          with_pgsql_libs=$alt_lib
-       elif test -f "$alt_lib/postgresql/libpq.${SHLIB_SUFFIX}"; then
-          with_pgsql_libs=$alt_lib/postgresql
-       elif test -f "$alt_lib/pgsql/libpq.${SHLIB_SUFFIX}"; then
-          with_pgsql_libs=$alt_lib/pgsql
-       elif test -f "$alt_lib/libpq.a"; then
-          with_pgsql_libs=$alt_lib
-          pgsql_static=1
-       elif test -f "$alt_lib/postgresql/libpq.a"; then
-          with_pgsql_libs=$alt_lib/postgresql
-          pgsql_static=1
-       elif test -f "$alt_lib/pgsql/libpq.a"; then
-          with_pgsql_libs=$alt_lib/pgsql
-          pgsql_static=1
-       fi
-    fi
-
-    if test -z "$with_pgsql_libs"; then
-       #echo pgsql $1 libs not found
-       unset with_pgsql_includes
-       unset with_pgsql_server_includes
-       return
-    fi
-    if test "$with_pgsql_includes" != "/usr/include"; then
-       pgsql_app_includes=true
-    fi
-    if test "$with_pgsql_libs" != "/lib${LIBSUFFIX}"; then
-       pgsql_app_libs=true
-    fi
-    
-    # check postgresql version
-    pg_config=`ls $with_pgsql_server_includes/pg_config*.h 2>/dev/null`
-    if test -z "$pg_config"; then
-       AC_MSG_ERROR([can't determine PostgreSQL version])
-    fi
-    version=`grep "PG_VERSION " $pg_config|cut -f2 -d\"`
-    version_major=`echo $version|cut -f1 -d.`
-    if test -z "$version_major"; then
-       AC_MSG_ERROR([can't determine PostgreSQL version])
-    fi
-    if test $version_major -lt 7; then
-       AC_MSG_ERROR([PostgreSQL version $version is not supported (must be >= 7)])
-    fi
-    AC_DEFINE_UNQUOTED([POSTGRES_VERSION_MAJOR], $version_major, [postgresql major version number])
-}
-
-# see if we can figure out where the pgsql include files and libraries are
-if test "${with_pgsql}" != "no"; then
-   AC_MSG_CHECKING([for PostgreSQL includes and libraries])
-
-   if test -n "$with_pgsql"; then
-      check_pgsql "$with_pgsql"
-      if test -z "$with_pgsql_includes"; then
-	 AC_MSG_ERROR([not found in $with_pgsql])
-      fi
-   fi
-
-   for dir in $PGSQL_DIR / /usr /usr/local /opt/pgsql /usr/pgsql /sw /opt/local /opt/sfw /usr/sfw /opt/gnu; do
-      check_pgsql $dir
-      if test -n "$with_pgsql_includes"; then
-	 break;
-      fi
-   done
-
-   if test -n "$with_pgsql_includes"; then
-      if test -n "$pgsql_static"; then
-	 AC_MSG_RESULT([includes=$with_pgsql_includes, libs=$with_pgsql_libs (static)])
-      else
-	 AC_MSG_RESULT([includes=$with_pgsql_includes, libs=$with_pgsql_libs (shared)])
-      fi
-      with_pgsql=yes
-   else
-      AC_MSG_RESULT([not found])
-   fi
-fi
-
-if test "${with_pgsql}" = yes; then
-  if test -n "$with_pgsql_includes"; then
-     # only set include path if necessary
-     if test -n "$pgsql_app_includes"; then
-          PGSQL_INCLUDES="-I$with_pgsql_includes -I$with_pgsql_server_includes"
-     else
-          PGSQL_INCLUDES="-I$with_pgsql_server_includes"
-     fi
-     if test -n "$pgsql_static"; then
-          PGSQL_LIBS="$with_pgsql_libs/libpq.a"
-     else
-	if test -n "$pgsql_app_libs"; then
-	   PGSQL_LIBS="-L$with_pgsql_libs -lpq"
-	else
-	   PGSQL_LIBS="-lpq"
-	fi
-     fi
-     # check if C++ compiler can link with PGSQL libs
-     SAVE_CXXFLAGS="$CXXFLAGS"
-     SAVE_LDFLAGS="$LDFLAGS"
-     CXXFLAGS="$CXXFLAGS $PGSQL_INCLUDES"
-     LDFLAGS="$LDFLAGS $PGSQL_LIBS"
-     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <libpq-fe.h>
-	 ]],[[
-PQconnectdb(NULL);
-	]])], pgsql_links=yes, pgsql_links=no)
-
-     CXXFLAGS="$SAVE_CXXFLAGS"
-     LDFLAGS="$SAVE_LDFLAGS"
-
-     if test "$pgsql_links" = "no"; then
-        AC_MSG_ERROR([could not compile a test PostgreSQL program])
-     else
-        AC_SUBST(PGSQL_INCLUDES)
-	AC_SUBST(PGSQL_LIBS)
-        with_pgsql=yes
-     fi
-  else
-     AC_MSG_WARN([no PostgreSQL libraries or includes found, disabling PostgreSQL support])
-  fi
-fi
-
 AC_ARG_WITH([doxygen],
     [AS_HELP_STRING([--with-doxygen@<:@=PATH@:>@],
                     [path to doxygen binary])],
@@ -1385,13 +1199,12 @@ AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
 AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
-AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/pgsql/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/mysql/Makefile modules/oracle/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -1427,7 +1240,6 @@ fi
 
 show_library_feature oracle $with_oracle
 show_library_feature mysql $with_mysql
-show_library_feature pgsql $with_pgsql
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules
