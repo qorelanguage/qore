@@ -613,15 +613,27 @@ language, either by an addition to this data type, or by adding another date typ
 
     <para>Qore objects are instantiations of a <link linkend="Classes">class</link>.  They have members (like a hash - values associated to string keys), and methods.  The class definition specifies the methods that run on objects of that class, private members, and <link linkend="Static_Methods">static methods</link> associated with the class (however note that static methods do not run in the scope of an object).  Qore classes are declared with a special syntax, and objects are instantiated using the <link linkend='New_Object_Operator'><command>new</command></link> operator as follows.</para>
 
-    <programlisting><replaceable>lvalue</replaceable> = <command>new</command> <replaceable>class_identifier</replaceable>([<replaceable>argument list</replaceable>])</programlisting>
+    <programlisting><command>new</command> <replaceable>class_identifier</replaceable>([<replaceable>argument list</replaceable>])</programlisting>
+
+    <para>For example:</para>
+
+    <programlisting><command>my</command> $m = <command>new</command> Mutex();</programlisting>
 
     <para>Objects have named data members that are referenced like hash elements, although this behavior can be modified for objects using the memberGate() method.  Object members are accessed by appending a dot '.' and the member name to the object reference as follows:</para>
 
     <programlisting><replaceable>object_reference.member_name</replaceable></programlisting>
 
+    <para>For more information, see <link linkend="Object_Members">Object Members</link>.</para>
+
     <para>Object methods are called by appending a dot '.' and a method name to the object reference as follows:</para>
 
     <programlisting><replaceable>object_reference</replaceable>.<replaceable>method_name</replaceable>([<replaceable>argument_list</replaceable>])</programlisting>
+
+    <para>Or, from within the class code itself to call another method from inside the same class hierarchy:</para>
+
+    <programlisting>$.<replaceable>method_name</replaceable>([<replaceable>argument_list</replaceable>])</programlisting>
+
+    <para>For more information, see <link linkend="Object_Method_Calls">Object Method Calls</link>.</para>
 
     <para>The object references above are normally variable references holding an object, but could be any expression that returns an object, such as a <link linkend="New_Object_Operator"><command>new</command></link> expression or even a subroutine call.</para>
 
@@ -704,7 +716,12 @@ language, either by an addition to this data type, or by adding another date typ
 	    <entry><programlisting>$var</programlisting></entry>
 	  </row>
 	  <row>
-	    <entry><para>A variable or variable expression assignment</para></entry>
+	    <entry><para>An in-class object member reference</para></entry>
+	    <entry><para>References to members of an object from within the class (see <link linkend="Object_Members">Object Members</link> for more information)</para></entry>
+	    <entry><programlisting>$.member</programlisting></entry>
+	  </row>
+	  <row>
+	    <entry><para>An lvalue assignment</para></entry>
 	    <entry><para>Assigns a value to a lvalue (see <link linkend="Assignment_Operator">Assignment Operator</link> for more information)</para></entry>
 	    <entry>
 	      <para><programlisting>$var = 1
@@ -718,8 +735,13 @@ language, either by an addition to this data type, or by adding another date typ
 	  </row>
 	  <row>
 	    <entry><para>A method call</para></entry>
-	    <entry><para>Qore object method calls (see <link linkend="Objects">Objects</link> for more information)</para></entry>
+	    <entry><para>Qore object method calls (see <link linkend="Object_Method_Calls">Object_Method_Calls</link> for more information)</para></entry>
 	    <entry><programlisting>$object.method("argument")</programlisting></entry>
+	  </row>
+	  <row>
+	    <entry><para>An in-class method call</para></entry>
+	    <entry><para>Qore in-class object method calls (see <link linkend="Object_Method_Calls">Object_Method_Calls</link> for more information)</para></entry>
+	    <entry><programlisting>$.method("argument")</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A <link linkend="Static_Method_Calls">static method call</link></para></entry>
@@ -793,7 +815,6 @@ $a || $b
 	    <entry><programlisting>$1, $2
 $$</programlisting></entry>
 	  </row>
-
 	</tbody>
       </tgroup>
     </table>
@@ -2337,16 +2358,43 @@ $name = getName();</programlisting>
 </tbody>
 </tgroup>
 </table>
+</sect2>
 
-<para>Within class methods, members of the current object can be referred to with a special syntax as follows:</para>
+<sect2 id="Object_Members">
+<title>Object Members</title>
+
+<para>When defining a class, members of the current object can be referred to with a special syntax as follows:</para>
 
 <programlisting>$.<replaceable>member_name_identifier</replaceable></programlisting>
 
-<para>Furthermore the automatic variable <code>$self</code> is instantiated which represents the current object (similar to the <code>this</code> in C++ or Java). Therefore if you need to access hash members which are not valid Qore identifiers, then enclose the member name in double quotes after the dot operator as follows: </para>
+<para>Furthermore, the automatic variable <code>$self</code> is instantiated which represents the current object (similar to the <code>this</code> in C++ or Java). Therefore if you need to access hash members which are not valid Qore identifiers, then enclose the member name in double quotes after the dot operator as follows: </para>
 
 <programlisting>$self."&amp;member-name"</programlisting>
 
 <para>The automatic <code>$argv</code> local variable is instantiated as usual in all class methods where there are more arguments than variables declared in the method declaration.</para>
+
+</sect2>
+
+<sect2 id="Object_Method_Calls">
+<title>Object Method Calls</title>
+
+<para>Within a class method definition, calls to methods in the same class hierarchy (of the current class or a base class) can be defined as follows:</para>
+
+<programlisting>[<replaceable>namespace_path::</replaceable>]$.<replaceable>method_name([arg, ...])</replaceable></programlisting>
+
+<para>For example:</para>
+
+<programlisting># to call base class Mutex::lock()
+Thread::Mutex::$.lock();
+# to call lock() in the current (or lower base) class
+$.lock();</programlisting>
+
+<para>This syntax can only be used to call methods in the current class or in base classes.  This is because these calls are resolved at parse time, and only these classes are known and accessible at parse time.  To call a derived class method from a base class, you must use the <code>$self</code> variable to call the method, so that the call will be resolved at run-time, for example:</para>
+
+<programlisting># this way, "member" can be resolved to a derived class method
+$self.member();</programlisting>
+
+<para>Calls to object methods can be made outside the class by using the above syntax as well.  All such calls are resolved at run-time, therefore if the call is made to a private function outside the defining class, then a run-time <code>METHOD-IS-PRIVATE</code> (if the method is private) or <code>BASE-CLASS-IS-PRIVATE</code> (if the method resolves to a privately-inherited base class) exception will be raised.</para>
 
 </sect2>
 
@@ -2370,15 +2418,15 @@ $name = getName();</programlisting>
 </programlisting>
 
 <para>Here is a concrete example of giving arguments to an inherited base class:</para>
-<programlisting><command>class</command> XmlRpcClient::XmlRpcClient <command>inherits</command> HTTPClient::HTTPClient
+<programlisting><command>class</command> XmlRpcClient <command>inherits</command> Qore::HTTPClient
 {
     # calls the base class HTTPClient constructor, overrides the "protocols" key to "xmlrpc"
-    constructor($opts) : HTTPClient::HTTPClient($opts + ( "protocols" : "xmlrpc" ))
+    constructor($opts) : Qore::HTTPClient($opts + ( "protocols" : "xmlrpc" ))
     ...
 }
 </programlisting>
 
-<para>Because base class constructors are executed before subclass constructors, the only local variables in the constructor that can be referenced are those declared in the subclass constructor declaration (if any).</para>
+<para>Because base class constructors are executed before subclass constructors, the only local variables in the constructor that can be referenced are those declared in the subclass constructor declaration (if any).  What this means is that if you declare local variables in the expressions giving base class arguments, these local variables are not accessible from the constructor body.</para>
 
 <note><para>Base classes that give explicit arguments to their base class constructors can be overridden by subclasses by simply listing the base class in the base class constructor list and providing new arguments.</para></note>
 

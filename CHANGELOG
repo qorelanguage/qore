@@ -1,3 +1,7 @@
+2008.09.03: David Nichols
+	* updated docs and inherit.q example regarding how to call derived class
+	  methods from a base class (use $self.method() instead of $.method())
+
 2008.09.02: David Nichols
 	* moved qt modules to separate project
 	  (https://qore.svn.sourceforge.net/svnroot/qore/module-qt)
