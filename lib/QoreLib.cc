@@ -112,9 +112,6 @@ FeatureList::FeatureList()
 # ifdef TIBAE
    push_back("tibae");
 # endif
-# ifdef TUXEDO
-   push_back("tuxedo");
-# endif
 # ifdef SYBASE
    push_back("sybase");
 # endif

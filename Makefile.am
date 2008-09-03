@@ -262,9 +262,6 @@ noinst_HEADERS = \
 	modules/ncurses/QC_Window.h \
 	modules/ncurses/QC_Panel.h \
 	modules/ncurses/ncurses-module.h \
-	modules/Tuxedo/tuxedo_module.h \
-	modules/Tuxedo/QC_TuxedoAdapter.h \
-	modules/Tuxedo/QoreTuxedoAdapter.h \
 	modules/sybase/sybase.h \
 	modules/sybase/connection.h \
 	modules/sybase/conversions.h \

@@ -709,22 +709,12 @@ else
    AC_MSG_RESULT([no, $CXX])
 fi
 
-AC_ARG_ENABLE([threads],
-  [AS_HELP_STRING([--enable-threads],
-                  [include threading support (default=yes)])],
-  [case "$enable_threads" in
-      yes|no) ;;
-      *)      AC_MSG_ERROR([bad value ${enable_threads} for threads option]) ;;
-   esac],
-   [enable_threads=yes])
-
-if test "${enable_threads}" = yes; then
-    # checks for how to build threads
-    ACX_PTHREAD
-    if test "$acx_pthread_ok" = "no"; then
-       AC_MSG_ERROR(POSIX threads do not seem to be supported on this platform, aborting)
-    fi
+# checks for how to build threads
+ACX_PTHREAD
+if test "$acx_pthread_ok" = "no"; then
+   AC_MSG_ERROR(POSIX threads do not seem to be supported on this platform, aborting)
 fi
+CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
 AC_ARG_WITH([tibrv],
   [AS_HELP_STRING([--with-tibrv@<:@=DIR@:>@],
@@ -1017,125 +1007,6 @@ TApp ma(NULL);
       AC_SUBST(TIBAE_CPPFLAGS)
       AC_DEFINE(TIBAE, 1, [Define if TIBCO Adapters support should be included])
       with_tibae=yes
-   fi
-fi
-
-# function to help find the tuxedo directory
-find_tux()
-{
-    d=`ls -d $1/bea/tuxedo* 2>/dev/null | tail -1`;
-    if test -n "$d" -a -d "$d"; then
-        tux_dir="$d"
-	return
-    fi
-    d=`ls -d $1/tuxedo* 2>/dev/null | tail -1`;
-    if test -n "$d" -a -d "$d"; then
-        tux_dir="$d"
-    fi
-}
-
-AC_ARG_WITH([tuxedo],
-  [AS_HELP_STRING([--with-tuxedo@<:@=DIR@:>@],
-		  [BEA Tuxedo directory (defaults to $TUXDIR)])],
-  [case "${with_tuxedo}" in 
-     yes) with_tuxedo="" ;;
-     no) ;;
-     *) if test ! -d "${with_tuxedo}"; then AC_MSG_ERROR(bad value ${with_tuxedo} for --with-tuxedo); unset with_tuxedo; fi
-   esac])
-
-AC_MSG_CHECKING([BEA Tuxedo])
-if test -n "$with_tuxedo"; then
-   if test "$with_tuxedo" = "no"; then
-      AC_MSG_RESULT([skipping check])
-      unset with_tuxedo
-   elif test ! -e "$with_tuxedo/include/atmi.h"; then
-      AC_MSG_ERROR([can't find atmi.h in $with_tuxedo/include])
-   elif test ! -e "$with_tuxedo/lib/libtux.a"; then
-      AC_MSG_ERROR([can't find libtux.a in $with_tuxedo/lib])
-   else
-      AC_MSG_RESULT([$with_tuxedo])
-   fi
-else
-   if test -n "$TUXDIR" -a -f "$TUXDIR/include/atmi.h" -a -e "$TUXDIR/lib/libtux.a"; then
-      with_tuxedo=$TUXDIR
-   else
-      for dir in /opt /usr /usr/local /apps; do
-         find_tux $dir
-	 if test -n "$tux_dir" -a -f "$tux_dir/include/atmi.h" -a -e "$tux_dir/lib/libtux.a"; then
-	    with_tuxedo="$tux_dir"
-	    break;
-	 fi
-      done
-   fi
-   if test -n "$with_tuxedo"; then
-      AC_MSG_RESULT([$with_tuxedo])
-   else
-      AC_MSG_RESULT([not found])
-      unset with_tuxedo
-   fi
-fi
-
-get_tux_version()
-{
-    # try to get tuxedo vesion from the directory name
-    tux_ver=`echo $with_tuxedo | sed 's/.*tuxedo//'  | sed 's/\///'`
-    if test -z "$tux_ver"; then
-        tux_ver="unknown"
-    fi
-}
-
-if test -n "$with_tuxedo"; then
-   AC_MSG_CHECKING([BEA Tuxedo version])
-   get_tux_version
-   AC_MSG_RESULT([$tux_ver])
-
-   TUX_MAJOR=`echo $tux_ver|cut -f1 -d.`
-   TUX_MINOR=`echo $tux_ver|cut -f2- -d.`
-   AC_DEFINE_UNQUOTED([TUXEDO_VERSION_MAJOR], $TUX_MAJOR, [Tuxedo major version])   
-   AC_DEFINE_UNQUOTED([TUXEDO_VERSION_MINOR], $TUX_MAJOR, [Tuxedo major version])   
-
-   # setup tuxedo compile and link vars
-   TUXEDO_CPPFLAGS="-I${with_tuxedo}/include"
-   TUXEDO_LIBS="-L${with_tuxedo}/lib -lbuft -lfml -lfml32 -lengine -ltux"   
-
-   case "${host_os}" in
-     *solaris*) TUXEDO_LIBS="${TUXEDO_LIBS} -lxmlfmlbase -ltux" ;;
-   esac
-
-   # check if C++ compiler can link with tuxedo libs
-   SAVE_CPPFLAGS="$CPPFLAGS"
-   SAVE_LDFLAGS="$LDFLAGS"
-   CPPFLAGS="$CPPFLAGS $TUXEDO_CPPFLAGS"
-
-   case "$tux_ver" in
-      8.*) LDFLAGS="$LDFLAGS $TUXEDO_LIBS -lgiconv -lusort" 
-	   ;;
-      9.*|unknown|*)
-           LDFLAGS="$LDFLAGS $TUXEDO_LIBS -lgiconv -lusort -lutrace"
-	   ;;
-   esac
-
-   AC_MSG_CHECKING([if we can link to the Tuxedo libraries])
-   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#include <atmi.h>
-	 ]],[[
-tpinit((TPINIT*)0);
-	]])], tuxedo_links=yes, tuxedo_links=no)
-
-   CPPFLAGS="$SAVE_CPPFLAGS"
-   LDFLAGS="$SAVE_LDFLAGS"
-
-   if test ${tuxedo_links} = "no"; then
-      AC_MSG_RESULT([failed: cannot link with the Tuxedo libraries in ${with_tuxedo}/lib, skipping support for the tuxedo module])
-      unset with_tuxedo
-      unset TUXEDO_CPPFLAGS
-      unset TUXEDO_LIBS
-   else
-      AC_MSG_RESULT([ok])
-      AC_SUBST(TUXEDO_CPPFLAGS)
-      AC_SUBST(TUXEDO_LIBS)
-      AC_DEFINE(TUXEDO, 1, Define if Tuxedo support should be included)
-      with_tuxedo=yes
    fi
 fi
 
@@ -2154,13 +2025,12 @@ AM_CONDITIONAL([COND_SYBASE_DIR], [test "$with_sybase" = yes -o "$with_freetds" 
 AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
 AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
-AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -2202,7 +2072,6 @@ show_library_feature pgsql $with_pgsql
 show_library_feature mssql $with_freetds
 show_library_feature tibrv $with_tibrv
 show_library_feature tibae $with_tibae
-show_library_feature tuxedo $with_tuxedo
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules

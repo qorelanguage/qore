@@ -27,10 +27,6 @@ if COND_TIBAE
 SUBDIRS += tibae
 endif
 
-if COND_TUXEDO
-SUBDIRS += Tuxedo
-endif
-
 if COND_PGSQL
 SUBDIRS += pgsql
 endif

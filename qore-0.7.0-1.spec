@@ -5,13 +5,10 @@
 %define with_mysql      1
 %define with_pgsql      1
 %define with_mssql      1
-%define with_qt4        0
-%define with_opengl     0
 %define with_oracle     1
 %define with_sybase     1
 %define with_tibae      0
 %define with_tibrv      0
-%define with_tuxedo     0
 
 %if 0%{?sles_version}
 
@@ -85,9 +82,6 @@ BuildRequires: postgresql-devel
 %if 0%{?with_mssql}
 BuildRequires: freetds-devel
 %endif
-%if 0%{?with_qt4}
-BuildRequires: qt-devel >= 4.3.1
-%endif
 
 
 %description
@@ -97,9 +91,8 @@ interface development, and even complex multi-threaded, network-aware object-
 oriented application development. Qore features integrated XML and JSON 
 support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
 integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
+exception-safe programming support, as well as built-in date arithmetic,
+character encoding (including proper UTF-8) support, and much more.
 
 
 %if 0%{?suse_version}
@@ -279,121 +272,6 @@ databases.
 %{module_dir}/mssql.qmod
 %endif
 
-%if 0%{?with_qt4}
-%package qt-core-module
-Summary: QT4 core module for Qore
-Group: Development/Languages
-License: GPL
-Requires: %{name}-libs = %{version}-%{release}
-Requires: qt >= 4.3.1
-
-%description qt-core-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-This module provides functionality enabling qore scripts/programs to use functionality provided by the QT4 core library.
-
-
-%files qt-core-module
-%defattr(-,root,root,-)
-%{module_dir}/qt-core.qmod
-%{_libdir}/libqore-qt-core.so.0.0.0
-%{_libdir}/libqore-qt-core.so.0
-%{_libdir}/libqore-qt-core.so
-%{_libdir}/libqore-qt-core.la
-
-%package qt-gui-module
-Summary: QT4 GUI module for Qore
-Group: Development/Languages
-License: GPL
-Requires: %{name}-libs = %{version}-%{release}
-Requires: %{name}-qt-core-module = %{version}-%{release}
-Requires: qt-x11 >= 4.3.1
-
-%description qt-gui-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-This module provides functionality enabling qore scripts/programs to use functionality provided by the QT4 GUI library.
-
-
-%files qt-gui-module
-%defattr(-,root,root,-)
-%{module_dir}/qt-gui.qmod
-%{_libdir}/libqore-qt-gui.so.0.0.0
-%{_libdir}/libqore-qt-gui.so.0
-%{_libdir}/libqore-qt-gui.so
-%{_libdir}/libqore-qt-gui.la
-
-%package qt-opengl-module
-Summary: QT4 opengl module for Qore
-Group: Development/Languages
-License: GPL
-Requires: %{name}-libs = %{version}-%{release}
-Requires: %{name}-opengl-module = %{version}-%{release}
-Requires: %{name}-qt-gui-module = %{version}-%{release}
-Requires: qt-x11 >= 4.3.1
-
-%description qt-opengl-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-This module provides functionality enabling qore scripts/programs to use functionality provided by the QT4 OpenGL library.
-
-
-%files qt-opengl-module
-%defattr(-,root,root,-)
-%{module_dir}/qt-opengl.qmod
-
-%package qt-svg-module
-Summary: QT4 SVG module for Qore
-Group: Development/Languages
-License: GPL
-Requires: %{name}-libs = %{version}-%{release}
-Requires: %{name}-qt-gui-module = %{version}-%{release}
-Requires: qt-x11 >= 4.3.1
-
-%description qt-svg-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-This module provides functionality enabling qore scripts/programs to use 
-functionality provided by the QT4 SVG library.
-
-
-%files qt-svg-module
-%defattr(-,root,root,-)
-%{module_dir}/qt-svg.qmod
-%endif
-
 %if 0%{?with_tibae}
 %ifarch i386 sparc
 %package tibae-module
@@ -448,32 +326,6 @@ etc.
 %files tibrv-module
 %defattr(-,root,root,-)
 %{module_dir}/tibrv.qmod
-%endif
-
-%if 0%{?with_tuxedo}
-%package tuxedo-module
-Summary: BEA Tuxedo(R) client API integration module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-
-%description tuxedo-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-This module provides functionality enabling qore scripts/programs to communicate
-using the BEA Tuxedo(R) client API.
-
-
-%files tuxedo-module
-%defattr(-,root,root,-)
-%{module_dir}/tuxedo.qmod
 %endif
 
 %package libs
