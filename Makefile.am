@@ -259,9 +259,6 @@ noinst_HEADERS = \
 	modules/tibae/TibCommandLine.h \
 	modules/tibae/QoreApp.h \
 	modules/tibae/tibae.h \
-	modules/ncurses/QC_Window.h \
-	modules/ncurses/QC_Panel.h \
-	modules/ncurses/ncurses-module.h \
 	modules/sybase/sybase.h \
 	modules/sybase/connection.h \
 	modules/sybase/conversions.h \
@@ -283,7 +280,6 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
         test/ftp-test.q \
         test/gate-test.q \
         test/max-threads-test.q \
-	test/ncurses.q \
         test/new.dat \
         test/object-test.q \
         test/rwlock-test.q \
@@ -306,13 +302,11 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/exp.q \
 	examples/obj2.q \
 	examples/hash.q \
-	examples/hanoi.q \
 	examples/clisrv.q \
 	examples/xml-rpc-client.q \
 	examples/inherit.q \
 	examples/inherit2.q \
 	examples/getopt.q \
-	examples/worm.q \
 	docs/qore.html \
 	docs/qore-style.css \
 	docs/img/acrobat_a.gif \

@@ -1,6 +1,10 @@
 2008.09.03: David Nichols
 	* updated docs and inherit.q example regarding how to call derived class
 	  methods from a base class (use $self.method() instead of $.method())
+	* removed tuxedo and ncurses modules to separate projects
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-tuxedo)
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-ncurses)
+	* fixed build to make pthread detection mandatory
 
 2008.09.02: David Nichols
 	* moved qt modules to separate project

@@ -269,18 +269,9 @@ AC_ARG_ENABLE([static-pcre],
       esac],
      [enable_static_pcre=no])
 
-AC_ARG_ENABLE([static-ncurses],
-     [AS_HELP_STRING([--enable-static-ncurses],
-		     [force static linkage of ncurses libraries (default=auto)])],
-     [case "${enable_static_ncurses}" in
-       yes|no) ;;
-       *)      AC_MSG_ERROR(bad value ${enable_static_ncurses} for --enable-static-ncurses) ;;
-      esac],
-     [enable_static_ncurses=no])
-
 AC_ARG_ENABLE([static-common],
      [AS_HELP_STRING([--enable-static-common],
-		     [force static linkage of openssl, libxml2, pcre, and ncurses libraries (default=auto)])],
+		     [force static linkage of openssl, libxml2, and pcre libraries (default=auto)])],
      [case "${enable_static_common}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_common} for --enable-static-common) ;;
@@ -299,15 +290,10 @@ if test "$enable_static_pcre" = "yes"; then
    pcre_static=yes
 fi
 
-if test "$enable_static_ncurses" = "yes"; then
-   ncurses_static=yes
-fi
-
 if test "$enable_static_common" = "yes"; then
    openssl_static=yes
    libxml2_static=yes
    pcre_static=yes
-   ncurses_static=yes
    bz2lib_static=yes
 fi
 
@@ -1644,127 +1630,6 @@ PQconnectdb(NULL);
   fi
 fi
 
-# don't add system directories to library path
-set_ncurses_lib()
-{
-   if test "$1" = "/usr" -a "$1" = "/"; then
-      NCURSES_LIBS="-l$2 -lpanel"
-   else
-      NCURSES_LIBS="-L$lib -l$2 -lpanel"
-   fi
-   AC_SUBST(NCURSES_LIBS)
-}
-
-# checks for ncurses (or curses) and panel libraries and include files and sets NCURSES_LIBS and NCURSES_CPPFLAGS appropriately
-check_ncurses()
-{
-    lib=$1/lib${LIBSUFFIX}
-
-    if test -n "$ncurses_static"; then
-    	if test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
-	    ncurses_dir=$1
-       	    AC_MSG_RESULT([$lib (ncurses forced static)])
-	    NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
-	elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
-	    ncurses_dir=$1
-       	    AC_MSG_RESULT([$lib (curses forced static)])
-	    NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
-    	fi
-    elif test -f "$lib/libncurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
-       ncurses_dir=$1
-       AC_MSG_RESULT([$lib (ncurses shared)])
-       set_ncurses_lib "$1" ncurses
-    elif test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
-       ncurses_dir=$1
-       AC_MSG_RESULT([$lib (ncurses static)])
-       set_ncurses_lib "$1" ncurses
-    elif test -f "$lib/libcurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
-       ncurses_dir=$1
-       AC_MSG_RESULT([$lib (curses shared)])
-       NCURSES_CPPFLAGS="-DNOMACROS"
-       set_ncurses_lib "$1" curses
-    elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
-       ncurses_dir=$1
-       AC_MSG_RESULT([$lib (curses static)])
-       NCURSES_CPPFLAGS="-DNOMACROS"
-       set_ncurses_lib "$1" curses
-    fi
-
-    # make sure include files are in the expected place as well
-    if test -n "$ncurses_dir"; then
-       AC_MSG_CHECKING([for ncurses and panel include files])
-       if test -f "$1/include/curses.h" -a "$1/include/panel.h"; then
-          AC_MSG_RESULT([found in $ncurses_dir])
-	  if test "$1" = "/usr"; then
-	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS"
-	  else
-	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include"
-	  fi
-	  AC_SUBST(NCURSES_CPPFLAGS)
-       elif test -f "$1/include/ncurses/curses.h" -a "$1/include/ncurses/panel.h"; then
-          AC_MSG_RESULT([found in $1/include/ncurses])
-	  if test "$1" = "/usr"; then
-	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include/ncurses"
-	  else
-	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include -I$1/include/ncurses"
-	  fi
-	  AC_SUBST(NCURSES_CPPFLAGS)
-       else
-          AC_MSG_ERROR([not found!  use configure --disable-ncurses to skip ncurses checks])
-       fi
-    fi
-}
-
-AC_ARG_WITH([ncurses],
-  [AS_HELP_STRING([--without-ncurses],
-                  [do not include ncurses support])],
-  [case "$with_ncurses" in
-      yes|no) ;;
-      *)      AC_MSG_ERROR([bad value ${with_ncurses} for ncurses option]) ;;
-   esac],
-   [with_ncurses=yes])
-
-if test "${with_ncurses}" = yes; then
-   with_ncurses=no
-   AC_MSG_CHECKING([for ncurses and panel libraries])
-
-   for dir in "$NCURSES_DIR" /usr /usr/local /usr/local/ncurses /opt/gnu /opt/ncurses /usr/ncurses /sw /opt/local /usr/sfw /opt/sfw; do
-       check_ncurses $dir
-       if test -n "$ncurses_dir"; then
-	  break;
-       fi
-   done
-   if test -z "$ncurses_dir"; then
-      AC_MSG_RESULT([not found])
-   else
-      with_ncurses=yes
-      AC_DEFINE(NCURSES, 1, Define if ncurses support should be included)
-
-      # check for wresize function in library
-      SAVE_CPPFLAGS="$CPPFLAGS"
-      SAVE_LDFLAGS="$LDFLAGS"
-      CPPFLAGS="$CPPFLAGS $NCURSES_CPPFLAGS"
-      LDFLAGS="$LDFLAGS $NCURSES_LIBS"
-
-      AC_MSG_CHECKING([for wresize function in ncurses library])
-      AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#include <curses.h>
-	 ]],[[
-wresize((WINDOW *)0, 0, 0);
-	 ]])], have_wresize=yes, have_wresize=no)
-
-      CPPFLAGS="$SAVE_CPPFLAGS"
-      LDFLAGS="$SAVE_LDFLAGS"
-
-      if test "$have_wresize" = "yes"; then
-	 AC_MSG_RESULT([yes])
-	 AC_DEFINE(HAVE_WRESIZE, 1, [define if the wresize function is available])
-      else
-	 AC_MSG_RESULT([no])
-      fi
-   fi
-fi
-
 AC_ARG_WITH([doxygen],
     [AS_HELP_STRING([--with-doxygen@<:@=PATH@:>@],
                     [path to doxygen binary])],
@@ -2014,7 +1879,6 @@ AC_DEFINE_UNQUOTED([TARGET_ARCH], "$ARCH", [host type])
 AC_DEFINE_UNQUOTED([TARGET_OS], "$OS", [host type])
 AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
 
-AM_CONDITIONAL([COND_NCURSES],    [test "$with_ncurses" = yes])
 AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
@@ -2030,7 +1894,7 @@ AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -2064,7 +1928,6 @@ if test "$enable_shared" = "yes"; then
    echo "*** MODULES ***"
 fi
 
-show_library_feature ncurses $with_ncurses
 show_library_feature oracle $with_oracle
 show_library_feature sybase $with_sybase
 show_library_feature mysql $with_mysql

@@ -97,9 +97,6 @@ FeatureList::FeatureList()
    push_back("debug");
 #endif
 #ifdef QORE_MONOLITHIC
-# ifdef NCURSES
-   push_back("ncurses");
-# endif
 # ifdef ORACLE
    push_back("oracle");
 # endif

@@ -220,9 +220,6 @@ endif
 if COND_MYSQL
 libqore_la_LIBADD += ../modules/mysql/libmysql.la
 endif
-if COND_NCURSES
-libqore_la_LIBADD += ../modules/ncurses/libncurses.la
-endif
 if COND_SYBASE
 libqore_la_LIBADD += ../modules/sybase/libsybase.la
 endif
