@@ -236,24 +236,6 @@ noinst_HEADERS = \
 	modules/pgsql/pgsql.h \
 	modules/pgsql/QorePGConnection.h \
 	modules/pgsql/QorePGMapper.h \
-	modules/tibrv/tibrv-module.h \
-	modules/tibrv/qore_tibrv.h \
-	modules/tibrv/QoreTibrvTransport.h \
-	modules/tibrv/QoreTibrvListener.h \
-	modules/tibrv/QoreTibrvSender.h \
-	modules/tibrv/QoreTibrvFtMember.h \
-	modules/tibrv/QoreTibrvFtMonitor.h \
-	modules/tibrv/QoreTibrvCmTransport.h \
-	modules/tibrv/QoreTibrvCmSender.h \
-	modules/tibrv/QoreTibrvCmListener.h \
-	modules/tibrv/QoreTibrvDistributedQueue.h \
-	modules/tibrv/QC_TibrvListener.h \
-	modules/tibrv/QC_TibrvSender.h \
-	modules/tibrv/QC_TibrvFtMember.h \
-	modules/tibrv/QC_TibrvFtMonitor.h \
-	modules/tibrv/QC_TibrvCmSender.h \
-	modules/tibrv/QC_TibrvCmListener.h \
-	modules/tibrv/QC_TibrvDistributedQueue.h \
 	modules/tibae/tibae-module.h \
 	modules/tibae/QC_TibcoAdapter.h \
 	modules/tibae/TibCommandLine.h \
@@ -291,7 +273,6 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
         test/Test.qc \
         test/tibae-listener.q \
         test/tibae-test.q \
-	test/tibrv-test.q \
         test/unlocked-thread-test.q \
 	test/regex.q \
 	test/deadlock.q \

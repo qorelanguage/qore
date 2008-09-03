@@ -208,9 +208,6 @@ endif
 endif
 
 if COND_MONOLITHIC
-if COND_TIBRV
-libqore_la_LIBADD += ../modules/TIBCO/libtibrv.la
-endif
 if COND_TIBAE
 libqore_la_LIBADD += ../modules/TIBCO/libtibae.la
 endif

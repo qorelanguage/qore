@@ -51,9 +51,6 @@ static QoreThreadLock mutex;
 
 #ifdef QORE_MONOLITHIC
 // for non-shared builds of the qore library, initialize all optional components here
-# ifdef TIBRV
-#  include "../modules/tibrv/tibrv-module.h"
-# endif
 # ifdef TIBAE
 #  include "../modules/tibae/tibae-module.h"
 # endif
@@ -62,9 +59,6 @@ static QoreThreadLock mutex;
 # endif
 # ifdef QORE_MYSQL
 #  include "../modules/mysql/qore-mysql-module.h"
-# endif
-# ifdef NCURSES
-# include "../modules/ncurses/ncurses-module.h"
 # endif
 #endif
 
@@ -295,17 +289,11 @@ void ModuleManager::init(bool se)
    }
 
 #ifdef QORE_MONOLITHIC
-# ifdef NCURSES
-   addBuiltin("ncurses", ncurses_module_init, ncurses_module_ns_init, ncurses_module_delete);
-# endif
 # ifdef ORACLE
    addBuiltin("oracle", oracle_module_init, oracle_module_ns_init, oracle_module_delete);
 # endif
 # ifdef QORE_MYSQL
    addBuiltin("mysql", qore_mysql_module_init, qore_mysql_module_ns_init, qore_mysql_module_delete);
-# endif
-# ifdef TIBRV
-   addBuiltin("tibrv", tibrv_module_init, tibrv_module_ns_init, tibrv_module_delete);
 # endif
 # ifdef TIBAE
    addBuiltin("tibae", tibae_module_init, tibae_module_ns_init, tibae_module_delete);

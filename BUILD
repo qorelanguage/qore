@@ -49,11 +49,9 @@ if you have the open headers and libraries in a location the configure script ca
 --with-mysql=<dir>                  : directory of MySQL installation ("mysql" module)
 --with-pgsql=<dir>	            : directory of PostgreSQL installation ("pgsql" module)
 --with-sybase=<dir>                 : directory of Sybase OCS installation ("sybase" module)
---with-tibrv=<dir>                  : directory of TIBCO Rendezvous installation ("tibrv" module)
 --with-tibae=<dir>                  : directory of TIBCO AE SDK ("tibae" module)
 --with-tibae-tpcl=<dir>             : directory of TIBCO AE TPCL installation ("tibae" module)
 --with-tibco-ems=<dir>              : directory of TIBCO EMS installation ("tibae" module)
---with-tuxedo=<dir>                 : directory of Bea Tuxedo installation ("tuxedo" module)
 --with-sybase=<dir>                 : directory of Sybase or Sybase OCS installation ("sybase" module)
 --with-freetds=<dir>                : directory of FreeTDS installation ("mssql" module)
 --enable-scu-qt                     : enable single compilation unit for the qt module - only use this if you have at least 2G RAM
@@ -94,18 +92,9 @@ User --with-freetds or set the FREETDS environment variable to your FreeTDS inst
 only tested so far with freetds 0.64, sybase ASE 15.0.1 and MS SQL Server 2005 SP2 (express edition)
 FreeTDS website: http://www.freetds.org
 
-*) "tibrv": TIBCO Rendezvous module requires TIBCO Rendezvous 7.x (6 may work, not tested)
-Set the RV_ROOT environment variable to the Rendezvous directory before calling configure (or use the --with-tibrv configure option) to build the "tibrv" module for direct Rendezvous support.  Note that to build this module the libtibrvcpp library must be present; on some platforms you have to rebuild this yourself from the sources provided by TIBCO in order for it to link with the C++ compiler you are using - the sources are normally present in $RV_ROOT/src/librvcpp, normally you have to edit the Makefile provided there and then type "make" to rebuild.  I had to include "ranlib libtibrvcpp.a" on the libraries I rebuilt for OS X.  Secure daemon support is turned off by default in tibrvcpp, to enable secure daemon support edit $RV_ROOT/src/librvcpp/Makefile and uncomment the SD_MODULE line near the end of the file, rebuild, install the new library in $RV_ROOT/lib, and rerun qore's configure script
-
 *) "tibae": TIBCO AE module requires TIBCO SDK 5.2.1 or better
 If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, TRA_ROOT, TPCL_ROOT, and EMS_ROOT environment variables are pointing to your Rendezvous, SDK, TPCL, and EMS directories respectively before calling configure (EMS_ROOT only required for SDK 5.5 and above).  Otherwise you can use the --with-tibrv, --with-tibae, with-tibae-tpcl, and --with-tibco-ems configure options.  The "tibae" module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
 Note that newer SDKs may work with HP-UX PA-RISC 11.*, so the restriction on building this module on HP-UX PA-RISC has been removed from the configure script.
-
-*) "tuxedo": BEA Tuxedo support requores Tuxedo 8 or better
-
-*) "ncurses": ncurses module
-note that this module is still experimental due to the fact that I'm not sure if it's possible to safely enable threading without putting a big lock around every curses call.
-if your ncurses is in a non-standard location, set the NCURSES_DIR environment variable before running configure.  Also can be built with Solaris curses.
 
 To build qore, run the following commands:
 

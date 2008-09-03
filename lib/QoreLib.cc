@@ -103,9 +103,6 @@ FeatureList::FeatureList()
 # ifdef QORE_MYSQL
    push_back("mysql");
 # endif
-# ifdef TIBRV
-   push_back("tibrv");
-# endif
 # ifdef TIBAE
    push_back("tibae");
 # endif

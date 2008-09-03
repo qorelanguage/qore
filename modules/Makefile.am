@@ -15,10 +15,6 @@ if COND_MYSQL
 SUBDIRS += mysql
 endif
 
-if COND_TIBRV
-SUBDIRS += tibrv
-endif
-
 if COND_TIBAE
 SUBDIRS += tibae
 endif

@@ -702,119 +702,6 @@ if test "$acx_pthread_ok" = "no"; then
 fi
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
-AC_ARG_WITH([tibrv],
-  [AS_HELP_STRING([--with-tibrv@<:@=DIR@:>@],
-		  [TIBCO Rendezvous directory (defaults to $RV_ROOT)])],
-  [if test ! -d "${with_tibrv}"; then AC_MSG_ERROR(bad value ${with_tibrv} for --with-tibrv); unset with_tibrv; fi])
-
-AC_MSG_CHECKING([TIBCO Rendezvous])
-if test -n "$with_tibrv"; then
-   if test ! -e "$with_tibrv/tibrv/tibrv.h"; then
-      AC_MSG_ERROR([can't find tibrv.h in $with_tibrv/tibrv])
-   elif test ! -e "$with_tibrv/lib/libtibrv.a"; then
-      AC_MSG_ERROR([can't find libtibrv.a in $with_tibrv/lib])
-   else
-      AC_MSG_RESULT([$with_tibrv])
-   fi
-else
-   if test -n "$RV_ROOT" -a -f "$RV_ROOT/include/tibrv/tibrv.h" -a -e "$RV_ROOT/lib/libtibrv.a"; then
-      AC_MSG_RESULT([$RV_ROOT])
-      with_tibrv=$RV_ROOT
-   elif test -f /opt/tibrv/include/tibrv/tibrv.h -a -f /opt/tibrv/lib/libtibrv.a; then
-      AC_MSG_RESULT([/opt/tibrv])
-      with_tibrv=/opt/tibrv
-   elif test -f /opt/tibco/tibrv/include/tibrv/tibrv.h -a -f /opt/tibco/tibrv/lib/libtibrv.a; then
-      AC_MSG_RESULT([/opt/tibco/tibrv])
-      with_tibrv=/opt/tibco/tibrv
-   elif test -f /usr/tibrv/include/tibrv/tibrv.h -a -f /usr/tibrv/lib/libtibrv.a; then
-      AC_MSG_RESULT([/usr/tibrv])
-      with_tibrv=/usr/tibrv
-   elif test -f /usr/tibco/tibrv/include/tibrv/tibrv.h -a -f /usr/tibco/tibrv/lib/libtibrv.a; then
-      AC_MSG_RESULT([/usr/tibco/tibrv])
-      with_tibrv=/usr/tibco/tibrv
-   elif test -f /usr/local/tibco/tibrv/include/tibrv/tibrv.h -a -f /usr/local/tibco/tibrv/lib/libtibrv.a; then
-      AC_MSG_RESULT([/usr/tibco/local/tibrv])
-      with_tibrv=/usr/local/tibco/tibrv
-   else
-      AC_MSG_RESULT([not found])
-      unset with_tibrv
-   fi
-fi
-
-if test -n "$with_tibrv"; then
-   rv_found="$with_tibrv"
-
-   # setup tibrv compile and link vars
-   TIBRV_CPPFLAGS="-I${with_tibrv}/include"
-   TIBRV_LDFLAGS="-L${with_tibrv}/lib -ltibrv${RVLIBSUFFIX} -ltibrvcm${RVLIBSUFFIX} -ltibrvcmq${RVLIBSUFFIX} -ltibrvft${RVLIBSUFFIX} -ltibrvsd${RVLIBSUFFIX}"
-   # check for dynamic libtibrvcpp
-   if test -f "${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.${SHLIB_SUFFIX}"; then
-      TIBRVCPP_LDFLAGS="-ltibrvcpp${RVLIBSUFFIX}"
-   else
-      TIBRVCPP_LDFLAGS="${with_tibrv}/lib/libtibrvcpp${RVLIBSUFFIX}.a"   
-   fi
-
-   # check if C++ compiler can link with TIBCO Rendezvous c++ libs
-   SAVE_CPPFLAGS="$CPPFLAGS"
-   SAVE_LDFLAGS="$LDFLAGS"
-   CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
-   LDFLAGS="$LDFLAGS $TIBRV_LDFLAGS $TIBRVCPP_LDFLAGS"
-
-   # hack to work around a bug in 64-bit g++ on linux? - if libtibrvcpp is not last on the compile line the link will fail for some reason
-   SAVE_LIBS="$LIBS"
-   LIBS="$LIBS -ltibrvcpp${RVLIBSUFFIX}"
-
-   AC_MSG_CHECKING([if we can link to the TIBCO Rendezvous C++ library])
-   AC_LINK_IFELSE([AC_LANG_PROGRAM(
-[[#include <tibrv/tibrvcpp.h>
-]],[[
-Tibrv::open();
-Tibrv::close();
-	]])],tibrv_links=yes, tibrv_links=no)
-
-   CPPFLAGS="$SAVE_CPPFLAGS"
-   LDFLAGS="$SAVE_LDFLAGS"
-   LIBS="$SAVE_LIBS"
-
-   if test ${tibrv_links} = "no"; then
-      AC_MSG_RESULT([failed: please recompile libtibrvcpp using this c++ compiler ($CXX) and install in $with_tibrv/lib and run configure again if you want the tibrv module])
-      unset with_tibrv
-      unset TIBRV_CPPFLAGS
-      unset TIBRV_LDFLAGS
-   else
-      AC_MSG_RESULT([ok])
-      # check if secure daemon support was enabled in libtibrvcpp
-      SAVE_CPPFLAGS="$CPPFLAGS"
-      SAVE_LDFLAGS="$LDFLAGS"
-      CPPFLAGS="$CPPFLAGS $TIBRV_CPPFLAGS"
-      LDFLAGS="$LDFLAGS $TIBRV_LDFLAGS"
-
-      AC_MSG_CHECKING([if secure daemon support was enabled in libtibrvcpp])
-      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <tibrv/tibrvcpp.h>
-#include <tibrv/sdcpp.h>
-	 ]],[[
-TibrvSdContext::setDaemonCert(TIBRV_SECURE_DAEMON_ANY_NAME, TIBRV_SECURE_DAEMON_ANY_CERT);
-	]])],tibrvsd_links=yes, tibrvsd_links=no)
-
-      CPPFLAGS="$SAVE_CPPFLAGS"
-      LDFLAGS="$SAVE_LDFLAGS"
-
-      if test "${tibrvsd_links}" = "yes"; then
-         AC_MSG_RESULT([ok])
-	 TIBRV_LDFLAGS="$TIBRV_LDFLAGS -lssl -lcrypto"
-	 AC_DEFINE(TIBRV_SD, 1, Define if TIBCO Rendezvous secure daemon support should be included)
-      else
-         AC_MSG_RESULT([failed: if you want secure daemon support in the tibrv module, rebuild libtibrvcpp with secure daemon support (remove comments from the SD_MODULE line in $with_tibrv/src/librvcpp/Makefile), rebuild the library and install in $with_tibrv/lib and rerun configure])
-      fi
-      AC_SUBST(TIBRV_CPPFLAGS)
-      AC_SUBST(TIBRV_LDFLAGS)
-      AC_SUBST(TIBRVCPP_LDFLAGS)
-      AC_DEFINE(TIBRV, 1, Define if TIBCO Rendezvous support should be included)
-      with_tibrv=yes
-   fi
-fi
-
 # set TRA_ROOT to SDK_ROOT if SDK_ROOT is set and TRA_ROOT is not
 if test -n "$SDK_ROOT" -a -z "$TRA_ROOT"; then TRA_ROOT=$SDK_ROOT; fi
 
@@ -1887,14 +1774,13 @@ AM_CONDITIONAL([COND_SYBASE],     [test "$with_sybase" = yes])
 AM_CONDITIONAL([COND_FREETDS],    [test "$with_freetds" = yes])
 AM_CONDITIONAL([COND_SYBASE_DIR], [test "$with_sybase" = yes -o "$with_freetds" = yes]) 
 AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
-AM_CONDITIONAL([COND_TIBRV],      [test "$with_tibrv" = yes])
 AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -1933,7 +1819,6 @@ show_library_feature sybase $with_sybase
 show_library_feature mysql $with_mysql
 show_library_feature pgsql $with_pgsql
 show_library_feature mssql $with_freetds
-show_library_feature tibrv $with_tibrv
 show_library_feature tibae $with_tibae
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
