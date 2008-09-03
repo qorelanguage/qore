@@ -6,7 +6,6 @@
 %define with_mssql      1
 %define with_oracle     1
 %define with_sybase     1
-%define with_tibae      0
 
 %if 0%{?sles_version}
 
@@ -241,34 +240,6 @@ databases.
 %files mssql-module
 %defattr(-,root,root,-)
 %{module_dir}/mssql.qmod
-%endif
-
-%if 0%{?with_tibae}
-%ifarch i386 sparc
-%package tibae-module
-Summary: TIBCO Adapters integration module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-
-%description tibae-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-This module provides the TibcoAdapter class, which enables qore scripts/programs
-to communicate with (or implement) TIBCO Adapters.
-
-
-%files tibae-module
-%defattr(-,root,root,-)
-%{module_dir}/tibae.qmod
-%endif
 %endif
 
 %package libs

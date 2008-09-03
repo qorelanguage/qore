@@ -702,187 +702,6 @@ if test "$acx_pthread_ok" = "no"; then
 fi
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
-# set TRA_ROOT to SDK_ROOT if SDK_ROOT is set and TRA_ROOT is not
-if test -n "$SDK_ROOT" -a -z "$TRA_ROOT"; then TRA_ROOT=$SDK_ROOT; fi
-
-AC_ARG_WITH([tibae],
-  [AS_HELP_STRING([--with-tibae@<:@=DIR@:>@],
-		  [TIBCO Adapters SDK directory (defaults to $TRA_ROOT)])],
-  [if test ! -d "${with_tibae}"; then AC_MSG_ERROR(bad value ${with_tibae} for --with-tibae); unset with_tibae; fi])
-
-AC_MSG_CHECKING([TIBCO Adapters SDK])
-if test -n "$with_tibae"; then
-   if test ! -e "$with_tibae/include/sdk/Maverick.h" -a ! -e "$with_tibae/include/Maverick.h"; then
-      AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk or in $with_tibae/include])
-   else
-      AC_MSG_RESULT([$with_tibae])
-   fi
-else
-   # disable AE SDK on HP-UX PA-RISC, it requires compiling without the -AA flag which we don't support
-   if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
-      AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
-      unset with_tibae
-   elif test -n "$TRA_ROOT" -a \( -f "$TRA_ROOT/include/sdk/Maverick.h" -o -f "$TRA_ROOT/include/Maverick.h" \) 2>/dev/null; then
-      AC_MSG_RESULT([$TRA_ROOT])
-      with_tibae=$TRA_ROOT      
-   else
-      AC_MSG_RESULT([not found])
-      unset with_tibae
-   fi
-fi
-
-AC_ARG_WITH([tibco-ems],
-  [AS_HELP_STRING([--with-tibco-ems@<:@=DIR@:>@],
-		  [TIBCO EMS directory (defaults to $JMS_ROOT)])],
-  [if test ! -d "${with_tibco_ems}"; then AC_MSG_ERROR(bad value ${with_tibco_ems} for --with-tibco-ems); unset with_tibco_ems; fi])
-
-AC_MSG_CHECKING([TIBCO EMS])
-if test -n "$with_tibco_ems"; then
-   if test ! -e "$with_tibco_ems/clients/c/include/tibems/types.h"; then
-      AC_MSG_ERROR([can't find clients/c/include/tibems/types.h in $with_tibco_ems])
-   else
-      AC_MSG_RESULT([$with_tibco_ems])
-   fi
-else
-   if test -n "$JMS_ROOT" -a \( -f "$JMS_ROOT/clients/c/include/tibems/types.h" \) 2>/dev/null; then
-      AC_MSG_RESULT([$JMS_ROOT])
-      with_tibco_ems=$JMS_ROOT
-   else
-      AC_MSG_RESULT([not found])
-      unset with_tibco_ems
-   fi
-fi
-
-if test -n "$with_tibae"; then
-   if test -z "$rv_found"; then
-      AC_MSG_WARN([TIBCO Adapters SDK and TRA found, but no Rendezvous found, disabling tibae support])
-      unset with_tibae
-   else
-      AC_MSG_CHECKING([TIBCO Adapters SDK version])
-      if test -e "$with_tibae"/prodinfo; then
-	 TIBCO_SDK_VERSION=`grep SDK "$with_tibae"/prodinfo|head -1|cut -f2`
-      elif test -e "$with_tibae"/version.txt; then
-         TIBCO_SDK_VERSION=`grep SDK "$with_tibae"/version.txt|head -1|cut -b25- | cut -f1 -d\ `
-      else
-         AC_MSG_RESULT([unable to determine TIBCO Adapters SDK version, disabling tibae support])
-         unset with_tibae
-      fi
-
-      if test -n "$TIBCO_SDK_VERSION"; then
-         AC_MSG_RESULT($TIBCO_SDK_VERSION)
-      fi
-      # exit this structure otherwise the nesting gets too deep :-)
-   fi
-fi
-
-if test -n "$with_tibae"; then
-   # check if we need TPCL (third-party libraries)
-   if test `echo $TIBCO_SDK_VERSION|cut -b1` -gt 4; then
-      AC_ARG_WITH([tibae-tpcl],
-        [AS_HELP_STRING([--with-tibae-tpcl@<:@=DIR@:>@],
-		        [TIBCO Adpaters TPCL directory (defaults to $TPCL_ROOT)])],
-			[if test ! -d "${with_tibae_tpcl}"; then AC_MSG_ERROR(bad value ${with_tibae_tpcl} for --with-tibae-tpcl); unset with_tibae_tpcl; fi])
-      AC_MSG_CHECKING([TIBCO Adapters TPCL])
-      if test -n "$with_tibae_tpcl"; then
-	 if test ! -e "$with_tibae_tpcl/lib/libssl.a"; then
-	    AC_MSG_RESULT([can't find libssl.a in $with_tibae_tpcl/lib, disabling tibae support])
-	    unset with_tibae_tpcl
-	    unset with_tibae
-	 else
-	    AC_MSG_RESULT([$with_tibae_tpcl])
-	 fi
-      else
-	 if test -n "$TPCL_ROOT" -a -f "$TPCL_ROOT/lib/libssl.a"; then
-	    AC_MSG_RESULT([$TPCL_ROOT])
-	    with_tibae_tpcl=$TPCL_ROOT
-	 else
-	    AC_MSG_RESULT([not found, disabling tibae support])
-	    unset with_tibae_tpcl
-	    unset with_tibae
-	 fi
-      fi
-   fi
-fi
-
-if test -n "$with_tibae" -a -n "$with_:tibae_tra"; then
-   case "$TIBCO_SDK_VERSION" in
-	4.1.2) TIBAE_LDFLAGS="-L${with_tibae}/lib -lmaverick41 -lpthread"
-	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
-	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
-	       ;;
-	4.1.3) TIBAE_LDFLAGS="-L${with_tibae}/lib -lmaverick41 -lpthread"
-	       TIBAE_CPPFLAGS="-I${with_tibae}/include"
-	       AC_DEFINE(TIBCO_SDK, 4, [define for TIBCO SDK 4.*])
-	       ;;
-        5.0.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick50 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -lpthread"
-	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
-	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
-	       ;;
-        5.3.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
-	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
-	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
-	       ;;
-        5.4.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
-               TIBAE_CPPFLAGS="-I${with_tibae}/include"
-               AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
-               ;;
-        5.5.*) if test -z "${with_tibco_ems}"; then AC_MSG_ERROR([SDK 5.5 requires TIBCO EMS, but TIBCO EMS was not found]); fi
-	       if test "$enable_64bit" = "yes"; then
-	          TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae}/lib/64 -L${with_tibae_tpcl}/lib -L${with_tibae_tpcl}/lib/64 -lmaverick55${LIBSUFFIX} -lrepowww550${LIBSUFFIX} -lxerces-c2_7 -lxerces-depdom2_7 -lssl -lcrypto -licuuc -licudata -lpthread"
-	       else
-	          TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick55${LIBSUFFIX} -lrepowww550${LIBSUFFIX} -lxerces-c2_7 -lssl -lcrypto -licuuc -licudata -lpthread"
-	       fi
-               TIBAE_CPPFLAGS="-I${with_tibae}/include -I${with_tibae}/include/xercesc -I${with_tibco_ems}/clients/c/include"
-               AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
-               ;;
-	*)     AC_MSG_ERROR(Unsupported TIBCO SDK Version) 
-	       ;;
-   esac
-
-   case "${host_os}" in
-     *linux*)	TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -DLINUX24 -ldl"
-		;;
-     *hpux*)    TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -DHP_UX +DAportable"
-		;;
-     *)		TIBAE_CPPFLAGS="$TIBAE_CPPFLAGS -ldl"
-		;; 
-   esac
-
-   # check if C++ compiler can link with TIBCO libs
-   SAVE_CPPFLAGS="$CPPFLAGS"
-   SAVE_LDFLAGS="$LDFLAGS"
-   CPPFLAGS="$CPPFLAGS $TIBAE_CPPFLAGS $TIBRV_CPPFLAGS"
-   LDFLAGS="$LDFLAGS $TIBAE_LDFLAGS $TIBRV_LDFLAGS"
-   AC_MSG_CHECKING([if we can link to the TIBCO AE SDK])
-   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#include <Maverick.h>
-class TApp : public MApp
-{
-      virtual void onTermination() throw (MException) {}
-      virtual void onInitialization() throw (MException) {}
-   public:
-      inline TApp(MAppProperties *pm) : MApp(pm) {}
-};
-
-	 ]],[[
-TApp ma(NULL);
-	]])], tibae_links=yes, tibae_links=no)
-
-   CPPFLAGS="$SAVE_CPPFLAGS"
-   LDFLAGS="$SAVE_LDFLAGS"
-
-   if test "$tibae_links" = "no"; then
-      AC_MSG_RESULT([failed with this C++ compiler, try CXX=<comp> configure, disabling tibae support])
-      unset with_tibae
-   else
-      AC_MSG_RESULT([ok])
-      AC_SUBST(TIBAE_LDFLAGS)
-      AC_SUBST(TIBAE_CPPFLAGS)
-      AC_DEFINE(TIBAE, 1, [Define if TIBCO Adapters support should be included])
-      with_tibae=yes
-   fi
-fi
-
 AC_ARG_WITH([oracle],
   [AS_HELP_STRING([--with-oracle@<:@=DIR@:>@],
                   [directory for Oracle support (defaults to $ORACLE_HOME)])],
@@ -1774,13 +1593,12 @@ AM_CONDITIONAL([COND_SYBASE],     [test "$with_sybase" = yes])
 AM_CONDITIONAL([COND_FREETDS],    [test "$with_freetds" = yes])
 AM_CONDITIONAL([COND_SYBASE_DIR], [test "$with_sybase" = yes -o "$with_freetds" = yes]) 
 AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
-AM_CONDITIONAL([COND_TIBAE],      [test "$with_tibae" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -1819,7 +1637,6 @@ show_library_feature sybase $with_sybase
 show_library_feature mysql $with_mysql
 show_library_feature pgsql $with_pgsql
 show_library_feature mssql $with_freetds
-show_library_feature tibae $with_tibae
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules

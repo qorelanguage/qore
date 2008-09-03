@@ -103,9 +103,6 @@ FeatureList::FeatureList()
 # ifdef QORE_MYSQL
    push_back("mysql");
 # endif
-# ifdef TIBAE
-   push_back("tibae");
-# endif
 # ifdef SYBASE
    push_back("sybase");
 # endif

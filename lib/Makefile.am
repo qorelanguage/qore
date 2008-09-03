@@ -208,9 +208,6 @@ endif
 endif
 
 if COND_MONOLITHIC
-if COND_TIBAE
-libqore_la_LIBADD += ../modules/TIBCO/libtibae.la
-endif
 if COND_ORACLE
 libqore_la_LIBADD += ../modules/oracle/liboracle.la
 endif

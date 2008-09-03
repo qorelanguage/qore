@@ -236,11 +236,6 @@ noinst_HEADERS = \
 	modules/pgsql/pgsql.h \
 	modules/pgsql/QorePGConnection.h \
 	modules/pgsql/QorePGMapper.h \
-	modules/tibae/tibae-module.h \
-	modules/tibae/QC_TibcoAdapter.h \
-	modules/tibae/TibCommandLine.h \
-	modules/tibae/QoreApp.h \
-	modules/tibae/tibae.h \
 	modules/sybase/sybase.h \
 	modules/sybase/connection.h \
 	modules/sybase/conversions.h \
@@ -271,8 +266,6 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
         test/test-exception.q \
         test/test.q \
         test/Test.qc \
-        test/tibae-listener.q \
-        test/tibae-test.q \
         test/unlocked-thread-test.q \
 	test/regex.q \
 	test/deadlock.q \

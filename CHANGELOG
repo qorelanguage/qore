@@ -8,6 +8,8 @@
 	* fixed build to make pthread detection mandatory
 	* removed tibrv module to separate project
 	  (https://qore.svn.sourceforge.net/svnroot/qore/module-tibrv)
+	* removed tibae module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-tibae)
 
 2008.09.02: David Nichols
 	* moved qt modules to separate project

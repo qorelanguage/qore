@@ -15,10 +15,6 @@ if COND_MYSQL
 SUBDIRS += mysql
 endif
 
-if COND_TIBAE
-SUBDIRS += tibae
-endif
-
 if COND_PGSQL
 SUBDIRS += pgsql
 endif
