@@ -946,210 +946,6 @@ MYSQL mysql; mysql_init(&mysql);
   fi
 fi
 
-check_freetds()
-{
-    d=`ls -d $1/freetds* 2>/dev/null | tail -1`;
-    if test -n "$d"; then
-       dir="$d"
-    else
-       dir="$1"
-    fi
-
-    if test -f "$dir/include/tds_sysdep_public.h" -a -f "$dir/include/ctpublic.h"; then
-        with_freetds_includes=$dir/include
-    elif test -f "$dir/include/freetds/tds_sysdep_public.h" -a -f "$dir/include/freetds/ctpublic.h"; then
-        with_freetds_includes=$dir/include/freetds
-    else
-	return
-    fi
-
-    if test -f "$dir/lib${LIBSUFFIX}/libct.${SHLIB_SUFFIX}"; then
-       with_freetds_libs=$dir/lib${LIBSUFFIX}
-    elif test -f "$dir/lib${LIBSUFFIX}/freetds/libct.${SHLIB_SUFFIX}"; then
-       with_freetds_libs=$dir/lib${LIBSUFFIX}/freetds
-    else
-       unset with_freetds_includes
-    fi
-}
-
-check_sybase()
-{
-    d=`ls -d $1/OCS-* 2>/dev/null | tail -1`;
-    if test -n "$d"; then
-       dir="$d"
-    else
-       dir="$1"
-    fi
-
-    if test -f "$dir/include/ctpublic.h"; then
-        with_sybase_includes=$dir/include
-    else
-	return
-    fi
-
-    if test -f "$dir/lib/libsybcs_r.${SHLIB_SUFFIX}"; then
-       with_sybase_libs=$dir/lib
-    else
-       unset with_sybase_includes
-    fi
-}
-
-# Sybase settings
-AC_ARG_WITH([sybase],
-    [AS_HELP_STRING([--with-sybase@<:@=DIR@:>@],
-                    [Sybase or Sybase OCS base directory])],
-    [if test ! -d "${with_sybase}"; then AC_MSG_ERROR(directory ${with_sybase} does not exist for --with-sybase); unset with_sybase; fi])
-
-# see if we can figure out where the sybase include files and libraries are
-if test "${with_sybase}" != "no"; then
-   if test -n "$with_sybase"; then
-      sybase_explicit=yes
-   fi
-
-   AC_MSG_CHECKING([for sybase includes and libraries])
-
-   if test -n "$with_sybase"; then
-      check_sybase "$with_sybase"
-      if test -z "$with_sybase_includes"; then
-	 AC_MSG_ERROR([not found in $with_sybase])
-      fi
-   fi
-
-   for dir in $SYBASE $SYBASE/$SYBASE_OCS /usr/sybase /usr/local/sybase /opt/sybase /usr/local; do
-      check_sybase "$dir"
-      if test -n "$with_sybase_includes"; then
-	 break;
-      fi
-   done
-
-   if test -n "$with_sybase_includes"; then
-      AC_MSG_RESULT([includes=$with_sybase_includes, libs=$with_sybase_libs (Sybase OCS)])
-      with_sybase=yes
-   else
-      AC_MSG_RESULT([not found])
-   fi
-fi
-
-if test "${with_sybase}" = yes; then
-   SYBASE_INCLUDES="-I$with_sybase_includes"
-   SYBASE_LIBS="-L$with_sybase_libs -lsybdb${SYBLIBSUFFIX} -lsybcs_r${SYBLIBSUFFIX} -lsybintl_r${SYBLIBSUFFIX} -lsybblk_r${SYBLIBSUFFIX} -lsybcomn_r${SYBLIBSUFFIX} -lsybct_r${SYBLIBSUFFIX} -lsybunic${SYBLIBSUFFIX} -lsybtcl_r${SYBLIBSUFFIX}"
-   if test -f $with_sybase_libs/libsybunic${SYBLIBSUFFIX}.${SHLIB_SUFFIX} ; then
-      SYBASE_LIBS="$SYBASE_LIBS -lsybunic${SYBLIBSUFFIX}"
-   fi
-
-   # check if C++ compiler can link with Sybase libs
-   SAVE_CXXFLAGS="$CXXFLAGS"
-   SAVE_LDFLAGS="$LDFLAGS"
-   CXXFLAGS="$CXXFLAGS $SYBASE_INCLUDES"
-   LDFLAGS="$LDFLAGS $SYBASE_LIBS"
-   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#include <ctpublic.h>
-	 ]],[[
-CS_CONTEXT *m_context; ct_init(m_context, CS_VERSION_100);
-	]])], sybase_links=yes, sybase_links=no)
-
-   CXXFLAGS="$SAVE_CXXFLAGS"
-   LDFLAGS="$SAVE_LDFLAGS"
-
-   if test "$sybase_links" = "no"; then
-      if test -n "$sybase_explicit"; then
-         AC_MSG_ERROR([could not compile and link a test Sybase program])
-      else
-         AC_MSG_WARN([could not compile and link a test Sybase program, disabling sybase support])
-	 unset with_sybase
-      fi
-   else
-      # without this "test" below, the shell will crap out
-      test
-      AC_SUBST(SYBASE_INCLUDES)
-      AC_SUBST(SYBASE_LIBS)
-   fi
-fi
-
-# freetds settings (mssql driver)
-AC_ARG_WITH([freetds],
-    [AS_HELP_STRING([--with-freetds@<:@=DIR@:>@],
-                    [FreeTDS base directory])],
-    [if test ! -d "${with_freetds}"; then AC_MSG_ERROR(directory ${with_freetds} does not exist for --with-freetds); unset with_freetds; fi])
-
-# see if we can figure out where the freetds include files and libraries are
-if test "${with_freetds}" != "no"; then
-   if test -n "$with_freetds"; then
-      freetds_explicit=yes
-   fi
-
-   AC_MSG_CHECKING([for freetds includes and libraries])
-
-   if test -n "$with_freetds"; then
-      check_freetds "$with_freetds"
-      if test -z "$with_freetds_includes"; then
-	 AC_MSG_ERROR([not found in $with_freetds])
-      fi
-   fi
-
-   for dir in $FREETDS /usr /opt /usr/local /sw /opt/local /usr/local /opt/gnu; do
-      check_freetds "$dir"
-      if test -n "$with_freetds_includes"; then
-	 break;
-      fi
-   done
-
-   if test -n "$with_freetds_includes"; then
-      AC_MSG_RESULT([includes=$with_freetds_includes, libs=$with_freetds_libs])
-      with_freetds=yes
-   else
-      AC_MSG_RESULT([not found])
-   fi
-fi
-
-if test "${with_freetds}" = yes; then
-   FREETDS_INCLUDES="-I$with_freetds_includes"
-   FREETDS_LIBS="-L$with_freetds_libs -lsybdb -lct"
-
-   # check if C++ compiler can link with FreeTDS libs
-   SAVE_CXXFLAGS="$CXXFLAGS"
-   SAVE_LDFLAGS="$LDFLAGS"
-   CXXFLAGS="$CXXFLAGS $FREETDS_INCLUDES"
-   LDFLAGS="$LDFLAGS $FREETDS_LIBS"
-   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#include <ctpublic.h>
-	 ]],[[
-CS_CONTEXT *m_context; ct_init(m_context, CS_VERSION_100);
-	]])], freetds_links=yes, freetds_links=no)
-
-   if test "$freetds_links" = "no"; then
-      if test -n "$freetds_explicit"; then
-         AC_MSG_ERROR([could not compile and link a test FreeTDS program])
-      else
-         AC_MSG_WARN([could not compile and link a test FreeTDS program, disabling mssql support])
-	 unset with_freetds
-      fi
-   else
-      # without this "test" below, the shell will crap out
-      test
-
-      # check if freetds supports ct_loc_alloc, etc, if it has CS_SYB_LANG_CHARSET defined, 
-      # then it will be OK
-      AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#include <cspublic.h>
-	 ]],[[
-#ifndef CS_SYB_LANG_CHARSET
-#error
-#endif
-	]])], freetds_locale=yes, freetds_locale=no)
-
-      if test "$freetds_locale" = "yes"; then
-         AC_DEFINE(FREETDS_LOCALE, 1, [define if freetds ct-lib cs_loc_alloc, cs_locale are (at least partially) implemented])
-      fi
-
-      AC_SUBST(FREETDS_INCLUDES)
-      AC_SUBST(FREETDS_LIBS)
-   fi
-
-   CXXFLAGS="$SAVE_CXXFLAGS"
-   LDFLAGS="$SAVE_LDFLAGS"
-fi
-
 AC_ARG_WITH([pgsql],
     [AS_HELP_STRING([--with-pgsql@<:@=DIR@:>@],
                     [PostgreSQL base directory])],
@@ -1589,16 +1385,13 @@ AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
 AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
-AM_CONDITIONAL([COND_SYBASE],     [test "$with_sybase" = yes])
-AM_CONDITIONAL([COND_FREETDS],    [test "$with_freetds" = yes])
-AM_CONDITIONAL([COND_SYBASE_DIR], [test "$with_sybase" = yes -o "$with_freetds" = yes]) 
 AM_CONDITIONAL([COND_PGSQL],      [test "$with_pgsql" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/sybase/Makefile modules/pgsql/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/pgsql/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -1633,10 +1426,8 @@ if test "$enable_shared" = "yes"; then
 fi
 
 show_library_feature oracle $with_oracle
-show_library_feature sybase $with_sybase
 show_library_feature mysql $with_mysql
 show_library_feature pgsql $with_pgsql
-show_library_feature mssql $with_freetds
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules

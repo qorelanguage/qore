@@ -214,9 +214,6 @@ endif
 if COND_MYSQL
 libqore_la_LIBADD += ../modules/mysql/libmysql.la
 endif
-if COND_SYBASE
-libqore_la_LIBADD += ../modules/sybase/libsybase.la
-endif
 if COND_PGSQL
 libqore_la_LIBADD += ../modules/pgsql/libpgsql.la
 endif

@@ -18,7 +18,3 @@ endif
 if COND_PGSQL
 SUBDIRS += pgsql
 endif
-
-if COND_SYBASE_DIR
-SUBDIRS += sybase
-endif

@@ -10,6 +10,8 @@
 	  (https://qore.svn.sourceforge.net/svnroot/qore/module-tibrv)
 	* removed tibae module to separate project
 	  (https://qore.svn.sourceforge.net/svnroot/qore/module-tibae)
+	* removed sybase module to separate project
+	  (https://qore.svn.sourceforge.net/svnroot/qore/module-sybase)
 
 2008.09.02: David Nichols
 	* moved qt modules to separate project

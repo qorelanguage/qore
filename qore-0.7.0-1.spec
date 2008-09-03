@@ -3,9 +3,7 @@
 
 %define with_mysql      1
 %define with_pgsql      1
-%define with_mssql      1
 %define with_oracle     1
-%define with_sybase     1
 
 %if 0%{?sles_version}
 
@@ -76,10 +74,6 @@ BuildRequires: mysql-devel
 %if 0%{?with_pgsql}
 BuildRequires: postgresql-devel
 %endif
-%if 0%{?with_mssql}
-BuildRequires: freetds-devel
-%endif
-
 
 %description
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -183,63 +177,6 @@ stored prodedure and function execution, etc.
 %files pgsql-module
 %defattr(-,root,root,-)
 %{module_dir}/pgsql.qmod
-%endif
-
-%if 0%{?with_sybase}
-%package sybase-module
-Summary: Sybase DBI module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-
-%description sybase-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-Sybase DBI driver module for the Qore Programming Language. The Sybase driver is
-character set aware, supports multithreading, transaction management, stored
-prodedure and function execution, etc.
-
-
-%files sybase-module
-%defattr(-,root,root,-)
-%{module_dir}/sybase.qmod
-%endif
-
-%if 0%{?with_mssql}
-%package mssql-module
-Summary: FreeTDS-based MS-SQL and Sybase DBI module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-Requires: freetds
-
-%description mssql-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-FreeTDS-based MS-SQL Server and Sybase DBI driver module for the Qore
-Programming Language. This driver is character set aware, supports
-multithreading, transaction management, stored prodedure and function
-execution, etc, and can be used to connect to Sybase and Microsoft SQL Server
-databases.
-
-
-%files mssql-module
-%defattr(-,root,root,-)
-%{module_dir}/mssql.qmod
 %endif
 
 %package libs

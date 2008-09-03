@@ -575,7 +575,8 @@ class QoreNamespace *getSQLNamespace()
    SQLNS->addConstant("DSMySQL",    new QoreStringNode("mysql"));
    SQLNS->addConstant("DSSybase",   new QoreStringNode("sybase"));
    SQLNS->addConstant("DSPGSQL",    new QoreStringNode("pgsql"));
-   SQLNS->addConstant("DSMSSQL",    new QoreStringNode("mssql"));
+   SQLNS->addConstant("DSMSSQL",    new QoreStringNode("freetds"));
+   SQLNS->addConstant("DSFreeTDS",  new QoreStringNode("freetds"));
    // the following have no drivers yet
    SQLNS->addConstant("DSDB2",      new QoreStringNode("db2"));
    SQLNS->addConstant("DSInformix", new QoreStringNode("informix"));

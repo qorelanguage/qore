@@ -236,14 +236,6 @@ noinst_HEADERS = \
 	modules/pgsql/pgsql.h \
 	modules/pgsql/QorePGConnection.h \
 	modules/pgsql/QorePGMapper.h \
-	modules/sybase/sybase.h \
-	modules/sybase/connection.h \
-	modules/sybase/conversions.h \
-	modules/sybase/command.h \
-	modules/sybase/encoding_helpers.h \
-	modules/sybase/sybase_query.h \
-	modules/sybase/common_constants.h \
-	modules/sybase/row_output_buffers.h \
 	command-line.h
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
