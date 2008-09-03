@@ -49,9 +49,6 @@ if you have the open headers and libraries in a location the configure script ca
 --with-mysql=<dir>                  : directory of MySQL installation ("mysql" module)
 --with-pgsql=<dir>	            : directory of PostgreSQL installation ("pgsql" module)
 --with-sybase=<dir>                 : directory of Sybase OCS installation ("sybase" module)
---with-tibae=<dir>                  : directory of TIBCO AE SDK ("tibae" module)
---with-tibae-tpcl=<dir>             : directory of TIBCO AE TPCL installation ("tibae" module)
---with-tibco-ems=<dir>              : directory of TIBCO EMS installation ("tibae" module)
 --with-sybase=<dir>                 : directory of Sybase or Sybase OCS installation ("sybase" module)
 --with-freetds=<dir>                : directory of FreeTDS installation ("mssql" module)
 --enable-scu-qt                     : enable single compilation unit for the qt module - only use this if you have at least 2G RAM
@@ -91,10 +88,6 @@ Use --with-sybase or set the SYBASE and SYBASE_OCS environment variables to buil
 User --with-freetds or set the FREETDS environment variable to your FreeTDS installation to build the "mssql" module.  Note that the "mssql" driver is built from the same source as the "sybase" driver and can be used to connect to sybase and MS SQL Server databases
 only tested so far with freetds 0.64, sybase ASE 15.0.1 and MS SQL Server 2005 SP2 (express edition)
 FreeTDS website: http://www.freetds.org
-
-*) "tibae": TIBCO AE module requires TIBCO SDK 5.2.1 or better
-If you have TIBCO Rendezvous and the AE SDK installed, and the supported C++ compiler, you can build in TIBCO AE integration.  Make sure that the RV_ROOT, TRA_ROOT, TPCL_ROOT, and EMS_ROOT environment variables are pointing to your Rendezvous, SDK, TPCL, and EMS directories respectively before calling configure (EMS_ROOT only required for SDK 5.5 and above).  Otherwise you can use the --with-tibrv, --with-tibae, with-tibae-tpcl, and --with-tibco-ems configure options.  The "tibae" module will compile with SDK 4.* versions, but there are so many bugs in this version of the SDK (including some horrible dynamic memory leaks) that it doesn't make sense to use anything before 5.2.1...
-Note that newer SDKs may work with HP-UX PA-RISC 11.*, so the restriction on building this module on HP-UX PA-RISC has been removed from the configure script.
 
 To build qore, run the following commands:
 
@@ -148,6 +141,6 @@ The cache invalidation optimization is not safe on platforms without an atomic r
 
 Modules
 -------
-On platforms that support building shared libraries, modules are stored in a subdirectory named "qore-<ver>" of the library directoy.
+On platforms that support building shared libraries, modules are stored in a subdirectory named "qore-module-api-<ver>" of the library directoy.
 Modules are installed with the extension *.qmod
 Note that modules are (as of version 0.7.0 of qore) delivered separately from the qore library, see the file README-MODULES for more information.
