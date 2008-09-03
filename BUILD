@@ -46,11 +46,6 @@ if you have the open headers and libraries in a location the configure script ca
 --with-pcre-dir=<dir>               : directory of pcre installation
 --with-oracle=<dir>                 : directory of Oracle installation ("oracle" module)
 --with-oracle-instant-client=<dir>  : directory of Oracle Instant Client installation ("oracle" module)
---with-mysql=<dir>                  : directory of MySQL installation ("mysql" module)
---with-sybase=<dir>                 : directory of Sybase OCS installation ("sybase" module)
---with-sybase=<dir>                 : directory of Sybase or Sybase OCS installation ("sybase" module)
---with-freetds=<dir>                : directory of FreeTDS installation ("mssql" module)
---enable-scu-qt                     : enable single compilation unit for the qt module - only use this if you have at least 2G RAM
 
 rarely used options
 -------------------
@@ -68,12 +63,6 @@ Oracle DB installation: If you have Oracle 9i or higher you can build in Oracle 
 Oracle Instant Client installation: Make sure the ORACLE_INSTANT_CLIENT environment variable is set before you run configure.  Note that on HPUX I have not found a working instant client for 32-bit PA-RISC, for some reason libnnz10 would not link.  Additionally on HP-UX 11.23 PA-RISC there have been stability and locking problems with Oracle 10g client libraries; I have not been able to identify the source.  These problems do not affect any other port and appear to be caused by bugs in the Oracle client libraries somewhere.  So far I haven't been able to locate the problem.  Use the Oracle driver on HP-UX PA-RISC with Oracle 10G libraries at your own risk. 
 Also note that with the instant client distributions, I had to manually link the libclntsh.sl1.10.* (libclntsh.so.10.*, libclntsh.dylib.10.*) to libclintsh.sl (libclntsh.so, libclntsh.dylib) in order to link with the included Oracle libraries.
 Oracle support in qore is good, very well tested.
-
-*) "mysql": MySQL DBI module requires MySQL 3.3 or better
-If you have MySQL 3.3+ or better you can build in MySQL support.  With MySQL 4.1+ you can get transaction support and the module will use the more efficient prepared statement interface.
-If your mysql installation is in a non-standard location, set the MYSQL_DIR environment variable to the location of the installation before running configure.
-Note that you have to use g++ 4.0.* on Darwin to link with newer versions of the MySQL libraries
-MySQL support in qore is good and well tested.
 
 To build qore, run the following commands:
 

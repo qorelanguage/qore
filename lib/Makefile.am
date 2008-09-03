@@ -211,7 +211,4 @@ if COND_MONOLITHIC
 if COND_ORACLE
 libqore_la_LIBADD += ../modules/oracle/liboracle.la
 endif
-if COND_MYSQL
-libqore_la_LIBADD += ../modules/mysql/libmysql.la
-endif
 endif

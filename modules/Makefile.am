@@ -10,7 +10,3 @@ AM_CXXFLAGS =
 if COND_ORACLE
 SUBDIRS += oracle
 endif
-
-if COND_MYSQL
-SUBDIRS += mysql
-endif

@@ -54,9 +54,6 @@ static QoreThreadLock mutex;
 # ifdef ORACLE
 #  include "../modules/oracle/oracle-module.h"
 # endif
-# ifdef QORE_MYSQL
-#  include "../modules/mysql/qore-mysql-module.h"
-# endif
 #endif
 
 typedef std::deque<std::string> strdeque_t;
@@ -288,9 +285,6 @@ void ModuleManager::init(bool se)
 #ifdef QORE_MONOLITHIC
 # ifdef ORACLE
    addBuiltin("oracle", oracle_module_init, oracle_module_ns_init, oracle_module_delete);
-# endif
-# ifdef QORE_MYSQL
-   addBuiltin("mysql", qore_mysql_module_init, qore_mysql_module_ns_init, qore_mysql_module_delete);
 # endif
 #endif
    // autoload modules

@@ -100,12 +100,6 @@ FeatureList::FeatureList()
 # ifdef ORACLE
    push_back("oracle");
 # endif
-# ifdef QORE_MYSQL
-   push_back("mysql");
-# endif
-# ifdef FREETDS
-   push_back("freetds");
-# endif
 #endif
 }
 

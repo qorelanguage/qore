@@ -817,135 +817,6 @@ if test "$with_oracle" = "yes"; then
    LDFLAGS="$SAVE_LDFLAGS"
 fi
 
-AC_ARG_WITH([mysql],
-    [AS_HELP_STRING([--with-mysql@<:@=DIR@:>@],
-                    [MySQL base directory])],
-    [if test ! -d "${with_mysql}"; then AC_MSG_ERROR(directory ${with_mysql} does not exist for --with-mysql); unset with_mysql; fi])
-
-check_mysql()
-{
-    inc="$1/include"
-    if test "$1" = "/"; then
-       inc=/usr/include
-    fi
-
-    if test -f "$inc/mysql.h"; then
-       with_mysql_includes=$inc
-    elif test -f "$inc/mysql/mysql.h"; then
-       with_mysql_includes=$inc/mysql
-    fi
-    if test -z "$with_mysql_includes"; then
-       return
-    fi
-
-    lib="$1/lib${LIBSUFFIX}"
-    if test -f "$lib/libmysqlclient_r.${SHLIB_SUFFIX}"; then
-       with_mysql_libs=$lib
-    elif test -f "$lib/mysql/libmysqlclient_r.${SHLIB_SUFFIX}"; then
-       with_mysql_libs=$lib/mysql
-    elif test -f "$lib/libmysqlclient_r.a"; then
-       with_mysql_libs=$lib
-       mysql_static=1
-    elif test -f "$lib/mysql/libmysqlclient_r.a"; then
-       with_mysql_libs=$lib/mysql
-       mysql_static=1
-    fi
-
-    if test -z "$with_mysql_libs"; then
-       unset with_mysql_includes
-    else
-	if test "$with_mysql_includes" != "/usr/include"; then
-	   mysql_app_includes=true
-        fi
-	if test "$with_mysql_libs" != "/lib${LIBSUFFIX}"; then
-	   mysql_app_libs=true
-	fi
-    fi
-}
-
-# see if we can figure out where the mysql include files and libraries are
-if test "${with_mysql}" != "no"; then
-   AC_MSG_CHECKING([for mysql includes and libraries])
-
-   if test -n "$with_mysql"; then
-      check_mysql "$with_mysql"
-      if test -z "$with_mysql_includes"; then
-	 AC_MSG_ERROR([not found in $with_mysql])
-      fi
-   fi
-
-   for dir in $MYSQL_DIR / /usr /usr/local/mysql /opt/mysql /usr/mysql /sw /opt/local /opt/sfw /usr/sfw; do
-      check_mysql $dir
-      if test -n "$with_mysql_includes"; then
-	 break;
-      fi
-   done
-
-   if test -n "$with_mysql_includes"; then
-      if test -n "$mysql_static"; then
-	 AC_MSG_RESULT([includes=$with_mysql_includes, libs=$with_mysql_libs (static)])
-      else
-	 AC_MSG_RESULT([includes=$with_mysql_includes, libs=$with_mysql_libs (shared)])
-      fi
-      with_mysql=yes
-   else
-      AC_MSG_RESULT([not found])
-   fi
-fi
-
-if test "${with_mysql}" = yes; then
-  if test -n "$with_mysql_includes"; then
-     # only set include path if necessary
-     if test -n "$mysql_app_includes"; then
-          MYSQL_INCLUDES="-I$with_mysql_includes"
-     fi
-     if test -n "$mysql_static"; then
-          MYSQL_LIBS="$with_mysql_libs/libmysqlclient_r.a"
-     else
-	if test -n "$mysql_app_libs"; then
-	   MYSQL_LIBS="-L$with_mysql_libs -lmysqlclient_r"
-	else
-	   MYSQL_LIBS="-lmysqlclient_r"
-	fi
-     fi
-     # check if C++ compiler can link with MYSQL libs
-     SAVE_CXXFLAGS="$CXXFLAGS"
-     SAVE_LDFLAGS="$LDFLAGS"
-     CXXFLAGS="$CXXFLAGS $MYSQL_INCLUDES"
-     LDFLAGS="$LDFLAGS $MYSQL_LIBS"
-     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <mysql.h>
-	 ]],[[
-MYSQL mysql; mysql_init(&mysql);
-	]])], mysql_links=yes, mysql_links=no)
-
-     CXXFLAGS="$SAVE_CXXFLAGS"
-     LDFLAGS="$SAVE_LDFLAGS"
-
-     if test "$mysql_links" = "no"; then
-        AC_MSG_ERROR([could not compile a test MySQL program])
-     else
-        AC_SUBST(MYSQL_INCLUDES)
-	AC_SUBST(MYSQL_LIBS)
-	# check for mysql_stmt_prepare
-	if test -n "`grep mysql_stmt_prepare ${with_mysql_includes}/*.h`"; then
-	   AC_DEFINE(HAVE_MYSQL_STMT, 1, Define if mysql_stmt_* functions are available)
-	fi
-	# check for mysql_commit
-	if test -n "`grep mysql_commit ${with_mysql_includes}/*.h`"; then
-	   AC_DEFINE(HAVE_MYSQL_COMMIT, 1, [Define if mysql_commit() and mysql_rollback() functions are available])
-	fi
-	# check for mysql_set_character_set
-	if test -n "`grep mysql_set_character_set ${with_mysql_includes}/*.h`"; then
-	   AC_DEFINE(HAVE_MYSQL_SET_CHARACTER_SET, 1, [Define if mysql_set_character_set() is available])
-	fi
-        with_mysql=yes
-     fi
-  else
-     AC_MSG_WARN([no MySQL libraries or includes found, disabling MySQL support])
-  fi
-fi
-
 AC_ARG_WITH([doxygen],
     [AS_HELP_STRING([--with-doxygen@<:@=PATH@:>@],
                     [path to doxygen binary])],
@@ -1126,9 +997,6 @@ fi
 if test "$with_oracle" = "yes"; then
    AC_DEFINE(ORACLE, 1, Define to 1 if Oracle support should be included)
 fi
-if test "$with_mysql" = "yes"; then
-   AC_DEFINE(QORE_MYSQL, 1, Define to 1 if MySQL support should be included)
-fi
 
 # turn on optimizations if we know how
 if test "$enable_optimization" = "yes"; then
@@ -1198,13 +1066,12 @@ AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
 AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
-AM_CONDITIONAL([COND_MYSQL],      [test "$with_mysql" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/mysql/Makefile modules/oracle/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/oracle/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
@@ -1239,7 +1106,6 @@ if test "$enable_shared" = "yes"; then
 fi
 
 show_library_feature oracle $with_oracle
-show_library_feature mysql $with_mysql
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules

@@ -174,14 +174,6 @@ The "oracle" DBI driver has been well tested and is in heavy production use.
 *) all NUMBER fields are loaded as strings in selects in order to not lose any data.  Qore would need an arbitrary-precision Number type in order handle this case better.
 *) it's possible to bind and retrieve *LOB values
 
-MYSQL
-------------
-The "mysql" DBI driver has been extensively tested, and supports all DBI features including stored procedure execution
-*) transaction management is supported
-*) automatic transparent character set conversion is supported when necessary
-*) threading support
-*) stored procedure support with direct binding and retrieving values
-
 
 *********************
 *** SQL Subsystem ***

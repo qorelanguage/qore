@@ -1,8 +1,6 @@
 %define module_api 0.4
 %define module_dir %{_libdir}/qore-module-api-%{module_api}
 
-%define with_mysql      1
-%define with_pgsql      1
 %define with_oracle     1
 
 %if 0%{?sles_version}
@@ -68,12 +66,6 @@ BuildRequires: libbz2-devel
 %else
 BuildRequires: bzip2-devel
 %endif
-%if 0%{?with_mysql}
-BuildRequires: mysql-devel
-%endif
-%if 0%{?with_pgsql}
-BuildRequires: postgresql-devel
-%endif
 
 %description
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -121,62 +113,6 @@ prodedure and function execution, etc.
 %files oracle-module
 %defattr(-,root,root,-)
 %{module_dir}/oracle.qmod
-%endif
-
-%if 0%{?with_mysql}
-%package mysql-module
-Summary: MySQL DBI module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-Requires: mysql-libs
-
-%description mysql-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-MySQL DBI driver module for the Qore Programming Language. The MySQL driver is
-character set aware and supports multithreading, transaction management, and
-stored procedure execution.
-
-
-%files mysql-module
-%defattr(-,root,root,-)
-%{module_dir}/mysql.qmod
-%endif
-
-%if 0%{?with_pgsql}
-%package pgsql-module
-Summary: PostgreSQL DBI module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-Requires: postgresql-libs
-
-%description pgsql-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-PostgreSQL DBI driver module for the Qore Programming Language. The PostgreSQL
-driver is character set aware, supports multithreading, transaction management,
-stored prodedure and function execution, etc.
-
-
-%files pgsql-module
-%defattr(-,root,root,-)
-%{module_dir}/pgsql.qmod
 %endif
 
 %package libs
