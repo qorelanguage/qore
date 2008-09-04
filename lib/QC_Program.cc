@@ -264,18 +264,27 @@ static AbstractQoreNode *PROGRAM_disableParseOptions(QoreObject *self, QoreProgr
    return 0;
 }
 
-static AbstractQoreNode *PROGRAM_setScriptDir(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_setScriptPath(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
 
-   p->setScriptDir(p0 ? p0->getBuffer() : 0);
+   p->setScriptPath(p0 ? p0->getBuffer() : 0);
    return 0;
 }
 
 static AbstractQoreNode *PROGRAM_getScriptDir(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
-   const char *str = p->getScriptDir();
-   return str ? new QoreStringNode(str) : 0;
+   return p->getScriptDir();
+}
+
+static AbstractQoreNode *PROGRAM_getScriptName(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+{
+   return p->getScriptName();
+}
+
+static AbstractQoreNode *PROGRAM_getScriptPath(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+{
+   return p->getScriptPath();
 }
 
 static AbstractQoreNode *PROGRAM_lockOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
@@ -306,8 +315,10 @@ QoreClass *initProgramClass()
    QC_PROGRAM->addMethod("getParseOptions",      (q_method_t)PROGRAM_getParseOptions);
    QC_PROGRAM->addMethod("setParseOptions",      (q_method_t)PROGRAM_setParseOptions);
    QC_PROGRAM->addMethod("disableParseOptions",  (q_method_t)PROGRAM_disableParseOptions);
-   QC_PROGRAM->addMethod("setScriptDir",         (q_method_t)PROGRAM_setScriptDir);
+   QC_PROGRAM->addMethod("setScriptPath",        (q_method_t)PROGRAM_setScriptPath);
    QC_PROGRAM->addMethod("getScriptDir",         (q_method_t)PROGRAM_getScriptDir);
+   QC_PROGRAM->addMethod("getScriptName",        (q_method_t)PROGRAM_getScriptName);
+   QC_PROGRAM->addMethod("getScriptPath",        (q_method_t)PROGRAM_getScriptPath);
    QC_PROGRAM->addMethod("lockOptions",          (q_method_t)PROGRAM_lockOptions);
 
 

@@ -106,7 +106,7 @@ char *remove_trailing_blanks(char *str)
    return str;
 }
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 void showCallStack()
 {
    QoreListNode *callStack = getCallStackList();
@@ -116,11 +116,9 @@ void showCallStack()
       printf("terminated at %s:%d\n", get_pgm_file(), sl);
    else
       printf("terminated at %s:%d-%d\n", get_pgm_file(), sl, el);
-   if (callStack && callStack->size())
-   {
+   if (callStack && callStack->size()) {
       printe("call stack:\n");
-      for (unsigned i = 0; i < callStack->size(); i++)
-      {
+      for (unsigned i = 0; i < callStack->size(); i++) {
          QoreHashNode *h = reinterpret_cast<QoreHashNode *>(callStack->retrieve_entry(i));
 	 QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
 	 QoreStringNode *file = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
@@ -137,8 +135,7 @@ void parse_error(const char *fmt, ...)
    printd(5, "parse_error(\"%s\", ...) called\n", fmt);
 
    QoreStringNode *desc = new QoreStringNode();
-   while (true)
-   {
+   while (true) {
       va_list args;
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -154,8 +151,7 @@ void parse_error(int sline, int eline, const char *fmt, ...)
    printd(5, "parse_error(sline, eline, \"%s\", ...) called\n", sline, eline, fmt);
 
    QoreStringNode *desc = new QoreStringNode();
-   while (true)
-   {
+   while (true) {
       va_list args;
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -171,8 +167,7 @@ void parseException(const char *err, const char *fmt, ...)
    printd(5, "parseException(%s. '%s', ...) called\n", err, fmt);
 
    QoreStringNode *desc = new QoreStringNode();
-   while (true)
-   {
+   while (true) {
       va_list args;
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -196,7 +191,7 @@ static inline int tryIncludeDir(class QoreString *dir, const char *file)
 }
 
 // FIXME: this could be a lot more efficient
-class QoreString *findFileInEnvPath(const char *file, const char *varname)
+QoreString *findFileInEnvPath(const char *file, const char *varname)
 {
    //printd(5, "findFileInEnvPath(file=%s var=%s)\n", file, varname);
 
@@ -220,10 +215,8 @@ class QoreString *findFileInEnvPath(const char *file, const char *varname)
    //printd(5, "findFileInEnvPath() %s=%s\n", varname, idir);
 
    // try each directory
-   while (char *p = strchr(idir, ':'))
-   {
-      if (p != idir)
-      {
+   while (char *p = strchr(idir, ':')) {
+      if (p != idir) {
 	 *p = '\0';
 	 TempString str(new QoreString(idir));
 	 if (tryIncludeDir(*str, file))
@@ -233,8 +226,7 @@ class QoreString *findFileInEnvPath(const char *file, const char *varname)
    }
 
    // try last directory
-   if (idir[0])
-   {
+   if (idir[0]) {
       TempString str(new QoreString(idir));
       if (tryIncludeDir(*str, file))
 	 return str.release();

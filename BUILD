@@ -44,25 +44,14 @@ if you have the open headers and libraries in a location the configure script ca
 --with-openssl-dir=<dir>            : directory of openssl installation
 --with-libxml2-dir=<dir>            : directory of libxml2 installation
 --with-pcre-dir=<dir>               : directory of pcre installation
---with-oracle=<dir>                 : directory of Oracle installation ("oracle" module)
---with-oracle-instant-client=<dir>  : directory of Oracle Instant Client installation ("oracle" module)
 
 rarely used options
 -------------------
 --disable-single-compilation-unit   : to disable building all related files at once in each directory.  This is enabled by default because it normally makes for much quicker compiles and also allows the compiler to optimize based on the entire source at the same time.  However if you don't have enough memory (at least 1G RAM) then you should turn it off, otherwise leave it on.
---enable-builtin-modules            : will include code for all modules included in the source distribution directly in the shared library - note that this requires a very recent version of libtool otherwise it will fail - normally this option should not be used (has not been tested recently, will be removed in a future release)
 
 ********************************
 recommended configure arguments: configure --disable-static --disable-debug --prefix=/usr   ( add --enable-64bit on 64-bit platforms for 64-bit builds)
 ********************************
-
-========= to build optional modules ==========
-
-*) "oracle": Oracle DBI module requires Oracle 9i or better
-Oracle DB installation: If you have Oracle 9i or higher you can build in Oracle integration.  Make sure your ORACLE_HOME is set before calling configure (otherwise use the --with-oracle configure option).  Header files and libraries must be available in the standard locations.  
-Oracle Instant Client installation: Make sure the ORACLE_INSTANT_CLIENT environment variable is set before you run configure.  Note that on HPUX I have not found a working instant client for 32-bit PA-RISC, for some reason libnnz10 would not link.  Additionally on HP-UX 11.23 PA-RISC there have been stability and locking problems with Oracle 10g client libraries; I have not been able to identify the source.  These problems do not affect any other port and appear to be caused by bugs in the Oracle client libraries somewhere.  So far I haven't been able to locate the problem.  Use the Oracle driver on HP-UX PA-RISC with Oracle 10G libraries at your own risk. 
-Also note that with the instant client distributions, I had to manually link the libclntsh.sl1.10.* (libclntsh.so.10.*, libclntsh.dylib.10.*) to libclintsh.sl (libclntsh.so, libclntsh.dylib) in order to link with the included Oracle libraries.
-Oracle support in qore is good, very well tested.
 
 To build qore, run the following commands:
 

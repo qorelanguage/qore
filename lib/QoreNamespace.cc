@@ -1690,12 +1690,12 @@ RootQoreNamespace::~RootQoreNamespace()
 {
 }
 
-class QoreNamespace *RootQoreNamespace::rootGetQoreNamespace() const
+QoreNamespace *RootQoreNamespace::rootGetQoreNamespace() const
 {
    return qoreNS;
 }
 
-class RootQoreNamespace *RootQoreNamespace::copy(int po) const
+RootQoreNamespace *RootQoreNamespace::copy(int po) const
 {
    return new RootQoreNamespace(priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po), priv->pendClassList->copy(po), priv->pendConstant->copy(), priv->pendNSL->copy(po));
 }

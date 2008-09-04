@@ -84,7 +84,7 @@
 #include "AbstractSmartLock.cc"
 #include "SmartMutex.cc"
 #include "RMutex.cc"
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include "CallStack.cc"
 #endif
 #include "Datasource.cc"

@@ -289,7 +289,7 @@ void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args
 
    CodeContextHelper cch("constructor", self, xsink);
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    // push call on call stack
    CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
 #endif
@@ -327,7 +327,7 @@ AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreList
    {
       CodeContextHelper cch(name, self, xsink);
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on call stac
       CallStackHelper csh(name, CT_BUILTIN, self, xsink);
 #endif
@@ -348,7 +348,7 @@ AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, AbstractPrivateD
    printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
 
    CodeContextHelper cch(name, self, xsink);
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    // push call on call stack in debugging mode
    CallStackHelper csh(name, CT_BUILTIN, self, xsink);
 #endif
@@ -369,7 +369,7 @@ void BuiltinFunction::evalDestructor(QoreObject *self, AbstractPrivateData *priv
 
    {
       CodeContextHelper cch("destructor", self, xsink);
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on call stack
       CallStackHelper csh("destructor", CT_BUILTIN, self, xsink);
 #endif
@@ -394,7 +394,7 @@ void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, AbstractPrivat
    
    {
       CodeContextHelper cch("copy", self, xsink);
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on call stack
       CallStackHelper csh("copy", CT_BUILTIN, self, xsink);
 #endif
@@ -439,7 +439,7 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
 
    {
       CodeContextHelper cch(name, 0, xsink);
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on call stack
       CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
 #endif
@@ -535,7 +535,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
    {
       CodeContextHelper cch(getName(), self, xsink);
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on stack
       CallStackHelper csh(getName(), CT_USER, self, xsink);
 #endif
@@ -614,7 +614,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
    if (statements)
    {
       CodeContextHelper cch(getName(), self, xsink);
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on stack
       CallStackHelper csh(getName(), CT_USER, self, xsink);
 #endif
@@ -739,7 +739,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
       if (statements)
       {
 	 CodeContextHelper cch(getName(), self, xsink);
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 	 // push call on stack
 	 CallStackHelper csh(getName(), CT_USER, self, xsink);
 #endif

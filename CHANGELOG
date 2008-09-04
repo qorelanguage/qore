@@ -1,3 +1,14 @@
+2008.09.04: David Nichols
+	* implemented a much more efficient algorithm for parsing base64 strings
+	* improved base64 string parsing exceptions
+	* removed unsafe QoreProgram::setScriptDir() function
+	* added safe QoreProgram::setScriptPath() function
+	* added Qore Program methods: Program::getScriptPath() and 
+	  Program::getScriptName()
+	* changed Program::setScriptDir() to safe Program::setScriptPath()
+	* added get_script_path() and get_script_name() functions and
+	  associated documentation
+
 2008.09.03: David Nichols
 	* updated docs and inherit.q example regarding how to call derived class
 	  methods from a base class (use $self.method() instead of $.method())

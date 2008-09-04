@@ -1,8 +1,6 @@
 %define module_api 0.4
 %define module_dir %{_libdir}/qore-module-api-%{module_api}
 
-%define with_oracle     1
-
 %if 0%{?sles_version}
 
 %if 0%{?sles_version} == 10
@@ -87,33 +85,6 @@ ldconfig %{_libdir}
 
 %postun
 ldconfig %{_libdir}
-
-%if 0%{?with_oracle}
-%package oracle-module
-Summary: Oracle DBI module for Qore
-Group: Development/Languages
-Requires: %{name}-libs = %{version}-%{release}
-
-%description oracle-module
-Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
-
-Oracle DBI driver module for the Qore Programming Language. The Oracle driver is
-character set aware, supports multithreading, transaction management, stored
-prodedure and function execution, etc.
-
-
-%files oracle-module
-%defattr(-,root,root,-)
-%{module_dir}/oracle.qmod
-%endif
 
 %package libs
 Summary: The libraries for qore runtime and qore clients
@@ -219,6 +190,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Thu Sep 4 2008 David Nichols <david_nichols@users.sourceforge.net>
+- removed all modules as they are now independent projects
+
 * Tue Sep 2 2008 David Nichols <david_nichols@users.sourceforge.net>
 - fixed dist tag for suse distributions
 - updated for new module directory, added qore-module-api-* capability

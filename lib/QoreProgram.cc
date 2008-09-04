@@ -105,7 +105,7 @@ struct qore_program_private {
       CharPtrList featureList;
       
       // parse lock, making parsing actions atomic and thread-safe
-      QoreThreadLock plock;
+      mutable QoreThreadLock plock;
       // depedency counter, when this hits zero, the object is deleted
       QoreReferenceCounter dc;
       SBNode *sb_head, *sb_tail;
@@ -115,7 +115,7 @@ struct qore_program_private {
 
       int parse_options;
       int warn_mask;
-      std::string exec_class_name, script_dir;
+      std::string exec_class_name, script_dir, script_path, script_name;
       bool po_locked, exec_class, base_object, requires_exception;
 
       qpgm_thread_local_storage_t *thread_local_storage;
@@ -146,6 +146,52 @@ struct qore_program_private {
 
       DLLLOCAL ~qore_program_private()
       {
+      }
+
+      DLLLOCAL QoreStringNode *getScriptPath() const {
+	 // grab program-level parse lock
+	 AutoLocker al(&plock);
+	 return script_path.empty() ? 0 : new QoreStringNode(script_path);
+      }
+
+      DLLLOCAL QoreStringNode *getScriptDir() const {
+	 // grab program-level parse lock
+	 AutoLocker al(&plock);
+	 return script_dir.empty() ? 0 : new QoreStringNode(script_dir);
+      }
+
+      DLLLOCAL QoreStringNode *getScriptName() const {
+	 // grab program-level parse lock
+	 AutoLocker al(&plock);
+	 return script_name.empty() ? 0 : new QoreStringNode(script_name);
+      }
+
+      DLLLOCAL void setScriptPathExtern(const char *path) {
+	 // grab program-level parse lock
+	 AutoLocker al(&plock);
+	 setScriptPath(path);
+      }
+
+      DLLLOCAL void setScriptPath(const char *path) {
+	 if (!path) {
+	    script_dir.clear();
+	    script_path.clear();
+	    script_name.clear();
+	 }
+	 else {
+	    // find file name
+	    const char *p = q_basenameptr(path);
+	    if (p == path) {
+	       script_name = path;
+	       script_dir = "./";
+	       script_path = script_dir + script_name;
+	    }
+	    else {
+	       script_path = path;
+	       script_name = p;
+	       script_dir.assign(path, p - path);
+	    }
+	 }
       }
 
       DLLLOCAL QoreListNode *getVarList()
@@ -1081,6 +1127,8 @@ void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, Exceptio
       xsink->raiseException("PARSE-EXCEPTION", "cannot open qore script '%s': %s", filename, strerror(errno));
       return;
    }
+   priv->setScriptPath(filename);
+
    ON_BLOCK_EXIT(fclose, fp);
 
    parse(fp, filename, xsink, wS, wm);
@@ -1281,20 +1329,16 @@ void QoreProgram::parseFileAndRun(const char *filename)
 
    parseFile(filename, &xsink);
 
-   if (!xsink.isEvent())
-   {
+   if (!xsink.isEvent()) {
       // get class name
-      if (priv->exec_class)
-      {
+      if (priv->exec_class) {
 	 if (!priv->exec_class_name.empty())
 	    runClass(priv->exec_class_name.c_str(), &xsink);
-	 else
-	 {
+	 else {
 	    char *c, *bn = q_basenameptr(filename);
 	    if (!(c = strrchr(bn, '.')))
 	       runClass(filename, &xsink);
-	    else
-	    {
+	    else {
 	       QoreString qcn; // for possible class name
 	       qcn.concat(bn, c - bn);
 	       runClass(qcn.getBuffer(), &xsink);
@@ -1312,8 +1356,7 @@ void QoreProgram::parseAndRun(FILE *fp, const char *name)
    
    if (priv->exec_class && priv->exec_class_name.empty())
       xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from stdin");
-   else
-   {
+   else {
       parse(fp, name, &xsink);
 
       if (!xsink.isEvent())
@@ -1327,8 +1370,7 @@ void QoreProgram::parseAndRun(const char *str, const char *name)
 
    if (priv->exec_class && priv->exec_class_name.empty())
       xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from a direct string");
-   else
-   {
+   else {
       parse(str, name, &xsink);
 
       if (!xsink.isEvent())
@@ -1371,26 +1413,19 @@ void QoreProgram::tc_dec()
    priv->tcount.dec();
 }
 
-const char *QoreProgram::getScriptDir() const
-{
-   return priv->script_dir.empty() ? 0 : priv->script_dir.c_str();
+QoreStringNode *QoreProgram::getScriptDir() const {
+   return priv->getScriptDir();
 }
 
-void QoreProgram::setScriptDir(const char *dir)
-{
-   if (!dir)
-      priv->script_dir.clear();
-   else
-      priv->script_dir = dir;
+QoreStringNode *QoreProgram::getScriptPath() const {
+   return priv->getScriptPath();
 }
 
-void QoreProgram::setScriptDirFromPath(const char *path)
+QoreStringNode *QoreProgram::getScriptName() const {
+   return priv->getScriptName();
+}
+
+void QoreProgram::setScriptPath(const char *path)
 {
-   if (!path)
-      priv->script_dir.clear();
-   else {
-      char *dir = q_dirname(path);
-      priv->script_dir = dir;
-      free(dir);
-   }
+   priv->setScriptPathExtern(path);
 }

@@ -176,10 +176,12 @@ libqore_la_SOURCES = \
 	QC_AutoWriteLock.cc \
 	QoreHTTPClient.cc \
 	minitest.cc
-	//inline_printf.cc
 
 if COND_DEBUG
-libqore_la_SOURCES += ql_debug.cc CallStack.cc
+libqore_la_SOURCES += ql_debug.cc
+endif
+if COND_STACK_TRACE
+libqore_la_SOURCES += CallStack.cc
 endif
 
 endif
@@ -204,11 +206,5 @@ libqore_la_LDFLAGS += -g
 else
 BUILD_TYPE=prod
 ##qore_LDFLAGS=-s
-endif
-endif
-
-if COND_MONOLITHIC
-if COND_ORACLE
-libqore_la_LIBADD += ../modules/oracle/liboracle.la
 endif
 endif

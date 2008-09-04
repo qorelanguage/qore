@@ -49,13 +49,6 @@ static module_map_t map;
 static bool show_errors = false;
 static QoreThreadLock mutex;
 
-#ifdef QORE_MONOLITHIC
-// for non-shared builds of the qore library, initialize all optional components here
-# ifdef ORACLE
-#  include "../modules/oracle/oracle-module.h"
-# endif
-#endif
-
 typedef std::deque<std::string> strdeque_t;
 
 //! non-thread-safe list of strings of directory names
@@ -79,10 +72,8 @@ void DirectoryList::addDirList(const char *str)
    str = (char *)plist.getBuffer();
 
    // add each directory
-   while (char *p = (char *)strchr(str, ':'))
-   {
-      if (p != str)
-      {
+   while (char *p = (char *)strchr(str, ':')) {
+      if (p != str) {
 	 *p = '\0';
 	 // add string to list
 	 push_back(str);
@@ -175,7 +166,7 @@ int ModuleInfo::getAPIMinor() const
    return api_minor;
 }
 
-void ModuleInfo::ns_init(class QoreNamespace *rns, class QoreNamespace *qns) const
+void ModuleInfo::ns_init(QoreNamespace *rns, QoreNamespace *qns) const
 {
    module_ns_init(rns, qns);
 }
@@ -209,14 +200,14 @@ void ModuleManager::add(ModuleInfo *m)
    map.insert(std::make_pair(m->getName(), m));
 }
 
-class ModuleInfo *ModuleManager::add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
+ModuleInfo *ModuleManager::add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
 {
-   class ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, d, v, a, u, p);
+   ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, d, v, a, u, p);
    add(m);
    return m;
 }
 
-class ModuleInfo *ModuleManager::find(const char *name)
+ModuleInfo *ModuleManager::find(const char *name)
 {
    module_map_t::iterator i = map.find(name);
    if (i == map.end())
@@ -228,8 +219,7 @@ class ModuleInfo *ModuleManager::find(const char *name)
 void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del)
 {
    QoreStringNodeHolder str(init());
-   if (str)
-   {
+   if (str) {
       fprintf(stderr, "WARNING! cannot initialize builtin feature '%s': %s\n", fn, str->getBuffer());
       return;
    }
@@ -267,43 +257,33 @@ void ModuleManager::init(bool se)
    show_errors = se;
 
    // set up auto-load list from QORE_AUTO_MODULE_DIR (if it hasn't already been manually set up)
-   if (autoDirList.empty())
-   {
+   if (autoDirList.empty()) {
       autoDirList.addDirList(getenv("QORE_AUTO_MODULE_DIR"));
       // append standard directories to the end of the list
       autoDirList.push_back(AUTO_MODULE_DIR);
    }
 
    // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
-   if (moduleDirList.empty())
-   {
+   if (moduleDirList.empty()) {
       moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
       // append standard directories to the end of the list
       moduleDirList.push_back(MODULE_DIR);
    }
 
-#ifdef QORE_MONOLITHIC
-# ifdef ORACLE
-   addBuiltin("oracle", oracle_module_init, oracle_module_ns_init, oracle_module_delete);
-# endif
-#endif
    // autoload modules
    // try to load all modules in each directory in the autoDirList
    QoreString gstr;
 
    DirectoryList::iterator w = autoDirList.begin();
-   while (w != autoDirList.end())
-   {
+   while (w != autoDirList.end()) {
       // make new string for glob
       gstr.clear();
       gstr.concat((*w).c_str());
       gstr.concat("/*.qmod");
 
       glob_t globbuf;
-      if (!glob(gstr.getBuffer(), 0, 0, &globbuf))
-      {
-	 for (int i = 0; i < (int)globbuf.gl_pathc; i++)
-	 {
+      if (!glob(gstr.getBuffer(), 0, 0, &globbuf)) {
+	 for (int i = 0; i < (int)globbuf.gl_pathc; i++) {
 	    char *name = q_basename(globbuf.gl_pathv[i]);
 	    // delete ".qmod" from module name for feature matching
 	    char *p = strrchr(name, '.');
@@ -403,9 +383,9 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
    return loadModuleIntern(name, pgm);
 }
 
-QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, class ModuleInfo **mip, QoreProgram *pgm)
+QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, ModuleInfo **mip, QoreProgram *pgm)
 {
-   class ModuleInfo *mi = 0;
+   ModuleInfo *mi = 0;
    if (mip)
       *mip = 0;
 
@@ -615,9 +595,8 @@ void ModuleManager::cleanup()
    QORE_TRACE("ModuleManager::cleanup()");
 
    module_map_t::iterator i;
-   while ((i = map.begin()) != map.end())
-   {
-      class ModuleInfo *m = i->second;
+   while ((i = map.begin()) != map.end()) {
+      ModuleInfo *m = i->second;
       map.erase(i);
       delete m;
    }

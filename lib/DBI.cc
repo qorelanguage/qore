@@ -33,7 +33,7 @@
 
 #define NUM_DBI_CAPS 4
 
-typedef safe_dslist<class DBIDriver *> dbi_list_t;
+typedef safe_dslist<DBIDriver *> dbi_list_t;
 
 // global qore library class for DBI driver management
 DLLEXPORT DBIDriverList DBI;
@@ -245,17 +245,17 @@ int DBIDriver::close(Datasource *ds)
    return priv->f.close(ds);
 }
 
-AbstractQoreNode *DBIDriver::select(Datasource *ds, const class QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *DBIDriver::select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    return priv->f.select(ds, sql, args, xsink);
 }
 
-AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const class QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    return priv->f.selectRows(ds, sql, args, xsink);
 }
 
-AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const class QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    return priv->f.execSQL(ds, sql, args, xsink);
 }
@@ -323,7 +323,7 @@ struct qore_dbi_dlist_private {
 	 dbi_list_t::iterator i;
 	 while ((i = l.begin()) != l.end())
 	 {
-	    class DBIDriver *driv = *i;
+	    DBIDriver *driv = *i;
 	    l.erase(i);
 	    delete driv;
 	 }
@@ -381,7 +381,7 @@ DBIDriver *DBIDriverList::find(const char *name) const
    return priv->find_intern(name);
 }
 
-class DBIDriver *DBIDriverList::registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps)
+DBIDriver *DBIDriverList::registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps)
 {
    assert(!priv->find_intern(name));
    
@@ -395,7 +395,7 @@ QoreListNode *DBIDriverList::getDriverList() const
    return priv->getDriverList();
 }
 
-void DBI_concat_numeric(class QoreString *str, const AbstractQoreNode *v)
+void DBI_concat_numeric(QoreString *str, const AbstractQoreNode *v)
 {
    if (is_nothing(v) || is_null(v))
    {
@@ -411,7 +411,7 @@ void DBI_concat_numeric(class QoreString *str, const AbstractQoreNode *v)
    str->sprintf("%lld", v->getAsBigInt());
 }
 
-int DBI_concat_string(class QoreString *str, const AbstractQoreNode *v, ExceptionSink *xsink)
+int DBI_concat_string(QoreString *str, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
    if (is_nothing(v) || is_null(v))
       return 0;
@@ -562,15 +562,15 @@ void init_dbi_functions()
    builtinFunctions.add("parseDatasource", f_parseDatasource);
 }
 
-class QoreNamespace *getSQLNamespace()
+QoreNamespace *getSQLNamespace()
 {
    // create Qore::SQL namespace
-   class QoreNamespace *SQLNS = new QoreNamespace("SQL");
+   QoreNamespace *SQLNS = new QoreNamespace("SQL");
 
    SQLNS->addSystemClass(initDatasourceClass());
    SQLNS->addSystemClass(initDatasourcePoolClass());
 
-   // datasource type constants
+   // datasource type/driver constants
    SQLNS->addConstant("DSOracle",   new QoreStringNode("oracle"));
    SQLNS->addConstant("DSMySQL",    new QoreStringNode("mysql"));
    SQLNS->addConstant("DSSybase",   new QoreStringNode("sybase"));
@@ -580,6 +580,8 @@ class QoreNamespace *getSQLNamespace()
    // the following have no drivers yet
    SQLNS->addConstant("DSDB2",      new QoreStringNode("db2"));
    SQLNS->addConstant("DSInformix", new QoreStringNode("informix"));
+   SQLNS->addConstant("DSTimesTen", new QoreStringNode("timesten"));
+   SQLNS->addConstant("DSSQLite",   new QoreStringNode("sqlite"));
 
    // for DBI driver capabilities
    SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreBigIntNode(DBI_CAP_CHARSET_SUPPORT));

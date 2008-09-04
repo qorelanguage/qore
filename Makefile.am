@@ -6,7 +6,7 @@ includedir = $(prefix)/include/qore
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = modules lib
+SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
@@ -228,9 +228,6 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AutoLock.h \
 	include/qore/intern/QC_AutoReadLock.h \
 	include/qore/intern/QC_AutoWriteLock.h \
-	modules/oracle/oracle-config.h \
-	modules/oracle/oracle.h \
-	modules/oracle/oracle-module.h \
 	command-line.h
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \

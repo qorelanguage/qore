@@ -24,7 +24,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ThreadResourceList.h>
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/intern/CallStack.h>
 #endif
 
@@ -79,14 +79,14 @@ DLLLOCAL int num_threads = 0;
 
 // this structure holds all thread data that can be addressed with the qore tid
 class ThreadEntry {
-public:
-   pthread_t ptid;
-   class tid_node *tidnode;
-#ifdef DEBUG
-   class CallStack *callStack;
+   public:
+      pthread_t ptid;
+      class tid_node *tidnode;
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      class CallStack *callStack;
 #endif
    
-   DLLLOCAL void cleanup();
+      DLLLOCAL void cleanup();
 };
 
 DLLLOCAL class ThreadEntry thread_list[MAX_QORE_THREADS];
@@ -368,7 +368,7 @@ void ThreadEntry::cleanup()
    // delete tidnode from tid_list
    delete tidnode;
 
-#ifdef DEBUG   
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    // delete call stack
    delete callStack;
 #endif
@@ -875,7 +875,7 @@ const QoreListNode *thread_get_implicit_args()
    return thread_data.get()->current_implicit_arg;
 }
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 void pushCall(class CallNode *cn)
 {
    thread_list[gettid()].callStack->push(cn);
@@ -1002,7 +1002,7 @@ class QoreException *catchGetException()
 static void allocate_thread_entry(int tid)
 {
    thread_list[tid].ptid = (pthread_t)-1L;
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    thread_list[tid].callStack = 0;
 #endif
 }
@@ -1078,7 +1078,7 @@ void deregister_signal_thread()
 void register_thread(int tid, pthread_t ptid, QoreProgram *p)
 {
    thread_list[tid].ptid = ptid;
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    thread_list[tid].callStack = new CallStack();
 #endif
    thread_data.set(new ThreadData(tid, p));
@@ -1102,7 +1102,7 @@ namespace {
       AbstractQoreNode *rv;
       {
 	 CodeContextHelper cch(0, btp->callobj, &xsink);
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 	 // push this call on the thread stack
 	 CallStackHelper csh("background operator", CT_NEWTHREAD, btp->callobj, &xsink);
 #endif
@@ -1283,7 +1283,7 @@ QoreListNode *get_thread_list()
    return l;
 }
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 QoreHashNode *getAllCallStacks()
 {
    QoreHashNode *h = new QoreHashNode();

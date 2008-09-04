@@ -109,10 +109,10 @@ AbstractQoreNode *f_get_all_thread_data(const QoreListNode *params, ExceptionSin
 
 AbstractQoreNode *f_getAllThreadCallStacks(const QoreListNode *params, ExceptionSink *xsink)
 {
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
-   return new QoreStringNode("getAllThreadCallStacks() not available without debugging");
+   return new QoreStringNode("sorry, this version of the Qore library was built without support for runtime thread stack tracing");
 #endif
 }
 

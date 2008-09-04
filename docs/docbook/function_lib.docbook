@@ -1188,12 +1188,25 @@
       </row>
 
       <row>
+        <entry><para><link linkend="get_script_dir">get_script_path()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns a string giving the path (directory and filename) from which the current script was executed (if known).</para></entry>
+      </row>
+
+      <row>
         <entry><para><link linkend="get_script_dir">get_script_dir()</link></para></entry>
         <entry><para>String</para></entry>
         <entry><para>N</para></entry>
-        <entry><para>Returns a string giving the directory from which the current &quot;parent&quot; script was executed.</para></entry>
+        <entry><para>Returns a string giving the directory from which the current script was executed (if known).</para></entry>
       </row>
 
+      <row>
+        <entry><para><link linkend="get_script_name">get_script_name()</link></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns a string giving the filename of the current script (if known).</para></entry>
+      </row>
 
         <row>
           <entry>
@@ -18580,6 +18593,52 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <para>This function does not throw any exceptions.</para>
     </sect2>
 
+    <sect2 id="get_script_path">
+      <title>get_script_path()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the path (directory and filename) of the current script.  Returns NOTHING if unknown (i.e. no parent script, script read from stdin, etc).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>get_script_path()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$path = get_script_path();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table><title>Arguments and Return Values for get_script_path()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>n/a</para></entry>
+	    <entry><para>String or NOTHING</para></entry>
+	    <entry><para>Returns the path name of the current script, or NOTHING if unknown.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+      
+    </sect2>
+
     <sect2 id="get_script_dir">
       <title>get_script_dir()</title>
 
@@ -18587,7 +18646,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns the name of the directory from which the current &quot;parent&quot; script was executed.  Returns NOTHING if the parent script is unknown (i.e. no parent script, script read from stdin, etc).</para>
+	    <para>Returns the name of the directory from which the current script was executed.  Returns NOTHING if the parent script is unknown (i.e. no parent script, script read from stdin, etc).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -18626,6 +18685,51 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       
     </sect2>
 
+    <sect2 id="get_script_name">
+      <title>get_script_name()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the filename of the current script if known; returns NOTHING if not (i.e. no parent script, script read from stdin, etc).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>get_script_name()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$name = get_script_name();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table><title>Arguments and Return Values for get_script_name()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>n/a</para></entry>
+	    <entry><para>String or NOTHING</para></entry>
+	    <entry><para>Returns the filename of the current script, or NOTHING if unknown.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+      
+    </sect2>
 
     <sect2 id="hash_values">
       <title>hash_values()</title>

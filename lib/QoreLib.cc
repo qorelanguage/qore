@@ -96,11 +96,6 @@ FeatureList::FeatureList()
 #ifdef DEBUG
    push_back("debug");
 #endif
-#ifdef QORE_MONOLITHIC
-# ifdef ORACLE
-   push_back("oracle");
-# endif
-#endif
 }
 
 FeatureList::~FeatureList()
@@ -283,12 +278,10 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
 
    j = 1 + offset;
    l = strlen(p->getBuffer());
-   for (i = 0; i < l; i++)
-   {
+   for (i = 0; i < l; i++) {
       int taken = 1;
       if ((p->getBuffer()[i] == '%') 
-	  && (j < params->size()))
-      {
+	  && (j < params->size())) {
 	 const AbstractQoreNode *node = get_param(params, j++);
 	 i += process_opt(*buf, (char *)&p->getBuffer()[i], node, field, &taken, xsink);
 	 if (*xsink)
@@ -317,30 +310,25 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
    SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
    unsigned j = 0;
    unsigned l = fmt->strlen();
-   for (unsigned i = 0; i < l; i++)
-   {
+   for (unsigned i = 0; i < l; i++) {
       int taken = 1;
       bool havearg = false;
       const AbstractQoreNode *arg = 0;
 
-      if ((fmt->getBuffer()[i] == '%'))
-      {
-	 if (args)
-	 {
+      if ((fmt->getBuffer()[i] == '%')) {
+	 if (args) {
 	    if (arg_list && j < arg_list->size()) {
 	       havearg = true;
 	       arg = get_param(arg_list, j);
 	    }
-	    else if (!j)
-	    {
+	    else if (!j) {
 	       arg = args;
 	       havearg = true;
 	    }
 	    j++;
 	 }
       }
-      if (havearg)
-      {
+      if (havearg) {
 	 i += process_opt(*buf, (char *)&fmt->getBuffer()[i], arg, field, &taken, xsink);
 	 if (*xsink)
 	    return 0;
@@ -353,35 +341,53 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
    return buf.release();
 }
 
-// FIXME: SLOW! make a lookup table for characters to value
+static void concatASCII(QoreString &str, unsigned char c)
+{
+   str.sprintf("ascii %03d", c);
+   if (c >= 32 || c < 127)
+      str.sprintf(" ('%c')", c);
+}
+
 static inline char getBase64Value(char c, ExceptionSink *xsink)
 {
-   for (int i = 0; i < 64; i++)
-      if (table64[i] == c)
-	 return i;
-   xsink->raiseException("BASE64-PARSE-ERROR", "'%c' is an invalid base64 character.", c);
+   if (c >= 'A' && c <= 'Z')
+      return c - 'A';
+   if (c >= 'a' && c <= 'z')
+      return c - 'a' + 26;
+   if (c >= '0' && c <= '9')
+      return c - '0' + 52;
+   if (c == '+')
+      return 62;
+   if (c == '/')
+      return 63;
+
+   if (!c)
+      xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string");
+   else {
+      QoreStringNode *desc = new QoreStringNode;
+      concatASCII(*desc, c);
+      desc->concat(" is an invalid base64 character");
+      xsink->raiseException("BASE64-PARSE-ERROR", desc);
+   }
    return -1;
 }
 
-class BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
+BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
 {
    char *binbuf = (char *)malloc(sizeof(char) * (len + 3));
    int blen = 0;
 
    int pos = 0;
-   while (pos < len)
-   {
+   while (pos < len) {
       // add first 6 bits
       char b = getBase64Value(buf[pos], xsink);
-      if (xsink->isEvent())
-      {
+      if (xsink->isEvent()) {
          free(binbuf);
          return 0;
       }
       // get second 6 bits
       char c = getBase64Value(buf[pos + 1], xsink);
-      if (xsink->isEvent())
-      {
+      if (xsink->isEvent()) {
          free(binbuf);
          return 0;
       }
@@ -397,8 +403,7 @@ class BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
       
       // get third 6 bits
       c = getBase64Value(buf[pos + 2], xsink);
-      if (xsink->isEvent())
-      {
+      if (xsink->isEvent()) {
          free(binbuf);
          return 0;
       }
@@ -414,8 +419,7 @@ class BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
 
       // get fourth 6 bits
       c = getBase64Value(buf[pos + 3], xsink);
-      if (xsink->isEvent())
-      {
+      if (xsink->isEvent()) {
          free(binbuf);
          return 0;
       }
@@ -439,13 +443,12 @@ int get_nibble(char c, ExceptionSink *xsink)
    return -1;
 }
 
-class BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink)
+BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink)
 {
    if (!len)
       return new BinaryNode();
 
-   if ((len / 2) * 2 != len)
-   {
+   if ((len / 2) * 2 != len) {
       xsink->raiseException("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
       return 0;
    }
@@ -454,18 +457,15 @@ class BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink)
    int blen = 0;
 
    const char *end = buf + len;
-   while (buf < end)
-   {
+   while (buf < end) {
       int b = get_nibble(*buf, xsink);
-      if (b < 0)
-      {
+      if (b < 0) {
 	 free(binbuf);
 	 return 0;
       }
       buf++;
       int l = get_nibble(*buf, xsink);
-      if (l < 0)
-      {
+      if (l < 0) {
 	 free(binbuf);
 	 return 0;
       }
@@ -490,7 +490,7 @@ static inline int parse_get_nibble(char c)
 
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-class BinaryNode *parseHex(const char *buf, int len)
+BinaryNode *parseHex(const char *buf, int len)
 {
    if (!buf || !(*buf))
       return new BinaryNode();
@@ -499,19 +499,16 @@ class BinaryNode *parseHex(const char *buf, int len)
    int blen = 0;
 
    const char *end = buf + len;
-   while (buf < end)
-   {
+   while (buf < end) {
       int b = parse_get_nibble(*buf);
-      if (b < 0)
-      {
+      if (b < 0) {
 	 free(binbuf);
 	 return 0;
       }
       buf++;
 #if 0
       // this can never happen; the parser guarantees an even number of digits
-      if (!(*buf))
-      {
+      if (!(*buf)) {
 	 free(binbuf);
 	 parseError("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
 	 return 0;
@@ -519,8 +516,7 @@ class BinaryNode *parseHex(const char *buf, int len)
 #endif
 
       int l = parse_get_nibble(*buf);
-      if (l < 0)
-      {
+      if (l < 0) {
 	 free(binbuf);
 	 return 0;
       }
@@ -537,8 +533,7 @@ char *make_class_name(const char *str)
    if (p && p != cn)
       *p = '\0';
    p = cn;
-   while (*p)
-   {
+   while (*p) {
       if (*p == '-')
 	 *p = '_';
       p++;
@@ -558,8 +553,7 @@ void qore_setup_argv(int pos, int argc, char *argv[])
    ARGV = new QoreListNode();
    QORE_ARGV = new QoreListNode();
    int end = argc - pos;
-   for (int i = 0; i < argc; i++)
-   {
+   for (int i = 0; i < argc; i++) {
       if (i < end)
 	 ARGV->push(new QoreStringNode(argv[i + pos]));
       QORE_ARGV->push(new QoreStringNode(argv[i]));
@@ -571,12 +565,10 @@ void initENV(char *env[])
    // set up environment hash
    int i = 0;
    ENV = new QoreHashNode();
-   while (env[i])
-   {
+   while (env[i]) {
       char *p;
 
-      if ((p = strchr(env[i], '=')))
-      {
+      if ((p = strchr(env[i], '='))) {
 	 char save = *p;
 	 *p = '\0';
 	 ENV->setKeyValue(env[i], new QoreStringNode(p + 1), 0);
@@ -648,8 +640,7 @@ char *q_basenameptr(const char *path)
 char *q_dirname(const char *path)
 {
    const char *p = strrchr(path, '/');
-   if (!p || p == path)
-   {
+   if (!p || p == path) {
       char *x = (char *)malloc(sizeof(char) * 2);
       x[0] = !p ? '.' : '/';
       x[1] = '\0';
@@ -673,8 +664,7 @@ ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink
 {
    QoreProgram *pgm = getProgram();
    UserFunction *f = pgm->findUserFunction(str->getBuffer());
-   if (!f)
-   {
+   if (!f) {
       xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", str->getBuffer());
       return 0;
    }

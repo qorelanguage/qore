@@ -669,14 +669,18 @@ if test "$enable_optimization" = "auto"; then
    fi
 fi
 
-AC_ARG_ENABLE([builtin-modules],
-     [AS_HELP_STRING([--enable-builtin-modules],
-		     [link in module code directly (default=no)])],
-     [case "${enable_builtin_modules}" in
+AC_ARG_ENABLE([runtime-thread-stack-trace],
+  [AS_HELP_STRING([--enable-runtime-thread-stack-trace],
+		  [enable runtime thread stack trace (performance penalty, default: off)])],
+  [case "${enable_runtime_thread_stack_trace}" in
        yes|no) ;;
-       *)      AC_MSG_ERROR(bad value ${enable_builtin_modules} for --enable-builtin-modules) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_runtime_thread_stack_trace} for --enable-runtime-thread-stack-trace) ;;
       esac],
-     [enable_builtin_modules=no])
+  [enable_runtime_thread_stack_trace=no])
+
+if test "${enable_runtime_thread_stack_trace}" = "yes" -o "${enable_debug}" = yes; then
+   AC_DEFINE(QORE_RUNTIME_THREAD_STACK_TRACE, 1, [to enable runtime thread stack tracing; note this has a performance penalty and is not generally necessary])
+fi
 
 # check for gcc visibility support
 AC_MSG_CHECKING([for gcc visibility support])
@@ -701,121 +705,6 @@ if test "$acx_pthread_ok" = "no"; then
    AC_MSG_ERROR(POSIX threads do not seem to be supported on this platform, aborting)
 fi
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
-
-AC_ARG_WITH([oracle],
-  [AS_HELP_STRING([--with-oracle@<:@=DIR@:>@],
-                  [directory for Oracle support (defaults to $ORACLE_HOME)])],
-   , 
-   [with_oracle=auto])
-
-if test "$with_oracle" = "auto"; then
-   if test -n "$ORACLE_HOME" -o -n "$ORACLE_INSTANT_CLIENT" -o "$with_oracle_instant_client"; then
-      with_oracle=yes
-   else
-      with_oracle=no
-   fi
-fi
-
-get_oracle_version()
-{
-  AC_MSG_CHECKING([Oracle version])
-  if test -n "$2" -a -s "$1/orainst/unix.rgs"; then
-    ORACLE_VERSION=`grep '"ocommon"' $1/orainst/unix.rgs | sed "s/[ ][ ]*/:/g" | cut -d: -f 6 | cut -c 2-4`
-    test -z "$ORACLE_VERSION" && ORACLE_VERSION=7.3
-  elif test -f $1/libclntsh.$SHLIB_SUFFIX.10.1; then
-    ORACLE_VERSION=10.1
-  elif test -f $1/libclntsh.$SHLIB_SUFFIX.10.0; then
-    ORACLE_VERSION=10.0
-  elif test -f $1/libclntsh.$SHLIB_SUFFIX.9.0; then
-    ORACLE_VERSION=9.0
-  elif test -f $1/libclntsh.$SHLIB_SUFFIX.8.0; then
-    ORACLE_VERSION=8.1
-  elif test -f $1/libclntsh.$SHLIB_SUFFIX.1.0; then
-    ORACLE_VERSION=8.0
-  elif test -f $1/libclntsh.a; then
-    if test -f $1/libcore4.a; then
-      ORACLE_VERSION=8.0
-    else
-      ORACLE_VERSION=8.1
-    fi
-  else
-    AC_MSG_ERROR([Oracle libraries not found, use --without-oracle to build without Oracle support])
-  fi
-  ora_ver_major=`echo $ORACLE_VERSION | cut -f1 -d.`
-  if test $ora_ver_major -lt 10; then
-     AC_DEFINE(NEED_ORACLE_LOB_WORKAROUND, 1, [define if we need a workaround for the Oracle streaming LOB callback bug])
-  fi
-  AC_MSG_RESULT($ORACLE_VERSION)
-}
-
-case "$with_oracle" in
-  yes) ORACLE_DIR=$ORACLE_HOME ;;
-  no) ;;
-  *) ORACLE_DIR=$with_oracle; with_oracle=yes ;;
-esac
-
-if test "$with_oracle" = "yes"; then
-   AC_ARG_WITH([oracle-instant-client],
-  [AS_HELP_STRING([--with-oracle-instant-client@<:@=DIR@:>@],
-                  [directory for Oracle instant client files])],
-   ,
-  [with_oracle_instant_client=$ORACLE_INSTANT_CLIENT])
-
-   if test -n "$with_oracle_instant_client"; then
-      AC_MSG_CHECKING([for Oracle instant client SDK])
-      if test -f "$with_oracle_instant_client/sdk/include/oci.h"; then
-	 AC_MSG_RESULT([ok])
-	 ORACLE_INCLUDES="-I$with_oracle_instant_client/sdk/include"
-	 oracle_lib_dir=$with_oracle_instant_client
-	 get_oracle_version $with_oracle_instant_client
-      else
-	 AC_MSG_ERROR([instant client SDK include files not found, use --without-oracle to build without Oracle support or install the instant client SDK])
-      fi
-   else
-      if test -d "$ORACLE_DIR/rdbms/public"; then
-         ORACLE_INCLUDES="-I$ORACLE_DIR/rdbms/public"
-      fi
-      if test -d "$ORACLE_DIR/rdbms/demo"; then
-	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/rdbms/demo"
-      fi
-      if test -d "$ORACLE_DIR/network/public"; then
-	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/network/public"
-      fi
-      if test -d "$ORACLE_DIR/plsql/public"; then
-	 ORACLE_INCLUDES="$ORACLE_INCLUDES -I$ORACLE_DIR/plsql/public"
-      fi
-      if test "$enable_64bit" != "yes" -a -d "$ORACLE_DIR/lib32"; then
-         oracle_lib_dir="$ORACLE_DIR/lib32"
-      else
-         oracle_lib_dir="$ORACLE_DIR/lib"
-      fi
-      get_oracle_version $oracle_lib_dir $ORACLE_DIR
-   fi
-
-   AC_SUBST(ORACLE_INCLUDES)
-
-   case "$ORACLE_VERSION" in
-      9*|10*) ORACLE_LIBS="-L$oracle_lib_dir -lclntsh" ;; 
-      *)      AC_MSG_ERROR(Unsupported Oracle version) ;;
-   esac
-   AC_SUBST(ORACLE_LIBS)
-
-   # check for 'oci.h'
-   SAVE_CXXFLAGS="$CXXFLAGS"
-   SAVE_LDFLAGS="$LDFLAGS"
-   CXXFLAGS="$CXXFLAGS $ORACLE_INCLUDES"
-   LDFLAGS="$LDFLAGS $ORACLE_LIBS"
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <oci.h>
-         ]],[[
-        ]])], with_oracle=yes, AC_MSG_ERROR(file 'oci.h' not found in '$ORACLE_INCLUDES'))
-   AC_CHECK_FUNC([OCIClientVersion], [have_ociclientversion=yes], [have_ociclientversion=no])
-   if test "$have_ociclientversion" = "yes"; then
-      AC_DEFINE(HAVE_OCICLIENTVERSION, 1, [define if OCIClientVersion is available])      
-   fi
-   CXXFLAGS="$SAVE_CXXFLAGS"
-   LDFLAGS="$SAVE_LDFLAGS"
-fi
 
 AC_ARG_WITH([doxygen],
     [AS_HELP_STRING([--with-doxygen@<:@=PATH@:>@],
@@ -993,11 +882,6 @@ then
             [In OSF 4.0f the 3'd argument to gethostname_r is hostent_data *])
 fi
 
-# check for DB driver support
-if test "$with_oracle" = "yes"; then
-   AC_DEFINE(ORACLE, 1, Define to 1 if Oracle support should be included)
-fi
-
 # turn on optimizations if we know how
 if test "$enable_optimization" = "yes"; then
     if test "$GXX" = "yes"; then
@@ -1037,11 +921,6 @@ fi
 
 AC_SUBST(OTHER_LIBS)
 
-# set flag for monolithic builds if necessary
-if test "$enable_shared" = "no" -o "$enable_builtin_modules" = "yes"; then
-   AC_DEFINE(QORE_MONOLITHIC, 1, Define to 1 if all modules should be statically linked into the libqore.a library)
-fi
-
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
 MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
@@ -1063,19 +942,18 @@ AC_DEFINE_UNQUOTED([TARGET_ARCH], "$ARCH", [host type])
 AC_DEFINE_UNQUOTED([TARGET_OS], "$OS", [host type])
 AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
 
-AM_CONDITIONAL([COND_DEBUG],      [test "$enable_debug" = yes])
-AM_CONDITIONAL([COND_PROFILE],    [test "$enable_profile" = yes])
-AM_CONDITIONAL([COND_ORACLE],     [test "$with_oracle" = yes])
-AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
+AM_CONDITIONAL([COND_DEBUG],                   [test "$enable_debug" = yes])
+AM_CONDITIONAL([COND_PROFILE],                 [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
-AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
-AM_CONDITIONAL([COND_DOXYGEN],    [test -n "$with_doxygen"])
+AM_CONDITIONAL([COND_MACOSX],                  [test "$darwin" = true])
+AM_CONDITIONAL([COND_DOXYGEN],                 [test -n "$with_doxygen"])
+AM_CONDITIONAL([COND_STACK_TRACE],             [test "$enable_runtime_thread_stack_trace" = yes])
 
-AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/oracle/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"
-printf "%-24s: %s %s" library "$OS" "$cpu_family"
+printf "%-35s: %s %s" library "$OS" "$cpu_family"
 if test "$enable_64bit" = "yes"; then
    printf " (64-bit)\n"
 else
@@ -1084,11 +962,11 @@ fi
 
 show_library_feature()
 {
-   printf "%-24s: " "$1"
+   printf "%-35s: " "$1"
    if test "$2" = "yes"; then
-      printf "%-8s" yes
+      printf "%-4s" yes
    else
-      printf disabled
+      printf "%-4s" no
    fi
    if test -n "$3"; then
       printf " (%s)" $3
@@ -1098,14 +976,13 @@ show_library_feature()
 
 show_library_feature optimizations $enable_optimization
 show_library_feature "single compilation unit" $enable_single_compilation_unit
-show_library_feature debug $enable_debug
 show_library_feature profiling $enable_profile
+echo "*** DEBUG OPTIONS ***"
+show_library_feature debug $enable_debug
+show_library_feature "runtime thread stack tracing" $enable_runtime_thread_stack_trace
 
-if test "$enable_shared" = "yes"; then
-   echo "*** MODULES ***"
-fi
-
-show_library_feature oracle $with_oracle
+echo
+echo "*** MODULES DELIVERED SEPARATELY - SEE 'README-MODULES' FOR MORE INFO ***"
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules

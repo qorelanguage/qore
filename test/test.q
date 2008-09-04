@@ -936,6 +936,7 @@ sub string_tests()
     my $x = <0abf83e8ca72d32c>;
     my $b64 = makeBase64String($x);
     test_value($x, parseBase64String($b64), "first base64");
+    test_value("aGVsbG8=", makeBase64String("hello"), "makeBase64String()");
     my $hex = makeHexString($x);
     test_value($x, parseHexString($hex), "first hex");
 
@@ -1156,8 +1157,9 @@ sub math_tests()
 
 sub lib_tests()
 {
-    test_value(stat($ENV."_")[2], 0100755, "stat()");
-    test_value(hstat($ENV."_").type, "REGULAR", "hstat()");
+    my $pn = get_script_path();
+    test_value(stat($pn)[2], 0100755, "stat()");
+    test_value(hstat($pn).type, "REGULAR", "hstat()");
     if (exists $ENV.HOSTNAME)
 	test_value(gethostname(), $ENV.HOSTNAME, "gethostname()");
     else

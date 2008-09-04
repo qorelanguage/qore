@@ -160,28 +160,11 @@ Parsing
 *) Parsing happens in 2 stages - 1) parse to pending data structures, and 2) commit the pending data structures to the Qore Program object.  References are resolved in the second stage, which allows flexible referencing of functions, constants, classes, etc before they are declared.  Any parse errors at any stage will cause all the uncomitted parsing to be rolled back.  The Qore Program class allows the programmer control over the 2 stages of parsing with the Program::parsePending(), Program::parseCommit(), and Program::parseRollback() methods.
 
 
-**************************
-*** MODULE INFORMATION ***
-**************************
-
-ORACLE
-------
-The "oracle" DBI driver has been well tested and is in heavy production use.
-*) transaction management is supported
-*) automatic transparent character set conversion is supported when necessary
-*) threading support
-*) it's possible to call functions and procedures
-*) all NUMBER fields are loaded as strings in selects in order to not lose any data.  Qore would need an arbitrary-precision Number type in order handle this case better.
-*) it's possible to bind and retrieve *LOB values
-
-
 *********************
 *** SQL Subsystem ***
 *********************
 
 *) NOTE that there is a transaction lock on the Datasource class (above the DBI driver level) that is automatically enabled if autocommit is off on the Datasource that prohibits two or more threads from being in a transaction at the same time on the same datasource.  To best use this feature when starting a transaction with a Datasource::select() (like a "select for update"), call Datasource::beginTransaction() before the "select for update".  You notify qore that the transaction has completed by calling Datasource::commit() or Datasource::rollback().  Note that this must be done in the same thread that started the transaction.  Currently there is no way in qore to execute SQL in separate threads simultaneously on the same datasource if autocommit is off and one of the threads has started a transaction (either by calling Datasource::beginTransaction() or Datasource::exec()).
-*) NOTE the Datasource::describe() method should not be used until the design and implementation are reworked.  This method has been disabled in the top-level Qore class for the time being.
-*) autocommits should probably be moved to the Datasource class to make DBI driver implementation a little easier
 
 
 **************************************

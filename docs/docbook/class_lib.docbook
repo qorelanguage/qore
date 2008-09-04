@@ -9567,6 +9567,18 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </row>
 
 	  <row>
+	    <entry><para><link linkend="Qore_Program_getScriptName">Program::getScriptName()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the current script name (if any).</para></entry>
+	  </row>
+
+	  <row>
+	    <entry><para><link linkend="Qore_Program_getScriptPath">Program::getScriptPath()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the current script directory and filename (if any).</para></entry>
+	  </row>
+
+	  <row>
 	    <entry><para><link linkend="Qore_Program_getUserFunctionList">Program::getUserFunctionList()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a list of all user functions defined in the program object.</para></entry>
@@ -9624,9 +9636,9 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </row>
 
 	  <row>
-	    <entry><para><link linkend="Qore_Program_setScriptDir">Program::setScriptDir()</link></para></entry>
+	    <entry><para><link linkend="Qore_Program_setScriptPath">Program::setScriptPath()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Sets the script directory for the object.</para></entry>
+	    <entry><para>Sets the script path (directory and filename) for the object.</para></entry>
 	  </row>
 	  
 	</tbody>
@@ -10180,7 +10192,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Gets the script directory set with <link linkend="Qore_Program_setScriptDir">Program::setScriptDir()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_dir">get_script_dir()</link> function.  The value returned should normally include the trailing '/' character.</para>
+	    <para>Gets the script directory set with <link linkend="Qore_Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_dir">get_script_dir()</link> function if called from within the Program.  The value returned should normally include the trailing '/' character.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10192,7 +10204,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> $dir = $pgm.setScriptDir();</programlisting>
+	    <programlisting><command>my</command> $dir = $pgm.getScriptDir();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10230,6 +10242,136 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <row>
 	      <entry><para>String</para></entry>
 	      <entry><para>The current script directory.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Qore_Program_getScriptName">
+      <title>Program::getScriptName()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Gets the script filename set with <link linkend="Qore_Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_path">get_script_path()</link> function if called from within the Program.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::getScriptName()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> $name = $pgm.getScriptName();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::getScriptName()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::getScriptName()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The current script name if known, otherwise returns NOTHING.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Qore_Program_getScriptPath">
+      <title>Program::getScriptPath()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Gets the script directory and filename set with <link linkend="Qore_Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_path">get_script_path()</link> function if called from within the Program.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::getScriptPath()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> $path = $pgm.getScriptPath();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::getScriptPath()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::getScriptPath()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The current script directory and filename if known, otherwise returns NOTHING.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11000,31 +11142,31 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_setScriptDir">
-      <title>Program::setScriptDir()</title>
+    <sect2 id="Qore_Program_setScriptPath">
+      <title>Program::setScriptPath()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the script directory for later retrieval with <link linkend="Qore_Program_getScriptDir">Program::getScriptDir()</link> or in the Qore program code with the <link linkend="get_script_dir">get_script_dir()</link> function.  The argument should include the trailing '/' character.</para>
+	    <para>Sets the script path (directory and filename) for later retrieval with <link linkend="Qore_Program_getScriptPath">Program::getScriptPath()</link>, <link linkend="Qore_Program_getScriptDir">Program::getScriptDir()</link>, or <link linkend="Qore_Program_getScriptName">Program::getScriptName()</link> calls, or from code within the Program object with the <link linkend="get_script_path">get_script_path()</link>, <link linkend="get_script_dir">get_script_dir()</link>, or <link linkend="get_script_name">get_script_name()</link> functions.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Program::setScriptDir(<replaceable>path_string</replaceable>)</programlisting>
+	    <programlisting>Program::setScriptPath(<replaceable>path_string</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$pgm.setScriptDir("./");</programlisting>
+	    <programlisting>$pgm.setScriptPath("/users/test/test.q");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
-	<title>Arguments for Program::setScriptDir()</title>
+	<title>Arguments for Program::setScriptPath()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -11037,14 +11179,14 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <row>
 	      <entry><para><replaceable>path_string</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The path of the directory name for the current script.</para></entry>
+	      <entry><para>The path (directory and filename) for the current script.  If the directory component is missing, then &quot;./&quot; is assumed.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
 
       <table>
-	<title>Return Values for Program::setScriptDir()</title>
+	<title>Return Values for Program::setScriptPath()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>

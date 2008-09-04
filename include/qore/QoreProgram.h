@@ -129,7 +129,8 @@ class QoreProgram : public AbstractPrivateData
 	  raised during opening, parsing, and executing the file.
 	  @note any threads started by this call will continue running in the background,
 	  to wait for them to terminate, call QoreProgram::waitForTermination() or
-	  QoreProgram::waitForTerminationAndDeref()
+	  QoreProgram::waitForTerminationAndDeref().
+	  Also sets the script path.
 	  @note will also commit any pending changes added with QoreProgram::parsePending()
 	  @param filename the filename to run
        */
@@ -175,7 +176,8 @@ class QoreProgram : public AbstractPrivateData
 	  raised during opening, parsing, and executing the file.
 	  @note any threads started by this call will continue running in the background,
 	  to wait for them to terminate, call QoreProgram::waitForTermination() or
-	  QoreProgram::waitForTerminationAndDeref()
+	  QoreProgram::waitForTerminationAndDeref().
+	  Also sets the script path.
 	  @note will also commit any pending changes added with QoreProgram::parsePending()
 	  @param filename the filename to run
 	  @param classname the name of the class to instantiate
@@ -242,7 +244,7 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT void parse(const char *str, const char *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = -1);
 
       //! parses code from the file given and commits changes to the QoreProgram
-      /** 
+      /** Also sets the script path.
 	  @note will also commit any pending changes added with QoreProgram::parsePending()
 	  @param filename the filename to open and parse
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -384,20 +386,25 @@ class QoreProgram : public AbstractPrivateData
       //! returns a list of features in the program object
       DLLEXPORT QoreListNode *getFeatureList() const;
 
-      //! returns the script directory, if known
-      /** return the script directory, if known (0 if not)
+      //! returns the script file name, if known (0 if not)
+      /** @return the script file name, if known (0 if not)
        */
-      DLLEXPORT const char *getScriptDir() const;
+      DLLEXPORT QoreStringNode *getScriptName() const;
+      
+      //! returns the script path (directory and name), if known (0 if not)
+      /** @return the script path (directory and name), if known (0 if not)
+       */
+      DLLEXPORT QoreStringNode *getScriptPath() const;
+      
+      //! returns the script directory, if known (0 if not)
+      /** @return the script directory, if known (0 if not)
+       */
+      DLLEXPORT QoreStringNode *getScriptDir() const;
 
-      //! sets the script directory
-      /** @param dir the directory of the script (set to 0 to clear)
+      //! sets the script path
+      /** @param path the directory and filename of the script (set to 0 to clear)
        */
-      DLLEXPORT void setScriptDir(const char *dir);
-
-      //! sets the script directory from the path
-      /** @param path the full path of the script (set to 0 to clear)
-       */
-      DLLEXPORT void setScriptDirFromPath(const char *path);
+      DLLEXPORT void setScriptPath(const char *dir);
 
       /// returns a pointed to the given user function if it exists (otherwise returns 0)
       DLLLOCAL class UserFunction *findUserFunction(const char *name);

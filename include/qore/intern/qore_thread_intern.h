@@ -82,7 +82,7 @@ DLLLOCAL void catchSaveException(QoreException *e);
 DLLLOCAL QoreException *catchGetException();
 DLLLOCAL VLock *getVLock();
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(CallNode *cn);
 DLLLOCAL void popCall(ExceptionSink *xsink);
 DLLLOCAL CallStack *getCallStack();
@@ -211,7 +211,7 @@ class SingleArgvContextHelper {
 
 #include <qore/intern/CallStack.h>
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 class CallStackHelper : public CallNode {
       ExceptionSink *xsink;
 
