@@ -9,7 +9,7 @@
 
     <programlisting>%requires tibrv</programlisting>
 
-    <para>The tibrv module provides direct TIBCO Rendezvous functionality, including support for reliable and certified messaging, secure daemon support, fault tolerant group membership and monitoring, and distributed queues.  For Active Enterprise functionality, see the <link linkend="tibae_Module">tibae module</link>.  All classes and constants provided by this module can be found in the <code>Tibrv</code> namespace.</para>
+    <para>The tibrv module provides direct TIBCO Rendezvous functionality, including support for reliable and certified messaging, secure daemon support, fault tolerant group membership and monitoring, and distributed queues.  For ActiveEnterprise functionality, see the <code>tibae</code> module.  All classes and constants provided by this module can be found in the <code>Tibrv</code> namespace.</para>
 
     <para>Qore data sent on the Rendezvous bus is automatically serialized to TIBCO Rendezvous formats based on information in the following table.  Because Rendezvous supports many more data types than Qore has basic types, serializion can be overridden by using the functions in <link linkend="tibrv_functions">tibrv functions</link>.  For example:</para>
 

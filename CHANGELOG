@@ -1,5 +1,6 @@
 2008.09.05: David Nichols
 	* removed tuxedo documentation (added to tuxedo module project)
+	* removed tibae documentation (added to tibae module project)
 
 2008.09.04: David Nichols
 	* implemented a much more efficient algorithm for parsing base64 strings

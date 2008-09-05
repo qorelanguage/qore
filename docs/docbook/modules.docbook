@@ -19,8 +19,6 @@
 
   &tibrv_module;
 
-  &tibae_module;
-
   &oracle_module;
 
   &mysql_module;
