@@ -31,8 +31,6 @@
 
   &mssql_module;
 
-  &tuxedo_module;
-
   &opengl_module;
 
   &glut_module;

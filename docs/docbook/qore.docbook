@@ -17,7 +17,6 @@
   <!ENTITY pgsql_module     SYSTEM "pgsql_module.docbook">
   <!ENTITY sybase_module    SYSTEM "sybase_module.docbook">
   <!ENTITY mssql_module     SYSTEM "mssql_module.docbook">
-  <!ENTITY tuxedo_module    SYSTEM "tuxedo_module.docbook">
   <!ENTITY opengl_module    SYSTEM "opengl_module.docbook">
   <!ENTITY glut_module      SYSTEM "glut_module.docbook">
   <!ENTITY qt-core_module   SYSTEM "qt-core_module.docbook">
