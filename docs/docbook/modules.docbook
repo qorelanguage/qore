@@ -17,8 +17,6 @@
 
   &ncurses_module;
 
-  &tibrv_module;
-
   &oracle_module;
 
   &mysql_module;
