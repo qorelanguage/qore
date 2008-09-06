@@ -22408,23 +22408,23 @@ $sock.bind("/tmp/socket");</programlisting>
 	
 	<tbody>
 	  <row>
-	    <entry><para><link linkend="oracle_Module"><code>SQL::DSOracle</code></link></para></entry>
+	    <entry><para><code>SQL::DSOracle</code></para></entry>
 	    <entry><para>Indicates an Oracle database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="mysql_Module"><code>SQL::DSMySQL</code></link></para></entry>
+	    <entry><para><code>SQL::DSMySQL</code></para></entry>
 	    <entry><para>Indicates a MySQL database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="pgsql_Module"><code>SQL::DSPGSQL</code></link></para></entry>
+	    <entry><para><code>SQL::DSPGSQL</code></para></entry>
 	    <entry><para>Indicates a PostgreSQL database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="sybase_Module"><code>SQL::DSSybase</code></link></para></entry>
+	    <entry><para><code>SQL::DSSybase</code></para></entry>
 	    <entry><para>Indicates a Sybase database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="mssql_Module"><code>SQL::DSMSSQL</code></link></para></entry>
+	    <entry><para><code>SQL::DSMSSQL</code></para></entry>
 	    <entry><para>Indicates a Microsoft SQL Server database to the Datasource::constructor() method</para></entry>
 	  </row>
 	  
@@ -22515,7 +22515,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	
     <para>Some Qore DBI drivers allow &quot;select&quot; queries to be executed through the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> method, and allow SQL commands (procedure calls, etc) to be executed through the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method, and some DBI drivers do not (depends on the underlying DB API).  At any rate, the transaction lock is set when auto-commit is disabled and when the <link linkend="Qore::SQL::Datasource::exec">Datasource::exec()</link> or  <link linkend="Qore::SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed as documented above.  Therefore executing a transaction relevant command through the  <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the Datasource object between multiple threads.</para>
 
-    <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.  DBI drivers shipping with Qore include <link linkend="oracle_Module">oracle</link>, <link linkend="mysql_Module">mysql</link>, <link linkend="pgsql_Module">pgsql</link> (PostgreSQL), <link linkend="sybase_Module">sybase</link>, and <link linkend="mssql_Module">mssql</link> (FreeTDS-based Sybase and Microsoft SQL Server driver).</para>
+    <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.</para>
 
    <para>All Qore DBI drivers set new connections to use transaction isolation level &quot;read committed&quot;.</para>
 
