@@ -11,7 +11,6 @@
   <!ENTITY modules          SYSTEM "modules.docbook">
   <!ENTITY ncurses_module   SYSTEM "ncurses_module.docbook">
   <!ENTITY mysql_module     SYSTEM "mysql_module.docbook">
-  <!ENTITY pgsql_module     SYSTEM "pgsql_module.docbook">
   <!ENTITY sybase_module    SYSTEM "sybase_module.docbook">
   <!ENTITY mssql_module     SYSTEM "mssql_module.docbook">
   <!ENTITY opengl_module    SYSTEM "opengl_module.docbook">

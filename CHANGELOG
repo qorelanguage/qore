@@ -1,3 +1,6 @@
+2008.09.07: David Nichols
+	* removed pgsql documentation (added to pgsql module project)
+
 2008.09.06: David Nichols
 	* removed tibrv documentation (added to tibrv module project)
 	* removed oracle documentation (added to oracle module project)

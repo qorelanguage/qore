@@ -19,8 +19,6 @@
   
   &mysql_module;
 
-  &pgsql_module;
-
   &sybase_module;
 
   &mssql_module;
