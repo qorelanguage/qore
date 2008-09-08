@@ -668,7 +668,10 @@ class WSDL::WSOperation inherits XSDNamedData
 
     deserializeRequest($o)
     {
-	my $body = $o."soapenv:Envelope"."soapenv:Body";
+	WSDL::XSDBase::removeNS(\$o);
+	WSDL::XSDBase::removeNS(\$o.Envelope);
+
+	my $body = $o.Envelope.Body;
 
 	my ($mrh, $msg) = $.processMultiRef($body);
 
@@ -677,7 +680,10 @@ class WSDL::WSOperation inherits XSDNamedData
 
     deserializeResponse($o)
     {
-	my $body = $o."soapenv:Envelope"."soapenv:Body";
+	WSDL::XSDBase::removeNS(\$o);
+	WSDL::XSDBase::removeNS(\$o.Envelope);
+
+	my $body = $o.Envelope.Body;
 
 	my ($mrh, $msg) = $.processMultiRef($body);
 

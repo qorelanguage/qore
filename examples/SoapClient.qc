@@ -103,4 +103,12 @@ class SoapClient::SoapClient {
 	#printf("DEBUG ans=%n\n", $info.response);
 	return $op.deserializeResponse(parseXML($info.response));
     }
+
+    setEncoding($str) {
+	$.hc.setEncoding($str);
+    }
+
+    getEncoding() {
+	return $.hc.getEncoding();
+    }
 }
