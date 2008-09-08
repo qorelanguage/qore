@@ -491,20 +491,10 @@
           <entry><para>Performs zlib-based &quot;deflate&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1952">RFC 1951</ulink>) and returns a binary object of the compressed data.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="convert_encoding">convert_encoding()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Performs explicit string character encoding conversions.</para>
-          </entry>
+          <entry><para><link linkend="convert_encoding">convert_encoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Performs explicit string character encoding conversions.</para></entry>
         </row>
         <row>
           <entry>
@@ -977,6 +967,12 @@
           <entry><para>n/a</para></entry>
 	  <entry><para>N</para></entry>
           <entry><para>Flushes output to the console output with <link linkend="print">print()</link>, <link linkend="printf">printf()</link>, etc</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="force_encoding">force_encoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a string tagged with the given character encoding; does not actually change the string data; use only in the case that a string is tagged with the wrong encoding.</para></entry>
         </row>
         <row>
           <entry>
@@ -8420,6 +8416,54 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </tbody>
   </tgroup>
   </table>
+
+</sect2>
+
+<sect2 id="force_encoding">
+<title>force_encoding()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the first string argument tagged with the character encoding given as the second argument; does not actually change the string data; use only in the case that a string is tagged with the wrong encoding, for example, if a string from a <link linkend="File_Class">File</link> object has a different encoding than the File object.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>force_encoding(<replaceable>string, new_encoding</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$utf8_str = convert_encoding($str, "utf-8");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for convert_encoding()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para>String, String</para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Returns a string with identical byte data as the input string, but tagged with the new encoding.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <para>This function does not throw any exceptions.</para>
 
 </sect2>
 

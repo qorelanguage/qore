@@ -19,10 +19,6 @@
   
   &mysql_module;
 
-  &sybase_module;
-
-  &mssql_module;
-
   &opengl_module;
 
   &glut_module;

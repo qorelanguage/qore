@@ -1,3 +1,9 @@
+2008.09.08: David Nichols
+	* updated ManagedDatasource class to no longer require a connection to
+	  the server to execute the getClientVersion DBI method
+	* implemented force_encoding() function
+	* fixed a bug in ManagedDatasource::selectRow()
+
 2008.09.07: David Nichols
 	* removed pgsql documentation (added to pgsql module project)
 
