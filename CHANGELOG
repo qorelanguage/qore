@@ -3,6 +3,8 @@
 	  the server to execute the getClientVersion DBI method
 	* implemented force_encoding() function
 	* fixed a bug in ManagedDatasource::selectRow()
+	* fixed character encoding detection in HTTPClient response header
+	  parsing
 
 2008.09.07: David Nichols
 	* removed pgsql documentation (added to pgsql module project)

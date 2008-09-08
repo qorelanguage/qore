@@ -935,10 +935,18 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       if (p && (p == str || *(p - 1) == ';' || *(p - 1) == ' ')) {
 	 // move p to start of encoding
 	 const char *c = p + 8;
+	 char quote = '\0';
+	 if (*c == '\'' || *c == '"') {
+	    quote = *c;
+	    ++c;
+	 }
 	 QoreString enc;
-	 while (*c && *c != ';' && *c != ' ')
+	 while (*c && *c != ';' && *c != ' ' && *c != quote)
 	    enc.concat(*(c++));
 	 
+	 if (*c == quote)
+	    ++c;
+
 	 printd(0, "setting encoding to '%s' from '%s'\n", enc.getBuffer(), str);
 
 	 // set new encoding
