@@ -405,6 +405,16 @@ static AbstractQoreNode *f_convert_encoding(const QoreListNode *params, Exceptio
    return p0->convertEncoding(QEM.findCreate(p1), xsink);
 }
 
+static AbstractQoreNode *f_force_encoding(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *p0, *p1;
+   if (!(p0 = test_string_param(params, 0)) ||
+       !(p1 = test_string_param(params, 1)))
+      return 0;
+
+   return new QoreStringNode(p0->getBuffer(), p0->strlen(), QEM.findCreate(p1));
+}
+
 static AbstractQoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0, *p1;
@@ -629,6 +639,7 @@ void init_string_functions()
    builtinFunctions.add("split", f_split);
    builtinFunctions.add("get_encoding", f_get_encoding);
    builtinFunctions.add("convert_encoding", f_convert_encoding);
+   builtinFunctions.add("force_encoding", f_force_encoding);
    builtinFunctions.add("regex", f_regex);
    builtinFunctions.add("regex_subst", f_regex_subst);
    builtinFunctions.add("regex_extract", f_regex_extract);

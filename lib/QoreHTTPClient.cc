@@ -938,6 +938,9 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 QoreString enc;
 	 while (*c && *c != ';' && *c != ' ')
 	    enc.concat(*(c++));
+	 
+	 printd(0, "setting encoding to '%s' from '%s'\n", enc.getBuffer(), str);
+
 	 // set new encoding
 	 priv->m_socket.setEncoding(QEM.findCreate(&enc));
 	 // strip from content-type

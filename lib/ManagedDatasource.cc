@@ -244,8 +244,8 @@ AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, const Qore
       endDBAction();
 
       // return only hash of first row, if any
-      QoreListNode *l = dynamic_cast<QoreListNode *>(rv);
-      if (rv) {
+      if (rv && rv->getType() == NT_LIST) {
+	 QoreListNode *l = reinterpret_cast<QoreListNode *>(rv);
 	 AbstractQoreNode *h = l->shift();
 	 rv->deref(xsink);
 	 rv = h;
@@ -534,16 +534,5 @@ AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
 
 AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink)
 {
-   AbstractQoreNode *rv;
-   
-   if (!startDBAction(xsink))
-   {
-      rv = Datasource::getClientVersion(xsink);
-      
-      endDBAction();
-   }
-   else
-      rv = 0;
-   
-   return rv;
+   return Datasource::getClientVersion(xsink);
 }

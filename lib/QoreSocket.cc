@@ -1430,19 +1430,16 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state)
 }
 
 // static method
-void QoreSocket::convertHeaderToHash(class QoreHashNode *h, char *p)
+void QoreSocket::convertHeaderToHash(QoreHashNode *h, char *p)
 {
-   while (*p)
-   {
+   while (*p) {
       char *buf = p;
       
-      if ((p = strstr(buf, "\r\n")))
-      {
+      if ((p = strstr(buf, "\r\n"))) {
 	 *p = '\0';
 	 p += 2;
       }
-      else if ((p = strchr(buf, '\n')))
-      {
+      else if ((p = strchr(buf, '\n'))) {
 	 *p = '\0';
 	 p++;
       }
@@ -1665,21 +1662,18 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 {
    QoreStringNodeHolder buf(new QoreStringNode(priv->charsetid));
-   class QoreString str; // for reading the size of each chunk
+   QoreString str; // for reading the size of each chunk
    
    int rc;
    // read the size then read the data and append to buf
-   while (true)
-   {
+   while (true) {
       // state = 0, nothing
       // state = 1, \r received
       int state = 0;
-      while (true)
-      {
+      while (true) {
 	 char c;
 	 rc = recv(&c, 1, 0, timeout);
-	 if (rc <= 0)
-	 {
+	 if (rc <= 0) {
 	    doException(rc, "readHTTPChunkedBody", xsink);
 	    return 0;
 	 }
@@ -1688,10 +1682,8 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 	    state = 1;
 	 else if (state && c == '\n')
 	    break;
-	 else
-	 {
-	    if (state)
-	    {
+	 else {
+	    if (state) {
 	       state = 0;
 	       str.concat('\r');
 	    }
@@ -1708,25 +1700,22 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
       long size = strtol(str.getBuffer(), 0, 16);
       if (size == 0)
 	 break;
-      if (size < 0)
-      {
+      if (size < 0) {
 	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
 	 return 0;
       }
       // ensure string is blanked for next read
       str.clear();
-      
+
       // prepare string for chunk
       buf->allocate((unsigned)(buf->strlen() + size + 1));
       
       // read chunk directly into string buffer    
       int bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
       int br = 0; // bytes received
-      while (true)
-      {
+      while (true) {
 	 rc = recv((char *)buf->getBuffer() + buf->strlen() + br, bs, 0, timeout);
-	 if (rc <= 0)
-	 {
+	 if (rc <= 0) {
 	    doException(rc, "readHTTPChunkedBody", xsink);
 	    return 0;
 	 }
@@ -1745,11 +1734,9 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
       // read crlf after chunk
       char crlf[2];
       br = 0;
-      while (br < 2)
-      {
+      while (br < 2) {
 	 rc = recv(crlf, 2 - br, 0, timeout);
-	 if (rc <= 0)
-	 {
+	 if (rc <= 0) {
 	    doException(rc, "readHTTPChunkedBody", xsink);
 	    return 0;
 	 }
@@ -1763,8 +1750,12 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
       doException(rc, "readHTTPChunkedBody", xsink);
       return 0;
    }
+
+   //printd(5, "chunked body encoding=%s\n", buf->getEncoding()->getCode());
+
    QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("body", buf.release(), xsink);
+
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
       return h;
@@ -1800,8 +1791,7 @@ bool QoreSocket::isDataAvailable(int timeout) const
 
 int QoreSocket::recv(char *buf, int bs, int flags, int timeout)
 {
-   if (timeout == -1)
-   {
+   if (timeout == -1) {
       if (priv->ssl)
 	 return priv->ssl->read(buf, bs);
       return ::recv(priv->sock, buf, bs, flags);

@@ -876,8 +876,7 @@ void QoreString::concat(const char *str, qore_size_t size)
 void QoreString::concat(const QoreString *str)
 {
    // if it's not a null string
-   if (str && str->priv->len)
-   {
+   if (str && str->priv->len) {
       // if priv->buffer needs to be resized
       priv->check_char(str->priv->len + priv->len + STR_CLASS_EXTRA);
       // concatenate new string
