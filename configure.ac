@@ -680,6 +680,7 @@ AC_ARG_ENABLE([runtime-thread-stack-trace],
 
 if test "${enable_runtime_thread_stack_trace}" = "yes" -o "${enable_debug}" = yes; then
    AC_DEFINE(QORE_RUNTIME_THREAD_STACK_TRACE, 1, [to enable runtime thread stack tracing; note this has a performance penalty and is not generally necessary])
+   enable_runtime_thread_stack_trace=yes
 fi
 
 # check for gcc visibility support
