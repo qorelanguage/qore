@@ -289,7 +289,7 @@ dummy:
 if COND_DOXYGEN
 DX_CLEANFILES = docs/library
 
-docs/library/html/index.html: $(INCLUDE_HEADERS) $(DOXYFILES)
+docs/library/html/index.html: $(include_HEADERS) $(DOXYFILES)
 	$(DOXYGEN_CMD) doxygen/Doxyfile
 
 doxygen-doc: docs/library/html/index.html
