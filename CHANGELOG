@@ -5,6 +5,8 @@
 	* fixed a bug in ManagedDatasource::selectRow()
 	* fixed character encoding detection in HTTPClient response header
 	  parsing
+	* removed sybase documentation (added to sybase module project)
+	* removed mysql documentation (added to mysql module project)
 
 2008.09.07: David Nichols
 	* removed pgsql documentation (added to pgsql module project)

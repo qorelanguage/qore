@@ -17,8 +17,6 @@
 
   &ncurses_module;
   
-  &mysql_module;
-
   &opengl_module;
 
   &glut_module;

@@ -10,7 +10,6 @@
   <!ENTITY class_lib        SYSTEM "class_lib.docbook">
   <!ENTITY modules          SYSTEM "modules.docbook">
   <!ENTITY ncurses_module   SYSTEM "ncurses_module.docbook">
-  <!ENTITY mysql_module     SYSTEM "mysql_module.docbook">
   <!ENTITY opengl_module    SYSTEM "opengl_module.docbook">
   <!ENTITY glut_module      SYSTEM "glut_module.docbook">
   <!ENTITY qt-core_module   SYSTEM "qt-core_module.docbook">
