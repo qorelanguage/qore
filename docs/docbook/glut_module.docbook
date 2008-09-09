@@ -7,7 +7,7 @@
 
     <para>Note that most of the C++ code for this module was generated automatically by a Qore script that scanned the header files and generated the C++ module code based on the function prototypes (by generating the C++ binding s to create qore functions) and the defines (by generating C++ code to create Qore constants).</para>
 
-    <para>This module requires the <link linkend="opengl_Module">opengl</link> module to work.</para>
+    <para>This module requires the opengl module to work.</para>
 
     <para>This section of the documentation does not describe the GLUT API at the moment, however the Qore GLUT API corresponds basically 1:1 to the C GLUT API with the exception of the functions to set callbacks: in qore these take a <link linkend="call_references">call reference</link> or a <link linkend="closures">closure</link> in the place of the C function pointer.</para>
 

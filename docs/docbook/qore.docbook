@@ -9,7 +9,6 @@
   <!ENTITY function_lib     SYSTEM "function_lib.docbook">
   <!ENTITY class_lib        SYSTEM "class_lib.docbook">
   <!ENTITY modules          SYSTEM "modules.docbook">
-  <!ENTITY opengl_module    SYSTEM "opengl_module.docbook">
   <!ENTITY glut_module      SYSTEM "glut_module.docbook">
   <!ENTITY qt-core_module   SYSTEM "qt-core_module.docbook">
   <!ENTITY qt-gui_module    SYSTEM "qt-gui_module.docbook">

@@ -1,5 +1,5 @@
 
-SOURCES=bookinfo.docbook class_lib.docbook comparison.docbook future.docbook keywords.docbook modules.docbook qore.docbook bugs.docbook command_line.docbook function_lib.docbook introduction.docbook language.docbook parse_directives.docbook driver.xsl opengl_module.docbook glut_module.docbook qt-core_module.docbook qt-gui_module.docbook qt-opengl_module.docbook qt-svg_module.docbook
+SOURCES=bookinfo.docbook class_lib.docbook comparison.docbook future.docbook keywords.docbook modules.docbook qore.docbook bugs.docbook command_line.docbook function_lib.docbook introduction.docbook language.docbook parse_directives.docbook driver.xsl glut_module.docbook qt-core_module.docbook qt-gui_module.docbook qt-opengl_module.docbook qt-svg_module.docbook
 
 all: qore.html
 
