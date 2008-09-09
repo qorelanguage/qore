@@ -90,7 +90,7 @@ DLLLOCAL class LVar *thread_instantiate_lvar();
 DLLLOCAL void thread_uninstantiate_lvar(class ExceptionSink *xsink);
 DLLLOCAL class LVar *thread_find_lvar(lvh_t id);
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(const char *f, int type, class Object *o = NULL);
 DLLLOCAL void popCall(class ExceptionSink *xsink);
 DLLLOCAL class CallStack *getCallStack();

@@ -99,7 +99,7 @@ char *remove_trailing_blanks(char *str)
    return str;
 }
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 void showCallStack()
 {
    List *callStack = getCallStackList();

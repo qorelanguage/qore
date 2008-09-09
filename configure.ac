@@ -594,6 +594,20 @@ AC_ARG_ENABLE([builtin-modules],
       esac],
      [enable_builtin_modules=no])
 
+AC_ARG_ENABLE([runtime-thread-stack-trace],
+  [AS_HELP_STRING([--enable-runtime-thread-stack-trace],
+                  [enable runtime thread stack trace (performance penalty, default: off)])],
+  [case "${enable_runtime_thread_stack_trace}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_runtime_thread_stack_trace} for --enable-runtime-thread-stack-trace) ;;
+      esac],
+  [enable_runtime_thread_stack_trace=no])
+
+if test "${enable_runtime_thread_stack_trace}" = "yes" -o "${enable_debug}" = yes; then
+   AC_DEFINE(QORE_RUNTIME_THREAD_STACK_TRACE, 1, [to enable runtime thread stack tracing; note this has a performance penalty and is not generally necessary])
+   enable_runtime_thread_stack_trace=yes
+fi
+
 # check for gcc visibility support
 AC_MSG_CHECKING([for gcc visibility support])
 if test "$GXX" = "yes"; then

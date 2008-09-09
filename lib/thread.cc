@@ -24,7 +24,7 @@
 
 #include <qore/Qore.h>
 #include <qore/ThreadResourceList.h>
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/CallStack.h>
 #endif
 
@@ -84,7 +84,7 @@ class ThreadEntry {
 public:
    pthread_t ptid;
    class tid_node *tidnode;
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    class CallStack *callStack;
 #endif
    
@@ -251,7 +251,7 @@ void ThreadEntry::cleanup()
    // delete tidnode from tid_list
    delete tidnode;
 
-#ifdef DEBUG   
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    // delete call stack
    delete callStack;
 #endif
@@ -706,7 +706,7 @@ ArgvContextHelper::~ArgvContextHelper()
    td->current_argvid = old_argvid;
 }
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 void pushCall(const char *f, int type, class Object *o)
 {
    thread_list[gettid()].callStack->push(f, type, o);
@@ -835,7 +835,7 @@ class Exception *catchGetException()
 static void allocate_thread_entry(int tid)
 {
    thread_list[tid].ptid = (pthread_t)-1L;
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    thread_list[tid].callStack = NULL;
 #endif
 }
@@ -915,7 +915,7 @@ void deregister_signal_thread()
 void register_thread(int tid, pthread_t ptid, class QoreProgram *p)
 {
    thread_list[tid].ptid = ptid;
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    thread_list[tid].callStack = new CallStack();
 #endif
    pthread_setspecific(thread_data_key, (void *)(new ThreadData(tid, p)));
@@ -1069,7 +1069,7 @@ void init_qore_threads()
    pthread_mutexattr_init(&ma_recursive);
    pthread_mutexattr_settype(&ma_recursive, PTHREAD_MUTEX_RECURSIVE);
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    // mark threading as active
    threads_initialized = true;
 #endif
@@ -1136,7 +1136,7 @@ List *get_thread_list()
    return l;
 }
 
-#ifdef DEBUG
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 Hash *getAllCallStacks()
 {
    Hash *h = new Hash();

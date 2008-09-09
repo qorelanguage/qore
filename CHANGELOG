@@ -1,3 +1,6 @@
+2008.09.09: David Nichols
+	* added --enable-runtime-thread-stack-trace to configure
+
 2008.08.22: David Nichols
 	* fixed a bug in an exception string in the Mutex class that could
 	  cause a core dump
