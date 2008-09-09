@@ -15,8 +15,6 @@
 
   <para>Note that modules providing classes, constants, functions, etc that are resolved at parse time must be loaded at parse time using the <code>%requires</code> directive, otherwise parsing will fail and the run-time <link linkend="load_module">load_module()</link> function will never get a chance to run.</para>
 
-  &glut_module;
-
   &qt-core_module;
 
   &qt-gui_module;

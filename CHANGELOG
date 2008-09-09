@@ -1,6 +1,7 @@
 2008.09.09: David Nichols
 	* removed ncurses documentation (added to ncurses module project)
 	* removed opengl documentation (added to opengl module project)
+	* removed glut documentation (added to glut module project)
 
 2008.09.08: David Nichols
 	* updated ManagedDatasource class to no longer require a connection to
