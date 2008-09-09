@@ -405,7 +405,7 @@ static class QoreNode *f_ord(class QoreNode *params, ExceptionSink *xsink)
    class QoreNode *p1 = get_param(params, 1);
    int offset = p1 ? p1->getAsInt() : 0;
 
-   if (offset >= str->strlen())
+   if (offset >= str->strlen() || offset < 0)
    {
       if (temp != p0)
 	 temp->deref(xsink);

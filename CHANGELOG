@@ -8,7 +8,9 @@
 
 2008.02.14: David Nichols
 	* fixed a memory leak the use of Object::evalData() when an exception
-	  occurs
+	  occurs (backported from 0.7.0/trunk)
+	* fixed a memory error in QoreString::addch() (backported from 
+	  0.7.0/trunk)
 
 2008.02.09: David Nichols
 	* fixed a bug where a local variable declared as an immediate call 

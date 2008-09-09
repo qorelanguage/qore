@@ -1496,18 +1496,17 @@ class QoreString *checkEncoding(const class QoreString *str, const class QoreEnc
 
 void QoreString::addch(char c, unsigned times)
 {
-  if (allocated) {
-    check_char(len + times + STR_CLASS_BLOCK); // more data will follow the padding
-    memset(buf + len, c, times);
-    buf[len + times] = 0;
-    len += times;
-  } else {
-    allocated = times + STR_CLASS_BLOCK;
-    allocated = (allocated / 16 + 1) * 16; // use complete cache line
-    buf = (char*)malloc(sizeof(char) * allocated);
-    memset(buf, c, times);
-    buf[times] = 0;
-  }
+   if (allocated) {
+      check_char(len + times + STR_CLASS_BLOCK); // more data will follow the padding
+      memset(buf + len, c, times);
+   } else {
+      allocated = times + STR_CLASS_BLOCK;
+      allocated = (allocated / 16 + 1) * 16; // use complete cache line
+      buf = (char*)malloc(sizeof(char) * allocated);
+      memset(buf, c, times);
+   }
+   len += times;
+   buf[len] = 0;
 }
 
 int QoreString::concatUnicode(unsigned code, class ExceptionSink *xsink)
