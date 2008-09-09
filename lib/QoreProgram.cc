@@ -309,18 +309,8 @@ struct qore_program_private {
 	    RootNS->parseInitConstants();
 	    
 	    // initialize new statements second (for "our" and "my" declarations)
-	    if (sb_tail->statements)
-	       sb_tail->statements->parseInitTopLevel(RootNS, &user_func_list, sb_head == sb_tail);
-
-	    /*
-	    sb_tail->statements->parseInitImpl(0);
-
-	    // initialize new objects, etc in namespaces
-	    RootNS->parseInit();
-	    
-	    // initialize new user functions
-	    user_func_list.parseInit();
-	    */
+	    // note: sb_tail->statements may be 0
+	    sb_tail->statements->parseInitTopLevel(RootNS, &user_func_list, sb_head == sb_tail);
 
 	    printd(5, "QoreProgram::internParseCommit() this=%08p priv->RootNS=%08p\n", this, RootNS);
 	 }

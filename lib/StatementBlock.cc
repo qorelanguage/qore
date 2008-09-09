@@ -558,14 +558,20 @@ int StatementBlock::parseInitIntern(LocalVar *oflag, int pflag) {
    return lvids;
 }
 
+// may be called with this=0
 int StatementBlock::parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *ufl, bool first) {
    QORE_TRACE("StatementBlock::parseInitTopLevel");
-   
+
+   if (!this) {
+      rns->parseInit();
+      ufl->parseInit();
+      return 0;
+   }
+
    int lvids = parseInitIntern(0);
 
    if (lvids && !first)
       parseException("ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "local variables declared with 'my' in the top-level block of a Program object can only be declared in the very first block parsed");
-
    // now initialize root namespace and functions before local variables are popped off the stack
    rns->parseInit();
    ufl->parseInit();
