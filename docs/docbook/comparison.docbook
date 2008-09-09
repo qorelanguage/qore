@@ -5,12 +5,12 @@
 
   <para>Qore's syntax superficially appears to be a mixture of C, Java and perl with some unique features to Qore (such as <command>context</command> statements, etc).</para>
 
-  <para>Because no independent comparison of Qore with other languages exists, I'll try to compare Qore to perl and Java as objectively as possible in this section (since I used these two languages to get ideas for the interface for Qore).</para>
+  <para>Because no independent comparison of Qore with other languages exists, I'll try to compare Qore to perl and Java as objectively as possible in this section (since I used these two languages to get ideas for the interface for Qore).  In my opinion, it's not really possible to make totally objective language comparison (particularly when the author of the language makes it!), but I'll do ma best anyway...</para>
 
   <sect1 id="Qore_and_perl">
     <title>Qore and perl</title>
 
-    <para>Qore is not perl; perl is a robust, mature, feature-full, and powerful language, and Qore is a new, young, and (compared to perl) relatively limited language and differs philosophically in some areas.</para>
+    <para>Firs of all, Qore is not perl; perl is a robust, mature, feature-full, and powerful language, and Qore is a new, young, and (compared to perl) relatively limited language and differs philosophically in some areas.</para>
 
     <para>(Some) similarities to perl:</para>
 
@@ -101,7 +101,7 @@ $scalar = 3.0;</programlisting>
         <para>there is currently no generic equivalent to perl's references.  It is only possible to pass values by reference in Qore if the subroutine includes a local variable argument list</para>
       </listitem>
       <listitem>
-        <para>Qore features experimental support for <link linkend="signal_handling">safe signal handling</link> as well.</para>
+        <para>Qore features support for <link linkend="signal_handling">safe signal handling</link> as well.</para>
       </listitem>
     </itemizedlist>
 

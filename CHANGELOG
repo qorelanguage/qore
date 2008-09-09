@@ -1,3 +1,6 @@
+2008.09.09: David Nichols
+	* removed ncurses documentation (added to ncurses module project)
+
 2008.09.08: David Nichols
 	* updated ManagedDatasource class to no longer require a connection to
 	  the server to execute the getClientVersion DBI method
