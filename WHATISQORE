@@ -28,21 +28,16 @@ Support for exception-safe programming is facilitated with the on_exit, ex_error
 
 Qore has built-in national character set support based on the C library's iconv functions and supports both implicit and explicit character set conversions.  For example, if a Datasource object is assigned the "UTF-8" character set, but a File object has "ISO-8859-1" character set, any data written to the database from the File object will be automatically converted implicitly to the "UTF-8" character set without any intervention necessary by the programmer.
 
-Qore has Oracle (oracle), MySQL (mysql), PostgreSQL (pgsql), Sybase (sybase), and FreeTDS (mssql) drivers, making it easy to write scripts/programs to manipulate data in different types of databases.  Furthermore the Datasource class offers an interface and constructs that facilitate database-independent development.
+Qore's db modules (delivered separately) make it easy to write scripts/programs to manipulate data in different types of databases.
+Furthermore the Datasource class offers an interface and constructs that facilitate database-independent development.
 
 Qore has libxml2 integration, allowing simple, automatic, and transparent serialization/deserialization to/from XML data to/from Qore data structures.
 
 Qore has JSON and JSON-RPC integration, supporting transparent serialization/deserialization to/from JSON data to/from Qore data structures.
 
-Qore has Socket, HTTPClient, XmlRpcClient, JsonRpcClient, and FtpClient modules (all supporting optional TLS/SSL encryption) for easy communication with various protocols.
+Qore has Socket, HTTPClient, XmlRpcClient, JsonRpcClient, and FtpClient classes (all supporting optional TLS/SSL encryption) for easy communication with various protocols.
 
 Qore uses the PCRE library to provide Perl-compatible regular expression support.
-
-Qore has TIBCO Adapters ("tibae" module) and direct Rendezvous ("tibrv" module) integration, making it very easy to write scripts/programs making use of TIBCO messaging.  Serializing/deserializing to/from TIBCO messages and to/from Qore data structures is simple, automatic, and transparent to the programmer.
-
-Qore has a "tuxedo" module, providing a qore-language Tuxedo client API.
-
-Qore has opengl, glut, and qt modules, allowing programmers to create platform-independent GUI code in qore.
 
 
 How does Qore compare to other programming languages?

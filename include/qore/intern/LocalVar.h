@@ -396,8 +396,7 @@ class LocalVar {
       {
       }
 
-      DLLLOCAL void instantiate(AbstractQoreNode *value)
-      {
+      DLLLOCAL void instantiate(AbstractQoreNode *value) const {
 	 //printd(5, "LocalVar::instantiate(%08p) this=%08p '%s'\n", value, this, name.c_str());
 
 	 if (!closure_use) {
@@ -414,8 +413,7 @@ class LocalVar {
 	 thread_instantiate_closure_var(name.c_str(), value);
       }
 
-      DLLLOCAL void instantiate_object(QoreObject *value)
-      {
+      DLLLOCAL void instantiate_object(QoreObject *value) const {
 	 //printd(5, "LocalVar::instantiate_object(%08p) this=%08p '%s'\n", value, this, name.c_str());
 
 	 if (!closure_use) {
@@ -434,8 +432,7 @@ class LocalVar {
 	 value->ref();
       }
 
-      DLLLOCAL void instantiate(AbstractQoreNode *vexp, QoreObject *obj)
-      {
+      DLLLOCAL void instantiate(AbstractQoreNode *vexp, QoreObject *obj) {
 	 //printd(5, "LocalVar::instantiate(%08p, %08p) this=%08p '%s'\n", vexp, obj, this, name.c_str());
 
 	 if (!closure_use) {
@@ -452,8 +449,7 @@ class LocalVar {
 	 thread_instantiate_closure_var(name.c_str(), vexp, obj);
       }
       
-      DLLLOCAL void uninstantiate(ExceptionSink *xsink)
-      {
+      DLLLOCAL void uninstantiate(ExceptionSink *xsink) const  {
 	 if (!closure_use) {
 #ifdef HAVE_UNLIMITED_THREAD_KEYS
 	    LocalVarValue *val = get_current_var();
@@ -465,8 +461,7 @@ class LocalVar {
 	 thread_uninstantiate_closure_var(xsink);
       }
 
-      DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const
-      {
+      DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const {
 	 if (!closure_use) {
 	    LocalVarValue *val = get_var();
 	    return val->getValuePtr(vl, xsink);
@@ -475,8 +470,7 @@ class LocalVar {
 	 return val->getValuePtr(vl, xsink);
       }
 
-      DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink)
-      {
+      DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) const {
 	 if (!closure_use) {
 	    LocalVarValue *val = get_var();
 	    return val->getValue(vl, xsink);
@@ -487,8 +481,7 @@ class LocalVar {
       }
 
       // value is already referenced for assignment
-      DLLLOCAL void setValue(AbstractQoreNode *value, ExceptionSink *xsink)
-      {
+      DLLLOCAL void setValue(AbstractQoreNode *value, ExceptionSink *xsink) const {
 	 if (!closure_use) {
 	    LocalVarValue *val = get_var();
 	    val->setValue(value, xsink);
@@ -498,8 +491,7 @@ class LocalVar {
 	 val->setValue(value, xsink);
       }
 
-      DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink)
-      {
+      DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink) const {
 	 if (!closure_use) {
 	    LocalVarValue *val = get_var();
 	    return val->eval(xsink);
@@ -509,8 +501,7 @@ class LocalVar {
 	 return val->eval(xsink);
       }
 
-      DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, ExceptionSink *xsink)
-      {
+      DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, ExceptionSink *xsink) const  {
 	 if (!closure_use) {
 	    LocalVarValue *val = get_var();
 	    return val->eval(needs_deref, xsink);

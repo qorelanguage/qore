@@ -18150,7 +18150,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the byte value of the offset (starting with 0) in the object passed.  Of no offset is passed, then the value of the first byte (offset 0) is returned.</para>
+	<para>Returns the byte value of the offset (starting with 0) in the object passed.  Of no offset is passed, then the value of the first byte (offset 0) is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
       </listitem>
     </varlistentry>
     <varlistentry>

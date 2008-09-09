@@ -4,7 +4,6 @@ SOURCES=bookinfo.docbook \
 	comparison.docbook \
 	future.docbook \
 	keywords.docbook \
-	modules.docbook \
 	qore.docbook \
 	bugs.docbook \
 	command_line.docbook \

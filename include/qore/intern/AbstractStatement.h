@@ -42,30 +42,29 @@ DLLLOCAL int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag);
 class AbstractStatement
 {
    private:
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink) = 0;
+      DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) = 0;
       DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) = 0;   
 
    public:
       int LineNumber;
       int EndLineNumber;
       const char *FileName;
-      class AbstractStatement *next;
 
       DLLLOCAL AbstractStatement(int start_line, int end_line);
-      DLLLOCAL virtual ~AbstractStatement()
-      {
-      }
-      DLLLOCAL int exec(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+
+      DLLLOCAL virtual ~AbstractStatement() {}
+
+      DLLLOCAL int exec(AbstractQoreNode **return_value, ExceptionSink *xsink);
       DLLLOCAL int parseInit(LocalVar *oflag, int pflag = 0);
+
       // statement should return true if it ends a block (break, continue, return, throw, etc)
       // meaning that any subsequent statements will be unconditionally skipped
-      DLLLOCAL virtual bool endsBlock() const
-      {
+      DLLLOCAL virtual bool endsBlock() const {
 	 return false;
       }
+
       // should return true if the statement is a declaration processed at parse time and should not go into the parse tree
-      DLLLOCAL virtual bool isDeclaration() const
-      {
+      DLLLOCAL virtual bool isDeclaration() const {
 	 return false;
       }
 };

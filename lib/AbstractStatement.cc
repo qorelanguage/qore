@@ -28,7 +28,6 @@
 AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(start_line), EndLineNumber(end_line)
 {
    FileName = get_parse_file();
-   next = 0;
 }
 
 int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsink)

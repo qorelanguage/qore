@@ -54,7 +54,7 @@
         <para>Qore has transparent UTF-8 support (qore's <link linkend="substr">substr()</link>, string <link linkend="Splice_Operator">splice</link>, <link linkend="index">index()</link>, <link linkend="reverse">reverse()</link>, etc work on character offsets, not byte offsets according to the character encoding used for the string), perl's wide character support is not as transparent - for example, 'printf("%s\n", substr("ä", 0, 1));' will output an invalid character in perl, but work properly in Qore using UTF-8 variable-width characters</para>
       </listitem>
       <listitem>
-        <para>Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl, and no default variables (no $_, etc); Qore has <command>if</command> statements, but no "unless"; etc</para>
+        <para>Qore tends to avoid syntactic shortcuts and require more verbose expressions than perl; Qore has a much smaller grammar than perl; Qore has <command>if</command> statements, but no "unless"; etc</para>
       </listitem>
       <listitem>
         <para>A Qore variable can be of any type, whereas in perl the type of variable also depends on the name</para>

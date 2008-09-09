@@ -59,6 +59,9 @@ class QoreHashNode;
 class FunctionCallNode;
 class AbstractStatement;
 class UnresolvedCallReferenceNode;
+class Var;
+class LVList;
+class UserFunction;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -75,7 +78,7 @@ class QoreProgram : public AbstractPrivateData
       struct qore_program_private *priv;
       
       DLLLOCAL void initGlobalVars();
-      DLLLOCAL void importUserFunction(QoreProgram *p, class UserFunction *uf, ExceptionSink *xsink);
+      DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *uf, ExceptionSink *xsink);
       DLLLOCAL void del(ExceptionSink *xsink);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -407,7 +410,7 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT void setScriptPath(const char *dir);
 
       /// returns a pointed to the given user function if it exists (otherwise returns 0)
-      DLLLOCAL class UserFunction *findUserFunction(const char *name);
+      DLLLOCAL UserFunction *findUserFunction(const char *name);
       
       DLLLOCAL QoreProgram(QoreProgram *pgm, int po, bool ec = false, const char *ecn = 0);
 
@@ -426,9 +429,9 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedCallReferenceNode *fr);      
       DLLLOCAL void addGlobalVarDef(const char *name);
       DLLLOCAL void addStatement(AbstractStatement *s);
-      DLLLOCAL class Var *findGlobalVar(const char *name);
-      DLLLOCAL class Var *checkGlobalVar(const char *name);
-      DLLLOCAL class Var *createGlobalVar(const char *name);
+      DLLLOCAL Var *findGlobalVar(const char *name);
+      DLLLOCAL Var *checkGlobalVar(const char *name);
+      DLLLOCAL Var *createGlobalVar(const char *name);
       DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
       DLLLOCAL void makeParseException(const char *err, QoreStringNode *desc);
       DLLLOCAL void makeParseException(int sline, int eline, QoreStringNode *desc);
@@ -459,6 +462,7 @@ class QoreProgram : public AbstractPrivateData
       */
       DLLLOCAL QoreThreadLock *getParseLock();
       DLLLOCAL QoreHashNode *clearThreadData(ExceptionSink *xsink);
+      DLLLOCAL const LVList *getTopLevelLVList() const;
 };
 
 //! safely manages QoreProgram objects

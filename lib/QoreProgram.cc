@@ -65,8 +65,8 @@ class CharPtrList : public safe_dslist<const char *>
 
 class SBNode {
    public:
-      class StatementBlock *statements;
-      class SBNode *next;
+      StatementBlock *statements;
+      SBNode *next;
    
       DLLLOCAL SBNode() { next = 0; statements = 0; }
       DLLLOCAL ~SBNode();
@@ -75,6 +75,7 @@ class SBNode {
 
 // local variable container
 typedef safe_dslist<LocalVar *> local_var_list_t;
+
 class LocalVariableList : public local_var_list_t
 {
    public:
@@ -120,8 +121,7 @@ struct qore_program_private {
 
       qpgm_thread_local_storage_t *thread_local_storage;
 
-      DLLLOCAL qore_program_private()
-      {
+      DLLLOCAL qore_program_private() {
 	 printd(5, "QoreProgram::QoreProgram() (init()) this=%08p\n", this);
 #ifdef DEBUG
 	 parseSink = 0;
@@ -132,7 +132,7 @@ struct qore_program_private {
 	 nextSB();
 	 
 	 // initialize global vars
-	 class Var *var = global_var_list.newVar("ARGV");
+	 Var *var = global_var_list.newVar("ARGV");
 	 if (ARGV)
 	    var->setValue(ARGV->copy(), 0);
 	 
@@ -202,22 +202,19 @@ struct qore_program_private {
 	 return l;
       }
 
-      DLLLOCAL void deleteSBList()
-      {
+      DLLLOCAL void deleteSBList() {
 	 SBNode *w = sb_head;
-	 while (w)
-	 {
+	 while (w) {
 	    w = w->next;
 	    delete sb_head;
 	    sb_head = w;
 	 }
       }
 
-      DLLLOCAL void nextSB()
-      {
+      DLLLOCAL void nextSB() {
 	 if (sb_tail && !sb_tail->statements)
 	    return;
-	 class SBNode *sbn = new SBNode();
+	 SBNode *sbn = new SBNode();
 	 if (!sb_tail)
 	    sb_head = sbn;
 	 else
@@ -225,8 +222,7 @@ struct qore_program_private {
 	 sb_tail = sbn;
       }
 
-      DLLLOCAL QoreListNode *getFeatureList() const
-      {
+      DLLLOCAL QoreListNode *getFeatureList() const {
 	 QoreListNode *l = new QoreListNode();
 	 
 	 for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
@@ -235,8 +231,7 @@ struct qore_program_private {
 	 return l;
       }
 
-      void internParseRollback()
-      {
+      void internParseRollback() {
 	 // delete pending user functions
 	 user_func_list.parseRollback();
 	 
@@ -248,8 +243,7 @@ struct qore_program_private {
       }
 
       // call must push the current program on the stack and pop it afterwards
-      int internParsePending(const char *code, const char *label)
-      {
+      int internParsePending(const char *code, const char *label) {
 	 printd(5, "QoreProgram::internParsePending(code=%08p, label=%s)\n", code, label);
 	 
 	 if (!(*code))
@@ -274,8 +268,7 @@ struct qore_program_private {
 
 	 printd(5, "QoreProgram::internParsePending() returned from yyparse()\n");
 	 int rc = 0;
-	 if (parseSink->isException())
-	 {
+	 if (parseSink->isException()) {
 	    rc = -1;
 	    printd(5, "QoreProgram::internParsePending() parse exception: calling parseRollback()\n");
 	    internParseRollback();
@@ -288,8 +281,7 @@ struct qore_program_private {
 	 return rc;
       }
 
-      int parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm)
-      {
+      int parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
 	 // grab program-level parse lock
 	 AutoLocker al(&plock);
 	 warnSink = wS;
@@ -309,36 +301,39 @@ struct qore_program_private {
       {
 	 QORE_TRACE("QoreProgram::internParseCommit()");
 	 printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, parseSink->isEvent());
+
 	 // if the first stage of parsing has already failed, 
 	 // then don't go forward
-	 if (!parseSink->isEvent())
-	 {
+	 if (!parseSink->isEvent()) {
 	    // initialize constants first
 	    RootNS->parseInitConstants();
 	    
-	    // initialize new statements second (for $our declarations)
+	    // initialize new statements second (for "our" and "my" declarations)
 	    if (sb_tail->statements)
-	       sb_tail->statements->parseInitImpl(0);
-	    
-	    printd(5, "QoreProgram::internParseCommit() this=%08p priv->RootNS=%08p\n", this, RootNS);
+	       sb_tail->statements->parseInitTopLevel(RootNS, &user_func_list, sb_head == sb_tail);
+
+	    /*
+	    sb_tail->statements->parseInitImpl(0);
+
 	    // initialize new objects, etc in namespaces
 	    RootNS->parseInit();
 	    
 	    // initialize new user functions
 	    user_func_list.parseInit();
+	    */
+
+	    printd(5, "QoreProgram::internParseCommit() this=%08p priv->RootNS=%08p\n", this, RootNS);
 	 }
 	 
 	 // if a parse exception has occurred, then back out all new
 	 // changes to the QoreProgram atomically
 	 int rc;
-	 if (parseSink->isEvent())
-	 {
+	 if (parseSink->isEvent()) {
 	    internParseRollback();
 	    requires_exception = false;
 	    rc = -1;
 	 }
-	 else // otherwise commit them
-	 {
+	 else { // otherwise commit them
 	    // merge pending user functions
 	    user_func_list.parseCommit();
 	    
@@ -353,8 +348,7 @@ struct qore_program_private {
 	 return rc;
       }
 
-      int parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm)
-      {
+      int parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
 	 // grab program-level parse lock
 	 AutoLocker al(&plock);
 	 warnSink = wS;
@@ -595,49 +589,42 @@ void QoreProgram::addGlobalVarDef(const char *name)
       makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
 }
 
-void QoreProgram::makeParseException(const char *err, QoreStringNode *desc)
-{
+void QoreProgram::makeParseException(const char *err, QoreStringNode *desc) {
    QORE_TRACE("QoreProgram::makeParseException()");
+
    QoreStringNodeHolder d(desc);
-   if (!priv->requires_exception)
-   {
+   if (!priv->requires_exception) {
       class QoreException *ne = new ParseException(err, d.release());
       priv->parseSink->raiseException(ne);
    }
-
 }
 
-void QoreProgram::makeParseException(QoreStringNode *desc)
-{
+void QoreProgram::makeParseException(QoreStringNode *desc) {
    QORE_TRACE("QoreProgram::makeParseException()");
+
    QoreStringNodeHolder d(desc);
-   if (!priv->requires_exception)
-   {
+   if (!priv->requires_exception) {
       class QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
       priv->parseSink->raiseException(ne);
    }
-
 }
 
-void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc)
-{
+void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc) {
    QORE_TRACE("QoreProgram::makeParseException()");
+
    QoreStringNodeHolder d(desc);
-   if (!priv->requires_exception)
-   {
+   if (!priv->requires_exception) {
       class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
       priv->parseSink->raiseException(ne);
    }
-
 }
 
-void QoreProgram::addParseException(ExceptionSink *xsink)
-{
-   if (priv->requires_exception)
-   {
+void QoreProgram::addParseException(ExceptionSink *xsink) {
+   if (priv->requires_exception) {
       delete xsink;
       return;
    }
+
    // ensure that all exceptions reflect the current parse location
    int sline, eline;
    get_parse_location(sline, eline);
@@ -645,15 +632,15 @@ void QoreProgram::addParseException(ExceptionSink *xsink)
    priv->parseSink->assimilate(xsink);
 }
 
-void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, ...)
-{
+void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, ...) {
+   QORE_TRACE("QoreProgram::makeParseWarning()");
+
    //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->warn_mask=%d priv->warnSink=%08p %s\n", code, warn, fmt, priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
    if (!priv->warnSink || !(code & priv->warn_mask))
       return;
-   QORE_TRACE("QoreProgram::makeParseWarning()");
+
    QoreStringNode *desc = new QoreStringNode();
-   while (true)
-   {
+   while (true) {
       va_list args;
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -661,47 +648,38 @@ void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, 
       if (!rc)
          break;
    }
-   class QoreException *ne = new ParseException(warn, desc);
+   QoreException *ne = new ParseException(warn, desc);
    priv->warnSink->raiseException(ne);
-
 }
 
-void QoreProgram::addParseWarning(int code, ExceptionSink *xsink)
-{
+void QoreProgram::addParseWarning(int code, ExceptionSink *xsink) {
    if (!priv->warnSink || !(code & priv->warn_mask))
       return;
    priv->warnSink->assimilate(xsink);
 }
 
-void QoreProgram::cannotProvideFeature(QoreStringNode *desc)
-{
+void QoreProgram::cannotProvideFeature(QoreStringNode *desc) {
    QORE_TRACE("QoreProgram::cannotProvideFeature()");
    
-   if (!priv->requires_exception)
-   {
+   if (!priv->requires_exception) {
       priv->parseSink->clear();
       priv->requires_exception = true;
    }
 
-   class QoreException *ne = new ParseException("CANNOT-PROVIDE-FEATURE", desc);
+   QoreException *ne = new ParseException("CANNOT-PROVIDE-FEATURE", desc);
    priv->parseSink->raiseException(ne);
-   
-
 }
 
-class UserFunction *QoreProgram::findUserFunction(const char *name)
-{
+UserFunction *QoreProgram::findUserFunction(const char *name) {
    AutoLocker al(&priv->plock);
    return priv->user_func_list.find(name);
 }
 
-void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink)
-{
+void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink) {
    if (this == p)
       xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
-   else
-   {
-      class UserFunction *u;
+   else {
+      UserFunction *u;
       priv->plock.lock();
       u = priv->user_func_list.find(name);
       if (!u)
@@ -715,8 +693,7 @@ void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, Exception
 }
 
 // called during parsing (priv->plock already grabbed)
-void QoreProgram::registerUserFunction(UserFunction *u)
-{
+void QoreProgram::registerUserFunction(UserFunction *u) {
    // check if an imported function already exists with this name
    if (priv->imported_func_list.findNode(u->getName()))
       parse_error("function \"%s\" has already been imported into this program", u->getName());
@@ -724,28 +701,23 @@ void QoreProgram::registerUserFunction(UserFunction *u)
       priv->user_func_list.add(u);
 }
 
-void QoreProgram::importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly)
-{
+void QoreProgram::importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly) {
    priv->plock.lock();
    priv->global_var_list.import(var, xsink, readonly);
    priv->plock.unlock();
 }
 
-int QoreProgram::setWarningMask(int wm)
-{
-   if (!(priv->parse_options & PO_LOCK_WARNINGS)) 
-   { 
+int QoreProgram::setWarningMask(int wm) {
+   if (!(priv->parse_options & PO_LOCK_WARNINGS)) { 
       priv->warn_mask = wm; 
-      return 0; 
-   } 
-   return -1; 
+      return 0;
+   }
+   return -1;
 }
 
 // returns 0 for success, -1 for error
-int QoreProgram::enableWarning(int code) 
-{ 
-   if (!(priv->parse_options & PO_LOCK_WARNINGS)) 
-   { 
+int QoreProgram::enableWarning(int code) { 
+   if (!(priv->parse_options & PO_LOCK_WARNINGS)) {
       priv->warn_mask |= code; 
       return 0; 
    } 
@@ -753,51 +725,42 @@ int QoreProgram::enableWarning(int code)
 }
 
 // returns 0 for success, -1 for error
-int QoreProgram::disableWarning(int code) 
-{ 
-   if (!(priv->parse_options & PO_LOCK_WARNINGS)) 
-   { 
+int QoreProgram::disableWarning(int code) { 
+   if (!(priv->parse_options & PO_LOCK_WARNINGS)) {
       priv->warn_mask &= ~code; 
       return 0; 
    } 
    return -1; 
 }
 
-class RootQoreNamespace *QoreProgram::getRootNS() const
-{
+RootQoreNamespace *QoreProgram::getRootNS() const {
    return priv->RootNS; 
 }
 
-int QoreProgram::getParseOptions() const
-{ 
+int QoreProgram::getParseOptions() const { 
    return priv->parse_options; 
 }
 
-QoreListNode *QoreProgram::getUserFunctionList()
-{
+QoreListNode *QoreProgram::getUserFunctionList() {
    AutoLocker al(&priv->plock);
    return priv->user_func_list.getList(); 
 }
 
-void QoreProgram::waitForTermination()
-{
+void QoreProgram::waitForTermination() {
    priv->tcount.waitForZero();
 }
 
-void QoreProgram::waitForTerminationAndDeref(ExceptionSink *xsink)
-{
+void QoreProgram::waitForTerminationAndDeref(ExceptionSink *xsink) {
    priv->tcount.waitForZero();
    deref(xsink);
 }
 
-void QoreProgram::lockOptions() 
-{ 
+void QoreProgram::lockOptions() { 
    priv->po_locked = true; 
 }
 
 // setExecClass() NOTE: string passed here will copied
-void QoreProgram::setExecClass(const char *ecn)
-{
+void QoreProgram::setExecClass(const char *ecn) {
    priv->exec_class = true;
    if (ecn)
       priv->exec_class_name = ecn;
@@ -805,41 +768,33 @@ void QoreProgram::setExecClass(const char *ecn)
       priv->exec_class_name.clear();
 }
 
-class QoreNamespace *QoreProgram::getQoreNS() const
-{
+QoreNamespace *QoreProgram::getQoreNS() const {
    return priv->QoreNS;
 }
 
-void QoreProgram::depRef()
-{
+void QoreProgram::depRef() {
    //printd(5, "QoreProgram::depRef() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
    priv->dc.ROreference();
 }
 
-void QoreProgram::depDeref(ExceptionSink *xsink)
-{
+void QoreProgram::depDeref(ExceptionSink *xsink) {
    //printd(5, "QoreProgram::depDeref() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
-   if (priv->dc.ROdereference())
-   {
+   if (priv->dc.ROdereference()) {
       del(xsink);
       delete this;
    }
 }
 
-bool QoreProgram::checkWarning(int code) const 
-{ 
+bool QoreProgram::checkWarning(int code) const {
    return priv->warnSink && (code & priv->warn_mask); 
 }
 
-int QoreProgram::getWarningMask() const 
-{ 
+int QoreProgram::getWarningMask() const { 
    return priv->warnSink ? priv->warn_mask : 0; 
 }
 
-void QoreProgram::addStatement(class AbstractStatement *s)
-{
-   if (!priv->sb_tail->statements)
-   {
+void QoreProgram::addStatement(class AbstractStatement *s) {
+   if (!priv->sb_tail->statements) {
       if (typeid(s) != typeid(StatementBlock))
 	 priv->sb_tail->statements = new StatementBlock(s);
       else
@@ -1154,8 +1109,7 @@ void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, Ex
    priv->parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
 }
 
-AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink)
-{
+AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
    priv->tcount.inc();
 
    AbstractQoreNode *rv = 0;
@@ -1163,8 +1117,7 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink)
 
    {
       ProgramContextHelper pch(this);
-      while (w && !xsink->isEvent() && !rv)
-      {
+      while (w && !xsink->isEvent() && !rv) {
 	 if (w->statements)
 	    rv = w->statements->exec(xsink);
 	 else
@@ -1323,8 +1276,7 @@ void QoreProgram::parseAndRunClass(const char *str, const char *name, const char
       runClass(classname, &xsink);
 }
 
-void QoreProgram::parseFileAndRun(const char *filename)
-{
+void QoreProgram::parseFileAndRun(const char *filename) {
    ExceptionSink xsink;
 
    parseFile(filename, &xsink);
@@ -1350,8 +1302,7 @@ void QoreProgram::parseFileAndRun(const char *filename)
    }
 }
 
-void QoreProgram::parseAndRun(FILE *fp, const char *name)
-{
+void QoreProgram::parseAndRun(FILE *fp, const char *name) {
    ExceptionSink xsink;
    
    if (priv->exec_class && priv->exec_class_name.empty())
@@ -1364,8 +1315,7 @@ void QoreProgram::parseAndRun(FILE *fp, const char *name)
    }
 }
 
-void QoreProgram::parseAndRun(const char *str, const char *name)
-{
+void QoreProgram::parseAndRun(const char *str, const char *name) {
    ExceptionSink xsink;
 
    if (priv->exec_class && priv->exec_class_name.empty())
@@ -1378,38 +1328,31 @@ void QoreProgram::parseAndRun(const char *str, const char *name)
    }
 }
 
-bool QoreProgram::checkFeature(const char *f) const
-{
+bool QoreProgram::checkFeature(const char *f) const {
    return priv->featureList.find(f);
 }
 
-void QoreProgram::addFeature(const char *f)
-{
+void QoreProgram::addFeature(const char *f) {
    priv->featureList.push_back(f);
 }
 
-void QoreProgram::addFile(char *f)
-{
+void QoreProgram::addFile(char *f) {
    priv->fileList.push_back(f);
 }
 
-QoreListNode *QoreProgram::getFeatureList() const
-{
+QoreListNode *QoreProgram::getFeatureList() const {
    return priv->getFeatureList();
 }
 
-QoreListNode *QoreProgram::getVarList()
-{
+QoreListNode *QoreProgram::getVarList() {
    return priv->getVarList();
 }
 
-void QoreProgram::tc_inc()
-{
+void QoreProgram::tc_inc() {
    priv->tcount.inc();
 }
 
-void QoreProgram::tc_dec()
-{
+void QoreProgram::tc_dec() {
    priv->tcount.dec();
 }
 
@@ -1425,7 +1368,10 @@ QoreStringNode *QoreProgram::getScriptName() const {
    return priv->getScriptName();
 }
 
-void QoreProgram::setScriptPath(const char *path)
-{
+void QoreProgram::setScriptPath(const char *path) {
    priv->setScriptPathExtern(path);
+}
+
+const LVList *QoreProgram::getTopLevelLVList() const {
+   return priv->sb_head ? priv->sb_head->statements->getLVList() : 0;
 }

@@ -25,6 +25,7 @@
 #include <qore/intern/OnBlockExitStatement.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/UserFunctionList.h>
 #include <qore/minitest.hpp>
 
 #include <stdio.h>
@@ -91,18 +92,15 @@ StatementBlock::StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1)
    addStatement(s);
 }
 
-void StatementBlock::addStatement(class AbstractStatement *s)
-{
+void StatementBlock::addStatement(class AbstractStatement *s) {
    //QORE_TRACE("StatementBlock::addStatement()");
-   if (s)
-   {
+
+   if (s) {
       statement_list.push_back(s);
       OnBlockExitStatement *obe = dynamic_cast<OnBlockExitStatement *>(s);
       if (obe)
 	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
    }
-   
-
 }
 
 StatementBlock::~StatementBlock()
@@ -114,7 +112,6 @@ StatementBlock::~StatementBlock()
    
    if (lvars)
       delete lvars;
-
 }
 
 int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
@@ -154,7 +151,6 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
       if (nrc)
 	 rc = nrc;
    }
-
 
    return rc;
 }
@@ -556,16 +552,14 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
    return lvids;
 }
 
-int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag)
-{
+int StatementBlock::parseInitIntern(LocalVar *oflag, int pflag) {
+   QORE_TRACE("StatementBlock::parseInitIntern");
+
    int lvids = 0;
 
-   QORE_TRACE("StatementBlock::parseInitImpl()");
-   printd(4, "StatementBlock::parseInitImpl(b=%08p, oflag=%d)\n", this, oflag);
-
-   class AbstractStatement *ret = 0;
+   AbstractStatement *ret = 0;
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(), l = statement_list.last(); i != e; ++i) {
-      lvids += (*i)->parseInit(oflag, pflag);
+      lvids += (*i)->parseInit(0);
       if (!ret && i != l && (*i)->endsBlock()) {
 	 // unreachable code found
 	 getProgram()->makeParseWarning(QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
@@ -573,18 +567,48 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag)
       }
    }
 
+   return lvids;
+}
+
+int StatementBlock::parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *ufl, bool first) {
+   QORE_TRACE("StatementBlock::parseInitTopLevel");
+   
+   int lvids = parseInitIntern(0);
+
+   if (lvids && !first)
+      parseException("ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "local variables declared with 'my' in the top-level block of a Program object can only be declared in the very first block parsed");
+
+   // now initialize root namespace and functions before local variables are popped off the stack
+   rns->parseInit();
+   ufl->parseInit();
+
+   // this call will pop all local vars off the stack
    lvars = new LVList(lvids);
 
    //printd(5, "StatementBlock::parseInitImpl(this=%08p): done (lvars=%08p, %d vars, vstack = %08p)\n", this, lvars, lvids, getVStack());
 
+   return 0;
+}
+
+int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
+   QORE_TRACE("StatementBlock::parseInitImpl");
+
+   printd(4, "StatementBlock::parseInitImpl(b=%08p, oflag=%d)\n", this, oflag);
+
+   int lvids = parseInitIntern(oflag, pflag);
+
+   // this call will pop all local vars off the stack
+   lvars = new LVList(lvids);
+
+   //printd(5, "StatementBlock::parseInitImpl(this=%08p): done (lvars=%08p, %d vars, vstack = %08p)\n", this, lvars, lvids, getVStack());
 
    return 0;
 }
 
-// can also be called with this=NULL
-void StatementBlock::parseInit(Paramlist *params)
-{
-   QORE_TRACE("StatementBlock::parseInit()");
+// NOTE: can also be called with this = 0
+void StatementBlock::parseInit(Paramlist *params) {
+   QORE_TRACE("StatementBlock::parseInit");
+
    if (params->num_params)
       params->lv = new lvar_ptr_t[params->num_params];
    else
@@ -611,14 +635,12 @@ void StatementBlock::parseInit(Paramlist *params)
 
    // pop argv param off stack
    pop_local_var();
-
-
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl)
-{
-   QORE_TRACE("StatementBlock::parseInit()");
+void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl) {
+   QORE_TRACE("StatementBlock::parseInitMethod");
+
    if (params->num_params)
       params->lv = new lvar_ptr_t[params->num_params];
    else
@@ -631,12 +653,12 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl)
 
    // push $argv var on stack and save id
    params->argvid = push_local_var("argv", false);
-   printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
+   printd(5, "StatementBlock::parseInitMetho() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i]);
-      printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
+      printd(3, "StatementBlock::parseInitMethod() reg. local var %s (id=%08p)\n", 
 	     params->names[i], params->lv[i]);
    }
 
@@ -673,13 +695,12 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl)
 
    // pop $self id off stack
    pop_local_var();
-
-
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitClosure(Paramlist *params, bool in_method, lvar_set_t *vlist)
-{
+void StatementBlock::parseInitClosure(Paramlist *params, bool in_method, lvar_set_t *vlist) {
+   QORE_TRACE("StatementBlock::parseInitClosure");
+
    ClosureParseEnvironment cenv(vlist);
 
    if (params->num_params)
@@ -698,12 +719,12 @@ void StatementBlock::parseInitClosure(Paramlist *params, bool in_method, lvar_se
 
    // push $argv var on stack and save id
    params->argvid = push_local_var("argv", false);
-   printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
+   printd(5, "StatementBlock::parseInitClosure() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i]);
-      printd(5, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", params->names[i], params->lv[i]);
+      printd(5, "StatementBlock::parseInitClosure() reg. local var %s (id=%08p)\n", params->names[i], params->lv[i]);
    }
 
    // initialize code block

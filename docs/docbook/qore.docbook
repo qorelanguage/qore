@@ -8,7 +8,6 @@
   <!ENTITY operators        SYSTEM "operators.docbook">
   <!ENTITY function_lib     SYSTEM "function_lib.docbook">
   <!ENTITY class_lib        SYSTEM "class_lib.docbook">
-  <!ENTITY modules          SYSTEM "modules.docbook">
   <!ENTITY command_line     SYSTEM "command_line.docbook">
   <!ENTITY parse_directives SYSTEM "parse_directives.docbook">
   <!ENTITY warnings         SYSTEM "warnings.docbook">
@@ -28,7 +27,6 @@
 &language;
 &function_lib;
 &class_lib;
-&modules;
 &command_line;
 &parse_directives;
 &warnings;

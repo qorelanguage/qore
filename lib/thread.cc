@@ -1086,8 +1086,7 @@ void register_thread(int tid, pthread_t ptid, QoreProgram *p)
 
 // put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
 namespace {
-   extern "C" void *op_background_thread(class BGThreadParams *btp)
-   {    
+   extern "C" void *op_background_thread(BGThreadParams *btp) {    
       // register thread
       register_thread(btp->tid, pthread_self(), btp->pgm);
       printd(5, "op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
@@ -1106,17 +1105,20 @@ namespace {
 	 // push this call on the thread stack
 	 CallStackHelper csh("background operator", CT_NEWTHREAD, btp->callobj, &xsink);
 #endif
-	 
+
+	 // instantiate top-level local variables with no value
+	 LVListInstantiator lv_helper(getProgram()->getTopLevelLVList(), &xsink);
+
 	 // dereference call object if present
 	 btp->derefCallObj();
-	 	 
+
 	 // run thread expression
 	 rv = btp->exec(&xsink);
-	 
+
 	 // if there is an object, we dereference the extra reference here
 	 btp->derefObj(&xsink);
       }
-      
+
       // dereference any return value from the background expression
       if (rv)
 	 rv->deref(&xsink);
@@ -1147,8 +1149,7 @@ namespace {
    }
 }
 
-static AbstractQoreNode *op_background(const AbstractQoreNode *left, const AbstractQoreNode *ignored, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_background(const AbstractQoreNode *left, const AbstractQoreNode *ignored, bool ref_rv, ExceptionSink *xsink) {
    if (!left)
       return 0;
 
@@ -1201,8 +1202,7 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
    return ref_rv ? new QoreBigIntNode(tid) : 0;
 }
 
-void init_qore_threads()
-{
+void init_qore_threads() {
    QORE_TRACE("qore_init_threads()");
 
    // setup parent thread data
@@ -1224,12 +1224,9 @@ void init_qore_threads()
    // mark threading as active
    threads_initialized = true;
 #endif
-
-
 }
 
-QoreNamespace *get_thread_ns()
-{
+QoreNamespace *get_thread_ns() {
    // create Qore::Thread namespace
    QoreNamespace *Thread = new QoreNamespace("Thread");
 
@@ -1245,13 +1242,13 @@ QoreNamespace *get_thread_ns()
    return Thread;
 }
 
-void delete_qore_threads()
-{
+void delete_qore_threads() {
+   QORE_TRACE("delete_qore_threads()");
+
 #ifdef DEBUG
    // mark threading as inactive
    threads_initialized = false;
 #endif
-   QORE_TRACE("delete_qore_threads()");
 
    ExceptionSink xsink;
    purge_thread_resources(&xsink);
@@ -1266,12 +1263,9 @@ void delete_qore_threads()
    delete_thread_data();
 
    thread_list[1].cleanup();
-
-
 }
 
-QoreListNode *get_thread_list()
-{
+QoreListNode *get_thread_list() {
    QoreListNode *l = new QoreListNode();
    lThreadList.lock();
    tid_node *w = tid_head;
@@ -1284,8 +1278,7 @@ QoreListNode *get_thread_list()
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-QoreHashNode *getAllCallStacks()
-{
+QoreHashNode *getAllCallStacks() {
    QoreHashNode *h = new QoreHashNode();
    QoreString str;
    lThreadList.lock();

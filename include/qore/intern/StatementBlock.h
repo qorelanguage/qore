@@ -30,8 +30,10 @@
 #include <set>
 
 // all definitions in this file are private to the library and subject to change
-
 typedef std::set<LocalVar *> lvar_set_t;
+
+class RootQoreNamespace;
+class UserFunctionList;
 
 class LVList {
    public:
@@ -43,11 +45,11 @@ class LVList {
 };
 
 class LVListInstantiator {
-      LVList *l;
+      const LVList *l;
       ExceptionSink *xsink;
 
    public:
-      DLLLOCAL LVListInstantiator(LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs)
+      DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs)
       {
 	 for (int i = 0; i < l->num_lvars; ++i)
 	    l->lv[i]->instantiate(0);
@@ -66,23 +68,32 @@ class StatementBlock : public AbstractStatement
       typedef safe_dslist<AbstractStatement *> statement_list_t;
       statement_list_t statement_list;
       block_list_t on_block_exit_list;
+      LVList *lvars;
+
+      DLLLOCAL int parseInitIntern(LocalVar *oflag, int pflag = 0);
 
    public:
-      class LVList *lvars;
-
       DLLLOCAL StatementBlock(AbstractStatement *s);
       DLLLOCAL virtual ~StatementBlock();
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+      DLLLOCAL int parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *ufl, bool first);
 
       DLLLOCAL void addStatement(AbstractStatement *s);
-      DLLLOCAL class AbstractQoreNode *exec(ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink);
       DLLLOCAL void parseInit(Paramlist *params);
+
       // initialize methods (bcl = subclass constructors with an explicit base class argument list)
       DLLLOCAL void parseInitMethod(Paramlist *params, class BCList *bcl); 
+
       // initialize closure blocks
       DLLLOCAL void parseInitClosure(Paramlist *params, bool in_method, lvar_set_t *vlist);
+
       DLLLOCAL void exec();
+
+      DLLLOCAL const LVList *getLVList() const {
+	 return lvars;
+      }
 };
 
 #endif // _QORE_STATEMENT_BLOCK_H
