@@ -703,15 +703,15 @@ printf("0x%x\n", $binary[2]);
       <tbody>
 	<row>
 	  <entry><para><replaceable>list_expression</replaceable></para></entry>
-	  <entry><para>If the list_expression evaluates to a list, then the offset_expression will be used to return the given element from the list.</para></entry>
+	  <entry><para>If the expression evaluates to a list, then the offset_expression will be used to return the given element from the list.</para></entry>
 	</row>
 	<row>
 	  <entry><para><replaceable>string_expression</replaceable></para></entry>
-	  <entry><para>If the string_expression evaluates to a string, then the offset_expression will be used to return the given character from the list; note that multi-byte characters with UTF-8 are properly respected with this operator.</para></entry>
+	  <entry><para>If the expression evaluates to a string, then the offset_expression will be used to return the given character from the list; note that multi-byte characters with UTF-8 are properly respected with this operator.</para></entry>
 	</row>
 	<row>
 	  <entry><para><replaceable>binary_expression</replaceable></para></entry>
-	  <entry><para>If the binary_expression evaluates to a string, then the offset_expression will be used to return the integer value of the byte given from the binary object.</para></entry>
+	  <entry><para>If the expression evaluates to a binary, then the offset_expression will be used to return the integer value of the byte given from the binary object.</para></entry>
 	</row>
 
 	<row>
@@ -2858,7 +2858,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Syntax</term>
       <listitem>
-	<programlisting><replaceable>lvalue</replaceable> =~ s/<replaceable>regex_pattern</replaceable>/<replaceable>target_string</replaceable>/[isxm]</programlisting>
+	<programlisting><replaceable>lvalue</replaceable> =~ s/<replaceable>regex_pattern</replaceable>/<replaceable>target_string</replaceable>/[isxmg]</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>

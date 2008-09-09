@@ -1153,20 +1153,24 @@ $$         # for the entire implicit argument list</programlisting>
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>/i</para></entry>
+	    <entry><para>i</para></entry>
 	    <entry><para>Ignores case when matching</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>/m</para></entry>
+	    <entry><para>m</para></entry>
 	    <entry><para>makes start-of-line (^) or end-of-line ($) match after or before any newline in the subject string</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>/s</para></entry>
+	    <entry><para>s</para></entry>
 	    <entry><para>makes a dot (.) match a newline character</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>/x</para></entry>
+	    <entry><para>x</para></entry>
 	    <entry><para>ignores whitespace characters and enables comments prefixed by #</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>g</para></entry>
+	    <entry><para>makes global substitutions (only applicable with the <link linkend='Regular_Expression_Substitution_Operator'>substitution operator</link>)</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -1282,9 +1286,9 @@ $var[1].count++;
     <entry><para><link linkend='Background_Operator'>background/thread creation operator</link></para></entry>
   </row>
   <row>
-    <entry><para>A call reference call</para></entry>
+    <entry><para>A call reference or closure call</para></entry>
     <entry><programlisting>$call_reference($arg1, $arg2);</programlisting></entry>
-    <entry><para><link linkend='call_references'>call references</link></para></entry>
+    <entry><para><link linkend="call_references">call references</link>, <link linkend="closures">closures</link></para></entry>
   </row>
   <row>
     <entry><para>A method call</para></entry>

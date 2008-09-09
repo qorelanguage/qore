@@ -103,8 +103,7 @@ void StatementBlock::addStatement(class AbstractStatement *s) {
    }
 }
 
-StatementBlock::~StatementBlock()
-{
+StatementBlock::~StatementBlock() {
    //QORE_TRACE("StatementBlock::~StatementBlock()");
 
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
@@ -114,8 +113,7 @@ StatementBlock::~StatementBlock()
       delete lvars;
 }
 
-int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    QORE_TRACE("StatementBlock::execImpl()");
    int rc = 0;
 
@@ -176,8 +174,7 @@ void pop_cvar()
    delete cvn;
 }
 
-LocalVar *push_local_var(const char *name, bool check_dup)
-{
+LocalVar *push_local_var(const char *name, bool check_dup) {
    VNode *vnode;
 
    QoreProgram *pgm = getProgram();
@@ -203,8 +200,7 @@ LocalVar *push_local_var(const char *name, bool check_dup)
    return lv;
 }
 
-LocalVar *pop_local_var()
-{
+LocalVar *pop_local_var() {
    class VNode *vnode = getVStack();
    LocalVar *rc = vnode->lvar;
 
@@ -215,8 +211,7 @@ LocalVar *pop_local_var()
    return rc;
 }
 
-LocalVar *find_local_var(const char *name, bool &in_closure)
-{
+LocalVar *find_local_var(const char *name, bool &in_closure) {
    VNode *vnode = getVStack();
    ClosureParseEnvironment *cenv = thread_get_closure_parse_env();
    in_closure = false;
@@ -235,8 +230,7 @@ LocalVar *find_local_var(const char *name, bool &in_closure)
 }
 
 // checks for illegal $self assignments in an object context
-static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid)
-{
+static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
    // if it's a variable reference
    qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF) {
@@ -268,17 +262,14 @@ static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid)
       parse_error("illegal conversion of $self to a list");
 }
 
-static inline void checkLocalVariableChange(AbstractQoreNode *n)
-{
+static inline void checkLocalVariableChange(AbstractQoreNode *n) {
    VarRefNode *v = dynamic_cast<VarRefNode *>(n);
    if (v && v->type == VT_LOCAL)
       parse_error("illegal local variable modification in background expression");
 }
 
-static inline int getBaseLVType(AbstractQoreNode *n)
-{
-   while (true)
-   {
+static inline int getBaseLVType(AbstractQoreNode *n) {
+   while (true) {
       qore_type_t ntype = n->getType();
       if (ntype == NT_SELF_VARREF)
 	 return VT_OBJECT;
@@ -289,8 +280,7 @@ static inline int getBaseLVType(AbstractQoreNode *n)
    }
 }
 
-int process_list_node_intern(QoreListNode *l, LocalVar *oflag, int pflag)
-{
+int process_list_node_intern(QoreListNode *l, LocalVar *oflag, int pflag) {
    int lvids = 0;
 
    // set needs_eval if previously 0 and one of the list members needs evaluation after being resolved
@@ -310,8 +300,7 @@ int process_list_node_intern(QoreListNode *l, LocalVar *oflag, int pflag)
 }
 
 // this function will put variables on the local stack but will not pop them
-int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag)
-{
+int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag) {
    if (!(*node))
       return 0;
 
@@ -320,8 +309,7 @@ int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag)
 }
 
 // this function will put variables on the local stack but will not pop them
-int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
-{
+int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
    int lvids = 0;
    int current_pflag = pflag;
    pflag &= ~PF_REFERENCE_OK;  // unset "reference ok" for next call
@@ -531,7 +519,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 
    if (ntype == NT_SELF_VARREF) {
       SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>(*node);
-      //printd(5, "process_node() SELF_REF '%s'  oflag=%d\n", v->str, oflag);
+      printd(5, "process_node() SELF_REF '%s' oflag=%08p\n", v->str, oflag);
       if (!oflag)
 	 parse_error("cannot reference member \"%s\" out of an object member function definition", v->str);
       
@@ -559,7 +547,7 @@ int StatementBlock::parseInitIntern(LocalVar *oflag, int pflag) {
 
    AbstractStatement *ret = 0;
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(), l = statement_list.last(); i != e; ++i) {
-      lvids += (*i)->parseInit(0);
+      lvids += (*i)->parseInit(oflag, pflag);
       if (!ret && i != l && (*i)->endsBlock()) {
 	 // unreachable code found
 	 getProgram()->makeParseWarning(QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
@@ -585,7 +573,7 @@ int StatementBlock::parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *
    // this call will pop all local vars off the stack
    lvars = new LVList(lvids);
 
-   //printd(5, "StatementBlock::parseInitImpl(this=%08p): done (lvars=%08p, %d vars, vstack = %08p)\n", this, lvars, lvids, getVStack());
+   //printd(5, "StatementBlock::parseInitTopLevel(this=%08p): done (lvars=%08p, %d vars, vstack = %08p)\n", this, lvars, lvids, getVStack());
 
    return 0;
 }
@@ -593,7 +581,7 @@ int StatementBlock::parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *
 int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
    QORE_TRACE("StatementBlock::parseInitImpl");
 
-   printd(4, "StatementBlock::parseInitImpl(b=%08p, oflag=%d)\n", this, oflag);
+   printd(4, "StatementBlock::parseInitImpl(b=%08p, oflag=%08p)\n", this, oflag);
 
    int lvids = parseInitIntern(oflag, pflag);
 
@@ -653,7 +641,7 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl) {
 
    // push $argv var on stack and save id
    params->argvid = push_local_var("argv", false);
-   printd(5, "StatementBlock::parseInitMetho() params=%08p argvid=%08p\n", params, params->argvid);
+   printd(5, "StatementBlock::parseInitMethod() params=%08p argvid=%08p oflag (selfid)=%08p\n", params, params->argvid, oflag);
 
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
@@ -668,8 +656,7 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl) {
       for (bclist_t::iterator i = bcl->begin(); i != bcl->end(); i++) {
 	 if ((*i)->args) {
 	    QoreListNode *l = (*i)->args;
-	    for (unsigned j = 0; j < l->size(); j++)
-	    {
+	    for (unsigned j = 0; j < l->size(); j++) {
 	       AbstractQoreNode **n = l->get_entry_ptr(j);
 	       tlvids += process_node(n, oflag, PF_REFERENCE_OK);
 	    }

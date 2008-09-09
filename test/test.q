@@ -13,7 +13,7 @@ our $ro = new Test("readonly");
 our ($o, $errors, $counter);
 our $thash;
 
-my $x[10] = 1;
+#my $x[10] = 1;
 
 sub get_program_name()
 {

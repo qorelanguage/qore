@@ -199,6 +199,7 @@ struct qore_method_private {
       DLLLOCAL void parseInit()
       {
 	 // must be called even if func.userFunc->statements is NULL
+	 //printd(5, "QoreMethod::parseInit() this=%08p '%s' static_flag=%d\n", this, getName(), static_flag);
 	 if (!static_flag)
 	    func.userFunc->statements->parseInitMethod(func.userFunc->params, 0);
 	 else

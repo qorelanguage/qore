@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define TRACK_REFS 1
+#define TRACK_REFS 0
 
 #if TRACK_REFS
 #endif
