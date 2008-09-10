@@ -71,7 +71,7 @@ DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
 DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
-#if defined(HAVE_PTHREAD_ATTR_SETSTACK) && defined(HAVE_CHECK_STACK_POS)
+#if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && defined(HAVE_CHECK_STACK_POS)
 #define QORE_MANAGE_STACK
 #endif
 

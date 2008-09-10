@@ -234,14 +234,13 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 {
    ExceptionSink xsink;
 
-   while (e)
-   {
+   while (e) {
+      //printd(5, "ExceptionSink::defaultExceptionHandler() cs size=%d\n", cs->size());
       printe("unhandled QORE %s exception thrown in TID %d", e->type == ET_USER ? "User" : "System", gettid());
 
       QoreListNode *cs = e->callStack;
       bool found = false;
-      if (cs->size())
-      {
+      if (cs->size()) {
 	 // find first non-rethrow element
 	 unsigned i = 0;
 	 
@@ -256,8 +255,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	       break;
 	 }
 
-	 if (i < cs->size())
-	 {
+	 if (i < cs->size()) {
 	    found = true;
 	    QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
 	    QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
@@ -270,8 +268,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 }
       }
 
-      if (!found)
-      {
+      if (!found) {
 	 if (e->file) {
 	    if (e->start_line == e->end_line)
 	       printe(" at %s:%d", e->file, e->start_line);
@@ -292,12 +289,10 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 QoreStringNode *desc = reinterpret_cast<QoreStringNode *>(e->desc);
 	 printe("%s: %s\n", err->getBuffer(), desc->getBuffer());
       }
-      else
-      {
+      else {
 	 bool hdr = false;
 
-	 if (e->err)
-	 {
+	 if (e->err) {
 	    if (e->err->getType() == NT_STRING) {
 	       QoreStringNode *err = reinterpret_cast<QoreStringNode *>(e->err);
 	       printe("%s", err->getBuffer());

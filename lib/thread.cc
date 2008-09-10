@@ -50,12 +50,12 @@
 #define MAX_QORE_THREADS 2560
 #endif
 
-class Operator *OP_BACKGROUND;
+Operator *OP_BACKGROUND;
 
 ThreadCleanupList tclist;
 
 // TID 0 is reserved for the signal handler thread
-static int     current_tid = 1;
+static int current_tid = 1;
 
 DLLLOCAL bool threads_initialized = false;
 
@@ -73,8 +73,9 @@ DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 #endif
 
 #ifdef QORE_MANAGE_STACK
-// default size for qore threads; to be determined in init_qore_threads()
+// default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
+size_t qore_thread_stack_limit = 0;
 #endif
 
 // total number of threads running
@@ -358,9 +359,9 @@ class ThreadData
 #ifdef QORE_MANAGE_STACK
 
 #ifdef STACK_DIRECTION_DOWN
-	 stack_limit = get_stack_pos() - qore_thread_stack_size + QORE_STACK_GUARD;
+	 stack_limit = get_stack_pos() - qore_thread_stack_limit;
 #else
-	 stack_limit = get_stack_pos() + qore_thread_stack_size - QORE_STACK_GUARD;
+	 stack_limit = get_stack_pos() + qore_thread_stack_limit;
 #endif
 
 #endif
@@ -576,7 +577,7 @@ int check_stack(ExceptionSink *xsink) {
    <
 #endif
    get_stack_pos()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit");
+      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", qore_thread_stack_limit);
       return -1;
    }
    
@@ -1179,11 +1180,9 @@ void init_qore_threads() {
 
 #ifdef QORE_MANAGE_STACK
    // get default stack size
-   {
-      void *ptr;
-      ta_default.getstack(ptr, qore_thread_stack_size);
-   }
-   printd(5, "default stack size %ld\n", qore_thread_stack_size);
+   qore_thread_stack_size = ta_default.getstacksize();
+   qore_thread_stack_limit = qore_thread_stack_size - QORE_STACK_GUARD;
+   printd(2, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
 #endif
 
    // setup parent thread data

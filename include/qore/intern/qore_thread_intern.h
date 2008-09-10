@@ -104,8 +104,6 @@ DLLLOCAL QoreListNode *getCallStackList();
 #define popCall(x)
 #endif
 
-class QorePThreadAttr;
-
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0
@@ -264,6 +262,12 @@ class QorePThreadAttr {
 
       DLLLOCAL void getstack(void *&ptr, size_t &ssize) {
 	 pthread_attr_getstack(&attr, &ptr, &ssize);
+      }
+      
+      DLLLOCAL size_t getstacksize() {
+	 size_t ssize;
+	 pthread_attr_getstacksize(&attr, &ssize);
+	 return ssize;
       }
 
       DLLLOCAL pthread_attr_t *get_ptr() {
