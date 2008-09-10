@@ -343,7 +343,7 @@ class ThreadData
       ClosureRuntimeEnvironment *closure_rt_env;
 
 #ifdef QORE_MANAGE_STACK
-      long stack_limit;
+      size_t stack_limit;
 #endif
 
       DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 

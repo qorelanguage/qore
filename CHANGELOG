@@ -3,6 +3,7 @@
 	  functions
 	* initial patch for fixing crashes based on stack growth overruns
 	* fixed default stack size detection to use a more portable method
+	* fixed stack size detection for powerpc
 
 2008.09.09: David Nichols
 	* removed ncurses documentation (added to ncurses module project)
