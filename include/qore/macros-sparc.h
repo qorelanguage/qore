@@ -2,7 +2,9 @@
 
 #define _QORE_MACHINE_MACROS_H
 
-#ifdef __GNUC__DISABLED_UNTESTED
+#ifdef __GNUC__
+
+#if 0 // disabled - untested
 #define HAVE_ATOMIC_MACROS
 
 // the following routines have been borrowed from gasnet: http://gasnet.cs.berkeley.edu
@@ -47,6 +49,17 @@ static inline int atomic_dec(volatile int *v)
       : "memory");
    return oldval;
 }
+
+#define HAVE_CHECK_STACK_POS
+#define STACK_DIRECTION_DOWN 1
+
+static inline long get_stack_pos() {
+   long addr;
+   __asm("ld %%sp,%0" : "=g" (addr) );
+   return addr;
+}
+
+#endif
 
 #endif
 
