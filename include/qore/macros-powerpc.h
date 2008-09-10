@@ -54,4 +54,13 @@ static inline int atomic_dec(int *v)
    return !t;
 }
 
+#define HAVE_CHECK_STACK_POS
+#define STACK_DIRECTION_DOWN 1
+
+static inline unsigned long get_stack_pos() {
+   unsigned long addr;
+   __asm("mr %%r1, %0" : "=g" (addr) );
+   return addr;
+}
+
 #endif
