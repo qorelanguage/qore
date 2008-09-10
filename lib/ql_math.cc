@@ -29,12 +29,17 @@
 
 static AbstractQoreNode *f_round(const QoreListNode *params, ExceptionSink *xsink)
 {
+#ifdef HAVE_ROUND
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return 0;
 
    return new QoreFloatNode(round(p0->getAsFloat()));
+#else
+   xsink->raiseException("ROUND-ERROR", "this system does not implement round(); use the constant Qore::HAVE_ROUND to check if this function is implemented before calling");
+   return 0;
+#endif
 }
 
 static AbstractQoreNode *f_ceil(const QoreListNode *params, ExceptionSink *xsink)

@@ -51,8 +51,7 @@ class qore_gz_header : public gz_header
 };
 #endif
 
-static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    qore_type_t p0_type = p0 ? p0->getType() : 0;
    if (p0_type != NT_FUNCREF && p0_type != NT_RUNTIME_CLOSURE && p0_type != NT_STRING) {
@@ -70,12 +69,11 @@ static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSi
       return getProgram()->callFunction(str->getBuffer(), *args, xsink);
    }
 
-   // must be a function reference
+   // must be a call reference
    return reinterpret_cast<const ResolvedCallReferenceNode *>(p0)->exec(*args, xsink);
 }
 
-static AbstractQoreNode *f_call_function_args(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_call_function_args(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    qore_type_t p0_type = p0 ? p0->getType() : 0;
    if (p0_type != NT_FUNCREF && p0_type != NT_RUNTIME_CLOSURE && p0_type != NT_STRING) {
@@ -87,8 +85,7 @@ static AbstractQoreNode *f_call_function_args(const QoreListNode *params, Except
    const AbstractQoreNode *p1 = get_param(params, 1);
 
    QoreListNode *args = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(p1));
-   if (!args && p1) 
-   {
+   if (!args && p1) {
       args = new QoreListNode();
       // we borrow the reference for the new list
       args->push(const_cast<AbstractQoreNode *>(p1));
@@ -100,8 +97,74 @@ static AbstractQoreNode *f_call_function_args(const QoreListNode *params, Except
    else
       rv = reinterpret_cast<const ResolvedCallReferenceNode *>(p0)->exec(args, xsink);
 
-   if (p1 != args)
-   {
+   if (p1 != args) {
+      // we remove the element from the list without dereferencing
+      args->shift();
+      args->deref(xsink);
+   }
+
+   return rv;
+}
+
+static AbstractQoreNode *f_call_builtin_function(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0 || !p0->strlen()) {
+      xsink->raiseException("CALL-BUILTIN-FUNCTION-ERROR", "expecting a string as the first argument to call_builtin_function()");
+      return 0;
+   }
+
+   const BuiltinFunction *f = BuiltinFunctionList::find(p0->getBuffer());
+   if (!f) {
+      xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", p0->getBuffer());
+      return 0;
+   }
+
+   // check access
+   if (f->getType() & getProgram()->getParseOptions()) {
+      xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s()'", p0->getBuffer());
+      return 0;
+   }
+
+   ReferenceHolder<QoreListNode> args(xsink);
+   // if there are arguments to pass, create argument list by copying current list
+   if (num_params(params) > 1)
+      args = params->copyListFrom(1);
+
+   return f->eval(*args, xsink);
+}
+
+static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params, ExceptionSink *xsink)
+{
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0 || !p0->strlen()) {
+      xsink->raiseException("CALL-BUILTIN-FUNCTION-ARGS-ERROR", "expecting a string as the first argument to call_builtin_function_args()");
+      return 0;
+   }
+
+   const BuiltinFunction *f = BuiltinFunctionList::find(p0->getBuffer());
+   if (!f) {
+      xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", p0->getBuffer());
+      return 0;
+   }
+
+   // check access
+   if (f->getType() & getProgram()->getParseOptions()) {
+      xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s()'", p0->getBuffer());
+      return 0;
+   }
+
+   const AbstractQoreNode *p1 = get_param(params, 1);
+
+   QoreListNode *args = (p1 && p1->getType() == NT_LIST) ? const_cast<QoreListNode *>(reinterpret_cast<const QoreListNode *>(p1)) : 0;
+   if (!args && p1) {
+      args = new QoreListNode();
+      // we borrow the reference (if any, could be 0) for the new list
+      args->push(const_cast<AbstractQoreNode *>(p1));
+   }
+
+   AbstractQoreNode *rv = f->eval(args, xsink);
+
+   if (p1 != args) {
       // we remove the element from the list without dereferencing
       args->shift();
       args->deref(xsink);
@@ -1112,6 +1175,8 @@ void init_misc_functions()
    builtinFunctions.add("parse", f_parse);
    builtinFunctions.add("call_function", f_call_function);
    builtinFunctions.add("call_function_args", f_call_function_args);
+   builtinFunctions.add("call_builtin_function", f_call_builtin_function);
+   builtinFunctions.add("call_builtin_function_args", f_call_builtin_function_args);
    builtinFunctions.add("exists", f_exists);
    builtinFunctions.add("existsFunction", f_existsFunction);
    builtinFunctions.add("functionType", f_functionType);

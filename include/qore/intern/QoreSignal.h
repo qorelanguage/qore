@@ -56,14 +56,12 @@ class QoreSignalHandler {
 
       DLLLOCAL void init();
       DLLLOCAL void set(int sig, const ResolvedCallReferenceNode *n_funcref);
-      DLLLOCAL void del(int sig, class ExceptionSink *xsink);
-      DLLLOCAL void runHandler(int sig, class ExceptionSink *xsink);
-      DLLLOCAL bool isSet() const
-      {
+      DLLLOCAL void del(int sig, ExceptionSink *xsink);
+      DLLLOCAL void runHandler(int sig, ExceptionSink *xsink);
+      DLLLOCAL bool isSet() const {
 	 return (bool)funcref;
       }
-      DLLLOCAL class QoreProgram *getProgram() const
-      {
+      DLLLOCAL QoreProgram *getProgram() const {
 	 return funcref->getProgram();
       }
 };
@@ -82,7 +80,7 @@ class QoreSignalManager
       
       DLLLOCAL static void reload();
       DLLLOCAL static void stop_signal_thread_unlocked();
-      DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
+      DLLLOCAL static int start_signal_thread(ExceptionSink *xsink);
       DLLLOCAL static void stop_signal_thread();
       
    public:
@@ -92,13 +90,13 @@ class QoreSignalManager
       static int num_handlers;
       static bool thread_running;
       static QoreSignalHandler handlers[QORE_SIGNAL_MAX];
-      static class QoreThreadLock mutex;
+      static QoreThreadLock mutex;
       static sig_cmd_e cmd;
       
       DLLLOCAL QoreSignalManager();
       DLLLOCAL static void init(bool disable_signal_mask = false);
       DLLLOCAL static void del();
-      DLLLOCAL static int setHandler(int sig, const ResolvedCallReferenceNode *fr, class ExceptionSink *xsink);
+      DLLLOCAL static int setHandler(int sig, const ResolvedCallReferenceNode *fr, ExceptionSink *xsink);
       DLLLOCAL static int removeHandler(int sig, ExceptionSink *xsink);
       DLLLOCAL static void addSignalConstants(QoreNamespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);
@@ -108,15 +106,14 @@ class QoreSignalManager
       DLLLOCAL static void start_handler();
       DLLLOCAL static void end_handler();
       DLLLOCAL static void pre_fork_block_and_stop();
-      DLLLOCAL static void post_fork_unblock_and_start(bool new_process, class ExceptionSink *xsink);
-      DLLLOCAL static int gettid()
-      {
+      DLLLOCAL static void post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink);
+      DLLLOCAL static int gettid() {
 	 return tid;
       }
       DLLLOCAL static void reset_default_signal_mask();
       DLLLOCAL static bool enabled() { return tid != -1; }
 };
 
-DLLLOCAL extern class QoreSignalManager QSM;
+DLLLOCAL extern QoreSignalManager QSM;
 
 #endif

@@ -1656,6 +1656,37 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    // math constants
    qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
+   // add constant for features found with configure
+#ifdef HAVE_ROUND
+   qns->addConstant("HAVE_ROUND",    &True);
+#else
+   qns->addConstant("HAVE_ROUND",    &False);
+#endif
+
+#ifdef HAVE_TIMEGM
+   qns->addConstant("HAVE_TIMEGM",   &True);
+#else
+   qns->addConstant("HAVE_TIMEGM",   &False);
+#endif
+
+#ifdef HAVE_SETEUID
+   qns->addConstant("HAVE_SETEUID",  &True);
+#else
+   qns->addConstant("HAVE_SETEUID",  &False);
+#endif
+
+#ifdef HAVE_SETEGID
+   qns->addConstant("HAVE_SETEGID",  &True);
+#else
+   qns->addConstant("HAVE_SETEGID",  &False);
+#endif
+
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
+   qns->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &True);
+#else
+   qns->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &False);
+#endif
+
    // create Qore::SQL namespace
    qns->addInitialNamespace(getSQLNamespace());
 

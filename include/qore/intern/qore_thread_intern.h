@@ -31,6 +31,14 @@
 #define MAX_QORE_THREADS 0x1000
 #endif
 
+#ifndef QORE_THREAD_STACK_SIZE
+#define QORE_THREAD_STACK_SIZE 1024*512
+#endif
+
+#ifndef QORE_STACK_GUARD
+#define QORE_STACK_GUARD 1024
+#endif
+
 class Operator;
 class Context;
 class CVNode;
@@ -96,6 +104,8 @@ DLLLOCAL QoreListNode *getCallStackList();
 #define popCall(x)
 #endif
 
+class QorePThreadAttr;
+
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0
@@ -149,8 +159,6 @@ DLLLOCAL const QoreListNode *thread_get_implicit_args();
 #ifndef HAVE_UNLIMITED_THREAD_KEYS
 DLLLOCAL LocalVarValue *thread_find_lvar(const char *id);
 #endif
-
-DLLLOCAL extern pthread_attr_t ta_default;
 
 // for object implementation
 DLLLOCAL QoreObject *getStackObject();
@@ -237,5 +245,36 @@ DLLLOCAL QoreNamespace *get_thread_ns();
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL QoreListNode *get_thread_list();
 DLLLOCAL QoreHashNode *getAllCallStacks();
+
+class QorePThreadAttr {
+   private:
+      pthread_attr_t attr;
+
+   public:
+      DLLLOCAL QorePThreadAttr() {
+	 pthread_attr_init(&attr);
+	 pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+      }
+
+      DLLLOCAL ~QorePThreadAttr() {
+	 //printd(2, "calling pthread_attr_destroy(%08p)\n", &attr);
+	 pthread_attr_destroy(&attr);
+	 //printd(2, "returned from pthread_attr_destroy(%08p)\n", &attr);
+      }
+
+      DLLLOCAL void getstack(void *&ptr, size_t &ssize) {
+	 pthread_attr_getstack(&attr, &ptr, &ssize);
+      }
+
+      DLLLOCAL pthread_attr_t *get_ptr() {
+	 return &attr;
+      }
+};
+
+DLLLOCAL extern QorePThreadAttr ta_default;
+
+#ifdef QORE_MANAGE_STACK
+DLLLOCAL int check_stack(ExceptionSink *xsink);
+#endif
 
 #endif

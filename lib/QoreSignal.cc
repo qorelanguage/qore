@@ -348,20 +348,17 @@ void QoreSignalManager::signal_handler_thread()
    }
 }
 
-extern "C" void *sig_thread(void *x)
-{
+extern "C" void *sig_thread(void *x) {
    QoreSignalManager::signal_handler_thread();
    return 0;
 }
 
-int QoreSignalManager::start_signal_thread(ExceptionSink *xsink)
-{
+int QoreSignalManager::start_signal_thread(ExceptionSink *xsink) {
    printd(5, "start_signal_thread() called\n");
    tid = get_signal_thread_entry();
 
    // if can't start thread, then throw exception
-   if (tid == -1)
-   {
+   if (tid == -1) {
       xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
       return -1;
    }
@@ -370,21 +367,21 @@ int QoreSignalManager::start_signal_thread(ExceptionSink *xsink)
    thread_running = true;
    tcount.inc();
    assert(tcount.getCount() == 1);
-   int rc = pthread_create(&ptid, &ta_default, sig_thread, 0);
-   if (rc)
-   {
+
+   int rc = pthread_create(&ptid, ta_default.get_ptr(), sig_thread, 0);
+   if (rc) {
       tcount.dec();
       deregister_signal_thread();
       tid = -1;
       xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(rc));
       thread_running = false;
    }
+
    //printd(5, "start_signal_thread() rc=%d\n", rc);
    return rc;
 }
 
-int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, ExceptionSink *xsink)
-{
+int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, ExceptionSink *xsink) {
    AutoLocker al(&mutex);
    if (!enabled())
       return 0;

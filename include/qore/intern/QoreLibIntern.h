@@ -57,7 +57,8 @@ static inline long long atoll(const char *str)
 
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
 
-typedef std::pair<enum obe_type_e, class StatementBlock *> qore_conditional_block_exit_statement_t;
+class StatementBlock;
+typedef std::pair<enum obe_type_e, StatementBlock *> qore_conditional_block_exit_statement_t;
 
 typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
@@ -69,6 +70,10 @@ DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
 DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
 DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
+
+#if defined(HAVE_PTHREAD_ATTR_SETSTACK) && defined(HAVE_CHECK_STACK_POS)
+#define QORE_MANAGE_STACK
+#endif
 
 #include <qore/intern/ParseNode.h>
 #include <qore/intern/CallReferenceCallNode.h>
@@ -148,8 +153,8 @@ DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
 DLLLOCAL ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink);
 
-DLLLOCAL class AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
 
-DLLLOCAL void addProgramConstants(class QoreNamespace *ns);
+DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 
 #endif

@@ -1,3 +1,8 @@
+2008.09.10: David Nichols
+	* added call_builtin_function() and call_builtin_function_args()
+	  functions
+	* initial patch for fixing crashes based on stack growth overruns
+
 2008.09.09: David Nichols
 	* removed ncurses documentation (added to ncurses module project)
 	* removed opengl documentation (added to opengl module project)

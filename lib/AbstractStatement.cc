@@ -32,9 +32,14 @@ AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(
 
 int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   printd(1, "AbstractStatement::exec() type=%s file=%s line=%d\n", typeid(this).name(), FileName, LineNumber);
-   
+   printd(1, "AbstractStatement::exec() type=%s file=%s line=%d\n", typeid(this).name(), FileName, LineNumber);   
    update_pgm_counter_pgm_file(LineNumber, EndLineNumber, FileName);
+
+#ifdef QORE_MANAGE_STACK
+   if (check_stack(xsink))
+      return 0;
+#endif
+
    return execImpl(return_value, xsink);
 }
 

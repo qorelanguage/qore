@@ -2584,11 +2584,10 @@ static AbstractQoreNode *f_parseXMLRPCResponse(const QoreListNode *params, Excep
    return parseXMLRPCResponse(p0, ccsid, xsink);
 }
 
-#ifdef HAVE_XMLTEXTREADERSETSCHEMA
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml_string, xsd_string [, output encoding])
-static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
    const QoreStringNode *p0, *p1, *p2;
 
    if (!(p0 = test_string_param(params, 0))) {
@@ -2653,8 +2652,11 @@ static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, Except
    }
 
    return xstack.getVal();
-}
+#else
+   xsink->raiseException("PARSEXMLWITHSCHEMA-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSetSchema() function, therefore parseXMLWithSchema() is not available in Qore; use the constant Qore::HAVE_PARSEXMLWITHSCHEMA to check if this function is implemented before calling");
+   return 0;
 #endif
+}
 
 void init_xml_functions()
 {
@@ -2682,7 +2684,5 @@ void init_xml_functions()
    builtinFunctions.add("parseXMLRPCCall",                        f_parseXMLRPCCall);
    builtinFunctions.add("parseXMLRPCResponse",                    f_parseXMLRPCResponse);
 
-#ifdef HAVE_XMLTEXTREADERSETSCHEMA
    builtinFunctions.add("parseXMLWithSchema",                     f_parseXMLWithSchema);
-#endif
 }

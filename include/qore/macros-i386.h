@@ -26,8 +26,7 @@
 #define HAVE_ATOMIC_MACROS
 
 // returns 1 when counter reaches zero, 0 if not
-static inline int atomic_dec(volatile int *a)
-{
+static inline int atomic_dec(volatile int *a) {
    unsigned char rc;
 
    __asm(
@@ -38,13 +37,21 @@ static inline int atomic_dec(volatile int *a)
    return rc != 0;
 }
 
-static inline void atomic_inc(volatile int *a)
-{
+static inline void atomic_inc(volatile int *a) {
    __asm(
         "lock; incl %0"
         : "=m" (*a)
    );
 }
 
+#define HAVE_CHECK_STACK_POS
+#define STACK_DIRECTION_DOWN 1
+
+static inline long get_stack_pos() {
+   long addr;
+   __asm("movl %%esp, %0" : "=g" (addr) );
+   return addr;
+}
+ 
 #endif
 #endif

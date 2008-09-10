@@ -588,20 +588,21 @@ static AbstractQoreNode *f_setuid(const QoreListNode *params, ExceptionSink *xsi
    return new QoreBigIntNode(setuid(p0->getAsInt()));
 }
 
+static AbstractQoreNode *f_seteuid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SETEUID
-static AbstractQoreNode *f_seteuid(const QoreListNode *params, ExceptionSink *xsink)
-{
    const AbstractQoreNode *p0 = get_param(params, 0);
    
-   if (is_nothing(p0))
-   {
+   if (is_nothing(p0)) {
       xsink->raiseException("SETEUID-ERROR", "missing user ID");
       return 0;
    }
    
    return new QoreBigIntNode(seteuid(p0->getAsInt()));
-}
+#else
+   xsink->raiseException("SETEUID-ERROR", "this system does not implement seteuid(); use the constant Qore::HAVE_SETEUID to check if this function is implemented before calling");
+   return 0;
 #endif
+}
 
 static AbstractQoreNode *f_setgid(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -616,20 +617,21 @@ static AbstractQoreNode *f_setgid(const QoreListNode *params, ExceptionSink *xsi
    return new QoreBigIntNode(setgid(p0->getAsInt()));
 }
 
+static AbstractQoreNode *f_setegid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SETEGID
-static AbstractQoreNode *f_setegid(const QoreListNode *params, ExceptionSink *xsink)
-{
    const AbstractQoreNode *p0 = get_param(params, 0);
    
-   if (is_nothing(p0))
-   {
+   if (is_nothing(p0)) {
       xsink->raiseException("SETEGID-ERROR", "missing group ID");
       return 0;
    }
    
    return new QoreBigIntNode(setegid(p0->getAsInt()));
-}
+#else
+   xsink->raiseException("SETEGID-ERROR", "this system does not implement setegid(); use the constant Qore::HAVE_SETEGID to check if this function is implemented before calling");
+   return 0;
 #endif
+}
 
 static AbstractQoreNode *f_gethostbyname(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -781,12 +783,8 @@ void init_lib_functions()
    builtinFunctions.add("exec",        f_exec, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
    builtinFunctions.add("setuid",      f_setuid, QDOM_PROCESS);
    builtinFunctions.add("setgid",      f_setgid, QDOM_PROCESS);
-#ifdef HAVE_SETEUID
    builtinFunctions.add("seteuid",     f_seteuid, QDOM_PROCESS);
-#endif
-#ifdef HAVE_SETEGID
    builtinFunctions.add("setegid",     f_setegid, QDOM_PROCESS);
-#endif
    builtinFunctions.add("gethostbyname",       f_gethostbyname);
    builtinFunctions.add("gethostbyaddr",       f_gethostbyaddr);
    builtinFunctions.add("gethostbyname_long",  f_gethostbyname_long);

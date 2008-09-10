@@ -272,32 +272,28 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="call_function">call_function()</link>
-            </para>
-          </entry>
+          <entry><para><link linkend="call_builtin_function">call_builtin_function()</link></para></entry>
           <entry><para>any</para></entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, passing the remaining arguments after the function name to the function (or <link linkend="call_references">call reference</link>).</para>
-          </entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Calls a builtin function identified by the first string argument and returns the return value, passing the remaining arguments after the function name to the function</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="call_function_args">call_function_args()</link>
-            </para>
-          </entry>
+          <entry><para><link linkend="call_builtin_function_args">call_builtin_function_args()</link></para></entry>
           <entry><para>any</para></entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, using the argument after the function name as a list of arguments to pass to the function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link>.</para>
-          </entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Calls a builtin function identified by the first string argument and returns the return value, using the argument after the function name as a list of arguments to pass to the function.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="call_function">call_function()</link></para></entry>
+          <entry><para>any</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, passing the remaining arguments after the function name to the function (or <link linkend="call_references">call reference</link>).</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="call_function_args">call_function_args()</link></para></entry>
+          <entry><para>any</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, using the argument after the function name as a list of arguments to pass to the function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link>.</para></entry>
         </row>
         <row>
           <entry>
@@ -17739,33 +17735,106 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
-<sect2 id="call_function_args">
-<title>call_function_args()</title>
+<sect2 id="call_builtin_function">
+<title>call_builtin_function()</title>
 
   <variablelist>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, using the optional second argument as a list of arguments for the function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> to be called.</para>
+	<para>Calls a builtin function and returns the return value, passing the remaining arguments after the function name to the builtin function.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>call_function_args(<replaceable>func, [args]</replaceable>)</programlisting>
+	<programlisting>call_builtin_function(<replaceable>func, [arg1, arg2, ...]</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>call_function_args("func_name", $arg_list);</programlisting>
-	<programlisting>call_function_args($call_ref, $arg_list);</programlisting>
+	<programlisting>$result = call_builtin_function("func_name", $arg1, $arg2);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+<table><title>Arguments and Return Values for call_builtin_function()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Argument Type</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>String, Any</para></entry>
+    <entry><para>Any (depends on function)</para></entry>
+    <entry><para>Executes the given builtin function with the remainder of the arguments as the arguments to the function.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+  <table><title>Exceptions Thrown by call_builtin_function()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>CALL-BUILTIN-FUNCTION-ERROR</code></para></entry>
+	<entry><para>The first argument must be a string.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>INVALID-FUNCTION-ACCESS</code></para></entry>
+	<entry><para>Parse options do not allow access to the function.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>NO-FUNCTION</code></para></entry>
+	<entry><para>The function does not exist.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="call_builtin_function_args">
+<title>call_builtin_function_args()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Calls a builtin function and returns the return value, using the optional second argument as a list of arguments for the function.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>call_builtin_function_args(<replaceable>func, [args]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>call_builtin_function_args("func_name", $arg_list);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
 
   <table>
-    <title>Arguments and Return Values for call_function_args()</title>
+    <title>Arguments and Return Values for call_builtin_function_args()</title>
     <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 
       <thead>
@@ -17778,15 +17847,15 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
       <tbody>
 	<row>
-	  <entry><para>String | <link linkend="closures">closure</link> | <link linkend="call_references">call reference</link>, [List]</para></entry>
+	  <entry><para>String, [List]</para></entry>
 	  <entry><para>Any (depends on function)</para></entry>
-	  <entry><para>Executes the given function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> using any second argument as the list of arguments.</para></entry>  
+	  <entry><para>Executes the given builtin function using any second argument as the list of arguments.</para></entry>  
 	</row>
       </tbody>
     </tgroup>
   </table>
 
-  <table><title>Exceptions Thrown by call_function_args()</title>
+  <table><title>Exceptions Thrown by call_builtin_function_args()</title>
   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
     <thead>
       <row>
@@ -17796,7 +17865,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </thead>
     <tbody>
       <row>
-	<entry><para><code>CALL-FUNCTION-ARGS-PARAMETER-ERROR</code></para></entry>
+	<entry><para><code>CALL-BUILTIN-FUNCTION-ARGS-ERROR</code></para></entry>
 	<entry><para>The first argument must be a string.</para></entry>
       </row>
       <row>
@@ -17804,7 +17873,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<entry><para>Parse options do not allow access to the function.</para></entry>
       </row>
       <row>
-	<entry><para>NO-FUNCTION</para></entry>
+	<entry><para><code>NO-FUNCTION</code></para></entry>
 	<entry><para>The function does not exist.</para></entry>
       </row>
     </tbody>
@@ -17872,14 +17941,88 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <tbody>
       <row>
 	<entry><para><code>CALL-FUNCTION-PARAMETER-ERROR</code></para></entry>
-	<entry><para>The first argument must be a string.</para></entry>
+	<entry><para>The first argument must be a string, closure, or call reference.</para></entry>
       </row>
       <row>
 	<entry><para><code>INVALID-FUNCTION-ACCESS</code></para></entry>
 	<entry><para>Parse options do not allow access to the function.</para></entry>
       </row>
       <row>
-	<entry><para>NO-FUNCTION</para></entry>
+	<entry><para><code>NO-FUNCTION</code></para></entry>
+	<entry><para>The function does not exist.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="call_function_args">
+<title>call_function_args()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Calls a function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> and returns the return value, using the optional second argument as a list of arguments for the function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> to be called.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>call_function_args(<replaceable>func, [args]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>call_function_args("func_name", $arg_list);</programlisting>
+	<programlisting>call_function_args($call_ref, $arg_list);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for call_function_args()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+
+      <tbody>
+	<row>
+	  <entry><para>String | <link linkend="closures">closure</link> | <link linkend="call_references">call reference</link>, [List]</para></entry>
+	  <entry><para>Any (depends on function)</para></entry>
+	  <entry><para>Executes the given function, <link linkend="closures">closure</link>, or <link linkend="call_references">call reference</link> using any second argument as the list of arguments.</para></entry>  
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by call_function_args()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>CALL-FUNCTION-ARGS-PARAMETER-ERROR</code></para></entry>
+	<entry><para>The first argument must be a string, closure, or call reference.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>INVALID-FUNCTION-ACCESS</code></para></entry>
+	<entry><para>Parse options do not allow access to the function.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>NO-FUNCTION</code></para></entry>
 	<entry><para>The function does not exist.</para></entry>
       </row>
     </tbody>

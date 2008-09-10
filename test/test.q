@@ -1112,6 +1112,7 @@ sub misc_tests()
     test_value((1, 2), simple_shift((1, 2)), "list arg function call");
 
     test_value(call_function("simple_shift", 1), 1, "call_function()");
+    test_value(call_builtin_function("type", 1), Type::Int, "call_builtin_function()");
     test_value(existsFunction("simple_shift"), True, "existsFunction()");
     test_value(functionType("simple_shift"), "user", "functionType() user");
     test_value(functionType("printf"), "builtin", "functionType() builtin");
@@ -1441,8 +1442,11 @@ sub xml_tests()
     $o = ( "xml" : ($o + ( "^cdata^" : "this string contains special characters &<> etc" )) );
     test_value($o == parseXML(makeXMLString($o)), True, "xml serialization with cdata");
 
-    $o = ( "ns:TestElement" : ( "^attributes^" : ( "xmlns:ns" : "http://qoretechnologies.com/test/namespace" ), "^value^" : "testing" ) );
-    test_value(parseXMLWithSchema(makeXMLString($o), xsd), $o, "parseXMLWithSchema()");
+    if (Qore::HAVE_PARSEXMLWITHSCHEMA) {
+        $o = ( "ns:TestElement" : ( "^attributes^" : ( "xmlns:ns" : "http://qoretechnologies.com/test/namespace" ), "^value^" : "testing" ) );
+
+        test_value(parseXMLWithSchema(makeXMLString($o), xsd), $o, "parseXMLWithSchema()");
+    }
 }
 
 sub json_tests()

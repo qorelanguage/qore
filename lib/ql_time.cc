@@ -127,9 +127,9 @@ static AbstractQoreNode *f_mktime(const QoreListNode *params, ExceptionSink *xsi
    return new QoreBigIntNode(t);
 }
 
-#ifdef HAVE_TIMEGM
 static AbstractQoreNode *f_timegm(const QoreListNode *params, ExceptionSink *xsink)
 {
+#ifdef HAVE_TIMEGM
    const AbstractQoreNode *p0;
    if (!(p0 = get_param(params, 0)))
       return 0;
@@ -142,8 +142,11 @@ static AbstractQoreNode *f_timegm(const QoreListNode *params, ExceptionSink *xsi
    t = timegm(&nt);
 
    return new QoreBigIntNode(t);
-}
+#else
+   xsink->raiseException("TIMEGM-ERROR", "this system does not implement timegm(); use the constant Qore::HAVE_TIMEGM to check if this function is implemented before calling");
+   return 0;
 #endif
+}
 
 static AbstractQoreNode *f_get_epoch_seconds(const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -420,9 +423,7 @@ void init_time_functions()
    builtinFunctions.add("localtime", f_localtime);
    builtinFunctions.add("gmtime", f_gmtime);
    builtinFunctions.add("mktime", f_mktime);
-#ifdef HAVE_TIMEGM
    builtinFunctions.add("timegm", f_timegm);
-#endif
 
    builtinFunctions.add("get_epoch_seconds",   f_get_epoch_seconds);
 
