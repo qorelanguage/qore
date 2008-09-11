@@ -21,6 +21,7 @@
 */
 
 #include <qore/Qore.h>
+
 #include <qore/intern/ErrnoConstants.h>
 #include <qore/intern/TypeConstants.h>
 #include <qore/intern/ParserSupport.h>
@@ -1657,6 +1658,12 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
    // add constant for features found with configure
+#ifdef HAVE_ATOMIC_MACROS
+   qns->addConstant("HAVE_ATOMIC_OPERATIONS", &True);
+#else
+   qns->addConstant("HAVE_ATOMIC_OPERATIONS", &False);
+#endif
+
 #ifdef HAVE_ROUND
    qns->addConstant("HAVE_ROUND",    &True);
 #else

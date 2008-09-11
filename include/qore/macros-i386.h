@@ -22,6 +22,8 @@
 
 #define _QORE_MACHINE_MACROS_H
 
+#define STACK_DIRECTION_DOWN 1
+
 #ifdef __GNUC__
 #define HAVE_ATOMIC_MACROS
 
@@ -45,7 +47,6 @@ static inline void atomic_inc(volatile int *a) {
 }
 
 #define HAVE_CHECK_STACK_POS
-#define STACK_DIRECTION_DOWN 1
 
 static inline size_t get_stack_pos() {
    size_t addr;
@@ -53,5 +54,19 @@ static inline size_t get_stack_pos() {
    return addr;
 }
  
+#endif // __GNUC__
+
+#ifdef __SUNPRO_CC
+#if defined(__x86_64)
+#define HAVE_ATOMIC_MACROS
+
+// these routines are implemented in assembler
+extern "C" int atomic_dec(volatile int *a);
+extern "C" void atomic_inc(volatile int *a);
+
+#define HAVE_CHECK_STACK_POS
+extern "C" size_t get_stack_pos();
 #endif
+#endif
+
 #endif

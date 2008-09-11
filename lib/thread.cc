@@ -553,7 +553,7 @@ ThreadData::~ThreadData() {
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
-   //printd(5, "check_stack() current=%08p limit=%08p\n", get_stack_pos(), td->stack_limit);
+   printd(5, "check_stack() current=%08p limit=%08p\n", get_stack_pos(), td->stack_limit);
    if (td->stack_limit
 #ifdef STACK_DIRECTION_DOWN
    >

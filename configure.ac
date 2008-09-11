@@ -47,6 +47,7 @@ AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AM_PROG_AS
 
 # check if socklen_t is needed
 TYPE_SOCKLEN_T
@@ -116,6 +117,7 @@ case "${host_os}" in
 		if test "${host_os}" = "solaris2.8"; then
 		   OTHER_LIBS="$OTHER_LIBS -ldl"
 		fi
+		solaris=yes
 	        ;;
      *darwin*)  SHLIB_SUFFIX=dylib
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
@@ -920,6 +922,17 @@ if test "$GXX" = "yes"; then
    CXXFLAGS="$CXXFLAGS -Wall"  # gcc
 fi
 
+# make sure compiler settings are correct for assembly if we need it
+if test "$GXX" != yes -a "$solaris" = yes -a "$enable_64bit" = yes; then
+   solaris_cc_x86_64=yes
+   need_assembly=yes
+fi
+
+if test "$need_assembly" = yes; then
+   CCAS="$CXX"
+   CCASFLAGS="$CCASFLAGS $CXXFLAGS"
+fi
+
 AC_SUBST(OTHER_LIBS)
 
 # get module API version to set pkglibdir
@@ -949,6 +962,7 @@ AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation
 AM_CONDITIONAL([COND_MACOSX],                  [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],                 [test -n "$with_doxygen"])
 AM_CONDITIONAL([COND_STACK_TRACE],             [test "$enable_runtime_thread_stack_trace" = yes])
+AM_CONDITIONAL([COND_SOLARIS_CC_X86_64],       [test "$solaris_cc_x86_64" = yes])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_OUTPUT

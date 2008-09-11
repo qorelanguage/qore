@@ -99,7 +99,7 @@ There have been numerous requests for this, so any (clean) patches would be appr
 
 CPU Support
 -----------
-*) i386, x86_64, and ppc: fast inline assembly atomic operations are supported for reference counting, as well as a SMP cache invalidation optimization for temporary objects (temporary object do not require a cache invalidation)
+*) gcc with i386, x86_64, ppc, and sparc: fast inline assembly atomic operations are supported for reference counting, as well as a SMP cache invalidation optimization for temporary objects (temporary object do not require a cache invalidation)
 *) all others (including sparc & pa-risc): I use a pthread mutex to ensure atomicity for reference counting.  I would be very happy to have atomic operation support for sparc and pa-risc (or other) CPUs for gcc (and CC on Solaris, aCC on HP-UX), but I haven't been able to do it myself yet...
 The cache invalidation optimization is not safe on platforms without an atomic reference counting implementation :-(
 
