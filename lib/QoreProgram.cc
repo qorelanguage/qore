@@ -1363,5 +1363,5 @@ void QoreProgram::setScriptPath(const char *path) {
 }
 
 const LVList *QoreProgram::getTopLevelLVList() const {
-   return priv->sb_head ? priv->sb_head->statements->getLVList() : 0;
+   return (priv->sb_head && priv->sb_head->statements) ? priv->sb_head->statements->getLVList() : 0;
 }
