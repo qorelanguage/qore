@@ -227,7 +227,7 @@ else
 		;;
      *solaris*) if test "$GXX" = "yes"; then
 		    if test "$host_cpu" = "sparc"; then
-		        CXXFLAGS="$CXXFLAGS -mcpu=v8 -m32"
+		        CXXFLAGS="$CXXFLAGS -mcpu=v9 -m32"
 		    else
 		        CXXFLAGS="$CXXFLAGS -m32"
 		    fi

@@ -90,7 +90,7 @@ class ThreadEntry {
       pthread_t ptid;
       class tid_node *tidnode;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      class CallStack *callStack;
+      CallStack *callStack;
 #endif
    
       DLLLOCAL void cleanup();
@@ -100,11 +100,11 @@ DLLLOCAL class ThreadEntry thread_list[MAX_QORE_THREADS];
 
 class tid_node {
 public:
-   int tid;
-   class tid_node *next, *prev;
+      int tid;
+      tid_node *next, *prev;
    
-   DLLLOCAL tid_node(int ntid);
-   DLLLOCAL ~tid_node();
+      DLLLOCAL tid_node(int ntid);
+      DLLLOCAL ~tid_node();
 };
 
 static tid_node *tid_head = 0, *tid_tail = 0;
@@ -115,8 +115,7 @@ class ProgramLocation {
       void *parseState;
       class ProgramLocation *next;
       
-      DLLLOCAL ProgramLocation(const char *fname, void *ps = 0) 
-      { 
+      DLLLOCAL ProgramLocation(const char *fname, void *ps = 0) { 
 	 file       = fname; 
 	 parseState = ps;
       }
@@ -131,12 +130,8 @@ struct ThreadVariableBlock {
       int pos;
       ThreadVariableBlock *prev, *next;
 
-      DLLLOCAL ThreadVariableBlock(struct ThreadVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0)
-      {
-      }
-      DLLLOCAL ~ThreadVariableBlock()
-      {
-      }
+      DLLLOCAL ThreadVariableBlock(struct ThreadVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
+      DLLLOCAL ~ThreadVariableBlock() { }
 };
 
 class ThreadLocalVariableData {
@@ -144,13 +139,12 @@ class ThreadLocalVariableData {
       ThreadVariableBlock *curr;
       
    public:
-      DLLLOCAL ThreadLocalVariableData()
-      {
+      DLLLOCAL ThreadLocalVariableData() {
 	 curr = new ThreadVariableBlock;
 	 //printf("this=%08p: first curr=%08p\n", this, curr);
       }
-      DLLLOCAL ~ThreadLocalVariableData()
-      {
+
+      DLLLOCAL ~ThreadLocalVariableData() {
 	 assert(!curr->prev);
 	 assert(!curr->pos);
 	 //printf("this=%08p: del curr=%08p\n", this, curr);
@@ -158,14 +152,12 @@ class ThreadLocalVariableData {
 	    delete curr->next;
 	 delete curr;
       }
-      DLLLOCAL LocalVarValue *instantiate()
-      {
-	 if (curr->pos == QORE_THREAD_STACK_BLOCK)
-	 {
+
+      DLLLOCAL LocalVarValue *instantiate() {
+	 if (curr->pos == QORE_THREAD_STACK_BLOCK) {
 	    if (curr->next)
 	       curr = curr->next;
-	    else
-	    {
+	    else {
 	       curr->next = new ThreadVariableBlock(curr);
 	       //printf("this=%08p: add curr=%08p, curr->next=%08p\n", this, curr, curr->next);
 	       curr = curr->next;
@@ -173,6 +165,7 @@ class ThreadLocalVariableData {
 	 }
 	 return &curr->lvar[curr->pos++];
       }
+
       DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
 	 if (!curr->pos) {
 	    if (curr->next) {
@@ -184,6 +177,7 @@ class ThreadLocalVariableData {
 	 }
 	 curr->lvar[--curr->pos].uninstantiate(xsink);
       }
+
 #ifndef HAVE_UNLIMITED_THREAD_KEYS
       DLLLOCAL LocalVarValue *find(const char *id) {
 	 ThreadVariableBlock *w = curr;
@@ -210,13 +204,9 @@ struct ThreadClosureVariableBlock {
       int pos;
       ThreadClosureVariableBlock *prev, *next;
 
-      DLLLOCAL ThreadClosureVariableBlock(ThreadClosureVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0)
-      {
-      }
+      DLLLOCAL ThreadClosureVariableBlock(ThreadClosureVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
 
-      DLLLOCAL ~ThreadClosureVariableBlock()
-      {
-      }
+      DLLLOCAL ~ThreadClosureVariableBlock() { }
 };
 
 class ThreadClosureVariableStack {
@@ -263,12 +253,9 @@ class ThreadClosureVariableStack {
 	 return cvar;
       }
 
-      DLLLOCAL void uninstantiate(ExceptionSink *xsink)
-      {
-	 if (!curr->pos)
-	 {
-	    if (curr->next)
-	    {
+      DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
+	 if (!curr->pos) {
+	    if (curr->next) {
 	       //printf("this %08p: del curr=%08p, curr->next=%08p\n", this, curr, curr->next);
 	       delete curr->next;
 	       curr->next = 0;
@@ -278,14 +265,11 @@ class ThreadClosureVariableStack {
 	 curr->cvar[--curr->pos]->deref(xsink);
       }
 
-      DLLLOCAL ClosureVarValue *find(const char *id)
-      {
+      DLLLOCAL ClosureVarValue *find(const char *id) {
 	 ThreadClosureVariableBlock *w = curr;
-	 while (true)
-	 {
+	 while (true) {
 	    int p = w->pos;
-	    while (p)
-	    {
+	    while (p) {
 	       if (w->cvar[--p]->id == id && !w->cvar[p]->skip)
 		  return w->cvar[p];
 	    }
@@ -301,8 +285,7 @@ class ThreadClosureVariableStack {
 };
 
 // this structure holds all thread-specific data
-class ThreadData 
-{
+class ThreadData {
    public:
       int tid;
       VLock vlock;     // for deadlock detection
@@ -570,6 +553,7 @@ ThreadData::~ThreadData() {
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
+   //printd(5, "check_stack() current=%08p limit=%08p\n", get_stack_pos(), td->stack_limit);
    if (td->stack_limit
 #ifdef STACK_DIRECTION_DOWN
    >
@@ -1181,7 +1165,18 @@ void init_qore_threads() {
 
 #ifdef QORE_MANAGE_STACK
    // get default stack size
+#ifdef SOLARIS
+#if TARGET_BITS == 32
+   // pthread_attr_getstacksize() on default attributes returns 0 on Solaris
+   // so we set according to defaults - 1MB on 32-bit builds
+   qore_thread_stack_size = 1024*1024;
+#else
+   // 2MB on 64-bit builds
+   qore_thread_stack_size = 1024*1024*2;
+#endif
+#else
    qore_thread_stack_size = ta_default.getstacksize();
+#endif
    qore_thread_stack_limit = qore_thread_stack_size - QORE_STACK_GUARD;
    printd(2, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
 #endif

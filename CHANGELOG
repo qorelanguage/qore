@@ -1,3 +1,7 @@
+2008.09.11: David Nichols
+	* enabled atomic operations on SPARC with gcc
+	* enabled stack monitoring on SPARC with gcc
+
 2008.09.10: David Nichols
 	* added call_builtin_function() and call_builtin_function_args()
 	  functions
