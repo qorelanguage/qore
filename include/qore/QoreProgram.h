@@ -407,7 +407,7 @@ class QoreProgram : public AbstractPrivateData
       //! sets the script path
       /** @param path the directory and filename of the script (set to 0 to clear)
        */
-      DLLEXPORT void setScriptPath(const char *dir);
+      DLLEXPORT void setScriptPath(const char *path);
 
       /// returns a pointed to the given user function if it exists (otherwise returns 0)
       DLLLOCAL UserFunction *findUserFunction(const char *name);

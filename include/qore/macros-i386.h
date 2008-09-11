@@ -47,8 +47,8 @@ static inline void atomic_inc(volatile int *a) {
 #define HAVE_CHECK_STACK_POS
 #define STACK_DIRECTION_DOWN 1
 
-static inline long get_stack_pos() {
-   long addr;
+static inline size_t get_stack_pos() {
+   size_t addr;
    __asm("movl %%esp, %0" : "=g" (addr) );
    return addr;
 }
