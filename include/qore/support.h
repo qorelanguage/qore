@@ -65,7 +65,7 @@ DLLEXPORT extern int debug;
 #endif
 #endif
 
-#ifndef HAVE_ISBLANK
+#if !defined(HAVE_ISBLANK) && !defined(isblank)
 #define isblank(a) ((a) == ' ' || (a) == '\t')
 #endif
 
