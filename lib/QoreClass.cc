@@ -49,10 +49,11 @@ struct qore_qc_private {
                                        //   instead they will get the private data from this class
       bool sys,                        // system class?
 	 initialized,                  // is initialized?
-	 has_delete_blocker,           // has a delete_blocker function somewhere in the hierarchy?
+	 has_delete_blocker            // has a delete_blocker function somewhere in the hierarchy?
 #ifdef QORE_CLASS_SYNCHRONOUS
+         ,
 	 synchronous_class,            // should all class methods be wrapped in a recursive thread lock?
-	 has_synchronous_in_hierarchy, // is there at least one class somewhere in the hierarchy requiring the recursive lock?
+	 has_synchronous_in_hierarchy  // is there at least one class somewhere in the hierarchy requiring the recursive lock?
 #endif
 	 ;
       int domain;                      // capabilities of builtin class to use in the context of parse restrictions
