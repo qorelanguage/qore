@@ -33,6 +33,26 @@ QoreHashNode *ENV;
 
 #include <qore/QoreType.h>
 
+VarStackPointerHelper::VarStackPointerHelper(LocalVarValue *v) : orig(v)
+{
+   v->skip = true;
+}
+
+VarStackPointerHelper::~VarStackPointerHelper()
+{
+   orig->skip = false;
+}
+
+VarStackPointerClosureHelper::VarStackPointerClosureHelper(ClosureVarValue *v) : orig(v)
+{
+   v->skip = true;
+}
+
+VarStackPointerClosureHelper::~VarStackPointerClosureHelper()
+{
+   orig->skip = false;
+}
+
 Var::Var(const char *n_name, AbstractQoreNode *val) : type(GV_VALUE), name(n_name)
 {
    v.val.value = val;

@@ -21,6 +21,7 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreClassIntern.h>
 
 #include <stdlib.h>
 #include <string.h>

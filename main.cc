@@ -103,9 +103,10 @@ int main(int argc, char *argv[])
       if (!xsink.isException()) {	 
 	 {
 	    // execute the program and get the return value
-	    ReferenceHolder<AbstractQoreNode> rv(qpgm->run(&xsink), &xsink);
+	    AbstractQoreNode *rv = qpgm->run(&xsink);
 	    // set the return code for this program from the core returned by the Qore program
 	    rc = rv ? rv->getAsInt() : 0;
+	    discard(rv, &xsink);
 	 }
 	 
 	 // if there is any unhandled exception, set the return code to 3

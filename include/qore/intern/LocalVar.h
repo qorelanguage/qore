@@ -204,16 +204,6 @@ class LocalVarValue {
       }
 };
 
-VarStackPointerHelper::VarStackPointerHelper(LocalVarValue *v) : orig(v)
-{
-   v->skip = true;
-}
-
-VarStackPointerHelper::~VarStackPointerHelper()
-{
-   orig->skip = false;
-}
-
 /* NOTE: the proper threading behavior of this class depends on the fact that the
          type (reference or value) can never change.  also the reference expression
          and object will also not change.
@@ -349,16 +339,6 @@ struct ClosureVarValue : public QoreReferenceCounter, public QoreThreadLock
 	 return eval(xsink);
       }
 };
-
-VarStackPointerClosureHelper::VarStackPointerClosureHelper(ClosureVarValue *v) : orig(v)
-{
-   v->skip = true;
-}
-
-VarStackPointerClosureHelper::~VarStackPointerClosureHelper()
-{
-   orig->skip = false;
-}
 
 class LocalVar {
    private:

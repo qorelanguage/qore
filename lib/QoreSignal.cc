@@ -148,9 +148,12 @@ void QoreSignalManager::reload()
 
 void QoreSignalManager::stop_signal_thread_unlocked()
 {
+   QORE_TRACE("QoreSignalManager::stop_signal_thread_unlocked()");
+
+   printd(5, "QoreSignalManager::stop_signal_thread_unlocked() thread_running=%d\n", thread_running);
+
    cmd = C_Exit;
-   if (thread_running)
-   {
+   if (thread_running) {
 #ifdef DEBUG
       int rc = 
 #endif
@@ -159,8 +162,9 @@ void QoreSignalManager::stop_signal_thread_unlocked()
    }
 }
 
-void QoreSignalManager::stop_signal_thread()
-{
+void QoreSignalManager::stop_signal_thread() {
+   QORE_TRACE("QoreSignalManager::stop_signal_thread()");
+
    SafeLocker sl(&mutex);
    stop_signal_thread_unlocked();
 
@@ -176,8 +180,7 @@ void QoreSignalManager::pre_fork_block_and_stop()
       return;
 
    // if another block is already in progress then wait for it to complete
-   while (block)
-   {
+   while (block) {
       ++waiting;
       cond.wait(&mutex);
       --waiting;

@@ -260,9 +260,11 @@ class QorePThreadAttr {
 	 //printd(2, "returned from pthread_attr_destroy(%08p)\n", &attr);
       }
 
+#ifdef HAVE_PTHREAD_ATTR_GETSTACK
       DLLLOCAL void getstack(void *&ptr, size_t &ssize) {
 	 pthread_attr_getstack(&attr, &ptr, &ssize);
       }
+#endif
       
       DLLLOCAL size_t getstacksize() {
 	 size_t ssize;
