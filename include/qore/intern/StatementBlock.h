@@ -49,14 +49,14 @@ class LVListInstantiator {
       ExceptionSink *xsink;
 
    public:
-      DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs)
-      {
+      DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs) {
+	 if (!l) return;
 	 for (int i = 0; i < l->num_lvars; ++i)
 	    l->lv[i]->instantiate(0);
       }
 
-      DLLLOCAL ~LVListInstantiator()
-      {
+      DLLLOCAL ~LVListInstantiator() {
+	 if (!l) return;
 	 for (int i = 0; i < l->num_lvars; ++i)
 	    l->lv[i]->uninstantiate(xsink);
       }
