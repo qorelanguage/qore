@@ -44,8 +44,8 @@ enum qore_ftp_mode {
    FTP_MODE_UNKNOWN,
    FTP_MODE_PORT,
    FTP_MODE_PASV,
-   FTP_MODE_EPSV,
-   //FTP_MODE_LPSV,
+   FTP_MODE_EPSV
+   //FTP_MODE_LPSV
 };
 
 class FtpResp

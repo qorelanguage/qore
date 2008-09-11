@@ -1057,7 +1057,8 @@ void register_thread(int tid, pthread_t ptid, QoreProgram *p) {
 
 // put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
 namespace {
-   extern "C" void *op_background_thread(BGThreadParams *btp) {    
+   extern "C" void *op_background_thread(void *x) {    
+      BGThreadParams *btp = (BGThreadParams *)x;
       // register thread
       register_thread(btp->tid, pthread_self(), btp->pgm);
       printd(5, "op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
@@ -1162,7 +1163,7 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
 
    //printd(2, "calling pthread_create(%08p, %08p, %08p, %08p)\n", &ptid, &ta_default, op_background_thread, tp);
 
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), (void *(*)(void *))op_background_thread, tp))) {
+   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
       tp->cleanup(xsink);
       delete tp;
 

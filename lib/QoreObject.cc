@@ -593,8 +593,7 @@ QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const
    return priv->data->getKeys();
 }
 
-void QoreObject::setValue(const char *key, AbstractQoreNode *value, ExceptionSink *xsink)
-{
+void QoreObject::setValue(const char *key, AbstractQoreNode *val, ExceptionSink *xsink) {
    AbstractQoreNode *old_value;
 
    {
@@ -607,7 +606,7 @@ void QoreObject::setValue(const char *key, AbstractQoreNode *value, ExceptionSin
 
       old_value = priv->data->takeKeyValue(key);
 
-      priv->data->setKeyValue(key, value, xsink);
+      priv->data->setKeyValue(key, val, xsink);
    }
 
    if (old_value)
