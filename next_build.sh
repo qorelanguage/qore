@@ -35,7 +35,7 @@ make_version()
     printf "#ifndef _QORE_VERSION_H\n#define _QORE_VERSION_H\n#define QORE_VERSION_MAJOR %s\n#define QORE_VERSION_MINOR %s\n#define QORE_VERSION_SUB %s\n#define QORE_VERSION \"%s.%s.%s\"\n#endif\n" $major $minor $sub $major $minor $sub > "$version_tmp"
     create=yes
     if [ -f "$version_file" ]; then
-	diff -q "$version_tmp" "$version_file" >/dev/null
+	diff "$version_tmp" "$version_file" >/dev/null 2>/dev/null
 	if [ $? -eq 0 ]; then
 	    create=no
 	fi
