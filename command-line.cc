@@ -321,8 +321,8 @@ static void do_version(char *arg)
    }
    putchar('\n');
 
-   printf("  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n", qore_cplusplus_compiler,
-   qore_cflags, qore_ldflags);
+   printf("  build host: %s\nC++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n", 
+	  qore_build_host, qore_cplusplus_compiler, qore_cflags, qore_ldflags);
 
    printf("this build has options:\n");
    // find longest option name

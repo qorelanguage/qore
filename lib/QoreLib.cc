@@ -43,6 +43,7 @@ const char qore_module_dir[]         = MODULE_DIR;
 const char qore_cplusplus_compiler[] = QORE_LIB_CXX;
 const char qore_cflags[]             = QORE_LIB_CFLAGS;
 const char qore_ldflags[]            = QORE_LIB_LDFLAGS;
+const char qore_build_host[]         = QORE_BUILD_HOST;
 
 DLLLOCAL QoreListNode *ARGV = 0;
 DLLLOCAL QoreListNode *QORE_ARGV = 0;

@@ -109,6 +109,9 @@ DLLEXPORT extern const char qore_cflags[];
 //! the linker flags used to link qore
 DLLEXPORT extern const char qore_ldflags[];
 
+//! information about the build host
+DLLEXPORT extern const char qore_build_host[];
+
 //! if the qore library includes debugging or not
 DLLEXPORT bool qore_has_debug();
 

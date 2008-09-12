@@ -40,7 +40,7 @@
 // for some reason we need 20K of stack guard on linux x86_64
 #define QORE_STACK_GUARD (1024 * 20)
 #else
-#define QORE_STACK_GUARD 1024
+#define QORE_STACK_GUARD (1024 * 4)
 #endif
 #endif
 
