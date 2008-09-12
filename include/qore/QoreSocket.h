@@ -43,10 +43,8 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-//! structure defined in openssl headers
-struct X509;
-//! structure defined in openssl headers
-struct EVP_PKEY;
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 //! a helper class for getting socket origination information
 /** objects of this class are used in some QoreSocket functions
@@ -74,12 +72,12 @@ class SocketSource {
       //! returns the host address string field and leaves the object's host address field empty; the caller owns the QoreStringNode reference count returned
       /** @return the host address string; the caller owns the QoreStringNode reference count returned
        */
-      DLLEXPORT class QoreStringNode *takeAddress();
+      DLLEXPORT QoreStringNode *takeAddress();
 
       //! returns the hostname string field and leaves the object's hostname field empty; the caller owns the QoreStringNode reference count returned
       /** @return the hostname string; the caller owns the QoreStringNode reference count returned
        */
-      DLLEXPORT class QoreStringNode *takeHostName();
+      DLLEXPORT QoreStringNode *takeHostName();
 
       //! returns the host address string as a C string
       /** @return the host address string as a C string
@@ -91,11 +89,11 @@ class SocketSource {
        */
       DLLEXPORT const char *getHostName() const;
 
-      DLLLOCAL void setAddress(class QoreStringNode *addr);
+      DLLLOCAL void setAddress(QoreStringNode *addr);
       DLLLOCAL void setAddress(const char *addr);
       DLLLOCAL void setHostName(const char *host);
-      DLLLOCAL void setHostName(class QoreStringNode *host);
-      DLLLOCAL void setAll(class QoreObject *o, class ExceptionSink *xsink);
+      DLLLOCAL void setHostName(QoreStringNode *host);
+      DLLLOCAL void setAll(QoreObject *o, ExceptionSink *xsink);
 };
 
 //! provides access to sockets using Qore data structures
@@ -115,7 +113,7 @@ class QoreSocket
       //! private implementation of the class
       struct qore_socket_private *priv; 
 
-      DLLLOCAL QoreSocket(int s, int t, const class QoreEncoding *csid);
+      DLLLOCAL QoreSocket(int s, int t, const QoreEncoding *csid);
 
       //! opens an INET socket
       DLLLOCAL int openINET();
@@ -124,20 +122,20 @@ class QoreSocket
       DLLLOCAL int openUNIX();
 
       //! accepts a connection and returns the new socket
-      DLLLOCAL int acceptInternal(class SocketSource *source);
+      DLLLOCAL int acceptInternal(SocketSource *source);
 
       //! closes a socket but does not reset type
       DLLLOCAL int closeInternal();
 
       DLLLOCAL void reuse(int opt);
       DLLLOCAL int recv(char *buf, int bs, int flags, int timeout);
-      DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
-      DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
+      DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       //! read until \\r\\n and return the string
-      DLLLOCAL class QoreStringNode *readHTTPData(int timeout, int *rc, int state = -1);
+      DLLLOCAL QoreStringNode *readHTTPData(int timeout, int *rc, int state = -1);
 
-      DLLLOCAL static void convertHeaderToHash(class QoreHashNode *h, char *p);
+      DLLLOCAL static void convertHeaderToHash(QoreHashNode *h, char *p);
       
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreSocket(const QoreSocket&);
@@ -164,7 +162,7 @@ class QoreSocket
 	  @see QoreSocket::connectINETSSL()
 	  @see QoreSocket::connectUNIXSSL()
        */
-      DLLEXPORT int connect(const char *name, class ExceptionSink *xsink = 0);
+      DLLEXPORT int connect(const char *name, ExceptionSink *xsink = 0);
 
       //! connects to an INET socket by hostname and port number and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** @param host the name or IP address of the host
@@ -177,7 +175,7 @@ class QoreSocket
 	  @see QoreSocket::connectINETSSL()
 	  @see QoreSocket::connectUNIXSSL()
        */
-      DLLEXPORT int connectINET(const char *host, int prt, class ExceptionSink *xsink = 0);
+      DLLEXPORT int connectINET(const char *host, int prt, ExceptionSink *xsink = 0);
 
       //! connects to a UNIX domain socket and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** @param p the file name of the UNIX domain socket
@@ -189,7 +187,7 @@ class QoreSocket
 	  @see QoreSocket::connectINETSSL()
 	  @see QoreSocket::connectUNIXSSL()
        */
-      DLLEXPORT int connectUNIX(const char *p, class ExceptionSink *xsink = 0);
+      DLLEXPORT int connectUNIX(const char *p, ExceptionSink *xsink = 0);
 
       //! connects to a socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINETSSL() is called.
@@ -207,7 +205,7 @@ class QoreSocket
 	  @see QoreSocket::connectUNIXSSL()
 	  @see QoreSocket::upgradeClientToSSL()
        */
-      DLLEXPORT int connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT int connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       //! connects to an INET socket by hostname and port number, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** @param host the name or IP address of the host
@@ -224,7 +222,7 @@ class QoreSocket
 	  @see QoreSocket::connectUNIXSSL()
 	  @see QoreSocket::upgradeClientToSSL()
        */
-      DLLEXPORT int connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT int connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       //! connects to a UNIX domain socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** @param p the file name of the UNIX domain socket
@@ -240,7 +238,7 @@ class QoreSocket
 	  @see QoreSocket::connectINETSSL()
 	  @see QoreSocket::upgradeClientToSSL()
        */
-      DLLEXPORT int connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT int connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       //! binds to a UNIX domain socket or INET interface:port using TCP and returns a status code
       /** If "name" has a ':' in it; it's assumed to be a address:port specification for binding to an INET socket, 
@@ -290,7 +288,7 @@ class QoreSocket
 	  @see QoreSocket::acceptSSL()
 	  @see SocketSource
        */
-      DLLEXPORT QoreSocket *accept(class SocketSource *source, class ExceptionSink *xsink);
+      DLLEXPORT QoreSocket *accept(SocketSource *source, ExceptionSink *xsink);
 
       //! accepts a new connection on a listening socket, negotiates an SSL connection, and returns a new QoreSocket object for the new connection
       /** the socket must be opened and in a listening state before making this call.
@@ -303,7 +301,7 @@ class QoreSocket
 	  @see QoreSocket::listen()
 	  @see SocketSource
        */
-      DLLEXPORT QoreSocket *acceptSSL(class SocketSource *source, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT QoreSocket *acceptSSL(SocketSource *source, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       //! accepts a new connection on a listening socket and replaces the current socket with the new connection
       /** the socket must be opened and in a listening state before making this call.
@@ -314,7 +312,7 @@ class QoreSocket
 	  @see QoreSocket::acceptSSL()
 	  @see SocketSource
        */
-      DLLEXPORT int acceptAndReplace(class SocketSource *source);
+      DLLEXPORT int acceptAndReplace(SocketSource *source);
 
       //! sets an open socket to the listening state
       /**
@@ -336,14 +334,14 @@ class QoreSocket
 	 @param xsink if an error occurs in converting the string's character encoding, the Qore-language exception information will be added here
 	 @return 0 for OK, not 0 if an error occured
        */
-      DLLEXPORT int send(const class QoreString *msg, class ExceptionSink *xsink);
+      DLLEXPORT int send(const QoreString *msg, ExceptionSink *xsink);
 
       //! sends binary data on a connected socket
       /**
 	 @param msg the data to send
 	 @return 0 for OK, not 0 if an error occured
        */
-      DLLEXPORT int send(const class BinaryNode *msg);
+      DLLEXPORT int send(const BinaryNode *msg);
 
       //! sends untranslated data from an open file descriptor
       /**
@@ -550,7 +548,7 @@ class QoreSocket
 	  @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
 	  @see QoreEncoding
        */
-      DLLEXPORT class QoreStringNode *recv(int bufsize, int timeout, int *prc);
+      DLLEXPORT QoreStringNode *recv(int bufsize, int timeout, int *prc);
 
       //! receive a certain number of bytes with a timeout value and return a BinaryNode, caller owns the reference count returned
       /** The socket must be connected before this call is made.
@@ -559,7 +557,7 @@ class QoreSocket
 	  @param prc output parameter: 0 for OK, not 0 for error
 	  @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
        */
-      DLLEXPORT class BinaryNode *recvBinary(int bufsize, int timeout, int *prc);
+      DLLEXPORT BinaryNode *recvBinary(int bufsize, int timeout, int *prc);
 
       //! receive with a timeout value and return a QoreStringNode, caller owns the reference count returned
       /** The socket must be connected before this call is made.
@@ -571,7 +569,7 @@ class QoreSocket
 	  @note not more than DEFAULT_SOCKET_BUFSIZE (normally 4096) bytes will be returned
 	  @see QoreEncoding
        */
-      DLLEXPORT class QoreStringNode *recv(int timeout, int *prc);
+      DLLEXPORT QoreStringNode *recv(int timeout, int *prc);
 
       //! receive data on the socket and write it to a file descriptor
       /** The socket must be connected before this call is made.
@@ -593,7 +591,7 @@ class QoreSocket
 	  @param size the length of the message body (may be 0)
 	  @return 0 for OK, not 0 for error
        */
-      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHashNode *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, int size);
 
       //! send an HTTP response message on the socket
       /** The socket must be connected before this call is made.
@@ -605,7 +603,7 @@ class QoreSocket
 	  @param size the length of the message body (may be 0)
 	  @return 0 for OK, not 0 for error
        */
-      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHashNode *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, int size);
 
       //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
       /** The socket must be connected before this call is made.
@@ -614,7 +612,7 @@ class QoreSocket
 	  @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
 	  @return if 0 (and prc == 0), the socket was closed on the remote end without a response, if the type is NT_STRING, the response could not be parsed, if not 0, caller owns the reference count returned
        */
-      DLLEXPORT class AbstractQoreNode *readHTTPHeader(int timeout, int *prc);
+      DLLEXPORT AbstractQoreNode *readHTTPHeader(int timeout, int *prc);
 
       //! receive a binary message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
       /** The socket must be connected before this call is made.
@@ -625,7 +623,7 @@ class QoreSocket
 	  @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
 	  @see BinaryNode
        */
-      DLLEXPORT class QoreHashNode *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
+      DLLEXPORT QoreHashNode *readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink);
 
       //! receive a string message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
       /** The socket must be connected before this call is made.
@@ -636,7 +634,7 @@ class QoreSocket
 	  @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
 	  @see QoreStringNode
        */
-      DLLEXPORT class QoreHashNode *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
+      DLLEXPORT QoreHashNode *readHTTPChunkedBody(int timeout, ExceptionSink *xsink);
 
       //! set send timeout in milliseconds
       DLLEXPORT int setSendTimeout(int ms);
@@ -679,7 +677,7 @@ class QoreSocket
 	  @return 0 if OK, not 0 on error
 	  @see QoreSocket::close()
        */
-      DLLEXPORT int shutdownSSL(class ExceptionSink *xsink);
+      DLLEXPORT int shutdownSSL(ExceptionSink *xsink);
 
       //! returns the file descriptor associated with this socket
       /** @return the file descriptor associated with this socket
@@ -689,12 +687,12 @@ class QoreSocket
       //! returns the character encoding associated with this socket
       /** @return the character encoding associated with this socket
        */
-      DLLEXPORT const class QoreEncoding *getEncoding() const;
+      DLLEXPORT const QoreEncoding *getEncoding() const;
 
       //! sets the character encoding for strings sent and received with this socket
       /** @param id the character encoding for strings sent and received with this socket
        */
-      DLLEXPORT void setEncoding(const class QoreEncoding *id);
+      DLLEXPORT void setEncoding(const QoreEncoding *id);
 
       //! returns true if the socket is open
       /** @return true if the socket is open
@@ -726,7 +724,7 @@ class QoreSocket
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 if OK, not 0 on error	  
       */
-      DLLEXPORT int upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT int upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       //! negotiates an SSL connection from the client side
       /** The socket must be connected before this call is made.
@@ -735,9 +733,9 @@ class QoreSocket
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 if OK, not 0 on error	  
       */
-      DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+      DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
-      DLLLOCAL static void doException(int rc, const char *meth, class ExceptionSink *xsink);
+      DLLLOCAL static void doException(int rc, const char *meth, ExceptionSink *xsink);
 };
 
 #endif // _QORE_QORESOCKET_H

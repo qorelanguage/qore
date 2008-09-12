@@ -31,6 +31,9 @@
 #include <strings.h>
 #include <errno.h>
 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
