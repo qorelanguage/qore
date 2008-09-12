@@ -1442,7 +1442,7 @@ sub xml_tests()
     $o = ( "xml" : ($o + ( "^cdata^" : "this string contains special characters &<> etc" )) );
     test_value($o == parseXML(makeXMLString($o)), True, "xml serialization with cdata");
 
-    if (Qore::HAVE_PARSEXMLWITHSCHEMA) {
+    if (Option::HAVE_PARSEXMLWITHSCHEMA) {
         $o = ( "ns:TestElement" : ( "^attributes^" : ( "xmlns:ns" : "http://qoretechnologies.com/test/namespace" ), "^value^" : "testing" ) );
 
         test_value(parseXMLWithSchema(makeXMLString($o), xsd), $o, "parseXMLWithSchema()");
