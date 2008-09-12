@@ -1030,6 +1030,7 @@ AC_DEFINE_UNQUOTED([QORE_LIB_CPPFLAGS], "$QORE_LIB_CPPFLAGS", [preprocessor flag
 AC_DEFINE_UNQUOTED([QORE_LIB_CXXFLAGS], "$QORE_LIB_CXXFLAGS", [c++ compiler flags])
 AC_DEFINE_UNQUOTED([QORE_LIB_CFLAGS],   "$QORE_LIB_CFLAGS", [c++ compiler flags])
 AC_DEFINE_UNQUOTED([QORE_LIB_LDFLAGS],  "$QORE_LIB_LDFLAGS", [linker flags])
+AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "`uname -a`", [Qore build host info])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_OUTPUT
