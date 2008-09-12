@@ -6,6 +6,8 @@
 	* added library options, reworked configure and build, added compile and
 	  link information symbols to library, added verbose information about
 	  options and build to "qore -V"
+	* fixed stack guard for linux x86_64
+	* added test/stack-test.q to test stack guard
 
 2008.09.11: David Nichols
 	* enabled atomic operations on SPARC with gcc
