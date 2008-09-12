@@ -117,8 +117,9 @@ if Qore is built with an appropriate version of openssl, support for these new d
   +) SHA512()
   +) SHA512_bin()
 
-*) 64-bit builds are the default on x86_64 CPUs
-the configure script will automatically set the build to a 64-bit target if the CPU is detected to be x86_64
+*) 64-bit builds are the default on x86_64 CPUs on Linux
+the configure script will automatically set the build to a 64-bit target if the CPU is detected to be x86_64 on Linux
+note that on Solaris x86_64 you still have to manually add --enable-64bit to configure
 
 *) XML improvements, XSD support
   +) parseXMLWithSchema() - new function supports parsing an XML string based on an XSD schema
@@ -140,7 +141,7 @@ Other platforms will still crash when the thread's stack is overrun.
 now qore has constants that will tell you which options are available in the library.
 Furthermore all functions are now available for parsing; but functions without an implementation will throw an exception.
 You can check the option constants before running the function.
-Option functions are: 
+Optional functions are: 
   +) round()                                                   (depends on C library support, missing on Solaris 8 for example)
   +) timegm()                                                  (depends on C library support, missing on Solaris for example)
   +) setegid()                                                 (depends on C library support)
@@ -177,11 +178,12 @@ you can see what options qore has now by typing "qore -V" as well from the comma
   +) new "Dir" class for manipulating and traversing directories (by Wolfgang Ritzinger).
   +) inlist() and inlist_hard() functions for checking if a value is in a list
   +) HTTPClient now understand bzip content encoding
-  +) new chown() and lchown() functions
+  +) new chown(), lchown(), call_builtin_function(), call_builtin_function_args(), force_encoding(), get_script_path(), get_script_name() functions
   +) parseURL() improvements
   +) new Program restrictions: PO_NO_TERMINAL_IO and PO_NO_GUI
   +) "-" operator updated: hash - list and hash -= list now work to delete multiple hash keys in a single (atomic) expression
   +) major updates to internal object and class code to allow for c++ class hierarchies to be properly reflected as Qore class hierarchies (used extensively by the qt modules, for example)
+  +) qore -V now gives verbose information about the build and library options
 
 ***********************
 *** LANGUAGE ISSUES ***
