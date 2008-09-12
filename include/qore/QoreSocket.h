@@ -43,8 +43,10 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+//! structure defined in openssl headers
+struct X509;
+//! structure defined in openssl headers
+struct EVP_PKEY;
 
 //! a helper class for getting socket origination information
 /** objects of this class are used in some QoreSocket functions
