@@ -599,7 +599,7 @@ static AbstractQoreNode *f_seteuid(const QoreListNode *params, ExceptionSink *xs
    
    return new QoreBigIntNode(seteuid(p0->getAsInt()));
 #else
-   xsink->raiseException("SETEUID-ERROR", "this system does not implement seteuid(); use the constant Qore::HAVE_SETEUID to check if this function is implemented before calling");
+   xsink->raiseException("SETEUID-ERROR", "this system does not implement seteuid(); use the constant Option::HAVE_SETEUID to check if this function is implemented before calling");
    return 0;
 #endif
 }
@@ -628,7 +628,7 @@ static AbstractQoreNode *f_setegid(const QoreListNode *params, ExceptionSink *xs
    
    return new QoreBigIntNode(setegid(p0->getAsInt()));
 #else
-   xsink->raiseException("SETEGID-ERROR", "this system does not implement setegid(); use the constant Qore::HAVE_SETEGID to check if this function is implemented before calling");
+   xsink->raiseException("SETEGID-ERROR", "this system does not implement setegid(); use the constant Option::HAVE_SETEGID to check if this function is implemented before calling");
    return 0;
 #endif
 }
