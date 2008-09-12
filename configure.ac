@@ -1,4 +1,4 @@
-# Process this file with autoconf to produce a configure script.
+## Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
 AC_INIT([qore], [0.7.0],
@@ -360,6 +360,7 @@ find_openssl()
     else
 	AC_MSG_ERROR([not found])
     fi
+
     AC_SUBST(OPENSSL_LDFLAGS)
     CPPFLAGS="$CPPCLAGS $OPENSSL_CPPFLAGS"
 }
@@ -380,6 +381,33 @@ for dir in "${with_openssl_dir}" /usr / /usr/local /opt/gnu /opt/openssl /usr/lo
 done
 if test -z "$OPENSSL_LDFLAGS"; then
     AC_MSG_ERROR([no openssl library found])
+else
+    AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
+    # check for SHA512
+    sha=`grep EVP_sha512 $inc/openssl/evp.h 2>/dev/null`
+    if test -n "$sha"; then
+       AC_DEFINE([HAVE_OPENSSL_SHA512], 1, [define if the sha512 algorithm is available in openssl])
+       AC_MSG_RESULT([found])
+    else
+       AC_MSG_RESULT([not found])
+    fi
+
+    # check for openssl const correctness (later versions have it)
+    SAVE_CPPFLAGS="$CPPFLAGS"
+    SAVE_LDFLAGS="$LDFLAGS"
+    CPPFLAGS="$CPPFLAGS $OPENSSL_CPPFLAGS"
+    LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
+
+    AC_MSG_CHECKING([const correctness in openssl headers])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[const unsigned char *p; d2i_X509(0, &p, 0l);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_OPENSSL_CONST], 1, [Define if openssl headers correctly use const])],
+       [AC_MSG_RESULT([old style, not const correct])])
+
+    CPPFLAGS="$SAVE_CPPFLAGS"
+    LDFLAGS="$SAVE_LDFLAGS"
 fi
 
 set_pcre_cppflags()
@@ -442,7 +470,7 @@ find_pcre()
 AC_ARG_WITH([pcre-dir],
   [AS_HELP_STRING([--with-pcre-dir@<:@=DIR@:>@],
                   [PCRE directory])],
-  [if test ! -d "${with_pcre_dir}"; then AC_MSG_ERROR(bad value ${with_pcre_dir} for --with-pcre-dir); unset with_pcre_dir; fi],
+  [if test ! -d "${with_pcre_dir}"; then AC_MSG_ERROR([bad value ${with_pcre_dir} for --with-pcre-dir]); unset with_pcre_dir; fi],
   [with_pcre_dir="$PCRE_DIR"])
 
 AC_MSG_CHECKING([for pcre libraries and header files])
@@ -546,7 +574,7 @@ if test -n "$LIBXML2_LDFLAGS"; then
    AC_MSG_CHECKING([for xmlTextReaderSetSchema()])
    file=`grep xmlTextReaderSetSchema $LIBXML2_INC_DIR/libxml/*.h`
    if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLTEXTREADERSETSCHEMA, 1, [Define if libxml2 defines xmlTextReaderSetSchema])
+      AC_DEFINE(HAVE_XMLTEXTREADERSETSCHEMA, 1, [Define if libxml2 defines xmlTextReaderSetSchema()])
       AC_MSG_RESULT([found])
    else
       AC_MSG_RESULT([not found])
@@ -923,8 +951,12 @@ if test "$GXX" = "yes"; then
 fi
 
 # make sure compiler settings are correct for assembly if we need it
-if test "$GXX" != yes -a "$solaris" = yes -a "$enable_64bit" = yes; then
-   solaris_cc_x86_64=yes
+if test "$GXX" != yes -a "$solaris" = yes; then
+   if test "$enable_64bit" = yes; then
+      solaris_cc_x86_64=yes
+   else
+      solaris_cc_i386=yes
+   fi
    need_assembly=yes
 fi
 
@@ -963,6 +995,7 @@ AM_CONDITIONAL([COND_MACOSX],                  [test "$darwin" = true])
 AM_CONDITIONAL([COND_DOXYGEN],                 [test -n "$with_doxygen"])
 AM_CONDITIONAL([COND_STACK_TRACE],             [test "$enable_runtime_thread_stack_trace" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_X86_64],       [test "$solaris_cc_x86_64" = yes])
+AM_CONDITIONAL([COND_SOLARIS_CC_I386],         [test "$solaris_cc_i386" = yes])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_OUTPUT

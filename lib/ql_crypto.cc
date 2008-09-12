@@ -323,7 +323,7 @@ class CryptoHelper : public BaseHelper
 
 static AbstractQoreNode *f_blowfish_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("BLOWFISH-ENCRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QC_ENCRYPT, xsink))
@@ -334,7 +334,7 @@ static AbstractQoreNode *f_blowfish_encrypt_cbc(const QoreListNode *params, Exce
 
 static AbstractQoreNode *f_blowfish_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QC_DECRYPT, xsink))
@@ -345,7 +345,7 @@ static AbstractQoreNode *f_blowfish_decrypt_cbc(const QoreListNode *params, Exce
 
 static AbstractQoreNode *f_blowfish_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QC_DECRYPT, xsink))
@@ -356,7 +356,7 @@ static AbstractQoreNode *f_blowfish_decrypt_cbc_to_string(const QoreListNode *pa
 
 static AbstractQoreNode *f_des_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-ENCRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
@@ -368,7 +368,7 @@ static AbstractQoreNode *f_des_encrypt_cbc(const QoreListNode *params, Exception
 
 static AbstractQoreNode *f_des_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
@@ -380,7 +380,7 @@ static AbstractQoreNode *f_des_decrypt_cbc(const QoreListNode *params, Exception
 
 static AbstractQoreNode *f_des_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
@@ -393,7 +393,7 @@ static AbstractQoreNode *f_des_decrypt_cbc_to_string(const QoreListNode *params,
 // params (data, [key, [input_vector]])
 static AbstractQoreNode *f_des_ede_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-ENCRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
@@ -405,7 +405,7 @@ static AbstractQoreNode *f_des_ede_encrypt_cbc(const QoreListNode *params, Excep
 
 static AbstractQoreNode *f_des_ede_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
@@ -417,7 +417,7 @@ static AbstractQoreNode *f_des_ede_decrypt_cbc(const QoreListNode *params, Excep
 
 static AbstractQoreNode *f_des_ede_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
@@ -430,7 +430,7 @@ static AbstractQoreNode *f_des_ede_decrypt_cbc_to_string(const QoreListNode *par
 // params (data, [key, [input_vector]])
 static AbstractQoreNode *f_des_ede3_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-ENCRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
@@ -442,7 +442,7 @@ static AbstractQoreNode *f_des_ede3_encrypt_cbc(const QoreListNode *params, Exce
 
 static AbstractQoreNode *f_des_ede3_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
@@ -454,7 +454,7 @@ static AbstractQoreNode *f_des_ede3_decrypt_cbc(const QoreListNode *params, Exce
 
 static AbstractQoreNode *f_des_ede3_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DES-DECRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
@@ -467,7 +467,7 @@ static AbstractQoreNode *f_des_ede3_decrypt_cbc_to_string(const QoreListNode *pa
 // params (data, key, [input_vector])
 static AbstractQoreNode *f_desx_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DESX-ENCRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
@@ -479,7 +479,7 @@ static AbstractQoreNode *f_desx_encrypt_cbc(const QoreListNode *params, Exceptio
 
 static AbstractQoreNode *f_desx_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DESX-DECRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
@@ -491,7 +491,7 @@ static AbstractQoreNode *f_desx_decrypt_cbc(const QoreListNode *params, Exceptio
 
 static AbstractQoreNode *f_desx_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("DESX-DECRYPT-PARAM-ERROR", params, xsink) 
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
@@ -503,7 +503,7 @@ static AbstractQoreNode *f_desx_decrypt_cbc_to_string(const QoreListNode *params
 
 static AbstractQoreNode *f_rc4_encrypt(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC4-ENCRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc4(), "rc4", QC_ENCRYPT, xsink))
@@ -514,7 +514,7 @@ static AbstractQoreNode *f_rc4_encrypt(const QoreListNode *params, ExceptionSink
 
 static AbstractQoreNode *f_rc4_decrypt(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC4-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc4(), "rc4", QC_DECRYPT, xsink))
@@ -525,7 +525,7 @@ static AbstractQoreNode *f_rc4_decrypt(const QoreListNode *params, ExceptionSink
 
 static AbstractQoreNode *f_rc4_decrypt_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC4-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc4(), "rc4", QC_DECRYPT, xsink))
@@ -536,7 +536,7 @@ static AbstractQoreNode *f_rc4_decrypt_to_string(const QoreListNode *params, Exc
 
 static AbstractQoreNode *f_rc2_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC2-ENCRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QC_ENCRYPT, xsink))
@@ -547,7 +547,7 @@ static AbstractQoreNode *f_rc2_encrypt_cbc(const QoreListNode *params, Exception
 
 static AbstractQoreNode *f_rc2_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC2-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QC_DECRYPT, xsink))
@@ -558,7 +558,7 @@ static AbstractQoreNode *f_rc2_decrypt_cbc(const QoreListNode *params, Exception
 
 static AbstractQoreNode *f_rc2_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC2-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QC_DECRYPT, xsink))
@@ -569,7 +569,7 @@ static AbstractQoreNode *f_rc2_decrypt_cbc_to_string(const QoreListNode *params,
 
 static AbstractQoreNode *f_cast5_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("CAST5-ENCRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QC_ENCRYPT, xsink))
@@ -580,7 +580,7 @@ static AbstractQoreNode *f_cast5_encrypt_cbc(const QoreListNode *params, Excepti
 
 static AbstractQoreNode *f_cast5_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("CAST5-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QC_DECRYPT, xsink))
@@ -591,7 +591,7 @@ static AbstractQoreNode *f_cast5_decrypt_cbc(const QoreListNode *params, Excepti
 
 static AbstractQoreNode *f_cast5_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+   CryptoHelper ch;
 
    if (ch.getSingleKey("CAST5-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QC_DECRYPT, xsink))
@@ -600,45 +600,58 @@ static AbstractQoreNode *f_cast5_decrypt_cbc_to_string(const QoreListNode *param
    return ch.getString();
 }
 
-#ifndef OPENSSL_NO_RC5
 static AbstractQoreNode *f_rc5_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+#ifndef OPENSSL_NO_RC5
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC5-ENCRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QC_ENCRYPT, xsink))
       return 0;
 
    return ch.getBinary();
+#else
+   xsink->raiseException("RC5-ENCRYPT-CBC-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; check Option::HAVE_RC5 before calling this function");
+   return 0;
+#endif
 }
 
 static AbstractQoreNode *f_rc5_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+#ifndef OPENSSL_NO_RC5
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC5-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QC_DECRYPT, xsink))
       return 0;
 
    return ch.getBinary();
+#else
+   xsink->raiseException("RC5-DECRYPT-CBC-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; check Option::HAVE_RC5 before calling this function");
+   return 0;
+#endif
 }
 
 static AbstractQoreNode *f_rc5_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class CryptoHelper ch;
+#ifndef OPENSSL_NO_RC5
+   CryptoHelper ch;
 
    if (ch.getSingleKey("RC5-DECRYPT-PARAM-ERROR", params, xsink)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QC_DECRYPT, xsink))
       return 0;
 
    return ch.getString();
-}
+#else
+   xsink->raiseException("RC5-DECRYPT-CBC-TO-STRING-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; check Option::HAVE_RC5 before calling this function");
+   return 0;
 #endif
+}
 
 #define MD2_ERR "MD2-DIGEST-ERROR"
 static AbstractQoreNode *f_MD2(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(MD2_ERR, params, xsink) || dh.doDigest(MD2_ERR, EVP_md2(), xsink))
       return 0;
 
@@ -648,7 +661,7 @@ static AbstractQoreNode *f_MD2(const QoreListNode *params, ExceptionSink *xsink)
 #define MD4_ERR "MD4-DIGEST-ERROR"
 static AbstractQoreNode *f_MD4(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(MD4_ERR, params, xsink) || dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return 0;
 
@@ -658,7 +671,7 @@ static AbstractQoreNode *f_MD4(const QoreListNode *params, ExceptionSink *xsink)
 #define MD5_ERR "MD5-DIGEST-ERROR"
 static AbstractQoreNode *f_MD5(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(MD5_ERR, params, xsink) || dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return 0;
 
@@ -668,7 +681,7 @@ static AbstractQoreNode *f_MD5(const QoreListNode *params, ExceptionSink *xsink)
 #define SHA_ERR "SHA-DIGEST-ERROR"
 static AbstractQoreNode *f_SHA(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(SHA_ERR, params, xsink) || dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
 
@@ -678,61 +691,77 @@ static AbstractQoreNode *f_SHA(const QoreListNode *params, ExceptionSink *xsink)
 #define SHA1_ERR "SHA1-DIGEST-ERROR"
 static AbstractQoreNode *f_SHA1(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(SHA1_ERR, params, xsink) || dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return 0;
 
    return dh.getString();
 }
 
-#ifndef OPENSSL_NO_SHA256
-#define SHA224_ERR "SHA224-DIGEST-ERROR"
+static const char SHA224_ERR[] = "SHA224-DIGEST-ERROR";
 static AbstractQoreNode *f_SHA224(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh;
    if (dh.getData(SHA224_ERR, params, xsink) || dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
       return 0;
 
    return dh.getString();
+#else
+   xsink->raiseException("SHA224-ERROR", "the openssl library version that qore was compiled with did not support the SHA224 algorithm; check Option::HAVE_SHA224 before calling this function");
+   return 0;
+#endif
 }
 
-#define SHA256_ERR "SHA256-DIGEST-ERROR"
+static const char SHA256_ERR[] = "SHA256-DIGEST-ERROR";
 static AbstractQoreNode *f_SHA256(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh;
    if (dh.getData(SHA256_ERR, params, xsink) || dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
       return 0;
 
    return dh.getString();
-}
+#else
+   xsink->raiseException("SHA256-ERROR", "the openssl library version that qore was compiled with did not support the SHA256 algorithm; check Option::HAVE_SHA256 before calling this function");
+   return 0;
 #endif
+}
 
-#ifndef OPENSSL_NO_SHA512
-#define SHA384_ERR "SHA384-DIGEST-ERROR"
+static const char SHA384_ERR[] = "SHA384-DIGEST-ERROR";
 static AbstractQoreNode *f_SHA384(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh;
    if (dh.getData(SHA384_ERR, params, xsink) || dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
       return 0;
 
    return dh.getString();
+#else
+   xsink->raiseException("SHA384-ERROR", "the openssl library version that qore was compiled with did not support the SHA384 algorithm; check Option::HAVE_SHA384 before calling this function");
+   return 0;
+#endif
 }
 
-#define SHA512_ERR "SHA512-DIGEST-ERROR"
+static const char SHA512_ERR[] = "SHA512-DIGEST-ERROR";
 static AbstractQoreNode *f_SHA512(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh;
    if (dh.getData(SHA512_ERR, params, xsink) || dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
       return 0;
 
    return dh.getString();
-}
+#else
+   xsink->raiseException("SHA512-ERROR", "the openssl library version that qore was compiled with did not support the SHA512 algorithm; check Option::HAVE_SHA512 before calling this function");
+   return 0;
 #endif
+}
 
 #define DSS_ERR "DSS-DIGEST-ERROR"
 static AbstractQoreNode *f_DSS(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(DSS_ERR, params, xsink) || dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return 0;
 
@@ -742,29 +771,32 @@ static AbstractQoreNode *f_DSS(const QoreListNode *params, ExceptionSink *xsink)
 #define DSS1_ERR "DSS1-DIGEST-ERROR"
 static AbstractQoreNode *f_DSS1(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(DSS1_ERR, params, xsink) || dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return 0;
 
    return dh.getString();
 }
 
-#ifndef OPENSSL_NO_MDC2
-#define MDC2_ERR "MDC2-DIGEST-ERROR"
+static const char MDC2_ERR[] = "MDC2-DIGEST-ERROR";
 static AbstractQoreNode *f_MDC2(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#ifndef OPENSSL_NO_MDC2
+   DigestHelper dh;
    if (dh.getData(MDC2_ERR, params, xsink) || dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
       return 0;
 
    return dh.getString();
-}
+#else
+   xsink->raiseException("MDC2-ERROR", "the openssl library version that qore was compiled with did not support the MDC2 algorithm; check Option::HAVE_MDC2 before calling this function");
+   return 0;
 #endif
+}
 
 #define RIPEMD160_ERR "RIPEMD160-DIGEST-ERROR"
 static AbstractQoreNode *f_RIPEMD160(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(RIPEMD160_ERR, params, xsink) || dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return 0;
 
@@ -773,7 +805,7 @@ static AbstractQoreNode *f_RIPEMD160(const QoreListNode *params, ExceptionSink *
 
 static AbstractQoreNode *f_MD2_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(MD2_ERR, params, xsink) || dh.doDigest(MD2_ERR, EVP_md2(), xsink))
       return 0;
    
@@ -782,7 +814,7 @@ static AbstractQoreNode *f_MD2_bin(const QoreListNode *params, ExceptionSink *xs
 
 static AbstractQoreNode *f_MD4_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(MD4_ERR, params, xsink) || dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return 0;
    
@@ -791,7 +823,7 @@ static AbstractQoreNode *f_MD4_bin(const QoreListNode *params, ExceptionSink *xs
 
 static AbstractQoreNode *f_MD5_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(MD5_ERR, params, xsink) || dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return 0;
    
@@ -800,7 +832,7 @@ static AbstractQoreNode *f_MD5_bin(const QoreListNode *params, ExceptionSink *xs
 
 static AbstractQoreNode *f_SHA_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(SHA_ERR, params, xsink) || dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
    
@@ -809,56 +841,72 @@ static AbstractQoreNode *f_SHA_bin(const QoreListNode *params, ExceptionSink *xs
 
 static AbstractQoreNode *f_SHA1_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(SHA1_ERR, params, xsink) || dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return 0;
    
    return dh.getBinary();
 }
 
-#ifndef OPENSSL_NO_SHA256
 static AbstractQoreNode *f_SHA224_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh;
    if (dh.getData(SHA224_ERR, params, xsink) || dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
       return 0;
    
    return dh.getBinary();
+#else
+   xsink->raiseException("SHA224-BIN-ERROR", "the openssl library version that qore was compiled with did not support the SHA224 algorithm; check Option::HAVE_SHA224 before calling this function");
+   return 0;
+#endif
 }
 
 static AbstractQoreNode *f_SHA256_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh;
    if (dh.getData(SHA256_ERR, params, xsink) || dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
       return 0;
    
    return dh.getBinary();
-}
+#else
+   xsink->raiseException("SHA256-BIN-ERROR", "the openssl library version that qore was compiled with did not support the SHA256 algorithm; check Option::HAVE_SHA256 before calling this function");
+   return 0;
 #endif
+}
 
-#ifndef OPENSSL_NO_SHA512
 static AbstractQoreNode *f_SHA384_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh;
    if (dh.getData(SHA384_ERR, params, xsink) || dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
       return 0;
    
    return dh.getBinary();
+#else
+   xsink->raiseException("SHA384-BIN-ERROR", "the openssl library version that qore was compiled with did not support the SHA384 algorithm; check Option::HAVE_SHA384 before calling this function");
+   return 0;
+#endif
 }
 
 static AbstractQoreNode *f_SHA512_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   DigestHelper dh;
    if (dh.getData(SHA512_ERR, params, xsink) || dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
       return 0;
    
    return dh.getBinary();
-}
+#else
+   xsink->raiseException("SHA512-BIN-ERROR", "the openssl library version that qore was compiled with did not support the SHA512 algorithm; check Option::HAVE_SHA512 before calling this function");
+   return 0;
 #endif
+}
 
 static AbstractQoreNode *f_DSS_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(DSS_ERR, params, xsink) || dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return 0;
    
@@ -867,27 +915,30 @@ static AbstractQoreNode *f_DSS_bin(const QoreListNode *params, ExceptionSink *xs
 
 static AbstractQoreNode *f_DSS1_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(DSS1_ERR, params, xsink) || dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return 0;
    
    return dh.getBinary();
 }
 
-#ifndef OPENSSL_NO_MDC2
 static AbstractQoreNode *f_MDC2_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+#ifndef OPENSSL_NO_MDC2
+   DigestHelper dh;
    if (dh.getData(MDC2_ERR, params, xsink) || dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
       return 0;
    
    return dh.getBinary();
-}
+#else
+   xsink->raiseException("MDC2-ERROR", "the openssl library version that qore was compiled with did not support the MDC2 algorithm; check Option::HAVE_MDC2 before calling this function");
+   return 0;
 #endif
+}
 
 static AbstractQoreNode *f_RIPEMD160_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class DigestHelper dh;
+   DigestHelper dh;
    if (dh.getData(RIPEMD160_ERR, params, xsink) || dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return 0;
    
@@ -935,11 +986,9 @@ void init_crypto_functions()
    builtinFunctions.add("cast5_decrypt_cbc", f_cast5_decrypt_cbc);
    builtinFunctions.add("cast5_decrypt_cbc_to_string", f_cast5_decrypt_cbc_to_string);
 
-#ifndef OPENSSL_NO_RC5
    builtinFunctions.add("rc5_encrypt_cbc", f_rc5_encrypt_cbc);
    builtinFunctions.add("rc5_decrypt_cbc", f_rc5_decrypt_cbc);
    builtinFunctions.add("rc5_decrypt_cbc_to_string", f_rc5_decrypt_cbc_to_string);
-#endif
 
    // digest functions
    builtinFunctions.add("MD2",           f_MD2);
@@ -953,28 +1002,22 @@ void init_crypto_functions()
    builtinFunctions.add("SHA1",          f_SHA1);
    builtinFunctions.add("SHA1_bin",      f_SHA1_bin);
 
-#ifndef OPENSSL_NO_SHA256
    builtinFunctions.add("SHA224",        f_SHA224);
    builtinFunctions.add("SHA224_bin",    f_SHA224_bin);
    builtinFunctions.add("SHA256",        f_SHA256);
    builtinFunctions.add("SHA256_bin",    f_SHA256_bin);
-#endif
-#ifndef OPENSSL_NO_SHA512
    builtinFunctions.add("SHA384",        f_SHA384);
    builtinFunctions.add("SHA384_bin",    f_SHA384_bin);
    builtinFunctions.add("SHA512",        f_SHA512);
    builtinFunctions.add("SHA512_bin",    f_SHA512_bin);
-#endif
 
    builtinFunctions.add("DSS",           f_DSS);
    builtinFunctions.add("DSS_bin",       f_DSS_bin);
    builtinFunctions.add("DSS1",          f_DSS1);
    builtinFunctions.add("DSS1_bin",      f_DSS1_bin);
 
-#ifndef OPENSSL_NO_MDC2
    builtinFunctions.add("MDC2",          f_MDC2);
    builtinFunctions.add("MDC2_bin",      f_MDC2_bin);
-#endif
 
    builtinFunctions.add("RIPEMD160",     f_RIPEMD160);
    builtinFunctions.add("RIPEMD160_bin", f_RIPEMD160_bin);

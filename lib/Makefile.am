@@ -188,6 +188,9 @@ endif
 if COND_SOLARIS_CC_X86_64
 libqore_la_SOURCES += sunpro-x86_64.s
 endif
+if COND_SOLARIS_CC_I386
+libqore_la_SOURCES += sunpro-i386.s
+endif
 
 libqore_la_LDFLAGS = -version-info 4:0:0 -no-undefined $(OPENSSL_LDFLAGS) $(LIBXML2_LDFLAGS) $(PCRE_LDFLAGS) $(ZLIB_LDFLAGS) $(BZ2_LDFLAGS) $(LDFLAGS) -lm
 libqore_la_LIBADD = ${PTHREAD_LIBS} ${OTHER_LIBS}

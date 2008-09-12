@@ -53,6 +53,12 @@ static inline long long atoll(const char *str)
 #include <umem.h>
 #endif
 
+#ifdef HAVE_OPENSSL_CONST
+#define OPENSSL_CONST const
+#else
+#define OPENSSL_CONST
+#endif
+
 #include <list>
 
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };

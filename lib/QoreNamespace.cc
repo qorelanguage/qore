@@ -1657,42 +1657,75 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    // math constants
    qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
+   // set up Option namespace for Qore options
+   QoreNamespace *option = new QoreNamespace("Option");
+
    // add constant for features found with configure
 #ifdef HAVE_ATOMIC_MACROS
-   qns->addConstant("HAVE_ATOMIC_OPERATIONS", &True);
+   option->addConstant("HAVE_ATOMIC_OPERATIONS", &True);
 #else
-   qns->addConstant("HAVE_ATOMIC_OPERATIONS", &False);
+   option->addConstant("HAVE_ATOMIC_OPERATIONS", &False);
 #endif
 
 #ifdef HAVE_ROUND
-   qns->addConstant("HAVE_ROUND",    &True);
+   option->addConstant("HAVE_ROUND",    &True);
 #else
-   qns->addConstant("HAVE_ROUND",    &False);
+   option->addConstant("HAVE_ROUND",    &False);
 #endif
 
 #ifdef HAVE_TIMEGM
-   qns->addConstant("HAVE_TIMEGM",   &True);
+   option->addConstant("HAVE_TIMEGM",   &True);
 #else
-   qns->addConstant("HAVE_TIMEGM",   &False);
+   option->addConstant("HAVE_TIMEGM",   &False);
 #endif
 
 #ifdef HAVE_SETEUID
-   qns->addConstant("HAVE_SETEUID",  &True);
+   option->addConstant("HAVE_SETEUID",  &True);
 #else
-   qns->addConstant("HAVE_SETEUID",  &False);
+   option->addConstant("HAVE_SETEUID",  &False);
 #endif
 
 #ifdef HAVE_SETEGID
-   qns->addConstant("HAVE_SETEGID",  &True);
+   option->addConstant("HAVE_SETEGID",  &True);
 #else
-   qns->addConstant("HAVE_SETEGID",  &False);
+   option->addConstant("HAVE_SETEGID",  &False);
 #endif
 
 #ifdef HAVE_XMLTEXTREADERSETSCHEMA
-   qns->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &True);
+   option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &True);
 #else
-   qns->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &False);
+   option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &False);
 #endif
+
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+   option->addConstant("HAVE_SHA224",  &True);
+   option->addConstant("HAVE_SHA256",  &True);
+#else
+   option->addConstant("HAVE_SHA224",  &False);
+   option->addConstant("HAVE_SHA256",  &False);
+#endif
+
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+   option->addConstant("HAVE_SHA384",  &True);
+   option->addConstant("HAVE_SHA512",  &True);
+#else
+   option->addConstant("HAVE_SHA384",  &False);
+   option->addConstant("HAVE_SHA512",  &False);
+#endif
+
+#ifndef OPENSSL_NO_MDC2
+   option->addConstant("HAVE_MDC2",  &True);
+#else
+   option->addConstant("HAVE_MDC2",  &False);
+#endif
+
+#ifndef OPENSSL_NO_RC5
+   option->addConstant("HAVE_RC5",  &True);
+#else
+   option->addConstant("HAVE_RC5",  &False);
+#endif
+
+   qns->addInitialNamespace(option);
 
    // create Qore::SQL namespace
    qns->addInitialNamespace(getSQLNamespace());

@@ -1,3 +1,8 @@
+2008.09.12: David Nichols
+	* enabled atomic operations and stack guard for solaris i386
+	* fixed optional functions and options in ql_crypto.cc
+	* put all options into "Option" namespace
+
 2008.09.11: David Nichols
 	* enabled atomic operations on SPARC with gcc
 	* enabled stack monitoring on SPARC with gcc

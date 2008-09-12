@@ -57,7 +57,7 @@ static inline size_t get_stack_pos() {
 #endif // __GNUC__
 
 #ifdef __SUNPRO_CC
-#if defined(__x86_64)
+#if defined(__x86_64) || defined(__i386)
 #define HAVE_ATOMIC_MACROS
 
 // these routines are implemented in assembler
