@@ -11,7 +11,7 @@
 get_stack_pos:
 	push	%rbp
 	movq	%rsp,%rbp
-	movl	%esp,%eax
+	movq	%rsp,%rax
 	leave
 	ret
 	

@@ -1,4 +1,4 @@
-#!/usr/bin/qore 
+#!/usr/bin/env qore 
 
 if (!Option::HAVE_STACK_GUARD) {
     printf("This qore library was not built with stack protection, therefore the test cannot be run.\n");
