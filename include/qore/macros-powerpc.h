@@ -22,6 +22,9 @@
 
 #define _QORE_CONFIG_MACHINE_MACROS_H
 
+// only have support for 32-bit ppc for now
+#ifndef __ppc64
+
 #define HAVE_ATOMIC_MACROS
 
 static inline int atomic_inc(int *v)
@@ -62,5 +65,7 @@ static inline size_t get_stack_pos() {
    __asm("mr %0, r1" : "=r" (addr) );
    return addr;
 }
+
+#endif
 
 #endif
