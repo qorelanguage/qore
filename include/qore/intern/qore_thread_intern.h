@@ -36,8 +36,8 @@
 #endif
 
 #ifndef QORE_STACK_GUARD
-#if defined (LINUX) && TARGET_BITS == 64
-// for some reason we need 20K of stack guard on linux x86_64
+#ifdef CPU_X86_64
+// for some reason we need 20K of stack guard on x86_64
 #define QORE_STACK_GUARD (1024 * 20)
 #else
 #define QORE_STACK_GUARD (1024 * 4)

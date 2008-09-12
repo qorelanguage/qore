@@ -244,6 +244,13 @@ else
    bits=32
 fi
 
+# set CPU_X86_64 if we are targeting it
+if test "${enable_64bit}" = yes; then
+   if test "${cpu_family}" = i386 -o "${cpu_family}" = x86_64; then
+      AC_DEFINE([CPU_X86_64], 1, [define if we are targeting a x86_64 CPU])
+   fi
+fi
+
 AC_ARG_ENABLE([static-openssl],
      [AS_HELP_STRING([--enable-static-openssl],
 		     [force static linkage of openssl libraries (default=auto)])],
