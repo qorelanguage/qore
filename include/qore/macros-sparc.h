@@ -2,6 +2,11 @@
 
 #define _QORE_MACHINE_MACROS_H
 
+// no atomic support or stack guard for 64-bit sparc yet
+#if !defined(__sparcv9)
+
+#define STACK_DIRECTION_DOWN 1
+
 #ifdef __GNUC__
 
 #define HAVE_ATOMIC_MACROS
@@ -35,7 +40,6 @@ static inline void atomic_inc(int *pw) {
 }
 
 #define HAVE_CHECK_STACK_POS
-#define STACK_DIRECTION_DOWN 1
 
 static inline size_t get_stack_pos() {
    size_t addr;
@@ -46,6 +50,18 @@ static inline size_t get_stack_pos() {
 #endif
 
 #ifdef __SUNPRO_CC
+#define HAVE_ATOMIC_MACROS
+
+// routines are implemented in assembler
+extern "C" int atomic_dec(int *pw);
+extern "C" void atomic_inc(int *pw);
+
+#define HAVE_CHECK_STACK_POS
+
+extern "C" size_t get_stack_pos();
+
+#endif
+
 #endif
 
 #endif

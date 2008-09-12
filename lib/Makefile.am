@@ -191,6 +191,12 @@ endif
 if COND_SOLARIS_CC_I386
 libqore_la_SOURCES += sunpro-i386.s
 endif
+if COND_SOLARIS_CC_SPARC32
+libqore_la_SOURCES += sunpro-sparc32.s
+endif
+if COND_SOLARIS_CC_SPARC64
+libqore_la_SOURCES += sunpro-sparc64.s
+endif
 
 libqore_la_LDFLAGS = -version-info 4:0:0 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = ${QORE_LIB_CPPFLAGS}

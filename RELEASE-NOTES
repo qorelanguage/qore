@@ -25,6 +25,8 @@ release overview:
 *) 64-bit builds are the default on x86_64 CPUs
 *) module dependencies
 *) XML improvements, some XSD support
+*) thread stack overrun protection on some platforms
+*) build option support and constants
 *) lots of bug fixes, new functions, new clases, class improvements, etc
 
 *) stable ABI and API, cleaned-up public header files, development packages
@@ -123,6 +125,53 @@ the configure script will automatically set the build to a 64-bit target if the 
   +) improved XML generation, top-level elements may now have attributes
   +) improved XML parse error reporting, more details are included and context is now reported in the exception strings
 
+*) thread stack overrun protection on some platforms
+there is a new "stack guard" implementation that will cause an exception to be thrown when a thread runs out of stack space (instead of crashing the entire process, which is what happened previously).
+The "stack guard" implementation simply determines the stack size for the thread and then checks the stack pointer before each Qore statement is executed to see if if passes a threshold.  
+If the threshold has been breached, the statement is not executed and an exception is raised instead.
+See the new test in test/stack-test.q for an example.
+
+Stack guard availability depends on the compiler and CPU used to build qore; so far there are tested implementations on:
+  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit sparc (gcc, SunPro CC)
+
+Other platforms will still crash when the thread's stack is overrun.
+
+*) build option support
+now qore has constants that will tell you which options are available in the library.
+Furthermore all functions are now available for parsing; but functions without an implementation will throw an exception.
+You can check the option constants before running the function.
+Option functions are: 
+  +) round()                                                   (depends on C library support, missing on Solaris 8 for example)
+  +) timegm()                                                  (depends on C library support, missing on Solaris for example)
+  +) setegid()                                                 (depends on C library support)
+  +) seteuid()                                                 (depends on C library support)
+  +) parseXMLWithSchema()                                      (depends on libxml2 support)
+  +) all SHA224*(), SHA256*(), SHA384*(), SHA512*() functions  (depends on openssl support)
+  +) all MDC2*() functions                                     (depends on openssl support)
+  +) all RC5*() functions                                      (depends on openssl support)
+
+The new constants are all in the Option namespaace:
+  +) HAVE_ATOMIC_OPERATIONS
+  +) HAVE_STACK_GUARD
+  +) HAVE_RUNTIME_THREAD_STACK_TRACE
+  +) HAVE_ROUND
+  +) HAVE_TIMEGM
+  +) HAVE_SETEUID
+  +) HAVE_SETEGID
+  +) HAVE_PARSEXMLWITHSCHEMA
+  +) HAVE_SHA224
+  +) HAVE_SHA256
+  +) HAVE_SHA224
+  +) HAVE_SHA256
+  +) HAVE_SHA384
+  +) HAVE_SHA512
+  +) HAVE_SHA384
+  +) HAVE_SHA512
+  +) HAVE_MDC2
+  +) HAVE_RC5
+
+you can see what options qore has now by typing "qore -V" as well from the command-line.
+
 *) bug fixes, new functions, class improvements
   +) Qore revision tag now reflects the svn version used to make the build (instead of a meaningless private build number that was different on each machine).
   +) new "Dir" class for manipulating and traversing directories (by Wolfgang Ritzinger).
@@ -138,9 +187,11 @@ the configure script will automatically set the build to a 64-bit target if the 
 *** LANGUAGE ISSUES ***
 ***********************
 
-Thread Stacks
--------------
-*) BUG: when the thread stack space is exhausted, the program will simply crash.  Currently qore is vulnerable to this, as it is heavily threaded and uses the stack often to save thread state, so a program like: 'sub a() { a(); } a();' will cause a core dump fairly quickly
+Thread Stacks Overrun
+---------------------
+*) BUG: on platforms without the new "stack guard" implementation; when the thread stack space is exhausted, the program will simply crash.  Currently qore is vulnerable to this, as it is heavily threaded and uses the stack often to save thread state, so a program like: 'sub a() { a(); } a();' will cause a core dump fairly quickly.
+The following platforms are *not* vulnerable (because they have assembly stack guard implementations): 
+  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit sparc (gcc, SunPro CC)
 
 Out of Memory Errors
 --------------------

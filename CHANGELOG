@@ -10,6 +10,7 @@
 	* added test/stack-test.q to test stack guard
 	* removed need for openssl headers to be available when including
 	  <qore/Qore.h>
+	* implemented atomic operation and stack guard support for sparc32
 
 2008.09.11: David Nichols
 	* enabled atomic operations on SPARC with gcc

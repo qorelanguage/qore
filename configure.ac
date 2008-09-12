@@ -251,6 +251,10 @@ if test "${enable_64bit}" = yes; then
    fi
 fi
 
+if test "$host_cpu" = "sparc"; then
+   AC_DEFINE([SPARC], 1, [define if we are targeting the SPARC CPU])
+fi
+
 AC_ARG_ENABLE([static-openssl],
      [AS_HELP_STRING([--enable-static-openssl],
 		     [force static linkage of openssl libraries (default=auto)])],
@@ -954,9 +958,17 @@ fi
 # make sure compiler settings are correct for assembly if we need it
 if test "$GXX" != yes -a "$solaris" = yes; then
    if test "$enable_64bit" = yes; then
-      solaris_cc_x86_64=yes
+      if test "$build_cpu" = sparc; then
+	 solaris_cc_sparc64=yes
+      else
+	 solaris_cc_x86_64=yes
+      fi
    else
-      solaris_cc_i386=yes
+      if test "$build_cpu" = sparc; then
+	 solaris_cc_sparc32=yes
+      else
+         solaris_cc_i386=yes
+      fi
    fi
    need_assembly=yes
 fi
@@ -995,6 +1007,8 @@ AM_CONDITIONAL([COND_DOXYGEN],                 [test -n "$with_doxygen"])
 AM_CONDITIONAL([COND_STACK_TRACE],             [test "$enable_runtime_thread_stack_trace" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_X86_64],       [test "$solaris_cc_x86_64" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_I386],         [test "$solaris_cc_i386" = yes])
+AM_CONDITIONAL([COND_SOLARIS_CC_SPARC32],      [test "$solaris_cc_sparc32" = yes])
+#AM_CONDITIONAL([COND_SOLARIS_CC_SPARC64],      [test "$solaris_cc_sparc64" = yes])
 
 # find prefix
 if test -z "${exec_prefix}" -o "${exec_prefix}" = NONE; then
