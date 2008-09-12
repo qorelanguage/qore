@@ -1667,6 +1667,18 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    option->addConstant("HAVE_ATOMIC_OPERATIONS", &False);
 #endif
 
+#ifdef HAVE_CHECK_STACK_POS
+   option->addConstant("HAVE_STACK_GUARD", &True);
+#else
+   option->addConstant("HAVE_STACK_GUARD", &False);
+#endif
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &True);
+#else
+   option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &False);
+#endif
+
 #ifdef HAVE_ROUND
    option->addConstant("HAVE_ROUND",    &True);
 #else

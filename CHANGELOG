@@ -3,6 +3,9 @@
 	* fixed optional functions and options in ql_crypto.cc
 	* put all options into "Option" namespace
 	* updated build to work with openssl 0.9.7
+	* added library options, reworked configure and build, added compile and
+	  link information symbols to library, added verbose information about
+	  options and build to "qore -V"
 
 2008.09.11: David Nichols
 	* enabled atomic operations on SPARC with gcc

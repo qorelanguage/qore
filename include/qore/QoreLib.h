@@ -214,5 +214,49 @@ DLLEXPORT QoreStringNode *qore_bunzip2_to_string(const BinaryNode *bin, const Qo
 //! decompresses bzip2 data to a binary
 DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, ExceptionSink *xsink);
 
+//! option: atomic operations
+#define QORE_OPT_ATOMIC_OPERATIONS       "atomic operations"
+//! option: stack guard
+#define QORE_OPT_STACK_GUARD             "stack guard"
+//! option: runtime stack tracing
+#define QORE_OPT_RUNTIME_STACK_TRACE     "runtime stack tracing"
+//! option: ssh224 algorithm supported (depends on openssl used to compile qore)
+#define QORE_OPT_SHA224                  "openssl sha224"
+//! option: ssh256 algorithm supported (depends on openssl used to compile qore) 
+#define QORE_OPT_SHA256                  "openssl sha256"
+//! option: ssh384 algorithm supported (depends on openssl used to compile qore)
+#define QORE_OPT_SHA384                  "openssl sha384"
+//! option: ssh512 algorithm supported (depends on openssl used to compile qore)
+#define QORE_OPT_SHA512                  "openssl sha512"
+//! option: mdc2 algorithm supported (depends on openssl used to compile qore)
+#define QORE_OPT_MDC2                    "openssl mdc2"
+//! option: rc5 algorithm supported (depends on openssl used to compile qore)
+#define QORE_OPT_RC5                     "openssl rc5"
+//! option: round() function available
+#define QORE_OPT_FUNC_ROUND              "round()"
+//! option: timegm() function available
+#define QORE_OPT_FUNC_TIMEGM             "timegm()"
+//! option: seteuid() function available
+#define QORE_OPT_FUNC_SETEUID            "seteuid()"
+//! option: setegid() function available
+#define QORE_OPT_FUNC_SETEGID            "setegid()"
+//! option: parseXMLWithSchema() function available (depends on libxml2)
+#define QORE_OPT_FUNC_PARSEXMLWITHSCHEMA "parseXMLWithSchema()"
+
+//! option type feature
+#define QO_OPTION     0
+#define QO_ALGORITHM  1
+#define QO_FUNCTION   2
+
+struct qore_option_s {
+      const char *option;
+      int type;
+      bool value;
+};
+
+//! list of qore options
+DLLEXPORT extern const qore_option_s qore_option_list[];
+//! number of elements in the option list
+DLLEXPORT extern size_t qore_option_list_size;
 
 #endif // _QORE_QORELIB_H

@@ -31,25 +31,28 @@ FeatureList qoreFeatureList;
 #define cpp_xstr(s) cpp_str(s)
 
 // global library variables
-const char qore_version_string[] = VERSION "-" cpp_xstr(BUILD);
-int qore_version_major           = VERSION_MAJOR;
-int qore_version_minor           = VERSION_MINOR;
-int qore_version_sub             = VERSION_SUB;
-int qore_build_number            = BUILD;
-int qore_target_bits             = TARGET_BITS;
-const char qore_target_os[]      = TARGET_OS;
-const char qore_target_arch[]    = TARGET_ARCH;
-const char qore_module_dir[]     = MODULE_DIR;
+const char qore_version_string[]     = VERSION "-" cpp_xstr(BUILD);
+int qore_version_major               = VERSION_MAJOR;
+int qore_version_minor               = VERSION_MINOR;
+int qore_version_sub                 = VERSION_SUB;
+int qore_build_number                = BUILD;
+int qore_target_bits                 = TARGET_BITS;
+const char qore_target_os[]          = TARGET_OS;
+const char qore_target_arch[]        = TARGET_ARCH;
+const char qore_module_dir[]         = MODULE_DIR;
+const char qore_cplusplus_compiler[] = QORE_LIB_CXX;
+const char qore_cflags[]             = QORE_LIB_CFLAGS;
+const char qore_ldflags[]            = QORE_LIB_LDFLAGS;
 
 DLLLOCAL QoreListNode *ARGV = 0;
 DLLLOCAL QoreListNode *QORE_ARGV = 0;
 
 #ifndef HAVE_LOCALTIME_R
-DLLLOCAL class QoreThreadLock lck_localtime;
+DLLLOCAL QoreThreadLock lck_localtime;
 #endif
 
 #ifndef HAVE_GMTIME_R
-DLLLOCAL class QoreThreadLock lck_gmtime;
+DLLLOCAL QoreThreadLock lck_gmtime;
 #endif
 
 char table64[64] = {
@@ -61,6 +64,125 @@ char table64[64] = {
    'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
    'w', 'x', 'y', 'z', '0', '1', '2', '3',
    '4', '5', '6', '7', '8', '9', '+', '/' };
+
+const qore_option_s qore_option_list[] = {
+   { QORE_OPT_ATOMIC_OPERATIONS,
+     QO_OPTION,
+#ifdef HAVE_ATOMIC_MACROS
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_STACK_GUARD,
+     QO_OPTION,
+#ifdef HAVE_CHECK_STACK_POS
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_RUNTIME_STACK_TRACE,
+     QO_OPTION,
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_SHA224,
+     QO_ALGORITHM,
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_SHA256,
+     QO_ALGORITHM,
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_SHA384,
+     QO_ALGORITHM,
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_SHA512,
+     QO_ALGORITHM,
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_MDC2,
+     QO_ALGORITHM,
+#ifndef OPENSSL_NO_MDC2
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_RC5,
+     QO_ALGORITHM,
+#ifndef OPENSSL_NO_RC5
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_ROUND,
+     QO_FUNCTION,
+#ifdef HAVE_ROUND
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_TIMEGM,
+     QO_FUNCTION,
+#ifdef HAVE_TIMEGM
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_SETEUID,
+     QO_FUNCTION,
+#ifdef HAVE_SETEUID
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_SETEGID,
+     QO_FUNCTION,
+#ifdef HAVE_SETEGID
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_PARSEXMLWITHSCHEMA,
+     QO_FUNCTION,
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
+     true
+#else
+     false
+#endif
+   }
+};
+
+#define QORE_OPTION_LIST_SIZE (sizeof(qore_option_list) / sizeof(qore_option_s))
+
+size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
 
 static inline int get_number(char **param)
 {

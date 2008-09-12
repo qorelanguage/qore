@@ -302,6 +302,8 @@ static void short_version(char *arg)
    exit(0);
 }
 
+static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
+
 static void do_version(char *arg)
 {
    printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2008 David Nichols\nversion %s", qore_target_os, qore_target_arch, qore_target_bits, qore_version_string);
@@ -318,6 +320,30 @@ static void do_version(char *arg)
       putchar(')');
    }
    putchar('\n');
+
+   printf("  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n", qore_cplusplus_compiler,
+   qore_cflags, qore_ldflags);
+
+   printf("this build has options:\n");
+   // find longest option name
+   int len = 0;
+   for (size_t j = 0; j < qore_option_list_size; ++j) {
+      int i = strlen(qore_option_list[j].option);
+      if (i > len)
+	 len = i;
+   }
+   // create format string
+   QoreString fmt(" %9s %-");
+   fmt.sprintf("%d", len + 1);
+   fmt.concat("s = %s\n");
+
+   for (int j = 0; j < qore_option_list_size; ++j) {
+      int type = qore_option_list[j].type;
+      if (type > QO_FUNCTION)
+	 type = QO_FUNCTION + 1;
+      printf(fmt.getBuffer(), tlist[type], qore_option_list[j].option, 
+             qore_option_list[j].value ? "true" : "false");   
+   }
    exit(0);
 }
 

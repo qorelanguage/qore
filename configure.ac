@@ -115,7 +115,7 @@ case "${host_os}" in
 		AC_DEFINE(SOLARIS, 1, if compiling on Solaris)
 		# add -ldl to libs if on Solaris 8
 		if test "${host_os}" = "solaris2.8"; then
-		   OTHER_LIBS="$OTHER_LIBS -ldl"
+		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ldl"
 		fi
 		solaris=yes
 	        ;;
@@ -311,104 +311,7 @@ if test -n "$with_static_libz_dir"; then
 else
     ZLIB_LDFLAGS="-lz"
 fi
-AC_SUBST(ZLIB_LDFLAGS)
-
-set_openssl_cppflags()
-{
-    if test "$1" != "/usr/include"; then
-        OPENSSL_CPPFLAGS=-I$1
-    fi
-}
-
-find_openssl()
-{
-    lib=$1/lib${LIBSUFFIX}
-    # if we only want the static openssl libraries
-    if test -n "$openssl_static"; then
-    	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
-	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
-       	    AC_MSG_RESULT([$lib (forced static)])
-    	fi
-    else
-        if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        OPENSSL_LDFLAGS="-L$lib"
-    	    fi
-	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
-       	    AC_MSG_RESULT([$lib (shared)])
-    	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        OPENSSL_LDFLAGS="-L$lib"
-    	    fi
-	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
-       	    AC_MSG_RESULT([$lib (static)])
-    	fi
-    fi
-    if test -z "$OPENSSL_LDFLAGS"; then
-        return
-    fi
-    AC_MSG_CHECKING([for openssl include files])
-    # try to find include files
-    if test "$1" = "/"; then
-        inc=/usr/include
-    else
-        inc=$1/include
-    fi
-    if test -f "$inc/openssl/ssl.h"; then
-        AC_MSG_RESULT([found: $inc/openssl])
-        set_openssl_cppflags $inc
-    else
-	AC_MSG_ERROR([not found])
-    fi
-
-    AC_SUBST(OPENSSL_LDFLAGS)
-    CPPFLAGS="$CPPCLAGS $OPENSSL_CPPFLAGS"
-}
-
-# see if we can figure out where the openssl library is
-AC_ARG_WITH([openssl-dir],
-  [AS_HELP_STRING([--with-openssl-dir@<:@=DIR@:>@],
-                  [openssl directory])],
-  [if test ! -d "${with_openssl_dir}"; then AC_MSG_ERROR(bad value ${with_openssl_dir} for --with-openssl-dir); unset with_openssl_dir; fi], 
-  [with_openssl_dir="$OPENSSL_DIR"])
-
-AC_MSG_CHECKING([for openssl libraries and header files])
-for dir in "${with_openssl_dir}" /usr / /usr/local /opt/gnu /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
-    find_openssl $dir
-    if test -n "$OPENSSL_LDFLAGS"; then
-        break
-    fi
-done
-if test -z "$OPENSSL_LDFLAGS"; then
-    AC_MSG_ERROR([no openssl library found])
-else
-    AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
-    # check for SHA512
-    sha=`grep EVP_sha512 $inc/openssl/evp.h 2>/dev/null`
-    if test -n "$sha"; then
-       AC_DEFINE([HAVE_OPENSSL_SHA512], 1, [define if the sha512 algorithm is available in openssl])
-       AC_MSG_RESULT([found])
-    else
-       AC_MSG_RESULT([not found])
-    fi
-
-    # check for openssl const correctness (later versions have it)
-    SAVE_CPPFLAGS="$CPPFLAGS"
-    SAVE_LDFLAGS="$LDFLAGS"
-    CPPFLAGS="$CPPFLAGS $OPENSSL_CPPFLAGS"
-    LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
-
-    AC_MSG_CHECKING([const correctness in openssl headers])
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-    [[#include <openssl/x509.h>]],
-    [[const unsigned char *p; d2i_X509(0, &p, 0l);]])],
-       [AC_MSG_RESULT([ok])
-        AC_DEFINE([HAVE_OPENSSL_CONST], 1, [Define if openssl headers correctly use const])],
-       [AC_MSG_RESULT([old style, not const correct])])
-
-    CPPFLAGS="$SAVE_CPPFLAGS"
-    LDFLAGS="$SAVE_LDFLAGS"
-fi
+QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $ZLIB_LDFLAGS"
 
 set_pcre_cppflags()
 {
@@ -462,8 +365,8 @@ find_pcre()
 	unset with_pcre_libs
 	return
     fi
-    AC_SUBST(PCRE_LDFLAGS)
-    AC_SUBST(PCRE_CPPFLAGS)   
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $PCRE_LDFLAGS"
+    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $PCRE_CPPFLAGS"
 }
 
 # see if we can figure out where the pcre library is
@@ -551,8 +454,8 @@ find_libxml2()
 	AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; found version $full])
     fi
 
-    AC_SUBST(LIBXML2_LDFLAGS)
-    AC_SUBST(LIBXML2_CPPFLAGS)
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $LIBXML2_LDFLAGS"
+    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $LIBXML2_CPPFLAGS"
 }
 
 # see if we can figure out where the libxml2 library is
@@ -630,8 +533,9 @@ find_bz2lib()
     else
 	AC_MSG_ERROR([not found])
     fi
-    AC_SUBST(BZ2_LDFLAGS)
-    AC_SUBST(BZ2_CPPFLAGS)   
+
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $BZ2_LDFLAGS"
+    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $BZ2_CPPFLAGS"
 }
 
 # see if we can figure out where the bz2lib library is
@@ -650,6 +554,103 @@ for dir in "${with_bz2lib_dir}" /usr / /usr/local /opt/gnu /opt/bzlib /usr/local
 done
 if test -z "$BZ2_LDFLAGS"; then
     AC_MSG_ERROR([no bzlib library found])
+fi
+
+set_openssl_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        OPENSSL_CPPFLAGS=-I$1
+    fi
+}
+
+find_openssl()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static openssl libraries
+    if test -n "$openssl_static"; then
+    	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
+	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
+       	    AC_MSG_RESULT([$lib (forced static)])
+    	fi
+    else
+        if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        OPENSSL_LDFLAGS="-L$lib"
+    	    fi
+	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+       	    AC_MSG_RESULT([$lib (shared)])
+    	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        OPENSSL_LDFLAGS="-L$lib"
+    	    fi
+	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+       	    AC_MSG_RESULT([$lib (static)])
+    	fi
+    fi
+    if test -z "$OPENSSL_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for openssl include files])
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/openssl/ssl.h"; then
+        AC_MSG_RESULT([found: $inc/openssl])
+        set_openssl_cppflags $inc
+    else
+	AC_MSG_ERROR([not found])
+    fi
+
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
+    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
+}
+
+# see if we can figure out where the openssl library is
+AC_ARG_WITH([openssl-dir],
+  [AS_HELP_STRING([--with-openssl-dir@<:@=DIR@:>@],
+                  [openssl directory])],
+  [if test ! -d "${with_openssl_dir}"; then AC_MSG_ERROR(bad value ${with_openssl_dir} for --with-openssl-dir); unset with_openssl_dir; fi], 
+  [with_openssl_dir="$OPENSSL_DIR"])
+
+AC_MSG_CHECKING([for openssl libraries and header files])
+for dir in "${with_openssl_dir}" /usr / /usr/local /opt/gnu /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
+    find_openssl $dir
+    if test -n "$OPENSSL_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$OPENSSL_LDFLAGS"; then
+    AC_MSG_ERROR([no openssl library found])
+else
+    AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
+    # check for SHA512
+    sha=`grep EVP_sha512 $inc/openssl/evp.h 2>/dev/null`
+    if test -n "$sha"; then
+       AC_DEFINE([HAVE_OPENSSL_SHA512], 1, [define if the sha512 algorithm is available in openssl])
+       AC_MSG_RESULT([found])
+    else
+       AC_MSG_RESULT([not found])
+    fi
+
+    # check for openssl const correctness (later versions have it)
+    SAVE_CPPFLAGS="$CPPFLAGS"
+    SAVE_LDFLAGS="$LDFLAGS"
+    CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
+    LDFLAGS="$LDFLAGS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
+
+    AC_MSG_CHECKING([const correctness in openssl headers])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[const unsigned char *p; d2i_X509(0, &p, 0l);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_OPENSSL_CONST], 1, [Define if openssl headers correctly use const])],
+       [AC_MSG_RESULT([old style, not const correct])])
+
+    CPPFLAGS="$SAVE_CPPFLAGS"
+    LDFLAGS="$SAVE_LDFLAGS"
 fi
 
 AC_ARG_ENABLE([profile],
@@ -768,7 +769,7 @@ AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h stri
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)
 if test "$have_umem_h" = "yes"; then
    AC_DEFINE(HAVE_UMEM_H, 1, [define if umem.h is available])
-   OTHER_LIBS="$OTHER_LIBS -lumem"
+   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lumem"
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -938,13 +939,6 @@ if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
     fi	
 fi
 
-# set special compiler flags for C++ compilers to turn off annoying "String literal converted to char* ..." warnings
-if test -n "`echo $CXX|grep CC`" -a "`echo $host_os|cut -b-7`" = "solaris"; then
-   CXXFLAGS="$CXXFLAGS -erroff=badargtypel2w"
-elif test -n "`echo $CXX|grep aCC`"; then 
-   CXXFLAGS="$CXXFLAGS +W829"
-fi
-
 # turn on warnings if we know how
 if test "$GXX" = "yes"; then
    CXXFLAGS="$CXXFLAGS -Wall"  # gcc
@@ -964,8 +958,6 @@ if test "$need_assembly" = yes; then
    CCAS="$CXX"
    CCASFLAGS="$CCASFLAGS $CXXFLAGS"
 fi
-
-AC_SUBST(OTHER_LIBS)
 
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
@@ -996,6 +988,48 @@ AM_CONDITIONAL([COND_DOXYGEN],                 [test -n "$with_doxygen"])
 AM_CONDITIONAL([COND_STACK_TRACE],             [test "$enable_runtime_thread_stack_trace" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_X86_64],       [test "$solaris_cc_x86_64" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_I386],         [test "$solaris_cc_i386" = yes])
+
+# find prefix
+if test -z "${exec_prefix}" -o "${exec_prefix}" = NONE; then
+   myprefix=${ac_default_prefix}
+else
+   myprefix="${exec_prefix}"
+fi
+
+if test "$enable_profile" = yes; then
+   QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"
+   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -g -pg"
+   BUILD_TYPE=dev
+elif test "$enable_debug" = yes; then
+   QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g"
+   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -g"
+   BUILD_TYPE=dev
+else
+   BUILD_TYPE=prod
+fi
+AC_SUBST([BUILD_TYPE])
+
+# set up flags
+QORE_LIB_CXXFLAGS="`echo $QORE_LIB_CXXFLAGS $CXXFLAGS -lm|sed 's/  / /g'`"
+AC_SUBST([QORE_LIB_CXXFLAGS])
+
+QORE_LIB_LDFLAGS="`echo $QORE_LIB_LDFLAGS $LDFLAGS -lm|sed 's/  / /g'`"
+AC_SUBST([QORE_LIB_LDFLAGS])
+QORE_LIB_CPPFLAGS="`echo $QORE_LIB_CPPFLAGS $CPPFLAGS -D_QORE_LIB_INTERN|sed 's/  / /g'`"
+QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DMODULE_DIR=\\\"${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}\\\""
+AC_SUBST([QORE_LIB_CPPFLAGS])
+if test -n "$QORE_LIB_CXXFLAGS"; then
+   QORE_LIB_CFLAGS="$QORE_LIB_CPPFLAGS $QORE_LIB_CXXFLAGS"
+else
+   QORE_LIB_CFLAGS="$QORE_LIB_CPPFLAGS"
+fi
+
+# save compiler settings in config file
+AC_DEFINE_UNQUOTED([QORE_LIB_CXX], "$CXX", [c++ compiler used])
+AC_DEFINE_UNQUOTED([QORE_LIB_CPPFLAGS], "$QORE_LIB_CPPFLAGS", [preprocessor flags])
+AC_DEFINE_UNQUOTED([QORE_LIB_CXXFLAGS], "$QORE_LIB_CXXFLAGS", [c++ compiler flags])
+AC_DEFINE_UNQUOTED([QORE_LIB_CFLAGS],   "$QORE_LIB_CFLAGS", [c++ compiler flags])
+AC_DEFINE_UNQUOTED([QORE_LIB_LDFLAGS],  "$QORE_LIB_LDFLAGS", [linker flags])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_OUTPUT

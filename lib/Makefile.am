@@ -192,25 +192,6 @@ if COND_SOLARIS_CC_I386
 libqore_la_SOURCES += sunpro-i386.s
 endif
 
-libqore_la_LDFLAGS = -version-info 4:0:0 -no-undefined $(OPENSSL_LDFLAGS) $(LIBXML2_LDFLAGS) $(PCRE_LDFLAGS) $(ZLIB_LDFLAGS) $(BZ2_LDFLAGS) $(LDFLAGS) -lm
-libqore_la_LIBADD = ${PTHREAD_LIBS} ${OTHER_LIBS}
-AM_CPPFLAGS = -D_QORE_LIB_INTERN -DMODULE_DIR=\"$(pkglibdir)\" $(PCRE_CPPFLAGS) $(LIBXML2_CPPFLAGS) $(BZ2_CPPFLAGS)
-AM_CXXFLAGS = ${PTHREAD_CFLAGS}
-
-if COND_DEBUG
-BUILD_TYPE=dev
-endif
-
-if COND_PROFILE
-BUILD_TYPE=prof
-AM_CXXFLAGS += -g -pg
-libqore_la_LDFLAGS += -g -pg
-else
-if COND_DEBUG
-AM_CXXFLAGS += -g
-libqore_la_LDFLAGS += -g
-else
-BUILD_TYPE=prod
-##qore_LDFLAGS=-s
-endif
-endif
+libqore_la_LDFLAGS = -version-info 4:0:0 -no-undefined ${QORE_LIB_LDFLAGS}
+AM_CPPFLAGS = ${QORE_LIB_CPPFLAGS}
+AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
