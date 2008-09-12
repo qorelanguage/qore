@@ -26,8 +26,7 @@ for Perl-Compatible Regular Expressions, Qore now uses the pcre library for regu
 	http://www.pcre.org
 if you have the PCRE headers and libraries in a location the configure script cannot find, then you can either use the --with-pcre-libs and --with-pcre-libraries options, or set the PCRE_DIR environment variable before running configure
 
-*) openssl 0.9.8 or higher (earlier versions will probably work as well)
-for ssl support in the Socket class
+*) openssl 0.9.7 or higher (0.9.8 or better recommended)
 	http://www.openssl.org
 if you have the open headers and libraries in a location the configure script cannot find, then you can either use the --with-openssl-libs and --with-openssl-libraries options, or set the OPENSSL_DIR environment variable before running configure
 
