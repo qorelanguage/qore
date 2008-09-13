@@ -39,10 +39,11 @@ if you have the open headers and libraries in a location the configure script ca
 --enable-64bit                      : to build a 64-bit binary (support for x86_64, sparc, and pa-risc architectures)
 --disable-static                    : to disable builing a static libqore.a library
 --disable-debug                     : to disable debugging code - if you are not planning on debugging the qore language itself then it is highly advised to include this flag, as enabling debugging in qore slows down the language a great deal
---prefix=<dir>                      : default=/usr/local = qore in /usr/local/bin, libraries in /usr/local/lib, modules in /usr/local/lib/qore-<ver>/
+--prefix=<dir>                      : default=/usr/local = qore in /usr/local/bin, libraries in /usr/local/lib, modules in /usr/local/lib/qore-module-api-<ver>/
 --with-openssl-dir=<dir>            : directory of openssl installation
 --with-libxml2-dir=<dir>            : directory of libxml2 installation
 --with-pcre-dir=<dir>               : directory of pcre installation
+--with-zlib-dir=<dir>               : directory of zlib installation
 
 rarely used options
 -------------------

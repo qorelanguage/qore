@@ -133,7 +133,7 @@ If the threshold has been breached, the statement is not executed and an excepti
 See the new test in test/stack-test.q for an example.
 
 Stack guard availability depends on the compiler and CPU used to build qore; so far there are tested implementations on:
-  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit powerpc (gcc), 32-bit sparc (gcc, SunPro CC)
+  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit powerpc (gcc), 32-bit sparc (gcc, SunPro CC), 32-bit pa-risc (gcc, HP aCC)
 
 Other platforms will still crash when the thread's stack is overrun.
 

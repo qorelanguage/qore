@@ -41,14 +41,24 @@
 // for some reason we need 20K of stack guard on x86_64
 #define QORE_STACK_GUARD (1024 * 20)
 #else
+
 #ifdef SPARC
 // also we need at least 22K of stack guard on sparc for background threads for some reason
 #define QORE_STACK_GUARD (1024 * 22)
 #else
+
+#if defined(HPUX) && !defined(__ia64) && !defined(__LP64__)
+// need 10KB on HPUX on 32-bit pa-risc
+#define QORE_STACK_GUARD (1024 * 10)
+#else
+
+// "generic" value (tested on OSX i386 and ppc and Linux i386)
 #define QORE_STACK_GUARD (1024 * 8)
-#endif
-#endif
-#endif
+#endif // HPUX
+
+#endif // SPARC
+#endif // CPU_X86_64
+#endif // QORE_STACK_GUARD
 
 class Operator;
 class Context;

@@ -80,6 +80,7 @@ fi
 # get CPU family
 case "${host_cpu}" in
    i[[3456]]86) cpu_family=i386 ;;
+   hppa*)       cpu_family=parisc ;;
    *)           cpu_family=${host_cpu} ;;
 esac
 
@@ -123,7 +124,7 @@ case "${host_os}" in
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
 		MODULE_SUFFIX=so
 		AC_DEFINE(DARWIN, 1, [if compiling on Darwin])
-		darwin=true
+		darwin=yes
 		;;
      *hpux*)    if test "$host_cpu" = "ia64"; then
      		   SHLIB_SUFFIX=so
@@ -138,6 +139,7 @@ case "${host_os}" in
 		fi
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		AC_DEFINE(NEED_ENVIRON_LOCK, 1, [if the environment operations need explicit locking])
+		hpux=yes
 		;;
 esac
 AC_SUBST(SHLIB_SUFFIX)
@@ -273,6 +275,15 @@ AC_ARG_ENABLE([static-libxml2],
       esac],
      [enable_static_libxml2=no])
 
+AC_ARG_ENABLE([static-zlib],
+     [AS_HELP_STRING([--enable-static-zlib],
+		     [force static linkage of zlib libraries (default=auto)])],
+     [case "${enable_static_zlib}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_zlib} for --enable-static-zlib) ;;
+      esac],
+     [enable_static_zlib=no])
+
 AC_ARG_ENABLE([static-pcre],
      [AS_HELP_STRING([--enable-static-pcre],
 		     [force static linkage of pcre libraries (default=auto)])],
@@ -304,25 +315,91 @@ if test "$enable_static_pcre" = "yes"; then
 fi
 
 if test "$enable_static_common" = "yes"; then
+   zlib_statis=yes
    openssl_static=yes
    libxml2_static=yes
    pcre_static=yes
    bz2lib_static=yes
 fi
 
-AC_ARG_WITH([static-libz-dir],
-	    [AS_HELP_STRING([--with-static-libz-dir], [directory for libz.a library to force static linkage (default=auto)])],
-	    [if test ! -d "${with_static_libz_dir}"; then AC_MSG_ERROR([bad value ${with_static_libz_dir} for --with-static_libz_dir]); fi])
-
-if test -n "$with_static_libz_dir"; then
-    if ! test -f "$with_static_libz_dir/libz.a"; then
-        AC_MSG_ERROR([no libz.a found in $with_static_libz_dir])
+set_zlib_cppflags()
+{
+    if test "$1" != "/usr/include"; then
+        ZLIB_CPPFLAGS=-I$1
     fi
-    ZLIB_LDFLAGS="$with_static_libz_dir/libz.a"
-else
-    ZLIB_LDFLAGS="-lz"
+    with_zlib_includes="$1"
+}
+
+find_zlib()
+{
+    lib=$1/lib${LIBSUFFIX}
+    # if we only want the static zlib libraries
+    if test -n "$zlib_static"; then
+    	if test -f "$lib/libz.a"; then
+	    ZLIB_LDFLAGS="$lib/libz.a"
+	    with_zlib_libs="$lib"
+	    zlib_static=1
+    	fi
+    else
+        if test -f "$lib/libz.${SHLIB_SUFFIX}"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        ZLIB_LDFLAGS="-L$lib"
+    	    fi
+	    ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
+	    with_zlib_libs="$lib"
+    	elif test -f "$lib/libz.a"; then
+	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	        ZLIB_LDFLAGS="-L$lib"
+    	    fi
+	    ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
+	    with_zlib_libs="$lib"
+	    zlib_static=1
+    	fi
+    fi
+    if test -z "$ZLIB_LDFLAGS"; then
+        return
+    fi
+    # try to find include files
+    if test "$1" = "/"; then
+        inc=/usr/include
+    else
+        inc=$1/include
+    fi
+    if test -f "$inc/zlib.h"; then
+        set_zlib_cppflags $inc
+    elif test -f "$inc/zlib/zlib.h"; then
+        set_zlib_cppflags $inc/zlib
+    else
+        unset ZLIB_LDFLAGS
+	unset with_zlib_libs
+	return
+    fi
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $ZLIB_LDFLAGS"
+    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $ZLIB_CPPFLAGS"
+}
+
+# see if we can figure out where the zlib library is
+AC_ARG_WITH([zlib-dir],
+  [AS_HELP_STRING([--with-zlib-dir@<:@=DIR@:>@],
+                  [ZLIB directory])],
+  [if test ! -d "${with_zlib_dir}"; then AC_MSG_ERROR([bad value ${with_zlib_dir} for --with-zlib-dir]); unset with_zlib_dir; fi],
+  [with_zlib_dir="$ZLIB_DIR"])
+
+AC_MSG_CHECKING([for zlib libraries and header files])
+for dir in "${with_zlib_dir}" /usr / /usr/local /opt/gnu /opt/zlib /usr/local/zlib /opt/local /sw /usr/sfw /opt/sfw; do
+    find_zlib $dir
+    if test -n "$ZLIB_LDFLAGS"; then
+        break
+    fi
+done
+if test -z "$ZLIB_LDFLAGS"; then
+    AC_MSG_ERROR([no zlib library found])
 fi
-QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $ZLIB_LDFLAGS"
+if test -n "$zlib_static"; then
+   AC_MSG_RESULT([includes $with_zlib_includes libs $with_zlib_libs (static)])
+else
+   AC_MSG_RESULT([includes $with_zlib_includes libs $with_zlib_libs (shared)])
+fi
 
 set_pcre_cppflags()
 {
@@ -956,21 +1033,32 @@ if test "$GXX" = "yes"; then
 fi
 
 # make sure compiler settings are correct for assembly if we need it
-if test "$GXX" != yes -a "$solaris" = yes; then
-   if test "$enable_64bit" = yes; then
-      if test "$build_cpu" = sparc; then
-	 solaris_cc_sparc64=yes
+if test "$GXX" != yes; then
+   if test "$solaris" = yes; then
+      if test "$enable_64bit" = yes; then
+         if test "$build_cpu" = sparc; then
+	    solaris_cc_sparc64=yes
+	 else
+	    solaris_cc_x86_64=yes
+         fi
       else
-	 solaris_cc_x86_64=yes
+	 if test "$build_cpu" = sparc; then
+	    solaris_cc_sparc32=yes
+	 else
+	    solaris_cc_i386=yes
+         fi
       fi
-   else
-      if test "$build_cpu" = sparc; then
-	 solaris_cc_sparc32=yes
-      else
-         solaris_cc_i386=yes
+      need_assembly=yes
+   elif test "$hpux" = yes; then
+      if test "$cpu_family" = parisc; then
+         if test "$enable_64bit" = yes; then
+	    hpux_acc_parisc64=yes
+	 else
+	    hpux_acc_parisc32=yes
+	 fi
+	 need_assembly=yes
       fi
    fi
-   need_assembly=yes
 fi
 
 if test "$need_assembly" = yes; then
@@ -1002,13 +1090,15 @@ AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
 AM_CONDITIONAL([COND_DEBUG],                   [test "$enable_debug" = yes])
 AM_CONDITIONAL([COND_PROFILE],                 [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
-AM_CONDITIONAL([COND_MACOSX],                  [test "$darwin" = true])
+AM_CONDITIONAL([COND_MACOSX],                  [test "$darwin" = yes])
 AM_CONDITIONAL([COND_DOXYGEN],                 [test -n "$with_doxygen"])
 AM_CONDITIONAL([COND_STACK_TRACE],             [test "$enable_runtime_thread_stack_trace" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_X86_64],       [test "$solaris_cc_x86_64" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_I386],         [test "$solaris_cc_i386" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_SPARC32],      [test "$solaris_cc_sparc32" = yes])
 #AM_CONDITIONAL([COND_SOLARIS_CC_SPARC64],      [test "$solaris_cc_sparc64" = yes])
+AM_CONDITIONAL([COND_HPUX_ACC_PARISC32],       [test "$hpux_acc_parisc32" = yes])
+#AM_CONDITIONAL([COND_HPUX_ACC_PARISC64],       [test "$hpux_acc_parisc64" = yes])
 
 # find prefix
 if test -z "${exec_prefix}" -o "${exec_prefix}" = NONE; then
