@@ -45,7 +45,7 @@
 // also we need at least 22K of stack guard on sparc for background threads for some reason
 #define QORE_STACK_GUARD (1024 * 22)
 #else
-#define QORE_STACK_GUARD (1024 * 4)
+#define QORE_STACK_GUARD (1024 * 8)
 #endif
 #endif
 #endif

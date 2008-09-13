@@ -1,3 +1,7 @@
+2008.09.13: David Nichols
+	* doubled default stack guard to 8KB to avoid crashes on Linux i386 in
+	  background threads
+
 2008.09.12: David Nichols
 	* enabled atomic operations and stack guard for solaris i386
 	* fixed optional functions and options in ql_crypto.cc

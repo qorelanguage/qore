@@ -133,7 +133,7 @@ If the threshold has been breached, the statement is not executed and an excepti
 See the new test in test/stack-test.q for an example.
 
 Stack guard availability depends on the compiler and CPU used to build qore; so far there are tested implementations on:
-  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit sparc (gcc, SunPro CC)
+  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit powerpc (gcc), 32-bit sparc (gcc, SunPro CC)
 
 Other platforms will still crash when the thread's stack is overrun.
 
@@ -193,7 +193,7 @@ Thread Stacks Overrun
 ---------------------
 *) BUG: on platforms without the new "stack guard" implementation; when the thread stack space is exhausted, the program will simply crash.  Currently qore is vulnerable to this, as it is heavily threaded and uses the stack often to save thread state, so a program like: 'sub a() { a(); } a();' will cause a core dump fairly quickly.
 The following platforms are *not* vulnerable (because they have assembly stack guard implementations): 
-  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit sparc (gcc, SunPro CC)
+  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit powerpc (gcc), 32-bit sparc (gcc, SunPro CC)
 
 Out of Memory Errors
 --------------------
