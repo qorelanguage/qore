@@ -239,9 +239,8 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
         test/empty.q \
         test/file-test.q \
         test/ftp-test.q \
-        test/gate-test.q \
         test/max-threads-test.q \
-        test/new.dat \
+        test/stack-test.q \
         test/object-test.q \
         test/rwlock-test.q \
         test/socket-test.q \
