@@ -39,6 +39,12 @@ static void SSLCERT_constructor(QoreObject *self, const QoreListNode *params, Ex
    if (p0) {
       qore_type_t t = p0->getType();
       if (t == NT_STRING) {
+	 // FIXME: this class should not read file - we have to check the parse option PO_NO_FILESYSTEM at runtime
+	 if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
+	    xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "passing a filename to SSLCertificate::constructor() violates parse option NO-FILESYSTEM");
+	    return;
+	 }
+
 	 SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(reinterpret_cast<const QoreStringNode *>(p0)->getBuffer(), xsink));
 	 if (!*xsink)
 	    self->setPrivate(CID_SSLCERTIFICATE, qc.release());	    
@@ -53,7 +59,7 @@ static void SSLCERT_constructor(QoreObject *self, const QoreListNode *params, Ex
       }
    }
 
-   xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "expecting file name or binary objcet in DER format as sole argument to SLLCertificate::constructor");
+   xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "expecting file name or binary object in DER format as sole argument to SLLCertificate::constructor");
 }
 
 static void SSLCERT_copy(QoreObject *self, QoreObject *old, QoreSSLCertificate *s, ExceptionSink *xsink)

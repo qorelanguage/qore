@@ -39,11 +39,17 @@ void createSSLPrivateKeyObject(QoreObject *self, EVP_PKEY *cert)
 static void SSLPKEY_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-   {
+   if (!p0) {
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "expecting file name as argument");
       return;
    }
+
+   // FIXME: this class should not read file - we have to check the parse option PO_NO_FILESYSTEM at runtime                                                                  
+   if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
+      xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "passing a filename to SSLPrivateKey::constructor() violates parse option NO-FILESYSTEM");
+      return;
+   }
+
    // get pass phrase if any
    const QoreStringNode *p1 = test_string_param(params, 1);
    const char *pp = p1 ? p1->getBuffer() : 0;   

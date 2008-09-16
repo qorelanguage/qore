@@ -250,6 +250,7 @@ DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, Exceptio
 
 struct qore_option_s {
       const char *option;
+      const char *constant;
       int type;
       bool value;
 };

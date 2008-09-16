@@ -1,3 +1,10 @@
+2008.09.15: David Nichols
+	* updated qore option and option documentation
+	* added a new constructor to QoreSSLCertificate
+	* updated SSLCertificate and SSLPrivateKey to check for parse option
+	  PO_NO_FILESYSTEM when creating the objects from a filename
+	* added get_qore_option_list() and get_qore_library_info() functions
+
 2008.09.13: David Nichols
 	* doubled default stack guard to 8KB to avoid crashes on Linux i386 in
 	  background threads

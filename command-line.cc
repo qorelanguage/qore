@@ -337,7 +337,7 @@ static void do_version(char *arg)
    fmt.sprintf("%d", len + 1);
    fmt.concat("s = %s\n");
 
-   for (int j = 0; j < qore_option_list_size; ++j) {
+   for (unsigned j = 0; j < qore_option_list_size; ++j) {
       int type = qore_option_list[j].type;
       if (type > QO_FUNCTION)
 	 type = QO_FUNCTION + 1;

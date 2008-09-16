@@ -112,7 +112,8 @@ AbstractQoreNode *f_getAllThreadCallStacks(const QoreListNode *params, Exception
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
-   return new QoreStringNode("sorry, this version of the Qore library was built without support for runtime thread stack tracing");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
+   return 0;
 #endif
 }
 

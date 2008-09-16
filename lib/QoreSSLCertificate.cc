@@ -47,6 +47,7 @@ class QoreBIO {
       DLLLOCAL int writePEMX509(X509 *cert) { return PEM_write_bio_X509(b, cert); }
       DLLLOCAL long getMemData(char **buf) { return BIO_get_mem_data(b, buf); }
       DLLLOCAL X509 *getX509(X509 **x) { return d2i_X509_bio(b, x); }
+      DLLLOCAL BIO *getBIO() { return b; }
 };
 
 class QoreMemBIO : public QoreBIO
@@ -54,6 +55,7 @@ class QoreMemBIO : public QoreBIO
    public:
       DLLLOCAL QoreMemBIO() : QoreBIO(BIO_new(BIO_s_mem())) {}
       DLLLOCAL QoreMemBIO(const BinaryNode *b) : QoreBIO(BIO_new_mem_buf((void *)b->getPtr(), (int)b->size())) {}
+      DLLLOCAL QoreMemBIO(const QoreString *str) : QoreBIO(BIO_new_mem_buf((void *)str->getBuffer(), (int)str->strlen())) {}
 };
 
 QoreSSLCertificate::~QoreSSLCertificate()
@@ -77,6 +79,7 @@ QoreSSLCertificate::QoreSSLCertificate(const BinaryNode *bin, ExceptionSink *xsi
    }
 }
 
+// DEPRECATED constructor
 QoreSSLCertificate::QoreSSLCertificate(const char *fn, ExceptionSink *xsink) : priv(new qore_sslcert_private(0))
 {
    FILE *fp = fopen(fn, "r");
@@ -89,6 +92,15 @@ QoreSSLCertificate::QoreSSLCertificate(const char *fn, ExceptionSink *xsink) : p
    fclose(fp);
    if (!priv->cert)
       xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "error parsing certificate file '%s'", fn);
+}
+
+QoreSSLCertificate::QoreSSLCertificate(const QoreString *str, ExceptionSink *xsink) : priv(new qore_sslcert_private(0))
+{
+   QoreMemBIO mbio(str);
+
+   PEM_read_bio_X509(mbio.getBIO(), &priv->cert, 0, 0);
+   if (!priv->cert)
+      xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "error parsing certificate PEM string");
 }
 
 QoreSSLCertificate::operator bool() const { return (bool)priv->cert; }

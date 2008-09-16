@@ -1642,6 +1642,12 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    qns->addConstant("PlatformCPU",   new QoreStringNode(TARGET_ARCH));
    qns->addConstant("PlatformOS",    new QoreStringNode(TARGET_OS));
 
+   // constants for build info
+   qns->addConstant("BuildHost",     new QoreStringNode(qore_build_host));
+   qns->addConstant("Compiler",      new QoreStringNode(qore_cplusplus_compiler));
+   qns->addConstant("CFLAGS",        new QoreStringNode(qore_cflags));
+   qns->addConstant("LDFLAGS",       new QoreStringNode(qore_ldflags));
+
    // add constants for regex() function options
    qns->addConstant("RE_Caseless",   new QoreBigIntNode(PCRE_CASELESS));
    qns->addConstant("RE_DotAll",     new QoreBigIntNode(PCRE_DOTALL));

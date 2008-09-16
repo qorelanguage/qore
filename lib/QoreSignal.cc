@@ -25,7 +25,7 @@
 
 #include <stdlib.h>
 
-class QoreSignalManager QSM;
+QoreSignalManager QSM;
 
 int QoreSignalManager::num_handlers = 0;
 QoreThreadLock QoreSignalManager::mutex;
@@ -42,44 +42,38 @@ bool QoreSignalManager::block = false;
 QoreSignalHandler QoreSignalManager::handlers[QORE_SIGNAL_MAX];
 
 /*
-extern "C" void sighandler(int sig) //, siginfo_t *info, ucontext_t *uap)
-{
+extern "C" void sighandler(int sig) //, siginfo_t *info, ucontext_t *uap) {
    QoreSignalManager::sig_raised = true;
    QoreSignalManager::sig_event[sig] = true;
 }
 */
 
 // must be called in the signal lock
-void QoreSignalHandler::set(int sig, const ResolvedCallReferenceNode *n_funcref)
-{
+void QoreSignalHandler::set(int sig, const ResolvedCallReferenceNode *n_funcref) {
    funcref = const_cast<ResolvedCallReferenceNode *>(n_funcref);
    funcref->ref();
 }
 
-void QoreSignalHandler::init()
-{
+void QoreSignalHandler::init() {
    funcref = 0;
    status = SH_OK;
 }
 
 // must be called in the signal lock
-void QoreSignalHandler::del(int sig, ExceptionSink *xsink)
-{
+void QoreSignalHandler::del(int sig, ExceptionSink *xsink) {
    if (funcref)
       funcref->deref(xsink);
    init();
 }
 
-void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink)
-{
+void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink) {
    // create signal number argument
    ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
    args->push(new QoreBigIntNode(sig));
    discard(funcref->exec(*args, xsink), xsink);
 }
 
-QoreSignalManager::QoreSignalManager() 
-{
+QoreSignalManager::QoreSignalManager() {
    // set command to none
    cmd = C_None;
    
@@ -90,8 +84,7 @@ QoreSignalManager::QoreSignalManager()
    tid = -1;
 }
 
-void QoreSignalManager::init(bool disable_signal_mask) 
-{
+void QoreSignalManager::init(bool disable_signal_mask) {
    // set SIGPIPE to ignore
    struct sigaction sa;
    sa.sa_handler = SIG_IGN;
@@ -100,14 +93,14 @@ void QoreSignalManager::init(bool disable_signal_mask)
    // ignore SIGPIPE signals
    sigaction(SIGPIPE, &sa, 0);
 
-   if (!disable_signal_mask)
-   {
+   if (!disable_signal_mask) {
       // block all signals
       sigfillset(&mask);
 #ifdef PROFILE
       // do not block SIGPROF if profiling is enabled
       sigdelset(&mask, SIGPROF);
 #endif
+
       pthread_sigmask(SIG_SETMASK, &mask, 0);
 
       // set up default handler mask
@@ -115,27 +108,23 @@ void QoreSignalManager::init(bool disable_signal_mask)
       sigaddset(&mask, QORE_STATUS_SIGNAL);
 
       ExceptionSink xsink;
-      if (start_signal_thread(&xsink))
-      {
+      if (start_signal_thread(&xsink)) {
 	 xsink.handleExceptions();
 	 exit(1);
       }
    }
 }
 
-void QoreSignalManager::del()
-{
+void QoreSignalManager::del() {
    if (!enabled())
       return;
    stop_signal_thread();
 }
 
 // must only be called inside the lock
-void QoreSignalManager::reload()
-{
+void QoreSignalManager::reload() {
    cmd = C_Reload;
-   if (thread_running && tid != ::gettid())
-   {
+   if (thread_running && tid != ::gettid()) {
 #ifdef DEBUG
       int rc = 
 #endif
@@ -146,8 +135,7 @@ void QoreSignalManager::reload()
    }
 }
 
-void QoreSignalManager::stop_signal_thread_unlocked()
-{
+void QoreSignalManager::stop_signal_thread_unlocked() {
    QORE_TRACE("QoreSignalManager::stop_signal_thread_unlocked()");
 
    printd(5, "QoreSignalManager::stop_signal_thread_unlocked() thread_running=%d\n", thread_running);
@@ -173,8 +161,7 @@ void QoreSignalManager::stop_signal_thread() {
    tcount.waitForZero();   
 }
 
-void QoreSignalManager::pre_fork_block_and_stop()
-{
+void QoreSignalManager::pre_fork_block_and_stop() {
    SafeLocker sl(&mutex);
    if (!enabled())
       return;
@@ -193,8 +180,7 @@ void QoreSignalManager::pre_fork_block_and_stop()
    tcount.waitForZero();
 }
 
-void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink)
-{
+void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink) {
    AutoLocker al(&mutex);
    if (!enabled())
       return;
@@ -204,8 +190,7 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
       cond.signal();
 
    // set new default signal mask for new process
-   if (new_process)
-   {
+   if (new_process) {
       // block all signals
       sigset_t new_mask;
       sigfillset(&new_mask);
@@ -215,8 +200,7 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
    start_signal_thread(xsink);
 }
 
-void QoreSignalManager::signal_handler_thread()
-{
+void QoreSignalManager::signal_handler_thread() {
    register_thread(tid, ptid, 0);
    
    printd(5, "signal handler thread started (TID %d)\n", tid);
@@ -234,7 +218,7 @@ void QoreSignalManager::signal_handler_thread()
       // block only signals we are catching in this thread
       pthread_sigmask(SIG_SETMASK, &c_mask, 0);
 
-#ifdef DARWIN
+#ifdef HAVE_DARWIN_PTHREAD_SIGMASK_BUG
       /* why do we call sigprocmask on Darwin?
 	 it seems that Darwin has a bug in handling per-thread signal masks.  
 	 Even though we explicitly set this thread's signal mask to unblock all signals
@@ -298,7 +282,7 @@ void QoreSignalManager::signal_handler_thread()
 	 sl.unlock();
 	 
 	 // create thread-local storage if possible
-	 // FIXME: set thread-local stora
+	 // FIXME: set thread-local storage
 	 QoreProgram *pgm = handlers[sig].getProgram();
 	 if (pgm)
 	    pgm->startThread();
@@ -390,16 +374,14 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
       return 0;
 
    // wait for any blocks to be lifted
-   while (block)
-   {
+   while (block) {
       ++waiting;
       cond.wait(&mutex);
       --waiting;
    }	 
-   
+
    bool already_set = true;
-   if (!handlers[sig].isSet())
-   {
+   if (!handlers[sig].isSet()) {
       already_set = false;
       // start signal thread for first handler
       if (!thread_running && start_signal_thread(xsink))
@@ -412,12 +394,11 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
    handlers[sig].set(sig, fr);
 
    // add to the signal mask for signal thread if not already there
-   if (!already_set && sig != QORE_STATUS_SIGNAL)
-   {
+   if (!already_set && sig != QORE_STATUS_SIGNAL) {
       sigaddset(&mask, sig);
       reload();
    }
-   
+
    return 0;
 }
 
@@ -691,6 +672,6 @@ void QoreSignalManager::addSignalConstants(class QoreNamespace *ns)
 #endif
    
    ns->addConstant("SignalToName", nh);
-   ns->addConstant("NametoSignal", sh);
+   ns->addConstant("NameToSignal", sh);
 }
 

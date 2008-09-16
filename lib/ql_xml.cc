@@ -2653,7 +2653,7 @@ static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, Except
 
    return xstack.getVal();
 #else
-   xsink->raiseException("PARSEXMLWITHSCHEMA-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSetSchema() function, therefore parseXMLWithSchema() is not available in Qore; use the constant Option::HAVE_PARSEXMLWITHSCHEMA to check if this function is implemented before calling");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSetSchema() function, therefore parseXMLWithSchema() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHSCHEMA to check if this function is implemented before calling");
    return 0;
 #endif
 }

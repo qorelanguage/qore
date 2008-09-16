@@ -37,7 +37,7 @@ static AbstractQoreNode *f_round(const QoreListNode *params, ExceptionSink *xsin
 
    return new QoreFloatNode(round(p0->getAsFloat()));
 #else
-   xsink->raiseException("ROUND-ERROR", "this system does not implement round(); use the constant Option::HAVE_ROUND to check if this function is implemented before calling");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement round(); for maximum portability use the constant Option::HAVE_ROUND to check if this function is implemented before calling");
    return 0;
 #endif
 }

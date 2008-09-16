@@ -580,7 +580,6 @@ QoreStringNode *makeJSONRPC11RequestString(const QoreListNode *params, Exception
 
    if (doJSONValue(*str, p0, -1, xsink))
       return 0;
-   return str.release();
 
    // params key should come last
    str->concat(", \"params\" : ");

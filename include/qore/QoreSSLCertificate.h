@@ -60,6 +60,12 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
        */
       DLLEXPORT QoreSSLCertificate(const BinaryNode *bin, ExceptionSink *xsink);
 
+      //! create the object from a pointer to a QoreString representing the X.509 certificate in PEM format
+      /** @param str a pointer to a QoreString with the certificatge in PEM format
+	  @param xsink Qore-language exceptions are raised here in case of errors
+       */
+      DLLEXPORT QoreSSLCertificate(const QoreString *str, ExceptionSink *xsink);
+
       //! creates the object from a filename
       /** @param fn the filename of the certificate file in PEM format
 	  @param xsink Qore-language exceptions are raised here in case of errors

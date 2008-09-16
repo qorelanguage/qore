@@ -2423,11 +2423,15 @@ $name = getName();</programlisting>
   </row>
   <row>
     <entry><para><code>memberGate()</code></para></entry>
-    <entry><para>Called when read access is attempted to private member or members that do not exist in the current object.  In a class tree, <code>memberGate()</code> methods are not inherited.</para></entry>
+    <entry><para>If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object.  In a class tree, <code>memberGate()</code> methods are not inherited.</para></entry>
   </row>
   <row>
     <entry><para><code>methodGate()</code></para></entry>
-    <entry><para>Called when methods are called on the object that do not exist in the current object.  In a class tree, <code>methodGate()</code> methods are not inherited.</para></entry>
+    <entry><para>If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object.  In a class tree, <code>methodGate()</code> methods are not inherited.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>memberNotification()</code></para></entry>
+    <entry><para>If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument.  In a class tree, <code>memberNotification()</code> methods are not inherited.</para></entry>
   </row>
 
 </tbody>
@@ -2447,6 +2451,10 @@ $name = getName();</programlisting>
 <programlisting>$self."&amp;member-name"</programlisting>
 
 <para>The automatic <code>$argv</code> local variable is instantiated as usual in all class methods where there are more arguments than variables declared in the method declaration.</para>
+
+<para>If the class implements a <code>memberGate()</code> method, then whenever a non-existant member of the class is accessed (read), this method will be called with the name of the member as the sole argument, so that the class can create the member (or react in some other way) on demand.  This method is also called when methods of the same class try to access (read) non-existant methods, but is not called from within the <code>memberGate()</code> method itself.</para>
+
+<para>To monitor writes to the object, the class can implement a <code>memberNotification()</code> method, which is called whenever an object member is modified from outside class member code.  In this case, the <code>memberNotification()</code> method is called with the name of the member that was updated so that an object can automatically react to changes to its members (writes to members) from outside the class.  This method is not called when members are updated from within class member code.</para>
 
 </sect2>
 
@@ -3115,6 +3123,8 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
     <para>Internally, Qore masks (blocks) all signals in every thread except the signal handling thread.  In the signal handling thread, all signals are unmasked, except those with Qore-language handlers, then an internal call to <code>sigwait()</code> is made to receive and process signals raised one at a time.</para>
 
     <para>Qore-language signal handlers are installed by passing a <link linkend="Signal_Constants">signal constant</link> and a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> to the code to execute when the signal is raised to the <link linkend="set_signal_handler">set_signal_handler()</link> function.  Signal handlers are removed by passing a <link linkend="Signal_Constants">signal constant</link> to the <link linkend="remove_signal_handler">remove_signal_handler()</link> function.</para>
+
+    <para>When a signal has been raised and the signal handler is called, the signal number is passed as the sole argument to the signal handler code.</para>
 
     <table>
       <title>Signal Handling Functions</title>

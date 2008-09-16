@@ -1103,14 +1103,13 @@ static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, Except
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    int signal = p0 ? p0->getAsInt() : 0;
-   if (!signal || signal > QORE_SIGNAL_MAX)
-   {
+   if (!signal || signal > QORE_SIGNAL_MAX) {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return 0;
    }
+
    const ResolvedCallReferenceNode *p1 = test_funcref_param(params, 1);
-   if (!p1)
-   {
+   if (!p1) {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference as second argument to set_signal_handler()");
       return 0;
    }
@@ -1154,19 +1153,50 @@ static AbstractQoreNode *f_decode_url(const QoreListNode *params, ExceptionSink 
    return str;
 }
 
-static AbstractQoreNode *f_get_script_path(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_get_script_path(const QoreListNode *params, ExceptionSink *xsink) {
    return getProgram()->getScriptPath();
 }
 
-static AbstractQoreNode *f_get_script_dir(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_get_script_dir(const QoreListNode *params, ExceptionSink *xsink) {
    return getProgram()->getScriptDir();
 }
 
-static AbstractQoreNode *f_get_script_name(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_get_script_name(const QoreListNode *params, ExceptionSink *xsink) {
    return getProgram()->getScriptName();
+}
+
+static AbstractQoreNode *f_get_qore_option_list(const QoreListNode *params, ExceptionSink *xsink) {
+   static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
+   QoreListNode *l = new QoreListNode;
+
+   for (unsigned j = 0; j < qore_option_list_size; ++j) {
+      QoreHashNode *h = new QoreHashNode;
+      h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
+      h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
+      h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
+      h->setKeyValue("value", get_bool_node(qore_option_list[j].value), xsink);
+      l->push(h);
+   }
+   return l;
+}
+
+static AbstractQoreNode *f_get_qore_library_info(const QoreListNode *params, ExceptionSink *xsink) {
+   QoreHashNode *h = new QoreHashNode;
+
+   h->setKeyValue("PlatformOS", new QoreStringNode(), xsink);
+   h->setKeyValue("PlatformCPU", new QoreStringNode(), xsink);
+   h->setKeyValue("VersionString", new QoreStringNode(), xsink);   
+   h->setKeyValue("VersionMajor", new QoreBigIntNode(qore_version_major), xsink);
+   h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
+   h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);
+   h->setKeyValue("Build", new QoreStringNode(qore_build_number), xsink);
+
+   h->setKeyValue("BuildHost", new QoreStringNode(qore_build_host), xsink);
+   h->setKeyValue("Compiler", new QoreStringNode(qore_cplusplus_compiler), xsink);
+   h->setKeyValue("CFLAGS", new QoreStringNode(qore_cflags), xsink);
+   h->setKeyValue("LDFLAGS", new QoreStringNode(qore_ldflags), xsink);
+
+   return h;
 }
 
 void init_misc_functions()
@@ -1213,6 +1243,8 @@ void init_misc_functions()
    builtinFunctions.add("get_script_name", f_get_script_name);
    builtinFunctions.add("get_script_dir", f_get_script_dir);
    builtinFunctions.add("get_script_path", f_get_script_path);
+   builtinFunctions.add("get_qore_option_list", f_get_qore_option_list);
+   builtinFunctions.add("get_qore_library_info", f_get_qore_library_info);
    
    // deprecated with stupid capitalization
    builtinFunctions.add("hexToInt", f_hextoint);

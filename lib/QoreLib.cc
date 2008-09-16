@@ -68,6 +68,7 @@ char table64[64] = {
 
 const qore_option_s qore_option_list[] = {
    { QORE_OPT_ATOMIC_OPERATIONS,
+     "HAVE_ATOMIC_OPERATIONS",
      QO_OPTION,
 #ifdef HAVE_ATOMIC_MACROS
      true
@@ -76,6 +77,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_STACK_GUARD,
+     "HAVE_STACK_GUARD",
      QO_OPTION,
 #ifdef HAVE_CHECK_STACK_POS
      true
@@ -84,6 +86,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_RUNTIME_STACK_TRACE,
+     "HAVE_RUNTIME_THREAD_STACK_TRACE",
      QO_OPTION,
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
      true
@@ -92,6 +95,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_SHA224,
+     "HAVE_SSH224",
      QO_ALGORITHM,
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
      true
@@ -100,6 +104,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_SHA256,
+     "HAVE_SSH256",
      QO_ALGORITHM,
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
      true
@@ -108,6 +113,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_SHA384,
+     "HAVE_SSH384",
      QO_ALGORITHM,
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
      true
@@ -116,6 +122,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_SHA512,
+     "HAVE_SSH512",
      QO_ALGORITHM,
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
      true
@@ -124,6 +131,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_MDC2,
+     "HAVE_MDC2",
      QO_ALGORITHM,
 #ifndef OPENSSL_NO_MDC2
      true
@@ -132,6 +140,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_RC5,
+     "HAVE_RC5",
      QO_ALGORITHM,
 #ifndef OPENSSL_NO_RC5
      true
@@ -140,6 +149,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_FUNC_ROUND,
+     "HAVE_ROUND",
      QO_FUNCTION,
 #ifdef HAVE_ROUND
      true
@@ -148,6 +158,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_FUNC_TIMEGM,
+     "HAVE_TIMEGM",
      QO_FUNCTION,
 #ifdef HAVE_TIMEGM
      true
@@ -156,6 +167,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_FUNC_SETEUID,
+     "HAVE_SETEUID",
      QO_FUNCTION,
 #ifdef HAVE_SETEUID
      true
@@ -164,6 +176,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_FUNC_SETEGID,
+     "HAVE_SETEGID",
      QO_FUNCTION,
 #ifdef HAVE_SETEGID
      true
@@ -172,6 +185,7 @@ const qore_option_s qore_option_list[] = {
 #endif
    },
    { QORE_OPT_FUNC_PARSEXMLWITHSCHEMA,
+     "HAVE_PARSEXMLWITHSCHEMA",
      QO_FUNCTION,
 #ifdef HAVE_XMLTEXTREADERSETSCHEMA
      true

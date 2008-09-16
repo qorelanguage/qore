@@ -110,7 +110,7 @@ functionality.
 %{_libdir}/libqore.so.4.0.0
 %{_libdir}/libqore.so.4
 %{_libdir}/libqore.la
-%doc COPYING.LGPL COPYING.GPL README README-LICENSE RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
+%doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs

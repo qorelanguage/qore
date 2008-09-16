@@ -122,8 +122,154 @@
 
     <para>The following constants are defined in the Qore namespace.</para>
 
-    <table id="Qore_General_Constants">
-      <title>General Constants in the Qore Namespace</title>
+    <table id="Build_and_Version_Constants">
+      <title>Build and Version Constants</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+
+	<thead>
+	  <row>
+	    <entry><para>Key</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+
+	<tbody>
+	  <row>
+	    <entry><para><code>PlatformOS</code></para></entry>
+	    <entry><para>The operating system used to build the Qore library.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>PlatformCPU</code></para></entry>
+	    <entry><para>The CPU used as a target for the Qore library build.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>VersionString</code></para></entry>
+	    <entry><para>The full version string for this version of the Qore library.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>VersionMajor</code></para></entry>
+	    <entry><para>An integer giving the Qore library's major version number.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>VersionMinor</code></para></entry>
+	    <entry><para>An integer giving the Qore library's minor version number.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>VersionSub</code></para></entry>
+	    <entry><para>An integer giving the Qore library's release version number.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Build</code></para></entry>
+	    <entry><para>An integer giving the Qore library's subversion revision number.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>BuildHost</code></para></entry>
+	    <entry><para>A string giving information about the host used to compile the Qore library.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>Compiler</code></para></entry>
+	    <entry><para>The compiler used to build the Qore library.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>CFLAGS</code></para></entry>
+	    <entry><para>The compiler flags used to compile the Qore library.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>LDFLAGS</code></para></entry>
+	    <entry><para>The linker flags used to link the Qore library.</para></entry>
+	  </row>
+	  
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table id="Library_Options">
+      <title>Library Options</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>HAVE_ATOMIC_OPERATIONS</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the Qore library supports fast atomic reference counting</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_STACK_GUARD</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if protection against stack overruns is provided</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_RUNTIME_THREAD_STACK_TRACE</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if active thread stack tracing has been enabled as a debugging option and if the <link linkend="getAllThreadCallStacks">getAllThreadCallStacks()</link> function is available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_ROUND</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the <link linkend="round">round()</link> function is available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_TIMEGM</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the <link linkend="timegm">timegm()</link> function is available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_SETEUID</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the <link linkend="seteuid">seteuid()</link> function is available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_SETEGID</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the <link linkend="setegid">setegid()</link> function is available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_PARSEXMLWITHSCHEMA</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the <link linkend="parseXMLWithSchema">parseXMLWithSchema()</link> function is available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_SHA224</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA224 algorithm and therefore if the <link linkend="SHA224">SHA224()</link> and <link linkend="SHA224_bin">SHA224_bin()</link> functions are available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_SHA256</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA256 algorithm and therefore if the <link linkend="SHA256">SHA256()</link> and <link linkend="SHA256_bin">SHA256_bin()</link> functions are available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_SHA384</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA384 algorithm and therefore if the <link linkend="SHA384">SHA384()</link> and <link linkend="SHA384_bin">SHA384_bin()</link> functions are available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_SHA512</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA512 algorithm and therefore if the <link linkend="SHA512">SHA512()</link> and <link linkend="SHA512_bin">SHA512_bin()</link> functions are available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_MDC2</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the MDC2 algorithm and therefore if the <link linkend="MDC2">MDC2()</link> and <link linkend="MDC2_bin">MDC2_bin()</link> functions are available.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>HAVE_RC5</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the RC5 encryption algorithm and therefore if the <link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc()</link>, <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link> and <link linkend="rc5_decrypt_cbc_to_string">rc5_encrypt_cbc_to_string()</link> functions are available.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table id="Qore_Boolean_Constants">
+      <title>Boolean Constants in the Qore Namespace</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	<thead>
 	  <row>
@@ -142,31 +288,6 @@
 	    <entry><para><code>False</code></para></entry>
 	    <entry><para>Boolean</para></entry>
 	    <entry><para>False</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code>VersionString</code></para></entry>
-	    <entry><para>String</para></entry>
-	    <entry><para>The complete version string for this version of Qore.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code>VersionMajor</code></para></entry>
-	    <entry><para>Integer</para></entry>
-	    <entry><para>The major version number of Qore.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code>VersionMinor</code></para></entry>
-	    <entry><para>Integer</para></entry>
-	    <entry><para>The minor version number of Qore.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code>VersionSub</code></para></entry>
-	    <entry><para>Integer</para></entry>
-	    <entry><para>The sub version number of Qore.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code>Build</code></para></entry>
-	    <entry><para>Integer</para></entry>
-	    <entry><para>The build number for Qore.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -586,7 +707,7 @@
           </row>
           <row>
             <entry><para><code>NameToSignal</code></para></entry>
-            <entry><para>A hash mapping signal names to signal numbers (ex: <code>SignalToName."SIGINT"</code> gives the signal number corresponding to <code>"SIGINT"</code>).</para></entry>
+            <entry><para>A hash mapping signal names to signal numbers (ex: <code>NameToSignal."SIGINT"</code> gives the signal number corresponding to <code>"SIGINT"</code>).</para></entry>
           </row>
 	</tbody>
       </tgroup>
@@ -18802,7 +18923,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the XmlRpcClient object based on the parameters passed.  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> for information on possible exceptions</para>
+            <para>Creates the XmlRpcClient object based on the parameters passed and immediately attempts to establish a connection to the server.  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19610,7 +19731,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the JsonRpcClient object based on the parameters passed.  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> for information on possible exceptions</para>
+            <para>Creates the JsonRpcClient object based on the parameters passed and immediately attempts to establish a connection to the server.  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
           </listitem>
         </varlistentry>
         <varlistentry>

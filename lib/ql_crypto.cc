@@ -611,7 +611,7 @@ static AbstractQoreNode *f_rc5_encrypt_cbc(const QoreListNode *params, Exception
 
    return ch.getBinary();
 #else
-   xsink->raiseException("RC5-ENCRYPT-CBC-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; check Option::HAVE_RC5 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; for maximum portability, check Option::HAVE_RC5 before calling this function");
    return 0;
 #endif
 }
@@ -627,7 +627,7 @@ static AbstractQoreNode *f_rc5_decrypt_cbc(const QoreListNode *params, Exception
 
    return ch.getBinary();
 #else
-   xsink->raiseException("RC5-DECRYPT-CBC-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; check Option::HAVE_RC5 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; for maximum portability, check Option::HAVE_RC5 before calling this function");
    return 0;
 #endif
 }
@@ -643,7 +643,7 @@ static AbstractQoreNode *f_rc5_decrypt_cbc_to_string(const QoreListNode *params,
 
    return ch.getString();
 #else
-   xsink->raiseException("RC5-DECRYPT-CBC-TO-STRING-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; check Option::HAVE_RC5 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; for maximum portability, check Option::HAVE_RC5 before calling this function");
    return 0;
 #endif
 }
@@ -708,7 +708,7 @@ static AbstractQoreNode *f_SHA224(const QoreListNode *params, ExceptionSink *xsi
 
    return dh.getString();
 #else
-   xsink->raiseException("SHA224-ERROR", "the openssl library version that qore was compiled with did not support the SHA224 algorithm; check Option::HAVE_SHA224 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA224 algorithm; for maximum portability, check Option::HAVE_SHA224 before calling this function");
    return 0;
 #endif
 }
@@ -723,7 +723,7 @@ static AbstractQoreNode *f_SHA256(const QoreListNode *params, ExceptionSink *xsi
 
    return dh.getString();
 #else
-   xsink->raiseException("SHA256-ERROR", "the openssl library version that qore was compiled with did not support the SHA256 algorithm; check Option::HAVE_SHA256 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA256 algorithm; for maximum portability, check Option::HAVE_SHA256 before calling this function");
    return 0;
 #endif
 }
@@ -738,7 +738,7 @@ static AbstractQoreNode *f_SHA384(const QoreListNode *params, ExceptionSink *xsi
 
    return dh.getString();
 #else
-   xsink->raiseException("SHA384-ERROR", "the openssl library version that qore was compiled with did not support the SHA384 algorithm; check Option::HAVE_SHA384 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA384 algorithm; for maximum portability, check Option::HAVE_SHA384 before calling this function");
    return 0;
 #endif
 }
@@ -753,7 +753,7 @@ static AbstractQoreNode *f_SHA512(const QoreListNode *params, ExceptionSink *xsi
 
    return dh.getString();
 #else
-   xsink->raiseException("SHA512-ERROR", "the openssl library version that qore was compiled with did not support the SHA512 algorithm; check Option::HAVE_SHA512 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA512 algorithm; for maximum portability, check Option::HAVE_SHA512 before calling this function");
    return 0;
 #endif
 }
@@ -788,7 +788,7 @@ static AbstractQoreNode *f_MDC2(const QoreListNode *params, ExceptionSink *xsink
 
    return dh.getString();
 #else
-   xsink->raiseException("MDC2-ERROR", "the openssl library version that qore was compiled with did not support the MDC2 algorithm; check Option::HAVE_MDC2 before calling this function");
+   xsink->raiseException("MDC2-ERROR", "the openssl library version that qore was compiled with did not support the MDC2 algorithm; for maximum portability, check Option::HAVE_MDC2 before calling this function");
    return 0;
 #endif
 }
@@ -857,7 +857,7 @@ static AbstractQoreNode *f_SHA224_bin(const QoreListNode *params, ExceptionSink 
    
    return dh.getBinary();
 #else
-   xsink->raiseException("SHA224-BIN-ERROR", "the openssl library version that qore was compiled with did not support the SHA224 algorithm; check Option::HAVE_SHA224 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA224 algorithm; for maximum portability, check Option::HAVE_SHA224 before calling this function");
    return 0;
 #endif
 }
@@ -871,7 +871,7 @@ static AbstractQoreNode *f_SHA256_bin(const QoreListNode *params, ExceptionSink 
    
    return dh.getBinary();
 #else
-   xsink->raiseException("SHA256-BIN-ERROR", "the openssl library version that qore was compiled with did not support the SHA256 algorithm; check Option::HAVE_SHA256 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA256 algorithm; for maximum portability, check Option::HAVE_SHA256 before calling this function");
    return 0;
 #endif
 }
@@ -885,7 +885,7 @@ static AbstractQoreNode *f_SHA384_bin(const QoreListNode *params, ExceptionSink 
    
    return dh.getBinary();
 #else
-   xsink->raiseException("SHA384-BIN-ERROR", "the openssl library version that qore was compiled with did not support the SHA384 algorithm; check Option::HAVE_SHA384 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA384 algorithm; for maximum portability, check Option::HAVE_SHA384 before calling this function");
    return 0;
 #endif
 }
@@ -899,7 +899,7 @@ static AbstractQoreNode *f_SHA512_bin(const QoreListNode *params, ExceptionSink 
    
    return dh.getBinary();
 #else
-   xsink->raiseException("SHA512-BIN-ERROR", "the openssl library version that qore was compiled with did not support the SHA512 algorithm; check Option::HAVE_SHA512 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA512 algorithm; for maximum portability, check Option::HAVE_SHA512 before calling this function");
    return 0;
 #endif
 }
@@ -931,7 +931,7 @@ static AbstractQoreNode *f_MDC2_bin(const QoreListNode *params, ExceptionSink *x
    
    return dh.getBinary();
 #else
-   xsink->raiseException("MDC2-ERROR", "the openssl library version that qore was compiled with did not support the MDC2 algorithm; check Option::HAVE_MDC2 before calling this function");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the MDC2 algorithm; for maximum portability, check Option::HAVE_MDC2 before calling this function");
    return 0;
 #endif
 }

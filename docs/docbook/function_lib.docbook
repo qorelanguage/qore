@@ -1173,6 +1173,18 @@
         </entry>
       </row>
       <row>
+        <entry><para><link linkend="get_qore_library_info">get_qore_library_info()</link></para></entry>
+        <entry><para>Hash</para></entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns a hash of build and version information for the qore library.</para></entry>
+      </row>
+      <row>
+        <entry><para><link linkend="get_qore_option_list">get_qore_option_list()</link></para></entry>
+        <entry><para>List</para></entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns a list of hashes giving information about qore library options.</para></entry>
+      </row>
+      <row>
         <entry><para><link linkend="get_seconds">get_seconds()</link></para></entry>
         <entry><para>Integer</para></entry>
         <entry><para>N</para></entry>
@@ -1247,9 +1259,7 @@
           <entry>
             <para>N</para>
           </entry>
-          <entry>
-            <para>Returns a hash of call stacks keyed by each TID (thread ID) (deprecated).</para>
-          </entry>
+          <entry><para>Returns a hash of call stacks keyed by each TID (thread ID).</para></entry>
         </row>
         <row>
           <entry><para><link linkend="getByte">getByte()</link></para></entry>
@@ -3220,8 +3230,7 @@
           <entry><para><link linkend="round">round()</link></para></entry>
           <entry><para>Float</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a value rounded up to the nearest integer integer</para>
-          </entry>
+          <entry><para>Returns a value rounded up to the nearest integer integer.</para></entry>
         </row>
         <row>
           <entry>
@@ -4896,7 +4905,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a floating-point number equal to the closest integer to the argument passed.  Numers halfway between two integers are arounded away from zero.</para>
+	<para>Returns a floating-point number equal to the closest integer to the argument passed.  Numers halfway between two integers are arounded away from zero.  The availability of this function depends on the presence of the C-library's round() function; for maximum portability check the constant <code>HAVE_ROUND</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4936,7 +4945,22 @@
 </tgroup>
 </table>
 
-  <para>This function does not throw any exceptions.</para>
+  <table><title>Exceptions Thrown by round()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	<entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_ROUND</code> before calling this function.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
 
 </sect2>
 
@@ -7394,7 +7418,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the number of seconds since January 1, 1970 00:00 for a given date in GMT.</para>
+	<para>Returns the number of seconds since January 1, 1970 00:00 for a given date in GMT.  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code>HAVE_TIMEGM</code> is True.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7443,8 +7467,22 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </tgroup>
       </table>
 
-  <para>This function does not throw any exceptions.</para>
-
+      <table><title>Exceptions Thrown by timegm()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_TIMEGM</code> before calling this function.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>      
 </sect2>
 
     <sect2 id="years">
@@ -10326,7 +10364,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code>HAVE_SETEGID</code> is True.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -10393,9 +10431,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code>SETEGID-ERROR</code></para></entry>
             <entry><para>missing EGID argument to function</para></entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SETEGID</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
+
   </sect2>
   <sect2 id="seteuid">
     <title>seteuid()</title>
@@ -10403,7 +10446,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code>HAVE_SETEUID</code> is True.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -10480,6 +10523,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing EUID argument to function</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SETUGID</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -13186,7 +13233,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  Returns a binary object of the encrypted data.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  Returns a binary object of the encrypted data.  The availability of this function depends on the availability of the RC5 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_RC5</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13267,6 +13314,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing or invalid key parameter (ex: invalid size) or invalid initialization vector (less than 8 bytes, only raised if initialization vector present)</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_RC5</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -13277,7 +13328,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="rc5_decrypt_cbc_to_string">rc5_decrypt_cbc_to_string()</link>.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="rc5_decrypt_cbc_to_string">rc5_decrypt_cbc_to_string()</link>.  The availability of this function depends on the availability of the RC5 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_RC5</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13358,6 +13409,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing or invalid key parameter (ex: invalid size) or invalid initialization vector (less than 8 bytes, only raised if initialization vector present)</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_RC5</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -13368,7 +13423,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link>.</para>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link>.  The availability of this function depends on the availability of the RC5 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_RC5</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13449,6 +13504,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing or invalid key parameter (ex: invalid size) or invalid initialization vector (less than 8 bytes, only raised if initialization vector present)</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_RC5</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -14275,7 +14334,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).  Availability of this function depends on the version of OpenSSL used to compile Qore.</para>
+          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).  Availability of this function depends on the version of OpenSSL used to compile Qore.  The availability of this function depends on the availability of the MDC2 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_MDC2</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14346,6 +14405,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_MDC2</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -14356,7 +14419,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.  Availability of this function depends on the version of OpenSSL used to compile Qore.</para>
+          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.  The availability of this function depends on the availability of the MDC2 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_MDC2</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14427,6 +14490,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_MDC2</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -14924,7 +14991,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA224 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+          <para>Returns the SHA224 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the SHA224 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA224</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14995,6 +15062,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SHA224</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -15005,7 +15076,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA224 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+          <para>Returns the SHA224 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the SHA224 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA224</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15076,6 +15147,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SHA224</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -15086,7 +15161,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA256 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+          <para>Returns the SHA256 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the SHA256 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA256</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15157,6 +15232,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SHA256</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -15167,7 +15246,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA256 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+          <para>Returns the SHA256 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the SHA256 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA256</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15238,6 +15317,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SHA256</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -15248,7 +15331,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA384 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+          <para>Returns the SHA384 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the SHA384 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA384</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15319,6 +15402,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SHA384</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -15329,7 +15416,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA384 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+          <para>Returns the SHA384 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the SHA384 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA384</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15400,6 +15487,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SHA384</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -15410,7 +15501,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA512 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+          <para>Returns the SHA512 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the SHA512 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA512</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15481,6 +15572,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SHA512</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -15491,7 +15586,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the SHA512 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
+          <para>Returns the SHA512 message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the SHA512 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA512</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15562,6 +15657,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>missing data parameter, invalid data parameter (expecing string or binary), error calculating digest</para>
             </entry>
           </row>
+	  <row>
+	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SHA512</code> before calling this function.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -17742,7 +17841,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Calls a builtin function and returns the return value, passing the remaining arguments after the function name to the builtin function.</para>
+	<para>Calls a builtin function and returns the return value, passing the remaining arguments after the function name to the builtin function.  This function can be used to override a builtin function's functionality with a custom implementation.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -18283,6 +18382,200 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 </tgroup>
 </table>
   <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="get_qore_library_info">
+<title>get_qore_library_info()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a hash of library build and version info with the keys in the table <link linkend="Library_Info_Hash">Library Info Hash</link>.  For constants giving the same information, see <link linkend="Build_and_Version_Constants">Build and Version Constants</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>get_qore_library_info()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$info = get_qore_library_info();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_qore_library_info()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>n/a</para></entry>
+    <entry><para>Hash</para></entry>
+    <entry><para>A hash of library build and version info with the keys in the table <link linkend="Library_Info_Hash">Library Info Hash</link>.  For constants giving the same information, see <link linkend="Build_and_Version_Constants">Build and Version Constants</link>.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This function does not throw any exceptions.</para>
+
+<table id="Library_Info_Hash">
+  <title>Library Info Hash</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Key</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code>PlatformOS</code></para></entry>
+    <entry><para>The operating system used to build the Qore library.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>PlatformCPU</code></para></entry>
+    <entry><para>The CPU used as a target for the Qore library build.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>VersionString</code></para></entry>
+    <entry><para>The full version string for this version of the Qore library.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>VersionMajor</code></para></entry>
+    <entry><para>An integer giving the Qore library's major version number.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>VersionMinor</code></para></entry>
+    <entry><para>An integer giving the Qore library's minor version number.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>VersionSub</code></para></entry>
+    <entry><para>An integer giving the Qore library's release version number.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>Build</code></para></entry>
+    <entry><para>An integer giving the Qore library's subversion revision number.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>BuildHost</code></para></entry>
+    <entry><para>A string giving information about the host used to compile the Qore library.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>Compiler</code></para></entry>
+    <entry><para>The compiler used to build the Qore library.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>CFLAGS</code></para></entry>
+    <entry><para>The compiler flags used to compile the Qore library.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>LDFLAGS</code></para></entry>
+    <entry><para>The linker flags used to link the Qore library.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="get_qore_option_list">
+<title>get_qore_option_list()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a list of hashes giving information about Qore library options for the current build.  See <link linkend="Library_Option_Hash">Library Option Hash</link> for information about the elements in the list returned.  See <link linkend="Library_Options">Library Options</link> for information about Qore library options.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>get_qore_option_list()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$list = get_qore_option_list();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_qore_option_list()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para>n/a</para></entry>
+    <entry><para>List</para></entry>
+    <entry><para>A list of hashes giving information about Qore library options for the current build.  See <link linkend="Library_Option_Hash">Library Option Hash</link> for information about the elements in the list returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+
+<table id="Library_Option_Hash"><title>Library Option Hash</title>
+<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Key</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code>option</code></para></entry>
+    <entry><para>The string description of the option</para></entry>
+  </row>
+  <row>
+    <entry><para><code>constant</code></para></entry>
+    <entry><para>A string giving the name of the constant that has the boolean value for this option.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>type</code></para></entry>
+    <entry><para>The type of option.</para></entry>
+  </row>
+  <row>
+    <entry><para><code>value</code></para></entry>
+    <entry><para>The boolean value of the option.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+<para>This function does not throw any exceptions.</para>
 
 </sect2>
 
@@ -19959,6 +20252,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Synopsis</term>
       <listitem>
 	<para>Sets or replaces a signal handler according to the signal number and <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> (function or object method reference) passed.  By the time this function returns, changes to the signal handling thread have already been effected.  See <link linkend="signal_handling">Signal Handling</link> for more information.</para>
+	<para>When a signal is raised and the signal handler code is called, the signal number is passed as an integer argument to the signal handling code.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -20452,7 +20746,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a hash of call stacks keyed by each TID (thread ID).  DEPRECATED.</para>
+	<para>Returns a hash of call stacks keyed by each TID (thread ID).  The availability of this function depends on an optional debugging feature in the Qore library (maintaining run-time thread call stacks incurrs a performance penalty, therefore this option is normally only available in debugging builds of Qore); the function is only available if the constant <code>HAVE_RUNTIME_THREAD_STACK_TRACE</code> is True.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -20493,7 +20787,24 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</tbody>
       </tgroup>
     </table>
-  <para>This function does not throw any exceptions.</para>
+
+  <table><title>Exceptions Thrown by getAllThreadCallStacks()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	<entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_RUNTIME_THREAD_STACK_TRACE</code> before calling this function.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
   </sect2>
 
   <sect2 id="get_thread_data">
@@ -21793,6 +22104,7 @@ catch ($ex)
       <term>Synopsis</term>
       <listitem>
 	<para>Parses an XML string, validates the XML string against an XSD schema string, and returns a Qore hash structure.  If any errors occur parsing the XSD string, parsing the XML string, or validating the XML against the XSD, exceptions are thrown.  If no encoding string argument is passed, then all strings in the resulting hash will be in UTF-8 encoding regardless of the input encoding of the XML string.</para>
+	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21846,6 +22158,10 @@ catch ($ex)
 	    <row>
 	      <entry><para><code>PARSE-XML-WITH-SCHEMA-ERROR</code></para></entry>
 	      <entry><para>Invalid arguments passed to the function.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this function.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
