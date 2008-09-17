@@ -474,102 +474,114 @@ is a multiline string";</programlisting>
 
 <sect2 id="Date">
   <title>Date</title>
-  <para>Qore dates have a time component supporting a resolution to the millisecond and can be either absolute or relative.  Absolute date/time values specify a specific point in time, such as January 1, 2005 10:35:00 and can be specified with a special syntax as follows:</para>
+  <para>Qore dates have a time component supporting a resolution to the millisecond and can be either absolute or relative.</para>
 
-  <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
+  <sect3 id="Absolute_Dates">
+    <title>Absolute Date/Time Values</title>
 
-  <para>or, an almost-ISO-8601-compliant format (without the ISO-8601 time zone component but including an optional millisecond component)</para>
+    <para>Absolute date/time values specify a specific point in time, such as January 1, 2005 10:35:00 and can be specified with a special syntax as follows:</para>
 
-  <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[T&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
+    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
 
-  <para>for example, for just the date, without a time component:</para>
-
-  <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;</programlisting>
-
-  <para>or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly):</para>
-
-  <programlisting>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
-
-  <para>Some examples should make it clearer:</para>
-
-  <programlisting>2005-03-29-18:12:25      # represents: March 29, 2005 6:12:25 pm
-0512-01-01T01:49:59.213  # represents: January 1, 512 1:49:59 am and 213 milliseconds
-
-2005-03-29               # represents: March 29, 2005 00:00:00
-18:35:26                 # represents: January 1, 1970 6:35:26 pm (start of the Qore epoch)</programlisting>
-
-  <para>The year must be a four-digit number, and all other values except milliseconds must be two-digit numbers.  If milliseconds are present, 3 digits are required after the decimal point.  Pad the numbers with leading zeros if the numbers are smaller than the required number of spaces.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
-
-  <para>Relative dates are specified as follows:</para>
-
-  <programlisting>&lt;integer&gt;&lt;date component specifier&gt;</programlisting>
-
-  <table><title>Date Specifiers For Relative Dates</title>
-  <tgroup cols='4' align='left' colsep='1' rowsep='1'>
+    <para>or, an almost-ISO-8601-compliant format (without the ISO-8601 time zone component but including an optional millisecond component)</para>
     
-    <thead>
-      <row>
-	<entry><para>Component</para></entry>
-	<entry><para>Meaning</para></entry>
-	<entry><para>Example</para></entry>
-	<entry><para>Description</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para>Y</para></entry>
-	<entry><para>Years</para></entry>
-	<entry><code>2Y</code></entry>
-	<entry><para>2 Years</para></entry>
-      </row>
-      <row>
-	<entry><para>M</para></entry>
-	<entry><para>Months</para></entry>
-	<entry><code>3M</code></entry>
-	<entry><para>3 Months</para></entry>
-      </row>
-      <row>
-	<entry><para>D</para></entry>
-	<entry><para>Days</para></entry>
-	<entry><code>10D</code></entry>
-	<entry><para>10 Days</para></entry>
-      </row>
-      <row>
-	<entry><para>h</para></entry>
-	<entry><para>Hours</para></entry>
-	<entry><code>15h</code></entry>
-	<entry><para>15 hours</para></entry>
-      </row>
-      <row>
-	<entry><para>m</para></entry>
-	<entry><para>Minutes</para></entry>
-	<entry><code>25m</code></entry>
-	<entry><para>25 minutes</para></entry>
-      </row>
-      <row>
-	<entry><para>s</para></entry>
-	<entry><para>Seconds</para></entry>
-	<entry><code>19s</code></entry>
-	<entry><para>19 seconds</para></entry>
-      </row>
-      <row>
-	<entry><para>ms</para></entry>
-	<entry><para>Milliseconds</para></entry>
-	<entry><code>250ms</code></entry>
-	<entry><para>250 milliseconds</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-</table>
+    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[T&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
+    
+    <para>for example, for just the date, without a time component:</para>
+    
+    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;</programlisting>
+    
+    <para>or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly):</para>
+    
+    <programlisting>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
+    
+    <para>Some examples should make it clearer:</para>
+    
+    <programlisting>2005-03-29-18:12:25      # represents: March 29, 2005 6:12:25 pm
+      0512-01-01T01:49:59.213  # represents: January 1, 512 1:49:59 am and 213 milliseconds
+      
+      2005-03-29               # represents: March 29, 2005 00:00:00
+      18:35:26                 # represents: January 1, 1970 6:35:26 pm (start of the Qore epoch)</programlisting>
+    
+    <para>The year must be a four-digit number, and all other values except milliseconds must be two-digit numbers.  If milliseconds are present, 3 digits are required after the decimal point.  Pad the numbers with leading zeros if the numbers are smaller than the required number of spaces.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
 
-<para>Relative dates are normally used for date addition and subtraction.  See <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link> for more information.</para>
+    <note>
+      <para>Currently there is no time-zone component in Qore dates.  Timezone support may be added in future versions of the Qore 
+	language, either by an addition to this data type, or by adding another date type including a time zone component.  Specifically, ISO-8601 time zone components are not accepted by the qore parser and will cause a parse exception to be thrown.</para>
+    </note>
+    
+  </sect3>
 
-<para>When a date/time value is converted to an integer or vice-versa, a 64-bit offset in seconds from the start of the &quot;epoch&quot; is used for the conversion.  Qore's &quot;zero date&quot; (the start of Qore's &quot;epoch&quot;) is January 1, 1970.  When calculating second offsets from this date, a 64-bit integer is used.</para>
+  <sect3 id="Relative_Dates">
+    <title>Relative Date/Time Values</title>
 
-<note>
-  <para>Currently there is no time-zone component in Qore dates.  Timezone support may be added in future versions of the Qore 
-language, either by an addition to this data type, or by adding another date type including a time zone component.  Specifically, ISO-8601 time zone components are not accepted by the qore parser and will cause a parse exception to be thrown.</para>
-</note>
+    <para>Relative date/time values are specified as follows:</para>
+    
+    <programlisting>&lt;integer&gt;&lt;date component specifier&gt;</programlisting>
+
+    <table><title>Date Specifiers For Relative Dates</title>
+      <tgroup cols='4' align='left' colsep='1' rowsep='1'>
+	
+	<thead>
+	  <row>
+	    <entry><para>Component</para></entry>
+	    <entry><para>Meaning</para></entry>
+	    <entry><para>Example</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Years</para></entry>
+	    <entry><code>2Y</code></entry>
+	    <entry><para>2 Years</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>M</para></entry>
+	    <entry><para>Months</para></entry>
+	    <entry><code>3M</code></entry>
+	    <entry><para>3 Months</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>D</para></entry>
+	    <entry><para>Days</para></entry>
+	    <entry><code>10D</code></entry>
+	    <entry><para>10 Days</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>h</para></entry>
+	    <entry><para>Hours</para></entry>
+	    <entry><code>15h</code></entry>
+	    <entry><para>15 hours</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>m</para></entry>
+	    <entry><para>Minutes</para></entry>
+	    <entry><code>25m</code></entry>
+	    <entry><para>25 minutes</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>s</para></entry>
+	    <entry><para>Seconds</para></entry>
+	    <entry><code>19s</code></entry>
+	    <entry><para>19 seconds</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>ms</para></entry>
+	    <entry><para>Milliseconds</para></entry>
+	    <entry><code>250ms</code></entry>
+	    <entry><para>250 milliseconds</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <para>Relative dates are normally used for date addition and subtraction.  See <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link> for more information.</para>
+    
+    <para>When a date/time value is converted to an integer or vice-versa, a 64-bit offset in seconds from the start of the &quot;epoch&quot; is used for the conversion.  Qore's &quot;zero date&quot; (the start of Qore's &quot;epoch&quot;) is January 1, 1970.  When calculating second offsets from this date, a 64-bit integer is used.</para>
+    
+  </sect3>
 
 </sect2>
 <sect2 id="Binary">
@@ -724,30 +736,164 @@ language, either by an addition to this data type, or by adding another date typ
 <sect1 id="Qore_Strings_and_Character_Encoding">
   <title>Qore Strings and Character Encoding</title>
 
-  <para>The Qore language is character-encoding aware.  All strings are assumed to have the default character encoding, unless the program explicitly specified another encoding for certain objects and operations.  Every Qore string has a character encoding ID attached to it, so, when another encoding is required, the Qore language will attempt to do an encoding translation.</para>
+  <sect2 id="Character_Encoding_Overview">
+    <title>Overview</title>
 
-  <para>Qore uses the operating system's iconv library functions to perform any encoding conversions.</para>
+    <para>The Qore language is character-encoding aware.  All strings are assumed to have the <link linkend="Default_Character_Encoding">default character encoding</link>, unless the program explicitly specified another encoding for certain objects and operations.  Every Qore string has a character encoding ID attached to it, so, when another encoding is required, the Qore language will attempt to do an encoding translation.</para>
 
-  <para>Qore supports character encodings that are backwards compatible with 7-bit ASCII.  This includes all ISO-8859-* character encodings, UTF-8, KOIR-8, KOIU-8, and KOI7, among others.  However, mutibyte character encodings are currently only properly supported for UTF-8.  For UTF-8 strings, the <link linkend="length">length()</link>, <link linkend="index">index()</link>, <link linkend="rindex">rindex()</link>, <link linkend="substr">substr()</link>, <link linkend="reverse">reverse()</link>, the <link linkend="Splice_Operator">splice operator</link>, print formatting (regarding field lengths) functions and methods taking format strings, and regular expression operators and functions, all work with character offsets, which may be different than byte offsets.  For all character encodings other than UTF-8, a 1 byte=1 character relationship is assumed.</para>
-  
-  <para>The default Qore character encoding is determined by environment variables.</para>
-  
-  <para>First, the <code>QORE_CHARSET</code> environment variable is checked. If it is set, then this character encoding will be the default character encoding for the process.  If not, then the <code>LANG</code> environment variable is checked. If a character encoding is specified in the <code>LANG</code> environment variable, then it will be used as the default character encoding.  Otherwise, if no character encoding can be derived from the environment, UTF-8 is assumed.</para>
-  
-  <para>Character encodings are automatically converted by the Qore language when necessary.  Encoding conversion errors will cause a Qore exception to be thrown.  The character encoding conversions supported by Qore depend on the Operating System's iconv library function.</para>
-  
-  <para>The following is a non-exhaustive list of examples in Qore where character encoding processing is performed.</para>
-  
-  <para>Character encodings can be explicitly performed with the <link linkend="convert_encoding">convert_encoding()</link> function, and the encoding attached to a string can be checked with the <link linkend="get_encoding">get_encoding()</link> function. </para>
+    <para>Qore uses the operating system's iconv library functions to perform any encoding conversions.</para>
+
+    <para>Qore supports character encodings that are backwards compatible with 7-bit ASCII.  This includes all <code>ISO-8859-*</code> character encodings, <code>UTF-8</code>, <code>KOIR-8</code>, <code>KOIU-8</code>, and <code>KOI7</code>, among others (see the table below: <link linkend="Qore_Character_Encodings">Character Encodings Known to Qore</link>).</para>
+
+    <para>However, mutibyte character encodings are currently only properly supported for <code>UTF-8</code>.  For <code>UTF-8</code> strings, the <link linkend="length">length()</link>, <link linkend="index">index()</link>, <link linkend="rindex">rindex()</link>, <link linkend="substr">substr()</link>, <link linkend="reverse">reverse()</link>, the <link linkend="Splice_Operator">splice operator</link>, print formatting (regarding field lengths) functions and methods taking format strings, and regular expression operators and functions, all work with character offsets, which may be different than byte offsets.  For all character encodings other than <code>UTF-8</code>, a 1 byte=1 character relationship is assumed.</para>
+
+    <para>Qore will accept any encoding name given to it, even if it is not a known encoding name or alias.  In this case, Qore will tag the strings with this encoding, and pass this user-defined encoding name to the iconv library when encodings must be converted.  This allows programmers to use encodings known by the system's iconv library, but unknown to qore.  In this case, Qore will assume that the strings are backwards compatible with <code>ASCII</code>, meanin that that one character is represented by one byte and that the strings are null-terminated.</para>
+
+    <para>Note that when Qore matches an encoding name to a code or alias in the following table, the comparison is not case-sensitive.</para>
+
+    <table id="Qore_Character_Encodings">
+      <title>Character Encodings Known to Qore</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Code</para></entry>
+	    <entry><para>Alises</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para><code>ISO-8859-1</code></para></entry>
+            <entry><para><code>ISO88591</code>, <code>ISO8859-1</code>, <code>ISO-88591</code>, <code>ISO8859P1</code>, <code>ISO81</code>, <code>LATIN1</code>, <code>LATIN-1</code></para></entry>
+            <entry><para>latin-1, Western European character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-2</code></para></entry>
+            <entry><para><code>ISO88592</code>, <code>ISO8859-2</code>, <code>ISO-88592</code>, <code>ISO8859P2</code>, <code>ISO82</code>, <code>LATIN2</code>, <code>LATIN-2</code></para></entry>
+            <entry><para>latin-2, Central European character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-3</code></para></entry>
+            <entry><para><code>ISO88593</code>, <code>ISO8859-3</code>, <code>ISO-88593</code>, <code>ISO8859P3</code>, <code>ISO83</code>, <code>LATIN3</code>, <code>LATIN-3</code></para></entry>
+            <entry><para>latin-3, Southern European character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-4</code></para></entry>
+            <entry><para><code>ISO88594</code>, <code>ISO8859-4</code>, <code>ISO-88594</code>, <code>ISO8859P4</code>, <code>ISO84</code>, <code>LATIN4</code>, <code>LATIN-4</code></para></entry>
+            <entry><para>latin-4, Northern European character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-5</code></para></entry>
+            <entry><para><code>ISO88595</code>, <code>ISO8859-5</code>, <code>ISO-88595</code>, <code>ISO8859P5</code>, <code>ISO85</code></para></entry>
+            <entry><para>Cyrillic character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-6</code></para></entry>
+            <entry><para><code>ISO88596</code>, <code>ISO8859-6</code>, <code>ISO-88596</code>, <code>ISO8859P6</code>, <code>ISO86</code></para></entry>
+            <entry><para>Arabic character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-7</code></para></entry>
+            <entry><para><code>ISO88597</code>, <code>ISO8859-7</code>, <code>ISO-88597</code>, <code>ISO8859P7</code>, <code>ISO87</code></para></entry>
+            <entry><para>Greek character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-8</code></para></entry>
+            <entry><para><code>ISO88598</code>, <code>ISO8859-8</code>, <code>ISO-88598</code>, <code>ISO8859P8</code>, <code>ISO88</code></para></entry>
+            <entry><para>Hebrew character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-9</code></para></entry>
+            <entry><para><code>ISO88599</code>, <code>ISO8859-9</code>, <code>ISO-88599</code>, <code>ISO8859P9</code>, <code>ISO89</code>, <code>LATIN5</code>, <code>LATIN-5</code></para></entry>
+            <entry><para>latin-5, Turkish character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-10</code></para></entry>
+            <entry><para><code>ISO885910</code>, <code>ISO8859-10</code>, <code>ISO-885910</code>, <code>ISO8859P10</code>, <code>ISO810</code>, <code>LATIN6</code>, <code>LATIN-6</code></para></entry>
+            <entry><para>latin-6, Nordic character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-11</code></para></entry>
+            <entry><para><code>ISO885911</code>, <code>ISO8859-11</code>, <code>ISO-885911</code>, <code>ISO8859P11</code>, <code>ISO811</code></para></entry>
+            <entry><para>Thai character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-13</code></para></entry>
+            <entry><para><code>ISO885913</code>, <code>ISO8859-13</code>, <code>ISO-885913</code>, <code>ISO8859P13</code>, <code>ISO813</code>, <code>LATIN7</code>, <code>LATIN-7</code></para></entry>
+            <entry><para>latin-7, Baltic rim character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-14</code></para></entry>
+            <entry><para><code>ISO885914</code>, <code>ISO8859-14</code>, <code>ISO-885914</code>, <code>ISO8859P14</code>, <code>ISO814</code>, <code>LATIN8</code>, <code>LATIN-8</code></para></entry>
+            <entry><para>latin-8, Celtic character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-15</code></para></entry>
+            <entry><para><code>ISO885915</code>, <code>ISO8859-15</code>, <code>ISO-885915</code>, <code>ISO8859P15</code>, <code>ISO815</code>, <code>LATIN9</code>, <code>LATIN-9</code></para></entry>
+            <entry><para>latin-9, Western European with euro symbol</para></entry>
+          </row>
+          <row>
+            <entry><para><code>ISO-8859-16</code></para></entry>
+            <entry><para><code>ISO885916</code>, <code>ISO8859-16</code>, <code>ISO-885916</code>, <code>ISO8859P16</code>, <code>ISO816</code>, <code>LATIN10</code>, <code>LATIN-10</code></para></entry>
+            <entry><para>latin-10, Southeast European character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>KOI7</code></para></entry>
+            <entry><para>n/a</para></entry>
+            <entry><para>Russian: Kod Obmena Informatsiey, 7 bit characters</para></entry>
+          </row>
+          <row>
+            <entry><para><code>KOI8-R</code></para></entry>
+            <entry><para><code>KOI8R</code></para></entry>
+            <entry><para>Russian: Kod Obmena Informatsiey, 8 bit</para></entry>
+          </row>
+          <row>
+            <entry><para><code>KOI8-U</code></para></entry>
+            <entry><para><code>KOI8U</code></para></entry>
+            <entry><para>Ukrainian: Kod Obmena Informatsiey, 8 bit</para></entry>
+          </row>
+          <row>
+            <entry><para><code>US-ASCII</code></para></entry>
+            <entry><para><code>ASCII</code>, <code>USASCII</code></para></entry>
+            <entry><para>7-bit ASCII character set</para></entry>
+          </row>
+          <row>
+            <entry><para><code>UTF-8</code></para></entry>
+            <entry><para><code>UTF8</code></para></entry>
+            <entry><para>variable-width universal character set</para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  <sect2 id="Default_Character_Encoding">
+    <title>Default Character Encoding</title>
+
+    <para>The default character encoding for Qore is determined by environment variables.</para>
     
-  <para>The <link linkend='Datasource_Class'>Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).</para>
+    <para>First, the <code>QORE_CHARSET</code> environment variable is checked. If it is set, then this character encoding will be the default character encoding for the process.  If not, then the <code>LANG</code> environment variable is checked. If a character encoding is specified in the <code>LANG</code> environment variable, then it will be used as the default character encoding.  Otherwise, if no character encoding can be derived from the environment, <code>UTF-8</code> is assumed.</para>
+    
+    <para>Character encodings are automatically converted by the Qore language when necessary.  Encoding conversion errors will cause a Qore exception to be thrown.  The character encoding conversions supported by Qore depend on the Operating System's iconv library function.</para>
   
-  <para>The <link linkend='File_Class'>File</link> and <link linkend='Socket_Class'>Socket</link> classes translate character encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.</para>
+  </sect2>
+
+  <sect2 id="Character_Encoding_Usage">
+    <title>Character Encoding Usage Examples</title>
   
-  <para>The <link linkend='HTTPClient_Class'>HTTPClient Class</link> will translate character encodings to the encoding specified for the HTTPClient object, if any has been set, as well as tagging strings received with the object's encoding.  Additionally, if an HTTP server response specifies a specific encoding to use, the encoding will be automatically set to this encoding as well.</para>
+    <para>The following is a non-exhaustive list of examples in Qore where character encoding processing is performed.</para>
   
-  <para>Additionally you can serialize a Qore hash to an XML string and specify the character encoding to use. If the target encoding is different than the source encoding conversions are automatically performed. See <link linkend="XML_Integration">XML Integration</link> for more information about XML handling.</para>
+    <para>Character encodings can be explicitly performed with the <link linkend="convert_encoding">convert_encoding()</link> function, and the encoding attached to a string can be checked with the <link linkend="get_encoding">get_encoding()</link> function.  If you have a string with incorrect encoding and want to change the encoding tag of the string (without changing the actual bytes of the string), use the <link linkend="force_encoding">force_encoding()</link> function.</para>
+    
+    <para>The <link linkend='Datasource_Class'>Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).</para>
   
+    <para>The <link linkend='File_Class'>File</link> and <link linkend='Socket_Class'>Socket</link> classes translate character encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.</para>
+  
+    <para>The <link linkend='HTTPClient_Class'>HTTPClient</link>, <link linkend='XmlRpcClient_Class'>XmlRpcClient</link>, and <link linkend='JsonRpcClient_Class'>JsonRpcClient</link> classes will translate character encodings to the encoding specified for the object if necessary, as well as tag strings received with the object's encoding.  Additionally, if an HTTP server response specifies a specific encoding to use, the encoding will be automatically set to this encoding as well.</para>
+  
+    <para>Additionally you can serialize a Qore hash to an XML string and specify the character encoding to use. If the target encoding is different than the source encoding conversions are automatically performed. See <link linkend="XML_Integration">XML Integration</link> for more information about XML handling.</para>  
+  </sect2>
+
 </sect1>
 
   <sect1 id="Expressions">
@@ -866,7 +1012,7 @@ $a || $b
 	  </row>
 	  <row>
 	    <entry><para>A <link linkend="call_references">call reference</link></para></entry>
-	    <entry><para>A reference to a function or object method call.  Function references are resolved in the second phase of parsing (commit phase), and object method references are resolved at run-time.</para></entry>
+	    <entry><para>A reference to a function or object method call (similar to a function pointer in C or C++).  Function references are resolved in the second phase of parsing (commit phase), and object method references are resolved at run-time.</para></entry>
 	    <entry><programlisting>\function_call()
 \$object_expression.method_name()</programlisting></entry>
 	  </row>
@@ -977,7 +1123,7 @@ $$</programlisting></entry>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>References to functions or object methods are called call references.  A call reference can be used like a function pointer;  A call reference is a Qore data type that can be returned by functions or methods or assigned to variables.</para>
+	    <para>References to functions or object methods are called call references.  A call reference can be used like a function pointer; a call reference is a Qore data type that can be returned by functions or methods or assigned to variables.</para>
 	    <para>Note that it is currently not legal to assign a call reference to a constant.  This restriction may be lifted in a future version of Qore.</para>
 	    <para>Function Call References</para>
 	    <para>Call references to functions are resolved at parse time; if the function does not exist a parse exception will be thrown.</para>
@@ -1227,7 +1373,7 @@ $$         # for the entire implicit argument list</programlisting>
     
     <sect2 id="Date_Differences">
       <title>Finding the Difference Between Two Dates</title>
-      <para>Subtracting one absolulte date from another will result in a relative date, normalized to the day value (that is, milliseconds over 999 are converted to seconds, seconds over 59 to minutes, minutes over 59 to hours, hours over 23 to days; months and years will not appear in the result as they do not indicate a fixed period of time but rather can vary in length depending on the absolute date/time starting point.  For example:</para>
+      <para>Subtracting one absolulte date from another will result in a <link linkend="Relative_Dates">relative date</link>, normalized to the day value (that is, milliseconds over 999 are converted to seconds, seconds over 59 to minutes, minutes over 59 to hours, hours over 23 to days; months and years will not appear in the result as they do not indicate a fixed period of time but rather can vary in length depending on the absolute date/time starting point.  For example:</para>
 	<programlisting>$diff = 2007-02-29T10:15:03.255 - 2004-02-29T10:14:02.100;
 printf("%n\n", $diff)</programlisting>
       <para>Results in:</para>

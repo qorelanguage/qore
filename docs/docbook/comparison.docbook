@@ -162,7 +162,7 @@ $scalar = 3.0;</programlisting>
         <para>Java uses the <code>clone</code> method and a special interface to provide a mechanism to copy objects; qore uses the <code>copy()</code> method, which is run in the copy of the object after all members have been copied (although members that are objects get a new reference to the object, so it's not a deep copy -- basically Qore executed an equivalent of Java's <code>Object.clone()</code> call, and then allows the new object to make changes to the new data). Qore's <code>copy()</code> methods are inherited and run in the same order as <code>constructor()</code> methods in class hierarchies.</para>
       </listitem>
       <listitem>
-        <para>Java is based on byte code and requires classes to be compiled to byte code before they are run. Qore parses (very quickly) normal text data to an internal compiled representation which is executed; there is no byte code in qore (yet).</para>
+        <para>Java is based on byte code and requires classes to be compiled to byte code before they are run in a virtual machine. Qore parses (very quickly) normal text data to an internal compiled representation which is executed; no virtual machine is necessary (just the qore binary compiled for the target platform), and no formal byte code exists in Qore.</para>
       </listitem>
     </itemizedlist>
   </sect1>

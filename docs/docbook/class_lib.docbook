@@ -900,7 +900,7 @@
     meaning that any string read from the file will be tagged with the file's character 
     encoding, and any string data written to the file will be transparently converted 
     to that character encoding before being written (if necessary). If no character
-    encoding is specified, then the default Qore character encoding is assumed for the
+    encoding is specified, then the <link linkend="Default_Character_Encoding">default Qore character encoding</link> is assumed for the
     file.</para>
 
     <table>
@@ -982,7 +982,12 @@
 	  <row>
 	    <entry><para><link linkend="File_open">File::open()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Opens a file in a particular mode</para></entry>
+	    <entry><para>Opens a file in a particular mode, returns an error code on failure.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="File_open2">File::open2()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Opens a file in a particular mode; throws an exception on failure.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="File_printf">File::printf()</link></para></entry>
@@ -2243,6 +2248,7 @@ $f.lockBlocking(F_UNLCK);
 	    <para>Opens the file in the mode given. 
 	    Aditionally, the file permissions can be given if the file is to be created, and 
 	    optionally the file's default character encoding can be specified.</para>
+	    <para>For a version of this method that throws an exception when errors occur opening the file, see <link linkend="File_open2">File::open2()</link>.</para>
 	    </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2327,6 +2333,109 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	    <row>
 	      <entry><para><code>FILE-OPEN-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing filename argument.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="File_open2">
+      <title>File::open2()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Opens the file in the mode given.  Aditionally, the file permissions can be given if the file is to be created, and optionally the file's default character encoding can be specified.</para>
+	    <para>If an error occurs, a <code>FILE-OPEN2-ERROR</code> exception is thrown.  For a version of this method that returns an error code, see <link linkend="File_open">File::open()</link>.</para>
+	    </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>File::open2(<replaceable>string:filename, [integer:flags, [integer:mode, [string:charset]]]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># open a file for writing, truncate data if already exists, create the file if doesn't exist
+# set 0644 permissions, and convert all string data to ISO-8859-1 encoding
+$f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for File::open2()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>filename</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The Filename of the file.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>flags</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information.  If this argument is not given, O_RDONLY will be used as the default value.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>mode</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>Permission bits for when the file is to be created (default: 0777)</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>charset</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The name of the default character encoding for this file.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for File::open2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value; if an error occurs, an exception is thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by File::open2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-OPEN2-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Missing filename argument.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FILE-OPEN2-ERROR</code></para></entry>
+	      <entry><para>Error opening the file; attempted to reopen a system file (<link linkend="Qore_IO_Constants">I/O constants</link>).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4506,7 +4615,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
     <para>The Dir class allows Qore programs to list and manipulate directories.</para>
 
     <para>Directory objects can be created/opened with a specific character encoding. This means that any entry read from the directory
-    will be tagged with the directory's character encoding. If no character encoding is given the default Qore character encoding is assumed.</para>
+    will be tagged with the directory's character encoding. If no character encoding is given the <link linkend="Default_Character_Encoding">default Qore character encoding</link> is assumed.</para>
 
     <table>
       <title>Qore::Dir Method Overview</title>
@@ -5902,7 +6011,7 @@ $sd_list=$sd.list();
 	  <listitem>
 	    <para>Create or open a File object in the directory of the Dir object.
 	          The filename does not allow path information (the '/').
-		  Uses the File::open2() method.
+		  Uses the <link linkend="File_open2">File::open2()</link> method.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -5995,7 +6104,7 @@ $f=$d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0633, "UTF-8");
 	  <tbody>
 	    <row>
 	      <entry><para>File Exceptions</para></entry>
-	      <entry><para>Exceptions thrown by the File::open2() call.</para></entry>
+	      <entry><para>Exceptions thrown by the <link linkend="File_open2">File::open2()</link> call.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11335,7 +11444,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
     
     <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
-    <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:</para>
+    <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, <link linkend="Relative_Dates">relative date/time values</link> can be given instead of integers to make the source more readable, for example:</para>
 
     <programlisting><command>my</command> $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds</programlisting>
 
@@ -14503,7 +14612,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  A relative date/time value can be used as well (i.e. <code>1250ms</code>) for clarity.</para></entry>
+	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  A <link linkend="Relative_Dates">relative date/time value</link> can be used as well (i.e. <code>1250ms</code>) for clarity.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -14767,7 +14876,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  A relative date/time value can be used as well (i.e. <code>1250ms</code>) for clarity.</para></entry>
+	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  A <link linkend="Relative_Dates">relative date/time value</link> can be used as well (i.e. <code>1250ms</code>) for clarity.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -16016,7 +16125,7 @@ $sock.bind("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Sets the default read timeout in milliseconds.  Zero means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data).  Note that like all Qore functions and methods taking timeout values, a relative date/time value can be used to make the units clear (i.e. 2m = two minutes, etc.).</para>
+              <para>Sets the default read timeout in milliseconds.  Zero means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data).  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. 2m = two minutes, etc.).</para>
             </entry>
           </row>
           <row>
@@ -16249,7 +16358,7 @@ $sock.bind("/tmp/socket");</programlisting>
             </row>
             <row>
               <entry><para><code>timeout</code></para></entry>
-              <entry><para>The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: <code>5m</code>)</para></entry>
+              <entry><para>The timeout value in milliseconds (also can be a <link linkend="Relative_Dates">relative date-time value</link> for clarity, ex: <code>5m</code>)</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -17842,7 +17951,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the default read timeout in milliseconds.  Zero means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data).  Note that like all Qore functions and methods taking timeout values, a relative date/time value can be used to make the units clear (i.e. <code>2m</code> = two minutes, etc.).</para>
+            <para>Sets the default read timeout in milliseconds.  Zero means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data).  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. <code>2m</code> = two minutes, etc.).</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17882,7 +17991,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>Integer or Relative Date/Time</para>
+                <para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para>
               </entry>
               <entry>
                 <para>Read timeout in milliseconds, 0 = immediate timeout, negative numbers = never timeout.</para>
@@ -22908,7 +23017,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><replaceable>[charset_name]</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The database-specific name of the character encoding to use for the new connection.  Also see <link linkend="Qore::SQL::Datasource::setDBCharset">Datasource::setDBCharset()</link> for a method that allows this parameter to be set after the constructor.  If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the Qore process will be used instead.</para></entry>
+	      <entry><para>The database-specific name of the character encoding to use for the new connection.  Also see <link linkend="Qore::SQL::Datasource::setDBCharset">Datasource::setDBCharset()</link> for a method that allows this parameter to be set after the constructor.  If no value is passed for this parameter, then the database character encoding corresponding to the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore process will be used instead.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>[hostname]</replaceable></para></entry>
@@ -24237,7 +24346,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the <link linkend="datasource_transaction_lock">transaction lock</link> timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
+	    <para>Sets the <link linkend="datasource_transaction_lock">transaction lock</link> timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24268,7 +24377,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    <row>
 	      <entry><para><replaceable>timeout_ms</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
-	      <entry><para>The timeout value to set in seconds.  For no timeout, set to 0.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para></entry>
+	      <entry><para>The timeout value to set in seconds.  For no timeout, set to 0.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -25460,7 +25569,7 @@ $pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database
 	    <row>
 	      <entry><para><replaceable>[charset_name]</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The database-specific name of the character encoding to use for the new connection.  If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the Qore process will be used instead.</para></entry>
+	      <entry><para>The database-specific name of the character encoding to use for the new connection.  If no value is passed for this parameter, then the database character encoding corresponding to the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore process will be used instead.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>[hostname]</replaceable></para></entry>
@@ -28312,7 +28421,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Blocks a thread on the Condition object.  Must be called with a <link linkend="Mutex_Class">Mutex</link> argument, and the Mutex must be locked before the call.  This method will atomically unlock the Mutex object and wait on this Condition object to be woken up with a <link linkend="Qore::Thread::Condition::signal">Condition::signal()</link> or <link linkend="Qore::Thread::Condition::broadcast">Condition::broadcast()</link> method call in another thread.  At this point, the Mutex will be reacquired before control returns to the blocked thread.  The wait condition should always be tested again when the thread is unblocked.</para>
-	    <para>Also accepts an optional timeout value in milliseconds.   Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Also if the call times out, the Mutex will also be acquired when the Condition::wait() call returns and a non-zero return value will be returned.</para>
+	    <para>Also accepts an optional timeout value in milliseconds.   Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Also if the call times out, the Mutex will also be acquired when the Condition::wait() call returns and a non-zero return value will be returned.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28351,8 +28460,8 @@ $mutex.unlock();</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
-	      <entry><para>An optional timeout value; integers are interpreted as milliseconds; relative date/time values are interpreted literally.</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
+	      <entry><para>An optional timeout value; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28843,7 +28952,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks a thread until the counter reaches zero.  Takes an optional timeout value in milliseconds.   Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
+	    <para>Blocks a thread until the counter reaches zero.  Takes an optional timeout value in milliseconds.   Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28873,7 +28982,7 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
 	      <entry><para>A value giving the number of milliseconds to wait for the Counter to reach zero.</para></entry>
 	    </row>
 	  </tbody>
@@ -29285,7 +29394,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29315,7 +29424,7 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
 	      <entry><para>If present, a timeout value in milliseconds (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -29370,7 +29479,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29400,7 +29509,7 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
 	      <entry><para>If present, a timeout value in ms (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -29917,7 +30026,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the read lock with an optional timeout value; blocks if the write lock is already acquired.  The read lock may be acquired recursively, however, each call to RWLock::readLock() requires a corresponding call to <link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link>. An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear.</para>
+	    <para>Acquires the read lock with an optional timeout value; blocks if the write lock is already acquired.  The read lock may be acquired recursively, however, each call to RWLock::readLock() requires a corresponding call to <link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link>. An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29947,8 +30056,8 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
-	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a relative time value (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
+	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a <link linkend="Relative_Dates">relative time value</link> (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -30083,7 +30192,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the write lock; blocks if either the read lock or write lock is already acquired.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear.</para>
+	    <para>Acquires the write lock; blocks if either the read lock or write lock is already acquired.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear.</para>
 	    <para>To release the write lock, use <link linkend="Qore::Thread::RWLock::readUnlock">RWLock::readUnlock()</link>.</para>
 	  </listitem>
 	</varlistentry>
@@ -30114,8 +30223,8 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
-	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a relative time value (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Time</link></para></entry>
+	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a <link linkend="Relative_Dates">relative time value</link> (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -30802,7 +30911,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Locks the Mutex object.  Blocks if the lock is already held.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear.</para>
+	    <para>Locks the Mutex object.  Blocks if the lock is already held.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear.</para>
 	    <para>To release the Mutex, use <link linkend="Qore::Thread::Mutex::unlock">Mutex::unlock()</link>.</para>
 	  </listitem>
 	</varlistentry>
@@ -30833,8 +30942,8 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
-	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a relative time value (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
+	      <entry><para>If an argument is present, it is interpreted as a timeout in milliseconds.  Note that it's recommended to use a <link linkend="Relative_Dates">relative time value</link> (i.e. <code>250ms</code>) to make the units clear in the source code.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -31611,7 +31720,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a relative time value may be passed instead of an integer to make the timeout units clear.</para>
+	    <para>Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero.  An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -31641,7 +31750,7 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
 	      <entry><para>An optional timeout value in milliseconds for acquiring the lock.</para></entry>
 	    </row>
 	  </tbody>
@@ -31725,7 +31834,7 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
-	      <entry><para>Integer or Relative Time</para></entry>
+	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
 	      <entry><para>An optional timeout value in milliseconds for acquiring the lock.</para></entry>
 	    </row>
 	  </tbody>

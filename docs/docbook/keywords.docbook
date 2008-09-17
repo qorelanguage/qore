@@ -3,67 +3,92 @@
 <chapter id="Appendix_A:_List_of_Keywords">
   <title>Appendix A: List of Keywords</title>
 
-  <para>The following is a list of all keywords in the Qore language:</para>
-
-  <para><code>
-  <link linkend='Classes'>class</link>, 
-  <link linkend='Private_and_Synchronized_Methods'>private</link>, 
-  <link linkend='Private_and_Synchronized_Methods'>synchronized</link>, 
-  <link linkend="New_Object_Operator">new</link>, 
-  <link linkend='Class_Inheritance'>inherits</link>, 
-  where, 
-  <link linkend='do_while_Statements'>do</link>, 
-  <link linkend='while_Statements'>while</link>, 
-  <link linkend='if_and_else_Statements'>if</link>, 
-  <link linkend='if_and_else_Statements'>else</link>, 
-  <link linkend='for_Statements'>for</link>, 
-  <link linkend='foreach_Statements'>foreach</link>, 
-  <link linkend='switch_Statements'>switch</link>,
-  <link linkend='switch_Statements'>case</link>,
-  <link linkend='Constants'>const</link>, 
-  <link linkend='Namespaces'>namespace</link>, 
-  <link linkend='return_Statements'>return</link>, 
-  <link linkend='Variables'>my</link>, 
-  <link linkend='Variables'>our</link>, 
-  <link linkend='try_and_catch_Statements'>try</link>, 
-  <link linkend='throw_Statements'>throw</link>, 
-  <link linkend='rethrow_Statements'>rethrow</link>,
-  <link linkend='try_and_catch_Statements'>catch</link>, 
-  <link linkend="find_Expressions">find</link>, 
-  <link linkend='delete_Statements'>delete</link>, 
-  <link linkend="Background_Operator">background</link>, 
-  <link linkend="Exists_Operator">exists</link>, 
-  <link linkend='thread_exit_Statements'>thread_exit</link>, 
-  in, 
-  <link linkend="Elements_Operator">elements</link>, 
-  <link linkend="Keys_Operator">keys</link>, 
-  <link linkend="Subroutines">sub</link>, 
-  <link linkend='context_Statements'>context</link>, 
-  sortBy, sortDescendingBy, 
-  <link linkend="NULL">NULL</link>, 
-  <link linkend="NOTHING">NOTHING</link>, 
-  <link linkend='summarize_Statements'>summarize</link>, 
-  by, 
-  <link linkend='subcontext_Statements'>subcontext</link>, 
-  <link linkend='break_Statements'>break</link>, 
-  <link linkend='continue_Statements'>continue</link>, 
-  <link linkend='Instanceof_Operator'>instanceof</link>,
-  <link linkend='on_exit_Statements'>on_exit</link>, 
-  <link linkend='on_success_Statements'>on_success</link>, 
-  <link linkend='on_error_Statements'>on_error</link>
-  </code></para>
-
-  <para>The following are special keywords, in that they may be used as function or method names if they are followed by an open parenthesis:</para>
+  <para>The following is a list of all keywords in the Qore language that may not be used as funciton or method names and also may not be used as unquoted hash or object member names with the <link linkend="Hash_Element_Literal_Dereference_Operator">&quot;.&quot; operator</link>:</para>
 
   <para>
-    <code><link linkend="Splice_Operator">splice</link>, 
-    <link linkend="Pop_Operator">pop</link>, 
-    <link linkend="Push_Operator">push</link>, 
-    <link linkend="Shift_Operator">shift</link>, 
-    <link linkend="Unshift_Operator">unshift</link>, 
-    <link linkend="Chomp_Operator">chomp</link>
+    <code>
+      <link linkend="summarize_Statements">by</link>, 
+      <link linkend="break_Statements">break</link>, 
+      <link linkend="try_and_catch_Statements">catch</link>, 
+      <link linkend="Constants">const</link>, 
+      <link linkend="context_Statements">context</link>, 
+      <link linkend="continue_Statements">continue</link>, 
+      <link linkend="do_while_Statements">do</link>, 
+      <link linkend="if_and_else_Statements">else</link>, 
+      <link linkend="for_Statements">for</link>, 
+      <link linkend="foreach_Statements">foreach</link>, 
+      <link linkend="if_and_else_Statements">if</link>, 
+      <link linkend="foreach_Statements">in</link>, 
+      <link linkend="Class_Inheritance">inherits</link>, 
+      <link linkend="Instanceof_Operator">instanceof</link>,
+      <link linkend="Namespaces">namespace</link>, 
+      <link linkend="Variables">my</link>, 
+      <link linkend="NOTHING">NOTHING</link>, 
+      <link linkend="NULL">NULL</link>, 
+      <link linkend="on_error_Statements">on_error</link>,
+      <link linkend="on_exit_Statements">on_exit</link>,
+      <link linkend="on_success_Statements">on_success</link>,
+      <link linkend="Variables">our</link>,
+      <link linkend="rethrow_Statements">rethrow</link>,
+      <link linkend="return_Statements">return</link>,
+      <link linkend="context_Statements">sortBy</link>,
+      <link linkend="context_Statements">sortDescendingBy</link>,
+      <link linkend="Subroutines">sub</link>,
+      <link linkend="subcontext_Statements">subcontext</link>, 
+      <link linkend="summarize_Statements">summarize</link>,
+      <link linkend="switch_Statements">switch</link>,
+      <link linkend="Private_and_Synchronized_Methods">synchronized</link>, 
+      <link linkend="thread_exit_Statements">thread_exit</link>, 
+      <link linkend="throw_Statements">throw</link>, 
+      <link linkend="try_and_catch_Statements">try</link>, 
+      <link linkend="context_Statements">where</link>, 
+      <link linkend="while_Statements">while</link>
     </code>
   </para>
+
+  <para>The following are special keywords, in that a parser trick is used allowing them to be used as function or method names if they are followed immediately by an open parenthesis (with no whitespace between the keyword and the open parenthesis), and they may be referenced as unquoted object or hash member names if they are immediately preceded by the <link linkend="Hash_Element_Literal_Dereference_Operator">&quot;.&quot; operator</link> (again with no whitespace between the &quot;.&quot; and the keyword):</para>
+
+  <para>
+    <code>
+      <link linkend="Background_Operator">background</link>, 
+      <link linkend="switch_Statements">case</link>,
+      <link linkend="Chomp_Operator">chomp</link>
+      <link linkend="Classes">class</link>, 
+      <link linkend="delete_Statements">delete</link>, 
+      <link linkend="Exists_Operator">exists</link>, 
+      <link linkend="Foldl_Operator">foldl</link>, 
+      <link linkend="Foldr_Operator">foldr</link>, 
+      <link linkend="Map_Operator">map</link>,
+      <link linkend="Pop_Operator">pop</link>, 
+      <link linkend="Private_and_Synchronized_Methods">private</link>, 
+      <link linkend="Push_Operator">push</link>, 
+      <link linkend="New_Object_Operator">new</link>, 
+      <link linkend="Select_Operator">select</link>,
+      <link linkend="Shift_Operator">shift</link>, 
+      <link linkend="Splice_Operator">splice</link>, 
+      <link linkend="Trim_Operator">trim</link>,
+      <link linkend="Unshift_Operator">unshift</link>
+    </code>
+  </para>  
+
+  <para>The following are special keywords, in that a parser trick is used allowing them to be used as function or method names if they are followed by an open parenthesis (in the case of these keywords, it is permissable to have whitespace between the keyword and the open parenthesis), and they may be referenced as unquoted object or hash member names if they are immediately preceded by the <link linkend="Hash_Element_Literal_Dereference_Operator">&quot;.&quot; operator</link> (again with no whitespace between the &quot;.&quot; and the keyword):</para>
+
+  <para>
+    <code>
+      <link linkend="switch_Statements">default</link>,
+      <link linkend="Static_Methods">static</link>
+    </code>
+  </para>  
+
+  <para>The following are special keywords, in that they may be referenced as unquoted object or hash member names if preceded immediately by the <link linkend="Hash_Element_Literal_Dereference_Operator">&quot;.&quot; operator</link>, however they may not be used as function or class method names:</para>
+
+  <para>
+    <code>
+      <link linkend="Elements_Operator">elements</link>, 
+      <link linkend="find_Expressions">find</link>, 
+      <link linkend="Keys_Operator">keys</link>,
+    </code>
+  </para>  
 
 </chapter>
 

@@ -75,13 +75,11 @@ static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink
    return date.getReferencedValue();
 }
 
-static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink) {
    QoreListNode *l = new QoreListNode();
    if (num_params(params) > 1)
       l->push(params->eval(xsink));
-   else
-   {
+   else {
       const AbstractQoreNode *p0 = get_param(params, 0);
       if (!is_nothing(p0))
 	 l->push(p0->eval(xsink));
@@ -89,22 +87,36 @@ static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink
    return l;
 }
 
-static AbstractQoreNode *f_hash(const QoreListNode *params, ExceptionSink *xsink)
-{
-   return new QoreHashNode();
+static AbstractQoreNode *f_hash(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
+   qore_type_t t = p ? p->getType() : NT_NOTHING;
+   if (t == NT_OBJECT) {
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+      return o->getRuntimeMemberHash(xsink);
+   }
+
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+
+   if (t == NT_LIST) {
+      ConstListIterator li(reinterpret_cast<const QoreListNode *>(p));
+      while (li.next()) {
+	 QoreStringValueHelper str(li.getValue());
+	 h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
+	 if (*xsink)
+	    return 0;
+      }
+   }
+   return h.release();
 }
 
-static AbstractQoreNode *f_type(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_type(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
    if (!p)
       return new QoreStringNode("nothing");
-   else
-      return new QoreStringNode(p->getTypeName());
+   return new QoreStringNode(p->getTypeName());
 }
 
-void init_type_functions()
-{
+void init_type_functions() {
    builtinFunctions.add("boolean", f_boolean);
    builtinFunctions.add("int", f_int);
    builtinFunctions.add("float", f_float);

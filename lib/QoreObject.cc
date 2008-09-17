@@ -285,8 +285,12 @@ const QoreClass *QoreObject::getClass(qore_classid_t cid) const
    return priv->theclass->getClass(cid);
 }
 
-AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink *xsink)
-{
+static bool in_class_call(qore_classid_t id) {
+   QoreObject *obj = getStackObject();
+   return (obj && obj->getClass()->getID() == id) ? true : false;
+}
+
+AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink *xsink) {
    // make sure to convert string encoding if necessary to default character set
    TempEncodingHelper tstr(member, QCS_DEFAULT, xsink);
    if (!tstr)
@@ -295,12 +299,9 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
    const char *mem = tstr->getBuffer();
 
    //printd(5, "QoreObject::evalMember() find_key(%s)=%08p theclass=%s\n", mem, find_key(mem), theclass ? theclass->getName() : "NONE");
-   // if accessed outside the class and the member is a private member 
-   QoreObject *obj = getStackObject();
-   printd(5, "QoreObject::evalMember(%s) obj=%08p class=%s ID=%d stack obj=%08p class=%s ID=%d isPrivateMember=%s\n", mem, this, priv->theclass->getName(), priv->theclass->getID(), obj, obj ? obj->priv->theclass->getName() : "(null)", obj ? obj->priv->theclass->getID() : -1, priv->theclass->isPrivateMember(mem) ? "true" : "false");
 
    // if accessed outside the class and the member is a private member 
-   if ((!obj || (obj && obj->priv->theclass->getID() != priv->theclass->getID())) && priv->theclass->isPrivateMember(mem)) {
+   if (!in_class_call(priv->theclass->getID()) && priv->theclass->isPrivateMember(mem)) {
       if (priv->theclass->hasMemberGate()) {
 	 return priv->theclass->evalMemberGate(this, *tstr, xsink);
       }
@@ -651,8 +652,7 @@ void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink)
    }
 }
 
-AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, ExceptionSink *xsink) const {
    AutoLocker al(priv->m);
 
    printd(5, "QoreObject::getReferencedMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
@@ -666,18 +666,42 @@ AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, Excep
    return priv->data->getReferencedKeyValue(mem);
 }
 
-QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const
-{
+QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const {
    AutoLocker al(priv->m);
 
    if (priv->status == OS_DELETED)
       return 0;
-   
+
    return priv->data->copy();
 }
 
-void QoreObject::mergeDataToHash(QoreHashNode *hash, ExceptionSink *xsink)
-{
+QoreHashNode *QoreObject::getRuntimeMemberHash(ExceptionSink *xsink) const {
+   bool inclass = in_class_call(priv->theclass->getID());
+
+   AutoLocker al(priv->m);
+
+   if (priv->status == OS_DELETED)
+      return 0;
+
+   // return all member data if called inside the class
+   if (inclass)
+      return priv->data->copy();
+
+   QoreHashNode *h = new QoreHashNode;
+
+   ConstHashIterator hi(priv->data);
+   while (hi.next()) {
+      if (priv->theclass->isPrivateMember(hi.getKey()))
+	 continue;
+
+      // not possible for an exception to happen here
+      h->setKeyValue(hi.getKey(), hi.getReferencedValue(), xsink);
+   }
+
+   return h;
+}
+
+void QoreObject::mergeDataToHash(QoreHashNode *hash, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (priv->status == OS_DELETED) {
@@ -690,8 +714,7 @@ void QoreObject::mergeDataToHash(QoreHashNode *hash, ExceptionSink *xsink)
 
 // unlocking the lock is managed with the AutoVLock object
 // we check if the object is already locked
-AbstractQoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, AutoVLock *vl, ExceptionSink *xsink) const
-{
+AbstractQoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, AutoVLock *vl, ExceptionSink *xsink) const {
    TempEncodingHelper enc(mem, QCS_DEFAULT, xsink);
    if (!enc)
       return 0;
@@ -701,8 +724,7 @@ AbstractQoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, AutoVL
 
 // unlocking the lock is managed with the AutoVLock object
 // we check if the object is already locked
-AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, AutoVLock *vl, ExceptionSink *xsink) const
-{
+AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, AutoVLock *vl, ExceptionSink *xsink) const {
    // do lock handoff
    qore_object_lock_handoff_manager qolhm(const_cast<QoreObject *>(this), vl);
 

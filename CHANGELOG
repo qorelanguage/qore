@@ -1,3 +1,7 @@
+2008.09.16: David Nichols
+	* documentation updates and corrections
+	* updated hash() to make a hash from a list and from an object's members
+
 2008.09.15: David Nichols
 	* updated qore option and option documentation
 	* added a new constructor to QoreSSLCertificate

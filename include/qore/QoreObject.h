@@ -371,6 +371,13 @@ class QoreObject : public AbstractQoreNode
        */
       DLLLOCAL void merge(const QoreHashNode *h, ExceptionSink *xsink);
 
+      //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
+      /**
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return member data of the object
+       */
+      DLLLOCAL QoreHashNode *getRuntimeMemberHash(ExceptionSink *xsink) const;
+
       DLLLOCAL class KeyNode *getReferencedPrivateDataNode(qore_classid_t key);
 
       //! retrieves the private data pointer and clears it from the object's private data store, used when executing destructors

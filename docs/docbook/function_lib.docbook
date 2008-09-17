@@ -549,7 +549,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a relative date in days for date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date</link> in days for date arithmetic.</para>
           </entry>
         </row>
         <row>
@@ -1054,7 +1054,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer value representing the days value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the days value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </entry>
       </row>
 
@@ -1072,7 +1072,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the name of the default character encoding.</para>
+            <para>Returns the name of the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore library.</para>
           </entry>
         </row>
         <row>
@@ -1105,7 +1105,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer value representing the hours value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the hours value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </entry>
       </row>
       <row>
@@ -1137,7 +1137,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer value representing the milliseconds value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the milliseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </entry>
       </row>
       <row>
@@ -1153,7 +1153,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer value representing the minutes value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the minutes value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </entry>
       </row>
       <row>
@@ -1169,7 +1169,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer value representing the months value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the months value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </entry>
       </row>
       <row>
@@ -1188,7 +1188,7 @@
         <entry><para><link linkend="get_seconds">get_seconds()</link></para></entry>
         <entry><para>Integer</para></entry>
         <entry><para>N</para></entry>
-        <entry><para>Returns an integer value representing the seconds value of the date passed (can be either a relative or absolute date).</para></entry>
+        <entry><para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para></entry>
       </row>
 
       <row>
@@ -1242,7 +1242,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer value representing the years value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </entry>
       </row>
 
@@ -1287,7 +1287,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Retuns an absolute date value for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
+          <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
         </entry>
       </row>
       <row>
@@ -1303,7 +1303,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer representing the day of the week for the absolute date passed (0=Sunday, 6=Saturday)</para>
+          <para>Returns an integer representing the day of the week for the <link linkend="Absolute_Dates">absolute date</link> passed (0=Sunday, 6=Saturday)</para>
         </entry>
       </row>
       <row>
@@ -1319,7 +1319,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer representing the ordinal day number in the year for the absolute date passed</para>
+          <para>Returns an integer representing the ordinal day number in the year for the <link linkend="Absolute_Dates">absolute date</link> passed</para>
         </entry>
       </row>
 
@@ -1467,7 +1467,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns an integer representing the ISO-8601 day of the week for the absolute date passed (1=Monday, 7=Sunday)</para>
+          <para>Returns an integer representing the ISO-8601 day of the week for the <link linkend="Absolute_Dates">absolute date</link> passed (1=Monday, 7=Sunday)</para>
         </entry>
       </row>
       <row>
@@ -1483,7 +1483,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns a hash representing the ISO-8601 calendar week information for the absolute date passed (hash keys: year, week, day)</para>
+          <para>Returns a hash representing the ISO-8601 calendar week information for the <link linkend="Absolute_Dates">absolute date</link> passed (hash keys: year, week, day)</para>
         </entry>
       </row>
       <row>
@@ -1499,7 +1499,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns a string representing the ISO-8601 calendar week information for the absolute date passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;)</para>
+          <para>Returns a string representing the ISO-8601 calendar week information for the <link linkend="Absolute_Dates">absolute date</link> passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;)</para>
         </entry>
       </row>
 
@@ -1666,7 +1666,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns an empty hash.</para>
+            <para>Converts an object or a list to a hash; otherwise returns an empty hash.</para>
           </entry>
         </row>
         <row>
@@ -1710,7 +1710,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a relative date in hours to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date</link> in hours to be used in date arithmetic.</para>
           </entry>
         </row>
         <row>
@@ -2657,7 +2657,7 @@
           <entry><para><link linkend="milliseconds">milliseconds()</link></para></entry>
 	  <entry><para>Date</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a relative date in milliseconds to be used in date arithmetic.</para></entry>
+          <entry><para>Returns a <link linkend="Relative_Dates">relative date</link> in milliseconds to be used in date arithmetic.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="min">min()</link></para></entry>
@@ -2678,7 +2678,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a relative date in minutes to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date</link> in minutes to be used in date arithmetic.</para>
           </entry>
         </row>
         <row>
@@ -2731,7 +2731,7 @@
           <entry><para><link linkend="months">months()</link></para></entry>
 	  <entry><para>Date</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a relative date in months to be used in date arithmetic.</para></entry>
+          <entry><para>Returns a <link linkend="Relative_Dates">relative date</link> in months to be used in date arithmetic.</para></entry>
         </row>
 
 
@@ -3252,7 +3252,7 @@
           <entry><para><link linkend="seconds">seconds()</link></para></entry>
 	  <entry><para>Date</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a relative date in seconds to be used in date arithmetic.</para></entry>
+          <entry><para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in seconds to be used in date arithmetic.</para></entry>
         </row>
 
         <row>
@@ -3908,7 +3908,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a relative date in years to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in years to be used in date arithmetic.</para>
           </entry>
         </row>
       </tbody>
@@ -5898,7 +5898,7 @@
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a relative date of a number of days for date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in days for date arithmetic.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -5940,7 +5940,7 @@
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Returns a relative date corresponding to the number of days passed as an argument, to be used in date arithmetic.</para>
+                <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of days passed as an argument, to be used in date arithmetic.</para>
               </entry>
             </row>
           </tbody>
@@ -6121,7 +6121,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer value representing the years value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6162,7 +6162,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer value representing the years value of the date passed (can be either a relative or absolute date).</para>
+              <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
@@ -6175,7 +6175,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer value representing the months value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the months value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6216,7 +6216,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer value representing the months value of the date passed (can be either a relative or absolute date).</para>
+              <para>Returns an integer value representing the months value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
@@ -6229,7 +6229,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer value representing the days value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the days value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6270,7 +6270,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer value representing the days value of the date passed (can be either a relative or absolute date).</para>
+              <para>Returns an integer value representing the days value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
@@ -6283,7 +6283,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer value representing the hours value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the hours value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6324,7 +6324,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer value representing the hours value of the date passed (can be either a relative or absolute date).</para>
+              <para>Returns an integer value representing the hours value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
@@ -6337,7 +6337,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer value representing the minutes value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the minutes value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6378,7 +6378,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer value representing the minutes value of the date passed (can be either a relative or absolute date).</para>
+              <para>Returns an integer value representing the minutes value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
@@ -6391,7 +6391,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer value representing the seconds value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6432,7 +6432,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer value representing the seconds value of the date passed (can be either a relative or absolute date).</para>
+              <para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
@@ -6445,7 +6445,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer value representing the milliseconds value of the date passed (can be either a relative or absolute date).</para>
+          <para>Returns an integer value representing the milliseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6486,7 +6486,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer value representing the milliseconds value of the date passed (can be either a relative or absolute date).</para>
+              <para>Returns an integer value representing the milliseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
@@ -6553,7 +6553,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Retuns an absolute date value for the ISO-8601 calendar week information passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday).  If the weekday is omitted, Monday (1) is assumed.</para>
+          <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday).  If the weekday is omitted, Monday (1) is assumed.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6594,7 +6594,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Retuns an absolute date value for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
+              <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
             </entry>
           </row>
         </tbody>
@@ -6607,7 +6607,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer representing the day of the week for the absolute date passed (0=Sunday, 6=Saturday)</para>
+          <para>Returns an integer representing the day of the week for the <link linkend="Absolute_Dates">absolute date</link> passed (0=Sunday, 6=Saturday)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6648,7 +6648,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer representing the day of the week for the absolute date passed (0=Sunday, 6=Saturday)</para>
+              <para>Returns an integer representing the day of the week for the <link linkend="Absolute_Dates">absolute date</link> passed (0=Sunday, 6=Saturday)</para>
             </entry>
           </row>
         </tbody>
@@ -6661,7 +6661,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer representing the ordinal day number in the year for the absolute date passed</para>
+          <para>Returns an integer representing the ordinal day number in the year for the <link linkend="Absolute_Dates">absolute date</link> passed</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6702,7 +6702,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer representing the ordinal day number in the year for the absolute date passed</para>
+              <para>Returns an integer representing the ordinal day number in the year for the <link linkend="Absolute_Dates">absolute date</link> passed</para>
             </entry>
           </row>
         </tbody>
@@ -6715,7 +6715,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer representing the ISO-8601 day of the week for the absolute date passed (1=Monday, 7=Sunday)</para>
+          <para>Returns an integer representing the ISO-8601 day of the week for the <link linkend="Absolute_Dates">absolute date</link> passed (1=Monday, 7=Sunday)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6756,7 +6756,7 @@
               <para>Integer</para>
             </entry>
             <entry>
-              <para>Returns an integer representing the ISO-8601 day of the week for the absolute date passed (1=Monday, 7=Sunday)</para>
+              <para>Returns an integer representing the ISO-8601 day of the week for the <link linkend="Absolute_Dates">absolute date</link> passed (1=Monday, 7=Sunday)</para>
             </entry>
           </row>
         </tbody>
@@ -6769,7 +6769,7 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns a hash representing the ISO-8601 calendar week information for the absolute date passed (hash keys: year, week, day).  Note that the ISO-8601 year does not always correspond with the calendar year at the end and the begin
+          <para>Returns a hash representing the ISO-8601 calendar week information for the <link linkend="Absolute_Dates">absolute date</link> passed (hash keys: year, week, day).  Note that the ISO-8601 year does not always correspond with the calendar year at the end and the begin
 ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: year=2005, week=52, day=7)</para>
         </listitem>
       </varlistentry>
@@ -6811,7 +6811,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Hash</para>
             </entry>
             <entry>
-              <para>Returns a hash representing the ISO-8601 calendar week information for the absolute date passed (hash keys: year, week, day)</para>
+              <para>Returns a hash representing the ISO-8601 calendar week information for the <link linkend="Absolute_Dates">absolute date</link> passed (hash keys: year, week, day)</para>
             </entry>
           </row>
         </tbody>
@@ -6824,7 +6824,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns a string representing the ISO-8601 calendar week information for the absolute date passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;).  Note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: year=2005, week=52, day=7)</para>
+          <para>Returns a string representing the ISO-8601 calendar week information for the <link linkend="Absolute_Dates">absolute date</link> passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;).  Note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: year=2005, week=52, day=7)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6865,7 +6865,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String</para>
             </entry>
             <entry>
-              <para>Returns a string representing the ISO-8601 calendar week information for the absolute date passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;)</para>
+              <para>Returns a string representing the ISO-8601 calendar week information for the <link linkend="Absolute_Dates">absolute date</link> passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;)</para>
             </entry>
           </row>
         </tbody>
@@ -6942,7 +6942,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a relative date in hours to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in hours to be used in date arithmetic.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -6984,7 +6984,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Returns a relative date corresponding to the number of hours passed as an argument, to be used in date arithmetic.</para>
+                <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of hours passed as an argument, to be used in date arithmetic.</para>
               </entry>
             </row>
           </tbody>
@@ -7060,7 +7060,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a relative date in milliseconds to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in milliseconds to be used in date arithmetic.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7102,7 +7102,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Returns a relative date corresponding to the number of milliseconds passed as an argument, to be used in date arithmetic.</para>
+                <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of milliseconds passed as an argument, to be used in date arithmetic.</para>
               </entry>
             </row>
           </tbody>
@@ -7117,7 +7117,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a relative date in minutes to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in minutes to be used in date arithmetic.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7159,7 +7159,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Returns a relative date corresponding to the number of minutes passed as an argument, to be used in date arithmetic.</para>
+                <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of minutes passed as an argument, to be used in date arithmetic.</para>
               </entry>
             </row>
           </tbody>
@@ -7241,7 +7241,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a relative date in months to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in months to be used in date arithmetic.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7283,7 +7283,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Returns a relative date corresponding to the number of months passed as an argument, to be used in date arithmetic.</para>
+                <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of months passed as an argument, to be used in date arithmetic.</para>
               </entry>
             </row>
           </tbody>
@@ -7359,7 +7359,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a relative date in seconds to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in seconds to be used in date arithmetic.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7401,7 +7401,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Returns a relative date corresponding to the number of seconds passed as an argument, to be used in date arithmetic.</para>
+                <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of seconds passed as an argument, to be used in date arithmetic.</para>
               </entry>
             </row>
           </tbody>
@@ -7491,7 +7491,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a relative date in years to be used in date arithmetic.</para>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in years to be used in date arithmetic.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7533,7 +7533,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Returns a relative date corresponding to the number of years passed as an argument, to be used in date arithmetic.</para>
+                <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of years passed as an argument, to be used in date arithmetic.</para>
               </entry>
             </row>
           </tbody>
@@ -7772,19 +7772,20 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns an empty hash (ignores any arguments passed).</para>
+	<para>Converts an object or a list to a hash; for any other argument, returns an empty hash (ignores any other arguments passed).</para>
+	<para>For an object argument, the hash returned is equal to the object members (excluding private members if called outside the class); a list is converted to a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>hash()</programlisting>
+	<programlisting>hash(<replaceable>list</replaceable> | <replaceable>object</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$h = hash(); # creates an empty hash</programlisting>
+	<programlisting>$h = hash($object); # creates a hash of the object's members</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7802,9 +7803,19 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>n/a</para></entry>
+	      <entry><para>Object</para></entry>
               <entry><para>Hash</para></entry>
-              <entry><para>Returns an empty hash, ignoring any arguments passed.</para></entry>
+              <entry><para>Returns a hash of the object's members (public members only if called outside the class).</para></entry>
+            </row>
+            <row>
+	      <entry><para>List</para></entry>
+              <entry><para>Hash</para></entry>
+              <entry><para>Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value.</para></entry>
+            </row>
+            <row>
+	      <entry><para>anything other than Object or List</para></entry>
+              <entry><para>Hash</para></entry>
+              <entry><para>Returns an empty hash.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8472,7 +8483,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$utf8_str = convert_encoding($str, "utf-8");</programlisting>
+	<programlisting>$utf8_str = force_encoding($bad_str, "utf-8");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10713,7 +10724,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Causes the current thread to sleep for a certain number of seconds.  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable (ie <code>5s</code>), however as this function only supports a resolution of 1 second, milliseconds are ignored if passed to this function.  See <link linkend="usleep">usleep()</link> for a similar function supporting microsecond resolution.</para>
+	<para>Causes the current thread to sleep for a certain number of seconds.  Note that as with all Qore functions and methods accepting a timeout value, <link linkend="Relative_Dates">relative date/time values</link> can be given instead of integers to make the source more readable (ie <code>5s</code>), however as this function only supports a resolution of 1 second, milliseconds are ignored if passed to this function.  See <link linkend="usleep">usleep()</link> for a similar function supporting microsecond resolution.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10750,9 +10761,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>Integer or Relative Time</para></entry>
+    <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
     <entry><para>Integer</para></entry>
-    <entry><para>Causes the current thread to sleep for a number of seconds equal to the argument passed.  Returns 0 for success.  An integer argument is interpreted as a number of seconds to sleep, relative date/time values are interpreted literally.</para></entry>
+    <entry><para>Causes the current thread to sleep for a number of seconds equal to the argument passed.  Returns 0 for success.  An integer argument is interpreted as a number of seconds to sleep, <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
   </row>
 
 </tbody>
@@ -10783,6 +10794,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Example</term>
       <listitem>
 	<programlisting>$mode = stat($filepath)[2];</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10998,7 +11015,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).  Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable (ie <code>1250ms</code>), however as this function supports a resolution of 1 microsecond, to achieve a resolution below milliseconds, an integer must be used instead of a relative date/time value.  See <link linkend="sleep">sleep()</link> for a similar function supporting second resolution.</para>
+	<para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).  Note that as with all Qore functions and methods accepting a timeout value, <link linkend="Relative_Dates">relative date/time values</link> can be given instead of integers to make the source more readable (ie <code>1250ms</code>), however as this function supports a resolution of 1 microsecond, to achieve a resolution below milliseconds, an integer must be used instead of a <link linkend="Relative_Dates">relative date/time value</link>.  See <link linkend="sleep">sleep()</link> for a similar function supporting second resolution.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -11036,9 +11053,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>Integer or Relative Time</para></entry>
+    <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
     <entry><para>Integer</para></entry>
-    <entry><para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).  Returns 0 for success.  Integers are interpreted as microseconds, relative date/time values are interpreted literally.</para></entry>
+    <entry><para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).  Returns 0 for success.  Integers are interpreted as microseconds, <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
   </row>
 
 </tbody>
@@ -11066,9 +11083,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <command>if</command> (!$size || $size &lt; 0)
         <command>throw</command> "GET-KEY-ERROR", sprintf("invalid size = %n", $size);
     <command>my</command> $f = <command>new</command> File();
-    # throw an exception if /dev/random cannot be opened for reading
-    <command>if</command> ($f.open("/dev/random"))
-        <command>throw</command> "OPEN-ERROR", strerror(errno());
+    # File::open2() will throw an exception if /dev/random cannot be opened for reading
+    $f.open2("/dev/random");
     <command>return</command> $f.readBinary($size);
 }</programlisting>
 
@@ -14334,7 +14350,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).  Availability of this function depends on the version of OpenSSL used to compile Qore.  The availability of this function depends on the availability of the MDC2 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_MDC2</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).  The availability of this function depends on the availability of the MDC2 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_MDC2</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17314,7 +17330,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Uncompresses gzipped data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
+	    <para>Uncompresses gzipped data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the <link linkend="Default_Character_Encoding">default character encoding</link> for the process is assumed.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -17507,7 +17523,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Uncompresses data compressed with bzip2 and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
+	    <para>Uncompresses data compressed with bzip2 and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the <link linkend="Default_Character_Encoding">default character encoding</link> for the process is assumed.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -17700,7 +17716,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Uncompresses data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the default encoding for the process is assumed.</para>
+	<para>Uncompresses data using zlib functions and returns a string of the uncompressed data.  An optional second string argument may be passed to give the character encoding of the string; if not present, the <link linkend="Default_Character_Encoding">default character encoding</link> for the process is assumed.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -18974,7 +18990,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the name of the default character encoding for the currently-running Qore process.</para>
+	<para>Returns the name of the <link linkend="Default_Character_Encoding">default character encoding</link> for the currently-running Qore process.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -19006,7 +19022,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <row>
     <entry><para>n/a</para></entry>
     <entry><para>String</para></entry>
-    <entry><para>Returns the name of the default character encoding.</para></entry>
+    <entry><para>Returns the name of the <link linkend="Default_Character_Encoding">default character encoding</link>.</para></entry>
   </row>
 
 </tbody>
@@ -21222,7 +21238,7 @@ catch ($ex)
 	<row>
 	  <entry><para>String, [Any ...]</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.  The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21285,7 +21301,7 @@ catch ($ex)
 	<row>
 	  <entry><para>String, [List]</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21348,7 +21364,7 @@ catch ($ex)
 	<row>
 	  <entry><para>Integer, String</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21416,7 +21432,7 @@ catch ($ex)
 	<row>
 	  <entry><para>Any</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting>.  The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting>.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21478,7 +21494,7 @@ catch ($ex)
 	<row>
 	  <entry><para>Any</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format with whitespace formatting.   The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format with whitespace formatting.   The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21678,7 +21694,7 @@ catch ($ex)
 	<row>
 	  <entry><para>String, [Any ...]</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting.  The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21741,7 +21757,7 @@ catch ($ex)
 	<row>
 	  <entry><para>String, [List]</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21804,7 +21820,7 @@ catch ($ex)
 	<row>
 	  <entry><para>Integer, String</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without whitespace formatting.  The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21872,7 +21888,7 @@ catch ($ex)
 	<row>
 	  <entry><para>Any</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21934,7 +21950,7 @@ catch ($ex)
 	<row>
 	  <entry><para>Any</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format without whitespace formatting.   The encoding of the resulting string will always be the default encoding.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format without whitespace formatting.   The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -22378,7 +22394,7 @@ catch ($ex)
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Serializes qore data into a JSON string, without any line breaks.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument</para>
+          <para>Serializes qore data into a JSON string, without any line breaks.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -22450,7 +22466,7 @@ catch ($ex)
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument</para>
+          <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
