@@ -39,15 +39,26 @@ static void SSLCERT_constructor(QoreObject *self, const QoreListNode *params, Ex
    if (p0) {
       qore_type_t t = p0->getType();
       if (t == NT_STRING) {
-	 // FIXME: this class should not read file - we have to check the parse option PO_NO_FILESYSTEM at runtime
-	 if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
-	    xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "passing a filename to SSLCertificate::constructor() violates parse option NO-FILESYSTEM");
+	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+	 // FIXME: this is not a good API!
+	 // if strlen < 200 then we assume it's a filename to remain backward compatible with the old API
+	 if (str->strlen() < 200) {
+	    // FIXME: this class should not read file - we have to check the parse option PO_NO_FILESYSTEM at runtime
+	    if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
+	       xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "passing a filename to SSLCertificate::constructor() violates parse option NO-FILESYSTEM");
+	       return;
+	    }
+
+	    SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(str->getBuffer(), xsink));
+	    if (!*xsink)
+	       self->setPrivate(CID_SSLCERTIFICATE, qc.release());
 	    return;
 	 }
 
-	 SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(reinterpret_cast<const QoreStringNode *>(p0)->getBuffer(), xsink));
+	 // create assuming a certificate in PEM format
+	 SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(str, xsink));
 	 if (!*xsink)
-	    self->setPrivate(CID_SSLCERTIFICATE, qc.release());	    
+	    self->setPrivate(CID_SSLCERTIFICATE, qc.release());
 	 return;
       }
 

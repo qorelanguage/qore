@@ -187,14 +187,21 @@ QoreStringNode *QoreSSLCertificate::getPublicKeyAlgorithm() const
    return ASN1_OBJECT_to_QoreStringNode(priv->cert->cert_info->key->algor->algorithm);
 }
 
+// returns the public key for the certificate in DER format
 BinaryNode *QoreSSLCertificate::getPublicKey() const
 {
-   int len = priv->cert->cert_info->key->public_key->length;
-   char *buf = (char *)malloc(len);
+   EVP_PKEY *key = X509_PUBKEY_get(priv->cert->cert_info->key);
+   if (!key)
+      return 0;
+
+   int size = i2d_PUBKEY(key, 0);
+   //printd(5, "QoreSSLCertificate::getPublicKey() public key size=%d\n", size);
+   unsigned char *buf = 0;
+   i2d_PUBKEY(priv->cert->cert_info->key->pkey, &buf);
    if (!buf)
       return 0;
-   memcpy(buf, priv->cert->cert_info->key->public_key->data, len);
-   return new BinaryNode(buf, len);
+
+   return new BinaryNode(buf, size);
 }
 
 QoreHashNode *QoreSSLCertificate::getPurposeHash() const

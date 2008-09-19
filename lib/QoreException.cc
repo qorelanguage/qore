@@ -335,32 +335,28 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 }
 	 printe("\n");
       }
-      if (cs->size())
-      {
+
+      if (cs->size()) {
 	 printe("call stack:\n");
-	 for (unsigned i = 0; i < cs->size(); i++)
-	 {
+	 for (unsigned i = 0; i < cs->size(); i++) {
 	    int pos = cs->size() - i;
 	    QoreHashNode *h = reinterpret_cast<QoreHashNode *>(cs->retrieve_entry(i));
 	    QoreStringNode *strtype = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
 	    const char *type = strtype->getBuffer();
 	    if (!strcmp(type, "new-thread"))
 	       printe(" %2d: *thread start*\n", pos);
-	    else
-	    {
+	    else {
 	       QoreStringNode *fn = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
 	       const char *fns = fn ? fn->getBuffer() : 0;
 	       int start_line = reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("line"))->val;
 	       int end_line = reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("endline"))->val;
-	       if (!strcmp(type, "rethrow"))
-	       {
+	       if (!strcmp(type, "rethrow")) {
 		  if (fn)
 		     printe(" %2d: RETHROW at %s:%d\n", pos, fn->getBuffer(), start_line);
 		  else
 		     printe(" %2d: RETHROW at line %d\n", pos, start_line);
 	       }
-	       else
-	       {
+	       else {
 		  QoreStringNode *fs = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
 		  const char *func = fs->getBuffer();
 		  if (fns)
