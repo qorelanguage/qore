@@ -25,10 +25,9 @@
 #define _QORE_CLASS_DIR_H
 
 DLLEXPORT extern qore_classid_t CID_DIR;
-DLLLOCAL class QoreClass *initDirClass();
+DLLLOCAL QoreClass *initDirClass();
 
-#include <qore/QoreDir.h>
-#include <qore/AbstractPrivateData.h>
+#include <qore/intern/QoreDir.h>
 
 class Dir : public AbstractPrivateData, public QoreDir {
    protected:

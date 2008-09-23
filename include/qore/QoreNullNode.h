@@ -51,7 +51,7 @@ class QoreNullNode : public UniqueValueQoreNode
 
       DLLEXPORT virtual ~QoreNullNode();
 
-      //! concatenate <NULL> to an existing QoreString
+      //! concatenate "<NULL>" to an existing QoreString
       /** used for %n and %N printf formatting
 	  @param str the string representation of the type will be concatenated to this QoreString reference
 	  @param foff for multi-line formatting offset, -1 = no line breaks
@@ -60,7 +60,7 @@ class QoreNullNode : public UniqueValueQoreNode
       */
       DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
-      //! returns a QoreString with the text: <NULL>
+      //! returns a QoreString with the text: "<NULL>"
       /** used for %n and %N printf formatting
 	  @param del is always set to true for this implementation of the function, meaning that the returned QoreString pointer should be deleted
 	  @param foff for multi-line formatting offset, -1 = no line breaks (ignored by this version of the function)

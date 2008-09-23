@@ -13,9 +13,12 @@ SOURCES=bookinfo.docbook \
 	parse_directives.docbook \
 	driver.xsl
 
-all: qore.html
+all: qore.html chunked
 
 qore.html: $(SOURCES)
 	#docbook2html -u qore.docbook
 	xsltproc -o $@ driver.xsl qore.docbook
+	cp qore.html ..
 
+chunked: $(SOURCES)
+	xsltproc -o ../ chunked-driver.xsl qore.docbook

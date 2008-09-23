@@ -64,7 +64,7 @@ class QoreDir {
 
       //! copies the object
       /** @param xsink a Qore-language exception can be raised only on out of memory
-	  @return a copy of the current object
+	  @param old the old object to copy
        */
       DLLEXPORT QoreDir(ExceptionSink *xsink, const QoreDir &old);
 

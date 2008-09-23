@@ -83,7 +83,6 @@ include_HEADERS = \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
-	include/qore/QoreDir.h \
 	include/qore/Qore.h
 
 noinst_HEADERS = \
@@ -186,6 +185,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreImplicitArgumentNode.h \
 	include/qore/intern/qore_string_private.h \
 	include/qore/intern/qore_date_private.h \
+	include/qore/intern/QoreDir.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

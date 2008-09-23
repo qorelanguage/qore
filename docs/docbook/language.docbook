@@ -348,8 +348,7 @@
 <command>our</command> $a = 1;        # this is a global variable
 <command>our</command> ($b, $c, $d);  # list of global variables
 
-<command>if</command> ($a == 1)
-{
+<command>if</command> ($a == 1) {
     <command>my</command> $a = 2; 
     <command>my</command> ($b, $c);
     # $a, $b, and $c are local variables, 
@@ -498,10 +497,9 @@ is a multiline string";</programlisting>
     <para>Some examples should make it clearer:</para>
     
     <programlisting>2005-03-29-18:12:25      # represents: March 29, 2005 6:12:25 pm
-      0512-01-01T01:49:59.213  # represents: January 1, 512 1:49:59 am and 213 milliseconds
-      
-      2005-03-29               # represents: March 29, 2005 00:00:00
-      18:35:26                 # represents: January 1, 1970 6:35:26 pm (start of the Qore epoch)</programlisting>
+0512-01-01T01:49:59.213  # represents: January 1, 512 1:49:59 am and 213 milliseconds      
+2005-03-29               # represents: March 29, 2005 00:00:00
+18:35:26                 # represents: January 1, 1970 6:35:26 pm (start of the Qore epoch)</programlisting>
     
     <para>The year must be a four-digit number, and all other values except milliseconds must be two-digit numbers.  If milliseconds are present, 3 digits are required after the decimal point.  Pad the numbers with leading zeros if the numbers are smaller than the required number of spaces.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
 
@@ -1725,8 +1723,7 @@ $var[1].count++;
     <varlistentry>
       <term>Syntax</term>
       <listitem>
-	<programlisting><command>switch</command> (<replaceable>expression</replaceable>) 
-{ 
+	<programlisting><command>switch</command> (<replaceable>expression</replaceable>) { 
     <command>case</command> <replaceable>case_expression</replaceable>: 
         <replaceable>statement(s)</replaceable> 
     ...
@@ -1738,8 +1735,7 @@ $var[1].count++;
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>switch ($val)
-{
+	<programlisting>switch ($val) {
     case &lt; -1: 
         printf("less than -1\n");
 	break;
@@ -2099,8 +2095,7 @@ $var[1].count++;
 # in the $service_history hash of arrays.
 
 <command>context</command> ($service_history) <command>where</command> (%service_type == "voice")
-<command>sortBy</command> (%effective_start_date)
-{
+<command>sortBy</command> (%effective_start_date) {
    printf("%s: start date: %s\n", %msisdn, format_date(%effective_start_date, "YYYY-MM-DD HH:mm:SS"));
 }</programlisting>
       </listitem>
@@ -2150,8 +2145,7 @@ $var[1].count++;
 <command>summarize</command> ($services) 
     <command>by</command> (%effective_start_date) 
     <command>where</command> (%service_type == "voice") 
-    <command>sortBy</command> (%effective_start_date)
-{
+    <command>sortBy</command> (%effective_start_date) {
     printf("account has %d service(s) starting on %s\n", 
            context_rows(),
            format_date(%effective_start_date, "YYYY-MM-DD HH:mm:SS"));
@@ -2192,13 +2186,11 @@ $var[1].count++;
 	<programlisting><command>summarize</command> ($services) 
     <command>by</command> (%effective_start_date) 
     <command>where</command> (%service_type == "voice") 
-    <command>sortBy</command> (%effective_start_date)
-{
+    <command>sortBy</command> (%effective_start_date) {
     printf("account has %d service(s) starting on %s\n", 
            context_rows(),
            format_date(%effective_start_date, "YYYY-MM-DD HH:mm:SS"));
-    <command>subcontext</command> <command>sortDescendingBy</command> (%effective_end_date)
-    {
+    <command>subcontext</command> <command>sortDescendingBy</command> (%effective_end_date) {
         printf("\tservice %s: ends: %s\n", %msisdn, format_date(%effective_end_date, "YYYY-MM-DD HH:mm:SS"));
     }
 }</programlisting>
@@ -2232,8 +2224,7 @@ $var[1].count++;
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>sub</command> getName()
-{
+	    <programlisting><command>sub</command> getName() {
    <command>return</command> "Barney";
 }
 
@@ -2386,8 +2377,7 @@ $name = getName();</programlisting>
 
 <para>A subroutine is declared in Qore by using the key word <command>sub</command> as follows:</para>
 
-<programlisting><command>sub</command> <replaceable>subroutine_name</replaceable>([<replaceable>variable1, variable2, ...</replaceable>])
-{
+<programlisting><command>sub</command> <replaceable>subroutine_name</replaceable>([<replaceable>variable1, variable2, ...</replaceable>]) {
     <replaceable>statements;</replaceable>
 }
 </programlisting>
@@ -2408,8 +2398,7 @@ $name = getName();</programlisting>
 #
 # subroutine declaration example
 
-<command>sub</command> print_string($string)
-{
+<command>sub</command> print_string($string) {
     print("%s\n", $string);
     <command>return</command> 1;
 }
@@ -2421,8 +2410,7 @@ $name = getName();</programlisting>
 #
 # recursive subroutine example
 
-<command>sub</command> fibonacci($num)
-{
+<command>sub</command> fibonacci($num) {
     <command>if</command> ($num == 1)
         <command>return</command> 1;
     <command>return</command> $num * fibonacci($num - 1);
@@ -2445,8 +2433,7 @@ $name = getName();</programlisting>
 
 <para>In-line namespace declaration:</para>
 
-<programlisting><command>namespace</command> [<replaceable>namespace_path</replaceable>::]<replaceable>namespace_identifier</replaceable> 
-{
+<programlisting><command>namespace</command> [<replaceable>namespace_path</replaceable>::]<replaceable>namespace_identifier</replaceable> {
     [<replaceable>constant_declarations</replaceable>]
     [<replaceable>class_declarations</replaceable>]
     [<replaceable>sub-namespace-declarations</replaceable>]
@@ -2495,12 +2482,10 @@ $name = getName();</programlisting>
 
 <para>Classes are declared with the following syntax:</para>
 
-<programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]]
-{
+<programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]] {
     [<command>private </command> <replaceable>$.var1[, ...]</replaceable>;]
 
-    [<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path</replaceable>::]<replaceable>method_name_identifier</replaceable>([$var1, $var2, ...])
-    {
+    [<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path</replaceable>::]<replaceable>method_name_identifier</replaceable>([$var1, $var2, ...]) {
          <replaceable>statements</replaceable>;
     }
     ...
@@ -2511,8 +2496,7 @@ $name = getName();</programlisting>
 
 <programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]];
 
-[<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable>::<replaceable>method_identifier</replaceable>([$var1, $var2, ...])
-{
+[<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable>::<replaceable>method_identifier</replaceable>([$var1, $var2, ...]) {
     <replaceable>statements</replaceable>;
 }
 </programlisting>
@@ -2640,15 +2624,13 @@ $self.member();</programlisting>
 
 <para>Subclasses can give explicit arguments to their base class constructors using a special syntax (only available to subclass constructors) similar to the C++ syntax for the same purpose as follows:</para>
 
-<programlisting><replaceable>class_name</replaceable>::constructor([$var1[, ...]) : <replaceable>base_class_identifier</replaceable>(<replaceable>expression(s)</replaceable>)[, ...]
-{
+<programlisting><replaceable>class_name</replaceable>::constructor([$var1[, ...]) : <replaceable>base_class_identifier</replaceable>(<replaceable>expression(s)</replaceable>)[, ...] {
     <replaceable>statements</replaceable>;
 }
 </programlisting>
 
 <para>Here is a concrete example of giving arguments to an inherited base class:</para>
-<programlisting><command>class</command> XmlRpcClient <command>inherits</command> Qore::HTTPClient
-{
+<programlisting><command>class</command> XmlRpcClient <command>inherits</command> Qore::HTTPClient {
     # calls the base class HTTPClient constructor, overrides the "protocols" key to "xmlrpc"
     constructor($opts) : Qore::HTTPClient($opts + ( "protocols" : "xmlrpc" ))
     ...

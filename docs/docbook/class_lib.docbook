@@ -21272,7 +21272,7 @@ $sock.bind("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a binary object representing the public key of the certificate.</para>
+              <para>Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format.</para>
             </entry>
           </row>
           <row>
@@ -21375,19 +21375,20 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the SSLCertificate object from the filename argument passed.  The file must be in PEM format.</para>
+            <para>Creates the SSLCertificate object from the argument passed.  If a string is passed, the value is assumed to be the PEM representation of the certificate; if a binary is passed, the value is assumed to be the DER-encoded form of the certificate.</para>
+	    <para>DEPRECATED: If a string is passed that is less than 200 bytes long, the string is assumed to be a file name; in which case the PO_NO_FILESYSTEM parse option is checked at run-time; if this restriction is not set, then the certificate is loaded from the filename (in this case, the certificate must be in PEM format).  Do not use this feature; load the file first and pass the data to the constructor instead.  This functionality will be removed in a future release of Qore.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting><command>new</command> SSLCertificate(<replaceable>filename</replaceable>)</programlisting>
+            <programlisting><command>new</command> SSLCertificate(<replaceable>string|binary</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$cert = <command>new</command> SSLCertificate("/etc/certs/cert.pem");</programlisting>
+            <programlisting>$cert = <command>new</command> SSLCertificate($pem_cert_string);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -21411,14 +21412,14 @@ $sock.bind("/tmp/socket");</programlisting>
             <row>
               <entry>
                 <para>
-                  <replaceable>filename</replaceable>
+                  <replaceable>certificate_data</replaceable>
                 </para>
               </entry>
               <entry>
-                <para>String</para>
+                <para>String|Binary</para>
               </entry>
               <entry>
-                <para>The filename of the PEM-encoded certificatefile</para>
+                <para>The certificate data in either PEM (string argument) or DER (binary argument) format.  See above for the deprecated option of passing a filename argument.</para>
               </entry>
             </row>
           </tbody>
@@ -21470,7 +21471,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>missing filename argument, can't open file, unable to parse file, etc</para>
+                <para>missing or invalid argument, unable to parse file, etc</para>
               </entry>
             </row>
           </tbody>
@@ -21995,7 +21996,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a binary object representing the public key of the certificate.</para>
+            <para>Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -22061,7 +22062,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 <para>Binary</para>
               </entry>
               <entry>
-                <para>The public key of the certificate.</para>
+                <para>The public key of the certificate in DER format.</para>
               </entry>
             </row>
           </tbody>

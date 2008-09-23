@@ -248,11 +248,12 @@ DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, Exceptio
 #define QO_ALGORITHM  1
 #define QO_FUNCTION   2
 
+//! definition of the elements in the qore_option_list
 struct qore_option_s {
-      const char *option;
-      const char *constant;
-      int type;
-      bool value;
+      const char *option;   //!< name of the option
+      const char *constant; //!< name of the constant for this option
+      int type;             //!< the type of the option
+      bool value;           //!< the value of the option
 };
 
 //! list of qore options

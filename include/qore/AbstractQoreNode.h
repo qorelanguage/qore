@@ -172,6 +172,7 @@ class AbstractQoreNode : public QoreReferenceCounter
 	  @param n_value determines if this is a value type or not
 	  @param n_needs_eval determines if the type needs evaluation when AbstractQoreNode::eval() is called
 	  @param n_there_can_be_only_one whereas this type is normally reference counted, if this is set to true, then referencing counting is turned off for this type.  This can only be turned on when the type represents a single value.
+	  @param n_custom_reference_handlers if true then the class implements its own reference handlers
        */
       DLLEXPORT AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false, bool n_custom_reference_handlers = false);
 

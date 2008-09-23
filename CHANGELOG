@@ -1,3 +1,6 @@
+2008.09.22: David Nichols
+	* made QoreDir class private to the library
+
 2008.09.19: David Nichols
 	* fixed SSLCertificate to assume a file name if the string argument is
 	  less than 200 characters, otherwise assume a PEM-encoded certificate
