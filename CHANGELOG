@@ -1,3 +1,6 @@
+2008.09.23: David Nichols
+	* added Program::getGlobalVariable()
+
 2008.09.22: David Nichols
 	* made QoreDir class private to the library
 

@@ -157,7 +157,7 @@ AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) cons
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->getValue(vl, xsink);
    }
-   return ref.var->getValue(vl, xsink);
+   return ref.var->getValue(vl);
 }
 
 void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink)

@@ -9785,6 +9785,12 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </row>
 
 	  <row>
+	    <entry><para><link linkend="Qore_Program_getGlobalVariable">Program::getGlobalVariable()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns a the value of the global variable identified by the first string argument.</para></entry>
+	  </row>
+
+	  <row>
 	    <entry><para><link linkend="Qore_Program_getParseOptions">Program::getParseOptions()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a code of parse options set in the object.</para></entry>
@@ -10352,6 +10358,76 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
+    </sect2>
+
+    <sect2 id="Qore_Program_getGlobalVariable">
+      <title>Program::getGlobalVariable()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the value of the global variable identified by the first string argument giving the name of the variable (without any leading &quot;$&quot; symbol.  An lvalue reference can be passed as the second argument in order to determine if the global variable exists (because this method could return <command>NOTHING</command> when the variable exists as well as when it does not).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Program::getGlobalVariable(<replaceable>var_name, [exists_ref]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$val = $pgm.getGlobalVariable("error_count", \$exists);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::getGlobalVariable()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>var_name</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The string name of the variable to find, not including the leading &quot;$&quot; character.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[exists]</replaceable></para></entry>
+	      <entry><para>Reference</para></entry>
+	      <entry><para>If a reference is passed in this position, it will contain a boolean value after the method exits: if this value is True, that means that the variable exists in the Program object, False means that the variable does not exist.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::getParseOptions()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Any</para></entry>
+	      <entry><para>The value of the global variable (or NOTHING if it does not exist; note that also the variable could exist and return NOTHING as well; use a reference as the second argument to the method to determine if the variable exists or not).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
     </sect2>
 
     <sect2 id="Qore_Program_getParseOptions">

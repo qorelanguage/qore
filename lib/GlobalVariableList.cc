@@ -100,9 +100,15 @@ class Var *GlobalVariableList::newVar(class Var *v, bool readonly)
    return var;
 }
 
-class Var *GlobalVariableList::findVar(const char *name)
-{
+Var *GlobalVariableList::findVar(const char *name) {
    map_var_t::iterator i = vmap.find(name);
+   if (i != vmap.end())
+      return i->second;
+   return 0;
+}
+
+const Var *GlobalVariableList::findVar(const char *name) const {
+   map_var_t::const_iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
    return 0;

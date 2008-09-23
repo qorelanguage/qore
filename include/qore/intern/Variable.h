@@ -59,8 +59,7 @@ union VarValue {
 };
 
 // structure for global variables
-class Var : public QoreReferenceCounter
-{
+class Var : public QoreReferenceCounter {
    private:
       unsigned char type;
       // holds the value of the variable or a pointer to the imported variable
@@ -71,7 +70,8 @@ class Var : public QoreReferenceCounter
       DLLLOCAL void del(ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode *evalIntern(ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode **getValuePtrIntern(AutoVLock *vl, ExceptionSink *xsink) const;
-      DLLLOCAL AbstractQoreNode *getValueIntern(AutoVLock *vl, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *getValueIntern(AutoVLock *vl);
+      DLLLOCAL const AbstractQoreNode *getValueIntern(AutoVLock *vl) const;
       DLLLOCAL void setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink);
 
    protected:
@@ -87,7 +87,8 @@ class Var : public QoreReferenceCounter
       DLLLOCAL void deref(ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const;
-      DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl);
+      DLLLOCAL AbstractQoreNode *getReferencedValue() const;
 };
 
 /*

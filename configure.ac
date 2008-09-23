@@ -1101,10 +1101,12 @@ AM_CONDITIONAL([COND_HPUX_ACC_PARISC32],       [test "$hpux_acc_parisc32" = yes]
 #AM_CONDITIONAL([COND_HPUX_ACC_PARISC64],       [test "$hpux_acc_parisc64" = yes])
 
 # find prefix
-if test -z "${exec_prefix}" -o "${exec_prefix}" = NONE; then
-   myprefix=${ac_default_prefix}
-else
+if test -n "${exec_prefix}" -a "${exec_prefix}" != NONE; then
    myprefix="${exec_prefix}"
+elif test -n "${prefix}" -a "${prefix}" != NONE; then
+   myprefix="${prefix}"
+else
+   myprefix=${ac_default_prefix}
 fi
 
 if test "$enable_profile" = yes; then
@@ -1153,6 +1155,8 @@ if test "$enable_64bit" = "yes"; then
 else
    printf " (32-bit)\n"
 fi
+
+printf "%-35s: %s %s\n" "module directory" "${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
 
 show_library_feature()
 {

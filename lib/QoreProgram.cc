@@ -525,8 +525,11 @@ void QoreProgram::del(ExceptionSink *xsink)
    }
 }
 
-class Var *QoreProgram::findGlobalVar(const char *name)
-{
+Var *QoreProgram::findGlobalVar(const char *name) {
+   return priv->global_var_list.findVar(name);
+}
+
+const Var *QoreProgram::findGlobalVar(const char *name) const {
    return priv->global_var_list.findVar(name);
 }
 
@@ -1364,4 +1367,15 @@ void QoreProgram::setScriptPath(const char *path) {
 
 const LVList *QoreProgram::getTopLevelLVList() const {
    return (priv->sb_head && priv->sb_head->statements) ? priv->sb_head->statements->getLVList() : 0;
+}
+
+AbstractQoreNode *QoreProgram::getGlobalVariableValue(const char *var, bool &found) const {
+    const Var *v = findGlobalVar(var);
+    if (!v) {
+	found = false;
+	return 0;
+    }
+    found = true;
+   
+    return v->getReferencedValue();
 }

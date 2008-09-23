@@ -409,6 +409,13 @@ class QoreProgram : public AbstractPrivateData
        */
       DLLEXPORT void setScriptPath(const char *path);
 
+      //! returns the value of the global variable given (do not include the "$" symbol), the caller owns the reference count returned
+      /** @param var the variable name to return (do not include the "$" symbol)
+	  @param found returns true if the variable exists, false if not
+	  @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
+      */
+      DLLEXPORT AbstractQoreNode *getGlobalVariableValue(const char *var, bool &found) const;
+
       /// returns a pointed to the given user function if it exists (otherwise returns 0)
       DLLLOCAL UserFunction *findUserFunction(const char *name);
       
@@ -430,6 +437,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void addGlobalVarDef(const char *name);
       DLLLOCAL void addStatement(AbstractStatement *s);
       DLLLOCAL Var *findGlobalVar(const char *name);
+      DLLLOCAL const Var *findGlobalVar(const char *name) const;
       DLLLOCAL Var *checkGlobalVar(const char *name);
       DLLLOCAL Var *createGlobalVar(const char *name);
       DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);

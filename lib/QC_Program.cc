@@ -293,8 +293,36 @@ static AbstractQoreNode *PROGRAM_lockOptions(QoreObject *self, QoreProgram *p, c
    return 0;
 }
 
-QoreClass *initProgramClass()
-{
+static AbstractQoreNode *PROGRAM_getGlobalVariable(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+    const QoreStringNode *str = test_string_param(params, 0);
+    if (!str) {
+	xsink->raiseException("PROGRAM-GET-GLOBAL-VARIABLE-ERROR", "missing string argument giving the variable name");
+	return 0;
+    }
+
+    TempEncodingHelper t(str, QCS_DEFAULT, xsink);
+    if (!t)
+	return 0;
+
+    const ReferenceNode *ref = test_reference_param(params, 1);
+
+    bool found;
+    ReferenceHolder<AbstractQoreNode> rv(p->getGlobalVariableValue(t->getBuffer(), found), xsink);
+
+    if (ref) {
+	AutoVLock vl(xsink);
+	ReferenceHelper r(ref, vl, xsink);
+	if (!r)
+	    return 0;
+
+	if (r.assign(get_bool_node(found), xsink))
+	    return 0;
+    }
+
+    return rv.release();
+}
+
+QoreClass *initProgramClass() {
    QORE_TRACE("initProgramClass()");
 
    QoreClass *QC_PROGRAM = new QoreClass("Program");
@@ -320,7 +348,7 @@ QoreClass *initProgramClass()
    QC_PROGRAM->addMethod("getScriptName",        (q_method_t)PROGRAM_getScriptName);
    QC_PROGRAM->addMethod("getScriptPath",        (q_method_t)PROGRAM_getScriptPath);
    QC_PROGRAM->addMethod("lockOptions",          (q_method_t)PROGRAM_lockOptions);
-
+   QC_PROGRAM->addMethod("getGlobalVariable",    (q_method_t)PROGRAM_getGlobalVariable);
 
    return QC_PROGRAM;
 }

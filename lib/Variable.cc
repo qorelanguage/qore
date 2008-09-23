@@ -149,14 +149,13 @@ AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const
 }
 
 // note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode *Var::getValueIntern(AutoVLock *vl, ExceptionSink *xsink)
-{
+AbstractQoreNode *Var::getValueIntern(AutoVLock *vl) {
    if (type == GV_IMPORT) {
       // perform lock handoff
       m.unlock();
       v.ivar.refptr->m.lock();
 
-      return v.ivar.refptr->getValueIntern(vl, xsink);
+      return v.ivar.refptr->getValueIntern(vl);
    }
 
    vl->set(&m);
@@ -164,15 +163,40 @@ AbstractQoreNode *Var::getValueIntern(AutoVLock *vl, ExceptionSink *xsink)
 }
 
 // note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode *Var::getValue(AutoVLock *vl, ExceptionSink *xsink)
-{
-   m.lock();
+const AbstractQoreNode *Var::getValueIntern(AutoVLock *vl) const {
+   if (type == GV_IMPORT) {
+      // perform lock handoff
+      m.unlock();
+      v.ivar.refptr->m.lock();
 
-   return getValueIntern(vl, xsink);
+      return v.ivar.refptr->getValueIntern(vl);
+   }
+
+   vl->set(&m);
+   return v.val.value;
 }
 
-void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink)
-{
+// note: unlocking the lock is managed with the AutoVLock object
+AbstractQoreNode *Var::getValue(AutoVLock *vl) {
+   m.lock();
+
+   return getValueIntern(vl);
+}
+
+AbstractQoreNode *Var::getReferencedValue() const {
+   AutoVLock vl(0);
+
+   AbstractQoreNode *rv;
+   { 
+      m.lock();
+
+      rv = (AbstractQoreNode *)getValueIntern(&vl);
+      if (rv) rv->ref();
+   }
+   return rv;
+}
+
+void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink) {
    if (type == GV_IMPORT) {
       if (v.ivar.readonly) {
 	 m.unlock();

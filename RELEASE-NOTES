@@ -178,15 +178,25 @@ The new constants are all in the Option namespaace:
 you can see what options qore has now by typing "qore -V" as well from the command-line.
 
 *) bug fixes, new functions, class improvements
-  +) Qore revision tag now reflects the svn version used to make the build (instead of a meaningless private build number that was different on each machine).
-  +) new "Dir" class for manipulating and traversing directories (by Wolfgang Ritzinger).
+  +) Qore revision tag now reflects the svn version used to make the build
+     (instead of a meaningless private build number that was different on each
+     machine).
+  +) new "Dir" class for manipulating and traversing directories (by Wolfgang 
+     Ritzinger)
   +) inlist() and inlist_hard() functions for checking if a value is in a list
   +) HTTPClient now understand bzip content encoding
-  +) new chown(), lchown(), call_builtin_function(), call_builtin_function_args(), force_encoding(), get_script_path(), get_script_name() functions
-  +) parseURL() improvements
+  +) new chown(), lchown(), call_builtin_function(),
+     call_builtin_function_args(), force_encoding(), get_script_path(),
+     get_script_name() functions
+  +) parseURL() fixes and improvements
   +) new Program restrictions: PO_NO_TERMINAL_IO and PO_NO_GUI
-  +) "-" operator updated: hash - list and hash -= list now work to delete multiple hash keys in a single (atomic) expression
-  +) major updates to internal object and class code to allow for c++ class hierarchies to be properly reflected as Qore class hierarchies (used extensively by the qt modules, for example)
+  +) "-" operator updated: hash - list and hash -= list now work to delete
+     multiple hash keys in a single (atomic) expression
+  +) SSLCertificate::getPublicKey() now returns the public key in DER format
+     (before it returned an unusable binary object(
+  +) major updates to internal object and class code to allow for c++ class
+     hierarchies to be properly reflected as Qore class hierarchies (used
+     extensively by the qt modules, for example)
   +) qore -V now gives verbose information about the build and library options
 
 ***********************
