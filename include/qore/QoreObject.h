@@ -104,6 +104,9 @@ class QoreObject : public AbstractQoreNode
        */
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
+      //! custom reference handler - unlocked
+      DLLLOCAL void customRefIntern() const;
+
       //! custom reference handler
       DLLLOCAL virtual void customRef() const;
 
@@ -354,6 +357,11 @@ class QoreObject : public AbstractQoreNode
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT AbstractQoreNode *getMemberValueNoMethod(const char *key, AutoVLock *vl, ExceptionSink *xsink) const;
+
+      //! increment the reference count of the object, to be called only from within a delete blocker
+      /** it is an error to call this function from anything other than a delete blocker
+       */
+      DLLEXPORT void deleteBlockerRef() const;
 
       DLLLOCAL int getStatus() const;
 

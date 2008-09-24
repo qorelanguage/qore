@@ -377,12 +377,19 @@ void QoreObject::doDelete(ExceptionSink *xsink)
    doDeleteIntern(xsink);
 }
 
-void QoreObject::customRef() const
-{
-   AutoLocker al(priv->m);
+void QoreObject::customRefIntern() const {
    if (!references)
       tRef();
    ++references;
+}
+
+void QoreObject::customRef() const {
+   AutoLocker al(priv->m);
+   customRefIntern();
+}
+
+void QoreObject::deleteBlockerRef() const {
+    customRefIntern();
 }
 
 bool QoreObject::derefImpl(ExceptionSink *xsink)
