@@ -6,11 +6,13 @@
   <sect1 id="Qore_Introduction">
     <title>Introduction to the Qore Programming Language</title>
 
-    <para>The Qore programming language is a powerful, high-performance, thread-capable, object-oriented, database-integrated, embeddable weakly-typed language with procedural and object-oriented features designed for anything from quick scripting to complex multithreaded, network-aware application development to embedded application scripting.  By design, it is particularly suited to the rapid implementation of sophisticated interfaces in an enterprise environment.</para>
+    <para>The Qore programming language is a powerful, thread-capable, embeddable weakly-typed language with procedural and object-oriented features designed for anything from quick scripting to complex multithreaded, network-aware application development to embedded application scripting.  Qore was initially designed to facilitate the rapid implementation of sophisticated interfaces in embedded code in an enterprise environment, and has since grown into a general-purpose language as well.</para>
 
-    <para>It features extensive database and XML integration into the syntax, functions, data structures, and operators of the language, enabling the development of sophisticated programs using the Qore Programming Language.</para>
+    <para>Qore exports a C++ API to allow programs or libraries to embed Qore code; this manual documents Qore's user-level features, for more information about Qore's C++ API, see the <ulink url="http://www.qoretechnologies.com/qore">Qore's home page</ulink>.</para>
 
-    <para>Flexible character encoding support is also built-in to Qore strings, and automatic character encoding conversions are supported, enabling correct behavior for interfacing systems with different character encoding requirements (see <link linkend='Qore_Strings_and_Character_Encoding'>Qore Strings and Character Encoding</link>).</para>
+    <para>Qore features database, XML, and JSON integration into the syntax, functions, data structures, and operators of the language.</para>
+
+    <para>Flexible character encoding support is also built-in to Qore strings, and automatic character encoding conversions are supported, enabling correct behavior when working in an environment with mixed character encoding requirements (see <link linkend='Qore_Strings_and_Character_Encoding'>Qore Strings and Character Encoding</link>).</para>
 
     <para>Qore includes the following design points:</para>
 
@@ -18,13 +20,13 @@
       <listitem>
 	<para>Support for Embedded Logic</para>
 
-	<para>Qore was designed to support embedding logic in applications; this also applies to applications written in Qore.  By using the <link linkend="Qore_Program_Class">Program</link> class, discrete objects can be created and destroyed at will containing embedded code to extend or modify the behavior of your application in user-defined ways.  The <link linkend="Qore_Program_Class">Program</link> class allows the capabilities of embedded code to be arbitrarily <link linkend="Parse_Options">restricted</link> as well.</para>
+	<para>Qore was designed to support embedding logic in applications; this also applies to applications written in Qore as well as applications using the Qore library's public C++ API.  By using the <link linkend="Qore_Program_Class">Program</link> class, discrete objects can be created and destroyed at will containing embedded code to extend or modify the behavior of your application in user-defined ways.  The <link linkend="Qore_Program_Class">Program</link> class allows the capabilities of embedded code to be arbitrarily <link linkend="Parse_Options">restricted</link> as well.</para>
       </listitem>
 
       <listitem>
 	<para>Thread Safety and SMP Scalability</para>
 
-	<para>All elements of Qore are thread-safe, and the language in general has been designed with SMP scalability in mind.  The internal design and implementation of Qore favors multithreaded performance over single-threaded performance, so multithreaded Qore programs can count on an efficient and stable execution platform, and do not have to limit themselves to a subset of Qore's functionality (see <link linkend='Threading'>Threading</link>).  Recent efforts to reduce the number of SMP cache invalidations have resulted in a dramtic performance increase on SMP machines while maintaining 100% code and API compatibility as well.</para>
+	<para>All elements of Qore are thread-safe, and the language in general has been designed with SMP scalability in mind.  The internal design and implementation of Qore favors multithreaded performance over single-threaded performance, so multithreaded Qore programs can count on an efficient and stable execution platform, and do not have to limit themselves to a subset of Qore's functionality (see <link linkend='Threading'>Threading</link>).  Additionally, Qore includes optimizations designed to reduce the number of SMP cache invalidations that provide a substantial performance boost on SMP machines.</para>
 	<para>Qore supports deadlock detection in complex locking scenarios and will throw an exception rather than allow an operation to be performed that would cause a deadlock.  Furthermore, Qore's threading primitives detect threading errors and throw exceptions in these cases as well.</para>
       </listitem>
 
