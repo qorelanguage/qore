@@ -33,7 +33,7 @@
 
 namespace SoapClient {
     const Version = "0.1";
-    const Headers = ("Content-Type":"application/soap+xml", "Accept":"application/soap+xml, text/xml", "User-Agent":("Qore Soap Client " + SoapClient::Version));
+    const Headers = ("Accept":"application/soap+xml,text/xml", "User-Agent":("Qore Soap Client " + SoapClient::Version));
 }
  
 class SoapClient::SoapClient {
@@ -42,8 +42,7 @@ class SoapClient::SoapClient {
     $.wsdl,  # web service definition
     $.svc;   # service name
 
-    constructor($h)
-    {
+    constructor($h) {
 	if (type($h) != Type::Hash)
 	    throw "SOAP-CLIENT-ERROR", "missing option hash argument to SoapClient::constructor() ('wsdl' or 'wsdl_file' keys required)";
 	
@@ -60,7 +59,7 @@ class SoapClient::SoapClient {
 	else
 	    throw "SOAP-CLIENT-ERROR", "neither one of required 'wsdl' or 'wsdl_file' keys is present in the hash argument to SoapClient::constructor()";
 	
-	$.wsdl = new WebService($wsdl);
+	$.wsdl = new WebService($wsdl, $h.wsdl_opt);
 	
 	# set service
 	# get list of services in this wsdl
@@ -78,29 +77,40 @@ class SoapClient::SoapClient {
 	
 	if (exists $h.url)
 	    $.url = $h.url;
+	else {
+	    if (elements $.wsdl.services.port > 1)
+		throw "SOAP-CLIENT-ERROR", sprintf("don't know how to handle more than one port in a WSDL (this WSDL has %n)", keys $.wsdl.services.port);
+	    my $port = (keys $.wsdl.services.port)[0];
+
+	    $.url = $.wsdl.services.port.$port.address;
+	}
+
+	$.headers = Headers;
+	# setup default headers
+	if ($.wsdl.isSoap12())
+	    $.headers += ("Content-Type":"application/soap+xml");
 	else
-	    $.url = $.wsdl.services.port.$.svc.address;
+	    $.headers += ("Content-Type":"text/xml");
 	
 	#printf("DEBUG: set url to %n\n", $.url);
-	
-	$.hc = new HTTPClient(( "url" : $.url ));
+	$.hc = new HTTPClient(("url" : $.url));
     }
    
-    call($operation, $h, $info)
-    {
+    call($operation, $h, $info) {
 	my $op = $.wsdl.portType.$.svc.operations.$operation;
 	if (!exists $op)
 	    throw "SOAP-CLIENT-ERROR", sprintf("operation %n does not exist (operations defined by service %n: %n)", 
 					       $operation, $.svc, keys $.wsdl.portType.$.svc.operations);
 
 	my $msg = $op.serializeRequest($h);
-	# we have to write the request key after the HTTPClient::post() call
-	on_exit $info.request = $msg;
-	
-	#printf("DEBUG url=%n, msg=%n\n", $.url, $info.request);
-	$info.response = $.hc.post($.url, $msg, SoapClient::Headers, \$info);
 
-	#printf("DEBUG ans=%n\n", $info.response);
+	# we have to write the request key after the HTTPClient::post() call
+        on_exit $info.request = $msg;
+
+	#printf("DEBUG url=%n, msg=%n\n", $.url, $msg);
+	$info.response = $.hc.post($.url, $msg, $.headers, \$info);
+	
+	#printf("DEBUG ans=%n\n", $ans);
 	return $op.deserializeResponse(parseXML($info.response));
     }
 
@@ -110,5 +120,15 @@ class SoapClient::SoapClient {
 
     getEncoding() {
 	return $.hc.getEncoding();
+    }
+
+    # set timeout in ms
+    setTimeout($v) {
+	$.hc.setTimeout($v);
+    }
+
+    # get timeout in ms
+    getTimeout() {
+	return $.hc.getTimeout();
     }
 }

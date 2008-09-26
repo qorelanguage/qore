@@ -2,7 +2,7 @@
 
 # note that this server suffers from the following limitations, among others:
 # *) not really HTTP 1.1 compliant although claims to be
-# *) no mime/multipart handling (needs to be fixed in qore)
+# *) no HTTP mime/multipart handling (support for this ideally needs to be implemented in the qore library)
 
 # changes for v0.2.4:
 # * improved Content-Type handling
@@ -23,8 +23,7 @@
 # * modular/multiple listener support added
 # * https support added
 
-namespace HTTPServer
-{
+namespace HTTPServer {
     const Version = "0.2.4";
 
     const ReadTimeout = 30000;  # recvs timeout after 30 seconds
@@ -94,8 +93,7 @@ namespace HTTPServer
 class HTTPServer::Listener inherits Qore::Socket {
     
     # params: server, session ID sequence object, socket, [cert, key]
-    constructor($server, $ss, $sock, $cert, $key, $rbac)
-    {
+    constructor($server, $ss, $sock, $cert, $key, $rbac) {
 	# save a reference to the server object
 	$.serv = $server;
 	$.ss = $ss;
@@ -138,18 +136,15 @@ class HTTPServer::Listener inherits Qore::Socket {
 	$.tid = background $.mainThread();
     }
 
-    copy()
-    {
+    copy() {
 	throw "COPY-ERROR", "this object cannot be copied";
     }
 
-    destructor()
-    {
+    destructor() {
 	$.stop();
     }
     
-    synchronized stop_listener()
-    {
+    synchronized stop_listener() {
 	if ($.exit)
 	    return;
 
@@ -168,8 +163,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 	}
     }
 
-    synchronized stop()
-    {
+    synchronized stop() {
 	if (!exists $.cThreads || $.stopped)
 	    return;
 
@@ -182,20 +176,17 @@ class HTTPServer::Listener inherits Qore::Socket {
 	$.log("stopped listener");
     }
 
-    private log()
-    {
+    private log() {
 	$argv[0] = sprintf("listener(%s): %s", $.socket, $argv[0]);
 	$.serv.logArgs($argv);
     }
     
-    private logError()
-    {
+    private logError() {
 	$argv[0] = sprintf("listener(%s): %s", $.socket, $argv[0]);
 	$.serv.logErrorArgs($argv);
     }
     
-    private mainThread()
-    {
+    private mainThread() {
 	# start listening
 	while (True) {
 	    my $r;
@@ -232,8 +223,7 @@ class HTTPServer::Listener inherits Qore::Socket {
     }
 
     # thread for handling communication per connection
-    private connectionThread($s)
-    {
+    private connectionThread($s) {
 	my $context = 
 	    ( "source"     : $s.source,
 	      "socket"     : $.socket,
@@ -291,21 +281,6 @@ class HTTPServer::Listener inherits Qore::Socket {
 
 		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
-		/*
-		if (elements (my $xl = ($hdr.path =~ x/(%[0-9a-fA-F][0-9a-fA-F])/))) {
-		    foreach my $x in ($xl) {
-			my $i = index($hdr.path, $x);
-			#printf("x=%n i=%d %n %n %n\n", $x, $i, substr($hdr.path, 0, $i), chr(hexToInt(substr($x, 1))), substr($hdr.path, $i + 3));
-			try {
-			    $hdr.path = substr($hdr.path, 0, $i) + chr(hexToInt(substr($x, 1))) + substr($hdr.path, $i + 3);
-			}
-			catch () {
-			    # break if there are invalid hex digits
-			    break;
-			}
-		    }
-		}
-		*/
 
 		# check for authentication info
 		if (exists $.rbac && $.rbac.requires_authentication()) {
@@ -407,8 +382,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		}
 
 		# if we need to get a body
-		switch ($hdr.method)
-		{
+		switch ($hdr.method) {
 		case "HEAD":
 		    $.serv.handleRequest($s, $context, $hdr, NOTHING, \$close, True);
 		    break;
@@ -450,7 +424,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 				$body = $s.recvBinary($hdr."content-length", HTTPServer::ReadTimeout);
 			    else
 				$body = $s.recv($hdr."content-length", HTTPServer::ReadTimeout);
-			    #printf("HTTP DEBUG: %s\n", $body);
+				#printf("HTTP DEBUG: %s\n", $body);
 			    if (!exists $body)
 				throw "SOCKET-TIMEOUT", sprintf("expected %d bytes, got timeout", $hdr."content-length");
 			}
@@ -542,8 +516,7 @@ class HTTPServer::HTTPServer {
 	$.rbac,                 # RBAC object for basic authentication
 	$.lm;                   # listener mutex
 
-    constructor($logfunc, $errlogfunc, $rbac)
-    {
+    constructor($logfunc, $errlogfunc, $rbac) {
 	$.logfunc = $logfunc;
 	$.errlogfunc = $errlogfunc;
 	$.rbac = $rbac;
@@ -563,8 +536,7 @@ class HTTPServer::HTTPServer {
 	$.seqListeners = new Sequence();
     }
 
-    addListener($sock, $cert, $key)
-    {
+    addListener($sock, $cert, $key) {
 	if (!exists $sock)
 	    throw "ADDLISTENER-ERROR", "no socket value passed to HTTPServer::addListener()";
 
@@ -578,13 +550,11 @@ class HTTPServer::HTTPServer {
 	return $id;
     }
 
-    copy()
-    {
+    copy() {
 	throw "COPY-ERROR", "this object cannot be copied";
     }
 
-    stop_listeners()
-    {
+    stop_listeners() {
 	# stop all listeners
 	$.lm.lock();
 	on_exit $.lm.unlock();
@@ -593,8 +563,7 @@ class HTTPServer::HTTPServer {
 	    $.listeners.$id.stop_listener();
     }
 
-    stop()
-    {
+    stop() {
 	# shutdown all listeners
 	$.lm.lock();
 	on_exit $.lm.unlock();
@@ -603,8 +572,7 @@ class HTTPServer::HTTPServer {
 	    $.listeners.$id.stop();
     }
 
-    stopListener($id)
-    {
+    stopListener($id) {
 	$.lm.lock();
 	on_exit $.lm.unlock();
 
@@ -614,64 +582,55 @@ class HTTPServer::HTTPServer {
 	$.listeners.$id.stop();
     }
 
-    getListenerTID($id)
-    {
+    getListenerTID($id) {
 	return $.listeners.$id.tid;
     }
 
-    destructor()
-    {
+    destructor() {
 	$.stop();
     }
     
-    setDefaultHandler($name, $obj)
-    {
+    setDefaultHandler($name, $obj) {
 	$.defaultHandler = ( "name" : $name,
 			     "obj"  : $obj );
     }
     
-    setHandler($name, $url, $content, $obj)
-    {
+    setHandler($name, $url, $content, $obj) {
 	$.handlers.$name = 
 	    ( "obj"     : $obj,
 	      "content" : $content,
 	      "url"     : $url );
     }
 
-    private log()
-    {
+    private log() {
 	if (exists $.logfunc) {
 	    $argv[0] = "HTTPServer: " + $argv[0];
 	    call_function_args($.logfunc, $argv);
 	}
     }
     
-    private logError()
-    {
+    private logError() {
 	if (exists $.errlogfunc) {
 	    $argv[0] = "HTTPServer: " + $argv[0];
 	    call_function_args($.errlogfunc, $argv);
 	}
     }
     
-    logArgs($args)
-    {
+    logArgs($args) {
 	if (exists $.logfunc) {
 	    $args[0] = "HTTPServer: " + $args[0];
 	    call_function_args($.logfunc, $args);
 	}
     }
     
-    logErrorArgs($args)
-    {
+    logErrorArgs($args) {
 	if (exists $.errlogfunc) {
 	    $args[0] = "HTTPServer: " + $args[0];
 	    call_function_args($.errlogfunc, $args);
 	}
     }
     
-    private defaultHandler($context, $hdr, $body, $close)
-    {
+    private defaultHandler($context, $hdr, $body, $close) {
 	my $str = "";
 	if (strlen($hdr.path))
 	    $str = sprintf("url=%n", $hdr.path);
@@ -688,8 +647,7 @@ class HTTPServer::HTTPServer {
 		 "body" : sprintf("no handler has been registered for %s", $str) );
     }
     
-    sendHTTPError($s, $code, $msg, $close, $extra_hdrs)
-    {
+    sendHTTPError($s, $code, $msg, $close, $extra_hdrs) {
 	my $str = sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1>%s<p><hr><address>%s on %s</address></body></html>",
 			  $code, HTTPServer::HTTPCodes.$code, HTTPServer::HTTPCodes.$code, html_encode($msg), $.httpserverstring, gethostname());
 	
@@ -715,8 +673,7 @@ class HTTPServer::HTTPServer {
         }
     }
 
-    handleRequest($s, $context, $hdr, $body, $close, $head)
-    {
+    handleRequest($s, $context, $hdr, $body, $close, $head) {
 	# handle accept-encoding to compress data if necessary
 	if (exists $hdr."accept-encoding") {
 	    # remove all writespace
@@ -767,10 +724,9 @@ class HTTPServer::HTTPServer {
 		    $m = $h;
 		continue;
 	    }
-	    if (strlen($.handlers.$h.url) && strlen($url.path) 
-		&& regex($url.path, $.handlers.$h.url))
-		if (!exists $m)
-	            $m = $h;
+	    # path trumps content-type
+	    if (strlen($.handlers.$h.url) && strlen($url.path) && regex($url.path, $.handlers.$h.url))
+		$m = $h;
 	}
 	try {
 	    my $rv;
