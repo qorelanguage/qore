@@ -46,6 +46,11 @@ namespace WSDL {
 	  Type::NothingType : "string",
 	  Type::NullType    : "string",
 	  Type::Binary      : "base64Binary" );
+
+    # error codes, to save memory, only defined once
+    SOAP_SERIALIZATION_ERROR = "SOAP-SERIALIZATION-ERROR";
+    SOAP_DESERIALIZATION_ERROR = "SOAP-DESERIALIZATION-ERROR";
+    WSDL_ERROR = "WSDL-ERROR";
 }
 
 # abstract class providing helper methods to subclasses
@@ -96,7 +101,6 @@ class WSDL::XSDData inherits XSDBase {
 class WSDL::XSDNamedData inherits XSDData {
     constructor($e) {
 	WSDL::XSDBase::removeNS(\$e);
-
 	$.name = $e."^attributes^".name;
     }
 
@@ -115,9 +119,9 @@ class WSDL::XSDBaseType inherits XSDData {
 	my $type;
 	# set type according to Qore type if xsd type is anyType
 	if ($.type == "anyType") {
-	    $type = any_type_map{type($val)};
+	    $type = any_type_map.(type($val));
 	    if (!exists $type)
-		throw "SOAP-SERIALIZATION-ERROR", sprintf("cannot serialize xsd type anyType from Qore type %n", type($val));
+		throw SOAP_SERIALIZATION_ERROR, sprintf("cannot serialize xsd type anyType from Qore type %n", type($val));
 	}
 	else
 	    $type = $.type;
@@ -126,61 +130,61 @@ class WSDL::XSDBaseType inherits XSDData {
 	    case "byte": {
 		my $v = int($val);
 		if (($v & 0xff) != $v)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $v, $type);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
 		break;
 	    }
 
 	    case "short": {
 		my $v = int($val);
 		if (($v & 0xffff) != $v)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $v, $type);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
 		break;
 	    }
 
 	    case "int": {
 		my $v = int($val);
 		if (($v & 0xffffffff) != $v)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $v, $type);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
 		break;
 	    }
 
 	    case "unsignedByte": {
 		my $v = int($val);
 		if (($v & 0xff) != $v)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $v, $type);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
 	        if ($v < 0)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
 		break;
 	    }
 
 	    case "unsignedShort": {
 		my $v = int($val);
 		if (($v & 0xffff) != $v)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $v, $type);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
 	        if ($v < 0)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
 		break;
 	    }
 
 	    case "unsignedInt": {
 		my $v = int($val);
 		if (($v & 0xffffffff) != $v)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $v, $type);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
 	        if ($v < 0)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
 		break;
 	    }
 
 	    case "unsignedLong": {
 		my $v = int($val);
 	        if ($v < 0)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
 		break;
 	    }
 
 	    case "positiveInteger":
 	        if ($val <= 0)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("type %n only accepts positive values (value supplied: %d)", $type, $val);
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("type %n only accepts positive values (value supplied: %d)", $type, $val);
 	        break;
 
 	    case "date":
@@ -217,7 +221,7 @@ class WSDL::XSDBaseType inherits XSDData {
 	    if (exists $t)
 		$type = $t;
 	    if ($type != $.type)
-		throw "SOAP-DESERIALIZATION-ERROR", sprintf("expecting type %n, got %n", $.type, $val."^attributes^"."xsi:type");
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("expecting type %n, got %n", $.type, $val."^attributes^"."xsi:type");
 	    $val = $val."^value^";
 	}
 
@@ -231,19 +235,19 @@ class WSDL::XSDBaseType inherits XSDData {
 	    case "byte":
 		$val = int($val);
 		if (($val & 0xff) != $val)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $val, $.type);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $val, $.type);
 	        return $val;
 
 	    case "short":
 		$val = int($val);
 		if (($val & 0xffff) != $val)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $val, $.type);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $val, $.type);
 	        return $val;
 
 	    case "int":
 		$val = int($val);
 		if (($val & 0xffffffff) != $val)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $val, $.type);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $val, $.type);
 	        return $val;
 
 	    case "long":
@@ -252,35 +256,35 @@ class WSDL::XSDBaseType inherits XSDData {
 	    case "unsignedByte":
 		$val = int($val);
 		if (($val & 0xff) != $val)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $val, $.type);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $val, $.type);
 	        if ($val < 0)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("type %n does not accept negative values (value supplied: %d)", $.type, $val);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $.type, $val);
 	        return $val;
 
 	    case "unsignedShort":
 		$val = int($val);
 		if (($val & 0xffff) != $val)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $val, $.type);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $val, $.type);
 	        if ($val < 0)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("type %n does not accept negative values (value supplied: %d)", $.type, $val);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $.type, $val);
 	        return $val;
 
 	    case "unsignedInt":
 		$val = int($val);
 		if (($val & 0xffffffff) != $val)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("value %d is out of range for type %n", $val, $.type);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $val, $.type);
 	        if ($val < 0)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("type %n does not accept negative values (value supplied: %d)", $.type, $val);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $.type, $val);
 	        return $val;
 
 	    case "unsignedLong":
 	        if ($val < 0)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("type %n does not accept negative values (value supplied: %d)", $.type, $val);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $.type, $val);
 		return int($val);
 
 	    case "positiveInteger":
 	        if ($val <= 0)
-		    throw "SOAP-DESERIALIZATION-ERROR", sprintf("type %n only accepts positive values (value supplied: %d)", $.type, $val);
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("type %n only accepts positive values (value supplied: %d)", $.type, $val);
 		return int($val);
 
 	    case "date":
@@ -311,7 +315,7 @@ class WSDL::XSDBaseType inherits XSDData {
 		return parseHexString($val);
 
 	  default:
-	    throw "SOAP-DECODING-ERROR", sprintf("don't know how to handle type %n", $.type);
+	    throw SOAP_DESERIALIZATION_ERROR, sprintf("don't know how to handle type %n", $.type);
 	}
     }
 
@@ -332,6 +336,7 @@ class WSDL::XSDElement inherits XSDNamedData {
 	}
 
 	my $a = $e."^attributes^";
+	#printf("XSDElement(%n)\n", $a);
 	
 	if (exists $a.minOccurs)
 	    $.minOccurs = int($a.minOccurs);
@@ -372,35 +377,14 @@ class WSDL::XSDElement inherits XSDNamedData {
 		}
 	        else {
 		    if (exists $key && exists $typename)
-			throw "SOAP-SERIALIZATION-ERROR", sprintf("missing value for %s.%s (minOccurs=%d, type %n)", $typename, $key, $.minOccurs, $.type.getName());
+			throw SOAP_SERIALIZATION_ERROR, sprintf("missing value for %s.%s (minOccurs=%d, type %n)", $typename, $key, $.minOccurs, $.type.getName());
 		    else
-			throw "SOAP-SERIALIZATION-ERROR", sprintf("missing element value (minOccurs=%d, type %n)", $.minOccurs, $.type.getName());
+			throw SOAP_SERIALIZATION_ERROR, sprintf("missing element value (minOccurs=%d, type %n)", $.minOccurs, $.type.getName());
 		}
 	    }
 	    else
 		return;
 	}
-	if (type($h) == Type::List) {
-	    if (elements $h == 1)
-		$h = $h[0];
-	    else {
-		if ($.maxOccurs == 1)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("cannot serialize element %n of type %n from a list because maxOccurs = 1", $.name, $.type.getName());
-		if (elements $h > $.maxOccurs && $.maxOccurs > 0)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("list for element %n of type %n has %d element%s, but maxOccurs = %d", $.name, $.type.getName(), elements $h, elements $h == 1 ? "" : "s", $.maxOccurs);
-		if (elements $h < $.minOccurs)
-		    throw "SOAP-SERIALIZATION-ERROR", sprintf("list for element %n of type %n has %d element%s, but minOccurs = %d", $.name, $.type.getName(), elements $h, elements $h == 1 ? "" : "s", $.minOccurs);
-		
-		my $l = ();
-		foreach my $e in ($h) {
-		    $l += $.type.serialize($e, $omit_type, $omit_ns);
-		}
-		return $l;
-	    }
-	}
-	if ($.minOccurs > 1)
-	    throw "SOAP-SERIALIZATION-ERROR", sprintf("only one element passed to element %n of type $n, but minOccurs = %d", $.name, $.type.getName(), $.minOccurs);
-	#printf("DEBUG: element %n omit_type=%n omit_ns=%n\n", $.name, $omit_type, $omit_ns);
 	return $.type.serialize($h, $omit_type, $omit_ns);
     }
 
@@ -408,15 +392,15 @@ class WSDL::XSDElement inherits XSDNamedData {
 	if (!exists $val) {
 	    if ($.nillable || !$.minOccurs)
 		return;
-	    throw "SOAP-DESERIALIZATION-ERROR", sprintf("NOTHING passed for element %n, but nillable=False and minOccurs=%d", $.name, $.minOccurs);
+	    throw SOAP_DESERIALIZATION_ERROR, sprintf("NOTHING passed for element %n, but nillable=False and minOccurs=%d", $.name, $.minOccurs);
 	}
 
 	if (type($val) == Type::List) {
 	    my $el = elements $val;
 	    if ($.maxOccurs != -1 && $el > $.maxOccurs)
-		throw "SOAP-DESERIALIZATION-ERROR", sprintf("error deserializing element %n, maxOccurs=%d but list is %d elements long", $.name, $.maxOccurs, $el);
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("error deserializing element %n, maxOccurs=%d but list is %d elements long", $.name, $.maxOccurs, $el);
 	    if ($el < $.minOccurs)
-		throw "SOAP-DESERIALIZATION-ERROR", sprintf("error deserializing element %n, minOccurs=%d but list is %d elements long", $.name, $.minOccurs, $el);
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("error deserializing element %n, minOccurs=%d but list is %d elements long", $.name, $.minOccurs, $el);
 
 	    my $l;
 	    foreach my $e in ($val)
@@ -425,7 +409,7 @@ class WSDL::XSDElement inherits XSDNamedData {
 	}
 
 	if ($.minOccurs > 1)
-	    throw "SOAP-DESERIALIZATION-ERROR", sprintf("single value passed for element %n, but minOccurs=%d", $.name, $.minOccurs);
+	    throw SOAP_DESERIALIZATION_ERROR, sprintf("single value passed for element %n, but minOccurs=%d", $.name, $.minOccurs);
 
 	return $.type.deserialize($mrh, $.getValue($mrh, $val));
     }
@@ -461,7 +445,7 @@ class WSDL::XSDComplexType inherits XSDNamedData {
     private parseData($d) {
 	delete $d.ns;
 	if (elements $d > 1)
-	    throw "WSDL-ERROR", sprintf("expecting a single element in the complexType hash, got: %n", keys $d);
+	    throw WSDL_ERROR, sprintf("expecting a single element in the complexType hash, got: %n", keys $d);
 
 	my $k = (keys $d)[0];
 	if ($k == "all") {
@@ -500,7 +484,7 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	my $rh;
 
 	if (type($h) != Type::Hash)
-	    throw "SOAP-SERIALIZATION-ERROR", sprintf("expecting hash argument to serialize from complexType %n (got %n, type %n)", $.getName(), $h, type($h));
+	    throw SOAP_SERIALIZATION_ERROR, sprintf("expecting hash argument to serialize from complexType %n (got %n, type %n)", $.getName(), $h, type($h));
 
 	if ($.hash_type == XET_SEQUENCE || $.hash_type == XET_ALL) {
 	    foreach my $p in (keys $.elements) {
@@ -513,21 +497,21 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 		delete $h.$p;
 	    }
 	    if (elements $h)
-		throw "SOAP-SERIALIZATION-ERROR", sprintf("%n %s of type %n (valid elements: %n)", (my $kl = keys $h), elements $kl == 1 ? "is an invalid member" : "are invalid members", $.getName(), keys $.elements);
+		throw SOAP_SERIALIZATION_ERROR, sprintf("%n %s of type %n (valid elements: %n)", (my $kl = keys $h), elements $kl == 1 ? "is an invalid member" : "are invalid members", $.getName(), keys $.elements);
 	}
 	else { # "choice" - union
 	    if (elements $h > 1)
-		throw "SOAP-SERIALIAZION-ERROR", sprintf("cannot serialize type %s with more than 1 member (%n)", $.getName(), keys $h);
+		throw SOAP_SERIALIZATION_ERROR, sprintf("cannot serialize type %s with more than 1 member (%n)", $.getName(), keys $h);
 	    my $key = (keys $h)[0];
 	    if (!exists $.elements.$key)
-		throw "SOAP-SERIALIZATION-ERROR", sprintf("%n is an invalid member of type %n", $key, $.getName());
+		throw SOAP_SERIALIZATION_ERROR, sprintf("%n is an invalid member of type %n", $key, $.getName());
 
 	    # add namespace if necessary
 	    my $nskey = $omit_ns ? $key : ("ns1:" + $key);
 	    $rh.$nskey = $.elements.$key.serialize($h.$key, $omit_type, $omit_ns, $key, $.name);
 	}
 	
-	if (exists $.name && !$omit_type)
+	if (exists $.name)
 	    $rh."^attributes^" = ( "xsi:type" : "ns1:" + $.name );
 	#printf("complex type %s returning %n from %n\n", $.name, $rh, $h);
 	return $rh;
@@ -537,7 +521,7 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	my $rh;
 
 	if (type($val) != Type::Hash)
-	    throw "SOAP-DESERIALIZATION-ERROR", sprintf("cannot deserialize type %n from qore type %n (expecting hash)", $.getName(), type($val));
+	    throw SOAP_DESERIALIZATION_ERROR, sprintf("cannot deserialize type %n from qore type %n (expecting hash)", $.getName(), type($val));
 
 	my $attr = $val."^attributes^";
 	delete $val."^attributes^";
@@ -549,10 +533,8 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	    if (exists $name)
 		$tn = $name;
 	    if ($tn != $.name)
-		throw "SOAP-DESERIALIZATION-ERROR", sprintf("expecting type %n, got %n", $.getName(), $tn);
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("expecting type %n, got %n", $.getName(), $tn);
 	}
-
-	WSDL::XSDBase::removeNS(\$val);
 
 	if ($.hash_type == XET_SEQUENCE || $.hash_type == XET_ALL) {
 	    foreach my $p in (keys $.elements) {
@@ -562,15 +544,15 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	    }
 	    delete $val."^attributes^";
 	    if (elements $val)
-		throw "SOAP-DESERIALIZATION-ERROR", sprintf("invalid element %n passed in type %n (expecing %n)", (keys $val)[0], $.getName(), keys $.elements);
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("invalid element %n passed in type %n", (keys $val)[0], $.getName());
 	}
 	else { # "choice" - union
 	    my $kl = keys $val;
 	    if (elements $kl > 1)
-		throw "SOAP-DESERIALIZATION-ERROR", sprintf("too many elements supplied for union type %n (%n)", $.getName(), $kl);
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("too many elements supplied for union type %n (%n)", $.getName(), $kl);
 	    $kl = $kl[0];
 	    if (!exists $.elements.$kl)
-		throw "SOAP-DESERIALIZATION-ERROR", sprintf("element %n is not a valid element for union type %n", $kl, $.getName());
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("element %n is not a valid element for union type %n", $kl, $.getName());
 
 	    $rh.$kl = $.elements.$kl.deserialize($mrh, $.getValue($mrh, $val.$kl));
 	}
@@ -583,16 +565,15 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 }
 
 class WSDL::WSOperation inherits XSDNamedData {
-    constructor($p, $targetns, $messages, $soap12, $forcedocns) : XSDNamedData(\$p) {
+    constructor($p, $targetns, $messages, $soap12) : XSDNamedData(\$p) {
 	$.targetns = $targetns;
 	$.soap12 = $soap12;
-	$.forcedocns = $forcedocns;
 
 	my $msghash = $.processNSValue($p.input."^attributes^");
 
 	my $msg = $messages.($msghash.message.val);
 	if (!exists $msg)
-	    throw "WSDL-ERROR", sprintf("missing definition for input message %n required by operation %n", $msghash.name.val, $.name, $.messages);
+	    throw WSDL_ERROR, sprintf("missing definition for input message %n required by operation %n", $msghash.name.val, $.name, $.messages);
 	$.input = $msg;
 
 	if (exists $p.output) {
@@ -600,7 +581,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 
 	    $msg = $messages.($msghash.message.val);
 	    if (!exists $msg)
-		throw "WSDL-ERROR", sprintf("missing definition for output message %n required by operation %n", $msghash.name.val, $.name);
+		throw WSDL_ERROR, sprintf("missing definition for output message %n required by operation %n", $msghash.name.val, $.name);
 
 	    $.output = $msg;
 	}
@@ -610,7 +591,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 	$.docstyle = True;
 
 	if (elements $.input.args > 1)
-	    throw "WSDL-ERROR", sprintf("don't know how to handle document-style messages for operation %n that has more than one top-level part (%n)",
+	    throw WSDL_ERROR, sprintf("don't know how to handle document-style messages for operation %n that has more than one top-level part (%n)",
 					$.name, keys $.input.args);
 
 	my $arg = (keys $.input.args)[0];
@@ -634,7 +615,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 
 	#printf("DEBUG: docstyle=%n\n", $.docstyle);
 	if ($.docstyle)
-	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serializeDocument($h, $.targetns, $.forcedocns);
+	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serializeDocument($h, $.targetns);
 	else
 	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serialize($.name, $h, $.targetns);
 
@@ -649,7 +630,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 	my $rh = $.soap12 ? WSDL::ENVELOPE_12_NS : WSDL::ENVELOPE_11_NS;
 
 	if ($.docstyle)
-	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serializeDocument($h, $.targetns, $.forcedocns);
+	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serializeDocument($h, $.targetns);
 	else
 	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serialize($.name, $h, $.targetns);
 
@@ -777,7 +758,7 @@ class WSDL::WSMessage inherits XSDNamedData {
 		#printf("DEBUG: WSMessage::constructor() message %n element %n = %n\n", $.name, $arg.element, $element_map.$name);
 
 		if (!exists $element_map.$name)
-		    throw "WSDL-ERROR", sprintf("message %n references unknown element %n", $.name, $name);
+		    throw WSDL_ERROR, sprintf("message %n references unknown element %n", $.name, $name);
 		$.args.($arg.name).element = $element_map.$name;
 	    }
 	    else {
@@ -793,13 +774,13 @@ class WSDL::WSMessage inherits XSDNamedData {
     
 	foreach my $k in (keys $.args) {
 	    if (!exists $h.$k)
-		throw "SOAP-SERIALIZATION-ERROR", sprintf("missing message argument %n (got %n instead)", $k, keys $h);
+		throw SOAP_SERIALIZATION_ERROR, sprintf("missing message argument %n (got %n instead)", $k, keys $h);
 
 	    #printf("DEBUG: arg %n with %n\n", $k, $.args.$k);
 	    if (exists $.args.$k.element)
-		$rh.$k = $.args.$k.element.serialize($h.$k, !$.encoded, True);
+		$rh.$k = $.args.$k.element.serialize($h.$k);
 	    else
-		$rh.$k = $.args.$k.type.serialize($h.$k, !$.encoded, True);
+		$rh.$k = $.args.$k.type.serialize($h.$k);
 	    #printf("DEBUG: arg %s got %n from %n\n", $k, $rh.$k, $h.$k);
 	}
 	
@@ -815,11 +796,12 @@ class WSDL::WSMessage inherits XSDNamedData {
 	return $rvh;
     }
 
-    serializeDocument($h, $targns, $force_ns) {
+    serializeDocument($h, $targns) {
 	my $k = (keys $.args)[0];
-	#printf("DEBUG: message %s: force_ns=%n args=%n h=%n\n", $.name, $force_ns, keys $.args, $h);
+
+	#printf("DEBUG: message %s: args=%n h=%n\n", $.name, keys $.args, $h);
     
-	my $th = $.args.$k.element.serialize($h, !$.encoded, !$force_ns, $k, "<unknown>");
+	my $th = $.args.$k.element.serialize($h, True, True, $k, "<unknown>");
 
 	my $rh."^attributes^" = ( "xmlns:ns1" : $targns );
 
@@ -837,7 +819,7 @@ class WSDL::WSMessage inherits XSDNamedData {
 
 	foreach my $key in (keys $.args) {
 	    if (!exists $val.$key)
-		throw "SOAP-DESERIALIZATION-ERROR", sprintf("message %n is missing argument %n", $.name, $key);
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("message %n is missing argument %n", $.name, $key);
 
 	    $ro.$key = $.args.$key.type.deserialize($mrh, $.getValue($mrh, $val.$key));
 	}
@@ -856,14 +838,8 @@ class WSDL::WSMessage inherits XSDNamedData {
 }
 
 class WSDL::WebService inherits XSDBase {
-    # options:
-    #  "forcedocns" : if True then the namespace will be included in the element names
-    #                 even in document-style messages 
-    constructor($str, $opts) {
+    constructor($str) {
 	my $h = parseXML($str);
-
-	if ($opts.forcedocns)
-	    $.forcedocns = True;
 
 	# remove namespace (normally "wsdl:") prefix from keys if present
 	WSDL::XSDBase::removeNS(\$h);
@@ -932,7 +908,7 @@ class WSDL::WebService inherits XSDBase {
 
 	# find type
 	if (!exists $.types.($v.val))
-	    throw "WSDL-ERROR", sprintf("cannot resolve type %n", $v.val);
+	    throw WSDL_ERROR, sprintf("cannot resolve type %n", $v.val);
 	
 	return $.types.($v.val);
     }
@@ -960,7 +936,7 @@ class WSDL::WebService inherits XSDBase {
 		    if (exists $.types.$t.extension) {
 			my $et = $.types.$t.extension;
 			if (!exists $.types.$et)
-			    throw "WSDL-ERROR", sprintf("complexType %s should be extended by %n, but type %n is not defined", $t, $et, $et);
+			    throw WSDL_ERROR, sprintf("complexType %s should be extended by %n, but type %n is not defined", $t, $et, $et);
 			# combine base type and new type
 			$.types.$t.elements = $.types.$et.elements + $.types.$t.elements;
 			#printf("extended %s with %s (%n)\n", $t, $et, keys $.types.$t.elements);
@@ -976,7 +952,7 @@ class WSDL::WebService inherits XSDBase {
 		    if (!($t instanceof XSDData)) {
 			$t = $t.val;
 			if (!exists $.types.$t)
-			    throw "WSDL-ERROR", sprintf("cannot resolve element %n type %n", $el, $t);
+			    throw WSDL_ERROR, sprintf("cannot resolve element %n type %n", $el, $t);
 			#printf("DEBUG: adding element %n type %n\n", $attr.name, $t);
 			$.element_map.($attr.name) = new WSDL::XSDElement(("^attributes^":("name":$attr.name)), $.types.$t);
 		    }
@@ -1030,7 +1006,7 @@ class WSDL::WebService inherits XSDBase {
 	    my $name = $port."^attributes^".name;
 	    $.services += $name;
 	    foreach my $p in ($port.operation) {
-		my $op = new WSOperation($p, $.ns.target, $.messages, $.soap12, $.forcedocns);
+		my $op = new WSOperation($p, $.ns.target, $.messages, $.soap12);
 		$.portType.$name.operations.($op.name) = $op;
 		#printf("DEBUG: %n registered operation %n\n", $name, $op.name);
 		$.opmap.($op.name) = $op;
@@ -1054,11 +1030,11 @@ class WSDL::WebService inherits XSDBase {
 	foreach my $ophash in ($data.operation) {
 	    my $name = $ophash."^attributes^".name;
 	    if (!exists $name)
-		throw "WSDL-ERROR", sprintf("binding for %n references unnamed operation (%n)", $data.name, $ophash);
+		throw WSDL_ERROR, sprintf("binding for %n references unnamed operation (%n)", $data.name, $ophash);
 
 	    my $op = $.opmap.$name;
 	    if (!exists $op)
-		throw "WSDL-ERROR", sprintf("binding for %n references unknown operation %n", $data.name, $name);
+		throw WSDL_ERROR, sprintf("binding for %n references unknown operation %n", $data.name, $name);
 
 	    WSDL::XSDBase::removeNS(\$ophash);
 

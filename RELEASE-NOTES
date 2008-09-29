@@ -43,6 +43,7 @@ release overview:
 *) XML improvements, some XSD support
 *) thread stack overrun protection on some platforms
 *) build option support and constants
+*) initial SOAP support included as user code
 *) lots of bug fixes, new functions, new clases, class improvements, etc
 
 *) COMPATIBILITY WARNING: local variables declared with "my" at the top-level
@@ -280,6 +281,9 @@ The new constants are all in the Option namespaace:
 
 you can see what options qore has now by typing "qore -V" as well from the 
 command-line.
+
+*) initial SOAP support included as user code
+see new files: examples/WSDL.qc examples/SoapClient.qc examples/SoapHandler.qc
 
 *) bug fixes, new functions, class improvements
   +) Qore revision tag now reflects the svn version used to make the build
