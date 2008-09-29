@@ -411,7 +411,7 @@
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-class-defs, -C</code></para>
+	  <para><code>--no-class-defs</code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -440,7 +440,7 @@
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-constant-defs, -J</code></para>
+	  <para><code>--no-constant-defs</code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -748,7 +748,7 @@
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--set-parse-option=no-gui, -pno-gui</code></para>
+	  <para><code>--no-gui, --set-parse-option=no-gui, -pno-gui</code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1023,7 +1023,7 @@
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--set-parse-option=no-terminal-io, -pno-terminal-io</code></para>
+	  <para><code>--no-terminal-io, --set-parse-option=no-terminal-io, -pno-terminal-io</code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1098,7 +1098,7 @@
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-thread-classes, -X</code></para>
+	  <para><code>--no-thread-classes</code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>

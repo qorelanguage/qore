@@ -278,7 +278,8 @@ void QoreEncodingManager::showEncodings()
 void QoreEncodingManager::showAliases()
 {
    for (const_encoding_map_t::const_iterator i = amap.begin(); i != amap.end(); i++)
-      printf("%s = %s: %s\n", i->first, i->second->getCode(), i->second->getDesc());
+      if (strcmp(i->first, i->second->getCode()))
+	  printf("%s = %s: %s\n", i->first, i->second->getCode(), i->second->getDesc());
 }
 
 void QoreEncodingManager::init(const char *def)

@@ -36,10 +36,10 @@ int qore_lib_options = QLO_NONE;
 bool lock_options = false;
 
 // command-line specified default character set
-char *def_charset = NULL;
+const char *def_charset = 0;
 
 // classname to instantiate as program
-char *exec_class_name = NULL;
+const char *exec_class_name = 0;
 
 // show module errors
 bool show_mod_errs = false;
@@ -51,7 +51,10 @@ bool exec_class = false;
 bool warnings_are_errors = false;
 
 // program text given on the command-line
-char *cl_pgm = NULL;
+const char *cl_pgm = 0;
+
+// argument to evaluate given on the command-line
+const char *eval_arg = 0;
 
 // program name
 static char *pn;
@@ -62,85 +65,97 @@ static const char usage[] = "usage: %s [option(s)]... [program file]\n";
 static const char suggest[] = "try '%s -h' for more information.\n";
 
 static const char helpstr[] = 
-"  -a, --show-aliases           displays the list of character sets aliases\n"
-"  -b, --disable-signals        disables signal handling\n"
-"  -c, --charset=arg            sets default character set encoding\n"
-"  -e, --exec=arg               execute program given on command-line\n"
-"  -h, --help                   shows this help text and exit\n"
-"  -i, --list-warnings          list all warnings and quit\n"
-"  -l, --load=arg               load module 'arg' immediately\n"
-"      --lgpl                   sets the library's license flag to LGPL,\n"
-"                               meaning that GPL modules cannot be loaded\n"
-"  -m, --show-module-errors     shows error messages related to loading and\n"
-"                               initializing qore modules\n"
-"      --module-dir             show qore module directory and exit\n"
-"      --module-api             show qore module API version and exit\n"
-"  -o, --list-parse-options     list all parse options\n"
-"  -p, --set-parse-option=arg   set parse option\n"
-"  -r, --warnings-are-errors    treat warnings as errors\n"
-"  -s, --show-charsets          displays the list of known character sets\n"
-"  -V, --version                show program version information and quit\n"
-"      --short-version          show short version information and quit\n"
-"  -W, --enable-all-warnings    turn on all warnings (recommended)\n"
-"  -w, --enable-warning=arg     turn on warning given by argument\n"
-"  -x, --exec-class[=arg]       instantiate class with same name as file name\n"
-"                               (override with arg, also sets --no-top-level)\n"
-"\n"
-" PARSE OPTIONS:\n"
-"  -A, --lock-warnings          do not allow changes in warning levels\n"
-"  -C, --no-class-defs          make class definitions illegal\n"
-"  -D, --no-database            disallow access to database functionality\n"
-"  -E, --no-external-process    make access to external processes illegal\n"
-"  -F, --no-filesystem          disallow access to the local filesystem\n"
-"  -G, --no-global-vars         make global variable definitions illegal\n"
-"  -I, --no-child-restrictions  do not restrict subprograms' parse options\n"
-"  -J, --no-constant-defs       make constant definitions illegal\n"
-"  -K, --lock-options           disable changes to parse options in program\n"
-"  -L, --no-top-level           make top-level statements illegal\n"
-"  -M, --no-namespace-defs      make namespace declarations illegal\n"
-"  -N, --no-new                 make using the 'new' operator illegal\n"
-"  -O, --require-our            require 'our' with global variables (recommended)\n"
-"  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n"
-"  -R, --no-thread-control      make thread control operations illegal\n"
-"  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
-"  -T, --no-threads             disallow thread access and control\n"
-"  -X, --no-thread-classes      disallow access to thread classes\n" 
-"  -Y, --no-network             disallow access to the network\n";
+   "  -a, --show-aliases           displays the list of character sets aliases\n"
+   "  -b, --disable-signals        disables signal handling\n"
+   "  -c, --charset=arg            sets default character set encoding\n"
+   "  -e, --exec=arg               execute program given on command-line\n"
+   "  -h, --help                   shows this help text and exit\n"
+   "  -i, --list-warnings          list all warnings and quit\n"
+   "  -l, --load=arg               load module 'arg' immediately\n"
+   "      --lgpl                   sets the library's license flag to LGPL,\n"
+   "                               meaning that GPL modules cannot be loaded\n"
+   "  -m, --show-module-errors     shows error messages related to loading and\n"
+   "                               initializing qore modules\n"
+   "      --module-dir             show qore module directory and exit\n"
+   "      --module-api             show qore module API version and exit\n"
+   "  -o, --list-parse-options     list all parse options\n"
+   "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
+   "  -r, --warnings-are-errors    treat warnings as errors\n"
+   "  -s, --show-charsets          displays known character encodings\n"
+   "  -V, --version                show program version information and quit\n"
+   "      --short-version          show short version information and quit\n"
+   "  -W, --enable-all-warnings    turn on all warnings (recommended)\n"
+   "  -w, --enable-warning=arg     turn on warning given by argument\n"
+   "  -x, --exec-class[=arg]       instantiate class with same name as file name\n"
+   "                               (override with arg, also sets --no-top-level)\n"
+   "  -X, --eval=arg               evaluates argument and displays result\n"
+   "\n"
+   " PARSE OPTIONS:\n"
+   "  -H, --parse-option-help      display options controlling parse options\n";
 
-static char debugstr[] = "\n DEBUGGING OPTIONS:\n"
-"  -d, --debug=arg              sets debugging level (higher number = more output)\n"
-"  -t, --trace                  turns on function tracing\n" 
-;
+static const char parseopts[] =    "qore options controlling parse options:\n"
+   "  -o, --list-parse-options     list all parse options\n"
+   "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
+   "\n PARSE OPTIONS:\n"
+   "  -A, --lock-warnings          do not allow changes in warning levels\n"
+   "      --no-class-defs          make class definitions illegal\n"
+   "  -D, --no-database            disallow access to database functionality\n"
+   "  -E, --no-external-process    make access to external processes illegal\n"
+   "  -F, --no-filesystem          disallow access to the local filesystem\n"
+   "  -G, --no-global-vars         make global variable definitions illegal\n"
+   "      --no-gui                 do not allow access to GUI functionality\n"
+   "  -I, --no-child-restrictions  do not restrict subprograms' parse options\n"
+   "      --no-constant-defs       make constant definitions illegal\n"
+   "  -K, --lock-options           disable changes to parse options in program\n"
+   "  -L, --no-top-level           make top-level statements illegal\n"
+   "  -M, --no-namespace-defs      make namespace declarations illegal\n"
+   "  -N, --no-new                 make using the 'new' operator illegal\n"
+   "  -O, --require-our            require 'our' with global variables (recommended)\n"
+   "  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n"
+   "      --no-terminal-io         do not allow access to the text terminal\n"
+   "  -R, --no-thread-control      make thread control operations illegal\n"
+   "  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
+   "  -T, --no-threads             disallow thread access and control\n"
+   "      --no-thread-classes      disallow access to thread classes\n" 
+   "  -Y, --no-network             disallow access to the network\n";
 
-static inline void show_usage()
-{
+static const char debugstr[] = "\n DEBUGGING OPTIONS:\n"
+   "  -d, --debug=arg              sets debugging level (higher number = more output)\n"
+   "  -t, --trace                  turns on function tracing\n" 
+   ;
+
+static inline void show_usage() {
    printf(usage, pn);
 }
 
-static void do_debug(char *arg)
-{
+static void show_parse_option_help(const char *arg) {
+   printf("%s\n", parseopts);
+   exit(0);
+}
+
+static void do_debug(const char *arg) {
    debug = atoi(arg);
 }
 
-static void do_trace(char *arg)
-{
+static void set_eval_arg(const char *arg) {
+   eval_arg = arg;
+}
+
+static void do_trace(const char *arg) {
    qore_trace = 1;
 }
 
-static void show_module_dir(char *arg)
-{
+static void show_module_dir(const char *arg) {
    printf("%s\n", qore_module_dir);
    exit(0);
 }
 
-static void show_module_api(char *arg)
-{
+static void show_module_api(const char *arg) {
    printf("%d.%d\n", QORE_MODULE_API_MAJOR, QORE_MODULE_API_MINOR);
    exit(0);
 }
 
-static void set_parse_option(char *arg)
-{
+static void set_parse_option(const char *arg) {
    int code = ParseOptionMap::find_code(arg);
    if (code == -1) {
       printf("unknown parse option '%s', use -L or --list-parse-options\n", arg);
@@ -149,14 +164,12 @@ static void set_parse_option(char *arg)
    parse_options |= code;
 }
 
-static void list_parse_options(char *arg)
-{
+static void list_parse_options(const char *arg) {
    ParseOptionMap::list_options();
    exit(0);
 }
 
-static void do_help(char *arg)
-{
+static void do_help(const char *arg) {
    show_usage();
    printf(helpstr);
    if (qore_has_debug())
@@ -164,28 +177,23 @@ static void do_help(char *arg)
    exit(0);
 }
 
-static void disable_signals(char *arg)
-{
+static void disable_signals(const char *arg) {
    qore_lib_options |= QLO_DISABLE_SIGNAL_HANDLING;
 }
 
-static void load_module(char *arg)
-{
+static void load_module(const char *arg) {
    cl_mod_list.push_back(arg);
 }
 
-static void warn_to_err(char *arg)
-{
+static void warn_to_err(const char *arg) {
    warnings_are_errors = true;
 }
 
-static void enable_warnings(char *arg)
-{
+static void enable_warnings(const char *arg) {
    warnings = -1;
 }
 
-static void enable_warning(char *arg)
-{
+static void enable_warning(const char *arg) {
    int code = get_warning_code(arg);
    if (!code) {
       printf("cannot enable unknown warning '%s'\n", arg);
@@ -194,118 +202,104 @@ static void enable_warning(char *arg)
    warnings |= code;
 }
 
-static void list_warnings(char *arg)
-{
+static void list_warnings(const char *arg) {
    for (unsigned i = 0; i < qore_num_warnings; i++)
       printf("%s\n", qore_warnings[i]);
    exit(0);
 }
 
-static void do_no_database(char *arg)
-{
+static void do_no_terminal_io(const char *arg) {
+   parse_options |= PO_NO_TERMINAL_IO;
+}
+
+static void do_no_gui(const char *arg) {
+   parse_options |= PO_NO_GUI;
+}
+
+static void do_no_database(const char *arg) {
    parse_options |= PO_NO_DATABASE;
 }
 
-static void do_lock_warnings(char *arg)
-{
+static void do_lock_warnings(const char *arg) {
    parse_options |= PO_LOCK_WARNINGS;
 }
 
-static void do_no_global_vars(char *arg)
-{
+static void do_no_global_vars(const char *arg) {
    parse_options |= PO_NO_GLOBAL_VARS;
 }
 
-static void do_no_subroutine_defs(char *arg)
-{
+static void do_no_subroutine_defs(const char *arg) {
    parse_options |= PO_NO_SUBROUTINE_DEFS;
 }
 
-static void do_no_network(char *arg)
-{
+static void do_no_network(const char *arg) {
    parse_options |= PO_NO_NETWORK;
 }
 
-static void do_no_threads(char *arg)
-{
+static void do_no_threads(const char *arg) {
    parse_options |= PO_NO_THREADS;
 }
 
-static void do_no_thread_control(char *arg)
-{
+static void do_no_thread_control(const char *arg) {
    parse_options |= PO_NO_THREAD_CONTROL;
 }
 
-static void do_no_thread_classes(char *arg)
-{
+static void do_no_thread_classes(const char *arg) {
    parse_options |= PO_NO_THREAD_CLASSES;
 }
 
-static void do_no_top_level(char *arg)
-{
+static void do_no_top_level(const char *arg) {
    parse_options |= PO_NO_TOP_LEVEL_STATEMENTS;
 }
 
-static void do_no_class_defs(char *arg)
-{
+static void do_no_class_defs(const char *arg) {
    parse_options |= PO_NO_CLASS_DEFS;
 }
 
-static void do_no_namespace_defs(char *arg)
-{
+static void do_no_namespace_defs(const char *arg) {
    parse_options |= PO_NO_NAMESPACE_DEFS;
 }
 
-static void do_no_constant_defs(char *arg)
-{
+static void do_no_constant_defs(const char *arg) {
    parse_options |= PO_NO_CONSTANT_DEFS;
 }
 
-static void do_no_filesystem(char *arg)
-{
+static void do_no_filesystem(const char *arg) {
    parse_options |= PO_NO_FILESYSTEM;
 }
 
-static void do_no_new(char *arg)
-{
+static void do_no_new(const char *arg) {
    parse_options |= PO_NO_NEW;
 }
 
-static void do_no_child_po_restrictions(char *arg)
-{
+static void do_no_child_po_restrictions(const char *arg) {
    parse_options |= PO_NO_CHILD_PO_RESTRICTIONS;
 }
 
-static void do_no_external_process(char *arg)
-{
+static void do_no_external_process(const char *arg) {
    parse_options |= PO_NO_EXTERNAL_PROCESS;
 }
 
-static void do_no_process_control(char *arg)
-{
+static void do_no_process_control(const char *arg) {
    parse_options |= PO_NO_PROCESS_CONTROL;
 }
 
-static void do_require_our(char *arg)
-{
+static void do_require_our(const char *arg) {
    parse_options |= PO_REQUIRE_OUR;
 }
 
-static void do_lock_options(char *arg)
-{
+static void do_lock_options(const char *arg) {
    lock_options = true;
 }
 
-static void short_version(char *arg)
-{
+static void short_version(const char *arg) {
    printf("%s\n", qore_version_string);
    exit(0);
 }
 
 static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
 
-static void do_version(char *arg)
-{
+static void do_version(const char *arg) {
    printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2008 David Nichols\nversion %s", qore_target_os, qore_target_arch, qore_target_bits, qore_version_string);
 
    FeatureList::iterator i = qoreFeatureList.begin();
@@ -347,43 +341,36 @@ static void do_version(char *arg)
    exit(0);
 }
 
-static void set_charset(char *arg)
-{
-   def_charset = strdup(arg);
+static void set_charset(const char *arg) {
+   def_charset = arg;
 }
 
-static void show_charsets(char *arg)
-{
+static void show_charsets(const char *arg) {
    QEM.showEncodings();
    exit(0);
 }
 
-static void show_charset_aliases(char *arg)
-{
+static void show_charset_aliases(const char *arg) {
    QEM.showAliases();
    exit(0);
 }
 
-static void set_exec(char *arg)
-{
+static void set_exec(const char *arg) {
    cl_pgm = arg;
 }
 
-static void show_module_errors(char *arg)
-{
+static void show_module_errors(const char *arg) {
    show_mod_errs = true;
 }
 
-static void do_exec_class(char *arg)
-{
+static void do_exec_class(const char *arg) {
    //printf("do_exec_class(%s)\n", arg);
    exec_class = true;
    exec_class_name = arg;
    parse_options |= PO_NO_TOP_LEVEL_STATEMENTS;
 }
 
-static void set_lgpl(char *arg)
-{
+static void set_lgpl(const char *arg) {
    license = QL_LGPL;
 }
 
@@ -395,7 +382,7 @@ static struct opt_struct_s {
       char short_opt;
       const char *long_opt;
       int arg;
-      void (*opt_func)(char *arg);
+      void (*opt_func)(const char *arg);
 } options[] = {
    { 'a', "show-aliases",          ARG_NONE, show_charset_aliases },
    { 'c', "charset",               ARG_MAND, set_charset },
@@ -411,13 +398,14 @@ static struct opt_struct_s {
    { 'w', "enable-warning",        ARG_MAND, enable_warning },
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
-   { 'C', "no-class-defs",         ARG_NONE, do_no_class_defs },
+   { '\0', "no-class-defs",         ARG_NONE, do_no_class_defs },
    { 'D', "no-database",           ARG_NONE, do_no_database },
    { 'E', "no-external-process",   ARG_NONE, do_no_external_process },
    { 'F', "no-filesystem",         ARG_NONE, do_no_filesystem },
    { 'G', "no-global-vars",        ARG_NONE, do_no_global_vars },
+   { 'H', "parse-option-help",     ARG_NONE, show_parse_option_help },
    { 'I', "no-child-restrictions", ARG_NONE, do_no_child_po_restrictions },
-   { 'J', "no-constant-defs",      ARG_NONE, do_no_constant_defs },
+   { '\0', "no-constant-defs",      ARG_NONE, do_no_constant_defs },
    { 'K', "lock-options",          ARG_NONE, do_lock_options },
    { 'L', "no-top-level",          ARG_NONE, do_no_top_level },
    { 'M', "no-namespace-defs",     ARG_NONE, do_no_namespace_defs },
@@ -429,12 +417,15 @@ static struct opt_struct_s {
    { 'T', "no-threads",            ARG_NONE, do_no_threads },
    { 'V', "version",               ARG_NONE, do_version },
    { 'W', "enable-all-warnings",   ARG_NONE, enable_warnings },
-   { 'X', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
+   { '\0', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
    { 'Y', "no-network",            ARG_NONE, do_no_network },
+   { '\0', "no-terminal-io",       ARG_NONE, do_no_terminal_io },
+   { '\0', "no-gui",               ARG_NONE, do_no_gui },
    { '\0', "lgpl",                 ARG_NONE, set_lgpl },
    { '\0', "module-dir",           ARG_NONE, show_module_dir },
    { '\0', "short-version",        ARG_NONE, short_version },
    { '\0', "module-api",           ARG_NONE, show_module_api },
+   { 'X', "eval",                  ARG_MAND, set_eval_arg },
 // debugging options
    { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },
@@ -474,10 +465,9 @@ static inline void invalid_option(char opt)
 }
 
 // *i is the argument position, *j is the index in the string
-static char *get_arg(char *argv[], unsigned *i, unsigned *j, unsigned argc)
-{
+static const char *get_arg(char *argv[], unsigned *i, unsigned *j, unsigned argc) {
    if (*i >= argc)
-      return NULL;
+      return 0;
    // if next character is an assignment character, then advance character pointer
    if (is_assign_char(argv[*i][*j]))
       (*j)++;
@@ -488,9 +478,9 @@ static char *get_arg(char *argv[], unsigned *i, unsigned *j, unsigned argc)
       (*i)++;
       // set character pointer to first character
       (*j) = 0;
-      // if there are no more strings then return NULL!
+      // if there are no more strings then return 0!
       if ((*i) == argc)
-	 return NULL;
+	 return 0;
    }
    return &argv[*i][*j];
 }
@@ -498,8 +488,7 @@ static char *get_arg(char *argv[], unsigned *i, unsigned *j, unsigned argc)
 static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc);
 
 // *i is the argument position, *j is the index in the string
-static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned argc)
-{
+static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned argc) {
    unsigned x;
 
    if (isblank(argv[*i][*j])) {
@@ -523,7 +512,7 @@ static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned arg
 	 //printf("found '%c' %s (%d)\n", c, options[x].long_opt, options[x].arg);
 	 if (options[x].arg == ARG_MAND || 
 	     (options[x].arg == ARG_OPT && (argv[*i][(*j) + 1] == '='))) {
-	    char *arg;
+	    const char *arg;
 
 	    // increment string index
 	    (*j)++;
@@ -536,7 +525,7 @@ static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned arg
 	     * character loop for the current arg */
 	    return 1;
 	 }
-	 options[x].opt_func(NULL);
+	 options[x].opt_func(0);
 	 return 0;
       }
    // if the option is not present, then raise an error
@@ -571,10 +560,10 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
 	       excess_option(x);
 	    else
 	       --(*i);
-	    options[x].opt_func(NULL);
+	    options[x].opt_func(0);
 	 }
 	 else if (options[x].arg == ARG_OPT) {
-	    char *arg = NULL;
+	    const char *arg = 0;
 
 	    if (option_present)
 	       arg = get_arg(argv, i, &option_present, argc);
@@ -583,7 +572,7 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
 	    options[x].opt_func(arg);
 	 }
 	 else {
-	    char *arg;
+	    const char *arg;
 
 	    if (!(arg = get_arg(argv, i, &option_present, argc)))
 	       missing_str_option(x);
@@ -602,14 +591,14 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
       free(opt);
 }
 
-// returns either NULL or a string that must be freed with free()
+// returns either 0 or a string that must be freed with free()
 // also sets up the global ARGV argument list
 char *parse_command_line(unsigned argc, char *argv[])
 {
    pn = basename(argv[0]);
 
    // file name to return, if any
-   char *fn = NULL;
+   char *fn = 0;
 
    unsigned i = 1;
 

@@ -17,13 +17,12 @@
 
 extern int parse_options;
 extern int warnings, qore_lib_options;
-extern char *def_charset;
-extern char *cl_pgm, *exec_class_name;
+extern const char *def_charset;
+extern const char *cl_pgm, *exec_class_name, *eval_arg;
 extern bool show_mod_errs, lock_options, exec_class, warnings_are_errors;
 extern qore_license_t license;
 
-int main(int argc, char *argv[])
-{   
+int main(int argc, char *argv[]) {   
    int rc = 0;
 
    // parse the command line
@@ -31,8 +30,6 @@ int main(int argc, char *argv[])
 
    // initialize Qore subsystem
    qore_init(license, def_charset, show_mod_errs, qore_lib_options);
-   if (def_charset)
-      free(def_charset);
 
    ExceptionSink wsink, xsink;
    { 
@@ -63,31 +60,40 @@ int main(int argc, char *argv[])
       if (lock_options)
 	 qpgm->lockOptions();
       
-      // set for program class execution if "exec_class" is set
-      if (exec_class) {
-	 if (exec_class_name)
-	    qpgm->setExecClass(exec_class_name);
+      // parse immediate argument if any
+      if (eval_arg) {
+	 QoreString str("printf(\"%N\n\", ");
+	 str.concat(eval_arg);
+	 str.concat(");");
+	 qpgm->parse(str.getBuffer(), "<command-line>", &xsink, &wsink, warnings);
+      }
+      else  {
+	 // set for program class execution if "exec_class" is set
+	 if (exec_class) {
+	    if (exec_class_name)
+	       qpgm->setExecClass(exec_class_name);
+	    else if (program_file_name) {
+	       char *cn = make_class_name(program_file_name);
+	       qpgm->setExecClass(cn);
+	       free(cn);
+	    }
+	    else {
+	       fprintf(stderr, "error, missing class name to instantiate as application\n");
+	       rc = 1;
+	       goto exit;
+	    }
+	 }
+	 
+	 // parse the program
+	 if (cl_pgm)
+	    qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
 	 else if (program_file_name) {
-	    char *cn = make_class_name(program_file_name);
-	    qpgm->setExecClass(cn);
-	    free(cn);
+	    qpgm->parseFile(program_file_name, &xsink, &wsink, warnings);
+	    free(program_file_name);
 	 }
-	 else {
-	    fprintf(stderr, "error, missing class name to instantiate as application\n");
-	    rc = 1;
-	    goto exit;
-	 }
+	 else
+	    qpgm->parse(stdin, "<stdin>", &xsink, &wsink, warnings);
       }
-      
-      // parse the program
-      if (cl_pgm)
-	 qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
-      else if (program_file_name) {
-	 qpgm->parseFile(program_file_name, &xsink, &wsink, warnings);
-	 free(program_file_name);
-      }
-      else
-	 qpgm->parse(stdin, "<stdin>", &xsink, &wsink, warnings);
 
       // display any warnings now
       if (wsink.isException()) {	 
