@@ -1081,7 +1081,7 @@ $$</programlisting></entry>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>The <command>find</command> expression can be used to quickly find data in a hash of lists (such as a query result set returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method).  The <command>find</command> expression will loop through a data structure based until an expression becomes True, and then it will evaluate and return a result expression.  In each part of the <command>find</command>, column names can be referred to by preceding the name with a '%" character (as with <link linkend="context_Statements">context</link> statements).</para>
+	    <para>The <command>find</command> expression can be used to quickly find data in a hash of lists (such as a query result set returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method).  The <command>find</command> expression will loop through a data structure, and for each element in the structure where the <replaceable>where expression</replaceable> is True, it will evaluate and return a result expression.  If the <replaceable>where expression</replaceable> only is true for one element in the list, it will return the result of evaluating the <replaceable>result expression</replaceable> directly, otherwise if the <replaceable>where expression</replaceable> is true more than once, then a list of the results of evaluting the <replaceable>result expression</replaceable> for each element is returned.  In each expression in the <command>find</command> expression, column names can be referred to by preceding the name with a '%" character (as with <link linkend="context_Statements">context</link> statements).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1102,7 +1102,7 @@ $$</programlisting></entry>
 	    <para>This expression must evaluate to a hash of lists, so that the internal context can be set up for the <command>find</command> loop.</para>
 	    
 	    <para><replaceable>where_expression</replaceable></para>
-	    <para>This expression will be evaluated for each row in the <replaceable>data_expression</replaceable>.  When it returns True, the <replaceable>result_expression</replaceable> will be evaulated and returned.</para>
+	    <para>This expression will be evaluated for each row in the <replaceable>data_expression</replaceable>.  Each time it evaluates to True, the <replaceable>result_expression</replaceable> will be evaulated and used for the return value for the <command>find</command> expression.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
