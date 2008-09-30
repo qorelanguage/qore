@@ -1423,7 +1423,7 @@ static int64 op_cmp_double(double left, double right)
 
 static int64 op_modula_int(int64 left, int64 right)
 {
-   return left % right;
+    return right ? left % right : 0;
 }
 
 static int64 op_bin_and_int(int64 left, int64 right)

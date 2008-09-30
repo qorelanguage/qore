@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* implement warning for local variables that are not referenced/used
 * implement auto-reconnect for pgsql, mssql and other drivers (mysql has it already)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * implement optimized foreach statement for hash key iteration
