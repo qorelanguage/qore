@@ -31,7 +31,7 @@ release overview:
 *) new special object method: "memberNotification()", called when members are
    updated externally to the class
 *) "static" class methods are now supported
-*) dereference string characters with [] operator
+*) dereference string characters and binary bytes with [] operator
 *) new qt-core, qt-gui, qt-opengl, qt-svg, opengl, glut, asn1, and xmlsec 
    modules (delivered separately, see the file README-MODULES for more 
    information)
