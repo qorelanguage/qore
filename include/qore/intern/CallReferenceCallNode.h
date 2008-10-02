@@ -68,7 +68,7 @@ class CallReferenceCallNode : public ParseNode
       //! returns the arguments (for background operator processing)
       DLLLOCAL const QoreListNode *getArgs() const { return args; }
 
-      DLLLOCAL int parseInit(LocalVar *oflag, int pflag);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 #endif

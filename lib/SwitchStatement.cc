@@ -99,20 +99,17 @@ void SwitchStatement::addCase(class CaseNode *c)
    }
 }
 
-int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    int rc = 0;
    
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
    
    AbstractQoreNode *se = sexp->eval(xsink);
-   if (!xsink->isEvent())
-   {
+   if (!xsink->isEvent()) {
       // find match
-      class CaseNode *w = head;
-      while (w)
-      {
+      CaseNode *w = head;
+      while (w) {
 	 if (w->matches(se, xsink))
 	    break;
 	 w = w->next;
@@ -120,8 +117,7 @@ int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
       if (!w && deflt)
 	 w = deflt;
       
-      while (w && !rc && !xsink->isEvent())
-      {
+      while (w && !rc && !xsink->isEvent()) {
 	 if (w->code)
 	    rc = w->code->execImpl(return_value, xsink);
 	 
@@ -137,24 +133,21 @@ int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
    return rc;
 }
 
-int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
+int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
    lvids += process_node(&sexp, oflag, pflag);
    
-   class CaseNode *w = head;
+   CaseNode *w = head;
    ExceptionSink xsink;
-   while (w)
-   {
-      if (w->val)
-      {
-	 getRootNS()->parseInitConstantValue(&w->val, 0);
-	 
+   while (w) {
+      if (w->val) {
+	 process_node(&w->val, oflag, pflag);
+	 //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, w->val ? w->val->getTypeName() : "n/a");
+
 	 // check for duplicate values
-	 class CaseNode *cw = head;
-	 while (cw != w)
-	 {
+	 CaseNode *cw = head;
+	 while (cw != w) {
             // Check only the simple case blocks (case 1: ...),
             // not those with relational operators. Could be changed later to provide more checking.
 	    // note that no exception can be raised here as the case node values are parse values
@@ -176,26 +169,21 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag)
    return 0;
 }
 
-bool CaseNodeWithOperator::isCaseNodeImpl() const
-{
+bool CaseNodeWithOperator::isCaseNodeImpl() const {
   return false;
 }
 
-//-----------------------------------------------------------------------------
-bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink)
-{
+bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
    return m_operator->bool_eval(lhs_value, val, xsink);
 }
 
-bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink)
-{
+bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {
    QoreStringValueHelper str(lhs_value);
    
    return re->exec(*str, xsink);
 }
 
-bool CaseNodeNegRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink)
-{   
+bool CaseNodeNegRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {
    QoreStringValueHelper str(lhs_value);
    
    return !re->exec(*str, xsink);

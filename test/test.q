@@ -1156,15 +1156,12 @@ sub math_tests()
     test_value(format_number(".,3", -48392093894.2349), "-48.392.093.894,235", "format_number()");
 }
 
-sub lib_tests()
-{
+sub lib_tests() {
     my $pn = get_script_path();
-    test_value(stat($pn)[2], 0100755, "stat()");
+    test_value(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
     test_value(hstat($pn).type, "REGULAR", "hstat()");
-    if (exists $ENV.HOSTNAME)
-	test_value(gethostname(), $ENV.HOSTNAME, "gethostname()");
-    else
-	test_value(!strlen(gethostname()), False, "!strlen(gethostname())");
+    my $h = gethostname();
+    test_value($h, gethostbyaddr(gethostbyname($h)), "host functions");
 }
 
 sub file_tests()

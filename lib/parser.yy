@@ -73,9 +73,9 @@
 class HashElement {
    public:
       char *key;
-      class AbstractQoreNode *value;
+      AbstractQoreNode *value;
  
-      DLLLOCAL HashElement(class AbstractQoreNode *k, AbstractQoreNode *v);
+      DLLLOCAL HashElement(AbstractQoreNode *k, AbstractQoreNode *v);
       DLLLOCAL HashElement(int tag, char *constant, AbstractQoreNode *v);
       DLLLOCAL ~HashElement();
 };
@@ -130,7 +130,7 @@ static QoreListNode *makeArgs(AbstractQoreNode *arg)
    return l;
 }
 
-HashElement::HashElement(class AbstractQoreNode *k, class AbstractQoreNode *v)
+HashElement::HashElement(AbstractQoreNode *k, AbstractQoreNode *v)
 {
    //tracein("HashElement::HashElement()");
    if (!k || k->getType() != NT_STRING) {
@@ -144,7 +144,7 @@ HashElement::HashElement(class AbstractQoreNode *k, class AbstractQoreNode *v)
    //traceout("HashElement::HashElement()");
 }
 
-HashElement::HashElement(int tag, char *constant, class AbstractQoreNode *v)
+HashElement::HashElement(int tag, char *constant, AbstractQoreNode *v)
 {
    //tracein("HashElement::HashElement()");
    key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
@@ -165,9 +165,9 @@ class ConstNode
 {
    public:
       class NamedScope *name;
-      class AbstractQoreNode *value;
+      AbstractQoreNode *value;
 
-      DLLLOCAL inline ConstNode(char *n, class AbstractQoreNode *v) { name = new NamedScope(n); value = v; }
+      DLLLOCAL inline ConstNode(char *n, AbstractQoreNode *v) { name = new NamedScope(n); value = v; }
       DLLLOCAL inline ~ConstNode() { delete name; }
 };
 
@@ -217,7 +217,7 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n)
    delete n;
 }
 
-static QoreListNode *make_list(class AbstractQoreNode *a1, class AbstractQoreNode *a2)
+static QoreListNode *make_list(AbstractQoreNode *a1, AbstractQoreNode *a2)
 {
    QoreListNode *l = new QoreListNode(true);
    l->push(a1);
@@ -225,7 +225,7 @@ static QoreListNode *make_list(class AbstractQoreNode *a1, class AbstractQoreNod
    return l;
 }
 
-static QoreListNode *splice_expressions(class AbstractQoreNode *a1, class AbstractQoreNode *a2)
+static QoreListNode *splice_expressions(AbstractQoreNode *a1, AbstractQoreNode *a2)
 {
    //tracein("splice_expressions()");
    if (a1 && a1->getType() == NT_LIST) {
@@ -321,7 +321,7 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r)
 }
 
 // returns 0 for OK, -1 for error
-static int check_lvalue(class AbstractQoreNode *node)
+static int check_lvalue(AbstractQoreNode *node)
 {
    qore_type_t ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
@@ -340,7 +340,7 @@ static int check_lvalue(class AbstractQoreNode *node)
    return -1;
 }
 
-static inline int check_vars(class AbstractQoreNode *n)
+static inline int check_vars(AbstractQoreNode *n)
 {
    if (n && n->getType() == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
@@ -353,15 +353,14 @@ static inline int check_vars(class AbstractQoreNode *n)
 }
 
 // returns true if the node needs run-time evaluation, false if not
-bool needsEval(class AbstractQoreNode *n)
-{
+bool needsEval(AbstractQoreNode *n) {
    if (!n)
       return false;
 
    qore_type_t ntype = n->getType();
 
-   // if it's a constant
-   if (ntype == NT_BAREWORD || ntype == NT_CONSTANT)
+   // if it's a constant or a function reference
+   if (ntype == NT_BAREWORD || ntype == NT_CONSTANT || ntype == NT_FUNCREF)
       return false;
 
    if (ntype == NT_LIST) {
@@ -377,7 +376,7 @@ bool needsEval(class AbstractQoreNode *n)
 
    if (ntype == NT_HASH) {
       QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
-      class HashIterator hi(h);
+      HashIterator hi(h);
       while (hi.next())
 	 if (needsEval(hi.getValue()))
 	    return true;
@@ -399,7 +398,19 @@ bool needsEval(class AbstractQoreNode *n)
    return !n->is_value();
 }
 
-static bool hasEffect(class AbstractQoreNode *n)
+int check_case(const char *op, AbstractQoreNode *exp) {
+   // ignore if NULL (= NOTHING)
+   if (exp && needsEval(exp)) {
+      if (op)
+	 parse_error("case expression with '%s' needs run-time evaluation", op);
+      else
+	 parse_error("case expression needs run-time evaluation", op);
+      return -1;
+   }
+   return 0;
+}
+
+static bool hasEffect(AbstractQoreNode *n)
 {
    // check for expressions with no effect
    qore_type_t ntype = n->getType();
@@ -488,10 +499,10 @@ struct MethodNode {
       class QoreStringNode *String;
       char *string;
       class BinaryNode *binary;
-      class AbstractQoreNode *node;
+      AbstractQoreNode *node;
       QoreHashNode *hash;
       QoreListNode *list;
-      class AbstractStatement *statement;
+      AbstractStatement *statement;
       class StatementBlock *sblock;
       class ContextModList *cmods;
       class ContextMod *cmod;
@@ -837,7 +848,9 @@ namespace_decl:
 unscoped_const_decl: 
 	TOK_CONST IDENTIFIER '=' exp ';'
         { 
-	   if (needsEval($4))
+	   if ($4 && $4->getType() == NT_FUNCREF)
+	      parse_error("constants may not be assigned to call references");
+	   else if (needsEval($4))
 	      parse_error("constant expression needs run-time evaluation");
 	   $$ = new ConstNode($2, $4); 
 	}
@@ -846,7 +859,9 @@ unscoped_const_decl:
 scoped_const_decl:
 	TOK_CONST SCOPED_REF '=' exp ';'
         {
-	   if (needsEval($4))
+	   if ($4 && $4->getType() == NT_FUNCREF)
+	      parse_error("constants may not be assigned to call references");
+	   else if (needsEval($4))
 	      parse_error("constant expression needs run-time evaluation");
 	   $$ = new ConstNode($2, $4); 
 	}
@@ -1042,46 +1057,46 @@ case_block:
 case_code:
         TOK_CASE LOGICAL_GE exp ':' statements
         {
-          if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GE);
+	   check_case(">=", $3);
+	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GE);
         }
         | TOK_CASE LOGICAL_GE exp ':' // nothing
         {
-          if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GE);
+	   check_case(">=", $3);
+	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GE);
         }
 
         | TOK_CASE LOGICAL_LE exp ':' statements
         {
-         if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LE);
+	   check_case("<=", $3);
+	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LE);
         }
         | TOK_CASE LOGICAL_LE exp ':' // nothing
         {
-         if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LE);
+	   check_case("<=", $3);
+	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LE);
         }
 
         | TOK_CASE '<' exp ':' statements
         {
-          if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LT);
+	   check_case("<", $3);
+	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LT);
         }
         | TOK_CASE '<' exp ':' // nothing
         {
-          if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LT);
+	   check_case("<", $3);
+	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LT);
         }
 
         | TOK_CASE '>' exp ':' statements
         {
-          if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GT);
+	   check_case(">", $3);
+	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GT);
         }
         | TOK_CASE '>' exp ':' // nothing
         {
-          if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GT);
+	   check_case(">", $3);
+	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GT);
         }
 
 	| TOK_CASE REGEX_MATCH REGEX ':' statements
@@ -1113,14 +1128,12 @@ case_code:
 
         | TOK_CASE exp ':' statements
         {
-	   if (needsEval($2))
-	      parse_error("case expression needs run-time evaluation");
+	   check_case(0, $2);
 	   $$ = new CaseNode($2, $4);
 	}
         | TOK_CASE exp ':' // nothing
         {
-	   if (needsEval($2))
-	      parse_error("case expression needs run-time evaluation");
+	   check_case(0, $2);
 	   $$ = new CaseNode($2, 0);
 	}
 
@@ -1486,7 +1499,7 @@ exp:    scalar
 	   $3->setVariableList();
 	   for (unsigned i = 0; i < $3->size(); i++)
 	   {
-	      class AbstractQoreNode *n = $3->retrieve_entry(i);
+	      AbstractQoreNode *n = $3->retrieve_entry(i);
 	      if (!n || n->getType() != NT_VARREF) 
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else

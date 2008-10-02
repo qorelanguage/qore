@@ -933,33 +933,29 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
 }
 
 // called during parsing (plock already grabbed)
-AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallReferenceNode *fr)
-{
+AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallReferenceNode *fr) {
    SimpleRefHolder<UnresolvedCallReferenceNode> fr_holder(fr);
    char *fname = fr->str;
 
    {   
-      class UserFunction *ufc;
-      if ((ufc = priv->user_func_list.find(fname)))
-      {
-	 printd(5, "resolved function reference to user function %s\n", fname);
+      UserFunction *ufc;
+      if ((ufc = priv->user_func_list.find(fname))) {
+	  printd(5, "QoreProgram::resolveCallReference() resolved function reference to user function %s (%p)\n", fname, ufc);
 	 return new StaticUserCallReferenceNode(ufc, this);
       }
    }
    
    {
-      class ImportedFunctionNode *ifn;
-      if ((ifn = priv->imported_func_list.findNode(fname)))
-      {
-	 printd(5, "resolved function reference to imported function %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
+      ImportedFunctionNode *ifn;
+      if ((ifn = priv->imported_func_list.findNode(fname))) {
+	 printd(5, "QoreProgram::resolveCallReference() resolved function reference to imported function %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
 	 return new ImportedCallReferenceNode(new ImportedFunctionCall(ifn->pgm, ifn->func));
       }
    }
    
    const BuiltinFunction *bfc;
-   if ((bfc = builtinFunctions.find(fname)))
-   {
-      printd(5, "resolved function reference to builtin function to %s\n", fname);
+   if ((bfc = builtinFunctions.find(fname))) {
+      printd(5, "QoreProgram::resolveCallReference() resolved function reference to builtin function to %s\n", fname);
       
       // check parse options to see if access is allowed
       if (bfc->getType() & priv->parse_options)

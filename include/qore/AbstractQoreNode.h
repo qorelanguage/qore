@@ -35,12 +35,13 @@
 #define FMT_NONE   -1
 #define FMT_NORMAL 0
 
+class LocalVar;
+
 //! The base class for all value and parse types in Qore expression trees
 /**
    Defines the interface for all value and parse types in Qore expression trees.  Default implementations are given for most virtual functions.
  */
-class AbstractQoreNode : public QoreReferenceCounter
-{
+class AbstractQoreNode : public QoreReferenceCounter {
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL AbstractQoreNode(const AbstractQoreNode&);
@@ -249,8 +250,7 @@ class AbstractQoreNode : public QoreReferenceCounter
       /** default implementation returns false
 	  @return true if the type supports evaluation of this object, false if not
        */
-      DLLLOCAL bool needs_eval() const
-      {
+      DLLLOCAL bool needs_eval() const {
 	 return needs_eval_flag;
       }
 
@@ -280,8 +280,7 @@ class AbstractQoreNode : public QoreReferenceCounter
       /**
 	 @return the data type of the object
        */
-      DLLLOCAL qore_type_t getType() const
-      {
+      DLLLOCAL qore_type_t getType() const {
 	 return type;
       }
 
@@ -290,6 +289,17 @@ class AbstractQoreNode : public QoreReferenceCounter
 	 @return the type name as a c string
        */
       DLLEXPORT virtual const char *getTypeName() const = 0;
+
+      //! for use by parse types to initialize them for execution during stage 1 parsing
+      /** @note: not yet universally used
+	  This function should only be overridden by types that can appear in
+	  the parse tree (i.e. are recognized by the parser)
+	  @param oflag non-zero if initialized within class code
+	  @oaram pflag bitfield parse flag
+	  @param lvids the number of new local variables declared in this node
+	  @return new object
+       */
+      DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids) { return this; }
 
       //! evaluates the object and returns a value (or 0)
       /** return value requires a deref(xsink) (if not 0).  If needs_eval() returns false,
@@ -350,8 +360,7 @@ class AbstractQoreNode : public QoreReferenceCounter
       /**
 	 @return true if the object is a value, false if not
        */
-      DLLLOCAL bool is_value() const
-      {
+      DLLLOCAL bool is_value() const {
 	 return value;
       }
 
@@ -379,22 +388,17 @@ class AbstractQoreNode : public QoreReferenceCounter
 /**
    This class adds the deref() function without an ExceptionSink argument.
  */
-class SimpleQoreNode : public AbstractQoreNode 
-{
+class SimpleQoreNode : public AbstractQoreNode {
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL SimpleQoreNode& operator=(const SimpleQoreNode&);
 
    public:
       //! constructor takes the type and value arguments
-      DLLLOCAL SimpleQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false) : AbstractQoreNode(t, n_value, n_needs_eval, n_there_can_be_only_one)
-      {
-      }
+      DLLLOCAL SimpleQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false) : AbstractQoreNode(t, n_value, n_needs_eval, n_there_can_be_only_one) { }
 
       //! copy constructor
-      DLLEXPORT SimpleQoreNode(const SimpleQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, there_can_be_only_one)
-      {
-      }
+      DLLEXPORT SimpleQoreNode(const SimpleQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, there_can_be_only_one) { }
 
       //! decrements the reference count and deletes the object when references = 0
       /**
@@ -404,8 +408,7 @@ class SimpleQoreNode : public AbstractQoreNode
 };
 
 //! base class for simple value types
-class SimpleValueQoreNode : public SimpleQoreNode
-{
+class SimpleValueQoreNode : public SimpleQoreNode {
    private:
 
    protected:
@@ -441,20 +444,15 @@ class SimpleValueQoreNode : public SimpleQoreNode
 
    public:
       //! creates the object by assigning the type code and setting the "value" flag, unsetting the "needs_eval" flag, and setting "there_can_be_only_one"
-      DLLLOCAL SimpleValueQoreNode(qore_type_t t, bool n_there_can_be_only_one = false) : SimpleQoreNode(t, true, false, n_there_can_be_only_one)
-      {
-      }
+      DLLLOCAL SimpleValueQoreNode(qore_type_t t, bool n_there_can_be_only_one = false) : SimpleQoreNode(t, true, false, n_there_can_be_only_one) { }
 
-      DLLLOCAL SimpleValueQoreNode(const SimpleValueQoreNode &v) : SimpleQoreNode(type, true, false, there_can_be_only_one)
-      {
-      }
+      DLLLOCAL SimpleValueQoreNode(const SimpleValueQoreNode &v) : SimpleQoreNode(type, true, false, there_can_be_only_one) { }
 };
 
 //! this class is for value types that will exists only once in the Qore library, reference counting is disabled
 /** these types must be statically allocated
  */
-class UniqueValueQoreNode : public SimpleValueQoreNode 
-{
+class UniqueValueQoreNode : public SimpleValueQoreNode {
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL UniqueValueQoreNode& operator=(const UniqueValueQoreNode&);
@@ -466,14 +464,10 @@ class UniqueValueQoreNode : public SimpleValueQoreNode
 
    public:
       //! constructor takes the type argument
-      DLLLOCAL UniqueValueQoreNode(qore_type_t t) : SimpleValueQoreNode(t, true)
-      {
-      }
+      DLLLOCAL UniqueValueQoreNode(qore_type_t t) : SimpleValueQoreNode(t, true) { }
 
       //! copy constructor
-      DLLLOCAL UniqueValueQoreNode(const UniqueValueQoreNode &) : SimpleValueQoreNode(type, true)
-      {
-      }
+      DLLLOCAL UniqueValueQoreNode(const UniqueValueQoreNode &) : SimpleValueQoreNode(type, true) { }
 
       //! returns itself; objects of this type are not reference-counted and only deleted manually (by static destruction)
       DLLEXPORT virtual AbstractQoreNode *realCopy() const;

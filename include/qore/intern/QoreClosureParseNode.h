@@ -28,6 +28,8 @@
 
 #include <vector>
 
+class LocalVar;
+
 class ClosureParseEnvironment {
    private:
       lvar_set_t *vlist;
@@ -35,24 +37,20 @@ class ClosureParseEnvironment {
       ClosureParseEnvironment *prev;
 
    public:
-      DLLLOCAL ClosureParseEnvironment(lvar_set_t *n_vlist) : vlist(n_vlist), high_water_mark(getVStack())
-      {
+      DLLLOCAL ClosureParseEnvironment(lvar_set_t *n_vlist) : vlist(n_vlist), high_water_mark(getVStack()) {
 	 prev = thread_get_closure_parse_env();
 	 thread_set_closure_parse_env(this);
       }
 
-      DLLLOCAL ~ClosureParseEnvironment()
-      {
+      DLLLOCAL ~ClosureParseEnvironment() {
 	 thread_set_closure_parse_env(prev);
       }
 
-      DLLLOCAL VNode *getHighWaterMark()
-      {
+      DLLLOCAL VNode *getHighWaterMark() {
 	 return high_water_mark;
       }
 
-      DLLLOCAL void add(LocalVar *var)
-      {
+      DLLLOCAL void add(LocalVar *var) {
 	 // insert var into the set
 	 vlist->insert(var);
       }
@@ -61,8 +59,7 @@ class ClosureParseEnvironment {
 class QoreClosureNode;
 class QoreObjectClosureNode;
 
-class QoreClosureParseNode : public ParseNode
-{
+class QoreClosureParseNode : public ParseNode {
    private:
       UserFunction *uf;
       lvar_set_t vlist;       // closure local variable environment
@@ -82,28 +79,26 @@ class QoreClosureParseNode : public ParseNode
    public:
       DLLLOCAL QoreClosureParseNode(UserFunction *n_uf, bool n_lambda = false);
 
-      DLLLOCAL ~QoreClosureParseNode()
-      {
+      DLLLOCAL ~QoreClosureParseNode() {
 	 uf->deref();
       }
 
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
       DLLLOCAL virtual const char *getTypeName() const;
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      DLLLOCAL static const char *getStaticTypeName() {
          return "function closure";
       }
 
-      DLLLOCAL void parseInit(bool in_method);
       DLLLOCAL bool isLambda() const { return lambda; }
 
       DLLLOCAL AbstractQoreNode *exec(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const;
 
-      DLLLOCAL const lvar_set_t *getVList() const
-      {
+      DLLLOCAL const lvar_set_t *getVList() const {
 	 return &vlist;
       }
+
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 #endif

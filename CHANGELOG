@@ -1,3 +1,13 @@
+2009.10.02: David Nichols
+	* fixed a bug processing local variable declarations in a call
+	  reference call
+	* added a new virtual function for parse initialization to
+	  AbstractQoreNode; last ABI change before 0.7.0 release
+	* updated parser and other code to allow call references to be 
+	  present in constant expressions (not at the top level, however) and
+	  as case values
+	* fixed a bug in user function call reference comparisons
+
 2009.09.30: David Nichols
 	* fixed modula operator to return 0 if right side is 0; before would
 	  cause an arithmetic exception and the program would crash

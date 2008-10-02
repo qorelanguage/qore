@@ -38,8 +38,7 @@
 #endif
 
 // parse context stack
-class CVNode 
-{
+class CVNode {
    public:
       const char *name;
       CVNode *next;
@@ -59,8 +58,7 @@ class VNode {
 
 typedef LocalVar *lvar_ptr_t;
 
-LVList::LVList(int num)
-{
+LVList::LVList(int num) {
    if (num) {
       lv = new lvar_ptr_t[num];
       // pop variables off stack and save in reverse order
@@ -73,22 +71,19 @@ LVList::LVList(int num)
    num_lvars = num;
 }
 
-LVList::~LVList()
-{
+LVList::~LVList() {
    if (lv)
       delete [] lv;
 }
 
-AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink)
-{
+AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink) {
    AbstractQoreNode *return_value = 0;
    execImpl(&return_value, xsink);
    return return_value;
 }
 
 // line numbers on statement blocks are set later
-StatementBlock::StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1), lvars(0)
-{
+StatementBlock::StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1), lvars(0) {
    addStatement(s);
 }
 
@@ -154,21 +149,18 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 }
 
 // top-level block (program) execution member function
-void StatementBlock::exec()
-{
+void StatementBlock::exec() {
    ExceptionSink xsink;
    exec(&xsink);
 }
 
-void push_cvar(const char *name)
-{
+void push_cvar(const char *name) {
    CVNode *cvn = new CVNode(name);
    cvn->next = getCVarStack();
    updateCVarStack(cvn);
 }
 
-void pop_cvar()
-{
+void pop_cvar() {
    class CVNode *cvn = getCVarStack();
    updateCVarStack(cvn->next);
    delete cvn;
@@ -309,6 +301,9 @@ int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag) {
 }
 
 // this function will put variables on the local stack but will not pop them
+// FIXME: this functionality should be replaced by:
+//        AbstractQoreNode *AbstractQoreNode::parseInit(LocalVar *oflag, int pflag, int &lvids) = 0;
+//        to be implemented in each subclass
 int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
    int lvids = 0;
    int current_pflag = pflag;
@@ -379,7 +374,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
       
       int stack_offset = 0;
       int found = 0;
-      class CVNode *cvn = getCVarStack();
+      CVNode *cvn = getCVarStack();
       while (cvn) {
 	 if (cvn->name && !strcmp(c->name, cvn->name)) {
 	    found = 1;
@@ -474,7 +469,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
 	    if (k[0] == HE_TAG_CONST)
 	       rv = getRootNS()->findConstantValue(k + 1, 1);
 	    else {
-	       class NamedScope *nscope = new NamedScope(strdup(k + 1));
+	       NamedScope *nscope = new NamedScope(strdup(k + 1));
 	       rv = getRootNS()->findConstantValue(nscope, 1);
 	       delete nscope;
 	    }
@@ -528,14 +523,11 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
    
    if (ntype == NT_CLASSREF)
       reinterpret_cast<ClassRefNode *>(*node)->resolve();
-   else if (ntype == NT_OBJMETHREF)
-      reinterpret_cast<AbstractParseObjectMethodReferenceNode *>(*node)->parseInit(oflag, pflag);
    else if (ntype == NT_FUNCREF)
       (*node) = reinterpret_cast<AbstractUnresolvedCallReferenceNode *>(*node)->resolve();
-   else if (ntype == NT_FUNCREFCALL)
-      reinterpret_cast<CallReferenceCallNode *>(*node)->parseInit(oflag, pflag);
-   else if (ntype == NT_CLOSURE)
-      reinterpret_cast<QoreClosureParseNode *>(*node)->parseInit((bool)oflag);
+   // types perperly using AbstractQoreNode::parseInit()
+   else if (ntype == NT_FUNCREFCALL || ntype == NT_OBJMETHREF || ntype == NT_CLOSURE)
+      *node = (*node)->parseInit(oflag, pflag, lvids);
    
    return lvids;
 }

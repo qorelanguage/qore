@@ -29,6 +29,7 @@
 #include <qore/hash_map.h>
 
 class HashMember;
+class LocalVar;
 
 //! This is the hash or associative list container type in Qore, dynamically allocated only, reference counted
 /**
@@ -37,8 +38,7 @@ class HashMember;
    The insertion order of keys is maintained in order to support consistent serialization and 
    deserialization to and from XML and JSON (and possibly others in the future).
  */
-class QoreHashNode : public AbstractQoreNode
-{
+class QoreHashNode : public AbstractQoreNode {
       friend class HashIterator;
       friend class ConstHashIterator;
 
@@ -142,8 +142,7 @@ class QoreHashNode : public AbstractQoreNode
       //! returns the type name
       /** @return the type name
        */
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "hash";
       }
 
@@ -399,11 +398,10 @@ typedef ReferenceHolder<QoreHashNode> QoreHashNodeHolder;
    }
    @endcode
  */
-class HashIterator
-{
+class HashIterator {
    private:
       class QoreHashNode *h;
-      class HashMember *ptr;
+      HashMember *ptr;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL HashIterator(const HashIterator&);
@@ -471,11 +469,10 @@ class HashIterator
    }
    @endcode
 */
-class ConstHashIterator
-{
+class ConstHashIterator {
    private:
       const QoreHashNode *h;
-      class HashMember *ptr;
+      HashMember *ptr;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL ConstHashIterator(const HashIterator&);

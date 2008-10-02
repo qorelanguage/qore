@@ -141,14 +141,15 @@ void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherli
    }
 }
 
-void ConstantList::parseInit()
-{
+void ConstantList::parseInit() {
    RootQoreNamespace *rns = getRootNS();
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++) {
       printd(5, "ConstantList::parseInit() %s\n", i->first);
       rns->parseInitConstantValue(&i->second, 0);
       printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 
 	     i->first, i->second, i->second ? i->second->getTypeName() : "NULL");
+      if (i->second)
+	  process_node(&i->second, 0, 0);
       if (!i->second)
 	 i->second = nothing();
    }
