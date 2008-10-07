@@ -49,12 +49,14 @@ Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages
 URL: http://www.qoretechnologies.com/qore
+Packager: David Nichols <david_nichols@users.sourceforge.net>
 Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.gz
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
 BuildRequires: gcc-c++
 BuildRequires: flex >= 2.5.31
+BuildRequires: bison
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
 BuildRequires: libxml2-devel
@@ -80,18 +82,17 @@ character encoding (including proper UTF-8) support, and much more.
 %debug_package
 %endif
 
-%post
-ldconfig %{_libdir}
-
-%postun
-ldconfig %{_libdir}
-
-%package libs
+%if 0%{?suse_version} == 1100
+%define lpname -n libqore4
+%else
+%define lpname libs
+%endif
+%package %{lpname}
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages
 Provides: qore-module-api-%{module_api}
 
-%description libs
+%description %{lpname}
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
 language suitable for embedding application logic, application scripting,
 interface development, and even complex multi-threaded, network-aware object-
@@ -105,12 +106,18 @@ much more.
 This module provides the qore library required for all clients using qore
 functionality.
 
-%files libs
+%files %{lpname}
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.4.0.0
 %{_libdir}/libqore.so.4
 %{_libdir}/libqore.la
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
+
+%post
+ldconfig %{_libdir}
+
+%postun
+ldconfig %{_libdir}
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
@@ -172,7 +179,6 @@ c64=--enable-64bit
 %{__make}
 
 %install
-rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}/auto

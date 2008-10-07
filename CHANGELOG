@@ -1,3 +1,8 @@
+2009.10.07: David Nichols
+	* added bison to spec file for BuildRequires
+
+*** v0.7.0 RELEASE *** 
+
 2009.10.02: David Nichols
 	* fixed a bug processing local variable declarations in a call
 	  reference call

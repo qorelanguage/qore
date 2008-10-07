@@ -1,4 +1,77 @@
-RELEASE NOTES for qore v0.7.0
+RELEASE NOTES for qore v0.7.1
+
+
+
+***********************
+*** LANGUAGE ISSUES ***
+***********************
+
+Thread Stacks Overrun
+---------------------
+*) BUG: on platforms without the new "stack guard" implementation; when the thread stack space is exhausted, the program will simply crash.  Currently qore is vulnerable to this, as it is heavily threaded and uses the stack often to save thread state, so a program like: 'sub a() { a(); } a();' will cause a core dump fairly quickly.
+Note that it is very easy to add a "stack guard" implementation for a new CPU; there has to be a way to retrieve the value of the current stack pointer register; this is normally a trivial operation.
+The following platforms are *not* vulnerable (because they have assembly stack guard implementations - also note that "stack guard" support does not depend on the operating system but rather on the CPU and the compiler and the assembler used - for example on HP-UX pa-risc gcc and aCC can use different, incompatible assemblers):
+  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit powerpc (gcc), 32-bit sparc (gcc, SunPro CC)
+
+Out of Memory Errors
+--------------------
+*) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs, however work has begun on handling out of memory errors starting in v0.5.2.
+
+Object Comparisons
+------------------
+Note that the comparison operator == (and ===) will only report True if the two objects are the same object - future versions of Qore will support a mechanism to allow objects to implement their own handling for operators like these.
+
+References, Copying, Passing by Value
+-------------------------------------
+Unlike some other languages requiring garbage collection, Qore uses a deterministic reference-counted architecture for memory management.  When the references on a value node reach 0, that object is deleted.  When arguments to a function or method are passed by value, internally, for all value types other than an object (instantiation of a Qore class), the reference count is atomically incremented and the same value node is passed to the function or method.  In this case, if that value node is changed, then the value is copied and the changes are made to the copy.  So, for all value node types other than objects, a copy-on-write approach is used.  However objects are always passed by reference.  There is always only one copy of each object unless the object is explicitly copied.  In this sense, Qore acts like Java as far as I am aware (actually, like Java, a copy of a reference is passed when an object is passed as the argument to another function).
+
+Parsing
+-------
+*) Note that there is a parse lock on each program object.  Parsing on a single program object is single-threaded.  However, the reentrant parser is able to support simultaneous parsing on different program objects.
+*) Parsing is atomic; it is executed in 2 stages - 1) parse to pending data structures, and 2) commit the pending data structures to the Qore Program object.  References are resolved in the second stage, which allows flexible referencing of functions, constants, classes, etc before they are declared.  Any parse errors at any stage will cause all the uncomitted parsing to be rolled back.  The Qore Program class allows the programmer control over the 2 stages of parsing with the Program::parsePending(), Program::parseCommit(), and Program::parseRollback() methods.
+
+
+*********************
+*** SQL Subsystem ***
+*********************
+
+*) NOTE that there is a transaction thread lock (mutex) on the Datasource class (above the DBI driver level) that is automatically enabled if autocommit is off on the Datasource; this transaction thread lock prohibits two or more threads from being in a transaction at the same time on the same datasource.  To best use this feature when starting a transaction with a Datasource::select() (like a "select for update"), call Datasource::beginTransaction() before the "select for update"; this will grab the transaction lock manually.  You notify qore that the transaction has completed by calling Datasource::commit() or Datasource::rollback().  Note that this must be done in the same thread that started the transaction.  Currently there is no way in qore to execute SQL in separate threads simultaneously on the same datasource if autocommit is off and one of the threads has started a transaction (either by calling Datasource::beginTransaction() or Datasource::exec()).  Also note that transaction locks in the Datasource class and connection allocations in the DatasourcePool class are tracked as thread resources using Qore's thread resource management infrastructure (so if the thread exits without releasing the resource, an exception is thrown and the resouce is automatically released).
+
+
+**************************************
+*** Current and Future Development ***
+**************************************
+
+Qore is being continuously developed and is making progress towards the 1.0 release.
+There is no defined roadmap for 1.0; this milestone will be declared when the time feels right (typical of open-source projects).
+Version 0.7.0 brings qore a lot closer to the 1.0 release; one main set of features that may be added before then are hooks for debugging, tracing, breakpoints, etc.
+
+
+*********************
+*** General Notes ***
+*********************
+
+Threading
+---------
+Qore was designed to favor multithreaded performance over single-threaded performance.  Due to this reason Qore programs should be very scalable on SMP systems.
+
+Memory Cleanliness
+------------------
+Qore has been thoroughly reviewed with valgrind (on Linux) and dbx (on Solaris) for memory errors.  There are no known static or dynamic memory leaks in qore at this time.  However, see below on handling out of memory conditions.
+The new features have not been as extensively tested, and there is some danger of memory leaks with exception handling, as not every code path has been explicitly tested.
+
+Stability & Bugs
+----------------
+NOTE that while qore is version 0.7.*, this does not indicate a lack of stability.  The qore language is in heavy commercial use and must absolutely remain stable and without memory leaks.
+However not all code paths are as well tested as others; there are certainly unknown bugs out there.  
+
+---------------------
+RELEASE NOTES HISTORY
+---------------------
+
+*******************************
+RELEASE SUMMARY for qore v0.7.0
+*******************************
 
 NOTE: modules are now delivered separately from the qore library, see the file
       README-MODULES for more information
@@ -307,73 +380,6 @@ see new files: examples/WSDL.qc examples/SoapClient.qc examples/SoapHandler.qc
      extensively by the qt modules, for example)
   +) qore -V now gives verbose information about the build and library options
 
-
-***********************
-*** LANGUAGE ISSUES ***
-***********************
-
-Thread Stacks Overrun
----------------------
-*) BUG: on platforms without the new "stack guard" implementation; when the thread stack space is exhausted, the program will simply crash.  Currently qore is vulnerable to this, as it is heavily threaded and uses the stack often to save thread state, so a program like: 'sub a() { a(); } a();' will cause a core dump fairly quickly.
-Note that it is very easy to add a "stack guard" implementation for a new CPU; there has to be a way to retrieve the value of the current stack pointer register; this is normally a trivial operation.
-The following platforms are *not* vulnerable (because they have assembly stack guard implementations - also note that "stack guard" support does not depend on the operating system but rather on the CPU and the compiler and the assembler used - for example on HP-UX pa-risc gcc and aCC can use different, incompatible assemblers):
-  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit powerpc (gcc), 32-bit sparc (gcc, SunPro CC)
-
-Out of Memory Errors
---------------------
-*) BUG: out of memory conditions are not handled with the c++ new operator... I need a good solution for that.  Generally the Qore program will crash if the new operator cannot allocate the memory it needs, however work has begun on handling out of memory errors starting in v0.5.2.
-
-Object Comparisons
-------------------
-Note that the comparison operator == (and ===) will only report True if the two objects are the same object - future versions of Qore will support a mechanism to allow objects to implement their own handling for operators like these.
-
-References, Copying, Passing by Value
--------------------------------------
-Unlike some other languages requiring garbage collection, Qore uses a deterministic reference-counted architecture for memory management.  When the references on a value node reach 0, that object is deleted.  When arguments to a function or method are passed by value, internally, for all value types other than an object (instantiation of a Qore class), the reference count is atomically incremented and the same value node is passed to the function or method.  In this case, if that value node is changed, then the value is copied and the changes are made to the copy.  So, for all value node types other than objects, a copy-on-write approach is used.  However objects are always passed by reference.  There is always only one copy of each object unless the object is explicitly copied.  In this sense, Qore acts like Java as far as I am aware (actually, like Java, a copy of a reference is passed when an object is passed as the argument to another function).
-
-Parsing
--------
-*) Note that there is a parse lock on each program object.  Parsing on a single program object is single-threaded.  However, the reentrant parser is able to support simultaneous parsing on different program objects.
-*) Parsing is atomic; it is executed in 2 stages - 1) parse to pending data structures, and 2) commit the pending data structures to the Qore Program object.  References are resolved in the second stage, which allows flexible referencing of functions, constants, classes, etc before they are declared.  Any parse errors at any stage will cause all the uncomitted parsing to be rolled back.  The Qore Program class allows the programmer control over the 2 stages of parsing with the Program::parsePending(), Program::parseCommit(), and Program::parseRollback() methods.
-
-
-*********************
-*** SQL Subsystem ***
-*********************
-
-*) NOTE that there is a transaction thread lock (mutex) on the Datasource class (above the DBI driver level) that is automatically enabled if autocommit is off on the Datasource; this transaction thread lock prohibits two or more threads from being in a transaction at the same time on the same datasource.  To best use this feature when starting a transaction with a Datasource::select() (like a "select for update"), call Datasource::beginTransaction() before the "select for update"; this will grab the transaction lock manually.  You notify qore that the transaction has completed by calling Datasource::commit() or Datasource::rollback().  Note that this must be done in the same thread that started the transaction.  Currently there is no way in qore to execute SQL in separate threads simultaneously on the same datasource if autocommit is off and one of the threads has started a transaction (either by calling Datasource::beginTransaction() or Datasource::exec()).  Also note that transaction locks in the Datasource class and connection allocations in the DatasourcePool class are tracked as thread resources using Qore's thread resource management infrastructure (so if the thread exits without releasing the resource, an exception is thrown and the resouce is automatically released).
-
-
-**************************************
-*** Current and Future Development ***
-**************************************
-
-Qore is being continuously developed and is making progress towards the 1.0 release.
-There is no defined roadmap for 1.0; this milestone will be declared when the time feels right (typical of open-source projects).
-Version 0.7.0 brings qore a lot closer to the 1.0 release; one main set of features that may be added before then are hooks for debugging, tracing, breakpoints, etc.
-
-
-*********************
-*** General Notes ***
-*********************
-
-Threading
----------
-Qore was designed to favor multithreaded performance over single-threaded performance.  Due to this reason Qore programs should be very scalable on SMP systems.
-
-Memory Cleanliness
-------------------
-Qore has been thoroughly reviewed with valgrind (on Linux) and dbx (on Solaris) for memory errors.  There are no known static or dynamic memory leaks in qore at this time.  However, see below on handling out of memory conditions.
-The new features have not been as extensively tested, and there is some danger of memory leaks with exception handling, as not every code path has been explicitly tested.
-
-Stability & Bugs
-----------------
-NOTE that while qore is version 0.7.*, this does not indicate a lack of stability.  The qore language is in heavy commercial use and must absolutely remain stable and without memory leaks.
-However not all code paths are as well tested as others; there are certainly unknown bugs out there.  
-
----------------------
-RELEASE NOTES HISTORY
----------------------
 
 **********************************************
 RELEASE SUMMARY for qore v0.6.2.1 and v0.6.2.2
