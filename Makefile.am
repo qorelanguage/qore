@@ -276,7 +276,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/img/scrollup_a.gif \
 	docs/img/scrollup.gif \
 	docs/img/word.gif \
-	docs/library/ \
+	docs/library/html \
 	qore-0.7.0-1.spec \
 	$(DOXYFILES)
 
