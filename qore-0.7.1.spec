@@ -44,12 +44,11 @@
 
 Summary: Qore Programming Language
 Name: qore
-Version: 0.7.0
+Version: 0.7.1
 Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages
 URL: http://www.qoretechnologies.com/qore
-Packager: David Nichols <david_nichols@users.sourceforge.net>
 Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.gz
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -82,7 +81,7 @@ character encoding (including proper UTF-8) support, and much more.
 %debug_package
 %endif
 
-%if 0%{?suse_version} == 1100
+%if 0%{?suse_version}
 %define lpname -n libqore4
 %else
 %define lpname libs
@@ -113,10 +112,10 @@ functionality.
 %{_libdir}/libqore.la
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
 
-%post
+%post %{lpname}
 ldconfig %{_libdir}
 
-%postun
+%postun %{lpname}
 ldconfig %{_libdir}
 
 %package doc
@@ -196,6 +195,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Tue Oct 7 2008 David Nichols <david_nichols@users.sourceforge.net>
+- released 0.7.0
+
 * Thu Sep 4 2008 David Nichols <david_nichols@users.sourceforge.net>
 - removed all modules as they are now independent projects
 
