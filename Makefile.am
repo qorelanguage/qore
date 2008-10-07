@@ -232,7 +232,7 @@ noinst_HEADERS = \
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	CHANGELOG AUTHORS BUILD \
-	README README-LICENSE \
+	README README-LICENSE README-MODULES \
 	COPYING.LGPL COPYING.GPL \
         test/thread-object-test.q \
         test/create-iso-8859-1-file.q \
