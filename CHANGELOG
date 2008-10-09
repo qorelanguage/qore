@@ -1,3 +1,6 @@
+2009.10.09: David Nichols
+	* HPUX itanium compile fixes in configure
+
 2009.10.07: David Nichols
 	* added bison to spec file for BuildRequires
 

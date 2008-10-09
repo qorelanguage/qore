@@ -241,7 +241,7 @@ void QoreListNode::set_entry(qore_size_t index, AbstractQoreNode *val, Exception
 
 AbstractQoreNode *QoreListNode::eval_entry(qore_size_t num, ExceptionSink *xsink) const
 {
-   if (num >= priv->length || num < 0)
+   if (num >= priv->length)
       return 0;
    AbstractQoreNode *rv = priv->entry[num];
    if (rv)

@@ -193,7 +193,7 @@ class ThreadLocalVariableData {
 #endif
 	    assert(w);
 	 }
-	 // to avoid a warning
+	 // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
 	 return 0;
       }
 #endif
@@ -279,7 +279,7 @@ class ThreadClosureVariableStack {
 #endif
 	    assert(w);
 	 }
-	 // to avoid a warning
+	 // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
 	 return 0;
       }
 };
