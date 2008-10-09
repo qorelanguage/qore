@@ -193,7 +193,13 @@ if test "$enable_64bit" = "yes"; then
 		LIBSUFFIX=64
 		AC_SUBST(LIBSUFFIX)
 		;;
-      *hpux*)	if test "$host_cpu" != "ia64"; then
+      *hpux*)	if test "$host_cpu" = "ia64"; then
+                    if test -n "`echo $CXX|grep aCC`"; then
+                        CXXFLAGS="$CXXFLAGS +DD64"
+                    elif test "$GXX" = "yes"; then
+                        CXXFLAGS="$CXXFLAGS -mlp64"
+                    fi
+                else
 		    if test -n "`echo $CXX|grep aCC`"; then
 		        CXXFLAGS="$CXXFLAGS +DA2.0W"
 		    elif test "$GXX" = "yes"; then
