@@ -1190,7 +1190,7 @@ echo "*** MODULES DELIVERED SEPARATELY - SEE 'README-MODULES' FOR MORE INFO ***"
 
 # hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
 # also to allow 64-bit PA-RISC libraries to be linked to modules
-if test "$OS" = "HP-UX" -a "$host_os" != "ia64"; then
+if test "$OS" = "HP-UX" -a "$host_cpu" != "ia64"; then
    # backup generated libtool
    if test ! -e libtool.orig ; then
       cp libtool libtool.orig
