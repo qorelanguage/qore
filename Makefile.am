@@ -88,6 +88,7 @@ include_HEADERS = \
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
 	include/qore/macros-i386.h \
+	include/qore/macros-x86_64.h \
 	include/qore/macros-powerpc.h \
 	include/qore/macros-sparc.h \
 	include/qore/macros-none.h \
@@ -277,7 +278,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/img/scrollup.gif \
 	docs/img/word.gif \
 	docs/library/html \
-	qore-0.7.1.spec \
+	qore.spec \
 	$(DOXYFILES)
 
 BUILT_SOURCES = dummy
