@@ -45,7 +45,7 @@
 Summary: Qore Programming Language
 Name: qore
 Version: 0.7.0
-Release: 2%{dist}
+Release: 3%{dist}
 License: LGPL or GPL
 Group: Development/Languages
 URL: http://www.qoretechnologies.com/qore
@@ -200,7 +200,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Mon Oct 13 2008 David Nichols <david_nichols@users.sourceforge.net>
-- fixed devel pacakges for suse
+- fixed devel packages for suse
+- fixed x86_64 builds by including inline assembly header
 
 * Tue Oct 7 2008 David Nichols <david_nichols@users.sourceforge.net>
 - released 0.7.0
