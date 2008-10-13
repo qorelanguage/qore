@@ -277,7 +277,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/img/scrollup.gif \
 	docs/img/word.gif \
 	docs/library/html \
-	qore-0.7.0-1.spec \
+	qore.spec \
 	$(DOXYFILES)
 
 BUILT_SOURCES = dummy
