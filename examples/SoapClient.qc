@@ -95,14 +95,19 @@ class SoapClient::SoapClient {
 	#printf("DEBUG: set url to %n\n", $.url);
 	$.hc = new HTTPClient(("url" : $.url));
     }
-   
-    call($operation, $h, $info) {
-	my $op = $.wsdl.portType.$.svc.operations.$operation;
+
+    getMsg($operation, $h, $op) {
+	$op = $.wsdl.portType.$.svc.operations.$operation;
 	if (!exists $op)
 	    throw "SOAP-CLIENT-ERROR", sprintf("operation %n does not exist (operations defined by service %n: %n)", 
 					       $operation, $.svc, keys $.wsdl.portType.$.svc.operations);
 
-	my $msg = $op.serializeRequest($h);
+	return $op.serializeRequest($h);
+    }
+   
+    call($operation, $h, $info) {
+	my $op;
+	my $msg = $.getMsg($operation, $h, \$op);
 
 	# we have to write the request key after the HTTPClient::post() call
         on_exit $info.request = $msg;

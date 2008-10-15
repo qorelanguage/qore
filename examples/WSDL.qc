@@ -47,9 +47,9 @@ namespace WSDL {
 	  Type::NullType    : "string",
 	  Type::Binary      : "base64Binary" );
     # error codes, to save memory, only defined once
-    SOAP_SERIALIZATION_ERROR = "SOAP-SERIALIZATION-ERROR";
-    SOAP_DESERIALIZATION_ERROR = "SOAP-DESERIALIZATION-ERROR";
-    WSDL_ERROR = "WSDL-ERROR";
+    const SOAP_SERIALIZATION_ERROR = "SOAP-SERIALIZATION-ERROR";
+    const SOAP_DESERIALIZATION_ERROR = "SOAP-DESERIALIZATION-ERROR";
+    const WSDL_ERROR = "WSDL-ERROR";
 }
 
 # abstract class providing helper methods to subclasses
@@ -116,15 +116,20 @@ class WSDL::XSDBaseType inherits XSDData {
     }
 
     serialize($val, $omit_type) {
-	my $type;
+	my ($type, $nstype);
 	# set type according to Qore type if xsd type is anyType
 	if ($.type == "anyType") {
+	    # we have to specify the type in this case
+	    $omit_type = False;
 	    $type = any_type_map{type($val)};
+	    $nstype = "xsd:" + $type;
 	    if (!exists $type)
 		throw SOAP_SERIALIZATION_ERROR, sprintf("cannot serialize xsd type anyType from Qore type %n", type($val));
 	}
-	else
+	else {
 	    $type = $.type;
+	    $nstype = $.nstype;
+	}
 
 	switch ($type) {
 	    case "byte": {
@@ -211,7 +216,9 @@ class WSDL::XSDBaseType inherits XSDData {
 		$val = makeHexString($val);
 	        break;
 	}
-	return $omit_type ? $val : ( "^attributes^" : ( "xsi:type" : $.nstype ), "^value^" : $val );
+
+	#printf("DEBUG: FORCE: type=%n, nstype=%n, val=%n\n", $type, $.nstype, $val);
+	return $omit_type ? $val : ( "^attributes^" : ( "xsi:type" : $nstype ), "^value^" : $val );
     }
 
     deserialize($mrh, $val) {
@@ -329,7 +336,7 @@ class WSDL::XSDBaseType inherits XSDData {
 }
 
 class WSDL::XSDElement inherits XSDNamedData {
-    constructor($e, $nsinfo) : XSDNamedData(\$e) {
+    constructor($e, $nsinfo, $unresolved) : XSDNamedData(\$e) {
 	if ($nsinfo instanceof XSDComplexType) {
 	    $.type = $nsinfo;
 	    return;
@@ -356,13 +363,18 @@ class WSDL::XSDElement inherits XSDNamedData {
 	if ($a.nillable == "true")
 	    $.nillable = True;
 
-	if (exists $a.type)
+	if (exists $a.type) {
 	    $.type = WSDL::XSDBase::doType($a.type, $nsinfo);
+
+	    # add self to unresolved list if element type cannot be resolved
+	    if (!($.type instanceof XSDData))
+		$unresolved.add($self);
+	}
 
 	if (exists $e.simpleType)
 	    throw "XSD-ELEMENT-ERROR", "can't parse simpleTypes yet";
 	else if (exists $e.complexType)
-	    $.type = new XSDComplexType($e.complexType, $nsinfo);
+	    $.type = new XSDComplexType($e.complexType, $nsinfo, $unresolved);
     }
 
     serialize($h, $omit_type, $omit_ns, $key, $typename) {
@@ -405,6 +417,7 @@ class WSDL::XSDElement inherits XSDNamedData {
 	if ($.minOccurs > 1)
 	    throw SOAP_SERIALIZATION_ERROR, sprintf("only one element passed to element %n of type $n, but minOccurs = %d", $.name, $.type.getName(), $.minOccurs);
 	#printf("DEBUG: element %n omit_type=%n omit_ns=%n\n", $.name, $omit_type, $omit_ns);
+	#printf("DEBUG: type=%N\n", $.type);
 	return $.type.serialize($h, $omit_type, $omit_ns);
     }
 
@@ -436,7 +449,7 @@ class WSDL::XSDElement inherits XSDNamedData {
 }
 
 class WSDL::XSDComplexType inherits XSDNamedData {
-    constructor($ct, $nsinfo) : XSDNamedData(\$ct) {
+    constructor($ct, $nsinfo, $unresolved) : XSDNamedData(\$ct) {
 	$.nsinfo = $nsinfo;
 	my $a = $ct."^attributes^";
 	delete $ct."^attributes^";
@@ -445,7 +458,7 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	if (exists $d) {	
 	    WSDL::XSDBase::removeNS(\$d);
 	    if (exists $d.restriction) {
-		$.parseData($d.restriction);
+		$.parseData($d.restriction, $unresolved);
 	    }
 	    else if (exists $d.extension) {
 		$.extension = $d.extension."^attributes^".base;
@@ -453,16 +466,16 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 		delete $d.extension."^attributes^";
 		WSDL::XSDBase::removeNS(\$d.extension);
 
-		$.parseData($d.extension);
+		$.parseData($d.extension, $unresolved);
 	    }
 	    else
 		throw "XSD-COMPLEXCONTENT-ERROR", sprintf("can't parse complexContent %n information", (keys $d)[0]);
 	}
 	else
-	    $.parseData($ct);
+	    $.parseData($ct, $unresolved);
     }
 
-    private parseData($d) {
+    private parseData($d, $unresolved) {
 	delete $d.ns;
 	if (elements $d > 1)
 	    throw WSDL_ERROR, sprintf("expecting a single element in the complexType hash, got: %n", keys $d);
@@ -471,18 +484,18 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	if ($k == "all") {
 	    $.hash_type = XET_ALL;
 	    WSDL::XSDBase::removeNS(\$d.all);
-	    $.elements = $.parseElements($d.all.element);
+	    $.elements = $.parseElements($d.all.element, $unresolved);
 	}
 	else if ($k == "choice") {
 	    $.hash_type = XET_CHOICE;
 	    WSDL::XSDBase::removeNS(\$d.choice);
-	    $.elements = $.parseElements($d.choice.element);
+	    $.elements = $.parseElements($d.choice.element, $unresolved);
 	}
 	else if ($k == "sequence") {
 	    $.hash_type = XET_SEQUENCE;
 	    WSDL::XSDBase::removeNS(\$d.sequence);
 	    if (exists $d.sequence.element)
-		$.elements = $.parseElements($d.sequence.element);
+		$.elements = $.parseElements($d.sequence.element, $unresolved);
 	    else
 		$.elements = hash();
 	}
@@ -490,11 +503,11 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	    throw "XSD-COMPLEXTYPE-ERROR", sprintf("unknown keys in %n", $d);
     }
 
-    private parseElements($el) {
+    private parseElements($el, $unresolved) {
 	#printf("DEBUG: XSDComplexType::parseElements(%n)\n", $el);
 	my $h;
 	foreach my $e in ($el) {
-	    my $elem = new XSDElement($e, $.nsinfo);
+	    my $elem = new XSDElement($e, $.nsinfo, $unresolved);
 	    $h.($elem.name) = $elem;
 	}
 	return $h;
@@ -859,6 +872,23 @@ class WSDL::WSMessage inherits XSDNamedData {
     }
 }
 
+class WSDL::LateResolverHelper {
+    private $.l;
+
+    constructor() { 
+	$.l = (); 
+    }
+
+    add($v) { 
+	$.l += $v; 
+    }
+
+    getList() {
+	return $.l;
+    }
+}
+
+
 class WSDL::WebService inherits XSDBase {
     # options:
     #  "forcedocns" : if True then the namespace will be included in the element names
@@ -948,17 +978,21 @@ class WSDL::WebService inherits XSDBase {
 	    WSDL::XSDBase::removeNS(\$schema);
 	    #printf("DEBUG: WebService::parseTypes() schema=%N\n", $schema);
 
+	    my $unresolved = new LateResolverHelper();
 	    foreach my $ct in ($schema.complexType) {
-		my $t = new XSDComplexType($ct, $.ns);
+		my $t = new XSDComplexType($ct, $.ns, $unresolved);
 		$.types.($t.name) = $t;
 	    }
 
 	    # resolve types
+	    foreach my $e in ($unresolved.getList())
+		$e.type = $.resolveType($e.type);
+
 	    foreach my $t in (keys $.types) {		
 		if ($.types.$t instanceof XSDComplexType) {
-		    foreach my $e in (keys $.types.$t."elements")
-		        if (!($.types.$t."elements".$e.type instanceof XSDData))
-			    $.types.$t."elements".$e.type = $.resolveType($.types.$t."elements".$e.type);
+		    #foreach my $e in (keys $.types.$t."elements")
+		    #    if (!($.types.$t."elements".$e.type instanceof XSDData))
+		    #	    $.types.$t."elements".$e.type = $.resolveType($.types.$t."elements".$e.type);
 
 		    # process extension info
 		    if (exists $.types.$t.extension) {
@@ -1011,8 +1045,7 @@ class WSDL::WebService inherits XSDBase {
 	}
     }
 
-    private parseService($svc)
-    {
+    private parseService($svc) {
 	WSDL::XSDBase::removeNS(\$svc);
 	$.services.name = $svc."^attributes^".name;
 	foreach my $port in ($svc.port) {

@@ -1,3 +1,7 @@
+2009.10.15: David Nichols
+	* WSDL.qc: fixed SOAP anyType serialization, fixed late resolution of 
+	  element types
+
 2009.10.09: David Nichols
 	* HPUX itanium compile fixes in configure
 
