@@ -1,3 +1,8 @@
+2009.10.16: David Nichols
+        * updated library version
+	* added new function to QoreEncoding to get maximum character width
+	  for multi-byte character enodings
+
 2009.10.15: David Nichols
 	* WSDL.qc: fixed SOAP anyType serialization, fixed late resolution of 
 	  element types

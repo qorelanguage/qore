@@ -66,51 +66,46 @@ private:
       mbcs_end_t fend;
       mbcs_pos_t fpos;
       std::string desc;
+      unsigned char maxwidth;
 
 public:
-      DLLLOCAL QoreEncoding(const char *c, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, const char *d = 0)
-      {
-	 code = c;
-	 flength = l;
-	 fend = e;
-	 fpos = p;
-	 desc = d ? d : "";
-      }
-      DLLLOCAL ~QoreEncoding()
-      {
+      DLLLOCAL QoreEncoding(const char *c, unsigned char n_maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, const char *d = 0) : code(c), flength(l), fend(e), fpos(p), desc(d ? d : ""), maxwidth(n_maxwidth) {
       }
 
-      DLLLOCAL qore_size_t getLength(const char *p) const
-      {
+      DLLLOCAL ~QoreEncoding() {
+      }
+
+      DLLLOCAL qore_size_t getLength(const char *p) const {
 	 return flength ? flength(p) : strlen(p);
       }
-      DLLLOCAL qore_size_t getByteLen(const char *p, qore_size_t c) const
-      {
+
+      DLLLOCAL qore_size_t getByteLen(const char *p, qore_size_t c) const {
 	 return fend ? fend(p, c) : c;
       }
-      DLLLOCAL qore_size_t getCharPos(const char *p, const char *e) const
-      {
+
+      DLLLOCAL qore_size_t getCharPos(const char *p, const char *e) const {
 	 return fpos ? fpos(p, e) : e - p;
       }
       
       //! returns true if the encoding is a multi-byte encoding
-      DLLEXPORT bool isMultiByte() const
-      {
+      DLLEXPORT bool isMultiByte() const {
 	 return (bool)flength;
       }
 
       //! returns the string code (ex: "UTF-8") for the encoding
-      DLLEXPORT const char *getCode() const
-      {
+      DLLEXPORT const char *getCode() const {
 	 return code.c_str();
       }
 
       //! returns the description for the encoding
-      DLLEXPORT const char *getDesc() const
-      {
+      DLLEXPORT const char *getDesc() const {
 	 return desc.empty() ? "<no description available>" : desc.c_str();
       }
-      
+
+      //! returns the maximum character width in bytes for the encoding
+      DLLEXPORT int getMaxCharWidth() const {
+	  return maxwidth;
+      }
 };
 
 // case-insensitive maps for encodings
@@ -129,7 +124,7 @@ class QoreEncodingManager
       DLLLOCAL static const_encoding_map_t amap;
       DLLLOCAL static class QoreThreadLock mutex;
    
-      DLLLOCAL static const QoreEncoding *addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
+      DLLLOCAL static const QoreEncoding *addUnlocked(const char *code, const char *desc, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0);
       DLLLOCAL static const QoreEncoding *findUnlocked(const char *name);
 
    public:
@@ -148,8 +143,11 @@ class QoreEncodingManager
       //! prints out all aliases to stdout
       DLLEXPORT static void showAliases();
 
-      //! adds a new encoding to the list
+      //! DEPRECATED! DO NOT USE! adds a new encoding to the list
       DLLEXPORT static const QoreEncoding *add(const char *code, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, const char *desc = 0);
+
+      //! adds a new encoding to the list
+      DLLEXPORT static const QoreEncoding *add(const char *code, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, const char *desc = 0);
 
       DLLLOCAL static void init(const char *def);
       DLLLOCAL QoreEncodingManager();

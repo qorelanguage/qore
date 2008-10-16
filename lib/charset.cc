@@ -43,16 +43,22 @@ const_encoding_map_t QoreEncodingManager::amap;
 class QoreThreadLock QoreEncodingManager::mutex;
 class QoreEncodingManager QEM;
 
-const QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
-{
-   QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
+const QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, const char *desc, unsigned char maxwidth, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p) {
+   QoreEncoding *qcs = new QoreEncoding(code, maxwidth, l, e, p, desc);
    emap[qcs->getCode()] = qcs;
    return qcs;
 }
 
-const QoreEncoding *QoreEncodingManager::add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
-{
-   QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
+const QoreEncoding *QoreEncodingManager::add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc) {
+   QoreEncoding *qcs = new QoreEncoding(code, 1, l, e, p, desc);
+   mutex.lock();
+   emap[qcs->getCode()] = qcs;
+   mutex.unlock();
+   return qcs;
+}
+
+const QoreEncoding *QoreEncodingManager::add(const char *code, unsigned char maxwidth, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc) {
+   QoreEncoding *qcs = new QoreEncoding(code, maxwidth, l, e, p, desc);
    mutex.lock();
    emap[qcs->getCode()] = qcs;
    mutex.unlock();
@@ -98,15 +104,15 @@ QoreEncodingManager::QoreEncodingManager()
 {
    // add character sets and setup aliases
    
-   QCS_USASCII     = addUnlocked("US-ASCII",    0,   0,    0,     "7-bit ASCII character set");
+   QCS_USASCII     = addUnlocked("US-ASCII",    "7-bit ASCII character set");
    addAlias(QCS_USASCII, "ASCII");
    addAlias(QCS_USASCII, "USASCII");
    addAlias(QCS_USASCII, "US-ASCII");
 
-   QCS_UTF8        = addUnlocked("UTF-8",       utf8cl, utf8end, utf8cpos, "variable-width universal character set");
+   QCS_UTF8        = addUnlocked("UTF-8",       "variable-width universal character set", 4, utf8cl, utf8end, utf8cpos);
    addAlias(QCS_UTF8, "UTF8");
 
-   QCS_ISO_8859_1  = addUnlocked(ISO88591_STR,  0,   0,    0,     "latin-1, Western European character set");
+   QCS_ISO_8859_1  = addUnlocked(ISO88591_STR,  "latin-1, Western European character set");
    addAlias(QCS_ISO_8859_1, "ISO88591");
    addAlias(QCS_ISO_8859_1, "ISO-8859-1");
    addAlias(QCS_ISO_8859_1, "ISO8859-1");
@@ -116,7 +122,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_1, "LATIN1");
    addAlias(QCS_ISO_8859_1, "LATIN-1");
 
-   QCS_ISO_8859_2  = addUnlocked(ISO88592_STR,  0,   0,    0,     "latin-2, Central European character set");
+   QCS_ISO_8859_2  = addUnlocked(ISO88592_STR,  "latin-2, Central European character set");
    addAlias(QCS_ISO_8859_2, "ISO88592");
    addAlias(QCS_ISO_8859_2, "ISO-8859-2");
    addAlias(QCS_ISO_8859_2, "ISO8859-2");
@@ -126,7 +132,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_2, "LATIN2");
    addAlias(QCS_ISO_8859_2, "LATIN-2");
 
-   QCS_ISO_8859_3  = addUnlocked(ISO88593_STR,  0,   0,    0,     "latin-3, Southern European character set");
+   QCS_ISO_8859_3  = addUnlocked(ISO88593_STR,  "latin-3, Southern European character set");
    addAlias(QCS_ISO_8859_3, "ISO88593");
    addAlias(QCS_ISO_8859_3, "ISO-8859-3");
    addAlias(QCS_ISO_8859_3, "ISO8859-3");
@@ -136,7 +142,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_3, "LATIN3");
    addAlias(QCS_ISO_8859_3, "LATIN-3");
 
-   QCS_ISO_8859_4  = addUnlocked(ISO88594_STR,  0,   0,    0,     "latin-4, Northern European character set");
+   QCS_ISO_8859_4  = addUnlocked(ISO88594_STR,  "latin-4, Northern European character set");
    addAlias(QCS_ISO_8859_4, "ISO88594");
    addAlias(QCS_ISO_8859_4, "ISO-8859-4");
    addAlias(QCS_ISO_8859_4, "ISO8859-4");
@@ -146,7 +152,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_4, "LATIN4");
    addAlias(QCS_ISO_8859_4, "LATIN-4");
 
-   QCS_ISO_8859_5  = addUnlocked(ISO88595_STR,  0,   0,    0,     "Cyrillic character set");
+   QCS_ISO_8859_5  = addUnlocked(ISO88595_STR,  "Cyrillic character set");
    addAlias(QCS_ISO_8859_5, "ISO88595");
    addAlias(QCS_ISO_8859_5, "ISO-8859-5");
    addAlias(QCS_ISO_8859_5, "ISO8859-5");
@@ -154,7 +160,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_5, "ISO8859P5");
    addAlias(QCS_ISO_8859_5, "ISO85");
 
-   QCS_ISO_8859_6  = addUnlocked(ISO88596_STR,  0,   0,    0,     "Arabic character set");
+   QCS_ISO_8859_6  = addUnlocked(ISO88596_STR,  "Arabic character set");
    addAlias(QCS_ISO_8859_6, "ISO88596");
    addAlias(QCS_ISO_8859_6, "ISO-8859-6");
    addAlias(QCS_ISO_8859_6, "ISO8859-6");
@@ -162,7 +168,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_6, "ISO8859P6");
    addAlias(QCS_ISO_8859_6, "ISO86");
 
-   QCS_ISO_8859_7  = addUnlocked(ISO88597_STR,  0,   0,    0,     "Greek character set");
+   QCS_ISO_8859_7  = addUnlocked(ISO88597_STR,  "Greek character set");
    addAlias(QCS_ISO_8859_7, "ISO88597");
    addAlias(QCS_ISO_8859_7, "ISO-8859-7");
    addAlias(QCS_ISO_8859_7, "ISO8859-7");
@@ -170,7 +176,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_7, "ISO8859P7");
    addAlias(QCS_ISO_8859_7, "ISO87");
 
-   QCS_ISO_8859_8  = addUnlocked(ISO88598_STR,  0,   0,    0,     "Hebrew character set");
+   QCS_ISO_8859_8  = addUnlocked(ISO88598_STR,  "Hebrew character set");
    addAlias(QCS_ISO_8859_8, "ISO88598");
    addAlias(QCS_ISO_8859_8, "ISO-8859-8");
    addAlias(QCS_ISO_8859_8, "ISO8859-8");
@@ -178,7 +184,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_8, "ISO8859P8");
    addAlias(QCS_ISO_8859_8, "ISO88");
 
-   QCS_ISO_8859_9  = addUnlocked(ISO88599_STR,  0,   0,    0,     "latin-5, Turkish character set");
+   QCS_ISO_8859_9  = addUnlocked(ISO88599_STR,  "latin-5, Turkish character set");
    addAlias(QCS_ISO_8859_9, "ISO88599");
    addAlias(QCS_ISO_8859_9, "ISO-8859-9");
    addAlias(QCS_ISO_8859_9, "ISO8859-9");
@@ -188,7 +194,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_9, "LATIN5");
    addAlias(QCS_ISO_8859_9, "LATIN-5");
 
-   QCS_ISO_8859_10 = addUnlocked(ISO885910_STR, 0,   0,    0,     "latin-6, Nordic character set");
+   QCS_ISO_8859_10 = addUnlocked(ISO885910_STR, "latin-6, Nordic character set");
    addAlias(QCS_ISO_8859_10, "ISO885910");
    addAlias(QCS_ISO_8859_10, "ISO-8859-10");
    addAlias(QCS_ISO_8859_10, "ISO8859-10");
@@ -198,7 +204,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_10, "LATIN6");
    addAlias(QCS_ISO_8859_10, "LATIN-6");
 
-   QCS_ISO_8859_11 = addUnlocked(ISO885911_STR, 0,   0,    0,     "Thai character set");
+   QCS_ISO_8859_11 = addUnlocked(ISO885911_STR, "Thai character set");
    addAlias(QCS_ISO_8859_11, "ISO885911");
    addAlias(QCS_ISO_8859_11, "ISO-8859-11");
    addAlias(QCS_ISO_8859_11, "ISO8859-11");
@@ -207,7 +213,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_11, "ISO811");
 
    // there is no ISO-8859-12
-   QCS_ISO_8859_13 = addUnlocked(ISO885913_STR, 0,   0,    0,     "latin-7, Baltic rim character set");
+   QCS_ISO_8859_13 = addUnlocked(ISO885913_STR, "latin-7, Baltic rim character set");
    addAlias(QCS_ISO_8859_13, "ISO885913");
    addAlias(QCS_ISO_8859_13, "ISO-8859-13");
    addAlias(QCS_ISO_8859_13, "ISO8859-13");
@@ -217,7 +223,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_13, "LATIN7");
    addAlias(QCS_ISO_8859_13, "LATIN-7");
 
-   QCS_ISO_8859_14 = addUnlocked(ISO885914_STR, 0,   0,    0,     "latin-8, Celtic character set");
+   QCS_ISO_8859_14 = addUnlocked(ISO885914_STR, "latin-8, Celtic character set");
    addAlias(QCS_ISO_8859_14, "ISO885914");
    addAlias(QCS_ISO_8859_14, "ISO-8859-14");
    addAlias(QCS_ISO_8859_14, "ISO8859-14");
@@ -227,7 +233,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_14, "LATIN8");
    addAlias(QCS_ISO_8859_14, "LATIN-8");
 
-   QCS_ISO_8859_15 = addUnlocked(ISO885915_STR, 0,   0,    0,     "latin-9, Western European with euro symbol");
+   QCS_ISO_8859_15 = addUnlocked(ISO885915_STR, "latin-9, Western European with euro symbol");
    addAlias(QCS_ISO_8859_15, "ISO885915");
    addAlias(QCS_ISO_8859_15, "ISO-8859-15");
    addAlias(QCS_ISO_8859_15, "ISO8859-15");
@@ -237,7 +243,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_15, "LATIN9");
    addAlias(QCS_ISO_8859_15, "LATIN-9");
 
-   QCS_ISO_8859_16 = addUnlocked(ISO885916_STR, 0,   0,    0,     "latin-10, Southeast European character set");
+   QCS_ISO_8859_16 = addUnlocked(ISO885916_STR, "latin-10, Southeast European character set");
    addAlias(QCS_ISO_8859_16, "ISO885916");
    addAlias(QCS_ISO_8859_16, "ISO-8859-16");
    addAlias(QCS_ISO_8859_16, "ISO8859-16");
@@ -247,13 +253,13 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_16, "LATIN10");
    addAlias(QCS_ISO_8859_16, "LATIN-10");
 
-   QCS_KOI8_R      = addUnlocked("KOI8-R",      0,   0,    0,     "Russian: Kod Obmena Informatsiey, 8 bit");
+   QCS_KOI8_R      = addUnlocked("KOI8-R",      "Russian: Kod Obmena Informatsiey, 8 bit");
    addAlias(QCS_KOI8_R, "KOI8R");
 
-   QCS_KOI8_U      = addUnlocked("KOI8-U",      0,   0,    0,     "Ukrainian: Kod Obmena Informatsiey, 8 bit");
+   QCS_KOI8_U      = addUnlocked("KOI8-U",      "Ukrainian: Kod Obmena Informatsiey, 8 bit");
    addAlias(QCS_KOI8_U, "KOI8U");
 
-   QCS_KOI7        = addUnlocked("KOI7",        0,   0,    0,     "Russian: Kod Obmena Informatsiey, 7 bit characters");
+   QCS_KOI7        = addUnlocked("KOI7",        "Russian: Kod Obmena Informatsiey, 7 bit characters");
    
    QCS_DEFAULT = QCS_UTF8;
 };
@@ -343,7 +349,7 @@ const QoreEncoding *QoreEncodingManager::findCreate(const char *name)
    mutex.lock();
    rv = findUnlocked(name);
    if (!rv)
-      rv = addUnlocked(name, 0, 0, 0, 0);
+      rv = addUnlocked(name, 0);
    mutex.unlock();
    return rv;
 }
