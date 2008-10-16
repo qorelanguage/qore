@@ -11562,7 +11562,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Socket_connect">Socket::connect()</link></para></entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Connects to a remote port or UNIX domain socket file.</para></entry>
 	  </row>
           <row>
@@ -12319,7 +12319,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Connects the socket to a remote port or UNIX domain socket file.</para>
+	    <para>Connects the socket to a remote port or UNIX domain socket file.  If any errors occur, an exception is thrown.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -12374,8 +12374,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Integer</para></entry>
-	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value; if an error occurs, an exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12395,6 +12395,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-CONNECT-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>No argument was passed to the method.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-CONNECT-ERROR</code></para></entry>
+	      <entry><para>An error occured connecting to the remote socket (cannot resolve hostname, no listener, etc).</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -12406,7 +12410,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Connects to a remote socket and attempts to establish a TLS/SSL connection.</para>
+            <para>Connects to a remote socket and attempts to establish a TLS/SSL connection.  If any errors occur, an exception is thrown.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -12475,7 +12479,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 <para>n/a</para>
               </entry>
               <entry>
-                <para>This method returns no value</para>
+                <para>This method returns no value; if an error occurs, an exception is thrown.</para>
               </entry>
             </row>
           </tbody>
@@ -12505,6 +12509,10 @@ $sock.bind("/tmp/socket");</programlisting>
                 <para>missing remote socket</para>
               </entry>
             </row>
+	    <row>
+	      <entry><para><code>SOCKET-CONNECT-ERROR</code></para></entry>
+	      <entry><para>An error occured connecting to the remote socket (cannot resolve hostname, no listener, etc).</para></entry>
+	    </row>
             <row>
               <entry>
                 <para>
