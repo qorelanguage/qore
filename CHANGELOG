@@ -1,21 +1,25 @@
-2009.10.16: David Nichols
+2008.10.17: David Nichols
+	* added QORE_VERSION_CODE to qore-version.h
+	* updated next_build.sh to run with /bin/sh instead of /bin/bash
+
+2008.10.16: David Nichols
         * updated library version
 	* added new function to QoreEncoding to get maximum character width
 	  for multi-byte character enodings
 
-2009.10.15: David Nichols
+2008.10.15: David Nichols
 	* WSDL.qc: fixed SOAP anyType serialization, fixed late resolution of 
 	  element types
 
-2009.10.09: David Nichols
+2008.10.09: David Nichols
 	* HPUX itanium compile fixes in configure
 
-2009.10.07: David Nichols
+2008.10.07: David Nichols
 	* added bison to spec file for BuildRequires
 
 *** v0.7.0 RELEASE *** 
 
-2009.10.02: David Nichols
+2008.10.02: David Nichols
 	* fixed a bug processing local variable declarations in a call
 	  reference call
 	* added a new virtual function for parse initialization to
@@ -25,7 +29,7 @@
 	  as case values
 	* fixed a bug in user function call reference comparisons
 
-2009.09.30: David Nichols
+2008.09.30: David Nichols
 	* fixed modula operator to return 0 if right side is 0; before would
 	  cause an arithmetic exception and the program would crash
 

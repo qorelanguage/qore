@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 dir=`dirname $0`
 
@@ -15,8 +15,7 @@ else
     show_build=0
 fi
 
-make_file() 
-{
+make_file() {
     crev=`cat "$file"|cut -b15- 2>/dev/null`
     if [ "$crev" != "$build" ]; then
 	printf "#define BUILD %s\n" $build > $1
@@ -26,13 +25,12 @@ make_file()
     fi
 }
 
-make_version()
-{
+make_version() {
     major=`grep define.VERSION_MAJOR "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
     minor=`grep define.VERSION_MINOR "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
     sub=`grep define.VERSION_SUB "$qore_inc/intern/unix-config.h"|cut -f3 -d\ `
 
-    printf "#ifndef _QORE_VERSION_H\n#define _QORE_VERSION_H\n#define QORE_VERSION_MAJOR %s\n#define QORE_VERSION_MINOR %s\n#define QORE_VERSION_SUB %s\n#define QORE_VERSION \"%s.%s.%s\"\n#endif\n" $major $minor $sub $major $minor $sub > "$version_tmp"
+    printf "#ifndef _QORE_VERSION_H\n#define _QORE_VERSION_H\n#define QORE_VERSION_MAJOR %s\n#define QORE_VERSION_MINOR %s\n#define QORE_VERSION_SUB %s\n#define QORE_VERSION \"%s.%s.%s\"\n#define QORE_VERSION_CODE %02d%02d%02d\n#endif\n" $major $minor $sub $major $minor $sub $major $minor $sub > "$version_tmp"
     create=yes
     if [ -f "$version_file" ]; then
 	diff "$version_tmp" "$version_file" >/dev/null 2>/dev/null
@@ -70,4 +68,3 @@ if [ $ok -ne 1 ]; then
 fi
 
 make_version
-
