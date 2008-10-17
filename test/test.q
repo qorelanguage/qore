@@ -871,16 +871,14 @@ sub date_time_tests()
     test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 107793D + 22h + 34m + 42s + 150ms, "date difference 2");
 }
 
-sub binary_tests()
-{
+sub binary_tests() {
     my $b = binary("this is a test");
     test_value(getByte($b, 3), ord("s"), "getByte()");
     test_value($b, binary("this is a test"), "binary comparison");
     test_value($b != binary("this is a test"), False, "binary negative comparison");
 }
 
-sub string_tests()
-{
+sub string_tests() {
     my $str = "Hi there, you there, pal";
     my $big = "GEE WHIZ";
     test_value(strlen($str), 24, "strlen()");
@@ -904,8 +902,11 @@ sub string_tests()
     test_value($str[31], "ö", "first UTF-8 string index dereference");
     test_value($str[39], "ü", "second UTF-8 string index dereference");
 
+    # save string
+    my $ostr = $str;
     # convert the string to single-byte ISO-8859-1 characters and retest
     $str = convert_encoding($str, "ISO-8859-1");
+    test_value($str != $ostr, False, "string != operator with same text with different encodings");
     test_value(strlen($str), 43, "ISO-8859-1 strlen()");
     test_value(length($str), 43, "ISO-8859-1 length()");
     test_value(substr($str, 30), convert_encoding("Höhe begrüßen", "ISO-8859-1"), "first ISO-8859-1 substr()");
