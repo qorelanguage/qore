@@ -167,74 +167,60 @@ static bool op_log_lt_date(const DateTimeNode *left, const DateTimeNode *right)
    return DateTime::compareDates(left, right) < 0;
 }
 
-static bool op_log_le_date(const DateTimeNode *left, const DateTimeNode *right)
-{
+static bool op_log_le_date(const DateTimeNode *left, const DateTimeNode *right) {
    return DateTime::compareDates(left, right) <= 0;
 }
 
-static bool op_log_ne_date(const DateTimeNode *left, const DateTimeNode *right)
-{
+static bool op_log_ne_date(const DateTimeNode *left, const DateTimeNode *right) {
    return !left->isEqual(right);
 }
 
-static bool op_log_lt_float(double left, double right)
-{
+static bool op_log_lt_float(double left, double right) {
    return left < right;
 }
 
-static bool op_log_gt_float(double left, double right)
-{
+static bool op_log_gt_float(double left, double right) {
    return left > right;
 }
 
-static bool op_log_eq_float(double left, double right)
-{
+static bool op_log_eq_float(double left, double right) {
    return left == right;
 }
 
-static bool op_log_ne_float(double left, double right)
-{
+static bool op_log_ne_float(double left, double right) {
    return left != right;
 }
 
-static bool op_log_le_float(double left, double right)
-{
+static bool op_log_le_float(double left, double right) {
    return left <= right;
 }
 
-static bool op_log_ge_float(double left, double right)
-{
+static bool op_log_ge_float(double left, double right) {
    return left >= right;
 }
 
-static bool op_log_eq_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
-{
+static bool op_log_eq_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
    return !left->compareSoft(right, xsink);
 }
 
-static bool op_log_gt_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
-{
+static bool op_log_gt_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
    return left->compare(right) > 0;
 }
 
-static bool op_log_ge_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
-{
+static bool op_log_ge_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
    return right->compare(left) >= 0;
 }
 
-static bool op_log_lt_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
-{
+static bool op_log_lt_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
    return left->compare(right) < 0;
 }
 
-static bool op_log_le_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
-{
+static bool op_log_le_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
    return left->compare(right) <= 0;
 }
 
-static bool op_log_ne_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
-{
-   return left->compare(right);
+static bool op_log_ne_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
+   return left->compareSoft(right, xsink);
 }
 
 static bool op_absolute_log_eq(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)

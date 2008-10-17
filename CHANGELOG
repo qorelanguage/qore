@@ -1,6 +1,8 @@
 2008.10.17: David Nichols
 	* added QORE_VERSION_CODE to qore-version.h
 	* updated next_build.sh to run with /bin/sh instead of /bin/bash
+	* fixed a bug in string != - was returning True when the strings were
+	  equal but had different character encodings
 
 2008.10.16: David Nichols
         * updated library version
