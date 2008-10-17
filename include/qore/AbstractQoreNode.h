@@ -295,7 +295,7 @@ class AbstractQoreNode : public QoreReferenceCounter {
 	  This function should only be overridden by types that can appear in
 	  the parse tree (i.e. are recognized by the parser)
 	  @param oflag non-zero if initialized within class code
-	  @oaram pflag bitfield parse flag
+	  @param pflag bitfield parse flag
 	  @param lvids the number of new local variables declared in this node
 	  @return new object
        */
