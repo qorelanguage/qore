@@ -29,6 +29,7 @@
  */
 
 #include <string.h>
+#include <strings.h>
 
 #include <string>
 #include <functional>

@@ -1,6 +1,7 @@
 2008.10.20: David Nichols
 	* updated assembly macro includes to allow for Universal builds
 	* added a new option for library debugging
+	* removed the HPUX socklen hack
 
 2008.10.17: David Nichols
 	* added QORE_VERSION_CODE to qore-version.h

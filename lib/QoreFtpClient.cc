@@ -470,26 +470,19 @@ int QoreFtpClient::connectDataPassive(ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::connectDataPort(ExceptionSink *xsink)
-{
+int QoreFtpClient::connectDataPort(ExceptionSink *xsink) {
    // get address for interface of control connection
    struct sockaddr_in add;
-#ifdef HPUX_ACC_SOCKLEN_HACK
-   int socksize = sizeof(struct sockaddr_in);
-#else
    socklen_t socksize = sizeof(struct sockaddr_in);
-#endif
    
-   if (getsockname(priv->control.getSocket(), (struct sockaddr *)&add, &socksize) < 0)
-   {
+   if (getsockname(priv->control.getSocket(), (struct sockaddr *)&add, &socksize) < 0) {
       xsink->raiseException("FTP-CONNECT-ERROR", "cannot determine local interface address for data port connection: %s",
 		     strerror(errno));
       return -1;
    }
    // bind to any port on local interface
    add.sin_port = 0;
-   if (priv->data.bind((struct sockaddr *)&add, sizeof (struct sockaddr_in)))
-   {
+   if (priv->data.bind((struct sockaddr *)&add, sizeof (struct sockaddr_in))) {
       xsink->raiseException("FTP-CONNECT-ERROR", "could not bind to any port on local interface: %s", 
 		     strerror(errno));
       return -1;

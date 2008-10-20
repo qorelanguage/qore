@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -479,15 +480,10 @@ int QoreSocket::acceptInternal(class SocketSource *source)
       return -2;
 
    int rc;
-   if (priv->type == AF_UNIX)
-   {
+   if (priv->type == AF_UNIX) {
       struct sockaddr_un addr_un;
 
-#ifdef HPUX_ACC_SOCKLEN_HACK
-      int size = sizeof(struct sockaddr_un);
-#else
       socklen_t size = sizeof(struct sockaddr_un);
-#endif
       rc = ::accept(priv->sock, (struct sockaddr *)&addr_un, &size);
       //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
       
@@ -499,14 +495,9 @@ int QoreSocket::acceptInternal(class SocketSource *source)
 	 source->setHostName("localhost");
       }
    }
-   else if (priv->type == AF_INET)
-   {
+   else if (priv->type == AF_INET) {
       struct sockaddr_in addr_in;
-#ifdef HPUX_ACC_SOCKLEN_HACK
-      int size = sizeof(struct sockaddr_in);
-#else
       socklen_t size = sizeof(struct sockaddr_in);
-#endif
 
       rc = ::accept(priv->sock, (struct sockaddr *)&addr_in, &size);
       //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
@@ -2016,11 +2007,7 @@ int QoreSocket::getPort()
 
    // otherwise find out what port we're connected to
    struct sockaddr_in add;
-#ifdef HPUX_ACC_SOCKLEN_HACK
-   int socksize = sizeof(add);
-#else
    socklen_t socksize = sizeof(add);
-#endif
 
    if (getsockname(priv->sock, (struct sockaddr *) &add, &socksize) < 0)
       return -1;
@@ -2156,11 +2143,8 @@ int QoreSocket::setRecvTimeout(int ms)
 int QoreSocket::getSendTimeout() const
 {
    struct timeval tv;
-#ifdef HPUX_ACC_SOCKLEN_HACK
-   int len = sizeof(struct timeval);
-#else
    socklen_t len = sizeof(struct timeval);
-#endif
+
    if (getsockopt(priv->sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, &len))
       return -1;
 
@@ -2170,11 +2154,8 @@ int QoreSocket::getSendTimeout() const
 int QoreSocket::getRecvTimeout() const
 {
    struct timeval tv;
-#ifdef HPUX_ACC_SOCKLEN_HACK
-   int len = sizeof(struct timeval);
-#else
    socklen_t len = sizeof(struct timeval);
-#endif
+
    if (getsockopt(priv->sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, &len))
       return -1;
 
