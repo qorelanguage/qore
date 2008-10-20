@@ -41,6 +41,11 @@
 
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
 
+qore_mod_api_compat_s qore_mod_api_list[] = { { 0, 5 }, { 0, 4 } };
+#define QORE_MOD_API_LEN (sizeof(qore_mod_api_list)/sizeof(struct qore_mod_api_compat_s))
+
+const unsigned qore_mod_api_list_len = QORE_MOD_API_LEN;
+
 ModuleManager MM;
 
 typedef std::map<const char *, ModuleInfo *, class ltstr> module_map_t;
@@ -54,16 +59,14 @@ typedef std::deque<std::string> strdeque_t;
 //! non-thread-safe list of strings of directory names
 /** a deque should require fewer memory allocations compared to a linked list
  */
-class DirectoryList : public strdeque_t
-{
+class DirectoryList : public strdeque_t {
    public:
       DLLLOCAL void addDirList(const char *str);
 };
 
 static DirectoryList autoDirList, moduleDirList;
 
-void DirectoryList::addDirList(const char *str)
-{
+void DirectoryList::addDirList(const char *str) {
    if (!str)
       return;
 
@@ -86,8 +89,7 @@ void DirectoryList::addDirList(const char *str)
       push_back(str);
 }
 
-ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, const char *d, const char *v, const char *a, const char *u, const void *p)
-{
+ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, const char *d, const char *v, const char *a, const char *u, const void *p) {
    filename = strdup(fn);
    name = n;
    api_major = major;
@@ -103,8 +105,7 @@ ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore
 }
 
 // builtin module info node - when features are compiled into the library
-ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del)
-{
+ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del) {
    filename = (char *)"<builtin>";
    name = fn;
    api_major = QORE_MODULE_API_MAJOR;
@@ -116,12 +117,10 @@ ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del)
    dlptr = 0;
 }
 
-ModuleInfo::~ModuleInfo()
-{
+ModuleInfo::~ModuleInfo() {
    printd(5, "ModuleInfo::~ModuleInfo() '%s': %s calling module_delete=%08p\n", name, filename, module_delete);
    module_delete();
-   if (dlptr)
-   {
+   if (dlptr) {
       printd(5, "calling dlclose(%08p)\n", dlptr);
 #ifndef DEBUG
       // do not close modules when debugging
@@ -131,53 +130,43 @@ ModuleInfo::~ModuleInfo()
    }
 }
 
-const char *ModuleInfo::getName() const
-{
+const char *ModuleInfo::getName() const {
    return name;
 }
 
-const char *ModuleInfo::getFileName() const
-{
+const char *ModuleInfo::getFileName() const {
    return filename;
 }
 
-const char *ModuleInfo::getDesc() const
-{
+const char *ModuleInfo::getDesc() const {
    return desc;
 }
 
-const char *ModuleInfo::getVersion() const
-{
+const char *ModuleInfo::getVersion() const {
    return version;
 }
 
-const char *ModuleInfo::getURL() const
-{
+const char *ModuleInfo::getURL() const {
    return url;
 }
 
-int ModuleInfo::getAPIMajor() const
-{
+int ModuleInfo::getAPIMajor() const {
    return api_major;
 }
 
-int ModuleInfo::getAPIMinor() const
-{
+int ModuleInfo::getAPIMinor() const {
    return api_minor;
 }
 
-void ModuleInfo::ns_init(QoreNamespace *rns, QoreNamespace *qns) const
-{
+void ModuleInfo::ns_init(QoreNamespace *rns, QoreNamespace *qns) const {
    module_ns_init(rns, qns);
 }
 
-bool ModuleInfo::isBuiltin() const
-{
+bool ModuleInfo::isBuiltin() const {
    return !dlptr;
 }
 
-QoreHashNode *ModuleInfo::getHash() const
-{
+QoreHashNode *ModuleInfo::getHash() const {
    QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("filename", new QoreStringNode(filename), 0);
    h->setKeyValue("name", new QoreStringNode(name), 0);
@@ -191,24 +180,20 @@ QoreHashNode *ModuleInfo::getHash() const
    return h;
 }
 
-ModuleManager::ModuleManager()
-{
+ModuleManager::ModuleManager() {
 }
 
-void ModuleManager::add(ModuleInfo *m)
-{
+void ModuleManager::add(ModuleInfo *m) {
    map.insert(std::make_pair(m->getName(), m));
 }
 
-ModuleInfo *ModuleManager::add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p)
-{
+ModuleInfo *ModuleManager::add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p) {
    ModuleInfo *m = new ModuleInfo(fn, n, major, minor, init, ns_init, del, d, v, a, u, p);
    add(m);
    return m;
 }
 
-ModuleInfo *ModuleManager::find(const char *name)
-{
+ModuleInfo *ModuleManager::find(const char *name) {
    module_map_t::iterator i = map.find(name);
    if (i == map.end())
       return 0;
@@ -216,8 +201,7 @@ ModuleInfo *ModuleManager::find(const char *name)
    return i->second;
 }
 
-void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del)
-{
+void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del) {
    QoreStringNodeHolder str(init());
    if (str) {
       fprintf(stderr, "WARNING! cannot initialize builtin feature '%s': %s\n", fn, str->getBuffer());
@@ -229,45 +213,62 @@ void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_mod
 }
 
 // to add a directory to the module directory search list, can only be called before init()
-void ModuleManager::addModuleDir(const char *dir)
-{
+void ModuleManager::addModuleDir(const char *dir) {
    moduleDirList.push_back(dir);
 }
 
 // to add a directory to the auto module directory search list, can only be called before init()
-void ModuleManager::addAutoModuleDir(const char *dir)
-{
+void ModuleManager::addAutoModuleDir(const char *dir) {
    autoDirList.push_back(dir);
 }
 
 // to add a list of directories to the module directory search list, can only be called before init()
-void ModuleManager::addModuleDirList(const char *strlist)
-{
+void ModuleManager::addModuleDirList(const char *strlist) {
    moduleDirList.addDirList(strlist);
 }
 
 // to add a list of directories to the auto module directory search list, can only be called before init()
-void ModuleManager::addAutoModuleDirList(const char *strlist)
-{
+void ModuleManager::addAutoModuleDirList(const char *strlist) {
    autoDirList.addDirList(strlist);
 }
 
-void ModuleManager::init(bool se)
-{
+void ModuleManager::init(bool se) {
    show_errors = se;
 
    // set up auto-load list from QORE_AUTO_MODULE_DIR (if it hasn't already been manually set up)
    if (autoDirList.empty()) {
       autoDirList.addDirList(getenv("QORE_AUTO_MODULE_DIR"));
+
       // append standard directories to the end of the list
-      autoDirList.push_back(AUTO_MODULE_DIR);
+      //autoDirList.push_back(AUTO_MODULE_DIR);
+
+      QoreString str;
+      // append compatible module "auto" directories to the end of the list
+      for (unsigned i = 0; i < qore_mod_api_list_len; ++i) {
+	 str.clear();
+	 str.sprintf("%s-%d.%d/auto", MODULE_BASE, qore_mod_api_list[i].major, 
+		     qore_mod_api_list[i].minor);
+	 //printd(5, "adding auto module dir %s\n", str.getBuffer());
+	 autoDirList.push_back(str.getBuffer());
+      }
    }
 
    // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
    if (moduleDirList.empty()) {
       moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
+
       // append standard directories to the end of the list
-      moduleDirList.push_back(MODULE_DIR);
+      // moduleDirList.push_back(MODULE_DIR);
+      
+      QoreString str;
+      // append compatible module directories to the end of the list
+      for (unsigned i = 0; i < qore_mod_api_list_len; ++i) {
+	 str.clear();
+	 str.sprintf("%s-%d.%d", MODULE_BASE, qore_mod_api_list[i].major, 
+		     qore_mod_api_list[i].minor);
+	 //printd(5, "adding module dir %s\n", str.getBuffer());
+	 moduleDirList.push_back(str.getBuffer());
+      }
    }
 
    // autoload modules
@@ -302,8 +303,7 @@ void ModuleManager::init(bool se)
    }
 }
 
-int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink)
-{
+int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink) {
    QoreProgram *pgm = getProgram();
 
    // grab the parse lock
@@ -318,8 +318,7 @@ int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink)
    return 0;
 }
 
-QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *pgm)
-{
+QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *pgm) {
    // if the feature already exists in this program, then return
    if (pgm && !pgm->checkFeature(name))
       return 0;
@@ -446,13 +445,32 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
       return str;
    }
 
-   if (*api_major != QORE_MODULE_API_MAJOR || (!(*api_major) && *api_minor != QORE_MODULE_API_MINOR)) {
+   if (!is_module_api_supported(*api_major, *api_minor)) {
       str = new QoreStringNode();
-#if QORE_MODULE_API_MAJOR > 0
-      str->sprintf("module '%s': feature '%s': API mismatch, module supports API %d.%d, however the minimum supported version is %d.0 is required", path, name, *api_major, *api_minor, QORE_MODULE_API_MAJOR);
-#else
-      str->sprintf("module '%s': feature '%s': API mismatch, module supports API %d.%d, however %d.%d is required", path, name, *api_major, *api_minor, QORE_MODULE_API_MAJOR, QORE_MODULE_API_MINOR);
-#endif
+      str->sprintf("module '%s': feature '%s': API mismatch, module supports API %d.%d, however only version", path, name, *api_major, *api_minor);
+
+      if (qore_mod_api_list_len > 1)
+	 str->concat('s');
+      // add all supported api pairs to the string
+      for (unsigned i = 0; i < qore_mod_api_list_len; ++i) {
+	 str->sprintf("%d.%d", qore_mod_api_list[i].major, qore_mod_api_list[i].minor);
+	 if (i != qore_mod_api_list_len - 1) {
+	    if (qore_mod_api_list_len > 2) {
+	       if (i != qore_mod_api_list_len - 2)
+		  str->concat(", ");
+	       else
+		  str->concat(", and ");
+	    }
+	    else
+	       str->concat(" and ");
+	 }
+	 if (qore_mod_api_list_len > 1)
+	    str->concat("are");
+	 else
+	    str->concat("is");
+	 str->concat(" supported");
+      }
+
       dlclose(ptr);
       printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
       return str;

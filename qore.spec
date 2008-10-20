@@ -1,4 +1,4 @@
-%define module_api 0.4
+%define module_api 0.5
 %define module_dir %{_libdir}/qore-module-api-%{module_api}
 
 %if 0%{?sles_version}
@@ -90,6 +90,7 @@ character encoding (including proper UTF-8) support, and much more.
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages
 Provides: qore-module-api-%{module_api}
+Provides: qore-module-api-0.4
 
 %description %{lpname}
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming

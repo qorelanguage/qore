@@ -32,7 +32,19 @@
  */
 
 #define QORE_MODULE_API_MAJOR 0 //!< the major number of the Qore module API implemented
-#define QORE_MODULE_API_MINOR 4 //!< the minor number of the Qore module API implemented
+#define QORE_MODULE_API_MINOR 5 //!< the minor number of the Qore module API implemented
+
+//! element of qore_mod_api_list;
+struct qore_mod_api_compat_s {
+   unsigned char major;
+   unsigned char minor;
+};
+
+//! list of module APIs this library supports
+DLLEXPORT extern qore_mod_api_compat_s qore_mod_api_list[];
+
+//! number of elements in qore_mod_api_list;
+DLLEXPORT extern const unsigned qore_mod_api_list_len;
 
 class QoreNamespace;
 class QoreStringNode;
@@ -137,5 +149,12 @@ class ModuleManager
 
 //! the global ModuleManager object
 DLLEXPORT extern ModuleManager MM;
+
+DLLLOCAL static inline bool is_module_api_supported(int major, int minor) {
+   for (unsigned i = 0; i < qore_mod_api_list_len; ++i)
+      if (qore_mod_api_list[i].major == major && qore_mod_api_list[i].minor == minor)
+	 return true;
+   return false;
+}
 
 #endif // _QORE_MODULEMANAGER_H
