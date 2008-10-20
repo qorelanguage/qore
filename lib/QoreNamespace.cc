@@ -1663,6 +1663,12 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    option->addConstant("HAVE_STACK_GUARD", &False);
 #endif
 
+#ifdef DEBUG
+   option->addConstant("HAVE_LIBRARY_DEBUGGING", &True);
+#else
+   option->addConstant("HAVE_LIBRARY_DEBUGGING", &False);
+#endif
+
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &True);
 #else

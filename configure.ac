@@ -85,15 +85,15 @@ case "${host_cpu}" in
 esac
 
 # do CPU specific actions
-AC_MSG_CHECKING([if we have atomic operation support for ${cpu_family} cpus])
-rm -f include/qore/macros.h
-if test -e include/qore/macros-${cpu_family}.h; then
-   (cd include/qore; ln -s macros-${cpu_family}.h macros.h)
-   AC_MSG_RESULT([ok])
-else
-   (cd include/qore; ln -s macros-none.h macros.h)
-   AC_MSG_RESULT([no])
-fi
+#AC_MSG_CHECKING([if we have atomic operation support for ${cpu_family} cpus])
+#rm -f include/qore/macros.h
+#if test -e include/qore/macros-${cpu_family}.h; then
+#   (cd include/qore; ln -s macros-${cpu_family}.h macros.h)
+#   AC_MSG_RESULT([ok])
+#else
+#   (cd include/qore; ln -s macros-none.h macros.h)
+#   AC_MSG_RESULT([no])
+#fi
 
 # set OS-specific variables
 SHLIB_SUFFIX=so

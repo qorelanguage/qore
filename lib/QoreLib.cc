@@ -85,6 +85,15 @@ const qore_option_s qore_option_list[] = {
      false
 #endif
    },
+   { QORE_OPT_LIBRARY_DEBUGGING,
+     "HAVE_LIBRARY_DEBUGGING",
+     QO_OPTION,
+#ifdef DEBUG
+     true
+#else
+     false
+#endif
+   },
    { QORE_OPT_RUNTIME_STACK_TRACE,
      "HAVE_RUNTIME_THREAD_STACK_TRACE",
      QO_OPTION,

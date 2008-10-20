@@ -220,6 +220,8 @@ DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, Exceptio
 #define QORE_OPT_STACK_GUARD             "stack guard"
 //! option: runtime stack tracing
 #define QORE_OPT_RUNTIME_STACK_TRACE     "runtime stack tracing"
+//! option: library debugging
+#define QORE_OPT_LIBRARY_DEBUGGING       "library debugging"
 //! option: ssh224 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_SHA224                  "openssl sha224"
 //! option: ssh256 algorithm supported (depends on openssl used to compile qore) 
