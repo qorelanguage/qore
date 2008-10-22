@@ -1064,6 +1064,13 @@ if test "$GXX" != yes; then
 	    hpux_acc_parisc32=yes
 	 fi
 	 need_assembly=yes
+      elif test "$cpu_family" = "ia64"; then
+         if test "$enable_64bit" = yes; then
+	    hpux_acc_64bit_ia64=yes
+	 else
+	    hpux_acc_32bit_ia64=yes
+	 fi
+	 need_assembly=yes
       fi
    fi
 fi
@@ -1107,6 +1114,8 @@ AM_CONDITIONAL([COND_SOLARIS_CC_SPARC32],      [test "$solaris_cc_sparc32" = yes
 #AM_CONDITIONAL([COND_SOLARIS_CC_SPARC64],      [test "$solaris_cc_sparc64" = yes])
 AM_CONDITIONAL([COND_HPUX_ACC_PARISC32],       [test "$hpux_acc_parisc32" = yes])
 #AM_CONDITIONAL([COND_HPUX_ACC_PARISC64],       [test "$hpux_acc_parisc64" = yes])
+AM_CONDITIONAL([COND_HPUX_ACC_64BIT_IA64],     [test "$hpux_acc_64bit_ia64" = yes])
+#AM_CONDITIONAL([COND_HPUX_ACC_32BIT_IA64],     [test "$hpux_acc_3b2it_ia64" = yes])
 
 # find prefix
 if test -n "${exec_prefix}" -a "${exec_prefix}" != NONE; then

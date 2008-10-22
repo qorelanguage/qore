@@ -1,3 +1,10 @@
+2008.10.22: David Nichols
+	* implemented support for multiple module APIs
+        * updated ABI to 5.0, module-api to 0.5, declared module compatilibity
+	  for module api 0.4
+	* implemented support for atomic operations on itanium with aCC and g++
+	  for 64-bit builds
+
 2008.10.20: David Nichols
 	* updated assembly macro includes to allow for Universal builds
 	* added a new option for library debugging
