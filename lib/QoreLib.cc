@@ -251,8 +251,7 @@ FeatureList::~FeatureList()
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *node, int type, int *taken, ExceptionSink *xsink)
-{
+static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *node, int type, int *taken, ExceptionSink *xsink) {
    char *str = param;
    int opts = 0;
    int width = -1;
@@ -265,13 +264,12 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
 #ifdef DEBUG
    if (node && node->getType() == NT_STRING) {
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(node);
-      printd(5, "process_opt() %08p (%d) \"%s\"\n", str->getBuffer(), str->strlen(), str->getBuffer());
+      const QoreStringNode *nstr = reinterpret_cast<const QoreStringNode *>(node);
+      printd(5, "process_opt() %08p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
    }
 #endif
   loop:
-   switch (*(++param))
-   {
+   switch (*(++param)) {
       case '-': opts |= P_JUSTIFY_LEFT; goto loop;
       case '+': opts |= P_INCLUDE_PLUS; goto loop;
       case ' ': opts |= P_SPACE_FILL; opts &= ~P_ZERO_FILL; goto loop;
@@ -279,8 +277,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
    }
    if (isdigit(*param))
       width = get_number(&param);
-   if ((*param) == '.')
-   {
+   if ((*param) == '.') {
       param++;
       decimals = get_number(&param);
    }
@@ -288,8 +285,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
       decimals = 0;
 
    char p = *param;
-   switch (*param)
-   {
+   switch (*param) {
       case 's': {
 	 QoreStringValueHelper astr(node);
 
@@ -300,21 +296,16 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	 {
 	    tbuf.concat(*astr, width, xsink); // string encodings are converted here if necessary
 	 }
-	 else
-	 {
-	    if ((width != -1) && (opts & P_JUSTIFY_LEFT))
-	    {
+	 else {
+	    if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
 	       tbuf.concat(*astr, xsink);
-	       while (width > length)
-	       {
+	       while (width > length) {
 		  tbuf.concat(' ');
 		  width--;
 	       }
 	    }
-	    else
-	    {
-	       while (width > length)
-	       {
+	    else {
+	       while (width > length) {
 		  tbuf.concat(' ');
 		  width--;
 	       }
@@ -328,8 +319,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
       case 'd':
       case 'o':
       case 'x':
-      case 'X':
-      {
+      case 'X': {
 	 int64 val;
 	 if (!node)
 	    val = 0;
@@ -342,8 +332,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	    *(f++) = '-';
 	 if (opts & P_INCLUDE_PLUS)
 	    *(f++) = '+';
-	 if (width != -1)
-	 {
+	 if (width != -1) {
 	    if (opts & P_SPACE_FILL)
 	       *(f++) = ' ';
 	    else if (opts & P_ZERO_FILL)
@@ -360,8 +349,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	 break;
       }
       case 'f':
-      case 'e':
-      {
+      case 'e': {
 	 double val;
 	 if (!node)
 	    val = 0.0;
@@ -395,8 +383,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	 break;
       }
       case 'n':
-      case 'N':
-      {
+      case 'N': {
 	 QoreNodeAsStringHelper t(node, *param == 'N' 
 				  ? (width == -1 ? FMT_NORMAL : width) 
 				  : FMT_NONE, xsink);
@@ -404,9 +391,9 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	 break;
       }
       default:
-	 // if the format argument is not understood, then print it in its entirety
+	 // if the format argument is not understood, then make sure and just consume the '%' char
 	 tbuf.concat('%');
-	 tbuf.concat(*param);
+	 param = str;
 	 *taken = 0;
    }
 
@@ -414,8 +401,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
    return (int)(param - str);
 }
 
-QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink)
-{
+QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink) {
    unsigned i, j, l;
    const QoreStringNode *p;
 
@@ -444,8 +430,7 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
    return buf.release();
 }
 
-QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink)
-{
+QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink) {
    const QoreStringNode *fmt;
    const AbstractQoreNode *args;
 
