@@ -244,8 +244,7 @@ static AbstractQoreNode *HC_head(QoreObject *self, class QoreHTTPClient *client,
 }
 
 // post(path, data, headers, [info_reference])
-static AbstractQoreNode *HC_post(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr) {
       xsink->raiseException("HTTP-CLIENT-POST-ERROR", "expecting path as first parameter");
@@ -300,23 +299,19 @@ static AbstractQoreNode *HC_post(QoreObject *self, class QoreHTTPClient *client,
    return rv.release();
 }
 
-static AbstractQoreNode *HC_setTimeout(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_setTimeout(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    client->setTimeout(getMsZeroInt(get_param(params, 0)));
    return 0;
 }
 
-static AbstractQoreNode *HC_getTimeout(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_getTimeout(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(client->getTimeout());
 }
 
-static AbstractQoreNode *HC_setEncoding(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_setEncoding(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
 
-   if (!(p0 = test_string_param(params, 0)))
-   {
+   if (!(p0 = test_string_param(params, 0))) {
       xsink->raiseException("HTTP-CLIENT-SET-ENCODING-ERROR", "expecting charset name (string) as parameter of HTTPClient::setEncoding() call");
       return 0;
    }
@@ -325,13 +320,11 @@ static AbstractQoreNode *HC_setEncoding(QoreObject *self, class QoreHTTPClient *
    return 0; 
 }
 
-static AbstractQoreNode *HC_getEncoding(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_getEncoding(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreStringNode(client->getEncoding()->getCode());
 }
 
-AbstractQoreNode *f_setURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_setURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *n = test_string_param(params, 0);
    if (!n || !n->strlen())
       xsink->raiseException("HTTP-CLIENT-EMPTY-URL", "HTTPClient::setURL() called without a valid string argument");
@@ -340,13 +333,11 @@ AbstractQoreNode *f_setURL(QoreObject *self, class QoreHTTPClient *client, const
    return 0;
 }
 
-AbstractQoreNode *f_getURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_getURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    return client->getURL();
 }
 
-AbstractQoreNode *f_setProxyURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_setProxyURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *n = test_string_param(params, 0);
    if (!n)
       client->clearProxyURL();
@@ -355,44 +346,52 @@ AbstractQoreNode *f_setProxyURL(QoreObject *self, class QoreHTTPClient *client, 
    return 0;
 }
 
-AbstractQoreNode *f_getProxyURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_getProxyURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    return client->getProxyURL();
 }
 
-AbstractQoreNode *f_clearProxyURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_clearProxyURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    client->clearProxyURL();
    return 0;
 }
 
-AbstractQoreNode *f_setProxySecure(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_setProxySecure(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *n = get_param(params, 0);
    client->setProxySecure(n ? n->getAsBool() : false);
    return 0;
 }
 
-AbstractQoreNode *f_isProxySecure(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_isProxySecure(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    return get_bool_node(client->isProxySecure());
 }
 
-AbstractQoreNode *f_setMaxRedirects(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_setMaxRedirects(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *n = get_param(params, 0);
    client->setMaxRedirects(n ? n->getAsInt() : 0);
    return 0;
 }
 
-AbstractQoreNode *f_getMaxRedirects(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *HC_getMaxRedirects(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(client->getMaxRedirects());
 }
 
-//-----------------------------------------------------------------------------
-QoreClass *initHTTPClientClass()
-{
+static AbstractQoreNode *HC_setCallBack(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+    const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
+    client->setCallBack(r ? r->refRefSelf() : 0, xsink);
+    return 0;
+}
+
+static AbstractQoreNode *HC_setEventQueue(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+    const QoreObject *o = test_object_param(params, 0);
+    Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
+    if (*xsink)
+        return 0;
+    // pass reference from QoreObject::getReferencedPrivateData() to function
+    client->setEventQueue(q, xsink);
+    return 0;
+}
+
+QoreClass *initHTTPClientClass() {
    QORE_TRACE("initHTTPClientClass");
 
    // initialize static data structures in the QoreHTTPClient class
@@ -421,16 +420,17 @@ QoreClass *initHTTPClientClass()
    client->addMethod("getTimeout",             (q_method_t)HC_getTimeout);
    client->addMethod("setEncoding",            (q_method_t)HC_setEncoding);
    client->addMethod("getEncoding",            (q_method_t)HC_getEncoding);
-   client->addMethod("setURL",                 (q_method_t)f_setURL);
-   client->addMethod("getURL",                 (q_method_t)f_getURL);
-   client->addMethod("setProxyURL",            (q_method_t)f_setProxyURL);
-   client->addMethod("getProxyURL",            (q_method_t)f_getProxyURL);
-   client->addMethod("clearProxyURL",          (q_method_t)f_clearProxyURL);
-   client->addMethod("setProxySecure",         (q_method_t)f_setProxySecure);
-   client->addMethod("isProxySecure",          (q_method_t)f_isProxySecure);
-   client->addMethod("setMaxRedirects",        (q_method_t)f_setMaxRedirects);
-   client->addMethod("getMaxRedirects",        (q_method_t)f_getMaxRedirects);
-
+   client->addMethod("setURL",                 (q_method_t)HC_setURL);
+   client->addMethod("getURL",                 (q_method_t)HC_getURL);
+   client->addMethod("setProxyURL",            (q_method_t)HC_setProxyURL);
+   client->addMethod("getProxyURL",            (q_method_t)HC_getProxyURL);
+   client->addMethod("clearProxyURL",          (q_method_t)HC_clearProxyURL);
+   client->addMethod("setProxySecure",         (q_method_t)HC_setProxySecure);
+   client->addMethod("isProxySecure",          (q_method_t)HC_isProxySecure);
+   client->addMethod("setMaxRedirects",        (q_method_t)HC_setMaxRedirects);
+   client->addMethod("getMaxRedirects",        (q_method_t)HC_getMaxRedirects);
+   client->addMethod("setCallBack",            (q_method_t)HC_setCallBack);
+   client->addMethod("setEventQueue",          (q_method_t)HC_setEventQueue);
 
    return client;
 }

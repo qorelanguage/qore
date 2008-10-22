@@ -35,11 +35,12 @@
 
 #define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5      //!< maximum number of HTTP redirects allowed
 
+class Queue;
+
 //! provides a way to communicate with HTTP servers using Qore data structures
 /** thread-safe, uses QoreSocket for socket communication
  */
-class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock
-{
+class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock {
    private:
       //! private implementation of the class
       struct qore_qtc_private *priv;
@@ -262,6 +263,15 @@ class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock
       DLLEXPORT void setDefaultHeaderValue(const char *header, const char *val);
 
       DLLLOCAL static void static_init();
+
+      //! sets callback code (function, closure, etc, not part of the library's pubilc API), must be already referenced before call
+      DLLLOCAL void setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink);
+      
+      //! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call
+      DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+
+      //! returns true if either a callback code ref or an event queue is set on the object
+      DLLLOCAL bool isMonitored() const;
 };
 
 #endif 

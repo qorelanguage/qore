@@ -29,20 +29,21 @@
 DLLLOCAL QoreClass *initSocketClass();
 DLLEXPORT extern qore_classid_t CID_SOCKET;
 
+class Queue;
+
 #include <qore/QoreSocket.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreThreadLock.h>
 #include <qore/intern/QC_SSLCertificate.h>
 #include <qore/intern/QC_SSLPrivateKey.h>
 
-class mySocket : public AbstractPrivateData, public QoreThreadLock
-{
+class mySocket : public AbstractPrivateData, public QoreThreadLock {
    private:
       QoreSocket *socket;
       QoreSSLCertificate *cert;
       QoreSSLPrivateKey *pk;
 
-      DLLLOCAL mySocket(class QoreSocket *s);
+      DLLLOCAL mySocket(QoreSocket *s);
 
    protected:
       DLLLOCAL virtual ~mySocket();
@@ -50,12 +51,29 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock
    public:
       DLLLOCAL mySocket();      
 
-      DLLLOCAL int connect(const char *name, class ExceptionSink *xsink = NULL);
-      DLLLOCAL int connectINET(const char *host, int port, class ExceptionSink *xsink = NULL);
-      DLLLOCAL int connectUNIX(const char *p, class ExceptionSink *xsink = NULL);
-      DLLLOCAL int connectSSL(const char *name, class ExceptionSink *xsink);
-      DLLLOCAL int connectINETSSL(const char *host, int port, class ExceptionSink *xsink);
-      DLLLOCAL int connectUNIXSSL(const char *p, class ExceptionSink *xsink);
+      DLLLOCAL virtual void deref(ExceptionSink *xsink) {
+	 if (ROdereference()) {
+	    socket->setCallBack(0, xsink);
+	    socket->setEventQueue(0, xsink);
+	    delete this;
+	 }
+      }
+
+      DLLLOCAL virtual void deref() {
+	 if (ROdereference()) {
+	    ExceptionSink xsink;
+	    socket->setCallBack(0, &xsink);
+	    socket->setEventQueue(0, &xsink);
+	    delete this;
+	 }
+      }
+
+      DLLLOCAL int connect(const char *name, ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectINET(const char *host, int port, ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectUNIX(const char *p, ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectSSL(const char *name, ExceptionSink *xsink);
+      DLLLOCAL int connectINETSSL(const char *host, int port, ExceptionSink *xsink);
+      DLLLOCAL int connectUNIXSSL(const char *p, ExceptionSink *xsink);
       // to bind to either a UNIX socket or an INET interface:port
       DLLLOCAL int bind(const char *name, bool reuseaddr = false);
       // to bind to an INET tcp port on all interfaces
@@ -64,15 +82,15 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock
       DLLLOCAL int bind(const char *interface, int port, bool reuseaddr = false);
       // get port number for INET sockets
       DLLLOCAL int getPort();
-      DLLLOCAL class mySocket *accept(class SocketSource *source, class ExceptionSink *xsink);
-      DLLLOCAL class mySocket *acceptSSL(class SocketSource *source, class ExceptionSink *xsink);
+      DLLLOCAL mySocket *accept(SocketSource *source, ExceptionSink *xsink);
+      DLLLOCAL mySocket *acceptSSL(SocketSource *source, ExceptionSink *xsink);
       DLLLOCAL int listen();
       // send a buffer of a particular size
       DLLLOCAL int send(const char *buf, int size);
       // send a null-terminated string
-      DLLLOCAL int send(const class QoreString *msg, class ExceptionSink *xsink);
+      DLLLOCAL int send(const QoreString *msg, ExceptionSink *xsink);
       // send a binary object
-      DLLLOCAL int send(const class BinaryNode *b);
+      DLLLOCAL int send(const BinaryNode *b);
       // send from a file descriptor
       DLLLOCAL int send(int fd, int size = -1);
       // send bytes and convert to network order
@@ -84,11 +102,11 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock
       DLLLOCAL int sendi4LSB(int b);
       DLLLOCAL int sendi8LSB(int64 b);
       // receive a certain number of bytes as a string
-      DLLLOCAL class QoreStringNode *recv(int bufsize, int timeout, int *rc);
+      DLLLOCAL QoreStringNode *recv(int bufsize, int timeout, int *rc);
       // receive a certain number of bytes as a binary object
-      DLLLOCAL class BinaryNode *recvBinary(int bufsize, int timeout, int *rc);
+      DLLLOCAL BinaryNode *recvBinary(int bufsize, int timeout, int *rc);
       // receive a message
-      DLLLOCAL class QoreStringNode *recv(int timeout, int *rc);
+      DLLLOCAL QoreStringNode *recv(int timeout, int *rc);
       // receive and write data to a file descriptor
       DLLLOCAL int recv(int fd, int size, int timeout);
       // receive integers and convert from network byte order
@@ -109,32 +127,34 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock
       // send HTTP response
       DLLLOCAL int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size);
       // read and parse HTTP header
-      DLLLOCAL class AbstractQoreNode *readHTTPHeader(int timeout, int *rc);
+      DLLLOCAL AbstractQoreNode *readHTTPHeader(int timeout, int *rc);
       // receive a binary message in HTTP chunked format
-      DLLLOCAL class QoreHashNode *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
+      DLLLOCAL QoreHashNode *readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink);
       // receive a string message in HTTP chunked format
-      DLLLOCAL class QoreHashNode *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
+      DLLLOCAL QoreHashNode *readHTTPChunkedBody(int timeout, ExceptionSink *xsink);
       DLLLOCAL int setSendTimeout(int ms);
       DLLLOCAL int setRecvTimeout(int ms);
       DLLLOCAL int getSendTimeout();
       DLLLOCAL int getRecvTimeout();
       DLLLOCAL int close();
       DLLLOCAL int shutdown();
-      DLLLOCAL int shutdownSSL(class ExceptionSink *xsink) ;
+      DLLLOCAL int shutdownSSL(ExceptionSink *xsink) ;
       DLLLOCAL const char *getSSLCipherName();
       DLLLOCAL const char *getSSLCipherVersion();
       DLLLOCAL bool isSecure();
       DLLLOCAL long verifyPeerCertificate();
       DLLLOCAL int getSocket();
-      DLLLOCAL void setEncoding(const class QoreEncoding *id);
-      DLLLOCAL const class QoreEncoding *getEncoding() const;
+      DLLLOCAL void setEncoding(const QoreEncoding *id);
+      DLLLOCAL const QoreEncoding *getEncoding() const;
       DLLLOCAL bool isDataAvailable(int timeout = 0);
       DLLLOCAL bool isOpen() const;
       // c must be already referenced before this call
-      DLLLOCAL void setCertificate(class QoreSSLCertificate *c);
+      DLLLOCAL void setCertificate(QoreSSLCertificate *c);
       // p must be already referenced before this call
-      DLLLOCAL void setPrivateKey(class QoreSSLPrivateKey *p);
+      DLLLOCAL void setPrivateKey(QoreSSLPrivateKey *p);
 
+      DLLLOCAL void setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink);
+      DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 };
 
 #endif // _QORE_CLASS_QORESOCKET_H

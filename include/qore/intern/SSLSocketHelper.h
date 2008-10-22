@@ -26,33 +26,32 @@
 
 #define _QORE_SSLSOCKETHELPER_H
 
-class SSLSocketHelper
-{
+class SSLSocketHelper {
    private:
       SSL_METHOD *meth;
       SSL_CTX *ctx;
       SSL *ssl;
 
-      DLLLOCAL int setIntern(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink);
+      DLLLOCAL int setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
 
    public:
       DLLLOCAL SSLSocketHelper();
       DLLLOCAL ~SSLSocketHelper();
-      DLLLOCAL void sslError(class ExceptionSink *xsink);
-      DLLLOCAL int setClient(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink);
-      DLLLOCAL int setServer(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink);
+      DLLLOCAL void sslError(ExceptionSink *xsink, const char *msg);
+      DLLLOCAL int setClient(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+      DLLLOCAL int setServer(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
       // returns 0 for success
-      DLLLOCAL int connect(class ExceptionSink *xsink);
+      DLLLOCAL int connect(ExceptionSink *xsink);
       // returns 0 for success
-      DLLLOCAL int accept(class ExceptionSink *xsink);
+      DLLLOCAL int accept(ExceptionSink *xsink);
       // returns 0 for success
       DLLLOCAL int shutdown();
       // returns 0 for success
-      DLLLOCAL int shutdown(class ExceptionSink *xsink);
+      DLLLOCAL int shutdown(ExceptionSink *xsink);
       // returns 0 for success
       DLLLOCAL int read(char *buf, int size);
       // returns 0 for success
-      DLLLOCAL int write(const void *buf, int size, class ExceptionSink *xsink);
+      DLLLOCAL int write(const void *buf, int size, ExceptionSink *xsink);
       DLLLOCAL int write(const void *buf, int size);
       DLLLOCAL const char *getCipherName() const;
       DLLLOCAL const char *getCipherVersion() const;

@@ -6,6 +6,8 @@
 	  for 64-bit builds
 	* implemented support for stack guard on itanium including monitoring
 	  the ia64 RSE (Register Stack Engine) - 64bit ia64 builds only
+	* added initial callback and event queue support to the Socket and
+	  HTTPClient classes
 
 2008.10.20: David Nichols
 	* updated assembly macro includes to allow for Universal builds

@@ -46,6 +46,12 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+//! callback action: data read
+#define QCA_PACKET_READ 1
+#define QCA_PACKET_SENT 2
+
+class Queue;
+
 //! a helper class for getting socket origination information
 /** objects of this class are used in some QoreSocket functions
     @see QoreSocket::accept()
@@ -107,12 +113,12 @@ class SocketSource {
     @note currently only supports IPv4, TCP sockets
     @see QoreEncoding
  */
-class QoreSocket 
-{
+class QoreSocket {
    private:
       //! private implementation of the class
       struct qore_socket_private *priv; 
 
+      //! private constructor, not exported in the library's public itnerface
       DLLLOCAL QoreSocket(int s, int t, const QoreEncoding *csid);
 
       //! opens an INET socket
@@ -121,14 +127,8 @@ class QoreSocket
       //! opens a UNIX socket
       DLLLOCAL int openUNIX();
 
-      //! accepts a connection and returns the new socket
-      DLLLOCAL int acceptInternal(SocketSource *source);
-
-      //! closes a socket but does not reset type
-      DLLLOCAL int closeInternal();
-
       DLLLOCAL void reuse(int opt);
-      DLLLOCAL int recv(char *buf, int bs, int flags, int timeout);
+      DLLLOCAL int recv(char *buf, int bs, int flags, int timeout, bool do_callback = true);
       DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
       DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
@@ -736,6 +736,14 @@ class QoreSocket
       DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       DLLLOCAL static void doException(int rc, const char *meth, ExceptionSink *xsink);
+      //! sets callback code (function, closure, etc, not part of the library's pubilc API), must be already referenced before call
+      DLLLOCAL void setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink);
+      
+      //! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call
+      DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+
+      //! returns true if either a callback code ref or an event queue is set on the object
+      DLLLOCAL bool isMonitored() const;
 };
 
 #endif // _QORE_QORESOCKET_H

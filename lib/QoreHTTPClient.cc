@@ -60,11 +60,10 @@ static strcase_set_t header_ignore;
 /** this is not safe because the object could be misused (i.e. refSelf() called and reference used elsewhere)
     therefore it's a private object just implemented in this file
  */
-class StackHash : public QoreHashNode
-{
+class StackHash : public QoreHashNode {
    private:
-      class ExceptionSink *xsink;
-   
+      ExceptionSink *xsink;
+      
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL void *operator new(size_t); 
 
@@ -76,14 +75,12 @@ class StackHash : public QoreHashNode
    
    public:
       //! creates the hash on the stack, "xs" will be used when the object is deleted
-      DLLLOCAL StackHash(class ExceptionSink *xs)
-      {
+      DLLLOCAL StackHash(class ExceptionSink *xs) {
 	 xsink = xs;
       }
 
       //! dereferences the members of the hash and destroys the object
-      DLLLOCAL ~StackHash()
-      {
+      DLLLOCAL ~StackHash() {
 	 derefImpl(xsink);
       }
 };
@@ -1105,8 +1102,7 @@ QoreHashNode *QoreHTTPClient::head(const char *new_path, const QoreHashNode *hea
    return send_internal("HEAD", new_path, headers, 0, 0, false, info, xsink);
 }
 
-AbstractQoreNode *QoreHTTPClient::post(const char *new_path, const QoreHashNode *headers, const void *data, unsigned size, QoreHashNode *info, ExceptionSink *xsink)
-{
+AbstractQoreNode *QoreHTTPClient::post(const char *new_path, const QoreHashNode *headers, const void *data, unsigned size, QoreHashNode *info, ExceptionSink *xsink) {
    ReferenceHolder<QoreHashNode> ans(send_internal("POST", new_path, headers, data, size, true, info, xsink), xsink);
    if (!ans)
       return 0;
@@ -1114,22 +1110,32 @@ AbstractQoreNode *QoreHTTPClient::post(const char *new_path, const QoreHashNode 
    return ans->takeKeyValue("body");
 }
 
-void QoreHTTPClient::addProtocol(const char *prot, int new_port, bool new_ssl)
-{
+void QoreHTTPClient::addProtocol(const char *prot, int new_port, bool new_ssl) {
    priv->prot_map[prot] = make_protocol(new_port, new_ssl);
 }
 
-void QoreHTTPClient::setMaxRedirects(int max)
-{
+void QoreHTTPClient::setMaxRedirects(int max) {
    priv->max_redirects = max;
 }
 
-int QoreHTTPClient::getMaxRedirects() const
-{
+int QoreHTTPClient::getMaxRedirects() const {
    return priv->max_redirects;
 }
 
-void QoreHTTPClient::setDefaultHeaderValue(const char *header, const char *val)
-{
+void QoreHTTPClient::setDefaultHeaderValue(const char *header, const char *val) {
    priv->default_headers[header] = val;
+}
+
+void QoreHTTPClient::setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink) {
+   priv->m_socket.setCallBack(cb, xsink);
+}
+
+//! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call                        
+void QoreHTTPClient::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
+   priv->m_socket.setEventQueue(cbq, xsink);
+}
+
+//! returns true if either a callback code ref or an event queue is set on the object                                                 
+bool QoreHTTPClient::isMonitored() const {
+   return priv->m_socket.isMonitored();
 }

@@ -1647,6 +1647,15 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    // math constants
    qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
+   // socket constants
+   QoreHashNode *qsam = new QoreHashNode();
+   qsam->setKeyValue("1", new QoreStringNode("PACKET_READ"), 0);
+   qsam->setKeyValue("2", new QoreStringNode("PACKET_SENT"), 0);
+
+   qns->addConstant("CALLBACK_ACTION_MAP", qsam);
+   qns->addConstant("PACKET_READ", new QoreBigIntNode(QCA_PACKET_READ));
+   qns->addConstant("PACKET_SENT", new QoreBigIntNode(QCA_PACKET_SENT));
+
    // set up Option namespace for Qore options
    QoreNamespace *option = new QoreNamespace("Option");
 
