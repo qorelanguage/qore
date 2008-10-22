@@ -1651,10 +1651,18 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    QoreHashNode *qsam = new QoreHashNode();
    qsam->setKeyValue("1", new QoreStringNode("PACKET_READ"), 0);
    qsam->setKeyValue("2", new QoreStringNode("PACKET_SENT"), 0);
+   qsam->setKeyValue("3", new QoreStringNode("HTTP_CONTENT_LENGTH"), 0);
+   qsam->setKeyValue("4", new QoreStringNode("HTTP_CHUNKED_START"), 0);
+   qsam->setKeyValue("5", new QoreStringNode("HTTP_CHUNKED_END"), 0);
+   qsam->setKeyValue("6", new QoreStringNode("HTTP_REDIRECT"), 0);
 
    qns->addConstant("CALLBACK_ACTION_MAP", qsam);
    qns->addConstant("PACKET_READ", new QoreBigIntNode(QCA_PACKET_READ));
    qns->addConstant("PACKET_SENT", new QoreBigIntNode(QCA_PACKET_SENT));
+   qns->addConstant("HTTP_CONTENT_LENGTH", new QoreBigIntNode(QCA_HTTP_CONTENT_LENGTH));
+   qns->addConstant("HTTP_CHUNKED_START", new QoreBigIntNode(QCA_HTTP_CHUNKED_START));
+   qns->addConstant("HTTP_CHUNKED_END", new QoreBigIntNode(QCA_HTTP_CHUNKED_END));
+   qns->addConstant("HTTP_REDIRECT", new QoreBigIntNode(QCA_HTTP_REDIRECT));
 
    // set up Option namespace for Qore options
    QoreNamespace *option = new QoreNamespace("Option");

@@ -47,8 +47,12 @@
 #include <openssl/err.h>
 
 //! callback action: data read
-#define QCA_PACKET_READ 1
-#define QCA_PACKET_SENT 2
+#define QCA_PACKET_READ          1
+#define QCA_PACKET_SENT          2
+#define QCA_HTTP_CONTENT_LENGTH  3
+#define QCA_HTTP_CHUNKED_START   4
+#define QCA_HTTP_CHUNKED_END     5
+#define QCA_HTTP_REDIRECT        6
 
 class Queue;
 
@@ -742,8 +746,8 @@ class QoreSocket {
       //! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 
-      //! returns true if either a callback code ref or an event queue is set on the object
-      DLLLOCAL bool isMonitored() const;
+      DLLLOCAL ResolvedCallReferenceNode *getCallBack();
+      DLLLOCAL Queue *getQueue();
 };
 
 #endif // _QORE_QORESOCKET_H

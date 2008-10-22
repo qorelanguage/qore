@@ -2136,6 +2136,10 @@ void QoreSocket::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
    priv->setEventQueue(cbq, xsink);
 }
 
-bool QoreSocket::isMonitored() const {
-   return priv->callback || priv->cb_queue;
+ResolvedCallReferenceNode *QoreSocket::getCallBack() {
+   return priv->callback;
+}
+
+Queue *QoreSocket::getQueue() {
+   return priv->cb_queue;
 }

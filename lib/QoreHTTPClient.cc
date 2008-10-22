@@ -30,6 +30,8 @@
 #include <qore/QoreURL.h>
 #include <qore/QoreHTTPClient.h>
 #include <qore/intern/ql_misc.h>
+#include <qore/intern/QC_Queue.h>
+
 #include <qore/minitest.hpp>
 
 #include <string>
@@ -106,8 +108,7 @@ struct qore_qtc_private {
 				    default_port(HTTPCLIENT_DEFAULT_PORT), 
 				    max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
 				    timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
-				    connected(false)
-      {
+				    connected(false) {
 	 // setup protocol map
 	 prot_map["http"] = make_protocol(80, false);
 	 prot_map["https"] = make_protocol(443, true);
@@ -119,12 +120,11 @@ struct qore_qtc_private {
 	 default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
 	 default_headers["Accept-Encoding"] = "deflate,gzip,bzip2";
       }
-      DLLLOCAL ~qore_qtc_private()
-      {
+
+      DLLLOCAL ~qore_qtc_private() {
       }
 
-      DLLLOCAL void setSocketPath()
-      {
+      DLLLOCAL void setSocketPath() {
 	 if (proxy_port) {
 	    socketpath = proxy_host;
 	    socketpath += ":";
@@ -144,8 +144,7 @@ struct qore_qtc_private {
 };
 
 // static initialization
-void QoreHTTPClient::static_init()
-{
+void QoreHTTPClient::static_init() {
    // setup static members of QoreHTTPClient class
    method_set.insert("OPTIONS");
    method_set.insert("GET");
@@ -159,87 +158,72 @@ void QoreHTTPClient::static_init()
    header_ignore.insert("Content-Length");
 }
 
-QoreHTTPClient::QoreHTTPClient() : priv(new qore_qtc_private)
-{
+QoreHTTPClient::QoreHTTPClient() : priv(new qore_qtc_private) {
    setSocketPath();
 }
 
-QoreHTTPClient::~QoreHTTPClient()
-{
+QoreHTTPClient::~QoreHTTPClient() {
    delete priv;
 }
 
-void QoreHTTPClient::setSocketPath()
-{
+void QoreHTTPClient::setSocketPath() {
    priv->setSocketPath();
 }
 
-void QoreHTTPClient::setDefaultPort(int def_port)
-{
+void QoreHTTPClient::setDefaultPort(int def_port) {
    priv->default_port = def_port;
 }
 
-void QoreHTTPClient::setDefaultPath(const char *def_path)
-{
+void QoreHTTPClient::setDefaultPath(const char *def_path) {
    priv->default_path = def_path;
 }
 
-void QoreHTTPClient::setTimeout(int to)
-{
+void QoreHTTPClient::setTimeout(int to) {
    priv->timeout = to;
 }
 
-int QoreHTTPClient::getTimeout() const
-{
+int QoreHTTPClient::getTimeout() const {
    return priv->timeout;
 }
 
-void QoreHTTPClient::setEncoding(const QoreEncoding *qe)
-{
+void QoreHTTPClient::setEncoding(const QoreEncoding *qe) {
    priv->m_socket.setEncoding(qe);
 }
 
-const QoreEncoding *QoreHTTPClient::getEncoding() const
-{
+const QoreEncoding *QoreHTTPClient::getEncoding() const {
    return priv->m_socket.getEncoding();
 }
 
-int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink)
-{
+int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
    // process new protocols
    const AbstractQoreNode *n = opts->getKeyValue("protocols");  
-   {
-      if (n && n->getType() == NT_HASH) {
-	 const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
-	 ConstHashIterator hi(h);
-	 while (hi.next())
-	 {
-	    const AbstractQoreNode *v = hi.getValue();
-	    qore_type_t vtype = v ? v->getType() : 0;
-	    if (!v || (vtype != NT_HASH && vtype != NT_INT))
-	    {
-	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
+
+   if (n && n->getType() == NT_HASH) {
+      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
+      ConstHashIterator hi(h);
+      while (hi.next()) {
+	 const AbstractQoreNode *v = hi.getValue();
+	 qore_type_t vtype = v ? v->getType() : 0;
+	 if (!v || (vtype != NT_HASH && vtype != NT_INT)) {
+	    xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
+	    return -1;
+	 }
+	 bool need_ssl = false;
+	 int need_port;
+	 if (vtype == NT_INT)
+	    need_port = (reinterpret_cast<const QoreBigIntNode *>(v))->val;
+	 else {
+	    const QoreHashNode *vh = reinterpret_cast<const QoreHashNode *>(v);
+	    const AbstractQoreNode *p = vh->getKeyValue("port");
+	    need_port = p ? p->getAsInt() : 0;
+	    if (!need_port) {
+	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
 	       return -1;
 	    }
-	    bool need_ssl = false;
-	    int need_port;
-	    if (vtype == NT_INT)
-	       need_port = (reinterpret_cast<const QoreBigIntNode *>(v))->val;
-	    else
-	    {
-	       const QoreHashNode *vh = reinterpret_cast<const QoreHashNode *>(v);
-	       const AbstractQoreNode *p = vh->getKeyValue("port");
-	       need_port = p ? p->getAsInt() : 0;
-	       if (!need_port)
-	       {
-		  xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
-		  return -1;
-	       }
-	       p = vh->getKeyValue("ssl");
-	       need_ssl = p ? p->getAsBool() : false;
-	    }
-	    priv->prot_map[hi.getKey()] = make_protocol(need_port, need_ssl);
+	    p = vh->getKeyValue("ssl");
+	    need_ssl = p ? p->getAsBool() : false;
 	 }
+	 priv->prot_map[hi.getKey()] = make_protocol(need_port, need_ssl);
       }
    }
 
@@ -292,8 +276,7 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink)
    return 0;
 }
 
-int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink)
-{
+int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink) {
    QoreURL url(str);
    if (!url.getHost()) {
       xsink->raiseException("HTTP-CLIENT-URL-ERROR", "missing host specification in URL");
@@ -306,8 +289,7 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink)
    }
 
    bool port_set = false;
-   if (url.getPort())
-   {
+   if (url.getPort()) {
       priv->port = url.getPort();
       port_set = true;
    }
@@ -625,8 +607,7 @@ void QoreHTTPClient::disconnect()
    disconnect_unlocked();
 }
 
-const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr)
-{
+const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr) {
    pstr.clear();
 
    // use default path if no path is set
@@ -660,8 +641,7 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
    return (const char *)pstr.getBuffer();
 }
 
-QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, QoreHashNode &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink)
-{
+QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, QoreHashNode &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink) {
    QoreString pathstr(priv->m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
 
@@ -727,8 +707,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
 
 // always generate a Host header pointing to the host hosting the resource, not the proxy
 // (RFC 2616 is not totally clear on this, but other clients do it this way)
-AbstractQoreNode *QoreHTTPClient::getHostHeaderValue()
-{
+AbstractQoreNode *QoreHTTPClient::getHostHeaderValue() {
    if (priv->port == 80)
       return new QoreStringNode(priv->host.c_str());
 
@@ -737,8 +716,72 @@ AbstractQoreNode *QoreHTTPClient::getHostHeaderValue()
    return str;
 }
 
-QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink)
-{
+static void do_content_length_callback(ResolvedCallReferenceNode *callback, Queue *cb_queue, int len) {
+   if (callback) {
+      ExceptionSink xsink;
+      ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
+      // push action
+      args->push(new QoreBigIntNode(QCA_HTTP_CONTENT_LENGTH));
+      // push number of bytes in header
+      args->push(new QoreBigIntNode(len));
+      // call callback and discard any return value
+      discard(callback->exec(*args, &xsink), &xsink);      
+   }
+   if (cb_queue) {
+      ExceptionSink xsink;
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
+      h->setKeyValue("action", new QoreBigIntNode(QCA_HTTP_CONTENT_LENGTH), 0);
+      h->setKeyValue("len", new QoreBigIntNode(len), 0);
+      // FIXME: should implement a QoreQueue::push_temporary() method to take reference
+      cb_queue->push(*h);      
+   }
+}
+
+static void do_redirect_callback(ResolvedCallReferenceNode *callback, Queue *cb_queue, const QoreStringNode *loc, const QoreStringNode *msg) {
+   if (callback) {
+      ExceptionSink xsink;
+      ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
+      // push action
+      args->push(new QoreBigIntNode(QCA_HTTP_REDIRECT));
+      // push location
+      args->push(loc->refSelf());
+      // push message, if any
+      if (msg)
+	 args->push(msg->refSelf());
+      // call callback and discard any return value
+      discard(callback->exec(*args, &xsink), &xsink);      
+   }
+   if (cb_queue) {
+      ExceptionSink xsink;
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
+      h->setKeyValue("action", new QoreBigIntNode(QCA_HTTP_REDIRECT), 0);
+      h->setKeyValue("location", loc->refSelf(), 0);
+      if (msg)
+	 h->setKeyValue("status_message", msg->refSelf(), 0);
+      // FIXME: should implement a QoreQueue::push_temporary() method to take reference
+      cb_queue->push(*h);      
+   }
+}
+
+static void do_action_callback(ResolvedCallReferenceNode *callback, Queue *cb_queue, int action) {
+   if (callback) {
+      ExceptionSink xsink;
+      ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
+      // push action
+      args->push(new QoreBigIntNode(action));
+      // call callback and discard any return value
+      discard(callback->exec(*args, &xsink), &xsink);      
+   }
+   if (cb_queue) {
+      ExceptionSink xsink;
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
+      h->setKeyValue("action", new QoreBigIntNode(action), 0);
+      // FIXME: should implement a QoreQueue::push_temporary() method to take reference
+      cb_queue->push(*h);      
+   }
+}
+
+QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink) {
    //printd(5, "QoreHTTPClient::send_internal(meth=%s, mpath=%s, info=%08p)\n", meth, mpath, info);
    
    // check if method is valid
@@ -751,6 +794,9 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    meth = *i;
 
    SafeLocker sl(this);
+   ResolvedCallReferenceNode *callback = priv->m_socket.getCallBack();
+   Queue *cb_queue = priv->m_socket.getQueue();
+
    StackHash nh(xsink);
    bool keep_alive = true;
 
@@ -872,22 +918,23 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 disconnect_unlocked();
 
 	 host_override = false;
-	 v = ans->getKeyValue("location");
-	 const char *location = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : 0;
+	 const QoreStringNode *loc = reinterpret_cast<QoreStringNode *>(ans->getKeyValue("location"));
+	 const char *location = loc ? loc->getBuffer() : 0;
+	 const QoreStringNode *mess = reinterpret_cast<QoreStringNode *>(ans->getKeyValue("status_message"));
 
 	 if (!location) {
 	    sl.unlock();
 	    v = ans->getKeyValue("status_message");
-	    const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
-	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "no redirect location given for status code %d: message: '%s'", code, mess);
+	    const char *msg = mess ? mess->getBuffer() : "<no message>";
+	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "no redirect location given for status code %d: message: '%s'", code, msg);
 	    return 0;
 	 }
 
 	 if (set_url_unlocked(location, xsink)) {
 	    sl.unlock();
 	    v = ans->getKeyValue("status_message");
-	    const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
-	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "exception occurred while setting URL for new location '%s' (code %d: message: '%s')", location, code, mess);
+	    const char *msg = mess ? mess->getBuffer() : "<no message>";
+	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "exception occurred while setting URL for new location '%s' (code %d: message: '%s')", location, code, msg);
 	    return 0;
 	 }
 
@@ -901,9 +948,10 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    
 	    tmp.clear();
 	    tmp.sprintf("redirect-message-%d", redirect_count);
-	    v = ans->getKeyValue("status_message");
-	    info->setKeyValue(tmp.getBuffer(), v ? v->refSelf() : 0, xsink);
+	    info->setKeyValue(tmp.getBuffer(), mess ? mess->refSelf() : 0, xsink);
 	 }
+
+	 do_redirect_callback(callback, cb_queue, loc, mess);
 
 	 // set mpath to NULL so that the new path will be taken
 	 mpath = 0;
@@ -993,13 +1041,19 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    v = ans->getKeyValue("content-length");
    int len = v ? v->getAsInt() : 0;
 
+   if (v)
+      do_content_length_callback(callback, cb_queue, len);
+
    AbstractQoreNode *body = 0;
    if (te && !strcasecmp((reinterpret_cast<QoreStringNode *>(te))->getBuffer(), "chunked")) { // check for chunked response body
+      do_action_callback(callback, cb_queue, QCA_HTTP_CHUNKED_START);
       ReferenceHolder<QoreHashNode> nah(xsink);
       if (content_encoding)
 	 nah = priv->m_socket.readHTTPChunkedBodyBinary(priv->timeout, xsink);
       else
 	 nah = priv->m_socket.readHTTPChunkedBody(priv->timeout, xsink);
+      do_action_callback(callback, cb_queue, QCA_HTTP_CHUNKED_END);
+
       if (!nah)
 	 return 0;
       
@@ -1083,13 +1137,11 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    return ans.release();
 }
 
-QoreHashNode *QoreHTTPClient::send(const char *meth, const char *new_path, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink)
-{
+QoreHashNode *QoreHTTPClient::send(const char *meth, const char *new_path, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink) {
    return send_internal(meth, new_path, headers, data, size, getbody, info, xsink);
 }
 
-AbstractQoreNode *QoreHTTPClient::get(const char *new_path, const QoreHashNode *headers, QoreHashNode *info, ExceptionSink *xsink)
-{
+AbstractQoreNode *QoreHTTPClient::get(const char *new_path, const QoreHashNode *headers, QoreHashNode *info, ExceptionSink *xsink) {
    ReferenceHolder<QoreHashNode> ans(send_internal("GET", new_path, headers, 0, 0, true, info, xsink), xsink);
    if (!ans)
       return 0;
@@ -1097,8 +1149,7 @@ AbstractQoreNode *QoreHTTPClient::get(const char *new_path, const QoreHashNode *
    return ans->takeKeyValue("body");
 }
 
-QoreHashNode *QoreHTTPClient::head(const char *new_path, const QoreHashNode *headers, QoreHashNode *info, ExceptionSink *xsink)
-{
+QoreHashNode *QoreHTTPClient::head(const char *new_path, const QoreHashNode *headers, QoreHashNode *info, ExceptionSink *xsink) {
    return send_internal("HEAD", new_path, headers, 0, 0, false, info, xsink);
 }
 
@@ -1127,15 +1178,12 @@ void QoreHTTPClient::setDefaultHeaderValue(const char *header, const char *val) 
 }
 
 void QoreHTTPClient::setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink) {
+   AutoLocker al(this);
    priv->m_socket.setCallBack(cb, xsink);
 }
 
 //! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call                        
 void QoreHTTPClient::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
+   AutoLocker al(this);
    priv->m_socket.setEventQueue(cbq, xsink);
-}
-
-//! returns true if either a callback code ref or an event queue is set on the object                                                 
-bool QoreHTTPClient::isMonitored() const {
-   return priv->m_socket.isMonitored();
 }

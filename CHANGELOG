@@ -8,6 +8,8 @@
 	  the ia64 RSE (Register Stack Engine) - 64bit ia64 builds only
 	* added initial callback and event queue support to the Socket and
 	  HTTPClient classes
+	* fixed *printf() formatting with unrecognized format specifiers
+	* added more callback support to HTTPClient
 
 2008.10.20: David Nichols
 	* updated assembly macro includes to allow for Universal builds

@@ -269,9 +269,6 @@ class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock {
       
       //! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
-
-      //! returns true if either a callback code ref or an event queue is set on the object
-      DLLLOCAL bool isMonitored() const;
 };
 
 #endif 
