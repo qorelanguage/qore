@@ -4,7 +4,7 @@
 	.align 16
 	.global atomic_inc#
 	.proc atomic_inc#
-do_atomic_inc:
+atomic_inc:
 	.prologue
 	.body
 .L2:
@@ -25,7 +25,7 @@ do_atomic_inc:
 	.align 16
 	.global atomic_dec#
 	.proc atomic_dec#
-do_atomic_dec:
+atomic_dec:
 	.prologue
 	.body
 .L10:
