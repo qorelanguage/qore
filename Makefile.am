@@ -91,6 +91,7 @@ noinst_HEADERS = \
 	include/qore/macros-x86_64.h \
 	include/qore/macros-powerpc.h \
 	include/qore/macros-sparc.h \
+	include/qore/macros-ia64.h \
 	include/qore/macros-none.h \
 	include/qore/intern/config.h \
 	include/qore/intern/unix-config.h \

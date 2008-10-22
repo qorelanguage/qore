@@ -258,8 +258,10 @@ struct qore_option_s {
       bool value;           //!< the value of the option
 };
 
+//const char *qore_get_option_list();
+
 //! list of qore options
-DLLEXPORT extern const qore_option_s qore_option_list[];
+DLLEXPORT extern const qore_option_s *qore_option_list;
 //! number of elements in the option list
 DLLEXPORT extern size_t qore_option_list_size;
 

@@ -651,7 +651,7 @@ static AbstractQoreNode *op_list_ref(const AbstractQoreNode *left, const Abstrac
       }
       else if (ind >= 0) {
 	 const QoreStringNode *lpstr = reinterpret_cast<const QoreStringNode *>(*lp);
-	 rv = lpstr->substr(ind, 1);
+	 rv = lpstr->substr(ind, 1, xsink);
       }
       //printd(5, "op_list_ref() index=%d, rv=%08p\n", ind, rv);
    }

@@ -358,7 +358,7 @@ struct qore_program_private {
 };
 
 // note the number and order of the warnings has to correspond to those in QoreProgram.h
-const char *qore_warnings[] = { 
+static const char *qore_warnings_l[] = { 
    "warning-mask-unchanged",
    "duplicate-local-vars",
    "unknown-warning",
@@ -366,8 +366,10 @@ const char *qore_warnings[] = {
    "duplicate-global-vars",
    "unreachable-code"
 };
-#define NUM_WARNINGS (sizeof(qore_warnings)/sizeof(const char *))
+#define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
 
+//public symbols
+const char **qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
 
 int get_warning_code(const char *str)

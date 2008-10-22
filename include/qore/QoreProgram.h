@@ -40,7 +40,7 @@
 #define QP_WARN_ALL                      -1         //!< for all possible warnings
 
 //! list of strings of warning codes
-DLLEXPORT extern const char *qore_warnings[];
+DLLEXPORT extern const char **qore_warnings;
 
 //! number of warning codes
 DLLEXPORT extern unsigned qore_num_warnings;

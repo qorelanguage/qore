@@ -41,7 +41,7 @@ struct qore_mod_api_compat_s {
 };
 
 //! list of module APIs this library supports
-DLLEXPORT extern qore_mod_api_compat_s qore_mod_api_list[];
+DLLEXPORT extern const qore_mod_api_compat_s *qore_mod_api_list;
 
 //! number of elements in qore_mod_api_list;
 DLLEXPORT extern const unsigned qore_mod_api_list_len;

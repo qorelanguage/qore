@@ -50,8 +50,8 @@ class QoreString {
       DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, const QoreString *str, class ExceptionSink *xsink);
       DLLLOCAL int substr_simple(QoreString *str, qore_offset_t offset) const;
       DLLLOCAL int substr_simple(QoreString *str, qore_offset_t offset, qore_offset_t length) const;
-      DLLLOCAL int substr_complex(QoreString *str, qore_offset_t offset) const;
-      DLLLOCAL int substr_complex(QoreString *str, qore_offset_t offset, qore_offset_t length) const;
+      DLLLOCAL int substr_complex(QoreString *str, qore_offset_t offset, ExceptionSink *xsink) const;
+      DLLLOCAL int substr_complex(QoreString *str, qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const;
 
       // writes a new QoreString with the characters reversed of the "this" QoreString
       // assumes the encoding is the same and the length is 0
@@ -114,6 +114,8 @@ class QoreString {
       DLLEXPORT ~QoreString();
 
       //! returns the number of characters (not bytes) in the string
+      /** an invalid character length may be returned if invalid character encodings are found in a multi-byte character encoding 
+       */
       DLLEXPORT qore_size_t length() const;
 
       //! copies the c-string passed and sets the value of the string and its encoding
@@ -295,7 +297,7 @@ class QoreString {
       /** values are for characters, not bytes
 	  @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
 	  @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
-	  @param xsink is ignored
+	  @param xsink invalid multi-byte encodings can cause an exception to be thrown
        */
       DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, class ExceptionSink *xsink);
 
@@ -304,30 +306,32 @@ class QoreString {
 	  @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
 	  @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
 	  @param strn the string to insert at character position "offset" after "length" characters are removed
-	  @param xsink is ignored
+	  @param xsink invalid multi-byte encodings can cause an exception to be thrown
        */
       DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const class AbstractQoreNode *strn, class ExceptionSink *xsink);
 
       //! returns a new string consisting of all the characters from the current string starting with character position "offset"
       /** offset is a character offset (not a byte offset)
 	  @param offset the offset in characters from the beginning of the string (starting with 0)
+	  @param xsink invalid multi-byte encodings can cause an exception to be thrown
 	  @return the new string
        */
-      DLLEXPORT QoreString *substr(qore_offset_t offset) const;
+      DLLEXPORT QoreString *substr(qore_offset_t offset, ExceptionSink *xsink) const;
 
       //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
       /** offset and length spoecify characters, not bytes
 	  @param offset the offset in characters from the beginning of the string (starting with 0)
 	  @param length the number of characters for the substring
+	  @param xsink invalid multi-byte encodings can cause an exception to be thrown
 	  @return the new string
        */
-      DLLEXPORT QoreString *substr(qore_offset_t offset, qore_offset_t length) const;
+      DLLEXPORT QoreString *substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const;
 
       //! removes a single \\n\\r or \\n from the end of the string and returns the number of characters removed
       DLLEXPORT qore_size_t chomp();
 
       //! returns the encoding for the string
-      DLLEXPORT const class QoreEncoding *getEncoding() const;
+      DLLEXPORT const QoreEncoding *getEncoding() const;
 
       //! returns an exact copy of the string
       DLLEXPORT QoreString *copy() const;

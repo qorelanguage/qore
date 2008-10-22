@@ -31,19 +31,19 @@ FeatureList qoreFeatureList;
 #define cpp_xstr(s) cpp_str(s)
 
 // global library variables
-const char qore_version_string[]     = VERSION "-" cpp_xstr(BUILD);
+const char *qore_version_string      = VERSION "-" cpp_xstr(BUILD);
 int qore_version_major               = VERSION_MAJOR;
 int qore_version_minor               = VERSION_MINOR;
 int qore_version_sub                 = VERSION_SUB;
 int qore_build_number                = BUILD;
 int qore_target_bits                 = TARGET_BITS;
-const char qore_target_os[]          = TARGET_OS;
-const char qore_target_arch[]        = TARGET_ARCH;
-const char qore_module_dir[]         = MODULE_DIR;
-const char qore_cplusplus_compiler[] = QORE_LIB_CXX;
-const char qore_cflags[]             = QORE_LIB_CFLAGS;
-const char qore_ldflags[]            = QORE_LIB_LDFLAGS;
-const char qore_build_host[]         = QORE_BUILD_HOST;
+const char *qore_target_os           = TARGET_OS;
+const char *qore_target_arch         = TARGET_ARCH;
+const char *qore_module_dir          = MODULE_DIR;
+const char *qore_cplusplus_compiler  = QORE_LIB_CXX;
+const char *qore_cflags              = QORE_LIB_CFLAGS;
+const char *qore_ldflags             = QORE_LIB_LDFLAGS;
+const char *qore_build_host          = QORE_BUILD_HOST;
 
 DLLLOCAL QoreListNode *ARGV = 0;
 DLLLOCAL QoreListNode *QORE_ARGV = 0;
@@ -66,7 +66,7 @@ char table64[64] = {
    'w', 'x', 'y', 'z', '0', '1', '2', '3',
    '4', '5', '6', '7', '8', '9', '+', '/' };
 
-const qore_option_s qore_option_list[] = {
+const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_ATOMIC_OPERATIONS,
      "HAVE_ATOMIC_OPERATIONS",
      QO_OPTION,
@@ -204,7 +204,9 @@ const qore_option_s qore_option_list[] = {
    }
 };
 
-#define QORE_OPTION_LIST_SIZE (sizeof(qore_option_list) / sizeof(qore_option_s))
+const qore_option_s *qore_option_list = qore_option_list_l;
+
+#define QORE_OPTION_LIST_SIZE (sizeof(qore_option_list_l) / sizeof(qore_option_s))
 
 size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
 

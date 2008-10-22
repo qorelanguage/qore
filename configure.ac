@@ -134,8 +134,10 @@ case "${host_os}" in
 		fi
 		# add "-AA" and -D__STDC_EXT__ to aCC commandline to enable a clean compile
 		if test -n "`echo $CXX|grep aCC`"; then
-		   CXXFLAGS="$CXXFLAGS -AA -D_HPUX_SOURCE -D__STDC_EXT__ -D_RWSTD_MULTI_THREAD -D_XOPEN_SOURCE_EXTENDED"
+		   CXXFLAGS="$CXXFLAGS -AA"
+		   CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D__STDC_EXT__ -D_RWSTD_MULTI_THREAD"
 		fi
+		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"		
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		AC_DEFINE(NEED_ENVIRON_LOCK, 1, [if the environment operations need explicit locking])
 		hpux=yes

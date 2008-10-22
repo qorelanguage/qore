@@ -173,9 +173,8 @@ QoreFtpClient::~QoreFtpClient()
 }
 
 // private unlocked
-static inline int getFTPCode(QoreString *str)
-{
-   QoreString *b = str->substr(0, 3);
+static inline int getFTPCode(QoreString *str) {
+   QoreString *b = str->substr(0, 3, 0);
    if (!b) return -1;
    int rc = atoi(b->getBuffer());
    delete b;
@@ -999,9 +998,9 @@ QoreStringNode *QoreFtpClient::pwd(ExceptionSink *xsink)
 
    QoreStringNodeHolder p(sendMsg("PWD", 0, xsink));
    sl.unlock();
-   if ((getFTPCode(*p) / 100) == 2)
-   {
-      QoreStringNode *rv = p->substr(4);
+   if ((getFTPCode(*p) / 100) == 2) {
+      QoreStringNode *rv = p->substr(4, xsink);
+      assert(!*xsink); // not possible to have an exception here
       // FIXME use trim or something instead
       stripEOL(rv);
       return rv;

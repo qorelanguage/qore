@@ -103,9 +103,9 @@ static AbstractQoreNode *f_substr(const QoreListNode *params, ExceptionSink *xsi
    QoreStringNodeValueHelper temp(p0);
    const AbstractQoreNode *p2;
    if ((p2 = get_param(params, 2)))
-      return temp->substr(p1->getAsInt(), p2->getAsInt());
+      return temp->substr(p1->getAsInt(), p2->getAsInt(), xsink);
 
-   return temp->substr(p1->getAsInt());
+   return temp->substr(p1->getAsInt(), xsink);
 }
 
 static inline int index_intern(const char *haystack, const char *needle, int pos = 0)
@@ -121,8 +121,7 @@ static inline int index_intern(const char *haystack, const char *needle, int pos
  * of substring within string, optionally starting at position if available
  * returns -1 if not found
  */
-static AbstractQoreNode *f_index(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_index(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0, *p1, *p2;
 
    if (!(p0 = get_param(params, 0)) ||
@@ -136,8 +135,7 @@ static AbstractQoreNode *f_index(const QoreListNode *params, ExceptionSink *xsin
    int pos = p2 ? p2->getAsInt() : 0;
 
    int ind;
-   if (!hs->getEncoding()->isMultiByte())
-   {
+   if (!hs->getEncoding()->isMultiByte()) {
       if (pos < 0) {
 	 pos = hs->strlen() + pos;
 	 if (pos < 0)
@@ -151,33 +149,33 @@ static AbstractQoreNode *f_index(const QoreListNode *params, ExceptionSink *xsin
 	    ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
       }
    }
-   else // do multibyte index()
-   {
+   else { // do multibyte index()
       qore_size_t start;
-      if (pos < 0)
-      {
+      if (pos < 0) {
 	 pos = hs->length() + pos;
 	 if (pos < 0)
 	    pos = 0;
       }
-      if (pos)
-      {
-	 start = hs->getEncoding()->getByteLen(hs->getBuffer(), pos);
+      if (pos) {
+	 start = hs->getEncoding()->getByteLen(hs->getBuffer(), hs->getBuffer() + hs->strlen(), pos, xsink);
+	 if (*xsink)
+	    return 0;
 	 if (start == hs->strlen())
 	    ind = -1;
 	 else
 	    ind = 0;
       }
-      else
-      {
+      else {
 	 ind = 0;
 	 start = 0;
       }
-      if (ind != -1)
-      {
+      if (ind != -1) {
 	 ind = index_intern(hs->getBuffer() + start, t1->getBuffer());
-	 if (ind != -1)
-	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + start + ind);
+	 if (ind != -1) {
+	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + start + ind, xsink);
+	    if (*xsink)
+	       return 0;
+	 }
       }
    }
    
@@ -296,8 +294,7 @@ static AbstractQoreNode *f_rindex(const QoreListNode *params, ExceptionSink *xsi
       else
 	 ind = rindex_intern(hs->getBuffer(), hs->strlen(), t1->getBuffer(), t1->strlen(), pos);      
    }
-   else // do multi-byte rindex
-   {
+   else { // do multi-byte rindex
       int l = hs->length();
       if (pos == -1)
 	 pos = l - 1;
@@ -305,16 +302,21 @@ static AbstractQoreNode *f_rindex(const QoreListNode *params, ExceptionSink *xsi
 	 pos = l + pos;
       if (pos < 0)
 	 ind = -1;
-      else
-      {
+      else {
 	 // calculate byte position from character position
-	 if (pos)
-	    pos = hs->getEncoding()->getByteLen(hs->getBuffer(), pos);
+	 if (pos) {
+	    pos = hs->getEncoding()->getByteLen(hs->getBuffer(), hs->getBuffer() + hs->strlen(), pos, xsink);
+	    if (*xsink)
+	       return 0;
+	 }
 	 // get byte rindex position
 	 ind = rindex_intern(hs->getBuffer(), hs->strlen(), t1->getBuffer(), t1->strlen(), pos);
 	 // calculate character position from byte position
-	 if (ind && ind != -1)
-	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + ind);
+	 if (ind && ind != -1) {
+	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + ind, xsink);
+	    if (*xsink)
+	       return 0;
+	 }
       }
    }
 

@@ -1,5 +1,47 @@
 RELEASE NOTES for qore v0.7.1
 
+release summary: qore 0.7.1 is a bugfix release from 0.7.0
+
+*) bug fixes
+*) new ABI 5.0, problems were found with ABI 4.0
+
+
+*) bug fixes
+a bug in the != operator for strings was fixed; != would return True for strings with different encodings but otherwise equal content; this has been fixed to return False
+
+*) new ABI 5.0, problems were found with ABI 4.0
+The 4.0 ABI was supposed to be fixed for a while; hopefully version 5.0 will last a little longer :-)
+
+The multi-byte character support was defective; it could lead to reading from outside the buffer, so functions in QoreEncoding.h were updated.
+
+Also it turns out that an array is not the same as a pointer to the array type; and the array size of global objects is somehow part of the ABI.
+
+Changing any of these arrays (including character arrays) caused ABI issues, which was really a bad situation.
+The following symbols are now pointers (all except the last are in Qore.h, the last is in QoreProgram.h):
+
+DLLEXPORT extern const char *qore_version_string;
+DLLEXPORT extern const char *qore_target_os;
+DLLEXPORT extern const char *qore_target_arch;
+DLLEXPORT extern const char *qore_module_dir;
+DLLEXPORT extern const char *qore_cplusplus_compiler;
+DLLEXPORT extern const char *qore_cflags;
+DLLEXPORT extern const char *qore_ldflags;
+DLLEXPORT extern const char *qore_build_host;
+DLLEXPORT extern const char **qore_warnings;
+
+The old definitions were:
+DLLEXPORT extern const char qore_version_string[];
+DLLEXPORT extern const char qore_target_os[];
+DLLEXPORT extern const char qore_target_arch[];
+DLLEXPORT extern const char qore_module_dir[];
+DLLEXPORT extern const char qore_cplusplus_compiler[];
+DLLEXPORT extern const char qore_cflags[];
+DLLEXPORT extern const char qore_ldflags[];
+DLLEXPORT extern const char qore_build_host[];
+DLLEXPORT extern const char *qore_warnings[];
+
+Note that this version of the Qore library still claims binary compatibility with module api 0.4 because none of the qore modules released up to date used any of the features changed by this version of the library.
+
 
 
 ***********************

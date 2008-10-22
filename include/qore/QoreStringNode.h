@@ -179,17 +179,19 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
       //! returns a new string consisting of all the characters from the current string starting with character position "offset"
       /** offset is a character offset and not a byte offset
 	  @param offset the offset in characters from the beginning of the string (starting with 0), can be negative
+	  @param xsink an invalid multibyte character encoding can cause an exception to be thrown
 	  @return the new string
        */
-      DLLEXPORT QoreStringNode *substr(qore_offset_t offset) const;
+      DLLEXPORT QoreStringNode *substr(qore_offset_t offset, ExceptionSink *xsink) const;
 
       //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
       /** offset and length spoecify characters, not bytes
 	  @param offset the offset in characters from the beginning of the string (starting with 0), can be negative
 	  @param length the number of characters to take for the new substring, can be negative
+	  @param xsink an invalid multibyte character encoding can cause an exception to be thrown
 	  @return the new string
        */
-      DLLEXPORT QoreStringNode *substr(qore_offset_t offset, qore_offset_t length) const;
+      DLLEXPORT QoreStringNode *substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const;
 
       //! return a QoreStringNode with the characters reversed
       DLLEXPORT QoreStringNode *reverse() const;

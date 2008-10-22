@@ -34,31 +34,24 @@ const QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
    *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13, *QCS_ISO_8859_14,
    *QCS_ISO_8859_15, *QCS_ISO_8859_16, *QCS_KOI8_R, *QCS_KOI8_U, *QCS_KOI7;
 
-static qore_size_t utf8cl(const char *p);
-static qore_size_t utf8end(const char *p, qore_size_t l);
-static qore_size_t utf8cpos(const char *p, const char *e);
+static qore_size_t UTF8_getLength(const char *p, const char *end, bool &invalid);
+static qore_size_t UTF8_getByteLen(const char *p, const char *end, qore_size_t l, bool &invalid);
+static qore_size_t UTF8_getCharPos(const char *p, const char *e, bool &invalid);
+static qore_size_t UTF8_getCharLen(const char *p, qore_size_t valid_len);
 
 encoding_map_t QoreEncodingManager::emap;
 const_encoding_map_t QoreEncodingManager::amap;
 class QoreThreadLock QoreEncodingManager::mutex;
 class QoreEncodingManager QEM;
 
-const QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, const char *desc, unsigned char maxwidth, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p) {
-   QoreEncoding *qcs = new QoreEncoding(code, maxwidth, l, e, p, desc);
+const QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, const char *desc, unsigned char maxwidth, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, mbcs_charlen_t c) {
+   QoreEncoding *qcs = new QoreEncoding(code, desc, maxwidth, l, e, p, c);
    emap[qcs->getCode()] = qcs;
    return qcs;
 }
 
-const QoreEncoding *QoreEncodingManager::add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc) {
-   QoreEncoding *qcs = new QoreEncoding(code, 1, l, e, p, desc);
-   mutex.lock();
-   emap[qcs->getCode()] = qcs;
-   mutex.unlock();
-   return qcs;
-}
-
-const QoreEncoding *QoreEncodingManager::add(const char *code, unsigned char maxwidth, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc) {
-   QoreEncoding *qcs = new QoreEncoding(code, maxwidth, l, e, p, desc);
+const QoreEncoding *QoreEncodingManager::add(const char *code, const char *desc, unsigned char maxwidth, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, mbcs_charlen_t c) {
+   QoreEncoding *qcs = new QoreEncoding(code, desc, maxwidth, l, e, p, c);
    mutex.lock();
    emap[qcs->getCode()] = qcs;
    mutex.unlock();
@@ -100,8 +93,7 @@ const QoreEncoding *QoreEncodingManager::add(const char *code, unsigned char max
 #define ISO885916_STR "ISO-8859-16"
 #endif
 
-QoreEncodingManager::QoreEncodingManager()
-{
+QoreEncodingManager::QoreEncodingManager() {
    // add character sets and setup aliases
    
    QCS_USASCII     = addUnlocked("US-ASCII",    "7-bit ASCII character set");
@@ -109,7 +101,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_USASCII, "USASCII");
    addAlias(QCS_USASCII, "US-ASCII");
 
-   QCS_UTF8        = addUnlocked("UTF-8",       "variable-width universal character set", 4, utf8cl, utf8end, utf8cpos);
+   QCS_UTF8        = addUnlocked("UTF-8",       "variable-width universal character set", 4, UTF8_getLength, UTF8_getByteLen, UTF8_getCharPos, UTF8_getCharLen);
    addAlias(QCS_UTF8, "UTF8");
 
    QCS_ISO_8859_1  = addUnlocked(ISO88591_STR,  "latin-1, Western European character set");
@@ -264,52 +256,43 @@ QoreEncodingManager::QoreEncodingManager()
    QCS_DEFAULT = QCS_UTF8;
 };
 
-QoreEncodingManager::~QoreEncodingManager()
-{
+QoreEncodingManager::~QoreEncodingManager() {
    encoding_map_t::iterator i;
-   while ((i = emap.begin()) != emap.end())
-   {
+   while ((i = emap.begin()) != emap.end()) {
       class QoreEncoding *qe = i->second;
       emap.erase(i);
       delete qe;
    }
 }
 
-void QoreEncodingManager::showEncodings()
-{
+void QoreEncodingManager::showEncodings() {
    for (encoding_map_t::const_iterator i = emap.begin(); i != emap.end(); i++)
       printf("%s: %s\n", i->first, i->second->getDesc());
 }
 
-void QoreEncodingManager::showAliases()
-{
+void QoreEncodingManager::showAliases() {
    for (const_encoding_map_t::const_iterator i = amap.begin(); i != amap.end(); i++)
       if (strcmp(i->first, i->second->getCode()))
 	  printf("%s = %s: %s\n", i->first, i->second->getCode(), i->second->getDesc());
 }
 
-void QoreEncodingManager::init(const char *def)
-{
+void QoreEncodingManager::init(const char *def) {
    // now set default character set
    if (def)
       QCS_DEFAULT = findCreate(def);
-   else
-   {
+   else {
       // first see if QORE_CHARSET exists
       char *estr = getenv("QORE_CHARSET");
       if (estr)
 	 QCS_DEFAULT = findCreate(estr);
-      else // try to get character set name from LANG variable
-      {
+      else { // try to get character set name from LANG variable
 	 estr = getenv("LANG");
 	 char *p;
-	 if (estr && ((p = strrchr(estr, '.'))))
-	 {
+	 if (estr && ((p = strrchr(estr, '.')))) {
 	    char *o = strchr(p + 1, '@');
 	    if (!o)
 	       QCS_DEFAULT = findCreate(p + 1);
-	    else
-	    {
+	    else {
 	       *o = '\0';
 	       QCS_DEFAULT = findCreate(p + 1);
 	       *o = '@';
@@ -321,15 +304,13 @@ void QoreEncodingManager::init(const char *def)
    }
 }
 
-void QoreEncodingManager::addAlias(const QoreEncoding *qcs, const char *alias)
-{
+void QoreEncodingManager::addAlias(const QoreEncoding *qcs, const char *alias) {
    mutex.lock();
    amap[alias] = qcs;
    mutex.unlock();
 }
 
-const QoreEncoding *QoreEncodingManager::findUnlocked(const char *name)
-{
+const QoreEncoding *QoreEncodingManager::findUnlocked(const char *name) {
    {
       encoding_map_t::const_iterator i = emap.find(name);
       if (i != emap.end())
@@ -343,8 +324,7 @@ const QoreEncoding *QoreEncodingManager::findUnlocked(const char *name)
    return 0;
 }
 
-const QoreEncoding *QoreEncodingManager::findCreate(const char *name)
-{
+const QoreEncoding *QoreEncodingManager::findCreate(const char *name) {
    const QoreEncoding *rv;
    mutex.lock();
    rv = findUnlocked(name);
@@ -359,66 +339,128 @@ const QoreEncoding *QoreEncodingManager::findCreate(const QoreString *str)
    return findCreate(str->getBuffer());
 }
 
-static inline unsigned utf8clen(const char *p)
-{
+static qore_size_t UTF8_getCharLen(const char *p, qore_size_t len) {
    // see if a multi-byte char is starting
-   if ((*p & 0xc0) == 0xc0)
-   {
+   if ((*p & 0xc0) == 0xc0) {
       //printd(5, "MULTIBYTE *p = %hhx\n", *p);
       // check for a 3-byte sequence
-      if ((*p) & 0x20)
-      {
+      if ((*p) & 0x20) { 
 	 // check for a 4-byte sequence
-	 if ((*p) & 0x10)
-	 {
-	    if ((*(p+1)) & 0x80 && (*(p+2)) & 0x80 && (*(p+3)) & 0x80)
-	       return 4;
+	 if ((*p) & 0x10) {
+	    if (len >= 4) {
+	       if ((*(p+1)) & 0x80 && (*(p+2)) & 0x80 && (*(p+3)) & 0x80)
+		  return 4;
+	       // encoding error - invalid UTF-8 character
+	       return 0;
+	    }
+	    return -4;
 	 }
-	 else // should be 3-byte sequence
-	    if ((*(p+1)) & 0x80 && (*(p+2)) & 0x80)
-	       return 3;
+	 else { // should be 3-byte sequence
+	    if (len >= 3) {
+	       if ((*(p+1)) & 0x80 && (*(p+2)) & 0x80)
+		  return 3;
+	       // encoding error - invalid UTF-8 character
+	       return 0;
+	    }
+	    return -3;
+	 }
       }
-      else // should be a 2-byte sequence - check next char for high bit
-	 if ((*(p+1)) & 0x80)
-	    return 2;
+      else { // should be a 2-byte sequence - check next char for high bit
+	 if (len >= 2) {
+	    if ((*(p+1)) & 0x80)
+	       return 2;
+	    // encoding error - invalid UTF-8 character
+	    return 0;
+	 }
+	 return -2;
+      }
    }
-   // if there was an error above, the error will be counted as one character
    return 1;
 }
 
-static qore_size_t utf8cl(const char *p)
-{
+static qore_size_t UTF8_getLength(const char *p, const char *end, bool &invalid) {
    qore_size_t i = 0;
-   while (*p)
-   {
-      p += utf8clen(p);
+   while (*p) {
+      qore_size_t l = UTF8_getCharLen(p, end - p);
+      if (l <= 0) {
+	 invalid = true;
+	 return i;
+      }
+      p += l;
       i++;
    }
 
+   invalid = false;
    return i;
 }
 
-static qore_size_t utf8end(const char *p, qore_size_t l)
-{
+static qore_size_t UTF8_getByteLen(const char *p, const char *end, qore_size_t l, bool &invalid) {
    qore_size_t b = 0;
-   while (*p && l)
-   {
-      unsigned bl = utf8clen(p);
+   while (*p && l) {
+      qore_size_t bl = UTF8_getCharLen(p, end - p);
+      if (bl <= 0) {
+	 invalid = true;
+	 return b;
+      }
       b += bl;
       p += bl;
       l--;
    }
+   invalid = false;
    return b;
 }
 
-static qore_size_t utf8cpos(const char *p, const char *end)
-{
+static qore_size_t UTF8_getCharPos(const char *p, const char *end, bool &invalid) {
    qore_size_t i = 0;
-   while (p < end)
-   {
-      p += utf8clen(p);
+   while (p < end) {
+      qore_size_t l = UTF8_getCharLen(p, end - p);
+      if (l <= 0) {
+	 invalid = true;
+	 return i;
+      }
+      p += l;
       i++;
    }
 
+   invalid = false;
    return i;
+}
+
+qore_size_t QoreEncoding::getLength(const char *p, const char *end, ExceptionSink *xsink) const {
+   if (!flength)
+      return strlen(p);
+
+   bool invalid;
+   qore_size_t rc = flength(p, end, invalid);
+   if (invalid) {
+      xsink->raiseException("INVALID-ENCODING", "invalid %s encoding encountered in string", code.c_str());
+      return 0;
+   }
+   return rc;
+}
+
+qore_size_t QoreEncoding::getByteLen(const char *p, const char *end, qore_size_t c, ExceptionSink *xsink) const {
+   if (!fend)
+      return c;
+
+   bool invalid;
+   qore_size_t rc = fend(p, end, c, invalid);
+   if (invalid) {
+      xsink->raiseException("INVALID-ENCODING", "invalid %s encoding encountered in string", code.c_str());
+      return 0;
+   }
+   return rc;
+}
+
+qore_size_t QoreEncoding::getCharPos(const char *p, const char *end, ExceptionSink *xsink) const {
+   if (!fpos)
+      return end - p;
+
+   bool invalid;
+   qore_size_t rc = fpos(p, end, invalid);
+   if (invalid) {
+      xsink->raiseException("INVALID-ENCODING", "invalid %s encoding encountered in string", code.c_str());
+      return 0;
+   }
+   return rc;
 }

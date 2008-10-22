@@ -53,8 +53,7 @@ static const struct code_table html_codes[] =
 
 #define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
 
-QoreString::QoreString() : priv(new qore_string_private)
-{
+QoreString::QoreString() : priv(new qore_string_private) {
    priv->len = 0;
    priv->allocated = STR_CLASS_BLOCK;
    priv->buf = (char *)malloc(priv->allocated * sizeof(char));
@@ -921,18 +920,19 @@ void QoreString::concat(const QoreString *str, ExceptionSink *xsink)
    }
 }
 
-void QoreString::concat(const QoreString *str, qore_size_t size, ExceptionSink *xsink)
-{
+void QoreString::concat(const QoreString *str, qore_size_t size, ExceptionSink *xsink) {
    // if it's not a null string
-   if (str && str->priv->len)
-   {
+   if (str && str->priv->len) {
       TempEncodingHelper cstr(str, priv->charset, xsink);
       if (*xsink)
          return;
 
       // adjust size for number of characters if this is a multi-byte character set
-      if (priv->charset->isMultiByte())
-	 size = priv->charset->getByteLen(cstr->priv->buf, size);
+      if (priv->charset->isMultiByte()) {
+	 size = priv->charset->getByteLen(cstr->priv->buf, cstr->priv->buf + cstr->priv->len, size, xsink);
+	 if (*xsink)
+	    return;
+      }
 
       // if priv->buffer needs to be resized
       priv->check_char(cstr->priv->len + size + STR_CLASS_EXTRA);
@@ -943,10 +943,8 @@ void QoreString::concat(const QoreString *str, qore_size_t size, ExceptionSink *
    }
 }
 
-void QoreString::concat(char c)
-{
-   if (priv->allocated)
-   {
+void QoreString::concat(char c) {
+   if (priv->allocated) {
       priv->buf[priv->len] = c;
       priv->check_char(++priv->len);
       priv->buf[priv->len] = '\0';
@@ -960,11 +958,9 @@ void QoreString::concat(char c)
    priv->buf[1] = '\0';
 }
 
-int QoreString::vsnprintf(size_t size, const char *fmt, va_list args)
-{
+int QoreString::vsnprintf(size_t size, const char *fmt, va_list args) {
    // ensure minimum space is free
-   if ((priv->allocated - priv->len) < (unsigned)size)
-   {
+   if ((priv->allocated - priv->len) < (unsigned)size) {
       priv->allocated += (size + STR_CLASS_EXTRA);
       // resize priv->buffer
       priv->buf = (char *)realloc(priv->buf, priv->allocated * sizeof(char));
@@ -976,11 +972,9 @@ int QoreString::vsnprintf(size_t size, const char *fmt, va_list args)
 }
 
 // returns 0 for success
-int QoreString::sprintf(const char *fmt, ...)
-{
+int QoreString::sprintf(const char *fmt, ...) {
    va_list args;
-   while (true)
-   {
+   while (true) {
       va_start(args, fmt);
       int rc = vsprintf(fmt, args);
       va_end(args);
@@ -1047,56 +1041,68 @@ int QoreString::substr_simple(QoreString *ns, qore_offset_t offset) const
    return 0;
 }
 
-int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, qore_offset_t length) const
-{
+int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const {
    QORE_TRACE("QoreString::substr_complex(offset, length)");
    printd(5, "QoreString::substr_complex(offset=%d, length=%d) string=\"%s\" (this=%08p priv->len=%d)\n", 
 	  offset, length, priv->buf, this, priv->len);
 
-   if (offset < 0)
-   {
-      int clength = priv->charset->getLength(priv->buf);
+   char *pend = priv->buf + priv->len;
+   if (offset < 0) {
+      int clength = priv->charset->getLength(priv->buf, pend, xsink);
+      if (*xsink)
+	 return -1;
+
       offset = clength + offset;
 
       if ((offset < 0) || (offset >= clength))  // if offset outside of string, return nothing
 	 return -1;
    }
 
-   qore_size_t start = priv->charset->getByteLen(priv->buf, offset);
+   qore_size_t start = priv->charset->getByteLen(priv->buf, pend, offset, xsink);
+   if (*xsink)
+      return -1;
+
    if (start == priv->len)
       return -1;
 
-   if (length < 0)
-   {
-      length = priv->charset->getLength(priv->buf + start) + length;
+   if (length < 0) {
+      length = priv->charset->getLength(priv->buf + start, pend, xsink) + length;
+      if (*xsink)
+	 return -1;
+
       if (length < 0)
 	 length = 0;
    }
-   qore_size_t end = priv->charset->getByteLen(priv->buf + start, length);
+   qore_size_t end = priv->charset->getByteLen(priv->buf + start, pend, length, xsink);
+   if (*xsink)
+      return -1;
 
    ns->concat(priv->buf + start, end);
    return 0;
 }
 
-int QoreString::substr_complex(QoreString *ns, qore_offset_t offset) const
-{
+int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, ExceptionSink *xsink) const {
    //printd(5, "QoreString::substr_complex(offset=%d) string=\"%s\" (this=%08p priv->len=%d)\n", offset, priv->buf, this, priv->len);
-   if (offset < 0)
-   {
-      qore_size_t clength = priv->charset->getLength(priv->buf);
+   char *pend = priv->buf + priv->len;
+   if (offset < 0) {
+      qore_size_t clength = priv->charset->getLength(priv->buf, pend, xsink);
+      if (*xsink)
+	 return -1;
+
       offset = clength + offset;
 
-      if ((offset < 0) || ((qore_size_t)offset >= clength))  // if offset outside of string, return nothing
-      {
+      if ((offset < 0) || ((qore_size_t)offset >= clength)) {  // if offset outside of string, return nothing
 	 //printd(5, "this=%08p, priv->len=%d, offset=%d, clength=%d, priv->buf=%s\n", this, priv->len, offset, clength, priv->buf);
 	 return -1;
       }
    }
 
-   qore_size_t start = priv->charset->getByteLen(priv->buf, offset);
+   qore_size_t start = priv->charset->getByteLen(priv->buf, pend, offset, xsink);
+   if (*xsink)
+      return -1;
+
    //printd(5, "offset=%d, start=%d\n", offset, start);
-   if (start == priv->len)
-   {
+   if (start == priv->len) {
       //printd(5, "this=%08p, priv->len=%d, offset=%d, priv->buf=%08p, start=d, %s\n", this, priv->len, offset, priv->buf, start, priv->buf);
       return -1;
    }
@@ -1161,14 +1167,15 @@ void QoreString::splice_simple(qore_size_t offset, qore_size_t num, const QoreSt
    priv->buf[priv->len] = '\0';
 }
 
-void QoreString::splice_complex(qore_offset_t offset, ExceptionSink *xsink)
-{
+void QoreString::splice_complex(qore_offset_t offset, ExceptionSink *xsink) {
    // get length in chars
-   qore_size_t clen = priv->charset->getLength(priv->buf);
+   qore_size_t clen = priv->charset->getLength(priv->buf, priv->buf + priv->len, xsink);
+   if (*xsink)
+      return;
+
    //printd(0, "splice_complex(offset=%d) clen=%d\n", offset, clen);
 
-   if (offset < 0)
-   {
+   if (offset < 0) {
       offset = clen + offset;
       if (offset < 0)
 	 offset = 0;
@@ -1177,21 +1184,24 @@ void QoreString::splice_complex(qore_offset_t offset, ExceptionSink *xsink)
       return;
 
    // calculate byte offset
-   qore_size_t n_offset = offset ? priv->charset->getByteLen(priv->buf, offset) : 0;
+   qore_size_t n_offset = offset ? priv->charset->getByteLen(priv->buf, priv->buf + priv->len, offset, xsink) : 0;
+   if (*xsink)
+      return;
 
    // truncate string at offset
    priv->len = n_offset;
    priv->buf[priv->len] = '\0';
 }
 
-void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, ExceptionSink *xsink)
-{
+void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, ExceptionSink *xsink) {
    //printd(5, "splice_complex(offset=%d, num=%d, priv->len=%d)\n", offset, num, priv->len);
 
    // get length in chars
-   qore_size_t clen = priv->charset->getLength(priv->buf);
-   if (offset < 0)
-   {
+   qore_size_t clen = priv->charset->getLength(priv->buf, priv->buf + priv->len, xsink);
+   if (*xsink)
+      return;
+
+   if (offset < 0) {
       offset = clen + offset;
       if (offset < 0)
 	 offset = 0;
@@ -1199,16 +1209,14 @@ void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, Excepti
    else if ((qore_size_t)offset >= clen)
       return;
 
-   if (num < 0)
-   {
+   if (num < 0) {
       num = clen + num - offset;
       if (num < 0)
 	 num = 0;
    }
 
    qore_size_t end;
-   if ((qore_size_t)num > (clen - offset))
-   {
+   if ((qore_size_t)num > (clen - offset)) {
       end = clen;
       num = clen - offset;
    }
@@ -1216,9 +1224,17 @@ void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, Excepti
       end = offset + num;
 
    // get character positions
-   offset = priv->charset->getByteLen(priv->buf, offset);
-   end = priv->charset->getByteLen(priv->buf, end);
-   num = priv->charset->getByteLen(priv->buf + offset, num);
+   offset = priv->charset->getByteLen(priv->buf, priv->buf + priv->len, offset, xsink);
+   if (*xsink)
+      return;
+
+   end = priv->charset->getByteLen(priv->buf, priv->buf + priv->len, end, xsink);
+   if (*xsink)
+      return;
+
+   num = priv->charset->getByteLen(priv->buf + offset, priv->buf + priv->len, num, xsink);
+   if (*xsink)
+      return;
 
    // move down entries if necessary
    if (end != priv->len)
@@ -1231,32 +1247,30 @@ void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, Excepti
    priv->buf[priv->len] = '\0';
 }
 
-void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, const QoreString *str, ExceptionSink *xsink)
-{
+void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, const QoreString *str, ExceptionSink *xsink) {
    // get length in chars
-   qore_size_t clen = priv->charset->getLength(priv->buf);
+   qore_size_t clen = priv->charset->getLength(priv->buf, priv->buf + priv->len, xsink);
+   if (*xsink)
+      return;
 
    //printd(5, "splice_complex(offset=%d, num=%d, str='%s', priv->len=%d) clen=%d priv->buf='%s'\n", offset, num, str->getBuffer(), priv->len, clen, priv->buf);
 
    if (offset >= (qore_offset_t)clen)
       offset = clen;
-   else if (offset < 0)
-   {
+   else if (offset < 0) {
       offset = clen + offset;
       if (offset < 0)
 	 offset = 0;
    }
 
-   if (num < 0)
-   {
+   if (num < 0) {
       num = clen + num - offset;
       if (num < 0)
 	 num = 0;
    }
 
    qore_size_t end;
-   if ((qore_size_t)num > (clen - offset))
-   {
+   if ((qore_size_t)num > (clen - offset)) {
       end = clen;
       num = clen - offset;
    }
@@ -1264,14 +1278,22 @@ void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, const Q
       end = offset + num;
 
    // get character positions
-   offset = priv->charset->getByteLen(priv->buf, offset);
-   end = priv->charset->getByteLen(priv->buf, end);
-   num = priv->charset->getByteLen(priv->buf + offset, num);
+   char *endp = priv->buf + priv->len;
+   offset = priv->charset->getByteLen(priv->buf, endp, offset, xsink);
+   if (*xsink)
+      return;
+
+   end = priv->charset->getByteLen(priv->buf, endp, end, xsink);
+   if (*xsink)
+      return;
+
+   num = priv->charset->getByteLen(priv->buf + offset, endp, num, xsink);
+   if (*xsink)
+      return;
 
    //printd(5, "offset=%d, end=%d, num=%d\n", offset, end, num);
    // get number of entries to insert
-   if (str->priv->len > (qore_size_t)num) // make bigger
-   {
+   if (str->priv->len > (qore_size_t)num) { // make bigger
       qore_size_t ol = priv->len;
       priv->check_char(priv->len - num + str->priv->len);
       // move trailing entries forward if necessary
@@ -1351,46 +1373,43 @@ void QoreString::concatEscape(const QoreString *str, char c, char esc_char, Exce
    }
 }
 
-class QoreString *QoreString::substr(qore_offset_t offset) const
-{
+QoreString *QoreString::substr(qore_offset_t offset, ExceptionSink *xsink) const {
    TempString str(new QoreString(priv->charset));
 
    int rc;
    if (!priv->charset->isMultiByte())
       rc = substr_simple(*str, offset);
    else
-      rc = substr_complex(*str, offset);
+      rc = substr_complex(*str, offset, xsink);
 
    return !rc ? str.release() : 0;
 }
 
-class QoreString *QoreString::substr(qore_offset_t offset, qore_offset_t length) const
-{
+QoreString *QoreString::substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const {
    TempString str(new QoreString(priv->charset));
 
    int rc;
    if (!priv->charset->isMultiByte())
       rc = substr_simple(*str, offset, length);
    else
-      rc = substr_complex(*str, offset, length);
+      rc = substr_complex(*str, offset, length, xsink);
 
    return !rc ? str.release() : 0;
 }
 
-qore_size_t QoreString::length() const
-{
-   if (priv->charset->isMultiByte() && priv->buf)
-      return priv->charset->getLength(priv->buf);
+qore_size_t QoreString::length() const {
+   if (priv->charset->isMultiByte() && priv->buf) {
+      bool invalid;
+      return priv->charset->getLength(priv->buf, priv->buf + priv->len, invalid);
+   }
    return priv->len;
 }
 
-void QoreString::concat(const DateTime *d)
-{
+void QoreString::concat(const DateTime *d) {
    sprintf("%04d%02d%02d%02d%02d%02d", d->getYear(), d->getMonth(), d->getDay(), d->getHour(), d->getMinute(), d->getSecond());
 }
 
-void QoreString::concatISO8601DateTime(const DateTime *d)
-{
+void QoreString::concatISO8601DateTime(const DateTime *d) {
    sprintf("%04d%02d%02dT%02d:%02d:%02d", d->getYear(), d->getMonth(), d->getDay(), d->getHour(), d->getMinute(), d->getSecond());
 }
 
@@ -1596,14 +1615,16 @@ void QoreString::concatUTF8FromUnicode(unsigned code)
       concat((char)code);
 }
 
-unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const
-{
+unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const {
    // get length in chars
-   qore_size_t clen = priv->charset->getLength(priv->buf);
+   bool invalid;
+   char *endp = priv->buf + priv->len;
+   qore_size_t clen = priv->charset->getLength(priv->buf, endp, invalid);
+   if (invalid)
+      return 0;
 
    //printd(0, "splice_complex(offset=%d) clen=%d\n", offset, clen);
-   if (offset < 0)
-   {
+   if (offset < 0) {
       offset = clen + offset;
       if (offset < 0)
 	 offset = 0;
@@ -1612,10 +1633,16 @@ unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const
       return 0;
 
    // calculate byte offset
-   if (offset)
-      offset = priv->charset->getByteLen(priv->buf, offset);
+   if (offset) {
+      offset = priv->charset->getByteLen(priv->buf, endp, offset, invalid);
+      if (invalid)
+	 return 0;
+   }
 
-   qore_size_t bl = priv->charset->getByteLen(priv->buf + offset, 1);
+   qore_size_t bl = priv->charset->getByteLen(priv->buf + offset, endp, 1, invalid);
+   if (invalid)
+      return 0;
+
    if (bl == 1)
       return priv->buf[offset];
 
@@ -1729,19 +1756,19 @@ void QoreString::trim(const char *chars)
 
 // writes a new QoreString with the characters reversed of the "this" QoreString
 // assumes the encoding is the same and the length is 0
-void QoreString::concat_reverse(QoreString *str) const
-{
+void QoreString::concat_reverse(QoreString *str) const {
    assert(str->priv->charset == priv->charset);
    assert(!str->priv->len);
 
    str->priv->check_char(priv->len);
-   if (priv->charset->isMultiByte())
-   {
+   if (priv->charset->isMultiByte()) {
       char *p = priv->buf;
-      char *end = str->priv->buf + priv->len;
-      while (*p)
-      {
-	 int bl = priv->charset->getByteLen(p, 1);
+      char *end = str->priv->buf + priv->len;      
+      while (*p) {
+	 bool invalid;
+	 int bl = priv->charset->getByteLen(p, end, 1, invalid);
+	 if (invalid) // if we hit an invalid encoding, then we just copy bytes
+	    bl = 1;
 	 end -= bl;
 	 // in case of corrupt data, make sure we don't go off the beginning of the string
 	 if (end < str->priv->buf)
@@ -1753,6 +1780,7 @@ void QoreString::concat_reverse(QoreString *str) const
    else
       for (qore_size_t i = 0; i < priv->len; ++i)
 	 str->priv->buf[i] = priv->buf[priv->len - i - 1];
+
    str->priv->buf[priv->len] = 0;
    str->priv->len = priv->len;
 }

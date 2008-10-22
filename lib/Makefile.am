@@ -201,6 +201,6 @@ if COND_HPUX_ACC_PARISC32
 libqore_la_SOURCES += acc-parisc32.s
 endif
 
-libqore_la_LDFLAGS = -version-info 5:0:1 -no-undefined ${QORE_LIB_LDFLAGS}
+libqore_la_LDFLAGS = -version-info 5:0:0 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}

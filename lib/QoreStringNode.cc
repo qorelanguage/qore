@@ -33,7 +33,7 @@ QoreStringNode::~QoreStringNode()
 {
 }
 
-QoreStringNode::QoreStringNode(const char *str, const class QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc)
+QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc)
 {
 }
 
@@ -48,7 +48,7 @@ QoreStringNode::QoreStringNode(const QoreStringNode &str) : SimpleValueQoreNode(
 }
 
 // copies str
-QoreStringNode::QoreStringNode(const std::string &str, const class QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc)
+QoreStringNode::QoreStringNode(const std::string &str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc)
 {
 }
 
@@ -56,7 +56,7 @@ QoreStringNode::QoreStringNode(char c) : SimpleValueQoreNode(NT_STRING), QoreStr
 {
 }
 
-QoreStringNode::QoreStringNode(const class BinaryNode *b) : SimpleValueQoreNode(NT_STRING), QoreString(b)
+QoreStringNode::QoreStringNode(const BinaryNode *b) : SimpleValueQoreNode(NT_STRING), QoreString(b)
 {
 }
 
@@ -64,11 +64,11 @@ QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleValueQoreN
 {
 }
 
-QoreStringNode::QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const class QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc)
+QoreStringNode::QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc)
 {
 }
 
-QoreStringNode::QoreStringNode(const char *str, qore_size_t len, const class QoreEncoding *new_qorecharset) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qorecharset)
+QoreStringNode::QoreStringNode(const char *str, qore_size_t len, const QoreEncoding *new_qorecharset) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qorecharset)
 {
 }
 
@@ -120,7 +120,7 @@ QoreString *QoreStringNode::getStringRepresentation(bool &del) const
    return const_cast<QoreStringNode *>(this);
 }
  
-QoreStringNode *QoreStringNode::convertEncoding(const class QoreEncoding *nccs, ExceptionSink *xsink) const
+QoreStringNode *QoreStringNode::convertEncoding(const QoreEncoding *nccs, ExceptionSink *xsink) const
 {
    printd(5, "QoreStringNode::convertEncoding() from '%s' to '%s'\n", getEncoding()->getCode(), nccs->getCode());
 
@@ -141,13 +141,13 @@ QoreStringNode *QoreStringNode::convertEncoding(const class QoreEncoding *nccs, 
 }
 
 // DLLLOCAL constructor
-QoreStringNode::QoreStringNode(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink) : SimpleValueQoreNode(NT_DATE), QoreString(to)
+QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink) : SimpleValueQoreNode(NT_DATE), QoreString(to)
 {
    convert_encoding_intern(str, ::strlen(str), from, *this, to, xsink);
 }
 
 // static function
-QoreStringNode *QoreStringNode::createAndConvertEncoding(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink)
+QoreStringNode *QoreStringNode::createAndConvertEncoding(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink)
 {
    QoreStringNode *rv = new QoreStringNode(str, from, to, xsink);
    if (!*xsink)
@@ -167,49 +167,37 @@ QoreStringNode *QoreStringNode::copy() const
    return new QoreStringNode(*this);
 }
 
-QoreStringNode *QoreStringNode::substr(qore_offset_t offset) const
-{
-   QoreStringNode *str = new QoreStringNode(priv->charset);
+QoreStringNode *QoreStringNode::substr(qore_offset_t offset, ExceptionSink *xsink) const {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(priv->charset));
 
    int rc;
    if (!getEncoding()->isMultiByte())
-      rc = substr_simple(str, offset);
+      rc = substr_simple(*str, offset);
    else
-      rc = substr_complex(str, offset);
+      rc = substr_complex(*str, offset, xsink);
 
-   if (!rc)
-      return str;
-
-   str->deref();
-   return 0;
+   return !rc ? str.release() : 0;
 }
 
-QoreStringNode *QoreStringNode::substr(qore_offset_t offset, qore_offset_t length) const
-{
-   QoreStringNode *str = new QoreStringNode(priv->charset);
+QoreStringNode *QoreStringNode::substr(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(priv->charset));
 
    int rc;
    if (!getEncoding()->isMultiByte())
-      rc = substr_simple(str, offset, length);
+      rc = substr_simple(*str, offset, length);
    else
-      rc = substr_complex(str, offset, length);
+      rc = substr_complex(*str, offset, length, xsink);
 
-   if (!rc)
-      return str;
-
-   str->deref();
-   return 0;
+   return !rc ? str.release() : 0;
 }
 
-QoreStringNode *QoreStringNode::reverse() const
-{
+QoreStringNode *QoreStringNode::reverse() const {
    QoreStringNode *str = new QoreStringNode(priv->charset);
    concat_reverse(str);
    return str;
 }
 
-QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const
-{
+QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const {
    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
       return 0;
@@ -223,8 +211,7 @@ QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const
    b = 0;
 
    // check for null termination
-   if (p->buf[p->len])
-   {
+   if (p->buf[p->len]) {
       ++p->len;
       p->buf = (char *)realloc(p->buf, p->len + 1);
       p->buf[p->len] = '\0';
@@ -234,21 +221,18 @@ QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const
    return new QoreStringNode(p);
 }
 
-void QoreStringNode::getStringRepresentation(QoreString &str) const
-{
+void QoreStringNode::getStringRepresentation(QoreString &str) const {
    str.concat(static_cast<const QoreString *>(this));
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-class DateTime *QoreStringNode::getDateTimeRepresentation(bool &del) const
-{
+DateTime *QoreStringNode::getDateTimeRepresentation(bool &del) const {
    del = true;
    return new DateTime(getBuffer());
 }
 
 // assign date representation to a DateTime * (no action for complex types = default implementation)
-void QoreStringNode::getDateTimeRepresentation(DateTime &dt) const
-{
+void QoreStringNode::getDateTimeRepresentation(DateTime &dt) const {
    dt.setDate(getBuffer());
 }
 
