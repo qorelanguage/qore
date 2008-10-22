@@ -4,6 +4,7 @@ release summary: qore 0.7.1 is a bugfix release from 0.7.0
 
 *) bug fixes
 *) new ABI 5.0, problems were found with ABI 4.0
+*) support for atomic operations in 64bit builds with itanium processors
 
 
 *) bug fixes
@@ -42,6 +43,8 @@ DLLEXPORT extern const char *qore_warnings[];
 
 Note that this version of the Qore library still claims binary compatibility with module api 0.4 because none of the qore modules released up to date used any of the features changed by this version of the library.
 
+*) support for atomic operations in 64bit builds with itanium processors
+supported with g++ and aCC, 64-bit builds only
 
 
 ***********************
