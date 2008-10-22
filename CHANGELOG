@@ -4,6 +4,8 @@
 	  for module api 0.4
 	* implemented support for atomic operations on itanium with aCC and g++
 	  for 64-bit builds
+	* implemented support for stack guard on itanium including monitoring
+	  the ia64 RSE (Register Stack Engine) - 64bit ia64 builds only
 
 2008.10.20: David Nichols
 	* updated assembly macro includes to allow for Universal builds

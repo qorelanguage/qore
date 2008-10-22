@@ -25,10 +25,13 @@
 #ifndef _QORE_MACHINE_MACROS_H
 #define _QORE_MACHINE_MACROS_H
 
+#define STACK_DIRECTION_DOWN 1
+
 #ifdef __GNUC__
 #ifdef __LP64__
 
 #define HAVE_ATOMIC_MACROS
+#define HAVE_CHECK_STACK_POS
 
 // 64-bit IA-64 atomic operations borrowed from linux
 #define ia64_cmpxchg4_acq(ptr, new, old) ({                              \
@@ -68,6 +71,12 @@ static inline int atomic_dec(volatile int *a) {
    return !ia64_atomic_sub(1, a);
 }
 
+static inline size_t get_stack_pos() {
+  size_t addr;
+  asm volatile ("mov %0=sp" : "=r" (addr));
+  return addr;
+}
+
 #endif  // #ifdef __LP64__
 #endif  // #ifdef __GNUC__
 
@@ -75,10 +84,13 @@ static inline int atomic_dec(volatile int *a) {
 #ifdef __LP64__
 
 #define HAVE_ATOMIC_MACROS
+#define HAVE_CHECK_STACK_POS
 
 // these routines are implemented in assembler
 extern "C" void atomic_inc(int *v);
 extern "C" int atomic_dec(int *v);
+extern "C" size_t get_stack_pos();
+extern "C" size_t get_rse_bsp(); // get ia64 Register Stack Engine backing store pointer
 
 #endif  // #ifdef __LP64__
 #endif  // #ifdef __HP_aCC

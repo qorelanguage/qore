@@ -287,10 +287,14 @@ class QorePThreadAttr {
       }
 #endif
       
-      DLLLOCAL size_t getstacksize() {
+      DLLLOCAL size_t getstacksize() const {
 	 size_t ssize;
 	 pthread_attr_getstacksize(&attr, &ssize);
 	 return ssize;
+      }
+
+      DLLLOCAL int setstacksize(size_t ssize) {
+	 return pthread_attr_setstacksize(&attr, ssize);
       }
 
       DLLLOCAL pthread_attr_t *get_ptr() {

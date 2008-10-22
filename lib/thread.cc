@@ -50,6 +50,10 @@
 #define MAX_QORE_THREADS 2560
 #endif
 
+#if defined(__ia64) && defined(__LP64__)
+#define IA64_64
+#endif
+
 Operator *OP_BACKGROUND;
 
 ThreadCleanupList tclist;
@@ -327,6 +331,9 @@ class ThreadData {
 
 #ifdef QORE_MANAGE_STACK
       size_t stack_limit;
+#ifdef IA64_64
+      size_t rse_limit;
+#endif
 #endif
 
       DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
@@ -345,9 +352,14 @@ class ThreadData {
 	 stack_limit = get_stack_pos() - qore_thread_stack_limit;
 #else
 	 stack_limit = get_stack_pos() + qore_thread_stack_limit;
-#endif
+#endif // #ifdef STACK_DIRECTION_DOWN
 
-#endif
+#ifdef IA64_64
+	 // RSE stack grows up
+	 rse_limit = get_rse_bsp() + qore_thread_stack_limit;
+#endif // #ifdef IA64_64
+
+#endif // #ifdef QORE_MANAGE_STACK
       }
 
       DLLLOCAL ~ThreadData();
@@ -553,7 +565,16 @@ ThreadData::~ThreadData() {
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
-   printd(5, "check_stack() current=%08p limit=%08p\n", get_stack_pos(), td->stack_limit);
+   //printd(5, "check_stack() current=%p limit=%p\n", get_stack_pos(), td->stack_limit);
+#ifdef IA64_64
+   //printd(5, "check_stack() bsp current=%p limit=%p\n", get_rse_bsp(), td->rse_limit);
+   if (td->rse_limit < get_rse_bsp()) {
+      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", qore_thread_stack_limit);
+      return -1;
+   }
+
+#endif
+
    if (td->stack_limit
 #ifdef STACK_DIRECTION_DOWN
    >
@@ -644,14 +665,14 @@ void purge_thread_resources(ExceptionSink *xsink)
    td->trlist.purge(xsink);
 }
 
-// called when a StatementBlock has "on block exit" blocks
+// called when a StatementBlock has "on_exit" blocks
 void pushBlock(block_list_t::iterator i)
 {
    ThreadData *td = thread_data.get();
    td->on_block_exit_list.push_back(i);
 }
 
-// called when a StatementBlock has "on block exit" blocks
+// called when a StatementBlock has "on_exit" blocks
 block_list_t::iterator popBlock() {
    ThreadData *td = thread_data.get();
    block_list_t::iterator i = td->on_block_exit_list.back();
@@ -659,7 +680,7 @@ block_list_t::iterator popBlock() {
    return i;
 }
 
-// called by each "on_block_exit" statement to activate its code for the block exit
+// called by each "on_exit" statement to activate its code for the block exit
 void advanceOnBlockExit() {
    ThreadData *td = thread_data.get();
    --td->on_block_exit_list.back();
@@ -1173,13 +1194,17 @@ void init_qore_threads() {
 #else
    // 2MB on 64-bit builds
    qore_thread_stack_size = 1024*1024*2;
-#endif
+#endif // #if TARGET_BITS == 32
 #else
    qore_thread_stack_size = ta_default.getstacksize();
-#endif
+#endif // #ifdef SOLARIS
+#ifdef IA64_64
+   // the top half of the stack is for the normal stack, the bottom half is for the register stack
+   qore_thread_stack_size /= 2;
+#endif // #ifdef IA64_64
    qore_thread_stack_limit = qore_thread_stack_size - QORE_STACK_GUARD;
-   printd(2, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
-#endif
+   printd(5, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
+#endif // #ifdef QORE_MANAGE_STACK
 
    // setup parent thread data
    register_thread(get_thread_entry(), pthread_self(), 0);
