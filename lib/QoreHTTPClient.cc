@@ -889,7 +889,6 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
    int code;
    ReferenceHolder<QoreHashNode> ans(xsink);
-   AbstractQoreNode *v;
    int redirect_count = 0;
    while (true) {
       // set host field automatically if not overridden
@@ -924,7 +923,6 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
 	 if (!location) {
 	    sl.unlock();
-	    v = ans->getKeyValue("status_message");
 	    const char *msg = mess ? mess->getBuffer() : "<no message>";
 	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "no redirect location given for status code %d: message: '%s'", code, msg);
 	    return 0;
@@ -932,7 +930,6 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
 	 if (set_url_unlocked(location, xsink)) {
 	    sl.unlock();
-	    v = ans->getKeyValue("status_message");
 	    const char *msg = mess ? mess->getBuffer() : "<no message>";
 	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "exception occurred while setting URL for new location '%s' (code %d: message: '%s')", location, code, msg);
 	    return 0;
@@ -942,7 +939,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 if (info) {
 	    QoreString tmp;
 	    tmp.sprintf("redirect-%d", redirect_count);
-	    info->setKeyValue(tmp.getBuffer(), v->refSelf(), xsink);
+	    info->setKeyValue(tmp.getBuffer(), loc->refSelf(), xsink);
 	    if (*xsink)
 	       return 0;
 	    
@@ -963,19 +960,19 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
    if (code >= 300 && code < 400) {
       sl.unlock();
-      v = ans->getKeyValue("status_message");
-      const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
+      const AbstractQoreNode *v = ans->getKeyValue("status_message");
+      const char *mess = v ? (reinterpret_cast<const QoreStringNode *>(v))->getBuffer() : "<no message>";
       v = ans->getKeyValue("location");
-      const char *location = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no location>";
+      const char *location = v ? (reinterpret_cast<const QoreStringNode *>(v))->getBuffer() : "<no location>";
       xsink->raiseException("HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED", "maximum redirections (%d) exceeded; redirect code %d to '%s' ignored (message: '%s')", priv->max_redirects, code, location, mess);
       return 0;
    }
 
    // process content-type
-   v = ans->getKeyValue("content-type");
+   const AbstractQoreNode *v = ans->getKeyValue("content-type");
    // see if there is a character set specification in the content-type header
    if (v) {
-      const char *str = (reinterpret_cast<QoreStringNode *>(v))->getBuffer();
+      const char *str = (reinterpret_cast<const QoreStringNode *>(v))->getBuffer();
       const char *p = strstr(str, "charset=");
       if (p && (p == str || *(p - 1) == ';' || *(p - 1) == ' ')) {
 	 // move p to start of encoding
@@ -1027,7 +1024,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    const char *content_encoding = 0;
    v = ans->getKeyValue("content-encoding");
    if (v) {
-      content_encoding = (reinterpret_cast<QoreStringNode *>(v))->getBuffer();
+      content_encoding = (reinterpret_cast<const QoreStringNode *>(v))->getBuffer();
       // check for misuse of this field by including a character encoding value
       if (!strncasecmp(content_encoding, "iso", 3) || !strncasecmp(content_encoding, "utf-", 4)) {
 	 priv->m_socket.setEncoding(QEM.findCreate(content_encoding));
@@ -1035,7 +1032,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       }
    }
 
-   AbstractQoreNode *te = ans->getKeyValue("transfer-encoding");
+   const AbstractQoreNode *te = ans->getKeyValue("transfer-encoding");
    
    // get response body, if any
    v = ans->getKeyValue("content-length");
@@ -1045,7 +1042,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       do_content_length_callback(callback, cb_queue, len);
 
    AbstractQoreNode *body = 0;
-   if (te && !strcasecmp((reinterpret_cast<QoreStringNode *>(te))->getBuffer(), "chunked")) { // check for chunked response body
+   if (te && !strcasecmp((reinterpret_cast<const QoreStringNode *>(te))->getBuffer(), "chunked")) { // check for chunked response body
       do_action_callback(callback, cb_queue, QCA_HTTP_CHUNKED_START);
       ReferenceHolder<QoreHashNode> nah(xsink);
       if (content_encoding)
@@ -1099,7 +1096,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    }
 
    // check for connection: close header
-   if (!keep_alive || ((v = ans->getKeyValue("connection")) && !strcasecmp((reinterpret_cast<QoreStringNode *>(v))->getBuffer(), "close")))
+   if (!keep_alive || ((v = ans->getKeyValue("connection")) && !strcasecmp((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), "close")))
       disconnect_unlocked();
 
    sl.unlock();
@@ -1126,7 +1123,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
    if (code < 200 || code >= 300) {
       v = ans->getKeyValue("status_message");
-      const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
+      const char *mess = v ? (reinterpret_cast<const QoreStringNode *>(v))->getBuffer() : "<no message>";
       xsink->raiseExceptionArg("HTTP-CLIENT-RECEIVE-ERROR", body, "HTTP status code %d received: message: %s", code, mess);
       return 0;
    }
