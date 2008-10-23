@@ -57,6 +57,11 @@ include_HEADERS = \
 	include/qore/QoreNamespace.h \
 	include/qore/QoreObject.h \
 	include/qore/macros.h \
+	include/qore/macros-i386.h \
+	include/qore/macros-x86_64.h \
+	include/qore/macros-powerpc.h \
+	include/qore/macros-sparc.h \
+	include/qore/macros-ia64.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreNet.h \
 	include/qore/QoreURL.h \
@@ -87,11 +92,6 @@ include_HEADERS = \
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
-	include/qore/macros-i386.h \
-	include/qore/macros-x86_64.h \
-	include/qore/macros-powerpc.h \
-	include/qore/macros-sparc.h \
-	include/qore/macros-ia64.h \
 	include/qore/macros-none.h \
 	include/qore/intern/config.h \
 	include/qore/intern/unix-config.h \

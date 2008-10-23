@@ -77,6 +77,12 @@ static inline size_t get_stack_pos() {
   return addr;
 }
 
+static inline size_t get_rse_bsp() {
+  size_t addr;
+  asm volatile ("mov %0=ar.bsp" : "=r" (addr));
+  return addr;
+}
+
 #endif  // #ifdef __LP64__
 #endif  // #ifdef __GNUC__
 

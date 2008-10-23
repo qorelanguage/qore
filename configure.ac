@@ -1198,9 +1198,9 @@ show_library_feature "runtime thread stack tracing" $enable_runtime_thread_stack
 echo
 echo "*** MODULES DELIVERED SEPARATELY - SEE 'README-MODULES' FOR MORE INFO ***"
 
-# hack to use our libtool if on PA-RISC HP-UX to enable static libs to be linked in to modules
-# also to allow 64-bit PA-RISC libraries to be linked to modules
-if test "$OS" = "HP-UX" -a "$host_cpu" != "ia64"; then
+# hack to use our libtool if on HP-UX to enable static libs to be linked in to modules
+# also to allow 64-bit libraries to be linked to modules
+if test "$OS" = "HP-UX" ; then
    # backup generated libtool
    if test ! -e libtool.orig ; then
       cp libtool libtool.orig
