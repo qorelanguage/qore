@@ -22,9 +22,12 @@
 
 #define _QORE_MACHINE_MACROS_H
 
-#define HAVE_ATOMIC_MACROS
-
 #define STACK_DIRECTION_DOWN 1
+
+#ifdef __GNUC__
+
+#define HAVE_ATOMIC_MACROS
+#define HAVE_CHECK_STACK_POS
 
 // returns 1 when counter reaches zero, 0 if not
 static inline int atomic_dec(volatile int *a) {
@@ -45,12 +48,27 @@ static inline void atomic_inc(volatile int *a) {
    );
 }
 
-#define HAVE_CHECK_STACK_POS
-
 static inline size_t get_stack_pos() {
    size_t addr;
    __asm("movq %%rsp, %0" : "=g" (addr) );
    return addr;
 }
+
+#endif // #ifdef __GNUC__
+
+#ifdef __SUNPRO_CC
+#if defined(__x86_64) || defined(__i386)
+
+#define HAVE_ATOMIC_MACROS
+#define HAVE_CHECK_STACK_POS
+
+// these routines are implemented in assembler
+extern "C" int atomic_dec(volatile int *a);
+extern "C" void atomic_inc(volatile int *a);
+
+extern "C" size_t get_stack_pos();
+
+#endif // #if defined(__x86_64) || defined(__i386)
+#endif // #ifdef __SUNPRO_CC
 
 #endif
