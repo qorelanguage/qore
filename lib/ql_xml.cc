@@ -1390,7 +1390,7 @@ static void getXMLRPCStruct(QoreXmlReader *reader, class XmlRpcValue *v, const Q
       }
 
       QoreString member(member_name);
-      printd(0, "DEBUG: got member name '%s'\n", member_name);
+      //printd(5, "DEBUG: got member name '%s'\n", member_name);
       
       if (reader->readXmlRpc(xsink))
 	 return;
@@ -1837,7 +1837,7 @@ void QoreXmlReader::getXMLRPCArray(XmlRpcValue *v, const QoreEncoding *data_ccsi
 	 if (readXmlRpc(xsink))
 	    return;
 
-	 printd(0, "DEBUG: vd=%d, d=%d\n", value_depth, depth());
+	 //printd(5, "DEBUG: vd=%d, d=%d\n", value_depth, depth());
 
 	 // if this was <value/>, then skip
 	 if (value_depth <= depth()) {
@@ -2413,7 +2413,7 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
 }
 
 QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink) {
-   printd(0, "parseXMLRPCCall() %s\n", msg->getBuffer());
+    //printd(5, "parseXMLRPCCall() %s\n", msg->getBuffer());
 
    TempEncodingHelper str(msg, QCS_UTF8, xsink);
    if (!str)
