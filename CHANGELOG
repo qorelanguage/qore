@@ -1,3 +1,8 @@
+2008.10.29: David Nichols
+	* fixed parsing XML-RPC arrays when the first element is empty
+	* added the xml string as the optional exception argument for many
+	  exceptions in XML parsing
+
 2008.10.22: David Nichols
 	* implemented support for multiple module APIs
         * updated ABI to 5.0, module-api to 0.5, declared module compatilibity
