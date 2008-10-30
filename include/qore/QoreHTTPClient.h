@@ -264,10 +264,7 @@ class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock {
 
       DLLLOCAL static void static_init();
 
-      //! sets callback code (function, closure, etc, not part of the library's pubilc API), must be already referenced before call
-      DLLLOCAL void setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink);
-      
-      //! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call
+      //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 };
 

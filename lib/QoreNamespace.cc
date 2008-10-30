@@ -1657,12 +1657,12 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qsam->setKeyValue("6", new QoreStringNode("HTTP_REDIRECT"), 0);
 
    qns->addConstant("CALLBACK_ACTION_MAP", qsam);
-   qns->addConstant("PACKET_READ", new QoreBigIntNode(QCA_PACKET_READ));
-   qns->addConstant("PACKET_SENT", new QoreBigIntNode(QCA_PACKET_SENT));
-   qns->addConstant("HTTP_CONTENT_LENGTH", new QoreBigIntNode(QCA_HTTP_CONTENT_LENGTH));
-   qns->addConstant("HTTP_CHUNKED_START", new QoreBigIntNode(QCA_HTTP_CHUNKED_START));
-   qns->addConstant("HTTP_CHUNKED_END", new QoreBigIntNode(QCA_HTTP_CHUNKED_END));
-   qns->addConstant("HTTP_REDIRECT", new QoreBigIntNode(QCA_HTTP_REDIRECT));
+   qns->addConstant("PACKET_READ", new QoreBigIntNode(QOREEVENT_PACKET_READ));
+   qns->addConstant("PACKET_SENT", new QoreBigIntNode(QOREEVENT_PACKET_SENT));
+   qns->addConstant("HTTP_CONTENT_LENGTH", new QoreBigIntNode(QOREEVENT_HTTP_CONTENT_LENGTH));
+   qns->addConstant("HTTP_CHUNKED_START", new QoreBigIntNode(QOREEVENT_HTTP_CHUNKED_START));
+   qns->addConstant("HTTP_CHUNKED_END", new QoreBigIntNode(QOREEVENT_HTTP_CHUNKED_END));
+   qns->addConstant("HTTP_REDIRECT", new QoreBigIntNode(QOREEVENT_HTTP_REDIRECT));
 
    // set up Option namespace for Qore options
    QoreNamespace *option = new QoreNamespace("Option");

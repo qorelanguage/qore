@@ -46,13 +46,18 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-//! callback action: data read
-#define QCA_PACKET_READ          1
-#define QCA_PACKET_SENT          2
-#define QCA_HTTP_CONTENT_LENGTH  3
-#define QCA_HTTP_CHUNKED_START   4
-#define QCA_HTTP_CHUNKED_END     5
-#define QCA_HTTP_REDIRECT        6
+//! event: packet data read
+#define QOREEVENT_PACKET_READ          1
+//! event: packet data sent
+#define QOREEVENT_PACKET_SENT          2
+//! event: http content length received
+#define QOREEVENT_HTTP_CONTENT_LENGTH  3
+//! event: http chunked data start
+#define QOREEVENT_HTTP_CHUNKED_START   4
+//! event: http chunked data end
+#define QOREEVENT_HTTP_CHUNKED_END     5
+//! event: http redirect
+#define QOREEVENT_HTTP_REDIRECT        6
 
 class Queue;
 
@@ -132,7 +137,7 @@ class QoreSocket {
       DLLLOCAL int openUNIX();
 
       DLLLOCAL void reuse(int opt);
-      DLLLOCAL int recv(char *buf, int bs, int flags, int timeout, bool do_callback = true);
+      DLLLOCAL int recv(char *buf, int bs, int flags, int timeout, bool do_event = true);
       DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
       DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
@@ -740,13 +745,11 @@ class QoreSocket {
       DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       DLLLOCAL static void doException(int rc, const char *meth, ExceptionSink *xsink);
-      //! sets callback code (function, closure, etc, not part of the library's pubilc API), must be already referenced before call
-      DLLLOCAL void setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink);
-      
-      //! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call
+
+      //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 
-      DLLLOCAL ResolvedCallReferenceNode *getCallBack();
+      //! returns the event queue (not part of the library's pubilc API)
       DLLLOCAL Queue *getQueue();
 };
 

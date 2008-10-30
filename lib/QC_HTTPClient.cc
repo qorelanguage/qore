@@ -47,7 +47,6 @@ static void HC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, E
 
 static void HC_destructor(QoreObject *self, QoreHTTPClient *client, ExceptionSink *xsink) {
    // have to clear callbacks before destroying
-   client->setCallBack(0, xsink);
    client->setEventQueue(0, xsink);
    client->deref(xsink);
 }
@@ -366,12 +365,6 @@ static AbstractQoreNode *HC_getMaxRedirects(QoreObject *self, QoreHTTPClient *cl
    return new QoreBigIntNode(client->getMaxRedirects());
 }
 
-static AbstractQoreNode *HC_setCallBack(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-    const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
-    client->setCallBack(r ? r->refRefSelf() : 0, xsink);
-    return 0;
-}
-
 static AbstractQoreNode *HC_setEventQueue(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
     const QoreObject *o = test_object_param(params, 0);
     Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
@@ -422,7 +415,6 @@ QoreClass *initHTTPClientClass() {
    client->addMethod("isProxySecure",          (q_method_t)HC_isProxySecure);
    client->addMethod("setMaxRedirects",        (q_method_t)HC_setMaxRedirects);
    client->addMethod("getMaxRedirects",        (q_method_t)HC_getMaxRedirects);
-   client->addMethod("setCallBack",            (q_method_t)HC_setCallBack);
    client->addMethod("setEventQueue",          (q_method_t)HC_setEventQueue);
 
    return client;

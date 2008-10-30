@@ -395,11 +395,6 @@ void mySocket::setPrivateKey(class QoreSSLPrivateKey *p) {
    pk = p;
 }
 
-void mySocket::setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink) {
-   AutoLocker al(this);
-   socket->setCallBack(cb, xsink);
-}
-
 void mySocket::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
    AutoLocker al(this);
    socket->setEventQueue(cbq, xsink);

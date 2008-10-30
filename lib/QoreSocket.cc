@@ -265,10 +265,9 @@ struct qore_socket_private {
       bool del;
       std::string socketname;
       SSLSocketHelper *ssl;
-      ResolvedCallReferenceNode *callback;
       Queue *cb_queue;
 
-      DLLLOCAL qore_socket_private(int n_sock = 0, int n_type = AF_UNSPEC, const QoreEncoding *csid = QCS_DEFAULT) : sock(n_sock), type(n_type), port(-1), charsetid(csid), del(false), ssl(0), callback(0), cb_queue(0) {
+      DLLLOCAL qore_socket_private(int n_sock = 0, int n_type = AF_UNSPEC, const QoreEncoding *csid = QCS_DEFAULT) : sock(n_sock), type(n_type), port(-1), charsetid(csid), del(false), ssl(0), cb_queue(0) {
 	 //sendTimeout = recvTimeout = -1
       }
 
@@ -276,7 +275,6 @@ struct qore_socket_private {
 	 close_internal();
 
 	 // must be dereferenced and removed before deleting
-	 assert(!callback);
 	 assert(!cb_queue);
       }
 
@@ -351,40 +349,18 @@ struct qore_socket_private {
 	 return rc;
       }
 
-      DLLLOCAL void setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink) {
-	 if (callback)
-	    callback->deref(xsink);
-	 callback = cb;
-      }
-      
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink) {
 	 if (cb_queue)
 	    cb_queue->deref(xsink);
 	 cb_queue = cbq;
       }
 
-      DLLLOCAL void do_read_callback(int bytes_read, int total_read, int bufsize = 0) {
-	 // call callback function, if available
-	 if (callback) {
-	    ExceptionSink xsink;
-	    ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
-	    // push read action
-	    args->push(new QoreBigIntNode(QCA_PACKET_READ));
-	    // push number of bytes read in this packet
-	    args->push(new QoreBigIntNode(bytes_read));
-	    // push total bytes read
-	    args->push(new QoreBigIntNode(total_read));
-	    // push total to read if known
-	    if (bufsize > 0)
-	       args->push(new QoreBigIntNode(bufsize));
-	    // call callback and discard any return value
-	    discard(callback->exec(*args, &xsink), &xsink);
-	 }
-	 // post bytes read on callback queue, if any
+      DLLLOCAL void do_read_event(int bytes_read, int total_read, int bufsize = 0) {
+	 // post bytes read on event queue, if any
 	 if (cb_queue) {
 	    ExceptionSink xsink;
 	    ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
-	    h->setKeyValue("action", new QoreBigIntNode(QCA_PACKET_READ), 0);
+	    h->setKeyValue("event", new QoreBigIntNode(QOREEVENT_PACKET_READ), 0);
 	    h->setKeyValue("read", new QoreBigIntNode(bytes_read), 0);
 	    h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
 	    // set total bytes to read and remaining bytes if bufsize > 0
@@ -395,28 +371,12 @@ struct qore_socket_private {
 	 }
       }
 
-      DLLLOCAL void do_send_callback(int bytes_sent, int total_sent, int bufsize = 0) {
-	 // call callback function, if available
-	 if (callback) {
-	    ExceptionSink xsink;
-	    ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
-	    // push read action
-	    args->push(new QoreBigIntNode(QCA_PACKET_SENT));
-	    // push number of bytes read in this packet
-	    args->push(new QoreBigIntNode(bytes_sent));	
-	    // push total bytes read
-	    args->push(new QoreBigIntNode(total_sent));
-	    // push total to read if known
-	    if (bufsize > 0)
-	       args->push(new QoreBigIntNode(bufsize));
-	    // call callback and discard any return value
-	    discard(callback->exec(*args, &xsink), &xsink);
-	 }
-	 // post bytes read on callback queue, if any
+      DLLLOCAL void do_send_event(int bytes_sent, int total_sent, int bufsize = 0) {
+	 // post bytes sent on event queue, if any
 	 if (cb_queue) {
 	    ExceptionSink xsink;
 	    ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
-	    h->setKeyValue("action", new QoreBigIntNode(QCA_PACKET_SENT), 0);
+	    h->setKeyValue("event", new QoreBigIntNode(QOREEVENT_PACKET_SENT), 0);
 	    h->setKeyValue("read", new QoreBigIntNode(bytes_sent), 0);
 	    h->setKeyValue("total_read", new QoreBigIntNode(total_sent), 0);
 	    // set total bytes to read and remaining bytes if bufsize > 0
@@ -1186,8 +1146,8 @@ QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc) {
       str->concat(buf, *rc);
       br += *rc;
 
-      // perfom callbacks, if any
-      priv->do_read_callback(*rc, br, bufsize);
+      // register event
+      priv->do_read_event(*rc, br, bufsize);
 
       if (bufsize > 0) {
 	 if (br >= bufsize)
@@ -1219,10 +1179,8 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
    }
    int rd = *rc;
 
-   //printd(5, "QoreSocket::recv(%d, %p) this=%p cb(%d, %d) cb=%p\n", timeout, rc, this, *rc, rd, priv->callback);
-
-   // perfom callbacks, if any
-   priv->do_read_callback(*rc, rd);
+   // register event
+   priv->do_read_event(*rc, rd);
 
    // keep reading data until no more data is available without a timeout
    if (isDataAvailable(0)) {
@@ -1239,8 +1197,8 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
 	 }
 	 rd += *rc;
 
-	 // perfom callbacks, if any
-	 priv->do_read_callback(*rc, rd);
+	 // register event
+	 priv->do_read_event(*rc, rd);
       } while (isDataAvailable(0));
    }
 
@@ -1765,15 +1723,15 @@ bool QoreSocket::isDataAvailable(int timeout) const
 #endif
 }
 
-int QoreSocket::recv(char *buf, int bs, int flags, int timeout, bool do_callback) {
+int QoreSocket::recv(char *buf, int bs, int flags, int timeout, bool do_event) {
    if (timeout != -1 && !isDataAvailable(timeout))
       return -3;
 
    int rc = priv->ssl ? priv->ssl->read(buf, bs) : ::recv(priv->sock, buf, bs, flags);
 
-   if (rc > 0 && do_callback) {
-      // perfom callbacks, if any
-      priv->do_read_callback(rc, rc);
+   if (rc > 0 && do_event) {
+      // register event
+      priv->do_read_event(rc, rc);
    }
 
    return rc;
@@ -2068,7 +2026,7 @@ int QoreSocket::send(const char *buf, int size) {
 	 return rc;
       bs += rc;
 
-      priv->do_send_callback(rc, bs, size);
+      priv->do_send_event(rc, bs, size);
 
       if (bs >= size)
 	 break;
@@ -2128,16 +2086,8 @@ int QoreSocket::getRecvTimeout() const {
    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
-void QoreSocket::setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink) {
-   priv->setCallBack(cb, xsink);
-}
-      
 void QoreSocket::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
    priv->setEventQueue(cbq, xsink);
-}
-
-ResolvedCallReferenceNode *QoreSocket::getCallBack() {
-   return priv->callback;
 }
 
 Queue *QoreSocket::getQueue() {

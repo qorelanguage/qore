@@ -53,7 +53,6 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock {
 
       DLLLOCAL virtual void deref(ExceptionSink *xsink) {
 	 if (ROdereference()) {
-	    socket->setCallBack(0, xsink);
 	    socket->setEventQueue(0, xsink);
 	    delete this;
 	 }
@@ -62,7 +61,6 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock {
       DLLLOCAL virtual void deref() {
 	 if (ROdereference()) {
 	    ExceptionSink xsink;
-	    socket->setCallBack(0, &xsink);
 	    socket->setEventQueue(0, &xsink);
 	    delete this;
 	 }
@@ -153,7 +151,6 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock {
       // p must be already referenced before this call
       DLLLOCAL void setPrivateKey(QoreSSLPrivateKey *p);
 
-      DLLLOCAL void setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink);
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 };
 

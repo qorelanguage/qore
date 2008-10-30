@@ -716,45 +716,22 @@ AbstractQoreNode *QoreHTTPClient::getHostHeaderValue() {
    return str;
 }
 
-static void do_content_length_callback(ResolvedCallReferenceNode *callback, Queue *cb_queue, int len) {
-   if (callback) {
-      ExceptionSink xsink;
-      ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
-      // push action
-      args->push(new QoreBigIntNode(QCA_HTTP_CONTENT_LENGTH));
-      // push number of bytes in header
-      args->push(new QoreBigIntNode(len));
-      // call callback and discard any return value
-      discard(callback->exec(*args, &xsink), &xsink);      
-   }
+static void do_content_length_event(Queue *cb_queue, int len) {
    if (cb_queue) {
       ExceptionSink xsink;
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
-      h->setKeyValue("action", new QoreBigIntNode(QCA_HTTP_CONTENT_LENGTH), 0);
+      h->setKeyValue("event", new QoreBigIntNode(QOREEVENT_HTTP_CONTENT_LENGTH), 0);
       h->setKeyValue("len", new QoreBigIntNode(len), 0);
       // FIXME: should implement a QoreQueue::push_temporary() method to take reference
       cb_queue->push(*h);      
    }
 }
 
-static void do_redirect_callback(ResolvedCallReferenceNode *callback, Queue *cb_queue, const QoreStringNode *loc, const QoreStringNode *msg) {
-   if (callback) {
-      ExceptionSink xsink;
-      ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
-      // push action
-      args->push(new QoreBigIntNode(QCA_HTTP_REDIRECT));
-      // push location
-      args->push(loc->refSelf());
-      // push message, if any
-      if (msg)
-	 args->push(msg->refSelf());
-      // call callback and discard any return value
-      discard(callback->exec(*args, &xsink), &xsink);      
-   }
+static void do_redirect_event(Queue *cb_queue, const QoreStringNode *loc, const QoreStringNode *msg) {
    if (cb_queue) {
       ExceptionSink xsink;
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
-      h->setKeyValue("action", new QoreBigIntNode(QCA_HTTP_REDIRECT), 0);
+      h->setKeyValue("event", new QoreBigIntNode(QOREEVENT_HTTP_REDIRECT), 0);
       h->setKeyValue("location", loc->refSelf(), 0);
       if (msg)
 	 h->setKeyValue("status_message", msg->refSelf(), 0);
@@ -763,19 +740,11 @@ static void do_redirect_callback(ResolvedCallReferenceNode *callback, Queue *cb_
    }
 }
 
-static void do_action_callback(ResolvedCallReferenceNode *callback, Queue *cb_queue, int action) {
-   if (callback) {
-      ExceptionSink xsink;
-      ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
-      // push action
-      args->push(new QoreBigIntNode(action));
-      // call callback and discard any return value
-      discard(callback->exec(*args, &xsink), &xsink);      
-   }
+static void do_event(Queue *cb_queue, int event) {
    if (cb_queue) {
       ExceptionSink xsink;
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
-      h->setKeyValue("action", new QoreBigIntNode(action), 0);
+      h->setKeyValue("event", new QoreBigIntNode(event), 0);
       // FIXME: should implement a QoreQueue::push_temporary() method to take reference
       cb_queue->push(*h);      
    }
@@ -794,7 +763,6 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    meth = *i;
 
    SafeLocker sl(this);
-   ResolvedCallReferenceNode *callback = priv->m_socket.getCallBack();
    Queue *cb_queue = priv->m_socket.getQueue();
 
    StackHash nh(xsink);
@@ -948,7 +916,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    info->setKeyValue(tmp.getBuffer(), mess ? mess->refSelf() : 0, xsink);
 	 }
 
-	 do_redirect_callback(callback, cb_queue, loc, mess);
+	 do_redirect_event(cb_queue, loc, mess);
 
 	 // set mpath to NULL so that the new path will be taken
 	 mpath = 0;
@@ -1039,17 +1007,17 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    int len = v ? v->getAsInt() : 0;
 
    if (v)
-      do_content_length_callback(callback, cb_queue, len);
+      do_content_length_event(cb_queue, len);
 
    AbstractQoreNode *body = 0;
    if (te && !strcasecmp((reinterpret_cast<const QoreStringNode *>(te))->getBuffer(), "chunked")) { // check for chunked response body
-      do_action_callback(callback, cb_queue, QCA_HTTP_CHUNKED_START);
+      do_event(cb_queue, QOREEVENT_HTTP_CHUNKED_START);
       ReferenceHolder<QoreHashNode> nah(xsink);
       if (content_encoding)
 	 nah = priv->m_socket.readHTTPChunkedBodyBinary(priv->timeout, xsink);
       else
 	 nah = priv->m_socket.readHTTPChunkedBody(priv->timeout, xsink);
-      do_action_callback(callback, cb_queue, QCA_HTTP_CHUNKED_END);
+      do_event(cb_queue, QOREEVENT_HTTP_CHUNKED_END);
 
       if (!nah)
 	 return 0;
@@ -1174,12 +1142,6 @@ void QoreHTTPClient::setDefaultHeaderValue(const char *header, const char *val) 
    priv->default_headers[header] = val;
 }
 
-void QoreHTTPClient::setCallBack(ResolvedCallReferenceNode *cb, ExceptionSink *xsink) {
-   AutoLocker al(this);
-   priv->m_socket.setCallBack(cb, xsink);
-}
-
-//! sets a callback event queue (not part of the library's pubilc API), must be already referenced before call                        
 void QoreHTTPClient::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
    AutoLocker al(this);
    priv->m_socket.setEventQueue(cbq, xsink);

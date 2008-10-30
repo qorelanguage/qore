@@ -869,12 +869,6 @@ static AbstractQoreNode *SOCKET_setPrivateKey(QoreObject *self, mySocket *s, con
    return 0;
 }
 
-static AbstractQoreNode *SOCKET_setCallBack(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-    const ResolvedCallReferenceNode *r = test_funcref_param(params, 0);
-    s->setCallBack(r ? r->refRefSelf() : 0, xsink);
-    return 0;
-}
-
 static AbstractQoreNode *SOCKET_setEventQueue(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
     const QoreObject *o = test_object_param(params, 0);
     Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
@@ -946,7 +940,6 @@ QoreClass *initSocketClass() {
    QC_SOCKET->addMethod("setCertificate",            (q_method_t)SOCKET_setCertificate);
    QC_SOCKET->addMethod("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey);
    QC_SOCKET->addMethod("isOpen",                    (q_method_t)SOCKET_isOpen);
-   QC_SOCKET->addMethod("setCallBack",               (q_method_t)SOCKET_setCallBack);
    QC_SOCKET->addMethod("setEventQueue",             (q_method_t)SOCKET_setEventQueue);
 
    return QC_SOCKET;
