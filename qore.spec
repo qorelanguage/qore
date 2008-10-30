@@ -1,5 +1,5 @@
 %define module_api 0.5
-%define module_dir %{_libdir}/qore-module-api-%{module_api}
+%define module_dir %{_libdir}/qore-modules
 
 %if 0%{?sles_version}
 
@@ -108,8 +108,8 @@ functionality.
 
 %files %{lpname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.4.0.0
-%{_libdir}/libqore.so.4
+%{_libdir}/libqore.so.5.0.0
+%{_libdir}/libqore.so.5
 %{_libdir}/libqore.la
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
 
