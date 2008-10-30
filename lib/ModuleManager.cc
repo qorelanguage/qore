@@ -41,8 +41,8 @@
 
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
 
-static const qore_mod_api_compat_s qore_mod_api_list_l[] = { { 0, 5 }, { 0, 4 } };
-#define QORE_MOD_API_LEN (sizeof(qore_mod_api_list)/sizeof(struct qore_mod_api_compat_s))
+static const qore_mod_api_compat_s qore_mod_api_list_l[] = { { 0, 5 } };
+#define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
 // public symbols
 const qore_mod_api_compat_s *qore_mod_api_list = qore_mod_api_list_l;
@@ -234,6 +234,63 @@ void ModuleManager::addAutoModuleDirList(const char *strlist) {
    autoDirList.addDirList(strlist);
 }
 
+// see if name has "-api-<digit(s)>.<digit(s)>" at the end
+static bool has_extension(const char *name) {
+   char *p = strstr(name, "-api-");
+   if (!p)
+      return false;
+   p += 5;
+   while (isdigit(*p)) ++p;
+   if (*p != '.')
+      return false;
+   return isdigit(*(p + 1));
+}
+
+void ModuleManager::globDir(const char *dir) {
+   // first check modules with extensions indicating compatible apis
+   for (unsigned mi = 0; mi <= qore_mod_api_list_len; ++mi) {
+      QoreString gstr(dir);
+      QoreString ext;
+
+      // make new string for glob
+      if (mi < qore_mod_api_list_len)
+	 ext.sprintf("-api-%d.%d.qmod", qore_mod_api_list[mi].major,
+	             qore_mod_api_list[mi].minor);
+      else
+	 ext.concat(".qmod");
+
+      gstr.concat("/*");
+      gstr.concat(&ext);
+ 
+      glob_t globbuf;
+      if (!glob(gstr.getBuffer(), 0, 0, &globbuf)) {
+	 for (int i = 0; i < (int)globbuf.gl_pathc; i++) {
+	    char *name = q_basename(globbuf.gl_pathv[i]);
+	    // see if the name has an api in it (if on the generic case)
+	    // and skip it if it does
+	    if (mi == qore_mod_api_list_len && has_extension(name))
+	       continue;
+
+	    ON_BLOCK_EXIT(free, name);
+	    // delete extension from module name for feature matching
+	    unsigned len = strlen(name);
+	    if (len == ext.strlen()) {
+	       printd(5, "ModuleManager::globDir() %s has no name, just an extension\n", name);
+	       continue;
+	    }
+	    name[len - ext.strlen()] = '\0';
+	    printd(5, "ModuleManager::globDir() found %s (%s)\n", globbuf.gl_pathv[i], name);
+	    QoreStringNodeHolder errstr(loadModuleFromPath(globbuf.gl_pathv[i], name));
+	    if (errstr && show_errors)
+	       fprintf(stderr, "error loading %s\n", errstr->getBuffer());
+	 }
+      }
+      else
+	 printd(5, "ModuleManager::globDir(): glob(%s) returned an error: %s\n", gstr.getBuffer(), strerror(errno));
+      globfree(&globbuf);
+   }
+}
+
 void ModuleManager::init(bool se) {
    show_errors = se;
 
@@ -244,15 +301,10 @@ void ModuleManager::init(bool se) {
       // append standard directories to the end of the list
       //autoDirList.push_back(AUTO_MODULE_DIR);
 
-      QoreString str;
-      // append compatible module "auto" directories to the end of the list
-      for (unsigned i = 0; i < qore_mod_api_list_len; ++i) {
-	 str.clear();
-	 str.sprintf("%s-%d.%d/auto", MODULE_BASE, qore_mod_api_list[i].major, 
-		     qore_mod_api_list[i].minor);
-	 //printd(5, "adding auto module dir %s\n", str.getBuffer());
-	 autoDirList.push_back(str.getBuffer());
-      }
+      QoreString str(MODULE_DIR);
+      str.concat("/auto");
+      //printd(5, "adding auto module dir %s\n", str.getBuffer());
+      autoDirList.push_back(str.getBuffer());
    }
 
    // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
@@ -262,15 +314,8 @@ void ModuleManager::init(bool se) {
       // append standard directories to the end of the list
       // moduleDirList.push_back(MODULE_DIR);
       
-      QoreString str;
-      // append compatible module directories to the end of the list
-      for (unsigned i = 0; i < qore_mod_api_list_len; ++i) {
-	 str.clear();
-	 str.sprintf("%s-%d.%d", MODULE_BASE, qore_mod_api_list[i].major, 
-		     qore_mod_api_list[i].minor);
-	 //printd(5, "adding module dir %s\n", str.getBuffer());
-	 moduleDirList.push_back(str.getBuffer());
-      }
+      // append qore module directory
+      moduleDirList.push_back(MODULE_DIR);
    }
 
    // autoload modules
@@ -279,29 +324,8 @@ void ModuleManager::init(bool se) {
 
    DirectoryList::iterator w = autoDirList.begin();
    while (w != autoDirList.end()) {
-      // make new string for glob
-      gstr.clear();
-      gstr.concat((*w).c_str());
-      gstr.concat("/*.qmod");
-
-      glob_t globbuf;
-      if (!glob(gstr.getBuffer(), 0, 0, &globbuf)) {
-	 for (int i = 0; i < (int)globbuf.gl_pathc; i++) {
-	    char *name = q_basename(globbuf.gl_pathv[i]);
-	    // delete ".qmod" from module name for feature matching
-	    char *p = strrchr(name, '.');
-	    if (p)
-	      *p = '\0';
-	    QoreStringNodeHolder errstr(loadModuleFromPath(globbuf.gl_pathv[i], name));
-	    if (errstr && show_errors)
-	       fprintf(stderr, "error loading %s\n", errstr->getBuffer());
-	    free(name);
-	 }
-      }
-      else
-	 printd(1, "ModuleManager::init(): glob(%s) returned an error: %s\n", gstr.getBuffer(), strerror(errno));
-      globfree(&globbuf);
-      w++;
+      globDir((*w).c_str());
+      ++w;
    }
 }
 
@@ -355,19 +379,30 @@ QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *p
 
    DirectoryList::iterator w = moduleDirList.begin();
    while (w != moduleDirList.end()) {
-      str.clear();
-      str.sprintf("%s/%s.qmod", (*w).c_str(), name);
-      //printd(5, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
+      // try to find module with supported api tags
+      for (unsigned ai = 0; ai <= qore_mod_api_list_len; ++ai) {
+	 str.clear();
+	 str.sprintf("%s/%s", (*w).c_str(), name);
 
-      if (!stat(str.getBuffer(), &sb)) {
-	 if ((errstr = loadModuleFromPath(str.getBuffer(), name, &mi, pgm)))
-	    return errstr;
+	 // make new extension string
+	 if (ai < qore_mod_api_list_len)
+	    str.sprintf("-api-%d.%d.qmod", qore_mod_api_list[ai].major, qore_mod_api_list[ai].minor);
+	 else
+	    str.concat(".qmod");
 
-	 if (pgm) {
-	    mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
-	    pgm->addFeature(mi->getName());
+	 printd(5, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
+
+	 if (!stat(str.getBuffer(), &sb)) {
+	    printd(5, "ModuleManager::loadModule(%s) found %s\n", name, str.getBuffer());
+	    if ((errstr = loadModuleFromPath(str.getBuffer(), name, &mi, pgm)))
+	       return errstr;
+
+	    if (pgm) {
+	       mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
+	       pgm->addFeature(mi->getName());
+	    }
+	    return 0;
 	 }
-	 return 0;
       }
       w++;
    }
@@ -412,7 +447,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
    // ensure provided feature matches with expected feature
    if (feature && strcmp(feature, name)) {
       str = new QoreStringNode();
-      str->sprintf("module '%s': provides feature '%s', expecting feature '%s', skipping, rename module to %s.qmod to load", path, name, feature, feature);
+      str->sprintf("module '%s': provides feature '%s', expecting feature '%s', skipping, rename module to %s.qmod to load", path, name, feature, name);
       dlclose(ptr);
       printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
       return str;

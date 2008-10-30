@@ -1083,8 +1083,7 @@ fi
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
 MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
-mypkglibbase=qore-module-api
-mypkglibdir=$mypkglibbase-$MODULE_API_MAJOR.$MODULE_API_MINOR
+mypkglibdir=qore-modules
 AC_SUBST([MODULE_API_MAJOR])
 AC_SUBST([MODULE_API_MINOR])
 AC_SUBST([mypkglibdir])
@@ -1146,7 +1145,7 @@ AC_SUBST([QORE_LIB_CXXFLAGS])
 QORE_LIB_LDFLAGS="`echo $QORE_LIB_LDFLAGS $LDFLAGS -lm|sed 's/  / /g'`"
 AC_SUBST([QORE_LIB_LDFLAGS])
 QORE_LIB_CPPFLAGS="`echo $QORE_LIB_CPPFLAGS $CPPFLAGS -D_QORE_LIB_INTERN|sed 's/  / /g'`"
-QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DMODULE_DIR=\\\"${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}\\\" -DMODULE_BASE=\\\"${myprefix}/lib${LIBSUFFIX}/${mypkglibbase}\\\""
+QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DMODULE_DIR=\\\"${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}\\\""
 AC_SUBST([QORE_LIB_CPPFLAGS])
 if test -n "$QORE_LIB_CXXFLAGS"; then
    QORE_LIB_CFLAGS="$QORE_LIB_CPPFLAGS $QORE_LIB_CXXFLAGS"

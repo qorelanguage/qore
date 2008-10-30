@@ -300,8 +300,9 @@ static void short_version(const char *arg) {
 static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
 
 static void do_version(const char *arg) {
-   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2008 David Nichols\nversion %s", qore_target_os, qore_target_arch, qore_target_bits, qore_version_string);
+   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2008 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
 
+   printf("version %s", qore_version_string);
    FeatureList::iterator i = qoreFeatureList.begin();
    if (i != qoreFeatureList.end()) {
       printf(" (builtin features: ");
@@ -313,7 +314,20 @@ static void do_version(const char *arg) {
       }
       putchar(')');
    }
-   putchar('\n');
+
+   // show module api and compatible module apis
+   printf("\n  module API: %d.%d", QORE_MODULE_API_MAJOR, QORE_MODULE_API_MINOR);
+   if (qore_mod_api_list_len == 1)
+       printf("\n");
+   else {
+       printf(" (");
+       for (unsigned i = 1; i < qore_mod_api_list_len; ++i) {
+	   printf("%d.%d", qore_mod_api_list[i].major, qore_mod_api_list[i].minor);
+	   if (i != (qore_mod_api_list_len - 1))
+	       printf(", ");
+       }
+       printf(")\n");
+   }
 
    printf("  build host: %s\n  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n", 
 	  qore_build_host, qore_cplusplus_compiler, qore_cflags, qore_ldflags);

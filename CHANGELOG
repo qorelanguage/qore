@@ -1,3 +1,13 @@
+2008.10.30: David Nichols
+	* updated module handling: modules are now checked for having the
+	  module api appended to their name in descendnig order; i.e. if qore
+	  supports module-apis 0.5 and 0.4, and a program requests feature
+	  "x", qore will look for x-api-0.5.qmod, then x-api-0.4.qmod, and
+	  then finally x.qmod in each of the module directories
+	* default module directory changed to $libdir/qore-modules in order to
+	  avoid creating a new directory for each minor change in the
+	  supported api
+
 2008.10.29: David Nichols
 	* fixed parsing XML-RPC arrays when the first element is empty
 	* added the xml string as the optional exception argument for many

@@ -104,25 +104,23 @@ class AutoLocker {
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL void *operator new(size_t);
 
+   protected:
       //! the pointer to the lock that will be managed
       QoreThreadLock *lck;
 
    public:
       //! creates the object and grabs the lock
-      DLLLOCAL AutoLocker(QoreThreadLock *l) : lck(l)
-      {
+      DLLLOCAL AutoLocker(QoreThreadLock *l) : lck(l) {
 	 lck->lock();
       }
 
       //! creates the object and grabs the lock
-      DLLLOCAL AutoLocker(QoreThreadLock &l) : lck(&l)
-      {
+      DLLLOCAL AutoLocker(QoreThreadLock &l) : lck(&l) {
 	 lck->lock();
       }
 
       //! destroys the object and grabs the lock
-      DLLLOCAL ~AutoLocker()
-      {
+      DLLLOCAL ~AutoLocker() {
 	 lck->unlock();
       }
 };
@@ -134,8 +132,8 @@ class AutoLocker {
     at the expense of one extra byte on the stack compared to the AutoLocker class.
     @see AutoLocker
 */
-class SafeLocker
-{
+class SafeLocker {
+   private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL SafeLocker(const SafeLocker&);
 
@@ -144,8 +142,8 @@ class SafeLocker
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL void *operator new(size_t);
-      
-   private:
+
+   protected:
       //! the pointer to the lock that will be managed      
       QoreThreadLock *lck;
 
@@ -154,45 +152,39 @@ class SafeLocker
       
    public:
       //! creates the object and grabs the lock
-      DLLEXPORT SafeLocker(QoreThreadLock *l) : lck(l)
-      {
+      DLLEXPORT SafeLocker(QoreThreadLock *l) : lck(l) {
 	 lck->lock();
 	 locked = true;
       }
 
       //! creates the object and grabs the lock
-      DLLEXPORT SafeLocker(QoreThreadLock &l) : lck(&l)
-      {
+      DLLEXPORT SafeLocker(QoreThreadLock &l) : lck(&l) {
 	 lck->lock();
 	 locked = true;
       }
 
       //! destroys the object and unlocks the lock if it's held
-      DLLEXPORT ~SafeLocker()
-      {
+      DLLEXPORT ~SafeLocker() {
 	 if (locked)
 	    lck->unlock();
       }
 
       //! locks the object and updates the locked flag, assumes that the lock is not already held
-      DLLEXPORT void lock()
-      {
+      DLLEXPORT void lock() {
 	 assert(!locked);
 	 lck->lock();
 	 locked = true;
       }
 
       //! unlocks the object and updates the locked flag, assumes that the lock is held
-      DLLEXPORT void unlock()
-      {
+      DLLEXPORT void unlock() {
 	 assert(locked);
 	 locked = false;
 	 lck->unlock();
       }
 
       //! will not unlock the lock when the destructor is run; do not use any other functions of this class after calling this function
-      DLLEXPORT void stay_locked()
-      {
+      DLLEXPORT void stay_locked() {
 	 assert(locked);
 	 locked = false;
       }

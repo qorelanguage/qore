@@ -8,7 +8,9 @@ release overview:
 *) support for atomic operations in 64bit builds with itanium processors
 *) support for stack guard including RSE monitoring in 64-bit builds on
    itanium processors
+*) default module dir change, module handling updated
 
+-------------------------------------------------------------------------------
 *) bug fixes
 a bug in the != operator for strings was fixed; != would return True for
 strings with different encodings but otherwise equal content; this has been
@@ -51,9 +53,7 @@ DLLEXPORT extern const char qore_ldflags[];
 DLLEXPORT extern const char qore_build_host[];
 DLLEXPORT extern const char *qore_warnings[];
 
-Note that this version of the Qore library still claims binary compatibility
-with module api 0.4 because none of the qore modules released up to date used
-any of the features changed by this version of the library.
+Note that module API 0.4 (supported by qore 0.7.0) is not supported
 
 *) support for atomic operations in 64bit builds with itanium processors
 supported with g++ and aCC, 64-bit builds only
@@ -67,6 +67,16 @@ files.
 RSE = Register Stack Engine: the itanium has basically 2 stacks, a normal
 stack and a register stack; qore now will throw an exception before either
 stack will overflow.
+
+*) default module dir change, module handling updated
+the default module directory is $libdir/qore-modules; all modules should be
+stored in this directory from now on.  Modules are also expected to append the
+module api supported to the file name (i.e.: module-api-0.5.qmod).
+
+Qore has been updated to support multiple module APIs; when loading a feature,
+the corresponding module name will be searched with the module api tag in
+descending order, if not found then the filename without a module api will be
+searched.
 
 
 ***********************

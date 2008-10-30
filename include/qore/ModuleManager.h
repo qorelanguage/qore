@@ -79,6 +79,7 @@ class ModuleManager
       DLLLOCAL static QoreStringNode *loadModuleIntern(const char *name, QoreProgram *pgm);
       DLLLOCAL static QoreStringNode *loadModuleFromPath(const char *path, const char *feature = 0, ModuleInfo **mi = 0, QoreProgram *pgm = 0);
       DLLLOCAL static ModuleInfo *find(const char *name);
+      DLLLOCAL static void globDir(const char *dir);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL ModuleManager(const ModuleManager&);
