@@ -1,3 +1,15 @@
+2008.11.04: David Nichols
+ 	* fixed 2 crashing bugs in Operator.cc with the "-" operator: the
+	  operator functions were expecting certain arguments but the oeprator
+	  code was making partial matches and sending other types to the
+	  functions.  Added the abilty for an operator function to require an
+	  exact argument match for both arguments.
+	* added the possibilty to define a default function that returns
+	  NOTHING if no partial match is made to any operator functions so
+	  that nonsensical results are not returned (i.e. before change:
+	  NOTHING - NOTHING produced: "<time: 0 seconds>", after change, this
+	  produces "NOTHING")
+
 2008.10.30: David Nichols
 	* updated module handling: modules are now checked for having the
 	  module api appended to their name in descendnig order; i.e. if qore
