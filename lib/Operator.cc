@@ -2079,10 +2079,6 @@ static AbstractQoreNode *get_node_type(const AbstractQoreNode *n, qore_type_t t)
    return 0;
 }
 
-AbstractOperatorFunction::AbstractOperatorFunction(qore_type_t lt, qore_type_t rt) : ltype(lt), rtype(rt)
-{
-}
-
 OperatorFunction::OperatorFunction(qore_type_t lt, qore_type_t rt, op_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
@@ -3402,8 +3398,7 @@ const char *Operator::getDescription() const
    return description;
 }
 
-void Operator::init()
-{
+void Operator::init() {
    if (!evalArgs || (functions.size() == 1))
       return;
    opMatrix = new int[NUM_VALUE_TYPES][NUM_VALUE_TYPES];
@@ -3424,8 +3419,7 @@ int Operator::match(qore_type_t ntype, qore_type_t rtype)
       return 0;
 }
 
-int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, ExceptionSink *xsink) const
-{
+int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, ExceptionSink *xsink) const {
    int t;
    // find operator function
    if (functions.size() == 1)
@@ -3439,8 +3433,7 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, Exception
    return t;
 }
 
-int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, const QoreNodeEvalOptionalRefHolder &nright, ExceptionSink *xsink) const
-{
+int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, const QoreNodeEvalOptionalRefHolder &nright, ExceptionSink *xsink) const {
    int t;
    // find operator function
    if (functions.size() == 1)
@@ -3459,11 +3452,9 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, const Qor
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const AbstractQoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const
-{
+AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const AbstractQoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const {
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
-   if (evalArgs)
-   {
+   if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left_side, xsink);
       if (*xsink)
 	 return 0;
@@ -3590,8 +3581,7 @@ int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const
-{
+double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const {
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
    if (evalArgs)
    {
@@ -3629,28 +3619,35 @@ double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode
    return functions[0]->float_eval(left, right, args, xsink);
 }
 
-int Operator::findFunction(qore_type_t ltype, qore_type_t rtype) const
-{
+int Operator::findFunction(qore_type_t ltype, qore_type_t rtype) const {
    int m = -1;
    
    //QORE_TRACE("Operator::findFunction()");
    // loop through all operator functions
    
-   for (int i = 0, size = functions.size(); i < size; i++)
-   {
+   for (int i = 0, size = functions.size(); i < size; i++) {
+      AbstractOperatorFunction *f = functions[i];
+
+      // only check for default if it's not the first function
+      // and is the last (meaning there is more than 1)
+      if (i && i == (size - 1) && f->ltype == NT_ALL && f->rtype == NT_ALL) {
+	 // only return this entry if no partial match has already been made
+	 return m == -1 ? i : m;
+      }
+
       // check for a match on the left side
-      if (match(ltype, functions[i]->ltype))
-      {
+      if (match(ltype, f->ltype)) {
 	 /* if there is only one operator or there is also
 	 * a match on the right side, return */
 	 if ((args == 1) || 
-	     ((args == 2) && match(rtype, functions[i]->rtype)))
+	     ((args == 2) && match(rtype, f->rtype))) {  
 	    return i;
-	 if (m == -1)
+	 }
+	 if (!f->needsExactMatch() && m == -1)
 	    m = i;
 	 continue;
       }
-      if ((args == 2) && match(rtype, functions[i]->rtype) 
+      if ((args == 2) && !f->needsExactMatch() && match(rtype, f->rtype) 
 	  && (m == -1))
 	 m = i;
    }
@@ -3703,8 +3700,7 @@ class Operator *OperatorList::add(class Operator *o)
 }
 
 // registers the system operators and system operator functions
-void OperatorList::init()
-{
+void OperatorList::init() {
    QORE_TRACE("OperatorList::init()");
    
    OP_LOG_AND = add(new Operator(2, "&&", "logical-and", 0, false));
@@ -3830,6 +3826,7 @@ void OperatorList::init()
    OP_MINUS->addFunction(op_minus_bigint);
    OP_MINUS->addFunction(op_minus_hash_string);
    OP_MINUS->addFunction(op_minus_hash_list);
+   OP_MINUS->addDefaultNothing();
 
    OP_PLUS = add(new Operator(2, "+", "plus", 1, false));
    OP_PLUS->addFunction(NT_LIST,    NT_LIST,   op_plus_list);
@@ -3840,6 +3837,7 @@ void OperatorList::init()
    OP_PLUS->addFunction(NT_HASH,    NT_HASH,   op_plus_hash_hash);
    OP_PLUS->addFunction(NT_HASH,    NT_OBJECT, op_plus_hash_object);
    OP_PLUS->addFunction(NT_OBJECT,  NT_HASH,   op_plus_object_hash);
+   OP_PLUS->addDefaultNothing();
 
    OP_MULT = add(new Operator(2, "*", "multiply", 1, false));
    OP_MULT->addFunction(op_multiply_float);
