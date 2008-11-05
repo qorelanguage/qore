@@ -9,12 +9,32 @@ release overview:
 *) support for stack guard including RSE monitoring in 64-bit builds on
    itanium processors
 *) default module dir change, module handling updated
+*) socket event queue support
 
 -------------------------------------------------------------------------------
 *) bug fixes
 a bug in the != operator for strings was fixed; != would return True for
 strings with different encodings but otherwise equal content; this has been
 fixed to return False
+
+fixed a bug in QoreString::set()
+
+fixed 2 crashing bugs in the "-" operator: the operator functions were expecting
+certain arguments but the operator code was making partial matches and sending
+other types to the functions.  Added the abilty for an operator function to
+require an exact argument match for both arguments.
+
+fixed evaluation of nonsensical arguments with the "-" and "+" operators; now
+this will return NOTHING instead of nonsense.
+
+fixed a crashing bug in the FtpClient class; the FtpClient class was not usable
+in Qore 0.7.0
+
+fixed a parsing bug with the switch statement when a case value using a constant
+was not resolved caused a crash (affected debug builds only)
+
+fixed parsing XML-RPC arrays when the first element is empty (would previously
+generate an exception even though the XML was valid)
 
 *) new ABI 5.0, problems were found with ABI 4.0
 The 4.0 ABI was supposed to be fixed for a while; hopefully version 5.0 will
@@ -77,6 +97,8 @@ Qore has been updated to support multiple module APIs; when loading a feature,
 the corresponding module name will be searched with the module api tag in
 descending order, if not found then the filename without a module api will be
 searched.
+
+*) socket event queue support
 
 
 ***********************
