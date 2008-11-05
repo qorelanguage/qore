@@ -34,10 +34,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include <deque>
 #include <string>
 #include <map>
+#include <vector>
 
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
 
@@ -104,8 +106,10 @@ ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore
    author = a;
    url = u;
    dlptr = p;
+   version_list.set(version);
 }
 
+/*
 // builtin module info node - when features are compiled into the library
 ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del) {
    filename = (char *)"<builtin>";
@@ -118,6 +122,7 @@ ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del) {
    version = desc = author = url = "<builtin>";
    dlptr = 0;
 }
+*/
 
 ModuleInfo::~ModuleInfo() {
    printd(5, "ModuleInfo::~ModuleInfo() '%s': %s calling module_delete=%08p\n", name, filename, module_delete);
@@ -203,6 +208,7 @@ ModuleInfo *ModuleManager::find(const char *name) {
    return i->second;
 }
 
+/*
 void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del) {
    QoreStringNodeHolder str(init());
    if (str) {
@@ -213,6 +219,7 @@ void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_mod
    add(new ModuleInfo(fn, del));
    ANSL.add(ns_init);
 }
+*/
 
 // to add a directory to the module directory search list, can only be called before init()
 void ModuleManager::addModuleDir(const char *dir) {
@@ -335,7 +342,7 @@ int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink) {
    // grab the parse lock
    SafeLocker sl(pgm->getParseLock());
 
-   QoreStringNode *err = parseLoadModule(name, pgm);
+   QoreStringNode *err = parseLoadModuleIntern(name, pgm);
    sl.unlock();
    if (err) {
       xsink->raiseException("LOAD-MODULE-ERROR", err);
@@ -344,14 +351,107 @@ int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink) {
    return 0;
 }
 
-QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *pgm) {
-   // if the feature already exists in this program, then return
-   if (pgm && !pgm->checkFeature(name))
+static const char *get_op_string(mod_op_e op) {
+   if (op == MOD_OP_LT) return "<";
+   if (op == MOD_OP_LE) return "<=";
+   if (op == MOD_OP_EQ) return "=";
+   if (op == MOD_OP_GE) return ">=";
+   assert(op == MOD_OP_GT);
+   return ">";
+}
+
+#define MVC_FAIL     0
+#define MVC_OK       1
+#define MVC_FINAL_OK 2
+int check_component(mod_op_e op, int mod_ver, int req_ver, bool last) {
+   // "promote" operator if not comparing last element
+   if (!last) {
+      if (op == MOD_OP_LT) op = MOD_OP_LE;
+      else if (op == MOD_OP_GT) op = MOD_OP_GE;
+   }
+   //printd(5, "check_component(%d %s %d)\n", mod_ver, get_op_string(op), req_ver);
+   if (op == MOD_OP_LT)
+      return mod_ver < req_ver ? MVC_FINAL_OK : MVC_FAIL;
+   if (op == MOD_OP_LE) 
+      return mod_ver < req_ver ? MVC_FINAL_OK : (mod_ver == req_ver ? MVC_OK : MVC_FAIL);
+   if (op == MOD_OP_EQ)
+      return mod_ver == req_ver ? MVC_OK : MVC_FAIL;
+   if (op == MOD_OP_GE)
+      return mod_ver > req_ver ? MVC_FINAL_OK : (mod_ver == req_ver ? MVC_OK : MVC_FAIL);
+   assert(op == MOD_OP_GT);
+   return mod_ver > req_ver ? MVC_FINAL_OK : MVC_FAIL;
+}
+
+static QoreStringNode *check_qore_version(const char *name, mod_op_e op, version_list_t *version) {
+   unsigned max = version->size() > 3 ? version->size() : 3;
+   for (unsigned i = 0; i < max; ++i) {
+      int mv = (!i ? QORE_VERSION_MAJOR : 
+		(i == 1 ? QORE_VERSION_MINOR : 
+		 (i == 2 ? QORE_VERSION_SUB : 0)));
+      int rv = (i >= version->size() ? 0 : (*version)[i]);
+      int res = check_component(op, mv, rv, i == (max - 1));
+      if (res == MVC_FAIL) {
+	 QoreStringNode *err = new QoreStringNode;
+	 err->sprintf("feature '%s' is built in, but the following version requirement is not satisfied: Qore library %s %s %s", name, QORE_VERSION, get_op_string(op), version->getString());
+	 return err;
+      }
+      if (res == MVC_FINAL_OK)
+	 break;
+   }
+   return 0;
+}
+
+static QoreStringNode *check_module_version(ModuleInfo *mi, mod_op_e op, version_list_t *version) {
+   unsigned max = version->size() > mi->version_list.size() ? version->size() : mi->version_list.size();
+   //printd(5, "check_module_version(%s %s %s) max=%d vs=%d ms=%d\n", mi->getVersion(), get_op_string(op), version->getString(), max, version->size(), mi->version_list.size());
+   for (unsigned i = 0; i < max; ++i) {
+      int mv = (i >= mi->version_list.size() ? 0 : mi->version_list[i]);
+      int rv = (i >= version->size() ? 0 : (*version)[i]);
+      int res = check_component(op, mv, rv, i == (max - 1));
+      if (res == MVC_FAIL) {
+	 QoreStringNode *err = new QoreStringNode;
+	 err->sprintf("loaded module '%s' does not satisfy the following requirement: %s %s %s", mi->getName(), mi->getVersion(), get_op_string(op), version->getString());
+	 return err;
+      }
+      if (res == MVC_FINAL_OK)
+	 break;
+   }
+   return 0;
+}
+
+QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *pgm, mod_op_e op, version_list_t *version) {
+   assert(!version || (version && op != MOD_OP_NONE));
+
+   // check for special "qore" feature
+   if (!strcmp(name, "qore")) {
+      if (version)
+	 return check_qore_version(name, op, version); 
       return 0;
+   }
+
+   // if the feature already exists in this program, then return
+   if (pgm && !pgm->checkFeature(name)) {
+      // check version if necessary
+      if (version) {
+	 ModuleInfo *mi = find(name);
+	 // if no module is found, then this is a builtin feature
+	 if (!mi)
+	    return check_qore_version(name, op, version);
+	 return check_module_version(mi, op, version);
+      }
+      return 0;
+   }
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
    ModuleInfo *mi = find(name);
    if (mi) {
+      // check version if necessary
+      if (version) {
+	 QoreStringNode *err = check_module_version(mi, op, version);
+	 if (err)
+	    return err;
+      }
+
       if (pgm) {
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	 pgm->addFeature(mi->getName());
@@ -365,6 +465,13 @@ QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *p
    if (strchr(name, '/')) {
       if ((errstr = loadModuleFromPath(name, 0, &mi, pgm)))
 	 return errstr;
+
+      // check version if necessary
+      if (version) {
+	 QoreStringNode *err = check_module_version(mi, op, version);
+	 if (err)
+	    return err;
+      }
       
       if (pgm) {
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
@@ -397,6 +504,13 @@ QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *p
 	    if ((errstr = loadModuleFromPath(str.getBuffer(), name, &mi, pgm)))
 	       return errstr;
 
+	    // check version if necessary
+	    if (version) {
+	       QoreStringNode *err = check_module_version(mi, op, version);
+	       if (err)
+		  return err;
+	    }
+
 	    if (pgm) {
 	       mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	       pgm->addFeature(mi->getName());
@@ -412,15 +526,65 @@ QoreStringNode *ModuleManager::loadModuleIntern(const char *name, QoreProgram *p
    return errstr;
 }
 
-QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm)
-{
+QoreStringNode *ModuleManager::parseLoadModuleIntern(const char *name, QoreProgram *pgm) {
    SafeLocker sl(&mutex); // make sure checking and loading are atomic
 
    return loadModuleIntern(name, pgm);
 }
 
-QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, ModuleInfo **mip, QoreProgram *pgm)
-{
+QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm) {
+   char *p = strchrs(name, "<>=");
+   if (p) {
+      QoreString str(name, p - name);
+      str.trim();
+
+      QoreString op;
+      do {
+	 if (!isblank(*p))
+	    op.concat(*p);
+	 ++p;
+      } while (*p == '<' || *p == '>' || *p == '=' || isblank(*p));
+
+      // get version operator
+      mod_op_e mo;
+
+      if (!op.compare("<"))
+	 mo = MOD_OP_LT;
+      else if (!op.compare("<="))
+	 mo = MOD_OP_LE;
+      else if (!op.compare("=") || !op.compare("=="))
+	 mo = MOD_OP_EQ;
+      else if (!op.compare(">="))
+	 mo = MOD_OP_GE;
+      else if (!op.compare(">"))
+	 mo = MOD_OP_GT;
+      else {
+	 QoreStringNode *err = new QoreStringNode;
+	 err->sprintf("cannot parse module operator '%s'; expecting one of: '<', '<=', '=', '>=', or '>'", op.getBuffer());
+	 return err;
+      }
+
+      version_list_t iv;
+      char ec = iv.set(p);
+      if (ec) {
+	 QoreStringNode *err = new QoreStringNode;
+	 err->sprintf("only numeric digits and '.' characters are allowed in module/feature version specifications, got '%c'", ec);
+	 return err;
+      }
+
+      if (!iv.size())
+	 return new QoreStringNode("empty version specification given in feature/module request");
+
+      AutoLocker al(&mutex); // make sure checking and loading are atomic
+      return loadModuleIntern(str.getBuffer(), pgm, mo, &iv);
+   }
+
+   AutoLocker sl(&mutex); // make sure checking and loading are atomic
+
+   return loadModuleIntern(name, pgm);
+}
+
+QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, ModuleInfo **mip, QoreProgram *pgm) {
    ModuleInfo *mi = 0;
    if (mip)
       *mip = 0;
@@ -645,8 +809,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
    return 0;
 }
 
-void ModuleManager::cleanup()
-{
+void ModuleManager::cleanup() {
    QORE_TRACE("ModuleManager::cleanup()");
 
    module_map_t::iterator i;
@@ -655,12 +818,9 @@ void ModuleManager::cleanup()
       map.erase(i);
       delete m;
    }
-
-
 }
 
-QoreListNode *ModuleManager::getModuleList()
-{
+QoreListNode *ModuleManager::getModuleList() {
    QoreListNode *l = 0;
    AutoLocker al(&mutex);
    if (!map.empty()) {
@@ -670,4 +830,28 @@ QoreListNode *ModuleManager::getModuleList()
 	    l->push(i->second->getHash());
    }
    return l;
+}
+
+char version_list_t::set(const char *v) {
+   ver.set(v);
+   ver.trim();
+
+   char *a;
+   char *p = a = (char *)ver.getBuffer();
+   while (*p) {
+      if (*p == '.') {
+	 char save = *p;
+	 *p = '\0';
+	 push_back(atoi(a));
+	 //printd(0, "this=%p a=%s\n", this, a);
+	 *p = save;
+	 a = p + 1;
+      }
+      else if (!isdigit(*p))
+	 return *p;
+      p++;
+   }
+   //printd(0, "this=%p a=%s FINAL\n", this, a);
+   push_back(atoi(a));
+   return 0;
 }

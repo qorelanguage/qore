@@ -1,11 +1,16 @@
 2008.11.05: David Nichols
 	* fixed a memory error parsing expressions with the map operator
 	* event subsystem fixes and improvements, FtpClient event support
+	* implemented module and feature version requirements; you can now use:
+	  %requires <module> OP <version>, where OP is one of <, <=, =, >=, >,
+	  for example: %requires oracle >= 1.0.1
+	  also a special feature "qore" was implemented to give a requirement
+	  for the qore library, ex: %requires qore >= 0.7.1 
 
 2008.11.04: David Nichols
 	* fixed a bug in QoreString::set()
  	* fixed 2 crashing bugs in Operator.cc with the "-" operator: the
-	  operator functions were expecting certain arguments but the oeprator
+	  operator functions were expecting certain arguments but the operator
 	  code was making partial matches and sending other types to the
 	  functions.  Added the abilty for an operator function to require an
 	  exact argument match for both arguments.
@@ -22,7 +27,7 @@
 
 2008.10.30: David Nichols
 	* updated module handling: modules are now checked for having the
-	  module api appended to their name in descendnig order; i.e. if qore
+	  module api appended to their name in descending order; i.e. if qore
 	  supports module-apis 0.5 and 0.4, and a program requests feature
 	  "x", qore will look for x-api-0.5.qmod, then x-api-0.4.qmod, and
 	  then finally x.qmod in each of the module directories

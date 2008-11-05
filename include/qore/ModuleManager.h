@@ -24,8 +24,10 @@
 
 #define _QORE_MODULEMANAGER_H
 
-#include <qore/common.h>
 #include <qore/QoreThreadLock.h>
+#include <qore/QoreString.h>
+
+#include <vector>
 
 /** @file ModuleManager.h
     provides definitions required to load qore modules
@@ -60,7 +62,19 @@ typedef void (*qore_module_ns_init_t)(QoreNamespace *root_ns, QoreNamespace *qor
 //! signature of the module destructor function
 typedef void (*qore_module_delete_t)();
 
+//! list of version numbers in order of importance (i.e. 1.2.3 = 1, 2, 3)
+class version_list_t : public std::vector<int> {
+private:
+   QoreString ver;
+public:
+   DLLLOCAL char set(const char *v);
+   DLLLOCAL const char *getString() const { return ver.getBuffer(); }
+};
+
 class ModuleInfo;
+
+enum mod_op_e { MOD_OP_NONE, MOD_OP_EQ, MOD_OP_GT, 
+		MOD_OP_GE, MOD_OP_LT, MOD_OP_LE };
 
 //! manages the loading of Qore modules from feature or path names.  Also manages adding module changes into QoreProgram objects.
 /** in the case that a QoreProgram object is created before a module is loaded externally 
@@ -70,16 +84,16 @@ class ModuleInfo;
     QoreProgram object.
     All members and methods are static; there will always only be one of these...
 */
-class ModuleManager
-{
+class ModuleManager {
    private:
       DLLLOCAL static void add(ModuleInfo *m);
       DLLLOCAL static void addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
       DLLLOCAL static ModuleInfo *add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
-      DLLLOCAL static QoreStringNode *loadModuleIntern(const char *name, QoreProgram *pgm);
+      DLLLOCAL static QoreStringNode *loadModuleIntern(const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
       DLLLOCAL static QoreStringNode *loadModuleFromPath(const char *path, const char *feature = 0, ModuleInfo **mi = 0, QoreProgram *pgm = 0);
       DLLLOCAL static ModuleInfo *find(const char *name);
       DLLLOCAL static void globDir(const char *dir);
+      DLLLOCAL static QoreStringNode *parseLoadModuleIntern(const char *name, QoreProgram *pgm = 0);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL ModuleManager(const ModuleManager&);
@@ -115,14 +129,6 @@ class ModuleManager
       //! retuns a list of module information hashes, caller owns the list reference returned
       DLLEXPORT static QoreListNode *getModuleList();
 
-      //! loads the named module at parse time, returns a non-0 QoreStringNode pointer if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
-      /** if the feature is already loaded, then the function returns immediately without raising an error
-	  The feature's namespace changes are added to the QoreProgram object if the feature is loaded and the pgm argument is non-zero.
-	  @param name can be either a feature name or the full path to the module file
-	  @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
-       */
-      DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
-
       //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
       /** If the feature is already loaded, then the function returns immediately without raising an error.
 	  The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
@@ -131,6 +137,14 @@ class ModuleManager
 	  @return -1 if an exception was raised, 0 for OK
        */
       DLLEXPORT static int runTimeLoadModule(const char *name, ExceptionSink *xsink);
+
+      //! loads the named module at parse time, returns a non-0 QoreStringNode pointer if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
+      /** if the feature is already loaded, then the function returns immediately without raising an error
+	  The feature's namespace changes are added to the QoreProgram object if the feature is loaded and the pgm argument is non-zero.
+	  @param name can be either a feature name or the full path to the module file
+	  @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
+       */
+      DLLLOCAL static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
 
       //! creates the ModuleManager object (private)
       /** private interface; not exported in the library's public API

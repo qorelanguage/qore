@@ -39,6 +39,8 @@ class ModuleInfo {
       DLLLOCAL ModuleInfo& operator=(const ModuleInfo&);
 
    public:
+      version_list_t version_list;
+
       DLLLOCAL ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, const char *d, const char *v, const char *a, const char *u, const void *p);
       // for "builtin" modules
       DLLLOCAL ModuleInfo(const char *feature, qore_module_delete_t del);
@@ -50,9 +52,9 @@ class ModuleInfo {
       DLLLOCAL const char *getURL() const;
       DLLLOCAL int getAPIMajor() const;
       DLLLOCAL int getAPIMinor() const;
-      DLLLOCAL void ns_init(class QoreNamespace *rns, class QoreNamespace *qns) const;
+      DLLLOCAL void ns_init(QoreNamespace *rns, QoreNamespace *qns) const;
       DLLLOCAL bool isBuiltin() const;
-      DLLLOCAL class QoreHashNode *getHash() const;
+      DLLLOCAL QoreHashNode *getHash() const;
       DLLLOCAL const void *getPtr() const { return dlptr; }
 };
 

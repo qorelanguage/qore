@@ -72,6 +72,7 @@
 #include <qore/params.h>
 #include <qore/ReferenceHelper.h>
 #include <qore/QoreEvents.h>
+#include <qore/qore-version.h>
 
 //! the complete version string of the qore library
 DLLEXPORT extern const char *qore_version_string;

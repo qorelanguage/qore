@@ -7,6 +7,9 @@
 # child programs do not inherit parent's restrictions
 %no-child-restrictions
 
+# make sure we have the right version of qore
+%requires qore >= 0.7.1
+
 # global variables needed for tests
 our $to = new Test("program-test.q");
 our $ro = new Test("readonly");
@@ -15,14 +18,12 @@ our $thash;
 
 #my $x[10] = 1;
 
-sub get_program_name()
-{
+sub get_program_name() {
     my $l = split("/", $ENV."_");
     return $l[elements $l - 1];
 }
 
-sub usage()
-{
+sub usage() {
     printf(
 "usage: %s [options] <iterations>
   -h,--help         shows this help text
@@ -40,8 +41,7 @@ const opts =
       "bq"      : "backquote,b",
       "threads" : "threads,t=i" );
 
-sub parse_command_line()
-{
+sub parse_command_line() {
     my $g = new GetOpt(opts);
     $o = $g.parse(\$ARGV);
     if (exists $o."_ERRORS_") {
@@ -63,8 +63,7 @@ sub parse_command_line()
 	$o.threads = 1;
 }
 
-sub test_value($v1, $v2, $msg)
-{
+sub test_value($v1, $v2, $msg) {
     if ($v1 === $v2) {
 	if ($o.verbose)
 	    printf("OK: %s test\n", $msg);
@@ -80,8 +79,7 @@ sub test_value($v1, $v2, $msg)
 sub test1() { return 1;} sub test2() { return 2; } 
 sub test3() { return (1, 2, 3); }
 
-sub array_helper($a)
-{
+sub array_helper($a) {
     $a[1][1] = 2;
     test_value($a[1][1], 2, "passed local array variable assignment");    
 }
@@ -1150,8 +1148,7 @@ sub misc_tests()
     test_value($bstr, bunzip2_to_binary($bz), "bzip2 and bunzip2_to_binary");
 }
 
-sub math_tests()
-{
+sub math_tests() {
     test_value(ceil(2.7), 3.0, "ceil()");
     test_value(floor(3.7), 3.0, "fllor()");
     test_value(format_number(".,3", -48392093894.2349), "-48.392.093.894,235", "format_number()");
@@ -1161,12 +1158,11 @@ sub lib_tests() {
     my $pn = get_script_path();
     test_value(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
     test_value(hstat($pn).type, "REGULAR", "hstat()");
-    my $h = gethostname();
-    test_value($h, gethostbyaddr(gethostbyname($h)), "host functions");
+    #my $h = gethostname();
+    #test_value($h, gethostbyaddr(gethostbyname($h)), "host functions");
 }
 
-sub file_tests()
-{
+sub file_tests() {
     test_value(is_file($ENV."_"), True, "is_file()");
     test_value(is_executable($ENV."_"), True, "is_executable()");
     test_value(is_dir("/"), True, "is_dir()");
@@ -1627,8 +1623,7 @@ sub json_tests()
     test_value(parseJSON($jstr) == $x, True, "second parseJSON() and parseXML()");
 }
 
-sub digest_tests()
-{
+sub digest_tests() {
     my $str = "Hello There This is a Test - 1234567890";
 
     test_value(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
@@ -1641,8 +1636,7 @@ sub digest_tests()
     test_value(RIPEMD160($str), "8f32702e0146d5db6145f36271a4ddf249c087ae", "RIPEMD-160 digest");
 }
 
-sub crypto_tests()
-{
+sub crypto_tests() {
     my $str = "Hello There This is a Test - 1234567890";
 
     my $key = "1234567812345abcabcdefgh";
@@ -1680,8 +1674,7 @@ sub crypto_tests()
     test_value($str, $xstr, "DES random single key encrypt-decrypt");
 }
 
-sub closures($x)
-{
+sub closures($x) {
     my $a = 1;
     
     my $inc = sub ($y) {
@@ -1695,19 +1688,16 @@ sub closures($x)
     return ($inc, $dec);
 }
 
-sub closure_tests()
-{
+sub closure_tests() {
     my ($inc, $dec) = closures("test");
     test_value($inc(5), "test-5-2", "first closure");
     test_value($inc(7), "test-7-3", "second closure");
     test_value($dec(3), "test-3-2", "third closure");
 }
 
-sub do_tests()
-{
+sub do_tests() {
     try {
-	for (my $i = 0; $i < $o.iters; $i++)
-	{
+	for (my $i = 0; $i < $o.iters; $i++) {
 	    if ($o.verbose)
 		printf("TID %d: iteration %d\n", gettid(), $i);
 	    operator_test();
@@ -1730,8 +1720,7 @@ sub do_tests()
 		backquote_tests();
 	}
     }
-    catch ()
-    {
+    catch () {
 	++$errors;
 	$counter.dec();
 	rethrow;	
@@ -1739,8 +1728,7 @@ sub do_tests()
     $counter.dec();
 }
 
-sub main()
-{
+sub main() {
     parse_command_line();
     printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n", Qore::VersionString, 
 	   $o.threads, $o.threads == 1 ? "" : "s", $o.iters, $o.iters == 1 ? "" : "s");
