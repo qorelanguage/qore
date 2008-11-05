@@ -65,7 +65,7 @@ class QueueCallBack {
 	    }
 	    switch ($e.event) {
 		case EVENT_HOSTNAME_LOOKUP: {
-		    if (!$.lookup)
+		if (!$.lookup)
 			printf("resolving %s: ", $e.name);
 		    break;
 		}
