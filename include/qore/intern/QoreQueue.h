@@ -27,8 +27,7 @@
 #include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
 
-class QoreQueueNode 
-{
+class QoreQueueNode {
    public:
       class AbstractQoreNode *node;
       class QoreQueueNode *next;
@@ -38,8 +37,7 @@ class QoreQueueNode
       DLLLOCAL void del(class ExceptionSink *xsink);
 };
 
-class QoreQueue
-{
+class QoreQueue {
    private:
       enum queue_status_e { Queue_Deleted = -1 };
 
@@ -49,21 +47,30 @@ class QoreQueue
       int len;
       int waiting;
 
+      DLLLOCAL void push_internal(AbstractQoreNode *v);
+      DLLLOCAL void insert_internal(AbstractQoreNode *v);
+
    public:
       DLLLOCAL QoreQueue();
       DLLLOCAL ~QoreQueue();
+
+      // push at the end of the queue and take the reference
+      DLLLOCAL void push_and_take_ref(AbstractQoreNode *n);
+
       // push at the end of the queue
       DLLLOCAL void push(const AbstractQoreNode *n);
+
+      // insert at the beginning of the queue and take the reference
+      DLLLOCAL void insert_and_take_ref(AbstractQoreNode *n);
+
       // insert at the beginning of the queue
       DLLLOCAL void insert(const AbstractQoreNode *n);
       DLLLOCAL AbstractQoreNode *shift(class ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
       DLLLOCAL AbstractQoreNode *pop(class ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
-      DLLLOCAL int size() const
-      {
+      DLLLOCAL int size() const {
 	 return len;
       }
-      DLLLOCAL int getWaiting() const
-      {
+      DLLLOCAL int getWaiting() const {
 	 return waiting;
       }
       DLLLOCAL void destructor(class ExceptionSink *xsink);

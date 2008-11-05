@@ -233,20 +233,17 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
       g->deref();
 }
 
-static void GETOPT_copy(QoreObject *self, QoreObject *old, GetOpt *g, ExceptionSink *xsink)
-{
+static void GETOPT_copy(QoreObject *self, QoreObject *old, GetOpt *g, ExceptionSink *xsink) {
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
 }
 
-static AbstractQoreNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreListNode *params, ExceptionSink *xsink)
-{
+static QoreHashNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
       return 0;
 
    QoreListNode *l;
-   if (p0->getType() == NT_REFERENCE)
-   {
+   if (p0->getType() == NT_REFERENCE) {
       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
       AutoVLock vl(xsink);
       ReferenceHelper ref(r, vl, xsink);
@@ -268,16 +265,32 @@ static AbstractQoreNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreLis
    return g->parse(l, false, xsink);
 }
 
-class QoreClass *initGetOptClass()
-{
+static AbstractQoreNode *GETOPT_parse2(QoreObject *self, GetOpt *g, const QoreListNode *params, ExceptionSink *xsink) {
+   ReferenceHolder<QoreHashNode> rv(GETOPT_parse(self, g, params, xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   if (!rv)
+      return 0;
+
+   // check for _ERRORS_ key
+   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(rv->getKeyValue("_ERRORS_"));
+   if (!l)
+      return rv.release();
+   const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
+   xsink->raiseException("GETOPT-ERROR", err->stringRefSelf());
+   return 0;
+}
+
+QoreClass *initGetOptClass() {
    QORE_TRACE("initGetOptClass()");
 
-   class QoreClass *QC_GETOPT = new QoreClass("GetOpt");
+   QoreClass *QC_GETOPT = new QoreClass("GetOpt");
    CID_GETOPT = QC_GETOPT->getID();
    QC_GETOPT->setConstructor(GETOPT_constructor);
    QC_GETOPT->setCopy((q_copy_t)GETOPT_copy);
    QC_GETOPT->addMethod("parse",         (q_method_t)GETOPT_parse);
-
+   QC_GETOPT->addMethod("parse2",        (q_method_t)GETOPT_parse2);
 
    return QC_GETOPT;
 }

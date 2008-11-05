@@ -47,7 +47,7 @@ static void HC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, E
 
 static void HC_destructor(QoreObject *self, QoreHTTPClient *client, ExceptionSink *xsink) {
    // have to clear callbacks before destroying
-   client->setEventQueue(0, xsink);
+   client->cleanup(xsink);
    client->deref(xsink);
 }
 
@@ -419,7 +419,3 @@ QoreClass *initHTTPClientClass() {
 
    return client;
 }
-
-// EOF
-
-

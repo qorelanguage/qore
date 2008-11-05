@@ -88,7 +88,8 @@ include_HEADERS = \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
-	include/qore/Qore.h
+	include/qore/Qore.h \
+	include/qore/QoreEvents.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \

@@ -29,13 +29,11 @@
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
 #include <inttypes.h>
-static inline long long atoll(const char *str)
-{
+static inline long long atoll(const char *str) {
    return strtoimax(str, 0, 10);
 }
 #else
-static inline long long atoll(const char *str)
-{
+static inline long long atoll(const char *str) {
    long long i;
    sscanf(str, "%lld", &i);
    return i;

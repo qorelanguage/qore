@@ -63,7 +63,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	 @param str the string data is copied to the new QoreStringNode object
 	 @param enc the encoding for the string
        */
-      DLLEXPORT QoreStringNode(const char *str, const class QoreEncoding *enc = QCS_DEFAULT);
+      DLLEXPORT QoreStringNode(const char *str, const QoreEncoding *enc = QCS_DEFAULT);
 
       //! creates a new QoreStringNode from an existing QoreString reference
       /**
@@ -82,10 +82,10 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	 @param str the string data is copied to the new QoreStringNode object
 	 @param enc the encoding for the string
        */
-      DLLEXPORT QoreStringNode(const std::string &str, const class QoreEncoding *enc = QCS_DEFAULT);
+      DLLEXPORT QoreStringNode(const std::string &str, const QoreEncoding *enc = QCS_DEFAULT);
 
       // copies binary object and makes a base64-encoded string out of it
-      DLLEXPORT QoreStringNode(const class BinaryNode *b);
+      DLLEXPORT QoreStringNode(const BinaryNode *b);
 
       //! creates a new object; takes ownership of the char pointer passed, all parameters are mandatory
       /**
@@ -94,10 +94,10 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	 @param nallocated the number of bytes allocated for this buffer (if unknown, set to nlen + 1)
 	 @param enc the encoding for the string
       */
-      DLLEXPORT QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const class QoreEncoding *enc);
+      DLLEXPORT QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc);
 
       // copies str
-      DLLEXPORT QoreStringNode(const char *str, qore_size_t len, const class QoreEncoding *new_qorecharset = QCS_DEFAULT);
+      DLLEXPORT QoreStringNode(const char *str, qore_size_t len, const QoreEncoding *new_qorecharset = QCS_DEFAULT);
 
       // creates a string from a single character
       DLLEXPORT QoreStringNode(char c);
@@ -109,7 +109,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return -1 for exception raised, 0 = OK
       */
-      DLLEXPORT int getAsString(QoreString &str, int format_offset, class ExceptionSink *xsink) const;
+      DLLEXPORT int getAsString(QoreString &str, int format_offset, ExceptionSink *xsink) const;
 
       //! returns a QoreString giving the string data in double quotes
       /** used for %n and %N printf formatting
@@ -119,7 +119,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
 	  @see QoreNodeAsStringHelper
       */
-      DLLEXPORT QoreString *getAsString(bool &del, int format_offset, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreString *getAsString(bool &del, int format_offset, ExceptionSink *xsink) const;
 
       //! returns the current string and sets del to false
       /** NOTE: do not call this function directly, use QoreStringValueHelper instead
@@ -139,7 +139,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	  @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
 	  @see DateTimeValueHelper
        */
-      DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
+      DLLEXPORT virtual DateTime *getDateTimeRepresentation(bool &del) const;
 
       //! assigns the date representation of this string to the DateTime reference passed
       /** 
@@ -148,7 +148,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
 
       //! returns a copy of the object, the caller owns the reference count
-      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
+      DLLEXPORT virtual AbstractQoreNode *realCopy() const;
 
       //! tests for equality ("deep compare" including all contained values for container types) with possible type and character encoding conversion (soft compare)
       /** An exception could be raised if character set encoding is required to do the compare the the conversion fails
@@ -174,7 +174,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the new string with the desired encoding or 0 if an error occured
        */
-      DLLEXPORT QoreStringNode *convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreStringNode *convertEncoding(const QoreEncoding *nccs, ExceptionSink *xsink) const;
 
       //! returns a new string consisting of all the characters from the current string starting with character position "offset"
       /** offset is a character offset and not a byte offset
@@ -200,16 +200,20 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
       DLLEXPORT QoreStringNode *copy() const;
 
       //! creates a new QoreStringNode from a string and converts its encoding
-      DLLEXPORT static QoreStringNode *createAndConvertEncoding(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink);
+      DLLEXPORT static QoreStringNode *createAndConvertEncoding(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink);
 
       //! parses the string as a base64-encoded binary and returns the decoded value as a QoreStringNode
-      DLLEXPORT class QoreStringNode *parseBase64ToString(class ExceptionSink *xsink) const;
+      DLLEXPORT QoreStringNode *parseBase64ToString(ExceptionSink *xsink) const;
+
+      //! references the object and returns a non-const pointer to "this"
+      DLLEXPORT QoreStringNode *stringRefSelf() const;
 
       //! constructor supporting createAndConvertEncoding(), not exported in the library
-      DLLLOCAL QoreStringNode(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink);
+      DLLLOCAL QoreStringNode(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink);
 
       //! constructor using the private implementation of QoreString; not exported in the library
       DLLLOCAL QoreStringNode(struct qore_string_private *p);
+
 
       DLLLOCAL static const char *getStaticTypeName()
       {

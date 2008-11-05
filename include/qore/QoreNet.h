@@ -30,18 +30,25 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-// thread-safe gethostbyname (0 = success, !0 = error)
+//! thread-safe gethostbyname (0 = success, !0 = error)
 DLLEXPORT int q_gethostbyname(const char *host, struct in_addr *sin_addr);
-// thread-safe gethostbyname (0/NULL = error)
-DLLEXPORT class QoreHashNode *q_gethostbyname_to_hash(const char *host);
-// thread-safe gethostbyname (0/NULL = error)
-DLLEXPORT class QoreStringNode *q_gethostbyname_to_string(const char *host);
 
-// thread-safe gethostbyaddr (string returned must be freed)
+//! thread-safe gethostbyname (0/NULL = error)
+DLLEXPORT QoreHashNode *q_gethostbyname_to_hash(const char *host);
+
+//! thread-safe gethostbyname (0/NULL = error)
+DLLEXPORT QoreStringNode *q_gethostbyname_to_string(const char *host);
+
+//! thread-safe gethostbyaddr (string returned must be freed)
 DLLEXPORT char *q_gethostbyaddr(const char *addr, int len, int type);
-// thread-safe gethostbyaddr (0/NULL = error)
-DLLEXPORT class QoreHashNode *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const char *addr, int type = AF_INET);
-// thread-safe gethostbyaddr (0/NULL = error)
-DLLEXPORT class QoreStringNode *q_gethostbyaddr_to_string(class ExceptionSink *xsink, const char *addr, int type = AF_INET);
+
+//! thread-safe gethostbyaddr (0/NULL = error)
+DLLEXPORT QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, int type = AF_INET);
+
+//! thread-safe gethostbyaddr (0/NULL = error)
+DLLEXPORT QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr, int type = AF_INET);
+
+//! converts a network address in network byte order to a string (address_family = AF_INET or AF_INET6), returns 0 on error
+DLLEXPORT QoreStringNode *q_addr_to_string(int address_family, const char *addr);
 
 #endif // _QORE_QORENET_H

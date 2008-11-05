@@ -40,7 +40,7 @@ class Queue;
 //! provides a way to communicate with HTTP servers using Qore data structures
 /** thread-safe, uses QoreSocket for socket communication
  */
-class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock {
+class QoreHTTPClient : public AbstractPrivateData {
    private:
       //! private implementation of the class
       struct qore_qtc_private *priv;
@@ -63,6 +63,10 @@ class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock {
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreHTTPClient& operator=(const QoreHTTPClient&);
+
+  protected:
+      DLLEXPORT void lock();
+      DLLEXPORT void unlock();
 
    public:
       //! creates the QoreHTTPClient object
@@ -266,6 +270,8 @@ class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock {
 
       //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+
+      DLLLOCAL void cleanup(ExceptionSink *xsink);
 };
 
 #endif 

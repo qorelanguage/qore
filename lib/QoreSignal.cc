@@ -41,13 +41,6 @@ bool QoreSignalManager::block = false;
 
 QoreSignalHandler QoreSignalManager::handlers[QORE_SIGNAL_MAX];
 
-/*
-extern "C" void sighandler(int sig) //, siginfo_t *info, ucontext_t *uap) {
-   QoreSignalManager::sig_raised = true;
-   QoreSignalManager::sig_event[sig] = true;
-}
-*/
-
 // must be called in the signal lock
 void QoreSignalHandler::set(int sig, const ResolvedCallReferenceNode *n_funcref) {
    funcref = const_cast<ResolvedCallReferenceNode *>(n_funcref);
@@ -218,7 +211,7 @@ void QoreSignalManager::signal_handler_thread() {
       // block only signals we are catching in this thread
       pthread_sigmask(SIG_SETMASK, &c_mask, 0);
 
-#ifdef HAVE_DARWIN_PTHREAD_SIGMASK_BUG
+#ifdef DARWIN
       /* why do we call sigprocmask on Darwin?
 	 it seems that Darwin has a bug in handling per-thread signal masks.  
 	 Even though we explicitly set this thread's signal mask to unblock all signals
@@ -438,11 +431,7 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink)
    return 0;
 }
 
-#define CPP_MAKE_STRING1(x) #x
-#define CPP_MAKE_STRING_FROM_SYMBOL(x) CPP_MAKE_STRING1(x)
-
-void QoreSignalManager::addSignalConstants(class QoreNamespace *ns)
-{
+void QoreSignalManager::addSignalConstants(class QoreNamespace *ns) {
    QoreHashNode *nh = new QoreHashNode();
    QoreHashNode *sh = new QoreHashNode();
 #ifdef SIGHUP

@@ -1,4 +1,9 @@
+2008.11.05: David Nichols
+	* fixed a memory error parsing expressions with the map operator
+	* event subsystem fixes and improvements, FtpClient event support
+
 2008.11.04: David Nichols
+	* fixed a bug in QoreString::set()
  	* fixed 2 crashing bugs in Operator.cc with the "-" operator: the
 	  operator functions were expecting certain arguments but the oeprator
 	  code was making partial matches and sending other types to the
@@ -9,6 +14,11 @@
 	  that nonsensical results are not returned (i.e. before change:
 	  NOTHING - NOTHING produced: "<time: 0 seconds>", after change, this
 	  produces "NOTHING")
+
+2008.11.03: David Nichols
+	* fixed a crashing bug in the FtpClient class
+	* fixed a parsing bug with the switch statement when a case value using
+	  a constant was not resolved caused a crash: affected debug mode only
 
 2008.10.30: David Nichols
 	* updated module handling: modules are now checked for having the

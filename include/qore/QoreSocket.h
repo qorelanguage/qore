@@ -46,19 +46,6 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-//! event: packet data read
-#define QOREEVENT_PACKET_READ          1
-//! event: packet data sent
-#define QOREEVENT_PACKET_SENT          2
-//! event: http content length received
-#define QOREEVENT_HTTP_CONTENT_LENGTH  3
-//! event: http chunked data start
-#define QOREEVENT_HTTP_CHUNKED_START   4
-//! event: http chunked data end
-#define QOREEVENT_HTTP_CHUNKED_END     5
-//! event: http redirect
-#define QOREEVENT_HTTP_REDIRECT        6
-
 class Queue;
 
 //! a helper class for getting socket origination information
@@ -600,7 +587,7 @@ class QoreSocket {
 	  @param size the length of the message body (may be 0)
 	  @return 0 for OK, not 0 for error
        */
-      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, int size, int source = QORE_SOURCE_SOCKET);
 
       //! send an HTTP response message on the socket
       /** The socket must be connected before this call is made.
@@ -612,7 +599,7 @@ class QoreSocket {
 	  @param size the length of the message body (may be 0)
 	  @return 0 for OK, not 0 for error
        */
-      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, int size, int source = QORE_SOURCE_SOCKET);
 
       //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
       /** The socket must be connected before this call is made.
@@ -621,7 +608,7 @@ class QoreSocket {
 	  @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
 	  @return if 0 (and prc == 0), the socket was closed on the remote end without a response, if the type is NT_STRING, the response could not be parsed, if not 0, caller owns the reference count returned
        */
-      DLLEXPORT AbstractQoreNode *readHTTPHeader(int timeout, int *prc);
+      DLLEXPORT AbstractQoreNode *readHTTPHeader(int timeout, int *prc, int source = QORE_SOURCE_SOCKET);
 
       //! receive a binary message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
       /** The socket must be connected before this call is made.
@@ -632,7 +619,7 @@ class QoreSocket {
 	  @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
 	  @see BinaryNode
        */
-      DLLEXPORT QoreHashNode *readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink);
+      DLLEXPORT QoreHashNode *readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink, int source = QORE_SOURCE_SOCKET);
 
       //! receive a string message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
       /** The socket must be connected before this call is made.
@@ -643,7 +630,7 @@ class QoreSocket {
 	  @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
 	  @see QoreStringNode
        */
-      DLLEXPORT QoreHashNode *readHTTPChunkedBody(int timeout, ExceptionSink *xsink);
+      DLLEXPORT QoreHashNode *readHTTPChunkedBody(int timeout, ExceptionSink *xsink, int source = QORE_SOURCE_SOCKET);
 
       //! set send timeout in milliseconds
       DLLEXPORT int setSendTimeout(int ms);
@@ -749,8 +736,11 @@ class QoreSocket {
       //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 
-      //! returns the event queue (not part of the library's pubilc API)
+      //! returns the event queue (not part of the library's public API)
       DLLLOCAL Queue *getQueue();
+
+      //! posts deleted message and removes any event queue
+      DLLLOCAL void cleanup(ExceptionSink *xsink);
 };
 
 #endif // _QORE_QORESOCKET_H

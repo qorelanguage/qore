@@ -442,13 +442,22 @@ static AbstractQoreNode *f_strerror(const QoreListNode *params, ExceptionSink *x
 #endif
 }
 
-static AbstractQoreNode *f_basename(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_basename(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
       return 0;
 
    char *p = q_basename(p0->getBuffer());
+   int len = strlen(p);
+   return new QoreStringNode(p, len, len + 1, p0->getEncoding());
+}
+
+static AbstractQoreNode *f_dirname(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0)
+      return 0;
+
+   char *p = q_dirname(p0->getBuffer());
    int len = strlen(p);
    return new QoreStringNode(p, len, len + 1, p0->getEncoding());
 }
@@ -772,6 +781,7 @@ void init_lib_functions()
    builtinFunctions.add("errno",       f_errno);
    builtinFunctions.add("strerror",    f_strerror);
    builtinFunctions.add("basename",    f_basename);
+   builtinFunctions.add("dirname",     f_dirname);
    builtinFunctions.add("mkdir",       f_mkdir, QDOM_FILESYSTEM);
    builtinFunctions.add("rmdir",       f_rmdir, QDOM_FILESYSTEM);
    builtinFunctions.add("chmod",       f_chmod, QDOM_FILESYSTEM);

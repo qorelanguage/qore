@@ -25,71 +25,56 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_string_private.h>
 
-QoreStringNode::QoreStringNode() : SimpleValueQoreNode(NT_STRING)
-{
+QoreStringNode::QoreStringNode() : SimpleValueQoreNode(NT_STRING) {
 }
 
-QoreStringNode::~QoreStringNode()
-{
+QoreStringNode::~QoreStringNode() {
 }
 
-QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc)
-{
+QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc) {
 }
 
 // copies str
-QoreStringNode::QoreStringNode(const QoreString &str) : SimpleValueQoreNode(NT_STRING), QoreString(str)
-{
+QoreStringNode::QoreStringNode(const QoreString &str) : SimpleValueQoreNode(NT_STRING), QoreString(str) {
 }
 
 // copies str
-QoreStringNode::QoreStringNode(const QoreStringNode &str) : SimpleValueQoreNode(NT_STRING), QoreString(str)
-{
+QoreStringNode::QoreStringNode(const QoreStringNode &str) : SimpleValueQoreNode(NT_STRING), QoreString(str) {
 }
 
 // copies str
-QoreStringNode::QoreStringNode(const std::string &str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc)
-{
+QoreStringNode::QoreStringNode(const std::string &str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc) {
 }
 
-QoreStringNode::QoreStringNode(char c) : SimpleValueQoreNode(NT_STRING), QoreString(c)
-{
+QoreStringNode::QoreStringNode(char c) : SimpleValueQoreNode(NT_STRING), QoreString(c) {
 }
 
-QoreStringNode::QoreStringNode(const BinaryNode *b) : SimpleValueQoreNode(NT_STRING), QoreString(b)
-{
+QoreStringNode::QoreStringNode(const BinaryNode *b) : SimpleValueQoreNode(NT_STRING), QoreString(b) {
 }
 
-QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleValueQoreNode(NT_STRING), QoreString(p)
-{
+QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleValueQoreNode(NT_STRING), QoreString(p) {
 }
 
-QoreStringNode::QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc)
-{
+QoreStringNode::QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc) {
 }
 
-QoreStringNode::QoreStringNode(const char *str, qore_size_t len, const QoreEncoding *new_qorecharset) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qorecharset)
-{
+QoreStringNode::QoreStringNode(const char *str, qore_size_t len, const QoreEncoding *new_qorecharset) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qorecharset) {
 }
 
 // virtual function
-int QoreStringNode::getAsIntImpl() const
-{
+int QoreStringNode::getAsIntImpl() const {
    return strtoll(getBuffer(), 0, 10);
 }
 
-int64 QoreStringNode::getAsBigIntImpl() const
-{
+int64 QoreStringNode::getAsBigIntImpl() const {
    return strtoll(getBuffer(), 0, 10);   
 }
 
-double QoreStringNode::getAsFloatImpl() const
-{
+double QoreStringNode::getAsFloatImpl() const {
    return atof(getBuffer());
 }
 
-QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *str = new QoreString(getEncoding());
    str->concat('"');
@@ -98,8 +83,7 @@ QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsin
    return str;
 }
 
-int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.concat('"');
    str.concat(this, xsink);
    if (*xsink)
@@ -108,20 +92,17 @@ int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink)
    return 0;
 }
 
-bool QoreStringNode::getAsBoolImpl() const
-{
+bool QoreStringNode::getAsBoolImpl() const {
    return strtoll(getBuffer(), 0, 10) ? true : false;
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)
-QoreString *QoreStringNode::getStringRepresentation(bool &del) const
-{
+QoreString *QoreStringNode::getStringRepresentation(bool &del) const {
    del = false;
    return const_cast<QoreStringNode *>(this);
 }
  
-QoreStringNode *QoreStringNode::convertEncoding(const QoreEncoding *nccs, ExceptionSink *xsink) const
-{
+QoreStringNode *QoreStringNode::convertEncoding(const QoreEncoding *nccs, ExceptionSink *xsink) const {
    printd(5, "QoreStringNode::convertEncoding() from '%s' to '%s'\n", getEncoding()->getCode(), nccs->getCode());
 
    if (nccs == priv->charset) {
@@ -256,7 +237,11 @@ bool QoreStringNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsi
    return !compare(str);
 }
 
-const char *QoreStringNode::getTypeName() const
-{
+QoreStringNode *QoreStringNode::stringRefSelf() const {
+   ref();
+   return const_cast<QoreStringNode *>(this);
+}
+
+const char *QoreStringNode::getTypeName() const {
    return getStaticTypeName();
 }

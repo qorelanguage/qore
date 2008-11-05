@@ -6862,7 +6862,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates the FtpClient object. It accepts one optional argument that will set the URL for the FTP connection.</para>
+	    <para>Creates the FtpClient object. It accepts one optional argument that will set the URL for the FTP connection; the path is ignored in the URL, however the username,  password, hostname and port are respected; additionally if the protocol is &quot;ftps&quot;, the client will attempt to establish a secure connection to the server according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>

@@ -345,12 +345,10 @@ void QoreString::clear()
    }
 }
 
-void QoreString::set(const char *str, const QoreEncoding *new_qorecharset)
-{
+void QoreString::set(const char *str, const QoreEncoding *new_qorecharset) {
    priv->len = 0;
    priv->charset = new_qorecharset;
-   if (!str)
-   {
+   if (!str) {
       if (priv->buf)
 	 priv->buf[0] = '\0';
    }
@@ -358,22 +356,19 @@ void QoreString::set(const char *str, const QoreEncoding *new_qorecharset)
       concat(str);
 }
 
-void QoreString::set(const QoreString *str)
-{
-   priv->len = 0;
+void QoreString::set(const QoreString *str) {
+   priv->len = str->priv->len;
    priv->charset = str->priv->charset;
    allocate(str->priv->len + 1);
    // copy string and trailing null
    memcpy(priv->buf, str->priv->buf, str->priv->len + 1);
 }
 
-void QoreString::set(const QoreString &str)
-{
+void QoreString::set(const QoreString &str) {
    set(&str);
 }
 
-void QoreString::replace(qore_size_t offset, qore_size_t dlen, const char *str)
-{
+void QoreString::replace(qore_size_t offset, qore_size_t dlen, const char *str) {
    qore_size_t nl = str ? ::strlen(str) : 0;
    // ensure that enough memory is priv->allocated if extending the string
    if (nl > dlen)
@@ -387,8 +382,7 @@ void QoreString::replace(qore_size_t offset, qore_size_t dlen, const char *str)
    priv->len = priv->len - dlen + nl;
 }
 
-void QoreString::replace(qore_size_t offset, qore_size_t dlen, const QoreString *str)
-{
+void QoreString::replace(qore_size_t offset, qore_size_t dlen, const QoreString *str) {
    // ensure that enough memory is priv->allocated if extending the string
    if (str->priv->len > dlen)
       priv->check_char(priv->len - dlen + str->priv->len + 1);

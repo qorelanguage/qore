@@ -203,8 +203,17 @@ static AbstractQoreNode *JRC_callWithInfo(QoreObject *self, QoreHTTPClient *clie
    return rv.release();
 }
 
-QoreClass *initJsonRpcClientClass(class QoreClass *http_client)
-{
+static AbstractQoreNode *JRC_setEventQueue(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+    const QoreObject *o = test_object_param(params, 0);
+    Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
+    if (*xsink)
+        return 0;
+    // pass reference from QoreObject::getReferencedPrivateData() to function
+    client->setEventQueue(q, xsink);
+    return 0;
+}
+
+QoreClass *initJsonRpcClientClass(class QoreClass *http_client) {
     QoreClass* client = new QoreClass("JsonRpcClient", QDOM_NETWORK);
     CID_JSONRPCCLIENT = client->getID();
 
@@ -216,6 +225,7 @@ QoreClass *initJsonRpcClientClass(class QoreClass *http_client)
     client->addMethod("call",             (q_method_t)JRC_call);
     client->addMethod("callArgsWithInfo", (q_method_t)JRC_callArgsWithInfo);
     client->addMethod("callWithInfo",     (q_method_t)JRC_callWithInfo);
+    client->addMethod("setEventQueue",    (q_method_t)JRC_setEventQueue);
 
     return client;
 } 

@@ -1059,15 +1059,18 @@ int RootQoreNamespace::resolveSimpleConstant(AbstractQoreNode **node, int level)
 
    // if constant is not found, then a parse error will be raised
    AbstractQoreNode *rv = findConstantValue(b->str, level);
+
+   b->deref();
+   // here we put &True in the tree, so a value will be there - 
+   // nulls cannot appear in the parse tree
+   *node = rv ? rv->refSelf() : &True;
+
    if (!rv)
       return -1;
 
    printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d) %08p %s-> %08p %s\n", 
 	  b->str, level, *node, (*node)->getTypeName(), rv, rv->getTypeName());
    
-   b->deref();
-   *node = rv->refSelf();
-
    return 0;
 }
 
@@ -1077,15 +1080,18 @@ int RootQoreNamespace::resolveScopedConstant(AbstractQoreNode **node, int level)
 
    // if constant is not found, then a parse error will be raised
    AbstractQoreNode *rv = findConstantValue(c->scoped_ref, level);
+
+   c->deref();
+   // here we put &True in the tree, so a value will be there - 
+   // nulls cannot appear in the parse tree
+   *node = rv ? rv->refSelf() : &True;
+
    if (!rv) {
       //printd(5, "RootQoreNamespace::resolveScopedConstant(%s, %d) findConstantValue() returned 0\n", c->scoped_ref->ostr, level);
       return -1;
    }
 
    //printd(5, "RootQoreNamespace::resolveScopedConstant(%s, %d) %08p %s-> %08p %s\n", c->scoped_ref->ostr, level, *node, (*node)->getTypeName(), rv, rv->getTypeName());
-
-   c->deref();
-   *node = rv->refSelf();
 
    return 0;
 }
@@ -1647,22 +1653,55 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    // math constants
    qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
-   // socket constants
-   QoreHashNode *qsam = new QoreHashNode();
-   qsam->setKeyValue("1", new QoreStringNode("PACKET_READ"), 0);
-   qsam->setKeyValue("2", new QoreStringNode("PACKET_SENT"), 0);
-   qsam->setKeyValue("3", new QoreStringNode("HTTP_CONTENT_LENGTH"), 0);
-   qsam->setKeyValue("4", new QoreStringNode("HTTP_CHUNKED_START"), 0);
-   qsam->setKeyValue("5", new QoreStringNode("HTTP_CHUNKED_END"), 0);
-   qsam->setKeyValue("6", new QoreStringNode("HTTP_REDIRECT"), 0);
+   // event constants
+   QoreHashNode *qesm = new QoreHashNode();
+   qesm->setKeyValue("1", new QoreStringNode("SOCKET"), 0);
+   qesm->setKeyValue("2", new QoreStringNode("HTTPCLIENT"), 0);
+   qesm->setKeyValue("3", new QoreStringNode("FTPCLIENT"), 0);
+   qns->addConstant("EVENT_SOURCE_MAP", qesm);
 
-   qns->addConstant("CALLBACK_ACTION_MAP", qsam);
-   qns->addConstant("PACKET_READ", new QoreBigIntNode(QOREEVENT_PACKET_READ));
-   qns->addConstant("PACKET_SENT", new QoreBigIntNode(QOREEVENT_PACKET_SENT));
-   qns->addConstant("HTTP_CONTENT_LENGTH", new QoreBigIntNode(QOREEVENT_HTTP_CONTENT_LENGTH));
-   qns->addConstant("HTTP_CHUNKED_START", new QoreBigIntNode(QOREEVENT_HTTP_CHUNKED_START));
-   qns->addConstant("HTTP_CHUNKED_END", new QoreBigIntNode(QOREEVENT_HTTP_CHUNKED_END));
-   qns->addConstant("HTTP_REDIRECT", new QoreBigIntNode(QOREEVENT_HTTP_REDIRECT));
+   qns->addConstant("SOURCE_SOCKET", new QoreBigIntNode(QORE_SOURCE_SOCKET));
+   qns->addConstant("SOURCE_HTTPCLIENT", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT));
+   qns->addConstant("SOURCE_FTPCLIENT", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT));   
+
+   QoreHashNode *qsam = new QoreHashNode();
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_PACKET_READ), new QoreStringNode("PACKET_READ"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_PACKET_SENT), new QoreStringNode("PACKET_SENT"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CONTENT_LENGTH), new QoreStringNode("HTTP_CONTENT_LENGTH"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNKED_START), new QoreStringNode("HTTP_CHUNKED_START"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNKED_END), new QoreStringNode("HTTP_CHUNKED_END"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_REDIRECT), new QoreStringNode("HTTP_REDIRECT"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_CHANNEL_CLOSED), new QoreStringNode("CHANNEL_CLOSED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DELETED), new QoreStringNode("DELETED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_FTP_MESSAGE_SENT), new QoreStringNode("FTP_MESSAGE_SENT"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_FTP_MESSAGE_RECEIVED), new QoreStringNode("FTP_MESSAGE_RECEIVED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HOSTNAME_LOOKUP), new QoreStringNode("HOSTNAME_LOOKUP"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HOSTNAME_RESOLVED), new QoreStringNode("HOSTNAME_RESOLVED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_SEND_MESSAGE), new QoreStringNode("HTTP_SEND_MESSAGE"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_MESSAGE_RECEIVED), new QoreStringNode("HTTP_MESSAGE_RECEIVED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_FOOTERS_RECEIVED), new QoreStringNode("HTTP_FOOTERS_RECEIVED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED), new QoreStringNode("HTTP_CHUNKED_DATA_RECEIVED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNK_SIZE), new QoreStringNode("HTTP_CHUNK_SIZE"), 0);
+   qns->addConstant("EVENT_MAP", qsam);
+
+   qns->addConstant("EVENT_PACKET_READ", new QoreBigIntNode(QORE_EVENT_PACKET_READ));
+   qns->addConstant("EVENT_PACKET_SENT", new QoreBigIntNode(QORE_EVENT_PACKET_SENT));
+   qns->addConstant("EVENT_HTTP_CONTENT_LENGTH", new QoreBigIntNode(QORE_EVENT_HTTP_CONTENT_LENGTH));
+   qns->addConstant("EVENT_HTTP_CHUNKED_START", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_START));
+   qns->addConstant("EVENT_HTTP_CHUNKED_END", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_END));
+   qns->addConstant("EVENT_HTTP_REDIRECT", new QoreBigIntNode(QORE_EVENT_HTTP_REDIRECT));
+   qns->addConstant("EVENT_CHANNEL_CLOSED", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED));
+   qns->addConstant("EVENT_DELETED", new QoreBigIntNode(QORE_EVENT_DELETED));
+   qns->addConstant("EVENT_FTP_MESSAGE_SENT", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_SENT));
+   qns->addConstant("EVENT_FTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_RECEIVED));
+   qns->addConstant("EVENT_HOSTNAME_LOOKUP", new QoreBigIntNode(QORE_EVENT_HOSTNAME_LOOKUP));
+   qns->addConstant("EVENT_HOSTNAME_RESOLVED", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED));
+   qns->addConstant("EVENT_HTTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE));
+   qns->addConstant("EVENT_HTTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_MESSAGE_RECEIVED));
+   qns->addConstant("EVENT_HTTP_FOOTERS_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_FOOTERS_RECEIVED));
+   qns->addConstant("EVENT_HTTP_CHUNKED_DATA_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED));
+   qns->addConstant("EVENT_HTTP_CHUNK_SIZE", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNK_SIZE));
+   //qns->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
    // set up Option namespace for Qore options
    QoreNamespace *option = new QoreNamespace("Option");

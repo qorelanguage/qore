@@ -32,6 +32,8 @@
 #define DEFAULT_USERNAME "anonymous"
 #define DEFAULT_PASSWORD "qore@nohost.com"
 
+class FtpResp;
+
 //! provides thread-safe access to FTP servers through Qore data structures
 /**
   is "auto" mode, tries the following data modes in order:
@@ -53,15 +55,13 @@
   - vsFTPd 2.0.1 (Fedora Core 3) EPSV
   - proFTPd 1.3.0 (Darwin/OS X 10.4.7) EPSV, PORT, AUTH TLS, PBSZ 0, PROT P
  */
-class QoreFtpClient : public QoreThreadLock
-{
-   private:
+class QoreFtpClient {
+   protected:
       //! private implementation of the object
       struct qore_ftp_private *priv;
 
-      DLLLOCAL QoreStringNode *getResponse(ExceptionSink *xsink);
-      DLLLOCAL QoreStringNode *sendMsg(const char *cmd, const char *arg, ExceptionSink *xsink);
-      DLLLOCAL void stripEOL(QoreString *str);
+      DLLLOCAL QoreStringNode *getResponse(int &code, ExceptionSink *xsink);
+      DLLLOCAL QoreStringNode *sendMsg(int &code, const char *cmd, const char *arg, ExceptionSink *xsink);
       //DLLLOCAL int connectDataLongPassive(ExceptionSink *xsink);
       DLLLOCAL int connectDataExtendedPassive(ExceptionSink *xsink);
       DLLLOCAL int connectDataPassive(ExceptionSink *xsink);
@@ -79,6 +79,13 @@ class QoreFtpClient : public QoreThreadLock
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreFtpClient& operator=(const QoreFtpClient&);
+
+      DLLLOCAL int pre_get(FtpResp &resp, const char *remotepath, ExceptionSink *xsink);
+      DLLLOCAL void do_event_msg_sent(const char *cmd, const char *arg);
+      DLLLOCAL void do_event_msg_received(int code, const char *msg);
+
+      DLLLOCAL void lock();
+      DLLLOCAL void unlock();
 
    public:
       //! creates the object and sets connection parameters based on the url passed
@@ -138,6 +145,22 @@ class QoreFtpClient : public QoreThreadLock
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
       DLLEXPORT int get(const char *remotepath, const char *localname, ExceptionSink *xsink);
+
+      //! gets a file from the remote server and returns it as a string
+      /** the connection must be already established before this function is called or an error will be raised.
+	  @param remotepath the path of the file on the remote server
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return file data received as a string, otherwise 0 = error (meaning that an exception has been raised)
+       */
+      DLLEXPORT QoreStringNode *getAsString(const char *remotepath, ExceptionSink *xsink);
+
+      //! gets a file from the remote server and returns it as a binary node
+      /** the connection must be already established before this function is called or an error will be raised.
+	  @param remotepath the path of the file on the remote server
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return file data received as a binary node, otherwise 0 = error (meaning that an exception has been raised)
+       */
+      DLLEXPORT BinaryNode *getAsBinary(const char *remotepath, ExceptionSink *xsink);
 
       //! returns a string listing the directory contents on the remote host (caller owns the reference count returned)
       /** the connection must be already established before this function is called or an error will be raised.
@@ -249,6 +272,17 @@ class QoreFtpClient : public QoreThreadLock
 
       //! sets the connection mode for the next connection to "PORT"
       DLLEXPORT void setModePORT();
+
+      //! sets the same event queue for data and control sockets
+      DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+
+      //! sets the event queue for the data socket
+      DLLLOCAL void setDataEventQueue(Queue *cbq, ExceptionSink *xsink);
+
+      //! sets the event queue for the control socket
+      DLLLOCAL void setControlEventQueue(Queue *cbq, ExceptionSink *xsink);
+
+      DLLLOCAL void cleanup(ExceptionSink *xsink);
 };
 
 #endif // _QORE_OBJECTS_FTPCLIENT_H

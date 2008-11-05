@@ -43,7 +43,7 @@ make_version() {
 	mv "$version_tmp" "$version_file"
 	printf "created $version_file for qore %s.%s.%s\n" $major $minor $sub
     else
-	rm "$version_tmp"
+	rm -f "$version_tmp"
     fi
 }
 
