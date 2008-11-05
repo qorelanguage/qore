@@ -1768,7 +1768,7 @@ exp:    scalar
         | TOK_MAP exp
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
-	   int len = l->size();
+	   int len = l ? l->size() : 0;
 	   if (!l || len < 2 || len > 3) {
 	      parse_error("invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", get_type_name($2));
 	      $$ = makeErrorTree(OP_MAP, $2, 0);
