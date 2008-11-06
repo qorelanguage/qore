@@ -1,3 +1,7 @@
+2008.11.06: David Nichols
+	* fixed a setting the URL in the HTTPClient class with only a path if a
+	  hostname is already set
+
 2008.11.05: David Nichols
 	* fixed a memory error parsing expressions with the map operator
 	* event subsystem fixes and improvements, FtpClient event support

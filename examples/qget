@@ -27,6 +27,11 @@ const opts =
       "help"     : "h,help" 
     );
 
+sub myprintf($fmt) {
+    vprintf($fmt, $argv);
+    flush();
+}
+
 # QueueCallBack class
 #
 # this class provides callback-like functionality for socket events.
@@ -39,7 +44,7 @@ const opts =
 # for an "EVENT_DELETED" event to stop listening and exit the thread.
 class QueueCallBack {
     constructor($o, $url) {
-	printf("retrieving %s\n", $url);
+	myprintf("retrieving %s\n", $url);
 	$.queue = new Queue();
 	$.counter = new Counter(1);
 	$o.setEventQueue($.queue);
@@ -60,19 +65,19 @@ class QueueCallBack {
 	    }
 
 	    if ($o.verbose) {
-		printf("%s %s: %s\n", EVENT_SOURCE_MAP.($e.source), EVENT_MAP.($e.event), QueueCallBack::getstr($e - ("event", "source")));
+		myprintf("%s %s: %s\n", EVENT_SOURCE_MAP.($e.source), EVENT_MAP.($e.event), QueueCallBack::getstr($e - ("event", "source")));
 		continue;
 	    }
 	    switch ($e.event) {
 		case EVENT_HOSTNAME_LOOKUP: {
 		if (!$.lookup)
-			printf("resolving %s: ", $e.name);
+			myprintf("resolving %s: ", $e.name);
 		    break;
 		}
 
 		case EVENT_HOSTNAME_RESOLVED: {
 		    if (!$.lookup) {
-			printf("%s\n", $e.address);
+			myprintf("%s\n", $e.address);
 			$.lookup = True;
 		    }
 		    break;
@@ -88,7 +93,7 @@ class QueueCallBack {
 		}
 
 		case EVENT_HTTP_CONTENT_LENGTH: {
-		    printf("content length: %d", $e.len);
+		    myprintf("content length: %d", $e.len);
 		    $.body_len = $e.len;
 		    $.in_body = True;
 		    break;
@@ -120,7 +125,7 @@ class QueueCallBack {
 		    printf("redirected to %s", $e.location);
 		    if (exists $e.status_message)
 			printf(" (%s)", $e.status_message);
-		    printf("\n");
+		    myprintf("\n");
 		    flush();
 		    break;
 		}
@@ -161,10 +166,10 @@ class QueueCallBack {
 
 	if ($.body_len) {
 	    my $nh = $.total_read * 50 / float($.body_len); 
-	    printf("\r%3d% %s%s %f %s (%d/%d)    ", $.total_read * 100 / float($.body_len), substr(cstr, 0, $nh), substr(bstr, $nh), $.bps, $.units, $.total_read, $.body_len);
+	    myprintf("\r%3d% %s%s %f %s (%d/%d)    ", $.total_read * 100 / float($.body_len), substr(cstr, 0, $nh), substr(bstr, $nh), $.bps, $.units, $.total_read, $.body_len);
 	}
 	else {
-	    printf("\r%d bytes %f %s     ", $.total_read, $.bps, $.units);
+	    myprintf("\r%d bytes %f %s     ", $.total_read, $.bps, $.units);
 	}
 	flush();
     }
@@ -245,7 +250,7 @@ sub main() {
     $cb.wait();
     if (!$o.verbose) 
 	print("\n");
-    printf("done, saving %s (%d bytes)\n", $fn, type($x) == Type::String ? strlen($x) : elements $x);
+    myprintf("done, saving %s (%d bytes)\n", $fn, type($x) == Type::String ? strlen($x) : elements $x);
     my $f = new File();
     $f.open($fn, O_CREAT | O_TRUNC | O_WRONLY);
     $f.write(binary($x));

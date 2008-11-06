@@ -42,6 +42,9 @@ mostly fixed signal handling on Darwin, however for some reason it looks like
 signal handling after a fork() on Leopard (OS/X 10.5, Darwin 9.5) is broken. I
 haven't figured out why.
 
+fixed a setting the URL in the HTTPClient class with only a path if a hostname
+is already set
+
 *) new ABI 5.0, problems were found with ABI 4.0
 The 4.0 ABI was supposed to be fixed for a while; hopefully version 5.0 will
 last a little longer :-)
