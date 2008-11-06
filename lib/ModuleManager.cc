@@ -243,7 +243,7 @@ void ModuleManager::addAutoModuleDirList(const char *strlist) {
 
 // see if name has "-api-<digit(s)>.<digit(s)>" at the end
 static bool has_extension(const char *name) {
-   char *p = strstr(name, "-api-");
+   const char *p = strstr(name, "-api-");
    if (!p)
       return false;
    p += 5;
