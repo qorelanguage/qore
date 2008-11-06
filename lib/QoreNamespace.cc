@@ -1060,6 +1060,9 @@ int RootQoreNamespace::resolveSimpleConstant(AbstractQoreNode **node, int level)
    // if constant is not found, then a parse error will be raised
    AbstractQoreNode *rv = findConstantValue(b->str, level);
 
+   printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d) %08p %s-> %08p %s\n", 
+	  b->str, level, *node, (*node)->getTypeName(), rv, rv ? rv->getTypeName() : "n/a");
+
    b->deref();
    // here we put &True in the tree, so a value will be there - 
    // nulls cannot appear in the parse tree
@@ -1068,9 +1071,6 @@ int RootQoreNamespace::resolveSimpleConstant(AbstractQoreNode **node, int level)
    if (!rv)
       return -1;
 
-   printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d) %08p %s-> %08p %s\n", 
-	  b->str, level, *node, (*node)->getTypeName(), rv, rv->getTypeName());
-   
    return 0;
 }
 
