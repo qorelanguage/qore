@@ -280,13 +280,13 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
 
 int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink) {
    QoreURL url(str);
-   if (!url.getHost()) {
-      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "missing host specification in URL");
+   if (!url.getHost() && priv->host.empty()) {
+      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "missing host specification in URL '%s'", str);
       return -1;
    }
 
    if (!url.isValid()) {
-      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "url parameter cannot be parsed");
+      xsink->raiseException("HTTP-CLIENT-URL-ERROR", "url parameter '%s' cannot be parsed", str);
       return -1;
    }
 
@@ -296,8 +296,8 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink) {
       port_set = true;
    }
 
-   // host is always set if URL is valid
-   priv->host = url.getHost()->getBuffer();
+   if (url.getHost())
+      priv->host = url.getHost()->getBuffer();
 
    // check if hostname is really a local port number (for a URL string like: "8080")
    if (!url.getPort()) {
@@ -901,6 +901,8 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    return 0;
 	 }
 
+	 do_redirect_event(cb_queue, loc, mess);
+
 	 if (set_url_unlocked(location, xsink)) {
 	    sl.unlock();
 	    const char *msg = mess ? mess->getBuffer() : "<no message>";
@@ -920,8 +922,6 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    tmp.sprintf("redirect-message-%d", redirect_count);
 	    info->setKeyValue(tmp.getBuffer(), mess ? mess->refSelf() : 0, xsink);
 	 }
-
-	 do_redirect_event(cb_queue, loc, mess);
 
 	 // set mpath to NULL so that the new path will be taken
 	 mpath = 0;
