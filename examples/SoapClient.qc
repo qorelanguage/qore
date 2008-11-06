@@ -32,7 +32,7 @@
 # my $result = $sc.call("SubmitDocument", $msg);
 
 namespace SoapClient {
-    const Version = "0.1";
+    const Version = "0.1.1";
     const Headers = ("Accept":"application/soap+xml,text/xml", "User-Agent":("Qore Soap Client " + SoapClient::Version));
 }
  
@@ -112,8 +112,16 @@ class SoapClient::SoapClient {
 	# we have to write the request key after the HTTPClient::post() call
         on_exit $info.request = $msg;
 
+	my $op_ns = $op.getTargetNS();
+	if (exists $op_ns && $op_ns !~ /\/$/)
+	    $op_ns += "/";
+	my $op_text = exists $op_ns ? $op_ns + $operation : $operation;
+	my $soap_action = ( "SoapAction" : $op_text );
+	if ($op.isSoap12())
+	    $soap_action += ( "Content-Type" : ($.headers."Content-Type" + ";action=" + $op_text) );
+
 	#printf("DEBUG url=%n, msg=%n\n", $.url, $msg);
-	$info.response = $.hc.post($.url, $msg, $.headers, \$info);
+	$info.response = $.hc.post($.url, $msg, $.headers + $soap_action, \$info);
 	
 	#printf("DEBUG ans=%n\n", $ans);
 	return $op.deserializeResponse(parseXML($info.response));

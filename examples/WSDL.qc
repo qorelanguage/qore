@@ -68,7 +68,7 @@ class WSDL::XSDBase {
 		 "val" : $type );
     }
 
-    static private removeNS($h) {
+    static removeNS($h) {
 	foreach my $k in (keys $h) {
 	    my ($ns, $name) = $k =~ x/(\w+):(\w+)/;
 	    if (exists $ns) {
@@ -106,6 +106,10 @@ class WSDL::XSDNamedData inherits XSDData {
 
     getName() {
 	return exists $.name ? $.name : "<unnamed type>";
+    }
+
+    getNS() {
+	return $.ns;
     }
 }
 
@@ -600,10 +604,10 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 }
 
 class WSDL::WSOperation inherits XSDNamedData {
-    constructor($p, $targetns, $messages, $soap12, $forcedocns) : XSDNamedData(\$p) {
+    constructor($p, $targetns, $messages, $soap12, $usedocns) : XSDNamedData(\$p) {
 	$.targetns = $targetns;
 	$.soap12 = $soap12;
-	$.forcedocns = $forcedocns;
+	$.usedocns = $usedocns;
 
 	my $msghash = $.processNSValue($p.input."^attributes^");
 
@@ -651,7 +655,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 
 	#printf("DEBUG: docstyle=%n\n", $.docstyle);
 	if ($.docstyle)
-	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serializeDocument($h, $.targetns, $.forcedocns);
+	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serializeDocument($h, $.targetns, $.usedocns);
 	else
 	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serialize($.name, $h, $.targetns);
 
@@ -666,7 +670,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 	my $rh = $.soap12 ? WSDL::ENVELOPE_12_NS : WSDL::ENVELOPE_11_NS;
 
 	if ($.docstyle)
-	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serializeDocument($h, $.targetns, $.forcedocns);
+	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serializeDocument($h, $.targetns, $.usedocns);
 	else
 	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serialize($.name, $h, $.targetns);
 
@@ -776,6 +780,14 @@ class WSDL::WSOperation inherits XSDNamedData {
 	    }
 	}
 	return $h;
+    }
+    
+    isSoap12() {
+	return $.soap12;
+    }
+
+    getTargetNS() {
+	return $.targetns;
     }
 }
 
@@ -890,14 +902,8 @@ class WSDL::LateResolverHelper {
 
 
 class WSDL::WebService inherits XSDBase {
-    # options:
-    #  "forcedocns" : if True then the namespace will be included in the element names
-    #                 even in document-style messages 
     constructor($str, $opts) {
 	my $h = parseXML($str);
-
-	if ($opts.forcedocns)
-	    $.forcedocns = True;
 
 	# remove namespace (normally "wsdl:") prefix from keys if present
 	WSDL::XSDBase::removeNS(\$h);
@@ -974,6 +980,10 @@ class WSDL::WebService inherits XSDBase {
     # parse types
     private parseTypes($data) {
 	WSDL::XSDBase::removeNS(\$data);
+
+	my $sa = $data.schema."^attributes^";
+	if ($sa.elementFormDefault == "qualified")
+	    $.usedocns = True;
 	foreach my $schema in ($data.schema) {
 	    WSDL::XSDBase::removeNS(\$schema);
 	    #printf("DEBUG: WebService::parseTypes() schema=%N\n", $schema);
@@ -1067,7 +1077,7 @@ class WSDL::WebService inherits XSDBase {
 	    my $name = $port."^attributes^".name;
 	    $.services += $name;
 	    foreach my $p in ($port.operation) {
-		my $op = new WSOperation($p, $.ns.target, $.messages, $.soap12, $.forcedocns);
+		my $op = new WSOperation($p, $.ns.target, $.messages, $.soap12, $.usedocns);
 		$.portType.$name.operations.($op.name) = $op;
 		#printf("DEBUG: %n registered operation %n\n", $name, $op.name);
 		$.opmap.($op.name) = $op;

@@ -45,6 +45,10 @@ haven't figured out why.
 fixed a setting the URL in the HTTPClient class with only a path if a hostname
 is already set
 
+SOAP improvements in example code in the examples/ directory:
+     WSDL.qc, SoapHandler.qc, SoapClient.qc, HTTPServer.qc
+soap 1.2 is handled better, namespace handling improvements
+
 *) new ABI 5.0, problems were found with ABI 4.0
 The 4.0 ABI was supposed to be fixed for a while; hopefully version 5.0 will
 last a little longer :-)

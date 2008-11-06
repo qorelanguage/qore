@@ -4,6 +4,9 @@
 # *) not really HTTP 1.1 compliant although claims to be
 # *) no HTTP mime/multipart handling (support for this ideally needs to be implemented in the qore library)
 
+# changes for v0.2.5:
+# * minor fixes for SOAP support
+
 # changes for v0.2.4:
 # * improved Content-Type handling
 # * improved URL/path support
@@ -345,16 +348,22 @@ class HTTPServer::Listener inherits Qore::Socket {
 		}
 
 		$context.encoding = $.getCharset();
+
+		# save original content-type
+		$hdr."qore-orig-content-type" = $hdr."content-type";
+
 		# split content-type fields
 		my $ct = split(";", $hdr."content-type");
 		trim $ct;
+
+		# check for character encoding specification in content-type
 		foreach my $c in (\$ct)	{
 		    if ($c =~ /charset=/) {
 			$c =~ s/charset=//;
 			$s.setCharset($c);
 			$context.encoding = $c;
 		    }
-		    else
+		    else if ($c !~ /=/)
 			$hdr."content-type" = $c;
 		}
 
@@ -700,7 +709,6 @@ class HTTPServer::HTTPServer {
 	    if (exists $me)
 		$context.encoding = $me;
 	}
-		
 
 	# add logging functions
 	$context += 
@@ -725,7 +733,8 @@ class HTTPServer::HTTPServer {
 		continue;
 	    }
 	    # path trumps content-type
-	    if (strlen($.handlers.$h.url) && strlen($url.path) && regex($url.path, $.handlers.$h.url))
+	    #printf("regex(%n, %s, %n, %s) %n\n", $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), regex($url.path, $.handlers.$h.url));
+	    if (strlen($.handlers.$h.url) && strlen($hdr.path) && regex($hdr.path, $.handlers.$h.url))
 		$m = $h;
 	}
 	try {
@@ -796,6 +805,7 @@ class HTTPServer::HTTPServer {
 		    }
 		    
 		    $s.sendHTTPResponse($rv.code, HTTPServer::HTTPCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
+		    #$.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
 		}
 	    }
 	    
