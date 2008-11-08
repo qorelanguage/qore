@@ -70,15 +70,14 @@ int QoreFile::readChar()
    return (int)ch;
 }
 
-char *QoreFile::readBlock(int &size)
-{
-   int bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
-   int br = 0;
+char *QoreFile::readBlock(qore_offset_t &size) {
+   qore_size_t bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
+   qore_size_t br = 0;
    char *buf = (char *)malloc(sizeof(char) * bs);
    char *bbuf = 0;
 
    while (true) {
-      int rc = ::read(priv->fd, buf, bs);
+      qore_size_t rc = ::read(priv->fd, buf, bs);
       if (rc <= 0)
 	 break;
       // enlarge bbuf (ensure buffer is 1 byte bigger than needed)
@@ -90,7 +89,7 @@ char *QoreFile::readBlock(int &size)
       if (size > 0) {
 	 if (size - br < bs)
 	    bs = size - br;
-	 if (br >= size)
+	 if (br >= (qore_size_t)size)
 	    break;
       }
    }
@@ -105,8 +104,7 @@ char *QoreFile::readBlock(int &size)
 }
 
 // returns -1 for exception
-int QoreFile::check_read_open(ExceptionSink *xsink)
-{
+int QoreFile::check_read_open(ExceptionSink *xsink) {
    if (priv->is_open)
       return 0;
    
@@ -350,8 +348,7 @@ QoreStringNode *QoreFile::readLine(ExceptionSink *xsink)
    return str.release();
 }
 
-int QoreFile::setPos(int pos)
-{
+qore_size_t QoreFile::setPos(qore_size_t pos) {
    AutoLocker al(priv->m);
 
    if (!priv->is_open)
@@ -360,8 +357,7 @@ int QoreFile::setPos(int pos)
    return lseek(priv->fd, pos, SEEK_SET);
 }
 
-int QoreFile::getPos()
-{
+qore_size_t QoreFile::getPos() {
    AutoLocker al(priv->m);
 
    if (!priv->is_open)
@@ -370,8 +366,7 @@ int QoreFile::getPos()
    return lseek(priv->fd, 0, SEEK_CUR);
 }
 
-QoreStringNode *QoreFile::getchar()
-{
+QoreStringNode *QoreFile::getchar() {
    int c;
    {
       AutoLocker al(priv->m);
@@ -390,8 +385,7 @@ QoreStringNode *QoreFile::getchar()
    return str;
 }
 
-int QoreFile::write(const void *data, unsigned len, ExceptionSink *xsink)
-{
+int QoreFile::write(const void *data, qore_size_t len, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (check_write_open(xsink))
@@ -403,8 +397,7 @@ int QoreFile::write(const void *data, unsigned len, ExceptionSink *xsink)
    return ::write(priv->fd, data, len);
 }
 
-int QoreFile::write(const QoreString *str, ExceptionSink *xsink)
-{
+int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (check_write_open(xsink))
@@ -435,7 +428,7 @@ int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink)
    return ::write(priv->fd, b->getPtr(), b->size());
 }
 
-QoreStringNode *QoreFile::read(int size, ExceptionSink *xsink)
+QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink)
 {
    if (!size)
       return 0;
@@ -457,8 +450,7 @@ QoreStringNode *QoreFile::read(int size, ExceptionSink *xsink)
    return str;
 }
 
-class BinaryNode *QoreFile::readBinary(int size, ExceptionSink *xsink)
-{
+BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {
    if (!size)
       return 0;
 
@@ -477,8 +469,7 @@ class BinaryNode *QoreFile::readBinary(int size, ExceptionSink *xsink)
    return new BinaryNode(buf, size);
 }
 
-int QoreFile::writei1(char i, ExceptionSink *xsink)
-{
+int QoreFile::writei1(char i, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (check_write_open(xsink))
@@ -487,8 +478,7 @@ int QoreFile::writei1(char i, ExceptionSink *xsink)
    return ::write(priv->fd, (char *)&i, 1);   
 }
 
-int QoreFile::writei2(short i, ExceptionSink *xsink)
-{
+int QoreFile::writei2(short i, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (check_write_open(xsink))
@@ -498,8 +488,7 @@ int QoreFile::writei2(short i, ExceptionSink *xsink)
    return ::write(priv->fd, (char *)&i, 2);   
 }
 
-int QoreFile::writei4(int i, ExceptionSink *xsink)
-{
+int QoreFile::writei4(int i, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (check_write_open(xsink))

@@ -2,6 +2,8 @@
 	* updated QoreSocket API to use qore_offset_t and qore_size_t where
 	  appropriate instead of "int"
 	* fixed some bugs in QoreSocket::send(int fd, qore_offset_t size)
+	* updated QoreFile API to use qore_offset_t and qore_size_t where
+	  appropriate instead of "int"
 
 2008.11.06: David Nichols
 	* fixed a setting the URL in the HTTPClient class with only a path if a
