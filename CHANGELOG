@@ -1,3 +1,8 @@
+2008.11.08: David Nichols
+	* updated QoreSocket API to use qore_offset_t and qore_size_t where
+	  appropriate instead of "int"
+	* fixed some bugs in QoreSocket::send(int fd, qore_offset_t size)
+
 2008.11.06: David Nichols
 	* fixed a setting the URL in the HTTPClient class with only a path if a
 	  hostname is already set

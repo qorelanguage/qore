@@ -124,7 +124,7 @@ class QoreSocket {
       DLLLOCAL int openUNIX();
 
       DLLLOCAL void reuse(int opt);
-      DLLLOCAL int recv(char *buf, int bs, int flags, int timeout, bool do_event = true);
+      DLLLOCAL int recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event = true);
       DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
       DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
@@ -322,7 +322,7 @@ class QoreSocket {
 	 @param size the size of the data to send
 	 @return 0 for OK, not 0 if an error occured
        */
-      DLLEXPORT int send(const char *buf, int size);
+      DLLEXPORT int send(const char *buf, qore_size_t size);
   
       //! sends string data on a connected socket, converts the string encoding to the socket's encoding if necessary
       /**
@@ -345,7 +345,7 @@ class QoreSocket {
 	 @param size the number of bytes to send (-1 = send all until EOF)
 	 @return 0 for OK, not 0 if an error occured
        */
-      DLLEXPORT int send(int fd, int size = -1);
+      DLLEXPORT int send(int fd, qore_offset_t size = -1);
 
       //! sends a 1-byte binary integer data to a connected socket
       /** The socket must be connected before this call is made.
@@ -544,7 +544,7 @@ class QoreSocket {
 	  @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
 	  @see QoreEncoding
        */
-      DLLEXPORT QoreStringNode *recv(int bufsize, int timeout, int *prc);
+      DLLEXPORT QoreStringNode *recv(qore_offset_t bufsize, int timeout, int *prc);
 
       //! receive a certain number of bytes with a timeout value and return a BinaryNode, caller owns the reference count returned
       /** The socket must be connected before this call is made.
@@ -553,7 +553,7 @@ class QoreSocket {
 	  @param prc output parameter: 0 for OK, not 0 for error
 	  @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
        */
-      DLLEXPORT BinaryNode *recvBinary(int bufsize, int timeout, int *prc);
+      DLLEXPORT BinaryNode *recvBinary(qore_offset_t bufsize, int timeout, int *prc);
 
       //! receive with a timeout value and return a QoreStringNode, caller owns the reference count returned
       /** The socket must be connected before this call is made.
@@ -575,7 +575,7 @@ class QoreSocket {
 	  @return 0 for OK, not 0 for error
 	  @note the timeout value applies to each read from the socket
        */
-      DLLEXPORT int recv(int fd, int size, int timeout);
+      DLLEXPORT int recv(int fd, qore_offset_t size, int timeout);
 
       //! send an HTTP request message on the socket
       /** The socket must be connected before this call is made.
@@ -587,7 +587,7 @@ class QoreSocket {
 	  @param size the length of the message body (may be 0)
 	  @return 0 for OK, not 0 for error
        */
-      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, int size, int source = QORE_SOURCE_SOCKET);
+      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
 
       //! send an HTTP response message on the socket
       /** The socket must be connected before this call is made.
@@ -599,7 +599,7 @@ class QoreSocket {
 	  @param size the length of the message body (may be 0)
 	  @return 0 for OK, not 0 for error
        */
-      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, int size, int source = QORE_SOURCE_SOCKET);
+      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
 
       //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
       /** The socket must be connected before this call is made.

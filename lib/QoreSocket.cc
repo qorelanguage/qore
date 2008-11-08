@@ -723,8 +723,7 @@ int QoreSocket::bind(const char *name, bool reuseaddr)
    return 0;
 }
 
-int QoreSocket::sendi1(char i)
-{
+int QoreSocket::sendi1(char i) {
    if (!priv->sock)
       return -1;
 
@@ -738,17 +737,18 @@ int QoreSocket::sendi1(char i)
    return 0;
 }
 
-int QoreSocket::sendi2(short i)
-{
+int QoreSocket::sendi2(short i) {
    if (!priv->sock)
       return -1;
 
    // convert to network byte order
    i = htons(i);
+   return send((char *)&i, 2);
+/*
    char *buf = (char *)&i;
-   int bs = 0;
-   while (1)
-   {
+
+   qore_size_t bs = 0;
+   while (true) {
       int rc = send(buf + bs, 2 - bs);
       if (!rc || rc < 0)
 	 return -1;
@@ -757,21 +757,21 @@ int QoreSocket::sendi2(short i)
 	 break;
    }
    //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
-
+   */
    return 0;
 }
 
-int QoreSocket::sendi4(int i)
-{
+int QoreSocket::sendi4(int i) {
    if (!priv->sock)
       return -1;
 
    // convert to network byte order
    i = htonl(i);
+   return send((char *)&i, 4);
+/*
    char *buf = (char *)&i;
-   int bs = 0;
-   while (1)
-   {
+   qore_size_t bs = 0;
+   while (true) {
       int rc = send(buf + bs, 4 - bs);
       if (!rc || rc < 0)
 	 return -1;
@@ -781,19 +781,20 @@ int QoreSocket::sendi4(int i)
    }
    //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
    return 0;
+*/
 }
 
-int QoreSocket::sendi8(int64 i)
-{
+int QoreSocket::sendi8(int64 i) {
    if (!priv->sock)
       return -1;
 
    // convert to network byte order
    i = i8MSB(i);
+   return send((char *)&i, 8);
+/*
    char *buf = (char *)&i;
-   int bs = 0;
-   while (1)
-   {
+   qore_size_t bs = 0;
+   while (true) {
       int rc = send(buf + bs, 8 - bs);
       if (!rc || rc < 0)
 	 return -1;
@@ -803,19 +804,20 @@ int QoreSocket::sendi8(int64 i)
    }
    //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
    return 0;
+*/
 }
 
-int QoreSocket::sendi2LSB(short i)
-{
+int QoreSocket::sendi2LSB(short i) {
    if (!priv->sock)
       return -1;
 
    // convert to network byte order
    i = i2LSB(i);
+   return send((char *)&i, 2);
+/*
    char *buf = (char *)&i;
-   int bs = 0;
-   while (1)
-   {
+   qore_size_t bs = 0;
+   while (true) {
       int rc = send(buf + bs, 2 - bs);
       if (!rc || rc < 0)
 	 return -1;
@@ -826,19 +828,20 @@ int QoreSocket::sendi2LSB(short i)
    //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
 
    return 0;
+*/
 }
 
-int QoreSocket::sendi4LSB(int i)
-{
+int QoreSocket::sendi4LSB(int i) {
    if (!priv->sock)
       return -1;
 
    // convert to network byte order
    i = i4LSB(i);
+   return send((char *)&i, 4);
+/*
    char *buf = (char *)&i;
-   int bs = 0;
-   while (1)
-   {
+   qore_ize_t bs = 0;
+   while (true) {
       int rc = send(buf + bs, 4 - bs);
       if (!rc || rc < 0)
 	 return -1;
@@ -848,19 +851,20 @@ int QoreSocket::sendi4LSB(int i)
    }
    //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
    return 0;
+*/
 }
 
-int QoreSocket::sendi8LSB(int64 i)
-{
+int QoreSocket::sendi8LSB(int64 i) {
    if (!priv->sock)
       return -1;
 
    // convert to network byte order
    i = i8LSB(i);
+   return send((char *)&i, 8);
+/*
    char *buf = (char *)&i;
-   int bs = 0;
-   while (1)
-   {
+   qore_size_t bs = 0;
+   while (true) {
       int rc = send(buf + bs, 8 - bs);
       if (!rc || rc < 0)
 	 return -1;
@@ -870,27 +874,25 @@ int QoreSocket::sendi8LSB(int64 i)
    }
    //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
    return 0;
+*/
 }
 
 // receive integer values and convert from network byte order
-int QoreSocket::recvi1(int timeout, char *val)
-{
+int QoreSocket::recvi1(int timeout, char *val) {
    if (!priv->sock)
       return -1;
 
    return recv(val, 1, 0, timeout);
 }
 
-int QoreSocket::recvi2(int timeout, short *val)
-{
+int QoreSocket::recvi2(int timeout, short *val) {
    if (!priv->sock)
       return -1;
 
    char *buf = (char *)val;
 
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 2 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -912,8 +914,7 @@ int QoreSocket::recvi4(int timeout, int *val) {
    char *buf = (char *)val;
 
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 4 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1128,7 +1129,7 @@ int QoreSocket::recvu4LSB(int timeout, unsigned int *val)
    return 4;
 }
 
-int QoreSocket::send(int fd, int size) {
+int QoreSocket::send(int fd, qore_offset_t size) {
    if (!priv->sock || !size) {
       printd(5, "QoreSocket::send() ERROR: sock=%d size=%d\n", priv->sock, size);
       return -1;
@@ -1136,11 +1137,11 @@ int QoreSocket::send(int fd, int size) {
 
    char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
 
-   int rc = 0;
-   int bs = 0;
+   qore_size_t rc = 0;
+   qore_size_t bs = 0;
    while (true) {
       // calculate bytes needed
-      int bn;
+      qore_size_t bn;
       if (size < 0)
 	 bn = DEFAULT_SOCKET_BUFSIZE;
       else {
@@ -1157,13 +1158,13 @@ int QoreSocket::send(int fd, int size) {
       }
 
       // send buffer
-      rc = send(buf, rc);
-      if (rc < 0) {
+      int src = send(buf, rc);
+      if (src < 0) {
 	 printd(5, "QoreSocket::send() send error: %s\n", strerror(errno));
 	 break;
       }
       bs += rc;
-      if (bs >= size) {
+      if (size > 0 && bs >= (qore_size_t)size) {
 	 rc = 0;
 	 break;
       }
@@ -1172,21 +1173,19 @@ int QoreSocket::send(int fd, int size) {
    return rc;
 }
 
-BinaryNode *QoreSocket::recvBinary(int bufsize, int timeout, int *rc) {
+BinaryNode *QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, int *rc) {
    if (!priv->sock)
       return 0;
 
-   int bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
+   qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
    SimpleRefHolder<BinaryNode> b(new BinaryNode());
 
    char *buf = (char *)malloc(sizeof(char) * bs);
-   int br = 0; // bytes received
-   while (true)
-   {
+   qore_size_t br = 0; // bytes received
+   while (true) {
       *rc = recv(buf, bs, 0, timeout);
-      if ((*rc) <= 0)
-      {
+      if ((*rc) <= 0) {
 	 if (*rc || !br || (!*rc && bufsize > 0))
 	    b = 0; // free binary object
 
@@ -1195,11 +1194,10 @@ BinaryNode *QoreSocket::recvBinary(int bufsize, int timeout, int *rc) {
       b->append(buf, *rc);
       br += *rc;
 
-      if (bufsize > 0)
-      {
+      if (bufsize > 0) {
 	 if (bufsize - br < bs)
 	    bs = bufsize - br;
-	 if (br >= bufsize)
+	 if (br >= (qore_size_t)bufsize)
 	    break;
       }
    }
@@ -1211,20 +1209,20 @@ BinaryNode *QoreSocket::recvBinary(int bufsize, int timeout, int *rc) {
    return b.release();
 }
 
-QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc) {
+QoreStringNode *QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
    if (!priv->sock) {
       *rc = -3;
       return 0;
    }
 
-   int bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
+   qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
    QoreStringNode *str = new QoreStringNode(priv->charsetid);
 
    char *buf = (char *)malloc(sizeof(char) * bs);
    ON_BLOCK_EXIT(free, buf);
 
-   int br = 0; // bytes received
+   qore_size_t br = 0; // bytes received
    while (true) {
       *rc = recv(buf, bs, 0, timeout, false);
       if ((*rc) <= 0) {
@@ -1244,7 +1242,7 @@ QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc) {
       priv->do_read_event(*rc, br, bufsize);
 
       if (bufsize > 0) {
-	 if (br >= bufsize)
+	 if (br >= (qore_size_t)bufsize)
 	    break;
 	 if (bufsize - br < bs)
 	    bs = bufsize - br;
@@ -1271,7 +1269,7 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
       free(buf);
       return 0;
    }
-   int rd = *rc;
+   qore_size_t rd = *rc;
 
    // register event
    priv->do_read_event(*rc, rd);
@@ -1301,20 +1299,19 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
 }
 
 // receive data and write to file descriptor
-int QoreSocket::recv(int fd, int size, int timeout) {
+int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
    if (!priv->sock || !size)
       return -1;
 
    char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
-   int br = 0;
-   int rc;
+   qore_size_t br = 0;
+   qore_size_t rc;
    while (true) {
       // calculate bytes needed
       int bn;
       if (size == -1)
 	 bn = DEFAULT_SOCKET_BUFSIZE;
-      else
-      {
+      else {
 	 bn = size - br;
 	 if (bn > DEFAULT_SOCKET_BUFSIZE)
 	    bn = DEFAULT_SOCKET_BUFSIZE;
@@ -1330,8 +1327,7 @@ int QoreSocket::recv(int fd, int size, int timeout) {
       if (rc <= 0)
 	 break;
 
-      if (size > 0 && br >= size)
-      {
+      if (size > 0 && br >= (qore_size_t)size) {
 	 rc = 0;
 	 break;
       }
@@ -1340,17 +1336,13 @@ int QoreSocket::recv(int fd, int size, int timeout) {
    return rc;
 }
 
-static void do_headers(QoreString &hdr, const QoreHashNode *headers, int size)
-{
-   if (headers)
-   {
-      class ConstHashIterator hi(headers);
+static void do_headers(QoreString &hdr, const QoreHashNode *headers, qore_size_t size) {
+   if (headers) {
+      ConstHashIterator hi(headers);
 
-      while (hi.next())
-      {
+      while (hi.next()) {
 	 const AbstractQoreNode *v = hi.getValue();
-	 if (v)
-	 {
+	 if (v) {
 	    qore_type_t vtype = v->getType();
 
 	    if (vtype == NT_STRING) {
@@ -1375,7 +1367,7 @@ static void do_headers(QoreString &hdr, const QoreHashNode *headers, int size)
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, int size, int source) {
+int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source) {
    // prepare header string
    QoreString hdr(priv->charsetid);
 
@@ -1399,7 +1391,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHashNode *headers, const void *data, int size, int source) {
+int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source) {
    // prepare header string
    QoreString hdr(priv->charsetid);
 
@@ -1429,7 +1421,7 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state) {
    // read in HHTP header until \r\n\r\n or \n\n from socket
    QoreStringNodeHolder hdr(new QoreStringNode(priv->charsetid));
 
-   int count = 0;
+   qore_size_t count = 0;
 
    while (true) {
       char c;
@@ -1737,7 +1729,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
       char *p = (char *)strchr(str.getBuffer(), ';');
       if (p)
 	 *p = '\0';
-      long size = strtol(str.getBuffer(), 0, 16);
+      qore_size_t size = strtol(str.getBuffer(), 0, 16);
       priv->do_chunked_read(QORE_EVENT_HTTP_CHUNK_SIZE, size, str.strlen(), source);
       if (size == 0)
 	 break;
@@ -1752,8 +1744,8 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
       buf->allocate((unsigned)(buf->strlen() + size + 1));
       
       // read chunk directly into string buffer    
-      int bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
-      int br = 0; // bytes received
+      qore_size_t bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
+      qore_size_t br = 0; // bytes received
       while (true) {
 	 rc = recv((char *)buf->getBuffer() + buf->strlen() + br, bs, 0, timeout, false);
 	 if (rc <= 0) {
@@ -1832,7 +1824,7 @@ bool QoreSocket::isDataAvailable(int timeout) const {
 #endif
 }
 
-int QoreSocket::recv(char *buf, int bs, int flags, int timeout, bool do_event) {
+int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event) {
    if (timeout != -1 && !isDataAvailable(timeout))
       return -3;
 
@@ -2080,7 +2072,7 @@ QoreSocket *QoreSocket::accept(class SocketSource *source, ExceptionSink *xsink)
 
 // QoreSocket::acceptSSL()
 // accepts a new connection, negotiates an SSL connection, and returns the new socket
-QoreSocket *QoreSocket::acceptSSL(class SocketSource *source, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+QoreSocket *QoreSocket::acceptSSL(SocketSource *source, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
    QoreSocket *s = accept(source, xsink);
    if (!s)
       return 0;
@@ -2095,7 +2087,7 @@ QoreSocket *QoreSocket::acceptSSL(class SocketSource *source, X509 *cert, EVP_PK
 }
 
 // accept a connection and replace the socket with the new connection
-int QoreSocket::acceptAndReplace(class SocketSource *source) {
+int QoreSocket::acceptAndReplace(SocketSource *source) {
    QORE_TRACE("QoreSocket::acceptAndReplace()");
    int rc = priv->accept_internal(source);
    if (rc == -1)
@@ -2120,11 +2112,11 @@ static inline void add_to_buffer(char **buf, int *len, void *data, int size) {
 }
 */
 
-int QoreSocket::send(const char *buf, int size) {
+int QoreSocket::send(const char *buf, qore_size_t size) {
    if (!priv->sock)
       return -2;
 
-   int bs = 0;
+   qore_size_t bs = 0;
    while (true) {
       int rc;
       if (!priv->ssl)
