@@ -285,7 +285,7 @@ sub main() {
     }
     catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc);
-	exit(1);
+	thread_exit;
     }
 
     # get the filename to save
