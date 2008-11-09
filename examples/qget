@@ -28,7 +28,7 @@
 # size
 
 # ensure we have the minimum version of qore we need
-%require qore >= 0.7.1
+%requires qore >= 0.7.1
 
 %require-our
 %enable-all-warnings
