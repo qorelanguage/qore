@@ -3,6 +3,7 @@
 	* added new socket events for connecting and SSL negotiation
 	* updated socket-test.q to use new event framework if -e or 
 	  --show-events is given on the command line
+	* fixed a bug setting the URL in parseURL()
 
 2008.11.08: David Nichols
 	* updated QoreSocket API to use qore_offset_t and qore_size_t where

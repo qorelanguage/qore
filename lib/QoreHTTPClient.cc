@@ -137,8 +137,9 @@ struct qore_qtc_private {
 	    socketpath += ":";
 	    char buff[20];
 	    sprintf(buff, "%d", port);
-	    socketpath += buff;
+	    socketpath += buff;	    
 	 }
+	 //printd(5, "setSocketPath() '%s'\n", socketpath.c_str());
       }
 
       DLLLOCAL void lock() { m.lock(); }
@@ -301,9 +302,9 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink) {
 
    // check if hostname is really a local port number (for a URL string like: "8080")
    if (!url.getPort()) {
-      char* aux;
+      char *aux;
       int val = strtol(priv->host.c_str(), &aux, 10);
-      if (aux != priv->host.c_str()) {
+      if (aux == (priv->host.c_str() + priv->host.size())) {
 	 priv->host = HTTPCLIENT_DEFAULT_HOST;
 	 priv->port = val;
 	 port_set = true;

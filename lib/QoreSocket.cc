@@ -402,7 +402,7 @@ struct qore_socket_private {
 	 }
       }
 
-      DLLLOCAL void do_connect_event(int af, const char *target, int prt, bool ssl) {
+      DLLLOCAL void do_connect_event(int af, const char *target, int prt) {
 	 if (cb_queue) {
 	    QoreHashNode *h = new QoreHashNode;
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTING), 0);
@@ -413,7 +413,6 @@ struct qore_socket_private {
 	    h->setKeyValue("target", new QoreStringNode(target), 0);
 	    if (prt != -1)
 	       h->setKeyValue("port", new QoreBigIntNode(prt), 0);
-	    h->setKeyValue("ssl", get_bool_node(ssl), 0);
 	    cb_queue->push_and_take_ref(h);
 	 }
       }
@@ -577,6 +576,7 @@ struct qore_socket_private {
 	    return -1;
 	 }
 
+	 do_connect_event(AF_INET, host, prt);
 	 if ((::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in))) == -1) {
 	    ::close(sock);
 	    sock = 0;
@@ -698,8 +698,7 @@ int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink) {
    return priv->connectINET(host, prt, xsink);
 }
 
-int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink)
-{
+int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink) {
    QORE_TRACE("connectUNIX()");
 
    // close socket if already open
@@ -713,16 +712,16 @@ int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink)
    // copy path and terminate if necessary
    strncpy(addr.sun_path, p, UNIX_PATH_MAX - 1);
    addr.sun_path[UNIX_PATH_MAX - 1] = '\0';
-   if ((priv->sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-   {
+   if ((priv->sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
       priv->sock = 0;
       if (xsink)
 	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
 
       return -1;
    }
-   if ((::connect(priv->sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un))) == -1)
-   {
+
+   priv->do_connect_event(AF_UNIX, p, -1);
+   if ((::connect(priv->sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un))) == -1) {
       ::close(priv->sock);
       priv->sock = 0;
       if (xsink)
@@ -1921,13 +1920,11 @@ int QoreSocket::connect(const char *name, ExceptionSink *xsink) {
       strncpy(host, name, p - name);
       host[p - name] = '\0';
       int prt = strtol(p + 1, 0, 10);
-      priv->do_connect_event(AF_INET, host, prt, false);
       rc = connectINET(host, prt, xsink);
       free(host);
    }
    else {
       // else assume it's a file name for a UNIX domain socket
-      priv->do_connect_event(AF_UNIX, name, -1, false);
       rc = connectUNIX(name, xsink);
    }
 
@@ -1951,13 +1948,11 @@ int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, Excepti
       strncpy(host, name, p - name);
       host[p - name] = '\0';
       int prt = strtol(p + 1, 0, 10);
-      priv->do_connect_event(AF_INET, host, prt, true);
       rc = connectINETSSL(host, prt, cert, pkey, xsink);
       free(host);
    }
    else {
       // else assume it's a file name for a UNIX domain socket
-      priv->do_connect_event(AF_UNIX, name, -1, true);
       rc = connectUNIXSSL(name, cert, pkey, xsink);
    }
 
