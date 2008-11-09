@@ -1682,6 +1682,10 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_FOOTERS_RECEIVED), new QoreStringNode("HTTP_FOOTERS_RECEIVED"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED), new QoreStringNode("HTTP_CHUNKED_DATA_RECEIVED"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNK_SIZE), new QoreStringNode("HTTP_CHUNK_SIZE"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_CONNECTING), new QoreStringNode("CONNECTING"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_CONNECTED), new QoreStringNode("CONNECTED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_START_SSL), new QoreStringNode("START_SSL"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_SSL_ESTABLISHED), new QoreStringNode("START_SSL_ESTABLISHED"), 0);
    qns->addConstant("EVENT_MAP", qsam);
 
    qns->addConstant("EVENT_PACKET_READ", new QoreBigIntNode(QORE_EVENT_PACKET_READ));
@@ -1701,6 +1705,10 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("EVENT_HTTP_FOOTERS_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_FOOTERS_RECEIVED));
    qns->addConstant("EVENT_HTTP_CHUNKED_DATA_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED));
    qns->addConstant("EVENT_HTTP_CHUNK_SIZE", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNK_SIZE));
+   qns->addConstant("EVENT_CONNECTING", new QoreBigIntNode(QORE_EVENT_CONNECTING));
+   qns->addConstant("EVENT_CONNECTED", new QoreBigIntNode(QORE_EVENT_CONNECTED));
+   qns->addConstant("EVENT_START_SSL", new QoreBigIntNode(QORE_EVENT_START_SSL));
+   qns->addConstant("EVENT_SSL_ESTABLISHED", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED));
    //qns->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
    // set up Option namespace for Qore options

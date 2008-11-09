@@ -13,7 +13,7 @@ const opts =
       "cert"       : "c,cert=s",
       "clientkey"  : "K,client-private-key=s",
       "clientcert" : "C,client-cert=s",
-      "cb"         : "b,callback",
+      "events"     : "e,show-events",
       "verbose"    : "v,verbose" );
 
 const i1 = 10;
@@ -37,27 +37,43 @@ class socket_test {
 
 	$.counter = new Counter(1);
 
-	if (!exists $.o.server)
-	    background $.server_thread();
+	# create event queue and start listening thread if necessary
+	if ($.o.events) {
+	    $.queue = new Queue();
+	    background $.listen();
+	}
 
-	if (!$.o.servonly)
+	$.stopc = new Counter();
+	if (!exists $.o.server) {
+	    $.stopc.inc();
+	    background $.server_thread();
+	}
+	if (!$.o.servonly) {
+	    $.stopc.inc();
 	    background $.client_thread();   
+	}
+
+	$.stopc.waitForZero();
+	if ($.o.events)
+	    $.queue.push();
     }
 
     private server_thread() {
-	printf("listening for incoming connections on %s\n", $.server_port);
+	on_exit $.stopc.dec();
+	socket_test::printf("listening for incoming connections on %s\n", $.server_port);
 	my $s = new Socket();
 	# setting the callback will output far too much data
-	if ($.o.cb)
-	    $s.setCallBack(\$.callback());
+	if ($.o.events) {
+	    $s.setEventQueue($.queue);
+	}
 
 	if ($s.bind($.server_port, True) == -1){
-	    printf("server_thread: error opening socket! (%s)\n", strerror(errno()));
+	    socket_test::printf("server_thread: error opening socket! (%s)\n", strerror(errno()));
 	    thread_exit;
 	}
 	
 	if ($s.listen()) {
-	    printf("listen error (%s)\n", strerror(errno()));
+	    socket_test::printf("listen error (%s)\n", strerror(errno()));
 	    thread_exit;
 	}
     
@@ -74,23 +90,23 @@ class socket_test {
 		    $s.setPrivateKey($.o.key);
 		
 		$s = $s.acceptSSL();
-		printf("returned from Socket::acceptSSL() s=%N\n", $s);
-		printf("server: secure connection (%s %s) from %s (%s)\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.source, $s.source_host);
+		socket_test::printf("returned from Socket::acceptSSL() s=%N\n", $s);
+		socket_test::printf("server: secure connection (%s %s) from %s (%s)\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.source, $s.source_host);
 		my $str = $s.verifyPeerCertificate();
 		if (!exists $str)
-		    printf("server: no client certificate\n");
+		    socket_test::printf("server: no client certificate\n");
 		else
-		    printf("server: client certificate: %n %s: %s\n", $str, X509_VerificationReasons.$str);
+		    socket_test::printf("server: client certificate: %n %s: %s\n", $str, X509_VerificationReasons.$str);
 	    }
 	    else {
 		$s = $s.accept();
-		printf("server: cleartext connection from %s (%s)\n", $s.source, $s.source_host);
+		socket_test::printf("server: cleartext connection from %s (%s)\n", $s.source, $s.source_host);
 	    }
-	    if ($.o.cb)
-		$s.setCallBack(\$.callback());
+	    if ($.o.events)
+		$s.setEventQueue($.queue);
 	}
 	catch ($ex) {
-	    printf("server error: %s: %s\n", $ex.err, $ex.desc);
+	    socket_test::printf("server error: %s: %s\n", $ex.err, $ex.desc);
 	    thread_exit;
 	}
 	
@@ -101,12 +117,13 @@ class socket_test {
     }
 
     private client_thread() {
+	on_exit $.stopc.dec();
 	if (!exists $.o.server)
 	    $.counter.waitForZero();
 	my $s = new Socket();
 	# setting the callback will output far too much data
-	if ($.o.cb)
-	    $s.setCallBack(\$.callback());
+	if ($.o.events)
+	    $s.setEventQueue($.queue);
 
 	try {
 	    if ($.o.ssl) {
@@ -120,13 +137,13 @@ class socket_test {
 		$s.connectSSL($.client_port);
 		
 		my $str = $s.verifyPeerCertificate();
-		printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
+		socket_test::printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
 	    }
 	    else
 		$s.connect($.client_port);
 	}
 	catch ($ex) {
-	    printf("client error: %s: %s\n", $ex.err, $ex.desc);
+	    socket_test::printf("client error: %s: %s\n", $ex.err, $ex.desc);
 	    thread_exit;
 	}
 
@@ -220,15 +237,15 @@ class socket_test {
 
     private test_value($who, $v1, $v2, $msg) {
 	if ($v1 === $v2)
-	    printf("%s: OK: %s test\n", $who, $msg);
+	    socket_test::printf("%s: OK: %s test\n", $who, $msg);
 	else {
-	    printf("%s: ERROR: %s test failed! (%n != %n)\n", $who, $msg, $v1, $v2);
+	    socket_test::printf("%s: ERROR: %s test failed! (%n != %n)\n", $who, $msg, $v1, $v2);
 	    $.errors++;
 	}
     }
 
-    private usage() {
-	printf("usage: %s -[options] [port]
+    private static usage() {
+	socket_test::printf("usage: %s -[options] [port]
   -h,--help                    this help text
   -S,--server=ip:port          no server thread; connect to remote server
   -O,--server-only             no client thread; wait for remote clients
@@ -237,7 +254,7 @@ class socket_test {
   -k,--private-key=arg         set server SSL private key
   -C,--client-cert=arg         set client SSL x509 certificate
   -K,--client-private-key=arg  set client SSL private key
-  -b,--callback                use callback function
+  -e,--show-events             monitor socket events
 ", basename($ENV."_"));
 	exit();
     }
@@ -247,15 +264,15 @@ class socket_test {
 	$.o = $g.parse(\$ARGV);
 	
 	if (exists $.o{"_ERRORS_"}) {
-	    printf("%s\n", $.o{"_ERRORS_"}[0]);
+	    socket_test::printf("%s\n", $.o{"_ERRORS_"}[0]);
 	    exit(1);
 	}
 	
 	if ($.o.help)
-	    $.usage();
+	    socket_test::usage();
 	
 	if (exists $.o.server && $.o.servonly) {
-	    printf("server only flag set and remote server option=%n set - aborting\n", $.o.server);
+	    socket_test::printf("server only flag set and remote server option=%n set - aborting\n", $.o.server);
 	    exit(1);
 	}
 	
@@ -271,18 +288,37 @@ class socket_test {
 	    $.client_port = sprintf("localhost:%d", $.server_port);
     }
 
-    synchronized callback($action) {
-	printf("%s: ", CALLBACK_ACTION_MAP.$action);
-	switch ($action) {
-	    case PACKET_READ: {
-		printf("TID %d: read: %d byte(s) complete: %d%\n", gettid(), $argv[0], $argv[2] ? $argv[1] * 100 / float($argv[2]) : 100);
-		break;
-	    }
-	    case PACKET_SENT: {
-		printf("TID %d: sent: %d byte(s) complete: %d%\n", gettid(), $argv[0], $argv[2] ? $argv[1] * 100 / float($argv[2]) : 100);
-		break;
-	    }
-	  default: printf("%n\n", $argv);
+    private listen() {
+        while (True) {
+
+            # get a message from the event queue; a hash is returned with at
+            # least the following keys: "event" with the event code, and
+            # "source" with the event source identifier
+
+            my $e = $.queue.get();
+
+	    # stop listening when empty event posted to queue in constructor()
+	    if (!exists $e)
+		return;
+
+	    socket_test::printf("%s %s: %s\n", EVENT_SOURCE_MAP.($e.source), EVENT_MAP.($e.event), socket_test::getstr($e - ("event", "source")));
+	    flush(); # flush output
 	}
+    }
+
+    # ensure all output is synchronized
+    synchronized static printf($fmt) {
+	vprintf($fmt, $argv);
+    }
+
+    static getstr($h) {
+        my $str;
+
+        # we create the string by mapping our string format function on a list
+        # of the hash keys.  this is more consise than iterating the keys with 
+        # a "foreach" statement, for example
+
+        map ($str += sprintf("%s=%n ", $1, $h.$1)), keys $h;
+        return $str;
     }
 }

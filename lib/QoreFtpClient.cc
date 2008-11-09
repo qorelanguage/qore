@@ -173,6 +173,7 @@ struct qore_ftp_private {
 	    QoreHashNode *h = new QoreHashNode;
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_SENT), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT), 0);
+	    h->setKeyValue("id", new QoreBigIntNode(control.getObjectIDForEvents()), 0);
 	    h->setKeyValue("socket", new QoreBigIntNode(control.getSocket()), 0);
 	    h->setKeyValue("command", new QoreStringNode(cmd), 0);
 	    if (arg)
@@ -187,6 +188,7 @@ struct qore_ftp_private {
 	    QoreHashNode *h = new QoreHashNode;
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_RECEIVED), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT), 0);
+	    h->setKeyValue("id", new QoreBigIntNode(control.getObjectIDForEvents()), 0);
 	    h->setKeyValue("socket", new QoreBigIntNode(control.getSocket()), 0);
 	    h->setKeyValue("code", new QoreBigIntNode(code), 0);
 	    h->setKeyValue("message", msg[0] ? new QoreStringNode(msg) : 0, 0);

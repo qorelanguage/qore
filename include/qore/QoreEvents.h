@@ -65,5 +65,13 @@
 #define QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED  16
 //! event: got next chunk size: raised after data is read
 #define QORE_EVENT_HTTP_CHUNK_SIZE             17
+//! event: connecting to remote host
+#define QORE_EVENT_CONNECTING                  18
+//! event: connected to remote host
+#define QORE_EVENT_CONNECTED                   19
+//! event: negotiating SSL connection
+#define QORE_EVENT_START_SSL                   20
+//! event: SSL connection established
+#define QORE_EVENT_SSL_ESTABLISHED             21
 
 #endif

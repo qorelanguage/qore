@@ -718,24 +718,26 @@ AbstractQoreNode *QoreHTTPClient::getHostHeaderValue() {
    return str;
 }
 
-static void do_content_length_event(Queue *cb_queue, int len) {
+static void do_content_length_event(Queue *cb_queue, int64 id, int len) {
    if (cb_queue) {
       ExceptionSink xsink;
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
       h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HTTP_CONTENT_LENGTH), 0);
       h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT), 0);
+      h->setKeyValue("id", new QoreBigIntNode(id), 0);
       h->setKeyValue("len", new QoreBigIntNode(len), 0);
       // FIXME: should implement a QoreQueue::push_temporary() method to take reference
       cb_queue->push(*h);      
    }
 }
 
-static void do_redirect_event(Queue *cb_queue, const QoreStringNode *loc, const QoreStringNode *msg) {
+static void do_redirect_event(Queue *cb_queue, int64 id, const QoreStringNode *loc, const QoreStringNode *msg) {
    if (cb_queue) {
       ExceptionSink xsink;
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
       h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HTTP_REDIRECT), 0);
       h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT), 0);
+      h->setKeyValue("id", new QoreBigIntNode(id), 0);
       h->setKeyValue("location", loc->refSelf(), 0);
       if (msg)
 	 h->setKeyValue("status_message", msg->refSelf(), 0);
@@ -744,12 +746,13 @@ static void do_redirect_event(Queue *cb_queue, const QoreStringNode *loc, const 
    }
 }
 
-static void do_event(Queue *cb_queue, int event) {
+static void do_event(Queue *cb_queue, int64 id, int event) {
    if (cb_queue) {
       ExceptionSink xsink;
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, &xsink);
       h->setKeyValue("event", new QoreBigIntNode(event), 0);
       h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT), 0);
+      h->setKeyValue("id", new QoreBigIntNode(id), 0);
       // FIXME: should implement a QoreQueue::push_temporary() method to take reference
       cb_queue->push(*h);      
    }
@@ -901,7 +904,8 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    return 0;
 	 }
 
-	 do_redirect_event(cb_queue, loc, mess);
+	 if (cb_queue)
+	    do_redirect_event(cb_queue, priv->m_socket.getObjectIDForEvents(), loc, mess);
 
 	 if (set_url_unlocked(location, xsink)) {
 	    sl.unlock();
@@ -1011,18 +1015,20 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    v = ans->getKeyValue("content-length");
    int len = v ? v->getAsInt() : 0;
 
-   if (v)
-      do_content_length_event(cb_queue, len);
+   if (v && cb_queue)
+      do_content_length_event(cb_queue, priv->m_socket.getObjectIDForEvents(), len);
 
    AbstractQoreNode *body = 0;
    if (te && !strcasecmp((reinterpret_cast<const QoreStringNode *>(te))->getBuffer(), "chunked")) { // check for chunked response body
-      do_event(cb_queue, QORE_EVENT_HTTP_CHUNKED_START);
+      if (cb_queue)
+	 do_event(cb_queue, priv->m_socket.getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_START);
       ReferenceHolder<QoreHashNode> nah(xsink);
       if (content_encoding)
 	 nah = priv->m_socket.readHTTPChunkedBodyBinary(priv->timeout, xsink, QORE_SOURCE_HTTPCLIENT);
       else
 	 nah = priv->m_socket.readHTTPChunkedBody(priv->timeout, xsink, QORE_SOURCE_HTTPCLIENT);
-      do_event(cb_queue, QORE_EVENT_HTTP_CHUNKED_END);
+      if (cb_queue)
+	 do_event(cb_queue, priv->m_socket.getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_END);
 
       if (!nah)
 	 return 0;

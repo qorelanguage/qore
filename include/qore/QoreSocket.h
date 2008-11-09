@@ -125,8 +125,6 @@ class QoreSocket {
 
       DLLLOCAL void reuse(int opt);
       DLLLOCAL int recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event = true);
-      DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
-      DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       //! read until \\r\\n and return the string
       DLLLOCAL QoreStringNode *readHTTPData(int timeout, int *rc, int state = -1);
@@ -267,10 +265,10 @@ class QoreSocket {
       //! binds an INET TCP socket to a specific socket address
       /** @note the socket will be closed and reopened if necessary
 	  @param addr the socket address to bind to
-	  @param size the size of the addr argument
+	  @param addr_size the size of the addr argument
 	  @return 0 for OK, not 0 for error
        */
-      DLLEXPORT int bind(const struct sockaddr *addr, int size);
+      DLLEXPORT int bind(const struct sockaddr *addr, int addr_size);
 
       //! returns the TCP port number, also assigns the interal port number if it must be discovered
       DLLEXPORT int getPort();
@@ -738,6 +736,9 @@ class QoreSocket {
 
       //! returns the event queue (not part of the library's public API)
       DLLLOCAL Queue *getQueue();
+
+      //! returns a unique ID for the socket to be used in event messages
+      DLLLOCAL int64 getObjectIDForEvents() const;
 
       //! posts deleted message and removes any event queue
       DLLLOCAL void cleanup(ExceptionSink *xsink);
