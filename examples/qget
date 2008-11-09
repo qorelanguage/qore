@@ -1,4 +1,4 @@
-#!/usr/local/bin/qore
+#!/usr/bin/env qore
 
 # This script is meant to demonstrate Qore's event support.  Currently only
 # socket events are supported (from the Socket, FtpClient, and HTTPClient
