@@ -964,10 +964,10 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 while (*c && *c != ';' && *c != ' ' && *c != quote)
 	    enc.concat(*(c++));
 	 
-	 if (*c == quote)
+	 if (quote && *c == quote)
 	    ++c;
 
-	 printd(5, "QoreHTTPClient::send_intern() setting encoding to '%s' from content-type header: '%s'\n", enc.getBuffer(), str);
+	 printd(5, "QoreHTTPClient::send_intern() setting encoding to '%s' from content-type header: '%s' (cs=%p c=%p %d)\n", enc.getBuffer(), str, p + 8, c);
 
 	 // set new encoding
 	 priv->m_socket.setEncoding(QEM.findCreate(&enc));
@@ -979,7 +979,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 if (p != str)
 	    nc->concat(str, p - str);
 	 if (*c)
-	    nc->concat(*c);
+	    nc->concat(c);
 	 ans->setKeyValue("content-type", nc, xsink);
 	 str = nc->getBuffer();
       }

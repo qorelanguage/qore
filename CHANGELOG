@@ -1,3 +1,6 @@
+2008.11.10: David Nichols
+	* fixed a bug parsing the content type in QoreHTTPClient
+
 2008.11.09: David Nichols
 	* added object ID to socket event hashes
 	* added new socket events for connecting and SSL negotiation
