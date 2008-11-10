@@ -3241,6 +3241,7 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
       </tgroup>
     </table>
   </sect1>
+
   <sect1 id="signal_handling">
     <title>Signal Handling</title>
 
@@ -3307,5 +3308,557 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
       </listitem>
     </itemizedlist>
    </sect1>
-</chapter>
 
+  <sect1 id="event_handling">
+    <title>Event Handling</title>
+
+    <para>Qore supports a simple event-handling mechanism to provide
+notification and details of socket and network events in higher-level classes.
+Classes curerntly supporting events are the <link linkend="Socket_Class">Socket</link>,
+<link linkend="HTTPClient_Class">HTTPClient</link>, and <link linkend="FtpClient_Class">FtpClient</link> classes.</para>
+
+    <para>See <link linkend="event_constants">Event Constants</link> for a list
+of all event constants; details about each event are documented in the
+following sections.</para>
+
+    <para>Event information is placed on the event queue (which must be a <link linkend="Qore::Thread::Queue_Class">Queue</link> object) in the form of a <link linkend="Hashes">hash</link>.  Each event has at least the following keys:</para>
+
+    <table>
+      <title>Event Hash Common Keys</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Key</para></entry>
+	    <entry><para>Value</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>event<code></code></para></entry>
+	    <entry><para>This key holds the <link linkend="event_constants">event code</link>; see information for individual events in the following sections</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>source<code></code></para></entry>
+	    <entry><para>This key holds the <link linkend="event_source_constants">event source code</link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para>id<code></code></para></entry>
+	    <entry><para>The value of this key is a unique integer that can be used to uniquely identify the object generating the event.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="event_packet_read">
+      <title>EVENT_PACKET_READ</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_PACKET_READ</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para>This event is raised immediately after a network packet is received. In addition to the <code>event</code> and <code>id</code> keys, the event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_PACKET_READ</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para>source<code></code></para></entry>
+		    <entry><para><code>SOURE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>socket</code></para></entry>
+		    <entry><para>The file descriptor number of the socket.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>read</code></para></entry>
+		    <entry><para>The number of bytes read in the packet.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_read</code></para></entry>
+		    <entry><para>The total number of bytes read in the read loop.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para>[<code>total_to_read</code>]</para></entry>
+		    <entry><para>The total number of bytes to read in the read loop (this key is only present if the total number of bytes to read is known).</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_packet_sent">
+      <title>EVENT_PACKET_SENT</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_PACKET_SENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para>This event is raised immediately after a network packet is sent. In addition to the <code>event</code> and <code>id</code> keys, the event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_PACKET_SENT</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para>source<code></code></para></entry>
+		    <entry><para><code>SOURE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>socket</code></para></entry>
+		    <entry><para>The file descriptor number of the socket.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>sent</code></para></entry>
+		    <entry><para>The number of bytes sent in the packet.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_sent</code></para></entry>
+		    <entry><para>The total number of bytes sent in the send loop.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_to_send</code></para></entry>
+		    <entry><para>The total number of bytes to send in the send loop.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_content_length">
+      <title>EVENT_HTTP_CONTENT_LENGTH</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_CONTENT_LENGTH</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para>This event is raised immediately after an HTTP message is received containing a content length header. In addition to the <code>event</code> and <code>id</code> keys, the event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_CONTENT_LENGTH</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para>source<code></code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>len</code></para></entry>
+		    <entry><para>The number of bytes given for the content length.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_chunked_start">
+      <title>EVENT_HTTP_CHUNKED_START</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_CHUNKED_START</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_chunked_end">
+      <title>EVENT_HTTP_CHUNKED_END</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_CHUNKED_END</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_redirect">
+      <title>EVENT_HTTP_REDIRECT</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_REDIRECT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_channel_closed">
+      <title>EVENT_CHANNEL_CLOSED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_CHANNEL_CLOSED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_deleted">
+      <title>EVENT_DELETED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_DELETED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_ftp_message_sent">
+      <title>EVENT_FTP_MESSAGE_SENT</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_FTP_MESSAGE_SENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_FTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_ftp_message_received">
+      <title>EVENT_FTP_MESSAGE_RECEIVED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_FTP_MESSAGE_RECEIVED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_FTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_hostname_lookup">
+      <title>EVENT_HOSTNAME_LOOKUP</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HOSTNAME_LOOKUP</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_hostname_resolved">
+      <title>EVENT_HOSTNAME_RESOLVED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HOSTNAME_RESOLVED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_send_message">
+      <title>EVENT_HTTP_SEND_MESSAGE</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_SEND_MESSAGE</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_message_received">
+      <title>EVENT_HTTP_MESSAGE_RECEIVED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_MESSAGE_RECEIVED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_footers_received">
+      <title>EVENT_HTTP_FOOTERS_RECEIVED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_FOOTERS_RECEIVED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_chunked_data_received">
+      <title>EVENT_HTTP_CHUNKED_DATA_RECEIVED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_CHUNKED_DATA_RECEIVED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_http_chunk_size">
+      <title>EVENT_HTTP_CHUNK_SIZE</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_HTTP_CHUNK_SIZE</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_connecting">
+      <title>EVENT_CONNECTING</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_CONNECTING</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_connected">
+      <title>EVENT_CONNECTED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_CONNECTED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_start_ssl">
+      <title>EVENT_START_SSL</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_START_SSL</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_ssl_established">
+      <title>EVENT_SSL_ESTABLISHED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_SSL_ESTABLISHED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_SOCKET</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para></para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+  </sect1>
+</chapter>

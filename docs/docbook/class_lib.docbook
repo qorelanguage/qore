@@ -323,6 +323,134 @@
       </tgroup>
     </table>
 
+    <table id="event_constants">
+      <title>Event Constants</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></entry>
+	    <entry><para>Raised when a network packet is received.</para></entry>
+	  </row>
+          <row>
+            <entry><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></entry>
+            <entry><para>Raised when a network packet is sent.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link></code></para></entry>
+            <entry><para>Raised when the HTTP &quot;Content-Length&quot; header is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link></code></para></entry>
+            <entry><para>Raised when HTTP chunked data is about to be received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link></code></para></entry>
+            <entry><para>Raised when all HTTP chunked data has been received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></para></entry>
+            <entry><para>Raised when an HTTP redirect message is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></entry>
+            <entry><para>Raised when a socket is closed.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_deleted">EVENT_DELETED</link></code></para></entry>
+            <entry><para>Raised when the object being monitored is deleted.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_ftp_message_sent">EVENT_FTP_MESSAGE_SENT</link></code></para></entry>
+            <entry><para>Raised when an FTP control message is sent.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link></code></para></entry>
+            <entry><para>Raised when an FTP reply is received on the control channel.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link></code></para></entry>
+            <entry><para>Raised when a hostname lookup is attempted.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link></code></para></entry>
+            <entry><para>Raised when a hostname lookup is resolved.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></para></entry>
+            <entry><para>Raised when an HTTP message is sent.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link></code></para></entry>
+            <entry><para>Raised when an HTTP message is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link></code></para></entry>
+            <entry><para>Raised when HTTP footers are received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link></code></para></entry>
+            <entry><para>Raised when a block of HTTP chunked data is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link></code></para></entry>
+            <entry><para>Raised when the next chunk size for HTTP chunked data is known.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_connecting">EVENT_CONNECTING</link></code></para></entry>
+            <entry><para>Raised right before a socket connection attempt is made.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_connected">EVENT_CONNECTED</link></code></para></entry>
+            <entry><para>Raised when the socket connection has been established.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_start_ssl">EVENT_START_SSL</link></code></para></entry>
+            <entry><para>Raised when socket SSL negotiation starts.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></entry>
+            <entry><para>Raised when SSL communication has been negotiated and established.</para></entry>
+          </row>
+
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table id="event_source_constants">
+      <title>Event Source Constants</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+            <entry><para><code>SOURE_SOCKET</code></para></entry>
+            <entry><para>For <link linkend="event_constants">events</link>
+raised from the <link linkend="Socket_Class">Socket</link> class.</para></entry>
+          </row>
+	  <row>
+            <entry><para><code>SOURE_HTTPCLIENT</code></para></entry>
+            <entry><para>For <link linkend="event_constants">events</link>
+raised from the <link linkend="HTTPClient_Class">HTTPClient</link> class.</para></entry>
+          </row>
+	  <row>
+            <entry><para><code>SOURE_FTPCLIENT</code></para></entry>
+            <entry><para>For <link linkend="event_constants">events</link>
+raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <table id="network_address_constants">
       <title>Network Address Type Constants</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
