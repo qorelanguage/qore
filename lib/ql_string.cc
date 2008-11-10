@@ -417,8 +417,7 @@ static AbstractQoreNode *f_force_encoding(const QoreListNode *params, ExceptionS
    return new QoreStringNode(p0->getBuffer(), p0->strlen(), QEM.findCreate(p1));
 }
 
-static AbstractQoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)) ||
        !(p1 = test_string_param(params, 1)))
