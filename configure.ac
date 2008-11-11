@@ -49,18 +49,6 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AM_PROG_AS
 
-# check if socklen_t is needed
-TYPE_SOCKLEN_T
-
-# see if the iconv library is required
-AC_CHECK_LIB(iconv, iconv)
-
-# see if the socket library is required
-AC_CHECK_LIB(socket, setsockopt)
-
-# look for librt (needed by clock_gettime() on some platforms)
-AC_CHECK_LIB(rt, clock_gettime)
-
 # set system variables
 OS=`uname -s`
 if test "$OS" = "HP-UX"; then
@@ -854,6 +842,18 @@ fi
 if test -n "${with_doxygen}"; then
    AC_SUBST(DOXYGEN_CMD, $with_doxygen)
 fi
+
+# check if socklen_t is needed
+TYPE_SOCKLEN_T
+
+# see if the iconv library is required
+AC_CHECK_LIB(iconv, iconv)
+
+# see if the socket library is required
+AC_CHECK_LIB(socket, setsockopt)
+
+# look for librt (needed by clock_gettime() on some platforms)
+AC_CHECK_LIB(rt, clock_gettime)
 
 # Checks for header files.
 AC_HEADER_STDC
