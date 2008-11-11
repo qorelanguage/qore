@@ -126,8 +126,9 @@
 	  <entry><para>Requires global variables to be declared with <command>our</command> prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code>PO_REQUIRE_OUR</code> and the <code>--require-our</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="requires"><code>%requires</code></link> <replaceable>feature</replaceable></para></entry>
-	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para></entry>
+	  <entry><para><link linkend="requires"><code>%requires</code></link> <replaceable>feature [&lt;|&lt;=|=|&gt;=|&gt; &lt;version&gt;]</replaceable></para></entry>
+	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised.  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para>
+</entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1356,6 +1357,11 @@
 	<term>Description</term>
 	<listitem>
 	  <para>Loads a Qore module immediately.  The parse directive can be used to load a module during parsing, and the command-line version can be used to load a module before parsing.</para>
+	  <para>From Qore 0.7.1, you can specify a comparison operator (one of &lt; &lt;=, =, &gt;=, or &gt;) and version information after the module name as well.  Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'.  If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version &quot;1.0&quot; compared with version &quot;1.0.1&quot; will be exteneded to &quot;1.0.0&quot;).</para>
+	  <para>For example:</para>
+	  <programlisting>%requires oracle >= 1.0.1</programlisting>
+	  <para>This will load the oracle module if it is at least version 1.0.1.</para>
+	  <para>Note that there is one special feature name: &quot;qore&quot;.  This pseudo-feature can be used to check the minimum qore version; if this feature is requested with version information, then the Qore library's version information is used for the version number comparison.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
