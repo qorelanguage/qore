@@ -2,6 +2,15 @@
 	* added initial event documentation
 	* added AF_UNIX and AF_LOCAL constants
 	* updated Queue::copy() to copy the elements of the original Queue
+	* updated threading to fix the problem with exit() causing a random
+	  seg fault when other threads were active as follows: all threads
+	  started with joinable status PTHREAD_CREATE_JOINABLE, threads call
+	  pthread_detach() before exiting; implemented a new function,
+	  qore_exit_process() to be called instead of exit() that calls
+	  pthread_cancel() on each thread (except the calling thread) and then
+	  pthread_join(), added a call to pthread_testcancel() in
+	  AbstractStatement::exec()
+	* updated event documentation
 
 2008.11.10: David Nichols
 	* fixed a bug parsing the content type in QoreHTTPClient

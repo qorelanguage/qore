@@ -53,6 +53,15 @@ fixed a bug parsing the Content-Type in the HTTPClient class
 fixed Queue::copy() to copy the elements in the original Queue instead of
 returning an empty object
 
+fixed the problem where exit() caused a random segmentation fault when other
+threads were active by doing the following:
+   +) all threads started with joinable status PTHREAD_CREATE_JOINABLE,
+      threads call pthread_detach() before exiting
+   +) implemented a new function, qore_exit_process() to be called instead of
+      exit() that calls pthread_cancel() on each thread (except the calling
+      thread) and then pthread_join() on that thread
+   +) added a call to pthread_testcancel() in AbstractStatement::exec()
+
 SOAP improvements in example code in the examples/ directory:
      WSDL.qc, SoapHandler.qc, SoapClient.qc, HTTPServer.qc
 soap 1.2 is handled better, namespace handling improvements

@@ -25,13 +25,11 @@
 
 #include <typeinfo>
 
-AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(start_line), EndLineNumber(end_line)
-{
+AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(start_line), EndLineNumber(end_line) {
    FileName = get_parse_file();
 }
 
-int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    printd(1, "AbstractStatement::exec() type=%s file=%s line=%d\n", typeid(this).name(), FileName, LineNumber);   
    update_pgm_counter_pgm_file(LineNumber, EndLineNumber, FileName);
 
@@ -39,12 +37,12 @@ int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsin
    if (check_stack(xsink))
       return 0;
 #endif
+   pthread_testcancel();
 
    return execImpl(return_value, xsink);
 }
 
-int AbstractStatement::parseInit(LocalVar *oflag, int pflag)
-{
+int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
    printd(2, "AbstractStatement::parseInit() %08p type=%s line %d file %s\n", this, typeid(this).name(), LineNumber, FileName);
    // set pgm position in case of errors
    update_parse_location(LineNumber, EndLineNumber, FileName);

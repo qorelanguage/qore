@@ -43,19 +43,15 @@
 #  include "tests/ReferenceHolder_tests.cc"
 #endif
 
-static AbstractQoreNode *f_exit(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p0;
+static AbstractQoreNode *f_exit(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0 = get_param(params, 0);
 
-   if (!(p0 = get_param(params, 0)))
-      exit(0);
+   qore_exit_process(p0 ? p0->getAsInt() : 0);
 
-   exit(p0->getAsInt());
-   return 0;
+   return 0;   // to avoid warning
 }
 
-static AbstractQoreNode *f_abort(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_abort(const QoreListNode *params, ExceptionSink *xsink) {
    abort();
    return 0;
 }
@@ -93,17 +89,15 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
    else // otherwise fork and exec
    {
       pid_t pid;
-      if (!(pid = fork()))
-      {
-	 class ExecArgList args(p0->getBuffer());
+      if (!(pid = fork())) {
+	 ExecArgList args(p0->getBuffer());
 	 execvp(args.getFile(), args.getArgs());
 	 printf("execvp() failed with error code %d: %s\n", errno, strerror(errno));
-	 exit(-1);
+	 qore_exit_process(-1);
       }
       if (pid == -1)
 	 rc = -1;
-      else
-      {
+      else {
 	 int status;
 	 wait(&status);
 	 if (WIFEXITED(status))

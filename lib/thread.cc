@@ -88,20 +88,6 @@ DLLLOCAL int num_threads = 0;
 // default thread creation attribute
 QorePThreadAttr ta_default;
 
-// this structure holds all thread data that can be addressed with the qore tid
-class ThreadEntry {
-   public:
-      pthread_t ptid;
-      class tid_node *tidnode;
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      CallStack *callStack;
-#endif
-   
-      DLLLOCAL void cleanup();
-};
-
-DLLLOCAL class ThreadEntry thread_list[MAX_QORE_THREADS];
-
 class tid_node {
 public:
       int tid;
@@ -113,6 +99,44 @@ public:
 
 static tid_node *tid_head = 0, *tid_tail = 0;
  
+// this structure holds all thread data that can be addressed with the qore tid
+class ThreadEntry {
+   public:
+      pthread_t ptid;
+      tid_node *tidnode;
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      CallStack *callStack;
+#endif
+      bool joined; // if set to true then pthread_detach should not be called on exit
+   
+      DLLLOCAL void cleanup() {
+	 // delete tidnode from tid_list
+	 delete tidnode;
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+	 // delete call stack
+	 delete callStack;
+#endif
+   
+	 if (!joined)
+	    pthread_detach(ptid);
+
+	 // set ptid to 0
+	 ptid = 0L;
+      }
+
+      DLLLOCAL void allocate(tid_node *tn) {
+	 ptid = (pthread_t)-1L;
+	 tidnode = tn;
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+	 callStack = 0;
+#endif
+	 joined = false;
+      }
+};
+
+DLLLOCAL ThreadEntry thread_list[MAX_QORE_THREADS];
+
 class ProgramLocation {
    public:
       const char *file;
@@ -367,20 +391,6 @@ class ThreadData {
 
 static QoreThreadLocalStorage<ThreadData> thread_data;
 
-void ThreadEntry::cleanup()
-{
-   // delete tidnode from tid_list
-   delete tidnode;
-
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   // delete call stack
-   delete callStack;
-#endif
-   
-   // set ptid to 0
-   ptid = 0L;
-}   
-
 class ThreadCleanupNode {
 public:
    qtdest_t func;
@@ -405,8 +415,7 @@ class ThreadParams {
 };
 
 // this constructor must only be called with the lThreadList lock held
-tid_node::tid_node(int ntid)
-{
+tid_node::tid_node(int ntid) {
    tid = ntid;
    next = 0;
    prev = tid_tail;
@@ -418,8 +427,7 @@ tid_node::tid_node(int ntid)
 }
 
 // this destructor must only be called with the lThreadList lock held
-tid_node::~tid_node()
-{
+tid_node::~tid_node() {
    if (prev)
       prev->next = next;
    else
@@ -981,19 +989,28 @@ QoreException *catchGetException() {
    return td->catchException;
 }
 
-// must be called in the thread list lock
-static void allocate_thread_entry(int tid) {
-   thread_list[tid].ptid = (pthread_t)-1L;
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   thread_list[tid].callStack = 0;
-#endif
+void qore_exit_process(int rc) {
+   int tid = gettid();
+   lThreadList.lock();
+
+   // call pthread_cancel on all threads so the call to exit() will not
+   // cause a core dump
+   for (int i = 1; i < MAX_QORE_THREADS; ++i) {
+      if (i != tid && thread_list[i].ptid) {
+	 pthread_cancel(thread_list[i].ptid);
+	 thread_list[i].joined = true;
+	 pthread_join(thread_list[i].ptid, 0);
+      }
+   }
+   exit(rc);
+
+   lThreadList.unlock();
 }
 
 // sets up the signal thread entry in the thread list
 int get_signal_thread_entry() {
    lThreadList.lock();
-   allocate_thread_entry(0);
-   thread_list[0].tidnode = 0;
+   thread_list[0].allocate(0);
    lThreadList.unlock();
    return 0;
 }
@@ -1021,8 +1038,7 @@ int get_thread_entry() {
       tid = current_tid++;
 
   finish:
-   allocate_thread_entry(tid);
-   thread_list[tid].tidnode = new tid_node(tid);
+   thread_list[tid].allocate(new tid_node(tid));
    num_threads++;
    lThreadList.unlock();
    //printf("t%d cs=0\n", tid);
@@ -1039,7 +1055,7 @@ void deregister_thread(int tid) {
    lThreadList.lock();
 
    thread_list[tid].cleanup();
-   num_threads--;
+   --num_threads;
 
    lThreadList.unlock();
 }
@@ -1115,7 +1131,7 @@ namespace {
 
       // deregister_thread
       deregister_thread(btp->tid);
-      
+
       // run any cleanup functions
       tclist.exec();
 

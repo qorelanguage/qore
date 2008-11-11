@@ -73,6 +73,9 @@ DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 //! returns the license type that the library has been initialized under
 DLLEXPORT qore_license_t qore_get_license();
 
+//! instead of calling "exit()", call qore_exit_process() to exit without risking a crash if other threads are running
+DLLEXPORT void qore_exit_process(int rc);
+
 //! STL-like list containing all presently-loaded Qore features
 /** this list must be thread-safe for reading, writing under a lock
  */
