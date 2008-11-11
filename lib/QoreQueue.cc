@@ -25,19 +25,28 @@
 
 #include <sys/time.h>
 
-QoreQueueNode::QoreQueueNode(AbstractQoreNode *n) : node(n)
-{ 
+QoreQueueNode::QoreQueueNode(AbstractQoreNode *n) : node(n) { 
 }
 
-void QoreQueueNode::del(ExceptionSink *xsink)
-{
+void QoreQueueNode::del(ExceptionSink *xsink) {
    if (node)
       node->deref(xsink);
    delete this;
 }
 
-QoreQueue::QoreQueue() : head(0), tail(0), len(0), waiting(0)
-{
+QoreQueue::QoreQueue() : head(0), tail(0), len(0), waiting(0) {
+}
+
+QoreQueue::QoreQueue(const QoreQueue &orig) : head(0), tail(0), len(0), waiting(0) {
+   AutoLocker al(orig.l);
+   if (orig.len == Queue_Deleted)
+      return;
+
+   QoreQueueNode *w = orig.head;
+   while (w) {
+      push_internal(w->node ? w->node->refSelf() : 0);
+      w = w->next;
+   }    
 }
 
 // queues should not be deleted when other threads might
@@ -67,7 +76,7 @@ void QoreQueue::push_internal(AbstractQoreNode *v) {
    if (waiting)
       cond.signal();
    
-   len++;
+   ++len;
 }
 
 void QoreQueue::push_and_take_ref(AbstractQoreNode *n) {

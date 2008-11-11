@@ -29406,7 +29406,7 @@ $mutex.unlock();</programlisting>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::copy">Queue::copy()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Creates a new Queue object, not based on the original.</para></entry>
+	    <entry><para>Creates a new Queue object with the same elements as the original.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Qore::Thread::Queue::get">Queue::get()</link></para></entry>
@@ -29552,7 +29552,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates a new Queue object, not based on the original.</para>
+	    <para>Creates a new Queue object with the same elements as the original.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29601,7 +29601,7 @@ $mutex.unlock();</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para>Queue Object</para></entry>
-	      <entry><para>A new Queue object, not based on the original.</para></entry>
+	      <entry><para>A new Queue object with the same elements as the original.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

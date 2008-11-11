@@ -41,7 +41,7 @@ class QoreQueue {
    private:
       enum queue_status_e { Queue_Deleted = -1 };
 
-      QoreThreadLock l;
+      mutable QoreThreadLock l;
       QoreCondition cond;
       QoreQueueNode *head, *tail;
       int len;
@@ -52,6 +52,7 @@ class QoreQueue {
 
    public:
       DLLLOCAL QoreQueue();
+      DLLLOCAL QoreQueue(const QoreQueue &orig);
       DLLLOCAL ~QoreQueue();
 
       // push at the end of the queue and take the reference
