@@ -1650,7 +1650,11 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("AF_INET",       new QoreBigIntNode(AF_INET));
    qns->addConstant("AF_INET6",      new QoreBigIntNode(AF_INET6));
    qns->addConstant("AF_UNIX",       new QoreBigIntNode(AF_UNIX));
+#ifdef AF_LOCAL
    qns->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_LOCAL)); // POSIX synonym for AF_UNIX
+#else
+   qns->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_UNIX));
+#endif
 
    // math constants
    qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
