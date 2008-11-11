@@ -127,7 +127,7 @@ class QueueCallBack {
 
 		case EVENT_HTTP_CHUNKED_DATA_RECEIVED:
 		case EVENT_PACKET_READ: {
-		    if ($.in_body && $e.socket != $.ignore) {
+		    if ($.in_body && $e.id != $.ignore) {
 			$.total_read += $e.read;
 			$.update_total();
 		    }
@@ -144,7 +144,7 @@ class QueueCallBack {
 		case EVENT_FTP_MESSAGE_RECEIVED: {
 		    # ignore reads on FTP control channel
 		    if (!$.ignore)
-			$.ignore = $e.socket;
+			$.ignore = $e.id;
 		    if (($e.code / 100) == 1) {
 			#printf("%s\n", $e.message);
 			my $l = ($e.message =~ x/opening.*connection for.*\(([0-9]*) byte/i);

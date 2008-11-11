@@ -47,8 +47,8 @@
 #define QORE_EVENT_CHANNEL_CLOSED               7
 //! event: object deleted
 #define QORE_EVENT_DELETED                      8
-//! event: ftp control message exchange
-#define QORE_EVENT_FTP_MESSAGE_SENT             9
+//! event: ftp control message to send
+#define QORE_EVENT_FTP_SEND_MESSAGE             9
 //! event: ftp control message received
 #define QORE_EVENT_FTP_MESSAGE_RECEIVED        10
 //! event: name being resolved

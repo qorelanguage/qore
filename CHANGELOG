@@ -1,3 +1,7 @@
+2008.11.11: David Nichols
+	* added initial event documentation
+	* added AF_UNIX and AF_LOCAL constants
+
 2008.11.10: David Nichols
 	* fixed a bug parsing the content type in QoreHTTPClient
 

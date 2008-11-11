@@ -3336,15 +3336,15 @@ following sections.</para>
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>event<code></code></para></entry>
+	    <entry><para><code>event</code></para></entry>
 	    <entry><para>This key holds the <link linkend="event_constants">event code</link>; see information for individual events in the following sections</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>source<code></code></para></entry>
+	    <entry><para><code>source</code></para></entry>
 	    <entry><para>This key holds the <link linkend="event_source_constants">event source code</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para>id<code></code></para></entry>
+	    <entry><para><code>id</code></para></entry>
 	    <entry><para>The value of this key is a unique integer that can be used to uniquely identify the object generating the event.</para></entry>
 	  </row>
 	</tbody>
@@ -3365,7 +3365,7 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para>This event is raised immediately after a network packet is received. In addition to the <code>event</code> and <code>id</code> keys, the event hash contains the following keys:</para>
+            <para>This event is raised immediately after a network packet is received.  The event hash contains the following keys:</para>
 
             <table>
 	      <title><code>EVENT_PACKET_READ</code> Event Hash</title>
@@ -3378,12 +3378,16 @@ following sections.</para>
 		</thead>
 		<tbody>
 		  <row>
-		    <entry><para>source<code></code></para></entry>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_PACKET_READ</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
 		    <entry><para><code>SOURE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
 		  </row>
 		  <row>
-		    <entry><para><code>socket</code></para></entry>
-		    <entry><para>The file descriptor number of the socket.</para></entry>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><code>read</code></para></entry>
@@ -3420,7 +3424,7 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para>This event is raised immediately after a network packet is sent. In addition to the <code>event</code> and <code>id</code> keys, the event hash contains the following keys:</para>
+            <para>This event is raised immediately after a network packet is sent.  The event hash contains the following keys:</para>
 
             <table>
 	      <title><code>EVENT_PACKET_SENT</code> Event Hash</title>
@@ -3433,8 +3437,16 @@ following sections.</para>
 		</thead>
 		<tbody>
 		  <row>
-		    <entry><para>source<code></code></para></entry>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_PACKET_SENT</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
 		    <entry><para><code>SOURE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><code>socket</code></para></entry>
@@ -3475,7 +3487,7 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para>This event is raised immediately after an HTTP message is received containing a content length header. In addition to the <code>event</code> and <code>id</code> keys, the event hash contains the following keys:</para>
+            <para>This event is raised immediately after an HTTP header is received containing a content length header line, but before the message body is received.  The event hash contains the following keys:</para>
 
             <table>
 	      <title><code>EVENT_HTTP_CONTENT_LENGTH</code> Event Hash</title>
@@ -3488,8 +3500,16 @@ following sections.</para>
 		</thead>
 		<tbody>
 		  <row>
-		    <entry><para>source<code></code></para></entry>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_CONTENT_LENGTH</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
 		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><code>len</code></para></entry>
@@ -3517,7 +3537,33 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised after receiving an HTTP header with <code>Transfer-Encoding</code> set to <code>chunked</code> and before the chunked data is read.  The event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_CHUNKED_START</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_CHUNKED_START</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3537,7 +3583,33 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised after all chunked data is read from the socket.  The event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_CHUNKED_END</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_CHUNKED_END</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3557,7 +3629,41 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised after a redirect response is received from an HTTP server.  The event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_REDIRECT</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_REDIRECT</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>location</code></para></entry>
+		    <entry><para>The redirect location given by the HTTP server</para></entry>
+		  </row>
+		  <row>
+		    <entry><para>[<code>status_message</code>]</para></entry>
+		    <entry><para>Any status message sent by the HTTP server; if no message was sent, then this key will not be present in the event hash.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3577,7 +3683,32 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after the socket is closed.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_CHANNEL_CLOSED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_CHANNEL_CLOSED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3597,18 +3728,43 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised when the socket object is deleted.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_DELETED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_DELETED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
     </sect2>
 
-    <sect2 id="event_ftp_message_sent">
-      <title>EVENT_FTP_MESSAGE_SENT</title>
+    <sect2 id="event_ftp_send_message">
+      <title>EVENT_FTP_SEND_MESSAGE</title>
       <variablelist>
         <varlistentry>
           <term>Event</term>
-          <listitem><para><code>EVENT_FTP_MESSAGE_SENT</code></para></listitem>
+          <listitem><para><code>EVENT_FTP_SEND_MESSAGE</code></para></listitem>
         </varlistentry>
         <varlistentry>
           <term>Source</term>
@@ -3617,7 +3773,40 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately before a message is sent on the FTP control channel.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_FTP_SEND_MESSAGE</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_FTP_SEND_MESSAGE</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_FTPCLIENT</code>, indicating the <link linkend="FtpClient_Class">FtpClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>command</code></para></entry>
+		    <entry><para>A string giving the FTP command sent (ex: <code>RETR</code>).</para></entry>
+		  </row>
+		  <row>
+		    <entry><para>[<code>arg</code>]</para></entry>
+		    <entry><para>The argument to the command; if no argument is sent, then this key will not be present.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3637,7 +3826,40 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after a message is received on the FTP control channel.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_FTP_MESSAGE_RECEIVED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_FTP_MESSAGE_RECEIVED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_FTPCLIENT</code>, indicating the <link linkend="FtpClient_Class">FtpClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>command</code></para></entry>
+		    <entry><para>A string giving the FTP command sent (ex: <code>RETR</code>).</para></entry>
+		  </row>
+		  <row>
+		    <entry><para>[<code>arg</code>]</para></entry>
+		    <entry><para>The argument to the command; if no argument is sent, then this key will not be present.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3657,7 +3879,36 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately before a hostname lookup is made.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_HOSTNAME_LOOKUP</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HOSTNAME_LOOKUP</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>name</code></para></entry>
+		    <entry><para>A string giving the name to be looked up.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3677,7 +3928,36 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after a successful hostname resolution.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_HOSTNAME_RESOLVED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HOSTNAME_RESOLVED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>address</code></para></entry>
+		    <entry><para>A string giving the network address the name was resolved to.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3697,7 +3977,37 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately before an HTTP message is sent.  The event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_SEND_MESSAGE</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_SEND_MESSAGE</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>message</code></para></entry>
+		    <entry><para>The first string in the HTTP message (ex: <code>GET / HTTP/1.1</code>).</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>headers</code></para></entry>
+		    <entry><para>A hash of all headers to send in the message.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3717,7 +4027,33 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after an HTTP message is received.  The event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_MESSAGE_RECEIVED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_MESSAGE_RECEIVED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>headers</code></para></entry>
+		    <entry><para>A hash of all headers received in the message, plus the following headers giving additional information about the message: <code>http_version</code> giving the HTTP protocol version in the message, <code>status_code</code> giving the HTTP status code if the message is a response, <code>status_message</code> giving any HTTP status message if the message is a response, <code>method</code> giving the HTTP method if the message is a request, <code>path</code> providing the path in request messages.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3737,7 +4073,33 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after HTTP footers are received after receiving chunked data.  The event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_FOOTERS_RECEIVED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_FOOTERS_RECEIVED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>headers</code></para></entry>
+		    <entry><para>A hash of all footers received in the message.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3757,7 +4119,37 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after chunked data is received.  The event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_CHUNKED_DATA_RECEIVED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_CHUNKED_DATA_RECEIVED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>read</code></para></entry>
+		    <entry><para>An integer giving the number of bytes read in the chunk.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_read</code></para></entry>
+		    <entry><para>An integer giving the total number of bytes of chunked data read in the current message.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3777,7 +4169,37 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after chunk information is received providing the size of the next chunk.  The event hash contains the following keys:</para>
+
+            <table>
+	      <title><code>EVENT_HTTP_CHUNK_SIZE_RECEIVED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_HTTP_CHUNK_SIZE_RECEIVED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>size</code></para></entry>
+		    <entry><para>An integer giving the number of bytes in the next chunk.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_read</code></para></entry>
+		    <entry><para>An integer giving the total number of bytes of chunked data read in the current message.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3797,7 +4219,44 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately before a socket connection is attempted.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_CONNECTING</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_CONNECTING</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>type</code></para></entry>
+		    <entry><para>The type of address for the socket; one of the <link linkend="network_address_constants">Network Address Constants</link>.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>target</code></para></entry>
+		    <entry><para>The target address for the connection.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para>[<code>port</code>]</para></entry>
+		    <entry><para>The target port for the connection; if not applicable for the address family then this hash key is not included.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3817,7 +4276,32 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after a socket connection is established.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_CONNECTED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_CONNECTED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3837,7 +4321,32 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately before SSL negotiation is attempted.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_START_SSL</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_START_SSL</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3857,7 +4366,40 @@ following sections.</para>
         <varlistentry>
           <term>Description</term>
           <listitem>
-            <para></para>
+            <para>This event is raised immediately after SSL negotiation has been successfully established.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_SSL_ESTABLISHED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_SSL_ESTABLISHED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the socket object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>cipher</code></para></entry>
+		    <entry><para>A string giving the name of the cipher algorithm used for the connection.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>cipher_version</code></para></entry>
+		    <entry><para>A string giving the version of the cipher algorithm used for the connection.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
           </listitem>
         </varlistentry>
       </variablelist>

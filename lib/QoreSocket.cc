@@ -384,7 +384,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_START_SSL), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    cb_queue->push_and_take_ref(h);
 	 }
       }
@@ -395,7 +394,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    h->setKeyValue("cipher", new QoreStringNode(ssl->getCipherName()), 0);
 	    h->setKeyValue("cipher_version", new QoreStringNode(ssl->getCipherVersion()), 0);
 	    cb_queue->push_and_take_ref(h);
@@ -408,7 +406,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTING), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    h->setKeyValue("type", new QoreBigIntNode(af), 0);
 	    h->setKeyValue("target", new QoreStringNode(target), 0);
 	    if (prt != -1)
@@ -423,7 +420,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTED), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    cb_queue->push_and_take_ref(h);
 	 }
       }
@@ -434,7 +430,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(event), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(source), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    if (event == QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED)
 	       h->setKeyValue("read", new QoreBigIntNode(bytes), 0);
 	    else
@@ -450,7 +445,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(event), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(source), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    h->setKeyValue("headers", headers->hashRefSelf(), 0);
 	    cb_queue->push_and_take_ref(h);
 	 }
@@ -462,7 +456,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(source), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    h->setKeyValue("message", new QoreStringNode(str), 0);
 	    h->setKeyValue("headers", headers->hashRefSelf(), 0);
 	    cb_queue->push_and_take_ref(h);
@@ -475,7 +468,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    cb_queue->push_and_take_ref(h);
 	 }
       }
@@ -487,7 +479,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_PACKET_READ), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    h->setKeyValue("read", new QoreBigIntNode(bytes_read), 0);
 	    h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
 	    // set total bytes to read and remaining bytes if bufsize > 0
@@ -504,7 +495,6 @@ struct qore_socket_private {
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_PACKET_SENT), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    h->setKeyValue("sent", new QoreBigIntNode(bytes_sent), 0);
 	    h->setKeyValue("total_sent", new QoreBigIntNode(total_sent), 0);
 	    h->setKeyValue("total_to_send", new QoreBigIntNode(bufsize), 0);

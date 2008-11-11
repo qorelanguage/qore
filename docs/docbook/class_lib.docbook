@@ -366,8 +366,8 @@
             <entry><para>Raised when the object being monitored is deleted.</para></entry>
           </row>
           <row>
-            <entry><para><code><link linkend="event_ftp_message_sent">EVENT_FTP_MESSAGE_SENT</link></code></para></entry>
-            <entry><para>Raised when an FTP control message is sent.</para></entry>
+            <entry><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link></code></para></entry>
+            <entry><para>Raised immediately before an FTP control message is sent.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link></code></para></entry>
@@ -468,6 +468,14 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  <row>
 	    <entry><para><code>AF_INET6</code></para></entry>
 	    <entry><para>Designates an IPv6 network addresses.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>AF_UNIX</code></para></entry>
+	    <entry><para>Designates a local socket file name (interchangeable with <code>AF_LOCAL</code>.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>AF_LOCAL</code></para></entry>
+	    <entry><para>POSIX synonym for <code>AF_UNIX</code>; designates a local socket file name.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
