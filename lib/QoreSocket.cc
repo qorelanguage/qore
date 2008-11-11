@@ -497,7 +497,7 @@ struct qore_socket_private {
 	 }
       }
 
-      DLLLOCAL void do_send_event(int bytes_sent, int total_sent, int bufsize = 0) {
+      DLLLOCAL void do_send_event(int bytes_sent, int total_sent, int bufsize) {
 	 // post bytes sent on event queue, if any
 	 if (cb_queue) {
 	    QoreHashNode *h = new QoreHashNode;
@@ -507,9 +507,7 @@ struct qore_socket_private {
 	    h->setKeyValue("socket", new QoreBigIntNode(sock), 0);
 	    h->setKeyValue("sent", new QoreBigIntNode(bytes_sent), 0);
 	    h->setKeyValue("total_sent", new QoreBigIntNode(total_sent), 0);
-	    // set total bytes to read and remaining bytes if bufsize > 0
-	    if (bufsize > 0)
-	       h->setKeyValue("total_to_send", new QoreBigIntNode(bufsize), 0);
+	    h->setKeyValue("total_to_send", new QoreBigIntNode(bufsize), 0);
 	    cb_queue->push_and_take_ref(h);
 	 }
       }
@@ -1493,7 +1491,7 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state) {
    while (true) {
       char c;
       *rc = recv(&c, 1, 0, timeout, false);
-      //printd(0, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
+      //printd(5, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
       if ((*rc) <= 0) {
 	 //printd(0, "QoreSocket::readHTTPData(timeout=%d) hdr->strlen()=%d, rc=%d, errno=%d (%s)\n", timeout, hdr->strlen(), *rc, errno, strerror(errno));
 	 return 0;
@@ -1581,7 +1579,7 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
       return 0;
 
    const char *buf = hdr->getBuffer();
-   //printd(0, "HTTP header=%s", buf);
+   //printd(5, "HTTP header=%s", buf);
 
    char *p;
    if ((p = (char *)strstr(buf, "\r\n"))) {

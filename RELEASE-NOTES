@@ -45,6 +45,8 @@ haven't figured out why.
 fixed a setting the URL in the HTTPClient class with only a path if a hostname
 is already set
 
+fixed another bug setting the URL in parseURL()
+
 SOAP improvements in example code in the examples/ directory:
      WSDL.qc, SoapHandler.qc, SoapClient.qc, HTTPServer.qc
 soap 1.2 is handled better, namespace handling improvements
