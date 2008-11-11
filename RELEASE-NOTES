@@ -9,7 +9,7 @@ release overview:
 *) support for stack guard including RSE monitoring in 64-bit builds on
    itanium processors
 *) default module dir change, module handling updated
-*) socket event queue support
+*) network event notification support
 *) implemented the ability to specify qore, module, and feature version
    requirements
 *) misc additions
@@ -119,16 +119,16 @@ the corresponding module name will be searched with the module api tag in
 descending order, if not found then the filename without a module api will be
 searched.
 
-*) socket event queue support
-you can now add an "event queue" to the Socket, HTTPClient, FtpClient,
-XmlRpcClient, and JsonRpcClient classes.
+*) network event notification support
+you can now add an event queue (Queue object) to the Socket, HTTPClient,
+FtpClient, XmlRpcClient, and JsonRpcClient classes.
 
 Currently the Socket, HTTPClient, and FtpClient classes all post events to the
 event queue, if one is set.
 
 The events allow for more detailed reporting of the technical events occurring
 during network operations that are abstracted to a relatively high level
-through the previous classes.
+through the previously-listed classes.
 
 The events supported are:
   EVENT_PACKET_READ
@@ -139,7 +139,7 @@ The events supported are:
   EVENT_HTTP_REDIRECT
   EVENT_CHANNEL_CLOSED
   EVENT_DELETED
-  EVENT_FTP_MESSAGE_SENT
+  EVENT_FTP_SEND_MESSAGE
   EVENT_FTP_MESSAGE_RECEIVED
   EVENT_HOSTNAME_LOOKUP
   EVENT_HOSTNAME_RESOLVED
@@ -148,6 +148,10 @@ The events supported are:
   EVENT_HTTP_FOOTERS_RECEIVED
   EVENT_HTTP_CHUNKED_DATA_RECEIVED
   EVENT_HTTP_CHUNK_SIZE
+  EVENT_CONNECTING
+  EVENT_CONNECTED
+  EVENT_START_SSL
+  EVENT_SSL_ESTABLISHED
 
 For most events posted to the event Queue, associated detailed information is
 posted to the queue along with the event type a listed above; for example when

@@ -325,99 +325,225 @@
 
     <table id="event_constants">
       <title>Event Constants</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	<thead>
 	  <row>
 	    <entry><para>Name</para></entry>
+	    <entry><para>Value</para></entry>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
 	<tbody>
 	  <row>
 	    <entry><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></entry>
+	    <entry><para><code>1</code></para></entry>
 	    <entry><para>Raised when a network packet is received.</para></entry>
 	  </row>
           <row>
             <entry><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></entry>
+	    <entry><para><code>2</code></para></entry>
             <entry><para>Raised when a network packet is sent.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link></code></para></entry>
+	    <entry><para><code>3</code></para></entry>
             <entry><para>Raised when the HTTP &quot;Content-Length&quot; header is received.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link></code></para></entry>
+	    <entry><para><code>4</code></para></entry>
             <entry><para>Raised when HTTP chunked data is about to be received.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link></code></para></entry>
+	    <entry><para><code>5</code></para></entry>
             <entry><para>Raised when all HTTP chunked data has been received.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></para></entry>
+	    <entry><para><code>6</code></para></entry>
             <entry><para>Raised when an HTTP redirect message is received.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></entry>
+	    <entry><para><code>7</code></para></entry>
             <entry><para>Raised when a socket is closed.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_deleted">EVENT_DELETED</link></code></para></entry>
+	    <entry><para><code>8</code></para></entry>
             <entry><para>Raised when the object being monitored is deleted.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link></code></para></entry>
+	    <entry><para><code>9</code></para></entry>
             <entry><para>Raised immediately before an FTP control message is sent.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link></code></para></entry>
+	    <entry><para><code>10</code></para></entry>
             <entry><para>Raised when an FTP reply is received on the control channel.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link></code></para></entry>
+	    <entry><para><code>11</code></para></entry>
             <entry><para>Raised when a hostname lookup is attempted.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link></code></para></entry>
+	    <entry><para><code>12</code></para></entry>
             <entry><para>Raised when a hostname lookup is resolved.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></para></entry>
+	    <entry><para><code>13</code></para></entry>
             <entry><para>Raised when an HTTP message is sent.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link></code></para></entry>
+	    <entry><para><code>14</code></para></entry>
             <entry><para>Raised when an HTTP message is received.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link></code></para></entry>
+	    <entry><para><code>15</code></para></entry>
             <entry><para>Raised when HTTP footers are received.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link></code></para></entry>
+	    <entry><para><code>16</code></para></entry>
             <entry><para>Raised when a block of HTTP chunked data is received.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link></code></para></entry>
+	    <entry><para><code>17</code></para></entry>
             <entry><para>Raised when the next chunk size for HTTP chunked data is known.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_connecting">EVENT_CONNECTING</link></code></para></entry>
+	    <entry><para><code>18</code></para></entry>
             <entry><para>Raised right before a socket connection attempt is made.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_connected">EVENT_CONNECTED</link></code></para></entry>
+	    <entry><para><code>19</code></para></entry>
             <entry><para>Raised when the socket connection has been established.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_start_ssl">EVENT_START_SSL</link></code></para></entry>
+	    <entry><para><code>20</code></para></entry>
             <entry><para>Raised when socket SSL negotiation starts.</para></entry>
           </row>
           <row>
             <entry><para><code><link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></entry>
+	    <entry><para><code>21</code></para></entry>
             <entry><para>Raised when SSL communication has been negotiated and established.</para></entry>
           </row>
 
+          <row>
+            <entry><para><code><link linkend="event_map_constant">EVENT_MAP</link></code></para></entry>
+	    <entry><para><link linkend="event_map_constant">Event Map Hash</link></para></entry>
+            <entry><para>This constant is a hash that maps event numbers to string descriptions as described in <link linkend="event_map_constant">this table</link>.</para></entry>
+          </row>
+
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table id="event_map_constant">
+      <title>Event Map Hash Constant</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Key</para></entry>
+	    <entry><para>String Value</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para><code>EVENT_PACKET_READ</code> (&quot;1&quot;)</para></entry>
+            <entry><para><code>&quot;PACKET_READ&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_PACKET_SENT</code> (&quot;2&quot;)</para></entry>
+            <entry><para><code>&quot;PACKET_SENT&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_CONTENT_LENGTH</code> (&quot;3&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_CONTENT_LENGTH&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_CHUNKED_START</code> (&quot;4&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_CHUNKED_START&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_CHUNKED_END</code> (&quot;5&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_CHUNKED_END&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_REDIRECT</code> (&quot;6&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_REDIRECT&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_CHANNEL_CLOSED</code> (&quot;7&quot;)</para></entry>
+            <entry><para><code>&quot;CHANNEL_CLOSED&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_DELETED</code> (&quot;8&quot;)</para></entry>
+            <entry><para><code>&quot;DELETED&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_FTP_SEND_MESSAGE</code> (&quot;9&quot;)</para></entry>
+            <entry><para><code>&quot;FTP_SEND_MESSAGE&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_FTP_MESSAGE_RECEIVED</code> (&quot;10&quot;)</para></entry>
+            <entry><para><code>&quot;FTP_MESSAGE_RECEIVED&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HOSTNAME_LOOKUP</code> (&quot;11&quot;)</para></entry>
+            <entry><para><code>&quot;HOSTNAME_LOOKUP&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HOSTNAME_RESOLVED</code> (&quot;12&quot;)</para></entry>
+            <entry><para><code>&quot;HOSTNAME_RESOLVED&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_SEND_MESSAGE</code> (&quot;13&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_SEND_MESSAGE&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_MESSAGE_RECEIVED</code> (&quot;14&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_MESSAGE_RECEIVED&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_FOOTERS_RECEIVED</code> (&quot;15&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_FOOTERS_RECEIVED&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_CHUNKED_DATA_RECEIVED</code> (&quot;16&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_CHUNKED_DATA_RECEIVED&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_HTTP_CHUNK_SIZE</code> (&quot;17&quot;)</para></entry>
+            <entry><para><code>&quot;HTTP_CHUNK_SIZE&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_CONNECTING</code> (&quot;18&quot;)</para></entry>
+            <entry><para><code>&quot;CONNECTING&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_CONNECTED</code> (&quot;19&quot;)</para></entry>
+            <entry><para><code>&quot;CONNECTED&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_START_SSL</code> (&quot;20&quot;)</para></entry>
+            <entry><para><code>&quot;START_SSL&quot;</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>EVENT_SSL_ESTABLISHED</code> (&quot;21&quot;)</para></entry>
+            <entry><para><code>&quot;SSL_ESTABLISHED&quot;</code></para></entry>
+          </row>
 	</tbody>
       </tgroup>
     </table>
@@ -433,17 +559,17 @@
 	</thead>
 	<tbody>
 	  <row>
-            <entry><para><code>SOURE_SOCKET</code></para></entry>
+            <entry><para><code>SOURCE_SOCKET</code></para></entry>
             <entry><para>For <link linkend="event_constants">events</link>
 raised from the <link linkend="Socket_Class">Socket</link> class.</para></entry>
           </row>
 	  <row>
-            <entry><para><code>SOURE_HTTPCLIENT</code></para></entry>
+            <entry><para><code>SOURCE_HTTPCLIENT</code></para></entry>
             <entry><para>For <link linkend="event_constants">events</link>
 raised from the <link linkend="HTTPClient_Class">HTTPClient</link> class.</para></entry>
           </row>
 	  <row>
-            <entry><para><code>SOURE_FTPCLIENT</code></para></entry>
+            <entry><para><code>SOURCE_FTPCLIENT</code></para></entry>
             <entry><para>For <link linkend="event_constants">events</link>
 raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></entry>
           </row>
@@ -6667,7 +6793,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
     
     <programlisting>[(ftp|ftps)://][username[:password]@]hostname[:port]</programlisting>
     
-    <para>If the URL is not set with the constructor, then the connection parameters must be set with the FtpClient::set*() methods. At the very minimum the hostname must be set.  See the following table for default URL parameters.</para>
+    <para>If the URL is not set with the constructor, then the connection parameters must be set with the FtpClient::set*() methods. At the very minimum the hostname must be set.  If any path name is given in the URL, it is ignored.  See the following table for default URL parameters.</para>
     
     <table>
       <title>FtpClient::constructor() Default URL Parameters</title>
@@ -6705,9 +6831,38 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     <para>Note that 'sftp', or FTP over ssh, is not supported with this class; FTPS is an extension of the FTP protocol to allow for secure connections; while 'sftp' is FTP over an encrypted ssh connection.</para>
 
-    <para>When a data connection is required, by default the following modes are tried in series: EPSV (Extended Passive Mode), PASV (Passive Mode), and PORT (Port mode). If the FTP server does support one of these methods, or network conditions do not allow a data connection of any of these types to be established, then an exception is thrown.</para>
+    <para>When a data connection is required, by default the following modes are tried in series: EPSV (Extended Passive Mode), PASV (Passive Mode), and PORT (Port mode). If the FTP server does not support one of these methods, or network conditions do not allow a data connection of any of these types to be established, then an exception is thrown.</para>
 
     <para>To manually control which modes are tried, see the <link linkend="FtpClient_setModeEPSV">FtpClient::setModeEPSV()</link>, <link linkend="FtpClient_setModePASV">FtpClient::setModePASV()</link>, and <link linkend="FtpClient_setModePORT">FtpClient::setModePORT()</link> methods.</para>
+
+    <para>This class supports posting network events to a <link linkend="Qore::Thread::Queue_Class">Queue</link>, either events on the control or data channels or both can be monitored.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+
+    <para>The events raised by this object are listed in the following table:</para>
+
+    <table id="ftpclient_events">
+      <title>FtpClient Events</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+        <thead>
+          <row>
+            <entry><para>Name</para></entry>
+            <entry><para>Value</para></entry>
+            <entry><para>Description</para></entry>
+          </row>
+        </thead>
+	<tbody>
+	  <row>
+            <entry><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link></code></para></entry>
+            <entry><para><code>9</code></para></entry>
+            <entry><para>Raised immediately before an FTP control message is sent.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link></code></para></entry>
+            <entry><para><code>10</code></para></entry>
+            <entry><para>Raised when an FTP reply is received on the control channel.</para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
 
     <table>
       <title>Qore::FtpClient Method Overview</title>
@@ -6986,6 +7141,21 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current FTP URL</para></entry>
 	  </row>
+          <row>
+            <entry><para><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on both the data and control connections.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the data connection.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the control connection.</para></entry>
+          </row>
 	  
 	</tbody>
       </tgroup>
@@ -6998,7 +7168,9 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates the FtpClient object. It accepts one optional argument that will set the URL for the FTP connection; the path is ignored in the URL, however the username,  password, hostname and port are respected; additionally if the protocol is &quot;ftps&quot;, the client will attempt to establish a secure connection to the server according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink>.</para>
+	    <para>Creates the FtpClient object. It accepts one optional argument that will set the URL for the FTP connection; the path is ignored in the URL, however the username,  password, hostname and port are respected; additionally if the protocol is &quot;ftps&quot;, the client will attempt to establish a secure connection to the server according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink> when the first connection is established.</para>
+	    
+	    <para>A call to <link linkend="FtpClient_connect">FtpClient::connect()</link> must be made explicitly before any actions requiring a connection to the server are made; connections are not made implicitly by this class.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -7099,6 +7271,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting><command>delete</command> $ftp;</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></listitem>
+        </varlistentry>
       </variablelist>
     </sect2>
 
@@ -7193,6 +7369,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$ftp.connect(); # connects to the URL set in the constructor</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>,<link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -7267,7 +7447,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Disconnects from FTP server.</para>
+	    <para>Disconnects from an FTP server.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -7282,6 +7462,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$ftp.disconnect();</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -8375,6 +8559,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$list = $ftp.list();</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -8464,6 +8652,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$str = $ftp.nlst();</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -8553,6 +8745,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$str = $ftp.pwd();</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -8642,6 +8838,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$ftp.cwd("/pub/gnu");</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -8734,6 +8934,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$ftp.get("file.txt", "/tmp/file-1.txt");</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -8835,6 +9039,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$ftp.put("/tmp/file-1.txt", "file.txt");</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -8940,6 +9148,10 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <programlisting>$ftp.del("file-2.txt");</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
       </variablelist>
 
       <table>
@@ -9728,6 +9940,196 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</tgroup>
       </table>
     </sect2>
+
+    <sect2 id="FtpClient_setEventQueue">
+      <title>FtpClient::setEventQueue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on both the data and control connections.</para>
+	    <para>To remove the event queue and stop monitoring socket events, pass <code>NOTHING</code> to the method.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+
+	    <para>To control monitoring of network events on just the data connection or just the control connection, use <link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link> or <link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link> respectively</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>FtpClient::setEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setEventQueue($queue);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for FtpClient::setEventQueue()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>[queue]</replaceable></para></entry>
+              <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link></para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Qore::Thread::Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for FtpClient::setEventQueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="FtpClient_setDataEventQueue">
+      <title>FtpClient::setDataEventQueue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the data connection when retrieving data from an FTP server.</para>
+	    <para>To remove the event queue and stop monitoring network events, pass <code>NOTHING</code> to the method.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+
+	    <para>To control monitoring of network events on just the control connection or on both connections with the same queue, use <link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link> or <link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link> respectively.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>FtpClient::setDataEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setDataEventQueue($queue);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for FtpClient::setDataEventQueue()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>[queue]</replaceable></para></entry>
+              <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link></para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Qore::Thread::Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for FtpClient::setDataEventQueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="FtpClient_setControlEventQueue">
+      <title>FtpClient::setControlEventQueue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on both the control connection.</para>
+	    <para>To remove the event queue and stop monitoring network events, pass <code>NOTHING</code> to the method.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+
+	    <para>To control monitoring of network events on just the data connection or for both data and control connections simultaneously, use <link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link> or <link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link> respectively</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>FtpClient::setControlEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ftp.setControlEventQueue($queue);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for FtpClient::setControlEventQueue()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>[queue]</replaceable></para></entry>
+              <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link></para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Qore::Thread::Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for FtpClient::setControlEventQueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
   </sect1>
   
   <sect1 id="Qore_Program_Class">
@@ -11668,6 +12070,72 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     <para>To support TLS/SSL server connections, first set the certificate and private key with the <link linkend="Socket_setCertificate">Socket::setCertificate()</link> and <link linkend="Socket_setPrivateKey">Socket::setPrivateKey()</link> methods (see the <link linkend="SSLCertificate_Class">SSLCertificate Class</link> and the <link linkend="SSLPrivateKey_Class">SSLPrivateKey Class</link> for more information on the parameters required for these methods).  Then <link linkend="Socket_acceptSSL">Socket::acceptSSL()</link> should be called after the socket is in a listening state to accept client connections and negotiate a TLS/SSL connection.</para>
 
+    <para>This class supports posting events to a <link linkend="Qore::Thread::Queue_Class">Queue</link>.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+
+    <para>The events raised by this object are listed in the following table:</para>
+
+    <table id="socket_events">
+      <title>Socket Events</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+        <thead>
+          <row>
+            <entry><para>Name</para></entry>
+            <entry><para>Description</para></entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></entry>
+            <entry><para>Raised when a network packet is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></entry>
+            <entry><para>Raised when a network packet is sent.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></entry>
+            <entry><para>Raised when a socket is closed.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_deleted">EVENT_DELETED</link></code></para></entry>
+            <entry><para>Raised when the object being monitored is deleted.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link></code></para></entry>
+            <entry><para>Raised when a hostname lookup is attempted.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link></code></para></entry>
+            <entry><para>Raised when a hostname lookup is resolved.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></para></entry>
+            <entry><para>Raised when an HTTP message is sent.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link></code></para></entry>
+            <entry><para>Raised when an HTTP message is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_connecting">EVENT_CONNECTING</link></code></para></entry>
+            <entry><para>Raised right before a socket connection attempt is made.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_connected">EVENT_CONNECTED</link></code></para></entry>
+            <entry><para>Raised when the socket connection has been established.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_start_ssl">EVENT_START_SSL</link></code></para></entry>
+            <entry><para>Raised when socket SSL negotiation starts.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></entry>
+            <entry><para>Raised when SSL communication has been negotiated and established.</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
     <table>
       <title>Qore::Socket Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -11994,17 +12462,14 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
             </entry>
           </row>
           <row>
-            <entry>
-              <para>
-                <link linkend="Socket_verifyPeerCertificate">Socket::verifyPeerCertificate()</link>
-              </para>
-            </entry>
-            <entry>
-              <para>N</para>
-            </entry>
-            <entry>
-              <para>Returns a string code giving the result of verifying the remote certificate.</para>
-            </entry>
+            <entry><para><link linkend="Socket_verifyPeerCertificate">Socket::verifyPeerCertificate()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Returns a string code giving the result of verifying the remote certificate.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="Socket_setEventQueue">Socket::setEventQueue()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket events</link>.</para></entry>
           </row>
 	</tbody>
       </tgroup>
@@ -12094,6 +12559,10 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <programlisting><command>delete</command> $sock;</programlisting>
 	  </listitem>
 	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></listitem>
+        </varlistentry>
       </variablelist>
     </sect2>
 
@@ -12363,6 +12832,10 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>$new_sock = $sock.acceptSSL();</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for Socket::acceptSSL()</title>
@@ -12471,6 +12944,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$sock.connect("192.168.1.45:8080"); # connect to 192.168.1.45 port 8080</programlisting>
 	    <programlisting>$sock.connect("/tmp/socket");       # connect to UNIX domain socket file "/tmp/socket"</programlisting>
 	  </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -12561,6 +13038,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$sock.connectSSL("192.168.1.45:8080"); # connect to 192.168.1.45 port 8080</programlisting>
 	    <programlisting>$sock.connectSSL("/tmp/socket");       # connect to UNIX domain socket file "/tmp/socket"</programlisting>
 	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></listitem>
 	</varlistentry>
       </variablelist>
       <table>
@@ -13408,6 +13889,82 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
+    <sect2 id="Socket_setEventQueue">
+      <title>Socket::setEventQueue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket events</link>.  To remove the event queue and stop monitoring socket events, pass <code>NOTHING</code> to the method.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>Socket::setEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$sock.setEventQueue($queue);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for Socket::setEventQueue()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><replaceable>[queue]</replaceable></para>
+              </entry>
+              <entry>
+                <para><link linkend="Qore::Thread::Queue_Class">Queue</link></para>
+              </entry>
+              <entry>
+                <para>To set the event queue, pass a <link linkend="Qore::Thread::Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for Socket::setEventQueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="Socket_isDataAvailable">
       <title>Socket::isDataAvailable()</title>
       <variablelist>
@@ -13490,6 +14047,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$sock.send($data);</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -13580,6 +14141,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$sock.sendi1($val);</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -13659,6 +14224,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$sock.sendi2($val);</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -13740,6 +14309,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$sock.sendi4($val);</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -13819,6 +14392,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$sock.sendi8($val);</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -13900,6 +14477,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$sock.sendi2LSB($val);</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -13979,6 +14560,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$sock.sendi4LSB($val);</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -14060,6 +14645,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$sock.sendi8LSB($val);</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -14139,6 +14728,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -14253,6 +14846,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -14366,6 +14963,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$data = $sock.recv(-1); # read all data available</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -14458,6 +15059,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$bin = $sock.recvBinary(-1); # read all data available</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -14552,6 +15157,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$int = $sock.recvi1();</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -14639,6 +15248,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$int = $sock.recvi2();</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -14728,6 +15341,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$int = $sock.recvi4();</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -14815,6 +15432,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$int = $sock.recvi8();</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -14904,6 +15525,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$int = $sock.recvi2LSB();</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -14991,6 +15616,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$int = $sock.recvi4LSB(1250ms); # timeout in 1.25 seconds</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -15080,6 +15709,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$int = $sock.recvi8LSB();</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -15167,6 +15800,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$int = $sock.recvu1();</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -15256,6 +15893,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$int = $sock.recvu2();</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -15343,6 +15984,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$int = $sock.recvu4();</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -15432,6 +16077,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <programlisting>$int = $sock.recvu2LSB();</programlisting>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	</varlistentry>
       </variablelist>
 
       <table>
@@ -15519,6 +16168,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$int = $sock.recvu4LSB();</programlisting>
 	  </listitem>
+	</varlistentry> 
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -15607,6 +16260,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$hash = $sock.readHTTPHeader();</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -15819,6 +16476,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$sock.close();</programlisting>
 	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -16162,6 +16823,60 @@ $sock.bind("/tmp/socket");</programlisting>
       </tgroup>
     </table>
 
+    <para>This class supports posting network events to a <link linkend="Qore::Thread::Queue_Class">Queue</link>.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+
+    <para>The events raised by this object are listed in the following table:</para>
+
+    <table id="httpclient_events">
+      <title>HTTPClient Events</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+        <thead>
+          <row>
+            <entry><para>Name</para></entry>
+            <entry><para>Description</para></entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><para><code><link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link></code></para></entry>
+            <entry><para>Raised when the HTTP &quot;Content-Length&quot; header is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link></code></para></entry>
+            <entry><para>Raised when HTTP chunked data is about to be received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link></code></para></entry>
+            <entry><para>Raised when all HTTP chunked data has been received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></para></entry>
+            <entry><para>Raised when an HTTP redirect message is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></para></entry>
+            <entry><para>Raised when an HTTP message is sent.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link></code></para></entry>
+            <entry><para>Raised when an HTTP message is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link></code></para></entry>
+            <entry><para>Raised when HTTP footers are received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link></code></para></entry>
+            <entry><para>Raised when a block of HTTP chunked data is received.</para></entry>
+          </row>
+          <row>
+            <entry><para><code><link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link></code></para></entry>
+            <entry><para>Raised when the next chunk size for HTTP chunked data is known.</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
     <para>The following table gives an overview of the methods available in the HTTPClient class.</para>
 
     <table>
@@ -16466,17 +17181,15 @@ $sock.bind("/tmp/socket");</programlisting>
             </entry>
           </row>
           <row>
-            <entry>
-              <para>
-                <link linkend="HTTPClient_getEncoding">HTTPClient::getEncoding()</link>
-              </para>
+            <entry><para><link linkend="HTTPClient_getEncoding">HTTPClient::getEncoding()</link></para>
             </entry>
-            <entry>
-              <para>N</para>
-            </entry>
-            <entry>
-              <para>Returns the character encoding used for the object</para>
-            </entry>
+            <entry><para>N</para></entry>
+            <entry><para>Returns the character encoding used for the object</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_setEventQueue">HTTPClient::setEventQueue()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events.</para></entry>
           </row>
         </tbody>
       </tgroup>
@@ -16488,7 +17201,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the HTTPClient object based on the parameters passed.</para>
+            <para>Creates the HTTPClient object based on the parameters passed.  To connect, call any method that requires a connection and an implicit connection is established, or call <link linkend="HTTPClient_connect">HTTPClient::connect()</link>.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -16655,6 +17368,10 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem>
 	    <programlisting><command>delete</command> $httpclient;</programlisting>
           </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -17416,6 +18133,10 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>$httpclient.connect();</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>,<link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::connect()</title>
@@ -17520,6 +18241,10 @@ $sock.bind("/tmp/socket");</programlisting>
             <programlisting>$httpclient.disconnect();</programlisting>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></listitem>
+        </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::disconnect()</title>
@@ -17598,6 +18323,10 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem>
             <programlisting>$html = $httpclient.get("/path/file.html");</programlisting>
           </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -17726,6 +18455,10 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem>
             <programlisting>$response = $httpclient.head("/path");</programlisting>
           </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -18000,6 +18733,10 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem>
             <programlisting>$msg = $httpclient.send($body, "POST", "/path", ("Connection":"Keep-Alive"));</programlisting>
           </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -19096,6 +19833,67 @@ $sock.bind("/tmp/socket");</programlisting>
         </tgroup>
       </table>
     </sect2>
+
+    <sect2 id="HTTPClient_setEventQueue">
+      <title>HTTPClient::setEventQueue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets a <link linkend="Qore::Thread::Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events.  To remove the event queue and stop monitoring events, pass <code>NOTHING</code> to the method.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::setEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setEventQueue($queue);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::setEventQueue()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><replaceable>[queue]</replaceable></para></entry>
+              <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link></para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Qore::Thread::Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::setEventQueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method does not return any value.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
   </sect1>
 
   <sect1 id="XmlRpcClient_Class">

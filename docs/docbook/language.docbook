@@ -3383,7 +3383,7 @@ following sections.</para>
 		  </row>
 		  <row>
 		    <entry><para><code>source</code></para></entry>
-		    <entry><para><code>SOURE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><code>id</code></para></entry>
@@ -3442,7 +3442,7 @@ following sections.</para>
 		  </row>
 		  <row>
 		    <entry><para><code>source</code></para></entry>
-		    <entry><para><code>SOURE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
+		    <entry><para><code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><code>id</code></para></entry>
@@ -3972,7 +3972,7 @@ following sections.</para>
         </varlistentry>
         <varlistentry>
           <term>Source</term>
-          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code> or <code>SOURCE_SOCKET</code></para></listitem>
         </varlistentry>
         <varlistentry>
           <term>Description</term>
@@ -3995,7 +3995,7 @@ following sections.</para>
 		  </row>
 		  <row>
 		    <entry><para><code>source</code></para></entry>
-		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class, or <code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><code>message</code></para></entry>
@@ -4022,7 +4022,7 @@ following sections.</para>
         </varlistentry>
         <varlistentry>
           <term>Source</term>
-          <listitem><para><code>SOURCE_HTTPCLIENT</code></para></listitem>
+          <listitem><para><code>SOURCE_HTTPCLIENT</code> or <code>SOURCE_SOCKET</code></para></listitem>
         </varlistentry>
         <varlistentry>
           <term>Description</term>
@@ -4045,7 +4045,7 @@ following sections.</para>
 		  </row>
 		  <row>
 		    <entry><para><code>source</code></para></entry>
-		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
+		    <entry><para><code>SOURCE_HTTPCLIENT</code>, indicating the <link linkend="HTTPClient_Class">HTTPClient</link> class, or <code>SOURCE_SOCKET</code>, indicating the <link linkend="Socket_Class">Socket</link> class</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><code>headers</code></para></entry>
