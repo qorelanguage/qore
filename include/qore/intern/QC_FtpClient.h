@@ -40,6 +40,13 @@ class QoreFtpClientClass : public AbstractPrivateData, public QoreFtpClient
 
    public:
       DLLLOCAL inline QoreFtpClientClass(const QoreString *url, ExceptionSink *xsink) : QoreFtpClient(url, xsink) {}
+
+      DLLLOCAL virtual void deref(ExceptionSink *xsink) {
+	  if (ROdereference()) {
+	      cleanup(xsink);
+	      delete this;
+	  }
+      }
 };
 
 #endif // _QORE_CLASS_FTPCLIENT_H

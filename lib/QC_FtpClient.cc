@@ -32,7 +32,7 @@ static void FC_constructor(QoreObject *self, const QoreListNode *params, Excepti
 
    QoreFtpClientClass *f = new QoreFtpClientClass(p0, xsink);
    if (xsink->isException()) {
-      f->deref();
+      f->deref(xsink);
       return;
    }
 
