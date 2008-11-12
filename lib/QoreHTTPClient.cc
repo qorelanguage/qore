@@ -587,8 +587,7 @@ const char* QoreHTTPClient::getSSLCipherVersion()
    return priv->m_socket.getSSLCipherVersion(); 
 }
 
-int QoreHTTPClient::connect_unlocked(ExceptionSink *xsink)
-{
+int QoreHTTPClient::connect_unlocked(ExceptionSink *xsink) {
    bool connect_ssl = priv->proxy_port ? priv->proxy_ssl : priv->ssl;
 
    int rc;
@@ -601,23 +600,19 @@ int QoreHTTPClient::connect_unlocked(ExceptionSink *xsink)
    return rc;
 }
 
-int QoreHTTPClient::connect(ExceptionSink *xsink)
-{
+int QoreHTTPClient::connect(ExceptionSink *xsink) {
    SafeLocker sl(priv->m);
    return connect_unlocked(xsink);
 }
 
-void QoreHTTPClient::disconnect_unlocked()
-{
-   if (priv->connected)
-   {
+void QoreHTTPClient::disconnect_unlocked() {
+   if (priv->connected) {
       priv->m_socket.close();
       priv->connected = false;
    }
 }
 
-void QoreHTTPClient::disconnect()
-{
+void QoreHTTPClient::disconnect() {
    SafeLocker sl(priv->m);
    disconnect_unlocked();
 }
@@ -648,7 +643,7 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
       // encode spaces only
       if (*p == ' ')
 	 pstr.concat("%20");
-      // according to RFC 3896 it'S not necessary to encode non-ascii characters
+      // according to RFC 3896 it's not necessary to encode non-ascii characters
       else
 	 pstr.concat(*p);
       ++p;
@@ -660,7 +655,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
    QoreString pathstr(priv->m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
 
-   if (connect_unlocked(xsink))
+   if (!priv->connected && connect_unlocked(xsink))
       return 0;
 
    // send the message

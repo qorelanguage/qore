@@ -87,10 +87,6 @@ static AbstractQoreNode *make_jsonrpc_call(QoreHTTPClient *client, QoreStringNod
 }
 
 static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   client->connect(xsink);
-   if (xsink->isEvent())
-      return 0;
-
    // create the outgoing message in JSON-RPC call format
    SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestStringArgs(params, xsink));
    if (!msg)
@@ -100,10 +96,6 @@ static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, 
 }
 
 static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   client->connect(xsink);
-   if (xsink->isEvent())
-      return 0;
-
    // create the outgoing message in JSON-RPC call format
    SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestString(params, xsink));
    if (!msg)
@@ -129,10 +121,6 @@ static AbstractQoreNode *JRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *
       return 0;
 
    ReferenceHolder<QoreHashNode> info(new QoreHashNode, xsink);
-
-   client->connect(xsink);
-   if (xsink->isEvent())
-      return 0;
 
    // send the message to the server and get the response as an XML string
    ReferenceHolder<AbstractQoreNode> rv(make_jsonrpc_call(client, *msg, *info, xsink), xsink);
@@ -172,10 +160,6 @@ static AbstractQoreNode *JRC_callWithInfo(QoreObject *self, QoreHTTPClient *clie
       return 0;
 
    ReferenceHolder<QoreHashNode> info(new QoreHashNode, xsink);
-
-   client->connect(xsink);
-   if (xsink->isEvent())
-      return 0;
 
    // send the message to the server and get the response as an XML string
    ReferenceHolder<AbstractQoreNode> rv(make_jsonrpc_call(client, *msg, *info, xsink), xsink);

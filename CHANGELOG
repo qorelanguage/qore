@@ -1,5 +1,10 @@
 2008.11.12: David Nichols
 	* fixed a bug in QoreHTTPClient passing a StackHash as a QoreHashNode
+	* fixed bugs in JsonRpcClient and XmlRpcClient where a new connection
+	  was established with each request
+	* fixed a bug in the HTTPClient where a new conncetion was established
+	  for each request even if the connection was already open and
+	  Keep-Alive was set
 
 2008.11.11: David Nichols
 	* added initial event documentation
