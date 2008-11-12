@@ -33,7 +33,7 @@
 qore_classid_t CID_HTTPCLIENT;
 
 static void HC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   SimpleRefHolder<QoreHTTPClient> client(new QoreHTTPClient());
+   ReferenceHolder<QoreHTTPClient> client(new QoreHTTPClient(), xsink);
    const QoreHashNode *n = test_hash_param(params, 0);
    if (n && client->setOptions(n, xsink))
       return;
@@ -42,7 +42,7 @@ static void HC_constructor(QoreObject *self, const QoreListNode *params, Excepti
 }
 
 static void HC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, ExceptionSink *xsink) {
-   xsink->raiseException("HTTPCLIENT-COPY-ERROR", "copying HTTPClient objects is not yet supported.");
+   xsink->raiseException("HTTPCLIENT-COPY-ERROR", "copying HTTPClient objects is not yet supported");
 }
 
 static void HC_destructor(QoreObject *self, QoreHTTPClient *client, ExceptionSink *xsink) {

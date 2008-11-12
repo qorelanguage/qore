@@ -540,6 +540,46 @@ struct qore_socket_private {
 	 return (int64)this;
       }
 
+      int connectUNIX(const char *p, ExceptionSink *xsink) {
+	 QORE_TRACE("connectUNIX()");
+	 
+	 // close socket if already open
+	 close();
+	 
+	 printd(5, "QoreSocket::connectUNIX(%s)\n", p);
+	 
+	 struct sockaddr_un addr;
+	 
+	 addr.sun_family = AF_UNIX;
+	 // copy path and terminate if necessary
+	 strncpy(addr.sun_path, p, sizeof(addr.sun_path) - 1);
+	 addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
+	 if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+	    sock = 0;
+	    if (xsink)
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+	    
+	    return -1;
+	 }
+	 
+	 do_connect_event(AF_UNIX, p, -1);
+	 if ((::connect(sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un))) == -1) {
+	    ::close(sock);
+	    sock = 0;
+	    if (xsink)
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+	    
+	    return -1;
+	 }
+	 // save file name for deleting when socket is closed
+	 socketname = addr.sun_path;
+	 type = AF_UNIX;
+	 
+	 do_connected_event();
+
+	 return 0;
+      }
+
       int connectINET(const char *host, int prt, ExceptionSink *xsink) {
 	 QORE_TRACE("QoreSocket::connectINET()");
 
@@ -583,6 +623,7 @@ struct qore_socket_private {
 	 port = prt;
 	 printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d) success, sock=%d\n", this, host, port, sock);
 
+	 do_connected_event();
 	 return 0;
       }
 
@@ -693,41 +734,7 @@ int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink) {
 }
 
 int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink) {
-   QORE_TRACE("connectUNIX()");
-
-   // close socket if already open
-   close();
-
-   printd(5, "QoreSocket::connectUNIX(%s)\n", p);
-
-   struct sockaddr_un addr;
-
-   addr.sun_family = AF_UNIX;
-   // copy path and terminate if necessary
-   strncpy(addr.sun_path, p, sizeof(addr.sun_path) - 1);
-   addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
-   if ((priv->sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-      priv->sock = 0;
-      if (xsink)
-	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
-
-      return -1;
-   }
-
-   priv->do_connect_event(AF_UNIX, p, -1);
-   if ((::connect(priv->sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un))) == -1) {
-      ::close(priv->sock);
-      priv->sock = 0;
-      if (xsink)
-	 xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
-
-      return -1;
-   }
-   // save file name for deleting when socket is closed
-   priv->socketname = addr.sun_path;
-   priv->type = AF_UNIX;
-
-   return 0;
+   return priv->connectUNIX(p, xsink);
 }
 
 // currently hardcoded to SOCK_STREAM (tcp-only)
@@ -1910,16 +1917,14 @@ int QoreSocket::connect(const char *name, ExceptionSink *xsink) {
       strncpy(host, name, p - name);
       host[p - name] = '\0';
       int prt = strtol(p + 1, 0, 10);
-      rc = connectINET(host, prt, xsink);
+      rc = priv->connectINET(host, prt, xsink);
       free(host);
    }
    else {
       // else assume it's a file name for a UNIX domain socket
-      rc = connectUNIX(name, xsink);
+      rc = priv->connectUNIX(name, xsink);
    }
 
-   if (!rc)
-      priv->do_connected_event();
    return rc;
 }
 
@@ -1946,8 +1951,6 @@ int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, Excepti
       rc = connectUNIXSSL(name, cert, pkey, xsink);
    }
 
-   if (!rc)
-      priv->do_connected_event();
    return rc;
 }
 

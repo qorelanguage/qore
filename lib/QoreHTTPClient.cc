@@ -58,35 +58,6 @@ typedef std::map<std::string, std::string> header_map_t;
 static ccharcase_set_t method_set;
 static strcase_set_t header_ignore;
 
-//! used for having a QoreHashNode on the stack
-/** this is not safe because the object could be misused (i.e. refSelf() called and reference used elsewhere)
-    therefore it's a private object just implemented in this file
- */
-class StackHash : public QoreHashNode {
-   private:
-      ExceptionSink *xsink;
-      
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL void *operator new(size_t); 
-
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL StackHash(const StackHash&);
-
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL StackHash& operator=(const StackHash&);
-   
-   public:
-      //! creates the hash on the stack, "xs" will be used when the object is deleted
-      DLLLOCAL StackHash(class ExceptionSink *xs) {
-	 xsink = xs;
-      }
-
-      //! dereferences the members of the hash and destroys the object
-      DLLLOCAL ~StackHash() {
-	 derefImpl(xsink);
-      }
-};
-
 struct qore_qtc_private {
       QoreThreadLock m;
       bool http11;       // are we using http 1.1 or 1.0?
@@ -167,6 +138,13 @@ QoreHTTPClient::QoreHTTPClient() : priv(new qore_qtc_private) {
 
 QoreHTTPClient::~QoreHTTPClient() {
    delete priv;
+}
+
+void QoreHTTPClient::deref(ExceptionSink *xsink) {
+    if (ROdereference()) {
+	cleanup(xsink);
+	delete this;
+    }
 }
 
 void QoreHTTPClient::setSocketPath() {

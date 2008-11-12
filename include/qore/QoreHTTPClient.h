@@ -266,6 +266,12 @@ class QoreHTTPClient : public AbstractPrivateData {
        */
       DLLEXPORT void setDefaultHeaderValue(const char *header, const char *val);
 
+      //! decrements the reference count and deletes the object when it reaches 0
+      /**
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+      */
+      DLLEXPORT virtual void deref(ExceptionSink *xsink);
+
       DLLLOCAL static void static_init();
 
       //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
