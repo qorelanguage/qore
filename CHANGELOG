@@ -1,3 +1,6 @@
+2008.11.12: David Nichols
+	* fixed a bug in QoreHTTPClient passing a StackHash as a QoreHashNode
+
 2008.11.11: David Nichols
 	* added initial event documentation
 	* added AF_UNIX and AF_LOCAL constants

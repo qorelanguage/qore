@@ -29,8 +29,7 @@
 
 qore_classid_t CID_JSONRPCCLIENT;
 
-static void JRC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
+static void JRC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    // get HTTPClient object
    ReferenceHolder<QoreHTTPClient> client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT, xsink), xsink);
    if (!client)
@@ -55,13 +54,11 @@ static void JRC_constructor(QoreObject *self, const QoreListNode *params, Except
    client->connect(xsink); 
 }
 
-static void JRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, ExceptionSink *xsink)
-{
+static void JRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, ExceptionSink *xsink) {
    xsink->raiseException("JSONRPCCLIENT-COPY-ERROR", "copying JsonRpcClient objects is not yet supported.");
 }
 
-static AbstractQoreNode *make_jsonrpc_call(QoreHTTPClient *client, QoreStringNode *msg, QoreHashNode *info, ExceptionSink *xsink)
-{
+static AbstractQoreNode *make_jsonrpc_call(QoreHTTPClient *client, QoreStringNode *msg, QoreHashNode *info, ExceptionSink *xsink) {
    ReferenceHolder<QoreHashNode> response(client->send("POST", 0, 0, msg->getBuffer(), msg->strlen(), true, info, xsink), xsink);
    if (!response)
       return 0;
@@ -89,8 +86,7 @@ static AbstractQoreNode *make_jsonrpc_call(QoreHTTPClient *client, QoreStringNod
    return rv;
 }
 
-static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    client->connect(xsink);
    if (xsink->isEvent())
       return 0;
@@ -103,8 +99,7 @@ static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, 
    return make_jsonrpc_call(client, *msg, 0, xsink);
 }
 
-static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    client->connect(xsink);
    if (xsink->isEvent())
       return 0;
@@ -117,8 +112,7 @@ static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, cons
    return make_jsonrpc_call(client, *msg, 0, xsink);
 }
 
-static AbstractQoreNode *JRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *JRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    // get info reference
    const ReferenceNode *ref = test_reference_param(params, 0);
    if (!ref) {

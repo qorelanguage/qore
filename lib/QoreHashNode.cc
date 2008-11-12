@@ -352,14 +352,13 @@ void QoreHashNode::merge(const class QoreHashNode *h, ExceptionSink *xsink)
 }
 
 // returns the same order
-QoreHashNode *QoreHashNode::copy() const
-{
+QoreHashNode *QoreHashNode::copy() const {
    QoreHashNode *h = new QoreHashNode();
 
    // copy all members to new object
    class HashMember *where = priv->member_list;
-   while (where)
-   {
+   while (where) {
+      //printd(5, "QoreHashNode::copy() this=%p node=%p key='%s'\n", this, where->node, where->key);
       h->setKeyValue(where->key, where->node ? where->node->refSelf() : 0, 0);
       where = where->next;
    }

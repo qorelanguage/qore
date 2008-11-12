@@ -28,12 +28,12 @@
 #include <qore/QoreThreadLock.h>
 #include <qore/QoreSocket.h>
 
-#define HTTPCLIENT_DEFAULT_PORT 80              //!< the default port number to use
-#define HTTPCLIENT_DEFAULT_HOST "localhost"     //!< the default host name to use
+#define HTTPCLIENT_DEFAULT_PORT 80                 //!< the default port number to use
+#define HTTPCLIENT_DEFAULT_HOST "localhost"        //!< the default host name to use
 
-#define HTTPCLIENT_DEFAULT_TIMEOUT 300000       //!< the default connection and response packet timeout to use (300,000 ms = 5m)
+#define HTTPCLIENT_DEFAULT_TIMEOUT 300000          //!< the default connection and response packet timeout to use (300,000 ms = 5m)
 
-#define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5      //!< maximum number of HTTP redirects allowed
+#define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5         //!< maximum number of HTTP redirects allowed
 
 class Queue;
 
@@ -46,16 +46,16 @@ class QoreHTTPClient : public AbstractPrivateData {
       struct qore_qtc_private *priv;
       
       // returns -1 if an exception was thrown, 0 for OK
-      DLLEXPORT int set_url_unlocked(const char *url, ExceptionSink *xsink);
+      DLLLOCAL  int set_url_unlocked(const char *url, ExceptionSink *xsink);
       // returns -1 if an exception was thrown, 0 for OK
-      DLLEXPORT int set_proxy_url_unlocked(const char *url, ExceptionSink *xsink);
+      DLLLOCAL int set_proxy_url_unlocked(const char *url, ExceptionSink *xsink);
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(ExceptionSink *xsink);
       DLLLOCAL void disconnect_unlocked();
       DLLLOCAL QoreHashNode *send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink);
       DLLLOCAL void setSocketPath();
       DLLLOCAL const char *getMsgPath(const char *mpath, QoreString &pstr);
-      DLLLOCAL QoreHashNode *getResponseHeader(const char *meth, const char *mpath, QoreHashNode &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink);
+      DLLLOCAL QoreHashNode *getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode *getHostHeaderValue();
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used

@@ -31,8 +31,7 @@ qore_classid_t CID_XMLRPCCLIENT;
 
 typedef ReferenceHolder<QoreHTTPClient> safe_httpclient_t;
 
-static void XRC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
+static void XRC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    // get HTTPClient object
    safe_httpclient_t client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT, xsink), xsink);
    if (!client)

@@ -1291,8 +1291,7 @@ QoreClass *QoreClass::copyAndDeref()
    return noc;
 }
 
-inline void QoreClass::insertMethod(QoreMethod *m)
-{
+inline void QoreClass::insertMethod(QoreMethod *m) {
    //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", priv->name, m->getName(), numMethods());
 #ifdef DEBUG
    if (priv->hm[m->getName()]) {
@@ -1303,13 +1302,11 @@ inline void QoreClass::insertMethod(QoreMethod *m)
    priv->hm[m->getName()] = m;
 }      
 
-inline void QoreClass::addDomain(int dom)
-{
+inline void QoreClass::addDomain(int dom) {
    priv->domain |= dom;
 }
 
-AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const {
    QORE_TRACE("QoreClass::evalMethod()");
    const QoreMethod *w;
    int external = (this != getStackClass());

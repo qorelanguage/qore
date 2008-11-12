@@ -180,14 +180,14 @@ if test "x$acx_pthread_ok" = xyes; then
         CFLAGS="$save_CFLAGS"
 
         # More AIX lossage: must compile with cc_r
-        AC_CHECK_PROG(PTHREAD_CC, cc_r, cc_r, ${CC})
+        AC_CHECK_PROG(PTHREAD_CXX, cc_r, cc_r, ${CXX})
 else
-        PTHREAD_CC="$CC"
+        PTHREAD_CXX="$CXX"
 fi
 
 AC_SUBST(PTHREAD_LIBS)
 AC_SUBST(PTHREAD_CFLAGS)
-AC_SUBST(PTHREAD_CC)
+AC_SUBST(PTHREAD_CXX)
 
 ##echo PTHREAD_CFLAGS are ${PTHREAD_CFLAGS}
 

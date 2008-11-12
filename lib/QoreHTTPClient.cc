@@ -273,6 +273,18 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
       }
    }
 
+   n = opts->getKeyValue("event_queue");
+   if (n) {
+       const QoreObject *o = n->getType() == NT_OBJECT ? reinterpret_cast<const QoreObject *>(n) : 0;
+       Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
+       if (*xsink)
+	   return -1;
+
+       if (q) { // pass reference from QoreObject::getReferencedPrivateData() to function
+	   priv->m_socket.setEventQueue(q, xsink);
+       }
+   }
+
    if (priv->path.empty())
       priv->path = priv->default_path.empty() ? "/" : priv->default_path;
 
@@ -644,7 +656,7 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
    return (const char *)pstr.getBuffer();
 }
 
-QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, QoreHashNode &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink) {
+QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink) {
    QoreString pathstr(priv->m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
 
@@ -774,7 +786,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    SafeLocker sl(priv->m);
    Queue *cb_queue = priv->m_socket.getQueue();
 
-   StackHash nh(xsink);
+   ReferenceHolder<QoreHashNode> nh(new QoreHashNode, xsink);
    bool keep_alive = true;
 
    if (headers) {
@@ -794,7 +806,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 // otherwise set the value in the hash
 	 const AbstractQoreNode *n = hi.getValue();
 	 if (!is_nothing(n))
-	    nh.setKeyValue(hi.getKey(), n->refSelf(), xsink);
+	    nh->setKeyValue(hi.getKey(), n->refSelf(), xsink);
       }
    }
 
@@ -816,7 +828,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       // if there is no message body then do not send the "content-type" header
       if (!data && !strcmp(i->first.c_str(), "Content-Type"))
 	 continue;
-      nh.setKeyValue(i->first.c_str(), new QoreStringNode(i->second.c_str()), xsink);
+      nh->setKeyValue(i->first.c_str(), new QoreStringNode(i->second.c_str()), xsink);
    }
 
    if (!priv->username.empty()) {
@@ -837,7 +849,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 tmp.sprintf("%s:%s", priv->username.c_str(), priv->password.c_str());
 	 QoreStringNode *auth_str = new QoreStringNode("Basic ");
 	 auth_str->concatBase64(&tmp);
-	 nh.setKeyValue("Authorization", auth_str, xsink);
+	 nh->setKeyValue("Authorization", auth_str, xsink);
       }
    }
 
@@ -858,7 +870,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 tmp.sprintf("%s:%s", priv->proxy_username.c_str(), priv->proxy_password.c_str());
 	 QoreStringNode *auth_str = new QoreStringNode("Basic ");
 	 auth_str->concatBase64(&tmp);
-	 nh.setKeyValue("Proxy-Authorization", auth_str, xsink);
+	 nh->setKeyValue("Proxy-Authorization", auth_str, xsink);
       }
    }
 
@@ -870,15 +882,15 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    while (true) {
       // set host field automatically if not overridden
       if (!host_override)
-	 nh.setKeyValue("Host", getHostHeaderValue(), xsink);
+	 nh->setKeyValue("Host", getHostHeaderValue(), xsink);
 
       if (info) {
-	 info->setKeyValue("headers", nh.copy(), xsink);
+	 info->setKeyValue("headers", nh->copy(), xsink);
 	 if (*xsink)
 	    return 0;
       }
 
-      ans = getResponseHeader(meth, mpath, nh, data, size, code, xsink);
+      ans = getResponseHeader(meth, mpath, *(*nh), data, size, code, xsink);
       if (!ans)
 	 return 0;
 

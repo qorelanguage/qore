@@ -180,8 +180,7 @@ class HashStringOperatorFunction : public AbstractOperatorFunction {
       op_hash_string_func_t op_func;
 
    public:
-      DLLLOCAL HashStringOperatorFunction(op_hash_string_func_t f) : AbstractOperatorFunction(true, NT_HASH, NT_STRING), op_func(f)
-      {
+      DLLLOCAL HashStringOperatorFunction(op_hash_string_func_t f) : AbstractOperatorFunction(true, NT_HASH, NT_STRING), op_func(f) {
       }
       DLLLOCAL virtual ~HashStringOperatorFunction() {}
       DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
@@ -190,14 +189,12 @@ class HashStringOperatorFunction : public AbstractOperatorFunction {
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
 };
 
-class HashListOperatorFunction : public AbstractOperatorFunction
-{
+class HashListOperatorFunction : public AbstractOperatorFunction {
    private:
       op_hash_list_func_t op_func;
 
    public:
-      DLLLOCAL HashListOperatorFunction(op_hash_list_func_t f) : AbstractOperatorFunction(true, NT_HASH, NT_LIST), op_func(f)
-      {
+      DLLLOCAL HashListOperatorFunction(op_hash_list_func_t f) : AbstractOperatorFunction(true, NT_HASH, NT_LIST), op_func(f) {
       }
       DLLLOCAL virtual ~HashListOperatorFunction() {}
       DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;

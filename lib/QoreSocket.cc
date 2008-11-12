@@ -439,7 +439,7 @@ struct qore_socket_private {
 	 }
       }
 
-      DLLLOCAL void do_read_http_header(int event, QoreHashNode *headers, int source) {
+      DLLLOCAL void do_read_http_header(int event, const QoreHashNode *headers, int source) {
 	 if (cb_queue) {
 	    QoreHashNode *h = new QoreHashNode;
 	    h->setKeyValue("event", new QoreBigIntNode(event), 0);
@@ -457,6 +457,7 @@ struct qore_socket_private {
 	    h->setKeyValue("source", new QoreBigIntNode(source), 0);
 	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
 	    h->setKeyValue("message", new QoreStringNode(str), 0);
+	    //printd(0, "do_send_http_message() str='%s' headers=%p (%d %s)\n", str.getBuffer(), headers, headers->getType(), headers->getTypeName());
 	    h->setKeyValue("headers", headers->hashRefSelf(), 0);
 	    cb_queue->push_and_take_ref(h);
 	 }
@@ -1780,12 +1781,12 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
       char *p = (char *)strchr(str.getBuffer(), ';');
       if (p)
 	 *p = '\0';
-      qore_size_t size = strtol(str.getBuffer(), 0, 16);
+      qore_offset_t size = strtol(str.getBuffer(), 0, 16);
       priv->do_chunked_read(QORE_EVENT_HTTP_CHUNK_SIZE, size, str.strlen(), source);
       if (size == 0)
 	 break;
       if (size < 0) {
-	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
+	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%ld)", size);
 	 return 0;
       }
       // ensure string is blanked for next read
@@ -1805,7 +1806,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	 }
 	 br += rc;
 	 
-	 if (br >= size)
+	 if (br >= (qore_size_t)size)
 	    break;
 	 if (size - br < bs)
 	    bs = size - br;
