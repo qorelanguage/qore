@@ -126,10 +126,6 @@ DLLLOCAL extern QoreThreadLock lck_gethostbyaddr;
 
 DLLLOCAL extern qore_license_t qore_license;
 
-#ifndef UNIX_PATH_MAX
-#define UNIX_PATH_MAX    108
-#endif
-
 #ifndef NET_BUFSIZE
 #define NET_BUFSIZE      1024
 #endif

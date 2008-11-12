@@ -698,8 +698,8 @@ int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink) {
 
    addr.sun_family = AF_UNIX;
    // copy path and terminate if necessary
-   strncpy(addr.sun_path, p, UNIX_PATH_MAX - 1);
-   addr.sun_path[UNIX_PATH_MAX - 1] = '\0';
+   strncpy(addr.sun_path, p, sizeof(addr.sun_path) - 1);
+   addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
    if ((priv->sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
       priv->sock = 0;
       if (xsink)
@@ -731,13 +731,11 @@ int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink) {
 // * bind("filename");
 // for INET sockets (AF_INET)
 // * bind("interface:port");
-int QoreSocket::bind(const char *name, bool reuseaddr)
-{
+int QoreSocket::bind(const char *name, bool reuseaddr) {
    //printd(5, "QoreSocket::bind(%s)\n", name);
    // see if there is a port specifier
    const char *p = strchr(name, ':');
-   if (p)
-   {
+   if (p) {
       int prt = atoi(p + 1);
       //printd(5, "QoreSocket::bind() port=%d\n", prt);
       if (prt < 0)
@@ -747,8 +745,7 @@ int QoreSocket::bind(const char *name, bool reuseaddr)
 
       return bind(host.getBuffer(), prt, reuseaddr);
    }
-   else // bind to UNIX domain socket file
-   {
+   else { // bind to UNIX domain socket file
       // close if it's already been opened as an INET socket
       if (priv->sock && priv->type != AF_UNIX)
 	 close();
@@ -763,10 +760,9 @@ int QoreSocket::bind(const char *name, bool reuseaddr)
       struct sockaddr_un addr;
       addr.sun_family = AF_UNIX;
       // copy path and terminate if necessary
-      strncpy(addr.sun_path, name, UNIX_PATH_MAX - 1);
-      addr.sun_path[UNIX_PATH_MAX - 1] = '\0';
-      if ((::bind(priv->sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un))) == -1)
-      {
+      strncpy(addr.sun_path, name, sizeof(addr.sun_path) - 1);
+      addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
+      if ((::bind(priv->sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un))) == -1) {
 	 close();
 	 return -1;
       }
