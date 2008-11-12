@@ -65,6 +65,12 @@ threads were active by doing the following:
 fixed a bug in an internal API in QoreHTTPClient where the wrong type was
 passed
 
+fixed bugs in JsonRpcClient and XmlRpcClient where a new connection was
+established with each request
+
+fixed a bug in the HTTPClient where a new connection was established for each
+request even if the connection was already open and Keep-Alive was set
+
 SOAP improvements in example code in the examples/ directory:
      WSDL.qc, SoapHandler.qc, SoapClient.qc, HTTPServer.qc
 soap 1.2 is handled better, namespace handling improvements
