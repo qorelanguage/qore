@@ -360,6 +360,11 @@ struct qore_socket_private {
 
       DLLLOCAL void cleanup(ExceptionSink *xsink) {
 	 if (cb_queue) {
+
+	    // close the socket before the delete message is put on the queue
+	    // the socket would be closed anyway in the destructor
+	    close_internal();
+
 	    QoreHashNode *h = new QoreHashNode;
 	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
 	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
