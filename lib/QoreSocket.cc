@@ -808,21 +808,6 @@ int QoreSocket::sendi2(short i) {
    // convert to network byte order
    i = htons(i);
    return send((char *)&i, 2);
-/*
-   char *buf = (char *)&i;
-
-   qore_size_t bs = 0;
-   while (true) {
-      int rc = send(buf + bs, 2 - bs);
-      if (!rc || rc < 0)
-	 return -1;
-      bs += rc;
-      if (bs >= 2)
-	 break;
-   }
-   //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
-   */
-   return 0;
 }
 
 int QoreSocket::sendi4(int i) {
@@ -832,20 +817,6 @@ int QoreSocket::sendi4(int i) {
    // convert to network byte order
    i = htonl(i);
    return send((char *)&i, 4);
-/*
-   char *buf = (char *)&i;
-   qore_size_t bs = 0;
-   while (true) {
-      int rc = send(buf + bs, 4 - bs);
-      if (!rc || rc < 0)
-	 return -1;
-      bs += rc;
-      if (bs >= 4)
-	 break;
-   }
-   //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
-   return 0;
-*/
 }
 
 int QoreSocket::sendi8(int64 i) {
@@ -855,20 +826,6 @@ int QoreSocket::sendi8(int64 i) {
    // convert to network byte order
    i = i8MSB(i);
    return send((char *)&i, 8);
-/*
-   char *buf = (char *)&i;
-   qore_size_t bs = 0;
-   while (true) {
-      int rc = send(buf + bs, 8 - bs);
-      if (!rc || rc < 0)
-	 return -1;
-      bs += rc;
-      if (bs >= 8)
-	 break;
-   }
-   //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
-   return 0;
-*/
 }
 
 int QoreSocket::sendi2LSB(short i) {
@@ -878,21 +835,6 @@ int QoreSocket::sendi2LSB(short i) {
    // convert to network byte order
    i = i2LSB(i);
    return send((char *)&i, 2);
-/*
-   char *buf = (char *)&i;
-   qore_size_t bs = 0;
-   while (true) {
-      int rc = send(buf + bs, 2 - bs);
-      if (!rc || rc < 0)
-	 return -1;
-      bs += rc;
-      if (bs >= 2)
-	 break;
-   }
-   //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
-
-   return 0;
-*/
 }
 
 int QoreSocket::sendi4LSB(int i) {
@@ -902,20 +844,6 @@ int QoreSocket::sendi4LSB(int i) {
    // convert to network byte order
    i = i4LSB(i);
    return send((char *)&i, 4);
-/*
-   char *buf = (char *)&i;
-   qore_ize_t bs = 0;
-   while (true) {
-      int rc = send(buf + bs, 4 - bs);
-      if (!rc || rc < 0)
-	 return -1;
-      bs += rc;
-      if (bs >= 4)
-	 break;
-   }
-   //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
-   return 0;
-*/
 }
 
 int QoreSocket::sendi8LSB(int64 i) {
@@ -925,20 +853,6 @@ int QoreSocket::sendi8LSB(int64 i) {
    // convert to network byte order
    i = i8LSB(i);
    return send((char *)&i, 8);
-/*
-   char *buf = (char *)&i;
-   qore_size_t bs = 0;
-   while (true) {
-      int rc = send(buf + bs, 8 - bs);
-      if (!rc || rc < 0)
-	 return -1;
-      bs += rc;
-      if (bs >= 8)
-	 break;
-   }
-   //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
-   return 0;
-*/
 }
 
 // receive integer values and convert from network byte order
@@ -2165,14 +2079,6 @@ int QoreSocket::listen() {
       return -2;
    return ::listen(priv->sock, 5);
 }
-
-/*
-static inline void add_to_buffer(char **buf, int *len, void *data, int size) {
-   (*buf) = (char *)realloc(*buf, (*len) + size);
-   memcpy((void *)((*buf) + (*len)), data, size);
-   (*len) += size;
-}
-*/
 
 int QoreSocket::send(const char *buf, qore_size_t size) {
    if (!priv->sock)
