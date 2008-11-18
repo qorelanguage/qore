@@ -24,6 +24,10 @@
 #include <qore/intern/QC_Dir.h>
 #include <qore/intern/QC_File.h>
 
+#include <sys/types.h>
+#include <pwd.h>
+#include <errno.h>
+
 qore_classid_t CID_DIR;
 
 static void DIR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {

@@ -23,30 +23,28 @@
 #include <qore/Qore.h>
 #include <qore/QoreSSLPrivateKey.h>
 
+#include <errno.h>
+
 struct qore_sslpk_private {
       EVP_PKEY *pk;
 
-      DLLLOCAL qore_sslpk_private(EVP_PKEY *p) : pk(p)
-      {
+      DLLLOCAL qore_sslpk_private(EVP_PKEY *p) : pk(p) {
       }
-      DLLLOCAL ~qore_sslpk_private()
-      {
+
+      DLLLOCAL ~qore_sslpk_private() {
 	 if (pk)
 	    EVP_PKEY_free(pk);
       }
 };
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY *p) : priv(new qore_sslpk_private(p)) 
-{
+QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY *p) : priv(new qore_sslpk_private(p)) {
 }
 
-QoreSSLPrivateKey::~QoreSSLPrivateKey()
-{
+QoreSSLPrivateKey::~QoreSSLPrivateKey() {
    delete priv;
 }
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, ExceptionSink *xsink) : priv(new qore_sslpk_private(0))
-{
+QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
    priv->pk = 0;
    FILE *fp = fopen(fn, "r");
    if (!fp)
@@ -60,13 +58,11 @@ QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, ExceptionSink *xs
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing private key file '%s'", fn);
 }
 
-EVP_PKEY *QoreSSLPrivateKey::getData() const 
-{ 
+EVP_PKEY *QoreSSLPrivateKey::getData() const { 
    return priv->pk; 
 }
 
-QoreStringNode *QoreSSLPrivateKey::getPEM(ExceptionSink *xsink) const
-{
+QoreStringNode *QoreSSLPrivateKey::getPEM(ExceptionSink *xsink) const {
    BIO *bp = BIO_new(BIO_s_mem());
    if (!PEM_write_bio_PrivateKey(bp, priv->pk, 0, 0, 0, 0, 0))
    {
@@ -82,10 +78,8 @@ QoreStringNode *QoreSSLPrivateKey::getPEM(ExceptionSink *xsink) const
    return str;
 }
 
-const char *QoreSSLPrivateKey::getType() const
-{
-   switch (EVP_PKEY_type(priv->pk->type))
-   {
+const char *QoreSSLPrivateKey::getType() const {
+   switch (EVP_PKEY_type(priv->pk->type)) {
 #ifndef OPENSSL_NO_RSA
       case EVP_PKEY_RSA:
 	 return "RSA";
@@ -113,10 +107,8 @@ const char *QoreSSLPrivateKey::getType() const
    }
 }
 
-int64 QoreSSLPrivateKey::getVersion() const
-{
-   switch (EVP_PKEY_type(priv->pk->type))
-   {
+int64 QoreSSLPrivateKey::getVersion() const {
+   switch (EVP_PKEY_type(priv->pk->type)) {
 #ifndef OPENSSL_NO_RSA
       case EVP_PKEY_RSA:
 	 return (int64)priv->pk->pkey.rsa->version + 1;
@@ -135,10 +127,8 @@ int64 QoreSSLPrivateKey::getVersion() const
 }
 
 // returns the length in bits
-int64 QoreSSLPrivateKey::getBitLength() const
-{
-   switch (EVP_PKEY_type(priv->pk->type))
-   {
+int64 QoreSSLPrivateKey::getBitLength() const {
+   switch (EVP_PKEY_type(priv->pk->type)) {
 #ifndef OPENSSL_NO_RSA
       case EVP_PKEY_RSA:
 	 return (int64)RSA_size(priv->pk->pkey.rsa) * 8;
@@ -156,8 +146,7 @@ int64 QoreSSLPrivateKey::getBitLength() const
    }
 }
 
-QoreHashNode *QoreSSLPrivateKey::getInfo() const
-{
+QoreHashNode *QoreSSLPrivateKey::getInfo() const {
    QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("type", new QoreStringNode(getType()), 0);
    h->setKeyValue("version", new QoreBigIntNode(getVersion()), 0);

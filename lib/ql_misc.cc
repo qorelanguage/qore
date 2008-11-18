@@ -28,6 +28,7 @@
 #include <string.h>
 #include <zlib.h>
 #include <time.h>
+#include <errno.h>
 
 #ifdef HAVE_GZ_HEADER
 class qore_gz_header : public gz_header

@@ -25,6 +25,8 @@
 #include <qore/Qore.h>
 #include <qore/QoreFtpClient.h>
 #include <qore/QoreURL.h>
+#include <qore/QoreSocket.h>
+#include <qore/intern/QC_Queue.h>
 
 #include <errno.h>
 #include <string.h>
