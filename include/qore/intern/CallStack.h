@@ -32,30 +32,28 @@ class CallNode {
       const char *func;
       const char *file_name;
       int start_line, end_line, type;
-      class QoreObject *obj;
-      class CallNode *next;
-      class CallNode *prev;
+      QoreObject *obj;
+      CallNode *next, *prev;
 
-      DLLLOCAL CallNode(const char *f, int t, class QoreObject *o);
-      DLLLOCAL void objectDeref(class ExceptionSink *xsink);
-      DLLLOCAL class QoreHashNode *getInfo() const;
+      DLLLOCAL CallNode(const char *f, int t, QoreObject *o);
+      DLLLOCAL void objectDeref(ExceptionSink *xsink);
+      DLLLOCAL QoreHashNode *getInfo() const;
 };
 
 class CallStack {
    private:
-      class CallNode *tail;
+      CallNode *tail;
 
    public:      
       DLLLOCAL CallStack();
       DLLLOCAL ~CallStack();
-      DLLLOCAL class QoreListNode *getCallStack() const;
-      //DLLLOCAL void push(const char *f, int t, class QoreObject *o);
+      DLLLOCAL QoreListNode *getCallStack() const;
       DLLLOCAL void push(CallNode *cn);
-      DLLLOCAL void pop(class ExceptionSink *xsink);
-      DLLLOCAL void substituteObjectIfEqual(class QoreObject *o);
-      DLLLOCAL class QoreObject *getStackObject() const;
-      DLLLOCAL class QoreObject *substituteObject(class QoreObject *o);
-      DLLLOCAL bool inMethod(const char *name, class QoreObject *o) const;
+      DLLLOCAL void pop(ExceptionSink *xsink);
+      DLLLOCAL void substituteObjectIfEqual(QoreObject *o);
+      DLLLOCAL QoreObject *getStackObject() const;
+      DLLLOCAL QoreObject *substituteObject(QoreObject *o);
+      //DLLLOCAL bool inMethod(const char *name, QoreObject *o) const;
 };
 
 #endif // _QORE_LIB_INTERN

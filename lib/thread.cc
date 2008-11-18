@@ -1287,10 +1287,20 @@ QoreListNode *get_thread_list() {
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+#include <qore/intern/PRWLock.h>
+
+extern PRWLock thread_stack_lock;
+
 QoreHashNode *getAllCallStacks() {
    QoreHashNode *h = new QoreHashNode();
    QoreString str;
-   lThreadList.lock();
+
+   // grab thread list lock
+   AutoLocker al(lThreadList);
+
+   // grab the call stack write lock
+   AutoPRWWriteLocker wl(thread_stack_lock);
+
    tid_node *w = tid_head;
    while (w) {
       // get call stack
@@ -1307,7 +1317,6 @@ QoreHashNode *getAllCallStacks() {
       }
       w = w->next;
    }   
-   lThreadList.unlock();
    return h;
 }
 #endif

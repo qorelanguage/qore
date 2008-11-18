@@ -189,6 +189,7 @@ noinst_HEADERS = \
 	include/qore/intern/qore_string_private.h \
 	include/qore/intern/qore_date_private.h \
 	include/qore/intern/QoreDir.h \
+	include/qore/intern/PRWLock.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

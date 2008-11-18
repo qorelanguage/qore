@@ -23,8 +23,16 @@
 #include <qore/Qore.h>
 #include <qore/intern/CallStack.h>
 
-CallNode::CallNode(const char *f, int t, QoreObject *o)
-{
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+// a read-write lock is used in an inverted fashion to provide thread-safe
+// access to call stacks: writing to each call stack is performed within
+// the read lock, reading all threads' stacks is performed in the write lock
+#include <qore/intern/PRWLock.h>
+
+PRWLock thread_stack_lock;
+#endif
+
+CallNode::CallNode(const char *f, int t, QoreObject *o) {
    func = f;
    type = t;
    file_name   = get_pgm_file();
@@ -38,10 +46,8 @@ CallNode::CallNode(const char *f, int t, QoreObject *o)
 #endif
 }
 
-void CallNode::objectDeref(ExceptionSink *xsink)
-{
-   if (obj)
-   {
+void CallNode::objectDeref(ExceptionSink *xsink) {
+   if (obj) {
       printd(5, "CallNode::~CallNode() popping class=%s obj=%08p\n", obj->getClass()->getName(), obj);
       // deref object
       obj->deref(xsink);
@@ -49,13 +55,11 @@ void CallNode::objectDeref(ExceptionSink *xsink)
 }
 
 extern char *file_names[];
-QoreHashNode *CallNode::getInfo() const
-{
+QoreHashNode *CallNode::getInfo() const {
    QoreHashNode *h = new QoreHashNode();
    // FIXME: add class name
    QoreStringNode *str = new QoreStringNode();
-   if (obj)
-   {
+   if (obj) {
       str->concat(obj->getClass()->getName());
       str->concat("::");
    }
@@ -67,8 +71,7 @@ QoreHashNode *CallNode::getInfo() const
    h->setKeyValue("file",     new QoreStringNode(file_name), 0);
    h->setKeyValue("typecode", new QoreBigIntNode(type), 0);
    // CT_RETHROW is only aded manually
-   switch (type)
-   {
+   switch (type) {
       case CT_USER:
 	 h->setKeyValue("type",  new QoreStringNode("user"), 0);
 	 break;
@@ -82,81 +85,69 @@ QoreHashNode *CallNode::getInfo() const
    return h;
 }
 
-CallStack::CallStack()
-{
+CallStack::CallStack() {
    tail = 0;
 }
 
-CallStack::~CallStack()
-{
-   while (tail)
-   {
+CallStack::~CallStack() {
+   while (tail) {
       class CallNode *c = tail->prev;
       delete tail;
       tail = c;
    }
 }
 
-void CallStack::push(CallNode *c)
-{
+void CallStack::push(CallNode *c) {
    QORE_TRACE("CallStack::push()");
    c->next = 0;
    c->prev = tail;
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   AutoPRWReadLocker l(thread_stack_lock);
+#endif
    if (tail)
       tail->next = c;
    tail = c;
-
 }
 
-void CallStack::pop(ExceptionSink *xsink)
-{
+void CallStack::pop(ExceptionSink *xsink) {
    QORE_TRACE("CallStack::pop()");
    CallNode *c = tail;
-   tail = tail->prev;
-   if (tail)
-      tail->next = 0;
+   {
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      AutoPRWReadLocker l(thread_stack_lock);
+#endif
+      tail = tail->prev;
+      if (tail)
+	 tail->next = 0;
+   }
    c->objectDeref(xsink);
-
 }
 
-QoreListNode *CallStack::getCallStack() const
-{
+QoreListNode *CallStack::getCallStack() const {
    QoreListNode *l = new QoreListNode();
    CallNode *c = tail;
-   while (c)
-   {
+   while (c) {
       l->push(c->getInfo());
       c = c->prev;
    }
    return l;
 }
 
-void CallStack::substituteObjectIfEqual(QoreObject *o)
-{
-   if (!tail->obj && tail->prev && tail->prev->obj == o)
-   {
+void CallStack::substituteObjectIfEqual(QoreObject *o) {
+   if (!tail->obj && tail->prev && tail->prev->obj == o) {
       tail->obj = o;
       o->ref();
    }
 }
 
-QoreObject *CallStack::getStackObject() const
-{
+QoreObject *CallStack::getStackObject() const {
    if (!tail)
       return 0;
    return tail->obj;
 }
 
-QoreObject *CallStack::substituteObject(QoreObject *o)
-{
+QoreObject *CallStack::substituteObject(QoreObject *o) {
    QoreObject *ro = tail->obj;
    tail->obj = o;
    return ro;
-}
-
-bool CallStack::inMethod(const char *name, QoreObject *o) const
-{
-   if (!tail)
-      return false;
-   return tail->func == name && tail->obj == o;
 }

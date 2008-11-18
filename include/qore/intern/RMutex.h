@@ -28,8 +28,7 @@
 
 #include <pthread.h>
 
-class RMutex
-{
+class RMutex {
    private:
       pthread_mutex_t m;
 

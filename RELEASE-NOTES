@@ -76,6 +76,13 @@ fixed socket handling on HPUX 64/bit builds where the header files declare
 socklen_t to be 8 bytes wide, but the libraries expect a pointer to a 32-bit
 value
 
+fixed getAllThreadCallStacks() (only enabled with debugging builds and with the
+explicit configure option: --enable-runtime-thread-stack-trace because it
+has a performance penalty) by requiring all threads to grab a read lock
+before updating the thread stack, and getAllThreadCallStacks() to grab a write
+lock before reading all threads' call stacks.  This function was not
+thread-safe before now.
+
 SOAP improvements in example code in the examples/ directory:
      WSDL.qc, SoapHandler.qc, SoapClient.qc, HTTPServer.qc
 soap 1.2 is handled better, namespace handling improvements

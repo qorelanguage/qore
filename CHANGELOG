@@ -2,6 +2,13 @@
 	* fixed socket handling on HPUX 64/bit builds where the header files
 	  declare socklen_t to be 8 bytes wide, but the libraries expect a 
 	  pointer to a 32-bit value
+	* fixed getAllThreadCallStacks() (only enabled with debugging builds
+	  and with the explicit configure option: 
+	  --enable-runtime-thread-stack-trace because it has a performance
+	  penalty) by requiring all threads to grab a read lock before updating
+	  the thread stack, and getAllThreadCallStacks() to grab a write lock
+	  before reading all threads' call stacks.  This function was not
+	  thread-safe before now.
 
 2008.11.12: David Nichols
 	* fixed a bug in QoreHTTPClient passing a StackHash as a QoreHashNode
