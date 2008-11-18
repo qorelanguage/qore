@@ -1190,8 +1190,8 @@ show_library_feature() {
 
 show_library_feature optimizations $enable_optimization
 show_library_feature "single compilation unit" $enable_single_compilation_unit
+echo "*** DEBUG OPTIONS (i.e. performance penalty) ***"
 show_library_feature profiling $enable_profile
-echo "*** DEBUG OPTIONS ***"
 show_library_feature debug $enable_debug
 show_library_feature "runtime thread stack tracing" $enable_runtime_thread_stack_trace
 
