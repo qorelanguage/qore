@@ -583,6 +583,7 @@ class QoreSocket {
 	  @param headers a hash of headers to send (key: value)
 	  @param data optional message body to send (may be 0)
 	  @param size the length of the message body (may be 0)
+	  @param source the event source code for socket events
 	  @return 0 for OK, not 0 for error
        */
       DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
@@ -595,6 +596,7 @@ class QoreSocket {
 	  @param headers a hash of headers to send (key: value)
 	  @param data optional message body to send (may be 0)
 	  @param size the length of the message body (may be 0)
+	  @param source the event source code for socket events
 	  @return 0 for OK, not 0 for error
        */
       DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
@@ -604,6 +606,7 @@ class QoreSocket {
 	  @note does not read the message body; message body must be read manually
 	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
 	  @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
+	  @param source the event source code for socket events
 	  @return if 0 (and prc == 0), the socket was closed on the remote end without a response, if the type is NT_STRING, the response could not be parsed, if not 0, caller owns the reference count returned
        */
       DLLEXPORT AbstractQoreNode *readHTTPHeader(int timeout, int *prc, int source = QORE_SOURCE_SOCKET);
@@ -614,6 +617,7 @@ class QoreSocket {
 	  are returned as the other hash keys in the hash.
 	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @param source the event source code for socket events
 	  @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
 	  @see BinaryNode
        */
@@ -625,6 +629,7 @@ class QoreSocket {
 	  are returned as the other hash keys in the hash.
 	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @param source the event source code for socket events
 	  @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
 	  @see QoreStringNode
        */

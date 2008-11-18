@@ -33,6 +33,7 @@
 #define DEFAULT_PASSWORD "qore@nohost.com"
 
 class FtpResp;
+class Queue;
 
 //! provides thread-safe access to FTP servers through Qore data structures
 /**
