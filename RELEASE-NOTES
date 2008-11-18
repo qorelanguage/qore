@@ -183,8 +183,8 @@ The events supported are:
 
 For most events posted to the event Queue, associated detailed information is
 posted to the queue along with the event type a listed above; for example when
-the EVENT_HTTP_CONTENT_LENGTH event is posted, the number of bytes in the 
-given in the content-length header is also posted.
+the EVENT_HTTP_CONTENT_LENGTH event is posted, the number of bytes given in the
+content-length header is also posted.
 
 See the Qore 0.7.1 documentation for more information; see examples/qget for an
 example of a qore script using this new functionality (for example, run
