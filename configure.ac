@@ -187,6 +187,7 @@ if test "$enable_64bit" = "yes"; then
                         CXXFLAGS="$CXXFLAGS +DD64"
                     elif test "$GXX" = "yes"; then
                         CXXFLAGS="$CXXFLAGS -mlp64"
+			QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lCsup"
                     fi
                 else
 		    if test -n "`echo $CXX|grep aCC`"; then

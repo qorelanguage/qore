@@ -312,6 +312,63 @@ struct qore_socket_private {
 	    return 0; 
       }
 
+      DLLLOCAL int getSendTimeout() const {
+	 struct timeval tv;
+
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+	 // but the library expects a 32-bit value
+	 int size = sizeof(struct sockaddr_un);
+#else
+	 socklen_t size = sizeof(struct sockaddr_un);
+#endif
+	 
+	 if (getsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, (socklen_t *)&size))
+	    return -1;
+	 
+	 return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+      }
+
+      DLLLOCAL int getRecvTimeout() const {
+	 struct timeval tv;
+
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+	 // but the library expects a 32-bit value
+	 int size = sizeof(struct sockaddr_un);
+#else
+	 socklen_t size = sizeof(struct sockaddr_un);
+#endif
+	 
+	 if (getsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, (socklen_t *)&size))
+	    return -1;
+	 
+	 return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+      }
+
+      DLLLOCAL int getPort() {
+	 // if we don't need to find out what port we are, then return current value
+	 if (!sock || type != AF_INET || port != -1)
+	    return port;
+
+	 // otherwise find out what port we're connected to
+	 struct sockaddr_in add;
+
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+	 // but the library expects a 32-bit value
+	 int size = sizeof(struct sockaddr_un);
+#else
+	 socklen_t size = sizeof(struct sockaddr_un);
+#endif
+
+	 if (getsockname(sock, (struct sockaddr *) &add, (socklen_t *)&size) < 0)
+	    return -1;
+
+	 port = ntohs(add.sin_port);
+	 return port;
+      }
+
       // returns a new socket
       int accept_internal(SocketSource *source) {
 	 if (!sock)
@@ -321,8 +378,14 @@ struct qore_socket_private {
 	 if (type == AF_UNIX) {
 	    struct sockaddr_un addr_un;
 	    
-	    socklen_t size = sizeof(struct sockaddr_un);
-	    rc = ::accept(sock, (struct sockaddr *)&addr_un, &size);
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+            // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+            // but the library expects a 32-bit value
+            int size = sizeof(struct sockaddr_un);
+#else
+            socklen_t size = sizeof(struct sockaddr_un);
+#endif
+	    rc = ::accept(sock, (struct sockaddr *)&addr_un, (socklen_t *)&size);
 	    //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
 	    
 	    if (rc > 0 && source) {
@@ -334,9 +397,15 @@ struct qore_socket_private {
 	 }
 	 else if (type == AF_INET) {
 	    struct sockaddr_in addr_in;
-	    socklen_t size = sizeof(struct sockaddr_in);
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+            // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+            // but the library expects a 32-bit value
+            int size = sizeof(struct sockaddr_in);
+#else
+            socklen_t size = sizeof(struct sockaddr_in);
+#endif
 	    
-	    rc = ::accept(sock, (struct sockaddr *)&addr_in, &size);
+	    rc = ::accept(sock, (struct sockaddr *)&addr_in, (socklen_t *)&size);
 	    //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
 	    
 	    if (rc > 0 && source) {
@@ -2012,27 +2081,13 @@ int QoreSocket::bind(const struct sockaddr *addr, int size)
 }
 
 // find out what port we're connected to
-int QoreSocket::getPort()
-{
-   // if we don't need to find out what port we are, then return current value
-   if (!priv->sock || priv->type != AF_INET || priv->port != -1)
-      return priv->port;
-
-   // otherwise find out what port we're connected to
-   struct sockaddr_in add;
-   socklen_t socksize = sizeof(add);
-
-   if (getsockname(priv->sock, (struct sockaddr *) &add, &socksize) < 0)
-      return -1;
-
-   priv->port = ntohs(add.sin_port);
-   return priv->port;
+int QoreSocket::getPort() {
+   return priv->getPort();
 }
 
 // QoreSocket::accept()
 // returns a new socket
-QoreSocket *QoreSocket::accept(class SocketSource *source, ExceptionSink *xsink)
-{
+QoreSocket *QoreSocket::accept(class SocketSource *source, ExceptionSink *xsink) {
    if (!priv->sock) {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::accept() call");
       return 0;
@@ -2134,25 +2189,12 @@ int QoreSocket::setRecvTimeout(int ms)
    return setsockopt(priv->sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(struct timeval));
 }
 
-int QoreSocket::getSendTimeout() const
-{
-   struct timeval tv;
-   socklen_t len = sizeof(struct timeval);
-
-   if (getsockopt(priv->sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, &len))
-      return -1;
-
-   return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+int QoreSocket::getSendTimeout() const {
+   return priv->getSendTimeout();
 }
 
 int QoreSocket::getRecvTimeout() const {
-   struct timeval tv;
-   socklen_t len = sizeof(struct timeval);
-
-   if (getsockopt(priv->sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, &len))
-      return -1;
-
-   return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+   return priv->getRecvTimeout();
 }
 
 void QoreSocket::setEventQueue(Queue *cbq, ExceptionSink *xsink) {

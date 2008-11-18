@@ -71,6 +71,10 @@ established with each request
 fixed a bug in the HTTPClient where a new connection was established for each
 request even if the connection was already open and Keep-Alive was set
 
+fixed socket handling on HPUX 64/bit builds where the header files declare
+socklen_t to be 8 bytes wide, but the libraries expect a pointer to a 32-bit
+value
+
 SOAP improvements in example code in the examples/ directory:
      WSDL.qc, SoapHandler.qc, SoapClient.qc, HTTPServer.qc
 soap 1.2 is handled better, namespace handling improvements
