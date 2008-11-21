@@ -1,3 +1,10 @@
+2008.11.21: David Nichols
+	* updated release to 0.7.2
+	* fixed configure.ac to account for libraries in /lib - would cause
+	  configure to fail before
+	* fixed crash when pthread_create fails in thread.cc, thanks to
+	  Dmytro Milinevskyy for the info and patch
+
 2008.11.18: David Nichols
 	* fixed socket handling on HPUX 64/bit builds where the header files
 	  declare socklen_t to be 8 bytes wide, but the libraries expect a 

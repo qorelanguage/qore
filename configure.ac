@@ -1,7 +1,7 @@
 ## Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.7.1],
+AC_INIT([qore], [0.7.2],
         [David Nichols <nicholsman@gmail.com>],
         [qore])
 AM_INIT_AUTOMAKE
@@ -318,17 +318,19 @@ if test "$enable_static_common" = "yes"; then
    bz2lib_static=yes
 fi
 
-set_zlib_cppflags()
-{
+set_zlib_cppflags() {
     if test "$1" != "/usr/include"; then
         ZLIB_CPPFLAGS=-I$1
     fi
     with_zlib_includes="$1"
 }
 
-find_zlib()
-{
-    lib=$1/lib${LIBSUFFIX}
+find_zlib() {
+    dir="$1"
+    if test -z "$dir"; then
+        dir="/"
+    fi
+    lib=$dir/lib${LIBSUFFIX}
     # if we only want the static zlib libraries
     if test -n "$zlib_static"; then
     	if test -f "$lib/libz.a"; then
@@ -356,10 +358,10 @@ find_zlib()
         return
     fi
     # try to find include files
-    if test "$1" = "/"; then
+    if test "$dir" = "/"; then
         inc=/usr/include
     else
-        inc=$1/include
+        inc=$dir/include
     fi
     if test -f "$inc/zlib.h"; then
         set_zlib_cppflags $inc
@@ -397,17 +399,19 @@ else
    AC_MSG_RESULT([includes $with_zlib_includes libs $with_zlib_libs (shared)])
 fi
 
-set_pcre_cppflags()
-{
+set_pcre_cppflags() {
     if test "$1" != "/usr/include"; then
         PCRE_CPPFLAGS=-I$1
     fi
     with_pcre_includes="$1"
 }
 
-find_pcre()
-{
-    lib=$1/lib${LIBSUFFIX}
+find_pcre() {
+    dir="$1"
+    if test -z "$dir"; then
+        dir="/"
+    fi
+    lib=$dir/lib${LIBSUFFIX}
     # if we only want the static pcre libraries
     if test -n "$pcre_static"; then
     	if test -f "$lib/libpcre.a"; then
@@ -435,10 +439,10 @@ find_pcre()
         return
     fi
     # try to find include files
-    if test "$1" = "/"; then
+    if test "$dir" = "/"; then
         inc=/usr/include
     else
-        inc=$1/include
+        inc=$dir/include
     fi
     if test -f "$inc/pcre.h"; then
         set_pcre_cppflags $inc
@@ -476,17 +480,19 @@ else
    AC_MSG_RESULT([includes $with_pcre_includes libs $with_pcre_libs (shared)])
 fi
 
-set_libxml2_cppflags()
-{
+set_libxml2_cppflags() {
     LIBXML2_INC_DIR=$1
     if test "$1" != "/usr/include"; then
         LIBXML2_CPPFLAGS=-I$1
     fi
 }
 
-find_libxml2()
-{
-    lib=$1/lib${LIBSUFFIX}
+find_libxml2() {
+    dir="$1"
+    if test -z "$dir"; then
+        dir="/"
+    fi
+    lib=$dir/lib${LIBSUFFIX}
     # if we only want the static libxml2 libraries
     if test -n "$libxml2_static"; then
     	if test -f "$lib/libxml2.a"; then
@@ -513,10 +519,10 @@ find_libxml2()
     fi
     AC_MSG_CHECKING([for libxml2 include files])
     # try to find include files
-    if test "$1" = "/"; then
+    if test "$dir" = "/"; then
         inc=/usr/include
     else
-        inc=$1/include
+        inc=$dir/include
     fi
     if test -f "$inc/libxml/xmlversion.h"; then
         AC_MSG_RESULT([found: $inc])
@@ -570,16 +576,18 @@ else
     AC_MSG_ERROR([no libxml2 library found])
 fi
 
-set_bz2lib_cppflags()
-{
+set_bz2lib_cppflags() {
     if test "$1" != "/usr/include"; then
         BZ2_CPPFLAGS=-I$1
     fi
 }
 
-find_bz2lib()
-{
-    lib=$1/lib${LIBSUFFIX}
+find_bz2lib() {
+    dir="$1"
+    if test -z "$dir"; then
+        dir="/"
+    fi
+    lib=$dir/lib${LIBSUFFIX}
     # if we only want the static bz2lib libraries
     if test -n "$bz2lib_static"; then
     	if test -f "$lib/libbz2.a"; then
@@ -606,10 +614,10 @@ find_bz2lib()
     fi
     AC_MSG_CHECKING([for bz2lib include files])
     # try to find include files
-    if test "$1" = "/"; then
+    if test "$dir" = "/"; then
         inc=/usr/include
     else
-        inc=$1/include
+        inc=$dir/include
     fi
     if test -f "$inc/bzlib.h"; then
         AC_MSG_RESULT([found: $inc/bzlib.h])
@@ -640,16 +648,18 @@ if test -z "$BZ2_LDFLAGS"; then
     AC_MSG_ERROR([no bzlib library found])
 fi
 
-set_openssl_cppflags()
-{
+set_openssl_cppflags() {
     if test "$1" != "/usr/include"; then
         OPENSSL_CPPFLAGS=-I$1
     fi
 }
 
-find_openssl()
-{
-    lib=$1/lib${LIBSUFFIX}
+find_openssl() {
+    dir="$1"
+    if test -z "$dir"; then
+        dir="/"
+    fi
+    lib=$dir/lib${LIBSUFFIX}
     # if we only want the static openssl libraries
     if test -n "$openssl_static"; then
     	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
@@ -676,10 +686,10 @@ find_openssl()
     fi
     AC_MSG_CHECKING([for openssl include files])
     # try to find include files
-    if test "$1" = "/"; then
+    if test "$dir" = "/"; then
         inc=/usr/include
     else
-        inc=$1/include
+        inc=$dir/include
     fi
     if test -f "$inc/openssl/ssl.h"; then
         AC_MSG_RESULT([found: $inc/openssl])
