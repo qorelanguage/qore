@@ -117,12 +117,14 @@ class ThreadEntry {
 	 // delete call stack
 	 delete callStack;
 #endif
-   
-	 if (!joined)
-	    pthread_detach(ptid);
-
-	 // set ptid to 0
-	 ptid = 0L;
+  
+  	 if (ptid != (pthread_t)-1L) {
+	    if (!joined)
+	       pthread_detach(ptid);
+	    
+	    // set ptid to 0
+	    ptid = 0L;
+	 }
       }
 
       DLLLOCAL void allocate(tid_node *tn) {
@@ -1179,8 +1181,8 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
    }
    //printd(2, "tp = %08p\n", tp);
    // create thread
-   pthread_t ptid;
    int rc;
+   pthread_t ptid;
 
    //printd(2, "calling pthread_create(%08p, %08p, %08p, %08p)\n", &ptid, &ta_default, op_background_thread, tp);
 
