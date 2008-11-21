@@ -1,3 +1,9 @@
+2008.11.21: David Nichols
+	* added read-write lock to call stack access and creation as ported
+	  from qore 0.7.*
+ 	* fixed configure to properly detect the situation when linkable
+	  libraries are in /lib
+
 2008.09.09: David Nichols
 	* added --enable-runtime-thread-stack-trace to configure
 

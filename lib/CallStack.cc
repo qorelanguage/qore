@@ -23,8 +23,16 @@
 #include <qore/Qore.h>
 #include <qore/CallStack.h>
 
-CallNode::CallNode(const char *f, int t, class Object *o)
-{
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+// a read-write lock is used in an inverted fashion to provide thread-safe
+// access to call stacks: writing to each call stack is performed within
+// the read lock, reading all threads' stacks is performed in the write lock
+#include <qore/PRWLock.h>
+
+PRWLock thread_stack_lock;
+#endif
+
+CallNode::CallNode(const char *f, int t, class Object *o) {
    func = f;
    type = t;
    file_name   = get_pgm_file();
@@ -38,10 +46,8 @@ CallNode::CallNode(const char *f, int t, class Object *o)
 #endif
 }
 
-void CallNode::objectDeref(class ExceptionSink *xsink)
-{
-   if (obj)
-   {
+void CallNode::objectDeref(class ExceptionSink *xsink) {
+   if (obj) {
       printd(5, "CallNode::~CallNode() popping class=%s obj=%08p\n", obj->getClass()->getName(), obj);
       // deref object
       obj->dereference(xsink);
@@ -49,13 +55,11 @@ void CallNode::objectDeref(class ExceptionSink *xsink)
 }
 
 extern char *file_names[];
-class Hash *CallNode::getInfo() const
-{
+class Hash *CallNode::getInfo() const {
    class Hash *h = new Hash();
    // FIXME: add class name
    class QoreString *str = new QoreString();
-   if (obj)
-   {
+   if (obj) {
       str->concat(obj->getClass()->getName());
       str->concat("::");
    }
@@ -103,6 +107,9 @@ void CallStack::push(const char *f, int t, class Object *o)
    CallNode *c = new CallNode(f, t, o);
    c->next = NULL;
    c->prev = tail;
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   AutoPRWReadLocker l(thread_stack_lock);
+#endif
    if (tail)
       tail->next = c;
    tail = c;
@@ -112,6 +119,9 @@ void CallStack::push(const char *f, int t, class Object *o)
 void CallStack::pop(class ExceptionSink *xsink)
 {
    tracein("CallStack::pop()");
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   AutoPRWReadLocker l(thread_stack_lock);
+#endif
    CallNode *c = tail;
    tail = tail->prev;
    if (tail)

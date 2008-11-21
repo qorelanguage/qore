@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.6.2.5],
+AC_INIT([qore], [0.6.2.6],
         [David Nichols <nicholsman@gmail.com>],
         [qore])
 AM_INIT_AUTOMAKE
@@ -316,7 +316,9 @@ set_openssl_cppflags()
 
 find_openssl()
 {
-    lib=$1/lib${LIBSUFFIX}
+    dir=$1
+    if test -z "$dir"; then dir="/"; fi
+    lib=$dir/lib${LIBSUFFIX}
     # if we only want the static openssl libraries
     if test -n "$openssl_static"; then
     	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
@@ -343,10 +345,10 @@ find_openssl()
     fi
     AC_MSG_CHECKING([for openssl include files])
     # try to find include files
-    if test "$1" = "/"; then
+    if test "$dir" = "/"; then
         inc=/usr/include
     else
-        inc=$1/include
+        inc=$dir/include
     fi
     if test -f "$inc/openssl/ssl.h"; then
         AC_MSG_RESULT([found: $inc/openssl])
@@ -376,17 +378,17 @@ if test -z "$OPENSSL_LDFLAGS"; then
     AC_MSG_ERROR([no openssl library found])
 fi
 
-set_pcre_cppflags()
-{
+set_pcre_cppflags() {
     if test "$1" != "/usr/include"; then
         PCRE_CPPFLAGS=-I$1
     fi
     with_pcre_includes="$1"
 }
 
-find_pcre()
-{
-    lib=$1/lib${LIBSUFFIX}
+find_pcre() {
+    dir=$1
+    if test -z "$dir"; then dir="/"; fi
+    lib=$dir/lib${LIBSUFFIX}
     # if we only want the static pcre libraries
     if test -n "$pcre_static"; then
     	if test -f "$lib/libpcre.a"; then
@@ -414,10 +416,10 @@ find_pcre()
         return
     fi
     # try to find include files
-    if test "$1" = "/"; then
+    if test "$dir" = "/"; then
         inc=/usr/include
     else
-        inc=$1/include
+        inc=$dir/include
     fi
     if test -f "$inc/pcre.h"; then
         set_pcre_cppflags $inc
@@ -464,7 +466,9 @@ set_libxml2_cppflags()
 
 find_libxml2()
 {
-    lib=$1/lib${LIBSUFFIX}
+    dir=$1
+    if test -z "$dir"; then dir="/"; fi
+    lib=$dir/lib${LIBSUFFIX}
     # if we only want the static libxml2 libraries
     if test -n "$libxml2_static"; then
     	if test -f "$lib/libxml2.a"; then
@@ -491,10 +495,10 @@ find_libxml2()
     fi
     AC_MSG_CHECKING([for libxml2 include files])
     # try to find include files
-    if test "$1" = "/"; then
+    if test "$dir" = "/"; then
         inc=/usr/include
     else
-        inc=$1/include
+        inc=$dir/include
     fi
     if test -f "$inc/libxml/xmlversion.h"; then
         AC_MSG_RESULT([found: $inc])
@@ -1673,55 +1677,57 @@ set_ncurses_lib()
 # checks for ncurses (or curses) and panel libraries and include files and sets NCURSES_LIBS and NCURSES_CPPFLAGS appropriately
 check_ncurses()
 {
-    lib=$1/lib${LIBSUFFIX}
+    dir=$1
+    if test -z "$dir"; then dir="/"; fi
+    lib=$dir/lib${LIBSUFFIX}
 
     if test -n "$ncurses_static"; then
     	if test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
-	    ncurses_dir=$1
+	    ncurses_dir=$dir
        	    AC_MSG_RESULT([$lib (ncurses forced static)])
 	    NCURSES_LIBS="$lib/libncurses.a $lib/libpanel.a"
 	elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
-	    ncurses_dir=$1
+	    ncurses_dir=$dir
        	    AC_MSG_RESULT([$lib (curses forced static)])
 	    NCURSES_LIBS="$lib/libcurses.a $lib/libpanel.a"
     	fi
     elif test -f "$lib/libncurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
-       ncurses_dir=$1
+       ncurses_dir=$dir
        AC_MSG_RESULT([$lib (ncurses shared)])
-       set_ncurses_lib "$1" ncurses
+       set_ncurses_lib "$dir" ncurses
     elif test -f "$lib/libncurses.a" -a -f "$lib/libpanel.a"; then
-       ncurses_dir=$1
+       ncurses_dir=$dir
        AC_MSG_RESULT([$lib (ncurses static)])
-       set_ncurses_lib "$1" ncurses
+       set_ncurses_lib "$dir" ncurses
     elif test -f "$lib/libcurses.${SHLIB_SUFFIX}" -a -f "$lib/libpanel.${SHLIB_SUFFIX}"; then
-       ncurses_dir=$1
+       ncurses_dir=$dir
        AC_MSG_RESULT([$lib (curses shared)])
        NCURSES_CPPFLAGS="-DNOMACROS"
-       set_ncurses_lib "$1" curses
+       set_ncurses_lib "$dir" curses
     elif test -f "$lib/libcurses.a" -a -f "$lib/libpanel.a"; then
-       ncurses_dir=$1
+       ncurses_dir=$dir
        AC_MSG_RESULT([$lib (curses static)])
        NCURSES_CPPFLAGS="-DNOMACROS"
-       set_ncurses_lib "$1" curses
+       set_ncurses_lib "$dir" curses
     fi
 
     # make sure include files are in the expected place as well
     if test -n "$ncurses_dir"; then
        AC_MSG_CHECKING([for ncurses and panel include files])
-       if test -f "$1/include/curses.h" -a "$1/include/panel.h"; then
+       if test -f "$dir/include/curses.h" -a "$dir/include/panel.h"; then
           AC_MSG_RESULT([found in $ncurses_dir])
-	  if test "$1" = "/usr"; then
+	  if test "$dir" = "/usr"; then
 	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS"
 	  else
-	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include"
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$dir/include"
 	  fi
 	  AC_SUBST(NCURSES_CPPFLAGS)
-       elif test -f "$1/include/ncurses/curses.h" -a "$1/include/ncurses/panel.h"; then
-          AC_MSG_RESULT([found in $1/include/ncurses])
-	  if test "$1" = "/usr"; then
-	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include/ncurses"
+       elif test -f "$dir/include/ncurses/curses.h" -a "$dir/include/ncurses/panel.h"; then
+          AC_MSG_RESULT([found in $dir/include/ncurses])
+	  if test "$dir" = "/usr"; then
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$dir/include/ncurses"
 	  else
-	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$1/include -I$1/include/ncurses"
+	     NCURSES_CPPFLAGS="$NCURSES_CPPFLAGS -I$dir/include -I$dir/include/ncurses"
 	  fi
 	  AC_SUBST(NCURSES_CPPFLAGS)
        else

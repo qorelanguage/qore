@@ -10,6 +10,7 @@ SUBDIRS = modules lib
 INCLUDES = -I$(top_srcdir)/include
 
 noinst_HEADERS = \
+	include/qore/PRWLock.h \
 	include/qore/ObjectMethodReference.h \
 	include/qore/FunctionReference.h \
 	include/qore/AutoNamespaceList.h \

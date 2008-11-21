@@ -246,8 +246,7 @@ class ThreadData
       }
 };
 
-void ThreadEntry::cleanup()
-{
+void ThreadEntry::cleanup() {
    // delete tidnode from tid_list
    delete tidnode;
 
@@ -1137,20 +1136,26 @@ List *get_thread_list()
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-Hash *getAllCallStacks()
-{
+#include <qore/PRWLock.h>
+
+extern PRWLock thread_stack_lock;
+
+Hash *getAllCallStacks() {
    Hash *h = new Hash();
    QoreString str;
-   lThreadList.lock();
+
+   // grab thread list lock
+   AutoLocker al(&lThreadList);
+
+   // grab the call stack write lock
+   AutoPRWWriteLocker wl(thread_stack_lock);
+
    tid_node *w = tid_head;
-   while (w)
-   {
+   while (w) {
       // get call stack
-      if (thread_list[w->tid].callStack)
-      {
+      if (thread_list[w->tid].callStack) {
 	 List *l = thread_list[w->tid].callStack->getCallStack();
-	 if (l->size())
-	 {
+	 if (l->size()) {
 	    // make hash entry
 	    str.clear();
 	    str.sprintf("%d", w->tid);
@@ -1161,7 +1166,7 @@ Hash *getAllCallStacks()
       }
       w = w->next;
    }   
-   lThreadList.unlock();
+
    return h;
 }
 #endif
