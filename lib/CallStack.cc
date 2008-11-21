@@ -111,15 +111,13 @@ void CallStack::push(CallNode *c) {
 
 void CallStack::pop(ExceptionSink *xsink) {
    QORE_TRACE("CallStack::pop()");
-   CallNode *c = tail;
-   {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      AutoPRWReadLocker l(thread_stack_lock);
+   AutoPRWReadLocker l(thread_stack_lock);
 #endif
-      tail = tail->prev;
-      if (tail)
-	 tail->next = 0;
-   }
+   CallNode *c = tail;
+   tail = tail->prev;
+   if (tail)
+      tail->next = 0;
    c->objectDeref(xsink);
 }
 
