@@ -42,10 +42,11 @@
 // default timeout set to 120 seconds
 #define DEFAULT_TL_TIMEOUT 120000
 
-class ManagedDatasource : public AbstractThreadResource, public Datasource
-{
+class ManagedDatasource : public AbstractThreadResource, public Datasource {
 private:
-   class LockedObject ds_lock;     // connection/transaction lock
+   LockedObject 
+      ds_lock,                     // transaction lock
+      connection_lock;             // connection lock
 
    int counter,                    // flag if SQL is in progress
       tid,                         // TID of thread holding the connection/transaction lock

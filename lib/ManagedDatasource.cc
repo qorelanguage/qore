@@ -174,14 +174,12 @@ void ManagedDatasource::wait_for_sql()
    cSQL.signal();
 }
 
-int ManagedDatasource::startDBAction(class ExceptionSink *xsink, bool need_transaction_lock)
-{
+int ManagedDatasource::startDBAction(class ExceptionSink *xsink, bool need_transaction_lock) {
    AutoLocker al(&ds_lock);
    if (wait_for_sql(xsink))
       return -1;
 
-   if (isopen || (!Datasource::open(xsink) && !(xsink->isEvent())))
-   {
+   if (isopen || (!Datasource::open(xsink) && !(xsink->isEvent()))) {
       if (need_transaction_lock && !autocommit && grabLock(xsink))
 	 return -1;
       
@@ -225,10 +223,11 @@ QoreNode *ManagedDatasource::select(class QoreString *query_str, class List *arg
 {
    class QoreNode *rv;
    
-   if (!startDBAction(xsink))
-   {
-      rv = Datasource::select(query_str, args, xsink);
-
+   if (!startDBAction(xsink)) {
+      {
+	 AutoLocker al(&connection_lock);
+	 rv = Datasource::select(query_str, args, xsink);
+      }
       endDBAction();
    }
    else
@@ -244,7 +243,10 @@ class QoreNode *ManagedDatasource::selectRow(class QoreString *sql, List *args, 
    
    if (!startDBAction(xsink))
    {
-      rv = Datasource::selectRows(sql, args, xsink);
+      {
+	 AutoLocker al(&connection_lock);
+	 rv = Datasource::selectRows(sql, args, xsink);
+      }
 
       endDBAction();
 
@@ -268,7 +270,10 @@ QoreNode *ManagedDatasource::selectRows(class QoreString *query_str, class List 
    
    if (!startDBAction(xsink))
    {
-      rv = Datasource::selectRows(query_str, args, xsink);
+      {
+	 AutoLocker al(&connection_lock);
+	 rv = Datasource::selectRows(query_str, args, xsink);
+      }
 
       endDBAction();
    }
@@ -285,7 +290,10 @@ QoreNode *ManagedDatasource::exec(class QoreString *query_str, class List *args,
    if (!startDBAction(xsink, true))
    {
       bool start_transaction = !in_transaction;
-      rv = Datasource::exec(query_str, args, xsink);
+      {
+	 AutoLocker al(&connection_lock);
+	 rv = Datasource::exec(query_str, args, xsink);
+      }
 
       // save thread resource if we just started a transaction
       if (!autocommit && start_transaction)
@@ -327,7 +335,10 @@ int ManagedDatasource::commit(ExceptionSink *xsink)
    {
       bool was_in_transaction = in_transaction;
 
-      rc = Datasource::commit(xsink);
+      {
+	 AutoLocker al(&connection_lock);
+	 rc = Datasource::commit(xsink);
+      }
 
       // transaction is complete, remove the transaction thread resource
       if (was_in_transaction)
@@ -350,7 +361,10 @@ int ManagedDatasource::rollback(ExceptionSink *xsink)
    {
       bool was_in_transaction = in_transaction;
 
-      rc = Datasource::rollback(xsink);
+      {
+	 AutoLocker al(&connection_lock);
+	 rc = Datasource::rollback(xsink);
+      }
 
       // transaction is complete, remove the transaction thread resource
       if (was_in_transaction)
@@ -527,8 +541,11 @@ QoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
    
    if (!startDBAction(xsink))
    {
-      rv = Datasource::getServerVersion(xsink);
-      
+      {
+	 AutoLocker al(&connection_lock);
+	 rv = Datasource::getServerVersion(xsink);
+      }
+
       endDBAction();
    }
    else
@@ -537,12 +554,10 @@ QoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
    return rv;
 }
 
-QoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink)
-{
-   class QoreNode *rv;
+QoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) {
+   QoreNode *rv;
    
-   if (!startDBAction(xsink))
-   {
+   if (!startDBAction(xsink)) {
       rv = Datasource::getClientVersion(xsink);
       
       endDBAction();

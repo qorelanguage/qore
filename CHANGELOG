@@ -3,6 +3,9 @@
 	  from qore 0.7.*
  	* fixed configure to properly detect the situation when linkable
 	  libraries are in /lib
+	* fixed an issue where proper locking was not done to DBI drivers and
+	  more than one call could be issued to a connection at one time,
+	  causing crashes
 
 2008.09.09: David Nichols
 	* added --enable-runtime-thread-stack-trace to configure
