@@ -799,8 +799,9 @@ void QoreProgram::addStatement(class AbstractStatement *s) {
       priv->sb_tail->statements->addStatement(s);
 
    // see if top level statements are allowed
-   if (priv->parse_options & PO_NO_TOP_LEVEL_STATEMENTS)
+   if (priv->parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration()) {
       parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
+   }
 }
 
 bool QoreProgram::existsFunction(const char *name)
@@ -845,7 +846,7 @@ void QoreProgram::parsePending(const char *code, const char *label, ExceptionSin
    if (!code || !code[0])
       return;
 
-   ProgramContextHelper pch(this);
+   ProgramContextHelper pch(this, xsink);
 
    priv->parsePending(code, label, xsink, wS, wm);
 }
@@ -998,7 +999,7 @@ void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, Except
    priv->fileList.push_back(sname);
    beginParsing(sname);
 
-   ProgramContextHelper pch(this);
+   ProgramContextHelper pch(this, xsink);
    printd(2, "QoreProgram::parse(): about to call yyparse()\n");
    yyscan_t lexer;
    yylex_init(&lexer);
@@ -1042,7 +1043,7 @@ void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsin
    if (!(*code))
       return;
 
-   ProgramContextHelper pch(this);
+   ProgramContextHelper pch(this, xsink);
    
    // grab program-level parse lock
    priv->plock.lock();
@@ -1095,7 +1096,7 @@ void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, Ex
    if (*xsink)
       return;
 
-   ProgramContextHelper pch(this);
+   ProgramContextHelper pch(this, xsink);
 
    priv->parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
 }
@@ -1107,7 +1108,7 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
    SBNode *w = priv->sb_head;
 
    {
-      ProgramContextHelper pch(this);
+      ProgramContextHelper pch(this, xsink);
       while (w && !xsink->isEvent() && !rv) {
 	 if (w->statements)
 	    rv = w->statements->exec(xsink);
@@ -1154,7 +1155,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 
    AbstractQoreNode *rv;
    {
-      ProgramContextHelper pch(this);
+      ProgramContextHelper pch(this, xsink);
       rv = fc->eval(xsink);
    }
 
@@ -1171,7 +1172,7 @@ AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreL
 
    AbstractQoreNode *rv;
    {
-      ProgramContextHelper pch(this);
+      ProgramContextHelper pch(this, xsink);
       rv = fc->eval(xsink);
    }
    
@@ -1196,7 +1197,7 @@ void QoreProgram::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionS
 
 void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm)
 {
-   ProgramContextHelper pch(this);	 
+   ProgramContextHelper pch(this, xsink);
    priv->parseCommit(xsink, wS, wm);
 }
 
@@ -1204,7 +1205,7 @@ void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm)
 // parse lock is held
 void QoreProgram::parseRollback()
 {
-   ProgramContextHelper pch(this);
+   ProgramContextHelper pch(this, 0);
 
    // grab program-level parse lock
    priv->plock.lock();
@@ -1230,7 +1231,7 @@ void QoreProgram::runClass(const char *classname, ExceptionSink *xsink)
    priv->tcount.inc();
 
    {
-      ProgramContextHelper pch(this);
+      ProgramContextHelper pch(this, xsink);
       discard(qc->execConstructor(0, xsink), xsink); 
    }
    

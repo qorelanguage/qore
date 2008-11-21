@@ -64,6 +64,11 @@ class AbstractStatement
       }
 
       // should return true if the statement is a declaration processed at parse time and should not go into the parse tree
+      DLLLOCAL virtual bool isParseDeclaration() const {
+	 return false;
+      }
+
+      // should return true if the statement is a declaration and does not represent an executable statement
       DLLLOCAL virtual bool isDeclaration() const {
 	 return false;
       }

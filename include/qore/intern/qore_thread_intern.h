@@ -207,10 +207,12 @@ class ObjectSubstitutionHelper {
 class ProgramContextHelper {
    private:
       QoreProgram *old_pgm;
+      ProgramContextHelper *last;
+      ExceptionSink *xsink;  // to keep for uninstantiating program thread-local variables if necessary
       bool restore;
    
    public:
-      DLLLOCAL ProgramContextHelper(QoreProgram *pgm);
+      DLLLOCAL ProgramContextHelper(QoreProgram *pgm, ExceptionSink *xsink);
       DLLLOCAL ~ProgramContextHelper();
 };
 

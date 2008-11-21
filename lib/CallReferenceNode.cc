@@ -470,9 +470,8 @@ bool UserCallReferenceNode::derefImpl(ExceptionSink *xsink)
    return true;
 }
 
-AbstractQoreNode *UserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
-{
-   ProgramContextHelper pch(pgm);
+AbstractQoreNode *UserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
+   ProgramContextHelper pch(pgm, xsink);
    return uf->eval(args, 0, xsink);
 }
 

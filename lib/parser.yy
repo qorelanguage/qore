@@ -770,7 +770,7 @@ top_level_command:
         | object_outofline_function_def  // registered directly
 	| statement
         { 
-	   if ($1 && $1->isDeclaration())
+	   if ($1 && $1->isParseDeclaration())
 	      delete $1;
 	   else
 	      getProgram()->addStatement($1);

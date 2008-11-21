@@ -8,6 +8,9 @@
           more than one call could be issued to a connection at one time,
           causing crashes
 	* fixed a race condition with getAllThreadCallStacks()
+	* fixed a bug where thread-local variables (as top-level local
+	  variables of a Program) were not being instantiated when another
+	  Program called a fuction in a Program with such variables
 
 2008.11.18: David Nichols
 	* fixed socket handling on HPUX 64/bit builds where the header files

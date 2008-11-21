@@ -1106,7 +1106,7 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    AbstractQoreNode *rv = 0;
    {
       // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram());
+      ProgramContextHelper pch(self->getProgram(), xsink);
 
       if (priv->type == OTF_USER) {
 	 // ignore class synchronous flags for user methods - currently only possible
@@ -1168,7 +1168,7 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
 	 return;
 
       // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram());
+      ProgramContextHelper pch(self->getProgram(), xsink);
       priv->func.builtin->evalConstructor(self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
    }
 
@@ -1178,10 +1178,9 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
 
 }
 
-void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const
-{
+void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    // switch to new program for imported objects
-   ProgramContextHelper pch(self->getProgram());
+   ProgramContextHelper pch(self->getProgram(), xsink);
 
    if (priv->type == OTF_USER)
       priv->func.userFunc->evalCopy(old, self, priv->parent_class->getName(), xsink);
@@ -1203,10 +1202,9 @@ bool QoreMethod::evalDeleteBlocker(QoreObject *self) const
    return self->evalDeleteBlocker(priv->func.builtin);
 }
 
-void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const
-{
+void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // switch to new program for imported objects
-   ProgramContextHelper pch(self->getProgram());
+   ProgramContextHelper pch(self->getProgram(), xsink);
 
    if (priv->type == OTF_USER)
       priv->func.userFunc->eval(0, self, xsink, priv->parent_class->getName());

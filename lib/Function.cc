@@ -643,8 +643,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
 }
 
 // calls a user constructor method
-AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
-{
+AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
    QORE_TRACE("UserFunction::evalConstructor()");
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", class_name, getName(), args, args ? args->size() : 0);
 
@@ -719,14 +718,12 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
 
-   if (!xsink->isEvent())
-   {
+   if (!xsink->isEvent()) {
       // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram());
+      ProgramContextHelper pch(self->getProgram(), xsink);
  
       // execute constructor
-      if (statements)
-      {
+      if (statements) {
 	 CodeContextHelper cch(getName(), self, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 	 // push call on stack

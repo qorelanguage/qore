@@ -355,6 +355,10 @@ class ThreadData {
       // current runtime closure environment
       ClosureRuntimeEnvironment *closure_rt_env;
 
+      // link to last ProgramContextHelp to check for
+      // already-instantiated thread-local variables
+      ProgramContextHelper *pch_link;
+
 #ifdef QORE_MANAGE_STACK
       size_t stack_limit;
 #ifdef IA64_64
@@ -370,7 +374,7 @@ class ThreadData {
 	 pgm_file(0), parseState(0), vstack(0), cvarstack(0),
 	 parseClass(0), catchException(0), current_code(0),
 	 current_obj(0), current_pgm(p), current_implicit_arg(0),
-	 closure_parse_env(0), closure_rt_env(0)
+	 closure_parse_env(0), closure_rt_env(0), pch_link(0)
       {
 #ifdef QORE_MANAGE_STACK
 
@@ -910,18 +914,35 @@ bool inMethod(const char *name, const QoreObject *o)
    return false;
 }
 
-QoreObject *getStackObject()
-{
+QoreObject *getStackObject() {
    return (thread_data.get())->current_obj;
 }
 
-ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm)
-{
-   old_pgm = 0;
-   restore = false;
+ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm, ExceptionSink *xs) : 
+   old_pgm(0), last(0), xsink (0), restore(false) {
    if (pgm) {
       ThreadData *td = thread_data.get();
       if (pgm != td->current_pgm) {
+	 // push link to last ProgramContextHelper
+	 last = td->pch_link;
+	 td->pch_link = this;
+
+	 // instantiate program thread-local variables
+	 // (top-level local variables) if necessary
+	 const LVList *l = pgm->getTopLevelLVList();
+	 if (l && xs) {
+	    ProgramContextHelper *w = last;
+	    while (w && w->old_pgm != pgm)
+	       w = w->last;
+
+	    // instantiate variables if program not found
+	    if (!w) {
+	       xsink = xs; // <- marks for uninstantiation
+	       for (int i = 0; i < l->num_lvars; ++i)
+		  l->lv[i]->instantiate(0);
+	    }
+	 }
+
 	 restore = true;
 	 old_pgm = td->current_pgm;
 	 td->current_pgm = pgm;
@@ -930,8 +951,18 @@ ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm)
 }
 
 ProgramContextHelper::~ProgramContextHelper() {
-   if (restore)
-      (thread_data.get())->current_pgm = old_pgm;
+   if (restore) {
+      ThreadData *td = thread_data.get();      
+
+      // uninstantiate thread-local variables if necessary
+      if (xsink) {
+	 const LVList *l = td->current_pgm->getTopLevelLVList();
+	 for (int i = 0; i < l->num_lvars; ++i)
+            l->lv[i]->uninstantiate(xsink);
+      }
+      td->current_pgm = old_pgm;
+      td->pch_link = last;
+   }
 }
 
 QoreProgram *getProgram() {
