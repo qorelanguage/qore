@@ -4,6 +4,10 @@
 	  configure to fail before
 	* fixed crash when pthread_create fails in thread.cc, thanks to
 	  Dmytro Milinevskyy for the info and patch
+        * fixed an issue where proper locking was not done to DBI drivers and
+          more than one call could be issued to a connection at one time,
+          causing crashes
+	* fixed a race condition with getAllThreadCallStacks()
 
 2008.11.18: David Nichols
 	* fixed socket handling on HPUX 64/bit builds where the header files

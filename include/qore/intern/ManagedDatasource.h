@@ -42,10 +42,11 @@
 // default timeout set to 120 seconds
 #define DEFAULT_TL_TIMEOUT 120000
 
-class ManagedDatasource : public AbstractThreadResource, public Datasource
-{
+class ManagedDatasource : public AbstractThreadResource, public Datasource {
 private:
-   class QoreThreadLock ds_lock;     // connection/transaction lock
+   QoreThreadLock
+      ds_lock,                     // transaction lock
+      connection_lock;             // connection lock
 
    int counter,                    // flag if SQL is in progress
       tid,                         // TID of thread holding the connection/transaction lock
@@ -53,20 +54,20 @@ private:
       sql_waiting,                 // number of threads waiting on the SQL lock
       tl_timeout_ms;               // transaction timeout in milliseconds
 
-   class QoreCondition cSQL,       // condition when no SQL is in-progress
+   QoreCondition cSQL,             // condition when no SQL is in-progress
       cTransaction;                // condition when transaction lock is freed
    
-   DLLLOCAL int startDBAction(class ExceptionSink *xsink, bool need_transaction_lock = false);
+   DLLLOCAL int startDBAction(ExceptionSink *xsink, bool need_transaction_lock = false);
    DLLLOCAL void endDBActionIntern();
    DLLLOCAL void endDBAction();
-   DLLLOCAL int closeUnlocked(class ExceptionSink *xsink);
+   DLLLOCAL int closeUnlocked(ExceptionSink *xsink);
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLockIntern();
    // returns 0 for OK, -1 for error
-   DLLLOCAL int grabLock(class ExceptionSink *xsink);
+   DLLLOCAL int grabLock(ExceptionSink *xsink);
    DLLLOCAL void releaseLock();
    DLLLOCAL void forceReleaseLock();
-   DLLLOCAL int wait_for_sql(class ExceptionSink *xsink);
+   DLLLOCAL int wait_for_sql(ExceptionSink *xsink);
    DLLLOCAL void wait_for_sql();
    DLLLOCAL void finish_transaction();
    
@@ -75,14 +76,14 @@ protected:
 
 public:
    DLLLOCAL ManagedDatasource(DBIDriver *);
-   DLLLOCAL virtual void cleanup(class ExceptionSink *xsink);
-   DLLLOCAL virtual void destructor(class ExceptionSink *xsink);
-   DLLLOCAL virtual void deref(class ExceptionSink *xsink);
+   DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
+   DLLLOCAL virtual void destructor(ExceptionSink *xsink);
+   DLLLOCAL virtual void deref(ExceptionSink *xsink);
    DLLLOCAL virtual void deref();
-   DLLLOCAL class AbstractQoreNode *select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class AbstractQoreNode *selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class AbstractQoreNode *selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class AbstractQoreNode *exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL int commit(ExceptionSink *xsink);
    DLLLOCAL int rollback(ExceptionSink *xsink);
    DLLLOCAL int open(ExceptionSink *xsink);
@@ -101,11 +102,11 @@ public:
    DLLLOCAL QoreStringNode *getPendingHostName();
    DLLLOCAL void setTransactionLockTimeout(int t_ms);
    DLLLOCAL int getTransactionLockTimeout();
-   DLLLOCAL void beginTransaction(class ExceptionSink *xsink);
+   DLLLOCAL void beginTransaction(ExceptionSink *xsink);
    DLLLOCAL void setAutoCommit(bool ac);   
    DLLLOCAL ManagedDatasource *copy();
-   DLLLOCAL class AbstractQoreNode *getServerVersion(class ExceptionSink *xsink);
-   DLLLOCAL class AbstractQoreNode *getClientVersion(class ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink);
 };
 
 #endif
