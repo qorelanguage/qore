@@ -82,7 +82,7 @@ character encoding (including proper UTF-8) support, and much more.
 %endif
 
 %if 0%{?suse_version}
-%define lpname -n libqore4
+%define lpname -n libqore5
 %else
 %define lpname libs
 %endif
@@ -90,7 +90,6 @@ character encoding (including proper UTF-8) support, and much more.
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages
 Provides: qore-module-api-%{module_api}
-Provides: qore-module-api-0.4
 
 %description %{lpname}
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -108,7 +107,7 @@ functionality.
 
 %files %{lpname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.0.0
+%{_libdir}/libqore.so.5.0.1
 %{_libdir}/libqore.so.5
 %{_libdir}/libqore.la
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
@@ -200,6 +199,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Sun Nov 23 2008 David Nichols <david_nichols@users.sourceforge.net>
+- updated to 0.7.2
+
 * Tue Oct 7 2008 David Nichols <david_nichols@users.sourceforge.net>
 - released 0.7.0
 

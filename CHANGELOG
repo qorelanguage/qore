@@ -1,3 +1,8 @@
+2008.11.23: David Nichols
+	* updated library to 5.0.1
+	* fixed spec file
+	* some minor corrections to configure.ac
+
 2008.11.21: David Nichols
 	* updated release to 0.7.2
 	* fixed configure.ac to account for libraries in /lib - would cause
@@ -13,7 +18,7 @@
 	  Program called a fuction in a Program with such variables
 
 2008.11.18: David Nichols
-	* fixed socket handling on HPUX 64/bit builds where the header files
+	* fixed socket handling on HPUX 64-bit builds where the header files
 	  declare socklen_t to be 8 bytes wide, but the libraries expect a 
 	  pointer to a 32-bit value
 	* fixed getAllThreadCallStacks() (only enabled with debugging builds
