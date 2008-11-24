@@ -1397,7 +1397,7 @@ fi
 AC_ARG_WITH([freetds],
     [AS_HELP_STRING([--with-freetds@<:@=DIR@:>@],
                     [FreeTDS base directory])],
-    [if test ! -d "${with_freetds}"; then AC_MSG_ERROR(directory ${with_freetds} does not exist for --with-freetds); unset with_freetds; fi])
+    [if test "${with_freetds}" != "no" -a ! -d "${with_freetds}"; then AC_MSG_ERROR(directory ${with_freetds} does not exist for --with-freetds); unset with_freetds; fi])
 
 # see if we can figure out where the freetds include files and libraries are
 if test "${with_freetds}" != "no"; then
