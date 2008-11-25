@@ -768,15 +768,15 @@ top_level_command:
 	   delete $1;
 	}
         | object_outofline_function_def  // registered directly
-	| statement
-        { 
-	   if ($1 && $1->isParseDeclaration())
-	      delete $1;
-	   else
-	      getProgram()->addStatement($1);
+	| statement { 
+	   if ($1) {
+	      if ($1->isParseDeclaration())
+		 delete $1;
+	      else
+		 getProgram()->addStatement($1);
+	   }
 	}
-        | '{' statements '}'
-        {
+        | '{' statements '}' {
 	   // set line range
 	   $2->LineNumber = @1.first_line;
 	   $2->EndLineNumber = @2.last_line;

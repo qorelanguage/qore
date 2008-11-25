@@ -1,3 +1,6 @@
+2008.11.28: David Nichols
+	* fixed a crashing bug in the parser with parse errors
+
 2008.11.23: David Nichols
 	* updated library to 5.0.1
 	* fixed spec file
@@ -16,6 +19,8 @@
 	* fixed a bug where thread-local variables (as top-level local
 	  variables of a Program) were not being instantiated when another
 	  Program called a fuction in a Program with such variables
+
+*** v0.7.1 RELEASE *** 
 
 2008.11.18: David Nichols
 	* fixed socket handling on HPUX 64-bit builds where the header files
