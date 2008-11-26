@@ -317,7 +317,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
    if (ntype == NT_REFERENCE) {
       // otherwise throw a parse exception if an illegal reference is used
       if (!(current_pflag & PF_REFERENCE_OK)) {	 
-	 parse_error("the reference operator can only be used in function and method call argument lists and in foreach statements");
+	 parse_error("the reference operator can only be used in argument lists and in foreach statements");
       }
       else {
 	 ReferenceNode *r = reinterpret_cast<ReferenceNode *>(*node);

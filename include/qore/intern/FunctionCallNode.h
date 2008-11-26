@@ -51,8 +51,7 @@ class SelfFunctionCall {
       DLLLOCAL NamedScope *takeNScope();
 };
 
-class AbstractFunctionCallNode : public ParseNode
-{
+class AbstractFunctionCallNode : public ParseNode {
    protected:
       QoreListNode *args;
 
@@ -65,13 +64,11 @@ class AbstractFunctionCallNode : public ParseNode
       DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-      DLLLOCAL virtual bool existsUserParam(int i) const
-      {
+      DLLLOCAL virtual bool existsUserParam(int i) const {
 	 return true;
       }
 
-      DLLLOCAL int parseArgs(LocalVar *oflag, int pflag)
-      {
+      DLLLOCAL int parseArgs(LocalVar *oflag, int pflag) {
 	 if (!args)
 	    return 0;
 
@@ -192,19 +189,16 @@ class MethodCallNode : public AbstractFunctionCallNode
 	 //printd(0, "MethodCallNode::MethodCallNode() this=%08p name='%s' args=%08p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
       }
 
-      DLLLOCAL virtual ~MethodCallNode()
-      {
+      DLLLOCAL virtual ~MethodCallNode() {
 	 if (c_str)
 	    free(c_str);
       }
 
-      DLLLOCAL virtual const char *getName() const
-      {
+      DLLLOCAL virtual const char *getName() const {
 	 return c_str ? c_str : "copy";
       }
 
-      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag)
-      {
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag) {
 	 return parseArgs(oflag, pflag);   
       }
 
@@ -286,8 +280,7 @@ class StaticMethodCallNode : public AbstractFunctionCallNode
 	 return method->getName();
       }
 
-      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag)
-      {
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag) {
 	 QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
 	 if (!qc)
 	    return 0;
@@ -324,18 +317,15 @@ class StaticMethodCallNode : public AbstractFunctionCallNode
       }
 
       // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const
-      {
+      DLLLOCAL virtual const char *getTypeName() const {
 	 return getStaticTypeName();
       }
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "static method call";
       }
 
-      DLLLOCAL NamedScope *takeScope()
-      {
+      DLLLOCAL NamedScope *takeScope() {
 	 NamedScope *rv = scope;
 	 scope = 0;
 	 return rv;

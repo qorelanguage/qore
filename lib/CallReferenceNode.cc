@@ -111,25 +111,41 @@ double CallReferenceCallNode::floatEvalImpl(ExceptionSink *xsink) const
 
 AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
    lvids += process_node(&exp, oflag, pflag);
-   lvids += process_list_node(&args, oflag, pflag);
+
+   if (args) {
+       bool needs_eval = args->needs_eval();
+
+       ListIterator li(args);
+       while (li.next()) {
+	   AbstractQoreNode **n = li.getValuePtr();
+	   if (*n) {
+               if ((*n)->getType() == NT_REFERENCE)
+		   lvids += process_node(n, oflag, pflag | PF_REFERENCE_OK);
+               else
+		   lvids += process_node(n, oflag, pflag);
+
+               if (!needs_eval && (*n)->needs_eval()) {
+		   args->setNeedsEval();
+		   needs_eval = true;
+               }
+	   }
+       }
+   }
+
    return this;
 }
 
-AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval)
-{
+AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval) {
 }
 
-AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one, qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval, n_there_can_be_only_one)
-{
+AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one, qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval, n_there_can_be_only_one) {
 }
 
-AbstractCallReferenceNode::~AbstractCallReferenceNode()
-{
+AbstractCallReferenceNode::~AbstractCallReferenceNode() {
 }
 
 // parse types should never be copied
-AbstractQoreNode *AbstractCallReferenceNode::realCopy() const
-{
+AbstractQoreNode *AbstractCallReferenceNode::realCopy() const {
    assert(false);
    return 0;
 }
@@ -138,8 +154,7 @@ bool AbstractCallReferenceNode::is_equal_soft(const AbstractQoreNode *v, Excepti
    return is_equal_hard(v, xsink);
 }
 
-bool AbstractCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool AbstractCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    assert(false);
    return false;
 }
@@ -148,69 +163,58 @@ bool AbstractCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, Excepti
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int AbstractCallReferenceNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int AbstractCallReferenceNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.sprintf("function reference (0x%08p)", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *AbstractCallReferenceNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *AbstractCallReferenceNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
    return rv;
 }
 
-AbstractQoreNode *AbstractCallReferenceNode::evalImpl(ExceptionSink *xsink) const
-{
+AbstractQoreNode *AbstractCallReferenceNode::evalImpl(ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
 
-AbstractQoreNode *AbstractCallReferenceNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
+AbstractQoreNode *AbstractCallReferenceNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
 
-int64 AbstractCallReferenceNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
+int64 AbstractCallReferenceNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
 
-int AbstractCallReferenceNode::integerEvalImpl(ExceptionSink *xsink) const
-{
+int AbstractCallReferenceNode::integerEvalImpl(ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
 
-bool AbstractCallReferenceNode::boolEvalImpl(ExceptionSink *xsink) const
-{
+bool AbstractCallReferenceNode::boolEvalImpl(ExceptionSink *xsink) const {
    assert(false);
    return false;
 }
 
-double AbstractCallReferenceNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double AbstractCallReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
    assert(false);
    return 0.0;
 }
 
 // returns the type name as a c string
-const char *AbstractCallReferenceNode::getTypeName() const
-{
+const char *AbstractCallReferenceNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method) : exp(n_exp), method(n_method)
-{
+ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method) : exp(n_exp), method(n_method) {
 }
 
-ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode()
-{
+ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode() {
    if (exp)
       exp->deref(0);
    if (method)
@@ -218,16 +222,14 @@ ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode()
 }
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
-AbstractQoreNode *ParseObjectMethodReferenceNode::evalImpl(ExceptionSink *xsink) const
-{
+AbstractQoreNode *ParseObjectMethodReferenceNode::evalImpl(ExceptionSink *xsink) const {
    // evaluate lvalue expression
    ReferenceHolder<AbstractQoreNode> lv(exp->eval(xsink), xsink);
    if (*xsink)
       return 0;
 
    QoreObject *o = dynamic_cast<QoreObject *>(*lv);
-   if (!o)
-   {
+   if (!o) {
       xsink->raiseException("OBJECT-METHOD-REFERENCE-ERROR", "expression does not evaluate to an object");
       return 0;
    }
@@ -235,29 +237,24 @@ AbstractQoreNode *ParseObjectMethodReferenceNode::evalImpl(ExceptionSink *xsink)
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *ParseObjectMethodReferenceNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
+AbstractQoreNode *ParseObjectMethodReferenceNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
    return ParseObjectMethodReferenceNode::evalImpl(xsink);
 }
 
-int64 ParseObjectMethodReferenceNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
+int64 ParseObjectMethodReferenceNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    return 0;
 }
 
-int ParseObjectMethodReferenceNode::integerEvalImpl(ExceptionSink *xsink) const
-{
+int ParseObjectMethodReferenceNode::integerEvalImpl(ExceptionSink *xsink) const {
    return 0;
 }
 
-bool ParseObjectMethodReferenceNode::boolEvalImpl(ExceptionSink *xsink) const
-{
+bool ParseObjectMethodReferenceNode::boolEvalImpl(ExceptionSink *xsink) const {
    return false;
 }
 
-double ParseObjectMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double ParseObjectMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
    return 0.0;
 }
 
