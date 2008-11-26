@@ -1828,8 +1828,7 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
    return ref_rv ? val.get_value()->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
    if (*xsink)
@@ -1840,20 +1839,20 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
       return left->eval(xsink);
    }
 
-   ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
+   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(*arg));
    while (li.next()) {
       SingleArgvContextHelper argv_helper(li.getValue(), xsink);
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       if (*xsink)
 	 return 0;
-      rv->push(val.release());
+      if (ref_rv)
+	  rv->push(val.release());
    }
    return rv.release();
 }
 
-static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    assert(arg_exp->getType() == NT_LIST);
 
    const QoreListNode *arg_list = reinterpret_cast<const QoreListNode *>(arg_exp);
@@ -1879,7 +1878,7 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
       return *xsink ? 0 : val.release();
    }
 
-   ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
+   ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(*marg));
    while (li.next()) {
       const AbstractQoreNode *elem = li.getValue();
@@ -1897,13 +1896,13 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       if (*xsink)
 	 return 0;
-      rv->push(val.release());
+      if (ref_rv)
+	  rv->push(val.release());
    }
    return rv.release();
 }
 
-static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
    if (!arg || *xsink)
@@ -1942,8 +1941,7 @@ static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQo
    return result.release();
 }
 
-static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
    if (!arg || *xsink)
@@ -1983,8 +1981,7 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
    return result.release();
 }
 
-static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const AbstractQoreNode *select, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const AbstractQoreNode *select, bool ref_rv, ExceptionSink *xsink) {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
    if (!arg || *xsink)

@@ -1,6 +1,8 @@
 2008.11.26: David Nichols
 	* fix to allow references to be used in closure and call reference
 	  calls
+	* implemented an optimization to map to efficiently handle the case
+	  when no return value is used
 
 2008.11.24: David Nichols
 	* fixed a crashing bug in the parser with parse errors
