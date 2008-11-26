@@ -53,6 +53,7 @@
 #include <qore/intern/QC_AutoGate.h>
 #include <qore/intern/QC_AutoReadLock.h>
 #include <qore/intern/QC_AutoWriteLock.h>
+#include <qore/intern/QC_TermIOS.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1566,6 +1567,7 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addSystemClass(initAutoGateClass());
    qns->addSystemClass(initAutoReadLockClass());
    qns->addSystemClass(initAutoWriteLockClass());
+   qns->addSystemClass(initTermIOSClass());
 
    // add HTTPClient namespace
    QoreClass *http_client_class;

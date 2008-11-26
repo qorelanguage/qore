@@ -174,6 +174,7 @@ libqore_la_SOURCES = \
 	QC_AutoGate.cc \
 	QC_AutoReadLock.cc \
 	QC_AutoWriteLock.cc \
+	QC_TermIOS.cc \
 	QoreHTTPClient.cc \
 	minitest.cc
 

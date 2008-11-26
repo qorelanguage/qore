@@ -4,6 +4,7 @@
 	* implemented an optimization to map to efficiently handle the case
 	  when no return value is used
 	* spec file fixes
+	* started adding TermIOS class to Qore to control terminal attributes
 
 2008.11.24: David Nichols
 	* fixed a crashing bug in the parser with parse errors
