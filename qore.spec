@@ -81,17 +81,12 @@ character encoding (including proper UTF-8) support, and much more.
 %debug_package
 %endif
 
-%if 0%{?suse_version}
-%define lpname -n libqore5
-%else
-%define lpname libs
-%endif
-%package %{lpname}
+%package -n libqore5
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages
 Provides: qore-module-api-%{module_api}
 
-%description %{lpname}
+%description -n libqore5
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
 language suitable for embedding application logic, application scripting,
 interface development, and even complex multi-threaded, network-aware object-
@@ -105,22 +100,22 @@ much more.
 This module provides the qore library required for all clients using qore
 functionality.
 
-%files %{lpname}
+%files -n libqore5
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.5.0.1
 %{_libdir}/libqore.so.5
-%{_libdir}/libqore.la
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
 
-%post %{lpname}
+%post -n libqore5
 ldconfig %{_libdir}
 
-%postun %{lpname}
+%postun -n libqore5
 ldconfig %{_libdir}
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
 Group: Development/Languages
+BuildArchitectures: noarch
 
 %description doc
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -189,6 +184,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/examples
 mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/test
 make install prefix=$RPM_BUILD_ROOT/usr
+rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -199,6 +195,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Web Nov 26 2008 David Nichols <david_nichols@users.sourceforge.net>
+- made libqore* the default name for lib package, removed la file
+
 * Sun Nov 23 2008 David Nichols <david_nichols@users.sourceforge.net>
 - updated to 0.7.2
 
