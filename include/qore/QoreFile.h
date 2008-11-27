@@ -46,7 +46,7 @@ class QoreFile {
       // unlocked
       DLLLOCAL int readChar();
       // reads a buffer of the given size, unlocked
-      DLLLOCAL char *readBlock(qore_offset_t &size);
+      DLLLOCAL char *readBlock(qore_offset_t &size, int timeout_ms, ExceptionSink *xsink);
       // returns -1 for error, unlocked
       DLLLOCAL int check_read_open(ExceptionSink *xsink);
       // returns -1 for error, unlocked
@@ -342,6 +342,25 @@ class QoreFile {
        */
       DLLEXPORT BinaryNode *readBinary(qore_offset_t size, ExceptionSink *xsink);
 
+      //! reads string data from the file and returns the string read (caller owns the reference count returned)
+      /** A Qore-language exception can be thrown if the file is not opened
+	  @param size the number of bytes to read from the file, use -1 to read all data from the file
+	  @param timeout_ms the maximum time to read a single block from the file; -1 = never timeout, 0 timeout immediately if no data is available
+	  @param xsink if an error occurs, the Qore-language exception info will be added here
+	  @return the string read (caller owns the reference count returned) or 0 if an error occured
+	  @note the string will be tagged with the file's default encoding
+       */
+       DLLEXPORT QoreStringNode *read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
+
+      //! reads binary data from the file and returns the data read (caller owns the reference count returned)
+      /** A Qore-language exception can be thrown if the file is not opened
+	  @param size the number of bytes to read from the file, use -1 to read all data from the file
+	  @param timeout_ms the maximum time to read a single block from the file; -1 = never timeout, 0 timeout immediately if no data is available
+	  @param xsink if an error occurs, the Qore-language exception info will be added here
+	  @return the binary data read (caller owns the reference count returned) or 0 if an error occured
+       */
+      DLLEXPORT BinaryNode *readBinary(qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
+
       //! sets the absolute file position to "pos"
       /** @param pos the file position in bytes to set (starting with byte position 0)
        */
@@ -373,6 +392,9 @@ class QoreFile {
 
       //! get lock info operation, does not block
       DLLEXPORT int getLockInfo(struct flock &fl, ExceptionSink *xsink);
+
+      //! returns true if data is available for the file descriptor
+      DLLEXPORT bool isDataAvailable(int timeout_ms = 0) const;
 
 #if 0
       //! preallocates storage

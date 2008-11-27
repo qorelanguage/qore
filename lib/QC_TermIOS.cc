@@ -73,6 +73,36 @@ static AbstractQoreNode *TERMIOS_setIFlag(QoreObject *self, QoreTermIOS *s, cons
    return 0;
 }
 
+static AbstractQoreNode *TERMIOS_getCC(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
+
+   int64 rc = s->get_cc(p ? p->getAsBigInt() : 0, xsink);
+   if (*xsink)
+      return 0;
+   return new QoreBigIntNode(rc);
+}
+
+// setCC(offset, value)
+static AbstractQoreNode *TERMIOS_setCC(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+
+   s->set_cc(p0 ? p0->getAsBigInt() : 0, p1 ? p1->getAsInt() : 0, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *TERMIOS_isEqual(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+   QoreObject *p0 = test_object_param(params, 0);
+   QoreTermIOS *ios = p0 ? (QoreTermIOS *)p0->getReferencedPrivateData(CID_TERMIOS, xsink) : 0;
+   if (!ios) {
+      if (!*xsink)
+         xsink->raiseException("TERMIOS-ISEQUAL-ERROR", "expecting a TermIOS object as argument to TermIOS::isEqual()");
+      return 0;
+   }
+   ReferenceHolder<QoreTermIOS> holder(ios, xsink);
+   return get_bool_node(s->is_equal(ios));
+}
+
 QoreClass *initTermIOSClass() {
    QORE_TRACE("initTermIOSClass()");
 
@@ -90,6 +120,9 @@ QoreClass *initTermIOSClass() {
    QC_TERMIOS->addMethod("setCFLag", (q_method_t)TERMIOS_setCFlag);
    QC_TERMIOS->addMethod("setOFLag", (q_method_t)TERMIOS_setOFlag);
    QC_TERMIOS->addMethod("setIFLag", (q_method_t)TERMIOS_setIFlag);
+   QC_TERMIOS->addMethod("getCC",    (q_method_t)TERMIOS_getCC);
+   QC_TERMIOS->addMethod("setCC",    (q_method_t)TERMIOS_setCC);
+   QC_TERMIOS->addMethod("isEqual",  (q_method_t)TERMIOS_isEqual);
 
    return QC_TERMIOS;
 }

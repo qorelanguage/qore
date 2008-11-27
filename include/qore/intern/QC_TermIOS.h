@@ -34,6 +34,19 @@ DLLLOCAL QoreClass *initTermIOSClass();
 class QoreTermIOS : public AbstractPrivateData {
 protected:
     struct termios ios;
+    
+    DLLLOCAL int check_offset(int64 offset, ExceptionSink *xsink) {
+       if (offset < 0) {
+	  xsink->raiseException("TERMIOS-SET-CC-ERROR", "cc offset (%lld) is < 0", offset);
+	  return -1;
+       }
+       
+       if (offset > NCCS) {
+	  xsink->raiseException("TERMIOS-SET-CC-ERROR", "cc offset (%lld) is > NCCS (%d)", offset, NCCS);
+	  return -1;
+       }
+       return 0;
+    }
 
 public:
     DLLLOCAL QoreTermIOS() {
@@ -41,6 +54,10 @@ public:
 
     DLLLOCAL QoreTermIOS(const QoreTermIOS &cp) {
 	memcpy(&ios, &cp.ios, sizeof(struct termios));
+    }
+
+    DLLLOCAL bool is_equal(const QoreTermIOS *qtios) {
+       return !memcmp(&ios, &qtios->ios, sizeof(struct termios));
     }
 
     DLLLOCAL int get(int fd, ExceptionSink *xsink) {
@@ -95,19 +112,19 @@ public:
 	return ios.c_iflag;
     }
     
+    DLLLOCAL cc_t get_cc(int64 offset, ExceptionSink *xsink) {
+       if (check_offset(offset, xsink))
+	  return -1;
+
+       return ios.c_cc[offset];
+    }
+
     DLLLOCAL int set_cc(int64 offset, cc_t val, ExceptionSink *xsink) {
-	if (offset < 0) {
-	    xsink->raiseException("TERMIOS-SET-CC-ERROR", "cc offset (%d) is < 0", offset);
-	    return -1;
-	}
+       if (check_offset(offset, xsink))
+	  return -1;
 
-	if (offset > NCCS) {
-	    xsink->raiseException("TERMIOS-SET-CC-ERROR", "cc offset (%d) is > NCCS (%d)", offset, offset);
-	    return -1;
-	}
-
-	ios.c_cc[offset] = val;
-	return 0;
+       ios.c_cc[offset] = val;
+       return 0;
     }    
 };
 

@@ -34,6 +34,10 @@
 #include <errno.h>
 #include <sys/file.h>
 
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
 #include <string>
 
 #ifndef DEFAULT_FILE_BUFSIZE
@@ -41,42 +45,61 @@
 #endif
 
 struct qore_qf_private {
-      int fd;
-      bool is_open;
-      bool special_file;
-      const QoreEncoding *charset;
-      std::string filename;
-      mutable QoreThreadLock m;
+   int fd;
+   bool is_open;
+   bool special_file;
+   const QoreEncoding *charset;
+   std::string filename;
+   mutable QoreThreadLock m;
+   
+   DLLLOCAL qore_qf_private(const QoreEncoding *cs) : is_open(false),
+						      special_file(false),
+						      charset(cs) {
+   }
 
-      DLLLOCAL qore_qf_private(const QoreEncoding *cs)
-      {
-	 is_open = false;
-	 charset = cs;
-	 special_file = false;
-      }
+   DLLLOCAL ~qore_qf_private() {
+   }
 
-      DLLLOCAL ~qore_qf_private()
-      {
-      }
+   DLLLOCAL bool isDataAvailable(int timeout_ms) {
+      AutoLocker al(m);
 
+      if (!is_open)
+	 return false;
+      
+      fd_set sfs;
+      
+      struct timeval tv;
+      tv.tv_sec  = timeout_ms / 1000;
+      tv.tv_usec = (timeout_ms % 1000) * 1000;
+      
+      FD_ZERO(&sfs);
+      FD_SET(fd, &sfs);
+      return select(fd + 1, &sfs, 0, 0, &tv);   
+   }
 };
 
 // private function, unlocked
-int QoreFile::readChar()
-{
+int QoreFile::readChar() {
    unsigned char ch = 0;
    if (::read(priv->fd, &ch, 1) != 1)
       return -1;
    return (int)ch;
 }
 
-char *QoreFile::readBlock(qore_offset_t &size) {
+char *QoreFile::readBlock(qore_offset_t &size, int timeout_ms, ExceptionSink *xsink) {
    qore_size_t bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
    qore_size_t br = 0;
    char *buf = (char *)malloc(sizeof(char) * bs);
    char *bbuf = 0;
 
    while (true) {
+      // wait for data
+      if (timeout_ms >= 0 && !isDataAvailable(timeout_ms)) {
+	 xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block", timeout_ms);
+	 br = 0;
+	 break;
+      }
+
       qore_size_t rc = ::read(priv->fd, buf, bs);
       if (rc <= 0)
 	 break;
@@ -122,8 +145,7 @@ int QoreFile::check_write_open(ExceptionSink *xsink)
    return -1;
 }
 
-QoreFile::QoreFile(const QoreEncoding *cs) : priv(new qore_qf_private(cs))
-{
+QoreFile::QoreFile(const QoreEncoding *cs) : priv(new qore_qf_private(cs)) {
 }
 
 QoreFile::~QoreFile()
@@ -428,8 +450,7 @@ int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink)
    return ::write(priv->fd, b->getPtr(), b->size());
 }
 
-QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink)
-{
+QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
    if (!size)
       return 0;
 
@@ -440,7 +461,7 @@ QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink)
       if (check_read_open(xsink))
 	 return 0;
    
-      buf = readBlock(size);
+      buf = readBlock(size, -1, xsink);
    }
    if (!buf)
       return 0;
@@ -461,7 +482,47 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {
       if (check_read_open(xsink))
 	 return 0;
    
-      buf = readBlock(size);
+      buf = readBlock(size, -1, xsink);
+   }
+   if (!buf)
+      return 0;
+   
+   return new BinaryNode(buf, size);
+}
+
+QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink) {
+   if (!size)
+      return 0;
+
+   char *buf;
+   {
+      AutoLocker al(priv->m);
+   
+      if (check_read_open(xsink))
+	 return 0;
+   
+      buf = readBlock(size, timeout_ms, xsink);
+   }
+   if (!buf)
+      return 0;
+
+   QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
+   str->terminate(buf[size - 1] ? size : size - 1);
+   return str;
+}
+
+BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSink *xsink) {
+   if (!size)
+      return 0;
+
+   char *buf;
+   {
+      AutoLocker al(priv->m);
+
+      if (check_read_open(xsink))
+	 return 0;
+   
+      buf = readBlock(size, timeout_ms, xsink);
    }
    if (!buf)
       return 0;
@@ -716,4 +777,8 @@ int QoreFile::readi8LSB(int64 *val, ExceptionSink *xsink)
    
    *val = LSBi8(*val);
    return 0;
+}
+
+bool QoreFile::isDataAvailable(int timeout_ms) const {
+   return priv->isDataAvailable(timeout_ms);
 }

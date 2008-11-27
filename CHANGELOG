@@ -1,3 +1,8 @@
+2008.11.27: David Nichols
+	* started adding new APIs to QoreFile for non-blocking I/O
+	* more TermIOS fixes, functionality
+	* updated library to 5.1, module api to 0.6, compatibility with 0.5
+
 2008.11.26: David Nichols
 	* fix to allow references to be used in closure and call reference
 	  calls

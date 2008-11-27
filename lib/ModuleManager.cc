@@ -43,7 +43,7 @@
 
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
 
-static const qore_mod_api_compat_s qore_mod_api_list_l[] = { { 0, 5 } };
+static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 6}, {0, 5} };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
 // public symbols
