@@ -760,24 +760,19 @@ static AbstractQoreNode *SOCKET_setCharset(QoreObject *self, mySocket *s, const 
    return 0; 
 }
 
-static AbstractQoreNode *SOCKET_getCharset(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_getCharset(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreStringNode(s->getEncoding()->getCode());
 }
 
-static AbstractQoreNode *SOCKET_isDataAvailable(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   return get_bool_node(s->isDataAvailable(p0 ? p0->getAsInt() : 0));
+static AbstractQoreNode *SOCKET_isDataAvailable(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   return get_bool_node(s->isDataAvailable(getMsZeroInt(get_param(params, 0))));
 }
 
-static AbstractQoreNode *SOCKET_isOpen(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_isOpen(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    return get_bool_node(s->isOpen());
 }
 
-static AbstractQoreNode *SOCKET_getSSLCipherName(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_getSSLCipherName(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const char *str = s->getSSLCipherName();
    if (str)
       return new QoreStringNode(str);
@@ -785,8 +780,7 @@ static AbstractQoreNode *SOCKET_getSSLCipherName(QoreObject *self, mySocket *s, 
    return 0;
 }
 
-static AbstractQoreNode *SOCKET_getSSLCipherVersion(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_getSSLCipherVersion(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const char *str = s->getSSLCipherVersion();
    if (str)
       return new QoreStringNode(str);
@@ -794,19 +788,16 @@ static AbstractQoreNode *SOCKET_getSSLCipherVersion(QoreObject *self, mySocket *
    return 0;
 }
 
-static AbstractQoreNode *SOCKET_isSecure(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_isSecure(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    return get_bool_node(s->isSecure());
 }
 
-static AbstractQoreNode *SOCKET_verifyPeerCertificate(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_verifyPeerCertificate(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const char *c = getSSLCVCode(s->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : 0;
 }
 
-static AbstractQoreNode *SOCKET_setCertificate(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_setCertificate(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // first check parameters
    const AbstractQoreNode *p0 = get_param(params, 0);
    class QoreSSLCertificate *cert;

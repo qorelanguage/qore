@@ -112,14 +112,14 @@ QoreClass *initTermIOSClass() {
    QC_TERMIOS->setConstructor(TERMIOS_constructor);
    QC_TERMIOS->setCopy((q_copy_t)TERMIOS_copy);
 
-   QC_TERMIOS->addMethod("getLFLag", (q_method_t)TERMIOS_getLFlag);
-   QC_TERMIOS->addMethod("getCFLag", (q_method_t)TERMIOS_getCFlag);
-   QC_TERMIOS->addMethod("getOFLag", (q_method_t)TERMIOS_getOFlag);
-   QC_TERMIOS->addMethod("getIFLag", (q_method_t)TERMIOS_getIFlag);
-   QC_TERMIOS->addMethod("setLFLag", (q_method_t)TERMIOS_setLFlag);
-   QC_TERMIOS->addMethod("setCFLag", (q_method_t)TERMIOS_setCFlag);
-   QC_TERMIOS->addMethod("setOFLag", (q_method_t)TERMIOS_setOFlag);
-   QC_TERMIOS->addMethod("setIFLag", (q_method_t)TERMIOS_setIFlag);
+   QC_TERMIOS->addMethod("getLFlag", (q_method_t)TERMIOS_getLFlag);
+   QC_TERMIOS->addMethod("getCFlag", (q_method_t)TERMIOS_getCFlag);
+   QC_TERMIOS->addMethod("getOFlag", (q_method_t)TERMIOS_getOFlag);
+   QC_TERMIOS->addMethod("getIFlag", (q_method_t)TERMIOS_getIFlag);
+   QC_TERMIOS->addMethod("setLFlag", (q_method_t)TERMIOS_setLFlag);
+   QC_TERMIOS->addMethod("setCFlag", (q_method_t)TERMIOS_setCFlag);
+   QC_TERMIOS->addMethod("setOFlag", (q_method_t)TERMIOS_setOFlag);
+   QC_TERMIOS->addMethod("setIFlag", (q_method_t)TERMIOS_setIFlag);
    QC_TERMIOS->addMethod("getCC",    (q_method_t)TERMIOS_getCC);
    QC_TERMIOS->addMethod("setCC",    (q_method_t)TERMIOS_setCC);
    QC_TERMIOS->addMethod("isEqual",  (q_method_t)TERMIOS_isEqual);

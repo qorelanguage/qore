@@ -1719,6 +1719,107 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("EVENT_SSL_ESTABLISHED", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED));
    //qns->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
+   // setup terminal mode constants
+   // input modes
+   qns->addConstant("IGNBRK", new QoreBigIntNode(IGNBRK));
+   qns->addConstant("BRKINT", new QoreBigIntNode(BRKINT));
+   qns->addConstant("IGNPAR", new QoreBigIntNode(IGNPAR));
+   qns->addConstant("PARMRK", new QoreBigIntNode(PARMRK));
+   qns->addConstant("INPCK", new QoreBigIntNode(INPCK));
+   qns->addConstant("ISTRIP", new QoreBigIntNode(ISTRIP));
+   qns->addConstant("INLCR", new QoreBigIntNode(INLCR));
+   qns->addConstant("IGNCR", new QoreBigIntNode(IGNCR));
+   qns->addConstant("ICRNL", new QoreBigIntNode(ICRNL));
+   qns->addConstant("IXON", new QoreBigIntNode(IXON));
+   qns->addConstant("IXOFF", new QoreBigIntNode(IXOFF));
+   qns->addConstant("IXANY", new QoreBigIntNode(IXANY));
+   qns->addConstant("IMAXBEL", new QoreBigIntNode(IMAXBEL));
+#ifdef IUCLC
+   qns->addConstant("IUCLC", new QoreBigIntNode(IUCLC));
+#endif
+
+   // output modes
+   qns->addConstant("OPOST", new QoreBigIntNode(OPOST));
+   qns->addConstant("ONLCR", new QoreBigIntNode(ONLCR));
+   qns->addConstant("OXTABS", new QoreBigIntNode(OXTABS));
+   qns->addConstant("ONOEOT", new QoreBigIntNode(ONOEOT));
+   qns->addConstant("OCRNL", new QoreBigIntNode(OCRNL));
+#ifdef OLCUC
+   qns->addConstant("OLCUC", new QoreBigIntNode(OLCUC));
+#endif
+   qns->addConstant("ONOCR", new QoreBigIntNode(ONOCR));
+   qns->addConstant("ONLRET", new QoreBigIntNode(ONLRET));
+
+   // control modes
+   qns->addConstant("CSIZE", new QoreBigIntNode(CSIZE));
+   qns->addConstant("CS5", new QoreBigIntNode(CS5));
+   qns->addConstant("CS6", new QoreBigIntNode(CS6));
+   qns->addConstant("CS7", new QoreBigIntNode(CS7));
+   qns->addConstant("CS8", new QoreBigIntNode(CS8));
+   qns->addConstant("CSTOPB", new QoreBigIntNode(CSTOPB));
+   qns->addConstant("CREAD", new QoreBigIntNode(CREAD));
+   qns->addConstant("PARENB", new QoreBigIntNode(PARENB));
+   qns->addConstant("PARODD", new QoreBigIntNode(PARODD));
+   qns->addConstant("HUPCL", new QoreBigIntNode(HUPCL));
+   qns->addConstant("CLOCAL", new QoreBigIntNode(CLOCAL));
+#ifdef CCTS_OFL
+   qns->addConstant("CCTS_OFL", new QoreBigIntNode(CCTS_OFL));
+#endif
+   qns->addConstant("CRTSCTS", new QoreBigIntNode(CRTSCTS));
+#ifdef CRTS_IFL
+   qns->addConstant("CRTS_IFL", new QoreBigIntNode(CRTS_IFL));
+#endif
+   qns->addConstant("MDMBUF", new QoreBigIntNode(MDMBUF));
+
+   // local modes
+   qns->addConstant("ECHOKE", new QoreBigIntNode(ECHOKE));
+   qns->addConstant("ECHOE", new QoreBigIntNode(ECHOE));
+   qns->addConstant("ECHO", new QoreBigIntNode(ECHO));
+   qns->addConstant("ECHONL", new QoreBigIntNode(ECHONL));
+   qns->addConstant("ECHOPRT", new QoreBigIntNode(ECHOPRT));
+   qns->addConstant("ECHOCTL", new QoreBigIntNode(ECHOCTL));
+   qns->addConstant("ISIG", new QoreBigIntNode(ISIG));
+   qns->addConstant("ICANON", new QoreBigIntNode(ICANON));
+#ifdef ALTWERAS
+   qns->addConstant("ALTWERAS", new QoreBigIntNode(ALTWERAS));
+#endif
+   qns->addConstant("IEXTEN", new QoreBigIntNode(IEXTEN));
+   qns->addConstant("EXTPROC", new QoreBigIntNode(EXTPROC));
+   qns->addConstant("TOSTOP", new QoreBigIntNode(TOSTOP));
+   qns->addConstant("FLUSHO", new QoreBigIntNode(FLUSHO));
+#ifdef NOKERNIN
+   qns->addConstant("NOKERNIN", new QoreBigIntNode(NOKERNIN));
+#endif
+   qns->addConstant("PENDIN", new QoreBigIntNode(PENDIN));
+   qns->addConstant("NOFLSH", new QoreBigIntNode(NOFLSH));
+   
+   // control characters
+   qns->addConstant("VEOF", new QoreBigIntNode(VEOF));
+   qns->addConstant("VEOL", new QoreBigIntNode(VEOL));
+   qns->addConstant("VEOL2", new QoreBigIntNode(VEOL2));
+   qns->addConstant("VERASE", new QoreBigIntNode(VERASE));
+   qns->addConstant("VWERASE", new QoreBigIntNode(VWERASE));
+   qns->addConstant("VKILL", new QoreBigIntNode(VKILL));
+   qns->addConstant("VREPRINT", new QoreBigIntNode(VREPRINT));
+   qns->addConstant("VINTR", new QoreBigIntNode(VINTR));
+   qns->addConstant("VQUIT", new QoreBigIntNode(VQUIT));
+   qns->addConstant("VSUSP", new QoreBigIntNode(VSUSP));
+   qns->addConstant("VDSUSP", new QoreBigIntNode(VDSUSP));
+   qns->addConstant("VSTART", new QoreBigIntNode(VSTART));
+   qns->addConstant("VSTOP", new QoreBigIntNode(VSTOP));
+   qns->addConstant("VLNEXT", new QoreBigIntNode(VLNEXT));
+   qns->addConstant("VDISCARD", new QoreBigIntNode(VDISCARD));
+   qns->addConstant("VMIN", new QoreBigIntNode(VMIN));
+   qns->addConstant("VTIME", new QoreBigIntNode(VTIME));
+   qns->addConstant("VSTATUS", new QoreBigIntNode(VSTATUS));
+
+   // terminal setting actions
+   qns->addConstant("TCSANOW", new QoreBigIntNode(TCSANOW));
+   qns->addConstant("TCSADRAIN", new QoreBigIntNode(TCSADRAIN));
+   qns->addConstant("TCSAFLUSH", new QoreBigIntNode(TCSAFLUSH));
+   qns->addConstant("TCSASOFT", new QoreBigIntNode(TCSASOFT));
+
+
    // set up Option namespace for Qore options
    QoreNamespace *option = new QoreNamespace("Option");
 

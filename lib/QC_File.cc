@@ -569,8 +569,7 @@ static AbstractQoreNode *FILE_getLockInfo(QoreObject *self, class File *f, const
    return h;
 }
 
-static AbstractQoreNode *FILE_chown(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_chown(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
    uid_t owner = (uid_t)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
@@ -579,8 +578,43 @@ static AbstractQoreNode *FILE_chown(QoreObject *self, class File *f, const QoreL
    return 0;
 }
 
-QoreClass *initFileClass()
-{
+static AbstractQoreNode *FILE_isDataAvailable(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
+   int timeout_ms = getMsZeroInt(p);
+   bool rc = f->isDataAvailable(timeout_ms, xsink);
+   return *xsink ? 0 : get_bool_node(rc);
+}
+
+static AbstractQoreNode *FILE_getTerminalAttributes(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
+   QoreObject *p = test_object_param(params, 0);
+   QoreTermIOS *ios = p ? (QoreTermIOS *)p->getReferencedPrivateData(CID_TERMIOS, xsink) : 0;
+   if (!ios) {
+      if (!*xsink)
+         xsink->raiseException("TERMIOS-GETTERMINALATTRIBUTES-ERROR", "expecting a TermIOS object as argument to File::getTerminalAttributes()");
+      return 0;
+   }
+   ReferenceHolder<QoreTermIOS> holder(ios, xsink);
+   f->getTerminalAttributes(ios, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   int action = p0 ? p0->getAsInt() : 0;
+   
+   QoreObject *p1 = test_object_param(params, 1);
+   QoreTermIOS *ios = p1 ? (QoreTermIOS *)p1->getReferencedPrivateData(CID_TERMIOS, xsink) : 0;
+   if (!ios) {
+      if (!*xsink)
+         xsink->raiseException("TERMIOS-SETTERMINALATTRIBUTES-ERROR", "expecting a TermIOS object as argument to File::setTerminalAttributes()");
+      return 0;
+   }
+   ReferenceHolder<QoreTermIOS> holder(ios, xsink);
+   f->setTerminalAttributes(action, ios, xsink);
+   return 0;
+}
+
+QoreClass *initFileClass() {
    QORE_TRACE("initFileClass()");
 
    QC_File = new QoreClass("File", QDOM_FILESYSTEM);
@@ -632,7 +666,9 @@ QoreClass *initFileClass()
    QC_File->addMethod("lockBlocking",      (q_method_t)FILE_lockBlocking);
    QC_File->addMethod("getLockInfo",       (q_method_t)FILE_getLockInfo);
    QC_File->addMethod("chown",             (q_method_t)FILE_chown);
-
+   QC_File->addMethod("isDataAvailable",        (q_method_t)FILE_isDataAvailable);
+   QC_File->addMethod("getTerminalAttributes",  (q_method_t)FILE_getTerminalAttributes);
+   QC_File->addMethod("setTerminalAttributes",  (q_method_t)FILE_setTerminalAttributes);
 
    return QC_File;
 }

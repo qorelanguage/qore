@@ -31,6 +31,8 @@
 #include <sys/file.h>
 #include <unistd.h>
 
+class QoreTermIOS;
+
 //! provides controlled access to file data through Qore data structures
 /** Each file has a default character encoding associated with it.  String data
     read from the file will be tagged with this encoding.  String data written to
@@ -47,10 +49,6 @@ class QoreFile {
       DLLLOCAL int readChar();
       // reads a buffer of the given size, unlocked
       DLLLOCAL char *readBlock(qore_offset_t &size, int timeout_ms, ExceptionSink *xsink);
-      // returns -1 for error, unlocked
-      DLLLOCAL int check_read_open(ExceptionSink *xsink);
-      // returns -1 for error, unlocked
-      DLLLOCAL int check_write_open(ExceptionSink *xsink);
       // unlocked close
       DLLLOCAL int close_intern();
 
@@ -394,12 +392,25 @@ class QoreFile {
       DLLEXPORT int getLockInfo(struct flock &fl, ExceptionSink *xsink);
 
       //! returns true if data is available for the file descriptor
-      DLLEXPORT bool isDataAvailable(int timeout_ms = 0) const;
+      /** @param timeout_ms the maximum time to read a single block from the file; -1 = never timeout, 0 timeout immediately if no data is available
+	  @param xsink if an error occurs, the Qore-language exception info will be added here
+	  @return true if data is available in the timeout period, false if not
+      **/
+      DLLEXPORT bool isDataAvailable(int timeout_ms, ExceptionSink *xsink) const;
 
 #if 0
       //! preallocates storage
       DLLEXPORT int preallocate(fstore_t &fs, ExceptionSink *xsink);
 #endif
+
+      //! get file descriptor
+      DLLEXPORT int getFD() const;
+
+      //! sets terminal attributes
+      DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const;
+
+      //! gets terminal attributes
+      DLLLOCAL int getTerminalAttributes(QoreTermIOS *ios, ExceptionSink *xsink) const;
 
       // NOTE: QoreFile::makeSpecial() can only be called right after the constructor (private API)
       DLLLOCAL void makeSpecial(int sfd);

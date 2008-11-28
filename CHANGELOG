@@ -1,3 +1,10 @@
+2008.11.28: David Nichols
+	* added new File methods: 
+	    File::isDataAvailable(timeout_ms)
+	    File::setTerminalAttributes(action, TermIOS);
+	    File::getTerminalAttributes(TermIOS);
+	* added terminal attribute and action constants
+
 2008.11.27: David Nichols
 	* started adding new APIs to QoreFile for non-blocking I/O
 	* more TermIOS fixes, functionality
