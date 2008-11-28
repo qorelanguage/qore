@@ -1769,7 +1769,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
 #ifdef CCTS_OFL
    qns->addConstant("CCTS_OFL", new QoreBigIntNode(CCTS_OFL));
 #endif
+#ifdef CRTSCTS
    qns->addConstant("CRTSCTS", new QoreBigIntNode(CRTSCTS));
+#endif
 #ifdef CRTS_IFL
    qns->addConstant("CRTS_IFL", new QoreBigIntNode(CRTS_IFL));
 #endif
@@ -1808,7 +1810,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("VERASE", new QoreBigIntNode(VERASE));
    qns->addConstant("VWERASE", new QoreBigIntNode(VWERASE));
    qns->addConstant("VKILL", new QoreBigIntNode(VKILL));
+#ifdef VREPRINT
    qns->addConstant("VREPRINT", new QoreBigIntNode(VREPRINT));
+#endif
    qns->addConstant("VINTR", new QoreBigIntNode(VINTR));
    qns->addConstant("VQUIT", new QoreBigIntNode(VQUIT));
    qns->addConstant("VSUSP", new QoreBigIntNode(VSUSP));
@@ -1818,7 +1822,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("VSTART", new QoreBigIntNode(VSTART));
    qns->addConstant("VSTOP", new QoreBigIntNode(VSTOP));
    qns->addConstant("VLNEXT", new QoreBigIntNode(VLNEXT));
+#ifdef VDISCARD
    qns->addConstant("VDISCARD", new QoreBigIntNode(VDISCARD));
+#endif
    qns->addConstant("VMIN", new QoreBigIntNode(VMIN));
    qns->addConstant("VTIME", new QoreBigIntNode(VTIME));
 #ifdef VSTATUS
