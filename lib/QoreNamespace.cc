@@ -1741,8 +1741,12 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    // output modes
    qns->addConstant("OPOST", new QoreBigIntNode(OPOST));
    qns->addConstant("ONLCR", new QoreBigIntNode(ONLCR));
+#ifdef OXTABS
    qns->addConstant("OXTABS", new QoreBigIntNode(OXTABS));
+#endif
+#ifdef ONOEOT
    qns->addConstant("ONOEOT", new QoreBigIntNode(ONOEOT));
+#endif
    qns->addConstant("OCRNL", new QoreBigIntNode(OCRNL));
 #ifdef OLCUC
    qns->addConstant("OLCUC", new QoreBigIntNode(OLCUC));
@@ -1769,7 +1773,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
 #ifdef CRTS_IFL
    qns->addConstant("CRTS_IFL", new QoreBigIntNode(CRTS_IFL));
 #endif
+#ifdef MDMBUF
    qns->addConstant("MDMBUF", new QoreBigIntNode(MDMBUF));
+#endif
 
    // local modes
    qns->addConstant("ECHOKE", new QoreBigIntNode(ECHOKE));
@@ -1784,7 +1790,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("ALTWERAS", new QoreBigIntNode(ALTWERAS));
 #endif
    qns->addConstant("IEXTEN", new QoreBigIntNode(IEXTEN));
+#ifdef EXTPROC
    qns->addConstant("EXTPROC", new QoreBigIntNode(EXTPROC));
+#endif
    qns->addConstant("TOSTOP", new QoreBigIntNode(TOSTOP));
    qns->addConstant("FLUSHO", new QoreBigIntNode(FLUSHO));
 #ifdef NOKERNIN
@@ -1804,21 +1812,26 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("VINTR", new QoreBigIntNode(VINTR));
    qns->addConstant("VQUIT", new QoreBigIntNode(VQUIT));
    qns->addConstant("VSUSP", new QoreBigIntNode(VSUSP));
+#ifdef VDSUSP
    qns->addConstant("VDSUSP", new QoreBigIntNode(VDSUSP));
+#endif
    qns->addConstant("VSTART", new QoreBigIntNode(VSTART));
    qns->addConstant("VSTOP", new QoreBigIntNode(VSTOP));
    qns->addConstant("VLNEXT", new QoreBigIntNode(VLNEXT));
    qns->addConstant("VDISCARD", new QoreBigIntNode(VDISCARD));
    qns->addConstant("VMIN", new QoreBigIntNode(VMIN));
    qns->addConstant("VTIME", new QoreBigIntNode(VTIME));
+#ifdef VSTATUS
    qns->addConstant("VSTATUS", new QoreBigIntNode(VSTATUS));
+#endif
 
    // terminal setting actions
    qns->addConstant("TCSANOW", new QoreBigIntNode(TCSANOW));
    qns->addConstant("TCSADRAIN", new QoreBigIntNode(TCSADRAIN));
    qns->addConstant("TCSAFLUSH", new QoreBigIntNode(TCSAFLUSH));
+#ifdef TCSASOFT
    qns->addConstant("TCSASOFT", new QoreBigIntNode(TCSASOFT));
-
+#endif
 
    // set up Option namespace for Qore options
    QoreNamespace *option = new QoreNamespace("Option");
