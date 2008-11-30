@@ -135,22 +135,19 @@ static AbstractQoreNode *FILE_sync(QoreObject *self, class File *f, const QoreLi
    return new QoreBigIntNode(f->sync());
 }
 
-static AbstractQoreNode *FILE_read(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
-   int size;
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   if (p0)
-      size = p0->getAsInt();
-   else
-      size = 0;
+static AbstractQoreNode *FILE_read(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
+   int size = p ? p->getAsInt() : 0;
 
-   if (!size)
-   {
+   if (!size) {
       xsink->raiseException("FILE-READ-PARAMETER-ERROR", "expecting size as first parameter of File::read()");
       return 0;
    }
 
-   return f->read(size, xsink);
+   // get timeout
+   int timeout_ms = getMsMinusOneInt(get_param(params, 1));
+
+   return f->read(size, timeout_ms, xsink);
 }
 
 static AbstractQoreNode *FILE_readu1(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -257,25 +254,24 @@ static AbstractQoreNode *FILE_readi8LSB(QoreObject *self, class File *f, const Q
    return new QoreBigIntNode(i);
 }
 
-static AbstractQoreNode *FILE_readBinary(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p0 = get_param(params, 0);
+static AbstractQoreNode *FILE_readBinary(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
 
-   int size = p0 ? p0->getAsInt() : 0;
-   if (!size)
-   {
+   int size = p ? p->getAsInt() : 0;
+   if (!size) {
       xsink->raiseException("FILE-READ-BINARY-PARAMETER-ERROR", "expecting size as first parameter of File::readBinary()");
       return 0;
    }
 
-   return f->readBinary(size, xsink);
+   // get timeout
+   int timeout_ms = getMsMinusOneInt(get_param(params, 1));
+
+   return f->readBinary(size, timeout_ms, xsink);
 }
 
-static AbstractQoreNode *FILE_write(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_write(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0 || (p0->getType() != NT_STRING && p0->getType() != NT_BINARY))
-   {
+   if (!p0 || (p0->getType() != NT_STRING && p0->getType() != NT_BINARY)) {
       xsink->raiseException("FILE-WRITE-PARAMETER-ERROR", "expecting string or binary object to write as first parameter of File::write()");
       return 0;
    }
