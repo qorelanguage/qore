@@ -77,7 +77,10 @@ static const char helpstr[] =
    "  -m, --show-module-errors     shows error messages related to loading and\n"
    "                               initializing qore modules\n"
    "      --module-dir             show qore module directory and exit\n"
-   "      --module-api             show qore module API version and exit\n"
+   "      --module-api             show compatible qore module API version and\n"
+   "                               exit\n"
+   "      --module-apis            show all qore module API versions\n"
+   "      --latest-module-api      show most recent module API version and exit\n"
    "  -o, --list-parse-options     list all parse options\n"
    "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
    "  -r, --warnings-are-errors    treat warnings as errors\n"
@@ -151,6 +154,21 @@ static void show_module_dir(const char *arg) {
 }
 
 static void show_module_api(const char *arg) {
+   printf("%d.%d\n", qore_mod_api_list[qore_mod_api_list_len - 1].major, qore_mod_api_list[qore_mod_api_list_len - 1].minor);
+   exit(0);
+}
+
+static void show_module_apis(const char *arg) {
+   // show all module apis
+   printf("%d.%d", qore_mod_api_list[0].major, qore_mod_api_list[0].minor);
+   for (unsigned i = 1; i < qore_mod_api_list_len; ++i)
+      printf(", %d.%d", qore_mod_api_list[i].major, qore_mod_api_list[i].minor);
+   printf("\n");
+
+   exit(0);
+}
+
+static void show_latest_module_api(const char *arg) {
    printf("%d.%d\n", QORE_MODULE_API_MAJOR, QORE_MODULE_API_MINOR);
    exit(0);
 }
@@ -439,6 +457,8 @@ static struct opt_struct_s {
    { '\0', "module-dir",           ARG_NONE, show_module_dir },
    { '\0', "short-version",        ARG_NONE, short_version },
    { '\0', "module-api",           ARG_NONE, show_module_api },
+   { '\0', "module-apis",          ARG_NONE, show_module_apis },
+   { '\0', "latest-module-api",    ARG_NONE, show_latest_module_api },
    { 'X', "eval",                  ARG_MAND, set_eval_arg },
 // debugging options
    { 'b', "disable-signals",       ARG_NONE, disable_signals },

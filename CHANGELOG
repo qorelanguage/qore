@@ -1,3 +1,7 @@
+2008.11.30: David Nichols
+	* updated --module-api to display the lowest compatible API and added
+	  --latest-module-api to show the latest module API version
+
 2008.11.28: David Nichols
 	* added new File methods: 
 	    File::isDataAvailable(timeout_ms)
