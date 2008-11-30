@@ -55,14 +55,13 @@ static void SOCKET_copy(QoreObject *self, QoreObject *old, AbstractPrivateData *
 static AbstractQoreNode *SOCKET_connect(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    // if parameters are not correct
-   if (!(p0 = test_string_param(params, 0)))
-   {
+   if (!(p0 = test_string_param(params, 0))) {
       xsink->raiseException("SOCKET-CONNECT-PARAMETER-ERROR",
 			    "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connect() call");
       return 0;
    }
 
-   s->connect(p0->getBuffer(), xsink);
+   s->connect(p0->getBuffer(), getMsMinusOneInt(get_param(params, 1)), xsink);
    return 0;
 }
 
@@ -75,14 +74,13 @@ static AbstractQoreNode *SOCKET_connect(QoreObject *self, mySocket *s, const Qor
 static AbstractQoreNode *SOCKET_connectSSL(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    // if parameters are not correct
-   if (!(p0 = test_string_param(params, 0)))
-   {
+   if (!(p0 = test_string_param(params, 0))) {
       xsink->raiseException("SOCKET-CONNECTSSL-PARAMETER-ERROR",
 			    "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connectSSL() call");
       return 0;
    }
 
-   s->connectSSL(p0->getBuffer(), xsink);
+   s->connectSSL(p0->getBuffer(), getMsMinusOneInt(get_param(params, 1)), xsink);
    return 0;
 }
 

@@ -158,6 +158,20 @@ class QoreSocket {
        */
       DLLEXPORT int connect(const char *name, ExceptionSink *xsink = 0);
 
+      //! connects to a socket and returns a status code, Qore-language exceptions are raised in the case of any errors
+      /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINET() is called.
+	  Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIX() is called.
+	  @param name the name of the socket (either hostname:port or file name)
+	  @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+	  @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
+	  @see QoreSocket::connectINET()
+	  @see QoreSocket::connectUNIX()
+	  @see QoreSocket::connectSSL()
+	  @see QoreSocket::connectINETSSL()
+	  @see QoreSocket::connectUNIXSSL()
+       */
+      DLLEXPORT int connect(const char *name, int timeout_ms, ExceptionSink *xsink = 0);
+
       //! connects to an INET socket by hostname and port number and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** @param host the name or IP address of the host
 	  @param prt the port number of the remote socket
@@ -170,6 +184,20 @@ class QoreSocket {
 	  @see QoreSocket::connectUNIXSSL()
        */
       DLLEXPORT int connectINET(const char *host, int prt, ExceptionSink *xsink = 0);
+
+      //! connects to an INET socket by hostname and port number and returns a status code, Qore-language exceptions are raised in the case of any errors
+      /** @param host the name or IP address of the host
+	  @param prt the port number of the remote socket
+	  @param timeout_ms the timeout period in milliseconds
+	  @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+	  @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
+	  @see QoreSocket::connect()
+	  @see QoreSocket::connectUNIX()
+	  @see QoreSocket::connectSSL()
+	  @see QoreSocket::connectINETSSL()
+	  @see QoreSocket::connectUNIXSSL()
+       */
+      DLLEXPORT int connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink = 0);
 
       //! connects to a UNIX domain socket and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** @param p the file name of the UNIX domain socket
@@ -201,6 +229,25 @@ class QoreSocket {
        */
       DLLEXPORT int connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
+      //! connects to a socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
+      /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINETSSL() is called.
+	  Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIXSSL() is called.
+	  @param name the name of the socket (either hostname:port or file name)
+	  @param timeout_ms the timeout period in milliseconds
+	  @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
+	  @param pkey the private key to use for the connection, may be 0 if no private key should be used
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
+	  @note the same as calling QoreSocket::connect() and then QoreSocket::upgradeClientToSSL()
+	  @see QoreSocket::connect()
+	  @see QoreSocket::connectINET()
+	  @see QoreSocket::connectUNIX()
+	  @see QoreSocket::connectINETSSL()
+	  @see QoreSocket::connectUNIXSSL()
+	  @see QoreSocket::upgradeClientToSSL()
+       */
+      DLLEXPORT int connectSSL(const char *name, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
+
       //! connects to an INET socket by hostname and port number, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** @param host the name or IP address of the host
 	  @param prt the port number of the remote socket
@@ -217,6 +264,24 @@ class QoreSocket {
 	  @see QoreSocket::upgradeClientToSSL()
        */
       DLLEXPORT int connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
+
+      //! connects to an INET socket by hostname and port number, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
+      /** @param host the name or IP address of the host
+	  @param prt the port number of the remote socket
+	  @param timeout_ms the timeout period in milliseconds
+	  @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
+	  @param pkey the private key to use for the connection, may be 0 if no private key should be used
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
+	  @note the same as calling QoreSocket::connectINET() and then QoreSocket::upgradeClientToSSL()
+	  @see QoreSocket::connect()
+	  @see QoreSocket::connectUNIX()
+	  @see QoreSocket::connectINET()
+	  @see QoreSocket::connectSSL()
+	  @see QoreSocket::connectUNIXSSL()
+	  @see QoreSocket::upgradeClientToSSL()
+       */
+      DLLEXPORT int connectINETSSL(const char *host, int prt, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
       //! connects to a UNIX domain socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
       /** @param p the file name of the UNIX domain socket

@@ -40,14 +40,14 @@ mySocket::~mySocket() {
    delete socket;
 }
 
-int mySocket::connect(const char *name, ExceptionSink *xsink) {
+int mySocket::connect(const char *name, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(this);
-   return socket->connect(name, xsink);
+   return socket->connect(name, timeout_ms, xsink);
 }
 
-int mySocket::connectINET(const char *host, int port, ExceptionSink *xsink) {
+int mySocket::connectINET(const char *host, int port, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(this);
-   return socket->connectINET(host, port, xsink);
+   return socket->connectINET(host, port, timeout_ms, xsink);
 }
 
 int mySocket::connectUNIX(const char *p, ExceptionSink *xsink) {
@@ -153,90 +153,90 @@ int mySocket::sendi8LSB(int64 b) {
    return socket->sendi8LSB(b);
 }
 
-// receive a certain number of bytes as a string
-QoreStringNode *mySocket::recv(int bufsize, int timeout, int *rc) {
+// receive a packet of bytes as a string
+QoreStringNode *mySocket::recv(int timeout_ms, int *rc) {
    AutoLocker al(this);
-   return socket->recv(bufsize, timeout, rc);
+   return socket->recv(timeout_ms, rc);
+}
+
+// receive a certain number of bytes as a string
+QoreStringNode *mySocket::recv(int bufsize, int timeout_ms, int *rc) {
+   AutoLocker al(this);
+   return socket->recv(bufsize, timeout_ms, rc);
 }
 
 // receive a certain number of bytes as a binary object
-BinaryNode *mySocket::recvBinary(int bufsize, int timeout, int *rc) {
+BinaryNode *mySocket::recvBinary(int bufsize, int timeout_ms, int *rc) {
    AutoLocker al(this);
-   return socket->recvBinary(bufsize, timeout, rc);
-}
-
-// receive a message
-QoreStringNode *mySocket::recv(int timeout, int *rc) {
-   AutoLocker al(this);
-   return socket->recv(timeout, rc);
+   return socket->recvBinary(bufsize, timeout_ms, rc);
 }
 
 // receive and write data to a file descriptor
-int mySocket::recv(int fd, int size, int timeout) {
+int mySocket::recv(int fd, int size, int timeout_ms) {
    AutoLocker al(this);
-   return socket->recv(fd, size, timeout);
+   return socket->recv(fd, size, timeout_ms);
 }
 
 // receive integers and convert from network byte order
-int mySocket::recvi1(int timeout, char *b) {
+int mySocket::recvi1(int timeout_ms, char *b) {
    AutoLocker al(this);
-   return socket->recvi1(timeout, b);
+   return socket->recvi1(timeout_ms, b);
 }
 
-int mySocket::recvi2(int timeout, short *b) {
+int mySocket::recvi2(int timeout_ms, short *b) {
    AutoLocker al(this);
-   return socket->recvi2(timeout, b);
+   return socket->recvi2(timeout_ms, b);
 }
 
-int mySocket::recvi4(int timeout, int *b) {
+int mySocket::recvi4(int timeout_ms, int *b) {
    AutoLocker al(this);
-   return socket->recvi4(timeout, b);
+   return socket->recvi4(timeout_ms, b);
 }
 
-int mySocket::recvi8(int timeout, int64 *b) {
+int mySocket::recvi8(int timeout_ms, int64 *b) {
    AutoLocker al(this);
-   return socket->recvi8(timeout, b);
+   return socket->recvi8(timeout_ms, b);
 }
 
-int mySocket::recvi2LSB(int timeout, short *b) {
+int mySocket::recvi2LSB(int timeout_ms, short *b) {
    AutoLocker al(this);
-   return socket->recvi2LSB(timeout, b);
+   return socket->recvi2LSB(timeout_ms, b);
 }
 
-int mySocket::recvi4LSB(int timeout, int *b) {
+int mySocket::recvi4LSB(int timeout_ms, int *b) {
    AutoLocker al(this);
-   return socket->recvi4LSB(timeout, b);
+   return socket->recvi4LSB(timeout_ms, b);
 }
 
-int mySocket::recvi8LSB(int timeout, int64 *b) {
+int mySocket::recvi8LSB(int timeout_ms, int64 *b) {
    AutoLocker al(this);
-   return socket->recvi8LSB(timeout, b);
+   return socket->recvi8LSB(timeout_ms, b);
 }
 
 // receive integers and convert from network byte order
-int mySocket::recvu1(int timeout, unsigned char *b) {
+int mySocket::recvu1(int timeout_ms, unsigned char *b) {
    AutoLocker al(this);
-   return socket->recvu1(timeout, b);
+   return socket->recvu1(timeout_ms, b);
 }
 
-int mySocket::recvu2(int timeout, unsigned short *b) {
+int mySocket::recvu2(int timeout_ms, unsigned short *b) {
    AutoLocker al(this);
-   return socket->recvu2(timeout, b);
+   return socket->recvu2(timeout_ms, b);
 }
 
-int mySocket::recvu4(int timeout, unsigned int *b) {
+int mySocket::recvu4(int timeout_ms, unsigned int *b) {
    AutoLocker al(this);
-   return socket->recvu4(timeout, b);
+   return socket->recvu4(timeout_ms, b);
 }
 
-int mySocket::recvu2LSB(int timeout, unsigned short *b) {
+int mySocket::recvu2LSB(int timeout_ms, unsigned short *b) {
    AutoLocker al(this);
-   return socket->recvu2LSB(timeout, b);
+   return socket->recvu2LSB(timeout_ms, b);
 }
 
-int mySocket::recvu4LSB(int timeout, unsigned int *b) {
+int mySocket::recvu4LSB(int timeout_ms, unsigned int *b) {
    AutoLocker al(this);
-   return socket->recvu4LSB(timeout, b);
+   return socket->recvu4LSB(timeout_ms, b);
 }
 
 // send HTTP message
@@ -252,21 +252,21 @@ int mySocket::sendHTTPResponse(int code, const char *desc, const char *http_vers
 }
 
 // receive a binary message in HTTP chunked format
-QoreHashNode *mySocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink) {
+QoreHashNode *mySocket::readHTTPChunkedBodyBinary(int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(this);
-   return socket->readHTTPChunkedBodyBinary(timeout, xsink);
+   return socket->readHTTPChunkedBodyBinary(timeout_ms, xsink);
 }
 
 // receive a string message in HTTP chunked format
-QoreHashNode *mySocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink) {
+QoreHashNode *mySocket::readHTTPChunkedBody(int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(this);
-   return socket->readHTTPChunkedBody(timeout, xsink);
+   return socket->readHTTPChunkedBody(timeout_ms, xsink);
 }
 
 // read and parse HTTP header
-AbstractQoreNode *mySocket::readHTTPHeader(int timeout, int *rc) {
+AbstractQoreNode *mySocket::readHTTPHeader(int timeout_ms, int *rc) {
    AutoLocker al(this);
-   return socket->readHTTPHeader(timeout, rc);
+   return socket->readHTTPHeader(timeout_ms, rc);
 }
 
 int mySocket::setSendTimeout(int ms) {
@@ -337,18 +337,18 @@ const QoreEncoding *mySocket::getEncoding() const {
    return socket->getEncoding();
 }
 
-bool mySocket::isDataAvailable(int timeout) {
+bool mySocket::isDataAvailable(int timeout_ms) {
    AutoLocker al(this);
-   return socket->isDataAvailable(timeout);
+   return socket->isDataAvailable(timeout_ms);
 }
 
 bool mySocket::isOpen() const {
    return socket->isOpen();
 }
 
-int mySocket::connectINETSSL(const char *host, int port, ExceptionSink *xsink) {
+int mySocket::connectINETSSL(const char *host, int port, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(this);
-   return socket->connectINETSSL(host, port, 
+   return socket->connectINETSSL(host, port, timeout_ms, 
 				 cert ? cert->getData() : 0,
 				 pk ? pk->getData() : 0,
 				 xsink);
@@ -362,9 +362,9 @@ int mySocket::connectUNIXSSL(const char *p, ExceptionSink *xsink) {
 				 xsink);
 }
 
-int mySocket::connectSSL(const char *name, ExceptionSink *xsink) {
+int mySocket::connectSSL(const char *name, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(this);
-   return socket->connectSSL(name, 
+   return socket->connectSSL(name, timeout_ms,
 			     cert ? cert->getData() : 0,
 			     pk ? pk->getData() : 0,
 			     xsink);

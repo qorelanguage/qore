@@ -649,52 +649,145 @@ struct qore_socket_private {
 	 return 0;
       }
 
-      int connectINET(const char *host, int prt, ExceptionSink *xsink) {
-	 QORE_TRACE("QoreSocket::connectINET()");
+   // socket must be open!
+   DLLLOCAL int select(int timeout_ms) const {
+      fd_set sfs;
 
-	 // close socket if already open
-	 close();
+      struct timeval tv;
+      tv.tv_sec  = timeout_ms / 1000;
+      tv.tv_usec = (timeout_ms % 1000) * 1000;
+      
+      FD_ZERO(&sfs);
+      FD_SET(sock, &sfs);
+      return ::select(sock + 1, &sfs, 0, 0, &tv);
+   }
 
-	 printd(5, "QoreSocket::connectINET(%s:%d)\n", host, prt);
+   DLLLOCAL bool isDataAvailable(int timeout_ms) const {
+      if (!sock)
+	 return false;
 
-	 struct sockaddr_in addr_p;
-	 addr_p.sin_family = AF_INET;
-	 addr_p.sin_port = htons(prt);
+      return select(timeout_ms);
 
-	 do_resolve_event(host);
+#if 0
+      struct pollfd pfd;
+      pfd.fd = priv->sock;
+      pfd.events = POLLIN|POLLPRI;
+      pfd.revents = 0;
+      
+      return poll(&pfd, 1, timeout_ms);
+#endif
+   }
 
-	 if (q_gethostbyname(host, &addr_p.sin_addr)) {
-	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", "cannot resolve hostname '%s'", host);
-	    return -1;
-	 }
+   DLLLOCAL int close_and_exit() {
+      ::close(sock);
+      sock = 0;
+      return -1;
+   }
 
-	 do_resolved_event(AF_INET, (const char *)&addr_p.sin_addr);
+   DLLLOCAL int connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink = 0) {
+      QORE_TRACE("QoreSocket::connectINET()");
 
-	 if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-	    sock = 0;
-	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+      // close socket if already open
+      close();
 
-	    return -1;
-	 }
+      printd(5, "QoreSocket::connectINET(%s:%d, %dms)\n", host, prt, timeout_ms);
 
-	 do_connect_event(AF_INET, host, prt);
-	 if ((::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in))) == -1) {
-	    ::close(sock);
-	    sock = 0;
-	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+      struct sockaddr_in addr_p;
+      addr_p.sin_family = AF_INET;
+      addr_p.sin_port = htons(prt);
 
-	    return -1;
-	 }
-	 type = AF_INET;
-	 port = prt;
-	 printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d) success, sock=%d\n", this, host, port, sock);
+      do_resolve_event(host);
 
-	 do_connected_event();
-	 return 0;
+      if (q_gethostbyname(host, &addr_p.sin_addr)) {
+	 if (xsink)
+	    xsink->raiseException("SOCKET-CONNECT-ERROR", "cannot resolve hostname '%s'", host);
+	 return -1;
       }
+
+      do_resolved_event(AF_INET, (const char *)&addr_p.sin_addr);
+
+      if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+	 sock = 0;
+	 if (xsink)
+	    xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+
+	 return -1;
+      }
+
+      // set non-blocking if a non-negative timeout was passed
+      if (timeout_ms >= 0) {
+	 int arg;
+
+	 // get socket descriptor status flags
+	 if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
+	    sock = 0;
+	    if (xsink)
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() getting socket descriptor status flag: ", strerror(errno));
+	    return -1;
+	 } 
+	 arg |= O_NONBLOCK; 
+	 if (fcntl(sock, F_SETFL, arg) < 0) { 
+	    sock = 0;
+	    if (xsink)
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() setting socket descriptor status flags: ", strerror(errno));
+	    return -1;
+	 } 
+      }
+
+      do_connect_event(AF_INET, host, prt);
+      
+      int rc = ::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in));
+      if (rc < 0) {
+	 if (timeout_ms >= 0 && errno == EINPROGRESS) {
+	    do {
+	       int rc = select(timeout_ms);
+
+	       if (rc < 0 && errno != EINTR) { 
+		  if (xsink)
+		     xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+		  return close_and_exit();
+	       } 
+	       else if (rc > 0) { 
+		  // socket selected for write 
+		  socklen_t lon = sizeof(int);
+		  int val;
+
+		  if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
+		     if (xsink)
+			xsink->raiseException("SOCKET-CONNECT-ERROR", "error in getsockopt(): ", strerror(errno));
+		     return close_and_exit();
+		  } 
+
+		  if (val) { 
+		     if (xsink)
+			xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(val));
+		     return close_and_exit();
+		  } 
+		  break; 
+	       }
+	       else { 
+		  if (xsink)
+		     xsink->raiseException("SOCKET-CONNECT-ERROR", "timeout in connection after %dms", timeout_ms);
+		  return close_and_exit();
+	       }
+
+	    } while (true);
+	 }
+
+	 if (rc < 0) {
+	    if (xsink)
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+	 
+	    return close_and_exit();
+	 }
+      }
+      type = AF_INET;
+      port = prt;
+      printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d, timeout_ms=%d) success, sock=%d\n", this, host, port, sock, timeout_ms);
+
+      do_connected_event();
+      return 0;
+   }
 
       DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
 	 ssl = new SSLSocketHelper();
@@ -798,8 +891,12 @@ long QoreSocket::verifyPeerCertificate() const {
 }
 
 // hardcoded to SOCK_STREAM (tcp only)
+int QoreSocket::connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink) {
+   return priv->connectINET(host, prt, timeout_ms, xsink);
+}
+
 int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink) {
-   return priv->connectINET(host, prt, xsink);
+   return priv->connectINET(host, prt, -1, xsink);
 }
 
 int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink) {
@@ -1848,27 +1945,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 }
 
 bool QoreSocket::isDataAvailable(int timeout) const {
-   if (!priv->sock)
-      return false;
-
-   fd_set sfs;
-
-   struct timeval tv;
-   tv.tv_sec  = timeout / 1000;
-   tv.tv_usec = (timeout % 1000) * 1000;
-
-   FD_ZERO(&sfs);
-   FD_SET(priv->sock, &sfs);
-   return select(priv->sock + 1, &sfs, 0, 0, &tv);
-
-#if 0
-   struct pollfd pfd;
-   pfd.fd = priv->sock;
-   pfd.events = POLLIN|POLLPRI;
-   pfd.revents = 0;
-
-   return poll(&pfd, 1, timeout);
-#endif
+   return priv->isDataAvailable(timeout);
 }
 
 int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event) {
@@ -1891,7 +1968,7 @@ int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_
 // * QoreSocket::connect("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * QoreSocket::connect("filename");
-int QoreSocket::connect(const char *name, ExceptionSink *xsink) {
+int QoreSocket::connect(const char *name, int timeout_ms, ExceptionSink *xsink) {
    const char *p;
    int rc;
 
@@ -1900,7 +1977,7 @@ int QoreSocket::connect(const char *name, ExceptionSink *xsink) {
       strncpy(host, name, p - name);
       host[p - name] = '\0';
       int prt = strtol(p + 1, 0, 10);
-      rc = priv->connectINET(host, prt, xsink);
+      rc = priv->connectINET(host, prt, timeout_ms, xsink);
       free(host);
    }
    else {
@@ -1911,13 +1988,17 @@ int QoreSocket::connect(const char *name, ExceptionSink *xsink) {
    return rc;
 }
 
+int QoreSocket::connect(const char *name, ExceptionSink *xsink) {
+   return connect(name, -1, xsink);
+}
+
 // currently hardcoded to SOCK_STREAM (tcp-only)
 // opens and connects to a remote socket and negotiates an SSL connection
 // for AF_INET sockets:
 // * QoreSocket::connectSSL("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * QoreSocket::connectSSL("filename");
-int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+int QoreSocket::connectSSL(const char *name, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
    const char *p;
    int rc;
 
@@ -1926,7 +2007,7 @@ int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, Excepti
       strncpy(host, name, p - name);
       host[p - name] = '\0';
       int prt = strtol(p + 1, 0, 10);
-      rc = connectINETSSL(host, prt, cert, pkey, xsink);
+      rc = connectINETSSL(host, prt, timeout_ms, cert, pkey, xsink);
       free(host);
    }
    else {
@@ -1937,11 +2018,19 @@ int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, Excepti
    return rc;
 }
 
-int QoreSocket::connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
-   int rc = connectINET(host, prt, xsink);
+int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+   return connectSSL(name, -1, cert, pkey, xsink);
+}
+
+int QoreSocket::connectINETSSL(const char *host, int prt, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+   int rc = connectINET(host, prt, timeout_ms, xsink);
    if (rc)
       return rc;
    return priv->upgradeClientToSSLIntern(cert, pkey, xsink);
+}
+
+int QoreSocket::connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+   return connectINETSSL(host, prt, -1, cert, pkey, xsink);
 }
 
 int QoreSocket::connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
