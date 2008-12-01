@@ -162,6 +162,7 @@ class QoreSocket {
       /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINET() is called.
 	  Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIX() is called.
 	  @param name the name of the socket (either hostname:port or file name)
+	  @param timeout_ms the timeout period in milliseconds
 	  @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
 	  @see QoreSocket::connectINET()
