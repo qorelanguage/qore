@@ -1666,11 +1666,13 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qesm->setKeyValue("1", new QoreStringNode("SOCKET"), 0);
    qesm->setKeyValue("2", new QoreStringNode("HTTPCLIENT"), 0);
    qesm->setKeyValue("3", new QoreStringNode("FTPCLIENT"), 0);
+   qesm->setKeyValue("4", new QoreStringNode("FILE"), 0);
    qns->addConstant("EVENT_SOURCE_MAP", qesm);
 
    qns->addConstant("SOURCE_SOCKET", new QoreBigIntNode(QORE_SOURCE_SOCKET));
    qns->addConstant("SOURCE_HTTPCLIENT", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT));
    qns->addConstant("SOURCE_FTPCLIENT", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT));   
+   qns->addConstant("SOURCE_FILE", new QoreBigIntNode(QORE_SOURCE_FILE));   
 
    QoreHashNode *qsam = new QoreHashNode();
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_PACKET_READ), new QoreStringNode("PACKET_READ"), 0);
@@ -1694,6 +1696,10 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_CONNECTED), new QoreStringNode("CONNECTED"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_START_SSL), new QoreStringNode("START_SSL"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_SSL_ESTABLISHED), new QoreStringNode("SSL_ESTABLISHED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_OPEN_FILE), new QoreStringNode("OPEN_FILE"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_FILE_OPENED), new QoreStringNode("FILE_OPENED"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DATA_READ), new QoreStringNode("DATA_READ"), 0);
+   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DATA_WRITTEN), new QoreStringNode("DATA_WRITTEN"), 0);
    qns->addConstant("EVENT_MAP", qsam);
 
    qns->addConstant("EVENT_PACKET_READ", new QoreBigIntNode(QORE_EVENT_PACKET_READ));
@@ -1717,6 +1723,10 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("EVENT_CONNECTED", new QoreBigIntNode(QORE_EVENT_CONNECTED));
    qns->addConstant("EVENT_START_SSL", new QoreBigIntNode(QORE_EVENT_START_SSL));
    qns->addConstant("EVENT_SSL_ESTABLISHED", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED));
+   qns->addConstant("EVENT_OPEN_FILE", new QoreBigIntNode(QORE_EVENT_OPEN_FILE));
+   qns->addConstant("EVENT_FILE_OPENED", new QoreBigIntNode(QORE_EVENT_FILE_OPENED));
+   qns->addConstant("EVENT_DATA_READ", new QoreBigIntNode(QORE_EVENT_DATA_READ));
+   qns->addConstant("EVENT_DATA_WRITTEN", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN));
    //qns->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
    // setup terminal mode constants
@@ -1766,14 +1776,14 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("PARODD", new QoreBigIntNode(PARODD));
    qns->addConstant("HUPCL", new QoreBigIntNode(HUPCL));
    qns->addConstant("CLOCAL", new QoreBigIntNode(CLOCAL));
-#ifdef CCTS_OFL
-   qns->addConstant("CCTS_OFL", new QoreBigIntNode(CCTS_OFL));
+#ifdef CCTS_OFLOW
+   qns->addConstant("CCTS_OFLOW", new QoreBigIntNode(CCTS_OFLOW));
 #endif
 #ifdef CRTSCTS
    qns->addConstant("CRTSCTS", new QoreBigIntNode(CRTSCTS));
 #endif
-#ifdef CRTS_IFL
-   qns->addConstant("CRTS_IFL", new QoreBigIntNode(CRTS_IFL));
+#ifdef CRTS_IFLOW
+   qns->addConstant("CRTS_IFLOW", new QoreBigIntNode(CRTS_IFLOW));
 #endif
 #ifdef MDMBUF
    qns->addConstant("MDMBUF", new QoreBigIntNode(MDMBUF));
@@ -1788,8 +1798,8 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
    qns->addConstant("ECHOCTL", new QoreBigIntNode(ECHOCTL));
    qns->addConstant("ISIG", new QoreBigIntNode(ISIG));
    qns->addConstant("ICANON", new QoreBigIntNode(ICANON));
-#ifdef ALTWERAS
-   qns->addConstant("ALTWERAS", new QoreBigIntNode(ALTWERAS));
+#ifdef ALTWERASE
+   qns->addConstant("ALTWERASE", new QoreBigIntNode(ALTWERASE));
 #endif
    qns->addConstant("IEXTEN", new QoreBigIntNode(IEXTEN));
 #ifdef EXTPROC
@@ -1797,8 +1807,8 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace()
 #endif
    qns->addConstant("TOSTOP", new QoreBigIntNode(TOSTOP));
    qns->addConstant("FLUSHO", new QoreBigIntNode(FLUSHO));
-#ifdef NOKERNIN
-   qns->addConstant("NOKERNIN", new QoreBigIntNode(NOKERNIN));
+#ifdef NOKERNINFO
+   qns->addConstant("NOKERNINFO", new QoreBigIntNode(NOKERNINFO));
 #endif
    qns->addConstant("PENDIN", new QoreBigIntNode(PENDIN));
    qns->addConstant("NOFLSH", new QoreBigIntNode(NOFLSH));

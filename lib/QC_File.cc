@@ -26,21 +26,18 @@
 qore_classid_t CID_FILE;
 QoreClass *QC_File = 0;
 
-static void FILE_system_constructor(QoreObject *self, int fd, va_list args)
-{
+static void FILE_system_constructor(QoreObject *self, int fd, va_list args) {
    //printd(5, "FILE_system_constructor() self=%08p, descriptor=%d\n", self, fd);
    File *f = new File(QCS_DEFAULT);
    f->makeSpecial(fd);
    self->setPrivate(CID_FILE, f);
 }
 
-static void FILE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
+static void FILE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    // get character set name if available
    const QoreEncoding *cs;
    const QoreStringNode *p0 = test_string_param(params, 0);
-   if (p0)
-   {
+   if (p0) {
       cs = QEM.findCreate(p0);
       //printd(0, "FILE_constructor() str=%s, cs=%08p\n", p0->getBuffer(), cs);
    }
@@ -50,8 +47,7 @@ static void FILE_constructor(QoreObject *self, const QoreListNode *params, Excep
    self->setPrivate(CID_FILE, new File(cs));
 }
 
-static void FILE_copy(QoreObject *self, QoreObject *old, class File *f, ExceptionSink *xsink)
-{
+static void FILE_copy(QoreObject *self, QoreObject *old, class File *f, ExceptionSink *xsink) {
    self->setPrivate(CID_FILE, new File(f->getEncoding()));
 }
 
@@ -610,6 +606,16 @@ static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, class File
    return 0;
 }
 
+static AbstractQoreNode *FILE_setEventQueue(QoreObject *self, File *f, const QoreListNode *params, ExceptionSink *xsink) {
+    const QoreObject *o = test_object_param(params, 0);
+    Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
+    if (*xsink)
+        return 0;
+    // pass reference from QoreObject::getReferencedPrivateData() to function
+    f->setEventQueue(q, xsink);
+    return 0;
+}
+
 QoreClass *initFileClass() {
    QORE_TRACE("initFileClass()");
 
@@ -665,6 +671,7 @@ QoreClass *initFileClass() {
    QC_File->addMethod("isDataAvailable",        (q_method_t)FILE_isDataAvailable);
    QC_File->addMethod("getTerminalAttributes",  (q_method_t)FILE_getTerminalAttributes);
    QC_File->addMethod("setTerminalAttributes",  (q_method_t)FILE_setTerminalAttributes);
+   QC_File->addMethod("setEventQueue",          (q_method_t)FILE_setEventQueue);
 
    return QC_File;
 }

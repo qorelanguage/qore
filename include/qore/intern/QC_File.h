@@ -28,22 +28,35 @@ DLLEXPORT extern qore_classid_t CID_FILE;
 DLLEXPORT extern QoreClass *QC_File;
 
 DLLLOCAL QoreClass *initFileClass();
-static inline void addFileConstants(class QoreNamespace *ns);
+static inline void addFileConstants(QoreNamespace *ns);
 
 #include <qore/QoreFile.h>
 #include <qore/AbstractPrivateData.h>
 
-class File : public AbstractPrivateData, public QoreFile
-{
+class File : public AbstractPrivateData, public QoreFile {
    protected:
       DLLLOCAL virtual ~File() {}
 
    public:
-      DLLLOCAL inline File(const class QoreEncoding *cs) : QoreFile(cs) {}
+      DLLLOCAL File(const QoreEncoding *cs) : QoreFile(cs) {}
+
+      DLLLOCAL virtual void deref(ExceptionSink *xsink) {
+         if (ROdereference()) {
+            cleanup(xsink);
+            delete this;
+         }
+      }
+
+      DLLLOCAL virtual void deref() {
+         if (ROdereference()) {
+            ExceptionSink xsink;
+            cleanup(&xsink);
+            delete this;
+         }
+      }
 };
 
-static inline void addFileConstants(class QoreNamespace *ns)
-{
+static inline void addFileConstants(QoreNamespace *ns) {
 #ifdef O_ACCMODE
    ns->addConstant("O_ACCMODE", new QoreBigIntNode(O_ACCMODE));
 #endif

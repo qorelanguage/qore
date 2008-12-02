@@ -30,6 +30,8 @@
 #define QORE_SOURCE_HTTPCLIENT                  2
 //! event source: FtpClient
 #define QORE_SOURCE_FTPCLIENT                   3
+//! event source: File
+#define QORE_SOURCE_FILE                        4
 
 //! event: packet data read
 #define QORE_EVENT_PACKET_READ                  1
@@ -73,5 +75,13 @@
 #define QORE_EVENT_START_SSL                   20
 //! event: SSL connection established
 #define QORE_EVENT_SSL_ESTABLISHED             21
+//! event: file being opened
+#define QORE_EVENT_OPEN_FILE                   22
+//! event: file has been opened
+#define QORE_EVENT_FILE_OPENED                 23
+//! event: file data read
+#define QORE_EVENT_DATA_READ                   24
+//! event: file data written
+#define QORE_EVENT_DATA_WRITTEN                25
 
 #endif

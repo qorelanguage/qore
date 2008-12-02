@@ -32,6 +32,7 @@
 #include <unistd.h>
 
 class QoreTermIOS;
+class Queue;
 
 //! provides controlled access to file data through Qore data structures
 /** Each file has a default character encoding associated with it.  String data
@@ -45,13 +46,6 @@ class QoreFile {
       struct qore_qf_private *priv;
       
    protected:
-      // unlocked
-      DLLLOCAL int readChar();
-      // reads a buffer of the given size, unlocked
-      DLLLOCAL char *readBlock(qore_offset_t &size, int timeout_ms, ExceptionSink *xsink);
-      // unlocked close
-      DLLLOCAL int close_intern();
-
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreFile(const QoreFile&);
 
@@ -347,8 +341,8 @@ class QoreFile {
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return the string read (caller owns the reference count returned) or 0 if an error occured
 	  @note the string will be tagged with the file's default encoding
-       */
-       DLLEXPORT QoreStringNode *read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
+      */
+      DLLEXPORT QoreStringNode *read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
 
       //! reads binary data from the file and returns the data read (caller owns the reference count returned)
       /** A Qore-language exception can be thrown if the file is not opened
@@ -356,7 +350,7 @@ class QoreFile {
 	  @param timeout_ms the maximum time to read a single block from the file; -1 = never timeout, 0 timeout immediately if no data is available
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return the binary data read (caller owns the reference count returned) or 0 if an error occured
-       */
+      */
       DLLEXPORT BinaryNode *readBinary(qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
 
       //! sets the absolute file position to "pos"
@@ -414,6 +408,12 @@ class QoreFile {
 
       // NOTE: QoreFile::makeSpecial() can only be called right after the constructor (private API)
       DLLLOCAL void makeSpecial(int sfd);
+
+      //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
+      DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+
+      //! internal API, must be called before deleting the object if an event queue is set
+      DLLLOCAL void cleanup(ExceptionSink *xsink);
 };
 
 #endif  // _QORE_QOREFILE_H
