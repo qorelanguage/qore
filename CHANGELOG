@@ -1,3 +1,7 @@
+2008.12.02: David Nichols
+	* fixed a crashing bug in the map operator when the list operand is
+	  not a list
+
 2008.11.30: David Nichols
 	* updated --module-api to display the lowest compatible API and added
 	  --latest-module-api to show the latest module API version

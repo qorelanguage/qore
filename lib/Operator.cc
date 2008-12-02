@@ -1774,8 +1774,7 @@ static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, Ex
    return count;
 }
 
-static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {
    //QORE_TRACE("op_trim()");
    
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
@@ -1831,7 +1830,7 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
 static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {
    // conditionally evaluate argument
    QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (*xsink)
+   if (*xsink || is_nothing(*arg))
       return 0;
 
    if (arg->getType() != NT_LIST) {
