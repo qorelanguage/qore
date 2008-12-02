@@ -1,6 +1,80 @@
 RELEASE NOTES for qore v0.7.2
 
-release in progress
+release summary: qore 0.7.2 is a bugfix release from 0.7.1
+
+* several bug fixes (including 6 crashing bugs), including packaging fixes
+* support for timeouts in Socket::connect*() methods
+* terminal attribute support, TermIOS class, new constants
+* non-blocking read support for the File class
+* event support for File class
+
+-------------------------------------------------------------------------------
+* several bug fixes, including packaging fixes
+CRASH FIX: fixed a crashing bug in the map operator when the list operand is
+           not a list
+
+CRASH FIX: fixed a crashing bug in the parser with parse errors
+
+CRASH FIX: fixed crash when pthread_create fails in thread.cc, thanks to Dmytro
+           Milinevskyy for the info and patch
+
+CRASH FIX: fixed a race condition with getAllThreadCallStacks()
+
+CRASH FIX: fixed a bug where thread-local variables (as top-level local
+           variables of a Program) were not being instantiated when another
+	   Program called a function in a Program with such variables
+
+CRASH FIX: fixed an issue where proper locking was not done to DBI drivers and
+           more than one call could be issued to a connection at one time, 
+	   causing crashes
+
+fix to allow references to be used in closure and call reference calls
+
+implemented an optimization to map to efficiently handle the case when no return
+value is used
+
+spec file fixes; 0.7.1 spec file was badly broken
+
+fixed configure.ac to account for linkable libraries in /lib - would cause
+configure to fail before
+
+* support for timeouts in Socket::connect*() methods
+added optional timeout parameters in ms to:
+      Socket::connect()
+      Socket::connectINET()
+      Socket::connectSSL()
+      Socket::connectINETSSL()
+
+see updated documentation for details
+
+* terminal attribute support, TermIOS class, new constants
+new methods:
+    File::setTerminalAttributes(action, TermIOS);
+    File::getTerminalAttributes(TermIOS);
+
+new class:
+    TermIOS
+
+* non-blocking read support for the File class
+new method:
+    File::isDataAvailable()
+
+the following methods now take optional timeout values in milliseconds:
+    File::read()
+    File::readBinary()
+
+* event support for File class
+new method:
+    File::setEventQueue()
+
+new events:
+    QORE_EVENT_OPEN_FILE
+    QORE_EVENT_FILE_OPENED
+    QORE_EVENT_DATA_READ
+    QORE_EVENT_DATA_WRITTEN
+
+new event source:
+    SOURCE_FILE
 
 
 ***********************

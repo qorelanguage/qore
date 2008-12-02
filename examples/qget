@@ -302,6 +302,11 @@ sub main() {
 
     # save the file read
     my $f = new File();
+
+    # show file events if verbose is set
+    if ($o.verbose)
+	$cb = new QueueCallBack($f, $fn);
+
     $f.open($fn, O_CREAT | O_TRUNC | O_WRONLY);
     $f.write(binary($x));
 }

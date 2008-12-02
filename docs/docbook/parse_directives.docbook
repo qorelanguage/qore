@@ -1127,23 +1127,23 @@
 		  <entry><para>The AutoGate class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::AutoLock_Class">AutoLock</link> class</para></entry>
+		  <entry><para><link linkend="AutoLock_Class">AutoLock</link> class</para></entry>
 		  <entry><para>The AutoLock class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock</link> class</para></entry>
+		  <entry><para><link linkend="AutoReadLock_Class">AutoReadLock</link> class</para></entry>
 		  <entry><para>The AutoReadLock class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock</link> class</para></entry>
+		  <entry><para><link linkend="AutoWriteLock_Class">AutoWriteLock</link> class</para></entry>
 		  <entry><para>The AutoWriteLock class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::Condition_Class">Condition</link> class</para></entry>
+		  <entry><para><link linkend="Condition_Class">Condition</link> class</para></entry>
 		  <entry><para>The Condition class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::Counter_Class">Counter</link> class</para></entry>
+		  <entry><para><link linkend="Counter_Class">Counter</link> class</para></entry>
 		  <entry><para>The Counter class is not available.</para></entry>
 		</row>
 		<row>
@@ -1151,11 +1151,11 @@
 		  <entry><para>The Mutex class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link> class</para></entry>
+		  <entry><para><link linkend="Queue_Class">Queue</link> class</para></entry>
 		  <entry><para>The Queue class is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="Qore::Thread::RWLock_Class">RWLock</link> class</para></entry>
+		  <entry><para><link linkend="RWLock_Class">RWLock</link> class</para></entry>
 		  <entry><para>The RWLock class is not available.</para></entry>
 		</row>
 	      </tbody>

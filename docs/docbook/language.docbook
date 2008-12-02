@@ -995,7 +995,7 @@ $a || $b
 	  </row>
 	  <row>
 	    <entry><para>A <link linkend="find_Expressions"><command>find</command> expression</link></para></entry>
-	    <entry><para>Finds a value or values in a hash of lists, such as returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select() method</link> (see <link linkend="find_Expressions">find expressions</link> for more information)</para></entry>
+	    <entry><para>Finds a value or values in a hash of lists, such as returned by the <link linkend="SQL::Datasource::select">Datasource::select() method</link> (see <link linkend="find_Expressions">find expressions</link> for more information)</para></entry>
 	    <entry>
 	      <programlisting><command>find</command> %name, %id <command>in</command> $data <command>where</command> (%name =~ /Smith/);</programlisting>
 	    </entry>
@@ -1083,7 +1083,7 @@ $$</programlisting></entry>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>The <command>find</command> expression can be used to quickly find data in a hash of lists (such as a query result set returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method).  The <command>find</command> expression will loop through a data structure, and for each element in the structure where the <replaceable>where expression</replaceable> is True, it will evaluate and return a result expression.  If the <replaceable>where expression</replaceable> only is true for one element in the list, it will return the result of evaluating the <replaceable>result expression</replaceable> directly, otherwise if the <replaceable>where expression</replaceable> is true more than once, then a list of the results of evaluting the <replaceable>result expression</replaceable> for each element is returned.  In each expression in the <command>find</command> expression, column names can be referred to by preceding the name with a '%" character (as with <link linkend="context_Statements">context</link> statements).</para>
+	    <para>The <command>find</command> expression can be used to quickly find data in a hash of lists (such as a query result set returned by the <link linkend="SQL::Datasource::select">Datasource::select()</link> method).  The <command>find</command> expression will loop through a data structure, and for each element in the structure where the <replaceable>where expression</replaceable> is True, it will evaluate and return a result expression.  If the <replaceable>where expression</replaceable> only is true for one element in the list, it will return the result of evaluating the <replaceable>result expression</replaceable> directly, otherwise if the <replaceable>where expression</replaceable> is true more than once, then a list of the results of evaluting the <replaceable>result expression</replaceable> for each element is returned.  In each expression in the <command>find</command> expression, column names can be referred to by preceding the name with a '%" character (as with <link linkend="context_Statements">context</link> statements).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2053,7 +2053,7 @@ $var[1].count++;
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>To easily iterate through multiple rows in a hash of arrays (such as a query result set returned by the <link linkend="Qore::SQL::Datasource::select">Datasource::select()</link> method), the <command>context</command> statement can be used. Column names can be referred to directly in expressions in the scope of the <command>context</command> statement by preceding the name with a '%" character.</para>
+	<para>To easily iterate through multiple rows in a hash of arrays (such as a query result set returned by the <link linkend="SQL::Datasource::select">Datasource::select()</link> method), the <command>context</command> statement can be used. Column names can be referred to directly in expressions in the scope of the <command>context</command> statement by preceding the name with a '%" character.</para>
     </listitem>
     </varlistentry>
     <varlistentry>
@@ -2832,31 +2832,31 @@ x=&lt;NOTHING&gt;</programlisting>
 	    <entry><para>A recursive thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::RWLock_Class">RWLock</link></para></entry>
+	    <entry><para><link linkend="RWLock_Class">RWLock</link></para></entry>
 	    <entry><para>A read-write thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Condition_Class">Condition</link></para></entry>
+	    <entry><para><link linkend="Condition_Class">Condition</link></para></entry>
 	    <entry><para>Allows Qore programs to block until a certain condition becomes true.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Counter_Class">Counter</link></para></entry>
+	    <entry><para><link linkend="Counter_Class">Counter</link></para></entry>
 	    <entry><para>A blocking counter class.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Queue_Class">Queue</link></para></entry>
+	    <entry><para><link linkend="Queue_Class">Queue</link></para></entry>
 	    <entry><para>A thread-safe, blocking queue class (useful for message passing).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::RMutex_Class">RMutex</link></para></entry>
+	    <entry><para><link linkend="RMutex_Class">RMutex</link></para></entry>
 	    <entry><para>DEPRECATED in favor of the <link linkend="Gate_Class">Gate</link> class: A recursive mutual-exclusion thread lock.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::Sequence_Class">Sequence</link></para></entry>
+	    <entry><para><link linkend="Sequence_Class">Sequence</link></para></entry>
 	    <entry><para>A simple, thread-atomic sequence object (increment-only).</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoLock_Class">AutoLock</link></para></entry>
+	    <entry><para><link linkend="AutoLock_Class">AutoLock</link></para></entry>
 	    <entry><para>A helper class to automatically release Mutex locks when the AutoLock object is deleted.</para></entry>
 	  </row>
 	  <row>
@@ -2864,11 +2864,11 @@ x=&lt;NOTHING&gt;</programlisting>
 	    <entry><para>A helper class to automatically exit Gate locks when the AutoGate object is deleted.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock</link></para></entry>
+	    <entry><para><link linkend="AutoReadLock_Class">AutoReadLock</link></para></entry>
 	    <entry><para>A helper class to automatically release read locks when the AutoReadLock object is deleted.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock</link></para></entry>
+	    <entry><para><link linkend="AutoWriteLock_Class">AutoWriteLock</link></para></entry>
 	    <entry><para>A helper class to automatically release read locks when the AutoWriteLock object is deleted.</para></entry>
 	  </row>
 	</tbody>
@@ -3042,7 +3042,7 @@ x=&lt;NOTHING&gt;</programlisting>
 
   <para>See the <link linkend="on_exit_Statements">on_exit statement</link>, <link linkend="on_success_Statements">on_success statement</link>, and <link linkend="on_error_Statements">on_error statement</link> for statements that allow for exception-safe and exception-dependent cleanup in Qore code.</para>
 
-  <para>Classes that assist in exception-safe lock handling are the <link linkend="Qore::Thread::AutoLock_Class">AutoLock class</link>, the <link linkend="AutoGate_Class">AutoGate class</link>, the <link linkend="Qore::Thread::AutoReadLock_Class">AutoReadLock class</link>, and the <link linkend="Qore::Thread::AutoWriteLock_Class">AutoWriteLock class</link>.</para>
+  <para>Classes that assist in exception-safe lock handling are the <link linkend="AutoLock_Class">AutoLock class</link>, the <link linkend="AutoGate_Class">AutoGate class</link>, the <link linkend="AutoReadLock_Class">AutoReadLock class</link>, and the <link linkend="AutoWriteLock_Class">AutoWriteLock class</link>.</para>
 
 </sect1>
 
@@ -3323,7 +3323,7 @@ Classes curerntly supporting events are the <link linkend="Socket_Class">Socket<
 of all event constants; details about each event are documented in the
 following sections.</para>
 
-    <para>Event information is placed on the event queue (which must be a <link linkend="Qore::Thread::Queue_Class">Queue</link> object) in the form of a <link linkend="Hashes">hash</link>.  Each event has at least the following keys:</para>
+    <para>Event information is placed on the event queue (which must be a <link linkend="Queue_Class">Queue</link> object) in the form of a <link linkend="Hashes">hash</link>.  Each event has at least the following keys:</para>
 
     <table>
       <title>Event Hash Common Keys</title>
@@ -4404,5 +4404,242 @@ following sections.</para>
         </varlistentry>
       </variablelist>
     </sect2>
+
+    <sect2 id="event_open_file">
+      <title>EVENT_OPEN_FILE</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_OPEN_FILE</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_FILE</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para>This event is raised immediately before a file is opened.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_OPEN_FILE</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_OPEN_FILE</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_FILE</code>, indicating the <link linkend="File_Class">File</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the file object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>filename</code></para></entry>
+		    <entry><para>The file's name.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>flags</code></para></entry>
+		    <entry><para>The flags used to open the file.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>mode</code></para></entry>
+		    <entry><para>The mode to open the file with.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>encoding</code></para></entry>
+		    <entry><para>The character encoding given used for reading from or writing to the file.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_file_opened">
+      <title>EVENT_FILE_OPENED</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_FILE_OPENED</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_FILE</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para>This event is raised immediately after a file has been successfully opened.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_FILE_OPENED</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_FILE_OPENED</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_FILE</code>, indicating the <link linkend="File_Class">File</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the file object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>filename</code></para></entry>
+		    <entry><para>The file's name.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>flags</code></para></entry>
+		    <entry><para>The flags used to open the file.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>mode</code></para></entry>
+		    <entry><para>The mode to open the file with.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>encoding</code></para></entry>
+		    <entry><para>The character encoding given used for reading from or writing to the file.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_data_read">
+      <title>EVENT_DATA_READ</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_DATA_READ</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_FILE</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para>This event is raised immediately after data is read from a file.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_DATA_READ</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_DATA_READ</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_FILE</code>, indicating the <link linkend="File_Class">File</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the file object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>read</code></para></entry>
+		    <entry><para>The number of bytes read from the file.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_read</code></para></entry>
+		    <entry><para>The total number of bytes read in the read loop.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_to_read</code></para></entry>
+		    <entry><para>The total number of bytes to read in the read loop.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="event_data_written">
+      <title>EVENT_DATA_WRITTEN</title>
+      <variablelist>
+        <varlistentry>
+          <term>Event</term>
+          <listitem><para><code>EVENT_DATA_WRITTEN</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem><para><code>SOURCE_FILE</code></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Description</term>
+          <listitem>
+            <para>This event is raised immediately after data is written from a file.  The event hash contains the following keys:</para>
+            <table>
+	      <title><code>EVENT_DATA_WRITTEN</code> Event Hash</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>event</code></para></entry>
+		    <entry><para><code>EVENT_DATA_WRITTEN</code></para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>source</code></para></entry>
+		    <entry><para><code>SOURCE_FILE</code>, indicating the <link linkend="File_Class">File</link> class</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>id</code></para></entry>
+		    <entry><para>A unique integer ID for the file object.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>written</code></para></entry>
+		    <entry><para>The number of bytes written to the file.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_written</code></para></entry>
+		    <entry><para>The total number of bytes written in the write loop.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>total_to_write</code></para></entry>
+		    <entry><para>The total number of bytes to write in the write loop.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
   </sect1>
 </chapter>

@@ -3784,7 +3784,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the data type of the argument passed (see <link linkend="Qore_Type_Constants">Qore::Type_Constants</link>)</para>
+            <para>Returns the data type of the argument passed (see <link linkend="Qore_Type_Constants">Type_Constants</link>)</para>
           </entry>
         </row>
         <row>
@@ -8006,7 +8006,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>Any</para></entry>
               <entry><para>String</para></entry>
-              <entry><para>Returns the data type of the argument passed.  See <link linkend="Qore_Type_Constants">Qore::Type_Constants</link> for the values that can be returned by this function.</para></entry>
+              <entry><para>Returns the data type of the argument passed.  See <link linkend="Qore_Type_Constants">Type_Constants</link> for the values that can be returned by this function.</para></entry>
             </row>
           </tbody>
         </tgroup>

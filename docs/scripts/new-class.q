@@ -3,11 +3,9 @@
 %enable-all-warnings
 %require-our
 
-sub generate_toc($name, $class)
-{
+sub generate_toc($name, $class) {
     my $rows = ();
-    foreach my $m in (keys $class.methods)
-    {
+    foreach my $m in (keys $class.methods) {
 	my $l[0].para.link = ( "^attributes^" : ( "linkend" : $name + "_" + $m ),
 			       "^value^" : $name + "::" + $m + "()" );
 	$l[1].para = exists $class.methods.$m.exceptions ? "Y" : "N";
@@ -172,11 +170,9 @@ sub generate_info($name, $class)
     return $rows;
 }
 
-sub main()
-{
+sub main() {
     my $fn = shift $ARGV;
-    if (!strlen($fn))
-    {
+    if (!strlen($fn)) {
 	printf("no file name\n");
 	exit(1);
     }
@@ -194,8 +190,7 @@ sub main()
     my $classes = $p.run();
 
     my ($toc, $methods);
-    foreach my $name in (keys $classes)
-    {
+    foreach my $name in (keys $classes) {
 	$toc = generate_toc($name, $classes.$name);
 	$methods = generate_info($name, $classes.$name);
     }

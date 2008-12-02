@@ -42,7 +42,7 @@
   <row>
     <entry><para><code>--no-thread-classes</code></para></entry>
     <entry><para><code>n/a</code></para></entry>
-    <entry><para>Disallows access to thread classes (for example, the <link linkend="Mutex_Class">Thread::Mutex Class</link>, <link linkend="Gate_Class">Thread::Gate Class</link>, <link linkend="Qore::Thread::Queue_Class">Thread::Queue Class</link>, etc).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>%no-thread-classes</code> directive.</para></entry>
+    <entry><para>Disallows access to thread classes (for example, the <link linkend="Mutex_Class">Thread::Mutex Class</link>, <link linkend="Gate_Class">Thread::Gate Class</link>, <link linkend="Queue_Class">Thread::Queue Class</link>, etc).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>%no-thread-classes</code> directive.</para></entry>
   </row>
   <row>
     <entry><para><code>--no-threads</code></para></entry>
