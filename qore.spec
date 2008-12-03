@@ -196,7 +196,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
-* Web Nov 26 2008 David Nichols <david_nichols@users.sourceforge.net>
+* Wed Nov 26 2008 David Nichols <david_nichols@users.sourceforge.net>
 - made libqore* the default name for lib package, removed la file
 
 * Sun Nov 23 2008 David Nichols <david_nichols@users.sourceforge.net>
