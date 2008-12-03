@@ -856,8 +856,7 @@ ArgvContextHelper::~ArgvContextHelper()
    //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv=%08p\n", old_argv);
 }
 
-SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink) : xsink(n_xsink)
-{
+SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink) : xsink(n_xsink) {
    ThreadData *td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    QoreListNode *argv;

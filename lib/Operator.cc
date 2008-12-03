@@ -1055,10 +1055,9 @@ static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const Abstra
    return ref_rv ? b->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
+   if (xsink->isEvent() || !val)
       return 0;
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
@@ -1863,7 +1862,7 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
 
    const AbstractQoreNode *select = arg_list->retrieve_entry(1);
 
-   if (marg->getType() != NT_LIST) {
+   if (!marg || marg->getType() != NT_LIST) {
       // check if value can be mapped
       {
 	 SingleArgvContextHelper argv_helper(*marg, xsink);

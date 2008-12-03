@@ -1,3 +1,9 @@
+2008.12.03: David Nichols
+	* fixed a crashing bug in the %= operator when the operand is 0
+	* fixed a crashing bug in the map with select operator when the map
+	  expression is 0
+	* added operator regression testing script: test/optest.q
+
 2008.12.02: David Nichols
 	* fixed a crashing bug in the map operator when the list operand is
 	  not a list

@@ -2,14 +2,14 @@ RELEASE NOTES for qore v0.7.2
 
 release summary: qore 0.7.2 is a bugfix release from 0.7.1
 
-* several bug fixes (including 6 crashing bugs), including packaging fixes
+* several bug fixes (including 8 crashing bugs), including packaging fixes
 * support for timeouts in Socket::connect*() methods
 * terminal attribute support, TermIOS class, new constants
 * non-blocking read support for the File class
 * event support for File class
 
 -------------------------------------------------------------------------------
-* several bug fixes, including packaging fixes
+* several bug fixes (including 8 crashing bugs), including packaging fixes
 CRASH FIX: fixed a crashing bug in the map operator when the list operand is
            not a list
 
@@ -18,7 +18,8 @@ CRASH FIX: fixed a crashing bug in the parser with parse errors
 CRASH FIX: fixed crash when pthread_create fails in thread.cc, thanks to Dmytro
            Milinevskyy for the info and patch
 
-CRASH FIX: fixed a race condition with getAllThreadCallStacks()
+CRASH FIX: fixed a race condition with getAllThreadCallStacks() (only affected
+       	   debugging builds)
 
 CRASH FIX: fixed a bug where thread-local variables (as top-level local
            variables of a Program) were not being instantiated when another
@@ -27,6 +28,11 @@ CRASH FIX: fixed a bug where thread-local variables (as top-level local
 CRASH FIX: fixed an issue where proper locking was not done to DBI drivers and
            more than one call could be issued to a connection at one time, 
 	   causing crashes
+
+CRASH FIX: fixed a crashing bug in the %= operator when the operand is 0
+
+CRASH FIX: fixed a crashing bug in the map with select operator when the map
+      	   expression is 0
 
 fix to allow references to be used in closure and call reference calls
 
