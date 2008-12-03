@@ -161,7 +161,6 @@ Qore library.
 
 %files devel
 %defattr(-,root,root,-)
-%{_libdir}/libqore.la
 %{_libdir}/libqore.so
 %{_prefix}/include/*
 
