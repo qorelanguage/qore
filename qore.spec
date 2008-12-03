@@ -115,7 +115,6 @@ ldconfig %{_libdir}
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
 Group: Development/Languages
-BuildArchitectures: noarch
 
 %description doc
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
