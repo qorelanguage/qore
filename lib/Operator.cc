@@ -1308,7 +1308,7 @@ static class QoreNode *op_modula_equals(class QoreNode *left, class QoreNode *ri
    //tracein("op_modula_equals()");
 
    int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
+   if (xsink->isEvent() || !val)
       return NULL;
 
    // get ptr to current value

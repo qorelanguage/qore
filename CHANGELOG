@@ -1,3 +1,7 @@
+2008.12.03: David Nichols
+	* fixed a crashing bug with %= and the operand is 0 (ported from qore
+	  0.7.2)
+
 2008.11.21: David Nichols
 	* added read-write lock to call stack access and creation as ported
 	  from qore 0.7.*
