@@ -257,6 +257,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
         test/unlocked-thread-test.q \
 	test/regex.q \
 	test/deadlock.q \
+	test/optest.q \
 	examples/HTTPServer.qc \
         examples/XmlRpcHandler.qc \
         examples/XmlRpcServerValidation.q \
