@@ -20,6 +20,13 @@
 <revhistory>
 
 <revision>
+  <revnumber>2.4</revnumber>
+  <date>3 December 2008</date>
+  <authorinitials>dn</authorinitials>
+  <revremark>Update to 0.7.2</revremark>
+</revision>
+
+<revision>
   <revnumber>2.2</revnumber>
   <date>6 November 2008</date>
   <authorinitials>dn</authorinitials>

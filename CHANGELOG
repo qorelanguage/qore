@@ -1,4 +1,9 @@
 2008.12.03: David Nichols
+	* updated release to 0.7.3, lib to 5.1.1
+
+*** v0.7.1 RELEASE *** 
+
+2008.12.03: David Nichols
 	* fixed a crashing bug in the %= operator when the operand is 0
 	* fixed a crashing bug in the map with select operator when the map
 	  expression is 0

@@ -270,6 +270,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/inherit.q \
 	examples/inherit2.q \
 	examples/getopt.q \
+	examples/getch.q \
 	docs/*.html \
 	docs/qore-style.css \
 	docs/img/acrobat_a.gif \
