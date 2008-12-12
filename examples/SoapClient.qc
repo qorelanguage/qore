@@ -58,8 +58,11 @@ class SoapClient::SoapClient {
 	    $wsdl = $h.wsdl;
 	else
 	    throw "SOAP-CLIENT-ERROR", "neither one of required 'wsdl' or 'wsdl_file' keys is present in the hash argument to SoapClient::constructor()";
-	
-	$.wsdl = new WebService($wsdl, $h.wsdl_opt);
+
+	if (!exists $wsdl)
+	    throw "SOAP-CLIENT-ERROR", "missing wsdl in SoapClient::constructor()";
+
+	$.wsdl = $wsdl instanceof WebService ? $wsdl : new WebService($wsdl, $h.wsdl_opt);
 	
 	# set service
 	# get list of services in this wsdl

@@ -2,11 +2,22 @@
 
 # WSDL: Web Services Description Language: http://www.w3.org/TR/wsdl
 
-# provides some minimal WSDL and XSD support for SOAP messaging
-# used by the SoapClient class and the SoapHandler
-# far from complete, needs proper namespace handling, better XSD support, complexType restriction handling, element groups, simpleType support, etc
+# provides some minimal WSDL and XSD support for SOAP messaging used by the
+# SoapClient class and the SoapHandler
+# not complete, needs namespace verification, improved XSD support, element
+# groups, etc
+
+# 0.2: use parseXMLAsData() instead of parseXML()
+#      implemented initial simpleType support
+#      fixed xsd:date serialization and deserialization
+
+# make sure we have the required qore version
+# 0.7.3 has parseXMLAsData() which we need
+%requires qore >= 0.7.3
 
 namespace WSDL {
+    const version     = "0.2";
+
     const XET_ALL      = "ALL";
     const XET_CHOICE   = "CHOICE";
     const XET_SEQUENCE = "SEQUENCE";
@@ -46,6 +57,7 @@ namespace WSDL {
 	  Type::NothingType : "string",
 	  Type::NullType    : "string",
 	  Type::Binary      : "base64Binary" );
+
     # error codes, to save memory, only defined once
     const SOAP_SERIALIZATION_ERROR = "SOAP-SERIALIZATION-ERROR";
     const SOAP_DESERIALIZATION_ERROR = "SOAP-DESERIALIZATION-ERROR";
@@ -197,7 +209,7 @@ class WSDL::XSDBaseType inherits XSDData {
 	        break;
 
 	    case "date":
-		$val = format_date("YYYYMMDD", date($val));
+		$val = format_date("YYYY-MM-DD", date($val));
 	        break;
 
 	    case "dateTime":
@@ -304,7 +316,9 @@ class WSDL::XSDBaseType inherits XSDData {
 		return int($val);
 
 	    case "date":
-		return date($val + "000000");
+	        # remove dashes from date
+		$val =~ s/-//g;
+		return date($val);
 		
 	    case "dateTime":
 		return date(substr($val, 0, 4) + substr($val, 5, 2) + substr($val, 8, 2) + 
@@ -385,7 +399,7 @@ class WSDL::XSDElement inherits XSDNamedData {
 	}
 
 	if (exists $e.simpleType)
-	    throw "XSD-ELEMENT-ERROR", "can't parse simpleTypes yet";
+	    $.type = new XSDSimpleType($e.simpleType, $nsinfo, $unresolved);
 	else if (exists $e.complexType)
 	    $.type = new XSDComplexType($e.complexType, $nsinfo, $unresolved);
     }
@@ -458,6 +472,61 @@ class WSDL::XSDElement inherits XSDNamedData {
 	    throw SOAP_DESERIALIZATION_ERROR, sprintf("single value passed for element %n, but minOccurs=%d", $.name, $.minOccurs);
 
 	return $.type.deserialize($types, $mrh, $.getValue($mrh, $val));
+    }
+}
+
+class WSDL::XSDSimpleType inherits XSDNamedData {
+    constructor($st, $nsinfo, $unresolved) : XSDNamedData(\$st) {
+	$.nsinfo = $nsinfo;
+	my $a = $st."^attributes^";
+	delete $st."^attributes^";
+
+	WSDL::XSDBase::removeNS(\$st);
+
+	if (exists $st.restriction) {
+	    my $r = $st.restriction;
+
+	    my $base = $r."^attributes^".base;
+	    if (!exists $base)
+		throw "XSD-SIMPLETYPE-ERROR", sprintf("missing 'base' attribute in simpleType %n restriction", $.name);
+
+	    $.type = WSDL::XSDBase::doType($base, $nsinfo);
+
+	    # add base type to unresolved list if type cannot be resolved
+	    if (!($.type instanceof XSDData))
+		$unresolved.add($self);
+
+	    WSDL::XSDBase::removeNS(\$r);
+	    
+	    if (exists $r.enumeration)
+		$.enum = map $1."^attributes^".value, $r.enumeration;
+	    else
+		throw "XSD-SIMPLETYPE-ERROR", sprintf("missing enumeration element in simpleType %n restriction", $.name);
+	}
+	else
+	    throw "XSD-SIMPLETYPE-ERROR", sprintf("missing restriction element in simpleType %n", $.name);
+
+	#printf("DEBUG: st=%N\n", $self); exit();
+    }
+
+    serialize($val, $omit_type, $omit_ns) {
+	if (!inlist($val, $.enum))
+	    throw "SOAP-SERIALIZATION-ERROR", sprintf("value %n passed to simpleType %n is not in the enumeration list (%n)", $val, $.name, $.enum);
+
+	return $.type.serialize($val, $omit_type, $omit_ns);
+    }
+
+    deserialize($types, $mrh, $val) {
+	my $v = $.type.deserialize($types, $mrh, $val);
+
+	if (!inlist($v, $.enum))
+	    throw "SOAP-DESERIALIZATION-ERROR", sprintf("value %n passed to simpleType %n is not in the enumeration list (%n)", $v, $.name, $.enum);
+
+	return $v;
+    }
+
+    getNameWithNS() {
+	return "ns1:" + $.name;
     }
 }
 
@@ -684,9 +753,9 @@ class WSDL::WSOperation inherits XSDNamedData {
 	else
 	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serialize($.name, $h, $.targetns);
 
-	#return makeXMLString($rh);
+	return makeXMLString($rh);
 	# DEBUG
-	return makeFormattedXMLString($rh);
+	#return makeFormattedXMLString($rh);
     }
 
     private processMultiRef($body) {
@@ -813,10 +882,10 @@ class WSDL::WSMessage inherits XSDNamedData {
 		if (!exists $name)
 		    $name = $arg.element;
 
-		#printf("DEBUG: WSMessage::constructor() message %n element %n = %n\n", $.name, $arg.element, $element_map.$name);
-
-		if (!exists $element_map.$name)
+		if (!exists $element_map.$name) {
+		    #printf("DEBUG: WSMessage::constructor() message %n element %n (%n)\n", $.name, $arg.element, keys $element_map);
 		    throw WSDL_ERROR, sprintf("message %n references unknown element %n", $.name, $name);
+		}
 		$.args.($arg.name).element = $element_map.$name;
 	    }
 	    else {
@@ -912,12 +981,17 @@ class WSDL::LateResolverHelper {
 
 class WSDL::WebService inherits XSDBase {
     constructor($str, $opts) {
-	my $h = parseXML($str);
+        if (type($str) != Type::String)
+ 	    throw WSDL_ERROR, sprintf("expecting an XML string as the first argument to WebService::constructor(), got %n instead", type($str));
+
+	my $h = parseXMLAsData($str);
 
 	# remove namespace (normally "wsdl:") prefix from keys if present
 	WSDL::XSDBase::removeNS(\$h);
 	WSDL::XSDBase::removeNS(\$h.definitions);
 	$.getNSPrefixes($h.definitions."^attributes^");
+
+	#printf("%N\n", $h.definitions.types);
 
 	if (exists $h.definitions.types)
 	    $.parseTypes($h.definitions.types);
@@ -938,12 +1012,12 @@ class WSDL::WebService inherits XSDBase {
     # return a map of top-level element names to WSOperation objects
     getOperationMap($name) {
 	if (!exists $name) {
-	    if (elements $.services > 1)
-		throw "WSDL-GET-INPUT-OPERATION-MAP-ERROR", sprintf("no service argument passed to WSDL::getOperationMap() but the WSDL defines more than one service (%n)", $.services);
+	    if (elements $.services > 2)
+		throw "WSDL-GET-INPUT-OPERATION-MAP-ERROR", sprintf("no service argument passed to WSDL::getOperationMap() but the WSDL defines more than one service (%n)", keys ($.services - "port"));
 	    $name = $.services[0];
 	}
-	else if (!inlist($name, $.services))
-	    throw "WSDL-GET-INPUT-OPERATION-MAP-ERROR", sprintf("service argument %n passed to WSDL::getOperationMap() is not defined by this WSDL (vaild services: %n)", $name, $.services);
+	else if (!inlist($name, ($.services - "port")))
+	    throw "WSDL-GET-INPUT-OPERATION-MAP-ERROR", sprintf("service argument %n passed to WSDL::getOperationMap() is not defined by this WSDL (vaild services: %n)", $name, keys ($.services - "port"));
 
 	return $.idocmap + $.imap;
     }
@@ -998,6 +1072,11 @@ class WSDL::WebService inherits XSDBase {
 	    #printf("DEBUG: WebService::parseTypes() schema=%N\n", $schema);
 
 	    my $unresolved = new LateResolverHelper();
+	    foreach my $st in ($schema.simpleType) {
+		my $t = new XSDSimpleType($st, $.ns, $unresolved);
+		$.types.($t.name) = $t;
+	    }
+
 	    foreach my $ct in ($schema.complexType) {
 		my $t = new XSDComplexType($ct, $.ns, $unresolved);
 		$.types.($t.name) = $t;
