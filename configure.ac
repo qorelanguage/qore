@@ -64,6 +64,11 @@ else
    fi
 fi
 
+# set find prefix
+if test -n "$prefix" -a "$prefix" != "NONE"; then
+   find_prefix="$prefix"
+fi
+
 #AC_CANONICAL_HOST
 # get CPU family
 case "${host_cpu}" in
@@ -383,7 +388,7 @@ AC_ARG_WITH([zlib-dir],
   [with_zlib_dir="$ZLIB_DIR"])
 
 AC_MSG_CHECKING([for zlib libraries and header files])
-for dir in "${with_zlib_dir}" /usr / /usr/local /opt/gnu /opt/zlib /usr/local/zlib /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_zlib_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/zlib /usr/local/zlib /opt/local /sw /usr/sfw /opt/sfw; do
     find_zlib $dir
     if test -n "$ZLIB_LDFLAGS"; then
         break
@@ -463,7 +468,7 @@ AC_ARG_WITH([pcre-dir],
   [with_pcre_dir="$PCRE_DIR"])
 
 AC_MSG_CHECKING([for pcre libraries and header files])
-for dir in "${with_pcre_dir}" /usr / /usr/local /opt/gnu /opt/pcre /usr/local/pcre /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_pcre_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/pcre /usr/local/pcre /opt/local /sw /usr/sfw /opt/sfw; do
     find_pcre $dir
     if test -n "$PCRE_LDFLAGS"; then
         break
@@ -553,7 +558,7 @@ AC_ARG_WITH([libxml2-dir],
   [with_libxml2_dir="$LIBXML2_DIR"])
 
 AC_MSG_CHECKING([for libxml2 libraries and header files])
-for dir in "${with_libxml2_dir}" /usr / /usr/local /opt/gnu /opt/libxml2 /usr/local/libxml2 /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_libxml2_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/libxml2 /usr/local/libxml2 /opt/local /sw /usr/sfw /opt/sfw; do
     find_libxml2 $dir
     if test -n "$LIBXML2_LDFLAGS"; then
         break
@@ -634,7 +639,7 @@ AC_ARG_WITH([bz2lib-dir],
   [with_bz2lib_dir="$BZ2_DIR"])
 
 AC_MSG_CHECKING([for bz2lib libraries and header files])
-for dir in "${with_bz2lib_dir}" /usr / /usr/local /opt/gnu /opt/bzlib /usr/local/bzlib /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_bz2lib_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/bzlib /usr/local/bzlib /opt/local /sw /usr/sfw /opt/sfw; do
     find_bz2lib $dir
     if test -n "$BZ2_LDFLAGS"; then
         break
@@ -705,7 +710,7 @@ AC_ARG_WITH([openssl-dir],
   [with_openssl_dir="$OPENSSL_DIR"])
 
 AC_MSG_CHECKING([for openssl libraries and header files])
-for dir in "${with_openssl_dir}" /usr / /usr/local /opt/gnu /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_openssl_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
     find_openssl $dir
     if test -n "$OPENSSL_LDFLAGS"; then
         break
