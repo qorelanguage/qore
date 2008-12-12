@@ -18762,7 +18762,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </row>
 	  <row>
 	    <entry><para><code>User-Agent</code></para></entry>
-	    <entry><para><code>Qore HTTP Client v0.7.2</code></para></entry>
+	    <entry><para><code>Qore HTTP Client v0.7.3</code></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>Connection</code></para></entry>
@@ -21908,7 +21908,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </row>
 	  <row>
 	    <entry><para><code>User-Agent</code></para></entry>
-	    <entry><para><code>Qore XML-RPC Client v0.7.2</code></para></entry>
+	    <entry><para><code>Qore XML-RPC Client v0.7.3</code></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>Connection</code></para></entry>
@@ -22700,7 +22700,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </row>
 	  <row>
 	    <entry><para><code>User-Agent</code></para></entry>
-	    <entry><para><code>Qore JSON-RPC Client v0.7.2</code></para></entry>
+	    <entry><para><code>Qore JSON-RPC Client v0.7.3</code></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>Connection</code></para></entry>

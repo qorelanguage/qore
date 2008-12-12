@@ -44,7 +44,7 @@
 
 Summary: Qore Programming Language
 Name: qore
-Version: 0.7.2
+Version: 0.7.3
 Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages
@@ -102,7 +102,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.1.0
+%{_libdir}/libqore.so.5.1.1
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
 
@@ -190,6 +190,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Fri Dec 12 2008 David Nichols <david_nichols@users.sourceforge.net>
+- updated to 0.7.3
+
 * Wed Nov 26 2008 David Nichols <david_nichols@users.sourceforge.net>
 - made libqore* the default name for lib package, removed la file
 
