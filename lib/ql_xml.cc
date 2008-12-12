@@ -1163,8 +1163,7 @@ static bool keys_are_equal(const char *k1, const char *k2, bool &get_value)
    return false;
 }
 
-static int getXMLData(QoreXmlReader *reader, xml_stack *xstack, const QoreEncoding *data_ccsid, ExceptionSink *xsink)
-{
+static int getXMLData(QoreXmlReader *reader, xml_stack *xstack, const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink) {
    QORE_TRACE("getXMLData()");
    int rc = 1;
 
@@ -1204,18 +1203,11 @@ static int getXMLData(QoreXmlReader *reader, xml_stack *xstack, const QoreEncodi
 	       if (!(v = h->getKeyValue(name)))
 		  xstack->push(h->getKeyValuePtr(name), depth);
 	       else {
-		  // see if last key was the same, if so make a list if it's not
-		  const char *lk = h->getLastKey();
-		  bool get_value = false;
-		  if (keys_are_equal(name, lk, get_value)) {
-		     // get actual key value if there was a suffix 
-		     if (get_value)
-			v = h->getKeyValue(lk);
-		     
-		     QoreListNode *vl = dynamic_cast<QoreListNode *>(v);
+		  if (as_data) {
+		     QoreListNode *vl = v->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(v) : 0;
 		     // if it's not a list, then make into a list with current value as first entry
 		     if (!vl) {
-			AbstractQoreNode **vp = h->getKeyValuePtr(lk);
+			AbstractQoreNode **vp = h->getKeyValuePtr(name);
 			vl = new QoreListNode();
 			vl->push(v);
 			(*vp) = vl;
@@ -1223,17 +1215,37 @@ static int getXMLData(QoreXmlReader *reader, xml_stack *xstack, const QoreEncodi
 		     xstack->push(vl->get_entry_ptr(vl->size()), depth);
 		  }
 		  else {
-		     QoreString ns;
-		     int c = 1;
-		     while (true) {
-			ns.sprintf("%s^%d", name, c);
-			AbstractQoreNode *et = h->getKeyValue(ns.getBuffer());
-			if (!et)
-			   break;
-			c++;
-			ns.clear();
+		     // see if last key was the same, if so make a list if it's not
+		     const char *lk = h->getLastKey();
+		     bool get_value = false;
+		     if (keys_are_equal(name, lk, get_value)) {
+			// get actual key value if there was a suffix 
+			if (get_value)
+			   v = h->getKeyValue(lk);
+			
+			QoreListNode *vl = dynamic_cast<QoreListNode *>(v);
+			// if it's not a list, then make into a list with current value as first entry
+			if (!vl) {
+			   AbstractQoreNode **vp = h->getKeyValuePtr(lk);
+			   vl = new QoreListNode();
+			   vl->push(v);
+			   (*vp) = vl;
+			}
+			xstack->push(vl->get_entry_ptr(vl->size()), depth);
 		     }
-		     xstack->push(h->getKeyValuePtr(ns.getBuffer()), depth);
+		     else {
+			QoreString ns;
+			int c = 1;
+			while (true) {
+			   ns.sprintf("%s^%d", name, c);
+			   AbstractQoreNode *et = h->getKeyValue(ns.getBuffer());
+			   if (!et)
+			      break;
+			   c++;
+			   ns.clear();
+			}
+			xstack->push(h->getKeyValuePtr(ns.getBuffer()), depth);
+		     }
 		  }
 	       }
 	    }
@@ -1955,8 +1967,7 @@ static void getXMLRPCValueData(QoreXmlReader *reader, XmlRpcValue *v, const Qore
 
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml string [, output encoding])
-static AbstractQoreNode *f_parseXML(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *parseXMLIntern(bool as_data, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0, *p1;
 
    if (!(p0 = test_string_param(params, 0)))
@@ -1983,7 +1994,7 @@ static AbstractQoreNode *f_parseXML(const QoreListNode *params, ExceptionSink *x
       return 0;
 
    xml_stack xstack;
-   int rc = getXMLData(&reader, &xstack, ccsid, xsink);
+   int rc = getXMLData(&reader, &xstack, ccsid, as_data, xsink);
 
    if (rc) {
       if (!*xsink)
@@ -1992,6 +2003,14 @@ static AbstractQoreNode *f_parseXML(const QoreListNode *params, ExceptionSink *x
    }
 
    return xstack.getVal();
+}
+
+static AbstractQoreNode *f_parseXML(const QoreListNode *params, ExceptionSink *xsink) {
+   return parseXMLIntern(false, params, xsink);
+}
+
+static AbstractQoreNode *f_parseXMLAsData(const QoreListNode *params, ExceptionSink *xsink) {
+   return parseXMLIntern(true, params, xsink);
 }
 
 // makeXMLRPCFaultResponseString(param)
@@ -2579,17 +2598,17 @@ static AbstractQoreNode *f_parseXMLRPCResponse(const QoreListNode *params, Excep
 
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml_string, xsd_string [, output encoding])
-static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *parseXMLWithSchemaIntern(bool as_data, const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_XMLTEXTREADERSETSCHEMA
    const QoreStringNode *p0, *p1, *p2;
 
    if (!(p0 = test_string_param(params, 0))) {
-      xsink->raiseException("PARSE-XML-WITH-SCHEMA-ERROR", "expecting XML string as first argument to parseXMLWithSchema()");
+      xsink->raiseException(as_data ? "PARSE-XML-AS-DATA-WITH-SCHEMA-ERROR" : "PARSE-XML-WITH-SCHEMA-ERROR", "expecting XML string as first argument to parseXMLWithSchema()");
       return 0;
    }
 
    if (!(p1 = test_string_param(params, 1))) {
-      xsink->raiseException("PARSE-XML-WITH-SCHEMA-ERROR", "expecting XML schema string (xsd) as second argument to parseXMLWithSchema()");
+      xsink->raiseException(as_data ? "PARSE-XML-AS-DATA-WITH-SCHEMA-ERROR" : "PARSE-XML-WITH-SCHEMA-ERROR", "expecting XML schema string (xsd) as second argument to parseXMLWithSchema()");
       return 0;
    }
 
@@ -2632,7 +2651,7 @@ static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, Except
       return 0;
 
    xml_stack xstack;
-   rc = getXMLData(&reader, &xstack, ccsid, xsink);
+   rc = getXMLData(&reader, &xstack, ccsid, as_data, xsink);
 
    if (rc) {
       if (!*xsink)
@@ -2647,8 +2666,15 @@ static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, Except
 #endif
 }
 
-void init_xml_functions()
-{
+static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, ExceptionSink *xsink) {
+   return parseXMLWithSchemaIntern(false, params, xsink);
+}
+
+static AbstractQoreNode *f_parseXMLAsDataWithSchema(const QoreListNode *params, ExceptionSink *xsink) {
+   return parseXMLWithSchemaIntern(true, params, xsink);
+}
+
+void init_xml_functions() {
    builtinFunctions.add("parseXML",                               f_parseXML);
 
    builtinFunctions.add("makeFormattedXMLString",                 f_makeFormattedXMLString);
@@ -2674,4 +2700,7 @@ void init_xml_functions()
    builtinFunctions.add("parseXMLRPCResponse",                    f_parseXMLRPCResponse);
 
    builtinFunctions.add("parseXMLWithSchema",                     f_parseXMLWithSchema);
+
+   builtinFunctions.add("parseXMLAsData",                         f_parseXMLAsData);
+   builtinFunctions.add("parseXMLAsDataWithSchema",               f_parseXMLAsDataWithSchema);
 }
