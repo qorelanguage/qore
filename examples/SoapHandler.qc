@@ -70,13 +70,14 @@ class SoapHandler::SoapHandler {
         call_function_args($context.logfunc, $msg);
     }
 
-    private makeSoapFaultResponse($soap12, $err, $desc) {
+    private static makeSoapFaultResponse($soap12, $err, $desc) {
 	my $o = $soap12 ? ENVELOPE_12_NS : ENVELOPE_11_NS;
 	$o."soapenv:Envelope"."soapenv:Body" =
 	    ( "soapenv:Fault" :
 	      ( "faultcode"   : $err,
 		"faultstring" : $desc,
 		"desc"        : "" ) );
+
 	return makeXMLString($o);
     }
 
@@ -84,6 +85,8 @@ class SoapHandler::SoapHandler {
 	my $element = $context.element;
 
 	my $method = $.methods.$element;
+
+	#printf("DEBUG: found element %N method %N\n", $element, $method);
 	if (!exists $method) {
 	    if (!exists $element)
 		throw "SOAP-SERVER-UNKNOWN-OPERATION", sprintf("cannot find operation element in SOAP call; call context=%N", $context);
@@ -104,9 +107,8 @@ class SoapHandler::SoapHandler {
 	}
 	catch ($ex) {
 	    return ( "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),
-		     "body"   : $.makeSoapFaultResponse($soap12, $ex.err, $ex.desc),
-		     "hdr"    : ( "Content-Type" : $soap12 () ? "application/soap+xml" : "text/xml" )
-		);
+		     "body"   : SoapHandler::makeSoapFaultResponse($soap12, $ex.err, $ex.desc),
+		     "hdr"    : ( "Content-Type" : $soap12 ? "application/soap+xml" : "text/xml" ) );
 	}
 
 	# add context marker, if any
@@ -224,22 +226,23 @@ class SoapHandler::SoapHandler {
 		$context.element = $element;
 	    }
 	    catch ($ex) {
-		my $str = sprintf("exception in %s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
+		my $str = sprintf("exception in %s:%d: %s: %s (1: %N)", $ex.file, $ex.line, $ex.err, $ex.desc, $ex.callstack);
 		return ( "code"   : 200,
 			 "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),
-			 "body"   : $.makeSoapFaultResponse(True, $ex.err, $ex.desc),
+			 "body"   : SoapHandler::makeSoapFaultResponse(True, $ex.err, $ex.desc),
 			 "hdr"    : ( "Content-Type" : "application/soap+xml" )
 		    );
 	    }
 	}
 	try {
+	    #printf("DEBUG: context: %N\nargs: %N\n", $context, $args);
 	    return ( "code" : 200 ) + $.callOperation($context, $args);
 	}
 	catch ($ex) {
-	    my $str = sprintf("exception in %s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc);
+	    my $str = sprintf("exception in %s:%d: %s: %s (2: %N)", $ex.file, $ex.line, $ex.err, $ex.desc, $ex.callstack);
 	    return ( "code"   : 200,
 		     "errlog" : $str,
-		     "body"   : $.makeSoapFaultResponse(True, $ex.err, $ex.desc),
+		     "body"   : SoapHandler::makeSoapFaultResponse(True, $ex.err, $ex.desc),
 		     "hdr"    : ( "Content-Type" : "application/soap+xml" )
 		);
 	}
