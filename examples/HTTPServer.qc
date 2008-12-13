@@ -733,8 +733,8 @@ class HTTPServer::HTTPServer {
 		continue;
 	    }
 	    # path trumps content-type
-	    #printf("regex(%n, %s, %n, %s) %n\n", $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), regex($url.path, $.handlers.$h.url));
-	    if (strlen($.handlers.$h.url) && strlen($hdr.path) && regex($hdr.path, $.handlers.$h.url))
+	    #printf("regex(%n, %s, %n, %s) %n && %n && %n\n", $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), strlen($.handlers.$h.url), strlen($hdr.path), regex($url.path, $.handlers.$h.url));
+	    if (strlen($.handlers.$h.url) && strlen($hdr.path) && regex($url.path, $.handlers.$h.url))
 		$m = $h;
 	}
 	try {
