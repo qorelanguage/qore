@@ -49,9 +49,6 @@ class QoreHTTPClient : public AbstractPrivateData {
       DLLLOCAL  int set_url_unlocked(const char *url, ExceptionSink *xsink);
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int set_proxy_url_unlocked(const char *url, ExceptionSink *xsink);
-      // returns -1 if an exception was thrown, 0 for OK
-      DLLLOCAL int connect_unlocked(ExceptionSink *xsink);
-      DLLLOCAL void disconnect_unlocked();
       DLLLOCAL QoreHashNode *send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink);
       DLLLOCAL void setSocketPath();
       DLLLOCAL const char *getMsgPath(const char *mpath, QoreString &pstr);
@@ -87,6 +84,7 @@ class QoreHTTPClient : public AbstractPrivateData {
 	  - default_path: sets the default path
 	  - timeout: sets the connection or response packet timeout value in milliseconds
 	  - http_version: either "1.0" or "1.1" to set the default HTTP version to use
+	  - connect_timeout: an integer giving the timeout value for new socket connections in milliseconds
 	  @note this function is unlocked and designed only to be called with the constructor
 	  @param opts the options to set for the object
 	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
@@ -271,6 +269,18 @@ class QoreHTTPClient : public AbstractPrivateData {
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
       DLLEXPORT virtual void deref(ExceptionSink *xsink);
+
+      //! sets the connect timeout in ms
+      /**
+	 @param ms connect timeout in ms
+      **/
+      DLLEXPORT void setConnectTimeout(int ms);
+
+      //! returns the connect timeout in ms, negative numbers mean no timeout
+      /**
+	 @return the connect timeout in ms, negative numbers mean no timeout
+      **/
+      DLLEXPORT int getConnectTimeout() const;
 
       DLLLOCAL static void static_init();
 

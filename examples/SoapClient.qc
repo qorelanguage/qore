@@ -32,8 +32,12 @@
 # my $result = $sc.call("SubmitDocument", $msg);
 
 namespace SoapClient {
-    const Version = "0.1.1";
+    # version of the implementation of this class
+    const Version = "0.1.2";
+    # default headers
     const Headers = ("Accept":"application/soap+xml,text/xml", "User-Agent":("Qore Soap Client " + SoapClient::Version));
+    # option keys passed to the HTTPClient constructor
+    const HTTPOptions = ( "connect_timeout", "http_version", "max_redirects", "proxy", "timeout" );
 }
  
 class SoapClient::SoapClient {
@@ -46,7 +50,7 @@ class SoapClient::SoapClient {
 	if (type($h) != Type::Hash)
 	    throw "SOAP-CLIENT-ERROR", "missing option hash argument to SoapClient::constructor() ('wsdl' or 'wsdl_file' keys required)";
 	
-	my $wsdl;
+	my ($wsdl, $hopts);
 	
 	# get web service definition
 	if (exists $h.wsdl_file) {
@@ -96,7 +100,15 @@ class SoapClient::SoapClient {
 	    $.headers += ("Content-Type":"text/xml");
 	
 	#printf("DEBUG: set url to %n\n", $.url);
-	$.hc = new HTTPClient(("url" : $.url));
+
+	# setup option hash for HTTPClient constructor
+	$hopts = ( "url" : $.url );
+
+	foreach my $k in (HTTPOptions)
+	    if (exists $h.$k)
+	        $hopts.$k = $h.$k;
+
+	$.hc = new HTTPClient($hopts);
     }
 
     getMsg($operation, $h, $op) {

@@ -4,6 +4,10 @@
 # *) not really HTTP 1.1 compliant although claims to be
 # *) no HTTP mime/multipart handling (support for this ideally needs to be implemented in the qore library)
 
+# changes for v0.2.6:
+# * minor fixes for SOAP support
+# * improved handler matching
+
 # changes for v0.2.5:
 # * minor fixes for SOAP support
 
@@ -27,7 +31,7 @@
 # * https support added
 
 namespace HTTPServer {
-    const Version = "0.2.4";
+    const Version = "0.2.6";
 
     const ReadTimeout = 30000;  # recvs timeout after 30 seconds
     const PollTimeout = 5000;   # check for exit every 5 seconds while waiting
@@ -710,13 +714,14 @@ class HTTPServer::HTTPServer {
 		$context.encoding = $me;
 	}
 
-	# add logging functions
-	$context += 
-	    ( "logfunc"    : $.logfunc,
-	      "errlogfunc" : $.errlogfunc );
-
         # parse the path in the request
         my $url = parseURL($hdr.path);
+
+	# add logging functions and url
+	$context += 
+	    ( "logfunc"    : $.logfunc,
+	      "errlogfunc" : $.errlogfunc,
+	      "url"        : $url );
 
 	# find a handler for the request
 	my $m;

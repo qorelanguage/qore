@@ -29,25 +29,45 @@ class SoapHandler::SoapHandler {
 	}
     }
 
-    addMethod($op, $func, $help, $logopt, $cmark) {
+    addMethod($ws, $op, $func, $help, $logopt, $cmark, $path) {
 	if (!($op instanceof WSOperation))
 	    throw "SOAP-SERVER-ADDMETHOD-PARAMETER-ERROR", "first argument is not a WSOperation object";
 
 	if (!exists $func)
 	    throw "SOAP-SERVER-ADDMETHOD-PARAMETER-ERROR", "second argument is not a function name";
 
-	$.addMethodInternal(( "operation" : $op,
+	$.addMethodInternal($ws,
+			    ( "operation" : $op,
 			      "name"      : $op.name,
 			      "function"  : $func,
 			      "help"      : $help,
 			      "logopt"    : $logopt,
-			      "cmark"     : $cmark ));
+			      "cmark"     : $cmark,
+			      "path"      : $path));
 	#printf("methods=%N\n", $.methods);
     }
 
-    private addMethodInternal($method) {
+    private addMethodInternal($ws, $method) {
+	my $rn = $method.operation.getTopLevelRequestName();
+
 	# map top-level element to method
-	$.methods.($method.operation.getTopLevelRequestName()) = $method;
+	if (exists $method.path) {
+	    my $path = $method.path;
+
+	    # add link to WebService object
+	    if (!exists $.ws.$path)
+		$.ws.$path = $ws;
+
+	    $.pathmethods.$path.$rn = $method;
+
+	    # add method link if it doesn|t already exist
+	    if (!exists $.method.$rn)
+		$.methods.$rn = $method;
+	}
+	else
+	    $.methods.$rn = $method;
+
+	#printf("DEBUG: addMethodInternal() %N %N\n", $method.name, $method.path);
     }
 
     private help($c) {
@@ -56,6 +76,13 @@ class SoapHandler::SoapHandler {
 	    $h.$cmd.description = $.methods.$cmd.help;
 	    if (exists $.methods.$cmd.params)
 		$h.$cmd.params  = $.methods.$cmd.params;
+	}
+	foreach my $path in (keys $.pathmethods) {
+	    foreach my $cmd in (keys $.pathmethods.$path) {
+		$h.$cmd.description = $.methods.$cmd.help;
+		if (exists $.pathmethods.$path.$cmd.params)
+		    $h.$path.$cmd.params  = $.pathmethods.$path.$cmd.params;
+	    }
 	}
 	return $h;
     }
@@ -71,12 +98,24 @@ class SoapHandler::SoapHandler {
     }
 
     private static makeSoapFaultResponse($soap12, $err, $desc) {
-	my $o = $soap12 ? ENVELOPE_12_NS : ENVELOPE_11_NS;
-	$o."soapenv:Envelope"."soapenv:Body" =
-	    ( "soapenv:Fault" :
-	      ( "faultcode"   : $err,
-		"faultstring" : $desc,
-		"desc"        : "" ) );
+	my $o;
+	if ($soap12) {
+	    $o = ENVELOPE_12_NS;
+	    $o."soapenv:Envelope"."soapenv:Body" =
+		( "soapenv:Fault" :
+		  ( "soapenv:Code" :
+		    ( "soapenv:Value" : $err ),
+		    "soapenv:Reason" : 
+		    ( "soapenv:Text" : $desc ) ) );
+	}
+	else {
+	    $o = ENVELOPE_11_NS;
+	    $o."soapenv:Envelope"."soapenv:Body" =
+		( "soapenv:Fault" :
+		  ( "faultcode"   : $err,
+		    "faultstring" : $desc,
+		    "desc"        : "" ) );
+	}
 
 	return makeXMLString($o);
     }
@@ -84,7 +123,19 @@ class SoapHandler::SoapHandler {
     private callOperation($context, $args) {
 	my $element = $context.element;
 
-	my $method = $.methods.$element;
+	my $method;
+	if (exists $context.url.path) {
+	    my $path = $context.url.path;
+	    # prepend "/" if it's not already there
+	    if ($path !~ /^\//)
+		$path =~ s/(.*)/\/$1/;
+
+	    $method = $.pathmethods.$path.$element;
+	    #printf("DEBUG: path=%n method exists=%n (%n)\n", $path, exists $method, keys $.pathmethod);
+	}
+
+	if (!exists $method)
+	    $method = $.methods.$element;
 
 	#printf("DEBUG: found element %N method %N\n", $element, $method);
 	if (!exists $method) {
@@ -176,19 +227,30 @@ class SoapHandler::SoapHandler {
 
     # method called by HTTPServer
     handleRequest($context, $hdr, $body) {
-	#printf("soap handler context=%n hdr=%n body=%n\n", $context, $hdr, $body);
+	#log(LL_DEBUG_1, "soap handler context=%n hdr=%n body=%n ws=%n\n", $context, $hdr, $body, keys $.ws);
 	$context.http_header = $hdr;
 	$context.http_body = $body;
 	my $args;
 	if ($hdr.method == "GET") {
-	    my $path = $hdr.path;
+	    my $path = $context.url.path;
+
+	    # prepend "/" if it's not already there
+	    if ($path !~ /^\//)
+		$path =~ s/(.*)/\/$1/;
+
+	    #printf("DEBUG: PATH=%N (%n %n)\n", $path, exists $.ws.$path, keys $.ws);
 	    
 	    if (!strlen($path))
 		return ( "code" : 501,
-			 "desc" : "invalid HTTP GET: no SOAP method name given" ); 
-	     
-	    $path = substr($path, index($path, "/") + 1);
-	    $context.method = $path;
+			 "desc" : "invalid HTTP GET: no path given in URL" ); 
+
+	    if (!exists $.ws.$path)
+		return ( "code" : 501,
+			 "desc" : sprintf("invalid HTTP GET: no WebService object for path %n", $path) ); 
+	    
+	    return ( "code" : 200,
+		     "body" : $.ws.$path.getWSDL(),
+		     "hdr"    : ( "Content-Type" : "text/xml" ) );
 	}
 	else {
 	    if ($hdr.method != "POST")

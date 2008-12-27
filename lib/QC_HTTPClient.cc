@@ -375,6 +375,15 @@ static AbstractQoreNode *HC_setEventQueue(QoreObject *self, QoreHTTPClient *clie
     return 0;
 }
 
+static AbstractQoreNode *HC_setConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+   client->setConnectTimeout(getMsMinusOneInt(get_param(params, 0)));
+   return 0;
+}
+
+static AbstractQoreNode *HC_getConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(client->getConnectTimeout());
+}
+
 QoreClass *initHTTPClientClass() {
    QORE_TRACE("initHTTPClientClass");
 
@@ -416,6 +425,8 @@ QoreClass *initHTTPClientClass() {
    client->addMethod("setMaxRedirects",        (q_method_t)HC_setMaxRedirects);
    client->addMethod("getMaxRedirects",        (q_method_t)HC_getMaxRedirects);
    client->addMethod("setEventQueue",          (q_method_t)HC_setEventQueue);
+   client->addMethod("setConnectTimeout",      (q_method_t)HC_setConnectTimeout);
+   client->addMethod("getConnectTimeout",      (q_method_t)HC_getConnectTimeout);
 
    return client;
 }

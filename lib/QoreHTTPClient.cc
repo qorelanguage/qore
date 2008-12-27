@@ -59,62 +59,86 @@ static ccharcase_set_t method_set;
 static strcase_set_t header_ignore;
 
 struct qore_qtc_private {
-      QoreThreadLock m;
-      bool http11;       // are we using http 1.1 or 1.0?
-      prot_map_t prot_map;
+   QoreThreadLock m;
+   bool http11;       // are we using http 1.1 or 1.0?
+   prot_map_t prot_map;
+  
+   bool ssl, proxy_ssl;
+   int port, proxy_port, default_port, max_redirects;
+   std::string host, path, username, password;
+   std::string proxy_host, proxy_path, proxy_username, proxy_password;
+   std::string default_path;
+   int timeout;
+   std::string socketpath;
+   bool connected;
+   QoreSocket m_socket;
+   header_map_t default_headers;
+   int connect_timeout_ms;
+  
+   DLLLOCAL qore_qtc_private() : http11(true), ssl(false), proxy_ssl(false),
+				 port(HTTPCLIENT_DEFAULT_PORT), proxy_port(0),
+				 default_port(HTTPCLIENT_DEFAULT_PORT), 
+				 max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
+				 timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
+				 connected(false), connect_timeout_ms(-1) {
+      // setup protocol map
+      prot_map["http"] = make_protocol(80, false);
+      prot_map["https"] = make_protocol(443, true);
 
-      bool ssl, proxy_ssl;
-      int port, proxy_port, default_port, max_redirects;
-      std::string host, path, username, password;
-      std::string proxy_host, proxy_path, proxy_username, proxy_password;
-      std::string default_path;
-      int timeout;
-      std::string socketpath;
-      bool connected;
-      QoreSocket m_socket;
-      header_map_t default_headers;
+      // setup default headers
+      default_headers["Accept"] = "text/html";
+      default_headers["Content-Type"] = "text/html";
+      default_headers["Connection"] = "Keep-Alive";
+      default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
+      default_headers["Accept-Encoding"] = "deflate,gzip,bzip2";
+   }
 
-      DLLLOCAL qore_qtc_private() : http11(true), ssl(false), proxy_ssl(false),
-				    port(HTTPCLIENT_DEFAULT_PORT), proxy_port(0),
-				    default_port(HTTPCLIENT_DEFAULT_PORT), 
-				    max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
-				    timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
-				    connected(false) {
-	 // setup protocol map
-	 prot_map["http"] = make_protocol(80, false);
-	 prot_map["https"] = make_protocol(443, true);
+   DLLLOCAL ~qore_qtc_private() {
+   }
 
-	 // setup default headers
-	 default_headers["Accept"] = "text/html";
-	 default_headers["Content-Type"] = "text/html";
-	 default_headers["Connection"] = "Keep-Alive";
-	 default_headers["User-Agent"] = "Qore HTTP Client v" PACKAGE_VERSION;
-	 default_headers["Accept-Encoding"] = "deflate,gzip,bzip2";
+   DLLLOCAL void setSocketPath() {
+      if (proxy_port) {
+	 socketpath = proxy_host;
+	 socketpath += ":";
+	 char buff[20];
+	 sprintf(buff, "%d", proxy_port);
+	 socketpath += buff;
       }
-
-      DLLLOCAL ~qore_qtc_private() {
+      else {
+	 socketpath = host;
+	 socketpath += ":";
+	 char buff[20];
+	 sprintf(buff, "%d", port);
+	 socketpath += buff;	    
       }
+      //printd(5, "setSocketPath() '%s'\n", socketpath.c_str());
+   }
 
-      DLLLOCAL void setSocketPath() {
-	 if (proxy_port) {
-	    socketpath = proxy_host;
-	    socketpath += ":";
-	    char buff[20];
-	    sprintf(buff, "%d", proxy_port);
-	    socketpath += buff;
-	 }
-	 else {
-	    socketpath = host;
-	    socketpath += ":";
-	    char buff[20];
-	    sprintf(buff, "%d", port);
-	    socketpath += buff;	    
-	 }
-	 //printd(5, "setSocketPath() '%s'\n", socketpath.c_str());
+   DLLLOCAL void lock() { m.lock(); }
+   DLLLOCAL void unlock() { m.unlock(); }
+
+   // returns -1 if an exception was thrown, 0 for OK
+   DLLLOCAL int connect_unlocked(ExceptionSink *xsink) {
+      bool connect_ssl = proxy_port ? proxy_ssl : ssl;
+      
+      int rc;
+      if (connect_ssl)
+	 rc = m_socket.connectSSL(socketpath.c_str(), connect_timeout_ms, 0, 0, xsink);
+      else
+	 rc = m_socket.connect(socketpath.c_str(), connect_timeout_ms, xsink);
+
+      if (!rc)
+	 connected = true;
+      return rc;
+   }
+
+   DLLLOCAL void disconnect_unlocked() {
+      if (connected) {
+	 m_socket.close();
+	 connected = false;
       }
+   }
 
-      DLLLOCAL void lock() { m.lock(); }
-      DLLLOCAL void unlock() { m.unlock(); }
 };
 
 // static initialization
@@ -263,6 +287,8 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
        }
    }
 
+   priv->connect_timeout_ms = getMsMinusOneInt(opts->getKeyValue("connect_timeout"));
+
    if (priv->path.empty())
       priv->path = priv->default_path.empty() ? "/" : priv->default_path;
 
@@ -344,17 +370,22 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink) {
    return 0;
 }
 
-int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink)
-{
+void QoreHTTPClient::setConnectTimeout(int ms) {
+}
+
+int QoreHTTPClient::getConnectTimeout() const {
+   return priv->connect_timeout_ms;
+}
+
+int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink) {
    SafeLocker sl(priv->m);
    // disconnect immediately if not using a proxy
    if (!priv->proxy_port)
-      disconnect_unlocked();
+      priv->disconnect_unlocked();
    return set_url_unlocked(str, xsink);
 }
 
-QoreStringNode *QoreHTTPClient::getURL()
-{
+QoreStringNode *QoreHTTPClient::getURL() {
    SafeLocker sl(priv->m);
    QoreStringNode *pstr = new QoreStringNode("http");
    if (priv->ssl)
@@ -371,8 +402,7 @@ QoreStringNode *QoreHTTPClient::getURL()
    return pstr;
 }
 
-int QoreHTTPClient::setHTTPVersion(const char* version, ExceptionSink* xsink)
-{
+int QoreHTTPClient::setHTTPVersion(const char* version, ExceptionSink* xsink) {
    int rc = 0;
    SafeLocker sl(priv->m);
    if (!strcmp(version, "1.0"))
@@ -386,23 +416,19 @@ int QoreHTTPClient::setHTTPVersion(const char* version, ExceptionSink* xsink)
    return rc;
 }
 
-const char *QoreHTTPClient::getHTTPVersion() const
-{
+const char *QoreHTTPClient::getHTTPVersion() const {
    return priv->http11 ? "1.1" : "1.0";
 }
 
-void QoreHTTPClient::setHTTP11(bool val)
-{
+void QoreHTTPClient::setHTTP11(bool val) {
    priv->http11 = val;
 }
 
-bool QoreHTTPClient::isHTTP11() const 
-{ 
+bool QoreHTTPClient::isHTTP11() const { 
    return priv->http11;
 }
 
-int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, ExceptionSink *xsink) 
-{ 
+int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, ExceptionSink *xsink) { 
    QoreURL url(pstr);
    if (!url.getHost()) {
       xsink->raiseException("HTTP-CLIENT-URL-ERROR", "missing host specification in proxy URL");
@@ -481,7 +507,7 @@ int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, ExceptionSink *xsin
 int QoreHTTPClient::setProxyURL(const char *proxy, ExceptionSink *xsink) 
 {
    SafeLocker sl(priv->m);
-   disconnect_unlocked();
+   priv->disconnect_unlocked();
    if (!proxy || !proxy[0]) {
       clearProxyURL();
       return 0;
@@ -553,46 +579,24 @@ long QoreHTTPClient::verifyPeerCertificate()
    return priv->m_socket.verifyPeerCertificate(); 
 }
 
-const char* QoreHTTPClient::getSSLCipherName()
-{ 
+const char* QoreHTTPClient::getSSLCipherName() { 
    SafeLocker sl(priv->m);
    return priv->m_socket.getSSLCipherName(); 
 }
 
-const char* QoreHTTPClient::getSSLCipherVersion() 
-{ 
+const char* QoreHTTPClient::getSSLCipherVersion() { 
    SafeLocker sl(priv->m);
    return priv->m_socket.getSSLCipherVersion(); 
 }
 
-int QoreHTTPClient::connect_unlocked(ExceptionSink *xsink) {
-   bool connect_ssl = priv->proxy_port ? priv->proxy_ssl : priv->ssl;
-
-   int rc;
-   if (connect_ssl)
-      rc = priv->m_socket.connectSSL(priv->socketpath.c_str(), 0, 0, xsink);
-   else
-      rc = priv->m_socket.connect(priv->socketpath.c_str(), xsink);
-   if (!rc)
-      priv->connected = true;
-   return rc;
-}
-
 int QoreHTTPClient::connect(ExceptionSink *xsink) {
    SafeLocker sl(priv->m);
-   return connect_unlocked(xsink);
-}
-
-void QoreHTTPClient::disconnect_unlocked() {
-   if (priv->connected) {
-      priv->m_socket.close();
-      priv->connected = false;
-   }
+   return priv->connect_unlocked(xsink);
 }
 
 void QoreHTTPClient::disconnect() {
    SafeLocker sl(priv->m);
-   disconnect_unlocked();
+   priv->disconnect_unlocked();
 }
 
 const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr) {
@@ -633,7 +637,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
    QoreString pathstr(priv->m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
 
-   if (!priv->connected && connect_unlocked(xsink))
+   if (!priv->connected && priv->connect_unlocked(xsink))
       return 0;
 
    // send the message
@@ -876,7 +880,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       if (code >= 300 && code < 400) {
 	 if (++redirect_count > priv->max_redirects)
 	    break;
-	 disconnect_unlocked();
+	 priv->disconnect_unlocked();
 
 	 host_override = false;
 	 const QoreStringNode *loc = reinterpret_cast<QoreStringNode *>(ans->getKeyValue("location"));
@@ -1062,7 +1066,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
    // check for connection: close header
    if (!keep_alive || ((v = ans->getKeyValue("connection")) && !strcasecmp((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), "close")))
-      disconnect_unlocked();
+      priv->disconnect_unlocked();
 
    sl.unlock();
 
