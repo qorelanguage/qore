@@ -3164,12 +3164,20 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 	    <entry><para>Serializes a hash into a complete XML string with an XML header and without formatting.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="parseXMLAsData">parseXMLAsData()</link></para></entry>
+	    <entry><para>parses an XML string as data (duplicate, out-of-order XML elements are collapsed into lists) and returns a Qore hash structure.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema()</link></para></entry>
+	    <entry><para>parses an XML string as data (duplicate, out-of-order XML elements are collapsed into lists) and validates against an XSD schema string and returns a Qore hash structure.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="parseXML">parseXML()</link></para></entry>
-	    <entry><para>parses an XML string and returns a Qore hash structure.</para></entry>
+	    <entry><para>parses an XML string (XML element order is preserved by appending numeric suffixes to Qore hash key names when necessary) and returns a Qore hash structure.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="parseXMLWithSchema">parseXMLWithSchema()</link></para></entry>
-	    <entry><para>parses an XML string and validates against an XSD schema string and returns a Qore hash structure.</para></entry>
+	    <entry><para>parses an XML string (XML element order is preserved by appending numeric suffixes to Qore hash key names when necessary) and validates against an XSD schema string and returns a Qore hash structure.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>

@@ -7,6 +7,7 @@
 	  options to the HTTPClient constructor
 	* updated examples/HTTPServer.qc and examples/SoapHandler.qc: minor
 	  SOAP fixes
+	* updated documentation for new functionality
 
 2008.12.12: David Nichols
 	* added parseXMLAsData() and parseXMLAsDataWithSchema() functions

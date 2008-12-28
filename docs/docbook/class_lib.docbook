@@ -19004,30 +19004,24 @@ $sock.bind("/tmp/socket");</programlisting>
             </entry>
           </row>
           <row>
-            <entry>
-              <para>
-                <link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout()</link>
-              </para>
-            </entry>
-            <entry>
-              <para>N</para>
-            </entry>
-            <entry>
-              <para>Sets the default read timeout in milliseconds.  Zero means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data).  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. 2m = two minutes, etc.).</para>
-            </entry>
+            <entry><para><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets the connect timeout in milliseconds.  Negative numbers mean use the default system connect timeout.  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. <code>30s</code> = 30 seconds, etc.).</para></entry>
           </row>
           <row>
-            <entry>
-              <para>
-                <link linkend="HTTPClient_getTimeout">HTTPClient::getTimeout()</link>
-              </para>
-            </entry>
-            <entry>
-              <para>N</para>
-            </entry>
-            <entry>
-              <para>Returns the default read timeout as an integer in milliseconds.  Zero means immediate timeout (only returns data if it is already available), and negative numbers mean never timeout (wait forever for data).</para>
-            </entry>
+            <entry><para><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets the default read timeout in milliseconds.  Zero means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data).  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. <code>2m</code> = two minutes, etc.).</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_getConnectTimeout">HTTPClient::getConnectTimeout()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Returns the connect timeout as an integer in milliseconds.  Negative numbers mean the system default timeout is used.</para></entry>
+          </row>
+          <row>
+            <entry><para><link linkend="HTTPClient_getTimeout">HTTPClient::getTimeout()</link></para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Returns the default read timeout as an integer in milliseconds.  Zero means immediate timeout (only returns data if it is already available), and negative numbers mean never timeout (wait forever for data).</para></entry>
           </row>
           <row>
             <entry>
@@ -19245,6 +19239,10 @@ $sock.bind("/tmp/socket");</programlisting>
             <row>
               <entry><para><code>timeout</code></para></entry>
               <entry><para>The timeout value in milliseconds (also can be a <link linkend="Relative_Dates">relative date-time value</link> for clarity, ex: <code>5m</code>)</para></entry>
+            </row>
+            <row>
+              <entry><para><code>connect_timeout</code></para></entry>
+              <entry><para>The timeout value in milliseconds for establishing a new socket connection (also can be a <link linkend="Relative_Dates">relative date-time value</link> for clarity, ex: <code>30s</code>)</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20855,6 +20853,89 @@ $sock.bind("/tmp/socket");</programlisting>
         </tgroup>
       </table>
     </sect2>
+
+    <sect2 id="HTTPClient_setConnectTimeout">
+      <title>HTTPClient::setConnectTimeout()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the default connect timeout in milliseconds.  Negative numbers mean use the default system timeout.  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. <code>2m</code> = two minutes, etc.).</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::setConnectTimeout(<replaceable>timeout</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setConnectTimeout(2m); # sets timeout to 2 minutes</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::setConnectTimeout()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>timeout</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para>
+              </entry>
+              <entry>
+                <para>Connect timeout in milliseconds, 0 = immediate timeout (do not use), negative numbers = use system default connect timeout.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::setConnectTimeout()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="HTTPClient_setTimeout">
       <title>HTTPClient::setTimeout()</title>
       <variablelist>
@@ -20936,6 +21017,87 @@ $sock.bind("/tmp/socket");</programlisting>
         </tgroup>
       </table>
     </sect2>
+
+    <sect2 id="HTTPClient_getConnectTimeout">
+      <title>HTTPClient::getConnectTimeout()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the connect timeout as an integer in milliseconds.  Negative numbers mean the default system timeout is used instead.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>HTTPClient::getConnectTimeout()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$timeout = $httpclient.getConnectTimeout();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::getConnectTimeout()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for HTTPClient::getConnectTimeout()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>The connect timeout value in milliseconds</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="HTTPClient_getTimeout">
       <title>HTTPClient::getTimeout()</title>
       <variablelist>
