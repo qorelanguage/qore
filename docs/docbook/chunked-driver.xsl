@@ -3,11 +3,10 @@
   <xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets-1.69.1-5.1/html/docbook.xsl"/>
   <xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets-1.72.0-1.fc6/html/docbook.xsl"/>
   <xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets-1.72.0-2.fc7/html/docbook.xsl"/>
-  <xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets-1.73.2/html/docbook.xsl"/>
   <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/1.73.2/html/docbook.xsl"/>
-  -->
   <xsl:import href="/opt/local/share/xsl/docbook-xsl/html/chunk.xsl"/>
-
+  -->
+  <xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets-1.73.2/html/docbook.xsl"/>
   <xsl:param name="chapter.autolabel">1</xsl:param>
   <xsl:param name="section.autolabel">1</xsl:param>
   <xsl:param name="section.label.includes.component.label">1</xsl:param>

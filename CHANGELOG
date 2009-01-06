@@ -9,6 +9,10 @@
 	  SOAP fixes
 	* updated documentation for new functionality
 
+2008.12.13: David Nichols
+	* fixed content-type checking in examples/HTTPServer.qc for handler
+	  match algorithm
+
 2008.12.12: David Nichols
 	* added parseXMLAsData() and parseXMLAsDataWithSchema() functions
 	* updated examples/WSDL.qc to use parseXMLAsData() instead of 
