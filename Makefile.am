@@ -313,6 +313,8 @@ $(dist_man_MANS): doxygen-doc
 
 qore_LDADD = lib/libqore.la ${PTHREAD_LIBS}
 
+ACLOCAL_AMFLAGS=-I m4
+
 AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 
 if COND_PROFILE
