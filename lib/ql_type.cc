@@ -59,7 +59,9 @@ static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsi
 
    if (p0_type == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
-      return new BinaryNode(strdup(str->getBuffer()), str->strlen());
+      BinaryNode *b = new BinaryNode();
+      b->append(str->getBuffer(), str->strlen());
+      return b;
    }
 
    // convert to string and make binary object
