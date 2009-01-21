@@ -5,7 +5,7 @@
   
   Qore Programming Language
 
-  Copyright 2003 - 2008 David Nichols
+  Copyright 2003 - 2009 David Nichols
 
   will unlink (delete) UNIX domain socket files when closed
 

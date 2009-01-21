@@ -7567,7 +7567,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a binary data type of the data passed, after conversion to a string if necessary.</para>
+	<para>Returns a binary data type of the string passed; data types other than string will first be converted to a string and then returned as binary data.</para><para>This function is useful if, for some reason, a string type actually contains binary data; using this function will ensure that all data in the string (even if it contains embedded nulls) is maintained in the binary object (Qore strings must normally be terminated by a single null, so some Qore string operations do not work on binary data with embedded nulls).</para>
       </listitem>
     </varlistentry>
     <varlistentry>

@@ -1,8 +1,11 @@
-2008.01.13: David Nichols
+2009.01.19: David Nichols
+	* updated copyright statements to reflect 2009
+
+2009.01.13: David Nichols
 	* fixed a bug in the binary() function when converting binary strings
 	  to binary type when the strings had embedded nulls
 
-2008.01.06: David Nichols
+2009.01.06: David Nichols
 	* corrected example code in ReferenceHelper.h
 
 2008.12.27: David Nichols

@@ -62,8 +62,8 @@ examples/:
 *** HISTORY ***
 ***************
 Qore was originally designed to facilitate embedding integration logic in a
-*** workflow/technical order management system (the system is called Qorus
-*** Integration Engine).
+workflow/technical order management system (the system is called Qorus
+Integration Engine).
 
 The initial requirements for the language were: clean threading model, SMP
 scalability, efficient resource sharing, safe embedding of logic in automomous
