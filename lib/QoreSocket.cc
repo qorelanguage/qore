@@ -1549,7 +1549,7 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
    hdr.concat("\r\n");
    do_headers(hdr, headers, size && data ? size : 0);
    
-   printd(0, "QoreSocket::sendHTTPResponse() data=%p size=%ld hdr=%s", data, size, hdr.getBuffer());
+   //printd(0, "QoreSocket::sendHTTPResponse() data=%p size=%ld hdr=%s", data, size, hdr.getBuffer());
    
    int rc;
    if ((rc = send(hdr.getBuffer(), hdr.strlen())))
