@@ -2236,6 +2236,7 @@ int QoreSocket::send(const char *buf, qore_size_t size) {
    qore_size_t bs = 0;
    while (true) {
       qore_size_t rc;
+
       if (!priv->ssl)
 	 rc = ::send(priv->sock, buf + bs, size - bs, 0);
       else
@@ -2252,7 +2253,8 @@ int QoreSocket::send(const char *buf, qore_size_t size) {
       if (bs >= size)
 	 break;
    }
-   //printd(5, "QoreSocket::send() sent %d bytes (size=%d)\n", bs, size);
+
+   //printd(5, "QoreSocket::send() sent %ld bytes (size=%ld)\n", bs, size);
    return 0;
 }
 
