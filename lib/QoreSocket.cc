@@ -22,6 +22,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+
+// FIXME: change int to qore_size_t where applicable! (ex: int rc = recv())
+
 #include <qore/Qore.h>
 #include <qore/QoreSocket.h>
 #include <qore/intern/SSLSocketHelper.h>
@@ -1545,7 +1548,9 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
 
    hdr.concat("\r\n");
    do_headers(hdr, headers, size && data ? size : 0);
-
+   
+   printd(0, "QoreSocket::sendHTTPResponse() data=%p size=%ld hdr=%s", data, size, hdr.getBuffer());
+   
    int rc;
    if ((rc = send(hdr.getBuffer(), hdr.strlen())))
       return rc;
@@ -2230,11 +2235,14 @@ int QoreSocket::send(const char *buf, qore_size_t size) {
 
    qore_size_t bs = 0;
    while (true) {
-      int rc;
+      qore_size_t rc;
       if (!priv->ssl)
 	 rc = ::send(priv->sock, buf + bs, size - bs, 0);
       else
 	 rc = priv->ssl->write(buf + bs, size - bs);
+
+      //printd(5, "QoreSocket::send() bs=%ld rc=%d len=%ld (total=%ld)\n", bs, rc, size - bs, size);
+
       if (rc < 0)
 	 return rc;
       bs += rc;

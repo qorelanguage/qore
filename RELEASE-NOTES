@@ -1,7 +1,7 @@
 RELEASE NOTES for qore v0.7.3
 
 release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
-                 one bug fix
+                 two bug fixes
 
 *) Socket::connect() takes an optional timeout value
 *) HTTPClient::constructor() options takes a new option: connect_timeout
@@ -9,6 +9,7 @@ release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
    HTTPServer.qc, WSDL.qc
 *) fixed a bug in the binary() function when converting binary strings to
    binary type when the strings had embedded nulls
+*) fixed a crashing bug in the handling of GLIBC gethostbyname_r() failures
 
 
 ***********************

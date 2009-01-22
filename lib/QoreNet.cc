@@ -47,9 +47,10 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr) {
 # ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
    struct hostent *p;
    
-   if (gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err)) {
+   int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
+   if (!p || rc) {
       // NOTE: ERANGE means that the buffer was too small
-      //printd(5, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
+       //printd(0, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
 
       return -1;
    }
@@ -146,7 +147,9 @@ QoreHashNode *q_gethostbyname_to_hash(const char *host) {
 # ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
    struct hostent *p;
    
-   if (gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err)) {
+   int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
+
+   if (!p || rc) {
       // NOTE: ERANGE means that the buffer was too small
       //printd(5, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
       return 0;
@@ -178,7 +181,8 @@ QoreStringNode *q_gethostbyname_to_string(const char *host) {
 # ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
    struct hostent *p;
    
-   if (gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err)) {
+   int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
+   if (!p || rc) {
       // NOTE: ERANGE means that the buffer was too small
       //printd(5, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
       return 0;
