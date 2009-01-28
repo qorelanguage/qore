@@ -71,8 +71,7 @@ class UserFunction;
     the global variable list is deleted, then the variables will in turn dereference the program
     so it can be deleted.
  */
-class QoreProgram : public AbstractPrivateData
-{
+class QoreProgram : public AbstractPrivateData {
    private:
       //! private implementation
       struct qore_program_private *priv;
@@ -457,6 +456,8 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void addFeature(const char *f);
       DLLLOCAL void addFile(char *f);
       DLLLOCAL QoreListNode *getVarList();
+      DLLLOCAL void parseSetIncludePath(const char *path);
+      DLLLOCAL const char *parseGetIncludePath() const;
 
       // increment atomic thread counter
       DLLLOCAL void tc_inc();

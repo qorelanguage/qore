@@ -519,15 +519,27 @@ static AbstractQoreNode *f_chdir(const QoreListNode *params, ExceptionSink *xsin
    return new QoreBigIntNode(chdir(p0->getBuffer()));
 }
 
-static AbstractQoreNode *f_getcwd(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_getcwd(const QoreListNode *params, ExceptionSink *xsink) {
    int bs = 512;
    char *buf = (char *)malloc(sizeof(char) * bs);
  
-   do {
-      bs += 512;
-      buf = (char *)realloc(buf, sizeof(char) * bs);
-   } while (getcwd(buf, bs));
+   while (true) {
+      char *b = getcwd(buf, bs);
+      if (!b) {
+	  if (errno == ERANGE) {
+	      bs *= 2;
+	      buf = (char *)q_realloc(buf, sizeof(char) * bs);
+	      if (!buf) {
+		  xsink->outOfMemory();
+		  return 0;
+	      }	  
+	      continue;
+	  }
+	  xsink->raiseException("GETCWD-ERROR", strerror(errno));
+	  return 0;
+      }
+      break;
+   }
 
    return new QoreStringNode(buf, strlen(buf), bs, QCS_DEFAULT);
 }

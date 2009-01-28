@@ -40,12 +40,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0)
-{
+QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0) {
 }
 
-void QoreParserLocation::updatePosition(int f)
-{
+void QoreParserLocation::updatePosition(int f) {
    if (!explicit_first) {
       first_line = f;
       update_parse_location(f, f);
@@ -61,33 +59,62 @@ void QoreParserLocation::updatePosition(int f)
 
 int yyparse(yyscan_t yyscanner);
 
-static inline class QoreString *getIncludeFileName(char *file)
-{
+// the return value of this function must be freed if non-0
+static char *trim(const char *str) {
+   while ((*str) == ' ' || (*str) == '\t')
+      str++;
+   // duplicate string
+   char *n = strdup(str);
+   // find end of string
+   int l = strlen(n);
+   if (l) {
+      char *e = n + l - 1;
+      while ((*e) == ' ' || (*e) == '\t')
+	 *(e--) = '\0';
+   }
+   if (!n[0]) {
+      free(n);
+      n = 0;
+   }
+   return n;
+}
+
+static QoreString *getIncludeFileName(char *file) {
    //printd(5, "getIncludeFileName(%s)\n", file);
    // FIXME: UNIX-specific
    if (file[0] == '/')
       return new QoreString(file);
 
    QoreString *rv;
-   rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
-   if (!rv)
-      rv = new QoreString(file);
+   const char *pp = getProgram()->parseGetIncludePath();
+   if (!pp || !(rv = findFileInPath(file, pp))) {
+       rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
+       if (!rv)
+	   rv = new QoreString(file);
+   }
+
    return rv;
 }
 
-static inline char *remove_quotes(char *str)
-{
+// TODO: replace environment variables with values
+void setIncludePath(const char *path) {
+    char *ip = trim(path);
+    if (ip) {
+	getProgram()->parseSetIncludePath(ip);
+	free(ip);
+    }
+}
+
+static inline char *remove_quotes(char *str) {
    str[strlen(str) - 1] = '\0';
    return str + 1;
 }
 
-static inline DateTimeNode *makeYears(int years)
-{
+static inline DateTimeNode *makeYears(int years) {
    return new DateTimeNode(years, 0, 0, 0, 0, 0, 0, true);
 }
 
-static inline DateTimeNode *makeMonths(int months)
-{
+static inline DateTimeNode *makeMonths(int months) {
    return new DateTimeNode(0, months, 0, 0, 0, 0, 0, true);
 }
 
@@ -160,70 +187,49 @@ static inline DateTimeNode *makeDateTime(char *str)
    return new DateTimeNode(str + 3);
 }
 
-static inline class DateTimeNode *makeDate(char *str)
+static inline DateTimeNode *makeDate(char *str)
 {
    do_date_str(str);
    //printf("new date: %d:%s\n", strlen(str), str);
    return new DateTimeNode(str);
 }
 
-static inline class DateTimeNode *makeTime(char *str)
+static inline DateTimeNode *makeTime(char *str)
 {
    do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
    return new DateTimeNode(str);
 }
 
-static inline class DateTimeNode *makeRelativeDateTime(char *str)
+static inline DateTimeNode *makeRelativeDateTime(char *str)
 {
    // move string to middle to form date string
    do_date_time_str(str);
    //printf("new date: %s\n", str + 3);
-   class DateTimeNode *dt = new DateTimeNode();
+   DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str + 3);
    return dt;
 }
 
-static inline class DateTimeNode *makeRelativeDate(char *str)
+static inline DateTimeNode *makeRelativeDate(char *str)
 {
    do_date_str(str);
    //printf("new date: %d:%s\n", strlen(str), str);
-   class DateTimeNode *dt = new DateTimeNode();
+   DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str);
    return dt;
 }
 
-static inline class DateTimeNode *makeRelativeTime(char *str)
+static inline DateTimeNode *makeRelativeTime(char *str)
 {
    do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
-   class DateTimeNode *dt = new DateTimeNode();
+   DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str);
    return dt;
 }
 
-static inline char *trim(char *str)
-{
-   while ((*str) == ' ' || (*str) == '\t')
-      str++;
-   // duplicate string
-   char *n = strdup(str);
-   // find end of string
-   int l = strlen(n);
-   if (l) {
-      char *e = n + l - 1;
-      while ((*e) == ' ' || (*e) == '\t')
-	 *(e--) = '\0';
-   }
-   if (!n[0]) {
-      free(n);
-      n = 0;
-   }
-   return n;
-}
-
-static inline bool isRegexModifier(QoreRegexNode *qr, int c)
-{
+static inline bool isRegexModifier(QoreRegexNode *qr, int c) {
    if (c == 'i')
       qr->setCaseInsensitive();
    else if (c == 's')
@@ -237,8 +243,7 @@ static inline bool isRegexModifier(QoreRegexNode *qr, int c)
    return true;
 }
 
-static inline bool isRegexSubstModifier(RegexSubstNode *qr, int c)
-{
+static inline bool isRegexSubstModifier(RegexSubstNode *qr, int c) {
    if (c == 'g')
       qr->setGlobal();
    else if (c == 'i')
@@ -303,6 +308,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 ^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
 ^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
+^%include-path{WS}*$                    setIncludePath(yytext);
 ^%enable-all-warnings{WS}*$             { 
                                            if (getProgram()->setWarningMask(-1))
 					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");

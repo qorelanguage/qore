@@ -191,27 +191,14 @@ static inline int tryIncludeDir(class QoreString *dir, const char *file)
 }
 
 // FIXME: this could be a lot more efficient
-QoreString *findFileInEnvPath(const char *file, const char *varname)
-{
-   //printd(5, "findFileInEnvPath(file=%s var=%s)\n", file, varname);
-
-   // if the file is an absolute path, then return it
-   if (file[0] == '/')
-      return new QoreString(file);
-
-   // get path from environment
-   QoreString str;
-   if (SysEnv.get(varname, str))
-      return 0;
-   char *idir = (char *)str.getBuffer();
-
+QoreString *findFileInPath(const char *file, const char *path) {
    // if path is empty, return null
-   if (!idir)
+   if (!path || !path[0])
       return 0;
 
    // duplicate string for invasive searches
-   QoreString plist(idir);
-   idir = (char *)plist.getBuffer();
+   QoreString plist(path);
+   char *idir = (char *)plist.getBuffer();
    //printd(5, "findFileInEnvPath() %s=%s\n", varname, idir);
 
    // try each directory
@@ -233,4 +220,20 @@ QoreString *findFileInEnvPath(const char *file, const char *varname)
    }
 
    return 0;
+}
+
+// FIXME: this could be a lot more efficient
+QoreString *findFileInEnvPath(const char *file, const char *varname) {
+   //printd(5, "findFileInEnvPath(file=%s var=%s)\n", file, varname);
+
+   // if the file is an absolute path, then return it
+   if (file[0] == '/')
+      return new QoreString(file);
+
+   // get path from environment
+   QoreString str;
+   if (SysEnv.get(varname, str))
+      return 0;
+
+   return findFileInPath(file, str.getBuffer());
 }

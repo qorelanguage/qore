@@ -44,8 +44,7 @@
 extern QoreListNode *ARGV, *QORE_ARGV;
 extern class QoreHashNode *ENV;
 
-class CharPtrList : public safe_dslist<const char *>
-{
+class CharPtrList : public safe_dslist<const char *> {
    public:
       // returns 0 for found, -1 for not found
       // FIXME: use STL find algorithm
@@ -116,7 +115,8 @@ struct qore_program_private {
 
       int parse_options;
       int warn_mask;
-      std::string exec_class_name, script_dir, script_path, script_name;
+      std::string exec_class_name, script_dir, script_path, script_name,
+	  include_path;
       bool po_locked, exec_class, base_object, requires_exception;
 
       qpgm_thread_local_storage_t *thread_local_storage;
@@ -1377,4 +1377,14 @@ AbstractQoreNode *QoreProgram::getGlobalVariableValue(const char *var, bool &fou
     found = true;
    
     return v->getReferencedValue();
+}
+
+// only called when parsing, therefore in the parse thread lock
+void QoreProgram::parseSetIncludePath(const char *path) {
+    priv->include_path = path;
+}
+
+// only called when parsing, therefore in the parse thread lock
+const char *QoreProgram::parseGetIncludePath() const {
+    return priv->include_path.empty() ? 0 : priv->include_path.c_str();
 }

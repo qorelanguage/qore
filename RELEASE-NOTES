@@ -7,9 +7,12 @@ release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
 *) HTTPClient::constructor() options takes a new option: connect_timeout
 *) SOAP support updated in examples directory: SoapClient.qc, SoapHandler.qc, 
    HTTPServer.qc, WSDL.qc
-*) fixed a bug in the binary() function when converting binary strings to
-   binary type when the strings had embedded nulls
-*) fixed a crashing bug in the handling of GLIBC gethostbyname_r() failures
+*) added is_writable() function as a correctly-spelled alias for
+   is_writeable()
+*) BUG FIX: fixed a bug in the binary() function when converting binary strings
+   to binary type when the strings had embedded nulls
+*) BUG FIX: fixed a crashing bug in the handling of GLIBC gethostbyname_r()
+   failures
 
 
 ***********************

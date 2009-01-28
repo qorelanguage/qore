@@ -130,8 +130,7 @@ static AbstractQoreNode *f_is_readable(const QoreListNode *params, ExceptionSink
    return boolean_false();
 }
 
-static AbstractQoreNode *f_is_writeable(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_writable(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return 0;
@@ -171,8 +170,7 @@ static AbstractQoreNode *f_is_executable(const QoreListNode *params, ExceptionSi
    return boolean_false();
 }
 
-void init_file_functions()
-{
+void init_file_functions() {
    // register builtin functions in this file
    builtinFunctions.add("is_file", f_is_file, QDOM_FILESYSTEM);
    builtinFunctions.add("is_dir", f_is_dir, QDOM_FILESYSTEM);
@@ -183,6 +181,8 @@ void init_file_functions()
    builtinFunctions.add("is_bdev", f_is_bdev, QDOM_FILESYSTEM);
    builtinFunctions.add("is_link", f_is_link, QDOM_FILESYSTEM);
    builtinFunctions.add("is_readable", f_is_readable, QDOM_FILESYSTEM);
-   builtinFunctions.add("is_writeable", f_is_writeable, QDOM_FILESYSTEM);
+   builtinFunctions.add("is_writable", f_is_writable, QDOM_FILESYSTEM);
+   // backwards-compatible misspelling of "writable" :-)
+   builtinFunctions.add("is_writeable", f_is_writable, QDOM_FILESYSTEM);
    builtinFunctions.add("is_executable", f_is_executable, QDOM_FILESYSTEM);
 }

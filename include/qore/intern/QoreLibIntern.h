@@ -73,6 +73,7 @@ typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
 DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
+DLLLOCAL QoreString *findFileInPath(const char *file, const char *path);
 DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && defined(HAVE_CHECK_STACK_POS)
