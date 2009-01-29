@@ -4,6 +4,8 @@
 	  variable substitution
 	* changed QoreString::replace() to be based on
 	  QoreString::splice_simple()
+	* added documentation for the getcwd() function
+	* tagged getcwd() with QDOM_FILESYSTEM
 
 2009.01.28: David Nichols
 	* corrected is_writeable() to is_writable() and made an alias to

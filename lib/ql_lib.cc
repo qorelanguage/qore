@@ -535,7 +535,7 @@ static AbstractQoreNode *f_getcwd(const QoreListNode *params, ExceptionSink *xsi
 	      }	  
 	      continue;
 	  }
-	  xsink->raiseException("GETCWD-ERROR", strerror(errno));
+	  // simple return NOTHING here if there was an error
 	  return 0;
       }
       break;
@@ -806,7 +806,7 @@ void init_lib_functions()
    builtinFunctions.add("gethostbyname_long",  f_gethostbyname_long);
    builtinFunctions.add("gethostbyaddr_long",  f_gethostbyaddr_long);
 
-   builtinFunctions.add("getcwd",      f_getcwd);
+   builtinFunctions.add("getcwd",      f_getcwd, QDOM_FILESYSTEM);
 
    builtinFunctions.add("chown",       f_chown, QDOM_FILESYSTEM);
    builtinFunctions.add("lchown",      f_lchown, QDOM_FILESYSTEM);
