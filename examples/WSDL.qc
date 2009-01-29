@@ -246,7 +246,7 @@ class WSDL::XSDBaseType inherits XSDData {
 		$type = $t;
 		
 	    if ($.type != "anyType" && $type != $.type)
-		throw SOAP_DESERIALIZATION_ERROR, sprintf("expecting type %n, got %n", $.type, $val."^attributes^"."xsi:type");
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("expecting base type %n, got %n", $.type, $val."^attributes^"."xsi:type");
 	    if (exists $val."^value^")
 		$val = $val."^value^";
 	}
@@ -449,7 +449,10 @@ class WSDL::XSDElement inherits XSDNamedData {
     }
 
     deserialize($types, $mrh, $val) {
-	if (!exists $val) {
+	my $a = $val."^attributes^";
+	WSDL::XSDBase::removeNS(\$a);
+
+	if (!exists $val || $a.nil == "true") {
 	    if ($.nillable || !$.minOccurs)
 		return;
 	    throw SOAP_DESERIALIZATION_ERROR, sprintf("NOTHING passed for element %n, but nillable=False and minOccurs=%d", $.name, $.minOccurs);
@@ -648,7 +651,7 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	    if (exists $name)
 		$tn = $name;
 	    if ($tn != $.name)
-		throw SOAP_DESERIALIZATION_ERROR, sprintf("expecting type %n, got %n", $.getName(), $tn);
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("expecting ComplexType type %n, got %n", $.getName(), $tn);
 	}
 
 	WSDL::XSDBase::removeNS(\$val);
@@ -986,6 +989,9 @@ class WSDL::WebService inherits XSDBase {
 
 	my $h = parseXMLAsData($str);
 
+	# save WSDL text
+	$.wsdl = $str;
+
 	# remove namespace (normally "wsdl:") prefix from keys if present
 	WSDL::XSDBase::removeNS(\$h);
 	WSDL::XSDBase::removeNS(\$h.definitions);
@@ -1219,5 +1225,9 @@ class WSDL::WebService inherits XSDBase {
 
     isSoap12() {
 	return $.soap12;
+    }
+
+    getWSDL() {
+	return $.wsdl;
     }
 }

@@ -1,5 +1,6 @@
 # JSON-RPC handler class definition
 #
+
 # to be registered as a handler in the HTTPServer class
 
 namespace JsonRpcHandler
@@ -112,10 +113,15 @@ class JsonRpcHandler::JsonRpcHandler {
 	return $l;
     }
 
-    private log($func)
+    private log($context, $str)
     {
-	$argv[0] = "JsonRpcHandler " + $argv[0];
-	call_function_args($func, $argv);
+        my $msg = "JSON-RPC ";
+        if (exists $context.user)
+            $msg += sprintf("user %s ", $context.user);
+        $msg += sprintf("from %s: ", $context.source);
+        $msg += vsprintf($str, $argv);
+
+        call_function_args($context.logfunc, $msg);
     }
 
     private callMethod($context, $params)
@@ -142,10 +148,39 @@ class JsonRpcHandler::JsonRpcHandler {
 
 	    if (($found.logopt & LP_LEVELMASK) <= $.loglevel && exists $context.logfunc)
 	    {
-		my $msg = sprintf("from %s: %s", $context.source, $method);
+		my $msg = $method;          
+		# add arguments to log message
 		if ($found.logopt & LP_LOGPARAMS)
-		    $msg += sprintf(", params: %n", $params);
-		$.log($context.logfunc, $msg);
+		{
+		    $msg += sprintf("(");
+		    my $i = 0;
+		    foreach my $arg in ($params)
+		    {
+			if (inlist($i++, $found.maskargs))
+			    $msg += "<masked>, ";
+			else if (type($arg) == Type::Hash && elements $arg)
+			{
+			    $msg += "(";
+			    foreach my $k in (keys $arg)
+			    {
+				if ($k == $found.maskkey)
+				    $msg += sprintf("%s=<masked>, ", $k);
+			        else
+				    $msg += sprintf("%s=%n, ", $k, $arg.$k);
+			    }
+			    splice $msg, -2, 2;
+			    $msg += "), ";
+			}
+			else
+			    $msg += sprintf("%n, ", $arg);
+		    }
+		    # remove the last two characters from the string if any were added
+		    if ($i)
+			splice $msg, -2, 2;
+		    $msg += ")";
+		}
+
+                $.log($context, $msg);
 	    }
 	    #printf("about to call function '%s' (method=%s params=%n)\n", $found.function, $method, $params);
 	    my $rv;

@@ -1,10 +1,9 @@
 # XML-RPC handler class definition
 #
-# Copyright (C) 2006, 2007 David Nichols
+# Copyright (C) 2006 - 2009 David Nichols
 # to be registered as a handler to the Qore HTTP server
 
-namespace XmlRpcHandler
-{
+namespace XmlRpcHandler {
     const Version = "0.3.3";
 
     const InternalMethods = (("function" : "help",
@@ -22,16 +21,14 @@ namespace XmlRpcHandler
 class XmlRpcHandler::XmlRpcHandler {
     private $.methods, $.mi;
 
-    constructor($methods)
-    {
+    constructor($methods) {
 	$.methods = ();
 
 	# add internal methods
 	foreach my $im in (XmlRpcHandler::InternalMethods)
 	    $.addMethodInternal($im + ( "internal" : True ));
 	
-	foreach my $m in ($methods)
-	{
+	foreach my $m in ($methods) {
 	    if (!exists $m.name)
 		throw "XML-RPC-CONSTRUCTOR-ERROR", sprintf("expecting 'name' key in method hash (%n)", $m);
 	    if (!exists $m.function)
@@ -44,8 +41,7 @@ class XmlRpcHandler::XmlRpcHandler {
 	}
     }
 
-    addMethod($name, $func, $text, $help, $logopt, $cmark)
-    {
+    addMethod($name, $func, $text, $help, $logopt, $cmark) {
 	if (!exists $func || !exists $text)
 	    throw "XML-RPC-SERVER-ADD-METHOD-PARAMETER-ERROR", "expecting function name and text name as hash key in argument";
 
@@ -57,8 +53,7 @@ class XmlRpcHandler::XmlRpcHandler {
 			      "cmark"    : $cmark ));
     }
 
-    private addMethodInternal($h)
-    {
+    private addMethodInternal($h) {
 	# check for duplicate in method index
 	my $i = $.mi.($h.text);
 	if (!exists $i)
@@ -69,11 +64,9 @@ class XmlRpcHandler::XmlRpcHandler {
 	$.methods[$i] = $h;
     }
 
-    private help($c)
-    {
+    private help($c) {
 	my $h;
-	foreach my $m in ($.methods)
-	{
+	foreach my $m in ($.methods) {
 	    $h.($m.text).description = $m.help;
 	    if (exists $m.params)
 		$h.($m.text).params  = $m.params;
@@ -81,48 +74,71 @@ class XmlRpcHandler::XmlRpcHandler {
 	return $h;
     }
 
-    private listMethods($c)
-    {
+    private listMethods($c) {
 	my $l = ();
 	foreach my $m in ($.methods)
 	    $l += $m.text;
 	return $l;
     }
 
-    private log($func)
-    {
-	$argv[0] = "XmlRpcHandler " + $argv[0];
-	call_function_args($func, $argv);
+    private log($context, $str) {
+	my $msg = "XML-RPC ";
+	if (exists $context.user)
+	    $msg += sprintf("user %s ", $context.user);
+	$msg += sprintf("from %s: ", $context.source);
+	$msg += vsprintf($str, $argv);
+
+	call_function_args($context.logfunc, $msg);
     }
 
-    private callMethod($context, $params)
-    {
+    private callMethod($context, $params) {
 	my $h;
 
 	my $method = $context.method;
 	# find method function
 	my $found;
-	foreach my $m in ($.methods)
-	{
-	    if (regex($method, $m.name))
-	    {
+	foreach my $m in ($.methods) {
+	    if (regex($method, $m.name)) {
 		$found = $m;
 		break;
 	    }
 	}
 	
-	if (exists $found)
-	{
+	if (exists $found) {
 	    # add context marker, if any
 	    $context.cmark = $found.cmark;
 	    $context.function = $found.function;
 
-	    if (($found.logopt & LP_LEVELMASK) <= $.loglevel && exists $context.logfunc)
-	    {
-		my $msg = sprintf("from %s: %s", $context.source, $method);
-		if ($found.logopt & LP_LOGPARAMS)
-		    $msg += sprintf(", params: %n", $params);
-		$.log($context.logfunc, $msg);
+	    if (($found.logopt & LP_LEVELMASK) <= $.loglevel && exists $context.logfunc) {
+		my $msg = $method;
+		# add arguments to log message
+		if ($found.logopt & LP_LOGPARAMS) {
+		    $msg += sprintf("(");
+		    my $i = 0;
+		    foreach my $arg in ($params) {
+			if (inlist($i++, $found.maskargs))
+			    $msg += "<masked>, ";
+			else if (type($arg) == Type::Hash && elements $arg) {
+			    $msg += "(";
+			    foreach my $k in (keys $arg) {
+				if ($k == $found.maskkey)
+				    $msg += sprintf("%s=<masked>, ", $k);
+			        else
+				    $msg += sprintf("%s=%n, ", $k, $arg.$k);
+			    }
+			    splice $msg, -2, 2;
+			    $msg += "), ";
+			}
+			else
+			    $msg += sprintf("%n, ", $arg);
+		    }
+		    # remove the last two characters from the string if any were added
+		    if ($i)
+			splice $msg, -2, 2;
+		    $msg += ")";
+		}
+
+		$.log($context, $msg);
 	    }
 	    #printf("about to call function '%s' (method=%s params=%n)\n", $found.function, $method, $params);
 	    my $rv;
@@ -147,14 +163,12 @@ class XmlRpcHandler::XmlRpcHandler {
     }
 
     # method called by HTTPServer
-    handleRequest($context, $hdr, $body, $close)
-    {
+    handleRequest($context, $hdr, $body, $close) {
 	#printf("xmlrpc handler context=%n hdr=%n body=%n\n", $context, $hdr, $body);
 
 	my $xmlrpc;
 
-	if ($hdr.method == "GET")
-	{
+	if ($hdr.method == "GET") {
 	    my $path = substr($hdr.path, index($hdr.path, "/") + 1);
 	    
 	    if (!strlen($path))
@@ -165,8 +179,7 @@ class XmlRpcHandler::XmlRpcHandler {
 		$path = "omq.system." + $path;
 	    $xmlrpc.methodName = $path;
 	}
-	else
-	{
+	else {
 	    if ($hdr.method != "POST")
 		return ( "code" : 501,
 			 "body" : sprintf("don't know how to handle method %n", $hdr.method) );
@@ -178,8 +191,9 @@ class XmlRpcHandler::XmlRpcHandler {
 	    try {
 		$xmlrpc = parseXMLRPCCall($body);
 	    }
-	    catch ($ex)
-	    {
+	    catch ($ex) {
+		log(LL_CRITICAL, getExceptionString($ex));
+		log(LL_DEBUG_1, "error parsing XML-RPC string: %s", $body);
 		return ( "code"   : 200,
 			 "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),
 			 "hdr"    : ( "Content-Type" : "text/xml" ),
@@ -191,10 +205,11 @@ class XmlRpcHandler::XmlRpcHandler {
 	    $context.method = $xmlrpc.methodName;
 	    return ( "code" : 200, "hdr" : ( "Content-Type" : "text/xml" ) ) + $.callMethod($context, $xmlrpc.params);
 	}
-	catch ($ex)
-	{
+	catch ($ex) {
+	    log(LL_DEBUG_1, getExceptionString($ex));
+	    #log(LL_CRITICAL, "context=%N\nxmlrpc=%N\n", $context, $xmlrpc);
+	    #log(LL_CRITICAL, getExceptionString($ex));
 	    my $str = sprintf("%s: %s", $ex.err, $ex.desc);
-	    #$.log($context.logfunc, $str);
 	    return ( "code"   : 200,
 		     "errlog" : $str,
 		     "hdr"    : ( "Content-Type" : "text/xml" ),

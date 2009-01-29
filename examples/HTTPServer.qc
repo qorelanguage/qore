@@ -216,7 +216,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		continue;
 
 	    # DEBUG
-	    #printf("HTTP DEBUG: listener(%s): accepting HTTP connection from %s (%s)\n", $.socket, $r.source);
+	    #printf("HTTP DEBUG: listener(%s): accepting HTTP connection from %s\n", $.socket, $r.source);
 	    #$.log("accepting HTTP connection from %s", $r.source);
 	    
 	    $.cThreads.inc();
@@ -253,8 +253,9 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    $hdr = $s.readHTTPHeader(HTTPServer::ReadTimeout);
 		}
 		catch ($ex) {
-		    # according to RFC 2616, sec 8.1.2.1 clients claiming http 1.1 protocol compatibility
-		    # SHOULD only close the connection after sending a "connection: close" header, but in 
+		    # according to RFC 2616 sec 8.1.2.1, clients claiming http 1.1 
+		    # protocol compatibility SHOULD only close the connection after
+		    # sending a "connection: close" header, but in 
 		    # case they don't, we simply close the connection silently
 		    if ($ex.err == "SOCKET-CLOSED")
 			break;
@@ -676,7 +677,7 @@ class HTTPServer::HTTPServer {
 
         # log exceptions if not "SOCKET-SEND-ERROR" (probably broken pipe)
         try {
-            $s.sendHTTPResponse($code, HTTPServer::HTTPCodes.$code, "1.1", $hdr, $str);
+	    $s.sendHTTPResponse($code, HTTPServer::HTTPCodes.$code, "1.1", $hdr, $str);
         }
         catch ($ex) {
             if ($ex.err != "SOCKET-SEND-ERROR") {
