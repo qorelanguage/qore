@@ -369,84 +369,82 @@ void QoreString::set(const QoreString &str) {
 }
 
 void QoreString::replace(qore_size_t offset, qore_size_t dlen, const char *str) {
-   qore_size_t nl = str ? ::strlen(str) : 0;
-   // ensure that enough memory is priv->allocated if extending the string
-   if (nl > dlen)
-      priv->check_char(priv->len - dlen + nl + 1);
-
-   if (nl != dlen)
-      memmove(priv->buf + offset + nl, priv->buf + offset + dlen, priv->len - offset - dlen + 1);
-
-   if (str)
-      strncpy(priv->buf + offset, str, nl);
-   priv->len = priv->len - dlen + nl;
+   if (str && str[0])
+      splice_simple(offset, dlen, str, ::strlen(str));
+   else
+      splice_simple(offset, dlen);
 }
 
 void QoreString::replace(qore_size_t offset, qore_size_t dlen, const QoreString *str) {
-   // ensure that enough memory is priv->allocated if extending the string
-   if (str->priv->len > dlen)
-      priv->check_char(priv->len - dlen + str->priv->len + 1);
+   if (str->getEncoding() != priv->charset)
+      return;
 
-   if (str->priv->len != dlen)
-      memmove(priv->buf + offset + str->priv->len, priv->buf + offset + dlen, priv->len - offset - dlen + 1);
-
-   if (str->priv->len)
-      strncpy(priv->buf + offset, str->priv->buf, str->priv->len);
-   priv->len = priv->len - dlen + str->priv->len;
+   if (str && str->strlen())
+      splice_simple(offset, dlen, str->getBuffer(), str->strlen());
+   else
+      splice_simple(offset, dlen);
 }
 
-void QoreString::splice(qore_offset_t offset, ExceptionSink *xsink)
-{
-   if (!priv->charset->isMultiByte())
-   {
+void QoreString::replace(qore_size_t offset, qore_size_t dlen, const QoreString *str, ExceptionSink *xsink) {
+   if (str && str->strlen()) {
+      TempEncodingHelper tmp(str, priv->charset, xsink);
+      if (!tmp)
+	 return;
+      splice_simple(offset, dlen, tmp->getBuffer(), tmp->strlen());
+      return;
+   }
+
+   splice_simple(offset, dlen);
+}
+
+void QoreString::splice(qore_offset_t offset, ExceptionSink *xsink) {
+   if (!priv->charset->isMultiByte()) {
       qore_size_t n_offset = priv->check_offset(offset);
       if (n_offset == priv->len)
 	 return;
 
-      splice_simple(n_offset, priv->len - n_offset, xsink);
+      splice_simple(n_offset, priv->len - n_offset);
       return;
    }
    splice_complex(offset, xsink);
 }
 
-void QoreString::splice(qore_offset_t offset, qore_offset_t num, ExceptionSink *xsink)
-{
-   if (!priv->charset->isMultiByte())
-   {
+void QoreString::splice(qore_offset_t offset, qore_offset_t num, ExceptionSink *xsink) {
+   if (!priv->charset->isMultiByte()) {
       qore_size_t n_offset, n_num;
       priv->check_offset(offset, num, n_offset, n_num);
       if (n_offset == priv->len || !n_num)
 	 return;
 
-      splice_simple(n_offset, n_num, xsink);
+      splice_simple(n_offset, n_num);
       return;
    }
    splice_complex(offset, num, xsink);
 }
 
-void QoreString::splice(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink *xsink)
-{
+void QoreString::splice(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink *xsink) {
    if (!strn || strn->getType() != NT_STRING) {
       splice(offset, num, xsink);
       return;
    }
 
    const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(strn);
+   TempEncodingHelper tmp(str, priv->charset, xsink);
+   if (!tmp)
+       return;
 
-   if (!priv->charset->isMultiByte())
-   {
+   if (!priv->charset->isMultiByte()) {
       qore_size_t n_offset, n_num;
       priv->check_offset(offset, num, n_offset, n_num);
-      if (n_offset == priv->len)
-      {
-	 if (!str->priv->len)
+      if (n_offset == priv->len) {
+	 if (!tmp->priv->len)
 	    return;
 	 n_num = 0;
       }
-      splice_simple(n_offset, n_num, str, xsink);
+      splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen());
       return;
    }
-   splice_complex(offset, num, str, xsink);
+   splice_complex(offset, num, *tmp, xsink);
 }
 
 // removes a single trailing newline
@@ -1106,12 +1104,10 @@ int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, ExceptionSi
    return 0;
 }
 
-void QoreString::splice_simple(qore_size_t offset, qore_size_t num, ExceptionSink *xsink)
-{
+void QoreString::splice_simple(qore_size_t offset, qore_size_t num) {
    //printd(5, "splice_intern(offset=%d, num=%d, priv->len=%d)\n", offset, num, priv->len);
    qore_size_t end;
-   if (num > (priv->len - offset))
-   {
+   if (num > (priv->len - offset)) {
       end = priv->len;
       num = priv->len - offset;
    }
@@ -1128,13 +1124,11 @@ void QoreString::splice_simple(qore_size_t offset, qore_size_t num, ExceptionSin
    priv->buf[priv->len] = '\0';
 }
 
-void QoreString::splice_simple(qore_size_t offset, qore_size_t num, const QoreString *str, ExceptionSink *xsink)
-{
+void QoreString::splice_simple(qore_size_t offset, qore_size_t num, const char *str, qore_size_t str_len) {
    //printd(5, "splice_intern(offset=%d, num=%d, priv->len=%d)\n", offset, num, priv->len);
 
    qore_size_t end;
-   if (num > (priv->len - offset))
-   {
+   if (num > (priv->len - offset)) {
       end = priv->len;
       num = priv->len - offset;
    }
@@ -1142,21 +1136,20 @@ void QoreString::splice_simple(qore_size_t offset, qore_size_t num, const QoreSt
       end = offset + num;
 
    // get number of entries to insert
-   if (str->priv->len > num) // make bigger
-   {
+   if (str_len > num) { // make bigger
       qore_size_t ol = priv->len;
-      priv->check_char(priv->len - num + str->priv->len);
+      priv->check_char(priv->len - num + str_len);
       // move trailing entries forward if necessary
       if (end != ol)
-         memmove(priv->buf + (end - num + str->priv->len), priv->buf + end, sizeof(char) * (ol - end));
+         memmove(priv->buf + (end - num + str_len), priv->buf + end, sizeof(char) * (ol - end));
    }
-   else if (num > str->priv->len) // make list smaller
-      memmove(priv->buf + offset + str->priv->len, priv->buf + offset + num, sizeof(char) * (priv->len - offset - str->priv->len));
+   else if (num > str_len) // make list smaller
+      memmove(priv->buf + offset + str_len, priv->buf + offset + num, sizeof(char) * (priv->len - offset - str_len));
 
-   memcpy(priv->buf + offset, str->priv->buf, str->priv->len);
+   memcpy(priv->buf + offset, str, str_len);
 
    // calculate new length
-   priv->len = priv->len - num + str->priv->len;
+   priv->len = priv->len - num + str_len;
    // set last entry to NULL
    priv->buf[priv->len] = '\0';
 }

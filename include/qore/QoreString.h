@@ -46,8 +46,8 @@ class QoreString {
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreString & operator=(const QoreString &);
 
-      DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, ExceptionSink *xsink);
-      DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, const QoreString *str, ExceptionSink *xsink);
+      DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length);
+      DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, const char *str, qore_size_t str_len);
       DLLLOCAL void splice_complex(qore_offset_t offset, ExceptionSink *xsink);
       DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink);
       DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, const QoreString *str, ExceptionSink *xsink);
@@ -286,8 +286,16 @@ class QoreString {
 
       //! replaces bytes with the string passed
       /** offsets and size are in bytes, not characters
+	  does nothing if the encodings are different
+	  DEPRECATED
+	  FIXME: this function should take an ExceptionSink argument and convert encodings
        */
       DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const QoreString *str);
+
+      //! replaces bytes with the string passed
+      /** offsets and size are in bytes, not characters
+       */
+      DLLEXPORT void replace(qore_size_t offset, qore_size_t len, const QoreString *str, ExceptionSink *xsink);
 
       //! removes characters from the string starting at position "offset"
       /** values are for characters, not bytes

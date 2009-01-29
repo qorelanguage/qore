@@ -39,6 +39,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <ctype.h>
 
 QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0) {
 }
@@ -85,10 +89,11 @@ static QoreString *getIncludeFileName(char *file) {
    if (file[0] == '/')
       return new QoreString(file);
 
-   QoreString *rv;
-   const char *pp = getProgram()->parseGetIncludePath();
-   if (!pp || !(rv = findFileInPath(file, pp))) {
-       rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
+   QoreString *rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
+   if (!rv) {
+       const char *pp = getProgram()->parseGetIncludePath();
+       if (pp) 
+	   rv = findFileInPath(file, pp);
        if (!rv)
 	   rv = new QoreString(file);
    }
@@ -96,13 +101,82 @@ static QoreString *getIncludeFileName(char *file) {
    return rv;
 }
 
-// TODO: replace environment variables with values
 void setIncludePath(const char *path) {
     char *ip = trim(path);
-    if (ip) {
-	getProgram()->parseSetIncludePath(ip);
-	free(ip);
+    if (!ip)
+	return;
+
+    QoreString npath; // for new path
+
+    // scan through paths and:
+    // 1: do environment variable substitution
+    // 2: remove the paths that don't exist
+    char *lp, *p;
+    p = lp = ip;
+    
+    while (true) {
+	if (*p == ':' || !*p) {
+	    // skip if at beginning of new path
+	    if (p != lp) {
+		QoreString tpath;
+		tpath.concat(lp, p - lp);
+		const char *sp = tpath.getBuffer();
+		//printd(5, "got path string: '%s'\n", sp);
+
+		const char *i, *spt;
+		spt = sp;
+
+		while ((i = strchr(spt, '$'))) {
+		    // find end of environment variable
+		    char *ep = (char *)++i;
+		    while (*ep && (*ep == '_' || isalnum(*ep)))
+			++ep;
+		    spt = i + 1;
+		    // perform variable substitution
+		    if (ep != i) {
+			char save = *ep;
+			*ep = '\0';
+			//printd(5, "found variable '$%s'\n", i);
+			TempString val(SystemEnvironment::get(i));
+			*ep = save;
+			if (val) {
+			    // replace with value
+			    int pos = i - sp;			    
+			    //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
+			    tpath.replace(pos - 1, ep - i + 1, *val);			    
+			    // re-assign sp in case it's changed
+			    int diff = pos + val->strlen();
+			    sp = tpath.getBuffer();
+			    spt = sp + diff;
+			    //printd(5, "new string = '%s' ('%s')\n", sp, spt);
+			}
+		    }
+		}
+		struct stat sb;
+	    
+		//printd(5, "trying '%s'\n", sp);
+		// add to path list if the directory exists
+		if (!stat(sp, &sb)) {
+		    //printd(5, "OK: adding '%s' to path list\n", sp);
+		    if (npath.strlen()) 
+			npath.concat(':');
+		    npath.concat(&tpath);
+		}
+
+		if (!*p)
+		    break;
+	    }
+	    lp = ++p;
+	    continue;
+	}
+
+	++p;
     }
+    
+    //printd(5, "setting include path: '%s'\n", npath.getBuffer());
+    getProgram()->parseSetIncludePath(npath.getBuffer());
+
+    free(ip);
 }
 
 static inline char *remove_quotes(char *str) {
@@ -268,7 +342,7 @@ static inline bool isRegexSubstModifier(RegexSubstNode *qr, int c) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning
+%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -308,7 +382,11 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 ^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
 ^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
-^%include-path{WS}*$                    setIncludePath(yytext);
+^%append-include-path{WS}+              BEGIN(append_path_state);
+<append_path_state>[^\t\n\r]+           {
+					   setIncludePath(yytext);
+					   BEGIN(INITIAL);
+                                        }
 ^%enable-all-warnings{WS}*$             { 
                                            if (getProgram()->setWarningMask(-1))
 					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
