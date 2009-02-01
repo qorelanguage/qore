@@ -1,3 +1,7 @@
+2009.02.01: David Nichols
+	* fixed a bug compiling on powerpcs; sometimes the __ppc macro was not
+	  defined and so atomic operations and stack guard was not built
+
 2009.01.29: David Nichols
 	* added %append-include-path parse directive to append include dirs
 	  to a program object while parsing, also supports environment
