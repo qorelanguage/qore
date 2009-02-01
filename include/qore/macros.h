@@ -15,7 +15,7 @@
 #include <qore/macros-sparc.h>
 #endif // #ifdef __sparc
 
-#ifdef __ppc
+#if defined(__ppc) || defined(__ppc__)
 #include <qore/macros-powerpc.h>
 #endif // #ifdef __ppc
 
