@@ -14,8 +14,8 @@ release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
    to binary type when the strings had embedded nulls
 *) BUG FIX: fixed a crashing bug in the handling of GLIBC gethostbyname_r()
    failures
-*) fixed some erroneous builds on powerpc where processor-specific features
-   were not built properly
+*) BUG FIX: fixed some erroneous builds on powerpc where processor-specific
+   features were not built properly
 
 
 ***********************
