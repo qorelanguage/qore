@@ -1,6 +1,12 @@
+2009.02.02: David Nichols
+	* fixed a bug in the handling of GLIBC gethostbyaddr_r() failures; 
+	  (actually the bug appears to be in GLIBC) it would cause the
+	  function to return a value with invalid addresses
+
 2009.02.01: David Nichols
 	* fixed a bug compiling on powerpcs; sometimes the __ppc macro was not
-	  defined and so atomic operations and stack guard was not built
+	  defined and so atomic operations and stack guard was not built;
+	  fixed to check for __ppc__ as well
 
 2009.01.29: David Nichols
 	* added %append-include-path parse directive to append include dirs

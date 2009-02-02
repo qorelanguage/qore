@@ -210,7 +210,7 @@ QoreStringNode *q_gethostbyname_to_string(const char *host) {
 // FIXME: check err?
 char *q_gethostbyaddr(const char *addr, int len, int type) {
    char *host;
-   
+    
 #ifdef HAVE_GETHOSTBYADDR_R
    struct hostent he;
    char buf[NET_BUFSIZE];
@@ -222,11 +222,9 @@ char *q_gethostbyaddr(const char *addr, int len, int type) {
       host = 0;
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
-   
-   if (!gethostbyaddr_r(addr, len, type, &he, buf, NET_BUFSIZE, &p, &err))
-      host = strdup(he.h_name);
-   else
-      host = 0;
+
+   int rc = gethostbyaddr_r(addr, len, type, &he, buf, NET_BUFSIZE, &p, &err);
+   host = !rc && p ? strdup(he.h_name) : 0;
 # endif // HAVE_SOLARIS_STYLE_GETHOST
 #else  // else if !HAVE_GETHOSTBYADDR_R
    lck_gethostbyaddr.lock();
@@ -279,7 +277,8 @@ QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, in
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
    
-   if (gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &p, &err))
+   rc = gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &p, &err);
+   if (rc || !p)
       return 0;
 # endif // HAVE_SOLARIS_STYLE_GETHOST
 
@@ -334,7 +333,8 @@ QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
    
-   if (gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &p, &err))
+   rc = gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &p, &err);
+   if (rc || !p)
       return 0;
 # endif // HAVE_SOLARIS_STYLE_GETHOST
 
