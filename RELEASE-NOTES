@@ -1,21 +1,24 @@
 RELEASE NOTES for qore v0.7.3
 
 release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
-                 three bug fixes
+                 four bug fixes
 
 *) Socket::connect() takes an optional timeout value
 *) HTTPClient::constructor() options takes a new option: connect_timeout
-*) SOAP support updated in examples directory: SoapClient.qc, SoapHandler.qc, 
+*) SOAP support updated in examples directory: SoapClient.qc, SoapHandler.qc,
    HTTPServer.qc, WSDL.qc
 *) added is_writable() function as a correctly-spelled alias for
    is_writeable()
 *) fixed and documented getcwd() function
-*) BUG FIX: fixed a bug in the binary() function when converting binary strings
-   to binary type when the strings had embedded nulls
+*) BUG FIX: fixed a bug in the binary() function when converting binary
+   strings to binary type when the strings had embedded nulls
 *) BUG FIX: fixed a crashing bug in the handling of GLIBC gethostbyname_r()
-   failures
+   failures; contrary to the documentation, the return value is 0 even when
+   the function fails
 *) BUG FIX: fixed some erroneous builds on powerpc where processor-specific
    features were not built properly
+*) BUG FIX: fixed a bug handling GLIBC gethostbyaddr_r() failures; contrary to
+   the documentation, the return value is 0 even when the function fails
 
 
 ***********************
@@ -84,9 +87,9 @@ Parsing
    object.  References are resolved in the second stage, which allows flexible
    referencing of functions, constants, classes, etc before they are declared.
    Any parse errors at any stage will cause all the uncomitted parsing to be
-   rolled back.  The Qore Program class allows the programmer control over the 2
-   stages of parsing with the Program::parsePending(), Program::parseCommit(),
-   and Program::parseRollback() methods.
+   rolled back.  The Qore Program class allows the programmer control over the
+   2 stages of parsing with the Program::parsePending(),
+   Program::parseCommit(), and Program::parseRollback() methods.
 
 
 *********************
@@ -176,15 +179,15 @@ release summary: qore 0.7.2 is a bugfix release from 0.7.1
 * non-blocking read support for the File class
 * event support for File class
 
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 * several bug fixes (including 8 crashing bugs), including packaging fixes
 CRASH FIX: fixed a crashing bug in the map operator when the list operand is
            not a list
 
 CRASH FIX: fixed a crashing bug in the parser with parse errors
 
-CRASH FIX: fixed crash when pthread_create fails in thread.cc, thanks to Dmytro
-           Milinevskyy for the info and patch
+CRASH FIX: fixed crash when pthread_create fails in thread.cc, thanks to
+           Dmytro Milinevskyy for the info and patch
 
 CRASH FIX: fixed a race condition with getAllThreadCallStacks() (only affected
        	   debugging builds)
@@ -204,8 +207,8 @@ CRASH FIX: fixed a crashing bug in the map with select operator when the map
 
 fix to allow references to be used in closure and call reference calls
 
-implemented an optimization to map to efficiently handle the case when no return
-value is used
+implemented an optimization to map to efficiently handle the case when no
+return value is used
 
 spec file fixes; 0.7.1 spec file was badly broken
 
@@ -260,7 +263,8 @@ release summary: qore 0.7.1 is a bugfix release from 0.7.0
 release overview:
 *) bug fixes
 *) new ABI 5.0, problems were found with ABI 4.0
-*) packaging and build updated to support building universal binaries on Darwin
+*) packaging and build updated to support building universal binaries on
+   Darwin
 *) support for atomic operations in 64bit builds with itanium processors
 *) support for stack guard including RSE monitoring in 64-bit builds on
    itanium processors
@@ -270,7 +274,7 @@ release overview:
    requirements
 *) misc additions
 
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 *) bug fixes
 a bug in the != operator for strings was fixed; != would return True for
 strings with different encodings but otherwise equal content; this has been
@@ -278,19 +282,19 @@ fixed to return False
 
 fixed a bug in QoreString::set()
 
-fixed 2 crashing bugs in the "-" operator: the operator functions were expecting
-certain arguments but the operator code was making partial matches and sending
-other types to the functions.  Added the abilty for an operator function to
-require an exact argument match for both arguments.
+fixed 2 crashing bugs in the "-" operator: the operator functions were
+expecting certain arguments but the operator code was making partial matches
+and sending other types to the functions.  Added the abilty for an operator
+function to require an exact argument match for both arguments.
 
 fixed evaluation of nonsensical arguments with the "-" and "+" operators; now
 this will return NOTHING instead of nonsense.
 
-fixed a crashing bug in the FtpClient class; the FtpClient class was not usable
-in Qore 0.7.0
+fixed a crashing bug in the FtpClient class; the FtpClient class was not
+usable in Qore 0.7.0
 
-fixed a parsing bug with the switch statement when a case value using a constant
-was not resolved caused a crash (affected debug builds only)
+fixed a parsing bug with the switch statement when a case value using a
+constant was not resolved caused a crash (affected debug builds only)
 
 fixed parsing XML-RPC arrays when the first element is empty (would previously
 generate an exception even though the XML was valid)
@@ -331,8 +335,8 @@ fixed socket handling on HPUX 64/bit builds where the header files declare
 socklen_t to be 8 bytes wide, but the libraries expect a pointer to a 32-bit
 value
 
-fixed getAllThreadCallStacks() (only enabled with debugging builds and with the
-explicit configure option: --enable-runtime-thread-stack-trace because it
+fixed getAllThreadCallStacks() (only enabled with debugging builds and with
+the explicit configure option: --enable-runtime-thread-stack-trace because it
 has a performance penalty) by requiring all threads to grab a read lock
 before updating the thread stack, and getAllThreadCallStacks() to grab a write
 lock before reading all threads' call stacks.  This function was not
@@ -381,10 +385,11 @@ DLLEXPORT extern const char *qore_warnings[];
 
 Note that module API 0.4 (supported by qore 0.7.0) is not supported
 
-*) packaging and build updated to support building universal binaries on Darwin
-Qore header files and build were updated to support building Universal binaries
-by using cpp macros to select the right inline assembly code or defines for
-atomic operation and stack guard support in the macros-*.h header files.
+*) packaging and build updated to support building universal binaries on
+Darwin Qore header files and build were updated to support building Universal
+binaries by using cpp macros to select the right inline assembly code or
+defines for atomic operation and stack guard support in the macros-*.h header
+files.
 
 *) support for atomic operations in 64bit builds with itanium processors
 supported with g++ and aCC, 64-bit builds only
