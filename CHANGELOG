@@ -1,3 +1,7 @@
+2009.02.03: David Nichols
+	* fixed a bug doing math on negative units of relative dates; invalid
+	  dates would be returned
+
 2009.02.02: David Nichols
 	* fixed a bug in the handling of GLIBC gethostbyaddr_r() failures; 
 	  (actually the bug appears to be in GLIBC) it would cause the

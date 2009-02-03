@@ -1,7 +1,7 @@
 RELEASE NOTES for qore v0.7.3
 
 release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
-                 four bug fixes
+                 five bug fixes
 
 *) Socket::connect() takes an optional timeout value
 *) HTTPClient::constructor() options takes a new option: connect_timeout
@@ -19,6 +19,8 @@ release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
    features were not built properly
 *) BUG FIX: fixed a bug handling GLIBC gethostbyaddr_r() failures; contrary to
    the documentation, the return value is 0 even when the function fails
+*) BUG FIX: fixed a bug doing math on negative units of relative dates;
+   invalid dates would be returned
 
 
 ***********************

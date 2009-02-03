@@ -831,7 +831,7 @@ int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int
    return 0;
 }
 
-int DateTime::compareDates(const class DateTime *left, const class DateTime *right)
+int DateTime::compareDates(const DateTime *left, const DateTime *right)
 {
    return qore_dt_private::compareDates(left->priv, right->priv);
 }
@@ -991,7 +991,7 @@ void DateTime::setRelativeDate(const char *str)
    priv->millisecond = atoi(p + 1);
 }
 
-bool DateTime::isEqual(const class DateTime *dt) const
+bool DateTime::isEqual(const DateTime *dt) const
 {
    if (priv->year != dt->priv->year)
       return false;
@@ -1010,8 +1010,7 @@ bool DateTime::isEqual(const class DateTime *dt) const
    return true;
 }
 
-class DateTime *DateTime::add(const class DateTime *dt) const
-{
+DateTime *DateTime::add(const DateTime *dt) const {
    DateTime *rv;
    if (!priv->relative) {
       rv = new DateTime(*this);
@@ -1028,7 +1027,7 @@ class DateTime *DateTime::add(const class DateTime *dt) const
    return rv;
 }
 
-class DateTime *DateTime::subtractBy(const class DateTime *dt) const
+DateTime *DateTime::subtractBy(const DateTime *dt) const
 {
    DateTime *rv;
    if (!priv->relative)
@@ -1053,22 +1052,23 @@ class DateTime *DateTime::subtractBy(const class DateTime *dt) const
 }
 
 // "result" must be a copy of "this"
-void DateTime::addAbsoluteToRelative(DateTime &result, const class DateTime *dt) const
-{
+void DateTime::addAbsoluteToRelative(DateTime &result, const DateTime *dt) const {
    // add years
    result.priv->year += dt->priv->year;
 
    // add months
-   if (dt->priv->month >= 12)
-   {
+   if (dt->priv->month >= 12) {
       result.priv->year += (dt->priv->month / 12);
       result.priv->month += (dt->priv->month % 12);
    }
    else
       result.priv->month += dt->priv->month;
 
-   if (result.priv->month > 12)
-   {
+   if (result.priv->month < 1) {
+      result.priv->year--;
+      result.priv->month += 12;
+   }
+   else if (result.priv->month > 12) {
       result.priv->year++;
       result.priv->month -= 12;
    }
@@ -1083,8 +1083,7 @@ void DateTime::addAbsoluteToRelative(DateTime &result, const class DateTime *dt)
 
 #ifdef QORE_DST_AWARE
    // first add days
-   if (dt->priv->day)
-   {
+   if (dt->priv->day) {
       // set the time to 12 noon to avoid problems with dst
       result.priv->hour = 12;
       result.priv->setDate(result.priv->getEpochSeconds() + 86400 * dt->priv->day);
@@ -1095,8 +1094,14 @@ void DateTime::addAbsoluteToRelative(DateTime &result, const class DateTime *dt)
    int ms = priv->millisecond + dt->priv->millisecond;
    int sec = dt->priv->second;
    // calculate milliseconds and additional seconds to add
-   if (ms >= 1000)
-   {
+   if (ms < 0) {
+      // ensure ms is greater than 0; add seconds to sec
+      int sd = (ms / 1000) - 1;
+      // increase seconds (subtract a negative number)
+      sec -= sd;
+      ms -= sd * 1000;
+   }
+   else if (ms >= 1000) {
       sec += (ms / 1000);
       ms %= 1000;
    }
@@ -1114,8 +1119,7 @@ void DateTime::addAbsoluteToRelative(DateTime &result, const class DateTime *dt)
    result.priv->millisecond = ms;
 }
 
-void DateTime::addRelativeToRelative(DateTime &result, const class DateTime *dt) const
-{
+void DateTime::addRelativeToRelative(DateTime &result, const DateTime *dt) const {
    result.priv->relative = true;
    
    result.priv->year = priv->year + dt->priv->year;
@@ -1127,24 +1131,27 @@ void DateTime::addRelativeToRelative(DateTime &result, const class DateTime *dt)
    result.priv->millisecond = priv->millisecond + dt->priv->millisecond;
 }
 
-void DateTime::subtractAbsoluteByRelative(DateTime &result, const class DateTime *dt) const
-{
+void DateTime::subtractAbsoluteByRelative(DateTime &result, const DateTime *dt) const {
    // subtract years
    result.priv->year -= dt->priv->year;
 
    // subtract months
-   if (dt->priv->month >= 12)
-   {
+   if (dt->priv->month >= 12) {
       result.priv->year -= (dt->priv->month / 12);
       result.priv->month -= (dt->priv->month % 12);
    }
    else
       result.priv->month -= dt->priv->month;
-   if (result.priv->month < 1)
-   {
+
+   if (result.priv->month < 1) {
       result.priv->year--;
       result.priv->month += 12;
    }
+   else if (result.priv->month > 12) {
+      result.priv->year++;
+      result.priv->month -= 12;
+   }
+
    // fix days if necessary
    // check for leap years
    if (result.priv->month == 2 && result.priv->day > 28)
@@ -1155,8 +1162,7 @@ void DateTime::subtractAbsoluteByRelative(DateTime &result, const class DateTime
 
 #ifdef QORE_DST_AWARE
    // subtract days aresult time
-   if (dt->priv->day)
-   {
+   if (dt->priv->day) {
       // set the time to 12 noon to avoid problems with dst
       result.priv->hour = 12;
       // there are 86400 seconds in an average day
@@ -1167,15 +1173,18 @@ void DateTime::subtractAbsoluteByRelative(DateTime &result, const class DateTime
    
    // now subtract time
    int ms = priv->millisecond - dt->priv->millisecond;
-   // calculate milliseconds aresult additional seconds to subtract
+   // calculate milliseconds a result additional seconds to subtract
    int sec = dt->priv->second;
-   if (ms < 0)
-   {
+   if (ms < 0) {
       // ensure ms is greater than 0; add seconds to sec
       int sd = (ms / 1000) - 1;
       // increase seconds (subtract a negative number)
       sec -= sd;
       ms -= sd * 1000;
+   }
+   else if (ms >= 1000) {
+      sec += (ms / 1000);
+      ms %= 1000;
    }
 
    if (dt->priv->hour || dt->priv->minute || sec
@@ -1192,7 +1201,7 @@ void DateTime::subtractAbsoluteByRelative(DateTime &result, const class DateTime
    result.priv->millisecond = ms;
 }
 
-void DateTime::subtractRelativeByRelative(DateTime &result, const class DateTime *dt) const
+void DateTime::subtractRelativeByRelative(DateTime &result, const DateTime *dt) const
 {
    result.priv->year = priv->year - dt->priv->year;
    result.priv->month = priv->month - dt->priv->month;
@@ -1204,7 +1213,7 @@ void DateTime::subtractRelativeByRelative(DateTime &result, const class DateTime
 }
 
 // returns a relative date value in days, hours, minutes, seconds, and milliseconds
-void DateTime::calcDifference(DateTime &result, const class DateTime *dt) const
+void DateTime::calcDifference(DateTime &result, const DateTime *dt) const
 {
    int64 sec = getEpochSeconds() - dt->getEpochSeconds();
    int ms = priv->millisecond - dt->priv->millisecond;
