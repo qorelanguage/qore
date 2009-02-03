@@ -1027,11 +1027,9 @@ DateTime *DateTime::add(const DateTime *dt) const {
    return rv;
 }
 
-DateTime *DateTime::subtractBy(const DateTime *dt) const
-{
+DateTime *DateTime::subtractBy(const DateTime *dt) const {
    DateTime *rv;
-   if (!priv->relative)
-   {
+   if (!priv->relative) {
       if (dt->priv->relative) {
 	 rv = new DateTime(*this);
 	 subtractAbsoluteByRelative(*rv, dt);
@@ -1201,8 +1199,7 @@ void DateTime::subtractAbsoluteByRelative(DateTime &result, const DateTime *dt) 
    result.priv->millisecond = ms;
 }
 
-void DateTime::subtractRelativeByRelative(DateTime &result, const DateTime *dt) const
-{
+void DateTime::subtractRelativeByRelative(DateTime &result, const DateTime *dt) const {
    result.priv->year = priv->year - dt->priv->year;
    result.priv->month = priv->month - dt->priv->month;
    result.priv->day = priv->day - dt->priv->day;
@@ -1213,30 +1210,25 @@ void DateTime::subtractRelativeByRelative(DateTime &result, const DateTime *dt) 
 }
 
 // returns a relative date value in days, hours, minutes, seconds, and milliseconds
-void DateTime::calcDifference(DateTime &result, const DateTime *dt) const
-{
+void DateTime::calcDifference(DateTime &result, const DateTime *dt) const {
    int64 sec = getEpochSeconds() - dt->getEpochSeconds();
    int ms = priv->millisecond - dt->priv->millisecond;
    //printd(5, "DT:cD() sec=%lld ms=%d\n", sec, ms);
 
    // normalize milliseconds   
-   if (ms <= -1000 || ms >= 1000)
-   {
+   if (ms <= -1000 || ms >= 1000) {
       int ns = ms / 1000;
       sec += ns;
       ms -= ns * 1000;
    }
    // further normalize ms
-   if (sec >= 0)
-   {
-      if (ms < 0)
-      {
+   if (sec >= 0) {
+      if (ms < 0) {
 	 ms += 1000;
 	 sec--;
       }
    }
-   else if (ms > 0)
-   {
+   else if (ms > 0) {
       ms -= 1000;
       sec++;
    }
@@ -1245,24 +1237,21 @@ void DateTime::calcDifference(DateTime &result, const DateTime *dt) const
    result.priv->relative = true;
 
    // first extract days
-   if (sec <= -86400 || sec >= 86400)
-   {
+   if (sec <= -86400 || sec >= 86400) {
       int nv = sec / 86400;
       result.priv->day = nv;
       sec -= nv * 86400LL;
    }
 
    // now extract hours
-   if (sec <= 3600 || sec >= 3600)
-   {
+   if (sec <= 3600 || sec >= 3600) {
       int nh = sec / 3600;
       result.priv->hour = nh;
       sec -= nh * 3600;
    }
 
    // extract minutes
-   if (sec <= 60 || sec >= 60)
-   {
+   if (sec <= 60 || sec >= 60) {
       int nm = sec / 60;
       result.priv->minute = nm;
       sec -= nm * 60;
