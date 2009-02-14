@@ -5,11 +5,13 @@ release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
 
 *) Socket::connect() takes an optional timeout value
 *) HTTPClient::constructor() options takes a new option: connect_timeout
+   (usable with the XmlRpcClient and JsonRpcClient classes as well)
 *) SOAP support updated in examples directory: SoapClient.qc, SoapHandler.qc,
    HTTPServer.qc, WSDL.qc
 *) added is_writable() function as a correctly-spelled alias for
    is_writeable()
 *) fixed and documented getcwd() function
+*) added new functions parseXMLAsData() and parseXMLAsDataWithSchema()
 *) BUG FIX: fixed a bug in the binary() function when converting binary
    strings to binary type when the strings had embedded nulls
 *) BUG FIX: fixed a crashing bug in the handling of GLIBC gethostbyname_r()
