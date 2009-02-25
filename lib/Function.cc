@@ -190,8 +190,8 @@ Paramlist::~Paramlist()
       delete [] lv;
 }
 
-UserFunction::UserFunction(char *n_name, class Paramlist *parms, class StatementBlock *b, bool synced)
-{
+UserFunction::UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, bool synced) {
+   printd(5, "UserFunction::UserFunction(%s) parms=%p b=%p synced=%d\n", n_name ? n_name : "null", parms, b, synced);
    synchronized = synced;
    if (synced)
       gate = new VRMutex();
