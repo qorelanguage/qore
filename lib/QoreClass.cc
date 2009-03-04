@@ -1542,9 +1542,8 @@ inline void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionS
    xsink->assimilate(&de);
 }
 
-QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
-{
-   class QoreHashNode *h = old->copyData(xsink);
+QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
+   QoreHashNode *h = old->copyData(xsink);
    if (*xsink)
       return 0;
 
