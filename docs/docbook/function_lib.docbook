@@ -569,20 +569,10 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="delete_thread_data">delete_thread_data()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>n/a</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Deletes the data associated to one or more keys in the thread-local data hash.</para>
-          </entry>
+          <entry><para><link linkend="delete_thread_data">delete_thread_data()</link></para></entry>
+          <entry><para>n/a</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Deletes the data associated to one or more keys in the thread-local data hash (destroys any objects as well).</para></entry>
         </row>
 
       <row>
@@ -3160,6 +3150,13 @@
 	  <entry><para>n/a</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Removes an installed signal handler and returns the signal handling state to the default.</para></entry>
+        </row>
+
+        <row>
+          <entry><para><link linkend="remove_thread_data">remove_thread_data()</link></para></entry>
+          <entry><para>n/a</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Removes the listed keys from the thread-local data hash.</para></entry>
         </row>
 
         <row>
@@ -20734,7 +20731,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Deletes the data associated to one or more keys in the thread-local data hash.</para>
+	<para>Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed.  See <link linkend="remove_thread_data">remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -20776,7 +20773,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</tbody>
       </tgroup>
     </table>
-  <para>This function does not throw any exceptions.</para>
+  <para>This function does not throw any exceptions, however any objects deleted could throw exceptions in their destructors.</para>
   </sect2>
 
   <sect2 id="get_all_thread_data">
@@ -21042,6 +21039,57 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <para>This function does not throw any exceptions.</para>
 
 </sect2>
+
+  <sect2 id="remove_thread_data">
+    <title>remove_thread_data()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes the data associated to one or more keys in the thread-local data hash.  For a similar function that also explicitly destroys objects, see <link linkend="delete_thread_data">delete_thread_data</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>remove_thread_data(<replaceable>key_string, [key_string, ...]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>remove_thread_data("key1", "key2");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+    
+    <table>
+      <title>Arguments and Return Values for remove_thread_data()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Arguments</para></entry>
+	    <entry><para>Return Values</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para>String, [String ...]</para></entry>
+	    <entry><para>n/a</para></entry>
+	    <entry><para>Removes the data associated to one or more keys in the thread-local data hash.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  <para>This function does not throw any exceptions.</para>
+  </sect2>
 
 <sect2 id="save_thread_data">
   <title>save_thread_data()</title>
