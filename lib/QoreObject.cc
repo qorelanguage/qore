@@ -673,8 +673,10 @@ AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, Excep
 QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const {
    AutoLocker al(priv->mutex);
 
-   if (priv->status == OS_DELETED)
+   if (priv->status == OS_DELETED) {
+      makeAccessDeletedObjectException(xsink, priv->theclass->getName());
       return 0;
+   }
 
    return priv->data->copy();
 }
@@ -836,8 +838,7 @@ QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink *xsink) c
    return rv.release();
 }
 
-int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    QoreHashNodeHolder h(copyData(xsink), xsink);
    if (*xsink)
       return -1;
