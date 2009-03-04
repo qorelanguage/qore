@@ -829,8 +829,7 @@ CodeContextHelper::CodeContextHelper(const char *code, const QoreObject *obj, Ex
    //printd(5, "CodeContextHelper::CodeContextHelper(%s, %08p) this=%08p, old=%s, %08p\n", code ? code : "null", obj, this, old_code ? old_code : "null", old_obj);
 }
 
-CodeContextHelper::~CodeContextHelper()
-{
+CodeContextHelper::~CodeContextHelper() {
    ThreadData *td  = thread_data.get();
    //printd(5, "CodeContextHelper::~CodeContextHelper() this=%08p current=(%s, %08p) restoring %s, %08p\n", this, td->current_code ? td->current_code : "null", td->current_obj, old_code ? old_code : "null", old_obj);
    if (td->current_obj)

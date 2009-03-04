@@ -42,7 +42,7 @@
 #include <memory>
 
 extern QoreListNode *ARGV, *QORE_ARGV;
-extern class QoreHashNode *ENV;
+extern QoreHashNode *ENV;
 
 class CharPtrList : public safe_dslist<const char *> {
    public:
@@ -423,8 +423,7 @@ QoreProgram::~QoreProgram()
 }
 
 // setup first program object
-QoreProgram::QoreProgram() : priv(new qore_program_private)
-{
+QoreProgram::QoreProgram() : priv(new qore_program_private) {
    priv->base_object = true;
    priv->parse_options = PO_DEFAULT;
    priv->po_locked = false;
@@ -497,8 +496,7 @@ void QoreProgram::deref(ExceptionSink *xsink)
    }
 }
 
-void QoreProgram::del(ExceptionSink *xsink)
-{
+void QoreProgram::del(ExceptionSink *xsink) {
    printd(5, "QoreProgram::del() this=%08p (priv->base_object=%d)\n", this, priv->base_object);
    // wait for all threads to terminate
    priv->tcount.waitForZero();
@@ -514,17 +512,18 @@ void QoreProgram::del(ExceptionSink *xsink)
    // method call can be repeated
    priv->deleteSBList();
 
-   delete priv->RootNS;
-   priv->RootNS = 0;
-
-   if (priv->base_object)
-   {
+   if (priv->base_object) {
       endThread(xsink);
 
       // delete thread local storage key
       delete priv->thread_local_storage;
       priv->base_object = false;
    }
+
+   //printd(5, "QoreProgram::~QoreProgram() this=%p deleting root ns %p\n", this, priv->RootNS);
+
+   delete priv->RootNS;
+   priv->RootNS = 0;
 }
 
 Var *QoreProgram::findGlobalVar(const char *name) {
@@ -811,38 +810,31 @@ bool QoreProgram::existsFunction(const char *name)
    return priv->user_func_list.find(name);
 }
 
-void QoreProgram::parseSetParseOptions(int po)
-{
-   if (priv->po_locked)
-   {
+void QoreProgram::parseSetParseOptions(int po) {
+   if (priv->po_locked) {
       parse_error("parse options have been locked on this program object");
       return;
    }
    priv->parse_options |= po;
 }
 
-void QoreProgram::setParseOptions(int po, ExceptionSink *xsink)
-{
-   if (priv->po_locked)
-   {
+void QoreProgram::setParseOptions(int po, ExceptionSink *xsink) {
+   if (priv->po_locked) {
       xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
       return;
    }
    priv->parse_options |= po;
 }
 
-void QoreProgram::disableParseOptions(int po, ExceptionSink *xsink)
-{
-   if (priv->po_locked)
-   {
+void QoreProgram::disableParseOptions(int po, ExceptionSink *xsink) {
+   if (priv->po_locked) {
       xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
       return;
    }
    priv->parse_options &= ~po;
 }
 
-void QoreProgram::parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm)
-{
+void QoreProgram::parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    if (!code || !code[0])
       return;
 
@@ -851,44 +843,37 @@ void QoreProgram::parsePending(const char *code, const char *label, ExceptionSin
    priv->parsePending(code, label, xsink, wS, wm);
 }
 
-void QoreProgram::startThread()
-{
+void QoreProgram::startThread() {
    priv->thread_local_storage->set(new QoreHashNode());
 }
 
-class QoreHashNode *QoreProgram::getThreadData()
-{
+QoreHashNode *QoreProgram::getThreadData() {
    return priv->thread_local_storage->get();
 }
 
-AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink)
-{
-   if (!priv->exec_class_name.empty())
-   {
+AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink) {
+   if (!priv->exec_class_name.empty()) {
       runClass(priv->exec_class_name.c_str(), xsink);
       return 0;
    }
    return runTopLevel(xsink);
 }
 
-class QoreHashNode *QoreProgram::clearThreadData(ExceptionSink *xsink)
-{
-   class QoreHashNode *h = priv->thread_local_storage->get();
+QoreHashNode *QoreProgram::clearThreadData(ExceptionSink *xsink) {
+   QoreHashNode *h = priv->thread_local_storage->get();
    printd(5, "QoreProgram::clearThreadData() this=%08p h=%08p (size=%d)\n", this, h, h->size());
    h->clear(xsink);
    return h;
 }
 
-void QoreProgram::endThread(ExceptionSink *xsink)
-{
+void QoreProgram::endThread(ExceptionSink *xsink) {
    // delete thread local storage data
-   class QoreHashNode *h = clearThreadData(xsink);
+   QoreHashNode *h = clearThreadData(xsink);
    h->deref(xsink);
 }
 
 // called during parsing (priv->plock already grabbed)
-void QoreProgram::resolveFunction(FunctionCallNode *f)
-{
+void QoreProgram::resolveFunction(FunctionCallNode *f) {
    QORE_TRACE("QoreProgram::resolveFunction()");
    char *fname = f->f.c_str;
 

@@ -34,6 +34,8 @@
 #define OS_OK             0
 #define OS_DELETED       -1
 
+//#define QORE_DEBUG_OBJ_REFS 0
+
 // if the second part of the pair is true, then the data is virtual
 typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
 
@@ -62,7 +64,9 @@ struct qore_object_private {
 #endif 
 	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false)
       {
-	 printd(5, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, p, oc->getName());
+#ifdef QORE_DEBUG_OBJ_REFS
+	 printd(QORE_DEBUG_OBJ_REFS, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, references 0->1\n", this, p, oc->getName());
+#endif
 	 /* instead of referencing the class, we reference the program, because the
 	    program contains the namespace that contains the class, and the class'
 	    methods may call functions in the program as well that could otherwise
@@ -139,6 +143,7 @@ QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *h) : A
 QoreObject::~QoreObject() {
    //QORE_TRACE("QoreObject::~QoreObject()");
    //printd(5, "QoreObject::~QoreObject() this=%08p, pgm=%08p, class=%s\n", this, priv->pgm, priv->theclass->getName());
+
    delete priv;
 }
 
@@ -167,12 +172,16 @@ bool QoreObject::isSystemObject() const {
 }
 
 void QoreObject::tRef() const {
-   printd(5, "QoreObject::tRef(this=%08p) class=%s, tref %d->%d\n", this, priv->theclass->getName(), priv->tRefs.reference_count(), priv->tRefs.reference_count() + 1);
+#ifdef QORE_DEBUG_OBJ_REFS
+   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::tRef(this=%08p) class=%s: tref %d->%d\n", this, priv->theclass->getName(), priv->tRefs.reference_count(), priv->tRefs.reference_count() + 1);
+#endif
    priv->tRefs.ROreference();
 }
 
 void QoreObject::tDeref() {
-   printd(5, "QoreObject::tDeref(this=%08p) class=%s, tref %d->%d\n", this, priv->theclass->getName(), priv->tRefs.reference_count(), priv->tRefs.reference_count() - 1);
+#ifdef QORE_DEBUG_OBJ_REFS
+   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::tDeref(this=%08p) class=%s: tref %d->%d\n", this, priv->theclass->getName(), priv->tRefs.reference_count(), priv->tRefs.reference_count() - 1);
+#endif
    if (priv->tRefs.ROdereference())
       delete this;
 }
@@ -380,6 +389,9 @@ void QoreObject::doDelete(ExceptionSink *xsink) {
 void QoreObject::customRefIntern() const {
    if (!references)
       tRef();
+#ifdef QORE_DEBUG_OBJ_REFS
+   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customRefIntern(this=%08p) class=%s: references %d->%d\n", this, getClassName(), references, references + 1);
+#endif
    ++references;
 }
 
@@ -392,20 +404,21 @@ void QoreObject::deleteBlockerRef() const {
     customRefIntern();
 }
 
-bool QoreObject::derefImpl(ExceptionSink *xsink)
-{
+bool QoreObject::derefImpl(ExceptionSink *xsink) {
    // should never be called
    assert(false);
    return false;
 }
 
 // manages the custom dereference and executes the destructor if necessary
-void QoreObject::customDeref(ExceptionSink *xsink)
-{
+void QoreObject::customDeref(ExceptionSink *xsink) {
    {
       SafeLocker sl(priv->mutex);
       printd(5, "QoreObject::customDeref() this=%08p, class=%s references=%d->%d status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), references, references - 1, priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
 
+#ifdef QORE_DEBUG_OBJ_REFS
+      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this=%08p) class=%s: references %d->%d\n", this, getClassName(), references, references - 1);
+#endif
       if (--references)
 	 return;
 
@@ -445,6 +458,10 @@ void QoreObject::obliterate(ExceptionSink *xsink)
    
    {
       SafeLocker sl(priv->mutex);
+
+#ifdef QORE_DEBUG_OBJ_REFS
+      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::obliterate(this=%08p) class=%s: references %d->%d\n", this, getClassName(), references, references - 1);
+#endif
       if (--references)
 	 return;
 
@@ -889,8 +906,7 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
    return 0;
 }
 
-AbstractQoreNode *QoreObject::realCopy() const
-{
+AbstractQoreNode *QoreObject::realCopy() const {
    return refSelf();
 }
 

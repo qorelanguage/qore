@@ -32,16 +32,15 @@
 #include <string.h>
 #include <stdlib.h>
 
-class QoreClassList
-{
+class QoreClassList {
    private:
       hm_qc_t hm;        // hash_map for name lookups
       
       DLLLOCAL void deleteAll();
       DLLLOCAL void assimilate(QoreClassList *n);
-      DLLLOCAL void remove(hm_qc_t::iterator i)
-      {
-	 class QoreClass *qc = i->second;
+
+      DLLLOCAL void remove(hm_qc_t::iterator i) {
+	 QoreClass *qc = i->second;
 	 //printd(5, "QCL::remove() this=%08p '%s' (%08p)\n", this, qc->getName(), qc);
          hm.erase(i);
 	 qc->nderef();
@@ -50,16 +49,16 @@ class QoreClassList
    public:
       DLLLOCAL QoreClassList() {}
       DLLLOCAL ~QoreClassList();
-      DLLLOCAL int add(class QoreClass *ot);
-      DLLLOCAL class QoreClass *find(const char *name);
-      DLLLOCAL class QoreClass *findChange(const char *name);
-      DLLLOCAL class QoreClassList *copy(int po);
+      DLLLOCAL int add(QoreClass *ot);
+      DLLLOCAL QoreClass *find(const char *name);
+      DLLLOCAL QoreClass *findChange(const char *name);
+      DLLLOCAL QoreClassList *copy(int po);
       DLLLOCAL void parseInit();
       DLLLOCAL void parseRollback();
       DLLLOCAL void parseCommit(QoreClassList *n);
       DLLLOCAL void reset();
-      DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, class QoreNamespaceList *nsl, class QoreNamespaceList *pendNSL, const char *nsname);
-      DLLLOCAL class QoreHashNode *getInfo();
+      DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, QoreNamespaceList *nsl, QoreNamespaceList *pendNSL, const char *nsname);
+      DLLLOCAL QoreHashNode *getInfo();
 };
 
 #endif // _QORE_QORECLASSLIST_H

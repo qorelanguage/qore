@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* fix broken callstacks - only reports for calls since the try statement
 * implement warning for local variables that are not referenced/used
 * implement auto-reconnect for pgsql, mssql and other drivers (mysql has it already)
 * implement a mechanism for a thread to sleep until another thread terminates (join)

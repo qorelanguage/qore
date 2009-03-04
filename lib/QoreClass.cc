@@ -333,8 +333,7 @@ inline int BCEAList::add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *
    return 0;
 }
 
-inline void BCEAList::deref(ExceptionSink *xsink)
-{
+inline void BCEAList::deref(ExceptionSink *xsink) {
    bceamap_t::iterator i;
    while ((i = begin()) != end()) {
       BCEANode *n = i->second;
@@ -406,8 +405,7 @@ void BCList::ref() const
    ROreference();
 }
 
-void BCList::deref()
-{
+void BCList::deref() {
    if (ROdereference())
       delete this;
 }
@@ -598,21 +596,18 @@ void BCList::execConstructorsWithArgs(QoreObject *o, class BCEAList *bceal, Exce
    execConstructors(o, bceal, xsink);
 }
 
-bool BCList::parseCheckHierarchy(const QoreClass *cls) const
-{
+bool BCList::parseCheckHierarchy(const QoreClass *cls) const {
    for (bclist_t::const_iterator i = begin(); i != end(); ++i)
       if ((*i)->sclass->parseCheckHierarchy(cls))
 	 return true;
    return false;
 }
 
-BCAList::BCAList(class BCANode *n)
-{
+BCAList::BCAList(class BCANode *n) {
    push_back(n);
 }
 
-BCAList::~BCAList()
-{
+BCAList::~BCAList() {
    bcalist_t::iterator i;
    while ((i = begin()) != end()) {
       delete *i;
@@ -620,24 +615,20 @@ BCAList::~BCAList()
    }
 }
 
-inline void BuiltinMethod::deref()
-{
+inline void BuiltinMethod::deref() {
    if (ROdereference())
       delete this;
 }
 
-bool QoreClass::has_delete_blocker() const
-{
+bool QoreClass::has_delete_blocker() const {
    return priv->has_delete_blocker;
 }
 
-BCSMList *QoreClass::getBCSMList() const
-{
+BCSMList *QoreClass::getBCSMList() const {
    return priv->scl ? &priv->scl->sml : 0;
 }
 
-const QoreMethod *QoreClass::findLocalMethod(const char *nme) const
-{
+const QoreMethod *QoreClass::findLocalMethod(const char *nme) const {
    hm_method_t::const_iterator i = priv->hm.find(nme);
    if (i != priv->hm.end())
       return i->second;
@@ -645,8 +636,7 @@ const QoreMethod *QoreClass::findLocalMethod(const char *nme) const
    return 0;
 }
 
-const QoreMethod *QoreClass::findMethod(const char *nme) const
-{
+const QoreMethod *QoreClass::findMethod(const char *nme) const {
    const QoreMethod *w;
    if (!(w = findLocalMethod(nme))) {
       // search superclasses
@@ -656,8 +646,7 @@ const QoreMethod *QoreClass::findMethod(const char *nme) const
    return w;
 }
 
-const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const
-{
+const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const {
    priv_flag = false;
 
    const QoreMethod *w;
@@ -669,8 +658,7 @@ const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const
    return w;
 }
 
-const QoreMethod *QoreClass::findParseMethod(const char *nme)
-{
+const QoreMethod *QoreClass::findParseMethod(const char *nme) {
    const QoreMethod *w;
    if ((w = findLocalMethod(nme)))
       return w;
@@ -680,8 +668,7 @@ const QoreMethod *QoreClass::findParseMethod(const char *nme)
 }
 
 // only called when parsing
-void QoreClass::setName(const char *n)
-{
+void QoreClass::setName(const char *n) {
    assert(!priv->name);
    priv->name = strdup(n);
 }
@@ -1067,33 +1054,28 @@ QoreClass::QoreClass()
    printd(5, "QoreClass::QoreClass() creating unnamed class ID:%d (this=%08p)\n", priv->classID, this);
 }
 
-QoreClass::QoreClass(qore_classid_t id, const char *nme)
-{
+QoreClass::QoreClass(qore_classid_t id, const char *nme) {
    priv = new qore_qc_private(nme);
 
    priv->classID = id;
    printd(5, "QoreClass::QoreClass() creating copy of '%s' ID:%d (this=%08p)\n", priv->name, priv->classID, this);
 }
 
-QoreClass::~QoreClass()
-{
+QoreClass::~QoreClass() {
    delete priv;
 }
 
-BCAList *QoreClass::getBaseClassConstructorArgumentList() const
-{
+BCAList *QoreClass::getBaseClassConstructorArgumentList() const {
    return priv->bcal;
 }
 
-QoreClass *QoreClass::getClass(qore_classid_t cid) const
-{
+QoreClass *QoreClass::getClass(qore_classid_t cid) const {
    if (cid == priv->classID)
       return (QoreClass *)this;
    return priv->scl ? priv->scl->sml.getClass(cid) : 0;
 }
 
-AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
    QORE_TRACE("QoreMethod::eval()");
 #ifdef DEBUG
    const char *oname = self ? self->getClass()->getName() : "<n/a: static>";
@@ -1403,8 +1385,7 @@ void QoreClass::execMemberNotification(QoreObject *self, const char *mem, Except
    discard(self->evalMethod(*priv->memberNotification, *args, xsink), xsink);
 }
 
-QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const
-{
+QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const {
    // create new object
    QoreObject *o = new QoreObject(this, getProgram());
    class BCEAList *bceal;
@@ -1437,8 +1418,7 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
    return o;
 }
 
-QoreObject *QoreClass::execSystemConstructor(int code, ...) const
-{
+QoreObject *QoreClass::execSystemConstructor(int code, ...) const {
    assert(priv->system_constructor);
 
    va_list args;
@@ -1455,8 +1435,7 @@ QoreObject *QoreClass::execSystemConstructor(int code, ...) const
    return o;
 }
 
-void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const
-{
+void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const {
    // if there is no constructor, execute the superclass constructors directly
    if (!priv->constructor){
       if (priv->scl) // execute superconstructors if any

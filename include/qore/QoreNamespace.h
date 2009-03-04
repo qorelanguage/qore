@@ -44,8 +44,7 @@ class QoreClassList;
 class NamedScope;
 
 //! contains constants, classes, and subnamespaces in QoreProgram objects
-class QoreNamespace
-{
+class QoreNamespace {
       friend class QoreNamespaceList;
       friend class RootQoreNamespace;
 
@@ -153,16 +152,23 @@ class QoreNamespace
       DLLLOCAL void parseRollback();
       DLLLOCAL void parseCommit();
       DLLLOCAL void setName(const char *nme);
+
+      //! destroys the object and frees all associated memory (not exported)
+      DLLLOCAL void purge();
 };
 
 //! the root namespace of a QoreProgram object
 /** is a specialization of QoreNamespace that provides functionality specific to the root namespace
+    this class' constructor and destructors are private, so the class may change without affecting the library's ABI
     @see QoreNamespace
  */
-class RootQoreNamespace : public QoreNamespace
-{
+class RootQoreNamespace : public QoreNamespace {
    private:
       QoreNamespace *qoreNS;
+
+      // each class that can have system constant objects must be
+      // dereferenced last when the namespace is destroyed
+      QoreClass *File;
 
       DLLLOCAL QoreNamespace *rootResolveNamespace(NamedScope *nscope);
       DLLLOCAL void addQoreNamespace(QoreNamespace *qns);

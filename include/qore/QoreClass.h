@@ -340,7 +340,7 @@ class QoreClass {
       /** always returns a list; if there are no methods then an empty list is returned
 	  @return a list strings of all methods in the class, the caller owns the reference count returned
        */
-      DLLEXPORT class QoreListNode *getMethodList() const;
+      DLLEXPORT QoreListNode *getMethodList() const;
 
       //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
       /** if the class ID is equal to the current class or is a base class

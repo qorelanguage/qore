@@ -297,14 +297,11 @@ void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
    
-   if (!xsink->isEvent())
-   {
+   if (!xsink->isEvent()) {
       code.constructor(self, args, xsink);
       if (xsink->isException())
 	 xsink->addStackInfo(CT_BUILTIN, class_name, "constructor", o_fn, o_ln, o_eln);
    }
-   
-
 }
 
 void BuiltinFunction::evalSystemConstructor(QoreObject *self, int val, va_list args) const

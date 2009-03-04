@@ -1,6 +1,12 @@
 2009.03.04: David Nichols
-	* fixed a crashing bug when trying to copy member elements of a deleted
-	  object
+	* fixed a crashing bug when trying to copy member elements of a 
+	  deleted object
+	* fixed the foreach statement when used with a reference and the break
+	  statement is used
+	* fixed a rare reference dependency bug where system classes were 
+	  being destroyed while still referenced in user code
+
+*** v0.7.3 RELEASE *** 
 
 2009.02.03: David Nichols
 	* fixed a bug doing math on negative units of relative dates; invalid

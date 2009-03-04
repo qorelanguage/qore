@@ -32,32 +32,31 @@
 
 #define _QORE_NAMESPACELIST_H
 
-class QoreNamespaceList
-{
+class QoreNamespaceList {
    private:
       DLLLOCAL void deleteAll();
       
    public:
-      class QoreNamespace *head, *tail;
+      QoreNamespace *head, *tail;
 
       DLLLOCAL QoreNamespaceList();
       DLLLOCAL ~QoreNamespaceList();
-      DLLLOCAL class QoreNamespace *find(const char *name);
-      DLLLOCAL void add(class QoreNamespace *ot);
-      DLLLOCAL class QoreNamespaceList *copy(int po);
+      DLLLOCAL QoreNamespace *find(const char *name);
+      DLLLOCAL void add(QoreNamespace *ot);
+      DLLLOCAL QoreNamespaceList *copy(int po);
       DLLLOCAL void parseInitConstants();
       DLLLOCAL void parseInit();
-      DLLLOCAL void parseCommit(class QoreNamespaceList *n);
+      DLLLOCAL void parseCommit(QoreNamespaceList *n);
       DLLLOCAL void parseRollback();
       DLLLOCAL void reset();
-      DLLLOCAL void assimilate(class QoreNamespaceList *n);
-      DLLLOCAL class QoreNamespace *parseResolveNamespace(class NamedScope *name, int *matched);
-      DLLLOCAL class AbstractQoreNode *parseFindConstantValue(const char *cname);
-      DLLLOCAL class AbstractQoreNode *parseFindScopedConstantValue(class NamedScope *name, int *matched);
-      DLLLOCAL class QoreClass *parseFindScopedClassWithMethod(class NamedScope *name, int *matched) const;
-      DLLLOCAL class QoreClass *parseFindScopedClass(class NamedScope *name, int *matched);
-      DLLLOCAL class QoreClass *parseFindClass(const char *ocname);
-      DLLLOCAL class QoreClass *parseFindChangeClass(const char *ocname);
+      DLLLOCAL void assimilate(QoreNamespaceList *n);
+      DLLLOCAL QoreNamespace *parseResolveNamespace(NamedScope *name, int *matched);
+      DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname);
+      DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(NamedScope *name, int *matched);
+      DLLLOCAL QoreClass *parseFindScopedClassWithMethod(NamedScope *name, int *matched) const;
+      DLLLOCAL QoreClass *parseFindScopedClass(NamedScope *name, int *matched);
+      DLLLOCAL QoreClass *parseFindClass(const char *ocname);
+      DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);
 };
 
 #endif
