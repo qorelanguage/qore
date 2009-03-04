@@ -378,6 +378,21 @@ class QoreHashNode : public AbstractQoreNode {
       DLLLOCAL AbstractQoreNode *getReferencedKeyValue(const char *key, bool &exists) const;
 
       DLLLOCAL AbstractQoreNode *getFirstKeyValue() const;
+
+      //! removes the given key from the hash and derefences its value, if any
+      /** A Qore-language exception could occur either in converting the key string's encoding to QCS_DEFAULT, or when dereferencing the contained value
+	  @param key the key of the value to delete
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLLOCAL void removeKey(const QoreString *key, ExceptionSink *xsink);
+
+      //! removes the given key from the hash and derefences its value, if any
+      /** A Qore-language exception could occur when dereferencing the contained value
+	  @FIXME: add to public API at next API version
+	  @param key the key of the value to delete
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLLOCAL void removeKey(const char *key, ExceptionSink *xsink);
 };
 
 #include <qore/ReferenceHolder.h>
