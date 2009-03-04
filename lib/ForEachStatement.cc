@@ -92,8 +92,7 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    return rc;
 }
 
-int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    int rc = 0;
 
    // instantiate local variables
@@ -136,7 +135,6 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
 	    return 0;
       }
-
       
       // execute "for" body
       rc = code->execImpl(return_value, xsink);
@@ -147,7 +145,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
       AbstractQoreNode *nv = var->eval(xsink);
       if (*xsink)
 	 return 0;
-      
+
       // assign new value to temporary variable for later assignment to referenced lvalue
       if (l_tlist)
 	 reinterpret_cast<QoreListNode *>(*ln)->push(nv);
@@ -155,6 +153,11 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 	 ln = nv;
       
       if (rc == RC_BREAK) {
+	 // assign remaining values to list unchanged
+	 if (l_tlist)
+	    while (++i < l_tlist->size())
+	       reinterpret_cast<QoreListNode *>(*ln)->push(l_tlist->get_referenced_entry(i));
+
 	 rc = 0;
 	 break;
       }
