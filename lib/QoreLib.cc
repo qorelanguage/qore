@@ -481,8 +481,12 @@ static void concatASCII(QoreString &str, unsigned char c)
       str.sprintf(" ('%c')", c);
 }
 
-static inline char getBase64Value(char c, ExceptionSink *xsink)
-{
+static inline char getBase64Value(const char *buf, qore_size_t &offset, ExceptionSink *xsink) {
+   while (buf[offset] == '\n' || buf[offset] == '\r')
+      ++offset;
+
+   char c = buf[offset];
+
    if (c >= 'A' && c <= 'Z')
       return c - 'A';
    if (c >= 'a' && c <= 'z')
@@ -505,21 +509,21 @@ static inline char getBase64Value(char c, ExceptionSink *xsink)
    return -1;
 }
 
-BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
-{
+BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink) {
    char *binbuf = (char *)malloc(sizeof(char) * (len + 3));
    int blen = 0;
 
-   int pos = 0;
-   while (pos < len) {
+   qore_size_t pos = 0;
+   while (pos < (qore_size_t)len) {
       // add first 6 bits
-      char b = getBase64Value(buf[pos], xsink);
+      char b = getBase64Value(buf, pos, xsink);
       if (xsink->isEvent()) {
          free(binbuf);
          return 0;
       }
       // get second 6 bits
-      char c = getBase64Value(buf[pos + 1], xsink);
+      ++pos;
+      char c = getBase64Value(buf, pos, xsink);
       if (xsink->isEvent()) {
          free(binbuf);
          return 0;
@@ -528,14 +532,15 @@ BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
       binbuf[blen++] = (b << 2) | (c >> 4);
 
       // check special cases
-      if (buf[pos + 2] == '=')
+      ++pos;
+      if (buf[pos] == '=')
          break;
 
       // low 4 bits from 2nd char become high 4 bits of next value
       b = (c & 15) << 4;
       
       // get third 6 bits
-      c = getBase64Value(buf[pos + 2], xsink);
+      c = getBase64Value(buf, pos, xsink);
       if (xsink->isEvent()) {
          free(binbuf);
          return 0;
@@ -544,21 +549,22 @@ BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
       binbuf[blen++] = b | (c >> 2);
 
       // check special cases
-      if (buf[pos + 3] == '=')
+      ++pos;
+      if (buf[pos] == '=')
          break;
 
       // low 2 bits from 3rd char become high 2 bits of next value
       b = (c & 3) << 6;
 
       // get fourth 6 bits
-      c = getBase64Value(buf[pos + 3], xsink);
+      c = getBase64Value(buf, pos, xsink);
       if (xsink->isEvent()) {
          free(binbuf);
          return 0;
       }
 
       binbuf[blen++] = b | c;
-      pos += 4;
+      ++pos;
    }
    return new BinaryNode(binbuf, blen);
 }

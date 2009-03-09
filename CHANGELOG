@@ -1,3 +1,6 @@
+2009.03.09: David Nichols
+	* ignore '\n' and '\r' when parsing base64-encoded strings
+
 2009.03.04: David Nichols
 	* fixed a crashing bug when trying to copy member elements of a 
 	  deleted object
