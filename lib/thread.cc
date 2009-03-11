@@ -883,18 +883,15 @@ const QoreListNode *thread_get_implicit_args()
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-void pushCall(CallNode *cn)
-{
+void pushCall(CallNode *cn) {
    thread_list[gettid()].callStack->push(cn);
 }
 
-void popCall(ExceptionSink *xsink)
-{
+void popCall(ExceptionSink *xsink) {
    thread_list[gettid()].callStack->pop(xsink);
 }
 
-QoreListNode *getCallStackList()
-{
+QoreListNode *getCallStackList() {
    return thread_list[gettid()].callStack->getCallStack();
 }
 
@@ -1326,11 +1323,11 @@ QoreHashNode *getAllCallStacks() {
    QoreHashNode *h = new QoreHashNode();
    QoreString str;
 
-   // grab thread list lock
-   AutoLocker al(lThreadList);
-
    // grab the call stack write lock
    AutoPRWWriteLocker wl(thread_stack_lock);
+
+   // grab thread list lock
+   AutoLocker al(lThreadList);
 
    tid_node *w = tid_head;
    while (w) {

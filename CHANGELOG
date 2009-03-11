@@ -1,3 +1,9 @@
+2009.03.11: David Nichols
+	* reversed order of lock acquisition when returning call stack
+	  infomation for all threads
+	* made sure to dereference the call stack object outside the call
+	  stack lock in order to avoid nested locking
+
 2009.03.09: David Nichols
 	* ignore '\n' and '\r' when parsing base64-encoded strings
 
