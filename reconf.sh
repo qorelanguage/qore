@@ -1,10 +1,10 @@
 #!/bin/sh
 # see if we need libtoolize or glibtoolize
-which libtoolize >/dev/null
+which libtoolize >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then
    lcmd=libtoolize
 fi
-which glibtoolize >/dev/null
+which glibtoolize >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then
    lcmd=glibtoolize
 fi
