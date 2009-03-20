@@ -4,10 +4,8 @@
 
 our $dl;  # deadlock flag
 
-synchronized sub internal_deadlock_a($c)
-{
-    if (exists $c)
-    {
+synchronized sub internal_deadlock_a($c) {
+    if (exists $c) {
 	$c.dec();
 	$c.waitForZero();
     }
@@ -16,17 +14,14 @@ synchronized sub internal_deadlock_a($c)
     try {
 	return internal_deadlock_b();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
 	$dl = True;
     }
 }
 
-synchronized sub internal_deadlock_b($c)
-{
-    if (exists $c)
-    {
+synchronized sub internal_deadlock_b($c) {
+    if (exists $c) {
 	$c.dec();
 	$c.waitForZero();
     }
@@ -35,15 +30,13 @@ synchronized sub internal_deadlock_b($c)
     try {
 	return internal_deadlock_a();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
 	$dl = True;
     }
 }
 
-sub mutex_gate_deadlock_a($c, $m, $g)
-{
+sub mutex_gate_deadlock_a($c, $m, $g) {
     my $al = new AutoLock($m);
     $c.dec();
     $c.waitForZero();
@@ -51,14 +44,12 @@ sub mutex_gate_deadlock_a($c, $m, $g)
 	$g.enter();
 	$g.exit();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 }
 
-sub mutex_gate_deadlock_b($c, $m, $g)
-{
+sub mutex_gate_deadlock_b($c, $m, $g) {
     my $ag = new AutoGate($g);
     $c.dec();
     $c.waitForZero();
@@ -66,14 +57,12 @@ sub mutex_gate_deadlock_b($c, $m, $g)
 	$m.lock();
 	$m.unlock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 }
 
-sub readwrite_deadlock_c($c, $rw1, $rw2)
-{
+sub readwrite_deadlock_c($c, $rw1, $rw2) {
     my $al = new AutoWriteLock($rw1);
     $c.dec();
     $c.waitForZero();
@@ -81,14 +70,12 @@ sub readwrite_deadlock_c($c, $rw1, $rw2)
 	$rw2.writeLock();
 	$rw2.writeUnlock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 }
 
-sub readwrite_deadlock_d($c, $rw1, $rw2)
-{
+sub readwrite_deadlock_d($c, $rw1, $rw2) {
     my $al = new AutoReadLock($rw2);
     $c.dec();
     $c.waitForZero();
@@ -96,21 +83,18 @@ sub readwrite_deadlock_d($c, $rw1, $rw2)
 	$rw1.readLock();
 	$rw1.readUnlock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 }
 
-sub test_thread_resources()
-{
+sub test_thread_resources() {
     my $n = new Mutex();
     $n.lock();
     try {
 	throwThreadResourceExceptions();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }        
     $n = new Gate();
@@ -118,8 +102,7 @@ sub test_thread_resources()
     try {
 	throwThreadResourceExceptions();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
     my $rw = new RWLock();
@@ -128,57 +111,59 @@ sub test_thread_resources()
     try {
 	throwThreadResourceExceptions();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
     $rw.writeLock();
     try {
 	throwThreadResourceExceptions();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 }
 
-sub cond_test($c, $cond, $m)
-{
+sub cond_test($c, $cond, $m) {
     $m.lock();
     $c.dec();
     try {
 	$cond.wait($m);
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }        
 }
 
-sub counter_test($c)
-{
+sub rwl_cond_test($c, $cond, $rwl) {
+    $rwl.readLock();
+    $c.dec();
+    try {
+	$cond.wait($rwl);
+    }
+    catch ($ex) {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }        
+}
+
+sub counter_test($c) {
     try {
 	$c.waitForZero();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 }
 
-sub queue_test($q)
-{
+sub queue_test($q) {
     try {
 	$q.get();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 }
 
-sub main()
-{
+sub main() {
     # internal deadlock with synchronized subroutines
     my $c = new Counter(2);
     background internal_deadlock_a($c);
@@ -209,23 +194,20 @@ sub main()
     try {
 	$m.lock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }    
     try {
 	$m.unlock();
 	$m.unlock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
     try {
 	delete $m;
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }    
 
@@ -233,16 +215,14 @@ sub main()
     try {
 	$g.exit();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
     $g.enter();
     try {
 	delete $g;
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 
@@ -250,15 +230,13 @@ sub main()
     try {
 	$rw1.writeUnlock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
     try {
 	$rw1.readUnlock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
     # RWLock tests
@@ -266,8 +244,7 @@ sub main()
 	$rw1.writeLock();
 	$rw1.readUnlock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
     $rw1.writeUnlock();
@@ -275,8 +252,7 @@ sub main()
 	$rw1.readLock();
 	$rw1.writeUnlock();
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
     $rw1.readUnlock();
@@ -291,15 +267,31 @@ sub main()
     background cond_test($c, $cond, $m);
     background cond_test($c, $cond, $m);
     $c.waitForZero();
-    # sleep until there are 2 condition variables waiting on this Mutex
-    while ($cond.wait_count($m) != 2)
-	usleep(100ms);
+    # lock and unlock to ensure until there are 2 condition variables waiting on this Mutex
+    $m.lock();
+    $m.unlock();
     try {
 	delete $m;
 	throw "NO-EXCEPTION-ERROR";
     }
-    catch ($ex)
-    {
+    catch ($ex) {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
+
+    # try it with a RWLock object
+    $c.inc();
+    $c.inc();
+    background rwl_cond_test($c, $cond, $rw1);
+    background rwl_cond_test($c, $cond, $rw1);
+    $c.waitForZero();
+    # lock and unlock to ensure until there are 2 condition variables waiting on this Mutex
+    $rw1.writeLock();
+    $rw1.writeUnlock();
+    try {
+	delete $rw1;
+	throw "NO-EXCEPTION-ERROR";
+    }
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 
@@ -315,8 +307,7 @@ sub main()
     try {
 	delete $c1;
     }    
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 
@@ -332,8 +323,7 @@ sub main()
     try {
 	delete $q;
     }    
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
 

@@ -66,6 +66,9 @@ typedef std::pair<enum obe_type_e, StatementBlock *> qore_conditional_block_exit
 
 typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
+// for maps of thread condition variables to TIDs
+typedef std::map<QoreCondition *, int> cond_map_t;
+
 #define NT_NONE  -1
 #define NT_ALL   -2
 

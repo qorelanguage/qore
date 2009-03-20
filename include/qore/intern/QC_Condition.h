@@ -26,14 +26,13 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreCondition.h>
-#include <qore/intern/SmartMutex.h>
+#include <qore/intern/AbstractSmartLock.h>
 
 extern qore_classid_t CID_CONDITION;
 
-class QoreClass *initConditionClass();
+QoreClass *initConditionClass();
 
-class Condition : public AbstractPrivateData
-{
+class Condition : public AbstractPrivateData {
    private:
       QoreCondition cond;
 
@@ -41,24 +40,19 @@ class Condition : public AbstractPrivateData
       DLLLOCAL virtual ~Condition() {}
 
    public:
-      DLLLOCAL int wait(SmartMutex *m, int timeout, class ExceptionSink *xsink)
-      {
+      DLLLOCAL int wait(AbstractSmartLock *m, int timeout, class ExceptionSink *xsink) {
 	 return m->extern_wait(&cond, xsink, timeout);
       }
-      DLLLOCAL int wait(SmartMutex *m, class ExceptionSink *xsink)
-      {
+      DLLLOCAL int wait(AbstractSmartLock *m, class ExceptionSink *xsink) {
 	 return m->extern_wait(&cond, xsink);
       }
-      DLLLOCAL int signal()
-      {
+      DLLLOCAL int signal() {
 	 return cond.signal();
       }
-      DLLLOCAL int broadcast()
-      {
+      DLLLOCAL int broadcast() {
 	 return cond.broadcast();
       }
-      DLLLOCAL int wait_count(SmartMutex *m)
-      {
+      DLLLOCAL int wait_count(SmartMutex *m) {
 	 return m->cond_count(&cond);
       }
 };

@@ -31,8 +31,7 @@
 
 class VLock;
 
-class AbstractSmartLock : public AbstractThreadResource
-{
+class AbstractSmartLock : public AbstractThreadResource {
    protected:
       enum lock_status_e { Lock_Deleted = -2, Lock_Unlocked = -1 };
    
@@ -69,12 +68,12 @@ class AbstractSmartLock : public AbstractThreadResource
       DLLLOCAL int tryGrab();
       DLLLOCAL int release();
       DLLLOCAL int release(ExceptionSink *xsink);
-      DLLLOCAL int self_wait(int timeout_ms) 
-      { 
+
+      DLLLOCAL int self_wait(int timeout_ms) { 
 	 return timeout_ms ? asl_cond.wait(&asl_lock, timeout_ms) : asl_cond.wait(&asl_lock); 
       }
-      DLLLOCAL int self_wait(QoreCondition *cond, int timeout_ms = 0) 
-      { 
+
+      DLLLOCAL int self_wait(QoreCondition *cond, int timeout_ms = 0) { 
 	 return timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock); 
       }
 

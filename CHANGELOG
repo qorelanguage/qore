@@ -1,3 +1,7 @@
+2009.03.20: David Nichols
+	* added the abilty for a Condition variable to wait on RWLock objects
+	  as well as Mutex objects
+
 2009.03.11: David Nichols
 	* reversed order of lock acquisition when returning call stack
 	  infomation for all threads

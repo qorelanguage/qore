@@ -33,10 +33,7 @@
 // track all external condition variables waiting on this
 // so we can signal them in case the object is destroyed
 
-typedef std::map<QoreCondition *, int> cond_map_t;
-
-class SmartMutex : public AbstractSmartLock
-{
+class SmartMutex : public AbstractSmartLock {
    private:
       cond_map_t cmap;
 
