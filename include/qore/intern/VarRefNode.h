@@ -24,8 +24,7 @@
 
 #define _QORE_VARREFNODE_H
 
-class VarRefNode : public ParseNode
-{
+class VarRefNode : public ParseNode {
    friend class VarRefNodeEvalOptionalRefHolder;
 
    protected:
