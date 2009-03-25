@@ -31,19 +31,16 @@
 #ifdef HAVE_CLOCK_GETTIME
 // define qore_gettime() for POSIX platforms
 typedef struct timespec qore_timespec_t;
-static inline void qore_gettime(qore_timespec_t *tp)
-{
+static inline void qore_gettime(qore_timespec_t *tp) {
    clock_gettime(CLOCK_REALTIME, tp);
 }
 #else
 // use gettimeofday() to get microsecond resolution and multiply by 1000
-struct qore_timespec_t
-{
+struct qore_timespec_t {
       unsigned tv_sec;
       unsigned tv_nsec;
 };
-static inline void qore_gettime(qore_timespec_t *tp)
-{
+static inline void qore_gettime(qore_timespec_t *tp) {
    struct timeval tv;
    gettimeofday(&tv, 0);
    tp->tv_sec = tv.tv_sec;
@@ -51,8 +48,7 @@ static inline void qore_gettime(qore_timespec_t *tp)
 }
 #endif
 
-static AbstractQoreNode *f_now(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_now(const QoreListNode *params, ExceptionSink *xsink) {
    time_t ct;
 
    ct = time(0);

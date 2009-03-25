@@ -210,8 +210,7 @@ const qore_option_s *qore_option_list = qore_option_list_l;
 
 size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
 
-static inline int get_number(char **param)
-{
+static inline int get_number(char **param) {
    int i, num; 
    
    i = strspn((*param), "0123456789");
@@ -226,8 +225,7 @@ static inline int get_number(char **param)
 #define P_SPACE_FILL        4
 #define P_ZERO_FILL         8
 
-bool qore_has_debug()
-{
+bool qore_has_debug() {
 #ifdef DEBUG
    return true;
 #else
@@ -235,8 +233,7 @@ bool qore_has_debug()
 #endif
 }
 
-FeatureList::FeatureList()
-{
+FeatureList::FeatureList() {
    // register default features
    push_back("sql");
    push_back("threads");
@@ -246,8 +243,7 @@ FeatureList::FeatureList()
 #endif
 }
 
-FeatureList::~FeatureList()
-{
+FeatureList::~FeatureList() {
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
@@ -292,8 +288,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	 length = astr->strlen();
 	 if ((width != -1) && (length > width) && !type)
 	    width = length;
-	 if ((width != -1) && (length > width))
-	 {
+	 if ((width != -1) && (length > width)) {
 	    tbuf.concat(*astr, width, xsink); // string encodings are converted here if necessary
 	 }
 	 else {
@@ -474,8 +469,7 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
    return buf.release();
 }
 
-static void concatASCII(QoreString &str, unsigned char c)
-{
+static void concatASCII(QoreString &str, unsigned char c) {
    str.sprintf("ascii %03d", c);
    if (c >= 32 || c < 127)
       str.sprintf(" ('%c')", c);
@@ -569,8 +563,7 @@ BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink) {
    return new BinaryNode(binbuf, blen);
 }
 
-int get_nibble(char c, ExceptionSink *xsink)
-{
+int get_nibble(char c, ExceptionSink *xsink) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -582,8 +575,7 @@ int get_nibble(char c, ExceptionSink *xsink)
    return -1;
 }
 
-BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink)
-{
+BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink) {
    if (!len)
       return new BinaryNode();
 
@@ -614,8 +606,7 @@ BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink)
    return new BinaryNode(binbuf, blen);
 }
 
-static inline int parse_get_nibble(char c)
-{
+static inline int parse_get_nibble(char c) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -629,8 +620,7 @@ static inline int parse_get_nibble(char c)
 
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-BinaryNode *parseHex(const char *buf, int len)
-{
+BinaryNode *parseHex(const char *buf, int len) {
    if (!buf || !(*buf))
       return new BinaryNode();
 
@@ -665,8 +655,7 @@ BinaryNode *parseHex(const char *buf, int len)
    return new BinaryNode(binbuf, blen);
 }
 
-char *make_class_name(const char *str)
-{
+char *make_class_name(const char *str) {
    char *cn = q_basename(str);
    char *p = strrchr(cn, '.');
    if (p && p != cn)
@@ -680,15 +669,13 @@ char *make_class_name(const char *str)
    return cn;
 }
 
-void print_node(FILE *fp, const AbstractQoreNode *node)
-{
+void print_node(FILE *fp, const AbstractQoreNode *node) {
    printd(5, "print_node() node=%08p (%s)\n", node, node ? node->getTypeName() : "(null)");
    QoreStringValueHelper str(node);
    fputs(str->getBuffer(), fp);
 }
 
-void qore_setup_argv(int pos, int argc, char *argv[])
-{
+void qore_setup_argv(int pos, int argc, char *argv[]) {
    ARGV = new QoreListNode();
    QORE_ARGV = new QoreListNode();
    int end = argc - pos;
@@ -699,8 +686,7 @@ void qore_setup_argv(int pos, int argc, char *argv[])
    }
 }
 
-void initENV(char *env[])
-{
+void initENV(char *env[]) {
    // set up environment hash
    int i = 0;
    ENV = new QoreHashNode();
@@ -719,8 +705,7 @@ void initENV(char *env[])
 
 }
 
-void delete_global_variables()
-{
+void delete_global_variables() {
    QORE_TRACE("delete_global_variables()");
    if (QORE_ARGV)
       QORE_ARGV->deref(0);
@@ -731,8 +716,7 @@ void delete_global_variables()
 
 }
 
-struct tm *q_localtime(const time_t *clock, struct tm *tms)
-{
+struct tm *q_localtime(const time_t *clock, struct tm *tms) {
 #ifdef HAVE_LOCALTIME_R
    localtime_r(clock, tms);
 #else
@@ -744,8 +728,7 @@ struct tm *q_localtime(const time_t *clock, struct tm *tms)
    return tms;
 }
 
-struct tm *q_gmtime(const time_t *clock, struct tm *tms)
-{
+struct tm *q_gmtime(const time_t *clock, struct tm *tms) {
 #ifdef HAVE_GMTIME_R
    gmtime_r(clock, tms);
 #else
@@ -758,8 +741,7 @@ struct tm *q_gmtime(const time_t *clock, struct tm *tms)
 }
 
 // thread-safe basename function (resulting pointer must be free()ed)
-char *q_basename(const char *path)
-{
+char *q_basename(const char *path) {
    const char *p = strrchr(path, '/');
    if (!p)
       return strdup(path);
@@ -767,8 +749,7 @@ char *q_basename(const char *path)
 }
 
 // returns a pointer within the same string
-char *q_basenameptr(const char *path)
-{
+char *q_basenameptr(const char *path) {
    const char *p = strrchr(path, '/');
    if (!p)
       return (char *)path;
@@ -776,8 +757,7 @@ char *q_basenameptr(const char *path)
 }
 
 // thread-safe basename function (resulting pointer must be free()ed)
-char *q_dirname(const char *path)
-{
+char *q_dirname(const char *path) {
    const char *p = strrchr(path, '/');
    if (!p || p == path) {
       char *x = (char *)malloc(sizeof(char) * 2);
@@ -791,16 +771,14 @@ char *q_dirname(const char *path)
    return x;
 }
 
-void *q_realloc(void *ptr, size_t size)
-{
+void *q_realloc(void *ptr, size_t size) {
    void *p = realloc(ptr, size);
    if (!p)
       free(ptr);
    return p;
 }
 
-ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink)
-{
+ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink) {
    QoreProgram *pgm = getProgram();
    UserFunction *f = pgm->findUserFunction(str->getBuffer());
    if (!f) {
@@ -810,8 +788,7 @@ ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink
    return new UserCallReferenceNode(f, pgm);
 }
 
-qore_license_t qore_get_license()
-{
+qore_license_t qore_get_license() {
    return qore_license;
 }
 
