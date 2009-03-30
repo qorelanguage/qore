@@ -1,5 +1,7 @@
 see docs/roadmap.html
 
+* add $# for list element offset in list operators (map, select)
+* add warning for duplicate hash keys
 * optimize object method calls from the same object to avoid the reference and dereference
 * fix broken callstacks - only reports for calls since the try statement
 * implement warning for local variables that are not referenced/used
