@@ -462,7 +462,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
       while (hi.next()) {
 	 const char *k = hi.getKey();
 	 AbstractQoreNode **value = hi.getValuePtr();
-	 
+
 	 // resolve constant references in keys
 	 if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
 	    AbstractQoreNode *rv;
@@ -475,7 +475,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
 	    }
 	    if (rv) {
 	       QoreStringValueHelper t(rv);
-	       
+
 	       // reference value for new hash key
 	       (*value)->ref();
 	       // not possible to have an exception here
@@ -484,12 +484,12 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
 	       // now reget new value ptr
 	       value = h->getKeyValuePtr(t->getBuffer());
 	    }
-	    else
-	       value = 0;
 	    
 	    // delete the old key (not possible to have an exception here)
 	    hi.deleteKey(0);
+	    continue;
 	 }
+
 	 if (value) {
 	    lvids += process_node(value, oflag, pflag);
 	    if (!needs_eval && *value && (*value)->needs_eval()) {

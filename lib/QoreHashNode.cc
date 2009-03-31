@@ -721,25 +721,21 @@ QoreString *QoreHashNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
    return rv.release();
 }
 
-HashIterator::HashIterator(class QoreHashNode *qh) 
-{
+HashIterator::HashIterator(class QoreHashNode *qh) {
    h = qh;
    ptr = 0;
 }
 
-HashIterator::HashIterator(class QoreHashNode &qh) 
-{
+HashIterator::HashIterator(class QoreHashNode &qh) {
    h = &qh;
    ptr = 0;
 }
 
-AbstractQoreNode *HashIterator::getReferencedValue() const
-{
+AbstractQoreNode *HashIterator::getReferencedValue() const {
    return ptr && ptr->node ? ptr->node->refSelf() : 0;
 }
 
-class QoreString *HashIterator::getKeyString() const
-{
+QoreString *HashIterator::getKeyString() const {
    if (!ptr)
       return 0;
    
@@ -747,19 +743,17 @@ class QoreString *HashIterator::getKeyString() const
 }
 
 /*
- void HashIterator::setValue(AbstractQoreNode *val, ExceptionSink *xsink)
- {
+void HashIterator::setValue(AbstractQoreNode *val, ExceptionSink *xsink) {
     if (!ptr)
        return;
     
     if (ptr->node)
        ptr->node->deref(xsink);
     ptr->node = val;
- }
- */
+}
+*/
 
-bool HashIterator::next() 
-{ 
+bool HashIterator::next() { 
    if (ptr) 
       ptr = ptr->next;
    else
@@ -767,29 +761,24 @@ bool HashIterator::next()
    return ptr;
 }
 
-const char *HashIterator::getKey() const
-{ 
+const char *HashIterator::getKey() const { 
    if (!ptr)
       return 0;
    
    return ptr->key;
 }
 
-AbstractQoreNode *HashIterator::getValue() const
-{
+AbstractQoreNode *HashIterator::getValue() const {
    if (ptr)
       return ptr->node;
    return 0;
 }
 
-AbstractQoreNode *HashIterator::takeValueAndDelete()
-{
-   AbstractQoreNode *rv;
-   if (ptr)
-   { 
-      rv = ptr->node;
+AbstractQoreNode *HashIterator::takeValueAndDelete() {
+   if (ptr) { 
+      AbstractQoreNode *rv = ptr->node;
       ptr->node = 0;
-      class HashMember *w = ptr;
+      HashMember *w = ptr;
       ptr = ptr->prev;
 
       // remove key from map before deleting hash member with key pointer

@@ -1,3 +1,7 @@
+2009.03.31: David Nichols
+	* fixed a bug parsing hashes where the hash key was given as a
+	  constant
+
 2009.03.24: David Nichols
 	* fixed a write bug where shared data was being updated in place 
 	  instead of copied and then updated
