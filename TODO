@@ -1,5 +1,3 @@
-see docs/roadmap.html
-
 * add $# for list element offset in list operators (map, select)
 * add warning for duplicate hash keys
 * optimize object method calls from the same object to avoid the reference and dereference
@@ -50,7 +48,7 @@ done 0.7.0:
 * make it so that there is only ever one Nothing and Null object
 * eliminate needs_eval() and is_value() as virtual functions, including bitfield bools (when reimplementing QoreType as an 20-bit integer)
 * implement -,-= with hash, list of strings to remove lists of hash keys
-* update Operator.cc ex: op_plus_eq: use getAsFlaat() on evaluated argument instead of convert()
+* update Operator.cc ex: op_plus_eq: use getAsFloat() on evaluated argument instead of convert()
 * migrate to "pimpl" approach for exported classes in qore library
 * fix QoreSocket.cc to replace spaces with %20 in paths
 * fix qt QShortcut to work on dynamic slots by saving the slot and calling the slot when the shortcut's signal is raised

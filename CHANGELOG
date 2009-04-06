@@ -1,3 +1,7 @@
+2009.04.06: David Nichols
+	* fixed a bug outputting '%' characters ('%%' now works properly to
+	  output a single '%' character)
+
 2009.03.31: David Nichols
 	* fixed a bug parsing hashes where the hash key was given as a
 	  constant

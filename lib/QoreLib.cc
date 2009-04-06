@@ -264,6 +264,14 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
       printd(5, "process_opt() %08p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
    }
 #endif
+
+   // if it's just '%%' then output a single '%' and do not process arguments
+   if (param[1] == '%') {
+      cstr->concat('%');
+      *taken = 0;
+      return 1;
+   }
+
   loop:
    switch (*(++param)) {
       case '-': opts |= P_JUSTIFY_LEFT; goto loop;
@@ -357,16 +365,14 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	    *(f++) = '-';
 	 if (opts & P_INCLUDE_PLUS)
 	    *(f++) = '+';
-	 if (width != -1)
-	 {
+	 if (width != -1) {
 	    if (opts & P_SPACE_FILL)
 	       *(f++) = ' ';
 	    else if (opts & P_ZERO_FILL)
 	       *(f++) = '0';
 	    f += sprintf(f, "%d", width);
 	 }
-	 if (decimals != -1)
-	 {
+	 if (decimals != -1) {
 	    *(f++) = '.';
 	    f += sprintf(f, "%d", decimals);
 	 }
@@ -406,20 +412,21 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
    SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(p->getEncoding()));
 
    j = 1 + offset;
-   l = strlen(p->getBuffer());
+
+   const char *pstr = p->getBuffer();
+   l = strlen(pstr);
    for (i = 0; i < l; i++) {
       int taken = 1;
-      if ((p->getBuffer()[i] == '%') 
-	  && (j < params->size())) {
+      if ((pstr[i] == '%') && (j < params->size())) {
 	 const AbstractQoreNode *node = get_param(params, j++);
-	 i += process_opt(*buf, (char *)&p->getBuffer()[i], node, field, &taken, xsink);
+	 i += process_opt(*buf, (char *)&pstr[i], node, field, &taken, xsink);	 
 	 if (*xsink)
 	    return 0;
 	 if (!taken)
 	    j--;
       }
       else
-	 buf->concat(p->getBuffer()[i]);
+	 buf->concat(pstr[i]);
    }
 
    return buf.release();
