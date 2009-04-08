@@ -1,3 +1,7 @@
+2009.04.08: David Nichols
+	* fixed outputting '%%' as '%' in *printf*() when no arguments are
+	  left to process
+
 2009.04.06: David Nichols
 	* fixed a bug outputting '%' characters ('%%' now works properly to
 	  output a single '%' character)

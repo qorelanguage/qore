@@ -425,8 +425,11 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
 	 if (!taken)
 	    j--;
       }
-      else
+      else {
 	 buf->concat(pstr[i]);
+	 if (pstr[i] == '%' && pstr[i+1] == '%')
+	     ++i;
+      }
    }
 
    return buf.release();
