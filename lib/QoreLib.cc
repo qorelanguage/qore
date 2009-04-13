@@ -485,7 +485,7 @@ static void concatASCII(QoreString &str, unsigned char c) {
       str.sprintf(" ('%c')", c);
 }
 
-static inline char getBase64Value(const char *buf, qore_size_t &offset, ExceptionSink *xsink) {
+static inline char getBase64Value(const char *buf, qore_size_t &offset, bool end_ok, ExceptionSink *xsink) {
    while (buf[offset] == '\n' || buf[offset] == '\r')
       ++offset;
 
@@ -502,8 +502,10 @@ static inline char getBase64Value(const char *buf, qore_size_t &offset, Exceptio
    if (c == '/')
       return 63;
 
-   if (!c)
-      xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string");
+   if (!c) {
+      if (!end_ok)
+	 xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
+   }
    else {
       QoreStringNode *desc = new QoreStringNode;
       concatASCII(*desc, c);
@@ -513,6 +515,7 @@ static inline char getBase64Value(const char *buf, qore_size_t &offset, Exceptio
    return -1;
 }
 
+// see: RFC-1421: http://www.ietf.org/rfc/rfc1421.txt and RFC-2045: http://www.ietf.org/rfc/rfc2045.txt
 BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink) {
    char *binbuf = (char *)malloc(sizeof(char) * (len + 3));
    int blen = 0;
@@ -520,14 +523,18 @@ BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink) {
    qore_size_t pos = 0;
    while (pos < (qore_size_t)len) {
       // add first 6 bits
-      char b = getBase64Value(buf, pos, xsink);
+      char b = getBase64Value(buf, pos, true, xsink);
       if (xsink->isEvent()) {
          free(binbuf);
          return 0;
       }
+      // if we've reached the end of the string here, then exit the loop
+      if (!buf[pos])
+	 break;
+
       // get second 6 bits
       ++pos;
-      char c = getBase64Value(buf, pos, xsink);
+      char c = getBase64Value(buf, pos, false, xsink);
       if (xsink->isEvent()) {
          free(binbuf);
          return 0;
@@ -544,7 +551,7 @@ BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink) {
       b = (c & 15) << 4;
       
       // get third 6 bits
-      c = getBase64Value(buf, pos, xsink);
+      c = getBase64Value(buf, pos, false, xsink);
       if (xsink->isEvent()) {
          free(binbuf);
          return 0;
@@ -561,7 +568,7 @@ BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink) {
       b = (c & 3) << 6;
 
       // get fourth 6 bits
-      c = getBase64Value(buf, pos, xsink);
+      c = getBase64Value(buf, pos, false, xsink);
       if (xsink->isEvent()) {
          free(binbuf);
          return 0;
