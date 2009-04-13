@@ -212,7 +212,7 @@ QoreString::QoreString(const BinaryNode *b) : priv(new qore_string_private)
    concatBase64(b);
 }
 
-QoreString::QoreString(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const class QoreEncoding *enc) : priv(new qore_string_private)
+QoreString::QoreString(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc) : priv(new qore_string_private)
 {
    priv->buf = nbuf;
    priv->len = nlen;
@@ -556,7 +556,7 @@ int QoreString::convert_encoding_intern(const char *src, qore_size_t src_len, co
    return 0;
 }
 
-class QoreString *QoreString::convertEncoding(const QoreEncoding *nccs, ExceptionSink *xsink) const
+QoreString *QoreString::convertEncoding(const QoreEncoding *nccs, ExceptionSink *xsink) const
 {
    printd(5, "QoreString::convertEncoding() from \"%s\" to \"%s\"\n", priv->charset->getCode(), nccs->getCode());
 
@@ -565,7 +565,7 @@ class QoreString *QoreString::convertEncoding(const QoreEncoding *nccs, Exceptio
    if (!priv->len)
       return new QoreString(nccs);
 
-   class QoreString *targ = new QoreString(nccs);
+   QoreString *targ = new QoreString(nccs);
 
    if (convert_encoding_intern(priv->buf, priv->len, priv->charset, *targ, nccs, xsink)) {
       delete targ;
@@ -1400,25 +1400,21 @@ void QoreString::concatISO8601DateTime(const DateTime *d) {
    sprintf("%04d%02d%02dT%02d:%02d:%02d", d->getYear(), d->getMonth(), d->getDay(), d->getHour(), d->getMinute(), d->getSecond());
 }
 
-void QoreString::concatHex(const BinaryNode *b)
-{
+void QoreString::concatHex(const BinaryNode *b) {
    concatHex((char *)b->getPtr(), b->size());
 }
 
-void QoreString::concatHex(const QoreString *str)
-{
+void QoreString::concatHex(const QoreString *str) {
    concatHex(str->priv->buf, str->priv->len);
 }
 
 // endian-agnostic base64 string -> binary object function
-class BinaryNode *QoreString::parseBase64(ExceptionSink *xsink) const
-{
+BinaryNode *QoreString::parseBase64(ExceptionSink *xsink) const {
    return ::parseBase64(priv->buf, priv->len, xsink);
 }
 
 // FIXME: implement possibility to specify character encoding
-class QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const
-{
+QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const {
    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
       return 0;
@@ -1432,8 +1428,7 @@ class QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const
    b = 0;
 
    // check for null termination
-   if (p->buf[p->len])
-   {
+   if (p->buf[p->len]) {
       ++p->len;
       p->buf = (char *)realloc(p->buf, p->len + 1);
       p->buf[p->len] = '\0';
@@ -1443,13 +1438,11 @@ class QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const
    return new QoreString(p);
 }
 
-class BinaryNode *QoreString::parseHex(ExceptionSink *xsink) const
-{
+BinaryNode *QoreString::parseHex(ExceptionSink *xsink) const {
    return ::parseHex(priv->buf, priv->len, xsink);
 }
 
-void QoreString::allocate(unsigned requested_size)
-{
+void QoreString::allocate(unsigned requested_size) {
    if ((unsigned)priv->allocated >= requested_size) {
       return;  
    }
@@ -1469,7 +1462,7 @@ const QoreEncoding *QoreString::getEncoding() const
    return priv->charset; 
 }
 
-class QoreString *QoreString::copy() const
+QoreString *QoreString::copy() const
 {
    return new QoreString(*this);
 }
@@ -1645,8 +1638,7 @@ unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const {
       | (((unsigned)priv->buf[offset + 3] & 0x3f));
 }
 
-unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink *xsink) const
-{
+unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink *xsink) const {
    TempEncodingHelper tmp(this, QCS_UTF8, xsink);
    if (*xsink)
       return 0;
@@ -1654,16 +1646,14 @@ unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink *xs
    return tmp->getUnicodePointFromUTF8(offset);
 }
 
-QoreString *QoreString::reverse() const
-{
-   class QoreString *str = new QoreString(priv->charset);
+QoreString *QoreString::reverse() const {
+   QoreString *str = new QoreString(priv->charset);
    concat_reverse(str);
    return str;
 }
 
 // remove trailing char
-void QoreString::trim_trailing(char c)
-{
+void QoreString::trim_trailing(char c) {
    if (!priv->len)
       return;
    
@@ -1675,8 +1665,7 @@ void QoreString::trim_trailing(char c)
 }
 
 // remove leading char
-void QoreString::trim_leading(char c)
-{
+void QoreString::trim_leading(char c) {
    if (!priv->len)
       return;
    
@@ -1691,15 +1680,13 @@ void QoreString::trim_leading(char c)
 }
 
 // remove leading and trailing char
-void QoreString::trim(char c)
-{
+void QoreString::trim(char c) {
    trim_trailing(c);
    trim_leading(c);
 }
 
 // remove trailing chars
-void QoreString::trim_trailing(const char *chars)
-{
+void QoreString::trim_trailing(const char *chars) {
    if (!priv->len)
       return;
 
@@ -1715,8 +1702,7 @@ void QoreString::trim_trailing(const char *chars)
 }
 
 // remove leading char
-void QoreString::trim_leading(const char *chars)
-{
+void QoreString::trim_leading(const char *chars) {
    if (!priv->len)
       return;
    
@@ -1735,8 +1721,7 @@ void QoreString::trim_leading(const char *chars)
 }
 
 // remove leading and trailing blanks
-void QoreString::trim(const char *chars)
-{
+void QoreString::trim(const char *chars) {
    trim_trailing(chars);
    trim_leading(chars);
 }
