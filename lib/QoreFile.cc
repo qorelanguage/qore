@@ -614,7 +614,8 @@ QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
       return 0;
 
    QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
-   str->terminate(buf[size - 1] ? size : size - 1);
+   //str->terminate(buf[size - 1] ? size : size - 1);
+   str->terminate(size);
    return str;
 }
 
@@ -654,7 +655,8 @@ QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink
       return 0;
 
    QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
-   str->terminate(buf[size - 1] ? size : size - 1);
+   //str->terminate(buf[size - 1] ? size : size - 1);
+   str->terminate(size);
    return str;
 }
 
