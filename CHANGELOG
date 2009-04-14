@@ -1,3 +1,8 @@
+2009.04.14: David Nichols
+	* do not assume that a trailing null should terminate the string when
+	  reading string data from files; include the trailing null in the
+	  string
+
 2009.04.13: David Nichols
 	* fixed a bug parsing base64 strings when newlines and/or linefeeds
 	  trailed the base64-encoded data
