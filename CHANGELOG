@@ -2,6 +2,8 @@
 	* do not assume that a trailing null should terminate the string when
 	  reading string data from files; include the trailing null in the
 	  string
+	* dereferencing a hash or object with a list will return a slice of
+	  the hash or object as a hash
 
 2009.04.13: David Nichols
 	* fixed a bug parsing base64 strings when newlines and/or linefeeds

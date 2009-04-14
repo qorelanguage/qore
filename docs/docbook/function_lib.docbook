@@ -20731,7 +20731,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed.  See <link linkend="remove_thread_data">remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash.</para>
+	<para>Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed.  See <link linkend="remove_thread_data">remove_thread_data()</link> for a similar function that does not explicitly destroy objects in the thread-local data hash.</para>
       </listitem>
     </varlistentry>
     <varlistentry>

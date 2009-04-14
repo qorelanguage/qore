@@ -464,6 +464,9 @@ class QoreObject : public AbstractQoreNode
        */
       DLLLOCAL AbstractQoreNode **getExistingValuePtr(const char *mem, AutoVLock *vl, ExceptionSink *xsink) const;
 
+      // returns a new hash consisting of just the members of value_list
+      DLLLOCAL QoreHashNode *getSlice(const QoreListNode *value_list, ExceptionSink *xsink) const;
+
       //! creates the object with the initial data passed as "d", used by the copy constructor
       DLLLOCAL QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *d);
 

@@ -546,7 +546,11 @@
 	<entry><para>This expression must evaluate to a hash or an object. If not, then the operator returns no value.</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>expression</replaceable></para></entry>
+	<entry><para><replaceable>expression = list</replaceable></para></entry>
+	<entry><para>If the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object.  If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>expression != list</replaceable></para></entry>
 	<entry><para>This expression is evaluated and converted to a string if necessary. The value of the hash key corresponding to this string will be returned. If the key or member does not exist, then no value is returned.</para></entry>
       </row>
     </tbody>
@@ -578,14 +582,15 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Retrieves the value of a hash key or object member using a literal identifier.</para>
+	<para>Retrieves the value of a hash key or object member using a literal identifier or an expression.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Syntax</term>
       <listitem>
 	<programlisting><replaceable>container_expression.identifier</replaceable>
-<replaceable>container_expression.method_identifier([arguments...])</replaceable></programlisting>
+<replaceable>container_expression.method_identifier([arguments...])</replaceable>
+<replaceable>container_expression.expression</replaceable></programlisting>
       </listitem>
     </varlistentry>
 
@@ -620,6 +625,14 @@
 	<row>
 	  <entry><para><replaceable>method_ídentifier</replaceable></para></entry>
 	  <entry><para>The container expression must evaluate to an object, or a run-time exception is thrown.  If the method does not exist in the class a run-time exception is thrown.  Otherwise the method is called with any optional arguments given.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>expression = list</replaceable></para></entry>
+	  <entry><para>If the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object.  If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>expression != list</replaceable></para></entry>
+	  <entry><para>This expression is evaluated and converted to a string if necessary. The value of the hash key corresponding to this string will be returned. If the key or member does not exist, then no value is returned.</para></entry>
 	</row>
 
       </tbody>

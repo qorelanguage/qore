@@ -8,7 +8,7 @@
 %no-child-restrictions
 
 # make sure we have the right version of qore
-%requires qore >= 0.7.1
+%requires qore >= 0.7.4
 
 # global variables needed for tests
 our $to = new Test("program-test.q");
@@ -84,13 +84,11 @@ sub array_helper($a) {
     test_value($a[1][1], 2, "passed local array variable assignment");    
 }
 
-sub list_return($var)
-{
+sub list_return($var) {
     return (1, test2(), $var);
 }
 
-sub hash_return($var)
-{
+sub hash_return($var) {
     return ( "gee" : "whiz", 
 	     "num" : test1(),
 	     "var" : $var );
@@ -101,14 +99,12 @@ class Sort {
 	return $l.key1 <=> $r.key1;
     }
 }
-sub hash_sort_callback($l, $r)
-{
+sub hash_sort_callback($l, $r) {
     return $l.key1 <=> $r.key1;
 }
 
 # array tests
-sub array_tests()
-{
+sub array_tests() {
     my ($a, $b, $c, $d);
 
     if ($o.verbose)
@@ -192,9 +188,10 @@ sub array_tests()
     my $s = new Sort();
     test_value(sort($l1), (1,2,3,4,5,6), "first sort()");
     test_value(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
-    test_value(sort($hl, \hash_sort_callback()), $sorted_hl, "first sort() with callback");
-    test_value(sort($hl, \$s.hash()), $sorted_hl, "second sort() with callback");
-    test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "third sort() with callback");
+    test_value(sort($hl, \hash_sort_callback()), $sorted_hl, "sort() with function call reference callback");
+    test_value(sort($hl, \$s.hash()), $sorted_hl, "sort() with object method callback");
+    test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "sort() with string function name callback");
+    test_value(sort($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $sorted_hl, "sort() with closure callback");
 
     my $r_sorted_hl = reverse($sorted_hl);
     test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
@@ -202,16 +199,19 @@ sub array_tests()
     test_value(sortDescending($hl, \hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
     test_value(sortDescending($hl, \$s.hash()), $r_sorted_hl, "second sortDescending() with callback");
     test_value(sortDescending($hl, "hash_sort_callback"), $r_sorted_hl, "third sortDescending() with callback");
+    test_value(sortDescending($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $r_sorted_hl, "sortDescending() with closure callback");
 
     $hl += ( "key1" : 3, "key2" : "five-o" );
     test_value(sortStable($hl, \hash_sort_callback()), $stable_sorted_hl, "first sortStable() with callback");
     test_value(sortStable($hl, \$s.hash()), $stable_sorted_hl, "second sortStable() with callback");
     test_value(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sortStable() with callback");
+    test_value(sortStable($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $stable_sorted_hl, "sortStable() with closure callback");
 
     my $r_stable_sorted_hl = reverse($stable_sorted_hl);
     test_value(sortDescendingStable($hl, \hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
+    test_value(sortDescendingStable($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $r_stable_sorted_hl, "sortDescendingStable() with closure callback");
 
     test_value(min($l1), 1, "simple min()");
     test_value(max($l1), 6, "simple max()");
@@ -260,8 +260,7 @@ sub array_tests()
     test_value($a[4], ord("o"), "binary byte dereference");
 }
 
-sub hash_tests()
-{
+sub hash_tests() {
     if ($o.verbose)
 	print("%%%% hash tests\n");
     # hash tests
@@ -299,6 +298,14 @@ sub hash_tests()
     test_value($a.key, 3, "hash plus equals operator element override");
     test_value($a."new", 45, "hash plus equals operator new element");
     test_value($a.unique, 100, "hash plus equals operator unchanged element");
+
+    # test hash slice creation
+    test_value($a.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation");
+
+    my $ot = new Test(1, "two", 3.0);
+    $ot += $a;
+    test_value($ot.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation from object");
+
     # delete 3 keys from the $c hash
     $b = $c - "new" - "barn" - "asd";
     test_value($b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
@@ -1088,19 +1095,16 @@ sub string_tests() {
     test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
 }
 
-sub pwd_tests()
-{
+sub pwd_tests() {
     # getpwuid(0).pw_name may not always be "root"
     test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
 }
 
-sub simple_shift()
-{
+sub simple_shift() {
     return shift $argv;
 }
 
-sub misc_tests()
-{
+sub misc_tests() {
     my $dh = ( "user"    : "user",
 	       "pass"    : "123pass@word",
 	       "db"      : "dbname",
@@ -1176,16 +1180,14 @@ sub file_tests() {
     test_value(is_pipe("/"), False, "is_pipe()");
 }
 
-sub io_tests()
-{
+sub io_tests() {
     test_value(sprintf("%04d-%.2f", 25, 101.239), "0025-101.24", "sprintf()");
     test_value(vsprintf("%04d-%.2f", (25, 101.239)), "0025-101.24", "vsprintf()");
     # check multi-byte character set support for f_*printf()
     test_value(f_sprintf("%3s", "niña"), "niñ", "UTF-8 f_sprintf()");
 }
 
-sub function_library_test()
-{
+sub function_library_test() {
     date_time_tests();
     binary_tests();
     string_tests();  
@@ -1196,36 +1198,29 @@ sub function_library_test()
     io_tests();
 }
 
-sub t($a)
-{
+sub t($a) {
     return $a + 1;
 }
 
 class Test inherits Socket {
-    constructor($a, $b, $c)
-    {
+    constructor($a, $b, $c) {
         $.data = ($a, $b, $c);
     }
-    getData($elem)
-    {
+    getData($elem) {
 	if (exists $elem)
 	    return $.data[$elem];
         return $.data;
     }
-    methodGate($m)
-    {
+    methodGate($m) {
         return $m;
     }
-    memberGate($m)
-    {
+    memberGate($m) {
         return "memberGate-" + $m;
     }
-    memberNotification($m)
-    {
+    memberNotification($m) {
 	$.t.$m = $self.$m;
     }
-    closure($x)
-    {
+    closure($x) {
 	my $a = 1;
 	# return a closure encapsulating the state of the object
 	return sub ($y) 
@@ -1235,8 +1230,7 @@ class Test inherits Socket {
     }
 }
 
-sub class_test_Program()
-{
+sub class_test_Program() {
     my $func = "namespace ITest { const val = 1.0; } $gv2 = 123; sub t2($a) { return $a + 2; } sub et($a) { return t($a); } sub tot() { return getClassName($to); } sub getObject() { return new Queue(); } sub deleteException() { $ro.getData(0); delete $ro; }";
 
     my $pf = "newfunc();";

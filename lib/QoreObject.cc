@@ -340,15 +340,13 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
 }
 
 // 0 = equal, 1 = not equal
-bool QoreObject::compareSoft(const QoreObject *obj, ExceptionSink *xsink) const
-{
+bool QoreObject::compareSoft(const QoreObject *obj, ExceptionSink *xsink) const {
    // currently objects are only equal if they are the same object
    return !(this == obj);
 }
 
 // 0 = equal, 1 = not equal
-bool QoreObject::compareHard(const QoreObject *obj, ExceptionSink *xsink) const
-{
+bool QoreObject::compareHard(const QoreObject *obj, ExceptionSink *xsink) const {
    // currently objects are only equal if they are the same object
    return !(this == obj);
 }
@@ -603,8 +601,7 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink)
    v->deref(xsink);
 }
 
-QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const
-{
+QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const {
    AutoLocker al(priv->mutex);
 
    if (priv->status == OS_DELETED) {
@@ -613,6 +610,17 @@ QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const
    }
 
    return priv->data->getKeys();
+}
+
+QoreHashNode *QoreObject::getSlice(const QoreListNode *value_list, ExceptionSink *xsink) const {
+   AutoLocker al(priv->mutex);
+
+   if (priv->status == OS_DELETED) {
+      makeAccessDeletedObjectException(xsink, priv->theclass->getName());
+      return 0;
+   }
+
+   return priv->data->getSlice(value_list, xsink);
 }
 
 void QoreObject::setValue(const char *key, AbstractQoreNode *val, ExceptionSink *xsink) {

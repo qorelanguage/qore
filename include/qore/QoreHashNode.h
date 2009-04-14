@@ -371,6 +371,9 @@ class QoreHashNode : public AbstractQoreNode {
 
       DLLLOCAL AbstractQoreNode *evalKeyValue(const QoreString *key, ExceptionSink *xsink) const;
 
+      // returns a new hash consisting of just the members of value_list
+      DLLLOCAL QoreHashNode *getSlice(const QoreListNode *value_list, ExceptionSink *xsink) const;
+
       // "key" is always passed in the default character encoding
       DLLLOCAL AbstractQoreNode *getReferencedKeyValue(const char *key) const;
 

@@ -674,6 +674,10 @@ static AbstractQoreNode *op_object_ref(const AbstractQoreNode *left, const Abstr
       if (*xsink)
 	 return 0;
 
+      if (mem && mem->getType() == NT_LIST) {
+	 return h->getSlice(reinterpret_cast<const QoreListNode *>(*mem), xsink);
+      }
+
       QoreStringNodeValueHelper key(*mem);
       return h->evalKeyValue(*key, xsink);      
    }
@@ -687,8 +691,11 @@ static AbstractQoreNode *op_object_ref(const AbstractQoreNode *left, const Abstr
    if (*xsink)
       return 0;
 
-   QoreStringNodeValueHelper key(*mem);
+   if (mem && mem->getType() == NT_LIST) {
+      return o->getSlice(reinterpret_cast<const QoreListNode *>(*mem), xsink);
+   }
 
+   QoreStringNodeValueHelper key(*mem);
    return o->evalMember(*key, xsink);
 }
 
