@@ -963,8 +963,7 @@ static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int
    }
 }
 
-static void addXMLRPCValue(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
-{
+static void addXMLRPCValue(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink) {
    QORE_TRACE("addXMLRPCValue()");
 
    // add value node
@@ -1016,15 +1015,12 @@ QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreListNode
       str->concat("<params>"); 
 
       for (int i = 1; i < ls; i++) {
-	 if ((p = get_param(params, i))) {
-	    str->concat("<param>");
-	    addXMLRPCValue(*str, p, 0, ccs, 0, xsink);
-	    if (*xsink)
-	       return 0;
-	    str->concat("</param>");
-	 }
-	 else
-	    str->concat("<param/>");
+	 p = get_param(params, i);
+	 str->concat("<param>");
+	 addXMLRPCValue(*str, p, 0, ccs, 0, xsink);
+	 if (*xsink)
+	    return 0;
+	 str->concat("</param>");
       }
       str->concat("</params>");
    }
@@ -1036,14 +1032,12 @@ QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreListNode
 }
 
 // makeXMLRPCCallString(string (function name), params, ...)
-static AbstractQoreNode *f_makeXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_makeXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink) {
    return makeXMLRPCCallString(QCS_DEFAULT, params, xsink);
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreListNode *params, ExceptionSink *xsink)
-{
+QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    const AbstractQoreNode *p1;
 
@@ -1060,41 +1054,33 @@ QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreList
    if (*xsink)
       return 0;
 
-   str->concat("</methodName>"); 
+   str->concat("</methodName><params>"); 
 
    const QoreListNode *l;
    if ((p1 = get_param(params, 1)) && (l = dynamic_cast<const QoreListNode *>(p1)) && l->size()) {
-      str->concat("<params>"); 
 
       // now process all params
       int ls = l->size();
       for (int i = 0; i < ls; i++) {
-	 const AbstractQoreNode *p;
-	 if ((p = l->retrieve_entry(i))) {
-	    str->concat("<param>");
-	    addXMLRPCValue(*str, p, 0, ccs, 0, xsink);
-	    if (*xsink)
-	       return 0;
+	 const AbstractQoreNode *p = l->retrieve_entry(i);
+	 str->concat("<param>");
+	 addXMLRPCValue(*str, p, 0, ccs, 0, xsink);
+	 if (*xsink)
+	    return 0;
 
-	    str->concat("</param>");
-	 }
-	 else
-	    str->concat("<param/>");
+	 str->concat("</param>");
       }
-      str->concat("</params>"); 
    }
    else if (p1 && p1->getType() != NT_LIST) {
-      str->concat("<params><param>"); 
+      str->concat("<param>"); 
       addXMLRPCValue(*str, p1, 0, ccs, 0, xsink);
       if (*xsink)
 	 return 0;
 
-      str->concat("</param></params>");       
+      str->concat("</param>");
    }
-   else
-      str->concat("<params/>");
 
-   str->concat("</methodCall>");
+   str->concat("</params></methodCall>");
    return str.release();
 }
 
@@ -1449,7 +1435,7 @@ static void getXMLRPCStruct(QoreXmlReader *reader, class XmlRpcValue *v, const Q
    }
 }
 
-static void getXMLRPCParams(QoreXmlReader *reader, class XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink) {
+static void getXMLRPCParams(QoreXmlReader *reader, XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink) {
    int nt;
    int index = 0;
 
@@ -1477,6 +1463,8 @@ static void getXMLRPCParams(QoreXmlReader *reader, class XmlRpcValue *v, const Q
       if (reader->checkXmlRpcMemberName("param", xsink))
 	 return;
       
+      v->setPtr(l->get_entry_ptr(index++));
+
       // get next value tag or param close tag
       if (reader->readXmlRpc(xsink))
 	 return;
@@ -1491,9 +1479,7 @@ static void getXMLRPCParams(QoreXmlReader *reader, class XmlRpcValue *v, const Q
 	 if (nt == XML_READER_TYPE_ELEMENT) {
 	    if (reader->checkXmlRpcMemberName("value", xsink))
 	       return;
-      
-	    v->setPtr(l->get_entry_ptr(index++));
-	    
+      	    
 	    if (reader->readXmlRpc(xsink))
 	       return;
 
@@ -2052,17 +2038,15 @@ static AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *params, 
 
    // now loop through the params
    int ls = num_params(params);
-   for (int i = 0; i < ls; i++)
-      if ((p = get_param(params, i))) {
-	 str->concat("<param>");
-	 addXMLRPCValue(*str, p, 0, ccs, 0, xsink);
-	 if (*xsink)
-	    return 0;
+   for (int i = 0; i < ls; i++) {
+      p = get_param(params, i);
+      str->concat("<param>");
+      addXMLRPCValue(*str, p, 0, ccs, 0, xsink);
+      if (*xsink)
+	 return 0;
 
-	 str->concat("</param>");
-      }
-      else
-	 str->concat("<param/>");
+      str->concat("</param>");
+   }
 
    str->concat("</params></methodResponse>");
 
@@ -2110,17 +2094,13 @@ static AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreListNode 
 	 // now process all params
 	 int ls = l->size();
 	 for (int i = 0; i < ls; i++) {
-	    const AbstractQoreNode *p;
-	    if ((p = l->retrieve_entry(i))) {
-	       str->concat("    <param>\n");
-	       addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
-	       if (*xsink)
-		  return 0;
+	    const AbstractQoreNode *p = l->retrieve_entry(i);
+	    str->concat("    <param>\n");
+	    addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
+	    if (*xsink)
+	       return 0;
 
-	       str->concat("    </param>\n");
-	    }
-	    else
-	       str->concat("    <param/>\n");
+	    str->concat("    </param>\n");
 	 }
       }
       else {
@@ -2160,18 +2140,13 @@ static AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNode *par
    // now loop through the params
    int ls = num_params(params);
    for (int i = 1; i < ls; i++) {
-      const AbstractQoreNode *p;
-      if ((p = get_param(params, i))) 
-      {
-	 str->concat("    <param>\n");
-	 addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
-	 if (*xsink)
-	    return 0;
+      const AbstractQoreNode *p = get_param(params, i);
+      str->concat("    <param>\n");
+      addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
+      if (*xsink)
+	 return 0;
 
-	 str->concat("    </param>\n");
-      }
-      else
-	 str->concat("<param/>");
+      str->concat("    </param>\n");
    }
    str->concat("  </params>\n</methodCall>");
 
@@ -2179,8 +2154,7 @@ static AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNode *par
 }
 
 // makeFormattedXMLRPCResponseString(params, ...)
-static AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_makeFormattedXMLRPCResponseString()");
 
    const AbstractQoreNode *p;
@@ -2194,21 +2168,17 @@ static AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode 
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <params>\n", ccs->getCode());
 
    // now loop through the params
-   for (int i = 0; i < ls; i++)
-      if ((p = get_param(params, i))) 
-      {
-	 str->concat("    <param>\n");
-	 addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
-	 if (*xsink)
-	    return 0;
+   for (int i = 0; i < ls; i++) {
+      p = get_param(params, i);
+      str->concat("    <param>\n");
+      addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
+      if (*xsink)
+	 return 0;
 
-	 str->concat("    </param>\n");
-      }
-      else
-	 str->concat("    <param/>\n");
+      str->concat("    </param>\n");
+   }
 
    str->concat("  </params>\n</methodResponse>");
- 
 
    return str.release();
 }

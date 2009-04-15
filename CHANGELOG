@@ -5,6 +5,11 @@
 	* fixed parsing of a corner case of marginally valid XML-RPC
 	* fixed XML-RPC serialization to handle NOTHING (no value) and NULL
 	  identically
+	* fixed XML-RPC serialization to never output an empty <param/>
+	  element, as it could potentially break some implementations (the
+	  XML-RPC spec is not very clear on this; it is not written like an
+	  RFC, for example.  Also we send empty value elements: <value/> when
+	  serializing NOTHING or NULL, which may not be correct either
 
 2009.04.14: David Nichols
 	* do not assume that a trailing null should terminate the string when
