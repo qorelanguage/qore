@@ -972,7 +972,7 @@ static void addXMLRPCValue(QoreString *str, const AbstractQoreNode *n, int inden
    if (format)
       str->addch(' ', indent);
    
-   if (!is_nothing(n)) {
+   if (!is_nothing(n) && !is_null(n)) {
       str->concat("<value>");
       if (format) {
 	 str->concat('\n');

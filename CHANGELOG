@@ -3,6 +3,8 @@
 	  quotes)
 	* NULL values are serialized as "null" JSON values
 	* fixed parsing of a corner case of marginally valid XML-RPC
+	* fixed XML-RPC serialization to handle NOTHING (no value) and NULL
+	  identically
 
 2009.04.14: David Nichols
 	* do not assume that a trailing null should terminate the string when
