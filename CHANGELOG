@@ -1,6 +1,7 @@
 2009.04.15: David Nichols
 	* allow %include parse directives to quote the file names (ignore 
 	  quotes)
+	* NULL values are serialized as "null" JSON values
 
 2009.04.14: David Nichols
 	* do not assume that a trailing null should terminate the string when
