@@ -449,16 +449,20 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 <incl>[^\t\n\r]+			{
                                            FILE *save_yyin = yyin;
 					   TempString fname(getIncludeFileName(yytext));
+					   const char *fn = fname->getBuffer();
+					   // remove enclosing quotes if any
+					   if (fname->strlen() && (fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
+					       || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\'')) {
+					      fname->trim(fn[0]);
+					   }
 					   yyin = fopen(fname->getBuffer(), "r");
 					   
-					   if (!yyin)
-					   {
+					   if (!yyin) {
 					      parse_error("cannot open include file \"%s\"", yytext);
 					      yyin = save_yyin;
 					      BEGIN(INITIAL);
 					   }
-					   else
-					   {
+					   else {
 					      // take string from buffer
 					      char *str = fname->giveBuffer();
 					      // save file name string in QoreProgram's list - the list now owns the string memory
