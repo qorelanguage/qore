@@ -1407,7 +1407,7 @@ sub xml_tests()
     test_value($mo == parseXML($str), True, "first parseXML()");
     $str = makeFormattedXMLString("o", $o);
     test_value($mo == parseXML($str), True, "second parseXML()");
-    my $params = (1, True, "string", $o);
+    my $params = (1, True, "string", NOTHING, $o);
     $str = makeXMLRPCCallStringArgs("test.method", $params);
     my $result = ( "methodName" : "test.method", "params" : $params );    
     test_value(parseXMLRPCCall($str), $result, "makeXMLRPCCallStringArgs() and parseXMLRPCCall()");
