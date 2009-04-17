@@ -3,10 +3,11 @@
 which libtoolize >/dev/null 2>/dev/null
 if [ $? -eq 0 ]; then
    lcmd=libtoolize
-fi
-which glibtoolize >/dev/null 2>/dev/null
-if [ $? -eq 0 ]; then
-   lcmd=glibtoolize
+else
+    which glibtoolize >/dev/null 2>/dev/null
+    if [ $? -eq 0 ]; then
+	lcmd=glibtoolize
+    fi
 fi
 if [ -z "$lcmd" ]; then
     echo ERROR: please install libtoolize or glibtoolize before running this script
