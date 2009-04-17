@@ -913,8 +913,7 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
    return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder new_right(right, xsink);
    if (*xsink)
       return 0;
@@ -959,14 +958,14 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
 	    while (li.next()) {
 	       QoreStringValueHelper val(li.getValue());
 	       
-	       vh->deleteKey(*val, xsink);
+	       vh->removeKey(*val, xsink);
 	       if (*xsink)
 		  return 0;
 	    }
 	 }
 	 else {
 	    QoreStringValueHelper str(*new_right);
-	    vh->deleteKey(*str, xsink);
+	    vh->removeKey(*str, xsink);
 	 }
       }
    }
@@ -2016,7 +2015,7 @@ static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const Abstra
 
 static QoreHashNode *op_minus_hash_string(const QoreHashNode *h, const QoreString *s, ExceptionSink *xsink) {
    ReferenceHolder<QoreHashNode> nh(h->copy(), xsink);
-   nh->deleteKey(s, xsink);
+   nh->removeKey(s, xsink);
    if (*xsink)
       return 0;
    return nh.release();
@@ -2030,7 +2029,7 @@ static QoreHashNode *op_minus_hash_list(const QoreHashNode *h, const QoreListNod
    while (li.next()) {
       QoreStringValueHelper val(li.getValue());
       
-      x->deleteKey(*val, xsink);
+      x->removeKey(*val, xsink);
       if (*xsink)
 	 return 0;
    }

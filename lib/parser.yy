@@ -80,8 +80,7 @@ class HashElement {
       DLLLOCAL ~HashElement();
 };
 
-static QoreTreeNode *makeErrorTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right)
-{
+static QoreTreeNode *makeErrorTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right) {
    return new QoreTreeNode(left, op, right);
 }
 
