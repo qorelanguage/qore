@@ -49,7 +49,7 @@ AC_PROG_INSTALL
 #LT_INIT
 AM_PROG_AS
 
-#AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([m4])
 
 # set system variables
 OS=`uname -s`
