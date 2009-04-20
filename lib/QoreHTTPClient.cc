@@ -750,7 +750,7 @@ static void do_event(Queue *cb_queue, int64 id, int event) {
 
 QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink) {
    //printd(5, "QoreHTTPClient::send_internal(meth=%s, mpath=%s, info=%08p)\n", meth, mpath, info);
-   
+
    // check if method is valid
    ccharcase_set_t::const_iterator i = method_set.find(meth);
    if (i == method_set.end()) {

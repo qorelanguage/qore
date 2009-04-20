@@ -717,6 +717,8 @@ struct qore_socket_private {
 	 return -1;
       }
 
+      //printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d, timeout_ms=%d) sock=%d\n", this, host, port, timeout_ms, sock);
+
       // set non-blocking if a non-negative timeout was passed
       if (timeout_ms >= 0) {
 	 int arg;
@@ -786,7 +788,7 @@ struct qore_socket_private {
       }
       type = AF_INET;
       port = prt;
-      printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d, timeout_ms=%d) success, sock=%d\n", this, host, port, sock, timeout_ms);
+      //printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d, timeout_ms=%d) success, rc=%d, sock=%d\n", this, host, port, timeout_ms, rc, sock);
 
       do_connected_event();
       return 0;
