@@ -25,14 +25,12 @@
 #include <qore/intern/ql_debug.h>
 #include <qore/intern/ql_type.h>
 
-static inline void strindent(QoreString *s, int indent)
-{
+static inline void strindent(QoreString *s, int indent) {
    for (int i = 0; i < indent; i++)
       s->concat(' ');
 }
 
-static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, ExceptionSink *xsink)
-{
+static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, ExceptionSink *xsink) {
    if (!n)
    {
       s->concat("node=NULL");
@@ -148,8 +146,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 }
 
 //static 
-AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink)
-{
+AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink) {
    QoreStringNodeHolder s(new QoreStringNode());
    dni(*s, get_param(params, 0), 0, xsink);
    if (*xsink)
@@ -157,20 +154,23 @@ AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsi
    return s.release();
 }
 
+AbstractQoreNode *f_dbg_node_addr(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
+   return new QoreBigIntNode((int64)p);
+}
+
 // returns a hash of all namespace information
-static AbstractQoreNode *f_dbg_get_ns_info(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_dbg_get_ns_info(const QoreListNode *params, ExceptionSink *xsink) {
    return getRootNS()->getInfo();
 }
 
-static AbstractQoreNode *f_dbg_global_vars(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_dbg_global_vars(const QoreListNode *params, ExceptionSink *xsink) {
    return getProgram()->getVarList();
 }
 
-void init_debug_functions()
-{
+void init_debug_functions() {
    builtinFunctions.add("dbg_node_info", f_dbg_node_info);
+   builtinFunctions.add("dbg_node_addr", f_dbg_node_addr);
    builtinFunctions.add("dbg_global_vars", f_dbg_global_vars);
    builtinFunctions.add("dbg_get_ns_info", f_dbg_get_ns_info);
 }
