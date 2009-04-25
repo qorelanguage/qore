@@ -1,9 +1,11 @@
+* fix crash with printing recursive data structures
+* implement function class hierarchies for returning different types (bool, int64, double, node)
 * add $# for list element offset in list operators (map, select)
 * add warning for duplicate hash keys
 * optimize object method calls from the same object to avoid the reference and dereference
 * fix broken callstacks - only reports for calls since the try statement
 * implement warning for local variables that are not referenced/used
-* implement auto-reconnect for pgsql, freetds and other drivers (mysql has it already)
+* implement auto-reconnect for pgsql
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * implement optimized foreach statement for hash key iteration
 * implement find_key operator, taking a regular expression to find a key in a hash
@@ -16,7 +18,6 @@
 * add argument info to functions, throw errors if arguments are not correct (add parse-time argument checks)
 * have QoreStringNode::getAsString() return a standard empty string ("") when possible (also should not be reference counted)
 * remove QoreNothingNode and use 0 everywhere instead
-* implement function class hierarchies for returning different types (bool, int64, double, node)
 * add API compatibility info to to module data
 * implement a way to declare public class members (so typos with class members can be caught)
 * implement default argument values
@@ -36,6 +37,9 @@ docs:
 * add examples for modules
 * write ncurses module documentation
 * document optimizations
+
+done:
+* auto-reconnect for sybase, oracle, mysql
 
 done 0.7.0:
 * make ThreadResourceList private
