@@ -51,6 +51,8 @@ struct qore_object_private {
 #ifdef QORE_CLASS_SYNCHRONOUS
       mutable VRMutex *sync_vrm;
 #endif
+      // used for references, to ensure that assignments will not deadlock when the object is locked for update
+      mutable QoreThreadLock ref_mutex;
       KeyList *privateData;
       QoreReferenceCounter tRefs;  // reference-references
       QoreHashNode *data;
@@ -394,7 +396,8 @@ void QoreObject::customRefIntern() const {
 }
 
 void QoreObject::customRef() const {
-   AutoLocker al(priv->mutex);
+   AutoLocker al(priv->ref_mutex);
+   //AutoLocker al(priv->mutex);
    customRefIntern();
 }
 
@@ -411,14 +414,18 @@ bool QoreObject::derefImpl(ExceptionSink *xsink) {
 // manages the custom dereference and executes the destructor if necessary
 void QoreObject::customDeref(ExceptionSink *xsink) {
    {
-      SafeLocker sl(priv->mutex);
       printd(5, "QoreObject::customDeref() this=%08p, class=%s references=%d->%d status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), references, references - 1, priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
 
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this=%08p) class=%s: references %d->%d\n", this, getClassName(), references, references - 1);
 #endif
-      if (--references)
-	 return;
+      {
+	 AutoLocker slr(priv->ref_mutex);
+	 if (--references)
+	    return;
+      }
+
+      SafeLocker sl(priv->mutex);
 
       if (priv->status != OS_OK) {
 	 sl.unlock();
@@ -851,8 +858,7 @@ void QoreObject::defaultSystemDestructor(qore_classid_t classID, ExceptionSink *
       pd->deref(xsink);
 }
 
-QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
 
    TempString rv(new QoreString());
@@ -880,12 +886,17 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
    if (!h->size())
       str.concat("<NO MEMBERS>");
    else {
-      if (foff != FMT_NONE)
-         str.sprintf("(%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
-      else
-         str.concat('(');
+      QoreContainerHelper cch(this);
+      if (!cch) {
+	 str.concat("(ERROR: recursive reference)");
+	 return 0;
+      }
 
-      class HashIterator hi(*h);
+      str.concat('(');
+      if (foff != FMT_NONE)
+         str.sprintf("%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
+
+      HashIterator hi(*h);
 
       bool first = false;
       while (hi.next()) {

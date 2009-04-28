@@ -51,8 +51,7 @@ struct qore_hash_private {
       qore_size_t len;
       hm_hm_t hm;
 
-      DLLLOCAL qore_hash_private() : member_list(0), tail(0), len(0)
-      {
+      DLLLOCAL qore_hash_private() : member_list(0), tail(0), len(0) {
       }
       
       // hashes should always be empty by the time they are deleted 
@@ -634,12 +633,18 @@ int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
       return 0;
    }
    str.concat("hash: ");
+
+   QoreContainerHelper cch(this);
+   if (!cch) {
+      str.concat("(ERROR: recursive reference)");
+      return 0;
+   }
+
+   str.concat('(');
    if (foff != FMT_NONE) {
       qore_size_t elements = size();
-      str.sprintf("(%lu member%s)\n", elements, elements == 1 ? "" : "s");
+      str.sprintf("%lu member%s)\n", elements, elements == 1 ? "" : "s");
    }
-   else
-      str.concat('(');
    
    ConstHashIterator hi(this);
    

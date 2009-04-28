@@ -134,6 +134,10 @@ DLLLOCAL void register_thread(int tid, pthread_t ptid, QoreProgram *pgm);
 DLLLOCAL void deregister_thread(int tid);
 DLLLOCAL void deregister_signal_thread();
 
+// returns 1 if data structure is already on stack, 0 if not (=OK)
+DLLLOCAL int thread_push_container(const AbstractQoreNode *n);
+DLLLOCAL void thread_pop_container(const AbstractQoreNode *n);
+
 // called when a StatementBlock has "on block exit" blocks
 DLLLOCAL void pushBlock(block_list_t::iterator i);
 // called when a StatementBlock has "on block exit" blocks
@@ -155,6 +159,38 @@ DLLLOCAL ClosureVarValue *thread_get_runtime_closure_var(const LocalVar *id);
 
 DLLLOCAL ClosureRuntimeEnvironment *thread_get_runtime_closure_env();
 DLLLOCAL void thread_set_runtime_closure_env(ClosureRuntimeEnvironment *cenv);
+
+class QoreContainerHelper {
+   const AbstractQoreNode *n;
+   bool err;
+
+  public:
+   DLLLOCAL QoreContainerHelper(const AbstractQoreNode *n_n) {
+      // FIXME! need to have an AbstactQoreNode::isContainer() function!
+      qore_type_t t = n_n ? n_n->getType() : NT_NOTHING;
+      if ((t == NT_LIST || t == NT_HASH || t == NT_OBJECT || t >= QORE_NUM_TYPES)) {
+	 if (!thread_push_container(n_n)) {
+	    n = n_n;	    
+	    err = false;
+	 }
+	 else {
+	    n = 0;
+	    err = true;
+	 }
+      }
+      else {
+	 n = 0;
+	 err = false;
+      }
+   }
+   DLLLOCAL ~QoreContainerHelper() {
+      if (n)
+	 thread_pop_container(n);
+   }
+   DLLLOCAL operator bool () const {
+      return !err;
+   }
+};
 
 class QoreClosureRuntimeEnvironmentHelper {
    private:

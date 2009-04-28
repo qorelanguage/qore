@@ -57,6 +57,10 @@ static inline long long atoll(const char *str) {
 #define OPENSSL_CONST
 #endif
 
+#include <set>
+
+typedef std::set<const AbstractQoreNode *> const_node_set_t;
+
 #include <list>
 
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };

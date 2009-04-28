@@ -366,6 +366,9 @@ class ThreadData {
 #endif
 #endif
 
+      // used to detect output of recursive data structures
+      const_node_set_t node_set;
+
       DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
 	 tid(ptid), vlock(ptid), 
 	 context_stack(0), plStack(0),
@@ -566,7 +569,7 @@ void ThreadCleanupList::pop(bool exec) {
    if (head) {
       if (exec)
 	 head->func(head->arg);
-      class ThreadCleanupNode *w = head->next;
+      ThreadCleanupNode *w = head->next;
       delete head;
       head = w;
    }
@@ -603,6 +606,20 @@ int check_stack(ExceptionSink *xsink) {
    return 0;
 }
 #endif
+
+// returns 1 if data structure is already on stack, 0 if not (=OK)
+int thread_push_container(const AbstractQoreNode *n) {
+   std::pair<const_node_set_t::iterator, bool> rv = thread_data.get()->node_set.insert(n);
+   return !rv.second;
+}
+
+void thread_pop_container(const AbstractQoreNode *n) {
+   ThreadData *td = thread_data.get();
+   
+   const_node_set_t::iterator i = td->node_set.find(n);
+   assert(i != td->node_set.end());
+   td->node_set.erase(i);
+}
 
 LocalVarValue *thread_instantiate_lvar() {
    return thread_data.get()->lvstack.instantiate();

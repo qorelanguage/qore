@@ -909,8 +909,7 @@ AbstractQoreNode *QoreListNode::max(const ResolvedCallReferenceNode *fr, Excepti
    return rv ? rv->refSelf() : 0;
 }
 
-QoreListNode *QoreListNode::reverse() const
-{
+QoreListNode *QoreListNode::reverse() const {
    QoreListNode *l = new QoreListNode();
    l->resize(priv->length);
    for (qore_size_t i = 0; i < priv->length; ++i) {
@@ -920,21 +919,25 @@ QoreListNode *QoreListNode::reverse() const
    return l;
 }
 
-int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    if (!size()) {
       str.concat(&EmptyListString);
       return 0;
    }
    str.concat("list: ");
+
+   QoreContainerHelper cch(this);
+   if (!cch) {
+      str.concat("(ERROR: recursive reference)");
+      return 0;
+   }
+
+   str.concat('(');
    if (foff != FMT_NONE)
-      str.sprintf("(%d element%s)\n", priv->length, priv->length == 1 ? "" : "s");
-   else
-      str.concat('(');
+      str.sprintf("%d element%s)\n", priv->length, priv->length == 1 ? "" : "s");
 
    for (qore_size_t i = 0; i < priv->length; ++i) {
-      if (foff != FMT_NONE)
-      {
+      if (foff != FMT_NONE) {
 	 str.addch(' ', foff + 2);
 	 str.sprintf("[%d]=", i);
       }

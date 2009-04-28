@@ -741,8 +741,7 @@ static AbstractQoreNode *op_new_object(const AbstractQoreNode *left, const Abstr
    return rv;
 }
 
-static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
       for the variable assignment - however it does need to be
@@ -816,8 +815,7 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
    return ref_rv ? new_value.getReferencedValue() : 0;
 }
 
-static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder new_right(right, xsink);
    if (*xsink)
       return 0;

@@ -1,3 +1,8 @@
+2009.04.28: David Nichols
+	* fixed outputting recursive data structures (would otherwise result
+	  in a crash)
+	* fixed object access deadlock scenarios
+
 2009.04.17: David Nichols
 	* fixed the "-" operator with: hash-string and hash-list also
 	  hash-=string and hash-=list to remove the value(s) from the hash,
