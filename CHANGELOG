@@ -1,3 +1,7 @@
+2009.04.30: David Nichols
+	* fixed crashes in the File class due to unsigned data type being used
+	  and the comparison (< 0) that signaled an error always failed
+
 2009.04.28: David Nichols
 	* fixed outputting recursive data structures (would otherwise result
 	  in a crash)

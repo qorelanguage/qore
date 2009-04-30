@@ -183,7 +183,7 @@ struct qore_qf_private {
 
    // unlocked, assumes file is open
    DLLLOCAL qore_size_t read(void *buf, qore_size_t bs) const {
-      qore_size_t rc = ::read(fd, buf, bs);
+      qore_offset_t rc = ::read(fd, buf, bs);
 
       if (rc > 0)
 	 do_read_event(rc, rc, bs);
@@ -193,7 +193,7 @@ struct qore_qf_private {
 
    // unlocked, assumes file is open
    DLLLOCAL qore_size_t write(const void *buf, qore_size_t len) const {
-      qore_size_t rc = ::write(fd, buf, len);
+      qore_offset_t rc = ::write(fd, buf, len);
 
       if (rc > 0)
 	 do_write_event(rc, rc, len);
@@ -223,7 +223,8 @@ struct qore_qf_private {
 	    break;
 	 }
 
-	 qore_size_t rc = ::read(fd, buf, bs);
+	 qore_offset_t rc = ::read(fd, buf, bs);
+	 //printd(0, "read(%d, %p, %d) rc=%d\n", fd, buf, bs, rc);
 	 if (rc <= 0)
 	    break;
 
