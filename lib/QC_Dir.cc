@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright (C) 2003 - 2009 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -226,9 +226,9 @@ static AbstractQoreNode *DIR_listFiles(QoreObject *self, class Dir *d, const Qor
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (p0) {
       const AbstractQoreNode *p1 = get_param(params, 1);
-      return d->list(xsink, -1^S_IFDIR, p0, p1 ? p1->getAsInt() : 0);
+      return d->list(xsink, S_IFMT^S_IFDIR, p0, p1 ? p1->getAsInt() : 0);
    }
-   return d->list(xsink, -1^S_IFDIR);
+   return d->list(xsink, S_IFMT^S_IFDIR);
 }
 
 

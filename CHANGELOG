@@ -1,3 +1,7 @@
+2009.05.01: David Nichols
+	* fixed the Dir::listFiles() method with g++3.* (at least); the mask
+	  used would not filter out directories
+
 2009.04.30: David Nichols
 	* fixed crashes in the File class due to unsigned data type being used
 	  and the comparison (< 0) that signaled an error always failed
