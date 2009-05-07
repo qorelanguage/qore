@@ -1,12 +1,11 @@
-* fix signal handling after fork()
-* fix crash on exit() with running threads on Darwin
+* fix crash on exit() with running threads on Darwin <- CANNOT REPRODUCE
 * implement function class hierarchies for returning different types (bool, int64, double, node)
 * add $# for list element offset in list operators (map, select)
 * add warning for duplicate hash keys
 * optimize object method calls from the same object to avoid the reference and dereference
 * fix broken callstacks - only reports for calls since the try statement
 * implement warning for local variables that are not referenced/used
-* implement auto-reconnect for pgsql
+* implement auto-reconnect for pgsql (possibly not needed?)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * implement optimized foreach statement for hash key iteration
 * implement find_key operator, taking a regular expression to find a key in a hash
@@ -40,6 +39,7 @@ docs:
 * document optimizations
 
 done 0.7.4:
+* fix signal handling after fork()
 * fix crash with printing recursive data structures
 
 done:
