@@ -451,8 +451,9 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   TempString fname(getIncludeFileName(yytext));
 					   const char *fn = fname->getBuffer();
 					   // remove enclosing quotes if any
-					   if (fname->strlen() && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
-								   || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
+					   if (fname->strlen() 
+					       && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
+						   || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
 					      fname->trim(fn[0]);
 					   }
 					   yyin = fopen(fname->getBuffer(), "r");
