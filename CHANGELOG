@@ -1,6 +1,16 @@
 2009.05.07: David Nichols
 	* fixed signal handling after a fork(), was completely disabled due to
 	  a bug in the signal manager class
+	* implemented the following functions to allow for explicitly
+	  specifying the encoding when serializing XML-RPC strings:
+	  + makeXMLRPCCallStringWithEncoding()
+	  + makeXMLRPCCallStringArgsWithEncoding()
+	  + makeXMLRPCResponseStringWithEncoding()
+	  + makeXMLRPCFaultResponseStringWithEncoding()
+	  + makeFormattedXMLRPCCallStringWithEncoding()
+	  + makeFormattedXMLRPCCallStringArgsWithEncoding()
+	  + makeFormattedXMLRPCResponseStringWithEncoding()
+	  + makeFormattedXMLRPCFaultResponseStringWithEncoding()
 
 2009.05.01: David Nichols
 	* fixed the Dir::listFiles() method with g++3.* (at least); the mask

@@ -86,7 +86,7 @@ static QoreHashNode *make_xmlrpc_call(QoreHTTPClient *client, QoreStringNode *ms
 
 static AbstractQoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    // create the outgoing message in XML-RPC call format
-   QoreStringNodeHolder msg(makeXMLRPCCallStringArgs(client->getEncoding(), params, xsink));
+   QoreStringNodeHolder msg(makeXMLRPCCallStringArgs(client->getEncoding(), 0, params, xsink));
    if (!msg)
       return 0;
 
@@ -96,7 +96,7 @@ static AbstractQoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, 
 
 static AbstractQoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    // create the outgoing message in XML-RPC call format
-   QoreStringNodeHolder msg(makeXMLRPCCallString(client->getEncoding(), params, xsink));
+   QoreStringNodeHolder msg(makeXMLRPCCallString(client->getEncoding(), 0, params, xsink));
    if (!msg)
       return 0;
 
@@ -116,7 +116,7 @@ static AbstractQoreNode *XRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *
    ReferenceHolder<QoreListNode> args(params->copyListFrom(1), xsink);
 
    // create the outgoing message in XML-RPC call format
-   QoreStringNodeHolder msg(makeXMLRPCCallStringArgs(client->getEncoding(), *args, xsink));
+   QoreStringNodeHolder msg(makeXMLRPCCallStringArgs(client->getEncoding(), 0, *args, xsink));
    if (!msg)
       return 0;
 
@@ -154,7 +154,7 @@ static AbstractQoreNode *XRC_callWithInfo(QoreObject *self, QoreHTTPClient *clie
    ReferenceHolder<QoreListNode> args(params->copyListFrom(1), xsink);
 
    // create the outgoing message in XML-RPC call format
-   QoreStringNodeHolder msg(makeXMLRPCCallString(client->getEncoding(), *args, xsink));
+   QoreStringNodeHolder msg(makeXMLRPCCallString(client->getEncoding(), 0, *args, xsink));
    if (!msg)
       return 0;
 

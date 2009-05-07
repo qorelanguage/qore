@@ -21941,7 +21941,9 @@ catch ($ex)
 	<row>
 	  <entry><para>Integer, String</para></entry>
 	  <entry><para>String</para></entry>
-	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted
+for an XML-RPC fault response without whitespace formatting.  The encoding of
+the resulting string will always be the encoding of the fault string (2nd argument)</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>

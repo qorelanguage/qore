@@ -990,13 +990,12 @@ static void addXMLRPCValue(QoreString *str, const AbstractQoreNode *n, int inden
 
 }
 
-QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreListNode *params, ExceptionSink *xsink)
-{
+QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, int offset, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p;
 
    const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0))) {
-      xsink->raiseException("MAKE-XML-RPC-CALL-STRING-PARAMETER-EXCEPTION", "expecting method name as first parameter");
+   if (!(p0 = test_string_param(params, offset))) {
+      xsink->raiseException("MAKE-XMLRPC-CALL-STRING-PARAMETER-EXCEPTION", "expecting method name as first parameter");
 
       return 0;
    }
@@ -1014,7 +1013,7 @@ QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreListNode
    if (ls) {
       str->concat("<params>"); 
 
-      for (int i = 1; i < ls; i++) {
+      for (int i = offset + 1; i < ls; i++) {
 	 p = get_param(params, i);
 	 str->concat("<param>");
 	 addXMLRPCValue(*str, p, 0, ccs, 0, xsink);
@@ -1033,17 +1032,29 @@ QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreListNode
 
 // makeXMLRPCCallString(string (function name), params, ...)
 static AbstractQoreNode *f_makeXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink) {
-   return makeXMLRPCCallString(QCS_DEFAULT, params, xsink);
+   return makeXMLRPCCallString(QCS_DEFAULT, 0, params, xsink);
+}
+
+// makeXMLRPCCallString(enc. name, string (function name), params, ...)
+static AbstractQoreNode *f_makeXMLRPCCallStringWithEncoding(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
+       xsink->raiseException("MAKE-XMLRPC-CALL-STRING-WITH-ENCODING-ERROR", "missing character encoding name as first argument to makeXMLRPCCallStringWithEncoding()");
+       return 0;
+   }
+   const QoreEncoding *ccs = QEM.findCreate(pstr);
+
+   return makeXMLRPCCallString(ccs, 1, params, xsink);
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreListNode *params, ExceptionSink *xsink) {
+QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, int offset, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    const AbstractQoreNode *p1;
 
    QORE_TRACE("makeXMLRPCCallStringArgs()");
-   if (!(p0 = test_string_param(params, 0))) {
-      xsink->raiseException("MAKE-XML-RPC-CALL-STRING-ARGS-PARAMETER-EXCEPTION", "expecting method name as first parameter");
+   if (!(p0 = test_string_param(params, offset))) {
+      xsink->raiseException("MAKE-XMLRPC-CALL-STRING-ARGS-PARAMETER-EXCEPTION", "expecting method name as first parameter");
 
       return 0;
    }
@@ -1057,7 +1068,7 @@ QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreList
    str->concat("</methodName><params>"); 
 
    const QoreListNode *l;
-   if ((p1 = get_param(params, 1)) && (l = dynamic_cast<const QoreListNode *>(p1)) && l->size()) {
+   if ((p1 = get_param(params, offset + 1)) && (l = dynamic_cast<const QoreListNode *>(p1)) && l->size()) {
 
       // now process all params
       int ls = l->size();
@@ -1085,13 +1096,23 @@ QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreList
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-static AbstractQoreNode *f_makeXMLRPCCallStringArgs(const QoreListNode *params, ExceptionSink *xsink)
-{
-   return makeXMLRPCCallStringArgs(QCS_DEFAULT, params, xsink);
+static AbstractQoreNode *f_makeXMLRPCCallStringArgs(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeXMLRPCCallStringArgs(QCS_DEFAULT, 0, params, xsink);
 }
 
-static inline QoreStringNode *getXmlString(QoreXmlReader *reader, const QoreEncoding *id, ExceptionSink *xsink)
-{
+// makeXMLRPCCallStringArgs(string (function name), list of params)
+static AbstractQoreNode *f_makeXMLRPCCallStringArgsWithEncoding(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
+       xsink->raiseException("MAKE-XMLRPC-CALL-STRING-ARGS-WITH-ENCODING-ERROR", "missing character encoding name as first argument to makeXMLRPCCallStringArgsWithEncoding()");
+       return 0;
+   }
+   const QoreEncoding *ccs = QEM.findCreate(pstr);
+
+   return makeXMLRPCCallStringArgs(ccs, 0, params, xsink);
+}
+
+static inline QoreStringNode *getXmlString(QoreXmlReader *reader, const QoreEncoding *id, ExceptionSink *xsink) {
    if (id == QCS_UTF8)
       return new QoreStringNode(reader->constValue(), QCS_UTF8);
 
@@ -1099,8 +1120,7 @@ static inline QoreStringNode *getXmlString(QoreXmlReader *reader, const QoreEnco
 }
 
 // returns true if the key names are equal, ignoring any possible "^" suffix in k2
-static bool keys_are_equal(const char *k1, const char *k2, bool &get_value)
-{
+static bool keys_are_equal(const char *k1, const char *k2, bool &get_value) {
    while (true) {
       if (!(*k1)) {
 	 if (!(*k2))
@@ -1972,15 +1992,14 @@ static AbstractQoreNode *f_parseXMLAsData(const QoreListNode *params, ExceptionS
 }
 
 // makeXMLRPCFaultResponseString(param)
-static AbstractQoreNode *f_makeXMLRPCFaultResponseString(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_makeXMLRPCFaultResponseString(const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_makeXMLRPCFaultResponseString()");
 
    const AbstractQoreNode *p0;
    const QoreStringNode *p1;
    p0 = get_param(params, 0);
    if (!(p1 = test_string_param(params, 1))) {
-      xsink->raiseException("MAKE-XML-RPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR", "expecting fault code, fault string as parameters to makeXMLRPCFaultResponseString()");
+      xsink->raiseException("MAKE-XMLRPC-FAULT-RESPONSE-STRING-ERROR", "expecting fault code, fault string as parameters to makeXMLRPCFaultResponseString()");
       return 0;
    }
    int code = p0 ? p0->getAsInt() : 0;
@@ -1996,41 +2015,111 @@ static AbstractQoreNode *f_makeXMLRPCFaultResponseString(const QoreListNode *par
    return str;
 }
 
-// makeXMLRPCFormattedFaultResponseString(param)
-static AbstractQoreNode *f_makeFormattedXMLRPCFaultResponseString(const QoreListNode *params, ExceptionSink *xsink)
-{
-   QORE_TRACE("f_makeFormattedXMLRPCFaultResponseString()");
+// makeXMLRPCFaultResponseStringWithEncoding(param)
+static AbstractQoreNode *f_makeXMLRPCFaultResponseStringWithEncoding(const QoreListNode *params, ExceptionSink *xsink) {
+   QORE_TRACE("f_makeXMLRPCFaultResponseStringWithEncoding()");
+
+   const QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
+       xsink->raiseException("MAKE-XMLRPC-FAULT-RESPONSE-STRING-WITH-ENCODING-ERROR", "missing character encoding name as first argument to makeXMLRPCFaultResponseStringWithEncoding()");
+       return 0;
+   }
+   const QoreEncoding *ccs = QEM.findCreate(pstr);
+
+   const AbstractQoreNode *p0 = get_param(params, 1);
+   int code = p0 ? p0->getAsInt() : 0;
+
+   if (!(pstr = test_string_param(params, 2))) {
+      xsink->raiseException("MAKE-XMLRPC-FAULT-RESPONSE-STRING-WITH-ENCODING-ERROR", "missing fault string as third argument to makeXMLRPCFaultResponseStringWithEncoding()");
+      return 0;
+   }
+
+   // for speed, the XML is created directly here
+   QoreStringNodeHolder rv(new QoreStringNode(ccs));
+
+   rv->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><int>%d</int></value></member><member><name>faultString</name><value><string>",
+	       ccs->getCode(), code);
+   rv->concatAndHTMLEncode(pstr, xsink);
+   if (*xsink)
+       return 0;
+
+   rv->concat("</string></value></member></struct></value></fault></methodResponse>");
+
+   return rv.release();
+}
+
+// makeFormattedXMLRPCFaultResponseString(param)
+static AbstractQoreNode *makeFormattedXMLRPCFaultResponseString(bool with_enc, const QoreListNode *params, ExceptionSink *xsink) {
+   QORE_TRACE("makeFormattedXMLRPCFaultResponseString()");
+
+   int offset = 0;
+
+   const QoreEncoding *ccs = 0;
+   if (with_enc) {
+       const QoreStringNode *str = test_string_param(params, 0);
+       if (!str) {
+	   xsink->raiseException("MAKE-XMLRPC-FAULT-RESPONSE-STRING-WITH-ENCODING-ERROR", "missing encoding name as first argument (string)");
+	   return 0;
+       }
+       ccs = QEM.findCreate(str);
+       offset = 1;
+   }
 
    const AbstractQoreNode *p0;
    const QoreStringNode *p1;
-   p0 = get_param(params, 0);
-   if (!(p1 = test_string_param(params, 1))) {
-      xsink->raiseException("MAKE-XML-RPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR", "expecting fault code, fault string as parameters to makeXMLRPCFaultResponseString()");
+   p0 = get_param(params, offset);
+   if (!(p1 = test_string_param(params, offset + 1))) {
+      xsink->raiseException("MAKE-XMLRPC-FAULT-RESPONSE-STRING-ERROR", "expecting fault code, fault string as parameters to makeXMLRPCFaultResponseString()");
       return 0;
    }
+   if (!ccs) ccs = p1->getEncoding();
    int code = p0 ? p0->getAsInt() : 0;
-   const QoreEncoding *ccsid = p1->getEncoding();
    //printd(5, "ccsid=%016x (%s) (%s) code=%d\n", ccsid, ccsid->getCode(), ((QoreStringNode *)p1)->getBuffer(), code);
 
    // for speed, the XML is created directly here
-   QoreStringNode *str = new QoreStringNode(ccsid);
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <fault>\n    <value>\n      <struct>\n        <member>\n          <name>faultCode</name>\n          <value><int>%d</int></value>\n        </member>\n        <member>\n          <name>faultString</name>\n          <value><string>",
-		ccsid->getCode(), code);
-   str->concatAndHTMLEncode(p1->getBuffer());
+		ccs->getCode(), code);
+   str->concatAndHTMLEncode(p1, xsink);
+   if (*xsink)
+       return 0;
+
    str->concat("</string></value>\n        </member>\n      </struct>\n    </value>\n  </fault>\n</methodResponse>");
 
-   return str;
+   return str.release();
+}
+
+// makeFormattedXMLRPCFaultResponseString(param)
+static AbstractQoreNode *f_makeFormattedXMLRPCFaultResponseString(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeFormattedXMLRPCFaultResponseString(false, params, xsink);
+}
+
+// makeFormattedXMLRPCFaultResponseStringWithEncoding(param)
+static AbstractQoreNode *f_makeFormattedXMLRPCFaultResponseStringWithEncoding(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeFormattedXMLRPCFaultResponseString(true, params, xsink);
 }
 
 // makeXMLRPCResponseString(params, ...)
-static AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
-{
-   QORE_TRACE("f_makeXMLRPCResponseString()");
+static AbstractQoreNode *makeXMLRPCResponseString(bool with_cs, const QoreListNode *params, ExceptionSink *xsink) {
+   QORE_TRACE("makeXMLRPCResponseString()");
+
+   int offset = 0;
 
    const AbstractQoreNode *p;
-   const QoreEncoding *ccs = QCS_DEFAULT;
+   const QoreEncoding *ccs;
+   if (with_cs) {
+       const QoreStringNode *str = test_string_param(params, 0);
+       if (!str) {
+	   xsink->raiseException("MAKE-XMLRPC-RESPONSE-STRING-WITH-ENCODING-ERROR", "missing encoding name as first argument (string)");
+	   return 0;
+       }
+       ccs = QEM.findCreate(str);
+       offset = 1;
+   }
+   else
+       ccs = QCS_DEFAULT;
 
-   if (!num_params(params))
+   if (num_params(params) == offset)
       return 0;
 
    QoreStringNodeHolder str(new QoreStringNode(ccs));
@@ -2038,7 +2127,7 @@ static AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *params, 
 
    // now loop through the params
    int ls = num_params(params);
-   for (int i = 0; i < ls; i++) {
+   for (int i = offset; i < ls; i++) {
       p = get_param(params, i);
       str->concat("<param>");
       addXMLRPCValue(*str, p, 0, ccs, 0, xsink);
@@ -2054,14 +2143,25 @@ static AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *params, 
 }
 
 // makeXMLRPCResponseString(params, ...)
-static AbstractQoreNode *f_makeXMLRPCValueString(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p;
-   const QoreEncoding *ccs = QCS_DEFAULT;
+static AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeXMLRPCResponseString(false, params, xsink);
+}
 
+// makeXMLRPCResponseStringWithEncoding(params, ...)
+static AbstractQoreNode *f_makeXMLRPCResponseStringWithEncoding(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeXMLRPCResponseString(true, params, xsink);
+}
+
+// makeXMLRPCValueString(value, [encoding])
+static AbstractQoreNode *f_makeXMLRPCValueString(const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_makeXMLRPCValueString()");
-   if (!(p = get_param(params, 0)))
-      return 0;
+
+   const AbstractQoreNode *p = get_param(params, 0);
+   if (is_nothing(p))
+       return 0;
+
+   const QoreStringNode *estr = test_string_param(params, 1);
+   const QoreEncoding *ccs = estr ? QEM.findCreate(estr) : QCS_DEFAULT;
 
    QoreStringNode *str = new QoreStringNode(ccs);
    addXMLRPCValueIntern(str, p, 0, ccs, 0, xsink);
@@ -2070,25 +2170,41 @@ static AbstractQoreNode *f_makeXMLRPCValueString(const QoreListNode *params, Exc
 }
 
 // makeFormattedXMLRPCCallStringArgs(string (function name), params, ...)
-static AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *makeFormattedXMLRPCCallStringArgs(bool with_enc, const QoreListNode *params, ExceptionSink *xsink) {
+   QORE_TRACE("f_makeFormattedXMLRPCCallStringArgs()");
+
+   int offset = 0;
+
+   const QoreEncoding *ccs;
+   if (with_enc) {
+       const QoreStringNode *str = test_string_param(params, 0);
+       if (!str) {
+	   xsink->raiseException("MAKE-FORMATTED-XMLRPC-CALL-STRING-ARGS-WITH-ENCODING-ERROR", "missing encoding name as first argument (string)");
+	   return 0;
+       }
+       ccs = QEM.findCreate(str);
+       offset = 1;
+   }
+   else
+       ccs = QCS_DEFAULT;
+
    const QoreStringNode *p0;
    const AbstractQoreNode *p1;
-   const QoreEncoding *ccs = QCS_DEFAULT;
 
-   QORE_TRACE("f_makeFormattedXMLRPCCallStringArgs()");
-   if (!(p0 = test_string_param(params, 0))) {
-      xsink->raiseException("MAKE-XML-RPC-CALL-STRING-PARAMETER-EXCEPTION",
-			    "expecting method name as first parameter");
+   if (!(p0 = test_string_param(params, offset))) {
+      xsink->raiseException("MAKE-FORMATTED-XMLRPC-CALL-STRING-ARGS-ERROR", "missing method name argument");
       return 0;
    }
 
    QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->getCode());
-   str->concatAndHTMLEncode(p0->getBuffer());
+   str->concatAndHTMLEncode(p0, xsink);
+   if (*xsink)
+       return 0;
+
    str->concat("</methodName>\n  <params>\n");
 
-   if ((p1 = get_param(params, 1))) {
+   if ((p1 = get_param(params, offset + 1))) {
       const QoreListNode *l = dynamic_cast<const QoreListNode *>(p1);
       if (l) {
 	 // now process all params
@@ -2117,30 +2233,54 @@ static AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreListNode 
    return str.release();
 }
 
-// make_formatted_xml_rpc_call_string(string (function name), params, ...)
-static AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0;
-   const QoreEncoding *ccs = QCS_DEFAULT;
+// makeFormattedXMLRPCCallStringArgs(string (function name), params, ...)
+static AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeFormattedXMLRPCCallStringArgs(false, params, xsink);
+}
 
+// makeFormattedXMLRPCCallStringArgs(string (function name), params, ...)
+static AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgsWithEncoding(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeFormattedXMLRPCCallStringArgs(true, params, xsink);
+}
+
+// makeFormattedXMLRPCCallString(string (function name), params, ...)
+static AbstractQoreNode *makeFormattedXMLRPCCallString(bool with_enc, const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_makeFormattedXMLRPCCallString()");
-   if (!(p0 = test_string_param(params, 0)))
-   {
-      xsink->raiseException("MAKE-XML-RPC-CALL-STRING-PARAMETER-EXCEPTION",
-		     "expecting method name as first parameter");
 
+   int offset = 0;
+
+   const QoreEncoding *ccs;
+   if (with_enc) {
+       const QoreStringNode *str = test_string_param(params, 0);
+       if (!str) {
+	   xsink->raiseException("MAKE-XMLRPC-CALL-STRING-WITH-ENCODING-ERROR", "missing encoding name as first argument (string)");
+	   return 0;
+       }
+       ccs = QEM.findCreate(str);
+       offset = 1;
+   }
+   else
+       ccs = QCS_DEFAULT;
+
+   const QoreStringNode *p0;
+
+   if (!(p0 = test_string_param(params, offset))) {
+      xsink->raiseException("MAKE-XMLRPC-CALL-STRING-ERROR",  "missing method name argument");
       return 0;
    }
 
    QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->getCode());
-   str->concatAndHTMLEncode(p0->getBuffer());
+   str->concatAndHTMLEncode(p0, xsink);
+   if (*xsink)
+       return 0;
+
    str->concat("</methodName>\n  <params>\n");
 
    // now loop through the params
    int ls = num_params(params);
-   for (int i = 1; i < ls; i++) {
-      const AbstractQoreNode *p = get_param(params, i);
+   for (int i = offset + 1; i < ls; i++) {
+      const AbstractQoreNode *p = get_param(params, offset + i);
       str->concat("    <param>\n");
       addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
       if (*xsink)
@@ -2153,22 +2293,46 @@ static AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNode *par
    return str.release();
 }
 
+// makeFormattedXMLRPCCallString(string (function name), params, ...)
+static AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeFormattedXMLRPCCallString(false, params, xsink);
+}
+
+// makeFormattedXMLRPCCallString(string (function name), params, ...)
+static AbstractQoreNode *f_makeFormattedXMLRPCCallStringWithEncoding(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeFormattedXMLRPCCallString(true, params, xsink);
+}
+
 // makeFormattedXMLRPCResponseString(params, ...)
-static AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *makeFormattedXMLRPCResponseString(bool with_enc, const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_makeFormattedXMLRPCResponseString()");
 
+   int offset = 0;
+
+   const QoreEncoding *ccs;
+   if (with_enc) {
+       const QoreStringNode *str = test_string_param(params, 0);
+       if (!str) {
+	   xsink->raiseException("MAKE-FORMATTED-XMLRPC-RESPONSE-STRING-WITH-ENCODING-ERROR", "missing encoding name as first argument (string)");
+	   return 0;
+       }
+       ccs = QEM.findCreate(str);
+       offset = 1;
+   }
+   else
+       ccs = QCS_DEFAULT;
+
    const AbstractQoreNode *p;
-   const QoreEncoding *ccs = QCS_DEFAULT;
 
    int ls = num_params(params);
-   if (!ls)
+   if (ls == offset)
       return 0;
 
    QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <params>\n", ccs->getCode());
 
    // now loop through the params
-   for (int i = 0; i < ls; i++) {
+   for (int i = offset; i < ls; i++) {
       p = get_param(params, i);
       str->concat("    <param>\n");
       addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
@@ -2183,9 +2347,18 @@ static AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode 
    return str.release();
 }
 
+// makeFormattedXMLRPCResponseString(params, ...)
+static AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeFormattedXMLRPCResponseString(false, params, xsink);
+}
+
+// makeFormattedXMLRPCResponseStringWithEncoding(params, ...)
+static AbstractQoreNode *f_makeFormattedXMLRPCResponseStringWithEncoding(const QoreListNode *params, ExceptionSink *xsink) {
+   return makeFormattedXMLRPCResponseString(true, params, xsink);
+}
+
 // makeFormattedXMLRPCValueString(params, ...)
-static AbstractQoreNode *f_makeFormattedXMLRPCValueString(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_makeFormattedXMLRPCValueString(const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_makeFormattedXMLRPCValueString()");
 
    const AbstractQoreNode *p;
@@ -2288,7 +2461,7 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
    int nt;
    // get "methodCall" element
    if ((nt = reader.nodeType()) != XML_READER_TYPE_ELEMENT)
-      return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'methodCall' element", xsink);
+      return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", "expecting 'methodCall' element", xsink);
 
    if (reader.checkXmlRpcMemberName("methodCall", xsink))
       return 0;
@@ -2298,7 +2471,7 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
       return 0;
 
    if ((nt = reader.nodeType()) != XML_READER_TYPE_ELEMENT)
-      return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'methodName' element", xsink);
+      return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", "expecting 'methodName' element", xsink);
 
    if (reader.checkXmlRpcMemberName("methodName", xsink))
       return 0;
@@ -2308,11 +2481,11 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
       return 0;
 
    if ((nt = reader.nodeType()) != XML_READER_TYPE_TEXT)
-      return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting method name", xsink);
+      return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", "expecting method name", xsink);
 
    const char *method_name = reader.constValue();
    if (!method_name)
-      return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting method name", xsink);
+      return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", "expecting method name", xsink);
 
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
    h->setKeyValue("methodName", new QoreStringNode(method_name), 0);
@@ -2322,19 +2495,19 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
       return 0;
 
    if ((nt = reader.nodeType()) != XML_READER_TYPE_END_ELEMENT)
-      return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'methodName' close element", xsink);
+      return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", "expecting 'methodName' close element", xsink);
 
    // get "params" element
    if (reader.readXmlRpc("expecting params element", xsink))
       return 0;
 
    if ((nt = reader.readXmlRpcNode(xsink)) == -1)
-      return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", xsink);
+      return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", xsink);
 
    // if the methodCall end element was not found
    if (nt != XML_READER_TYPE_END_ELEMENT) {
       if ((nt = reader.nodeType()) != XML_READER_TYPE_ELEMENT)
-	 return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'params' element", xsink);
+	 return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", "expecting 'params' element", xsink);
 
       if (reader.checkXmlRpcMemberName("params", xsink))
 	 return 0;
@@ -2344,13 +2517,13 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
 	 return 0;
       
       if ((nt = reader.readXmlRpcNode(xsink)) == -1)
-	 return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", xsink);
+	 return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", xsink);
       
       XmlRpcValue v;
       if (reader.depth()) {
 	 if (nt != XML_READER_TYPE_END_ELEMENT) {
 	    if (nt != XML_READER_TYPE_ELEMENT)
-	       return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'params' element", xsink);
+	       return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", "expecting 'params' element", xsink);
 	    
 	    getXMLRPCParams(&reader, &v, ccsid, xsink);
 
@@ -2364,7 +2537,7 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
       }
 
       if ((nt = reader.nodeType()) != XML_READER_TYPE_END_ELEMENT) {
-	 return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'methodCall' close element", xsink);
+	 return qore_xml_exception("PARSE-XMLRPC-CALL-ERROR", "expecting 'methodCall' close element", xsink);
       }
 
       h->setKeyValue("params", v.getValue(), xsink);
@@ -2390,7 +2563,7 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
    int nt;
    // get "methodResponse" element
    if ((nt = reader.nodeType()) != XML_READER_TYPE_ELEMENT)
-       return qore_xml_hash_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'methodResponse' element", xsink, *str);
+       return qore_xml_hash_exception("PARSE-XMLRPC-RESPONSE-ERROR", "expecting 'methodResponse' element", xsink, *str);
 
    if (reader.checkXmlRpcMemberName("methodResponse", xsink))
       return 0;
@@ -2400,11 +2573,11 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
       return 0;
 
    if ((nt = reader.nodeType()) != XML_READER_TYPE_ELEMENT)
-       return qore_xml_hash_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' or 'fault' element", xsink, *str);
+       return qore_xml_hash_exception("PARSE-XMLRPC-RESPONSE-ERROR", "expecting 'params' or 'fault' element", xsink, *str);
 
    const char *name = reader.constName();
    if (!name) {
-      xsink->raiseExceptionArg("PARSE-XML-RPC-RESPONSE-ERROR", new QoreStringNode(*str), "missing 'params' or 'fault' element tag");
+      xsink->raiseExceptionArg("PARSE-XMLRPC-RESPONSE-ERROR", new QoreStringNode(*str), "missing 'params' or 'fault' element tag");
       return 0;
    }
 
@@ -2426,7 +2599,7 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
 
 	 if (nt != XML_READER_TYPE_END_ELEMENT) {
 	    if (nt != XML_READER_TYPE_ELEMENT)
-	       return qore_xml_hash_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'param' element", xsink, *str);
+	       return qore_xml_hash_exception("PARSE-XMLRPC-RESPONSE-ERROR", "expecting 'param' element", xsink, *str);
 	       
 	    if (reader.checkXmlRpcMemberName("param", xsink))
 	       return 0;
@@ -2443,7 +2616,7 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
 	    
 	       if (nt != XML_READER_TYPE_END_ELEMENT) {
 		  if (nt != XML_READER_TYPE_ELEMENT)
-		     return qore_xml_hash_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'value' element", xsink, *str);
+		     return qore_xml_hash_exception("PARSE-XMLRPC-RESPONSE-ERROR", "expecting 'value' element", xsink, *str);
 	       
 		  if (reader.checkXmlRpcMemberName("value", xsink))
 		     return 0;
@@ -2460,7 +2633,7 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
 			return 0;
 		  }
 		  if ((nt = reader.nodeType()) != XML_READER_TYPE_END_ELEMENT)
-		     return qore_xml_hash_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'param' end element", xsink, *str);
+		     return qore_xml_hash_exception("PARSE-XMLRPC-RESPONSE-ERROR", "expecting 'param' end element", xsink, *str);
 	       }
 
 	       // get "params" end element
@@ -2468,7 +2641,7 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
 		  return 0;
 	    }
 	    if ((nt = reader.nodeType()) != XML_READER_TYPE_END_ELEMENT)
-	       return qore_xml_hash_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'params' end element", xsink, *str);
+	       return qore_xml_hash_exception("PARSE-XMLRPC-RESPONSE-ERROR", "expecting 'params' end element", xsink, *str);
 	 }
 	 // get "methodResponse" end element
 	 if (reader.readXmlRpc("expecting 'methodResponse' end element", xsink))
@@ -2483,7 +2656,7 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
 	 return 0;
       
       if ((nt = reader.nodeType()) != XML_READER_TYPE_ELEMENT)
-	 return qore_xml_hash_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting fault 'value' element", xsink, *str);
+	 return qore_xml_hash_exception("PARSE-XMLRPC-RESPONSE-ERROR", "expecting fault 'value' element", xsink, *str);
 
       if (reader.checkXmlRpcMemberName("value", xsink))
 	 return 0;
@@ -2499,19 +2672,19 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
 	 return 0;
 
       if ((nt = reader.nodeType()) != XML_READER_TYPE_END_ELEMENT)
-	 return qore_xml_hash_exception("PARSE-XML-RPC-RESPONSE-ERROR", "expecting 'fault' end element", xsink, *str);
+	 return qore_xml_hash_exception("PARSE-XMLRPC-RESPONSE-ERROR", "expecting 'fault' end element", xsink, *str);
 
       // get "methodResponse" end element
       if (reader.readXmlRpc("expecting 'methodResponse' end element", xsink))
 	 return 0;
    }
    else {
-      xsink->raiseException("PARSE-XML-RPC-RESPONSE-ERROR", "unexpected element '%s', expecting 'params' or 'fault'", name, *str);
+      xsink->raiseException("PARSE-XMLRPC-RESPONSE-ERROR", "unexpected element '%s', expecting 'params' or 'fault'", name, *str);
       return 0;      
    }
 
    if ((nt = reader.nodeType()) != XML_READER_TYPE_END_ELEMENT)
-      return qore_xml_hash_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'methodResponse' end element", xsink, *str);
+      return qore_xml_hash_exception("PARSE-XMLRPC-CALL-ERROR", "expecting 'methodResponse' end element", xsink, *str);
 
    QoreHashNode *h = new QoreHashNode();
    if (fault)
@@ -2617,32 +2790,48 @@ static AbstractQoreNode *f_parseXMLAsDataWithSchema(const QoreListNode *params, 
 }
 
 void init_xml_functions() {
-   builtinFunctions.add("parseXML",                               f_parseXML);
+   builtinFunctions.add("parseXML",                                           f_parseXML);
 
-   builtinFunctions.add("makeFormattedXMLString",                 f_makeFormattedXMLString);
-   builtinFunctions.add("makeFormattedXMLFragment",               f_makeFormattedXMLFragment);
+   builtinFunctions.add("makeFormattedXMLString",                             f_makeFormattedXMLString);
+   builtinFunctions.add("makeFormattedXMLFragment",                           f_makeFormattedXMLFragment);
 
-   builtinFunctions.add("makeXMLString",                          f_makeXMLString);
-   builtinFunctions.add("makeXMLFragment",                        f_makeXMLFragment);
+   builtinFunctions.add("makeXMLString",                                      f_makeXMLString);
+   builtinFunctions.add("makeXMLFragment",                                    f_makeXMLFragment);
 
-   builtinFunctions.add("makeXMLRPCCallString",                   f_makeXMLRPCCallString);
-   builtinFunctions.add("makeXMLRPCCallStringArgs",               f_makeXMLRPCCallStringArgs);
+   builtinFunctions.add("makeXMLRPCCallString",                               f_makeXMLRPCCallString);
+   builtinFunctions.add("makeXMLRPCCallStringWithEncoding",                   f_makeXMLRPCCallStringWithEncoding);
 
-   builtinFunctions.add("makeXMLRPCResponseString",               f_makeXMLRPCResponseString);
-   builtinFunctions.add("makeXMLRPCFaultResponseString",          f_makeXMLRPCFaultResponseString);
-   builtinFunctions.add("makeXMLRPCValueString",                  f_makeXMLRPCValueString);
-   builtinFunctions.add("makeFormattedXMLRPCCallString",          f_makeFormattedXMLRPCCallString);
-   builtinFunctions.add("makeFormattedXMLRPCCallStringArgs",      f_makeFormattedXMLRPCCallStringArgs);
-   builtinFunctions.add("makeFormattedXMLRPCResponseString",      f_makeFormattedXMLRPCResponseString);
-   builtinFunctions.add("makeFormattedXMLRPCFaultResponseString", f_makeFormattedXMLRPCFaultResponseString);
-   builtinFunctions.add("makeFormattedXMLRPCValueString",         f_makeFormattedXMLRPCValueString);
+   builtinFunctions.add("makeXMLRPCCallStringArgs",                           f_makeXMLRPCCallStringArgs);
+   builtinFunctions.add("makeXMLRPCCallStringArgsWithEncoding",               f_makeXMLRPCCallStringArgsWithEncoding);
 
-   builtinFunctions.add("parseXMLRPCValue",                       f_parseXMLRPCValue);
-   builtinFunctions.add("parseXMLRPCCall",                        f_parseXMLRPCCall);
-   builtinFunctions.add("parseXMLRPCResponse",                    f_parseXMLRPCResponse);
+   builtinFunctions.add("makeXMLRPCResponseString",                           f_makeXMLRPCResponseString);
+   builtinFunctions.add("makeXMLRPCResponseStringWithEncoding",               f_makeXMLRPCResponseStringWithEncoding);
 
-   builtinFunctions.add("parseXMLWithSchema",                     f_parseXMLWithSchema);
+   builtinFunctions.add("makeXMLRPCFaultResponseString",                      f_makeXMLRPCFaultResponseString);
+   builtinFunctions.add("makeXMLRPCFaultResponseStringWithEncoding",          f_makeXMLRPCFaultResponseStringWithEncoding);
 
-   builtinFunctions.add("parseXMLAsData",                         f_parseXMLAsData);
-   builtinFunctions.add("parseXMLAsDataWithSchema",               f_parseXMLAsDataWithSchema);
+   builtinFunctions.add("makeXMLRPCValueString",                              f_makeXMLRPCValueString);
+
+   builtinFunctions.add("makeFormattedXMLRPCCallString",                      f_makeFormattedXMLRPCCallString);
+   builtinFunctions.add("makeFormattedXMLRPCCallStringWithEncoding",          f_makeFormattedXMLRPCCallStringWithEncoding);
+
+   builtinFunctions.add("makeFormattedXMLRPCCallStringArgs",                  f_makeFormattedXMLRPCCallStringArgs);
+   builtinFunctions.add("makeFormattedXMLRPCCallStringArgsWithEncoding",      f_makeFormattedXMLRPCCallStringArgsWithEncoding);
+
+   builtinFunctions.add("makeFormattedXMLRPCResponseString",                  f_makeFormattedXMLRPCResponseString);
+   builtinFunctions.add("makeFormattedXMLRPCResponseStringWithEncoding",      f_makeFormattedXMLRPCResponseStringWithEncoding);
+
+   builtinFunctions.add("makeFormattedXMLRPCFaultResponseString",             f_makeFormattedXMLRPCFaultResponseString);
+   builtinFunctions.add("makeFormattedXMLRPCFaultResponseStringWithEncoding", f_makeFormattedXMLRPCFaultResponseStringWithEncoding);
+
+   builtinFunctions.add("makeFormattedXMLRPCValueString",                     f_makeFormattedXMLRPCValueString);
+
+   builtinFunctions.add("parseXMLRPCValue",                                   f_parseXMLRPCValue);
+   builtinFunctions.add("parseXMLRPCCall",                                    f_parseXMLRPCCall);
+   builtinFunctions.add("parseXMLRPCResponse",                                f_parseXMLRPCResponse);
+
+   builtinFunctions.add("parseXMLWithSchema",                                 f_parseXMLWithSchema);
+
+   builtinFunctions.add("parseXMLAsData",                                     f_parseXMLAsData);
+   builtinFunctions.add("parseXMLAsDataWithSchema",                           f_parseXMLAsDataWithSchema);
 }
