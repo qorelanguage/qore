@@ -1419,7 +1419,8 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Executes (or maps) an expression on a list and returns the result.  An optional select expression can be given to filter elements out from the result list</para>  
+	<para>Executes (or maps) an expression on a list and returns the result.  An optional select expression can be given to filter elements out from the result list.</para>
+	<para>If the second argument is not a list, then <replaceable>map_expression</replaceable> is executed on the single value and the result is returned, and any select expression is ignored.</para>  
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -1475,7 +1476,8 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Folds an operation on a list from left to right and returns the result.  The result of each individual operation is used as the first argument in the <command>foldl</command> expression for the next element in the list.  The first operation of the fold is made by executing the fold expression on the first and second elements of the list, from this point onwards, the result of each successive operation is used as the first argument for the next operation, the second argument being the next element in the list.</para>  
+	<para>Folds an operation on a list from left to right and returns the result.  The result of each individual operation is used as the first argument in the <command>foldl</command> expression for the next element in the list.  The first operation of the fold is made by executing the fold expression on the first and second elements of the list, from this point onwards, the result of each successive operation is used as the first argument for the next operation, the second argument being the next element in the list.</para>
+	<para>If the list expression does not evaluate to a list, then the evaluated argument is returned immediately with no processing by the fold expression.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -1528,6 +1530,7 @@ printf("0x%x\n", $binary[2]);
       <term>Synopsis</term>
       <listitem>
 	<para>Folds an operation on a list from right to left and returns the result.  The result of each individual operation is used as the first argument in the <command>foldr</command> expression for the next element in the list in reverse order.  The first operation of the right fold is made by executing the fold expression on the last and penultimate elements of the list, from this point onwards, the result of each successive operation is used as the first argument for the next operation, the second argument being the next element in the list in reverse order.</para>  
+	<para>If the list expression does not evaluate to a list, then the evaluated argument is returned immediately with no processing by the fold expression.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -1580,6 +1583,7 @@ printf("0x%x\n", $binary[2]);
       <term>Synopsis</term>
       <listitem>
 	<para>Selects elements from a list that meet the given criteria and returns the new list.</para>  
+	<para>If the list expression does not evaluate to a list, then the select expression is evaluated using the value of the list expression as an argument, if it evalutes to true, then the value is returned, otherwise, no value is returned.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
