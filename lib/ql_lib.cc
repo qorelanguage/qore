@@ -158,30 +158,29 @@ static AbstractQoreNode *f_getppid(const QoreListNode *params, ExceptionSink *xs
 }
 
 extern int num_threads;
-static AbstractQoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink) {
    int sh = (QoreSignalManager::thread_running ? 1 : 0);
-   if (num_threads > (1 + sh))
-   {   
+   if (num_threads > (1 + sh)) {   
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
       return 0;
    }
 
    // we may not fork from within a signal handler
-   if (sh && gettid() == QoreSignalManager::gettid())
-   {
+   if (sh && gettid() == QoreSignalManager::gettid()) {
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
       return 0;
    }
    
    // stop signal handling thread and make sure it can't be restarted until fork is done
    QoreSignalManager::pre_fork_block_and_stop();
+
    //printd(5, "stopped signal thread, about to fork pid %d\n", getpid()); fflush(stdout);
    int pid = fork();
-   AbstractQoreNode *rv = new QoreBigIntNode(pid);
+
    // release signal handler lock
    QoreSignalManager::post_fork_unblock_and_start(!pid, xsink);
-   return rv;
+
+   return new QoreBigIntNode(pid);
 }
 
 static AbstractQoreNode *f_kill(const QoreListNode *params, ExceptionSink *xsink)

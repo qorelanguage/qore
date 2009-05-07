@@ -1,4 +1,5 @@
-* fix crash with printing recursive data structures
+* fix signal handling after fork()
+* fix crash on exit() with running threads on Darwin
 * implement function class hierarchies for returning different types (bool, int64, double, node)
 * add $# for list element offset in list operators (map, select)
 * add warning for duplicate hash keys
@@ -37,6 +38,9 @@ docs:
 * add examples for modules
 * write ncurses module documentation
 * document optimizations
+
+done 0.7.4:
+* fix crash with printing recursive data structures
 
 done:
 * auto-reconnect for sybase, oracle, mysql

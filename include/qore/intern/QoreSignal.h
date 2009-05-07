@@ -48,7 +48,7 @@
 
 class QoreSignalHandler {
    private:
-      class ResolvedCallReferenceNode *funcref;
+      ResolvedCallReferenceNode *funcref;
    
    public:
       enum sh_status_e { SH_OK = 0, SH_InProgress = 1, SH_Delete = 2 };
@@ -66,11 +66,11 @@ class QoreSignalHandler {
       }
 };
 
-class QoreSignalManager
-{
+class QoreSignalManager {
    friend class QoreSignalManagerBusyHelper;
 
    private:
+      DLLLOCAL static bool is_enabled;      // signal handling enabled?
       DLLLOCAL static pthread_t ptid;       // handler thread
       DLLLOCAL static int tid;              // handler thread TID
       DLLLOCAL static QoreCounter tcount;   // thread counter, for synchronization only
@@ -111,7 +111,8 @@ class QoreSignalManager
 	 return tid;
       }
       DLLLOCAL static void reset_default_signal_mask();
-      DLLLOCAL static bool enabled() { return tid != -1; }
+      DLLLOCAL static bool running() { return tid != -1; }
+      DLLLOCAL static bool enabled() { return is_enabled; }
 };
 
 DLLLOCAL extern QoreSignalManager QSM;

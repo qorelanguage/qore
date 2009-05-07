@@ -1,3 +1,7 @@
+2009.05.07: David Nichols
+	* fixed signal handling after a fork(), was completely disabled due to
+	  a bug in the signal manager class
+
 2009.05.01: David Nichols
 	* fixed the Dir::listFiles() method with g++3.* (at least); the mask
 	  used would not filter out directories
