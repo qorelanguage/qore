@@ -4,6 +4,11 @@
 # *) not really HTTP 1.1 compliant although claims to be
 # *) no HTTP mime/multipart handling (support for this ideally needs to be implemented in the qore library)
 
+# changes for v0.2.7:
+# * set TCP_NODELAY on all sockets to ensure that clients get all data
+#   before closing the socket, especially in case of errors
+# * require qore >= 0.7.4 for new Socket features
+
 # changes for v0.2.6:
 # * minor fixes for SOAP support
 # * improved handler matching
@@ -29,6 +34,8 @@
 # changes for v0.2.0: 
 # * modular/multiple listener support added
 # * https support added
+
+%requires qore >= 0.7.4
 
 namespace HTTPServer {
     const Version = "0.2.6";
@@ -130,6 +137,9 @@ class HTTPServer::Listener inherits Qore::Socket {
 
 	# save socket port/path
 	$.socket = $sock;
+
+	# set TCP_NODELAY
+	$.setNoDelay(True);
 
 	# connection counter
 	$.cThreads = new Counter();
@@ -237,6 +247,9 @@ class HTTPServer::Listener inherits Qore::Socket {
 	      "id"         : $.ss.next() );
 	
 	my ($hdr, $body);
+
+	# set TCP_NODELAY on incoming socket
+	my $rc = $s.setNoDelay(True);
 	
 	try {
 	    while (True) {
@@ -273,6 +286,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		    $.serv.sendHTTPError($s, 400, $err, True);
 		    break;
 		}
+		# DEBUG:
 		#printf("HTTP DEBUG: id: %d, hdr=%n\n", $context.id, $hdr);
 
 		if (type($hdr) != Type::Hash) {
@@ -324,11 +338,11 @@ class HTTPServer::Listener inherits Qore::Socket {
 			# save username in thread-local data
 			# since this thread is dedicated to this connection, the data will be 
 			# automatically deleted when the thread exits
-			save_thread_data(("rbac_authorized_user" : $user));
+			$tld.rbac_authorized_user = $user;
 			$context += ( "user"  : $user,
 				      "roles" : $roles );
 		    }
-		    else if (!exists get_thread_data("rbac_authorized_user")) {
+		    else if (!exists $tld.rbac_authorized_user) {
 			my ($roles, $user);
 			# only try ip-based authentication if the connection is not already authenticated
 			try {
@@ -341,7 +355,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 			}
 			if (elements $roles) {
 			    # save username in thread-local data
-			    save_thread_data(("rbac_authorized_user" : $user));
+			    $tld.rbac_authorized_user = $user;
 			    $context += ( "user"  : $user,
 					  "roles" : $roles );
 			}
@@ -508,7 +522,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 	    #$.logError(sprintf("msg=%n", $body));
 	    $.serv.sendHTTPError($s, 500, $etxt, True);
 	}
-	
+
 	$s.close();
 	$.cThreads.dec();
     }
@@ -781,8 +795,8 @@ class HTTPServer::HTTPServer {
 		$.sendHTTPError($s, $rv.code, $rv.body, $close);
 	    }
 	    else {
-		#printf("\n\n\n**** REQUEST: %N\n", $body);
-		#printf("\n\n\n**** RESPONSE: %N\n", $rv.body);
+		#printf("\n**** REQUEST: %N\n", $body);
+		#printf("\n**** RESPONSE: %N\n", $rv.body);
 		if ($close)
 		    $rv.hdr.Connection = "close";
 		else
@@ -812,6 +826,7 @@ class HTTPServer::HTTPServer {
 		    
 		    $s.sendHTTPResponse($rv.code, HTTPServer::HTTPCodes.($rv.code), "1.1", $rv.hdr, $rv.body);
 		    #$.log("HTTP DEBUG hdr=%N\nbody=%s", $rv.hdr, $rv.body);
+		    #printf("HTTP DEBUG: response hdr=%n\n", $rv.hdr);
 		}
 	    }
 	    
