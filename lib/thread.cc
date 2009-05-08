@@ -1044,7 +1044,10 @@ void qore_exit_process(int rc) {
       if (i != tid && thread_list[i].ptid) {
 	 pthread_cancel(thread_list[i].ptid);
 	 thread_list[i].joined = true;
+
+	 lThreadList.unlock();
 	 pthread_join(thread_list[i].ptid, 0);
+	 lThreadList.lock();
       }
    }
    exit(rc);

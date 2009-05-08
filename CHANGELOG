@@ -1,3 +1,8 @@
+2009.05.08: David Nichols
+	* fixed a race condition that could cause a deadlock when calling
+	  pthread_join() when Qore code calls "exit()" when multiple threads
+	  are running
+
 2009.05.07: David Nichols
 	* fixed signal handling after a fork(), was completely disabled due to
 	  a bug in the signal manager class
