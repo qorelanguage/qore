@@ -145,12 +145,14 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock {
       DLLLOCAL void setEncoding(const QoreEncoding *id);
       DLLLOCAL const QoreEncoding *getEncoding() const;
       DLLLOCAL bool isDataAvailable(int timeout = 0);
+      DLLLOCAL bool isWriteFinished(int timeout = 0);
       DLLLOCAL bool isOpen() const;
       // c must be already referenced before this call
       DLLLOCAL void setCertificate(QoreSSLCertificate *c);
       // p must be already referenced before this call
       DLLLOCAL void setPrivateKey(QoreSSLPrivateKey *p);
-
+      DLLLOCAL int setNoDelay(int nodelay);
+      DLLLOCAL int getNoDelay();
       DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 };
 

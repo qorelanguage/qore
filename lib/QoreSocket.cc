@@ -22,7 +22,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 // FIXME: change int to qore_size_t where applicable! (ex: int rc = recv())
 
 #include <qore/Qore.h>
@@ -35,6 +34,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <ctype.h>
+#include <netinet/tcp.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -652,8 +652,8 @@ struct qore_socket_private {
 	 return 0;
       }
 
-   // socket must be open!
-   DLLLOCAL int select(int timeout_ms) const {
+    // socket must be open!
+    DLLLOCAL int select(int timeout_ms) const {
       fd_set sfs;
 
       struct timeval tv;
@@ -663,6 +663,19 @@ struct qore_socket_private {
       FD_ZERO(&sfs);
       FD_SET(sock, &sfs);
       return ::select(sock + 1, &sfs, 0, 0, &tv);
+   }
+
+    // socket must be open!
+    DLLLOCAL int selectWrite(int timeout_ms) const {
+      fd_set sfs;
+
+      struct timeval tv;
+      tv.tv_sec  = timeout_ms / 1000;
+      tv.tv_usec = (timeout_ms % 1000) * 1000;
+      
+      FD_ZERO(&sfs);
+      FD_SET(sock, &sfs);
+      return ::select(sock + 1, 0, &sfs, 0, &tv);
    }
 
    DLLLOCAL bool isDataAvailable(int timeout_ms) const {
@@ -679,6 +692,13 @@ struct qore_socket_private {
       
       return poll(&pfd, 1, timeout_ms);
 #endif
+   }
+
+   DLLLOCAL bool isWriteFinished(int timeout_ms) const {
+      if (!sock)
+	 return false;
+
+      return selectWrite(timeout_ms);
    }
 
    DLLLOCAL int close_and_exit() {
@@ -833,6 +853,20 @@ QoreSocket::~QoreSocket() {
 void QoreSocket::reuse(int opt) {
    //printf("Socket::reuse(%s)\n", opt ? "true" : "false");
    setsockopt(priv->sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
+}
+
+int QoreSocket::setNoDelay(int nodelay) {
+   return setsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(int));
+}
+
+int QoreSocket::getNoDelay() const {
+   int rc;
+   socklen_t optlen = sizeof(int);
+   int sorc = getsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, &rc, &optlen);
+   //printd(5, "Socket::getNoDelay() sorc=%d rc=%d optlen=%d\n", sorc, rc, optlen);
+   if (sorc)
+       return sorc;
+   return rc;
 }
 
 int QoreSocket::close() {
@@ -1955,6 +1989,10 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 
 bool QoreSocket::isDataAvailable(int timeout) const {
    return priv->isDataAvailable(timeout);
+}
+
+bool QoreSocket::isWriteFinished(int timeout) const {
+   return priv->isWriteFinished(timeout);
 }
 
 int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event) {

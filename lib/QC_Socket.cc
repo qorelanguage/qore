@@ -766,6 +766,10 @@ static AbstractQoreNode *SOCKET_isDataAvailable(QoreObject *self, mySocket *s, c
    return get_bool_node(s->isDataAvailable(getMsZeroInt(get_param(params, 0))));
 }
 
+static AbstractQoreNode *SOCKET_isWriteFinished(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   return get_bool_node(s->isWriteFinished(getMsZeroInt(get_param(params, 0))));
+}
+
 static AbstractQoreNode *SOCKET_isOpen(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    return get_bool_node(s->isOpen());
 }
@@ -868,6 +872,14 @@ static AbstractQoreNode *SOCKET_setEventQueue(QoreObject *self, mySocket *s, con
     return 0;
 }
 
+static AbstractQoreNode *SOCKET_setNoDelay(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+    return new QoreBigIntNode(s->setNoDelay(get_int_param(params, 0)));
+}
+
+static AbstractQoreNode *SOCKET_getNoDelay(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+    return get_bool_node(s->getNoDelay());
+}
+
 QoreClass *initSocketClass() {
    QORE_TRACE("initSocketClass()");
 
@@ -922,6 +934,7 @@ QoreClass *initSocketClass() {
    QC_SOCKET->addMethod("getCharset",                (q_method_t)SOCKET_getCharset);
    QC_SOCKET->addMethod("setCharset",                (q_method_t)SOCKET_setCharset);
    QC_SOCKET->addMethod("isDataAvailable",           (q_method_t)SOCKET_isDataAvailable);
+   QC_SOCKET->addMethod("isWriteFinished",           (q_method_t)SOCKET_isWriteFinished);
    QC_SOCKET->addMethod("getSSLCipherName",          (q_method_t)SOCKET_getSSLCipherName);
    QC_SOCKET->addMethod("getSSLCipherVersion",       (q_method_t)SOCKET_getSSLCipherVersion);
    QC_SOCKET->addMethod("isSecure",                  (q_method_t)SOCKET_isSecure);
@@ -930,6 +943,8 @@ QoreClass *initSocketClass() {
    QC_SOCKET->addMethod("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey);
    QC_SOCKET->addMethod("isOpen",                    (q_method_t)SOCKET_isOpen);
    QC_SOCKET->addMethod("setEventQueue",             (q_method_t)SOCKET_setEventQueue);
+   QC_SOCKET->addMethod("setNoDelay",                (q_method_t)SOCKET_setNoDelay);
+   QC_SOCKET->addMethod("getNoDelay",                (q_method_t)SOCKET_getNoDelay);
 
    return QC_SOCKET;
 }

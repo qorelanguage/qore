@@ -2,6 +2,10 @@
 	* fixed a race condition that could cause a deadlock when calling
 	  pthread_join() when Qore code calls "exit()" when multiple threads
 	  are running
+	* implemented the following new Socket methods:
+	  + Socket::isWriteFinished(<timeout_ms>): for non-blocking writes
+	  + Socket::setNoDelay(<boolean>): to set TCP_NODELAY
+	  + Socket::getNoDelay(): returns value of TCP_NODELAY
 
 2009.05.07: David Nichols
 	* fixed signal handling after a fork(), was completely disabled due to

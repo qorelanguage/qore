@@ -47,11 +47,24 @@ static inline int num_params(const QoreListNode *n)
    @param i the offset in the list to test (first element is offset 0)
    @return the argument in the position given or 0 if there is none
  */
-static inline const AbstractQoreNode *get_param(const QoreListNode *n, qore_size_t i)
-{
+static inline const AbstractQoreNode *get_param(const QoreListNode *n, qore_size_t i) {
    if (!n) return 0;
    const AbstractQoreNode *p = n->retrieve_entry(i);
    return is_nothing(p) ? 0 : p;
+}
+
+//! returns an integer corresponding to the argument given or 0 if there is none
+static inline int get_int_param(const QoreListNode *n, qore_size_t i) {
+   if (!n) return 0;
+   const AbstractQoreNode *p = n->retrieve_entry(i);
+   return is_nothing(p) ? 0 : p->getAsInt();
+}
+
+//! returns a 64-bit integer corresponding to the argument given or 0 if there is none
+static inline int64 get_bitint_param(const QoreListNode *n, qore_size_t i) {
+   if (!n) return 0;
+   const AbstractQoreNode *p = n->retrieve_entry(i);
+   return is_nothing(p) ? 0 : p->getAsBigInt();
 }
 
 //! returns a const BinaryNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a BinaryNode

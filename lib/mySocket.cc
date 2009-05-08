@@ -342,6 +342,11 @@ bool mySocket::isDataAvailable(int timeout_ms) {
    return socket->isDataAvailable(timeout_ms);
 }
 
+bool mySocket::isWriteFinished(int timeout_ms) {
+   AutoLocker al(this);
+   return socket->isWriteFinished(timeout_ms);
+}
+
 bool mySocket::isOpen() const {
    return socket->isOpen();
 }
@@ -398,4 +403,14 @@ void mySocket::setPrivateKey(class QoreSSLPrivateKey *p) {
 void mySocket::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
    AutoLocker al(this);
    socket->setEventQueue(cbq, xsink);
+}
+
+int mySocket::setNoDelay(int nodelay) {   
+   AutoLocker al(this);
+   return socket->setNoDelay(nodelay);
+}
+
+int mySocket::getNoDelay() {   
+   AutoLocker al(this);
+   return socket->getNoDelay();
 }
