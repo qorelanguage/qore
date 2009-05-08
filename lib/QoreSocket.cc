@@ -1618,7 +1618,7 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state) {
       }
    }
    hdr->concat('\n');
-   
+
    return hdr.release();
 }
 
@@ -1645,6 +1645,7 @@ void QoreSocket::convertHeaderToHash(QoreHashNode *h, char *p) {
       while (t && isblank(*t))
 	 t++;
       strtolower(buf);
+      //printd(5, "setting %s = '%s'\n", buf, t);
       h->setKeyValue(buf, new QoreStringNode(t), 0);
    }
 }
@@ -1714,6 +1715,7 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
 	 t1 = strchr(t2, ' ');
 	 if (t1) {
 	    *t1 = '\0';
+	    //printd(5, "found path '%s'\n", t2);
 	    // the path is returned as-is with no decodings - use decode_url() to decode
 	    h->setKeyValue("path", new QoreStringNode(t2, priv->charsetid), 0);
 	 }
