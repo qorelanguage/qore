@@ -992,7 +992,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    v = ans->getKeyValue("content-encoding");
    if (v) {
       content_encoding = (reinterpret_cast<const QoreStringNode *>(v))->getBuffer();
-      // check for misuse of this field by including a character encoding value
+      // check for misuse (? not sure: check RFCs again) of this field by including a character encoding value
       if (!strncasecmp(content_encoding, "iso", 3) || !strncasecmp(content_encoding, "utf-", 4)) {
 	 priv->m_socket.setEncoding(QEM.findCreate(content_encoding));
 	 content_encoding = 0;

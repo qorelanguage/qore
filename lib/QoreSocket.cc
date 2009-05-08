@@ -305,7 +305,13 @@ struct qore_socket_private {
 	    }
 	    del = false;
 	    port = -1;
-	    int rc = ::close(sock); 
+	    int rc;
+	    while (true) {
+	       rc = ::close(sock); 
+	       // try again if close was interrupted by a signal
+	       if (!rc || errno != EINTR)
+		  break;
+	    }
 	    //printd(5, "qore_socket_private::close_internal(this=%08p) close(%d) returned %d\n", this, sock, rc);
 	    do_close_event();
 	    sock = 0;
@@ -1613,7 +1619,7 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state) {
       *rc = recv(&c, 1, 0, timeout, false);
       //printd(5, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
       if ((*rc) <= 0) {
-	 //printd(0, "QoreSocket::readHTTPData(timeout=%d) hdr->strlen()=%d, rc=%d, errno=%d (%s)\n", timeout, hdr->strlen(), *rc, errno, strerror(errno));
+	 //printd(5, "QoreSocket::readHTTPData(timeout=%d) hdr='%s' (%d), rc=%d, errno=%d (%s)\n", timeout, hdr->getBuffer(), hdr->strlen(), *rc, errno, strerror(errno));
 	 return 0;
       }
       if (++count == QORE_MAX_HEADER_SIZE)
@@ -1652,6 +1658,8 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state) {
       }
    }
    hdr->concat('\n');
+
+   //printd(5, "QoreSocket::readHTTPData(timeout=%d) hdr='%s' (%d)\n", timeout, hdr->getBuffer(), hdr->strlen());
 
    return hdr.release();
 }
@@ -1758,6 +1766,7 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
    
    convertHeaderToHash(h, p);
    priv->do_read_http_header(QORE_EVENT_HTTP_MESSAGE_RECEIVED, h, source);
+
    return h;
 }
 
