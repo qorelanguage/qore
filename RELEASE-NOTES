@@ -1,28 +1,68 @@
-RELEASE NOTES for qore v0.7.3
+RELEASE NOTES for qore v0.7.4
 
-release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
+release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
                  five bug fixes
 
-*) Socket::connect() takes an optional timeout value
-*) HTTPClient::constructor() options takes a new option: connect_timeout
-   (usable with the XmlRpcClient and JsonRpcClient classes as well)
-*) SOAP support updated in examples directory: SoapClient.qc, SoapHandler.qc,
-   HTTPServer.qc, WSDL.qc
-*) added is_writable() function as a correctly-spelled alias for
-   is_writeable()
-*) fixed and documented getcwd() function
-*) added new functions parseXMLAsData() and parseXMLAsDataWithSchema()
-*) BUG FIX: fixed a bug in the binary() function when converting binary
-   strings to binary type when the strings had embedded nulls
-*) BUG FIX: fixed a crashing bug in the handling of GLIBC gethostbyname_r()
-   failures; contrary to the documentation, the return value is 0 even when
-   the function fails
-*) BUG FIX: fixed some erroneous builds on powerpc where processor-specific
-   features were not built properly
-*) BUG FIX: fixed a bug handling GLIBC gethostbyaddr_r() failures; contrary to
-   the documentation, the return value is 0 even when the function fails
-*) BUG FIX: fixed a bug doing math on negative units of relative dates;
-   invalid dates would be returned
+*) BUG FIX: fixed a race condition that could cause a deadlock when calling
+   pthread_join() when Qore code calls "exit()" when multiple threads are
+   running
+*) BUG FIX: fixed the Dir::listFiles() method; the mask used would not filter
+   out directories
+*) BUG FIX: fixed crashes in the File class due to unsigned data type being
+   used and the comparison (< 0) that signaled an error always failed
+*) BUG FIX: fixed outputting recursive data structures with the %n and %N 
+   printf format specifiers (would otherwise result in a crash - for example,
+   when an object contains a list that also contains the object, etc)
+*) BUG FIX: fixed object access deadlock scenarios
+*) BUG FIX: fixed the "-" operator with: hash-string and hash-list (also
+   hash-=string and hash-=list) to remove the value(s) from the hash, not call
+   the delete operator
+*) BUG FIX: NULL values are serialized as "null" JSON values
+*) BUG FIX: fixed parsing of a corner case of marginally valid XML-RPC
+*) BUG FIX: fixed XML-RPC serialization to handle NOTHING (no value) and NULL
+   identically
+*) BUG FIX: fixed XML-RPC serialization to never output an empty <param/>
+   element, as it could potentially break some implementations (the XML-RPC
+   spec is not very clear on this).  Note: we send empty value elements:
+   <value/> when serializing NOTHING or NULL, which may not be correct either
+*) BUG FIX: do not assume that a trailing null should terminate the string when
+   reading string data from files; include the trailing null in the string
+*) BUG FIX: fixed a bug parsing base64 strings when newlines and/or linefeeds
+   trailed the base64-encoded data
+*) BUG FIX: fixed outputting '%%' as '%' in *printf*() functions
+*) BUG FIX: fixed a bug parsing hashes where the hash key was given as a
+   constant
+*) BUG FIX: fixed a bug in the delete operator where shared data was being
+   updated in place instead of copied and then updated
+*) BUG FIX: fixed some race conditions that could cause deadlocks with the
+   getAllThreadCallStacks() function (not normally enabled by default)
+*) BUG FIX: ignore '\n' and '\r' when parsing base64-encoded strings
+*) BUG FIX: fixed a crashing bug when trying to copy member elements of a 
+   deleted object
+*) BUG FIX: fixed the foreach statement when used with a reference and the 
+   break statement is used
+*) BUG FIX: fixed a rare reference dependency bug where system classes were 
+   being destroyed while still referenced in user code
+*) added the abilty for a Condition variable to wait on RWLock objects as well
+   as Mutex objects
+*) dereferencing a hash or object with a list will return a slice of the hash
+   or object as a hash: ex: $hash.("key1", "key2")
+*) allow %include parse directives to quote the file names (ignore leading and
+   trailing quotes around the file name)
+*) new Socket class methods:
+   + Socket::isWriteFinished(<timeout_ms>): for non-blocking writes
+   + Socket::setNoDelay(<boolean>): to set TCP_NODELAY
+   + Socket::getNoDelay(): returns value of TCP_NODELAY
+*) new functions to allow for explicitly specifying the encoding when
+   serializing XML-RPC strings:
+   + makeXMLRPCCallStringWithEncoding()
+   + makeXMLRPCCallStringArgsWithEncoding()
+   + makeXMLRPCResponseStringWithEncoding()
+   + makeXMLRPCFaultResponseStringWithEncoding()
+   + makeFormattedXMLRPCCallStringWithEncoding()
+   + makeFormattedXMLRPCCallStringArgsWithEncoding()
+   + makeFormattedXMLRPCResponseStringWithEncoding()
+   + makeFormattedXMLRPCFaultResponseStringWithEncoding()
 
 
 ***********************
@@ -46,8 +86,12 @@ guard implementations - also note that "stack guard" support does not depend
 on the operating system but rather on the CPU and the compiler and the
 assembler used - for example on HP-UX pa-risc gcc and aCC can use different,
 incompatible assemblers):
-  + i386 (gcc, SunPro CC), x86_64 (gcc, SunPro CC), 32-bit powerpc (gcc),
-  32-bit sparc (gcc, SunPro CC), 64-bit itanium (gcc, aCC)
+  + i386 (gcc, SunPro CC)
+  + x86_64 (gcc, SunPro CC)
+  + powerpc - 32-bit only (gcc)
+  + sparc - 32-bit only (gcc, SunPro CC)
+  + itanium - 64bit only (gcc, aCC)
+  + pa-risc - 32-bit only (gcc, aCC)
 
 Out of Memory Errors
 --------------------
@@ -170,6 +214,35 @@ unknown bugs out there.
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+*****************************
+RELEASE NOTES for qore v0.7.3
+*****************************
+
+release summary: qore 0.7.3 contains minor feature improvements over 0.7.2 and
+                 five bug fixes
+
+*) Socket::connect() takes an optional timeout value
+*) HTTPClient::constructor() options takes a new option: connect_timeout
+   (usable with the XmlRpcClient and JsonRpcClient classes as well)
+*) SOAP support updated in examples directory: SoapClient.qc, SoapHandler.qc,
+   HTTPServer.qc, WSDL.qc
+*) added is_writable() function as a correctly-spelled alias for
+   is_writeable()
+*) fixed and documented getcwd() function
+*) added new functions parseXMLAsData() and parseXMLAsDataWithSchema()
+*) BUG FIX: fixed a bug in the binary() function when converting binary
+   strings to binary type when the strings had embedded nulls
+*) BUG FIX: fixed a crashing bug in the handling of GLIBC gethostbyname_r()
+   failures; contrary to the documentation, the return value is 0 even when
+   the function fails
+*) BUG FIX: fixed some erroneous builds on powerpc where processor-specific
+   features were not built properly
+*) BUG FIX: fixed a bug handling GLIBC gethostbyaddr_r() failures; contrary to
+   the documentation, the return value is 0 even when the function fails
+*) BUG FIX: fixed a bug doing math on negative units of relative dates;
+   invalid dates would be returned
+
 
 *****************************
 RELEASE NOTES for qore v0.7.2
