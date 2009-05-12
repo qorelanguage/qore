@@ -883,16 +883,20 @@ static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHashNode 
    //if (format) str->concat('\n');
 }
 
-static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
-{
+static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink) {
    assert(n);
    qore_type_t ntype = n->getType();
 
    if (ntype == NT_BOOLEAN)
       str->sprintf("<boolean>%d</boolean>", reinterpret_cast<const QoreBoolNode *>(n)->getValue());
 
-   else if (ntype == NT_INT)
-      str->sprintf("<i4>%lld</i4>", reinterpret_cast<const QoreBigIntNode *>(n)->val);
+   else if (ntype == NT_INT) {
+      int64 val = reinterpret_cast<const QoreBigIntNode *>(n)->val;
+      if (val >= -2147483647 && val <= 2147483647)
+	 str->sprintf("<i4>%lld</i4>", val);
+      else
+	 str->sprintf("<string>%lld</string>", val);
+   }
 
    else if (ntype == NT_STRING) {
       str->concat("<string>");
@@ -1749,8 +1753,7 @@ static void getXMLRPCBase64(QoreXmlReader *reader, class XmlRpcValue *v, Excepti
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "extra information in base64 (%d)", nt);
 }
 
-static void doEmptyValue(class XmlRpcValue *v, const char *name, int depth, ExceptionSink *xsink)
-{
+static void doEmptyValue(class XmlRpcValue *v, const char *name, int depth, ExceptionSink *xsink) {
    if (!strcmp(name, "string"))
       v->set(null_string());
    else if (!strcmp(name, "i4") || !strcmp(name, "int"))
