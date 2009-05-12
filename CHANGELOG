@@ -1,3 +1,13 @@
+2009.05.12: David Nichols
+	* fixed localtime() and no argument to return the current date and
+	  time as documented
+	* implemented now_ms() to return the current date and time to the
+	  millisecond resolution
+
+2009.05.11: David Nichols
+	* fixed XML-RPC serialization to serialize integers outside the 
+	  allowed 32-bit data range as <string> instead of <i4>
+
 2009.05.08: David Nichols
 	* fixed a race condition that could cause a deadlock when calling
 	  pthread_join() when Qore code calls "exit()" when multiple threads

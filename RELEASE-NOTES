@@ -1,15 +1,18 @@
 RELEASE NOTES for qore v0.7.4
 
 release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
-                 five bug fixes
+                 twenty-one bug fixes
 
+*) BUG FIX: fixed localtime() when called with no argument to return the
+   current date and time as per documentation
 *) BUG FIX: fixed a race condition that could cause a deadlock when calling
    pthread_join() when Qore code calls "exit()" when multiple threads are
    running
 *) BUG FIX: fixed the Dir::listFiles() method; the mask used would not filter
    out directories
 *) BUG FIX: fixed crashes in the File class due to unsigned data type being
-   used and the comparison (< 0) that signaled an error always failed
+   used and the comparison (< 0) that signaled an error always failed; the
+   crash would happen when a non-File object was read
 *) BUG FIX: fixed outputting recursive data structures with the %n and %N 
    printf format specifiers (would otherwise result in a crash - for example,
    when an object contains a list that also contains the object, etc)
@@ -50,9 +53,10 @@ release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
 *) allow %include parse directives to quote the file names (ignore leading and
    trailing quotes around the file name)
 *) new Socket class methods:
-   + Socket::isWriteFinished(<timeout_ms>): for non-blocking writes
-   + Socket::setNoDelay(<boolean>): to set TCP_NODELAY
-   + Socket::getNoDelay(): returns value of TCP_NODELAY
+   + Socket::isWriteFinished(<timeout_ms>): for future support for 
+     non-blocking writes
+   + Socket::setNoDelay(<boolean>): to set the TCP_NODELAY option
+   + Socket::getNoDelay(): returns value of the TCP_NODELAY option
 *) new functions to allow for explicitly specifying the encoding when
    serializing XML-RPC strings:
    + makeXMLRPCCallStringWithEncoding()

@@ -14185,6 +14185,11 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <entry><para>Returns True or False depending on whether there is data to be read on the socket</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="Socket_isWriteFinished">Socket::isWriteFinished()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns True or False depending on whether all data has been written to the socket</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="Socket_send">Socket::send()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends string or binary data over the socket</para></entry>
@@ -14333,6 +14338,16 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <entry><para><link linkend="Socket_setCharset">Socket::setCharset()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the character encoding for the socket.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Socket_getNoDelay">Socket::getNoDelay()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the <code>TCP_NODELAY</code> setting for the socket.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="Socket_setNoDelay">Socket::setNoDelay()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the <code>TCP_NODELAY</code> setting for the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="Socket_getSocket">Socket::getSocket()</link></para></entry>
@@ -15963,6 +15978,68 @@ $sock.bind("/tmp/socket");</programlisting>
 
       <table>
 	<title>Return Values for Socket::isDataAvailable()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>True if data is available on the socket, False if not.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Socket_isWriteFinished">
+      <title>Socket::isWriteFinished()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns True if all data has been written to the socket, takes an optional timeout.  With a timeout of zero this method returns immediately.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Socket::isWriteFinished(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$bool = $sock.isWriteFinished(0);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::isWriteFinished()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>An optional timeout in milliseconds (1/1000 second).  If no timeout is given, the method returns immediately.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Socket::isWriteFinished()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -18533,7 +18610,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para>String</para></entry>
-	      <entry><para>The character encoding for the file.</para></entry>
+	      <entry><para>The character encoding for the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -18579,7 +18656,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
-	      <entry><para>The character encoding for the file.</para></entry>
+	      <entry><para>The character encoding for the socket.</para></entry>
 	    </row>
 	    
 	  </tbody>
@@ -18599,6 +18676,139 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not return any value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Socket_getNoDelay">
+      <title>Socket::getNoDelay()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the <code>TCP_NODELAY</code> setting for the socket.  See also <link linkend="Socket_setNoDelay">Socket::setNoDelay()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Socket::getNoDelay()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$nodelay = $sock.getNoDelay();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::getNoDelay()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for Socket::getNoDelay()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>The <code>TCP_NODELAY</code> setting for the socket.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Socket_setNoDelay">
+      <title>Socket::setNoDelay()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets the <code>TCP_NODELAY</code> setting for the socket; when this setting is True, then data will be immediately sent out over the socket, when it is False, then data transmission may be delayed to be packaged with other data for the same target.</para>
+	    <para>Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.</para>
+	    <para>Note that if no value is given to the method, the argument will be assumed to be False, and output buffering will be turned on for the socket, which may be the opposite of what the programmer intends, therefore it's recommended to always pass an argument to this method.</para>
+	    <para>See also <link linkend="Socket_getNoDelay">Socket::getNoDelay()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Socket::setNoDelay(<replaceable>boolean</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$sock.setNoDelay(True);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::setNoDelay()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>boolean</replaceable></para></entry>
+	      <entry><para>boolean</para></entry>
+	      <entry><para>The <code>TCP_NODELAY</code> setting for the socket.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for Socket::setNoDelay()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, non-zero for errors.  To get error information, see <link linkend="errno">errno()</link> and <link linkend="strerror">strerror()</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

@@ -2239,68 +2239,52 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeFormattedXMLRPCCallString">makeFormattedXMLRPCCallString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes the arguments into an XML string for an XML-RPC call with formatting.</para>
-          </entry>
+          <entry><para><link linkend="makeFormattedXMLRPCCallString">makeFormattedXMLRPCCallString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string for an XML-RPC call with formatting.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeFormattedXMLRPCCallStringArgs">makeFormattedXMLRPCCallStringArgs()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes the arguments into an XML string formatted for an XML-RPC call with formatting, taking a single list argument for the argument list.</para>
-          </entry>
+          <entry><para><link linkend="makeFormattedXMLRPCCallStringWithEncoding">makeFormattedXMLRPCCallStringWithEncoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string for an XML-RPC call with formatting, taking an initial string argument to give the encoding for the created XML.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeFormattedXMLRPCFaultResponseString">makeFormattedXMLRPCFaultResponseString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.</para>
-          </entry>
+          <entry><para><link linkend="makeFormattedXMLRPCCallStringArgs">makeFormattedXMLRPCCallStringArgs()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call with formatting, taking a single list argument for the argument list.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeFormattedXMLRPCResponseString">makeFormattedXMLRPCResponseString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting.</para>
-          </entry>
+          <entry><para><link linkend="makeFormattedXMLRPCCallStringArgsWithEncoding">makeFormattedXMLRPCCallStringArgsWithEncoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call with formatting, taking an initial string argument to give the encoding for the created XML, followed by the method name and a single list argument for the argument list.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="makeFormattedXMLRPCFaultResponseString">makeFormattedXMLRPCFaultResponseString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="makeFormattedXMLRPCFaultResponseStringWithEncoding">makeFormattedXMLRPCFaultResponseStringWithEncoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="makeFormattedXMLRPCResponseString">makeFormattedXMLRPCResponseString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="makeFormattedXMLRPCResponseStringWithEncoding">makeFormattedXMLRPCResponseStringWithEncoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para></entry>
         </row>
         <row>
           <entry>
@@ -2437,69 +2421,54 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeXMLRPCCallString">makeXMLRPCCallString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting.</para>
-          </entry>
+          <entry><para><link linkend="makeXMLRPCCallString">makeXMLRPCCallString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeXMLRPCCallStringArgs">makeXMLRPCCallStringArgs()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting, taking a single list argument for the argument list.</para>
-          </entry>
+          <entry><para><link linkend="makeXMLRPCCallStringWithEncoding">makeXMLRPCCallStringwithEncoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting, taking an initial string argument to give the target character encoding for the XML string.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeXMLRPCFaultResponseString">makeXMLRPCFaultResponseString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without formatting.</para>
-          </entry>
+          <entry><para><link linkend="makeXMLRPCCallStringArgs">makeXMLRPCCallStringArgs()</link></para></entry>
+	  <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting, taking a single list argument for the argument list.</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry>
-            <para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting.</para>
-          </entry>
+          <entry><para><link linkend="makeXMLRPCCallStringArgsWithEncoding">makeXMLRPCCallStringArgsWithEncoding()</link></para></entry>
+	  <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting, taking an initial string argument to give the target character encoding for the XML string followed by a list argument for the argument list.</para></entry>
         </row>
+        <row>
+          <entry><para><link linkend="makeXMLRPCFaultResponseString">makeXMLRPCFaultResponseString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without formatting.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="makeXMLRPCFaultResponseStringWithEncoding">makeXMLRPCFaultResponseStringWithEncoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without formatting, taking an initial string argument to give the target character encoding for the XML string.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="makeXMLRPCResponseStringWithEncoding">makeXMLRPCResponseStringWithEncoding()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting, taking an initial string argument to give the target character encoding for the XML string.</para></entry>
+        </row>
+
         <row>
           <entry>
             <para>
@@ -2738,20 +2707,16 @@
           <entry><para>Returns the natural logarithm of the value passed</para></entry>
         </row>
         <row>
-          <entry>
-            <para>
-              <link linkend="now">now()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Date</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns current date and time</para>
-          </entry>
+          <entry><para><link linkend="now">now()</link></para></entry>
+          <entry><para>Date</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns current date and time with resolution to the second</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="now_ms">now_ms()</link></para></entry>
+          <entry><para>Date</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns current date and time with resolution to the millisecond</para></entry>
         </row>
         <row>
           <entry>
@@ -7315,7 +7280,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the current date and time.</para>
+	<para>Returns the current date and time with resolution to the second.  For a similar function returning the current date and time with millisecond resolution, see <link linkend="now_ms">now_ms()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7357,7 +7322,67 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Returns the current date and time.</para>
+                <para>Returns the current date and time with resolution to the second.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="now_ms">
+<title>now_ms()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the current date and time with resolution to the millisecond.  For a similar function returning the current date and time with courser granularity, when resolution only to the second is needed, see <link linkend="now">now()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>now_ms()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$now_ms = now_ms();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for now_ms()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>Date</para>
+              </entry>
+              <entry>
+                <para>Returns the current date and time with resolution to the millisecond.</para>
               </entry>
             </row>
           </tbody>
@@ -21382,7 +21407,68 @@ catch ($ex)
 	  </tbody>
 	</tgroup>
       </table>
+</sect2>
 
+<sect2 id="makeFormattedXMLRPCCallStringWithEncoding">
+  <title>makeFormattedXMLRPCCallStringWithEncoding()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Serializes the arguments into an XML string for an XML-RPC call with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeFormattedXMLRPCCallStringWithEncoding(<replaceable>encoding_name, method_name, [arguments ...]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCCallStringWithEncoding("ISO-8859-1", "method.name", $arg1, $arg2);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeFormattedXMLRPCCallStringWithEncoding()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String, String, [Any ...]</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by makeFormattedXMLRPCCallStringWithEncoding()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
+	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 </sect2>
 
 <sect2 id="makeFormattedXMLRPCCallStringArgs">
@@ -21445,7 +21531,68 @@ catch ($ex)
 	  </tbody>
 	</tgroup>
       </table>
+</sect2>
 
+<sect2 id="makeFormattedXMLRPCCallStringArgsWithEncoding">
+  <title>makeFormattedXMLRPCCallStringArgsWithEncoding()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Serializes the arguments into an XML string formatted for an XML-RPC call with whitespace formatting, taking an initial string argument to give the encoding for the created XML, followed by the method name, followed by a single list argument for the argument list.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeFormattedXMLRPCCallStringArgsWithEncoding(<replaceable>encoding_name, method_name, [arg_list]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCCallStringArgsWithEncoding("ISO-8859-1", "method.name", $arg_list);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeFormattedXMLCallStringArgsWithEncoding()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String, String, [List]</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by makeFormattedXMLRPCCallStringArgsWithEncoding()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
+	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 </sect2>
 
 <sect2 id="makeFormattedXMLRPCFaultResponseString">
@@ -21506,14 +21653,78 @@ catch ($ex)
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>MAKE-XML-RPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</code></para></entry>
+	      <entry><para><code>MAKE-XMLRPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>missing either the error code or the error string arguments.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
+</sect2>
 
+<sect2 id="makeFormattedXMLRPCFaultResponseStringWithEncoding">
+  <title>makeFormattedXMLRPCFaultResponseStringWithEncoding()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeFormattedXMLRPCFaultResponseStringWithEncoding(<replaceable>encoding_name, error_code, error_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCFaultResponseStringWithEncoding("ISO-8859-2", 10, "oh no, big error");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeFormattedXMLRPCFaultResponseStringWithEncoding()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String, Integer, String</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
 
+      <table>
+	<title>Exceptions Thrown by makeFormattedXMLRPCCallStringArgsWithEncoding()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
+	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>MAKE-XMLRPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>missing either the error code or the error string arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 </sect2>
 
 <sect2 id="makeFormattedXMLRPCResponseString">
@@ -21561,6 +21772,68 @@ catch ($ex)
 
       <table>
 	<title>Exceptions Thrown by makeFormattedXMLRPCResponseString()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
+	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+</sect2>
+
+<sect2 id="makeFormattedXMLRPCResponseStringWithEncoding">
+  <title>makeFormattedXMLRPCResponseStringWithEncoding()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeFormattedXMLRPCResponseStringWithEncoding(<replaceable>encoding_name, any</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeFormattedXMLRPCResponseStringWithEncoding("ISO-8859-1", $value);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeFormattedXMLRPCResponseStringWithEncoding()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>Any</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting>.  The encoding of the resulting string is given by the first argument.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by makeFormattedXMLRPCResponseStringWithEncoding()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -21841,6 +22114,68 @@ catch ($ex)
 
 </sect2>
 
+<sect2 id="makeXMLRPCCallStringWithEncoding">
+  <title>makeXMLRPCCallStringWithEncoding()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, taking an initial string argument to give the target character encoding for the XML string.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeXMLRPCCallStringWithEncoding(<replaceable>encoding_name, method_name, [arguments ...]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCCallStringWithEncoding("ISO-8859-2", "method.name", $arg1, $arg2);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeXMLRPCCallStringWithEncoding()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String, String, [Any ...]</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting.  The encoding of the resulting string will correspond to the encoding given as the first argument.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by makeXMLRPCCallStringWithEncoding()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
+	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+</sect2>
+
 <sect2 id="makeXMLRPCCallStringArgs">
   <title>makeXMLRPCCallStringArgs()</title>
   <variablelist>
@@ -21904,6 +22239,69 @@ catch ($ex)
 
 </sect2>
 
+<sect2 id="makeXMLRPCCallStringArgsWithEncoding">
+  <title>makeXMLRPCCallStringArgsWithEncoding()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Serializes the arguments into an XML string formatted for an XML-RPC call without whitespace formatting, taking an initial string argument to give the target character encoding for the XML string followed by a list argument for the argument list.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeXMLRPCCallStringArgsWithEncoding(<replaceable>encoding_name, method_name, [arg_list]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCCallStringArgsWithEncoding("ISO-8859-2", "method.name", $arg_list);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeXMLCallStringArgsWithEncoding()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String, String, [List]</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will correspond to the encoding given as the first argument to the function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by makeXMLRPCCallStringArgsWithEncoding()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
+	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+</sect2>
+
 <sect2 id="makeXMLRPCFaultResponseString">
   <title>makeXMLRPCFaultResponseString()</title>
   <variablelist>
@@ -21943,7 +22341,7 @@ catch ($ex)
 	  <entry><para>String</para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted
 for an XML-RPC fault response without whitespace formatting.  The encoding of
-the resulting string will always be the encoding of the fault string (2nd argument)</link>.</para></entry>
+the resulting string will always be the encoding of the fault string (2nd argument).</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21964,14 +22362,80 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>MAKE-XML-RPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</code></para></entry>
+	      <entry><para><code>MAKE-XMLRPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>missing either the error code or the error string arguments.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
+</sect2>
 
+<sect2 id="makeXMLRPCFaultResponseStringWithEncoding">
+  <title>makeXMLRPCFaultResponseStringWithEncoding()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without whitespace formatting, taking an initial string argument to give the target character encoding for the XML string.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeXMLRPCFaultResponseStringWithEncoding(<replaceable>encoding_string, error_code, error_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCFaultResponseStringWithEncoding("ISO-8859-2", 10, "oh no, an error occured");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeXMLRPCFaultResponseStringWithEncoding()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String, Integer, String</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted
+for an XML-RPC fault response without whitespace formatting.  The encoding of
+the resulting string will correspond to the encoding given as the first argument.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
 
+      <table>
+	<title>Exceptions Thrown by makeXMLRPCCallStringArgsWithEncoding()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
+	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>MAKE-XMLRPC-FAULT-RESPONSE-STRING-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>missing either the error code or the error string arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 </sect2>
 
 <sect2 id="makeXMLRPCResponseString">
@@ -22019,6 +22483,68 @@ the resulting string will always be the encoding of the fault string (2nd argume
 
       <table>
 	<title>Exceptions Thrown by makeXMLRPCResponseString()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>MAKE-XML-ERROR</code></para></entry>
+	      <entry><para>An error occurred serializing the Qore data to an XML string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+</sect2>
+
+<sect2 id="makeXMLRPCResponseStringWithEncoding">
+  <title>makeXMLRPCResponseStringWithEncoding()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>makeXMLRPCResponseStringWithEncoding(<replaceable>encoding_name, any</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$xml = makeXMLRPCResponseStringWithEncoding("ISO-8859-2", $response);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for makeXMLRPCResponseStringWithEncoding()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>String, Any</para></entry>
+	  <entry><para>String</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The encoding of the resulting string will correspond to the first argument.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by makeXMLRPCResponseStringWithEncoding()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -22504,11 +23030,11 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>PARSE-XML-RPC-CALL-ERROR</code></para></entry>
+	      <entry><para><code>PARSE-XMLRPC-CALL-ERROR</code></para></entry>
 	      <entry><para>Error parsing the XML-RPC call string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>PARSE-XML-RPC-VALUE-ERROR</code></para></entry>
+	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
 	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
 	    </row>
 	  </tbody>
@@ -22570,11 +23096,11 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>PARSE-XML-RPC-RESPONSE-ERROR</code></para></entry>
+	      <entry><para><code>PARSE-XMLRPC-RESPONSE-ERROR</code></para></entry>
 	      <entry><para>Error parsing the XML-RPC response string.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>PARSE-XML-RPC-VALUE-ERROR</code></para></entry>
+	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
 	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
 	    </row>
 	  </tbody>
@@ -22637,7 +23163,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>PARSE-XML-RPC-VALUE-ERROR</code></para></entry>
+	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
 	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
 	    </row>
 	  </tbody>
