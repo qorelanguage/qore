@@ -3,7 +3,7 @@
 
 %if 0%{?sles_version}
 
-%define dist .sles{?sles_version}
+%define dist .sles%{?sles_version}
 
 %else
 %if 0%{?suse_version}
@@ -59,7 +59,11 @@ BuildRequires: pcre-devel
 BuildRequires: libxml2-devel
 BuildRequires: zlib-devel
 %if 0%{?suse_version}
+%if 0%{?sles_version} && %{?sles_version} <= 10
+BuildRequires: bzip2
+%else
 BuildRequires: libbz2-devel
+%endif
 %else
 BuildRequires: bzip2-devel
 %endif
