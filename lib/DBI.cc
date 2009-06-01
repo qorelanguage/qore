@@ -366,8 +366,7 @@ DBIDriver *DBIDriverList::find_intern(const char *name) const
    return priv->find_intern(name);
 }
 
-DBIDriver *DBIDriverList::find(const char *name) const
-{
+DBIDriver *DBIDriverList::find(const char *name) const {
    DBIDriver *d = priv->find_intern(name);
    if (d)
       return d;
@@ -377,6 +376,18 @@ DBIDriver *DBIDriverList::find(const char *name) const
    ExceptionSink xs;
    MM.runTimeLoadModule(name, &xs);
    xs.clear();
+
+   return priv->find_intern(name);
+}
+
+DBIDriver *DBIDriverList::find(const char *name, ExceptionSink *xsink) const {
+   DBIDriver *d = priv->find_intern(name);
+   if (d)
+      return d;
+
+   // to to load the driver if it doesn't exist
+   if (MM.runTimeLoadModule(name, xsink))
+      return 0;
 
    return priv->find_intern(name);
 }

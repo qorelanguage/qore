@@ -271,6 +271,15 @@ public:
        */
       DLLEXPORT DBIDriver *find(const char *name) const;
 
+      //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
+      /** FIXME: put in public interface in next API version
+	 @param name the name of the driver to find (or load)
+	 @param xsink Qore-language exceptions saved here if any occur
+	 @return the DBIDriver found or 0 if not found and was not loaded
+	 @see ModuleManager
+       */
+      DLLLOCAL DBIDriver *find(const char *name, ExceptionSink *xsink) const;
+
       DLLLOCAL DBIDriverList();
       DLLLOCAL ~DBIDriverList();
       DLLLOCAL QoreListNode *getDriverList() const;

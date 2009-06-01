@@ -26,21 +26,20 @@
 qore_classid_t CID_DATASOURCE;
 
 // usage: Datasource(db name, [username, password, dbname])
-static void DS_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
+static void DS_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p = test_string_param(params, 0);
-   if (!p || !p->strlen())
-   {
+   if (!p || !p->strlen()) {
       xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database driver name as first parameter of Datasource() constructor");
       return;
    }
-   DBIDriver *db_driver = DBI.find(p->getBuffer());
-   if (!db_driver)
-   {
-      xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", p->getBuffer());
+   DBIDriver *db_driver = DBI.find(p->getBuffer(), xsink);
+   if (!db_driver) {
+      if (!*xsink)
+	 xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", p->getBuffer());
       return;
    }
-   class ManagedDatasource *ds = new ManagedDatasource(db_driver);
+
+   ManagedDatasource *ds = new ManagedDatasource(db_driver);
 
    if ((p = test_string_param(params, 1)) && p->strlen())
       ds->setPendingUsername(p->getBuffer());
@@ -60,8 +59,7 @@ static void DS_constructor(QoreObject *self, const QoreListNode *params, Excepti
    self->setPrivate(CID_DATASOURCE, ds);
 }
 
-static void DS_destructor(QoreObject *self, class ManagedDatasource *ods, ExceptionSink *xsink)
-{
+static void DS_destructor(QoreObject *self, class ManagedDatasource *ods, ExceptionSink *xsink) {
    ods->destructor(xsink);
    ods->deref(xsink);
 }
