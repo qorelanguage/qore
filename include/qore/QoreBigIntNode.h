@@ -46,6 +46,7 @@ class QoreBigIntNode : public SimpleValueQoreNode
       DLLEXPORT virtual ~QoreBigIntNode();
 
    public:
+      //! value of the integer
       int64 val;
 
       //! creates a new integer with the value 0
