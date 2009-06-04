@@ -1061,9 +1061,9 @@ static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const Abstra
 
 static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent() || !val)
+   if (xsink->isEvent())
       return 0;
-
+   
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
@@ -1081,8 +1081,10 @@ static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const Ab
       b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
    }
 
-   // or current value with arg val
-   b->val %= val;
+   if (val)
+      b->val %= val;
+   else
+      b->val = 0;
 
    // reference return value and return
    return ref_rv ? b->refSelf() : 0;

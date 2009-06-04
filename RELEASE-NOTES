@@ -1,7 +1,7 @@
 RELEASE NOTES for qore v0.7.4
 
 release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
-                 twenty-one bug fixes
+                 twenty-two bug fixes
 
 *) BUG FIX: fixed localtime() when called with no argument to return the
    current date and time as per documentation
@@ -46,6 +46,8 @@ release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
    break statement is used
 *) BUG FIX: fixed a rare reference dependency bug where system classes were 
    being destroyed while still referenced in user code
+*) BUG FIX: fixed %= with a modula operand of 0 to set the lvalue to 0
+   (previously the expression was ignored if the modula operand was 0)
 *) added the abilty for a Condition variable to wait on RWLock objects as well
    as Mutex objects
 *) dereferencing a hash or object with a list will return a slice of the hash
