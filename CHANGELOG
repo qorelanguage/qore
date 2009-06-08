@@ -1,3 +1,14 @@
+2009.06.08: David Nichols
+	* added new HTTPClient methods for manipulating the TCP_NODELAY
+	  setting:
+	  + HTTPClient::setNoDelay()
+   	  + HTTPClient::getNoDelay()
+	* now the XmlRpcClient and JsonRpcClient constructors accept an
+	  optional second argument that, when True, will inhibit the immediate
+	  connection attempt on the socket and instead allow the socket
+	  connections to be either manually established or established on
+	  demand with the first request
+
 2009.06.04: David Nichols
 	* fixed %= with a modula operand of 0 to set the lvalue to 0
 
