@@ -62,25 +62,25 @@ struct qore_qtc_private {
    QoreThreadLock m;
    bool http11;       // are we using http 1.1 or 1.0?
    prot_map_t prot_map;
-  
-   bool ssl, proxy_ssl;
+
+   bool ssl, proxy_ssl, connected, nodelay;
    int port, proxy_port, default_port, max_redirects;
    std::string host, path, username, password;
    std::string proxy_host, proxy_path, proxy_username, proxy_password;
    std::string default_path;
    int timeout;
    std::string socketpath;
-   bool connected;
    QoreSocket m_socket;
    header_map_t default_headers;
    int connect_timeout_ms;
   
    DLLLOCAL qore_qtc_private() : http11(true), ssl(false), proxy_ssl(false),
+				 connected(false), nodelay(false),
 				 port(HTTPCLIENT_DEFAULT_PORT), proxy_port(0),
 				 default_port(HTTPCLIENT_DEFAULT_PORT), 
 				 max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
 				 timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
-				 connected(false), connect_timeout_ms(-1) {
+				 connect_timeout_ms(-1) {
       // setup protocol map
       prot_map["http"] = make_protocol(80, false);
       prot_map["https"] = make_protocol(443, true);
@@ -127,8 +127,13 @@ struct qore_qtc_private {
       else
 	 rc = m_socket.connect(socketpath.c_str(), connect_timeout_ms, xsink);
 
-      if (!rc)
+      if (!rc) {
 	 connected = true;
+	 if (nodelay) {
+	    if (m_socket.setNoDelay(1))
+	       nodelay = false;
+	 }
+      }
       return rc;
    }
 
@@ -139,6 +144,27 @@ struct qore_qtc_private {
       }
    }
 
+   DLLLOCAL int setNoDelay(bool nd) {
+      AutoLocker al(m);
+      
+      if (!connected) {
+	 nodelay = true;
+	 return 0;
+      }
+
+      if (nodelay)
+	 return 0;
+
+      if (m_socket.setNoDelay(1))
+	 return -1;
+
+      nodelay = true;
+      return 0;
+   }
+
+   DLLLOCAL bool getNoDelay() const {
+      return nodelay;
+   }
 };
 
 // static initialization
@@ -1159,4 +1185,12 @@ void QoreHTTPClient::lock() {
 
 void QoreHTTPClient::unlock() {
    priv->m.unlock();
+}
+
+int QoreHTTPClient::setNoDelay(bool nd) {
+   return priv->setNoDelay(nd);
+}
+
+bool QoreHTTPClient::getNoDelay() const {
+   return priv->getNoDelay();
 }

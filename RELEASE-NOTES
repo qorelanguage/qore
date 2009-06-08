@@ -69,6 +69,13 @@ release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
    + makeFormattedXMLRPCCallStringArgsWithEncoding()
    + makeFormattedXMLRPCResponseStringWithEncoding()
    + makeFormattedXMLRPCFaultResponseStringWithEncoding()
+*) added new HTTPClient methods for manipulating the TCP_NODELAY setting:
+   + HTTPClient::setNoDelay()
+   + HTTPClient::getNoDelay()
+*) now the XmlRpcClient and JsonRpcClient constructors accept an optional
+   second argument that, when True, will inhibit the immediate connection
+   attempt on the socket and instead allow the socket connections to be either
+   manually established or established on demand with the first request
 
 
 ***********************

@@ -67,6 +67,13 @@ static inline int64 get_bitint_param(const QoreListNode *n, qore_size_t i) {
    return is_nothing(p) ? 0 : p->getAsBigInt();
 }
 
+//! returns a boolean value corresponding to the argument given or false if there is none
+static inline bool get_bool_param(const QoreListNode *n, qore_size_t i) {
+   if (!n) return 0;
+   const AbstractQoreNode *p = n->retrieve_entry(i);
+   return is_nothing(p) ? false : p->getAsBool();
+}
+
 //! returns a const BinaryNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a BinaryNode
 /**
    @param n a pointer to the argument list

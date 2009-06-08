@@ -19146,6 +19146,7 @@ $sock.bind("/tmp/socket");</programlisting>
             </entry>
             <entry>
               <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or <link linkend="HTTPClient_setSecure">HTTPClient::setSecure()</link> was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the <link linkend="Socket_connect">Socket::connect()</link> method (or <link linkend="Socket_connectSSL">Socket::connectSSL()</link> for secure connections).</para>
+	      <para>If the <code>TCP_NODELAY</code> flag has been set (see <link linkend="HTTPClient_setNoDelay">HTTPClient::setNoDelay()</link>), then after a successful connection to the remote socket, this option will be set on the socket.  If an error occurs setting the <code>TCP_NODELAY</code> option, the internal flag is set to false (use <link linkend="HTTPClient::getNoDelay">HTTPClient::getNoDelay()</link> to check the flag's state) and the error code can be retrieved with <link linkend="errno">errno()</link>.</para>
             </entry>
           </row>
           <row>
@@ -19348,6 +19349,16 @@ $sock.bind("/tmp/socket");</programlisting>
             <entry><para>N</para></entry>
             <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events.</para></entry>
           </row>
+	  <row>
+	    <entry><para><link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the <code>TCP_NODELAY</code> setting for the object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="HTTPClient_setNoDelay">HTTPClient::setNoDelay()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the <code>TCP_NODELAY</code> setting for the object.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -22219,6 +22230,140 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
+    <sect2 id="HTTPClient_getNoDelay">
+      <title>HTTPClient::getNoDelay()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the <code>TCP_NODELAY</code> setting for the HTTPClient object.  See also <link linkend="HTTPClient_setNoDelay">HTTPClient::setNoDelay()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>HTTPClient::getNoDelay()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$nodelay = $httpclient.getNoDelay();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for HTTPClient::getNoDelay()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for HTTPClient::getNoDelay()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>The <code>TCP_NODELAY</code> setting for the HTTPClient object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_setNoDelay">
+      <title>HTTPClient::setNoDelay()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets the <code>TCP_NODELAY</code> setting for the HTTPClient object; when this setting is True, then data will be immediately sent out over the HTTPClient object's socket, when it is False, then data transmission may be delayed to be packaged with other data for the same target.</para>
+	    <para>Delayed data transmissions may cause problems when the sender immediately closes the spcket after sending data; in this case the receiver may not get the data even though the send succeeded.</para>
+	    <para>Note that if no value is given to the method, the argument will be assumed to be False, and output buffering will be turned on for the HTTPClient object, which may be the opposite of what the programmer intends, therefore it's recommended to always pass an argument to this method.</para>
+	    <para>If the socket is not connected when this call is made, then an internal flag is set and the <code>TCP_NODELAY</code> option is enabled when the next connection is established.  If the socket is connected, then if an error occurs setting the <code>TCP_NODELAY</code> option on the socket, this method will return a non-zero error code; the actual error can be checked with the <link linkend="errno">errno()</link> function.</para>
+	    <para>See also <link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>HTTPClient::setNoDelay(<replaceable>boolean</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$httpclient.setNoDelay(True);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for HTTPClient::setNoDelay()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>boolean</replaceable></para></entry>
+	      <entry><para>boolean</para></entry>
+	      <entry><para>The <code>TCP_NODELAY</code> setting for the HTTPClient.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for HTTPClient::setNoDelay()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>0 for success, non-zero for errors.  To get error information, see <link linkend="errno">errno()</link> and <link linkend="strerror">strerror()</link>.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
   </sect1>
 
   <sect1 id="XmlRpcClient_Class">
@@ -22375,13 +22520,13 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the XmlRpcClient object based on the parameters passed and immediately attempts to establish a connection to the server.  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
+            <para>Creates the XmlRpcClient object based on the parameters passed and by default immediately attempts to establish a connection to the server (pass a boolean True value as the second argument to establish a connection on demand).  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting><command>new</command> XmlRpcClient(<replaceable>[opts]</replaceable>)</programlisting>
+            <programlisting><command>new</command> XmlRpcClient(<replaceable>[opts, noconnect]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -22420,6 +22565,11 @@ $sock.bind("/tmp/socket");</programlisting>
               <entry>
                 <para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para>
               </entry>
+            </row>
+            <row>
+              <entry><para><replaceable>[noconnect]</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>If this optional argument is passed with a value of True, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -23177,19 +23327,20 @@ $sock.bind("/tmp/socket");</programlisting>
         </tbody>
       </tgroup>
     </table>
+
     <sect2 id="JsonRpcClient_constructor">
       <title>JsonRpcClient::constructor()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the JsonRpcClient object based on the parameters passed and immediately attempts to establish a connection to the server.  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
+            <para>Creates the JsonRpcClient object based on the parameters passed and by default immediately attempts to establish a connection to the server (pass a boolean True value as the second argument to establish a connection on demand).  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting><command>new</command> JsonRpcClient(<replaceable>[opts]</replaceable>)</programlisting>
+            <programlisting><command>new</command> JsonRpcClient(<replaceable>[opts, noconnect]</replaceable>)</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -23204,30 +23355,21 @@ $sock.bind("/tmp/socket");</programlisting>
         <tgroup cols="3" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[opts]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>Hash</para>
-              </entry>
-              <entry>
-                <para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para>
-              </entry>
+              <entry><para><replaceable>[opts]</replaceable></para></entry>
+              <entry><para>Hash</para></entry>
+              <entry><para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para></entry>
+            </row>
+            <row>
+              <entry><para><replaceable>[noconnect]</replaceable></para></entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>If this optional argument is passed with a value of True, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
             </row>
           </tbody>
         </tgroup>

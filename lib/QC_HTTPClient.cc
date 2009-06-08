@@ -384,6 +384,14 @@ static AbstractQoreNode *HC_getConnectTimeout(QoreObject *self, QoreHTTPClient *
    return new QoreBigIntNode(client->getConnectTimeout());
 }
 
+static AbstractQoreNode *HC_setNoDelay(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+    return new QoreBigIntNode(client->setNoDelay(get_int_param(params, 0)));
+}
+
+static AbstractQoreNode *HC_getNoDelay(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+    return get_bool_node(client->getNoDelay());
+}
+
 QoreClass *initHTTPClientClass() {
    QORE_TRACE("initHTTPClientClass");
 
@@ -427,6 +435,8 @@ QoreClass *initHTTPClientClass() {
    client->addMethod("setEventQueue",          (q_method_t)HC_setEventQueue);
    client->addMethod("setConnectTimeout",      (q_method_t)HC_setConnectTimeout);
    client->addMethod("getConnectTimeout",      (q_method_t)HC_getConnectTimeout);
+   client->addMethod("setNoDelay",             (q_method_t)HC_setNoDelay);
+   client->addMethod("getNoDelay",             (q_method_t)HC_getNoDelay);
 
    return client;
 }

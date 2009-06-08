@@ -50,7 +50,10 @@ static void XRC_constructor(QoreObject *self, const QoreListNode *params, Except
    if (n && client->setOptions(n, xsink))
       return;
 
-   client->connect(xsink); 
+   // do not connect immediately if the second argument is True
+   bool no_connect = get_bool_param(params, 1);
+   if (!no_connect)
+      client->connect(xsink);
 }
 
 static void XRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, ExceptionSink *xsink) {

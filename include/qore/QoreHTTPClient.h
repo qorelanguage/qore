@@ -282,6 +282,21 @@ class QoreHTTPClient : public AbstractPrivateData {
       **/
       DLLEXPORT int getConnectTimeout() const;
 
+      //! sets the TCP_NODELAY flag on the object
+      /**
+	 This function will try to set the TCP_NODELAY flag immediately if the
+	 socket is connected, otherwise will it set a flag and the TCP_NODELAY
+	 option will be set on the next connection.  If an error occurs
+	 setting TCP_NODELAY on a connected socket, then this function will
+	 return a non-zero value, and errno will be set
+	 @param nodelay 0=turn off TCP_NODELAY, non-zero=turn on TCP_NODELAY
+	 @return 0=OK, non-zero means an error occured, errno is set
+       */
+      DLLLOCAL int setNoDelay(bool nodelay);
+
+      //! returns the value of the TCP_NODELAY flag on the object
+      DLLLOCAL bool getNoDelay() const;
+
       DLLLOCAL static void static_init();
 
       //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
