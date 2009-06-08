@@ -32,7 +32,9 @@
 class BinaryNode : public SimpleValueQoreNode
 {
    private:
+      //! pointer to memory owned by the object
       void *ptr;
+      //! size of the memory block owned by the object
       qore_size_t len;
 
       // not yet implemented
@@ -40,6 +42,7 @@ class BinaryNode : public SimpleValueQoreNode
       DLLLOCAL BinaryNode& operator=(const BinaryNode&);
 
    protected:
+      //! frees and memory owned by the object
       DLLEXPORT virtual ~BinaryNode();
 
    public:

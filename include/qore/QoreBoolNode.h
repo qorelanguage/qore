@@ -49,6 +49,7 @@ class QoreBoolNode : public UniqueValueQoreNode
       DLLLOCAL virtual double getAsFloatImpl() const;
 
    protected:
+      //! boolean value for the object
       bool b;
 
       //! the constructor can only be called by a subclass
