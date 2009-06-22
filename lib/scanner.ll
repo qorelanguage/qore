@@ -447,7 +447,6 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 }
 <incl>{WS}*				// ignore white space
 <incl>[^\t\n\r]+			{
-                                           FILE *save_yyin = yyin;
 					   TempString fname(getIncludeFileName(yytext));
 					   const char *fn = fname->getBuffer();
 					   // remove enclosing quotes if any
@@ -456,21 +455,46 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 						   || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
 					      fname->trim(fn[0]);
 					   }
-					   yyin = fopen(fname->getBuffer(), "r");
-					   
-					   if (!yyin) {
-					      parse_error("cannot open include file \"%s\"", yytext);
-					      yyin = save_yyin;
+
+					   if (!fname->strlen()) {
+					      parse_error("missing argument to %%include", yytext);
 					      BEGIN(INITIAL);
 					   }
 					   else {
-					      // take string from buffer
-					      char *str = fname->giveBuffer();
-					      // save file name string in QoreProgram's list - the list now owns the string memory
-					      getProgram()->addFile(str);
-					      beginParsing(str, (void *)YY_CURRENT_BUFFER);
-					      yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
-					      BEGIN(INITIAL);
+					      // check if regular file
+					      struct stat sbuf;
+					      int rc = stat(fname->getBuffer(), &sbuf);
+					      if (rc) {
+						 parse_error("stat() failed on include file: \"%s\": %s", fname->getBuffer(), strerror(errno));
+						 BEGIN(INITIAL);
+					      }
+					      else {
+
+						 //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
+						 if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
+						    parse_error("cannot include \"%s\"; is not a regular file", fname->getBuffer());
+						    BEGIN(INITIAL);
+						 }
+						 else {
+						    FILE *save_yyin = yyin;
+						    yyin = fopen(fname->getBuffer(), "r");
+						    
+						    if (!yyin) {
+						       parse_error("cannot open include file \"%s\"", fname->getBuffer());
+						       yyin = save_yyin;
+						       BEGIN(INITIAL);
+						    }
+						    else {
+						       // take string from buffer
+						       char *str = fname->giveBuffer();
+						       // save file name string in QoreProgram's list - the list now owns the string memory
+						       getProgram()->addFile(str);
+						       beginParsing(str, (void *)YY_CURRENT_BUFFER);
+						       yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
+						       BEGIN(INITIAL);
+						    }
+						 }
+					      }
 					   }
                                         }
 <<EOF>>                                 {

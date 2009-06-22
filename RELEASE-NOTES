@@ -1,81 +1,6 @@
-RELEASE NOTES for qore v0.7.4
+RELEASE NOTES for qore v0.7.5
 
-release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
-                 twenty-two bug fixes
-
-*) BUG FIX: fixed localtime() when called with no argument to return the
-   current date and time as per documentation
-*) BUG FIX: fixed a race condition that could cause a deadlock when calling
-   pthread_join() when Qore code calls "exit()" when multiple threads are
-   running
-*) BUG FIX: fixed the Dir::listFiles() method; the mask used would not filter
-   out directories
-*) BUG FIX: fixed crashes in the File class due to unsigned data type being
-   used and the comparison (< 0) that signaled an error always failed; the
-   crash would happen when a non-File object was read
-*) BUG FIX: fixed outputting recursive data structures with the %n and %N 
-   printf format specifiers (would otherwise result in a crash - for example,
-   when an object contains a list that also contains the object, etc)
-*) BUG FIX: fixed object access deadlock scenarios
-*) BUG FIX: fixed the "-" operator with: hash-string and hash-list (also
-   hash-=string and hash-=list) to remove the value(s) from the hash, not call
-   the delete operator
-*) BUG FIX: NULL values are serialized as "null" JSON values
-*) BUG FIX: fixed parsing of a corner case of marginally valid XML-RPC
-*) BUG FIX: fixed XML-RPC serialization to handle NOTHING (no value) and NULL
-   identically
-*) BUG FIX: fixed XML-RPC serialization to never output an empty <param/>
-   element, as it could potentially break some implementations (the XML-RPC
-   spec is not very clear on this).  Note: we send empty value elements:
-   <value/> when serializing NOTHING or NULL, which may not be correct either
-*) BUG FIX: do not assume that a trailing null should terminate the string when
-   reading string data from files; include the trailing null in the string
-*) BUG FIX: fixed a bug parsing base64 strings when newlines and/or linefeeds
-   trailed the base64-encoded data
-*) BUG FIX: fixed outputting '%%' as '%' in *printf*() functions
-*) BUG FIX: fixed a bug parsing hashes where the hash key was given as a
-   constant
-*) BUG FIX: fixed a bug in the delete operator where shared data was being
-   updated in place instead of copied and then updated
-*) BUG FIX: fixed some race conditions that could cause deadlocks with the
-   getAllThreadCallStacks() function (not normally enabled by default)
-*) BUG FIX: ignore '\n' and '\r' when parsing base64-encoded strings
-*) BUG FIX: fixed a crashing bug when trying to copy member elements of a 
-   deleted object
-*) BUG FIX: fixed the foreach statement when used with a reference and the 
-   break statement is used
-*) BUG FIX: fixed a rare reference dependency bug where system classes were 
-   being destroyed while still referenced in user code
-*) BUG FIX: fixed %= with a modula operand of 0 to set the lvalue to 0
-   (previously the expression was ignored if the modula operand was 0)
-*) added the abilty for a Condition variable to wait on RWLock objects as well
-   as Mutex objects
-*) dereferencing a hash or object with a list will return a slice of the hash
-   or object as a hash: ex: $hash.("key1", "key2")
-*) allow %include parse directives to quote the file names (ignore leading and
-   trailing quotes around the file name)
-*) new Socket class methods:
-   + Socket::isWriteFinished(<timeout_ms>): for future support for 
-     non-blocking writes
-   + Socket::setNoDelay(<boolean>): to set the TCP_NODELAY option
-   + Socket::getNoDelay(): returns value of the TCP_NODELAY option
-*) new functions to allow for explicitly specifying the encoding when
-   serializing XML-RPC strings:
-   + makeXMLRPCCallStringWithEncoding()
-   + makeXMLRPCCallStringArgsWithEncoding()
-   + makeXMLRPCResponseStringWithEncoding()
-   + makeXMLRPCFaultResponseStringWithEncoding()
-   + makeFormattedXMLRPCCallStringWithEncoding()
-   + makeFormattedXMLRPCCallStringArgsWithEncoding()
-   + makeFormattedXMLRPCResponseStringWithEncoding()
-   + makeFormattedXMLRPCFaultResponseStringWithEncoding()
-*) added new HTTPClient methods for manipulating the TCP_NODELAY setting:
-   + HTTPClient::setNoDelay()
-   + HTTPClient::getNoDelay()
-*) now the XmlRpcClient and JsonRpcClient constructors accept an optional
-   second argument that, when True, will inhibit the immediate connection
-   attempt on the socket and instead allow the socket connections to be either
-   manually established or established on demand with the first request
+in progress
 
 
 ***********************
@@ -227,6 +152,88 @@ unknown bugs out there.
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+*****************************
+RELEASE NOTES for qore v0.7.4
+*****************************
+
+release summary: qore 0.7.4 contains minor feature improvements over 0.7.3 and
+                 twenty-two bug fixes
+
+*) BUG FIX: fixed localtime() when called with no argument to return the
+   current date and time as per documentation
+*) BUG FIX: fixed a race condition that could cause a deadlock when calling
+   pthread_join() when Qore code calls "exit()" when multiple threads are
+   running
+*) BUG FIX: fixed the Dir::listFiles() method; the mask used would not filter
+   out directories
+*) BUG FIX: fixed crashes in the File class due to unsigned data type being
+   used and the comparison (< 0) that signaled an error always failed; the
+   crash would happen when a non-File object was read
+*) BUG FIX: fixed outputting recursive data structures with the %n and %N 
+   printf format specifiers (would otherwise result in a crash - for example,
+   when an object contains a list that also contains the object, etc)
+*) BUG FIX: fixed object access deadlock scenarios
+*) BUG FIX: fixed the "-" operator with: hash-string and hash-list (also
+   hash-=string and hash-=list) to remove the value(s) from the hash, not call
+   the delete operator
+*) BUG FIX: NULL values are serialized as "null" JSON values
+*) BUG FIX: fixed parsing of a corner case of marginally valid XML-RPC
+*) BUG FIX: fixed XML-RPC serialization to handle NOTHING (no value) and NULL
+   identically
+*) BUG FIX: fixed XML-RPC serialization to never output an empty <param/>
+   element, as it could potentially break some implementations (the XML-RPC
+   spec is not very clear on this).  Note: we send empty value elements:
+   <value/> when serializing NOTHING or NULL, which may not be correct either
+*) BUG FIX: do not assume that a trailing null should terminate the string when
+   reading string data from files; include the trailing null in the string
+*) BUG FIX: fixed a bug parsing base64 strings when newlines and/or linefeeds
+   trailed the base64-encoded data
+*) BUG FIX: fixed outputting '%%' as '%' in *printf*() functions
+*) BUG FIX: fixed a bug parsing hashes where the hash key was given as a
+   constant
+*) BUG FIX: fixed a bug in the delete operator where shared data was being
+   updated in place instead of copied and then updated
+*) BUG FIX: fixed some race conditions that could cause deadlocks with the
+   getAllThreadCallStacks() function (not normally enabled by default)
+*) BUG FIX: ignore '\n' and '\r' when parsing base64-encoded strings
+*) BUG FIX: fixed a crashing bug when trying to copy member elements of a 
+   deleted object
+*) BUG FIX: fixed the foreach statement when used with a reference and the 
+   break statement is used
+*) BUG FIX: fixed a rare reference dependency bug where system classes were 
+   being destroyed while still referenced in user code
+*) BUG FIX: fixed %= with a modula operand of 0 to set the lvalue to 0
+   (previously the expression was ignored if the modula operand was 0)
+*) added the abilty for a Condition variable to wait on RWLock objects as well
+   as Mutex objects
+*) dereferencing a hash or object with a list will return a slice of the hash
+   or object as a hash: ex: $hash.("key1", "key2")
+*) allow %include parse directives to quote the file names (ignore leading and
+   trailing quotes around the file name)
+*) new Socket class methods:
+   + Socket::isWriteFinished(<timeout_ms>): for future support for 
+     non-blocking writes
+   + Socket::setNoDelay(<boolean>): to set the TCP_NODELAY option
+   + Socket::getNoDelay(): returns value of the TCP_NODELAY option
+*) new functions to allow for explicitly specifying the encoding when
+   serializing XML-RPC strings:
+   + makeXMLRPCCallStringWithEncoding()
+   + makeXMLRPCCallStringArgsWithEncoding()
+   + makeXMLRPCResponseStringWithEncoding()
+   + makeXMLRPCFaultResponseStringWithEncoding()
+   + makeFormattedXMLRPCCallStringWithEncoding()
+   + makeFormattedXMLRPCCallStringArgsWithEncoding()
+   + makeFormattedXMLRPCResponseStringWithEncoding()
+   + makeFormattedXMLRPCFaultResponseStringWithEncoding()
+*) added new HTTPClient methods for manipulating the TCP_NODELAY setting:
+   + HTTPClient::setNoDelay()
+   + HTTPClient::getNoDelay()
+*) now the XmlRpcClient and JsonRpcClient constructors accept an optional
+   second argument that, when True, will inhibit the immediate connection
+   attempt on the socket and instead allow the socket connections to be either
+   manually established or established on demand with the first request
+
 
 *****************************
 RELEASE NOTES for qore v0.7.3

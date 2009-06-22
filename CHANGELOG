@@ -1,3 +1,9 @@
+2009.06.22: David Nichols
+	* added checks to the scanner to give better error messages when
+	  trying to include a directory or other non-file
+
+*** v0.7.3 RELEASE *** 
+
 2009.06.08: David Nichols
 	* added new HTTPClient methods for manipulating the TCP_NODELAY
 	  setting:
