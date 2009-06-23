@@ -148,6 +148,10 @@ struct qore_program_private {
       {
       }
 
+      DLLLOCAL const char *parseGetScriptDir() const {
+	 return script_dir.empty() ? 0 : script_dir.c_str();
+      }
+
       DLLLOCAL QoreStringNode *getScriptPath() const {
 	 // grab program-level parse lock
 	 AutoLocker al(&plock);
@@ -958,8 +962,7 @@ AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallRefer
    return fr_holder.release();
 }
 
-void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *wS, int wm)
-{
+void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    printd(5, "QoreProgram::parse(fp=%08p, name=%s, xsink=%08p, wS=%08p, wm=%d)\n", fp, name, xsink, wS, wm);
 
    // if already at the end of file, then return
@@ -1331,6 +1334,10 @@ void QoreProgram::tc_inc() {
 
 void QoreProgram::tc_dec() {
    priv->tcount.dec();
+}
+
+const char *QoreProgram::parseGetScriptDir() const {
+   return priv->parseGetScriptDir();
 }
 
 QoreStringNode *QoreProgram::getScriptDir() const {

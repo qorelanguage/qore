@@ -36,7 +36,24 @@
 
 //#define QORE_DEBUG_OBJ_REFS 0
 
-// if the second part of the pair is true, then the data is virtual
+/*
+  Qore internal class data is stored against the object with this data structure
+  against its qore_classid_t (class ID).  In a class hierarchy, for private data
+  that is actually a C++ subclass of Qore parent classes, then we save the same
+  private data against the qore class IDs of the parent classes, but we set the
+  flag to true, meaning that we will not delete the private data when
+  the parent classes' destructors are run, but rather only when the subclass that
+  actually owns data has its turn to destroy private object data. 
+
+  So basically, the second boolean flag just means - does this class ID actually
+  own the private data or not - if it's false, then it does not actually own the data,
+  but is compatible with the data, so parent class builtin (C++) methods will get
+  passed this private data as if it belonged to this class and as if it were saved
+  directly to the object in the class' constructor.
+
+  please note that this flag is called the "virtual" flag elsewhere in the code here,
+  meaning that the data only "virtually" belongs to the class
+ */
 typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
 
 // mapping from qore class ID to the object data

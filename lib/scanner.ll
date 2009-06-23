@@ -89,7 +89,17 @@ static QoreString *getIncludeFileName(char *file) {
    if (file[0] == '/')
       return new QoreString(file);
 
-   QoreString *rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
+   QoreString *rv;
+
+   // check in current directory of script first
+   const char *sp = getProgram()->parseGetScriptDir();
+   if (sp) {
+      rv = findFileInPath(file, sp);
+      if (rv)
+	 return rv;
+   }
+
+   rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
    if (!rv) {
        const char *pp = getProgram()->parseGetIncludePath();
        if (pp) 
@@ -461,26 +471,28 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					      BEGIN(INITIAL);
 					   }
 					   else {
+					      // re-get the buffer pointer
+					      fn = fname->getBuffer();
 					      // check if regular file
 					      struct stat sbuf;
-					      int rc = stat(fname->getBuffer(), &sbuf);
+					      int rc = stat(fn, &sbuf);
 					      if (rc) {
-						 parse_error("stat() failed on include file: \"%s\": %s", fname->getBuffer(), strerror(errno));
+						 parse_error("stat() failed on include file: \"%s\": %s", fn, strerror(errno));
 						 BEGIN(INITIAL);
 					      }
 					      else {
 
 						 //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
 						 if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
-						    parse_error("cannot include \"%s\"; is not a regular file", fname->getBuffer());
+						    parse_error("cannot include \"%s\"; is not a regular file", fn);
 						    BEGIN(INITIAL);
 						 }
 						 else {
 						    FILE *save_yyin = yyin;
-						    yyin = fopen(fname->getBuffer(), "r");
+						    yyin = fopen(fn, "r");
 						    
 						    if (!yyin) {
-						       parse_error("cannot open include file \"%s\"", fname->getBuffer());
+						       parse_error("cannot open include file \"%s\"", fn);
 						       yyin = save_yyin;
 						       BEGIN(INITIAL);
 						    }

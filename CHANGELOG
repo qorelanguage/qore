@@ -1,3 +1,7 @@
+2009.06.23: David Nichols
+	* always check current directory of script first when looking for
+	  %include files i the path is not absolute
+
 2009.06.22: David Nichols
 	* added checks to the scanner to give better error messages when
 	  trying to include a directory or other non-file

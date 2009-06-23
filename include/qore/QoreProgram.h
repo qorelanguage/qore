@@ -472,6 +472,12 @@ class QoreProgram : public AbstractPrivateData {
       DLLLOCAL QoreThreadLock *getParseLock();
       DLLLOCAL QoreHashNode *clearThreadData(ExceptionSink *xsink);
       DLLLOCAL const LVList *getTopLevelLVList() const;
+
+      //! returns the script directory, if known (0 if not), does not grab the parse lock, only to be called while parsing
+      /** @return the script directory, if known (0 if not)
+       */
+      DLLLOCAL const char *parseGetScriptDir() const;
+
 };
 
 //! safely manages QoreProgram objects
@@ -482,15 +488,13 @@ class QoreProgramHelper {
 
    public:
       //! creates the QoreProgram object
-      DLLLOCAL QoreProgramHelper(ExceptionSink &xs) : pgm(new QoreProgram), xsink(xs)
-      {
+      DLLLOCAL QoreProgramHelper(ExceptionSink &xs) : pgm(new QoreProgram), xsink(xs) {
       }
 
       //! waits until the QoreProgram object is done executing and then dereferences the object
       /** QoreProgram objects are deleted when there reference count reaches 0.
        */
-      DLLLOCAL ~QoreProgramHelper()
-      {
+      DLLLOCAL ~QoreProgramHelper() {
 	 pgm->waitForTerminationAndDeref(&xsink);
       }
 
