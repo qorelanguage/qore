@@ -3,6 +3,11 @@
 	  %include files i the path is not absolute
 	* fixed a deadlock when an object deletes a member and the member
 	  tries to access the parent object in the member's destructor
+	* fixed a bug reporting the latest module API version; should use
+	  library value instead of reporting the value from the header file
+	* updated module API to 0.7, updated library version to 5.2, added
+	  new QoreObject::externalDelete() function to handle the situation
+	  when object private data is deleted externally
 
 2009.06.22: David Nichols
 	* added checks to the scanner to give better error messages when

@@ -153,6 +153,27 @@ class KeyList {
       }
 };
 
+void QoreObject::externalDelete(qore_classid_t key, ExceptionSink *xsink) {
+   {
+      AutoLocker al(priv->mutex);
+
+      if (priv->status == OS_DELETED || !priv->privateData)
+	 return;
+
+      // remove the private data that's already been deleted
+#ifdef DEBUG
+      assert(priv->privateData->getAndClearPtr(key));
+#else
+      priv->privateData->getAndClearPtr(key);
+#endif
+      // mark status as in destructor
+      priv->status = gettid();
+   }
+
+   // run the destructor
+   doDeleteIntern(xsink);
+}
+
 QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(oc, p, new QoreHashNode())) {
 }
 

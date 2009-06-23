@@ -169,7 +169,7 @@ static void show_module_apis(const char *arg) {
 }
 
 static void show_latest_module_api(const char *arg) {
-   printf("%d.%d\n", QORE_MODULE_API_MAJOR, QORE_MODULE_API_MINOR);
+   printf("%d.%d\n", qore_mod_api_list[0].major, qore_mod_api_list[0].minor);
    exit(0);
 }
 

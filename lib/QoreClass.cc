@@ -1178,8 +1178,7 @@ void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsin
    }
 }
 
-bool QoreMethod::evalDeleteBlocker(QoreObject *self) const
-{
+bool QoreMethod::evalDeleteBlocker(QoreObject *self) const {
    // can only be builtin
    return self->evalDeleteBlocker(priv->func.builtin);
 }
@@ -1201,39 +1200,25 @@ void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
 #endif
 	 priv->func.builtin->evalDestructor(self, ptr, priv->parent_class->getName(), xsink);
       }
-#if DEBUG
-      // this case should be impossible to reach
-      // do not throw an exception if the class has no private data
-      else if (!xsink->isException() && priv->parent_class->getID() == priv->parent_class->getIDForMethod()) {
-	 assert(false);
-#if 0
-	 if (self->getClass() == priv->parent_class)
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() cannot be executed because the object has already been deleted", self->getClass()->getName());
-	 else
-	    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::destructor() (base class of '%s') cannot be executed because the object has already been deleted", priv->parent_class->getName(), self->getClass()->getName());
-#endif
-      }
-#endif
+      // in case there is no private data, ignore: we cannot execute the destructor
+      // this might happen in the case that the data was deleted externally, for example
+      // with QoreObject::externalDelete()
    }
 }
 
-const UserFunction *QoreMethod::getStaticUserFunction() const
-{
+const UserFunction *QoreMethod::getStaticUserFunction() const {
    return priv->getStaticUserFunction();
 }
 
-const BuiltinFunction *QoreMethod::getStaticBuiltinFunction() const
-{
+const BuiltinFunction *QoreMethod::getStaticBuiltinFunction() const {
    return priv->getStaticBuiltinFunction();
 }
 
-bool QoreMethod::existsUserParam(int i) const
-{
+bool QoreMethod::existsUserParam(int i) const {
    return priv->existsUserParam(i);
 }
 
-QoreClass *QoreClass::copyAndDeref()
-{
+QoreClass *QoreClass::copyAndDeref() {
    QORE_TRACE("QoreClass::copyAndDeref");
    QoreClass *noc = new QoreClass(priv->classID, priv->name);
    noc->priv->methodID = priv->methodID;
@@ -1463,8 +1448,7 @@ bool QoreClass::execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const
    return false;
 }
 
-void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink) const
-{
+void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink) const {
    printd(5, "QoreClass::execDestructor() %s::destructor() o=%08p\n", priv->name, self);
 
    // we use a new, blank exception sink to ensure all destructor code gets executed 
@@ -1495,8 +1479,7 @@ void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink) const
    xsink->assimilate(&de);
 }
 
-inline void QoreClass::execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const
-{
+void QoreClass::execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
@@ -1508,8 +1491,7 @@ inline void QoreClass::execSubclassDestructor(QoreObject *self, ExceptionSink *x
    xsink->assimilate(&de);
 }
 
-inline void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const
-{
+void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;

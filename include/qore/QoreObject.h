@@ -46,8 +46,7 @@ class BuiltinMethod;
 
     @see QoreClass
 */
-class QoreObject : public AbstractQoreNode
-{
+class QoreObject : public AbstractQoreNode {
       friend struct qore_object_private;
       friend class qore_object_lock_handoff_manager;
 
@@ -164,8 +163,7 @@ class QoreObject : public AbstractQoreNode
       DLLEXPORT virtual const char *getTypeName() const;
 
       //! returns the type name as a c string
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "object";
       }
 
@@ -362,6 +360,13 @@ class QoreObject : public AbstractQoreNode
       /** it is an error to call this function from anything other than a delete blocker
        */
       DLLEXPORT void deleteBlockerRef() const;
+
+      //! call this function when an object's private data is deleted externally
+      /** this function will clear the private data and delete the object
+	  @param key the class ID of the class that owns the private data
+	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       */
+      DLLEXPORT void externalDelete(qore_classid_t key, ExceptionSink *xsink);
 
       DLLLOCAL int getStatus() const;
 

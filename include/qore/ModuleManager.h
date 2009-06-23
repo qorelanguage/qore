@@ -34,7 +34,7 @@
  */
 
 #define QORE_MODULE_API_MAJOR 0 //!< the major number of the Qore module API implemented
-#define QORE_MODULE_API_MINOR 6 //!< the minor number of the Qore module API implemented
+#define QORE_MODULE_API_MINOR 7 //!< the minor number of the Qore module API implemented
 
 //! element of qore_mod_api_list;
 struct qore_mod_api_compat_s {
