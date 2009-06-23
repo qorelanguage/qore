@@ -105,20 +105,17 @@ void AutoVLock::set(QoreThreadLock *n_m)
    m = n_m;
 }
 
-void AutoVLock::set(QoreObject *n_o, QoreThreadLock *n_m)
-{
+void AutoVLock::set(QoreObject *n_o, QoreThreadLock *n_m) {
    assert(!m);
    o = n_o;
    m = n_m;
 }
 
-QoreThreadLock *AutoVLock::get()
-{
+QoreThreadLock *AutoVLock::get() {
    return m;
 }
 
-void AutoVLock::addMemberNotification(QoreObject *obj, const char *member)
-{
+void AutoVLock::addMemberNotification(QoreObject *obj, const char *member) {
    // ignore member notifications for updates made within the class
    if (obj == getStackObject() || !obj->hasMemberNotification())
       return;
@@ -129,8 +126,7 @@ void AutoVLock::addMemberNotification(QoreObject *obj, const char *member)
    priv->add(obj, member);
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int timeout_ms)
-{
+int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int timeout_ms) {
    waiting_on = asl;
    
    int rc = 0;

@@ -544,8 +544,7 @@ class qore_object_lock_handoff_manager {
 };
 
 // unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, AutoVLock *vl, ExceptionSink *xsink) const
-{
+AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, AutoVLock *vl, ExceptionSink *xsink) const {
    // do lock handoff
    qore_object_lock_handoff_manager qolhm(const_cast<QoreObject *>(this), vl);
 
@@ -557,8 +556,7 @@ AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, AutoVLock *vl,
 }
 
 // unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **QoreObject::getMemberValuePtr(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const
-{
+AbstractQoreNode **QoreObject::getMemberValuePtr(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const {
    TempEncodingHelper enc(key, QCS_DEFAULT, xsink);
    if (!enc)
       return 0;
@@ -567,8 +565,7 @@ AbstractQoreNode **QoreObject::getMemberValuePtr(const QoreString *key, AutoVLoc
 }
 
 // unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode *QoreObject::getMemberValueNoMethod(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreObject::getMemberValueNoMethod(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const {
    TempEncodingHelper enc(key, QCS_DEFAULT, xsink);
    if (!enc)
       return 0;
@@ -577,8 +574,7 @@ AbstractQoreNode *QoreObject::getMemberValueNoMethod(const QoreString *key, Auto
 }
 
 // unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode *QoreObject::getMemberValueNoMethod(const char *key, AutoVLock *vl, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreObject::getMemberValueNoMethod(const char *key, AutoVLock *vl, ExceptionSink *xsink) const {
    // do lock handoff
    qore_object_lock_handoff_manager qolhm(const_cast<QoreObject *>(this), vl);
 
@@ -594,8 +590,7 @@ AbstractQoreNode *QoreObject::getMemberValueNoMethod(const char *key, AutoVLock 
    return rv;
 }
 
-void QoreObject::deleteMemberValue(const QoreString *key, ExceptionSink *xsink)
-{
+void QoreObject::deleteMemberValue(const QoreString *key, ExceptionSink *xsink) {
    TempEncodingHelper enc(key, QCS_DEFAULT, xsink);
    if (!enc)
       return;
@@ -603,8 +598,7 @@ void QoreObject::deleteMemberValue(const QoreString *key, ExceptionSink *xsink)
    deleteMemberValue(enc->getBuffer(), xsink);
 }
 
-void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink)
-{
+void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink) {
    AbstractQoreNode *v;
    {
       AutoLocker al(priv->mutex);
