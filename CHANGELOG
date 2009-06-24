@@ -1,3 +1,8 @@
+2009.06.24: David Nichols
+	* fixed another deadlock in running destructors where a member is
+	  deleted that is an object, where that object's destructor references
+	  the parent object
+
 2009.06.23: David Nichols
 	* always check current directory of script first when looking for
 	  %include files i the path is not absolute

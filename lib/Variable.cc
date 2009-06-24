@@ -646,6 +646,17 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
 
    // if it's a hash reference, then delete the key
    QoreHashNode *h = (*val)->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
-   if (h)
-      h->deleteKey(mem->getBuffer(), xsink);
+   if (h) {
+      // 1: take the value from the hash
+      AbstractQoreNode *val = h->takeKeyValue(mem->getBuffer());
+      // 2: release all locks
+      vl.del();
+      // 3: perform any necessary deletes
+      if (val) {
+	 if (val->getType() == NT_OBJECT) {
+	    reinterpret_cast<QoreObject *>(val)->doDelete(xsink);
+	 }
+	 val->deref(xsink);
+      }
+   }
 }
