@@ -33,11 +33,11 @@
 #include <qore/intern/DatasourcePool.h>
 
 DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, ExceptionSink *xsink) {
-   init(ndsl, user, pass, db, charset, hostname, 0, mn, mx, xsink);
+   init(ndsl, user, pass, db, charset, hostname, mn, mx, 0, xsink);
 }
 
 DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink) {
-   init(ndsl, user, pass, db, charset, hostname, port, mn, mx, xsink);
+   init(ndsl, user, pass, db, charset, hostname, mn, mx, port, xsink);
 }
 
 void DatasourcePool::init(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink) {
@@ -53,8 +53,8 @@ void DatasourcePool::init(DBIDriver *ndsl, const char *user, const char *pass, c
    tid_list = new int[max];
 
    // create minimum datasources if possible
-   printd(5, "DatasourcePool::DatasourcePool(driver=%08p user=%s pass=%s db=%s charset=%s host=%s min=%d max=%d) pool=%08p\n", 
-          ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", hostname ? hostname : "(null)", min, max, pool);
+   printd(5, "DatasourcePool::DatasourcePool(driver=%08p user=%s pass=%s db=%s charset=%s host=%s min=%d max=%d port=%d) pool=%08p\n", 
+          ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", hostname ? hostname : "(null)", min, max, port, pool);
    cmax = 0;
    do
    {

@@ -521,7 +521,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
       h->setKeyValue("host", new QoreStringNode(p), 0);
    }
    else {
-      pport = strchr(p, ':');
+      pport = strchr(str, ':');
       if (pport)
 	 ++pport;
    }
