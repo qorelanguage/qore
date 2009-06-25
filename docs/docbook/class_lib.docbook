@@ -19145,8 +19145,7 @@ $sock.bind("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or <link linkend="HTTPClient_setSecure">HTTPClient::setSecure()</link> was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the <link linkend="Socket_connect">Socket::connect()</link> method (or <link linkend="Socket_connectSSL">Socket::connectSSL()</link> for secure connections).</para>
-	      <para>If the <code>TCP_NODELAY</code> flag has been set (see <link linkend="HTTPClient_setNoDelay">HTTPClient::setNoDelay()</link>), then after a successful connection to the remote socket, this option will be set on the socket.  If an error occurs setting the <code>TCP_NODELAY</code> option, the internal flag is set to false (use <link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay()</link> to check the flag's state) and the error code can be retrieved with <link linkend="errno">errno()</link>.</para>
+              <para>Connects to the remote socket; SSL/TLS negotiation is performed if required.</para>
             </entry>
           </row>
           <row>
@@ -20291,6 +20290,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Connects to the remote socket.  If the protocol indicates that a secure connection should be established (or <link linkend="HTTPClient_setSecure">HTTPClient::setSecure()</link> was called previsouly), SSL/TLS negotiation will be attempted.  Note: For possible exceptions, see the <link linkend="Socket_connect">Socket::connect()</link> method (or <link linkend="Socket_connectSSL">Socket::connectSSL()</link> for secure connections).</para>
+	    <para>If the <code>TCP_NODELAY</code> flag has been set (see <link linkend="HTTPClient_setNoDelay">HTTPClient::setNoDelay()</link>), then after a successful connection to the remote socket, this option will be set on the socket.  If an error occurs setting the <code>TCP_NODELAY</code> option, the internal flag is set to false (use <link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay()</link> to check the flag's state) and the error code can be retrieved with <link linkend="errno">errno()</link>.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
