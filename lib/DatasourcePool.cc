@@ -32,8 +32,15 @@
 #include <qore/Qore.h>
 #include <qore/intern/DatasourcePool.h>
 
-DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, ExceptionSink *xsink)
-{
+DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, ExceptionSink *xsink) {
+   init(ndsl, user, pass, db, charset, hostname, 0, mn, mx, xsink);
+}
+
+DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink) {
+   init(ndsl, user, pass, db, charset, hostname, port, mn, mx, xsink);
+}
+
+void DatasourcePool::init(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink) {
    //assert(mn > 0);
    //assert(mx > min);   
    //assert(db != 0 && db[0]);
@@ -57,6 +64,7 @@ DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pa
       if (db)       pool[cmax]->setPendingDBName(db);
       if (charset)  pool[cmax]->setPendingDBEncoding(charset);
       if (hostname) pool[cmax]->setPendingHostName(hostname);
+      if (port)     pool[cmax]->setPendingPort(port);
       pool[cmax]->setAutoCommit(false);
       pool[cmax]->open(xsink);
  
@@ -424,13 +432,15 @@ QoreStringNode *DatasourcePool::getPendingDBEncoding() const
    return pool[0]->getPendingDBEncoding();
 }
 
-QoreStringNode *DatasourcePool::getPendingHostName() const
-{
+QoreStringNode *DatasourcePool::getPendingHostName() const {
    return pool[0]->getPendingHostName();
 }
 
-const QoreEncoding *DatasourcePool::getQoreEncoding() const
-{
+int DatasourcePool::getPendingPort() const {
+   return pool[0]->getPendingPort();
+}
+
+const QoreEncoding *DatasourcePool::getQoreEncoding() const {
    return pool[0]->getQoreEncoding();
 }
 

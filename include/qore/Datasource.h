@@ -28,7 +28,7 @@
 
 #include <qore/QoreThreadLock.h>
 
-#include <string>
+class DBIDriver;
 
 //! the base class for accessing databases in Qore through a Qore DBI driver
 /** This class is not thread-safe or even thread-aware.  Thread safety and thread
@@ -39,8 +39,7 @@
     connection is in use.
     @see DBIDriver
  */
-class Datasource
-{
+class Datasource {
    private:
       struct qore_ds_private *priv; // private implementation
 
@@ -64,14 +63,14 @@ class Datasource
       DLLEXPORT void setPendingConnectionValues(const Datasource *other);
 
       //! calls the "begin_implicit_transaction" DBI method if it exists
-      DLLEXPORT int beginImplicitTransaction(class ExceptionSink *xsink);
+      DLLEXPORT int beginImplicitTransaction(ExceptionSink *xsink);
 
    public:
       //! creates the object and binds it to a particular DBIDriver
       /**
 	 @param driver the DBIDriver object to use for the connection
        */
-      DLLEXPORT Datasource(class DBIDriver *driver);
+      DLLEXPORT Datasource(DBIDriver *driver);
 
       //! the Datasource is closed if it's still open and the object is destroyed
       DLLEXPORT virtual ~Datasource();
@@ -118,6 +117,12 @@ class Datasource
        */
       DLLEXPORT const char *getHostName() const;
 
+      //! returns the port number used for the last connection
+      /**
+	 @return the port number used for the last connection
+       */
+      DLLEXPORT int getPort() const;
+
       //! returns the private DBI-specific data structure for this object
       DLLEXPORT void *getPrivateData() const;
 
@@ -134,13 +139,13 @@ class Datasource
       DLLEXPORT void setDBEncoding(const char *name);
 
       //! returns the QoreEncoding pointer used for this connection
-      DLLEXPORT const class QoreEncoding *getQoreEncoding() const;
+      DLLEXPORT const QoreEncoding *getQoreEncoding() const;
 
       //! sets the QoreEncoding used for this connection
       /** this function should only be called by the DBI driver when a connection is established
 	  @param enc the QoreEncoding used for the current connection
        */
-      DLLEXPORT void setQoreEncoding(const class QoreEncoding *enc);
+      DLLEXPORT void setQoreEncoding(const QoreEncoding *enc);
 
       //! sets the name for the QoreEncoding used for this connection
       /** this function should only be called by the DBI driver when a connection is established
@@ -178,6 +183,12 @@ class Datasource
        */
       DLLEXPORT void setPendingHostName(const char *h);
 
+      //! sets the port number to be used for the next connection
+      /**
+	 @param port the port number to be used for the next connection
+       */
+      DLLEXPORT void setPendingPort(int port);
+
       DLLEXPORT void setAutoCommit(bool ac);
 
       //! opens a connection to the database
@@ -192,7 +203,7 @@ class Datasource
 	  @param args query arguments for %s, %n, %d placeholders
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT class AbstractQoreNode *select(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+      DLLEXPORT AbstractQoreNode *select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
 
       //! executes SQL throught the "selectRows" function of the DBI driver and returns the result, makes an implicit connection if necessary
       /** this function is not "const" to allow for implicit connections (and reconnections)
@@ -200,7 +211,7 @@ class Datasource
 	  @param args query arguments for %s, %n, %d placeholders
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT class AbstractQoreNode *selectRows(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+      DLLEXPORT AbstractQoreNode *selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
 
       //! executes SQL throught the "exec" function of the DBI driver and returns the result, makes an implicit connection if necessary
       /** The "in_transaction" flag will be set to true if this method executes without
@@ -210,7 +221,7 @@ class Datasource
 	  @param args query arguments for %s, %n, %d placeholders
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT class AbstractQoreNode *exec(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+      DLLEXPORT AbstractQoreNode *exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
 
       //! commits the current transaction to the database
       /** Calls the DBI driver's "commit" method.
@@ -266,15 +277,23 @@ class Datasource
 
       //! returns the pending host name for the next connection
       /** caller owns the AbstractQoreNode pointer's reference count returned
-       */
+	  @return the pending host name for the next connection
+      */
       DLLEXPORT QoreStringNode *getPendingHostName() const;
+
+      //! returns the pending port number for the next connection
+      /**
+	 @return the pending port number used for the next connection
+      */
+      DLLEXPORT int getPendingPort() const;
+
 
       /** sets the "in_transaction" flag to true if autocommit is not set
 	  throws an exception if autocommit is true
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return -1 for error, 0 for OK
       */
-      DLLEXPORT int beginTransaction(class ExceptionSink *xsink);
+      DLLEXPORT int beginTransaction(ExceptionSink *xsink);
 
       //! returns the transaction status
       /**
@@ -302,19 +321,19 @@ class Datasource
 	  this function is not "const" to allow for implicit connections (and reconnections)
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT class AbstractQoreNode *getServerVersion(class ExceptionSink *xsink);
+      DLLEXPORT AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
 
       //! executes the "get_client_version" function of the driver, if any, and returns the result
       /** the caller owns the AbstractQoreNode pointer's reference count returned (if the pointer is not 0)
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT class AbstractQoreNode *getClientVersion(class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *getClientVersion(ExceptionSink *xsink) const;
 
       //! returns the DBIDriver pointer used for this object
       /**
 	 @return the DBIDriver pointer used for this object
        */
-      DLLEXPORT const class DBIDriver *getDriver() const;
+      DLLEXPORT const DBIDriver *getDriver() const;
 
       //! should be called by the DBIDriver if the connection to the server is lost
       /** The DBIDriver should raise its own exception when this call is made, as making this call will
@@ -326,8 +345,7 @@ class Datasource
       //! returns the connection aborted status
       /** @return the connection aborted status
        */
-      DLLEXPORT bool wasConnectionAborted() const;
-	  
+      DLLEXPORT bool wasConnectionAborted() const;	  
 };
 
 #endif // _QORE_DATASOURCE_H

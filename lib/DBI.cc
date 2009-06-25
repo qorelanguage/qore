@@ -490,11 +490,9 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
 
    char *db = str;
    p = strchr(str, '(');
-   if (p)
-   {
+   if (p) {
       char *end = strchr(p, ')');
-      if (!end) 
-      {
+      if (!end) {
 	 xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing closing parenthesis in charset specification in '%s'", ds);
 	 return 0;
       }
@@ -504,26 +502,44 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
       h->setKeyValue("charset", new QoreStringNode(p), 0);
       str = end + 1;
    }
+
+   char *pport = 0;
    
    p = strchr(str, '%');
-   if (p)
-   {
+   if (p) {
       *p = '\0';
       p++;
-      if (!*p)
-      {
+      if (!*p) {
 	 xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing hostname string after '%' delimeter in '%s'", ds);
 	 return 0;
       }
+      pport = strchr(p, ':');
+      if (pport) {
+	 *pport = '\0';
+	 ++pport;
+      }
       h->setKeyValue("host", new QoreStringNode(p), 0);
+   }
+   else {
+      pport = strchr(p, ':');
+      if (pport)
+	 ++pport;
+   }
+
+   if (pport) {
+      int port = atoi(pport);
+      if (!port) {
+	 xsink->raiseException("DATASOURCE-PARSE-ERROR", "invalid port number in datasource string");
+	 return 0;
+      }
+      h->setKeyValue("port", new QoreBigIntNode(port), 0);
    }
 
    h->setKeyValue("db", new QoreStringNode(db), 0);
    return h.release();
 }
 
-AbstractQoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *xsink)
-{
+AbstractQoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))

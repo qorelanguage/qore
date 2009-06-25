@@ -50,41 +50,33 @@ void ManagedDatasource::cleanup(ExceptionSink *xsink) {
    }
 }
 
-void ManagedDatasource::destructor(ExceptionSink *xsink)
-{
+void ManagedDatasource::destructor(ExceptionSink *xsink) {
    AutoLocker al(&ds_lock);
    // closeUnlocked will throw an exception if a transaction is in progress (and release the lock)
    closeUnlocked(xsink);
    counter = -1;
 }
 
-void ManagedDatasource::deref(ExceptionSink *xsink)
-{
-   if (ROdereference())
-   {
+void ManagedDatasource::deref(ExceptionSink *xsink) {
+   if (ROdereference()) {
       close(xsink);
       delete this;
    }
 }
 
-void ManagedDatasource::deref()
-{
-   if (ROdereference())
-   {
+void ManagedDatasource::deref() {
+   if (ROdereference()) {
       close();
       delete this;
    }
 }
 
-int ManagedDatasource::grabLockIntern()
-{
+int ManagedDatasource::grabLockIntern() {
    int ctid = gettid();
    
-   while (tid != -1 && tid != ctid)
-   {
+   while (tid != -1 && tid != ctid) {
       ++waiting;
-      if (tl_timeout_ms)
-      {
+      if (tl_timeout_ms) {
 	 if (!cTransaction.wait(&ds_lock, tl_timeout_ms))
 	    break;
 
@@ -102,10 +94,8 @@ int ManagedDatasource::grabLockIntern()
    return 0;   
 }
 
-int ManagedDatasource::grabLock(ExceptionSink *xsink)
-{
-   if (grabLockIntern() < 0)
-   {
+int ManagedDatasource::grabLock(ExceptionSink *xsink) {
+   if (grabLockIntern() < 0) {
       endDBActionIntern();
       const char *un = getUsername();
       const char *db = getDBName();
@@ -117,8 +107,7 @@ int ManagedDatasource::grabLock(ExceptionSink *xsink)
    return 0;
 }
 
-void ManagedDatasource::releaseLock()
-{
+void ManagedDatasource::releaseLock() {
    assert(tid == gettid());
    tid = -1;
    if (waiting)
@@ -198,8 +187,7 @@ void ManagedDatasource::setTransactionLockTimeout(int t_ms)
    tl_timeout_ms = t_ms;
 }
 
-int ManagedDatasource::getTransactionLockTimeout()
-{
+int ManagedDatasource::getTransactionLockTimeout() const {
    return tl_timeout_ms;
 }
 
@@ -483,29 +471,39 @@ void ManagedDatasource::setPendingHostName(const char *h) {
    Datasource::setPendingHostName(h);
 }
 
-QoreStringNode *ManagedDatasource::getPendingUsername() {
+void ManagedDatasource::setPendingPort(int port) {
+   AutoLocker al(&ds_lock);
+   Datasource::setPendingPort(port);
+}
+
+QoreStringNode *ManagedDatasource::getPendingUsername() const {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingUsername();
 }
 
-QoreStringNode *ManagedDatasource::getPendingPassword() {
+QoreStringNode *ManagedDatasource::getPendingPassword() const {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingPassword();
 }
 
-QoreStringNode *ManagedDatasource::getPendingDBName() {
+QoreStringNode *ManagedDatasource::getPendingDBName() const {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingDBName();
 }
 
-QoreStringNode *ManagedDatasource::getPendingDBEncoding() {
+QoreStringNode *ManagedDatasource::getPendingDBEncoding() const {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingDBEncoding();
 }
 
-QoreStringNode *ManagedDatasource::getPendingHostName() {
+QoreStringNode *ManagedDatasource::getPendingHostName() const {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingHostName();
+}
+
+int ManagedDatasource::getPendingPort() const {
+   AutoLocker al(&ds_lock);
+   return Datasource::getPendingPort();
 }
 
 AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink) {
@@ -525,6 +523,6 @@ AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink) {
    return rv;
 }
 
-AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) {
+AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) const {
    return Datasource::getClientVersion(xsink);
 }

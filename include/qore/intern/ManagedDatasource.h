@@ -44,7 +44,7 @@
 
 class ManagedDatasource : public AbstractThreadResource, public Datasource {
 private:
-   QoreThreadLock
+   mutable QoreThreadLock
       ds_lock,                     // transaction lock
       connection_lock;             // connection lock
 
@@ -95,18 +95,20 @@ public:
    DLLLOCAL void setPendingDBName(const char *d);
    DLLLOCAL void setPendingDBEncoding(const char *c);
    DLLLOCAL void setPendingHostName(const char *h);
-   DLLLOCAL QoreStringNode *getPendingUsername();
-   DLLLOCAL QoreStringNode *getPendingPassword();
-   DLLLOCAL QoreStringNode *getPendingDBName();
-   DLLLOCAL QoreStringNode *getPendingDBEncoding();
-   DLLLOCAL QoreStringNode *getPendingHostName();
+   DLLLOCAL void setPendingPort(int port);
+   DLLLOCAL QoreStringNode *getPendingUsername() const;
+   DLLLOCAL QoreStringNode *getPendingPassword() const;
+   DLLLOCAL QoreStringNode *getPendingDBName() const;
+   DLLLOCAL QoreStringNode *getPendingDBEncoding() const;
+   DLLLOCAL QoreStringNode *getPendingHostName() const;
+   DLLLOCAL int getPendingPort() const;
    DLLLOCAL void setTransactionLockTimeout(int t_ms);
-   DLLLOCAL int getTransactionLockTimeout();
+   DLLLOCAL int getTransactionLockTimeout() const;
    DLLLOCAL void beginTransaction(ExceptionSink *xsink);
    DLLLOCAL void setAutoCommit(bool ac);   
    DLLLOCAL ManagedDatasource *copy();
    DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink) const;
 };
 
 #endif

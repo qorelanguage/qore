@@ -29,141 +29,125 @@
 #include <string.h>
 
 struct qore_ds_private {
-      bool in_transaction;
-      bool isopen;
-      bool autocommit;
-      bool connection_aborted;
-      mutable class DBIDriver *dsl;
-      const QoreEncoding *qorecharset;
-      void *private_data;               // driver private data per connection
+   bool in_transaction;
+   bool isopen;
+   bool autocommit;
+   bool connection_aborted;
+   mutable class DBIDriver *dsl;
+   const QoreEncoding *qorecharset;
+   void *private_data;               // driver private data per connection
       
-      // for pending connection values
-      std::string p_username,  // for Oracle, MySQL
-	 p_password,    // for Oracle, MySQL
-	 p_dbname,      // for Oracle, MySQL
-	 p_db_encoding, // for Oracle, MySQL - database-specific name for the encoding for the connection
-	 p_hostname;    // for MySQL
+   // for pending connection values
+   std::string p_username,
+      p_password,
+      p_dbname,
+      p_db_encoding, // database-specific name for the encoding for the connection
+      p_hostname;
+   int p_port;       // pending port number (0 = default port)
 
-      // actual connection values set by init() before the datasource is opened
-      std::string username,    // for Oracle, MySQL
-	 password,      // for Oracle, MySQL
-	 db_encoding,   // for ORacle, MySQL - database-specific name for the encoding for the connection
-	 dbname,        // for Oracle, MySQL
-	 hostname;      // for MySQL
+   // actual connection values set by init() before the datasource is opened
+   std::string username,
+      password,
+      db_encoding,   // database-specific name for the encoding for the connection
+      dbname,
+      hostname;
+   int port; // port number (0 = default port)
 
-      DLLLOCAL qore_ds_private(DBIDriver *ndsl) : in_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0)
-      {
-      }
+   DLLLOCAL qore_ds_private(DBIDriver *ndsl) : in_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0) { }
       
-      DLLLOCAL ~qore_ds_private()
-      {
-	 assert(!private_data);
-      }
+   DLLLOCAL ~qore_ds_private() {
+      assert(!private_data);
+   }
 
-      DLLLOCAL void setPendingConnectionValues(const qore_ds_private *other)
-      {
-	 p_username    = other->p_username;
-	 p_password    = other->p_password;
-	 p_dbname      = other->p_dbname;
-	 p_hostname    = other->p_hostname;
-	 p_db_encoding = other->p_db_encoding;
-	 autocommit    = other->autocommit;
-      }
+   DLLLOCAL void setPendingConnectionValues(const qore_ds_private *other) {
+      p_username    = other->p_username;
+      p_password    = other->p_password;
+      p_dbname      = other->p_dbname;
+      p_hostname    = other->p_hostname;
+      p_db_encoding = other->p_db_encoding;
+      autocommit    = other->autocommit;
+      p_port        = other->p_port;
+   }
 
-      DLLLOCAL void setConnectionValues()
-      {
-	 dbname      = p_dbname;
-	 username    = p_username;
-	 password    = p_password;
-	 hostname    = p_hostname;
-	 db_encoding = p_db_encoding;
-      }
+   DLLLOCAL void setConnectionValues() {
+      dbname      = p_dbname;
+      username    = p_username;
+      password    = p_password;
+      hostname    = p_hostname;
+      db_encoding = p_db_encoding;
+      port        = p_port;
+   }
 };
 
-Datasource::Datasource(DBIDriver *ndsl) : priv(new qore_ds_private(ndsl))
-{
+Datasource::Datasource(DBIDriver *ndsl) : priv(new qore_ds_private(ndsl)) {
 }
 
-Datasource::~Datasource()
-{
+Datasource::~Datasource() {
    if (priv->isopen)
       close();
 
    delete priv;
 }
 
-void Datasource::setPendingConnectionValues(const Datasource *other)
-{
+void Datasource::setPendingConnectionValues(const Datasource *other) {
    priv->setPendingConnectionValues(other->priv);
 }
 
-void Datasource::setTransactionStatus(bool t)
-{
+void Datasource::setTransactionStatus(bool t) {
    //printd(5, "Datasource::setTS(%d) this=%08p\n", t, this);
    priv->in_transaction = t;
 }
 
-QoreListNode *Datasource::getCapabilityList() const
-{
+QoreListNode *Datasource::getCapabilityList() const {
    return priv->dsl->getCapList();
 }
 
-int Datasource::getCapabilities() const
-{
+int Datasource::getCapabilities() const {
    return priv->dsl->getCaps();
 }
 
-bool Datasource::isInTransaction() const
-{ 
+bool Datasource::isInTransaction() const { 
    return priv->in_transaction; 
 }
 
-bool Datasource::getAutoCommit() const
-{ 
+bool Datasource::getAutoCommit() const { 
    return priv->autocommit;
 }
 
-bool Datasource::isOpen() const
-{ 
+bool Datasource::isOpen() const { 
    return priv->isopen; 
 }
 
-Datasource *Datasource::copy() const
-{
+Datasource *Datasource::copy() const {
    class Datasource *nds = new Datasource(priv->dsl);
    nds->priv->setPendingConnectionValues(priv);
 
    return nds;
 }
 
-void Datasource::setConnectionValues()
-{
+void Datasource::setConnectionValues() {
    priv->setConnectionValues();
 }
 
-void Datasource::setAutoCommit(bool ac)
-{
+void Datasource::setAutoCommit(bool ac) {
    priv->autocommit = ac;
 }
 
-AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    AbstractQoreNode *rv = priv->dsl->select(this, query_str, args, xsink);
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
    return rv;
 }
 
-AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    AbstractQoreNode *rv = priv->dsl->selectRows(this, query_str, args, xsink);
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
    return rv;
 }
 
-AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return 0;
 
@@ -171,8 +155,7 @@ AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNo
    //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
-   else if (!priv->in_transaction)
-   {
+   else if (!priv->in_transaction) {
       if (xsink->isException()) {
 	 if (!priv->connection_aborted)
 	    priv->dsl->abortTransactionStart(this, xsink);
@@ -184,27 +167,23 @@ AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNo
    return rv;
 }
 
-int Datasource::beginImplicitTransaction(ExceptionSink *xsink)
-{
+int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {
    //printd(5, "Datasource::beginImplicitTransaction() autocommit=%s\n", autocommit ? "true" : "false");
-   if (priv->autocommit)
-   {
+   if (priv->autocommit) {
       xsink->raiseException("AUTOCOMMIT-ERROR", "transaction management is not available because autocommit is enabled for this Datasource");
       return -1;
    }
    return priv->dsl->beginTransaction(this, xsink);
 }
 
-int Datasource::beginTransaction(ExceptionSink *xsink)
-{
+int Datasource::beginTransaction(ExceptionSink *xsink) {
    int rc = beginImplicitTransaction(xsink);
    if (!rc)
       priv->in_transaction = true;
    return rc;
 }
 
-int Datasource::commit(ExceptionSink *xsink)
-{
+int Datasource::commit(ExceptionSink *xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
@@ -213,8 +192,7 @@ int Datasource::commit(ExceptionSink *xsink)
    return rc;
 }
 
-int Datasource::rollback(ExceptionSink *xsink)
-{
+int Datasource::rollback(ExceptionSink *xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
@@ -223,12 +201,10 @@ int Datasource::rollback(ExceptionSink *xsink)
    return rc;
 }
 
-int Datasource::open(ExceptionSink *xsink)
-{
+int Datasource::open(ExceptionSink *xsink) {
    int rc;
    
-   if (!priv->isopen)
-   {
+   if (!priv->isopen) {
       // copy pending connection values to connection values
       setConnectionValues();
       
@@ -242,8 +218,7 @@ int Datasource::open(ExceptionSink *xsink)
    return rc;
 }
 
-int Datasource::close()
-{
+int Datasource::close() {
    if (priv->isopen) {
       priv->dsl->close(this);
       priv->isopen = false;
@@ -254,23 +229,19 @@ int Datasource::close()
    return -1;
 }
 
-void Datasource::connectionAborted()
-{
+void Datasource::connectionAborted() {
    assert(priv->isopen);
 
    priv->connection_aborted = true;
 }
 
-bool Datasource::wasConnectionAborted() const
-{
+bool Datasource::wasConnectionAborted() const {
    return priv->connection_aborted;
 }
 
 // forces a close and open to reset a database connection
-void Datasource::reset(ExceptionSink *xsink)
-{
-   if (priv->isopen)
-   {
+void Datasource::reset(ExceptionSink *xsink) {
+   if (priv->isopen) {
       // close the Datasource
       priv->dsl->close(this);
       priv->isopen = false;
@@ -283,132 +254,118 @@ void Datasource::reset(ExceptionSink *xsink)
    }
 }
 
-void *Datasource::getPrivateData() const
-{
+void *Datasource::getPrivateData() const {
    return priv->private_data;
 }
 
-void Datasource::setPrivateData(void *data)
-{
+void Datasource::setPrivateData(void *data) {
    priv->private_data = data;
 }
 
-void Datasource::setPendingUsername(const char *u)
-{
+void Datasource::setPendingUsername(const char *u) {
    priv->p_username = u;
 }
 
-void Datasource::setPendingPassword(const char *p)
-{
+void Datasource::setPendingPassword(const char *p) {
    priv->p_password = p;
 }
 
-void Datasource::setPendingDBName(const char *d)
-{
+void Datasource::setPendingDBName(const char *d) {
    priv->p_dbname = d;
 }
 
-void Datasource::setPendingDBEncoding(const char *c)
-{
+void Datasource::setPendingDBEncoding(const char *c) {
    priv->p_db_encoding = c;
 }
 
-void Datasource::setPendingHostName(const char *h)
-{
+void Datasource::setPendingHostName(const char *h) {
    priv->p_hostname = h;
 }
 
-const char *Datasource::getUsername() const
-{
+void Datasource::setPendingPort(int port) {
+   priv->p_port = port;
+}
+
+const char *Datasource::getUsername() const {
    return priv->username.empty() ? 0 : priv->username.c_str();
 }
 
-const char *Datasource::getPassword() const
-{
+const char *Datasource::getPassword() const {
    return priv->password.empty() ? 0 : priv->password.c_str();
 }
 
-const char *Datasource::getDBName() const
-{
+const char *Datasource::getDBName() const {
    return priv->dbname.empty() ? 0 : priv->dbname.c_str();
 }
 
-const char *Datasource::getDBEncoding() const
-{
+const char *Datasource::getDBEncoding() const {
    return priv->db_encoding.empty() ? 0 : priv->db_encoding.c_str();
 }
 
-const char *Datasource::getOSEncoding() const
-{
+const char *Datasource::getOSEncoding() const {
    return priv->qorecharset ? priv->qorecharset->getCode() : 0;
 }
 
-const char *Datasource::getHostName() const
-{
+const char *Datasource::getHostName() const {
    return priv->hostname.empty() ? 0 : priv->hostname.c_str();
 }
 
-const QoreEncoding *Datasource::getQoreEncoding() const
-{
+int Datasource::getPort() const {
+   return priv->port;
+}
+
+const QoreEncoding *Datasource::getQoreEncoding() const {
    return priv->qorecharset;
 }
 
-void Datasource::setDBEncoding(const char *name)
-{
+void Datasource::setDBEncoding(const char *name) {
    priv->db_encoding = name;
 }
 
-void Datasource::setQoreEncoding(const char *name)
-{
+void Datasource::setQoreEncoding(const char *name) {
    priv->qorecharset = QEM.findCreate(name);
 }
 
-void Datasource::setQoreEncoding(const QoreEncoding *enc)
-{
+void Datasource::setQoreEncoding(const QoreEncoding *enc) {
    priv->qorecharset = enc;
 }
 
-QoreStringNode *Datasource::getPendingUsername() const
-{
+QoreStringNode *Datasource::getPendingUsername() const {
    return priv->p_username.empty() ? 0 : new QoreStringNode(priv->p_username.c_str());
 }
 
-QoreStringNode *Datasource::getPendingPassword() const
-{
+QoreStringNode *Datasource::getPendingPassword() const {
    return priv->p_password.empty() ? 0 : new QoreStringNode(priv->p_password.c_str());
 }
 
-QoreStringNode *Datasource::getPendingDBName() const
-{
+QoreStringNode *Datasource::getPendingDBName() const {
    return priv->p_dbname.empty() ? 0 : new QoreStringNode(priv->p_dbname.c_str());
 }
 
-QoreStringNode *Datasource::getPendingDBEncoding() const
-{
+QoreStringNode *Datasource::getPendingDBEncoding() const {
    return priv->p_db_encoding.empty() ? 0 : new QoreStringNode(priv->p_db_encoding.c_str());
 }
 
-QoreStringNode *Datasource::getPendingHostName() const
-{
+QoreStringNode *Datasource::getPendingHostName() const {
    return priv->p_hostname.empty() ? 0 : new QoreStringNode(priv->p_hostname.c_str());
 }
 
-const char *Datasource::getDriverName() const
-{
+int Datasource::getPendingPort() const {
+   return priv->p_port;
+}
+
+const char *Datasource::getDriverName() const {
    return priv->dsl->getName();
 }
 
-const DBIDriver *Datasource::getDriver() const
-{
+const DBIDriver *Datasource::getDriver() const {
    return priv->dsl;
 }
 
-AbstractQoreNode *Datasource::getServerVersion(ExceptionSink *xsink)
-{
+AbstractQoreNode *Datasource::getServerVersion(ExceptionSink *xsink) {
    return priv->dsl->getServerVersion(this, xsink);
 }
 
-AbstractQoreNode *Datasource::getClientVersion(ExceptionSink *xsink) const
-{
+AbstractQoreNode *Datasource::getClientVersion(ExceptionSink *xsink) const {
    return priv->dsl->getClientVersion(this, xsink);
 }

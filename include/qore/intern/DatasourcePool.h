@@ -45,10 +45,9 @@
 typedef std::map<int, int> thread_use_t;   // for marking a datasource in use
 typedef std::deque<int> free_list_t;       // for the free list
 
-class DatasourcePool : public AbstractThreadResource, public QoreCondition, public QoreThreadLock
-{
+class DatasourcePool : public AbstractThreadResource, public QoreCondition, public QoreThreadLock {
    private:
-      class Datasource **pool;
+      Datasource **pool;
       int *tid_list;            // list of thread IDs per pool index
       thread_use_t tmap;        // map from tids to pool index
       free_list_t free_list;
@@ -64,16 +63,18 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       void resetSQL();
 #endif
 
-      DLLLOCAL class Datasource *getDS(bool &new_ds, ExceptionSink *xsink);
+      DLLLOCAL Datasource *getDS(bool &new_ds, ExceptionSink *xsink);
       DLLLOCAL void freeDS();
+      DLLLOCAL void init(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink);
       
    public:
 #ifdef DEBUG
-      class QoreString *getAndResetSQL();
+      QoreString *getAndResetSQL();
 #endif
 
       // min must be 1 or more, max must be greater than min
       DLLLOCAL DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, ExceptionSink *xsink);
+      DLLLOCAL DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink);
       DLLLOCAL virtual ~DatasourcePool();
       DLLLOCAL void destructor(ExceptionSink *xsink);
       DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
@@ -84,7 +85,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL AbstractQoreNode *exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
       DLLLOCAL int commit(ExceptionSink *xsink);
       DLLLOCAL int rollback(ExceptionSink *xsink);
-      DLLLOCAL class QoreStringNode *toString();
+      DLLLOCAL QoreStringNode *toString();
       DLLLOCAL int getMin() const;
       DLLLOCAL int getMax() const;
       DLLLOCAL QoreStringNode *getPendingUsername() const;
@@ -92,17 +93,15 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL QoreStringNode *getPendingDBName() const;
       DLLLOCAL QoreStringNode *getPendingDBEncoding() const;
       DLLLOCAL QoreStringNode *getPendingHostName() const;
-      DLLLOCAL const class QoreEncoding *getQoreEncoding() const;
-      DLLLOCAL const char *getDriverName () const
-      {
+      DLLLOCAL int getPendingPort() const;
+      DLLLOCAL const QoreEncoding *getQoreEncoding() const;
+      DLLLOCAL const char *getDriverName () const {
 	 return pool[0]->getDriverName();
       }
-      DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink)
-      {
+      DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink) {
 	 return pool[0]->getServerVersion(xsink);
       }
-      DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink)
-      {
+      DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink) {
 	 return pool[0]->getClientVersion(xsink);
       }
       DLLLOCAL bool inTransaction();

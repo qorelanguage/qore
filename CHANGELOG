@@ -1,3 +1,14 @@
+2009.06.25: David Nichols
+	* added an optional port number to datasources, that DBI drivers can
+	  use if they support module API 0.7 or above; modified the
+	  parseDatasource() function to support parsing port numbers;
+	  added or modified the following methods to existing classes:
+	  + Datasource::constructor(): added support for a port argument
+	  + Datasource::setPort(): new method
+	  + Datasource::getPort(): new method
+	  + DatasourcePool::constructor(): added support for a port argument
+	  + DatasourcePool::getPort(): new method
+
 2009.06.24: David Nichols
 	* fixed another deadlock in running destructors where a member is
 	  deleted that is an object, where that object's destructor references
@@ -5,7 +16,7 @@
 
 2009.06.23: David Nichols
 	* always check current directory of script first when looking for
-	  %include files i the path is not absolute
+	  %include files if the path is not absolute
 	* fixed a deadlock when an object deletes a member and the member
 	  tries to access the parent object in the member's destructor
 	* fixed a bug reporting the latest module API version; should use
