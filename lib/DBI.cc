@@ -548,13 +548,11 @@ AbstractQoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *x
    return parseDatasource(p0->getBuffer(), xsink);
 }
 
-AbstractQoreNode *f_getDBIDriverList(const QoreListNode *params, ExceptionSink *xsink)
-{
+AbstractQoreNode *f_getDBIDriverList(const QoreListNode *params, ExceptionSink *xsink) {
    return DBI.getDriverList();
 }
 
-AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, ExceptionSink *xsink)
-{
+AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
@@ -567,8 +565,7 @@ AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, Excep
    return dd->getCapList();
 }
 
-AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, ExceptionSink *xsink)
-{
+AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
@@ -581,16 +578,14 @@ AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, Excepti
    return new QoreBigIntNode(dd->getCaps());
 }
 
-void init_dbi_functions()
-{
+void init_dbi_functions() {
    builtinFunctions.add("getDBIDriverList", f_getDBIDriverList);
    builtinFunctions.add("getDBIDriverCapabilityList", f_getDBIDriverCapabilityList);
    builtinFunctions.add("getDBIDriverCapabilities", f_getDBIDriverCapabilities);
    builtinFunctions.add("parseDatasource", f_parseDatasource);
 }
 
-QoreNamespace *getSQLNamespace()
-{
+QoreNamespace *getSQLNamespace() {
    // create Qore::SQL namespace
    QoreNamespace *SQLNS = new QoreNamespace("SQL");
 
@@ -604,11 +599,11 @@ QoreNamespace *getSQLNamespace()
    SQLNS->addConstant("DSPGSQL",    new QoreStringNode("pgsql"));
    SQLNS->addConstant("DSMSSQL",    new QoreStringNode("freetds"));
    SQLNS->addConstant("DSFreeTDS",  new QoreStringNode("freetds"));
+   SQLNS->addConstant("DSSQLite",   new QoreStringNode("sqlite"));
    // the following have no drivers yet
    SQLNS->addConstant("DSDB2",      new QoreStringNode("db2"));
    SQLNS->addConstant("DSInformix", new QoreStringNode("informix"));
    SQLNS->addConstant("DSTimesTen", new QoreStringNode("timesten"));
-   SQLNS->addConstant("DSSQLite",   new QoreStringNode("sqlite"));
 
    // for DBI driver capabilities
    SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreBigIntNode(DBI_CAP_CHARSET_SUPPORT));
@@ -619,11 +614,13 @@ QoreNamespace *getSQLNamespace()
    SQLNS->addConstant("DBI_CAP_BIND_BY_PLACEHOLDER",    new QoreBigIntNode(DBI_CAP_BIND_BY_PLACEHOLDER));
 
    // for column types for binding
-   SQLNS->addConstant("VARCHAR", new QoreStringNode("string"));
-   SQLNS->addConstant("NUMBER",  new QoreStringNode("string"));
-   SQLNS->addConstant("CLOB",    new QoreStringNode("clob"));
-   SQLNS->addConstant("BLOB",    new QoreStringNode("blob"));
-   SQLNS->addConstant("DATE",    new QoreStringNode("date"));
+   SQLNS->addConstant("VARCHAR",  new QoreStringNode("string"));
+   SQLNS->addConstant("NUMBER",   new QoreStringNode("string"));
+   SQLNS->addConstant("NUMERIC",  new QoreStringNode("string"));
+   SQLNS->addConstant("DECIMAL",  new QoreStringNode("string"));
+   SQLNS->addConstant("CLOB",     new QoreStringNode("clob"));
+   SQLNS->addConstant("BLOB",     new QoreStringNode("blob"));
+   SQLNS->addConstant("DATE",     new QoreStringNode("date"));
 
    return SQLNS;
 }
