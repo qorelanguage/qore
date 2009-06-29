@@ -1184,9 +1184,9 @@ static AbstractQoreNode *f_get_qore_option_list(const QoreListNode *params, Exce
 static AbstractQoreNode *f_get_qore_library_info(const QoreListNode *params, ExceptionSink *xsink) {
    QoreHashNode *h = new QoreHashNode;
 
-   h->setKeyValue("PlatformOS", new QoreStringNode(), xsink);
-   h->setKeyValue("PlatformCPU", new QoreStringNode(), xsink);
-   h->setKeyValue("VersionString", new QoreStringNode(), xsink);   
+   h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);
+   h->setKeyValue("PlatformCPU", new QoreStringNode(qore_target_arch), xsink);
+   h->setKeyValue("VersionString", new QoreStringNode(qore_version_string), xsink);   
    h->setKeyValue("VersionMajor", new QoreBigIntNode(qore_version_major), xsink);
    h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
    h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);
