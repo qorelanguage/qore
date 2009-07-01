@@ -1191,6 +1191,7 @@ static AbstractQoreNode *f_get_qore_library_info(const QoreListNode *params, Exc
    h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
    h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);
    h->setKeyValue("Build", new QoreStringNode(qore_build_number), xsink);
+   h->setKeyValue("ModuleDir", new QoreStringNode(qore_module_dir), xsink);
 
    h->setKeyValue("BuildHost", new QoreStringNode(qore_build_host), xsink);
    h->setKeyValue("Compiler", new QoreStringNode(qore_cplusplus_compiler), xsink);

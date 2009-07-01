@@ -1,6 +1,8 @@
 2009.07.01: David Nichols
 	* fixed a bug in Datasource::close(); with debugging enabled, it would
 	  trigger an assert, without debugging, would do nothing at all
+	* added the module directory as the "ModuleDir" key to the hash output
+	  of get_qore_library_info() 
 
 2009.06.25: David Nichols
 	* added an optional port number to datasources, that DBI drivers can
