@@ -800,6 +800,14 @@ class QoreSocket {
       */
       DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
+      //! returns true if all write data has been written within the timeout period in milliseconds
+      /** The socket must be connected before this call is made.
+	  use a timeout of 0 to receive an answer immediately
+	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+	  @return true if data is available within the timeout period
+       */
+      DLLEXPORT bool isWriteFinished(int timeout = 0) const;
+
       DLLLOCAL static void doException(int rc, const char *meth, ExceptionSink *xsink);
 
       //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
@@ -813,15 +821,6 @@ class QoreSocket {
 
       //! posts deleted message and removes any event queue
       DLLLOCAL void cleanup(ExceptionSink *xsink);
-
-      // FIXME: put in public library interface in next revision
-      //! returns true if all write data has been written within the timeout period in milliseconds
-      /** The socket must be connected before this call is made.
-	  use a timeout of 0 to receive an answer immediately
-	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
-	  @return true if data is available within the timeout period
-       */
-      DLLLOCAL bool isWriteFinished(int timeout = 0) const;
 
       DLLLOCAL int setNoDelay(int nodelay);
       DLLLOCAL int getNoDelay() const;
