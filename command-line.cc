@@ -334,7 +334,7 @@ static void do_version(const char *arg) {
    }
 
    // show module api and compatible module apis
-   printf("\n  module API: %d.%d", QORE_MODULE_API_MAJOR, QORE_MODULE_API_MINOR);
+   printf("\n  module API: %d.%d", qore_mod_api_list[0].major, qore_mod_api_list[0].minor);
    if (qore_mod_api_list_len == 1)
        printf("\n");
    else {
