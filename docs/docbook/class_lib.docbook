@@ -26125,23 +26125,23 @@ $sock.bind("/tmp/socket");</programlisting>
 	<tbody>
 	  <row>
 	    <entry><para><code>SQL::DSOracle</code></para></entry>
-	    <entry><para>Indicates an Oracle database to the Datasource::constructor() method</para></entry>
+	    <entry><para>Indicates an Oracle database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSMySQL</code></para></entry>
-	    <entry><para>Indicates a MySQL database to the Datasource::constructor() method</para></entry>
+	    <entry><para>Indicates a MySQL database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSPGSQL</code></para></entry>
-	    <entry><para>Indicates a PostgreSQL database to the Datasource::constructor() method</para></entry>
+	    <entry><para>Indicates a PostgreSQL database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSSybase</code></para></entry>
-	    <entry><para>Indicates a Sybase database to the Datasource::constructor() method</para></entry>
+	    <entry><para>Indicates a Sybase database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSMSSQL</code></para></entry>
-	    <entry><para>Indicates a Microsoft SQL Server database to the Datasource::constructor() method</para></entry>
+	    <entry><para>Indicates a Microsoft SQL Server database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  
 	</tbody>
@@ -26416,6 +26416,16 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>Returns the hostname parameter.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="SQL::Datasource::setPort">Datasource::setPort()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the port parameter for the next open.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="SQL::Datasource::getPort">Datasource::getPort()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the port parameter.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="SQL::Datasource::getDriverName">Datasource::getDriverName()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the name of the driver used for the object.</para></entry>
@@ -26458,13 +26468,13 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting><command>new</command> Datasource(<replaceable>driver_name, [username], [password], [dbname], [charset_name], [hostname]</replaceable>)</programlisting>
+	    <programlisting><command>new</command> Datasource(<replaceable>driver_name, [username], [password], [dbname], [charset_name], [hostname], [port]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$db = <command>new</command> Datasource(DSPGSQL, "user", "pass", "database", "utf8", "localhost");</programlisting>
+	    <programlisting>$db = <command>new</command> Datasource(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -26509,6 +26519,11 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para><replaceable>[hostname]</replaceable></para></entry>
 	      <entry><para>String</para></entry>
 	      <entry><para>The host name for the new connection (not used by some DBI drivers).  Also see <link linkend="SQL::Datasource::setHostName">Datasource::setHostName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[port]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The port number for the new connection (not used by some DBI drivers).  Also see <link linkend="SQL::Datasource::setPort">Datasource::setPort()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28459,6 +28474,69 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
+    <sect2 id="SQL::Datasource::setPort">
+      <title>Datasource::setPort()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets the port number to use for the connection (for DBI drivers that support this parameter, such as the <code>mysql</code>, <code>pgsql</code>, and <code>oracle</code> drivers, for example).  Invalid port numbers will cause an exception to be thrown when the connection is opened.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::setPort(<replaceable>port</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$db.setPort(5432);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::setPort()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>port</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The port number to be used for the connection.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::setPort()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="SQL::Datasource::getDBCharset">
       <title>Datasource::getDBCharset()</title>
 
@@ -28642,6 +28720,69 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    <row>
 	      <entry><para>String</para></entry>
 	      <entry><para>Retrieves the hostname connection parameter.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQL::Datasource::getPort">
+      <title>Datasource::getPort()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the port connection parameter.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>Datasource::getPort()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$port = $db.getPort();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::getPort()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::getPort()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer or NOTHING</para></entry>
+	      <entry><para>Retrieves the port connection parameter or no value if no port is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28975,6 +29116,11 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    <entry><para>Returns the hostname parameter.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><link linkend="DatasourcePool::getPort">DatasourcePool::getPort()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the port parameter.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><link linkend="DatasourcePool::getDriverName">DatasourcePool::getDriverName()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the name of the database driver used for this object.</para></entry>
@@ -29001,22 +29147,22 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates a DatasourcePool object. The constructor requires the database driver name as the first argument</para>
+	    <para>Creates a DatasourcePool object. The constructor requires the database driver name as the first argument, and normally the dbname.  The port number is supplied as the final parameter because support for the port number as a connection parameter was added after this class was already present in Qore.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting><command>new</command> DatasourcePool(<replaceable>driver_name, [username], [password], [dbname], [charset_name], [hostname], [min], [max]</replaceable>)</programlisting>
+	    <programlisting><command>new</command> DatasourcePool(<replaceable>driver_name, [username], [password], [dbname], [charset_name], [hostname], [min], [max], [port]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting># open a Datasource pool to a PostgreSQL database, username="user", password="pass", dbname="database"
-# use "utf8" for the character encoding for the connection, hostname="localhost"
+# use "utf8" for the character encoding for the connection, hostname="localhost", port=5432
 # minimum 5 connections (opened immediately), with a maximum of 20
-$pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5, 20);</programlisting>
+$pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5, 20, 5432);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -29071,6 +29217,11 @@ $pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database
 	      <entry><para><replaceable>[max]</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The maximum number of connections to open (default=20).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>[port]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>The port number to use for the connection.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -30468,6 +30619,69 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	    <row>
 	      <entry><para>String</para></entry>
 	      <entry><para>Retrieves the hostname connection parameter.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="DatasourcePool::getPort">
+      <title>DatasourcePool::getPort()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the port connection parameter.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>DatasourcePool::getPort()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$port = $db.getPort();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for DatasourcePool::getPort()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for DatasourcePool::getPort()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Integer or NOTHING</para></entry>
+	      <entry><para>Retrieves the port connection parameter or no value if no port is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

@@ -18593,6 +18593,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <entry><para>The compiler used to build the Qore library.</para></entry>
   </row>
   <row>
+    <entry><para><code>ModuleDir</code></para></entry>
+    <entry><para>The module directory assumed by default in the Qore library.</para></entry>
+  </row>
+  <row>
     <entry><para><code>CFLAGS</code></para></entry>
     <entry><para>The compiler flags used to compile the Qore library.</para></entry>
   </row>
@@ -20063,7 +20067,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para>String</para></entry>
               <entry><para>Hash</para></entry>
-              <entry><para>Returns a hash of the components of a datasource string.  A datasource string has the following structure: <code>driver:user/pass@db(charset)%host</code>, where driver, charset, and host are optional.</para></entry>
+              <entry><para>Returns a hash of the components of a datasource string.  A datasource string has the following structure: <code>driver:user/pass@db(charset)%host:port</code>, where driver, charset, host, and port are optional.  See <link linkend="parseDatasource_hash">parseDatasource() hash</link> for a description of the output hash of this function.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20085,6 +20089,49 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  </tbody>
 	</tgroup>
       </table>
+
+      <table id="parseDatasource_hash">
+	<title>Date Format Arguments</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Key</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>type</code></para></entry>
+	      <entry><para>the name of the driver, if present</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>user</code></para></entry>
+	      <entry><para>the username given in the string</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>pass</code></para></entry>
+	      <entry><para>the password for the connection</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>db</code></para></entry>
+	      <entry><para>the database name for the connection</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>charset</code></para></entry>
+	      <entry><para>The name of the DB-specific character encoding to use for the connection, if present in the string</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>host</code></para></entry>
+	      <entry><para>the hostname for the connection, if present in the string</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>port</code></para></entry>
+	      <entry><para>the port number to use for the connection, if present in the string</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
 <sect2 id="parseHexString">
