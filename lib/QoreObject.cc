@@ -144,10 +144,12 @@ class KeyList {
       }
 
       DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData *pd) {
+	 assert(pd);
 	 keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
       }
 
       DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData *pd) {
+	 assert(pd);
 	 if (keymap.find(key) == keymap.end())
 	    keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
       }
@@ -243,8 +245,7 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(BuiltinMethod *me
    return 0;
 }
 
-void QoreObject::evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *self, const char *class_name, ExceptionSink *xsink)
-{
+void QoreObject::evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *self, const char *class_name, ExceptionSink *xsink) {
    // get referenced object
    AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getID(), xsink);
 
@@ -263,8 +264,7 @@ void QoreObject::evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *
 }
 
 // note that the lock is already held when this method is called
-bool QoreObject::evalDeleteBlocker(BuiltinMethod *meth)
-{
+bool QoreObject::evalDeleteBlocker(BuiltinMethod *meth) {
    // FIXME: eliminate reference counts for private data, private data should be destroyed after the destructor terminates
 
    // get referenced object

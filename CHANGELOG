@@ -1,3 +1,7 @@
+2009.07.13: David Nichols
+	* added assert()s to catch the error where object private data is
+	  saved with a 0 value
+
 2009.07.01: David Nichols
 	* fixed a bug in Datasource::close(); with debugging enabled, it would
 	  trigger an assert, without debugging, would do nothing at all
