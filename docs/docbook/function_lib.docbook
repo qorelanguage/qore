@@ -20091,7 +20091,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </table>
 
       <table id="parseDatasource_hash">
-	<title>Date Format Arguments</title>
+	<title>parseDatasource() hash</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
