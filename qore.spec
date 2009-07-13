@@ -41,7 +41,7 @@
 
 Summary: Qore Programming Language
 Name: qore
-Version: 0.7.5
+Version: 0.7.6
 Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages
@@ -193,6 +193,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Mon Jul 13 2009 David Nichols <david_nichols@users.sourceforge.net>
+- updated to 0.7.6
+
 * Mon Jun 22 2009 David Nichols <david_nichols@users.sourceforge.net>
 - updated to 0.7.5
 
