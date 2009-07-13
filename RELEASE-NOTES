@@ -1,6 +1,6 @@
 RELEASE NOTES for qore v0.7.5
 
-release summary: bug fixes and minor new features over 0.7.4
+release summary: 4 bug fixes and minor new features over 0.7.4
 
 *) BUG FIX: Datasource::close() would assert() in debug mode and do nothing in
             non-debug mode
@@ -10,6 +10,9 @@ release summary: bug fixes and minor new features over 0.7.4
 *) BUG FIX: fixed a bug in the "qore" binary reporting the library's latest
        	    module API version (was using the compiled value and not the value
 	    from the library)
+*) BUG FIX: fixed a bug in the HTTPClient class where the connection was not
+            flagged as closed when an error occurred that indicated that the
+            client had closed the connection
 *) added a ModuleDir key to the hash output of get_qore_library_info()
 *) added an optional port number to datasources (i.e.: 
    driver:user/pass@db(encoding)%host:port, updated:

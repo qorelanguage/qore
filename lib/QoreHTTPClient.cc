@@ -670,9 +670,11 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
    int rc = priv->m_socket.sendHTTPMessage(meth, msgpath, priv->http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT);
 
    if (rc) {
-      if (rc == -2)
+      if (rc == -2) {
+	 priv->disconnect_unlocked();
 	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "socket was closed at the remote end before the message could be sent");
-      else 
+      }
+      else
 	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
       return 0;
    }
@@ -681,6 +683,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
    while (true) {
       ReferenceHolder<AbstractQoreNode> ans(priv->m_socket.readHTTPHeader(priv->timeout, &rc, QORE_SOURCE_HTTPCLIENT), xsink);
       if (!(*ans)) {
+	 priv->disconnect_unlocked();
 	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket %s closed on remote end without a response", priv->socketpath.c_str());
 	 return 0;
       }
@@ -691,12 +694,16 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
       ah = reinterpret_cast<QoreHashNode *>(*ans);
 
       if (rc <= 0) {
-	 if (!rc)             // remote end has closed the connection
+	 if (!rc) {           // remote end has closed the connection
+	    priv->disconnect_unlocked();
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end has closed the connection");
+	 }
 	 else if (rc == -1)   // recv() error
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", strerror(errno));
-	 else if (rc == -2)
+	 else if (rc == -2) {
+	    priv->disconnect_unlocked();
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end");
+	 }
 	 else if (rc == -3)   // timeout
 	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response on socket %s", priv->timeout, priv->socketpath.c_str());
 	 else
@@ -1074,13 +1081,16 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
       //printf("body=%08p\n", body);
       if (rc <= 0) {
-	 sl.unlock();
-	 if (!rc)             // remote end has closed the connection
+	 if (!rc) {             // remote end has closed the connection
+	    priv->disconnect_unlocked();
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end closed the connection while receiving response message body");
+	 }
 	 else if (rc == -1)   // recv() error
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", strerror(errno));
-	 else if (rc == -2)
+	 else if (rc == -2) {
+	    priv->disconnect_unlocked();
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end while receiving response message body");
+	 }
 	 else if (rc == -3)   // timeout
 	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response message body of length %d on socket %s", priv->timeout, len, priv->socketpath.c_str());
 	 else

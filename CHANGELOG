@@ -1,6 +1,9 @@
 2009.07.13: David Nichols
 	* added assert()s to catch the error where object private data is
 	  saved with a 0 value
+	* fixed a bug in the HTTPClient class where the connection was not
+	  flagged as closed when an error occurred that indicated that the
+	  client had closed the connection
 
 2009.07.01: David Nichols
 	* fixed a bug in Datasource::close(); with debugging enabled, it would
