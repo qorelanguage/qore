@@ -1311,6 +1311,9 @@ void delete_qore_threads() {
    threads_initialized = false;
 #endif
 
+   // set no program location
+   update_pgm_counter_pgm_file(0, 0, 0);
+
    ExceptionSink xsink;
    purge_thread_resources(&xsink);
    xsink.handleExceptions();

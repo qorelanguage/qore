@@ -2,6 +2,9 @@
 	* fixed millisecond formatting with format_date()
 	* fixed a crashing bug when a Condition object waits on a RWLock with
 	  the read lock held
+	* fixed a bug setting the exception location when throwing thread
+	  resource exceptions when shutting down the qore library; the bug
+	  fix is to clear the program location first
 
 *** v0.7.5 RELEASE *** 
 
