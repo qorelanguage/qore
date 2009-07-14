@@ -159,14 +159,13 @@ int AbstractSmartLock::release(ExceptionSink *xsink)
    return rc;
 }
 
-int AbstractSmartLock::externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms)
+int AbstractSmartLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms)
 {
    xsink->raiseException("WAIT-ERROR", "cannot wait on %s objects", getName());
    return -1;
 }
 
-int AbstractSmartLock::extern_wait(class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms)
-{
+int AbstractSmartLock::extern_wait(QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
    AutoLocker al(&asl_lock);
    return externWaitImpl(gettid(), cond, xsink, timeout_ms);
 }

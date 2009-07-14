@@ -45,7 +45,7 @@ int RWLock::numReaders() {
 }
 
 int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
-   // make sure this TID owns the lock0
+   // make sure this TID owns the lock
    if (mtid == tid) { // in write lock
       // insert into cond map
       cond_map_t::iterator i = cmap.find(cond);
@@ -292,21 +292,26 @@ int RWLock::tryGrabImpl(int mtid, class VLock *nvl) {
    return 0;
 }
 
-void RWLock::mark_read_lock_intern(int mtid, class VLock *nvl) {
+void RWLock::set_initial_read_lock_intern(int mtid, VLock *nvl) {
+   // only set these values the first time the lock is acquired
+   tmap[mtid] = 1;
+   vmap[mtid] = nvl;
+   // now register that we have grabbed this lock with the thread list
+   nvl->push((AbstractSmartLock *)this);
+   // register the thread resource
+   set_thread_resource((AbstractThreadResource *)this);
+   // save vlock
+   vl = nvl;
+}
+
+void RWLock::mark_read_lock_intern(int mtid, VLock *nvl) {
    ++num_readers;
    
    // add read lock to thread and vlock maps
    // (do not set vl, set in vmap instead)
    tid_map_t::iterator i = tmap.find(mtid);
-   if (i == tmap.end()) {
-      // only set these values the first time the lock is acquired
-      tmap[mtid] = 1;
-      vmap[mtid] = nvl;
-      // now register that we have grabbed this lock with the thread list
-      nvl->push((AbstractSmartLock *)this);
-      // register the thread resource
-      set_thread_resource((AbstractThreadResource *)this);
-   }
+   if (i == tmap.end())
+      set_initial_read_lock_intern(mtid, nvl);
    else // increment lock count otherwise
       ++(i->second);
 }
@@ -343,11 +348,7 @@ int RWLock::grab_read_lock_intern(int mtid, VLock *nvl, int timeout_ms, Exceptio
       ++num_readers;
 
       // we know that this thread was not in the read lock because the write lock was grabbed before
-      tmap[mtid] = 1;
-      vmap[mtid] = nvl;
-      // register the thread resource
-      set_thread_resource((AbstractThreadResource *)this);
-      nvl->push((AbstractSmartLock *)this);
+      set_initial_read_lock_intern(mtid, nvl);
       return 0;
    }
 

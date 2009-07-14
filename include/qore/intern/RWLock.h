@@ -54,6 +54,7 @@ class RWLock : public AbstractSmartLock {
       DLLLOCAL void mark_read_lock_intern(int mtid, VLock *nvl);
       DLLLOCAL void release_read_lock_intern(tid_map_t::iterator i);
       DLLLOCAL int grab_read_lock_intern(int mtid, VLock *nvl, int timeout_ms, ExceptionSink *xsink);
+      DLLLOCAL void set_initial_read_lock_intern(int mtid, VLock *nvl);
 
       DLLLOCAL virtual void cleanupImpl();
       DLLLOCAL virtual void signalAllImpl();
