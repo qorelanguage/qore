@@ -6080,6 +6080,14 @@
 	  <entry><para>zero-padded second number (00 - 59)</para></entry>
 	</row>
 	<row>
+	  <entry><para><code>u</code></para></entry>
+	  <entry><para>non zero-padded millisecond number (0 - 999)</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>uu</code></para></entry>
+	  <entry><para>zero-padded millisecond number (000 - 999)</para></entry>
+	</row>
+	<row>
 	  <entry><para><code>P</code></para></entry>
 	  <entry><para>AM or PM (upper-case)</para></entry>
 	</row>
