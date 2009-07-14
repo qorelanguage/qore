@@ -366,8 +366,7 @@ void DateTime::format(QoreString &str, const char *fmt) const
                str.sprintf("%d", priv->minute);
             break;
          case 'S':
-            if (s[1] == 'S')
-            {
+            if (s[1] == 'S') {
                str.sprintf("%02d", priv->second);
                s++;
             }
@@ -375,9 +374,8 @@ void DateTime::format(QoreString &str, const char *fmt) const
                str.sprintf("%d", priv->second);
             break;
          case 'u':
-            if (s[1] == 'u')
-            {
-               str.sprintf("%02d", priv->millisecond);
+            if (s[1] == 'u') {
+               str.sprintf("%03d", priv->millisecond);
                s++;
             }
             else
