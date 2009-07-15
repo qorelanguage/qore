@@ -95,7 +95,7 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
       ++(ci->second);
 
    // save vlock
-   VLock *nvl = vl;
+   VLock *nvl = vmap[mtid];
 
    // release lock
    release_read_lock_intern(i);
@@ -108,8 +108,9 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
       cmap.erase(ci);
 
    // reacquire the lock
-   if (grab_read_lock_intern(mtid, nvl, 0, xsink))
+   if (grab_read_lock_intern(mtid, nvl, 0, xsink)) {
       return -1;
+   }
 
    return rc;
 }
@@ -300,8 +301,6 @@ void RWLock::set_initial_read_lock_intern(int mtid, VLock *nvl) {
    nvl->push((AbstractSmartLock *)this);
    // register the thread resource
    set_thread_resource((AbstractThreadResource *)this);
-   // save vlock
-   vl = nvl;
 }
 
 void RWLock::mark_read_lock_intern(int mtid, VLock *nvl) {
@@ -405,7 +404,6 @@ int RWLock::tryReadLock() {
 
    return 0;
 }
-
 
 // while holding the write lock changes it to a read lock
 // and wakes up any blocked readers

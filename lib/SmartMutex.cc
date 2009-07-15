@@ -64,17 +64,14 @@ int SmartMutex::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int t
    return 0;
 }
 
-int SmartMutex::releaseImpl(ExceptionSink *xsink)
-{
+int SmartMutex::releaseImpl(ExceptionSink *xsink) {
    int mtid = gettid();
-   if (tid < 0)
-   {
+   if (tid < 0) {
       // getName() for possible inheritance
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock was already unlocked", mtid, getName());
       return -1;
    }
-   if (tid != mtid)
-   {
+   if (tid != mtid) {
       // getName() for possible inheritance
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock is held by tid %d", mtid, getName(), tid);
       return -1;
@@ -82,15 +79,13 @@ int SmartMutex::releaseImpl(ExceptionSink *xsink)
    return 0;
 }
 
-int SmartMutex::tryGrabImpl(int mtid, class VLock *nvl)
-{
+int SmartMutex::tryGrabImpl(int mtid, class VLock *nvl) {
    if (tid != Lock_Unlocked)
       return -1;
    return 0;
 }
 
-int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms)
-{
+int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
    // make sure this TID owns the lock
    if (verify_wait_unlocked(mtid, xsink))
       return -1;

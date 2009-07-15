@@ -72,7 +72,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, co
       int rc = timeout ? c->wait(rwl, timeout, xsink) : c->wait(rwl, xsink);
       
       if (rc && rc != ETIMEDOUT && !*xsink) {
-	 xsink->raiseException("CONDITION-WAIT-ERROR", strerror(errno));
+	 xsink->raiseException("CONDITION-WAIT-ERROR", strerror(rc));
 	 return 0;
       }
       return new QoreBigIntNode(rc);
@@ -83,7 +83,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, co
    int rc = timeout ? c->wait(m, timeout, xsink) : c->wait(m, xsink);
 
    if (rc && rc != ETIMEDOUT && !*xsink) {
-      xsink->raiseException("CONDITION-WAIT-ERROR", strerror(errno));
+      xsink->raiseException("CONDITION-WAIT-ERROR", strerror(rc));
       return 0;
    }
    return new QoreBigIntNode(rc);
