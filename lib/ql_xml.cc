@@ -1799,7 +1799,7 @@ void QoreXmlReader::getXMLRPCArray(XmlRpcValue *v, const QoreEncoding *data_ccsi
    if (checkXmlRpcMemberName("data", xsink))
       return;
 
-   //printd(5, "getXMLRPCArray() before str=%s\n", (char *)constName());
+   //printd(5, "getXMLRPCArray() level=%d before str=%s\n", depth(), (char *)constName());
 
    // get next value tag or data close tag
    if (readXmlRpc(xsink))
@@ -1833,7 +1833,7 @@ void QoreXmlReader::getXMLRPCArray(XmlRpcValue *v, const QoreEncoding *data_ccsi
 	 //printd(5, "DEBUG: vd=%d, d=%d\n", value_depth, depth());
 
 	 // if this was <value/>, then skip
-	 if (value_depth <= depth()) {
+	 if (value_depth < depth()) {
 	    if ((nt = readXmlRpcNode(xsink)) == -1)
 	       return;
 
@@ -2550,7 +2550,7 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
 }
 
 QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink) {
-    //printd(5, "parseXMLRPCCall() %s\n", msg->getBuffer());
+   //printd(5, "parseXMLRPCResponse() %s\n", msg->getBuffer());
 
    TempEncodingHelper str(msg, QCS_UTF8, xsink);
    if (!str)

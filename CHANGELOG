@@ -1,3 +1,7 @@
+2009.07.16: David Nichols
+	* fixed a bug parsing XML-RPC array data with empty value elements;
+	  i.e.: <value/>
+
 2009.07.15: David Nichols
 	* fixed a bug waiting on a Condition variable when thread read lock
 	  is held by multiple threads (for RWLock)
