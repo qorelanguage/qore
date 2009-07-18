@@ -50,6 +50,8 @@ AC_PROG_INSTALL
 #LT_INIT
 AM_PROG_AS
 
+if test ! -d m4; then mkdir m4; fi
+
 AC_CONFIG_MACRO_DIR([m4])
 
 # set system variables

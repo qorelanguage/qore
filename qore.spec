@@ -39,6 +39,14 @@
 
 %endif
 
+#  see if we can determine the distribution type
+%define rh_dist %(if [ -f /etc/redhat-release ];then cat /etc/redhat-release|sed "s/[^0-9.]*//"|cut -f1 -d.;fi)
+%if 0%{?rh_dist}
+%define dist .rhel%{rh_dist}
+%else
+%define dist .unknown
+%endif
+
 Summary: Qore Programming Language
 Name: qore
 Version: 0.7.6
@@ -105,7 +113,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.2.0
+%{_libdir}/libqore.so.5.2.1
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
 
@@ -190,7 +198,13 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
+%if 0%{?rh_dist}
+%if %{?rh_dist} <= 5
+/usr/man/man1/qore.1.gz
+%endif
+%else
 /usr/share/man/man1/qore.1.gz
+%endif
 
 %changelog
 * Mon Jul 13 2009 David Nichols <david_nichols@users.sourceforge.net>
