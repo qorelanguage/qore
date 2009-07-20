@@ -27,6 +27,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
 
 DLLEXPORT extern qore_classid_t CID_TERMIOS;
 DLLLOCAL QoreClass *initTermIOSClass();
@@ -125,7 +127,26 @@ public:
 
        ios.c_cc[offset] = val;
        return 0;
-    }    
+    }
+
+    DLLLOCAL static int getWindowSize(int &rows, int &columns, ExceptionSink *xsink) {
+       struct winsize ws;
+       
+       int fd = open("/dev/tty", O_RDONLY);
+       if (fd == -1) {
+	  xsink->raiseException("TERMIOS-GET-WINDOW-SIZE-ERROR", "cannot open controlling terminal: %s", strerror(errno));
+	  return -1;
+       }
+
+       if (ioctl(fd, TIOCGWINSZ, &ws)) {
+	  xsink->raiseException("TERMIOS-GET-WINDOW-SIZE-ERROR", "error reading window size: %s", strerror(errno));
+	  return -1;
+       }
+
+       rows = ws.ws_row;
+       columns = ws.ws_col;
+       return 0;
+    }
 };
 
 #endif

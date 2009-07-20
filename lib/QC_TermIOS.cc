@@ -103,11 +103,23 @@ static AbstractQoreNode *TERMIOS_isEqual(QoreObject *self, QoreTermIOS *s, const
    return get_bool_node(s->is_equal(ios));
 }
 
+static AbstractQoreNode *f_TERMIOS_getWindowSize(const QoreListNode *params, ExceptionSink *xsink) {
+   int rows, columns;
+
+   if (QoreTermIOS::getWindowSize(rows, columns, xsink))
+      return 0;
+
+   QoreHashNode *rv = new QoreHashNode();
+   rv->setKeyValue("rows", new QoreBigIntNode(rows), xsink);
+   rv->setKeyValue("columns", new QoreBigIntNode(columns), xsink);
+   return rv;
+}
+
 QoreClass *initTermIOSClass() {
    QORE_TRACE("initTermIOSClass()");
 
    // note that this class does not block therefore has no QDOM_THREAD
-   QoreClass *QC_TERMIOS = new QoreClass("TermIOS");
+   QoreClass *QC_TERMIOS = new QoreClass("TermIOS", QDOM_TERMINAL_IO);
    CID_TERMIOS = QC_TERMIOS->getID();
    QC_TERMIOS->setConstructor(TERMIOS_constructor);
    QC_TERMIOS->setCopy((q_copy_t)TERMIOS_copy);
@@ -123,6 +135,9 @@ QoreClass *initTermIOSClass() {
    QC_TERMIOS->addMethod("getCC",    (q_method_t)TERMIOS_getCC);
    QC_TERMIOS->addMethod("setCC",    (q_method_t)TERMIOS_setCC);
    QC_TERMIOS->addMethod("isEqual",  (q_method_t)TERMIOS_isEqual);
+
+   // static methods
+   QC_TERMIOS->addStaticMethod("getWindowSize", f_TERMIOS_getWindowSize);
 
    return QC_TERMIOS;
 }
