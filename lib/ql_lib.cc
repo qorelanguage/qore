@@ -647,6 +647,11 @@ static AbstractQoreNode *f_setegid(const QoreListNode *params, ExceptionSink *xs
 #endif
 }
 
+static AbstractQoreNode *f_setsid(const QoreListNode *params, ExceptionSink *xsink)
+{
+    return new QoreBigIntNode(setsid());
+}
+
 static AbstractQoreNode *f_gethostbyname(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p = test_string_param(params, 0);
@@ -800,6 +805,7 @@ void init_lib_functions()
    builtinFunctions.add("setgid",      f_setgid, QDOM_PROCESS);
    builtinFunctions.add("seteuid",     f_seteuid, QDOM_PROCESS);
    builtinFunctions.add("setegid",     f_setegid, QDOM_PROCESS);
+   builtinFunctions.add("setsid",      f_setsid, QDOM_PROCESS);
    builtinFunctions.add("gethostbyname",       f_gethostbyname);
    builtinFunctions.add("gethostbyaddr",       f_gethostbyaddr);
    builtinFunctions.add("gethostbyname_long",  f_gethostbyname_long);
