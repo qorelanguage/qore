@@ -402,6 +402,15 @@ class QoreObject : public AbstractQoreNode {
 
       //! called to evaluate a builtin method when private data is available
       /**
+	 @param method a constant reference to the QoreMethod object
+	 @param meth the name of the method to evalute
+	 @param args the arguments for the method
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(const QoreMethod &method, BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink);
+
+      //! called to evaluate a builtin method with the new calling convention when private data is available
+      /**
 	 @param meth the name of the method to evalute
 	 @param args the arguments for the method
 	 @param xsink if an error occurs, the Qore-language exception information will be added here

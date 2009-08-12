@@ -123,8 +123,15 @@ class QoreMethod {
        */
       DLLEXPORT const char *getName() const;
 
+      //! returns true if it's a builtin method with the new generic calling convention
+      /**
+	 @return true if it's a builtin method with the new generic calling convention
+       */
+      DLLEXPORT bool newCallingConvention() const;
+
       DLLLOCAL QoreMethod(UserFunction *u, bool n_priv, bool n_static);
       DLLLOCAL QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv = false, bool n_static = false);
+      DLLLOCAL QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv, bool n_static, bool new_calling_convention);
       DLLLOCAL ~QoreMethod();
       DLLLOCAL int getType() const;
       DLLLOCAL bool inMethod(const QoreObject *self) const;
@@ -238,6 +245,9 @@ class QoreClass {
 	  @see QoreClass::setCopy()
        */
       DLLEXPORT void addMethod(const char *n_name, q_method_t meth, bool priv = false);
+
+      //! adds a builtin method with the new generic calling convention to the class
+      DLLEXPORT void addMethod2(const char *n_name, q_method2_t meth, bool priv = false);
 
       //! adds a builtin static method to a class
       /**

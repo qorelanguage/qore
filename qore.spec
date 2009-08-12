@@ -118,7 +118,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.2.1
+%{_libdir}/libqore.so.5.3.0
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL README README-LICENSE README-MODULES RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE
 

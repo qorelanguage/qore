@@ -228,6 +228,17 @@ void QoreObject::tDeref() {
       delete this;
 }
 
+// helper function for QoreObject::evalBuiltinMethodWithPrivateData() variations
+static AbstractQoreNode *check_meth_eval(const QoreClass *cls, const BuiltinMethod *meth, ExceptionSink *xsink) {
+   if (xsink->isException())
+      return 0;
+   if (cls == meth->myclass)
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", cls->getName(), meth->getName());
+   else
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), meth->getName(), cls->getName());
+   return 0;
+}
+
 AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink) {
    // get referenced object
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink), xsink);
@@ -236,13 +247,18 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(BuiltinMethod *me
       return meth->evalMethod(this, *pd, args, xsink);
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%08p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
-   if (xsink->isException())
-      return 0;
-   if (priv->theclass == meth->myclass)
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", priv->theclass->getName(), meth->getName());
-   else
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), meth->getName(), priv->theclass->getName());
-   return 0;
+   return check_meth_eval(priv->theclass, meth, xsink);
+}
+
+AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod &method, BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink) {
+   // get referenced object
+   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink), xsink);
+
+   if (pd)
+      return meth->evalMethod(method, this, *pd, args, xsink);
+
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%08p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
+   return check_meth_eval(priv->theclass, meth, xsink);
 }
 
 void QoreObject::evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *self, const char *class_name, ExceptionSink *xsink) {

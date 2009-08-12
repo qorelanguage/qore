@@ -27,27 +27,23 @@
 #include <ctype.h>
 #include <assert.h>
 
-static inline void param_error()
-{
+static inline void param_error() {
    parse_error("parameter list contains non-variable reference expressions.");
 }
 
-SelfFunctionCall::SelfFunctionCall(char *n) 
-{ 
+SelfFunctionCall::SelfFunctionCall(char *n) { 
    ns = 0;
    name = n; 
    func = 0; 
 }
 
-SelfFunctionCall::SelfFunctionCall(class NamedScope *n) 
-{ 
+SelfFunctionCall::SelfFunctionCall(class NamedScope *n) { 
    ns = n;
    name = 0; 
    func = 0; 
 }
 
-SelfFunctionCall::SelfFunctionCall(const QoreMethod *f) 
-{ 
+SelfFunctionCall::SelfFunctionCall(const QoreMethod *f) { 
    ns = 0;
    name = 0;
    func = f; 
@@ -230,11 +226,17 @@ BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ)
    next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(const char *nme, q_method_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(const char *nme, q_method_t m, int typ) {
    type = typ;
    name = nme;
    code.method = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(const char *nme, q_method2_t m, int typ) {
+   type = typ;
+   name = nme;
+   code.method2 = m;
    next = 0;
 }
 
@@ -339,9 +341,8 @@ AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreList
 }
 */
 
-AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const
-{
-   printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
+AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
+   printd(2, "BuiltinFunction::evalMethod() calling builtin func '%s' old calling convention obj=%08p data=%08p\n", name, self, private_data);
 
    CodeContextHelper cch(name, self, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -352,6 +353,20 @@ AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, AbstractPrivateD
    // exception information added at the level above
    // (program location must be saved before arguments are evaluated)
    return code.method(self, private_data, args, xsink);
+}
+
+AbstractQoreNode *BuiltinFunction::evalMethod(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
+   printd(2, "BuiltinFunction::evalMethod() calling builtin func '%s' new calling convention obj=%08p data=%08p\n", name, self, private_data);
+
+   CodeContextHelper cch(name, self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack in debugging mode
+   CallStackHelper csh(name, CT_BUILTIN, self, xsink);
+#endif
+
+   // exception information added at the level above
+   // (program location must be saved before arguments are evaluated)
+   return code.method2(method, self, private_data, args, xsink);
 }
 
 void BuiltinFunction::evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const

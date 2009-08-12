@@ -85,82 +85,65 @@ class QoreObject;
 class AbstractPrivateData;
 
 //! functor template for calling free() on pointers
-template <typename T> struct free_ptr : std::unary_function <T*, void>
-{
-      void operator()(T *ptr)
-      {
+template <typename T> struct free_ptr : std::unary_function <T*, void> {
+      void operator()(T *ptr) {
 	 free(ptr);
       }
 };
 
 //! functor template for deleting elements
-template <typename T> struct simple_delete
-{
-      void operator()(T *ptr)
-      {
+template <typename T> struct simple_delete {
+      void operator()(T *ptr) {
 	 delete ptr;
       }
 };
 
 //! functor template for dereferencing elements
-template <typename T> struct simple_deref
-{
-      void operator()(T *ptr)
-      {
+template <typename T> struct simple_deref {
+      void operator()(T *ptr) {
 	 ptr->deref();
       }
-      void operator()(T *ptr, ExceptionSink *xsink)
-      {
+      void operator()(T *ptr, ExceptionSink *xsink) {
 	 ptr->deref(xsink);
       }
 };
 
 //! for simple c-string less-than comparisons
-class ltstr
-{
+class ltstr {
   public:
-   bool operator()(const char* s1, const char* s2) const
-   {
+   bool operator()(const char* s1, const char* s2) const {
       return strcmp(s1, s2) < 0;
    }
 };
 
 //! for simple c-string case-insensitive less-than comparisons
-class ltcstrcase
-{
+class ltcstrcase {
    public:
-      bool operator()(const char* s1, const char* s2) const
-      {
+      bool operator()(const char* s1, const char* s2) const {
 	 return strcasecmp(s1, s2) < 0;
       }
 };
 
 //! for std::string case-insensitive less-than comparisons
-class ltstrcase
-{
+class ltstrcase {
    public:
-      bool operator()(std::string s1, std::string s2) const
-      {
+      bool operator()(std::string s1, std::string s2) const {
 	 return strcasecmp(s1.c_str(), s2.c_str()) < 0;
       }
 };
 
 //! for char less-than comparisons
-class ltchar
-{
+class ltchar {
    public:
-      bool operator()(const char s1, const char s2) const
-      {
+      bool operator()(const char s1, const char s2) const {
 	 return s1 < s2;
       }
 };
 
 //! non-thread-safe vector for storing "char *" that you want to delete
-class cstr_vector_t : public std::vector<char *>
-{
+class cstr_vector_t : public std::vector<char *> {
   public:
-   DLLLOCAL ~cstr_vector_t()
-   {
+   DLLLOCAL ~cstr_vector_t() {
       std::for_each(begin(), end(), free_ptr<char>());
    }
 };
@@ -171,6 +154,8 @@ typedef std::set<char *, ltstr> strset_t;
 typedef long long int64;
 
 #include <stdarg.h>
+
+class QoreMethod;
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
@@ -187,6 +172,16 @@ typedef AbstractQoreNode *(*q_func_t)(const QoreListNode *args, ExceptionSink *x
     @return the return value of the function (can be 0)
  */
 typedef AbstractQoreNode *(*q_method_t)(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass method signatures when called with the new generic calling convention
+/** @param method a constant reference to the QoreMethod being called
+    @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the return value of the function (can be 0)
+ */
+typedef AbstractQoreNode *(*q_method2_t)(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass constructor method signatures
 /** @param self the QoreObject that the function is being executed on
