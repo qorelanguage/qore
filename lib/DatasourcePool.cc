@@ -56,8 +56,7 @@ void DatasourcePool::init(DBIDriver *ndsl, const char *user, const char *pass, c
    printd(5, "DatasourcePool::DatasourcePool(driver=%08p user=%s pass=%s db=%s charset=%s host=%s min=%d max=%d port=%d) pool=%08p\n", 
           ndsl, user ? user : "(null)", pass ? pass : "(null)", db ? db : "(null)", charset ? charset : "(null)", hostname ? hostname : "(null)", min, max, port, pool);
    cmax = 0;
-   do
-   {
+   do {
       pool[cmax] = new Datasource(ndsl);
       if (user)     pool[cmax]->setPendingUsername(user);
       if (pass)     pool[cmax]->setPendingPassword(pass);
@@ -81,8 +80,7 @@ void DatasourcePool::init(DBIDriver *ndsl, const char *user, const char *pass, c
    valid = true;
 }
 
-DatasourcePool::~DatasourcePool()
-{
+DatasourcePool::~DatasourcePool() {
    //printd(0, "DatasourcePool::~DatasourcePool() trlist.remove() this=%08p\n", this);
    
    for (int i = 0; i < cmax; i++)
@@ -134,13 +132,12 @@ class QoreString *DatasourcePool::getAndResetSQL()
 }
 #endif
 
-void DatasourcePool::freeDS()
-{
-   int tid = gettid();
-
+void DatasourcePool::freeDS() {
    // remove from thread resource list
    //printd(0, "DatasourcePool::freeDS() remove_thread_resource(this=%08p), tid=%d\n", this, tid);
    remove_thread_resource(this);
+
+   int tid = gettid();
 
    AutoLocker al((QoreThreadLock *)this);
 
@@ -151,15 +148,25 @@ void DatasourcePool::freeDS()
       signal();
 }      
 
-class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
-{
+Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink) {
+   Datasource *ds = getDSIntern(new_ds, xsink);
+
+   // try to open Datasource if it's not open already
+   if (!ds->isOpen() && ds->open(xsink)) {
+      freeDS();
+      return 0;
+   }
+
+   return ds;
+}
+
+Datasource *DatasourcePool::getDSIntern(bool &new_ds, ExceptionSink *xsink) {
    int tid = gettid();
    
    SafeLocker sl((QoreThreadLock *)this);
    // see if thread already has a datasource allocated
    thread_use_t::iterator i = tmap.find(tid);
-   if (i != tmap.end())
-   {
+   if (i != tmap.end()) {
       // DEBUG
       // printf("DSP::getDS() tid %d has index %d (%N)\n", $tid, $.t.$tid, $.p[$.t.$tid]);
       int index = i->second;
@@ -168,13 +175,11 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
    
    // will be a new allocation, not already in a transaction
    new_ds = true;
-   class Datasource *ds;
+   Datasource *ds;
    
    // see if there is a datasource free
-   while (true)
-   {
-      if (!free_list.empty())
-      {
+   while (true) {
+      if (!free_list.empty()) {
 	 int i = free_list.front();
 	 free_list.pop_front();
 	 // DEBUG
@@ -184,23 +189,15 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
 	 ds = pool[i];
 	 tid_list[i] = tid;
       }
-      else
-      {
+      else {
 	 // see if we can open a new connection
-	 if (cmax < max)
-	 {
+	 if (cmax < max) {
 	    ds = pool[cmax] = pool[0]->copy();
-	    if (ds->open(xsink))
-	    {
-	       delete ds;
-	       return 0;
-	    }
-
+	    
 	    tmap[tid] = cmax;
 	    tid_list[cmax++] = tid;
 	 }
-	 else
-	 {
+	 else {
 	    // otherwise we sleep until a connection becomes available
 	    wait_count++;
 	    wait((QoreThreadLock *)this);
@@ -216,15 +213,14 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
    // add to thread resource list
    //printd(0, "DatasourcePool::getDS() set_thread_resource(this=%08p), tid=%d\n", this, gettid());
    set_thread_resource(this);
-   
+
    return ds;
 }
 
-AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    bool new_ds = false;
    AbstractQoreNode *rv = 0;
-   class Datasource *ds = getDS(new_ds, xsink);
+   Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
       return 0;
@@ -243,11 +239,10 @@ AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNo
 }
 
 // FIXME: should be a native DBI driver method
-AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    bool new_ds = false;
    AbstractQoreNode *rv;
-   class Datasource *ds = getDS(new_ds, xsink);
+   Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
       return 0;
@@ -275,11 +270,10 @@ AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreLis
    return rv;
 }
 
-AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    bool new_ds = false;
    AbstractQoreNode *rv;
-   class Datasource *ds = getDS(new_ds, xsink);
+   Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
       return 0;
@@ -296,10 +290,9 @@ AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreLi
    return rv;
 }
 
-int DatasourcePool::beginTransaction(ExceptionSink *xsink)
-{
+int DatasourcePool::beginTransaction(ExceptionSink *xsink) {
    bool new_ds = false;
-   class Datasource *ds = getDS(new_ds, xsink);
+   Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
       return -1;
@@ -314,10 +307,9 @@ int DatasourcePool::beginTransaction(ExceptionSink *xsink)
    return rc;
 }
 
-AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    bool new_ds = false;
-   class Datasource *ds = getDS(new_ds, xsink);
+   Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
       return 0;
@@ -337,10 +329,9 @@ AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode
    return rv;
 }
 
-int DatasourcePool::commit(ExceptionSink *xsink)
-{
+int DatasourcePool::commit(ExceptionSink *xsink) {
    bool new_ds = false;
-   class Datasource *ds = getDS(new_ds, xsink);
+   Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
       return -1;
@@ -355,10 +346,9 @@ int DatasourcePool::commit(ExceptionSink *xsink)
    return rc;
 }
 
-int DatasourcePool::rollback(ExceptionSink *xsink)
-{
+int DatasourcePool::rollback(ExceptionSink *xsink) {
    bool new_ds = false;
-   class Datasource *ds = getDS(new_ds, xsink);
+   Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
       return -1;
@@ -373,8 +363,7 @@ int DatasourcePool::rollback(ExceptionSink *xsink)
    return rc;
 }
 
-QoreStringNode *DatasourcePool::toString()
-{
+QoreStringNode *DatasourcePool::toString() {
    QoreStringNode *str = new QoreStringNode();
 
    SafeLocker sl((QoreThreadLock *)this);
@@ -402,33 +391,27 @@ QoreStringNode *DatasourcePool::toString()
    return str;
 }
 
-int DatasourcePool::getMin() const 
-{ 
+int DatasourcePool::getMin() const { 
    return min; 
 }
 
-int DatasourcePool::getMax() const 
-{ 
+int DatasourcePool::getMax() const { 
    return max; 
 }
 
-QoreStringNode *DatasourcePool::getPendingUsername() const
-{
+QoreStringNode *DatasourcePool::getPendingUsername() const {
    return pool[0]->getPendingUsername();
 }
 
-QoreStringNode *DatasourcePool::getPendingPassword() const
-{
+QoreStringNode *DatasourcePool::getPendingPassword() const {
    return pool[0]->getPendingPassword();
 }
 
-QoreStringNode *DatasourcePool::getPendingDBName() const
-{
+QoreStringNode *DatasourcePool::getPendingDBName() const {
    return pool[0]->getPendingDBName();
 }
 
-QoreStringNode *DatasourcePool::getPendingDBEncoding() const
-{
+QoreStringNode *DatasourcePool::getPendingDBEncoding() const {
    return pool[0]->getPendingDBEncoding();
 }
 
@@ -444,8 +427,7 @@ const QoreEncoding *DatasourcePool::getQoreEncoding() const {
    return pool[0]->getQoreEncoding();
 }
 
-void DatasourcePool::cleanup(ExceptionSink *xsink)
-{
+void DatasourcePool::cleanup(ExceptionSink *xsink) {
 #ifndef DEBUG
    xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool", gettid());
 #else
@@ -475,8 +457,7 @@ void DatasourcePool::cleanup(ExceptionSink *xsink)
       signal();
 }
 
-bool DatasourcePool::inTransaction()
-{
+bool DatasourcePool::inTransaction() {
    int tid = gettid();
    AutoLocker al((QoreThreadLock *)this);
    return tmap.find(tid) != tmap.end();

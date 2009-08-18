@@ -287,7 +287,6 @@ class Datasource {
       */
       DLLEXPORT int getPendingPort() const;
 
-
       /** sets the "in_transaction" flag to true if autocommit is not set
 	  throws an exception if autocommit is true
 	  @param xsink if an error occurs, the Qore-language exception information will be added here

@@ -63,6 +63,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       void resetSQL();
 #endif
 
+      DLLLOCAL Datasource *getDSIntern(bool &new_ds, ExceptionSink *xsink);
       DLLLOCAL Datasource *getDS(bool &new_ds, ExceptionSink *xsink);
       DLLLOCAL void freeDS();
       DLLLOCAL void init(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink);
