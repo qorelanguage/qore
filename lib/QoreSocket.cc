@@ -841,7 +841,7 @@ struct qore_socket_private {
 
       if (rc < 0) {
 	 if (xsink)
-	    xsink->raiseException("SOCKET-CONNECT-ERROR-!D", strerror(errno));
+	    xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
 	 
 	 return close_and_exit();
       }
