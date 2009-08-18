@@ -713,6 +713,52 @@ struct qore_socket_private {
       return -1;
    }
 
+   DLLLOCAL int connectINETTimeout(int timeout_ms, struct sockaddr_in &addr_p, ExceptionSink *xsink) {
+      int rc = ::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in));
+      if (rc < 0) {
+	 //printd(0, "timeout_ms=%d errno=%d EINPROGRESS=%d\n", timeout_ms, errno, EINPROGRESS);
+	 if (errno == EINPROGRESS) {
+	    do {
+	       rc = selectWrite(timeout_ms);
+
+	       //printd(0, "selectWrite(%d) returned %d\n", timeout_ms, rc);
+	       if (rc < 0 && errno != EINTR) { 
+		  if (xsink)
+		     xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+		  return close_and_exit();
+	       } 
+	       else if (rc > 0) { 
+		  // socket selected for write 
+		  socklen_t lon = sizeof(int);
+		  int val;
+
+		  if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
+		     if (xsink)
+			xsink->raiseException("SOCKET-CONNECT-ERROR", "error in getsockopt(): ", strerror(errno));
+		     return close_and_exit();
+		  } 
+
+		  if (val) { 
+		     if (xsink)
+			xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(val));
+		     return close_and_exit();
+		  }
+
+		  break; 
+	       }
+	       else { 
+		  if (xsink)
+		     xsink->raiseException("SOCKET-CONNECT-ERROR", "timeout in connection after %dms", timeout_ms);
+		  return close_and_exit();
+	       }
+
+	    } while (true);
+	 }
+      }
+
+      return rc;
+   }
+
    DLLLOCAL int connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink = 0) {
       QORE_TRACE("QoreSocket::connectINET()");
 
@@ -745,8 +791,11 @@ struct qore_socket_private {
 
       //printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d, timeout_ms=%d) sock=%d\n", this, host, port, timeout_ms, sock);
 
-      // set non-blocking if a non-negative timeout was passed
+      int rc;
+
+      // perform connect with timeout if a non-negative timeout was passed
       if (timeout_ms >= 0) {
+	 // set non-blocking
 	 int arg;
 
 	 // get socket descriptor status flags
@@ -763,55 +812,40 @@ struct qore_socket_private {
 	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() setting socket descriptor status flags: ", strerror(errno));
 	    return -1;
 	 } 
-      }
 
-      do_connect_event(AF_INET, host, prt);
-      
-      int rc = ::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in));
-      if (rc < 0) {
-	 if (timeout_ms >= 0 && errno == EINPROGRESS) {
-	    do {
-	       int rc = select(timeout_ms);
+	 do_connect_event(AF_INET, host, prt);
 
-	       if (rc < 0 && errno != EINTR) { 
-		  if (xsink)
-		     xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
-		  return close_and_exit();
-	       } 
-	       else if (rc > 0) { 
-		  // socket selected for write 
-		  socklen_t lon = sizeof(int);
-		  int val;
+	 rc = connectINETTimeout(timeout_ms, addr_p, xsink);
 
-		  if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
-		     if (xsink)
-			xsink->raiseException("SOCKET-CONNECT-ERROR", "error in getsockopt(): ", strerror(errno));
-		     return close_and_exit();
-		  } 
-
-		  if (val) { 
-		     if (xsink)
-			xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(val));
-		     return close_and_exit();
-		  } 
-		  break; 
-	       }
-	       else { 
-		  if (xsink)
-		     xsink->raiseException("SOCKET-CONNECT-ERROR", "timeout in connection after %dms", timeout_ms);
-		  return close_and_exit();
-	       }
-
-	    } while (true);
-	 }
-
-	 if (rc < 0) {
+	 // get socket descriptor status flags
+	 if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
+	    sock = 0;
 	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
-	 
-	    return close_and_exit();
-	 }
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() getting socket descriptor status flag: ", strerror(errno));
+	    return -1;
+	 } 
+	 // set blocking
+	 arg &= ~O_NONBLOCK;
+	 if (fcntl(sock, F_SETFL, arg) < 0) { 
+	    sock = 0;
+	    if (xsink)
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() setting socket descriptor status flags: ", strerror(errno));
+	    return -1;
+	 }	 
       }
+      else {
+	 do_connect_event(AF_INET, host, prt);
+      
+	 rc = ::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in));
+      }
+
+      if (rc < 0) {
+	 if (xsink)
+	    xsink->raiseException("SOCKET-CONNECT-ERROR-!D", strerror(errno));
+	 
+	 return close_and_exit();
+      }
+
       type = AF_INET;
       port = prt;
       //printd(5, "QoreSocket::connectINET(this=%08p, host='%s', port=%d, timeout_ms=%d) success, rc=%d, sock=%d\n", this, host, port, timeout_ms, rc, sock);
