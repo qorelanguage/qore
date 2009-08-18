@@ -235,48 +235,40 @@ class MethodCallNode : public AbstractFunctionCallNode
       }
 };
 
-class StaticMethodCallNode : public AbstractFunctionCallNode
-{
+class StaticMethodCallNode : public AbstractFunctionCallNode {
    protected:
       NamedScope *scope;
       const QoreMethod *method;
 
-      DLLLOCAL virtual class AbstractQoreNode *evalImpl(ExceptionSink *xsink) const
-      {
+      DLLLOCAL virtual class AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
 	 return method->eval(0, args, xsink);
       }
 
-      DLLLOCAL virtual bool existsUserParam(int i) const
-      {
+      DLLLOCAL virtual bool existsUserParam(int i) const {
 	 return method->existsUserParam(i);
       }
 
    public:
-      DLLLOCAL StaticMethodCallNode(NamedScope *n_scope, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(n_scope), method(0)
-      {
+      DLLLOCAL StaticMethodCallNode(NamedScope *n_scope, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(n_scope), method(0) {
       }
 
-      DLLLOCAL virtual ~StaticMethodCallNode()
-      {
+      DLLLOCAL virtual ~StaticMethodCallNode() {
 	 delete scope;
       }
       
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-      {
-	 str.sprintf("static method call %s::%s() (0x%08p)", method->get_class()->getName(), method->getName(), this);
+      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+	 str.sprintf("static method call %s::%s() (0x%08p)", method->getClass()->getName(), method->getName(), this);
 	 return 0;
       }
 
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const
-      {
+      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
 	 del = true;
 	 QoreString *rv = new QoreString();
 	 getAsString(*rv, foff, xsink);
 	 return rv;
       }
 
-      DLLLOCAL virtual const char *getName() const
-      {
+      DLLLOCAL virtual const char *getName() const {
 	 return method->getName();
       }
 

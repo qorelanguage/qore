@@ -129,6 +129,9 @@ class QoreMethod {
        */
       DLLEXPORT bool newCallingConvention() const;
 
+      //! returns a pointer to the parent class
+      DLLEXPORT const QoreClass *getClass() const;
+
       DLLLOCAL QoreMethod(UserFunction *u, bool n_priv, bool n_static);
       DLLLOCAL QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv = false, bool n_static = false);
       DLLLOCAL QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv, bool n_static, bool new_calling_convention);
@@ -144,7 +147,6 @@ class QoreMethod {
       DLLLOCAL QoreMethod *copy(const class QoreClass *p_class) const;
       DLLLOCAL void parseInit();
       DLLLOCAL void parseInitConstructor(BCList *bcl);
-      DLLLOCAL const QoreClass *get_class() const;
       DLLLOCAL void assign_class(const QoreClass *p_class);
       DLLLOCAL const BuiltinFunction *getStaticBuiltinFunction() const;
       DLLLOCAL const UserFunction *getStaticUserFunction() const;
@@ -246,7 +248,7 @@ class QoreClass {
        */
       DLLEXPORT void addMethod(const char *n_name, q_method_t meth, bool priv = false);
 
-      //! adds a builtin method with the new generic calling convention to the class
+      //! adds a builtin method with the new generic calling convention
       DLLEXPORT void addMethod2(const char *n_name, q_method2_t meth, bool priv = false);
 
       //! adds a builtin static method to a class
@@ -256,6 +258,9 @@ class QoreClass {
 	  @param priv if true then the method will be added as a private method	  
        */
       DLLEXPORT void addStaticMethod(const char *n_name, q_func_t meth, bool priv = false);
+
+      //! adds a builtin static method with the new generic calling convention
+      DLLEXPORT void addStaticMethod2(const char *n_name, q_static_method2_t meth, bool priv = false);
 
       //! sets the builtin destructor method for the class
       /** you only need to implement destructor methods if the destructor should destroy the object

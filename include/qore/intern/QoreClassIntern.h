@@ -24,7 +24,6 @@
 
 #define _QORE_QORECLASSINTERN_H
 
-#include <qore/intern/BuiltinMethod.h>
 #include <qore/safe_dslist>
 
 #include <list>

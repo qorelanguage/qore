@@ -156,6 +156,7 @@ typedef long long int64;
 #include <stdarg.h>
 
 class QoreMethod;
+class QoreBuiltinMethod;
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
@@ -182,6 +183,14 @@ typedef AbstractQoreNode *(*q_method_t)(QoreObject *self, AbstractPrivateData *p
     @return the return value of the function (can be 0)
  */
 typedef AbstractQoreNode *(*q_method2_t)(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin static method signatures for static methods using the new generic calling convention
+/** @param method a constant reference to the QoreMethod being called
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the return value of the function (can be 0)
+ */
+typedef AbstractQoreNode *(*q_static_method2_t)(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass constructor method signatures
 /** @param self the QoreObject that the function is being executed on

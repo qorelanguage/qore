@@ -45,6 +45,7 @@ class BuiltinMethod : public BuiltinFunction, public QoreReferenceCounter
 
       // for static methods
       DLLLOCAL BuiltinMethod(QoreClass *c, const char *n_name, q_func_t m) : BuiltinFunction(n_name, m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL BuiltinMethod(QoreClass *c, const char *n_name, q_static_method2_t m) : BuiltinFunction(n_name, m, QDOM_DEFAULT), myclass(c) {}
 
       DLLLOCAL void deref();
 };

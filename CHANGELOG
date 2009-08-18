@@ -1,5 +1,7 @@
 2009.08.18: David Nichols
 	* fixed Socket::connect() with timeout
+	* added new generic calling convention for builtin class methods with
+	  a const pointer to the QoreMethod being called
 
 2009.07.20: David Nichols
 	* added static method TermIOS::getWindowSize() to get the current size

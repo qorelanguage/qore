@@ -813,7 +813,7 @@ const char *QoreMethod::getName() const {
    return priv->getName();
 }
 
-const QoreClass *QoreMethod::get_class() const {
+const QoreClass *QoreMethod::getClass() const {
    return priv->parent_class;
 }
 
@@ -1040,8 +1040,13 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    printd(5, "QoreMethod::eval() %s::%s() (object=%08p, pgm=%08p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
 #endif
 
-   if (isStatic())
-      return priv->type == OTF_USER ? priv->func.userFunc->eval(args, 0, xsink, priv->parent_class->getName()) : priv->func.builtin->eval(args, xsink, priv->parent_class->getName());
+   if (isStatic()) {
+      if (priv->type == OTF_USER)
+	 return priv->func.userFunc->eval(args, 0, xsink, priv->parent_class->getName());
+      if (priv->new_call_convention)
+	 return priv->func.builtin->evalStatic2(*this, args, xsink);
+      return priv->func.builtin->eval(args, xsink, priv->parent_class->getName());
+   }
 
    AbstractQoreNode *rv = 0;
    {
@@ -1675,6 +1680,21 @@ void QoreClass::addMethod2(const char *nme, q_method2_t m, bool priv_flag) {
    insertMethod(o);
    // check for special methods (except constructor and destructor)
    priv->checkSpecialIntern(o);
+}
+
+// adds a builtin static method to the class
+void QoreClass::addStaticMethod2(const char *nme, q_static_method2_t m, bool priv_flag) {
+   assert(strcmp(nme, "constructor"));
+   assert(strcmp(nme, "destructor"));
+   assert(strcmp(nme, "copy"));
+
+   priv->sys = true;
+   BuiltinMethod *b = new BuiltinMethod(this, nme, m);
+   QoreMethod *o = new QoreMethod(this, b, priv_flag, true, true);
+   insertMethod(o);
+
+   // check for special methods (except constructor and destructor) and abort if found
+   assert(!priv->checkSpecialStaticIntern(o));
 }
 
 // adds a builtin static method to the class

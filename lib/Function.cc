@@ -218,11 +218,17 @@ void UserFunction::deref()
       delete this;
 }
 
-BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ)
-{
+BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ) {
    type = typ;
    name = nme;
    code.func = f;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(const char *nme, q_static_method2_t f, int typ) {
+   type = typ;
+   name = nme;
+   code.static_method = f;
    next = 0;
 }
 
@@ -420,6 +426,47 @@ bool BuiltinFunction::evalDeleteBlocker(QoreObject *self, AbstractPrivateData *p
 
 void BuiltinFunction::evalSystemDestructor(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
    code.destructor(self, private_data, xsink);
+}
+
+AbstractQoreNode *BuiltinFunction::evalStatic2(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+   AbstractQoreNode *rv;
+   ExceptionSink newsink;
+
+   QORE_TRACE("BuiltinFunction::evalStatic2()");
+   printd(3, "BuiltinFunction::evalStatic2() calling builtin function \"%s\"\n", name);
+   
+   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->getTypeName() : "(null)");
+
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+
+   QoreListNodeEvalOptionalRefHolder tmp(args, xsink);
+
+   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
+
+   {
+      CodeContextHelper cch(name, 0, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      // push call on call stack
+      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
+#endif
+
+      // execute the function if no new exception has happened
+      // necessary only in the case of a builtin object destructor
+      if (!newsink.isEvent())
+	 rv = code.static_method(method, *tmp, xsink);
+      else
+	 rv = 0;
+
+      xsink->assimilate(&newsink);
+   }
+
+   if (xsink->isException())
+      xsink->addStackInfo(CT_BUILTIN, method.getClass()->getName(), name, o_fn, o_ln, o_eln);
+
+   return rv;
 }
 
 AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink *xsink, const char *class_name) const {
