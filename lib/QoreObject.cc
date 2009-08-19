@@ -736,6 +736,17 @@ void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink)
    }
 }
 
+int64 QoreObject::getMemberAsBigInt(const char *mem, bool &found, ExceptionSink *xsink) const {
+   AutoLocker al(priv->mutex);
+
+   if (priv->status == OS_DELETED) {
+      makeAccessDeletedObjectException(xsink, mem, priv->theclass->getName());
+      return 0;
+   }
+
+   return priv->data->getKeyAsBigInt(mem, found);
+}
+
 AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, ExceptionSink *xsink) const {
    AutoLocker al(priv->mutex);
 

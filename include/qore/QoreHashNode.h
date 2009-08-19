@@ -225,6 +225,13 @@ class QoreHashNode : public AbstractQoreNode {
        */
       DLLEXPORT const AbstractQoreNode *getKeyValue(const char *key) const;
 
+      //! returns the value of the key as an int64
+      /** @param key the key to return the value for
+	  @param found returns as true if the key exists, false if not
+	  @return the value of the key as an int64
+      */
+      DLLEXPORT int64 getKeyAsBigInt(const char *key, bool &found) const;
+
       //! performs a deep copy of the hash and returns the new hash
       /** @return a copy of the current QoreHashNode
        */

@@ -225,8 +225,18 @@ class QoreObject : public AbstractQoreNode {
       /**
 	 @param mem the name member to retrieve the value for
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @return the value of the given member with the reference count incremented, the caller owns the AbstractQoreNode (reference) returned
        */
       DLLEXPORT AbstractQoreNode *getReferencedMemberNoMethod(const char *mem, ExceptionSink *xsink) const;
+
+      //! returns the value of the given member as an int64
+      /**
+	 @param mem the name member to retrieve the value for
+	 @param found returns true if the member was found, false if not
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @return the value of the given member as an int64
+       */
+      DLLEXPORT int64 getMemberAsBigInt(const char *mem, bool &found, ExceptionSink *xsink) const;
 
       //! retuns all member data of the object (or 0 if there's an exception), caller owns the QoreHashNode reference returned
       /**

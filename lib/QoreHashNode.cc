@@ -46,136 +46,148 @@ class HashMember {
 };
 
 struct qore_hash_private {
-      class HashMember *member_list;
-      class HashMember *tail;
-      qore_size_t len;
-      hm_hm_t hm;
+   class HashMember *member_list;
+   class HashMember *tail;
+   qore_size_t len;
+   hm_hm_t hm;
 
-      DLLLOCAL qore_hash_private() : member_list(0), tail(0), len(0) {
-      }
+   DLLLOCAL qore_hash_private() : member_list(0), tail(0), len(0) {
+   }
       
-      // hashes should always be empty by the time they are deleted 
-      // because object destructors need to be run...
-      DLLLOCAL ~qore_hash_private()
-      {
-	 assert(!member_list);
+   // hashes should always be empty by the time they are deleted 
+   // because object destructors need to be run...
+   DLLLOCAL ~qore_hash_private() {
+      assert(!member_list);
+   }
+
+   DLLLOCAL int64 getKeyAsBigInt(const char *key, bool &found) const {
+      assert(key);	 
+      hm_hm_t::const_iterator i = hm.find(key);
+
+      if (i != hm.end()) {
+	 found = true;
+	 return i->second->node ? i->second->node->getAsBigInt() : 0;
       }
 
-      DLLLOCAL AbstractQoreNode **getKeyValuePtr(const char *key) {
-	 assert(key);	 
-	 hm_hm_t::iterator i = hm.find(key);
+      found = false;
+      return 0;
+   }
+
+   DLLLOCAL AbstractQoreNode **getKeyValuePtr(const char *key) {
+      assert(key);	 
+      hm_hm_t::iterator i = hm.find(key);
 	 
-	 // if the key already exists, then return the value ptr
-	 if (i != hm.end())
-	    return &i->second->node;
+      // if the key already exists, then return the value ptr
+      if (i != hm.end())
+	 return &i->second->node;
 
-	 // otherwise create the new hash entry
-	 HashMember *om = new HashMember;
-	 om->node = 0;
-	 om->next = 0;
-	 om->prev = tail;
-	 om->key = strdup(key);
-	 assert(hm.find(om->key) == hm.end());
+      // otherwise create the new hash entry
+      HashMember *om = new HashMember;
+      om->node = 0;
+      om->next = 0;
+      om->prev = tail;
+      om->key = strdup(key);
+      assert(hm.find(om->key) == hm.end());
 
-	 if (tail)
-	    tail->next = om;
-	 else
-	    member_list = om;
-	 tail = om;
+      if (tail)
+	 tail->next = om;
+      else
+	 member_list = om;
+      tail = om;
 	 
-	 // add to the map
-	 hm[om->key] = om;
+      // add to the map
+      hm[om->key] = om;
 
-	 // increment the hash size
-	 ++len;
+      // increment the hash size
+      ++len;
 
-	 // return the new value ptr
-	 return &om->node;
+      // return the new value ptr
+      return &om->node;
+   }
+
+   // NOTE: does not delete the value, this must be done by the called before this call
+   // also does not delete map entry; must be done outside this call
+   DLLLOCAL void internDeleteKey(HashMember *om) {
+      // remove key from the linked list
+      if (om->next)
+	 om->next->prev = om->prev;
+      if (om->prev)
+	 om->prev->next = om->next;
+      if (om == member_list)
+	 member_list = om->next;
+      if (om == tail)
+	 tail = om->prev;
+
+      // free string memory
+      free(om->key);
+
+      // free om memory
+      delete om;
+
+      // decrement the hash size
+      --len;
+   }
+
+   DLLLOCAL void deleteKey(const char *key, ExceptionSink *xsink) {
+      assert(key);
+	 
+      hm_hm_t::iterator i = hm.find(key);
+	 
+      if (i == hm.end())
+	 return;
+	 
+      HashMember *m = i->second;
+	 
+      hm.erase(i);
+	 
+      // dereference node if present
+      if (m->node) {
+	 if (m->node->getType() == NT_OBJECT)
+	    reinterpret_cast<QoreObject *>(m->node)->doDelete(xsink);
+	 m->node->deref(xsink);
       }
+	 
+      internDeleteKey(m);
+   }
 
-      // NOTE: does not delete the value, this must be done by the called before this call
-      // also does not delete map entry; must be done outside this call
-      DLLLOCAL void internDeleteKey(HashMember *om) {
-	 // remove key from the linked list
-	 if (om->next)
-	    om->next->prev = om->prev;
-	 if (om->prev)
-	    om->prev->next = om->next;
-	 if (om == member_list)
-	    member_list = om->next;
-	 if (om == tail)
-	    tail = om->prev;
+   // removes the value and dereferences it, without performing a delete on it
+   DLLLOCAL void removeKey(const char *key, ExceptionSink *xsink) {
+      assert(key);
+	 
+      hm_hm_t::iterator i = hm.find(key);
+	 
+      if (i == hm.end())
+	 return;
+	 
+      HashMember *m = i->second;
+	 
+      hm.erase(i);
+	 
+      // dereference node if present
+      if (m->node)
+	 m->node->deref(xsink);
+	 
+      internDeleteKey(m);
+   }
 
-	 // free string memory
-	 free(om->key);
+   DLLLOCAL AbstractQoreNode *takeKeyValue(const char *key) {
+      assert(key);
 
-	 // free om memory
-	 delete om;
-
-	 // decrement the hash size
-	 --len;
-      }
-
-      DLLLOCAL void deleteKey(const char *key, ExceptionSink *xsink) {
-	 assert(key);
+      hm_hm_t::iterator i = hm.find(key);
 	 
-	 hm_hm_t::iterator i = hm.find(key);
+      if (i == hm.end())
+	 return 0;
 	 
-	 if (i == hm.end())
-	    return;
+      HashMember *m = i->second;
 	 
-	 HashMember *m = i->second;
+      hm.erase(i);
 	 
-	 hm.erase(i);
+      AbstractQoreNode *rv = m->node;
 	 
-	 // dereference node if present
-	 if (m->node) {
-	    if (m->node->getType() == NT_OBJECT)
-	       reinterpret_cast<QoreObject *>(m->node)->doDelete(xsink);
-	    m->node->deref(xsink);
-	 }
+      internDeleteKey(m);
 	 
-	 internDeleteKey(m);
-      }
-
-      // removes the value and dereferences it, without performing a delete on it
-      DLLLOCAL void removeKey(const char *key, ExceptionSink *xsink) {
-	 assert(key);
-	 
-	 hm_hm_t::iterator i = hm.find(key);
-	 
-	 if (i == hm.end())
-	    return;
-	 
-	 HashMember *m = i->second;
-	 
-	 hm.erase(i);
-	 
-	 // dereference node if present
-	 if (m->node)
-	    m->node->deref(xsink);
-	 
-	 internDeleteKey(m);
-      }
-
-      DLLLOCAL AbstractQoreNode *takeKeyValue(const char *key) {
-	 assert(key);
-
-	 hm_hm_t::iterator i = hm.find(key);
-	 
-	 if (i == hm.end())
-	    return 0;
-	 
-	 HashMember *m = i->second;
-	 
-	 hm.erase(i);
-	 
-	 AbstractQoreNode *rv = m->node;
-	 
-	 internDeleteKey(m);
-	 
-	 return rv;
-      }
+      return rv;
+   }
 };
 
 QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH, !ne, ne), priv(new qore_hash_private) {
@@ -232,6 +244,10 @@ AbstractQoreNode **QoreHashNode::getKeyValuePtr(const QoreString *key, Exception
 
 AbstractQoreNode **QoreHashNode::getKeyValuePtr(const char *key) {
    return priv->getKeyValuePtr(key);
+}
+
+int64 QoreHashNode::getKeyAsBigInt(const char *key, bool &found) const {
+   return priv->getKeyAsBigInt(key, found);
 }
 
 void QoreHashNode::deleteKey(const QoreString *key, ExceptionSink *xsink) {
