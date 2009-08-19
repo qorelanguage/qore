@@ -61,7 +61,7 @@ static inline int get_int_param(const QoreListNode *n, qore_size_t i) {
 }
 
 //! returns a 64-bit integer corresponding to the argument given or 0 if there is none
-static inline int64 get_bitint_param(const QoreListNode *n, qore_size_t i) {
+static inline int64 get_bigint_param(const QoreListNode *n, qore_size_t i) {
    if (!n) return 0;
    const AbstractQoreNode *p = n->retrieve_entry(i);
    return is_nothing(p) ? 0 : p->getAsBigInt();
