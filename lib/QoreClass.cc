@@ -1121,7 +1121,6 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
 #ifdef DEBUG
    printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", oname, getName());
 #endif
-
 }
 
 void QoreMethod::evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const {
@@ -1744,8 +1743,15 @@ void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag) {
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
-void QoreClass::setConstructor(q_constructor_t m)
-{
+void QoreClass::setConstructor(q_constructor_t m) {
+   priv->sys = true;
+   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
+   insertMethod(o);
+   priv->constructor = o;
+}
+
+// sets a builtin function as constructor - no duplicate checking is made
+void QoreClass::setConstructor2(q_constructor2_t m) {
    priv->sys = true;
    QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
    insertMethod(o);
@@ -1753,8 +1759,7 @@ void QoreClass::setConstructor(q_constructor_t m)
 }
 
 // sets a builtin function as class destructor - no duplicate checking is made
-void QoreClass::setDestructor(q_destructor_t m)
-{
+void QoreClass::setDestructor(q_destructor_t m) {
    priv->sys = true;
    QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
    insertMethod(o);
