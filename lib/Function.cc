@@ -246,11 +246,17 @@ BuiltinFunction::BuiltinFunction(const char *nme, q_method2_t m, int typ) {
    next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ) {
    type = typ;
    name = "constructor";
    code.constructor = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(q_constructor2_t m, int typ) {
+   type = typ;
+   name = "constructor";
+   code.constructor2 = m;
    next = 0;
 }
 
@@ -286,8 +292,7 @@ BuiltinFunction::BuiltinFunction(q_delete_blocker_t m)
    next = 0;
 }
 
-void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
-{
+void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
    QORE_TRACE("BuiltinFunction::evalConstructor()");
 
    // save current program location in case there's an exception
@@ -307,6 +312,31 @@ void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args
    
    if (!xsink->isEvent()) {
       code.constructor(self, args, xsink);
+      if (xsink->isException())
+	 xsink->addStackInfo(CT_BUILTIN, class_name, "constructor", o_fn, o_ln, o_eln);
+   }
+}
+
+void BuiltinFunction::evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinFunction::evalConstructor2()");
+
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+
+   CodeContextHelper cch("constructor", self, xsink);
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack
+   CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
+#endif
+
+   if (bcl)
+      bcl->execConstructorsWithArgs(self, bceal, xsink);
+   
+   if (!xsink->isEvent()) {
+      code.constructor2(thisclass, self, args, xsink);
       if (xsink->isException())
 	 xsink->addStackInfo(CT_BUILTIN, class_name, "constructor", o_fn, o_ln, o_eln);
    }

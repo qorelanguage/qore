@@ -27,17 +27,17 @@
 #include <qore/intern/Function.h>
 #include <qore/QoreReferenceCounter.h>
 
-class BuiltinMethod : public BuiltinFunction, public QoreReferenceCounter
-{
+class BuiltinMethod : public BuiltinFunction, public QoreReferenceCounter {
    protected:
       DLLLOCAL ~BuiltinMethod() {}
-   
+
    public:
       QoreClass *myclass;
-   
+
       DLLLOCAL BuiltinMethod(QoreClass *c, const char *nme, q_method2_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
       DLLLOCAL BuiltinMethod(QoreClass *c, const char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
       DLLLOCAL BuiltinMethod(QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+      DLLLOCAL BuiltinMethod(QoreClass *c, q_constructor2_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
       DLLLOCAL BuiltinMethod(QoreClass *c, q_system_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
       DLLLOCAL BuiltinMethod(QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
       DLLLOCAL BuiltinMethod(QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}

@@ -157,6 +157,7 @@ typedef long long int64;
 
 class QoreMethod;
 class QoreBuiltinMethod;
+class QoreClass;
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
@@ -198,6 +199,14 @@ typedef AbstractQoreNode *(*q_static_method2_t)(const QoreMethod &method, const 
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
 typedef void (*q_constructor_t)(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass constructor method signatures using the new generic calling convention
+/** @param myclass a constant reference to the QoreClass being constructed (in a heirarchy, could be different than the QoreClass returned from QoreObject::getClass()
+    @param self the QoreObject that the function is being executed on
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+ */
+typedef void (*q_constructor2_t)(const QoreClass &myclass, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass system constructor method signatures
 /** System constructors are called for objects that are created automatically by the library, normally to be assigned to constants.

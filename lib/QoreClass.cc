@@ -949,8 +949,7 @@ inline void BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual)
    push_back(std::make_pair(qc, is_virtual));
 }
 
-inline void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const
-{
+inline void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const {
    class_list_t::const_reverse_iterator i = rbegin();
    // cast below required by g++ 3.2 at least
    while (i != rend()) {
@@ -1099,8 +1098,7 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    return rv;
 }
 
-void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
-{
+void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const {
    QORE_TRACE("QoreMethod::evalConstructor()");
 #ifdef DEBUG
    const char *oname = self->getClass()->getName();
@@ -1122,6 +1120,30 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
 
 #ifdef DEBUG
    printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", oname, getName());
+#endif
+
+}
+
+void QoreMethod::evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const {
+   QORE_TRACE("QoreMethod::evalConstructor2()");
+#ifdef DEBUG
+   const char *cname = thisclass.getName();
+   printd(5, "QoreMethod::evalConstructor2() %s::%s() (object=%08p, pgm=%08p)\n", cname, getName(), self, self->getProgram());
+#endif
+
+   assert(priv->type != OTF_USER);
+
+   // evalute arguments before calling builtin method
+   QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
+   if (*xsink)
+      return;
+
+   // switch to new program for imported objects
+   ProgramContextHelper pch(self->getProgram(), xsink);
+   priv->func.builtin->evalConstructor2(thisclass, self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
+
+#ifdef DEBUG
+   printd(5, "QoreMethod::evalConstructor2() %s::%s() done\n", cname, getName());
 #endif
 
 }
@@ -1351,8 +1373,13 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
       if (priv->scl) // execute superconstructors if any
 	 priv->scl->execConstructors(o, bceal, xsink);
    }
-   else // no lock is sent with constructor, because no variable has been assigned yet
-      priv->constructor->evalConstructor(o, args, priv->scl, bceal, xsink);
+   else { 
+	 // no lock is sent with constructor, because no variable has been assigned yet
+      if (priv->constructor->newCallingConvention())
+	 priv->constructor->evalConstructor2(*this, o, args, priv->scl, bceal, xsink);
+      else
+	 priv->constructor->evalConstructor(o, args, priv->scl, bceal, xsink);
+   }
 
    if (bceal)
       bceal->deref(xsink);
@@ -1395,8 +1422,12 @@ void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal,
    else { // no lock is sent with constructor, because no variable has been assigned yet
       bool already_executed;
       QoreListNode *args = bceal->findArgs(this, &already_executed);
-      if (!already_executed)
-	 priv->constructor->evalConstructor(self, args, priv->scl, bceal, xsink);
+      if (!already_executed) {
+	 if (priv->constructor->newCallingConvention())
+	    priv->constructor->evalConstructor2(*this, self, args, priv->scl, bceal, xsink);
+	 else
+	    priv->constructor->evalConstructor(self, args, priv->scl, bceal, xsink);
+      }
    }
 }
 

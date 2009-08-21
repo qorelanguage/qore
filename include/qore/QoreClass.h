@@ -55,6 +55,7 @@ class BCList;
 class BCSMList;
 class QoreObject;
 class QoreClass;
+class BCEAList;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -138,7 +139,8 @@ class QoreMethod {
       DLLLOCAL ~QoreMethod();
       DLLLOCAL int getType() const;
       DLLLOCAL bool inMethod(const QoreObject *self) const;
-      DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
       DLLLOCAL void evalDestructor(QoreObject *self, ExceptionSink *xsink) const;
       DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;
       DLLLOCAL void evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
@@ -202,7 +204,7 @@ class QoreClass {
       // This function must only be called from QoreObject and BCList
       DLLLOCAL bool execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const;
       // This function must only be called from BCList
-      DLLLOCAL void execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const;
+      DLLLOCAL void execSubclassConstructor(QoreObject *self, BCEAList *bceal, ExceptionSink *xsink) const;
       // This function must only be called from QoreObject
       DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink *xsink) const;
       // This function must only be called from BCSMList
@@ -281,6 +283,12 @@ class QoreClass {
 	 @param m the constructor method
        */
       DLLEXPORT void setConstructor(q_constructor_t m);
+
+      //! sets the builtin constructor method for the class using the new calling convention
+      /**
+	 @param m the constructor method
+       */
+      DLLEXPORT void setConstructor2(q_constructor2_t m);
 
       //! sets the builtin constructor for system objects (ex: used as constant values)
       /** @note system constructors in a class hierarchy must call the base class constructors manually

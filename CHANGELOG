@@ -1,3 +1,7 @@
+2009.09.21: David Nichols
+	* added new constructor calling convention that includes a constant
+	  reference to the QoreClass being instantiated
+
 2009.08.18: David Nichols
 	* fixed Socket::connect() with timeout
 	* added new generic calling convention for builtin class methods with
