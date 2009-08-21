@@ -1753,7 +1753,7 @@ void QoreClass::setConstructor(q_constructor_t m) {
 // sets a builtin function as constructor - no duplicate checking is made
 void QoreClass::setConstructor2(q_constructor2_t m) {
    priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
+   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m), false, false, true);
    insertMethod(o);
    priv->constructor = o;
 }
@@ -1767,8 +1767,7 @@ void QoreClass::setDestructor(q_destructor_t m) {
 }
 
 // sets a builtin function as class copy constructor - no duplicate checking is made
-void QoreClass::setCopy(q_copy_t m)
-{
+void QoreClass::setCopy(q_copy_t m) {
    priv->sys = true;
    QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
    insertMethod(o);
@@ -1785,8 +1784,7 @@ void QoreClass::setDeleteBlocker(q_delete_blocker_t m)
    priv->has_delete_blocker = true;
 }
 
-QoreListNode *QoreClass::getMethodList() const
-{
+QoreListNode *QoreClass::getMethodList() const {
    QoreListNode *l = new QoreListNode();
 
    for (hm_method_t::const_iterator i = priv->hm.begin(); i != priv->hm.end(); i++)
@@ -1795,8 +1793,7 @@ QoreListNode *QoreClass::getMethodList() const
 }
 
 // one-time initialization
-void QoreClass::initialize()
-{
+void QoreClass::initialize() {
    if (!priv->initialized) {
       printd(5, "QoreClass::parseInit() %s this=%08p pending size=%d, scl=%08p, bcal=%08p\n", priv->name, this, priv->hm_pending.size(), priv->scl, priv->bcal);
       if (priv->scl) {
@@ -1813,8 +1810,7 @@ void QoreClass::initialize()
 }
 
 // initializes all user methods
-void QoreClass::parseInit()
-{
+void QoreClass::parseInit() {
    setParseClass(this);
    initialize();
 
