@@ -261,12 +261,12 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod 
    return check_meth_eval(priv->theclass, meth, xsink);
 }
 
-void QoreObject::evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *self, const char *class_name, ExceptionSink *xsink) {
+void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, BuiltinMethod *meth, QoreObject *self, bool new_calling_convention, ExceptionSink *xsink) {
    // get referenced object
    AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getID(), xsink);
 
    if (pd) {
-      meth->evalCopy(self, this, pd, class_name, xsink);
+      meth->evalCopy(thisclass, self, this, pd, new_calling_convention, xsink);
       pd->deref(xsink);
       return;
    }

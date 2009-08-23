@@ -260,32 +260,35 @@ BuiltinFunction::BuiltinFunction(q_constructor2_t m, int typ) {
    next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(q_system_constructor_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(q_system_constructor_t m, int typ) {
    type = typ;
    name = "constructor";
    code.system_constructor = m;
    next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ) {
    type = typ;
    name = "destructor";
    code.destructor = m;
    next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
-{
+BuiltinFunction::BuiltinFunction(q_copy_t m, int typ) {
    type = typ;
    name = "copy";
    code.copy = m;
    next = 0;
 }
 
-BuiltinFunction::BuiltinFunction(q_delete_blocker_t m)
-{
+BuiltinFunction::BuiltinFunction(q_copy2_t m, int typ) {
+   type = typ;
+   name = "copy";
+   code.copy2 = m;
+   next = 0;
+}
+
+BuiltinFunction::BuiltinFunction(q_delete_blocker_t m) {
    type = QDOM_DEFAULT;
    name = "(delete_blocker)";
    code.delete_blocker = m;
@@ -428,7 +431,7 @@ void BuiltinFunction::evalDestructor(QoreObject *self, AbstractPrivateData *priv
       xsink->addStackInfo(CT_BUILTIN, class_name, "destructor", o_fn, o_ln, o_eln);
 }
 
-void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const {
+void BuiltinFunction::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, bool new_calling_convention, ExceptionSink *xsink) const {
    QORE_TRACE("BuiltinFunction::evalCopy()");
    
    // save current program location in case there's an exception
@@ -443,11 +446,14 @@ void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, AbstractPrivat
       CallStackHelper csh("copy", CT_BUILTIN, self, xsink);
 #endif
 
-      code.copy(self, old, private_data, xsink);
+      if (new_calling_convention)
+	 code.copy2(thisclass, self, old, private_data, xsink);
+      else
+	 code.copy(self, old, private_data, xsink);
    }
    
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, class_name, "copy", o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_BUILTIN, thisclass.getName(), "copy", o_fn, o_ln, o_eln);
 }
 
 bool BuiltinFunction::evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const {

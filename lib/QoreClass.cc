@@ -960,8 +960,7 @@ inline void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const
    }
 }
 
-inline void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const
-{
+inline void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const {
    class_list_t::const_reverse_iterator i = rbegin();
    while (i != rend()) {
       printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%08p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
@@ -971,8 +970,7 @@ inline void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink)
    }
 }
 
-inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const
-{
+inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    class_list_t::const_iterator i = begin();
    while (i != end()) {
       if (!(*i).second) {
@@ -984,8 +982,7 @@ inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, Excepti
    }
 }
 
-inline class QoreClass *BCSMList::getClass(qore_classid_t cid) const
-{
+inline class QoreClass *BCSMList::getClass(qore_classid_t cid) const {
    class_list_t::const_iterator i = begin();
    while (i != end()) {
       if ((*i).first->getID() == cid)
@@ -1144,10 +1141,9 @@ void QoreMethod::evalConstructor2(const QoreClass &thisclass, QoreObject *self, 
 #ifdef DEBUG
    printd(5, "QoreMethod::evalConstructor2() %s::%s() done\n", cname, getName());
 #endif
-
 }
 
-void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
+void QoreMethod::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram(), xsink);
 
@@ -1161,7 +1157,7 @@ void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsin
       VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
       assert(!(lck && !vh));
 #endif
-      old->evalCopyMethodWithPrivateData(priv->func.builtin, self, priv->parent_class->getName(), xsink);
+      old->evalCopyMethodWithPrivateData(thisclass, priv->func.builtin, self, priv->new_call_convention, xsink);
    }
 }
 
@@ -1523,7 +1519,7 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
       if (o_fn)
 	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);
       
-      priv->copyMethod->evalCopy(*self, old, xsink);
+      priv->copyMethod->evalCopy(*this, *self, old, xsink);
       if (xsink->isException())
 	 xsink->addStackInfo(priv->copyMethod->getType(), old->getClass()->getName(), "copy", o_fn, o_ln, o_eln);
    }
@@ -1531,10 +1527,9 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
    return *xsink ? 0 : self.release();
 }
 
-inline void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const
-{
+inline void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    if (priv->copyMethod)
-      priv->copyMethod->evalCopy(self, old, xsink);
+      priv->copyMethod->evalCopy(*this, self, old, xsink);
 }
 
 void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual)
@@ -1774,9 +1769,16 @@ void QoreClass::setCopy(q_copy_t m) {
    priv->copyMethod = o;
 }
 
+// sets a builtin function as class copy constructor - no duplicate checking is made
+void QoreClass::setCopy2(q_copy2_t m) {
+   priv->sys = true;
+   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m), false, false, true);
+   insertMethod(o);
+   priv->copyMethod = o;
+}
+
 // sets the delete_blocker function
-void QoreClass::setDeleteBlocker(q_delete_blocker_t m)
-{
+void QoreClass::setDeleteBlocker(q_delete_blocker_t m) {
    priv->sys = true;
    QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
    insertMethod(o);
