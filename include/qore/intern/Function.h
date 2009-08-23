@@ -49,49 +49,51 @@ AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, Ex
 
 // object definitions and interfaces
 class BuiltinFunction {
-private:
-   int type;
-   const char *name;
-   
-public:
-   BuiltinFunction *next;
-   union {
-      q_func_t func;
-      q_static_method2_t static_method;
-      q_method_t method;
-      q_method2_t method2;
-      q_constructor_t constructor;
-      q_constructor2_t constructor2;
-      q_system_constructor_t system_constructor;
-      q_destructor_t destructor;
-      q_copy_t copy;
-      q_delete_blocker_t delete_blocker;
-   } code;
-   
-   DLLLOCAL BuiltinFunction(const char *nme, q_func_t f, int typ);
-   DLLLOCAL BuiltinFunction(const char *nme, q_static_method2_t f, int typ);
-   DLLLOCAL BuiltinFunction(const char *nme, q_method_t m, int typ);
-   DLLLOCAL BuiltinFunction(const char *nme, q_method2_t m, int typ);
-   DLLLOCAL BuiltinFunction(q_constructor_t m, int typ);
-   DLLLOCAL BuiltinFunction(q_constructor2_t m, int typ);
-   DLLLOCAL BuiltinFunction(q_system_constructor_t m, int typ);
-   DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
-   DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
-   DLLLOCAL BuiltinFunction(q_delete_blocker_t m);
-   DLLLOCAL AbstractQoreNode *evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL AbstractQoreNode *evalMethod(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
-   DLLLOCAL void evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
-   DLLLOCAL void evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
-   DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
-   DLLLOCAL bool evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const;
-   DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;
-   DLLLOCAL void evalSystemDestructor(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const;
-   DLLLOCAL AbstractQoreNode *evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink, const char *class_name = 0) const;
-   DLLLOCAL AbstractQoreNode *evalStatic2(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL int getType() const { return type; }
-   DLLLOCAL const char *getName() const { return name; }
+   private:
+      int type;
+      const char *name;
+      
+   public:
+      BuiltinFunction *next;
+      union {
+	    q_func_t func;
+	    q_static_method2_t static_method;
+	    q_method_t method;
+	    q_method2_t method2;
+	    q_constructor_t constructor;
+	    q_constructor2_t constructor2;
+	    q_system_constructor_t system_constructor;
+	    q_destructor_t destructor;
+	    q_copy_t copy;
+	    q_copy2_t copy2;
+	    q_delete_blocker_t delete_blocker;
+      } code;
+      
+      DLLLOCAL BuiltinFunction(const char *nme, q_func_t f, int typ);
+      DLLLOCAL BuiltinFunction(const char *nme, q_static_method2_t f, int typ);
+      DLLLOCAL BuiltinFunction(const char *nme, q_method_t m, int typ);
+      DLLLOCAL BuiltinFunction(const char *nme, q_method2_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_constructor_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_constructor2_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_system_constructor_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_copy2_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_delete_blocker_t m);
+      DLLLOCAL AbstractQoreNode *evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *evalMethod(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
+      DLLLOCAL void evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
+      DLLLOCAL void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, bool new_calling_convention, ExceptionSink *xsink) const;
+      DLLLOCAL bool evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const;
+      DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;
+      DLLLOCAL void evalSystemDestructor(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink, const char *class_name = 0) const;
+      DLLLOCAL AbstractQoreNode *evalStatic2(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL int getType() const { return type; }
+      DLLLOCAL const char *getName() const { return name; }
 };
 
 class LocalVar;

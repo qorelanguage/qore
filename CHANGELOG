@@ -1,3 +1,7 @@
+2009.09.23: David Nichols
+	* added new copy constructor calling convention that includes a
+	  constant reference to the QoreClass being instantiated
+
 2009.09.21: David Nichols
 	* added new constructor calling convention that includes a constant
 	  reference to the QoreClass being instantiated

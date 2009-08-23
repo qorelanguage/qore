@@ -1,3 +1,4 @@
+* document Datasource::getAutoCommit()
 * fix crash on exit() with running threads on Darwin <- CANNOT REPRODUCE
 * implement function class hierarchies for returning different types (bool, int64, double, node)
 * add $# for list element offset in list operators (map, select)

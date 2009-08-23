@@ -144,7 +144,7 @@ class QoreMethod {
       DLLLOCAL void evalDestructor(QoreObject *self, ExceptionSink *xsink) const;
       DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;
       DLLLOCAL void evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
+      DLLLOCAL void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
       DLLLOCAL bool evalDeleteBlocker(QoreObject *self) const;
       DLLLOCAL QoreMethod *copy(const class QoreClass *p_class) const;
       DLLLOCAL void parseInit();
@@ -309,6 +309,20 @@ class QoreClass {
 	  @endcode
        */
       DLLEXPORT void setCopy(q_copy_t m);
+
+      //! sets the builtin copy method for the class using the new generic calling convention
+      /** copy methods should either call QoreObject::setPrivate() or call xsink->raiseException()
+	  (but should not do both)
+	  @param m the copy method to set
+	  @code
+	  // the actual function can be declared with the class to be expected as the private data as follows:
+	  static void AL_copy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, QoreAutoLock *m, ExceptionSink *xsink)
+	  ...
+	  // and then casted to (q_copy2_t) in the addMethod call:
+	  QC_AutoLock->setCopy((q_copy2_t)AL_copy);
+	  @endcode
+       */
+      DLLEXPORT void setCopy2(q_copy2_t m);
 
       //! sets the deleteBlocker method for the class
       /** this method will be run when the object is deleted; it should be set only for classes where

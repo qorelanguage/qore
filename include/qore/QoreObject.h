@@ -428,7 +428,7 @@ class QoreObject : public AbstractQoreNode {
       DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink);
 
       //! called on the old object (this) to acquire private data, copy method called on "self" (new copy)
-      DLLLOCAL void evalCopyMethodWithPrivateData(BuiltinMethod *meth, QoreObject *self, const char *class_name, ExceptionSink *xsink);
+      DLLLOCAL void evalCopyMethodWithPrivateData(const QoreClass &thisclass, BuiltinMethod *meth, QoreObject *self, bool new_calling_convention, ExceptionSink *xsink);
 
       //! concatenates info about private data to a string
       /**

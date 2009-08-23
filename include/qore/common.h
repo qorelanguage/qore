@@ -201,12 +201,12 @@ typedef AbstractQoreNode *(*q_static_method2_t)(const QoreMethod &method, const 
 typedef void (*q_constructor_t)(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass constructor method signatures using the new generic calling convention
-/** @param myclass a constant reference to the QoreClass being constructed (in a heirarchy, could be different than the QoreClass returned from QoreObject::getClass()
+/** @param thisclass a constant reference to the QoreClass being constructed (in a heirarchy, could be different than the QoreClass returned from QoreObject::getClass()
     @param self the QoreObject that the function is being executed on
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
-typedef void (*q_constructor2_t)(const QoreClass &myclass, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink);
+typedef void (*q_constructor2_t)(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass system constructor method signatures
 /** System constructors are called for objects that are created automatically by the library, normally to be assigned to constants.
@@ -234,6 +234,16 @@ typedef void (*q_destructor_t)(QoreObject *self, AbstractPrivateData *private_da
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
 typedef void (*q_copy_t)(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass copy signatures with the new generic calling convention
+/** this function must set any private data against the new object by calling QoreObject::setPrivate() on \c self
+    @param thisclass a constant reference to the QoreClass being copied
+    @param self the QoreObject that the function is being executed on (the new copy of the object)
+    @param old the object being copied
+    @param private_data the object's private data representing the state of the object for the current builtin class
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+ */
+typedef void (*q_copy2_t)(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink);
 
 //! the typed used for QoreClass deleteBlocker signatures
 /** 
