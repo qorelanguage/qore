@@ -1,3 +1,6 @@
+2009.09.24: Petr Vanek
+	* fixed ARGV and QORE_ARGV init to avoid behave like <NOTHING>
+
 2009.09.23: David Nichols
 	* added new copy constructor calling convention that includes a
 	  constant reference to the QoreClass being instantiated

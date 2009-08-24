@@ -669,7 +669,10 @@ char *parse_command_line(unsigned argc, char *argv[])
       }
    }
 
-   if (i < argc)
+// pvanek - argc check removed, just because the i value is checked
+// directly in qore_setup_argv(). ARGV and mainly QORE_ARGV should
+// be set in any case.
+//   if (i < argc)
       qore_setup_argv(i, argc, argv);
 
    if (opt_errors) {
