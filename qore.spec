@@ -98,6 +98,7 @@ character encoding (including proper UTF-8) support, and much more.
 %package -n libqore5
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages
+Provides: qore-module-api-0.8
 Provides: qore-module-api-0.7
 Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
