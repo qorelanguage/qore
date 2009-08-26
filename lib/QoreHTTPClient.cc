@@ -1204,3 +1204,7 @@ int QoreHTTPClient::setNoDelay(bool nd) {
 bool QoreHTTPClient::getNoDelay() const {
    return priv->getNoDelay();
 }
+
+bool QoreHTTPClient::isConnected() const {
+   return priv->connected;
+}

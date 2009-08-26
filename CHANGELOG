@@ -1,5 +1,8 @@
+2009.09.26: David Nichols
+	* added HTTPClient::isConnected() method
+
 2009.09.24: Petr Vanek
-	* fixed ARGV and QORE_ARGV init to avoid behave like <NOTHING>
+	* fixed ARGV and QORE_ARGV init to avoid behaving like <NOTHING>
 
 2009.09.23: David Nichols
 	* added new copy constructor calling convention that includes a

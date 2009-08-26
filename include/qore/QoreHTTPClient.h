@@ -292,10 +292,13 @@ class QoreHTTPClient : public AbstractPrivateData {
 	 @param nodelay 0=turn off TCP_NODELAY, non-zero=turn on TCP_NODELAY
 	 @return 0=OK, non-zero means an error occured, errno is set
        */
-      DLLLOCAL int setNoDelay(bool nodelay);
+      DLLEXPORT int setNoDelay(bool nodelay);
 
       //! returns the value of the TCP_NODELAY flag on the object
-      DLLLOCAL bool getNoDelay() const;
+      DLLEXPORT bool getNoDelay() const;
+
+      //! returns the connection status of the object
+      DLLEXPORT bool isConnected() const;
 
       DLLLOCAL static void static_init();
 

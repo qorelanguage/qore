@@ -392,6 +392,10 @@ static AbstractQoreNode *HC_getNoDelay(QoreObject *self, QoreHTTPClient *client,
     return get_bool_node(client->getNoDelay());
 }
 
+static AbstractQoreNode *HC_isConnected(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+    return get_bool_node(client->isConnected());
+}
+
 QoreClass *initHTTPClientClass() {
    QORE_TRACE("initHTTPClientClass");
 
@@ -437,6 +441,7 @@ QoreClass *initHTTPClientClass() {
    client->addMethod("getConnectTimeout",      (q_method_t)HC_getConnectTimeout);
    client->addMethod("setNoDelay",             (q_method_t)HC_setNoDelay);
    client->addMethod("getNoDelay",             (q_method_t)HC_getNoDelay);
+   client->addMethod("isConnected",            (q_method_t)HC_isConnected);
 
    return client;
 }
