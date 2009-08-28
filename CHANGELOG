@@ -1,3 +1,7 @@
+2009.09.28: David Nichols
+	* added rename() function to rename or move files
+	* updated documentation
+
 2009.09.26: David Nichols
 	* added HTTPClient::isConnected() method
 

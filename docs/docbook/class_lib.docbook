@@ -7344,6 +7344,8 @@ $d.removeFile("myTestFile.dat");
   <sect1 id="TermIOS_Class">
     <title>TermIOS Class</title>
 
+    <para>Note: This class is not available with the <link linkend="no-terminal-io"><code>PO_NO_TERMINAL_IO</code></link> parse option.</para>
+
     <para>This class contains the data structure used to read and set terminal attributes on <link linkend="Qore_IO_Constants">terminal I/O constants</link>.</para>
 
     <para>This class is used with <link linkend="File_getTerminalAttributes">File::getTerminalAttributes()</link>, <link linkend="File_setTerminalAttributes">File::setTerminalAttributes()</link>, and the <link linkend="Qore_IO_Constants">terminal I/O constants</link> to manipulate terminal attributes.</para>
@@ -7456,6 +7458,26 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 	    <entry><para><link linkend="TermIOS::isEqual">TermIOS::isEqual()</link></para></entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns true if the object passed is equal to the current object, false if not.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table>
+      <title>TermIOS Static Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="TermIOS::getWindowSize">TermIOS::getWindowSize()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a hash giving the current terminal window size in hash keys <code>rows</code> and <code>columns</code>.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -7591,28 +7613,16 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <tgroup cols="3" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
+              <entry><para>n/a</para></entry>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method takes no arguments.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -7622,27 +7632,20 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>Integer</para>
-              </entry>
-              <entry>
-                <para>The <link linkend="Local_Mode_Constants">local mode</link> flag for the object</para>
-              </entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>The <link linkend="Local_Mode_Constants">local mode</link> flag for the object</para></entry>
             </row>
           </tbody>
         </tgroup>
       </table>
     </sect2>
+
     <sect2 id="TermIOS::getCFlag">
       <title>TermIOS::getCFlag()</title>
       <variablelist>
@@ -8414,6 +8417,66 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <entry>
                 <para>argument passed is not a TermIOS object</para>
               </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="TermIOS::getWindowSize">
+      <title>static method: TermIOS::getWindowSize()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a hash giving the current terminal window size in hash keys <code>rows</code> and <code>columns</code>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>TermIOS::getWindowSize()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$hash = TermIOS::getWindowSize()</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for TermIOS::getWindowSize()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>n/a</para></entry>
+              <entry><para>n/a</para></entry>
+              <entry><para>This method takes no arguments.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for TermIOS::getWindowSize()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>Hash</para></entry>
+              <entry><para>Returns a hash giving the current terminal window size in hash keys <code>rows</code> and <code>columns</code>.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -19358,6 +19421,11 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <code>TCP_NODELAY</code> setting for the object.</para></entry>
 	  </row>
+	  <row>
+	    <entry><para><link linkend="HTTPClient_isConnected">HTTPClient::isConnected()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns True or False giving the current connection state.</para></entry>
+	  </row>
         </tbody>
       </tgroup>
     </table>
@@ -22358,6 +22426,71 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para>Integer</para></entry>
 	      <entry><para>0 for success, non-zero for errors.  To get error information, see <link linkend="errno">errno()</link> and <link linkend="strerror">strerror()</link>.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="HTTPClient_isConnected">
+      <title>HTTPClient::isConnected()</title>
+      
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the connection state of the HTTPClient object.  Connections are implicitly established whenever a method is callde requiring a connection; to explicitly establish a connection, see <link linkend="HTTPClient_connect">HTTPClient::connect()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>HTTPClient::isConnected()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$connected = $httpclient.isConnected();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for HTTPClient::isConnected()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	    
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Value for HTTPClient::isConnected()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Boolean</para></entry>
+	      <entry><para>The connection state of the HTTPClient object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

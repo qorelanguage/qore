@@ -27,8 +27,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static AbstractQoreNode *check_stat(unsigned code, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *check_stat(unsigned code, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = test_string_param(params, 0);
 
    if (!p0)
@@ -43,8 +42,7 @@ static AbstractQoreNode *check_stat(unsigned code, const QoreListNode *params, E
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
 
-static AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return 0;
@@ -58,38 +56,31 @@ static AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *params, 
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
 
-static AbstractQoreNode *f_is_file(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_file(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFREG, params, xsink);
 }
 
-static AbstractQoreNode *f_is_dir(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_dir(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFDIR, params, xsink);
 }
 
-static AbstractQoreNode *f_is_socket(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_socket(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFSOCK, params, xsink);
 }
 
-static AbstractQoreNode *f_is_pipe(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_pipe(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFIFO, params, xsink);
 }
 
-static AbstractQoreNode *f_is_cdev(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_cdev(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFCHR, params, xsink);
 }
 
-static AbstractQoreNode *f_is_bdev(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_bdev(const QoreListNode *params, ExceptionSink *xsink) {
    return check_stat(S_IFBLK, params, xsink);
 }
 
-static AbstractQoreNode *f_is_dev(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_dev(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return 0;
@@ -105,13 +96,11 @@ static AbstractQoreNode *f_is_dev(const QoreListNode *params, ExceptionSink *xsi
 	  ? boolean_true() : boolean_false();
 }
 
-static AbstractQoreNode *f_is_link(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_link(const QoreListNode *params, ExceptionSink *xsink) {
    return check_lstat(S_IFLNK, params, xsink);
 }
 
-static AbstractQoreNode *f_is_readable(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_readable(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return 0;
@@ -150,8 +139,7 @@ static AbstractQoreNode *f_is_writable(const QoreListNode *params, ExceptionSink
    return boolean_false();
 }
 
-static AbstractQoreNode *f_is_executable(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_is_executable(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return 0;
@@ -170,6 +158,28 @@ static AbstractQoreNode *f_is_executable(const QoreListNode *params, ExceptionSi
    return boolean_false();
 }
 
+static AbstractQoreNode *f_rename(const QoreListNode *params, ExceptionSink *xsink) {
+   // old file name
+   const QoreStringNode *p0 = test_string_param(params, 0);
+   if (p0 || !p0->strlen()) {
+      xsink->raiseException("RENAME-ERROR", "missing path to current file name as first argument");
+      return 0;
+   }
+
+   // new file name
+   const QoreStringNode *p1 = test_string_param(params, 1);
+   if (p1 || !p1->strlen()) {
+      xsink->raiseException("RENAME-ERROR", "missing new file path as second argument");
+      return 0;
+   }
+
+   int rc = rename(p0->getBuffer(), p1->getBuffer());
+   if (rc)
+      xsink->raiseException("RENAME-ERROR", strerror(errno));
+
+   return 0;
+}
+
 void init_file_functions() {
    // register builtin functions in this file
    builtinFunctions.add("is_file", f_is_file, QDOM_FILESYSTEM);
@@ -185,4 +195,7 @@ void init_file_functions() {
    // backwards-compatible misspelling of "writable" :-)
    builtinFunctions.add("is_writeable", f_is_writable, QDOM_FILESYSTEM);
    builtinFunctions.add("is_executable", f_is_executable, QDOM_FILESYSTEM);
+
+   builtinFunctions.add("rename", f_rename, QDOM_FILESYSTEM);
+
 }

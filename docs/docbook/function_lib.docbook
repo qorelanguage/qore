@@ -2939,13 +2939,6 @@
           <entry><para>Returns a random integer number.</para></entry>
         </row>
 
-        <row>
-          <entry><para><link linkend="reverse">reverse()</link></para></entry>
-          <entry><para>String or List</para></entry>
-          <entry><para>N</para></entry>
-          <entry><para>Reverses the order of a string or a list and returns the new string or list.</para></entry>
-        </row>
-
       <row>
         <entry>
           <para>
@@ -3125,6 +3118,13 @@
         </row>
 
         <row>
+          <entry><para><link linkend="rename">rename()</link></para></entry>
+          <entry><para>n/a</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Renames (or moves) a file or directory.</para></entry>
+        </row>
+
+        <row>
           <entry>
             <para>
               <link linkend="replace">replace()</link>
@@ -3137,9 +3137,17 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Replaces all occurrances of a substring in a string with another string.</para>
+            <para>Replaces all occurrances of a substring in a string with another string and returns the new string.</para>
           </entry>
         </row>
+
+        <row>
+          <entry><para><link linkend="reverse">reverse()</link></para></entry>
+          <entry><para>String or List</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Reverses the order of a string or a list and returns the new string or list.</para></entry>
+        </row>
+
 
       <row>
         <entry>
@@ -6084,7 +6092,7 @@
 	  <entry><para>non zero-padded millisecond number (0 - 999)</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>uu</code></para></entry>
+	  <entry><para><code>uu</code> or <code>ms</code></para></entry>
 	  <entry><para>zero-padded millisecond number (000 - 999)</para></entry>
 	</row>
 	<row>
@@ -17104,6 +17112,78 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+<sect2 id="rename">
+  <title>rename()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Renames (or moves) files or directories.  Note that for this call to function properly, the Qore process must have sufficient permissions and access to the given filesystem objects or paths to execute the rename operation.</para>
+	<para>This function does not return any value; if any errors occur, an exception is thrown.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>rename(<replaceable>old_path, new_path</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>rename("/tmp/temp_file", "/home/test/test_file.txt");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+  <table><title>Arguments and Return Values for rename()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+
+      <tbody>
+	<row>
+	  <entry><para>String, String</para></entry>
+	  <entry><para>n/a</para></entry>
+	  <entry><para>Renames (or moves) the file ior directory indentified by <replaceable>old_path</replaceable> to the new name and/or location given by <replaceable>new_path</replaceable></para></entry>
+	</row>
+
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by rename()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>RENAME-ERROR</code></para></entry>
+	  <entry><para>Missing arguments or a system error occured.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+</sect2>
 
 <sect2 id="rmdir">
 <title>rmdir()</title>

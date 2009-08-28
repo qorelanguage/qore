@@ -1,37 +1,34 @@
-RELEASE NOTES for qore v0.7.5
+RELEASE NOTES for qore v0.7.6
 
-release summary: 4 bug fixes and minor new features over 0.7.4
+release summary: 10 bug fixes and minor new features over 0.7.5
 
-*) BUG FIX: Datasource::close() would assert() in debug mode and do nothing in
-            non-debug mode
-*) BUG FIX: fixed a deadlock in running class destructor code when a member is
-       	    deleted that is itself an object, and that object's destructor
-	    references the parent object
-*) BUG FIX: fixed a bug in the "qore" binary reporting the library's latest
-       	    module API version (was using the compiled value and not the value
-	    from the library)
-*) BUG FIX: fixed a bug in the HTTPClient class where the connection was not
-            flagged as closed when an error occurred that indicated that the
-            client had closed the connection
-*) added a ModuleDir key to the hash output of get_qore_library_info()
-*) added an optional port number to datasources (i.e.: 
-   driver:user/pass@db(encoding)%host:port, updated:
-   + Datasource::constructor(): added support for a port argument
-   + Datasource::setPort(): new method
-   + Datasource::getPort(): new method
-   + DatasourcePool::constructor(): added support for a port argument
-   + DatasourcePool::getPort(): new method
-   + parseDatasource(): modified to parse the port if present
-*) updated module API to 0.7 supporting DBI drivers with port as a 
-   configuration option
-*) updated the %include directive to always search the directory of the
-   currently-executing script first if known when looking for files without an
-   absolute path
-*) added the C++ API function QoerObject::externalDelete() to handle the
-   situation when object private data is deleted externally (needed by the QT
-   modules)
-*) improved error messages in the scanner when trying to %include something
-   that's not a regular file
+*) BUG FIX: fixed $ARGV and $QORE_ARGV variables to always be of type list
+            as according to the documentation
+*) BUG FIX: fixed Socket::connect() with timeout (affects all classes using
+            sockets for communication
+*) BUG FIX: fixed DatasourcePool handling when a driver-handled auto-reconnect
+            fails (previously would cause a crash)
+*) BUG FIX: added QDOM_TERMINAL_IO to TermIOS class (previously this class
+            would be available even if PO_NO_TERMINAL_IO was in force)
+*) BUG FIX: fixed a bug parsing XML-RPC array data with empty value elements;
+       	    i.e.: <value/>
+*) BUG FIX: fixed a bug waiting on a Condition variable when thread read lock
+            is held by multiple threads (for RWLock)
+*) BUG FIX: fixed a bug calculating the time offset for waiting on a Condition
+            object
+*) BUG FIX: fixed millisecond formatting using "ms" with format_date()
+*) BUG FIX: fixed a crashing bug when a Condition object waits on a RWLock with
+       	    the read lock held
+*) BUG FIX: fixed a bug setting the exception location when throwing thread
+       	    resource exceptions when shutting down the qore library
+*) NEW FEATURE: added static method TermIOS::getWindowSize() to get the 
+                current terminal window size (rows and columns)
+*) NEW FEATURE: new C++ APIs are available supporting a generic calling
+             	convention to facilitate the development of the new Qt4 module
+		using libsmoke; the latest module API is now 0.8
+*) NEW FEATURE: added the HTTPClient::isConnected() method
+*) NEW FEATURE: added the rename() function to rename or move files
+
 
 ***********************
 *** LANGUAGE ISSUES ***
@@ -182,6 +179,44 @@ unknown bugs out there.
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+*****************************
+RELEASE NOTES for qore v0.7.5
+*****************************
+
+release summary: 4 bug fixes and minor new features over 0.7.4
+
+*) BUG FIX: Datasource::close() would assert() in debug mode and do nothing in
+            non-debug mode
+*) BUG FIX: fixed a deadlock in running class destructor code when a member is
+       	    deleted that is itself an object, and that object's destructor
+	    references the parent object
+*) BUG FIX: fixed a bug in the "qore" binary reporting the library's latest
+       	    module API version (was using the compiled value and not the value
+	    from the library)
+*) BUG FIX: fixed a bug in the HTTPClient class where the connection was not
+            flagged as closed when an error occurred that indicated that the
+            client had closed the connection
+*) added a ModuleDir key to the hash output of get_qore_library_info()
+*) added an optional port number to datasources (i.e.: 
+   driver:user/pass@db(encoding)%host:port, updated:
+   + Datasource::constructor(): added support for a port argument
+   + Datasource::setPort(): new method
+   + Datasource::getPort(): new method
+   + DatasourcePool::constructor(): added support for a port argument
+   + DatasourcePool::getPort(): new method
+   + parseDatasource(): modified to parse the port if present
+*) updated module API to 0.7 supporting DBI drivers with port as a 
+   configuration option
+*) updated the %include directive to always search the directory of the
+   currently-executing script first if known when looking for files without an
+   absolute path
+*) added the C++ API function QoerObject::externalDelete() to handle the
+   situation when object private data is deleted externally (needed by the QT
+   modules)
+*) improved error messages in the scanner when trying to %include something
+   that's not a regular file
+
 
 *****************************
 RELEASE NOTES for qore v0.7.4
