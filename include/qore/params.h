@@ -53,6 +53,18 @@ static inline const AbstractQoreNode *get_param(const QoreListNode *n, qore_size
    return is_nothing(p) ? 0 : p;
 }
 
+//! returns the argument type in the position given or 0 if there is none
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return the argument type in the position given or 0 if there is none
+ */
+static inline qore_type_t get_param_type(const QoreListNode *n, qore_size_t i) {
+   if (!n) return NT_NOTHING;
+   const AbstractQoreNode *p = n->retrieve_entry(i);
+   return p ? p->getType() : NT_NOTHING;
+}
+
 //! returns an integer corresponding to the argument given or 0 if there is none
 static inline int get_int_param(const QoreListNode *n, qore_size_t i) {
    if (!n) return 0;
