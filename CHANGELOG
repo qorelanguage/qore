@@ -1,18 +1,21 @@
-2009.09.28: David Nichols
+2009.09.02: David Nichols
+	* added support for new generic destructor calling convention
+
+2009.08.28: David Nichols
 	* added rename() function to rename or move files
 	* updated documentation
 
-2009.09.26: David Nichols
+2009.08.26: David Nichols
 	* added HTTPClient::isConnected() method
 
-2009.09.24: Petr Vanek
+2009.08.24: Petr Vanek
 	* fixed ARGV and QORE_ARGV init to avoid behaving like <NOTHING>
 
-2009.09.23: David Nichols
+2009.08.23: David Nichols
 	* added new copy constructor calling convention that includes a
 	  constant reference to the QoreClass being instantiated
 
-2009.09.21: David Nichols
+2009.08.21: David Nichols
 	* added new constructor calling convention that includes a constant
 	  reference to the QoreClass being instantiated
 

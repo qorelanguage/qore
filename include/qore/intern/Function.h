@@ -64,6 +64,7 @@ class BuiltinFunction {
 	    q_constructor2_t constructor2;
 	    q_system_constructor_t system_constructor;
 	    q_destructor_t destructor;
+	    q_destructor2_t destructor2;
 	    q_copy_t copy;
 	    q_copy2_t copy2;
 	    q_delete_blocker_t delete_blocker;
@@ -77,6 +78,7 @@ class BuiltinFunction {
       DLLLOCAL BuiltinFunction(q_constructor2_t m, int typ);
       DLLLOCAL BuiltinFunction(q_system_constructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_destructor2_t m, int typ);
       DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
       DLLLOCAL BuiltinFunction(q_copy2_t m, int typ);
       DLLLOCAL BuiltinFunction(q_delete_blocker_t m);
@@ -84,7 +86,7 @@ class BuiltinFunction {
       DLLLOCAL AbstractQoreNode *evalMethod(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
       DLLLOCAL void evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
-      DLLLOCAL void evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
+      DLLLOCAL void evalDestructor(const QoreClass &thisclass, QoreObject *self, AbstractPrivateData *private_data, const char *class_name, bool new_calling_convention, ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, bool new_calling_convention, ExceptionSink *xsink) const;
       DLLLOCAL bool evalDeleteBlocker(QoreObject *self, AbstractPrivateData *private_data) const;
       DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;

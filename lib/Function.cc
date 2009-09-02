@@ -274,6 +274,13 @@ BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ) {
    next = 0;
 }
 
+BuiltinFunction::BuiltinFunction(q_destructor2_t m, int typ) {
+   type = typ;
+   name = "destructor";
+   code.destructor2 = m;
+   next = 0;
+}
+
 BuiltinFunction::BuiltinFunction(q_copy_t m, int typ) {
    type = typ;
    name = "copy";
@@ -408,8 +415,7 @@ AbstractQoreNode *BuiltinFunction::evalMethod(const QoreMethod &method, QoreObje
    return code.method2(method, self, private_data, args, xsink);
 }
 
-void BuiltinFunction::evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const
-{
+void BuiltinFunction::evalDestructor(const QoreClass &thisclass, QoreObject *self, AbstractPrivateData *private_data, const char *class_name, bool new_calling_convention, ExceptionSink *xsink) const {
    QORE_TRACE("BuiltinFunction::evalDestructor()");
    
    // save current program location in case there's an exception
@@ -424,7 +430,10 @@ void BuiltinFunction::evalDestructor(QoreObject *self, AbstractPrivateData *priv
       CallStackHelper csh("destructor", CT_BUILTIN, self, xsink);
 #endif
 
-      code.destructor(self, private_data, xsink);
+      if (new_calling_convention)
+	 code.destructor2(thisclass, self, private_data, xsink);
+      else
+	 code.destructor(self, private_data, xsink);
    }
    
    if (xsink->isException())

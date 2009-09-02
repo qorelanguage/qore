@@ -140,11 +140,11 @@ class QoreMethod {
       DLLLOCAL int getType() const;
       DLLLOCAL bool inMethod(const QoreObject *self) const;
       DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
-      DLLLOCAL void evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
+      //DLLLOCAL void evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
       DLLLOCAL void evalDestructor(QoreObject *self, ExceptionSink *xsink) const;
       DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;
       DLLLOCAL void evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      DLLLOCAL void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
+      DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
       DLLLOCAL bool evalDeleteBlocker(QoreObject *self) const;
       DLLLOCAL QoreMethod *copy(const class QoreClass *p_class) const;
       DLLLOCAL void parseInit();
@@ -277,6 +277,20 @@ class QoreClass {
 	  @endcode
        */
       DLLEXPORT void setDestructor(q_destructor_t m);
+
+      //! sets the builtin destructor method for the class with the new generic calling convention
+      /** you only need to implement destructor methods if the destructor should destroy the object
+	  before the reference count reaches zero.
+	  @param m the destructor method to run
+	  @code
+	  // the actual function can be declared with the class to be expected as the private data as follows:
+	  static void AL_destructor(const QoreClass &thisclass, QoreObject *self, QoreAutoLock *al, ExceptionSink *xsink);
+	  ...
+	  // and then casted to (q_destructor_t) in the addMethod call:
+	  QC_AutoLock->setDestructor2((q_destructor_t)AL_destructor);
+	  @endcode
+       */
+      DLLEXPORT void setDestructor2(q_destructor2_t m);
 
       //! sets the builtin constructor method for the class
       /**

@@ -1112,7 +1112,10 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
 
       // switch to new program for imported objects
       ProgramContextHelper pch(self->getProgram(), xsink);
-      priv->func.builtin->evalConstructor(self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
+      if (priv->new_call_convention)
+	 priv->func.builtin->evalConstructor2(*priv->parent_class, self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
+      else
+	 priv->func.builtin->evalConstructor(self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
    }
 
 #ifdef DEBUG
@@ -1120,30 +1123,7 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
 #endif
 }
 
-void QoreMethod::evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const {
-   QORE_TRACE("QoreMethod::evalConstructor2()");
-#ifdef DEBUG
-   const char *cname = thisclass.getName();
-   printd(5, "QoreMethod::evalConstructor2() %s::%s() (object=%08p, pgm=%08p)\n", cname, getName(), self, self->getProgram());
-#endif
-
-   assert(priv->type != OTF_USER);
-
-   // evalute arguments before calling builtin method
-   QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
-   if (*xsink)
-      return;
-
-   // switch to new program for imported objects
-   ProgramContextHelper pch(self->getProgram(), xsink);
-   priv->func.builtin->evalConstructor2(thisclass, self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
-
-#ifdef DEBUG
-   printd(5, "QoreMethod::evalConstructor2() %s::%s() done\n", cname, getName());
-#endif
-}
-
-void QoreMethod::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
+void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram(), xsink);
 
@@ -1157,7 +1137,7 @@ void QoreMethod::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObje
       VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
       assert(!(lck && !vh));
 #endif
-      old->evalCopyMethodWithPrivateData(thisclass, priv->func.builtin, self, priv->new_call_convention, xsink);
+      old->evalCopyMethodWithPrivateData(*priv->parent_class, priv->func.builtin, self, priv->new_call_convention, xsink);
    }
 }
 
@@ -1181,7 +1161,7 @@ void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
 	 VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
 	 assert(!(lck && !vh));
 #endif
-	 priv->func.builtin->evalDestructor(self, ptr, priv->parent_class->getName(), xsink);
+	 priv->func.builtin->evalDestructor(*priv->parent_class, self, ptr, priv->parent_class->getName(), priv->new_call_convention, xsink);
       }
       // in case there is no private data, ignore: we cannot execute the destructor
       // this might happen in the case that the data was deleted externally, for example
@@ -1369,11 +1349,8 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
 	 priv->scl->execConstructors(o, bceal, xsink);
    }
    else { 
-	 // no lock is sent with constructor, because no variable has been assigned yet
-      if (priv->constructor->newCallingConvention())
-	 priv->constructor->evalConstructor2(*this, o, args, priv->scl, bceal, xsink);
-      else
-	 priv->constructor->evalConstructor(o, args, priv->scl, bceal, xsink);
+      // no lock is sent with constructor, because no variable has been assigned yet
+      priv->constructor->evalConstructor(o, args, priv->scl, bceal, xsink);
    }
 
    if (bceal)
@@ -1418,10 +1395,7 @@ void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal,
       bool already_executed;
       QoreListNode *args = bceal->findArgs(this, &already_executed);
       if (!already_executed) {
-	 if (priv->constructor->newCallingConvention())
-	    priv->constructor->evalConstructor2(*this, self, args, priv->scl, bceal, xsink);
-	 else
-	    priv->constructor->evalConstructor(self, args, priv->scl, bceal, xsink);
+	 priv->constructor->evalConstructor(self, args, priv->scl, bceal, xsink);
       }
    }
 }
@@ -1519,7 +1493,7 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
       if (o_fn)
 	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);
       
-      priv->copyMethod->evalCopy(*this, *self, old, xsink);
+      priv->copyMethod->evalCopy(*self, old, xsink);
       if (xsink->isException())
 	 xsink->addStackInfo(priv->copyMethod->getType(), old->getClass()->getName(), "copy", o_fn, o_ln, o_eln);
    }
@@ -1529,7 +1503,7 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
 
 inline void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    if (priv->copyMethod)
-      priv->copyMethod->evalCopy(*this, self, old, xsink);
+      priv->copyMethod->evalCopy(self, old, xsink);
 }
 
 void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual)
@@ -1757,6 +1731,14 @@ void QoreClass::setConstructor2(q_constructor2_t m) {
 void QoreClass::setDestructor(q_destructor_t m) {
    priv->sys = true;
    QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
+   insertMethod(o);
+   priv->destructor = o;
+}
+
+// sets a builtin function as class destructor - no duplicate checking is made
+void QoreClass::setDestructor2(q_destructor2_t m) {
+   priv->sys = true;
+   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m), false, false, true);
    insertMethod(o);
    priv->destructor = o;
 }
