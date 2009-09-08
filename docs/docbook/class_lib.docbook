@@ -9098,7 +9098,17 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  <row>
 	    <entry><para><link linkend="FtpClient_get">FtpClient::get()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Gets a file from the FTP server.</para></entry>
+	    <entry><para>Gets a file from the FTP server and stores it on the local filesystem.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Gets a file from the FTP server and returns it as a binary value.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="FtpClient_getAsString">FtpClient::getAsString()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Gets a file from the FTP server and returns it as a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="FtpClient_put">FtpClient::put()</link></para></entry>
@@ -11004,6 +11014,206 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
       <table>
 	<title>Exceptions Thrown by FtpClient::get()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
+	      <entry><para>Incomplete message received on control port.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
+	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-FILE-OPEN-ERROR</code></para></entry>
+	      <entry><para>Could not create the local file.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-GET-ERROR</code></para></entry>
+	      <entry><para>There was an error retrieving the file.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTPCLIENT-GET-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Missing argument to the method.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="FtpClient_getAsBinary">
+      <title>FtpClient::getAsBinary()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Gets a file from the FTP server and returns the file's contents as a binary value.  For a similar function returning the file's contents as a string, see <link linkend="FtpClient_getAsString">FtpClient::getAsString()</link>; for a function that will get a remote file and save it on the local filesystem, see <link linkend="FtpClient_get">FtpClient::get()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>FtpClient::getAsBinary(<replaceable>server_path</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $b = $ftp.getAsBinary("file.bin");</programlisting>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for FtpClient::getAsBinary()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>server_path</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The path on the server to the file to get.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for FtpClient::getAsBinary()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>Binary</para></entry>
+	      <entry><para>The file retrieved; if any errors occur an exception is raised.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by FtpClient::getAsBinary()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
+	      <entry><para>Incomplete message received on control port.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
+	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-FILE-OPEN-ERROR</code></para></entry>
+	      <entry><para>Could not create the local file.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-GET-ERROR</code></para></entry>
+	      <entry><para>There was an error retrieving the file.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTPCLIENT-GET-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>Missing argument to the method.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="FtpClient_getAsString">
+      <title>FtpClient::getAsString()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Gets a file from the FTP server and returns the file's contents as a string.  For a similar function returning the file's contents as a binary, see <link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary()</link>; for a function that will get a remote file and save it on the local filesystem, see <link linkend="FtpClient_get">FtpClient::get()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>FtpClient::getAsString(<replaceable>server_path</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $str = $ftp.getAsString("file.txt");</programlisting>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for FtpClient::getAsString()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>server_path</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The path on the server to the file to get.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for FtpClient::getAsString()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The file retrieved; if any errors occur an exception is raised.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by FtpClient::getAsString()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
