@@ -227,6 +227,10 @@ else
 		   CXXFLAGS="$CXXFLAGS -m32"
 		fi
 		;;
+     *darwin*)	if test "$GXX" = "yes"; then
+		   CXXFLAGS="$CXXFLAGS -m32"
+		fi
+		;;
      *hpux*)	if test "$host_cpu" != "ia64"; then
 		    if test "$GXX" = "yes"; then
 		        CXXFLAGS="$CXXFLAGS -march=2.0"
