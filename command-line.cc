@@ -189,9 +189,9 @@ static void list_parse_options(const char *arg) {
 
 static void do_help(const char *arg) {
    show_usage();
-   printf(helpstr);
+   puts(helpstr);
    if (qore_has_debug())
-      printf(debugstr);
+      puts(debugstr);
    exit(0);
 }
 
@@ -325,7 +325,7 @@ static void do_version(const char *arg) {
    if (i != qoreFeatureList.end()) {
       printf(" (builtin features: ");
       while (i != qoreFeatureList.end()) {
-	 printf((*i).c_str());
+	 puts((*i).c_str());
 	 i++;
 	 if (i != qoreFeatureList.end())
 	    printf(", ");

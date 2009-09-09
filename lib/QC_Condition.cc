@@ -52,7 +52,7 @@ static AbstractQoreNode *CONDITION_broadcast(QoreObject *self, class Condition *
 }
 
 // FIXME: make base Qore class for all thread primitive classes that can wait on a condition variable
-static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
    int timeout = getMsZeroInt(get_param(params, 1));
 
    QoreObject *p0 = test_object_param(params, 0);
@@ -72,7 +72,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, co
       int rc = timeout ? c->wait(rwl, timeout, xsink) : c->wait(rwl, xsink);
       
       if (rc && rc != ETIMEDOUT && !*xsink) {
-	 xsink->raiseException("CONDITION-WAIT-ERROR", strerror(rc));
+	 xsink->raiseException("CONDITION-WAIT-ERROR", "unknown system error code returned from Condition::wait(lock=RWLock, timeout=%d): rc=%d: %s", timeout, rc, strerror(rc));
 	 return 0;
       }
       return new QoreBigIntNode(rc);
@@ -83,7 +83,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, co
    int rc = timeout ? c->wait(m, timeout, xsink) : c->wait(m, xsink);
 
    if (rc && rc != ETIMEDOUT && !*xsink) {
-      xsink->raiseException("CONDITION-WAIT-ERROR", strerror(rc));
+      xsink->raiseException("CONDITION-WAIT-ERROR", "unknown system error code returned from Condition::wait(lock=Mutex, timeout=%d): rc=%d: %s", timeout, rc, strerror(rc));
       return 0;
    }
    return new QoreBigIntNode(rc);
