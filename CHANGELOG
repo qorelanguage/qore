@@ -1,3 +1,6 @@
+2009.09.10: David Nichols
+	* fixed type comparisons with external types
+
 2009.09.08: David Nichols
 	* fixed configure to ensure compiling in 32-bit mode on Darwin/OSX if
 	  32-bit mode is selected

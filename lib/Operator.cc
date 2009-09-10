@@ -100,28 +100,6 @@ static bool op_log_eq_bigint(int64 left, int64 right)
    return left == right;
 }
 
-static bool op_log_eq_binary(const AbstractQoreNode *left, const AbstractQoreNode *right)
-{
-   const BinaryNode *l = left->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(left) : 0;
-   const BinaryNode *r = right->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(right) : 0;
-   assert(l || r);
-
-   if (!l || !r)
-      return false;
-   return !l->compare(r);
-}
-
-static bool op_log_ne_binary(const AbstractQoreNode *left, const AbstractQoreNode *right)
-{
-   const BinaryNode *l = left->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(left) : 0;
-   const BinaryNode *r = right->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(right) : 0;
-   assert(l || r);
-
-   if (!l || !r)
-      return true;
-   return l->compare(r);
-}
-
 static bool op_log_eq_boolean(bool left, bool right)
 {
    return left == right;
@@ -272,8 +250,14 @@ static bool op_log_or(const AbstractQoreNode *left, const AbstractQoreNode *righ
    return l ? true : right->boolEval(xsink);
 }
 
-static bool op_log_eq_list(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_eq_all(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
+   qore_type_t lt = left ? left->getType() : -1;
+   qore_type_t rt = right ? right->getType() : -1;
+   return (lt != -1 && rt != -1) ? left->is_equal_soft(right, xsink) : false;
+}
+
+/*
+static bool op_log_eq_list(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left->getType() != NT_LIST)
       return false;
    if (right->getType() != NT_LIST)
@@ -284,8 +268,7 @@ static bool op_log_eq_list(const AbstractQoreNode *left, const AbstractQoreNode 
    return l->is_equal_soft(r, xsink);
 }
 
-static bool op_log_eq_hash(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_eq_hash(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    const QoreHashNode *lh = left->getType() == NT_HASH ? reinterpret_cast<const QoreHashNode *>(left) : 0;
    if (!lh)
       return false;
@@ -297,8 +280,7 @@ static bool op_log_eq_hash(const AbstractQoreNode *left, const AbstractQoreNode 
    return !lh->compareSoft(rh, xsink);
 }
 
-static bool op_log_eq_object(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_eq_object(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left->getType() != NT_OBJECT)
       return false;
    if (right->getType() != NT_OBJECT)
@@ -309,21 +291,37 @@ static bool op_log_eq_object(const AbstractQoreNode *left, const AbstractQoreNod
    return !l->compareSoft(r, xsink);
 }
 
-static bool op_log_eq_nothing(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_eq_nothing(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    assert(left->getType() == NT_NOTHING && right->getType() == NT_NOTHING);
    return true;
 }
 
-static bool op_log_eq_null(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
-   if (left && left->getType() == NT_NULL && right && right->getType() == NT_NULL)
-      return true;
-   return false;
+// this function is the catch-all for all types
+static bool op_log_eq_null(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
+   qore_type_t lt = left ? left->getType() : -1;
+   qore_type_t rt = right ? right->getType() : -1;
+   return (lt != -1 && rt != -1) ? left->is_equal_soft(right, xsink) : false;
 }
 
-static bool op_log_ne_list(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_eq_binary(const AbstractQoreNode *left, const AbstractQoreNode *right) {
+   const BinaryNode *l = left->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(left) : 0;
+   const BinaryNode *r = right->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(right) : 0;
+   assert(l || r);
+
+   if (!l || !r)
+      return false;
+   return !l->compare(r);
+}
+*/
+
+static bool op_log_ne_all(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
+   qore_type_t lt = left ? left->getType() : -1;
+   qore_type_t rt = right ? right->getType() : -1;
+   return (lt != -1 && rt != -1) ? !left->is_equal_soft(right, xsink) : true;
+}
+
+/*
+static bool op_log_ne_list(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left->getType() != NT_LIST)
       return true;
    if (right->getType() != NT_LIST)
@@ -370,6 +368,17 @@ static bool op_log_ne_null(const AbstractQoreNode *left, const AbstractQoreNode 
       return false;
    return true;
 }
+
+static bool op_log_ne_binary(const AbstractQoreNode *left, const AbstractQoreNode *right) {
+   const BinaryNode *l = left->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(left) : 0;
+   const BinaryNode *r = right->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(right) : 0;
+   assert(l || r);
+
+   if (!l || !r)
+      return true;
+   return l->compare(r);
+}
+*/
 
 static bool op_exists(const AbstractQoreNode *left, const AbstractQoreNode *x, ExceptionSink *xsink)
 {
@@ -3708,6 +3717,10 @@ void OperatorList::init() {
    OP_LOG_EQ->addFunction(op_log_eq_bigint);
    OP_LOG_EQ->addFunction(op_log_eq_boolean);
    OP_LOG_EQ->addFunction(op_log_eq_date);
+
+   OP_LOG_EQ->addNoConvertFunction(NT_ALL, NT_ALL, op_log_eq_all);
+
+   /*
    OP_LOG_EQ->addNoConvertFunction(NT_LIST,    NT_ALL,     op_log_eq_list);
    OP_LOG_EQ->addNoConvertFunction(NT_ALL,     NT_LIST,    op_log_eq_list);
    OP_LOG_EQ->addNoConvertFunction(NT_HASH,    NT_ALL,     op_log_eq_hash);
@@ -3718,6 +3731,7 @@ void OperatorList::init() {
    OP_LOG_EQ->addFunction(NT_ALL,     NT_NULL,    op_log_eq_null);
    OP_LOG_EQ->addFunction(NT_NOTHING, NT_NOTHING, op_log_eq_nothing);
    OP_LOG_EQ->addFunction(NT_BINARY,  NT_BINARY,  op_log_eq_binary);
+   */
 
    OP_LOG_NE = add(new Operator(2, "!=", "not-equals", 1, false));
    OP_LOG_NE->addFunction(op_log_ne_string);
@@ -3725,6 +3739,9 @@ void OperatorList::init() {
    OP_LOG_NE->addFunction(op_log_ne_bigint);
    OP_LOG_NE->addFunction(op_log_ne_boolean);
    OP_LOG_NE->addFunction(op_log_ne_date);
+   OP_LOG_NE->addNoConvertFunction(NT_ALL, NT_ALL, op_log_ne_all);
+
+/*
    OP_LOG_NE->addNoConvertFunction(NT_LIST,    NT_ALL,     op_log_ne_list);
    OP_LOG_NE->addNoConvertFunction(NT_ALL,     NT_LIST,    op_log_ne_list);
    OP_LOG_NE->addNoConvertFunction(NT_HASH,    NT_ALL,     op_log_ne_hash);
@@ -3735,7 +3752,8 @@ void OperatorList::init() {
    OP_LOG_NE->addFunction(NT_ALL,     NT_NULL,    op_log_ne_null);
    OP_LOG_NE->addFunction(NT_NOTHING, NT_NOTHING, op_log_ne_nothing);
    OP_LOG_NE->addFunction(NT_BINARY,  NT_BINARY,  op_log_ne_binary);
-   
+*/
+ 
    OP_LOG_LE = add(new Operator(2, "<=", "less-than-or-equals", 1, false));
    OP_LOG_LE->addFunction(op_log_le_float);
    OP_LOG_LE->addFunction(op_log_le_bigint);
