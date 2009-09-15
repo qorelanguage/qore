@@ -492,6 +492,48 @@ class QoreClass {
        */
       DLLEXPORT void setSynchronousClass();
 
+      //! returns a const pointer to the QoreMethod object of the constuctor method, if any is set
+      /** executes in constant time
+	  @return a const pointer to the QoreMethod object of the constuctor method, if any is set
+      */
+      DLLEXPORT const QoreMethod *getConstructor() const;
+
+      //! returns a const pointer to the QoreMethod object of the constuctor method, if any is set
+      /** executes in constant time
+	  @return a const pointer to the QoreMethod object of the constuctor method, if any is set
+      */
+      DLLEXPORT const QoreMethod *getSystemConstructor() const;
+
+      //! returns a const pointer to the QoreMethod object of the constructor method, if any is set
+      /** executes in constant time
+	  @return a const pointer to the QoreMethod object of the constructor method, if any is set
+      */
+      DLLEXPORT const QoreMethod *getDestructor() const;
+
+      //! returns a const pointer to the QoreMethod object of the destructor method, if any is set
+      /** executes in constant time
+	  @return a const pointer to the QoreMethod object of the destructor method, if any is set
+      */
+      DLLEXPORT const QoreMethod *getCopyMethod() const;
+
+      //! returns a const pointer to the QoreMethod object of the memberGate method, if any is set
+      /** executes in constant time
+	  @return a const pointer to the QoreMethod object of the memberGate method, if any is set
+      */
+      DLLEXPORT const QoreMethod *getMemberGateMethod() const;
+
+      //! returns a const pointer to the QoreMethod object of the methodGate method, if any is set
+      /** executes in constant time
+	  @return a const pointer to the QoreMethod object of the methodGate method, if any is set
+      */
+      DLLEXPORT const QoreMethod *getMethodGate() const;
+
+      //! returns a const pointer to the QoreMethod object of the memberNotification method, if any is set
+      /** executes in constant time
+	  @return a const pointer to the QoreMethod object of the memberNotification method, if any is set
+      */
+      DLLEXPORT const QoreMethod *getMemberNotificationMethod() const;
+
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(QoreMethod *f);
       DLLLOCAL const QoreMethod *resolveSelfMethod(const char *nme);

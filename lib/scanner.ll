@@ -753,6 +753,7 @@ map\(                                   yylval->string = strdup("map"); return K
 foldr\(                                 yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN;
 foldl\(                                 yylval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN;
 select\(                                yylval->string = strdup("select"); return KW_IDENTIFIER_OPENPAREN;
+inherits\(                              yylval->string = strdup("inherits"); return KW_IDENTIFIER_OPENPAREN;
 default{WS}*\(                          yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
 static{WS}*\(                           yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN;
 \.new[^A-Za-z_0-9]                      {

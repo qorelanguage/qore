@@ -1822,7 +1822,6 @@ void QoreClass::addMethod2(const char *nme, q_method2_t m, bool priv_flag) {
 void QoreClass::addStaticMethod2(const char *nme, q_static_method2_t m, bool priv_flag) {
    assert(strcmp(nme, "constructor"));
    assert(strcmp(nme, "destructor"));
-   assert(strcmp(nme, "copy"));
 
    priv->sys = true;
    BuiltinMethod *b = new BuiltinMethod(this, nme, m);
@@ -1837,7 +1836,6 @@ void QoreClass::addStaticMethod2(const char *nme, q_static_method2_t m, bool pri
 void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag) {
    assert(strcmp(nme, "constructor"));
    assert(strcmp(nme, "destructor"));
-   assert(strcmp(nme, "copy"));
 
    priv->sys = true;
    BuiltinMethod *b = new BuiltinMethod(this, nme, m);
@@ -2024,3 +2022,31 @@ bool QoreClass::is_synchronous_class() const {
    return priv->synchronous_class;
 }
 #endif
+
+const QoreMethod *QoreClass::getConstructor() const {
+   return priv->constructor;
+}
+
+const QoreMethod *QoreClass::getSystemConstructor() const {
+   return priv->system_constructor;
+}
+
+const QoreMethod *QoreClass::getDestructor() const {
+   return priv->destructor;
+}
+
+const QoreMethod *QoreClass::getCopyMethod() const {
+   return priv->copyMethod;
+}
+
+const QoreMethod *QoreClass::getMemberGateMethod() const {
+   return priv->memberGate;
+}
+
+const QoreMethod *QoreClass::getMethodGate() const {
+   return priv->methodGate;
+}
+
+const QoreMethod *QoreClass::getMemberNotificationMethod() const {
+   return priv->memberNotification;
+}
