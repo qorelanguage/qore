@@ -325,7 +325,7 @@ static void do_version(const char *arg) {
    if (i != qoreFeatureList.end()) {
       printf(" (builtin features: ");
       while (i != qoreFeatureList.end()) {
-	 puts((*i).c_str());
+	 fputs((*i).c_str(), stdout);
 	 i++;
 	 if (i != qoreFeatureList.end())
 	    printf(", ");
