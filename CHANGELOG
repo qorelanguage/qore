@@ -1,3 +1,8 @@
+2009.09.15: David Nichols
+	* fixed class implementation so that static and non-static methods
+	  have indepedent name lists; so that a class can now implement a non-
+	  static and a static method with the same name
+
 2009.09.10: David Nichols
 	* fixed type comparisons with external types
 

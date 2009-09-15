@@ -3717,9 +3717,7 @@ void OperatorList::init() {
    OP_LOG_EQ->addFunction(op_log_eq_bigint);
    OP_LOG_EQ->addFunction(op_log_eq_boolean);
    OP_LOG_EQ->addFunction(op_log_eq_date);
-
    OP_LOG_EQ->addNoConvertFunction(NT_ALL, NT_ALL, op_log_eq_all);
-
    /*
    OP_LOG_EQ->addNoConvertFunction(NT_LIST,    NT_ALL,     op_log_eq_list);
    OP_LOG_EQ->addNoConvertFunction(NT_ALL,     NT_LIST,    op_log_eq_list);
@@ -3740,8 +3738,7 @@ void OperatorList::init() {
    OP_LOG_NE->addFunction(op_log_ne_boolean);
    OP_LOG_NE->addFunction(op_log_ne_date);
    OP_LOG_NE->addNoConvertFunction(NT_ALL, NT_ALL, op_log_ne_all);
-
-/*
+   /*
    OP_LOG_NE->addNoConvertFunction(NT_LIST,    NT_ALL,     op_log_ne_list);
    OP_LOG_NE->addNoConvertFunction(NT_ALL,     NT_LIST,    op_log_ne_list);
    OP_LOG_NE->addNoConvertFunction(NT_HASH,    NT_ALL,     op_log_ne_hash);
@@ -3752,7 +3749,7 @@ void OperatorList::init() {
    OP_LOG_NE->addFunction(NT_ALL,     NT_NULL,    op_log_ne_null);
    OP_LOG_NE->addFunction(NT_NOTHING, NT_NOTHING, op_log_ne_nothing);
    OP_LOG_NE->addFunction(NT_BINARY,  NT_BINARY,  op_log_ne_binary);
-*/
+   */
  
    OP_LOG_LE = add(new Operator(2, "<=", "less-than-or-equals", 1, false));
    OP_LOG_LE->addFunction(op_log_le_float);

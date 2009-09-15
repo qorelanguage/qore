@@ -498,16 +498,13 @@ AbstractCallReferenceNode *UnresolvedStaticMethodCallReferenceNode::resolve() {
    if (!qc)
       return 0;
    
-   const QoreMethod *qm = qc->parseFindMethodTree(scope->getIdentifier());
+   const QoreMethod *qm = qc->parseFindStaticMethodTree(scope->getIdentifier());
    if (!qm) {
-      parseException("INVALID-METHOD", "class '%s' has no method '%s'", qc->getName(), scope->getIdentifier());
+      parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
       return 0;
    }
 
-   if (!qm->isStatic()) {
-      parseException("NON-STATIC-METHOD-ERROR", "method %s::%s() is not static and therefore cannot be called with static call syntax", qc->getName(), scope->getIdentifier());
-      return 0;
-   }
+   assert(qm->isStatic());
 
    // check class capabilities against parse options
    if (qc->getDomain() & getProgram()->getParseOptions()) {
@@ -557,19 +554,16 @@ bool StaticUserCallReferenceNode::boolEvalImpl(ExceptionSink *xsink) const
    return false;
 }
 
-double StaticUserCallReferenceNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double StaticUserCallReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
    return 0.0;
 }
 
-AbstractQoreNode *StaticUserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *StaticUserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const{
    assert(false);
    return 0;
 }
 
-bool StaticUserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool StaticUserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    {
       const UserCallReferenceNode *vc = dynamic_cast<const UserCallReferenceNode *>(v);
       //printd(0, "UserCallReferenceNode::is_equal_hard() %p == %p (%p %s)\n", uf, vc ? vc->uf : 0, v, v ? v->getTypeName() : "n/a");
@@ -581,51 +575,41 @@ bool StaticUserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, Excep
    return vc && uf == vc->uf;
 }
 
-BuiltinCallReferenceNode::BuiltinCallReferenceNode(const BuiltinFunction *n_bf) : bf(n_bf)
-{
+BuiltinCallReferenceNode::BuiltinCallReferenceNode(const BuiltinFunction *n_bf) : bf(n_bf) {
 }
 
-AbstractQoreNode *BuiltinCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *BuiltinCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
    return bf->eval(args, xsink);
 }
 
-bool BuiltinCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool BuiltinCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const BuiltinCallReferenceNode *vc = dynamic_cast<const BuiltinCallReferenceNode *>(v);
    return vc && vc->bf == bf;
 }
 
-ImportedCallReferenceNode::ImportedCallReferenceNode(ImportedFunctionCall *n_ifunc) : ifunc(n_ifunc)
-{
+ImportedCallReferenceNode::ImportedCallReferenceNode(ImportedFunctionCall *n_ifunc) : ifunc(n_ifunc) {
 }
 
-AbstractQoreNode *ImportedCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *ImportedCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
    return ifunc->eval(args, xsink);
 }
 
-ImportedCallReferenceNode::~ImportedCallReferenceNode()
-{
+ImportedCallReferenceNode::~ImportedCallReferenceNode() {
    delete ifunc;
 }
 
-QoreProgram *ImportedCallReferenceNode::getProgram() const
-{
+QoreProgram *ImportedCallReferenceNode::getProgram() const {
    return ifunc->pgm;
 }
 
-bool ImportedCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool ImportedCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const ImportedCallReferenceNode *vc = dynamic_cast<const ImportedCallReferenceNode *>(v);
    return vc && vc->ifunc == ifunc;
 }
 
-ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type)
-{
+ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type) {
 }
 
-QoreProgram *ResolvedCallReferenceNode::getProgram() const
-{
+QoreProgram *ResolvedCallReferenceNode::getProgram() const {
    return 0;
 }

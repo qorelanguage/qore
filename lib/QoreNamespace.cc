@@ -633,47 +633,23 @@ AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(NamedScope *na
    return rv;
 }
 
-/*
-// parseFindOTInNSL()
-QoreClass *parseFindOTInNSL(QoreNamespaceList *nsl, const char *otname)
-{
-   QoreClass *ot;
-   // see if a match can be found at the first level
-   for (int i = 0; i < nsl->num_namespaces; i++)
-      if ((ot = nsl->nslist[i]->priv->classList->find(otname)))
-	 return ot;
-
-   // check all levels
-   for (int i = 0; i < nsl->num_namespaces; i++)
-      if ((ot = findOTInNSL(nsl->nslist[i]->nsl, otname)))
-	 return ot;
-
-   parse_error("reference to undefined object type '%s'", otname);
-   return 0;
-}
-*/
-
 // QoreNamespaceList::parseFindScopedClassWithMethod()
 // does a recursive breadth-first search to resolve a namespace containing the given class name
 // note: is only called with a namespace specifier
-QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(NamedScope *name, int *matched) const
-{
+QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(NamedScope *name, int *matched) const {
    QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
    QoreNamespace *w = head;
-   while (w)
-   {
+   while (w) {
       if ((oc = w->parseMatchScopedClassWithMethod(name, matched)))
 	 break;
       w = w->priv->next;
    }
 
-   if (!oc)  // now search all sub namespaces
-   {
+   if (!oc) { // now search all sub namespaces
       w = head;
-      while (w)
-      {
+      while (w) {
 	 if ((oc = w->priv->pendNSL->parseFindScopedClassWithMethod(name, matched)))
 	    break;
 	 if ((oc = w->priv->nsl->parseFindScopedClassWithMethod(name, matched)))
@@ -685,89 +661,12 @@ QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(NamedScope *name, i
    return oc;
 }
 
-// QoreNamespaceList::parseFindScopedClassWithMethod()
-// does a recursive breadth-first search to resolve a namespace containing the given class name
-// note: is only called with a namespace specifier
-/*
-QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(NamedScope *name, int *matched, QoreClassList **plist, bool *is_pending)
-{
-   QoreClass *oc = 0;
-
-   // see if a complete match can be found at the first level
-   QoreNamespace *w = head;
-   while (w)
-   {
-      if ((oc = w->parseMatchScopedClassWithMethod(name, matched, plist, is_pending)))
-	 break;
-      w = w->priv->next;
-   }
-
-   if (!oc)  // now search all sub namespaces
-   {
-      w = head;
-      while (w)
-      {
-	 if ((oc = w->priv->pendNSL->parseFindScopedClassWithMethod(name, matched, plist, is_pending)))
-	    break;
-	 if ((oc = w->priv->nsl->parseFindScopedClassWithMethod(name, matched, plist, is_pending)))
-	    break;
-	 w = w->priv->next;
-      }
-   }
-
-   return oc;
-}
-*/
-
-/*
-QoreClass *QoreNamespaceList::parseFindClass(const char *ocname, QoreClassList **plist, bool *is_pending)
-{
+QoreClass *QoreNamespaceList::parseFindClass(const char *ocname) {
    QoreClass *oc = 0;
 
    // see if a match can be found at the first level
    QoreNamespace *w = head;
-   while (w)
-   {
-      // check pending classes
-      if ((oc = w->priv->pendClassList->find(ocname)))
-      {
-	 (*plist) = w->priv->classList;
-	 (*is_pending) = true;
-	 break;
-      }
-      if ((oc = w->priv->classList->find(ocname)))
-      {
-	 (*plist) = w->priv->pendClassList;
-	 break;
-      }
-      w = w->priv->next;
-   }
-
-   if (!oc) // check all levels
-   {
-      w = head;
-      while (w)
-      {
-	 if ((oc = w->priv->nsl->parseFindClass(ocname, plist, is_pending)))
-	    break;
-	 if ((oc = w->priv->pendNSL->parseFindClass(ocname, plist, is_pending)))
-	    break;
-	 w = w->priv->next;
-      }
-   }
-
-   return oc;
-}
-*/
-
-QoreClass *QoreNamespaceList::parseFindClass(const char *ocname)
-{
-   QoreClass *oc = 0;
-
-   // see if a match can be found at the first level
-   QoreNamespace *w = head;
-   while (w)
-   {
+   while (w) {
       if ((oc = w->priv->classList->find(ocname)))
 	 break;
       // check pending classes
@@ -777,11 +676,9 @@ QoreClass *QoreNamespaceList::parseFindClass(const char *ocname)
       w = w->priv->next;
    }
 
-   if (!oc) // check all levels
-   {
+   if (!oc) { // check all levels
       w = head;
-      while (w)
-      {
+      while (w) {
 	 if ((oc = w->priv->nsl->parseFindClass(ocname)))
 	    break;
 	 if ((oc = w->priv->pendNSL->parseFindClass(ocname)))
@@ -793,8 +690,7 @@ QoreClass *QoreNamespaceList::parseFindClass(const char *ocname)
    return oc;
 }
 
-QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname)
-{
+QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname) {
    QoreClass *oc = 0;
 
    // see if a match can be found at the first level
@@ -861,16 +757,13 @@ QoreClass *QoreNamespaceList::parseFindScopedClass(NamedScope *name, int *matche
 // returns 0 for success, non-zero return value means error
 int RootQoreNamespace::addMethodToClass(NamedScope *scname, QoreMethod *qcmethod, class BCAList *bcal) {
    // find class
-   //QoreClassList *plist;
-   //bool is_pending = false;
    QoreClass *oc;
 
    const char *cname  = scname->strlist[scname->elements - 2];
    const char *method = scname->strlist[scname->elements - 1];
 
    // if there is no namespace specified, then just find class
-   if (scname->elements == 2)
-   {
+   if (scname->elements == 2) {
       oc = rootFindClass(cname);
       if (!oc)
       {
@@ -878,12 +771,10 @@ int RootQoreNamespace::addMethodToClass(NamedScope *scname, QoreMethod *qcmethod
 	 return -1;
       }
    }
-   else
-   {
+   else {
       int m = 0;
       oc = rootFindScopedClassWithMethod(scname, &m);
-      if (!oc)
-      {
+      if (!oc) {
 	 if (m != (scname->elements - 2))
 	    parse_error("cannot resolve namespace '%s' in '%s()'", scname->strlist[m], scname->ostr);
 	 else
@@ -948,8 +839,7 @@ QoreClass *RootQoreNamespace::parseFindScopedClass(NamedScope *nscope) const
    return oc;
 }
 
-QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(NamedScope *scname) const
-{
+QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(NamedScope *scname) const {
    QoreClass *oc;
 
    int m = 0;
@@ -958,12 +848,10 @@ QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(NamedScope *scname)
    if (!oc) {
       if (m != (scname->elements - 1))
 	 parse_error("cannot resolve namespace '%s' in '%s()'", scname->strlist[m], scname->ostr);
-      else
-      {
+      else  {
 	 QoreString err;
 	 err.sprintf("cannot find class '%s' in any namespace '", scname->getIdentifier());
-	 for (int i = 0; i < (scname->elements - 1); i++)
-	 {
+	 for (int i = 0; i < (scname->elements - 1); i++) {
 	    err.concat(scname->strlist[i]);
 	    if (i != (scname->elements - 2))
 	       err.concat("::");
@@ -1235,56 +1123,12 @@ QoreNamespace *QoreNamespace::parseMatchNamespace(NamedScope *nscope, int *match
    return 0;
 }
 
-/*
-QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(NamedScope *nscope, int *matched, QoreClassList **plist, bool *is_pending) const
-{
-   printd(5, "QoreNamespace::parseMatchScopedClassWithMethod(this=%08p) %s class=%s (%s)\n", this, priv->name.c_str(), nscope->strlist[nscope->elements - 2], nscope->ostr);
-
-   QoreNamespace *ns = this;
-   // if we need to follow the namespaces, then do so
-   if (nscope->elements > 2)
-   {
-      // if first namespace doesn't match, then return 0
-      if (strcmp(nscope->strlist[0], name))
-	 return 0;
-
-      // mark first namespace as matched
-      if (!(*matched))
-	 *matched = 1;
-
-      // otherwise search the rest of the namespaces
-      for (int i = 1; i < (nscope->elements - 2); i++)
-      {	 
-	 ns = ns->findNamespace(nscope->strlist[i]);
-	 if (!ns)
-	    return 0;
-	 if (i >= (*matched))
-	    (*matched) = i + 1;
-      }
-   }
-   // check last namespaces
-   QoreClass *rv = ns->priv->pendClassList->find(nscope->strlist[nscope->elements - 2]);
-   if (rv)
-   {
-      (*plist) = ns->priv->classList;
-      (*is_pending) = true;
-   }
-   else if ((rv = ns->priv->classList->find(nscope->strlist[nscope->elements - 2])))
-   {
-      (*plist) = ns->priv->pendClassList;
-   }
-   return rv;
-}
-*/
-
-QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(NamedScope *nscope, int *matched) const
-{
+QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(NamedScope *nscope, int *matched) const {
    printd(5, "QoreNamespace::parseMatchScopedClassWithMethod(this=%08p) %s class=%s (%s)\n", this, priv->name.c_str(), nscope->strlist[nscope->elements - 2], nscope->ostr);
 
    const QoreNamespace *ns = this;
    // if we need to follow the namespaces, then do so
-   if (nscope->elements > 2)
-   {
+   if (nscope->elements > 2) {
       // if first namespace doesn't match, then return 0
       if (strcmp(nscope->strlist[0], priv->name.c_str()))
 	 return 0;
@@ -1294,8 +1138,7 @@ QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(NamedScope *nscope, in
 	 *matched = 1;
 
       // otherwise search the rest of the namespaces
-      for (int i = 1; i < (nscope->elements - 2); i++)
-      {	 
+      for (int i = 1; i < (nscope->elements - 2); i++) {	 
 	 ns = ns->findNamespace(nscope->strlist[i]);
 	 if (!ns)
 	    return 0;
@@ -1311,8 +1154,7 @@ QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(NamedScope *nscope, in
    return rv;
 }
 
-QoreClass *QoreNamespace::parseMatchScopedClass(NamedScope *nscope, int *matched) const
-{
+QoreClass *QoreNamespace::parseMatchScopedClass(NamedScope *nscope, int *matched) const {
    if (strcmp(nscope->strlist[0], priv->name.c_str()))
       return 0;
 
@@ -1498,8 +1340,7 @@ QoreNamespace *RootQoreNamespace::rootResolveNamespace(NamedScope *nscope)
 }
 
 // private
-QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(NamedScope *nscope, int *matched) const
-{
+QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(NamedScope *nscope, int *matched) const {
    QoreClass *oc;
 
    if (!(oc = parseMatchScopedClassWithMethod(nscope, matched))

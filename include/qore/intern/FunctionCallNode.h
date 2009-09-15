@@ -277,19 +277,16 @@ class StaticMethodCallNode : public AbstractFunctionCallNode {
 	 if (!qc)
 	    return 0;
 
-	 method = qc->parseFindMethodTree(scope->getIdentifier());
+	 method = qc->parseFindStaticMethodTree(scope->getIdentifier());
 	 if (!method) {
-	    parseException("INVALID-METHOD", "class '%s' has no method '%s'", qc->getName(), scope->getIdentifier());
+	    parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
 	    return 0;
 	 }
+
+	 assert(method->isStatic());
 
 	 delete scope;
 	 scope = 0;
-
-	 if (!method->isStatic()) {
-	    parseException("NON-STATIC-METHOD-ERROR", "method %s::%s() is not static and therefore cannot be called with static call syntax", qc->getName(), method->getName());
-	    return 0;
-	 }
 
 	 if (method->isPrivate()) {
 	    const QoreClass *cls = getParseClass();

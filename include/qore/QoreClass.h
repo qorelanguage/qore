@@ -178,10 +178,14 @@ class QoreClass {
       // private constructor only called when the class is copied
       DLLLOCAL QoreClass(qore_classid_t id, const char *nme);
 
-      // looks in current and pending method lists, only for local class
+      // looks in current and pending method lists for non-static methods, only for local class
       DLLLOCAL const QoreMethod *parseFindMethod(const char *name);
 
-      DLLLOCAL void insertMethod(class QoreMethod *o);
+      // looks in current and pending method lists for static methods, only for local class
+      DLLLOCAL const QoreMethod *parseFindStaticMethod(const char *name);
+
+      DLLLOCAL void insertMethod(QoreMethod *o);
+      DLLLOCAL void insertStaticMethod(QoreMethod *o);
       DLLLOCAL AbstractQoreNode *evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL const QoreMethod *resolveSelfMethodIntern(const char *nme);
       DLLLOCAL BCAList *getBaseClassConstructorArgumentList() const;
@@ -381,17 +385,29 @@ class QoreClass {
        */
       DLLEXPORT QoreObject *execCopy(QoreObject *old, ExceptionSink *xsink) const;
 
-      //! looks for a method in the current class without searching base classes
+      //! looks for a non-static method in the current class without searching base classes
       /** @param name the name of the method
 	  @returns a pointer to the method found, or 0 if no such method exists in the class
       */
       DLLEXPORT const QoreMethod *findLocalMethod(const char *name) const;
 
-      //! returns a list strings of all methods in the class, the caller owns the reference count returned
-      /** always returns a list; if there are no methods then an empty list is returned
-	  @return a list strings of all methods in the class, the caller owns the reference count returned
+      //! looks for a static method in the current class without searching base classes
+      /** @param name the name of the static method
+	  @returns a pointer to the method found, or 0 if no such method exists in the class
+      */
+      DLLEXPORT const QoreMethod *findLocalStaticMethod(const char *name) const;
+
+      //! returns a list strings of all non-static methods in the class, the caller owns the reference count returned
+      /** always returns a list; if there are no non-static methods then an empty list is returned
+	  @return a list strings of all non-static methods in the class, the caller owns the reference count returned
        */
       DLLEXPORT QoreListNode *getMethodList() const;
+
+      //! returns a list strings of all static methods in the class, the caller owns the reference count returned
+      /** always returns a list; if there are no static methods then an empty list is returned
+	  @return a list strings of all static methods in the class, the caller owns the reference count returned
+       */
+      DLLEXPORT QoreListNode *getStaticMethodList() const;
 
       //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
       /** if the class ID is equal to the current class or is a base class
@@ -402,8 +418,11 @@ class QoreClass {
        */
       DLLEXPORT QoreClass *getClass(qore_classid_t cid) const;
       
-      //! returns the number of methods in this class
+      //! returns the number of non-static methods in this class
       DLLEXPORT int numMethods() const;
+
+      //! returns the number of static methods in this class
+      DLLEXPORT int numStaticMethods() const;
 
       //! returns true if the class implements a copy method
       DLLEXPORT bool hasCopy() const;
@@ -426,12 +445,19 @@ class QoreClass {
       //! returns the class name
       DLLEXPORT const char *getName() const;
 
-      //! finds a method in the class hierarchy
+      //! finds a non-static method in the class hierarchy
       // used at run-time
       DLLEXPORT const QoreMethod *findMethod(const char *nme) const;
 
-      //! finds a method in the class hierarchy and sets the priv flag if it's a private method or not
+      //! finds a static method in the class hierarchy
+      // used at run-time
+      DLLEXPORT const QoreMethod *findStaticMethod(const char *nme) const;
+
+      //! finds a non-static method in the class hierarchy and sets the priv flag if it's a private method or not
       DLLEXPORT const QoreMethod *findMethod(const char *nme, bool &priv) const;
+
+      //! finds a static method in the class hierarchy and sets the priv flag if it's a private method or not
+      DLLEXPORT const QoreMethod *findStaticMethod(const char *nme, bool &priv) const;
 
       //! make a builtin class a child of another builtin class
       /** Private inheritance makes no sense with builtin classes (there would be
@@ -474,8 +500,11 @@ class QoreClass {
       DLLLOCAL QoreClass *copyAndDeref();
       DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
 
-      // used when parsing, finds committed methods within the entire class hierarchy (local class plus base classes)
+      // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
       DLLLOCAL const QoreMethod *findParseMethod(const char *nme);
+
+      // used when parsing, finds committed static methods within the entire class hierarchy (local class plus base classes)
+      DLLLOCAL const QoreMethod *findParseStaticMethod(const char *nme);
 
       // returns 0 for success, -1 for error
       DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);
@@ -502,8 +531,10 @@ class QoreClass {
       DLLLOCAL bool is_synchronous_class() const;
       // one-time initialization
       DLLLOCAL void initialize();
-      // looks in current and pending method lists for the entire hierarchy (local class plus base classes)
+      // looks in current and pending method lists for the entire hierarchy (local class plus base classes), non-static methods only
       DLLLOCAL const QoreMethod *parseFindMethodTree(const char *name);
+      // looks in current and pending method lists for the entire hierarchy (local class plus base classes), static methods only
+      DLLLOCAL const QoreMethod *parseFindStaticMethodTree(const char *name);
       // returns true if the class passed is equal to or in the class' hierarchy - to be called only at parse time or under the program's parse lock
       DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
 };

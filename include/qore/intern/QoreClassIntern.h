@@ -140,11 +140,15 @@ class BCList : public QoreReferenceCounter, public bclist_t {
 
       // only looks in committed method lists
       DLLLOCAL const QoreMethod *findParseMethod(const char *name);
+      DLLLOCAL const QoreMethod *findParseStaticMethod(const char *name);
 
       // looks in committed and pending method lists
       DLLLOCAL const QoreMethod *parseFindMethodTree(const char *name);
       DLLLOCAL const QoreMethod *findMethod(const char *name) const;
       DLLLOCAL const QoreMethod *findMethod(const char *name, bool &p) const;
+      DLLLOCAL const QoreMethod *parseFindStaticMethodTree(const char *name);
+      DLLLOCAL const QoreMethod *findStaticMethod(const char *name) const;
+      DLLLOCAL const QoreMethod *findStaticMethod(const char *name, bool &p) const;
       DLLLOCAL bool match(BCANode *bca);
       DLLLOCAL void execConstructors(QoreObject *o, BCEAList *bceal, ExceptionSink *xsink) const;
       DLLLOCAL void execConstructorsWithArgs(QoreObject *o, BCEAList *bceal, ExceptionSink *xsink) const;
