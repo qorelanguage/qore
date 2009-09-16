@@ -912,6 +912,13 @@ statement:
 	      reinterpret_cast<QoreTreeNode *>($1)->ignoreReturnValue();
 	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, $1);
 	}
+        // this should be covered as an expression, but for some reason it isn't...
+        | SCOPED_REF '(' myexp ')' ';' {
+	   NamedScope *ns = new NamedScope($1);
+	   assert(ns->elements > 1);
+	   printd(5, "statement: parsing static method call: %s()\n", ns->ostr);
+	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, new StaticMethodCallNode(ns, makeArgs($3)));
+	}
         | try_statement
         { $$ = $1; }
 	| TOK_RETHROW ';'
