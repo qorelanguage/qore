@@ -1338,16 +1338,16 @@ QoreListNode *get_thread_list() {
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-#include <qore/intern/PRWLock.h>
+#include <qore/QoreRWLock.h>
 
-extern PRWLock thread_stack_lock;
+extern QoreRWLock thread_stack_lock;
 
 QoreHashNode *getAllCallStacks() {
    QoreHashNode *h = new QoreHashNode();
    QoreString str;
 
    // grab the call stack write lock
-   AutoPRWWriteLocker wl(thread_stack_lock);
+   QoreAutoRWWriteLocker wl(thread_stack_lock);
 
    // grab thread list lock
    AutoLocker al(lThreadList);

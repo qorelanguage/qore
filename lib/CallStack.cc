@@ -26,9 +26,9 @@
 // a read-write lock is used in an inverted fashion to provide thread-safe
 // access to call stacks: writing to each call stack is performed within
 // the read lock, reading all threads' stacks is performed in the write lock
-#include <qore/intern/PRWLock.h>
+#include <qore/QoreRWLock.h>
 
-PRWLock thread_stack_lock;
+QoreRWLock thread_stack_lock;
 
 CallNode::CallNode(const char *f, int t, QoreObject *o) {
    func = f;
@@ -99,7 +99,7 @@ void CallStack::push(CallNode *c) {
    QORE_TRACE("CallStack::push()");
    c->next = 0;
    c->prev = tail;
-   AutoPRWReadLocker l(thread_stack_lock);
+   QoreAutoRWReadLocker l(thread_stack_lock);
    if (tail)
       tail->next = c;
    tail = c;
@@ -109,7 +109,7 @@ void CallStack::pop(ExceptionSink *xsink) {
    QORE_TRACE("CallStack::pop()");
    CallNode *c;
    {
-      AutoPRWReadLocker l(thread_stack_lock);
+      QoreAutoRWReadLocker l(thread_stack_lock);
       c = tail;
       tail = tail->prev;
       if (tail)

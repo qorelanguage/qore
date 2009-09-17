@@ -1,3 +1,6 @@
+2009.09.17: David Nichols
+	* renamed PRWLock to QoreRWLock and made it a public class
+
 2009.09.16: David Nichols
 	* fixed static method calls at the top level of a program
 

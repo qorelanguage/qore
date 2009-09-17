@@ -81,6 +81,7 @@ include_HEADERS = \
 	include/qore/SystemEnvironment.h \
 	include/qore/ParseOptionMap.h \
 	include/qore/QoreHTTPClient.h \
+	include/qore/QoreRWLock.h \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \
 	include/qore/ReferenceHolder.h \
@@ -189,7 +190,6 @@ noinst_HEADERS = \
 	include/qore/intern/qore_string_private.h \
 	include/qore/intern/qore_date_private.h \
 	include/qore/intern/QoreDir.h \
-	include/qore/intern/PRWLock.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
