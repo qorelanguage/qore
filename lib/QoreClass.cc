@@ -1383,7 +1383,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       return execCopy(self, xsink);
 
    bool priv_flag;
-   if (!(w = findMethod(nme, priv_flag))) {
+   if (!(w = findMethod(nme, priv_flag)) && !(w = findStaticMethod(nme, priv_flag))) {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
 	 return evalMethodGate(self, nme, args, xsink);
       // otherwise return an exception
