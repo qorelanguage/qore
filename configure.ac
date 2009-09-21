@@ -178,7 +178,16 @@ if test "$enable_64bit" = "auto"; then
    if test "$host_cpu" = "ia64" -o "$host_cpu" = "x86_64"; then
       enable_64bit=yes
    else
-      enable_64bit=no
+      case "${host_os}" in
+          darwin*)   mv=`uname -r|cut -f1 -d.`
+     	   	     if test $mv -ge 10 -a "${host_cpu}" = "i386"; then
+		         enable_64bit=yes
+		     fi
+		     ;;
+      esac
+      if test "$enable_64bit" = "auto"; then
+	  enable_64bit=no
+      fi
    fi
 fi
 
@@ -215,6 +224,14 @@ if test "$enable_64bit" = "yes"; then
 		    fi
 		else
 		    CXXFLAGS="$CXXFLAGS -xarch=generic64"
+		fi
+		;;
+     *darwin*)	if test "$GXX" = "yes"; then
+		   CXXFLAGS="$CXXFLAGS -m64"
+		fi
+		# set ARCH to x86_64 to be consistent with other intel 64-bit builds
+		if test "$host_cpu" = "i386"; then
+		   ARCH=x86_64
 		fi
 		;;
    esac

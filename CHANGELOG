@@ -2,6 +2,8 @@
 	* made it so that static methods can be called with normal method call
 	  syntax again to maintain backwards compatibility with previous
 	  versions of Qore
+	* updated configure to select 64-bit compile mode by default on Darwin
+	  10 or higher with i386
 
 2009.09.17: David Nichols
 	* renamed PRWLock to QoreRWLock and made it a public class
