@@ -656,6 +656,33 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink) {
    v->deref(xsink);
 }
 
+void QoreObject::removeMember(const QoreString *key, ExceptionSink *xsink) {
+   TempEncodingHelper enc(key, QCS_DEFAULT, xsink);
+   if (!enc)
+      return;
+
+   removeMember(enc->getBuffer(), xsink);
+}
+
+void QoreObject::removeMember(const char *key, ExceptionSink *xsink) {
+   AbstractQoreNode *v;
+   {
+      AutoLocker al(priv->mutex);
+
+      if (priv->status == OS_DELETED) {
+	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
+	 return;
+      }
+      
+      v = priv->data->takeKeyValue(key);
+   }
+
+   if (!v)
+      return;
+
+   v->deref(xsink);
+}
+
 QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const {
    AutoLocker al(priv->mutex);
 

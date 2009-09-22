@@ -1,3 +1,7 @@
+2009.09.22: David Nichols
+	* updated -= operator to operate on objects in the same manner as
+	  hashes
+
 2009.09.21: David Nichols
 	* made it so that static methods can be called with normal method call
 	  syntax again to maintain backwards compatibility with previous

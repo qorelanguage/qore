@@ -201,6 +201,20 @@ class QoreObject : public AbstractQoreNode {
        */
       DLLEXPORT void deleteMemberValue(const char *key, ExceptionSink *xsink);
 
+      //! removes a member from the object without explicitly calling destructors; the value is only dereferenced
+      /** objects will be destructed if they go out of scope, however
+	  @param key the name of the member to remove
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT void removeMember(const QoreString *key, ExceptionSink *xsink);
+
+      //! removes a member from the object without explicitly calling destructors; the value is only dereferenced
+      /** objects will be destructed if they go out of scope, however
+	  @param key the name of the member to remove, assumed to be in the default encoding (QCS_DEFAULT)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT void removeMember(const char *key, ExceptionSink *xsink);
+
       //! returns the number of members of the object
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here

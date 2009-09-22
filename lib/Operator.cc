@@ -954,7 +954,7 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
       v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->subtractBy(*date));
    }
    else if (vtype == NT_HASH) {
-      if (new_right->getType() != NT_HASH) {
+      if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
 	 v.ensure_unique();
 	 QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v.get_value());
 
@@ -973,6 +973,28 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
 	 else {
 	    QoreStringValueHelper str(*new_right);
 	    vh->removeKey(*str, xsink);
+	 }
+      }
+   }
+   else if (vtype == NT_OBJECT) {
+      if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
+	 QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
+
+	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
+	 if (nrl && nrl->size()) {
+	    // treat each element in the list as a string giving a key to delete
+	    ConstListIterator li(nrl);
+	    while (li.next()) {
+	       QoreStringValueHelper val(li.getValue());
+	       
+	       o->removeMember(*val, xsink);
+	       if (*xsink)
+		  return 0;
+	    }
+	 }
+	 else {
+	    QoreStringValueHelper str(*new_right);
+	    o->removeMember(*str, xsink);
 	 }
       }
    }
