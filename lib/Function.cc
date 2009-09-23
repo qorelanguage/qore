@@ -82,8 +82,7 @@ AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink
 }
 
 // called at parse time
-void SelfFunctionCall::resolve()
-{
+void SelfFunctionCall::resolve() {
 #ifdef DEBUG
    if (ns)
       printd(5, "SelfFunctionCall:resolve() resolving base class call '%s'\n", ns->ostr);

@@ -1652,8 +1652,10 @@ void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual) {
 }
 
 // private, called from subclasses only
-inline const QoreMethod *QoreClass::resolveSelfMethodIntern(const char *nme) {
+const QoreMethod *QoreClass::resolveSelfMethodIntern(const char *nme) {
    const QoreMethod *m = parseFindMethod(nme);
+   if (!m)
+      m = parseFindStaticMethod(nme);
 
    // if still not found now look in superclass methods
    if (!m && priv->scl)
@@ -1684,6 +1686,23 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme) {
 	    printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending method %s::%s() %08p\n", nme, getName(), nme, m);
 	 }
       }
+   }
+
+   // if not found check static methods
+   if (!err && !m) {
+      m = findLocalStaticMethod(nme);
+      // check pending methods
+      if (!m) {
+	 hm_method_t::iterator i = priv->shm_pending.find(nme);
+	 if (i != priv->shm_pending.end()) {
+	    m = i->second;
+	    printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending static method %s::%s() %08p\n", nme, getName(), nme, m);
+	 }
+      }
+#ifdef DEBUG
+      else
+	 printd(5, "QoreClass::resolveSelfMethod(%s) resolved to static %s::%s() %08p\n", nme, getName(), nme, m);
+#endif
    }
 
    // if still not found now look in superclass methods
