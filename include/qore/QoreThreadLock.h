@@ -41,47 +41,62 @@ class QoreThreadLock {
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreThreadLock& operator=(const QoreThreadLock&);
 
+      //! internal initialization
+      DLLLOCAL void init() {
+#ifndef NDEBUG
+	 int rc =
+#endif
+	 pthread_mutex_init(&ptm_lock, 0);
+	 assert(!rc);
+      }
+
    public:
       //! creates the lock
-      DLLLOCAL QoreThreadLock()
-      {
-	 pthread_mutex_init(&ptm_lock, 0);
+      DLLLOCAL QoreThreadLock() {
+	 init();
       }
 
       //! destroys the lock
-      DLLLOCAL ~QoreThreadLock()
-      {
+      DLLLOCAL ~QoreThreadLock() {
+#ifndef NDEBUG
+	 int rc =
+#endif
 	 pthread_mutex_destroy(&ptm_lock);
+	 assert(!rc);
       }
 
       //! creates a new object (not based on the original lock status)
-      DLLLOCAL QoreThreadLock(const QoreThreadLock&)
-      {
-	 pthread_mutex_init(&ptm_lock, 0);
+      DLLLOCAL QoreThreadLock(const QoreThreadLock&) {
+	 init();
       }
 
       //! grabs the lock (assumes that the lock is unlocked)
       /** no error checking happens here; if you grab the lock twice it will deadlock
        */
-      DLLLOCAL void lock()
-      {
+      DLLLOCAL void lock() {
+#ifndef NDEBUG
+	 int rc =
+#endif
 	 pthread_mutex_lock(&ptm_lock);
+	 assert(!rc);
       }
       
       //! releases the lock (assumes that the lock is locked)
       /** no error checking is implemented here
        */
-      DLLLOCAL void unlock()
-      {
+      DLLLOCAL void unlock() {
+#ifndef NDEBUG
+	 int rc =
+#endif
 	 pthread_mutex_unlock(&ptm_lock);
+	 assert(!rc);
       }
       
       //! attempts to acquire the mutex and returns the status immediately; does not block
       /**
 	 @return 0 if the lock was acquired, a non-zero error number if the lock was not acquired
        */
-      DLLLOCAL int trylock()
-      {
+      DLLLOCAL int trylock() {
 	 return pthread_mutex_trylock(&ptm_lock);
       }
 };

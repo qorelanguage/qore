@@ -1036,7 +1036,7 @@ QoreException *catchGetException() {
 
 void qore_exit_process(int rc) {
    int tid = gettid();
-   lThreadList.lock();
+   SafeLocker sl(lThreadList);
 
    // call pthread_cancel on all threads so the call to exit() will not
    // cause a core dump
@@ -1045,29 +1045,30 @@ void qore_exit_process(int rc) {
 	 pthread_cancel(thread_list[i].ptid);
 	 thread_list[i].joined = true;
 
-	 lThreadList.unlock();
+	 sl.unlock();
 	 pthread_join(thread_list[i].ptid, 0);
-	 lThreadList.lock();
+	 sl.lock();
       }
    }
+#ifdef DEBUG
+   // to avoid an assert on exit
+   sl.unlock();
+#endif
    exit(rc);
-
-   lThreadList.unlock();
 }
 
 // sets up the signal thread entry in the thread list
 int get_signal_thread_entry() {
-   lThreadList.lock();
+   AutoLocker al(lThreadList);
    thread_list[0].allocate(0);
-   lThreadList.unlock();
    return 0;
 }
 
 // returns tid allocated for thread
 int get_thread_entry() {
    int tid = -1;
+   AutoLocker al(lThreadList);
 
-   lThreadList.lock();
    if (current_tid == MAX_QORE_THREADS) {
       int i;
       // scan thread_list for free entry
@@ -1077,10 +1078,8 @@ int get_thread_entry() {
 	    goto finish;
 	 }
       }
-      if (i == MAX_QORE_THREADS) {
-	 lThreadList.unlock();
+      if (i == MAX_QORE_THREADS)
 	 return -1;
-      }
    }
    else
       tid = current_tid++;
@@ -1088,7 +1087,6 @@ int get_thread_entry() {
   finish:
    thread_list[tid].allocate(new tid_node(tid));
    num_threads++;
-   lThreadList.unlock();
    //printf("t%d cs=0\n", tid);
 
    return tid;
@@ -1100,19 +1098,15 @@ void delete_thread_data() {
 
 void deregister_thread(int tid) {
    // NOTE: cannot safely call printd here, because normally the thread_data has been deleted
-   lThreadList.lock();
-
+   AutoLocker al(lThreadList);
    thread_list[tid].cleanup();
    --num_threads;
-
-   lThreadList.unlock();
 }
 
 void deregister_signal_thread() {
    // NOTE: cannot safely call printd here, because normally the thread_data has been deleted
-   lThreadList.lock();
+   AutoLocker al(lThreadList);
    thread_list[0].cleanup();
-   lThreadList.unlock();
 }
 
 // should only be called from new thread
@@ -1327,13 +1321,13 @@ void delete_qore_threads() {
 
 QoreListNode *get_thread_list() {
    QoreListNode *l = new QoreListNode();
-   lThreadList.lock();
+
+   AutoLocker al(lThreadList);
    tid_node *w = tid_head;
    while (w) {
       l->push(new QoreBigIntNode(w->tid));
       w = w->next;
    }
-   lThreadList.unlock();
    return l;
 }
 

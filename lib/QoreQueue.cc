@@ -35,6 +35,7 @@ void QoreQueueNode::del(ExceptionSink *xsink) {
 }
 
 QoreQueue::QoreQueue() : head(0), tail(0), len(0), waiting(0) {
+   //printd(5, "QoreQueue::QoreQueue() this=%p\n", this);
 }
 
 QoreQueue::QoreQueue(const QoreQueue &orig) : head(0), tail(0), len(0), waiting(0) {
@@ -46,7 +47,9 @@ QoreQueue::QoreQueue(const QoreQueue &orig) : head(0), tail(0), len(0), waiting(
    while (w) {
       push_internal(w->node ? w->node->refSelf() : 0);
       w = w->next;
-   }    
+   }
+
+   //printd(5, "QoreQueue::QoreQueue() this=%p head=%p tail=%p waiting=%d len=%d\n", this, head, tail, waiting, len);
 }
 
 // queues should not be deleted when other threads might
@@ -54,6 +57,9 @@ QoreQueue::QoreQueue(const QoreQueue &orig) : head(0), tail(0), len(0), waiting(
 QoreQueue::~QoreQueue() {
    QORE_TRACE("QoreQueue::~QoreQueue()");
    //printd(5, "QoreQueue::~QoreQueue() this=%08p head=%08p tail=%08p len=%d\n", this, head, tail, len);
+   assert(!head);
+   assert(!tail);
+   assert(len == Queue_Deleted);
 }
 
 void QoreQueue::push_internal(AbstractQoreNode *v) {
@@ -72,6 +78,9 @@ void QoreQueue::push_internal(AbstractQoreNode *v) {
 
       tail = qn;
    }
+
+   //printd(5, "QoreQueue::push_internal(%p) this=%p head=%p (%p) tail=%p (%p) waiting=%d len=%d\n", v, this, head, head->node, tail, tail->node, waiting, len);
+
    // signal waiting thread to wakeup and process event
    if (waiting)
       cond.signal();
@@ -144,6 +153,12 @@ void QoreQueue::insert(const AbstractQoreNode *n) {
 
 AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *to) {
    SafeLocker sl(&l);
+
+#ifdef DEBUG
+   if (!head)
+      printd(5, "QoreQueue::shift() WAITING this=%p head=%p tail=%p waiting=%d len=%d\n", this, head, tail, waiting, len);
+#endif
+
    // if there is no data, then wait for condition variable
    while (!head) {
       int rc;
@@ -168,6 +183,8 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
    }
    if (to)
       *to = false;
+
+   //printd(5, "QoreQueue::shift() GOT DATA this=%p head=%p (rv=%p) tail=%p (%p) waiting=%d len=%d\n", this, head, head->node, tail, tail->node, waiting, len);
    
    QoreQueueNode *n = head;
    head = head->next;
@@ -181,7 +198,6 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
    AbstractQoreNode *rv = n->node;
    n->node = 0;
    n->del(0);
-   printd(5, "QoreQueue::shift() %08p\n", n);
    return rv;
 }
 
@@ -224,7 +240,7 @@ AbstractQoreNode *QoreQueue::pop(ExceptionSink *xsink, int timeout_ms, bool *to)
    AbstractQoreNode *rv = n->node;
    n->node = 0;
    n->del(0);
-   printd(5, "QoreQueue::shift() %08p\n", n);
+   printd(5, "QoreQueue::pop() %08p\n", n);
    return rv;
 }
 

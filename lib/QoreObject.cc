@@ -415,6 +415,8 @@ void QoreObject::doDeleteIntern(ExceptionSink *xsink) {
    QoreHashNode *td;
    {
       AutoLocker al(priv->mutex);
+      assert(priv->status != OS_DELETED);
+      assert(priv->data);
       priv->status = OS_DELETED;
       td = priv->data;
       priv->data = 0;
@@ -492,7 +494,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
 	 if (priv->theclass->execDeleteBlocker(this, xsink)) {
 	    //printd(5, "QoreObject::derefImpl() this=%08p class=%s blocking delete\n", this, getClassName());
 	    priv->delete_blocker_run = true;
-	    //printd(0, "Object lock %08p unlocked (safe)\n", &priv->mutex);
+	    //printd(5, "Object lock %08p unlocked (safe)\n", &priv->mutex);
 	    return;
 	 }
       }
@@ -502,7 +504,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
       // mark status as in destructor
       priv->status = gettid();
 
-      //printd(0, "Object lock %08p unlocked (safe)\n", &priv->mutex);
+      //printd(5, "Object lock %08p unlocked (safe)\n", &priv->mutex);
    }
 
    doDeleteIntern(xsink);
@@ -524,7 +526,7 @@ void QoreObject::obliterate(ExceptionSink *xsink)
       if (--references)
 	 return;
 
-      //printd(0, "Object lock %08p locked   (safe)\n", &priv->mutex);
+      //printd(5, "Object lock %08p locked   (safe)\n", &priv->mutex);
       printd(5, "QoreObject::obliterate() class=%s deleting this=%08p\n", priv->theclass->getName(), this);
 
       if (priv->status == OS_OK) {
