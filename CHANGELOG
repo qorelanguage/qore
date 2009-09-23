@@ -1,6 +1,8 @@
 2009.09.23: David Nichols
 	* fixed method resolution for in-object method calls when the target
 	  method is static
+	* fixed crash in parsing when a class with no parent classes
+	  references a base class method of an existing class
 
 2009.09.22: David Nichols
 	* updated -= operator to operate on objects in the same manner as

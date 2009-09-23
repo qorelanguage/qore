@@ -1724,14 +1724,14 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme) {
    return m;
 }
 
-const QoreMethod *QoreClass::resolveSelfMethod(class NamedScope *nme) {
+const QoreMethod *QoreClass::resolveSelfMethod(NamedScope *nme) {
    // first find class
    QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(nme);
    if (!qc)
       return 0;
 
    // see if class is base class of this class
-   if (qc != this && !priv->scl->sml.isBaseClass(qc)) {
+   if (qc != this && (!priv->scl || !priv->scl->sml.isBaseClass(qc))) {
       parse_error("'%s' is not a base class of '%s'", qc->getName(), priv->name ? priv->name : "<pending>");
       return 0;
    }
