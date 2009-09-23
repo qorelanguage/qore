@@ -271,8 +271,8 @@ public:
    QoreListNode *args;
    bool execed;
       
-   DLLLOCAL inline BCEANode(QoreListNode *arg);
-   DLLLOCAL inline BCEANode();
+   DLLLOCAL BCEANode(QoreListNode *arg);
+   DLLLOCAL BCEANode();
 };
 
 struct ltqc {
@@ -290,21 +290,21 @@ typedef std::map<const QoreClass *, class BCEANode *, ltqc> bceamap_t;
 */
 class BCEAList : public bceamap_t {
 protected:
-   DLLLOCAL inline ~BCEAList() { }
+   DLLLOCAL ~BCEAList() { }
    
 public:
-   DLLLOCAL inline void deref(ExceptionSink *xsink);
+   DLLLOCAL void deref(ExceptionSink *xsink);
    // evaluates arguments, returns -1 if an exception was thrown
-   DLLLOCAL inline int add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink);
-   DLLLOCAL inline QoreListNode *findArgs(const QoreClass *qc, bool *aexeced);
+   DLLLOCAL int add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink);
+   DLLLOCAL QoreListNode *findArgs(const QoreClass *qc, bool *aexeced);
 };
 
-inline BCEANode::BCEANode(QoreListNode *arg) {
+BCEANode::BCEANode(QoreListNode *arg) {
    args = arg;
    execed = false;
 }
 
-inline BCEANode::BCEANode() {
+BCEANode::BCEANode() {
    args = 0;
    execed = true;
 }
@@ -326,7 +326,7 @@ QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced) {
    return 0;
 }
 
-inline int BCEAList::add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink) {
+int BCEAList::add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink) {
    // see if class already exists in the list
    bceamap_t::iterator i = find(qc);
    if (i != end())
@@ -339,7 +339,7 @@ inline int BCEAList::add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *
    return 0;
 }
 
-inline void BCEAList::deref(ExceptionSink *xsink) {
+void BCEAList::deref(ExceptionSink *xsink) {
    bceamap_t::iterator i;
    while ((i = begin()) != end()) {
       BCEANode *n = i->second;
@@ -361,7 +361,7 @@ BCANode::~BCANode() {
       argexp->deref(0);
 }
 
-inline void BCANode::resolve() {
+void BCANode::resolve() {
    if (ns) {
       sclass = getRootNS()->parseFindScopedClass(ns);
       printd(5, "BCANode::resolve() this=%08p resolved named scoped %s -> %08p\n", this, ns->ostr, sclass);
@@ -577,7 +577,7 @@ const QoreMethod *BCList::findStaticMethod(const char *name, bool &priv) const {
    return 0;
 }
 
-inline bool BCList::match(class BCANode *bca) {
+bool BCList::match(class BCANode *bca) {
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if (bca->sclass == (*i)->sclass) {
 	 (*i)->args = bca->argexp;
@@ -589,14 +589,14 @@ inline bool BCList::match(class BCANode *bca) {
    return false;
 }
 
-inline bool BCList::isPrivateMember(const char *str) const {
+bool BCList::isPrivateMember(const char *str) const {
    for (bclist_t::const_iterator i = begin(); i != end(); i++)
       if ((*i)->sclass->isPrivateMember(str))
 	 return true;
    return false;
 }
 
-inline const QoreMethod *BCList::resolveSelfMethod(const char *name) {
+const QoreMethod *BCList::resolveSelfMethod(const char *name) {
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
@@ -659,7 +659,7 @@ BCAList::~BCAList() {
    }
 }
 
-inline void BuiltinMethod::deref() {
+void BuiltinMethod::deref() {
    if (ROdereference())
       delete this;
 }
@@ -750,62 +750,51 @@ void QoreClass::setName(const char *n) {
    priv->name = strdup(n);
 }
 
-bool QoreClass::is_unique() const
-{
+bool QoreClass::is_unique() const {
    return priv->nref.is_unique();
 }
 
-class QoreClass *QoreClass::getReference()
-{
+QoreClass *QoreClass::getReference() {
    //printd(5, "QoreClass::getReference() %08x %s %d -> %d\n", this, priv->name, nref.reference_count(), nref.reference_count() + 1);
    priv->nref.ROreference();
    return this;
 }
 
-void QoreClass::nderef()
-{
+void QoreClass::nderef() {
    //printd(5, "QoreClass::nderef() %08p %s %d -> %d\n", this, priv->name, nref.reference_count(), nref.reference_count() - 1);
    if (priv->nref.ROdereference())
       delete this;
 }
 
-bool QoreClass::hasCopy() const
-{
+bool QoreClass::hasCopy() const {
    return priv->copyMethod ? true : false; 
 }
 
-qore_classid_t QoreClass::getID() const
-{ 
+qore_classid_t QoreClass::getID() const { 
    return priv->classID; 
 }
 
-qore_classid_t QoreClass::getIDForMethod() const
-{ 
+qore_classid_t QoreClass::getIDForMethod() const { 
    return priv->methodID;
 }
 
-bool QoreClass::isSystem() const
-{ 
+bool QoreClass::isSystem() const { 
    return priv->sys;
 }
 
-bool QoreClass::hasMemberGate() const
-{
+bool QoreClass::hasMemberGate() const {
    return priv->memberGate != 0;
 }
 
-bool QoreClass::hasMemberNotification() const
-{
+bool QoreClass::hasMemberNotification() const {
    return priv->memberNotification != 0;
 }
 
-int QoreClass::getDomain() const
-{
+int QoreClass::getDomain() const {
    return priv->domain;
 }
 
-const char *QoreClass::getName() const 
-{ 
+const char *QoreClass::getName() const { 
    return priv->name; 
 }
 
@@ -867,7 +856,7 @@ void QoreClass::addDefaultBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs) {
    priv->methodID = qc->priv->classID;
 }
 
-void QoreClass::addBuiltinVirtualBaseClass(class QoreClass *qc) {
+void QoreClass::addBuiltinVirtualBaseClass(QoreClass *qc) {
    assert(qc);
 
    //printd(5, "adding %s as virtual base class to %s\n", qc->priv->name, priv->name);
@@ -999,7 +988,7 @@ QoreMethod *QoreMethod::copy(const QoreClass *p_class) const
    return new QoreMethod(p_class, priv->func.builtin, priv->priv_flag, priv->static_flag);
 }
 
-static inline const QoreClass *getStackClass() {
+static const QoreClass *getStackClass() {
    QoreObject *obj = getStackObject();
    if (obj)
       return obj->getClass();
@@ -1026,10 +1015,10 @@ void QoreClass::addPrivateMember(char *nme) {
    }
 }
 
-inline bool BCSMList::isBaseClass(class QoreClass *qc) const
-{
+bool BCSMList::isBaseClass(QoreClass *qc) const {
    class_list_t::const_iterator i = begin();
    while (i != end()) {
+      //printd(5, "BCSMList::isBaseClass() %s (%d) == %s (%d)\n", qc->getName(), qc->getID(), (*i).first->getName(), (*i).first->getID());
       if (qc == (*i).first)
 	 return true;
       i++;
@@ -1037,15 +1026,13 @@ inline bool BCSMList::isBaseClass(class QoreClass *qc) const
    return false;
 }
 
-inline void BCSMList::addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc, bool is_virtual)
-{
+void BCSMList::addBaseClassesToSubclass(QoreClass *thisclass, QoreClass *sc, bool is_virtual) {
    //printd(5, "BCSMList::addBaseClassesToSubclass(this=%s, sc=%s) size=%d\n", thisclass->getName(), sc->getName());
    for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i)
       sc->priv->scl->sml.add(thisclass, (*i).first, is_virtual || (*i).second);
 }
 
-inline void BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual)
-{
+void BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual) {
    if (thisclass == qc) {
       parse_error("class '%s' cannot inherit itself", qc->getName());
       return;
@@ -1067,7 +1054,7 @@ inline void BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual)
    push_back(std::make_pair(qc, is_virtual));
 }
 
-inline void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const {
+void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const {
    class_list_t::const_reverse_iterator i = rbegin();
    // cast below required by g++ 3.2 at least
    while (i != rend()) {
@@ -1078,7 +1065,7 @@ inline void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const
    }
 }
 
-inline void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const {
+void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const {
    class_list_t::const_reverse_iterator i = rbegin();
    while (i != rend()) {
       printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%08p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
@@ -1088,7 +1075,7 @@ inline void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink)
    }
 }
 
-inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
+void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    class_list_t::const_iterator i = begin();
    while (i != end()) {
       if (!(*i).second) {
@@ -1100,7 +1087,7 @@ inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, Excepti
    }
 }
 
-inline class QoreClass *BCSMList::getClass(qore_classid_t cid) const {
+QoreClass *BCSMList::getClass(qore_classid_t cid) const {
    class_list_t::const_iterator i = begin();
    while (i != end()) {
       if ((*i).first->getID() == cid)
@@ -1110,16 +1097,14 @@ inline class QoreClass *BCSMList::getClass(qore_classid_t cid) const {
    return 0;
 }
 
-QoreClass::QoreClass(const char *nme, int dom)
-{
+QoreClass::QoreClass(const char *nme, int dom) {
    priv = new qore_qc_private(nme, dom);
 
    priv->classID = priv->methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%08p)\n", priv->name, priv->classID, this);
 }
 
-QoreClass::QoreClass()
-{
+QoreClass::QoreClass() {
    priv = new qore_qc_private(0);
 
    priv->classID = priv->methodID = classIDSeq.next();
@@ -1345,7 +1330,7 @@ QoreClass *QoreClass::copyAndDeref() {
    return noc;
 }
 
-inline void QoreClass::insertMethod(QoreMethod *m) {
+void QoreClass::insertMethod(QoreMethod *m) {
    assert(!m->isStatic());
    //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", priv->name, m->getName(), numMethods());
 #ifdef DEBUG
@@ -1357,7 +1342,7 @@ inline void QoreClass::insertMethod(QoreMethod *m) {
    priv->hm[m->getName()] = m;
 }      
 
-inline void QoreClass::insertStaticMethod(QoreMethod *m) {
+void QoreClass::insertStaticMethod(QoreMethod *m) {
    assert(m->isStatic());
    //printd(5, "QoreClass::insertStaticMethod() %s::%s() size=%d\n", priv->name, m->getName(), numMethods());
 #ifdef DEBUG
@@ -1369,7 +1354,7 @@ inline void QoreClass::insertStaticMethod(QoreMethod *m) {
    priv->shm[m->getName()] = m;
 }      
 
-inline void QoreClass::addDomain(int dom) {
+void QoreClass::addDomain(int dom) {
    priv->domain |= dom;
 }
 
@@ -1640,7 +1625,7 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
    return *xsink ? 0 : self.release();
 }
 
-inline void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
+void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    if (priv->copyMethod)
       priv->copyMethod->evalCopy(self, old, xsink);
 }
