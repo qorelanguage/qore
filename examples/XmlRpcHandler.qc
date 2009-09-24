@@ -192,8 +192,7 @@ class XmlRpcHandler::XmlRpcHandler {
 		$xmlrpc = parseXMLRPCCall($body);
 	    }
 	    catch ($ex) {
-		log(LL_CRITICAL, getExceptionString($ex));
-		log(LL_DEBUG_1, "error parsing XML-RPC string: %s", $body);
+	        $.log($context, "error parsing XML-RPC string: %s", $body);
 		return ( "code"   : 200,
 			 "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),
 			 "hdr"    : ( "Content-Type" : "text/xml" ),
@@ -206,9 +205,6 @@ class XmlRpcHandler::XmlRpcHandler {
 	    return ( "code" : 200, "hdr" : ( "Content-Type" : "text/xml" ) ) + $.callMethod($context, $xmlrpc.params);
 	}
 	catch ($ex) {
-	    log(LL_DEBUG_1, getExceptionString($ex));
-	    #log(LL_CRITICAL, "context=%N\nxmlrpc=%N\n", $context, $xmlrpc);
-	    #log(LL_CRITICAL, getExceptionString($ex));
 	    my $str = sprintf("%s: %s", $ex.err, $ex.desc);
 	    return ( "code"   : 200,
 		     "errlog" : $str,

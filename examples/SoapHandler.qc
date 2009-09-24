@@ -2,13 +2,14 @@
 #
 # to be registered as a handler to the Qore HTTP server
 
+# v0.2.3: return correct soap fault structure according to request
 # v0.2.2: soap 1.2 improvements
 # v0.2.1: matched to new WSDL and HTTPServer implementation
 # v0.2.0: better WSDL support
 # v0.1.0: initial WSDL-based SOAP support (still incomplete)
 
 namespace SoapHandler {
-    const Version = "0.2.2";
+    const Version = "0.2.3";
 }
 
 class SoapHandler::SoapHandler {
@@ -140,8 +141,8 @@ class SoapHandler::SoapHandler {
 	#printf("DEBUG: found element %N method %N\n", $element, $method);
 	if (!exists $method) {
 	    if (!exists $element)
-		throw "SOAP-SERVER-UNKNOWN-OPERATION", sprintf("cannot find operation element in SOAP call; call context=%N", $context);
-	    throw "SOAP-SERVER-UNKNOWN-OPERATION", sprintf("cannot map top-level element %n to a SOAP operation (currently recognized top-level elements: %n)", $element, keys $.methods);
+		throw "SOAP-SERVER-UNKNOWN-OPERATION", sprintf("cannot find operation element in SOAP call; call context=%N", $context);	    
+	    throw "SOAP-SERVER-UNKNOWN-OPERATION", sprintf("cannot map top-level element %n to a SOAP operation: %s", $element, elements $.methods ? sprintf("currently recognized top-level elements: %n", keys $.methods) : "no SOAP services are currently registered");
 	}
 
 	# NOTE: internal methods have no operation definition and can take no parameters
@@ -227,10 +228,12 @@ class SoapHandler::SoapHandler {
 
     # method called by HTTPServer
     handleRequest($context, $hdr, $body) {
-	#log(LL_DEBUG_1, "soap handler context=%n hdr=%n body=%n ws=%n\n", $context, $hdr, $body, keys $.ws);
 	$context.http_header = $hdr;
 	$context.http_body = $body;
+
 	my $args;
+	my $reqsoap12; # set to True if soap 1.2 envelope is used in request
+
 	if ($hdr.method == "GET") {
 	    my $path = $context.url.path;
 
@@ -262,13 +265,13 @@ class SoapHandler::SoapHandler {
 			 "body" : sprintf("don't know how to handle content-type %n (expecting 'application/soap+xml')", $hdr."content-type") );
 
 	    try {
-		$args = parseXML($body);
+		$args = parseXMLAsData($body);
+		WSDL::XSDBase::removeNS(\$args);
+		WSDL::XSDBase::removeNS(\$args.Envelope);
 
 		# get SOAP operation name
 		my $element;
 		if (!exists ($element = ($hdr."qore-orig-content-type" =~ x/action=".*\/(.*)"/)[0])) {
-		    WSDL::XSDBase::removeNS(\$args);
-		    WSDL::XSDBase::removeNS(\$args.Envelope);
 
 		    my $sbody = $args.Envelope.Body;
 		    if (!exists $sbody)
@@ -281,6 +284,18 @@ class SoapHandler::SoapHandler {
 			break;
 		    }
 		}
+
+		# set soap version in request
+		my $attr = $args.Envelope."^attributes^";
+		foreach my $k in (keys $attr) {
+		    if ($k =~ /:soapenv$/) {
+			if ($attr.$k == SOAP_12_ENV)
+			    $reqsoap12 = True;
+			else if ($attr.$k != SOAP_11_ENV)
+			    throw "SOAP-CALL-ERROR", sprintf("unsupported SOAP envelope received: %n", $attr.$k);
+			break;
+		    }
+		}
 		    
 		if (!exists $element)
 		    throw "SOAP-CALL-ERROR", "no operation call found in message";
@@ -288,10 +303,11 @@ class SoapHandler::SoapHandler {
 		$context.element = $element;
 	    }
 	    catch ($ex) {
+		$.log($context, "exception parsing SOAP msg: %n", $body);
 		my $str = sprintf("exception in %s:%d: %s: %s (1: %N)", $ex.file, $ex.line, $ex.err, $ex.desc, $ex.callstack);
 		return ( "code"   : 200,
 			 "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),
-			 "body"   : SoapHandler::makeSoapFaultResponse(True, $ex.err, $ex.desc),
+			 "body"   : SoapHandler::makeSoapFaultResponse($reqsoap12, $ex.err, $ex.desc),
 			 "hdr"    : ( "Content-Type" : "application/soap+xml" )
 		    );
 	    }
@@ -304,7 +320,7 @@ class SoapHandler::SoapHandler {
 	    my $str = sprintf("exception in %s:%d: %s: %s (2: %N)", $ex.file, $ex.line, $ex.err, $ex.desc, $ex.callstack);
 	    return ( "code"   : 200,
 		     "errlog" : $str,
-		     "body"   : SoapHandler::makeSoapFaultResponse(True, $ex.err, $ex.desc),
+		     "body"   : SoapHandler::makeSoapFaultResponse($reqsoap12, $ex.err, $ex.desc),
 		     "hdr"    : ( "Content-Type" : "application/soap+xml" )
 		);
 	}

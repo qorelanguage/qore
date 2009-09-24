@@ -242,9 +242,10 @@ class HTTPServer::Listener inherits Qore::Socket {
     # thread for handling communication per connection
     private connectionThread($s) {
 	my $context = 
-	    ( "source"     : $s.source,
-	      "socket"     : $.socket,
-	      "id"         : $.ss.next() );
+	    ( "source"      : $s.source,
+	      "source-host" : $s.source_host,
+	      "socket"      : $.socket,
+	      "id"          : $.ss.next() );
 	
 	my ($hdr, $body);
 
@@ -338,11 +339,11 @@ class HTTPServer::Listener inherits Qore::Socket {
 			# save username in thread-local data
 			# since this thread is dedicated to this connection, the data will be 
 			# automatically deleted when the thread exits
-			$tld.rbac_authorized_user = $user;
+			save_thread_data("rbac_authorized_user", $user);
 			$context += ( "user"  : $user,
 				      "roles" : $roles );
 		    }
-		    else if (!exists $tld.rbac_authorized_user) {
+		    else if (!exists get_thread_data("rbac_authorized_user")) {
 			my ($roles, $user);
 			# only try ip-based authentication if the connection is not already authenticated
 			try {
@@ -355,7 +356,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 			}
 			if (elements $roles) {
 			    # save username in thread-local data
-			    $tld.rbac_authorized_user = $user;
+			    save_thread_data("rbac_authorized_user", $user);
 			    $context += ( "user"  : $user,
 					  "roles" : $roles );
 			}
@@ -412,11 +413,11 @@ class HTTPServer::Listener inherits Qore::Socket {
 		# if we need to get a body
 		switch ($hdr.method) {
 		case "HEAD":
-		    $.serv.handleRequest($s, $context, $hdr, NOTHING, \$close, True);
+		    $.serv.handleRequest($.socket, $s, $context, $hdr, NOTHING, \$close, True);
 		    break;
 
 		case "GET":
-		    $.serv.handleRequest($s, $context, $hdr, NOTHING, \$close);
+		    $.serv.handleRequest($.socket, $s, $context, $hdr, NOTHING, \$close);
 		    break;
 		
 		case "POST":
@@ -498,7 +499,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 			    break;
 			}
 		    }
-	            $.serv.handleRequest($s, $context, $hdr, $body, \$close);
+	            $.serv.handleRequest($.socket, $s, $context, $hdr, $body, \$close);
 	            break;
 
   	        default:
@@ -701,7 +702,7 @@ class HTTPServer::HTTPServer {
         }
     }
 
-    handleRequest($s, $context, $hdr, $body, $close, $head) {
+    handleRequest($sock, $s, $context, $hdr, $body, $close, $head) {
 	# handle accept-encoding to compress data if necessary
 	if (exists $hdr."accept-encoding") {
 	    # remove all writespace
@@ -731,13 +732,16 @@ class HTTPServer::HTTPServer {
 
         # parse the path in the request
         my $url = parseURL($hdr.path);
+	if (elements $url == 1 && exists $url.host) {
+	    $url = ( "path" : $url.host );
+	}
 
 	# add logging functions and url
 	$context += 
-	    ( "logfunc"    : $.logfunc,
-	      "errlogfunc" : $.errlogfunc,
-	      "url"        : $url );
-
+	    ( "logfunc"     : $.logfunc,
+	      "errlogfunc"  : $.errlogfunc,
+	      "url"         : $url 
+	    );
 	# find a handler for the request
 	my $m;
 	#printf("HTTP DEBUG: handleRequest() hdr=%n, handlers=%n\n", $hdr, $.handlers);

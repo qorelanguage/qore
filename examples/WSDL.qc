@@ -7,16 +7,22 @@
 # not complete, needs namespace verification, improved XSD support, element
 # groups, etc
 
+# 0.3.1: improved XSD imports and namespace handling
+
+# 0.3: implemented WSDLLib class of helper functions
+#      implemented support for xsd import statements in WSDLs
+
 # 0.2: use parseXMLAsData() instead of parseXML()
 #      implemented initial simpleType support
 #      fixed xsd:date serialization and deserialization
 
 # make sure we have the required qore version
-# 0.7.3 has parseXMLAsData() which we need
-%requires qore >= 0.7.3
+# 0.7.3 has parseXMLAsData()
+# 0.7.6 has object -= list and object -= string handling
+%requires qore >= 0.7.6
 
 namespace WSDL {
-    const version     = "0.2";
+    const version     = "0.3.1";
 
     const XET_ALL      = "ALL";
     const XET_CHOICE   = "CHOICE";
@@ -62,6 +68,64 @@ namespace WSDL {
     const SOAP_SERIALIZATION_ERROR = "SOAP-SERIALIZATION-ERROR";
     const SOAP_DESERIALIZATION_ERROR = "SOAP-DESERIALIZATION-ERROR";
     const WSDL_ERROR = "WSDL-ERROR";
+}
+
+class WSDLLib {
+    static getFile($url, $u) {
+	my $fn = $u.host + $u.path;
+	if (!exists $fn)
+	    throw "WSDL-LIB-ERROR", sprintf("missing file name in URL %n", $url);
+	my $f = new File();
+	$f.open2($fn);
+	return $f.read(-1);
+    }
+
+    static getHTTP($url, $path) {
+	my $hc = new HTTPClient(("url" : $url));
+	return $hc.get(exists $path ? $path : "/", NOTHING);
+    }
+
+    static getFTP($url, $path) {
+	my $file = basename($path);
+	if (!exists $file)
+	    throw "WSDL-LIB-ERROR", sprintf("missing file name in URL %n", $url);
+	
+	my $f = new FtpClient($url);
+	$f.connect();
+	
+	my $dir = dirname($path);
+	if (exists $dir)
+	    $f.cwd($dir);
+	
+	return $f.getAsBinary($file);
+    }
+
+    static getFileFromURL($url, $def_protocol) {
+	my $u = parseURL($url);
+
+	if (!exists $u.protocol)
+	    $u.protocol = exists $def_protocol ? $def_protocol : "file";
+	
+	switch ($u.protocol) {
+	    case "file":
+		return WSDLLib::getFile($url, $u);
+
+	    case /^http(s)?$/:
+		return WSDLLib::getHTTP($url, $u.path);
+
+	    case /^ftp(s)?$/:
+		return WSDLLib::getFTP($url, $u.path);
+
+	    default:
+	        throw "WSDL-LIB-ERROR", sprintf("do not know how to retrieve data with protocol %n given in URL %n", $u.protocol, $url);
+	}
+    }
+
+    static getWSDL($wsdl) {
+	if ($wsdl instanceof WebService || (strlen($wsdl) > 256 && $wsdl !~ /^\w+:\/\/.*$/))
+	    return $wsdl;
+	return WSDLLib::getFileFromURL($wsdl, "file");
+    }
 }
 
 # abstract class providing helper methods to subclasses
@@ -741,9 +805,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 	else
 	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serialize($.name, $h, $.targetns);
 
-	#return makeXMLString($rh);
-	# DEBUG
-	return makeFormattedXMLString($rh);
+	return HAVE_LIBRARY_DEBUGGING ? makeFormattedXMLString($rh) : makeXMLString($rh);
     }
 
     # returns an XML string in the SOAP response format
@@ -756,9 +818,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 	else
 	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serialize($.name, $h, $.targetns);
 
-	return makeXMLString($rh);
-	# DEBUG
-	#return makeFormattedXMLString($rh);
+	return HAVE_LIBRARY_DEBUGGING ? makeFormattedXMLString($rh) : makeXMLString($rh);
     }
 
     private processMultiRef($body) {
@@ -839,13 +899,31 @@ class WSDL::WSOperation inherits XSDNamedData {
 	WSDL::XSDBase::removeNS(\$body);
 	if (exists $body.Fault) {
 	    WSDL::XSDBase::removeNS(\$body.Fault);
-	    my $desc = sprintf("The following fault response was received from the server: code=%n", $body.Fault.faultcode);
-	    if (exists $body.Fault.faultstring)
-		$desc += sprintf(", faultstring=%n", $body.Fault.faultstring);
-	    if (exists $body.Fault.desc)
-		$desc += sprintf(", desc=%n", $body.Fault.desc);
-	    
-	    throw "SOAP-SERVER-FAULT-RESPONSE", $desc, $body.Fault;
+	    if ($.soap12) {
+		WSDL::XSDBase::removeNS(\$body.Fault.Code);
+		WSDL::XSDBase::removeNS(\$body.Fault.Reason);
+		my $desc = sprintf("The following fault response was received from the server: code=%n", $body.Fault.Code.Value);
+		my $sc = $body.Fault.Code.Subcode;
+		while (exists $sc) {
+		    WSDL::XSDBase::removeNS(\$sc);
+		    $desc += sprintf(", subcode=%n", $sc.Value);
+		    $sc = $sc.Subcode;
+		}
+		foreach my $rn in ($body.Fault.Reason.Text) {
+		    $desc += sprintf(", text=%n", $rn);
+		}
+		
+		throw "SOAP-SERVER-FAULT-RESPONSE", $desc, $body.Fault;
+	    }
+	    else {
+		my $desc = sprintf("The following fault response was received from the server: code=%n", $body.Fault.faultcode);
+		if (exists $body.Fault.faultstring)
+		    $desc += sprintf(", faultstring=%n", $body.Fault.faultstring);
+		if (exists $body.Fault.desc)
+		    $desc += sprintf(", desc=%n", $body.Fault.desc);
+		
+		throw "SOAP-SERVER-FAULT-RESPONSE", $desc, $body.Fault;
+	    }
 	}
 
 	return $.docstyle ? $.output.deserializeDocument($.types, $mrh, $msg) : $.output.deserialize($.types, $mrh, $msg);
@@ -982,6 +1060,24 @@ class WSDL::LateResolverHelper {
     }
 }
 
+# class saves namespaces in the WebService class, parses the imported definitions, 
+# and restores the namespace info on exit
+class XSDImportHelper {
+    constructor($ws, $xsd) {
+	# save WebService object
+	$.ws = $ws;
+
+	# get old values of namespace attributes
+	$.sp = $ws.("ns", "soap12");
+	$ws -= ("ns", "soap12");
+    }
+    destructor() {
+	$.ws -= ("ns", "soap12");
+	$.ws += $.sp;
+    }
+}
+
+
 class WSDL::WebService inherits XSDBase {
     constructor($str, $opts) {
         if (type($str) != Type::String)
@@ -1029,6 +1125,7 @@ class WSDL::WebService inherits XSDBase {
     }
 
     private getNSPrefixes($a) {
+	#printf("DEBUG: getNSPrefixes() %n\n", $a);
 	foreach my $k in (keys $a) {
 	    my $ns = ($k =~ x/xmlns:(\w+)/)[0];
 	    
@@ -1036,7 +1133,7 @@ class WSDL::WebService inherits XSDBase {
 		continue;
 	    $.ns.map.$ns = $a.$k;
 
-	    if ($a.$k == "http://www.w3.org/2001/XMLSchema")
+	    if ($a.$k == XSD_NS)
 		$.ns.xml_schema.$ns = True;
 
 	    if ($a.$k == SOAP_12_NS)
@@ -1062,11 +1159,11 @@ class WSDL::WebService inherits XSDBase {
 	# find type
 	if (!exists $.types.($v.val))
 	    throw WSDL_ERROR, sprintf("cannot resolve type %n", $v.val);
-	
+
 	return $.types.($v.val);
     }
 
-    # parse types
+    # parse XSD schema types
     private parseTypes($data) {
 	WSDL::XSDBase::removeNS(\$data);
 
@@ -1076,6 +1173,42 @@ class WSDL::WebService inherits XSDBase {
 	foreach my $schema in ($data.schema) {
 	    WSDL::XSDBase::removeNS(\$schema);
 	    #printf("DEBUG: WebService::parseTypes() schema=%N\n", $schema);
+
+	    # process XSD import if present
+	    if (exists $schema.import) {
+		my $a = $schema.import."^attributes^";
+		# import file
+		if (strlen($a.schemaLocation)) {
+		    my $xsd = WSDLLib::getFileFromURL($a.schemaLocation);
+		    if (!strlen($xsd))
+			throw WSDL_ERROR, sprintf("invalid XSD import: %n returns an empty file", $a.schemaLocation);
+
+		    # parse imported XSD file and include types in our list
+		    # also saves namespace definitions and restores on exit
+		    my $xih = new XSDImportHelper($self, $xsd);
+
+		    # parse XML to Qore data structure ignoring XML element order
+		    $xsd = parseXMLAsData($xsd);
+
+		    # parse namespace definitions in schema attributes
+		    my $kl = keys $xsd;
+		    if (elements $kl != 1)
+			throw WSDL_ERROR, sprintf("expecing a single element indicating an XSD schema in the imported file; got instead: %n", $kl);
+
+		    # get schema member name
+		    my $sk = $kl[0];
+
+		    # get namespace info in new schema
+		    $.getNSPrefixes($xsd.$sk."^attributes^");
+		    
+		    # verify that the top-level key indicates an XSD schema definition
+		    my ($ns, $mem) = ($sk =~ x/^(\w+):(\w+)$/);
+		    if (exists $ns && !$.ns.xml_schema.$ns)
+			throw WSDL_ERROR, sprintf("expecing imported schema definition to be in XSD namespace %n, got %n=%n instead", XSD_NS, $ns, $.ns.map.$ns);
+
+		    $.parseTypes($xsd);
+		}
+	    }
 
 	    my $unresolved = new LateResolverHelper();
 	    foreach my $st in ($schema.simpleType) {

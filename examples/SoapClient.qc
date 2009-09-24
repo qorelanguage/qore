@@ -8,19 +8,20 @@
 #
 # the constructor takes named arguments in the form of a hash
 # vaild arguments are:
-# required keys: one of: "wsdl"      : a string defining the WSDL
-#                        "wsdl_file" : the filename of the WSDL 
-# optional keys:         "service"   : the name of the "portType" to use (if
-#                                      more than 1 portType is defined in the 
-#                                      WSDL then this key is mandatory
-#                        "url"       : to override the URL defined in the WSDL
+# required keys: one of: "wsdl" or "wsdl_file"
+#                                  : a string defining the WSDL or the URL of
+#                                    the WSDL
+# optional keys:         "service" : the name of the "portType" to use (if
+#                                    more than 1 portType is defined in the 
+#                                    WSDL then this key is mandatory
+#                        "url"     : to override the URL defined in the WSDL
 #
 # create messages by setting up a Qore data structure corresponding to the SOAP
 # message.  Exceptions will be thrown if either the outgoing or the response
 # message do not respond to the WSDL.   The exceptions should be fairly verbose
 # to allow you to quickly correct any mistakes.
 #
-# currently the WSDL implementation is very basic so any messages using
+# currently the WSDL implementation is fairly basic so any messages using
 # unimplemented features of SOAP or XSD will fail.
 #
 # example: (make sure the files are in the same directory or in the
@@ -28,12 +29,12 @@
 #
 # %include WSDL.qc
 # %include SoapClient.qc
-# my $sc = new SoapClient(("wsdl_file" : "my-service.wsdl", "url" : "https://localhost:8080" ));
+# my $sc = new SoapClient(("wsdl" : "http://soap.server.org:8080/my-service?wsdl"));
 # my $result = $sc.call("SubmitDocument", $msg);
 
 namespace SoapClient {
     # version of the implementation of this class
-    const Version = "0.1.2";
+    const Version = "0.2";
     # default headers
     const Headers = ("Accept":"application/soap+xml,text/xml", "User-Agent":("Qore Soap Client " + SoapClient::Version));
     # option keys passed to the HTTPClient constructor
@@ -50,16 +51,15 @@ class SoapClient::SoapClient {
 	if (type($h) != Type::Hash)
 	    throw "SOAP-CLIENT-ERROR", "missing option hash argument to SoapClient::constructor() ('wsdl' or 'wsdl_file' keys required)";
 	
-	my ($wsdl, $hopts);
-	
+	if (exists $h.wsdl_file && exists $h.wsdl)
+	    throw "SOAP-CLIENT-ERROR", "only one of 'wsdl' or 'wsdl_file' keys can be given; both were passed";
+
+	my $wsdl;
 	# get web service definition
-	if (exists $h.wsdl_file) {
-	    my $f = new File();
-	    $f.open2($h.wsdl_file);
-	    $wsdl = $f.read(-1);
-	}
+	if (exists $h.wsdl_file)
+	    $wsdl = WSDLLib::getWSDL($h.wsdl_file);
 	else if (exists $h.wsdl)
-	    $wsdl = $h.wsdl;
+	    $wsdl = WSDLLib::getWSDL($h.wsdl);
 	else
 	    throw "SOAP-CLIENT-ERROR", "neither one of required 'wsdl' or 'wsdl_file' keys is present in the hash argument to SoapClient::constructor()";
 
@@ -102,7 +102,7 @@ class SoapClient::SoapClient {
 	#printf("DEBUG: set url to %n\n", $.url);
 
 	# setup option hash for HTTPClient constructor
-	$hopts = ( "url" : $.url );
+	my $hopts = ( "url" : $.url );
 
 	foreach my $k in (HTTPOptions)
 	    if (exists $h.$k)
@@ -119,7 +119,7 @@ class SoapClient::SoapClient {
 
 	return $op.serializeRequest($h);
     }
-   
+
     call($operation, $h, $info) {
 	my $op;
 	my $msg = $.getMsg($operation, $h, \$op);
