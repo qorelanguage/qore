@@ -903,6 +903,21 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
 	 v.assign(new_right.getReferencedValue());
       }
    }
+   else if (vtype == NT_BINARY) {
+      if (new_right) {
+	 v.ensure_unique();
+	 BinaryNode *b = reinterpret_cast<BinaryNode *>(v.get_value());
+	 if (new_right->getType() == NT_BINARY) {
+	    const BinaryNode *arg = reinterpret_cast<const BinaryNode *>(*new_right);
+	    b->append(arg);
+	 }
+	 else {
+	    QoreStringNodeValueHelper str(*new_right);
+	    if (str->strlen())
+	       b->append(str->getBuffer(), str->strlen());
+	 }
+      }
+   }
    else { // do integer plus-equals
       int64 iv = new_right ? new_right->getAsBigInt() : 0;
 
@@ -1347,8 +1362,7 @@ static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, con
 }
 
 // this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
-static AbstractQoreNode *op_plus_list(const AbstractQoreNode *left, const AbstractQoreNode *right)
-{
+static AbstractQoreNode *op_plus_list(const AbstractQoreNode *left, const AbstractQoreNode *right) {
    if (left->getType() == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(left);
       QoreListNode *rv = l->copy();
@@ -1370,8 +1384,7 @@ static AbstractQoreNode *op_plus_list(const AbstractQoreNode *left, const Abstra
    return rv;
 }
 
-static AbstractQoreNode *op_plus_hash_hash(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_plus_hash_hash(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left->getType() == NT_HASH) {
       const QoreHashNode *lh = reinterpret_cast<const QoreHashNode *>(left);
 
@@ -1389,8 +1402,7 @@ static AbstractQoreNode *op_plus_hash_hash(const AbstractQoreNode *left, const A
    return right->getType() == NT_HASH ? right->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_plus_hash_object(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_plus_hash_object(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left->getType() == NT_HASH) {
       const QoreHashNode *lh = reinterpret_cast<const QoreHashNode *>(left);
       if (right->getType() != NT_OBJECT)
@@ -1409,8 +1421,7 @@ static AbstractQoreNode *op_plus_hash_object(const AbstractQoreNode *left, const
 }
 
 // note that this will return a hash
-static AbstractQoreNode *op_plus_object_hash(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_plus_object_hash(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left->getType() == NT_OBJECT) {
       if (right->getType() != NT_HASH)
 	 return left->refSelf();
@@ -1430,6 +1441,21 @@ static AbstractQoreNode *op_plus_object_hash(const AbstractQoreNode *left, const
    }
 
    return right->getType() == NT_HASH ? right->refSelf() : 0;
+}
+
+static AbstractQoreNode *op_plus_binary_binary(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
+   if (right->getType() != NT_BINARY)
+      return left ? left->refSelf() : 0;
+
+   if (left->getType() != NT_BINARY)
+      return right->refSelf();
+
+   const BinaryNode *l = reinterpret_cast<const BinaryNode *>(left);
+   const BinaryNode *r = reinterpret_cast<const BinaryNode *>(right);
+
+   BinaryNode *rv = l->copy();
+   rv->append(r);
+   return rv;
 }
 
 static int64 op_cmp_double(double left, double right)
@@ -3855,6 +3881,7 @@ void OperatorList::init() {
    OP_PLUS->addFunction(NT_HASH,    NT_HASH,   op_plus_hash_hash);
    OP_PLUS->addFunction(NT_HASH,    NT_OBJECT, op_plus_hash_object);
    OP_PLUS->addFunction(NT_OBJECT,  NT_HASH,   op_plus_object_hash);
+   OP_PLUS->addFunction(NT_BINARY,  NT_BINARY, op_plus_binary_binary);
    OP_PLUS->addDefaultNothing();
 
    OP_MULT = add(new Operator(2, "*", "multiply", 1, false));

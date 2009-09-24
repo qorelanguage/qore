@@ -168,7 +168,7 @@
   <row>
     <entry><para>+</para></entry>
     <entry><para>11</para></entry>
-    <entry><para><link linkend='Plus_Operator'>plus operator: string, list, and hash concatenation, integer and float addition</link></para></entry>
+    <entry><para><link linkend='Plus_Operator'>plus operator: string, binary, list, and hash concatenation, integer and float addition</link></para></entry>
     <entry>
       <para><code>$a + 10</code></para>
       <para><code>"hello" + "there"</code></para>
@@ -1885,7 +1885,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Numeric addition, list, string, and hash concatenation operator.</para>
+	<para>Numeric addition, list, string, binary, and hash concatenation operator.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -1901,7 +1901,8 @@ printf("0x%x\n", $binary[2]);
 	<programlisting>$a = 1 + 2;</programlisting>
 	<programlisting>$string = "hello" + "-there";</programlisting>	
 	<programlisting>$list = (1, 2) + ("three", "four", "five");</programlisting>
-	<programlisting>$hash = ( "key1" : 1, "key2" : 2) + ( "key3" : "three", "key4": "four");</programlisting>	
+	<programlisting>$hash = ( "key1" : 1, "key2" : 2) + ( "key3" : "three", "key4": "four");</programlisting>
+	<programlisting>$bin = $bin1 + $bin2;</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -3570,6 +3571,10 @@ printf("0x%x\n", $binary[2]);
       <row>
 	<entry><para><replaceable>lvalue</replaceable>: Float</para></entry>
 	<entry><para>the expression will be evaluated and converted to a float if necessary and added to the lvalue.</para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: Binary</para></entry>
+	<entry><para>the expression will be evaluated and converted to a string if necessary and added to the lvalue.</para></entry>
       </row>
       <row>
 	<entry><para><replaceable>lvalue</replaceable>: NOTHING</para></entry>

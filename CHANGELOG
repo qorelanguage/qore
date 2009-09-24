@@ -1,5 +1,6 @@
 2009.09.24: David Nichols
 	* added binary_to_string() function
+	* implemented binary concatentation support in the += and + operators
 
 2009.09.23: David Nichols
 	* fixed method resolution for in-object method calls when the target

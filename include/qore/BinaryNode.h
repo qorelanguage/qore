@@ -116,6 +116,9 @@ class BinaryNode : public SimpleValueQoreNode
       //! resizes the object and appends a copy of the data passed to the object
       DLLEXPORT void append(const BinaryNode *b);
 
+      //! resizes the object and appends a copy of the data passed to the object
+      DLLEXPORT void append(const BinaryNode &b);
+
       //! resizes the object and prepends a copy of the data passed to the beginning of the object
       DLLEXPORT void prepend(const void *nptr, qore_size_t size);
 

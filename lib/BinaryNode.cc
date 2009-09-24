@@ -25,21 +25,18 @@
 #include <string.h>
 #include <stdlib.h>
 
-BinaryNode::BinaryNode(void *p, unsigned long size) : SimpleValueQoreNode(NT_BINARY)
-{
+BinaryNode::BinaryNode(void *p, unsigned long size) : SimpleValueQoreNode(NT_BINARY) {
    ptr = p;
    len = size;
 }
 
-BinaryNode::~BinaryNode()
-{
+BinaryNode::~BinaryNode() {
    if (ptr)
       free(ptr);
 }
 
 // returns 0 = equal, 1 = not equal
-int BinaryNode::compare(const BinaryNode *obj) const
-{
+int BinaryNode::compare(const BinaryNode *obj) const {
    // if the sizes are not equal, then the objects can't be equal
    if (len != obj->len)
       return 1;
@@ -51,13 +48,11 @@ int BinaryNode::compare(const BinaryNode *obj) const
    return memcmp(ptr, obj->ptr, len);
 }
 
-unsigned long BinaryNode::size() const
-{
+unsigned long BinaryNode::size() const {
    return len;
 }
 
-BinaryNode *BinaryNode::copy() const
-{
+BinaryNode *BinaryNode::copy() const {
    if (!len)
       return new BinaryNode();
 
@@ -66,25 +61,25 @@ BinaryNode *BinaryNode::copy() const
    return new BinaryNode(np, len);
 }
 
-const void *BinaryNode::getPtr() const
-{
+const void *BinaryNode::getPtr() const {
    return ptr;
 }
 
-void BinaryNode::append(const void *nptr, unsigned long size)
-{
+void BinaryNode::append(const void *nptr, unsigned long size) {
    ptr = realloc(ptr, len + size);
    memcpy((char *)ptr + len, nptr, size);
    len += size;
 }
 
-void BinaryNode::append(const BinaryNode *b)
-{
+void BinaryNode::append(const BinaryNode *b) {
    append(b->ptr, b->len);
 }
 
-void BinaryNode::prepend(const void *nptr, unsigned long size)
-{
+void BinaryNode::append(const BinaryNode &b) {
+   append(b.ptr, b.len);
+}
+
+void BinaryNode::prepend(const void *nptr, unsigned long size) {
    ptr = realloc(ptr, len + size);
    // move memory forward
    memmove((char *)ptr + size, ptr, len);
@@ -93,8 +88,7 @@ void BinaryNode::prepend(const void *nptr, unsigned long size)
    len += size;
 }
 
-void *BinaryNode::giveBuffer()
-{
+void *BinaryNode::giveBuffer() {
    void *p = ptr;
    ptr = 0;
    len = 0;
@@ -105,22 +99,19 @@ void *BinaryNode::giveBuffer()
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
-QoreString *BinaryNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *BinaryNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
    return rv;
 }
 
-int BinaryNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
-   str.sprintf("binary object %08p (%d byte%s)", getPtr(), size(), size() == 1 ? "" : "s");
+int BinaryNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   str.sprintf("binary object %p (%d byte%s)", getPtr(), size(), size() == 1 ? "" : "s");
    return 0;
 }
 
-AbstractQoreNode *BinaryNode::realCopy() const
-{
+AbstractQoreNode *BinaryNode::realCopy() const {
    return copy();
 }
 
@@ -128,27 +119,23 @@ AbstractQoreNode *BinaryNode::realCopy() const
 // the "val" passed
 //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool BinaryNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool BinaryNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const BinaryNode *b = dynamic_cast<const BinaryNode *>(v);
    if (!b)
       return false;
    return !compare(b);
 }
 
-bool BinaryNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool BinaryNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    return is_equal_soft(v, xsink);
 }
 
 // returns the type name as a c string
-const char *BinaryNode::getTypeName() const
-{
+const char *BinaryNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-int BinaryNode::preallocate(qore_size_t size)
-{
+int BinaryNode::preallocate(qore_size_t size) {
    ptr = q_realloc(ptr, size);
    if (ptr) {
       len = size;
@@ -158,8 +145,7 @@ int BinaryNode::preallocate(qore_size_t size)
    return -1;
 }
 
-int BinaryNode::setSize(qore_size_t size)
-{
+int BinaryNode::setSize(qore_size_t size) {
    if (size > len)
       return -1;
 
