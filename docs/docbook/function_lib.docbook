@@ -158,19 +158,16 @@
         </row>
 
         <row>
-          <entry>
-            <para>
-              <link linkend="binary">binary()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Binary</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry><para>Returns a binary data type of the data passed.</para>
-          </entry>
+          <entry><para><link linkend="binary">binary()</link></para></entry>
+          <entry><para>Binary</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a binary data type of the data passed.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="binary_to_string">binary_to_string()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Returns a string created from the binary data passed.</para></entry>
         </row>
         <row>
           <entry>
@@ -7665,6 +7662,70 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+<sect2 id="binary_to_string">
+<title>binary_to_string()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a string created from the binary data passed, taking an optional second argument giving the string encoding.  If no second argument is passed then the default encoding is assumed.</para>
+	<para>No checking is performed for embedded null characters or for character encoding violations; the data is simply copied from the binary value to the string (with any embedded nulls, if present), and the string is tagged with the given encoding or with the default encoding if no second argument is passed.  See also <link linkend="string">string()</link> and <link linkend="binary">binary()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>binary_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$str = binary_to_string($bin, "utf8");</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for binary_to_string()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>Binary, [String]</para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Returns a string corresponding to the binary data passed, taking an optional second argument giving the string encoding.  If no second argument is passed then the default encoding is assumed.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <table><title>Exceptions Thrown by binary_to_string()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>BINARY-TO-STRING-ERROR</code></para></entry>
+	<entry><para>No binary value was passed as the first argument.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+</sect2>
+
 <sect2 id="boolean">
 <title>boolean()</title>
 
@@ -7986,6 +8047,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Synopsis</term>
       <listitem>
 	<para>Converts the argument passed to a string value.</para>
+	<para>This function will not convert a binary value to a string; in order to do this, use the <link linkend="binary_to_string">binary_to_string()</link> function.</para>
       </listitem>
     </varlistentry>
     <varlistentry>

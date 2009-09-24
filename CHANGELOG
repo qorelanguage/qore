@@ -1,3 +1,6 @@
+2009.09.24: David Nichols
+	* added binary_to_string() function
+
 2009.09.23: David Nichols
 	* fixed method resolution for in-object method calls when the target
 	  method is static

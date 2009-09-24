@@ -23,32 +23,27 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_type.h>
 
-static AbstractQoreNode *f_boolean(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_boolean(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
    return get_bool_node(p ? p->getAsBool() : false);
 }
 
-static AbstractQoreNode *f_int(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_int(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(p0 ? p0->getAsBigInt() : 0);
 }
 
-static AbstractQoreNode *f_float(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_float(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreFloatNode(p0 ? p0->getAsFloat() : 0.0);
 }
 
-static AbstractQoreNode *f_string(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_string(const QoreListNode *params, ExceptionSink *xsink) {
    QoreStringNodeValueHelper str(get_param(params, 0));
    return str.getReferencedValue();
 }
 
-static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
       return new BinaryNode();
@@ -71,8 +66,7 @@ static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsi
    return new BinaryNode(str->giveBuffer(), len);
 }
 
-static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink) {
    DateTimeNodeValueHelper date(get_param(params, 0));
    return date.getReferencedValue();
 }
@@ -118,6 +112,25 @@ static AbstractQoreNode *f_type(const QoreListNode *params, ExceptionSink *xsink
    return new QoreStringNode(p->getTypeName());
 }
 
+static AbstractQoreNode *f_binary_to_string(const QoreListNode *params, ExceptionSink *xsink) {
+   const BinaryNode *b = test_binary_param(params, 0);
+   if (!b) {
+      xsink->raiseException("BIANRY-TO-STRING-ERROR", "missing required binary value as first argument to binary_to_string()");
+      return 0;
+   }
+
+   const QoreEncoding *qcs;
+   {
+      const QoreStringNode *pcs;
+      qcs = (pcs = test_string_param(params, 1)) ? QEM.findCreate(pcs) : QCS_DEFAULT;
+   }
+
+   if (!b->size())
+      return new QoreStringNode(qcs);
+
+   return new QoreStringNode((const char *)b->getPtr(), b->size(), qcs);
+}
+
 void init_type_functions() {
    builtinFunctions.add("boolean", f_boolean);
    builtinFunctions.add("int", f_int);
@@ -129,4 +142,5 @@ void init_type_functions() {
    builtinFunctions.add("hash", f_hash);
    builtinFunctions.add("type", f_type);
    builtinFunctions.add("typename", f_type);
+   builtinFunctions.add("binary_to_string", f_binary_to_string);
 }

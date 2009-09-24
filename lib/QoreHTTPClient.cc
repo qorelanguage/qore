@@ -659,7 +659,7 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
    return (const char *)pstr.getBuffer();
 }
 
-QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink) {
+QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, bool suppress_content_length, ExceptionSink *xsink) {
    QoreString pathstr(priv->m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
 
@@ -781,7 +781,7 @@ static void do_event(Queue *cb_queue, int64 id, int event) {
    }
 }
 
-QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink) {
+QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink, bool suppress_content_length) {
    //printd(5, "QoreHTTPClient::send_internal(meth=%s, mpath=%s, info=%08p)\n", meth, mpath, info);
 
    // check if method is valid
@@ -900,7 +900,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    return 0;
       }
 
-      ans = getResponseHeader(meth, mpath, *(*nh), data, size, code, xsink);
+      ans = getResponseHeader(meth, mpath, *(*nh), data, size, code, suppress_content_length, xsink);
       if (!ans)
 	 return 0;
 
@@ -1138,6 +1138,27 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
    return ans.release();
 }
+
+/*
+int QoreHTTPClient::buildMultipart(QoreString &msg, const char *mp_content_type, QoreHashNode &headers, const QoreListNode *mp_msg_list, ExceptionSink *xsink) {   
+   // find content-type header
+}
+
+QoreHashNode *QoreHTTPClient::sendMultipart(const char *mp_content_type, const char *meth, const char *new_path, const QoreHashNode *headers, const QoreListNode &mp_msg_list, bool getbody, QoreHashNode *info, ExceptionSink *xsink) {
+   if (mp_msg_list.size() < 2) {
+      xsink->raiseException("HTTP-SEND-MULTIPART-ERROR", "multipart message list must have at least 2 elements; list passed has %d", mp_msg_list.size());
+      return 0;
+   }
+
+   QoreString msg;
+   ReferenceHolder<QoreHashNode> hdr_holder(headers ? headers->copy() : new QoreHashNode, xsink);
+
+   if (buildMultipart(msg, mp_content_type, *(*hdr_holder), mp_msg_list, xsink))
+      return 0;
+
+   return send_internal(meth, new_path, headers, data, size, getbody, info, xsink, true);
+}
+*/
 
 QoreHashNode *QoreHTTPClient::send(const char *meth, const char *new_path, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink) {
    return send_internal(meth, new_path, headers, data, size, getbody, info, xsink);
