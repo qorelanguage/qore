@@ -19404,7 +19404,7 @@ $sock.bind("/tmp/socket");</programlisting>
             <entry><para>Returns the current <code>max_redirects</code> value.</para></entry>
           </row>
           <row>
-            <entry><para><link linkend="HTTPClient_setMaxRedirects">HTTPClient::gstMaxRedirects()</link></para></entry>
+            <entry><para><link linkend="HTTPClient_setMaxRedirects">HTTPClient::setMaxRedirects()</link></para></entry>
             <entry><para>N</para></entry>
             <entry><para>Updates the <code>max_redirects</code> value.</para></entry>
           </row>
