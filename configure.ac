@@ -796,7 +796,7 @@ if test "${enable_debug}" = yes; then
    # remove -O2 from CXXFLAGS so valgrind can report properly
    CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
 else
-   AC_DEFINE(NDEBUG, 1, Define if assert() declarations should be suppressed)
+   QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DNDEBUG=1"
 fi
 
 if test "${enable_profile}" = yes; then
