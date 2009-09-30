@@ -1029,7 +1029,8 @@ int QoreString::substr_simple(QoreString *ns, qore_offset_t offset) const
    if (n_offset >= priv->len)  // if offset outside of string, return nothing
       return -1;
 
-   ns->concat(priv->buf + n_offset);
+   // add length to ensure that the entire string is copied even if it has embedded nulls
+   ns->concat(priv->buf + n_offset, priv->len - n_offset);
    return 0;
 }
 

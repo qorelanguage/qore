@@ -620,6 +620,8 @@ class HTTPServer::HTTPServer {
     }
     
     setDefaultHandler($name, $obj) {
+	if (type($obj) != Type::Object)
+	    throw "HTTP-SERVER-SET-DEFAULT-HANDLER-ERROR", "second argument to function is not an HTTP request handler";
 	$.defaultHandler = ( "name" : $name,
 			     "obj"  : $obj );
     }

@@ -781,6 +781,22 @@ static void do_event(Queue *cb_queue, int64 id, int event) {
    }
 }
 
+static void check_headers(const char *str, int len, bool &multipart, QoreHashNode &ans, const QoreEncoding *enc, ExceptionSink *xsink) {
+   // see if the string starts with "multipart/"
+   if (!multipart) {
+      if (len > 10 && !strncasecmp(str, "multipart/", 10)) {
+	 ans.setKeyValue("_qore_multipart", new QoreStringNode(str + 10, len - 10, enc), xsink);
+	 multipart = true;
+      }
+   }
+   else {
+      if (len > 9 && !strncasecmp(str, "boundary=", 9))
+	 ans.setKeyValue("_qore_multipart_boundary", new QoreStringNode(str + 9, len - 9, enc), xsink);
+      else if (len > 6 && !strncasecmp(str, "start=", 6))
+	 ans.setKeyValue("_qore_multipart_start", new QoreStringNode(str + 6, len - 6, enc), xsink);
+   }
+}
+
 QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink, bool suppress_content_length) {
    //printd(5, "QoreHTTPClient::send_internal(meth=%s, mpath=%s, info=%08p)\n", meth, mpath, info);
 
@@ -972,6 +988,9 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    const AbstractQoreNode *v = ans->getKeyValue("content-type");
    // see if there is a character set specification in the content-type header
    if (v) {
+      // save original content-type header before processing
+      ans->setKeyValue("_qore_orig_content_type", v->refSelf(), xsink);
+
       const char *str = (reinterpret_cast<const QoreStringNode *>(v))->getBuffer();
       const char *p = strstr(str, "charset=");
       if (p && (p == str || *(p - 1) == ';' || *(p - 1) == ' ')) {
@@ -1008,14 +1027,25 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       // split into a list if ";" characters are present
       p = strchr(str, ';');
       if (p) {
+	 bool multipart = false;
 	 QoreListNode *l = new QoreListNode();
 	 do {
-	    l->push(new QoreStringNode(str, p - str, priv->m_socket.getEncoding()));
+	    // skip whitespace
+	    while (*str == ' ') str++;
+	    if (str != p) {
+	       int len = p - str;
+	       check_headers(str, len, multipart, *(*ans), priv->m_socket.getEncoding(), xsink);
+	       l->push(new QoreStringNode(str, len, priv->m_socket.getEncoding()));
+	    }
 	    str = p + 1;
 	 } while ((p = strchr(str, ';')));
+	 // skip whitespace
+	 while (*str == ' ') str++;
 	 // add last field
-	 if (*str)
+	 if (*str) {
+	    check_headers(str, strlen(str), multipart, *(*ans), priv->m_socket.getEncoding(), xsink);
 	    l->push(new QoreStringNode(str, priv->m_socket.getEncoding()));
+	 }
 	 ans->setKeyValue("content-type", l, xsink);
       }
    }

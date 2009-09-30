@@ -93,8 +93,7 @@ static AbstractQoreNode *f_toupper(const QoreListNode *params, ExceptionSink *xs
 }
 
 // syntax substr(string, start[, length]) - note 1st character is 0, not 1
-static AbstractQoreNode *f_substr(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_substr(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0, *p1;
 
    if (is_nothing(p0 = get_param(params, 0)) || is_nothing(p1 = get_param(params, 1)))
@@ -356,9 +355,39 @@ static AbstractQoreNode *f_chr(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreStringNode((char)p0->getAsInt());
 }
 
+static inline const char *memstr(const char *str, const char *pattern, qore_size_t pl, qore_size_t len) {
+   while (true) {
+      const char *p = (const char *)memchr(str, pattern[0], len);
+      if (!p)
+	 return 0;
+
+      //printd(5, "memstr() pattern=%s str=%p p=%p len=%d pl=%d remaining=%d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
+
+      // if there is not enough string left for the pattern, then return
+      if ((len - (p - str)) < pl)
+	 return 0;
+
+      bool found = true;
+      for (qore_size_t i = 1; i < pl; ++i) {
+	 if (pattern[i] != p[i]) {
+	    len -= (p - str + 1);
+	    str = p + 1;
+	    found = false;
+	    break;
+	 }
+      }
+      if (!found)
+	 continue;
+     
+      // found
+      //printd(5, "memstr() got it! p=%p\n", p);
+      return p;
+   }
+   return 0;
+}
+
 // syntax: split(pattern, string);
-static AbstractQoreNode *f_split(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_split(const QoreListNode *params, ExceptionSink *xsink) {
    const char *str, *pattern;
    const QoreStringNode *p0, *p1;
 
@@ -374,17 +403,19 @@ static AbstractQoreNode *f_split(const QoreListNode *params, ExceptionSink *xsin
    pattern = temp->getBuffer();
    str = p1->getBuffer();
 
-   printd(5, "in f_split(\"%s\", \"%s\")\n", pattern, str);
+   //printd(5, "in f_split(\"%s\", \"%s\")\n", pattern, str);
    QoreListNode *l = new QoreListNode();
-   while (const char *p = strstr(str, pattern))
-   {
+   //while (const char *p = strstr(str, pattern)) {
+   qore_size_t pl = strlen(pattern);
+   while (const char *p = memstr(str, pattern, pl, p1->strlen() - (str - p1->getBuffer()))) {
       //printd(5, "str=%08p p=%08p \"%s\" \"%s\"\n", str, p, str, pattern);
       l->push(new QoreStringNode(str, p - str, p1->getEncoding()));
-      str = p + strlen(pattern);
+      str = p + pl;
    }
+   //printd(5, "f_split() str=%p %d remaining=%d\n", str, *str, p1->strlen() - (str - p1->getBuffer()));
    // add last field
    if (*str)
-      l->push(new QoreStringNode(str, p1->getEncoding()));
+      l->push(new QoreStringNode(str, p1->strlen() - (str - p1->getBuffer()), p1->getEncoding()));
    return l;
 }
 
