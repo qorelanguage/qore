@@ -54,6 +54,7 @@
 #include <qore/intern/QC_AutoReadLock.h>
 #include <qore/intern/QC_AutoWriteLock.h>
 #include <qore/intern/QC_TermIOS.h>
+#include <qore/intern/QC_XmlNode.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1393,6 +1394,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qns->addSystemClass(initAutoReadLockClass());
    qns->addSystemClass(initAutoWriteLockClass());
    qns->addSystemClass(initTermIOSClass());
+
+   // add Xml namespace
+   qns->addInitialNamespace(initXmlNs());
 
    // add HTTPClient namespace
    QoreClass *http_client_class;

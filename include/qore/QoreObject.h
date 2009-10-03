@@ -123,6 +123,14 @@ class QoreObject : public AbstractQoreNode {
        */
       DLLEXPORT QoreObject(const QoreClass *oc, QoreProgram *p);
 
+      //! creates an object as belonging to the given class, the QoreProgram object is referenced for the life of the object as well, and the private data is stored with the class ID of the class
+      /**
+	 @param oc the class of the object being created
+	 @param p the QoreProgram object where the object "lives", this QoreProgram object is referenced for the life of the object to ensure that it is not deleted while the object still exists (for example, if the object is exported to a parent QoreProgram object)
+	 @param data the private data corresponding to the class ID of the class passed
+       */
+      DLLEXPORT QoreObject(const QoreClass *oc, QoreProgram *p, AbstractPrivateData *data);
+
       //! concatenate the verbose string representation of the list (including all contained values) to an existing QoreString
       /** used for %n and %N printf formatting
 	  @param str the string representation of the type will be concatenated to this QoreString reference

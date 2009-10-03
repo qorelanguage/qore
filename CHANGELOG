@@ -1,6 +1,8 @@
 2009.10.03: David Nichols
 	* added support for system objects using the new object method calling
 	  convention
+	* reorganized and cleanup up internal XML code
+	* added XmlDoc and XmlNode classes with initial XPath support
 
 2009.09.30: David Nichols
 	* implemented adding informational headers when receiving HTTP 

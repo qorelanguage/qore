@@ -154,6 +154,8 @@
 #include "QC_AutoReadLock.cc"
 #include "QC_AutoWriteLock.cc"
 #include "QC_TermIOS.cc"
+#include "QC_XmlDoc.cc"
+#include "QC_XmlNode.cc"
 #include "minitest.cc"
 //#include "inline_printf.cc"
 //#include "QException.h"

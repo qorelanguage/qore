@@ -1390,8 +1390,7 @@ const xsd = '<?xml version="1.0" encoding="utf-8"?>
 </xsd:schema>
 ';
 
-sub xml_tests()
-{
+sub xml_tests() {
     my $o = ( "test" : 1, 
 	      "gee" : "philly", 
 	      "marguile" : 1.0392,
@@ -1435,6 +1434,16 @@ sub xml_tests()
 
         test_value(parseXMLWithSchema(makeXMLString($o), xsd), $o, "parseXMLWithSchema()");
     }
+
+    $str = makeXMLString($mo);
+    my $xd = new XmlDoc($str);
+    test_value($xd.toQore() == $mo, True, "XmlDoc::toQore()");
+    test_value(parseXML($xd.toString()) == $mo, True, "XmlDoc::toString()");
+    my $n = $xd.evalXPath("//list[2]")[0];
+    test_value($n.getContent(), "2", "XmlDoc::evalXPath()");
+    test_value($n.getTypeName(), "XML_ELEMENT_NODE", "XmlNode::getTypeName()");
+    $n = $xd.getRootElement().firstElementChild();
+    test_value($n.getName(), "test", "XmlDoc::geRootElement() and XmlNode::firstElementChild()");
 }
 
 sub json_tests()
