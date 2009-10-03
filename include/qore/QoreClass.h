@@ -314,6 +314,12 @@ class QoreClass {
        */
       DLLEXPORT void setSystemConstructor(q_system_constructor_t m);
 
+      //! sets the builtin constructor for system objects (ex: used as constant values) using the new calling convention
+      /** @note system constructors in a class hierarchy must call the base class constructors manually
+	  @param m the constructor method
+       */
+      DLLEXPORT void setSystemConstructor2(q_system_constructor2_t m);
+
       //! sets the builtin copy method for the class
       /** copy methods should either call QoreObject::setPrivate() or call xsink->raiseException()
 	  (but should not do both)

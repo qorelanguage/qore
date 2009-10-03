@@ -266,6 +266,13 @@ BuiltinFunction::BuiltinFunction(q_system_constructor_t m, int typ) {
    next = 0;
 }
 
+BuiltinFunction::BuiltinFunction(q_system_constructor2_t m, int typ) {
+   type = typ;
+   name = "constructor";
+   code.system_constructor2 = m;
+   next = 0;
+}
+
 BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ) {
    type = typ;
    name = "destructor";
@@ -351,9 +358,11 @@ void BuiltinFunction::evalConstructor2(const QoreClass &thisclass, QoreObject *s
    }
 }
 
-void BuiltinFunction::evalSystemConstructor(QoreObject *self, int val, va_list args) const
-{
-   code.system_constructor(self, val, args);
+void BuiltinFunction::evalSystemConstructor(const QoreClass &thisclass, bool new_calling_convention, QoreObject *self, int val, va_list args) const {
+   if (new_calling_convention)
+      code.system_constructor2(thisclass, self, val, args);
+   else
+      code.system_constructor(self, val, args);
 }
 
 /*
@@ -468,8 +477,11 @@ bool BuiltinFunction::evalDeleteBlocker(QoreObject *self, AbstractPrivateData *p
    return code.delete_blocker(self, private_data);
 }
 
-void BuiltinFunction::evalSystemDestructor(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
-   code.destructor(self, private_data, xsink);
+void BuiltinFunction::evalSystemDestructor(const QoreClass &thisclass, bool new_calling_convention, QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
+   if (new_calling_convention)
+      code.destructor2(thisclass, self, private_data, xsink);
+   else
+      code.destructor(self, private_data, xsink);
 }
 
 AbstractQoreNode *BuiltinFunction::evalStatic2(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {

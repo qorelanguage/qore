@@ -218,6 +218,16 @@ typedef void (*q_constructor2_t)(const QoreClass &thisclass, QoreObject *self, c
  */
 typedef void (*q_system_constructor_t)(QoreObject *self, int code, va_list args);
 
+//! the type used for builtin QoreClass system constructor method signatures using the new generic calling convention
+/** System constructors are called for objects that are created automatically by the library, normally to be assigned to constants.
+    System objects are treated specially by the Qore library as they are not associated with any QoreProgram object.
+    Additionally, system object constructors are not allowed to raise exceptions.
+    @param self the QoreObject that the function is being executed on
+    @param code this argument is necessary in order to be able to provide the va_list in the following argument due to the way QoreClass::execSystemConstructor() is called.  If not required by the constuctor, this argument can be ignored.
+    @param args a variable-length list of arguments to the system constructor
+ */
+typedef void (*q_system_constructor2_t)(const QoreClass &thisclass, QoreObject *self, int code, va_list args);
+
 //! the type used for builtin QoreClass destructor signatures
 /** destructors are optional, but, if present, must call AbstractPrivateData::deref() on any private data (if present)
     @param self the QoreObject that the function is being executed on

@@ -870,6 +870,11 @@ void QoreClass::setSystemConstructor(q_system_constructor_t m) {
    priv->system_constructor = new QoreMethod(this, new BuiltinMethod(this, m));
 }
 
+void QoreClass::setSystemConstructor2(q_system_constructor2_t m) {
+   priv->sys = true;
+   priv->system_constructor = new QoreMethod(this, new BuiltinMethod(this, m), false, false, true);
+}
+
 // deletes all pending user methods
 void QoreClass::parseRollback() {
    priv->delete_pending_methods();
@@ -943,14 +948,12 @@ bool QoreMethod::inMethod(const QoreObject *self) const
    return ::inMethod(priv->func.builtin->getName(), self);
 }
 
-void QoreMethod::evalSystemConstructor(QoreObject *self, int code, va_list args) const
-{
+void QoreMethod::evalSystemConstructor(QoreObject *self, int code, va_list args) const {
    // type must be OTF_BUILTIN
-   priv->func.builtin->evalSystemConstructor(self, code, args);
+   priv->func.builtin->evalSystemConstructor(*priv->parent_class, priv->new_call_convention, self, code, args);
 }
 
-void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const
-{
+void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // get pointer to private data object from class ID of base type
    AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->func.builtin->myclass->getID(), xsink);
    //printd(5, "QoreMethod::evalSystemDestructor() class=%s (%08p) id=%d ptr=%08p\n", priv->func.builtin->myclass->getName(), priv->func.builtin->myclass, priv->func.builtin->myclass->getID(), ptr);
@@ -962,23 +965,20 @@ void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) co
       VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
       assert(!(lck && !vh));
 #endif
-      priv->func.builtin->evalSystemDestructor(self, ptr, xsink);
+      priv->func.builtin->evalSystemDestructor(*priv->parent_class, priv->new_call_convention, self, ptr, xsink);
    }
 }
 
-void QoreMethod::parseInit()
-{
+void QoreMethod::parseInit() {
    priv->parseInit();
 }
 
-void QoreMethod::parseInitConstructor(class BCList *bcl)
-{
+void QoreMethod::parseInitConstructor(BCList *bcl) {
    // must be called even if func.userFunc->statements is NULL
    priv->func.userFunc->statements->parseInitMethod(priv->func.userFunc->params, bcl);
 }
 
-QoreMethod *QoreMethod::copy(const QoreClass *p_class) const
-{
+QoreMethod *QoreMethod::copy(const QoreClass *p_class) const {
    if (priv->type == OTF_USER) {
       priv->func.userFunc->ROreference();
       return new QoreMethod(p_class, priv->func.userFunc, priv->priv_flag, priv->static_flag);
