@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_XmlDoc.h>
 #include <qore/intern/QC_XmlNode.h>
+#include <qore/intern/QC_XmlReader.h>
 
 qore_classid_t CID_XMLNODE;
 QoreClass *QC_XMLNODE;
@@ -52,6 +53,10 @@ static const char *xml_element_type_names[XML_DOCB_DOCUMENT_NODE] = {
    "XML_DOCB_DOCUMENT_NODE"
 };
 
+const char *get_xml_element_type_name(int t) {
+   return (t > 0 && t <= XML_DOCB_DOCUMENT_NODE) ? xml_element_type_names[t - 1] : 0;
+}
+
 static void XMLNODE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    xsink->raiseException("XMLNODE-CONSTRUCTOR-ERROR", "this class cannot be constructed directly");
 }
@@ -72,12 +77,12 @@ static AbstractQoreNode *XMLNODE_getLineNumber(QoreObject *self, QoreXmlNodeData
    return new QoreBigIntNode(xn->getLineNumber());
 }
 
-static AbstractQoreNode *XMLNODE_getType(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(xn->getType());
+static AbstractQoreNode *XMLNODE_getElementType(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(xn->getElementType());
 }
 
-static AbstractQoreNode *XMLNODE_getTypeName(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
-   int t = xn->getType();
+static AbstractQoreNode *XMLNODE_getElementTypeName(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
+   int t = xn->getElementType();
    return (t && t <= XML_DOCB_DOCUMENT_NODE) ? new QoreStringNode(xml_element_type_names[t - 1]) : 0;
 }
 
@@ -132,9 +137,11 @@ static AbstractQoreNode *XMLNODE_getProp(QoreObject *self, QoreXmlNodeData *xn, 
    return xn->getProp(prop->getBuffer());
 }
 
+/*
 static AbstractQoreNode *XMLNODE_getBase(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
    return xn->getBase();
 }
+*/
 
 static AbstractQoreNode *XMLNODE_getContent(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
    return xn->getContent();
@@ -167,8 +174,8 @@ static QoreClass *initXmlNodeClass() {
    QC_XMLNODE->addMethod("childElementCount",      (q_method_t)XMLNODE_childElementCount);
    QC_XMLNODE->addMethod("getSpacePreserve",       (q_method_t)XMLNODE_getSpacePreserve);
    QC_XMLNODE->addMethod("getLineNumber",          (q_method_t)XMLNODE_getLineNumber);
-   QC_XMLNODE->addMethod("getType",                (q_method_t)XMLNODE_getType);
-   QC_XMLNODE->addMethod("getTypeName",            (q_method_t)XMLNODE_getTypeName);
+   QC_XMLNODE->addMethod("getElementType",         (q_method_t)XMLNODE_getElementType);
+   QC_XMLNODE->addMethod("getElementTypeName",     (q_method_t)XMLNODE_getElementTypeName);
    QC_XMLNODE->addMethod("firstElementChild",      (q_method_t)XMLNODE_firstElementChild);
    QC_XMLNODE->addMethod("getLastChild",           (q_method_t)XMLNODE_getLastChild);
    QC_XMLNODE->addMethod("lastElementChild",       (q_method_t)XMLNODE_lastElementChild);
@@ -177,7 +184,7 @@ static QoreClass *initXmlNodeClass() {
    QC_XMLNODE->addMethod("getPath",                (q_method_t)XMLNODE_getPath);
    QC_XMLNODE->addMethod("getNsProp",              (q_method_t)XMLNODE_getNsProp);
    QC_XMLNODE->addMethod("getProp",                (q_method_t)XMLNODE_getProp);
-   QC_XMLNODE->addMethod("getBase",                (q_method_t)XMLNODE_getBase);
+   //QC_XMLNODE->addMethod("getBase",                (q_method_t)XMLNODE_getBase);
    QC_XMLNODE->addMethod("getContent",             (q_method_t)XMLNODE_getContent);
    QC_XMLNODE->addMethod("getLang",                (q_method_t)XMLNODE_getLang);
    QC_XMLNODE->addMethod("getName",                (q_method_t)XMLNODE_getName);
@@ -238,6 +245,7 @@ QoreNamespace *initXmlNs() {
  
    xns->addSystemClass(initXmlNodeClass());
    xns->addSystemClass(initXmlDocClass());
+   xns->addSystemClass(initXmlReaderClass());
 
    return xns;
 }

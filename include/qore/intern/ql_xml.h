@@ -23,9 +23,9 @@
 */
 
 #ifndef _QORE_QL_XML_H
-
 #define _QORE_QL_XML_H
 
+DLLLOCAL QoreStringNode *makeXMLString(const QoreEncoding *enc, const QoreHashNode &h, bool format, ExceptionSink *xsink);
 DLLLOCAL QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, int offset, const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, int offset, const QoreListNode *args, ExceptionSink *xsink);
 // ccsid is the output encoding for strings

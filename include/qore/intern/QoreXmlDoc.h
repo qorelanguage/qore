@@ -25,8 +25,6 @@
 #define _QORE_QOREXMLDOC_H
 
 #include <libxml/parser.h>
-#include <libxml/xmlreader.h>
-#include <libxml/xpath.h>
 
 #ifdef DEBUG
 #define QORE_XML_PARSER_OPTIONS XML_PARSE_NOBLANKS
@@ -49,6 +47,9 @@ public:
    }
    DLLLOCAL QoreXmlDoc(const QoreString &xml) {
       init(xml.getBuffer(), xml.strlen(), xml.getEncoding()->getCode());
+   }
+   DLLLOCAL QoreXmlDoc(const QoreString *xml) {
+      init(xml->getBuffer(), xml->strlen(), xml->getEncoding()->getCode());
    }
    DLLLOCAL QoreXmlDoc(const QoreXmlDoc &orig) {
       ptr = orig.ptr ? xmlCopyDoc(orig.ptr, 1) : 0;
@@ -79,128 +80,6 @@ public:
       xmlFree(x);
       return rv;
    }
-};
-
-class QoreXmlReader {
-protected:
-   xmlTextReader *reader;
-   const QoreString *xml;
-
-   static void qore_xml_error_func(ExceptionSink *xsink, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
-      if (severity == XML_PARSER_SEVERITY_VALIDITY_WARNING
-	  || severity == XML_PARSER_SEVERITY_WARNING) {
-	 printd(1, "XML parser warning: %s", msg);
-	 return;
-      }
-      if (*xsink)
-	 return;
-      QoreStringNode *desc = new QoreStringNode(msg);
-      desc->chomp();
-      xsink->raiseException("PARSE-XML-EXCEPTION", desc);
-   }
-
-   DLLLOCAL AbstractQoreNode *getXmlData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink);
-
-public:
-   DLLLOCAL QoreXmlReader(const QoreString *n_xml, int options, ExceptionSink *xsink) : xml(n_xml) {
-      assert(xml->getEncoding() == QCS_UTF8);
-      reader = xmlReaderForDoc((xmlChar *)xml->getBuffer(), 0, 0, options);
-      if (!reader) {
-	 xsink->raiseException("XML-READER-ERROR", "could not create XML reader");
-	 return;
-      }
-	 
-      xmlTextReaderSetErrorHandler(reader, (xmlTextReaderErrorFunc)qore_xml_error_func, xsink);
-   }
-
-   DLLLOCAL QoreXmlReader(xmlDocPtr doc, ExceptionSink *xsink) : xml(0) {
-      reader = xmlReaderWalker(doc);
-      if (!reader) {
-	 xsink->raiseException("XML-READER-ERROR", "could not create XML reader");
-	 return;
-      }
-      // the following call causes a crash - I guess the document has already been parsed anyway
-      //xmlTextReaderSetErrorHandler(reader, (xmlTextReaderErrorFunc)qore_xml_error_func, xsink);
-   }
-
-   DLLLOCAL ~QoreXmlReader() {
-      if (reader)
-	 xmlFreeTextReader(reader);
-   }
-
-   DLLLOCAL operator bool() const {
-      return reader != 0;
-   }
-
-   // returns 0=OK, -1=error
-   DLLLOCAL int read(ExceptionSink *xsink) {
-      if (xmlTextReaderRead(reader) != 1) {
-	 xsink->raiseExceptionArg("PARSE-XML-EXCEPTION", xml ? new QoreStringNode(*xml) : 0, "cannot parse XML string");
-	 return -1;
-      }
-      return 0;
-   }
-
-   DLLLOCAL int read() {
-      return xmlTextReaderRead(reader);
-   }
-
-   // gets the node type but skips whitespace
-   DLLLOCAL int nodeType() {
-      int nt;
-      while (true) {
-	 nt = xmlTextReaderNodeType(reader);
-	 if (nt == XML_READER_TYPE_SIGNIFICANT_WHITESPACE) {
-	    // get next element
-	    if (read() != 1)
-	       return -1;
-	    continue;
-	 }
-	 break;
-      }
-      return nt;
-   }
-
-   DLLLOCAL int depth() {
-      return xmlTextReaderDepth(reader);
-   }
-
-   DLLLOCAL const char *constName() {
-      return (const char*)xmlTextReaderConstName(reader);
-   }
-      
-   DLLLOCAL const char *constValue() {
-      return (const char*)xmlTextReaderConstValue(reader);
-   }
-
-   DLLLOCAL bool hasAttributes() {
-      return xmlTextReaderHasAttributes(reader);
-   }
-
-   DLLLOCAL int moveToNextAttribute() {
-      return xmlTextReaderMoveToNextAttribute(reader);
-   }
-
-   DLLLOCAL QoreStringNode *getXmlString(const QoreEncoding *id, ExceptionSink *xsink) {
-      if (id == QCS_UTF8)
-	 return new QoreStringNode(constValue(), QCS_UTF8);
-      
-      return QoreStringNode::createAndConvertEncoding(constValue(), QCS_UTF8, id, xsink);
-   }
-
-#ifdef HAVE_XMLTEXTREADERSETSCHEMA
-   DLLLOCAL int setSchema(xmlSchemaPtr schema) {
-      return xmlTextReaderSetSchema(reader, schema);
-   }
-#endif
-
-#ifdef DEBUG
-   DLLLOCAL const char *getName() {
-      return (const char *)xmlTextReaderConstName(reader);
-   }
-#endif
-
-   DLLLOCAL AbstractQoreNode *parseXMLData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink);
 };
 
 #endif

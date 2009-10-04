@@ -156,6 +156,7 @@
 #include "QC_TermIOS.cc"
 #include "QC_XmlDoc.cc"
 #include "QC_XmlNode.cc"
+#include "QC_XmlReader.cc"
 #include "minitest.cc"
 //#include "inline_printf.cc"
 //#include "QException.h"

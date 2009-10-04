@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_XmlDoc.h>
 #include <qore/intern/QoreXPath.h>
+#include <qore/intern/QoreXmlReader.h>
 #include <qore/intern/QC_XmlNode.h>
 
 qore_classid_t CID_XMLDOC;
@@ -34,13 +35,23 @@ QoreXmlNodeData *QoreXmlDocData::getRootElement() {
 }
 
 static void XMLDOC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *xml = test_string_param(params, 0);
-   if (!xml || !xml->strlen()) {
-      xsink->raiseException("XMLDOC-CONSTRUCTOR-ERROR", "missing required string argument to XmlDoc::constructor()");
+   const AbstractQoreNode *n = get_param(params, 0);
+   qore_type_t t = n ? n->getType() : NT_NOTHING;
+   SimpleRefHolder<QoreXmlDocData> xd;
+
+   if (t == NT_HASH) {
+      SimpleRefHolder<QoreStringNode> xml(makeXMLString(QCS_UTF8, *(reinterpret_cast<const QoreHashNode *>(n)), false, xsink));
+      if (!xml)
+	 return;
+      xd = new QoreXmlDocData(*xml);
+   }
+   else if (t == NT_STRING)
+      xd = new QoreXmlDocData(reinterpret_cast<const QoreStringNode *>(n));
+   else {
+      xsink->raiseException("XMLDOC-CONSTRUCTOR-ERROR", "missing required string or hash argument to XmlDoc::constructor()");
       return;
    }
 
-   SimpleRefHolder<QoreXmlDocData> xd(new QoreXmlDocData(xml));
    if (!xd->isValid()) {
       xsink->raiseException("XMLDOC-CONSTRUCTOR-ERROR", "error parsing XML string");
       return;

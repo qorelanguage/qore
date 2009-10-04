@@ -24,6 +24,8 @@
 
 #define _QORE_QOREXPATH_H
 
+#include <libxml/xpath.h>
+
 #include <qore/intern/QC_XmlDoc.h>
 #include <qore/intern/QC_XmlNode.h>
 

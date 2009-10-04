@@ -8,15 +8,13 @@
 %no-child-restrictions
 
 # make sure we have the right version of qore
-%requires qore >= 0.7.4
+%requires qore >= 0.7.6
 
 # global variables needed for tests
 our $to = new Test("program-test.q");
 our $ro = new Test("readonly");
 our ($o, $errors, $counter);
 our $thash;
-
-#my $x[10] = 1;
 
 sub get_program_name() {
     my $l = split("/", $ENV."_");
@@ -319,16 +317,14 @@ sub hash_tests() {
     test_value($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
 }
 
-sub global_variable_testa()
-{
+sub global_variable_testa() {
     printf("user=%s\n", $ENV{"USER"});
 }
 
 sub map_closure($v) { return sub($v1) { return $v * $v1; }; }
 
 # operator tests
-sub operator_test()
-{
+sub operator_test() {
     if ($o.verbose)
 	print("%%%% operator tests\n");
     my $a = 1;
@@ -434,53 +430,45 @@ sub operator_test()
     test_value((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
 }
 
-sub no_parameter_test($p)
-{
+sub no_parameter_test($p) {
     test_value($p, NOTHING, "non-existant parameter");
 }
 
-sub parameter_and_shift_test($p)
-{
+sub parameter_and_shift_test($p) {
     test_value($p, 1, "parameter before shift");
     test_value(shift $argv, 2, "shift on second parameter");
 }
 
-sub one_parameter_shift_test()
-{
+sub one_parameter_shift_test() {
     test_value(shift $argv, 1, "one parameter shift");
 }
 
-sub shift_test()
-{
+sub shift_test() {
     my $var = (1, 2, 3, 4, "hello");
     foreach my $v in ($var)
 	test_value($v, shift $argv, ("shift " + string($v) + " parameter"));
 }
 
-sub parameter_tests()
-{
+sub parameter_tests() {
     no_parameter_test();
     parameter_and_shift_test(1, 2);
     shift_test(1, test3()[1], 3, 4, "hello");
     one_parameter_shift_test(1);
 }
 
-sub short_circuit_test($op)
-{
+sub short_circuit_test($op) {
     print("ERROR: $op logic short-circuiting is not working!\n");
     $errors++;
     return 0;
 }
 
-sub logic_message($op)
-{
+sub logic_message($op) {
     if ($o.verbose)
 	printf("OK: %s logic test\n", $op);
 }
 
 # logic short-circuiting test
-sub logic_tests()
-{
+sub logic_tests() {
     my $a = 1;
     my $b = 0;
     my $c;
@@ -518,8 +506,7 @@ sub logic_tests()
     test_value($a[3] != $b[3], True, "hash unequal comparison");
 }
 
-sub printf_tests()
-{
+sub printf_tests() {
     # some printf tests
     printf("field tests\n");
     f_printf("f_printf: 5 character field with 7 char arg: %5s\n", "freddy1");
@@ -531,12 +518,10 @@ sub printf_tests()
     printf(  "  printf: 3 char arg right in 5 char field: %5s\n", "abc"); 
 }
 
-sub switch_test($val)
-{
+sub switch_test($val) {
     my $rv;
 
-    switch ($val)
-    {
+    switch ($val) {
 	case 0:
 	case "hello":
 	
@@ -553,12 +538,10 @@ sub switch_test($val)
     return $rv;
 }
 
-sub regex_switch_test($val)
-{
+sub regex_switch_test($val) {
     my $rv;
 
-    switch ($val)
-    {
+    switch ($val) {
 	case /abc/:
 	case /def/:
 	
@@ -580,8 +563,7 @@ sub regex_switch_test($val)
     return $rv;
 }
 
-sub switch_with_relation_test($val) 
-{
+sub switch_with_relation_test($val) {
   my $rv;
   switch ($val) {
   case < -1 : $rv = "first switch"; break;
@@ -592,8 +574,8 @@ sub switch_with_relation_test($val)
   }
   return $rv;
 }
-sub statement_tests()
-{
+
+sub statement_tests() {
     if ($o.verbose)
 	print("%%%% statement tests\n");
     # while test
@@ -655,24 +637,20 @@ sub statement_tests()
     test_value(regex_switch_test("canada"), "default", "sixth regex switch");
 
     # on_exit tests
-    try 
-    {
+    try {
 	$a = 1;
 	on_exit
 	    $a = 2;
 	$a = 3;
 	throw False;
     }
-    catch()
-    {
+    catch() {
     }
     my $err;
     my $success = False;
-    try 
-    {
+    try {
 	$b = 100;
-	on_exit
-	{
+	on_exit {
 	    $b = 2;
 	    on_exit
 		$b = 5;
@@ -695,8 +673,7 @@ sub statement_tests()
 	on_exit
 	    $v = 101;
     }
-    catch()
-    {
+    catch() {
     }
     test_value($a, 2, "first on_exit");
     test_value($b, 5, "second on_exit");
@@ -705,31 +682,26 @@ sub statement_tests()
     test_value($success, False, "on_success");
 }
 
-sub fibonacci($num)
-{
+sub fibonacci($num) {
     if ($num == 2)
         return 2;
     return $num * fibonacci($num - 1);
 }
 
 # recursive function test
-sub recursive_function_test()
-{
+sub recursive_function_test() {
     test_value(fibonacci(10), 3628800, "recursive function");
 }
 
-sub backquote_tests()
-{
+sub backquote_tests() {
     test_value(`echo -n 1`, "1", "backquote");
 }
 
-sub sd($d)
-{
+sub sd($d) {
     return format_date("YYYY-MM-DD HH:mm:SS", $d);
 }
 
-sub test_date($d, $y, $w, $day, $n, $i)
-{
+sub test_date($d, $y, $w, $day, $n, $i) {
     my $str = sprintf("%04d-W%02d-%d", $y, $w, $day);
     my $h = ( "year" : $y, "week" : $w, "day" : $day );
     my $d1;
@@ -751,8 +723,7 @@ sub test_date($d, $y, $w, $day, $n, $i)
     $i++;
 }
 
-sub date_time_tests()
-{
+sub date_time_tests() {
     # here are the two formats for directly specifying date/time values:
     # ISO-8601 format (without timezone specification, currently qore does not support time zones)
     my $date  = 2004-02-01T12:30:00;
@@ -1223,8 +1194,7 @@ class Test inherits Socket {
     closure($x) {
 	my $a = 1;
 	# return a closure encapsulating the state of the object
-	return sub ($y) 
-	{
+	return sub ($y) {
 	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
 	};
     }
@@ -1261,8 +1231,7 @@ sub class_test_Program() {
     test_value(getClassName($o), "Queue", "class returned from deleted subprogram object");
 }
 
-sub class_test_File()
-{
+sub class_test_File() {
     return;
 /*
     # File test
@@ -1276,8 +1245,7 @@ sub class_test_File()
 */
 }
 
-sub class_library_tests()
-{
+sub class_library_tests() {
     my $t = new Test(1, "gee", 2);
     test_value($t.getData(1), "gee", "first object");
     test_value(exists $t.testing, False, "memberGate() existence");
@@ -1297,8 +1265,7 @@ sub class_library_tests()
 }
 
 # find and context tests
-sub context_tests()
-{
+sub context_tests() {
     my $q = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
 	      "age"  : (37, 30, 7, 4, 1 ) );
 
@@ -1344,13 +1311,11 @@ const chash = ( a : "one", b : l );
 const exp   = elements l;
 const hexp2 = chash{b};
 
-namespace NTest
-{
+namespace NTest {
     const t1 = "hello";
 
-    namespace Type
-    {
-        const i       = 2;
+    namespace Type{
+        const i = 2;
     }
 
     const Type::hithere = 4.0;
@@ -1358,8 +1323,7 @@ namespace NTest
     class T1;
 }
 
-namespace NTest
-{
+namespace NTest {
     const t2 = 2;
 }
 
@@ -1367,8 +1331,7 @@ const NTest::Type::val1 = 1;
 
 const Qore::myconst = 1;
 
-sub constant_tests()
-{
+sub constant_tests() {
     test_value(i, 1, "simple constant");
     test_value(type(Type::val1), "integer", "first namespace constant");
     test_value(Qore::myconst, NTest::Type::val1, "second namespace constant");
@@ -1437,17 +1400,26 @@ sub xml_tests() {
 
     $str = makeXMLString($mo);
     my $xd = new XmlDoc($str);
-    test_value($xd.toQore() == $mo, True, "XmlDoc::toQore()");
+    test_value($xd.toQore() == $mo, True, "XmlDoc::constructor(<string>), XmlDoc::toQore()");
     test_value(parseXML($xd.toString()) == $mo, True, "XmlDoc::toString()");
     my $n = $xd.evalXPath("//list[2]")[0];
     test_value($n.getContent(), "2", "XmlDoc::evalXPath()");
-    test_value($n.getTypeName(), "XML_ELEMENT_NODE", "XmlNode::getTypeName()");
+    test_value($n.getElementTypeName(), "XML_ELEMENT_NODE", "XmlNode::getElementTypeName()");
     $n = $xd.getRootElement().firstElementChild();
-    test_value($n.getName(), "test", "XmlDoc::geRootElement() and XmlNode::firstElementChild()");
+    test_value($n.getName(), "test", "XmlDoc::geRootElement(), XmlNode::firstElementChild(), XmlNode::getName()");
+    test_value($n.copy().getName(), "test", "XmlNode::copy()");
+
+    $xd = new XmlDoc($mo);
+    test_value($xd.toQore() == $mo, True, "XmlDoc::constructor(<hash>), XmlDoc::toQore()");
+
+    my $xr = new XmlReader($xd);
+    # move to first element
+    $xr.read();
+    test_value($xr.elementType(), Xml::XML_ELEMENT_NODE, "XmlReader::read(), XmlReader::elementType()");
+    test_value($xr.toQore() == $mo.o, True, "XmlReader::toQoreData()");
 }
 
-sub json_tests()
-{
+sub json_tests() {
     my $h = ( "test" : 1, 
 	      "gee" : "philly-\"test-quotes\"", 
 	      "marguile" : 1.0392,

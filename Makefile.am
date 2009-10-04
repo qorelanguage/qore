@@ -192,6 +192,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreDir.h \
 	include/qore/intern/QoreXmlDoc.h \
 	include/qore/intern/QoreXPath.h \
+	include/qore/intern/QoreXmlReader.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
@@ -237,6 +238,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AutoWriteLock.h \
 	include/qore/intern/QC_XmlDoc.h \
 	include/qore/intern/QC_XmlNode.h \
+	include/qore/intern/QC_XmlReader.h \
 	command-line.h
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \

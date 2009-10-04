@@ -177,6 +177,7 @@ libqore_la_SOURCES = \
 	QC_TermIOS.cc \
 	QC_XmlDoc.cc \
 	QC_XmlNode.cc \
+	QC_XmlReader.cc \
 	QoreHTTPClient.cc \
 	minitest.cc
 

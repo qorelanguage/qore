@@ -30,6 +30,9 @@ DLLEXPORT extern qore_classid_t CID_XMLNODE;
 DLLEXPORT extern QoreClass *QC_XMLNODE;
 DLLLOCAL QoreNamespace *initXmlNs();
 
+// returns the string corresponding to the node type
+DLLLOCAL const char *get_xml_element_type_name(int t);
+
 class QoreXmlNodeData : public AbstractPrivateData {
 private:
    xmlNodePtr ptr;
@@ -52,27 +55,21 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreXmlNodeData(xmlNodePtr n_ptr, QoreXmlDocData *n_doc, bool d = false) : ptr(n_ptr), doc(n_doc), del(d) {
-      doc->ref();
+   DLLLOCAL QoreXmlNodeData(xmlNodePtr n_ptr, QoreXmlDocData *n_doc = 0, bool d = false) : ptr(n_ptr), doc(n_doc), del(d) {
+      if (doc)
+	 doc->ref();
    }
    DLLLOCAL QoreXmlNodeData(const QoreXmlNodeData &orig) {
       ptr = xmlCopyNode(orig.ptr, 1);
-      if (ptr) {
-	 doc = orig.doc;
-	 doc->ref();
-	 del = true;
-      }
-      else {
-	 doc = 0;
-	 del = false;
-      }
+      doc = 0;
+      del = ptr ? true : false;
    }
    DLLLOCAL ~QoreXmlNodeData() {
       if (ptr) {
 	 if (del)
 	    xmlFreeNode(ptr);
-	 assert(doc);
-	 doc->deref();
+	 if (doc)
+	    doc->deref();
       }
    }
    DLLLOCAL operator bool() const {
@@ -113,9 +110,12 @@ public:
    DLLLOCAL QoreXmlNodeData *previousElementSibling() {
       return doNode(xmlPreviousElementSibling(ptr));
    }
+/*
    DLLLOCAL QoreStringNode *getBase() {
+      assert(doc);
       return doString(xmlNodeGetBase(doc->getDocPtr(), ptr));
    }
+*/
    DLLLOCAL QoreStringNode *getContent() {
       return doString(xmlNodeGetContent(ptr));
    }
@@ -134,7 +134,7 @@ public:
    DLLLOCAL int64 getLineNumber() {
       return xmlGetLineNo(ptr);
    }
-   DLLLOCAL int64 getType() const {
+   DLLLOCAL int64 getElementType() const {
       return ptr->type;
    }
 };
