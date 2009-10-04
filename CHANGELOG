@@ -6,11 +6,13 @@
 	* implemented parseXMLWithRelaxNG() and parseXMLAsDataWithRelaxNG()
 	* implemented XmlDoc::validateRelaxNG() and XmlDoc::ValidateSchema()
 	* implemented many XmlReader methods
+	* implemented HAVE_PARSEXMLWITHRELAXNG constant and Qore library
+	  option; added configure checks for new libxml2 options
 
 2009.10.03: David Nichols
 	* added support for system objects using the new object method calling
 	  convention
-	* reorganized and cleanup up internal XML code
+	* reorganized and cleaned up internal XML code
 	* added XmlDoc and XmlNode classes with initial XPath support
 
 2009.09.30: David Nichols

@@ -600,6 +600,69 @@ if test -n "$LIBXML2_LDFLAGS"; then
    else
       AC_MSG_RESULT([not found])
    fi
+   # check for xmlTextReaderRelaxNGSetSchema()
+   AC_MSG_CHECKING([for xmlTextReaderRelaxNGSetSchema()])
+   file=`grep xmlTextReaderRelaxNGSetSchema $LIBXML2_INC_DIR/libxml/*.h`
+   if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLTEXTREADERRELAXNGSETSCHEMA, 1, [Define if libxml2 defines xmlTextReaderRelaxNGSetSchema()])
+      AC_MSG_RESULT([found])
+   else
+      AC_MSG_RESULT([not found])
+   fi
+   # check for xmlChildElementCount()
+   AC_MSG_CHECKING([for xmlChildElementCount()])
+   file=`grep xmlChildElementCount $LIBXML2_INC_DIR/libxml/*.h`
+   if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLCHILDELEMENTCOUNT, 1, [Define if libxml2 defines xmlChildElementCount()])
+      AC_MSG_RESULT([found])
+   else
+      AC_MSG_RESULT([not found])
+   fi
+   # check for xmlFirstElementChild()
+   AC_MSG_CHECKING([for xmlFirstElementChild()])
+   file=`grep xmlFirstElementChild $LIBXML2_INC_DIR/libxml/*.h`
+   if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLFIRSTELEMENTCHILD, 1, [Define if libxml2 defines xmlFirstElementChild()])
+      AC_MSG_RESULT([found])
+   else
+      AC_MSG_RESULT([not found])
+   fi
+   # check for xmlGetLastChild()
+   AC_MSG_CHECKING([for xmlGetLastChild()])
+   file=`grep xmlGetLastChild $LIBXML2_INC_DIR/libxml/*.h`
+   if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLGETLASTCHILD, 1, [Define if libxml2 defines xmlGetLastChild()])
+      AC_MSG_RESULT([found])
+   else
+      AC_MSG_RESULT([not found])
+   fi
+   # check for xmlLastElementChild()
+   AC_MSG_CHECKING([for xmlLastElementChild()])
+   file=`grep xmlLastElementChild $LIBXML2_INC_DIR/libxml/*.h`
+   if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLLASTELEMENTCHILD, 1, [Define if libxml2 defines xmlLastElementChild()])
+      AC_MSG_RESULT([found])
+   else
+      AC_MSG_RESULT([not found])
+   fi
+   # check for xmlLastElementChild()
+   AC_MSG_CHECKING([for xmlNextElementSibling()])
+   file=`grep xmlNextElementSibling $LIBXML2_INC_DIR/libxml/*.h`
+   if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLNEXTLEMENTSIBLING, 1, [Define if libxml2 defines xmlNextElementSibling()])
+      AC_MSG_RESULT([found])
+   else
+      AC_MSG_RESULT([not found])
+   fi
+   # check for xmlLastElementChild()
+   AC_MSG_CHECKING([for xmlPreviousElementSibling()])
+   file=`grep xmlPreviousElementSibling $LIBXML2_INC_DIR/libxml/*.h`
+   if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLPREVIOUSELEMENTSIBLING, 1, [Define if libxml2 defines xmlPreviousElementSibling()])
+      AC_MSG_RESULT([found])
+   else
+      AC_MSG_RESULT([not found])
+   fi
 else
     AC_MSG_ERROR([no libxml2 library found])
 fi

@@ -184,7 +184,9 @@ public:
    DLLLOCAL int setSchema(xmlSchemaPtr schema) {
       return xmlTextReaderSetSchema(reader, schema);
    }
+#endif
 
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
    DLLLOCAL int setRelaxNG(xmlRelaxNGPtr schema) {
       return xmlTextReaderRelaxNGSetSchema(reader, schema);
    }

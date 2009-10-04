@@ -247,6 +247,8 @@ DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, Exceptio
 #define QORE_OPT_FUNC_SETEGID            "setegid()"
 //! option: parseXMLWithSchema() function available (depends on libxml2)
 #define QORE_OPT_FUNC_PARSEXMLWITHSCHEMA "parseXMLWithSchema()"
+//! option: parseXMLWithRelaxNG() function available (depends on libxml2)
+#define QORE_OPT_FUNC_PARSEXMLWITHRELAXNG "parseXMLWithRelaxNG()"
 
 //! option type feature
 #define QO_OPTION     0

@@ -117,6 +117,18 @@
 	    <entry><para><link linkend="Sequence_Class">Sequence</link></para></entry>
 	    <entry><para>A thread-safe integral counter.</para></entry>
 	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc_Class">XmlDoc</link></para></entry>
+	    <entry><para>For analyzing and manipulating XML documents.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlNode_Class">XmlNode</link></para></entry>
+	    <entry><para>Gives information about XML data in an XML document.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlReader_Class">XmlReader</link></para></entry>
+	    <entry><para>For parsing or iterating through the elements of an XML document.</para></entry>
+	  </row>
 	</tbody>
       </tgroup>
     </table>
@@ -36108,4 +36120,1013 @@ $mutex.unlock();</programlisting>
       </table>
     </sect2>
   </sect1>
+
+  <sect1 id="Xml_Namespace">
+    <title>Xml Namespace</title>
+
+    <para>The following constants are defined in the Qore namespace.</para>
+
+    <table id="XML_Element_Type_Constants">
+      <title>XML Element Type Constants</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+
+	<thead>
+	  <row>
+	    <entry><para>Constant</para></entry>
+	    <entry><para>Value</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+
+	<tbody>
+	  <row>
+	    <entry><para><code>XML_ELEMENT_NODE</code></para></entry>
+	    <entry><para><code>1</code></para></entry>
+	    <entry><para><code>Indicates an element node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_ATTRIBUTE_NODE</code></para></entry>
+	    <entry><para><code>2</code></para></entry>
+	    <entry><para><code>Indicates an attribute node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_TEXT_NODE</code></para></entry>
+	    <entry><para><code>3</code></para></entry>
+	    <entry><para><code>Indicates a text node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_CDATA_SECTION_NODE</code></para></entry>
+	    <entry><para><code>4</code></para></entry>
+	    <entry><para><code>Indicates a CDATA node: unparsed character data</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_ENTITY_REF_NODE</code></para></entry>
+	    <entry><para><code>5</code></para></entry>
+	    <entry><para><code>Indicates an entity reference node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_ENTITY_NODE</code></para></entry>
+	    <entry><para><code>6</code></para></entry>
+	    <entry><para><code>Indicates an entity node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_PI_NODE</code></para></entry>
+	    <entry><para><code>7</code></para></entry>
+	    <entry><para><code>Indicates a processing instruction node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_COMMENT_NODE</code></para></entry>
+	    <entry><para><code>8</code></para></entry>
+	    <entry><para><code>Indicates a comment node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_DOCUMENT_NODE</code></para></entry>
+	    <entry><para><code>9</code></para></entry>
+	    <entry><para><code>Indicates a document node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_DOCUMENT_TYPE_NODE</code></para></entry>
+	    <entry><para><code>10</code></para></entry>
+	    <entry><para><code>Indicates a document type node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_DOCUMENT_FRAG_NODE</code></para></entry>
+	    <entry><para><code>11</code></para></entry>
+	    <entry><para><code>Indicates a document fragment node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_NOTATION_NODE</code></para></entry>
+	    <entry><para><code>12</code></para></entry>
+	    <entry><para><code>Indicates a DTD notation node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_HTML_DOCUMENT_NODE</code></para></entry>
+	    <entry><para><code>13</code></para></entry>
+	    <entry><para><code>Indicates an HTML document node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_DTD_NODE</code></para></entry>
+	    <entry><para><code>14</code></para></entry>
+	    <entry><para><code>Indicates a DTD node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_ELEMENT_DECL</code></para></entry>
+	    <entry><para><code>15</code></para></entry>
+	    <entry><para><code>Indicates an element declaration node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_ATTRIBUTE_DECL</code></para></entry>
+	    <entry><para><code>16</code></para></entry>
+	    <entry><para><code>Indicates an attribute declaration node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_ENTITY_DECL</code></para></entry>
+	    <entry><para><code>17</code></para></entry>
+	    <entry><para><code>Indicates an entity declaration node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_NAMESPACE_DECL</code></para></entry>
+	    <entry><para><code>18</code></para></entry>
+	    <entry><para><code>Indicates a namespace declaration node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_XINCLUDE_START</code></para></entry>
+	    <entry><para><code>19</code></para></entry>
+	    <entry><para><code>Indicates an XML xinlude start node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_XINCLUDE_END</code></para></entry>
+	    <entry><para><code>20</code></para></entry>
+	    <entry><para><code>Indicates an XML xinlude end node</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>XML_DOCB_DOCUMENT_NODE</code></para></entry>
+	    <entry><para><code>21</code></para></entry>
+	    <entry><para><code>Indicates a docbook document node</code></para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <para>Additionally, the classes in the following table are included in the Xml namespace.</para>
+
+    <table id="Xml_Class_List">
+      <title>Xml Class List</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="XmlDoc_Class">XmlDoc</link></para></entry>
+	    <entry><para>For analyzing and manipulating XML documents.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlNode_Class">XmlNode</link></para></entry>
+	    <entry><para>Gives information about XML data in an XML document.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlReader_Class">XmlReader</link></para></entry>
+	    <entry><para>For parsing or iterating through the elements of an XML document.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect1>
+
+  <sect1 id="XmlDoc_Class">
+    <title>Xml::XmlDoc Class</title>
+
+    <para>The XmlDoc class provides access to a parsed XML document by wrapping a C <code>xmlDocPtr</code> from <ulink url="http://www.xmlsoft.org">libxml2</ulink>.</para>
+
+    <table>
+      <title>XmlDoc Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::constructor">XmlDoc::constructor()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates a new XmlDoc object from an XML string or a Qore hash.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::destructor">XmlDoc::destructor()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the XmlDoc object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::copy">XmlDoc::copy()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a copy of the XmlDoc object.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::evalXPath">XmlDoc::evalXPath()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Evaluates an <ulink url="http://www.w3.org/TR/xpath">XPath</ulink> expression and returns a list of matching <link linkend="XmlNode_Class">XmlNode</link> objects.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::getRootElement">XmlDoc::getRootElement()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object representing the root element of the document, if any exists.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::getVersion">XmlDoc::getVersion()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the XML version of the document (normally 1.0).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::toQore">XmlDoc::toQore()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns a Qore hash corresponding to the XML data; multiple out-of-order keys are created in order in the returned hash by appending a suffix to the key names.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::toQoreData">XmlDoc::toQoreData()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns a Qore hash corresponding to the XML data; key order is not guaranteed to be maintained as multiple out-or-order keys are merged into the same Qore list.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::toString">XmlDoc::toString()</link></para></entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the XML string for the XML document.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::validateRelaxNG">XmlDoc::validateRelaxNG()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><link linkend="XmlDoc::validateSchema">XmlDoc::validateSchema()</link></para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  
+    <sect2 id="XmlDoc::constructor">
+      <title>XmlDoc::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates a new XmlDoc object from the XML string or Qore hash valus passed.  If a Qore hash value is passed, it must have only one top-level key, as the XML string will be created from the hash.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting><command>new</command> XmlDoc(<replaceable>string | hash</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$xd = <command>new</command> XmlDoc($xml);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::constructor()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>string</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The XML string to use to create the XmlDoc object.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><replaceable>hash</replaceable></para></entry>
+	      <entry><para>Hash</para></entry>
+	      <entry><para>The Qore hash will be used to generate the XML string to use to create the XmlDoc object; the Qore hash must have only one top-level key.  The XML will be generated according to the rules documented in <link linkend="XML_Integration">XML Integration</link>.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>XmlDoc Object</para></entry>
+	      <entry><para>The new object created.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by XmlDoc::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>XMLDOC-CONSTRUCTOR-ERROR</code></para></entry>
+	      <entry><para>Missing argument or invalid XML string passed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>Note that if a hash is passed as the argument to the constructor, then the method can throw any of the exceptions documented in <link linkend="makeXMLString">makeXMLString()</link>.</para>
+
+    </sect2>
+
+    <sect2 id="XmlDoc::destructor">
+      <title>XmlDoc::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Destroys the object.</para>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+	    <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $xd;</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="XmlDoc::copy">
+      <title>XmlDoc::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates a new XmlDoc object, not based on the original.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::copy()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$new_gate = $gate.copy();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      
+      <table>
+	<title>Arguments for XmlDoc::copy()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      
+      <table>
+	<title>Return Values for XmlDoc::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>XmlDoc Object</para></entry>
+	      <entry><para>A new XmlDoc object, not based on the original.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="XmlDoc::evalXPath">
+      <title>XmlDoc::evalXPath()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Evaluates an <ulink url="http://www.w3.org/TR/xpath">XPath</ulink> expression and returns a list of matching <link linkend="XmlNode_Class">XmlNode</link> objects.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::evalXPath(<replaceable>xpath_expr</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $list = $xd.evalXPath("//list[2]");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::evalXPath()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>xpath_expr</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The XPath expression to evaluate on the XmlDoc object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::evalXPath()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>List</para></entry>
+	      <entry><para>Returns a list of <link linkend="XmlNode_Class">XmlNode</link> objects that match the XPath expression.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by XmlDoc::evalXPath()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>XMLDOC-EVAL-XPATH-ERROR</code></para></entry>
+	      <entry><para>Missing XPath expression.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>XPATH-CONSTRUCTOR-ERROR</code></para></entry>
+	      <entry><para>Cannot create XPath context from the XmlDoc object</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>XPATH-ERROR</code></para></entry>
+	      <entry><para>An error occured evaluating the XPath expression</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="XmlDoc::getRootElement">
+      <title>XmlDoc::getRootElement()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object representing the root element of the document, if any exists.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::getRootElement()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $node = $xd.getRootElement();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::getRootElement()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::getRootElement()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><link linkend="XmlNode_Class">XmlNode</link> object or NOTHING</para></entry>
+	      <entry><para>The <link linkend="XmlNode_Class">XmlNode</link> object for the root element of the XML document, or NOTHING if there is none.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <para>This method does not throw any exceptions.</para>
+    </sect2>
+
+    <sect2 id="XmlDoc::getVersion">
+      <title>XmlDoc::getVersion()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the XML version of the contained XML document.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::getVersion()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $xmlver = $xd.getVersion();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::getVersion()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::getVersion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The XML version of the contained document (normally &quot;1.0&quot;).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <para>This method does not throw any exceptions.</para>
+    </sect2>
+
+    <sect2 id="XmlDoc::toQore">
+      <title>XmlDoc::toQore()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns a Qore hash structure correponding to the XML data contained by the XmlDoc object. If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
+	    <para>For a similar method not preserving the order of keys in the XML in the resulting Qore hash by collapsiong all elements at the same level with the same name to the same Qore list, see <link linkend="XmlDoc::toQoreData">XmlDoc::toQoreData()</link>.  See also <link linkend="parseXMLAsData">parseXMLAsData()</link> and  <link linkend="parseXML">parseXML()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::toQore()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $h = $xd.toQore();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::toQore()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::toQore()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The Qore hash corresponding to the data contained in the XML document with out-oforder keys preserved by appending a suffix to hash keys.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <para>This method does not throw any exceptions.</para>
+    </sect2>
+
+    <sect2 id="XmlDoc::toQoreData">
+      <title>XmlDoc::toQoreData()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns a Qore hash structure corresponding to the XML data contained by the XmlDoc object; does not preserve hash order with out-of-order duplicate keys: collapses all to the same list.</para>
+	    <para>Note that data deserialized with this function may not be reserialized to the same input XML string due to the fact that duplicate, out-of-order XML elements are collapsed into lists in the resulting Qore hash, thereby losing the order in the original XML string.</para>
+	    <para>For a similar method preserving the order of keys in the XML in the resulting Qore hash by generating Qore hash element names with numeric suffixes, see <link linkend="XmlDoc::toQore">XmlDoc::toQore()</link>.  See also <link linkend="parseXMLAsData">parseXMLAsData()</link> and  <link linkend="parseXML">parseXML()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::toQoreData()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $h = $xd.toQoreData();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::toQoreData()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::toQoreData()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The Qore hash corresponding to the data contained in the XML document; out-of-order keys are not preserved but are instead collapsed to the same Qore list.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <para>This method does not throw any exceptions.</para>
+    </sect2>
+
+    <sect2 id="XmlDoc::toString">
+      <title>XmlDoc::toString()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the XML string for the XML document</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::toString()</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my $xmlstr = $xd.toString();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::toString()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method takes no arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::toString()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>String</para></entry>
+	      <entry><para>The XML string contained by the XmlDoc object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <para>This method does not throw any exceptions.</para>
+    </sect2>
+
+    <sect2 id="XmlDoc::validateRelaxNG">
+      <title>XmlDoc::validateRelaxNG()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::validateRelaxNG(<replaceable>relaxng_schema</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$xd.validateRelaxNG($relaxng);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::validateRelaxNG()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>relaxng_schema</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The RelaxNG schema to use to validate the XmlDoc object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::validateRelaxNG()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value; if there are any errors, an appropriate exception is thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by XmlDoc::validateRelaxNG()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>XMLDOC-VALIDATERELAXNG-ERROR</code></para></entry>
+	      <entry><para>Missing RelaxNG schema string.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>RELAXNG-ERROR</code></para></entry>
+	      <entry><para>The RelaxNG schema could not be parsed.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>XML-RELAXNG-PARSE-ERROR</code></para></entry>
+	      <entry><para>The XML document failed RelaxNG validation.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="XmlDoc::validateSchema">
+      <title>XmlDoc::validateSchema()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Usage</term>
+	  <listitem>
+	    <programlisting>XmlDoc::validateSchema(<replaceable>xsd</replaceable>)</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$xd.validateSchema($xsd);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for XmlDoc::validateSchema()</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><replaceable>xsd</replaceable></para></entry>
+	      <entry><para>String</para></entry>
+	      <entry><para>The XSD schema to use to validate the XmlDoc object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for XmlDoc::validateSchema()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>n/a</para></entry>
+	      <entry><para>This method does not return any value; if there are any errors, an appropriate exception is thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by XmlDoc::validateSchema()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>XMLDOC-VALIDATESCHEMA-ERROR</code></para></entry>
+	      <entry><para>Missing XSD schema string.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SCHEMA-ERROR</code></para></entry>
+	      <entry><para>The XSD schema could not be parsed.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>XML-SCHEMA-PARSE-ERROR</code></para></entry>
+	      <entry><para>The XML document failed XSD schema validation.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+  </sect1>
+
+  <sect1 id="XmlNode_Class">
+    <title>Xml::XmlNode Class</title>
+
+    <para>The XmlNode class provides information about the components of an XML document.</para>
+  </sect1>
+
+  <sect1 id="XmlReader_Class">
+    <title>Xml::XmlReader Class</title>
+
+    <para>The XmlReader class allows an XML string to be interated and parsed.</para>
+  </sect1>
+    
 </chapter>
