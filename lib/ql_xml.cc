@@ -2660,7 +2660,7 @@ static AbstractQoreNode *parseXMLWithSchemaIntern(bool as_data, const QoreListNo
 
    return reader.parseXMLData(ccsid, as_data, xsink);
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSetSchema() function, therefore parseXMLWithSchema() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHSCHEMA to check if this function is implemented before calling");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSetSchema() function, therefore parseXMLWithSchema() and parseXMLAsDataWithSchema() are not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHSCHEMA to check if this function is implemented before calling");
    return 0;
 #endif
 }
@@ -2668,7 +2668,7 @@ static AbstractQoreNode *parseXMLWithSchemaIntern(bool as_data, const QoreListNo
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXMLWithRelaxNGIntern(xml_string, xsd_string [, output encoding])
 static AbstractQoreNode *parseXMLWithRelaxNGIntern(bool as_data, const QoreListNode *params, ExceptionSink *xsink) {
-#ifdef HAVE_XMLTEXTREADERSETSCHEMA
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
    const QoreStringNode *p0, *p1, *p2;
 
    if (!(p0 = test_string_param(params, 0))) {
@@ -2718,7 +2718,7 @@ static AbstractQoreNode *parseXMLWithRelaxNGIntern(bool as_data, const QoreListN
 
    return reader.parseXMLData(ccsid, as_data, xsink);
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSetRelaxNG() function, therefore parseXMLWithRelaxNG() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHRELAXNG to check if this function is implemented before calling");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSetRelaxNG() function, therefore parseXMLWithRelaxNG() and parseXMLAsDataWithRelaxNG() are not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHRELAXNG to check if this function is implemented before calling");
    return 0;
 #endif
 }

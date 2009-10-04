@@ -1740,6 +1740,12 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &False);
 #endif
 
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
+   option->addConstant("HAVE_PARSEXMLWITHRELAXNG",  &True);
+#else
+   option->addConstant("HAVE_PARSEXMLWITHRELAXNG",  &False);
+#endif
+
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    option->addConstant("HAVE_SHA224",  &True);
    option->addConstant("HAVE_SHA256",  &True);

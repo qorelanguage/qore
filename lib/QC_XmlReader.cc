@@ -337,4 +337,3 @@ QoreClass *initXmlReaderClass() {
 
    return QC_XMLREADER;   
 }
-

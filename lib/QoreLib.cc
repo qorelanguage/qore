@@ -201,7 +201,16 @@ const qore_option_s qore_option_list_l[] = {
 #else
      false
 #endif
-   }
+   },
+   { QORE_OPT_FUNC_PARSEXMLWITHRELAXNG,
+     "HAVE_PARSEXMLWITHRELAXNG",
+     QO_FUNCTION,
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
+     true
+#else
+     false
+#endif
+   },
 };
 
 const qore_option_s *qore_option_list = qore_option_list_l;
