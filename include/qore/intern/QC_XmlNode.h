@@ -122,6 +122,16 @@ public:
    DLLLOCAL int64 getElementType() const {
       return ptr->type;
    }
+   DLLLOCAL QoreStringNode *getXML() {
+      if (!doc)
+	 return 0;
+      xmlBufferPtr buf = xmlBufferCreate();
+      assert(buf);
+      int rc = xmlNodeDump(buf, doc->getDocPtr(), ptr, 0, 0);
+      QoreStringNode *str = (rc != -1 && buf->size) ? new QoreStringNode((const char *)buf->content, buf->size, QCS_UTF8) : 0;
+      xmlBufferFree(buf);
+      return str;
+   }
 };
 
 #endif

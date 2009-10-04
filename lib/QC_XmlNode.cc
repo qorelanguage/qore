@@ -163,6 +163,10 @@ static AbstractQoreNode *XMLNODE_isBlank(QoreObject *self, QoreXmlNodeData *xn, 
    return get_bool_node(xn->isBlank());
 }
 
+static AbstractQoreNode *XMLNODE_getXML(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
+   return xn->getXML();
+}
+
 static QoreClass *initXmlNodeClass() {
    QORE_TRACE("initXmlNodeClass()");
 
@@ -190,6 +194,7 @@ static QoreClass *initXmlNodeClass() {
    QC_XMLNODE->addMethod("getName",                (q_method_t)XMLNODE_getName);
    QC_XMLNODE->addMethod("isText",                 (q_method_t)XMLNODE_isText);
    QC_XMLNODE->addMethod("isBlank",                (q_method_t)XMLNODE_isBlank);
+   QC_XMLNODE->addMethod("getXML",                 (q_method_t)XMLNODE_getXML);
 
    return QC_XMLNODE;   
 }
