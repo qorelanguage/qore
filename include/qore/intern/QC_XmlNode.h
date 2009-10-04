@@ -61,7 +61,7 @@ public:
       return ptr;
    }
    DLLLOCAL int64 childElementCount() {
-#ifdef HAVE_XMLCHILDELEMENTCOUNT
+#ifdef LIBXML_TREE_ENABLED
       return xmlChildElementCount(ptr);
 #else
       int64 ret = 0;
@@ -86,7 +86,7 @@ public:
 #endif
    }
    DLLLOCAL QoreXmlNodeData *firstElementChild() {
-#ifdef HAVE_XMLFIRSTELEMENTCHILD
+#ifdef LIBXML_TREE_ENABLED
       return doNode(xmlFirstElementChild(ptr), doc);
 #else
       xmlNodePtr cur = 0;
@@ -110,14 +110,14 @@ public:
 #endif
    }
    DLLLOCAL QoreXmlNodeData *getLastChild() {
-#ifdef HAVE_XMLGETLASTCHILD
+#ifdef LIBXML_TREE_ENABLED
       return doNode(xmlGetLastChild(ptr), doc);
 #else
       return doNode(ptr->last, doc);
 #endif
    }
    DLLLOCAL QoreXmlNodeData *lastElementChild() {
-#ifdef HAVE_XMLLASTELEMENTCHILD
+#ifdef LIBXML_TREE_ENABLED
       return doNode(xmlLastElementChild(ptr), doc);
 #else
       xmlNodePtr cur = 0;
@@ -141,7 +141,7 @@ public:
 #endif
    }
    DLLLOCAL QoreXmlNodeData *nextElementSibling() {
-#ifdef HAVE_XMLNEXTELEMENTSIBLING
+#ifdef LIBXML_TREE_ENABLED
       return doNode(xmlNextElementSibling(ptr), doc);
 #else
       xmlNodePtr cur = ptr;
@@ -171,7 +171,7 @@ public:
 #endif
    }
    DLLLOCAL QoreXmlNodeData *previousElementSibling() {
-#ifdef HAVE_XMLPREVIOUSELEMENTSIBLING
+#ifdef LIBXML_TREE_ENABLED
       return doNode(xmlPreviousElementSibling(ptr), doc);
 #else
       xmlNodePtr cur = ptr;
