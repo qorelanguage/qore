@@ -28,10 +28,70 @@
 
 qore_classid_t CID_XMLDOC;
 
+int QoreXmlDoc::validateRelaxNG(const char *rng, int size, ExceptionSink *xsink) {
+   QoreXmlRelaxNGContext schema(rng, size, xsink);
+   if (!schema) {
+      if (!*xsink)
+	 xsink->raiseException("RELAXNG-ERROR", "RelaxNG schema passed as argument to XmlDoc::validateRelaxNG() could not be parsed");
+      return -1;
+   }
+
+   QoreXmlRelaxNGValidContext vcp(schema);
+   int rc = vcp.validateDoc(ptr);
+
+   if (!rc)
+      return 0;
+   if (*xsink)
+      return -1;
+
+   if (rc < 0)
+      xsink->raiseException("RELAXNG-INTERNAL-ERROR", "an internal error occured validating the document against the RelaxNG schema passed; xmlRelaxNGValidateDoc() returned %d", rc);
+   else if (rc)
+      xsink->raiseException("RELAXNG-ERROR", "The document failed RelaxNG validation", rc);
+   return -1;
+}
+
+int QoreXmlDoc::validateSchema(const char *xsd, int size, ExceptionSink *xsink) {
+   QoreXmlSchemaContext schema(xsd, size, xsink);
+   if (!schema) {
+      if (!*xsink)
+	 xsink->raiseException("XSD-ERROR", "XSD schema passed as argument to XmlDoc::validateSchema() could not be parsed");
+      return -1;
+   }
+
+   QoreXmlSchemaValidContext vcp(schema);
+   int rc = vcp.validateDoc(ptr);
+
+   if (!rc)
+      return 0;
+   if (*xsink)
+      return -1;
+
+   if (rc < 0)
+      xsink->raiseException("XSD-INTERNAL-ERROR", "an internal error occured validating the document against the XSD schema passed; xmlSchemaValidateDoc() returned %d", rc);
+   else if (rc)
+      xsink->raiseException("XSD-ERROR", "The document failed XSD validation", rc);
+   return -1;
+}
+
 QoreXmlNodeData *QoreXmlDocData::getRootElement() {
    xmlNodePtr n = xmlDocGetRootElement(ptr);
    if (!n) return 0;
    return new QoreXmlNodeData(n, this);
+}
+
+QoreStringNode *doString(xmlChar *str) {
+   if (!str)
+      return 0;
+   QoreStringNode *rv = new QoreStringNode((const char *)str);
+   xmlFree(str);
+   return rv;
+}
+
+QoreXmlNodeData *doNode(xmlNodePtr p, QoreXmlDocData *doc) {
+   if (!p)
+      return 0;
+   return new QoreXmlNodeData(p, doc);
 }
 
 static void XMLDOC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
@@ -106,6 +166,40 @@ static AbstractQoreNode *XMLDOC_getRootElement(QoreObject *self, QoreXmlDocData 
    return new QoreObject(QC_XMLNODE, getProgram(), n);
 }
 
+static AbstractQoreNode *XMLDOC_validateRelaxNG(QoreObject *self, QoreXmlDocData *xd, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *rng = test_string_param(params, 0);
+
+   if (!rng) {
+      xsink->raiseException("XMLDOC-VALIDATERELAXNG-ERROR", "expecting RelaxNG schema string as sole argument to XmlDoc::validateRelaxNG()");
+      return 0;
+   }
+
+   // convert to UTF-8 
+   TempEncodingHelper nrng(rng, QCS_UTF8, xsink);
+   if (!nrng)
+      return 0;
+
+   xd->validateRelaxNG(nrng->getBuffer(), nrng->strlen(), xsink);
+   return 0;
+}
+
+static AbstractQoreNode *XMLDOC_validateSchema(QoreObject *self, QoreXmlDocData *xd, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *xsd = test_string_param(params, 0);
+
+   if (!xsd) {
+      xsink->raiseException("XMLDOC-VALIDATESCHEMA-ERROR", "expecting XSD schema string as sole argument to XmlDoc::validateSchema()");
+      return 0;
+   }
+
+   // convert to UTF-8 
+   TempEncodingHelper nxsd(xsd, QCS_UTF8, xsink);
+   if (!nxsd)
+      return 0;
+
+   xd->validateSchema(nxsd->getBuffer(), nxsd->strlen(), xsink);
+   return 0;
+}
+
 QoreClass *initXmlDocClass() {
    QORE_TRACE("initXmlDocClass()");
 
@@ -120,6 +214,8 @@ QoreClass *initXmlDocClass() {
    QC_XMLDOC->addMethod("toString",        (q_method_t)XMLDOC_toString);
    QC_XMLDOC->addMethod("evalXPath",       (q_method_t)XMLDOC_evalXPath);
    QC_XMLDOC->addMethod("getRootElement",  (q_method_t)XMLDOC_getRootElement);
+   QC_XMLDOC->addMethod("validateRelaxNG", (q_method_t)XMLDOC_validateRelaxNG);
+   QC_XMLDOC->addMethod("validateSchema",  (q_method_t)XMLDOC_validateSchema);
 
    return QC_XMLDOC;   
 }

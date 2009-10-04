@@ -27,7 +27,6 @@
 #include <qore/intern/ql_xml.h>
 
 #include <libxml/xmlwriter.h>
-#include <libxml/xmlschemas.h>
 
 #include <string.h>
 #include <memory>
@@ -193,6 +192,25 @@ static void qore_xml_schema_error_func(ExceptionSink *xsink, const char *msg, ..
    xsink->raiseException("XML-SCHEMA-PARSE-ERROR", desc);
 }
 
+static void qore_xml_relaxng_error_func(ExceptionSink *xsink, const char *msg, ...) {
+   if (*xsink)
+      return;
+
+   va_list args;
+   QoreStringNode *desc = new QoreStringNode;
+
+   while (true) {
+      va_start(args, msg);
+      int rc = desc->vsprintf(msg, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   desc->chomp();
+
+   xsink->raiseException("XML-RELAXNG-PARSE-ERROR", desc);
+}
+
 static void qore_xml_schema_warning_func(ExceptionSink *xsink, const char *msg, ...) {
 #ifdef DEBUG
    va_list args;
@@ -268,42 +286,30 @@ public:
    DLLLOCAL int getParams(XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink);
 };
 
-class QoreXmlSchemaContext {
-   protected:
-      xmlSchemaPtr schema;
+QoreXmlSchemaContext::QoreXmlSchemaContext(const char *xsd, int size, ExceptionSink *xsink) : schema(0) {
+   xmlSchemaParserCtxtPtr scp = xmlSchemaNewMemParserCtxt(xsd, size);
+   if (!scp)
+      return;
+   
+   //xmlSchemaSetParserStructuredErrors(scp, (xmlStructuredErrorFunc)qore_xml_structured_error_func, xsink);
+   
+   xmlSchemaSetParserErrors(scp, (xmlSchemaValidityErrorFunc)qore_xml_schema_error_func, 
+			    (xmlSchemaValidityErrorFunc)qore_xml_schema_warning_func , xsink);
+   schema = xmlSchemaParse(scp);
+   xmlSchemaFreeParserCtxt(scp);
+}
 
-   public:
-      DLLLOCAL QoreXmlSchemaContext(const char *xsd, int size, ExceptionSink *xsink) : schema(0) {
-	 xmlSchemaParserCtxtPtr scp = xmlSchemaNewMemParserCtxt(xsd, size);
-	 if (!scp)
-	    return;
-
-	 //xmlSchemaSetParserStructuredErrors(scp, (xmlStructuredErrorFunc)qore_xml_structured_error_func, xsink);
-
-	 xmlSchemaSetParserErrors(scp, (xmlSchemaValidityErrorFunc)qore_xml_schema_error_func, 
-				 (xmlSchemaValidityErrorFunc)qore_xml_schema_warning_func , xsink);
-
-	 schema = xmlSchemaParse(scp);
-
-	 xmlSchemaFreeParserCtxt(scp);
-
-	 if (!schema)
-	    return;
-      }
-
-      DLLLOCAL ~QoreXmlSchemaContext() {
-	 if (schema)
-	    xmlSchemaFree(schema);
-      }
-
-      DLLLOCAL operator bool() const {
-	 return schema != 0;
-      }
-
-      DLLLOCAL xmlSchemaPtr getSchema() {
-	 return schema;
-      }
-};
+QoreXmlRelaxNGContext::QoreXmlRelaxNGContext(const char *rng, int size, ExceptionSink *xsink) : schema(0) {
+   xmlRelaxNGParserCtxtPtr rcp = xmlRelaxNGNewMemParserCtxt(rng, size);
+   if (!rcp)
+      return;
+   
+   xmlRelaxNGSetParserErrors(rcp, (xmlRelaxNGValidityErrorFunc)qore_xml_relaxng_error_func, 
+			     (xmlRelaxNGValidityErrorFunc)qore_xml_schema_warning_func, xsink);
+   
+   schema = xmlRelaxNGParse(rcp);
+   xmlRelaxNGFreeParserCtxt(rcp);
+}
 
 static int concatSimpleValue(QoreString &str, const AbstractQoreNode *n, ExceptionSink *xsink) {
    //printd(5, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
@@ -2659,12 +2665,78 @@ static AbstractQoreNode *parseXMLWithSchemaIntern(bool as_data, const QoreListNo
 #endif
 }
 
+// NOTE: the libxml2 library requires all input to be in UTF-8 encoding
+// syntax: parseXMLWithRelaxNGIntern(xml_string, xsd_string [, output encoding])
+static AbstractQoreNode *parseXMLWithRelaxNGIntern(bool as_data, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
+   const QoreStringNode *p0, *p1, *p2;
+
+   if (!(p0 = test_string_param(params, 0))) {
+      xsink->raiseException(as_data ? "PARSE-XML-AS-DATA-WITH-RELAXNG-ERROR" : "PARSE-XML-WITH-RELAXNG-ERROR", "expecting XML string as first argument to parseXMLWithRelaxNG()");
+      return 0;
+   }
+
+   if (!(p1 = test_string_param(params, 1))) {
+      xsink->raiseException(as_data ? "PARSE-XML-AS-DATA-WITH-RELAXNG-ERROR" : "PARSE-XML-WITH-RELAXNG-ERROR", "expecting RelaxNG schema string as second argument to parseXMLWithRelaxNG()");
+      return 0;
+   }
+
+   printd(5, "parseXMLWithRelaxNG() xml=%s\n xsd=%s\n", p0->getBuffer(), p1->getBuffer());
+
+   const QoreEncoding *ccsid;
+   if ((p2 = test_string_param(params, 2)))
+      ccsid = QEM.findCreate(p1);
+   else
+      ccsid = QCS_DEFAULT;
+
+   // convert to UTF-8 
+   TempEncodingHelper str(p0, QCS_UTF8, xsink);
+   if (!str)
+      return 0;
+
+   TempEncodingHelper rng(p1, QCS_UTF8, xsink);
+   if (!rng)
+      return 0;
+
+   QoreXmlRelaxNGContext schema(rng->getBuffer(), rng->strlen(), xsink);
+   if (!schema) {
+      if (!*xsink)
+	 xsink->raiseException("XML-RELAXNG-ERROR", "RelaxNG schema passed as second argument to parseXMLWithRelaxNG() could not be parsed");
+      return 0;
+   }
+
+   QoreXmlReader reader(*str, QORE_XML_PARSER_OPTIONS, xsink);
+   if (!reader)
+      return 0;
+
+   int rc = reader.setRelaxNG(schema.getSchema());
+   if (rc < 0) {
+      if (!*xsink)
+	 xsink->raiseException("XML-SCHEMA-ERROR", "RelaxNG schema passed as second argument to parseXMLWithRelaxNG() could not be validated");      
+      return 0;
+   }
+
+   return reader.parseXMLData(ccsid, as_data, xsink);
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSetRelaxNG() function, therefore parseXMLWithRelaxNG() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHRELAXNG to check if this function is implemented before calling");
+   return 0;
+#endif
+}
+
 static AbstractQoreNode *f_parseXMLWithSchema(const QoreListNode *params, ExceptionSink *xsink) {
    return parseXMLWithSchemaIntern(false, params, xsink);
 }
 
 static AbstractQoreNode *f_parseXMLAsDataWithSchema(const QoreListNode *params, ExceptionSink *xsink) {
    return parseXMLWithSchemaIntern(true, params, xsink);
+}
+
+static AbstractQoreNode *f_parseXMLWithRelaxNG(const QoreListNode *params, ExceptionSink *xsink) {
+   return parseXMLWithRelaxNGIntern(false, params, xsink);
+}
+
+static AbstractQoreNode *f_parseXMLAsDataWithRelaxNG(const QoreListNode *params, ExceptionSink *xsink) {
+   return parseXMLWithRelaxNGIntern(true, params, xsink);
 }
 
 void init_xml_functions() {
@@ -2709,7 +2781,9 @@ void init_xml_functions() {
    builtinFunctions.add("parseXMLRPCResponse",                                f_parseXMLRPCResponse);
 
    builtinFunctions.add("parseXMLWithSchema",                                 f_parseXMLWithSchema);
+   builtinFunctions.add("parseXMLWithRelaxNG",                                f_parseXMLWithRelaxNG);
 
    builtinFunctions.add("parseXMLAsData",                                     f_parseXMLAsData);
    builtinFunctions.add("parseXMLAsDataWithSchema",                           f_parseXMLAsDataWithSchema);
+   builtinFunctions.add("parseXMLAsDataWithRelaxNG",                          f_parseXMLAsDataWithRelaxNG);
 }

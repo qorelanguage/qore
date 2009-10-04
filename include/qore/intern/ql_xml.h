@@ -25,11 +25,104 @@
 #ifndef _QORE_QL_XML_H
 #define _QORE_QL_XML_H
 
+#include <libxml/xmlschemas.h>
+#include <libxml/relaxng.h>
+
 DLLLOCAL QoreStringNode *makeXMLString(const QoreEncoding *enc, const QoreHashNode &h, bool format, ExceptionSink *xsink);
 DLLLOCAL QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, int offset, const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, int offset, const QoreListNode *args, ExceptionSink *xsink);
 // ccsid is the output encoding for strings
 DLLLOCAL QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink);
 DLLLOCAL void init_xml_functions();
+
+class QoreXmlSchemaContext {
+   friend class QoreXmlSchemaValidContext;
+protected:
+   xmlSchemaPtr schema;
+
+   DLLLOCAL xmlSchemaValidCtxtPtr getValidCtxtPtr() {
+      return xmlSchemaNewValidCtxt(schema);
+   }
+
+public:
+   DLLLOCAL QoreXmlSchemaContext(const char *xsd, int size, ExceptionSink *xsink);
+   DLLLOCAL ~QoreXmlSchemaContext() {
+      if (schema)
+	 xmlSchemaFree(schema);
+   }
+   DLLLOCAL operator bool() const {
+      return schema != 0;
+   }
+   DLLLOCAL xmlSchemaPtr getSchema() {
+      return schema;
+   }
+};
+
+class QoreXmlRelaxNGContext {
+   friend class QoreXmlRelaxNGValidContext;
+protected:
+   xmlRelaxNGPtr schema;
+
+   DLLLOCAL xmlRelaxNGValidCtxtPtr getValidCtxtPtr() {
+      return xmlRelaxNGNewValidCtxt(schema);
+   }
+
+public:
+   DLLLOCAL QoreXmlRelaxNGContext(const char *rng, int size, ExceptionSink *xsink);
+   DLLLOCAL ~QoreXmlRelaxNGContext() {
+      if (schema)
+	 xmlRelaxNGFree(schema);
+   }
+   DLLLOCAL operator bool() const {
+      return schema != 0;
+   }
+   DLLLOCAL xmlRelaxNGPtr getSchema() {
+      return schema;
+   }
+};
+
+class QoreXmlRelaxNGValidContext {
+protected:
+   xmlRelaxNGValidCtxtPtr ptr;
+
+   DLLLOCAL QoreXmlRelaxNGValidContext(xmlRelaxNGValidCtxtPtr n_ptr) : ptr(n_ptr) {
+   }
+
+public:
+   DLLLOCAL QoreXmlRelaxNGValidContext(QoreXmlRelaxNGContext &c) : ptr(c.getValidCtxtPtr()) {
+      assert(ptr);
+   }
+   DLLLOCAL ~QoreXmlRelaxNGValidContext() {
+      xmlRelaxNGFreeValidCtxt(ptr);
+   }
+   DLLLOCAL xmlRelaxNGValidCtxtPtr getPtr() {
+      return ptr;
+   }
+   DLLLOCAL int validateDoc(xmlDocPtr doc) {
+      return xmlRelaxNGValidateDoc(ptr, doc);
+   }
+};
+
+class QoreXmlSchemaValidContext {
+protected:
+   xmlSchemaValidCtxtPtr ptr;
+
+   DLLLOCAL QoreXmlSchemaValidContext(xmlSchemaValidCtxtPtr n_ptr) : ptr(n_ptr) {
+   }
+
+public:
+   DLLLOCAL QoreXmlSchemaValidContext(QoreXmlSchemaContext &c) : ptr(c.getValidCtxtPtr()) {
+      assert(ptr);
+   }
+   DLLLOCAL ~QoreXmlSchemaValidContext() {
+      xmlSchemaFreeValidCtxt(ptr);
+   }
+   DLLLOCAL xmlSchemaValidCtxtPtr getPtr() {
+      return ptr;
+   }
+   DLLLOCAL int validateDoc(xmlDocPtr doc) {
+      return xmlSchemaValidateDoc(ptr, doc);
+   }
+};
 
 #endif // _QORE_QL_XML_H

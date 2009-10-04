@@ -3,6 +3,9 @@
 	  makeXMLFragment() and makeFormattedXMLFragment() when the default
 	  character encoding is not UTF8
 	* more XML cleanups and added XmlReader class
+	* implemented parseXMLWithRelaxNG() and parseXMLAsDataWithRelaxNG()
+	* implemented XmlDoc::validateRelaxNG() and XmlDoc::ValidateSchema()
+	* implemented many XmlReader methods
 
 2009.10.03: David Nichols
 	* added support for system objects using the new object method calling

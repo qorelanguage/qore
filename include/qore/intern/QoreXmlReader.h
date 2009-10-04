@@ -146,7 +146,27 @@ public:
    }
 
    DLLLOCAL bool hasAttributes() {
-      return xmlTextReaderHasAttributes(reader);
+      return xmlTextReaderHasAttributes(reader) == 1;
+   }
+
+   DLLLOCAL bool hasValue() {
+      return xmlTextReaderHasValue(reader) == 1;
+   }
+
+   DLLLOCAL bool isDefault() {
+      return xmlTextReaderIsDefault(reader) == 1;
+   }
+
+   DLLLOCAL bool isEmptyElement() {
+      return xmlTextReaderIsEmptyElement(reader) == 1;
+   }
+
+   DLLLOCAL bool isNamespaceDecl() {
+      return xmlTextReaderIsNamespaceDecl(reader) == 1;
+   }
+
+   DLLLOCAL bool isValid() {
+      return xmlTextReaderIsValid(reader) == 1;
    }
 
    DLLLOCAL int moveToNextAttribute() {
@@ -164,7 +184,119 @@ public:
    DLLLOCAL int setSchema(xmlSchemaPtr schema) {
       return xmlTextReaderSetSchema(reader, schema);
    }
+
+   DLLLOCAL int setRelaxNG(xmlRelaxNGPtr schema) {
+      return xmlTextReaderRelaxNGSetSchema(reader, schema);
+   }
 #endif
+
+   DLLLOCAL int attributeCount() {
+      return xmlTextReaderAttributeCount(reader);
+   }
+
+   DLLLOCAL const char *baseUri() {
+      return (const char *)xmlTextReaderConstBaseUri(reader);
+   }
+
+   DLLLOCAL int64 bytesConsumed() {
+      return xmlTextReaderByteConsumed(reader);
+   }
+
+   DLLLOCAL const char *encoding() {
+      return (const char *)xmlTextReaderConstEncoding(reader);
+   }
+
+   DLLLOCAL const char *localName() {
+      return (const char *)xmlTextReaderConstLocalName(reader);
+   }
+
+   DLLLOCAL const char *namespaceUri() {
+      return (const char *)xmlTextReaderConstNamespaceUri(reader);
+   }
+
+   DLLLOCAL const char *prefix() {
+      return (const char *)xmlTextReaderConstPrefix(reader);
+   }
+
+   DLLLOCAL const char *xmlLang() {
+      return (const char *)xmlTextReaderConstXmlLang(reader);
+   }
+
+   DLLLOCAL const char *xmlVersion() {
+      return (const char *)xmlTextReaderConstXmlVersion(reader);
+   }
+
+   DLLLOCAL QoreStringNode *getAttribute(const char *attr) {
+      return doString(xmlTextReaderGetAttribute(reader, (xmlChar *)attr));
+   }
+
+   DLLLOCAL QoreStringNode *getAttributeOffset(int offset) {
+      return doString(xmlTextReaderGetAttributeNo(reader, offset));
+   }
+
+   DLLLOCAL QoreStringNode *getAttributeNs(const char *lname, const char *ns) {
+      return doString(xmlTextReaderGetAttributeNs(reader, (const xmlChar *)lname, (const xmlChar *)ns));
+   }
+
+   DLLLOCAL int getParserColumnNumber() {
+      return xmlTextReaderGetParserColumnNumber(reader);
+   }
+
+   DLLLOCAL int getParserLineNumber() {
+      return xmlTextReaderGetParserLineNumber(reader);
+   }
+
+   DLLLOCAL QoreStringNode *lookupNamespace(const char *prefix) {
+      return doString(xmlTextReaderLookupNamespace(reader, (xmlChar *)prefix));
+   }
+
+   DLLLOCAL int moveToAttribute(const char *attr) {
+      return xmlTextReaderMoveToAttribute(reader, (xmlChar *)attr);
+   }
+
+   DLLLOCAL int moveToAttributeOffset(int offset) {
+      return xmlTextReaderMoveToAttributeNo(reader, offset);
+   }
+
+   DLLLOCAL int moveToAttributeNs(const char *lname, const char *ns) {
+      return xmlTextReaderMoveToAttributeNs(reader, (const xmlChar *)lname, (const xmlChar *)ns);
+   }
+
+   DLLLOCAL int moveToElement() {
+      return xmlTextReaderMoveToElement(reader);
+   }
+
+   DLLLOCAL int moveToFirstAttribute() {
+      return xmlTextReaderMoveToFirstAttribute(reader);
+   }
+
+   DLLLOCAL int next() {
+      return xmlTextReaderNext(reader);
+   }
+
+/*
+   DLLLOCAL int nextSibling() {
+      return xmlTextReaderNextSibling(reader);
+   }
+*/
+
+   DLLLOCAL QoreStringNode *getInnerXml() {
+      return doString(xmlTextReaderReadInnerXml(reader));
+   }
+
+   DLLLOCAL QoreStringNode *getOuterXml() {
+      return doString(xmlTextReaderReadOuterXml(reader));
+   }
+
+   DLLLOCAL void relaxNGValidate(const char *rng, ExceptionSink *xsink) {
+      if (xmlTextReaderRelaxNGValidate(reader, rng))
+	 xsink->raiseException("XMLREADER-RELAXNG-ERROR", "an error occured setting the RelaxNG schema for validation; this function must be called before the first call to XmlReader::read()");
+   }
+
+   DLLLOCAL void schemaValidate(const char *xsd, ExceptionSink *xsink) {
+      if (xmlTextReaderSchemaValidate(reader, xsd))
+	 xsink->raiseException("XMLREADER-XSD-ERROR", "an error occured setting the W3C XSD schema for validation; this function must be called before the first call to XmlReader::read()");
+   }
 
    DLLLOCAL AbstractQoreNode *parseXMLData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink);
 };

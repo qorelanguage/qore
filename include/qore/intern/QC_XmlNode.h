@@ -39,21 +39,6 @@ private:
    QoreXmlDocData *doc;
    bool del;
 
-protected:
-   DLLLOCAL QoreStringNode *doString(xmlChar *str) {
-      if (!str)
-	 return 0;
-      QoreStringNode *rv = new QoreStringNode((const char *)str);
-      xmlFree(str);
-      return rv;
-   }
-
-   DLLLOCAL QoreXmlNodeData *doNode(xmlNodePtr p) {
-      if (!p)
-	 return 0;
-      return new QoreXmlNodeData(p, doc);
-   }
-
 public:
    DLLLOCAL QoreXmlNodeData(xmlNodePtr n_ptr, QoreXmlDocData *n_doc = 0, bool d = false) : ptr(n_ptr), doc(n_doc), del(d) {
       if (doc)
@@ -79,10 +64,10 @@ public:
       return xmlChildElementCount(ptr);
    }
    DLLLOCAL QoreXmlNodeData *firstElementChild() {
-      return doNode(xmlFirstElementChild(ptr));
+      return doNode(xmlFirstElementChild(ptr), doc);
    }
    DLLLOCAL QoreXmlNodeData *getLastChild() {
-      return doNode(xmlGetLastChild(ptr));
+      return doNode(xmlGetLastChild(ptr), doc);
    }
    DLLLOCAL QoreStringNode *getPath(ExceptionSink *xsink) {
       xmlChar *np = xmlGetNodePath(ptr);
@@ -102,13 +87,13 @@ public:
       return xmlIsBlankNode(ptr);
    }
    DLLLOCAL QoreXmlNodeData *lastElementChild() {
-      return doNode(xmlLastElementChild(ptr));
+      return doNode(xmlLastElementChild(ptr), doc);
    }
    DLLLOCAL QoreXmlNodeData *nextElementSibling() {
-      return doNode(xmlNextElementSibling(ptr));
+      return doNode(xmlNextElementSibling(ptr), doc);
    }
    DLLLOCAL QoreXmlNodeData *previousElementSibling() {
-      return doNode(xmlPreviousElementSibling(ptr));
+      return doNode(xmlPreviousElementSibling(ptr), doc);
    }
 /*
    DLLLOCAL QoreStringNode *getBase() {

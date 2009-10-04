@@ -32,6 +32,11 @@
 #define QORE_XML_PARSER_OPTIONS XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NOBLANKS
 #endif
 
+DLLLOCAL QoreStringNode *doString(xmlChar *str);
+class QoreXmlNodeData;
+class QoreXmlDocData;
+DLLLOCAL QoreXmlNodeData *doNode(xmlNodePtr p, QoreXmlDocData *doc);
+
 class QoreXmlDoc {
 private:
    DLLLOCAL void init(const char *buf, int size, const char *encoding = 0) {
@@ -80,6 +85,9 @@ public:
       xmlFree(x);
       return rv;
    }
+
+   DLLLOCAL int validateRelaxNG(const char *rng, int size, ExceptionSink *xsink);
+   DLLLOCAL int validateSchema(const char *xsd, int size, ExceptionSink *xsink);
 };
 
 #endif
