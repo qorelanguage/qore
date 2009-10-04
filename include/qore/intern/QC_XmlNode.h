@@ -61,7 +61,29 @@ public:
       return ptr;
    }
    DLLLOCAL int64 childElementCount() {
+#ifndef HAVE_XMLCHILDELEMENTCOUNT
       return xmlChildElementCount(ptr);
+#else
+      int64 ret = 0;
+      xmlNodePtr cur = 0;
+
+      switch (ptr->type) {
+	 case XML_ELEMENT_NODE:
+	 case XML_ENTITY_NODE:
+	 case XML_DOCUMENT_NODE:
+	 case XML_HTML_DOCUMENT_NODE:
+            cur = ptr->children;
+            break;
+	 default:
+            return 0;
+      }
+      while (cur) {
+	 if (cur->type == XML_ELEMENT_NODE)
+            ++ret;
+	 cur = cur->next;
+      }
+      return ret;
+#endif
    }
    DLLLOCAL QoreXmlNodeData *firstElementChild() {
 #ifdef HAVE_XMLFIRSTELEMENTCHILD

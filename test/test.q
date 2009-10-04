@@ -1410,6 +1410,7 @@ sub xml_tests() {
     $n = $xd.getRootElement().lastElementChild();
     test_value($n.getName(), "key", "XmlNode::lastElementChild()");
     test_value($n.previousElementSibling().getName(), "bool", "XmlNode::previousElementSibling()");
+    test_value($xd.getRootElement().childElementCount(), 14, "XmlNode::childElementCount()");
 
     $xd = new XmlDoc($mo);
     test_value($xd.toQore() == $mo, True, "XmlDoc::constructor(<hash>), XmlDoc::toQore()");
