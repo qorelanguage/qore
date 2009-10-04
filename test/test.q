@@ -1407,7 +1407,9 @@ sub xml_tests() {
     test_value($n.getElementTypeName(), "XML_ELEMENT_NODE", "XmlNode::getElementTypeName()");
     $n = $xd.getRootElement().firstElementChild();
     test_value($n.getName(), "test", "XmlDoc::geRootElement(), XmlNode::firstElementChild(), XmlNode::getName()");
-    test_value($n.copy().getName(), "test", "XmlNode::copy()");
+    $n = $xd.getRootElement().lastElementChild();
+    test_value($n.getName(), "key", "XmlNode::lastElementChild()");
+    test_value($n.previousElementSibling().getName(), "bool", "XmlNode::previousElementSibling()");
 
     $xd = new XmlDoc($mo);
     test_value($xd.toQore() == $mo, True, "XmlDoc::constructor(<hash>), XmlDoc::toQore()");

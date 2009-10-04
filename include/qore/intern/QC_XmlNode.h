@@ -64,10 +64,119 @@ public:
       return xmlChildElementCount(ptr);
    }
    DLLLOCAL QoreXmlNodeData *firstElementChild() {
+#ifdef HAVE_XMLFIRSTELEMENTCHILD
       return doNode(xmlFirstElementChild(ptr), doc);
+#else
+      xmlNodePtr cur = 0;
+
+      switch (ptr->type) {
+	 case XML_ELEMENT_NODE:
+	 case XML_ENTITY_NODE:
+	 case XML_DOCUMENT_NODE:
+	 case XML_HTML_DOCUMENT_NODE:
+            cur = ptr->children;
+            break;
+	 default:
+            return 0;
+      }
+      while (cur) {
+	 if (cur->type == XML_ELEMENT_NODE)
+            return doNode(cur, doc);
+	 cur = cur->next;
+      }
+      return 0;
+#endif
    }
    DLLLOCAL QoreXmlNodeData *getLastChild() {
+#ifdef HAVE_XMLGETLASTCHILD
       return doNode(xmlGetLastChild(ptr), doc);
+#else
+      return doNode(ptr->last, doc);
+#endif
+   }
+   DLLLOCAL QoreXmlNodeData *lastElementChild() {
+#ifdef HAVE_XMLLASTELEMENTCHILD
+      return doNode(xmlLastElementChild(ptr), doc);
+#else
+      xmlNodePtr cur = 0;
+
+      switch (ptr->type) {
+	 case XML_ELEMENT_NODE:
+	 case XML_ENTITY_NODE:
+	 case XML_DOCUMENT_NODE:
+	 case XML_HTML_DOCUMENT_NODE:
+            cur = ptr->last;
+            break;
+	 default:
+            return 0;
+      }
+      while (cur) {
+	 if (cur->type == XML_ELEMENT_NODE)
+            return doNode(cur, doc);
+	 cur = cur->prev;
+      }
+      return 0;
+#endif
+   }
+   DLLLOCAL QoreXmlNodeData *nextElementSibling() {
+#ifdef HAVE_XMLNEXTELEMENTSIBLING
+      return doNode(xmlNextElementSibling(ptr), doc);
+#else
+      xmlNodePtr cur = ptr;
+
+      switch (cur->type) {
+	 case XML_ELEMENT_NODE:
+	 case XML_TEXT_NODE:
+	 case XML_CDATA_SECTION_NODE:
+	 case XML_ENTITY_REF_NODE:
+	 case XML_ENTITY_NODE:
+	 case XML_PI_NODE:
+	 case XML_COMMENT_NODE:
+	 case XML_DTD_NODE:
+	 case XML_XINCLUDE_START:
+	 case XML_XINCLUDE_END:
+	    cur = cur->next;
+            break;
+	 default:
+            return 0;
+      }
+      while (cur) {
+	 if (cur->type == XML_ELEMENT_NODE)
+            return doNode(cur, doc);
+	 cur = cur->next;
+      }
+      return 0;
+#endif
+   }
+   DLLLOCAL QoreXmlNodeData *previousElementSibling() {
+#ifdef HAVE_XMLPREVIOUSELEMENTSIBLING
+      return doNode(xmlPreviousElementSibling(ptr), doc);
+#else
+      xmlNodePtr cur = ptr;
+
+      switch (cur->type) {
+	 case XML_ELEMENT_NODE:
+	 case XML_TEXT_NODE:
+	 case XML_CDATA_SECTION_NODE:
+	 case XML_ENTITY_REF_NODE:
+	 case XML_ENTITY_NODE:
+	 case XML_PI_NODE:
+	 case XML_COMMENT_NODE:
+	 case XML_DTD_NODE:
+	 case XML_XINCLUDE_START:
+	 case XML_XINCLUDE_END:
+	    cur = cur->prev;
+            break;
+	 default:
+            return 0;
+      }
+      while (cur) {
+	 if (cur->type == XML_ELEMENT_NODE)
+            return doNode(cur, doc);
+	 cur = cur->prev;
+      }
+      return 0;
+#endif
    }
    DLLLOCAL QoreStringNode *getPath(ExceptionSink *xsink) {
       xmlChar *np = xmlGetNodePath(ptr);
@@ -85,15 +194,6 @@ public:
    }
    bool isBlank() {
       return xmlIsBlankNode(ptr);
-   }
-   DLLLOCAL QoreXmlNodeData *lastElementChild() {
-      return doNode(xmlLastElementChild(ptr), doc);
-   }
-   DLLLOCAL QoreXmlNodeData *nextElementSibling() {
-      return doNode(xmlNextElementSibling(ptr), doc);
-   }
-   DLLLOCAL QoreXmlNodeData *previousElementSibling() {
-      return doNode(xmlPreviousElementSibling(ptr), doc);
    }
 /*
    DLLLOCAL QoreStringNode *getBase() {
