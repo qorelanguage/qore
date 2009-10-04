@@ -61,7 +61,7 @@ public:
       return ptr;
    }
    DLLLOCAL int64 childElementCount() {
-#ifndef HAVE_XMLCHILDELEMENTCOUNT
+#ifdef HAVE_XMLCHILDELEMENTCOUNT
       return xmlChildElementCount(ptr);
 #else
       int64 ret = 0;
