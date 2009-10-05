@@ -26,6 +26,8 @@
 
 #include <libxml/parser.h>
 
+#define XML_PARSE_NOBLANKS 0
+
 #ifdef DEBUG
 #define QORE_XML_PARSER_OPTIONS XML_PARSE_NOBLANKS
 #else
