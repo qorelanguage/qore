@@ -46,7 +46,14 @@ sub do_arg($arg, $opt) {
     return $arg;
 }
 
-sub get_arg_list($mname, $args) {
+sub get_arg_list($class, $method, $args) {
+    if ($method == "destructor") {
+	return ( "command" : "delete",
+		 "^value^" : " ",
+		 "replaceable" : "lvalue" );
+    }
+
+    my $mname = sprintf("%s::%s", $class, $method);
     if (!exists $args)
 	return $mname + "()";
     my $l = ();
@@ -60,15 +67,32 @@ sub get_arg_list($mname, $args) {
 }
 
 sub get_example($class, $method, $args, $rv) {
-    my $mname = sprintf("$%s.%s", tolower($class), $method);
+    my $var = "\$" + tolower($class);
+    my $mname = sprintf("%s.%s", $var, $method);
     
-    if (!exists $args)
-	return $mname + "()";
     my $l = ();
     foreach my $key in (keys $args)
 	$l += do_arg("\$" + $key, $args.$key.optional);
 
-    my $call = sprintf("%s%s(%s);", exists $rv ? "$value = " : "", $mname, join(", ", $l));
+    my $argstr = sprintf("(%s)", join(", ", $l));
+    printf("method=%N\n", $method);
+    switch ($method) {
+	case "constructor": {
+	    return ( "^value^" : sprintf("%s = ", $var),
+		     "command" : "new",
+		     "^value^1" : sprintf(" %s%s;", $class, $argstr) );
+	}
+	case "destructor": {
+	    return ( "command" : "delete",
+		     "^value^" : sprintf(" %s;", $var));
+	}
+	case "copy": {
+	    $rv = True;
+	    break;
+	}
+    }
+
+    my $call = sprintf("%s%s%s;", exists $rv ? "$value = " : "", $mname, $argstr);
     return $call;
 }
 
@@ -76,6 +100,11 @@ sub get_rv($name, $m, $rv) {
     if (type($rv) == Type::String) {
 	return (( "para" : "String" ),
 		( "para" : get_para($rv) ) );	
+    }
+
+    if ($m == "copy") {
+	return (( "para" : get_para(sprintf("[%s|%s_Class]", $name, $name)) ),
+		( "para" : "a copy of the current object" ) );
     }
 
     my $type = exists $rv.type ? $rv.type : ( $m == "constructor" ? "Object" : "n/a");
@@ -175,43 +204,45 @@ sub generate_info($name, $class) {
 			  "listitem" : ( "para" : get_para(exists $meth.long ? $meth.long : $meth.desc) )),
 			( "term" : "Usage",
 			  "listitem" : 
-			  ( "programlisting" : get_arg_list($name + "::" + $m, $meth.args) ) ),
+			  ( "programlisting" : get_arg_list($name, $m, $meth.args) ) ),
 			( "term" : "Example",
 			  "listitem" :
 			  ( "programlisting" : get_example($name, $m, $meth.args, $meth.rv) ) ),
 		       ) ),
-		     
-		     "table" : 
-		     ( "title" : "Arguments for " + $name + "::" + $m + "()",
-		       "tgroup" :
-		       ( "^attributes^" :
-			 ( "cols" : 3,
-			   "align" : "left",
-			   "colsep" : "1",
-			   "rowsep" : "1" ),
-			 "thead" :
-			 ( "row" : 
-			   ( "entry" : (( "para" : "Argument" ),
-					( "para" : "Type" ),
-					( "para" : "Description" ) ))),
-			 "tbody" : 
-			 ( "row" : get_arg_rows($meth.args) ) ) ),
-		     "table^1" : 
-		     ( "title" : "Return Values for " + $name + "::" + $m + "()",
-		       "tgroup" :
-		       ( "^attributes^" :
-			 ( "cols" : 2,
-			   "align" : "left",
-			   "colsep" : "1",
-			   "rowsep" : "1" ),
-			 "thead" :
-			 ( "row" : 
-			   ( "entry" : (( "para" : "Return Type" ),
-					( "para" : "Description" ) ))),
-			 "tbody" : 
-			 ( "row" : 
-			   ( "entry" : get_rv($name, $m, $meth.rv) ) ) ) ) );
-	
+	    );
+
+	if ($m != "destructor" && $m != "copy")
+	    $sect.table = ( "title" : "Arguments for " + $name + "::" + $m + "()",
+		     "tgroup" :
+		     ( "^attributes^" :
+		       ( "cols" : 3,
+			 "align" : "left",
+			 "colsep" : "1",
+			 "rowsep" : "1" ),
+		       "thead" :
+		       ( "row" : 
+			 ( "entry" : (( "para" : "Argument" ),
+				      ( "para" : "Type" ),
+				      ( "para" : "Description" ) ))),
+		       "tbody" : 
+		       ( "row" : get_arg_rows($meth.args) ) ) );
+
+	if ($m != "destructor")
+	    $sect."table^1" = ( "title" : "Return Values for " + $name + "::" + $m + "()",
+				"tgroup" :
+				( "^attributes^" :
+				  ( "cols" : 2,
+				    "align" : "left",
+				    "colsep" : "1",
+				    "rowsep" : "1" ),
+				  "thead" :
+				  ( "row" : 
+				    ( "entry" : (( "para" : "Return Type" ),
+						 ( "para" : "Description" ) ))),
+				  "tbody" : 
+				  ( "row" : 
+				    ( "entry" : get_rv($name, $m, $meth.rv) ) ) ) );
+
 	if (exists $meth.exceptions) {
 	    my $erows = ();
 	    foreach my $e in (keys $meth.exceptions) {

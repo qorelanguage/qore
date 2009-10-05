@@ -36248,6 +36248,105 @@ $mutex.unlock();</programlisting>
       </tgroup>
     </table>
 
+    <para>The <code>ElementTypeMap</code> constant in Xml namespace provides a mapping between element codes and the corresponding string code as defined in the following table.</para>
+    <table id="ElementTypeMap">
+      <title>ElementTypeMap Constant Hash</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Key</para></entry>
+	    <entry><para>Value</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>&quot;1&quot;</code></para></entry>
+	    <entry><para><code>XML_ELEMENT_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;2&quot;</code></para></entry>
+	    <entry><para><code>XML_ATTRIBUTE_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;3&quot;</code></para></entry>
+	    <entry><para><code>XML_TEXT_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;4&quot;</code></para></entry>
+	    <entry><para><code>XML_CDATA_SECTION_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;5&quot;</code></para></entry>
+	    <entry><para><code>XML_ENTITY_REF_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;6&quot;</code></para></entry>
+	    <entry><para><code>XML_ENTITY_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;7&quot;</code></para></entry>
+	    <entry><para><code>XML_PI_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;8&quot;</code></para></entry>
+	    <entry><para><code>XML_COMMENT_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;9&quot;</code></para></entry>
+	    <entry><para><code>XML_DOCUMENT_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;10&quot;</code></para></entry>
+	    <entry><para><code>XML_DOCUMENT_TYPE_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;11&quot;</code></para></entry>
+	    <entry><para><code>XML_DOCUMENT_FRAG_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;12&quot;</code></para></entry>
+	    <entry><para><code>XML_NOTATION_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;13&quot;</code></para></entry>
+	    <entry><para><code>XML_HTML_DOCUMENT_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;14&quot;</code></para></entry>
+	    <entry><para><code>XML_DTD_NODE</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;15&quot;</code></para></entry>
+	    <entry><para><code>XML_ELEMENT_DECL</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;16&quot;</code></para></entry>
+	    <entry><para><code>XML_ATTRIBUTE_DECL</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;17&quot;</code></para></entry>
+	    <entry><para><code>XML_ENTITY_DECL</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;18&quot;</code></para></entry>
+	    <entry><para><code>XML_NAMESPACE_DECL</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;19&quot;</code></para></entry>
+	    <entry><para><code>XML_XINCLUDE_START</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;20&quot;</code></para></entry>
+	    <entry><para><code>XML_XINCLUDE_END</code></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>&quot;21&quot;</code></para></entry>
+	    <entry><para><code>XML_DOCB_DOCUMENT_NODE</code></para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <para>Additionally, the classes in the following table are included in the Xml namespace.</para>
 
     <table id="Xml_Class_List">
@@ -36280,7 +36379,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="XmlDoc_Class">
     <title>Xml::XmlDoc Class</title>
 
-    <para>The XmlDoc class provides access to a parsed XML document by wrapping a C <code>xmlDocPtr</code> from <ulink url="http://www.xmlsoft.org">libxml2</ulink>.</para>
+    <para>The XmlDoc class provides access to a parsed XML document by wrapping a C <code>xmlDocPtr</code> from <ulink url="http://www.xmlsoft.org">libxml2</ulink>.  Currently this class provides read-only access to XML documents; it is possible that this restriction will be removed in future versions of Qore.</para>
 
     <table>
       <title>XmlDoc Method Overview</title>
@@ -37114,19 +37213,1980 @@ $mutex.unlock();</programlisting>
 	</tgroup>
       </table>
     </sect2>
-
   </sect1>
 
   <sect1 id="XmlNode_Class">
     <title>Xml::XmlNode Class</title>
-
-    <para>The XmlNode class provides information about the components of an XML document.</para>
+    <para>The XmlNode class provides information about the components of an XML document.  This class currently cannot be constructed manually, but rather can only be returned by the <link linkend="XmlDoc_Class">XmlDoc</link> class.  It is possible that future versions of Qore will remove this restriction.</para>
+    <table>
+      <title>XmlNode Class Method Overview</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Method</para>
+            </entry>
+            <entry>
+              <para>Except?</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_constructor">XmlNode::constructor()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Cannot be called manually; throws an exception.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_destructor">XmlNode::destructor()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Destroys the XmlNode object.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_copy">XmlNode::copy()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Creates an independent copy of the XmlNode object.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_childElementCount">XmlNode::childElementCount()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the number of child elements of the XmlNode.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getSpacePreserve">XmlNode::getSpacePreserve()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the space-preserving behavior of the XmlNode object.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getElementType">XmlNode::getElementType()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the type of the XmlNode object; for possible values see <link linkend="XML_Element_Type_Constants">XML Element Type Constants</link>.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getElementTypeName">XmlNode::getElementTypeName()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the name of the type of the XmlNode object; for possible values see the <link linkend="ElementTypeMap">ElementTypeMap</link> constant.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_firstElementChild">XmlNode::firstElementChild()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getLastChild">XmlNode::getLastChild()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or NOTHING if there is none.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_lastElementChild">XmlNode::lastElementChild()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_nextElementSibling">XmlNode::nextElementSibling()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element at the same level of the current XmlNode object, or NOTHING if there is none.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_previousElementSibling">XmlNode::previousElementSibling()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element at the same level of the current XmlNode object, or NOTHING if there is none.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getPath">XmlNode::getPath()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns a string representing a structured path for the current node.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getNsProp">XmlNode::getNsProp()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Returns the value of the given property anchored in the given namespace, or NOTHING if no such property exists in the current XmlNode.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getProp">XmlNode::getProp()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Returns the value of the given property, or NOTHING if no such property exists in the current XmlNode.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getContent">XmlNode::getContent()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns a string of the content of the current node.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getName">XmlNode::getName()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the name of the current node.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getLang">XmlNode::getLang()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then NOTHING is returned.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_isText">XmlNode::isText()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns True if the node is a text node, False if not.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_isBlank">XmlNode::isBlank()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns True if the node is empty or whitespace only, False if not.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlNode_getXML">XmlNode::getXML()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns XML corresponding to the current node and all its children.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <sect2 id="XmlNode_constructor">
+      <title>XmlNode::constructor()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Cannot be called manually; throws an exception.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::constructor()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$xmlnode = <command>new</command> XmlNode();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::constructor()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>Currently cannot be used; an exception will be thrown if called manually.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlNode::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLNODE-CONSTRUCTOR-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>XmlNode objects cannot be constructed manually</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_destructor">
+      <title>XmlNode::destructor()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Destroys the XmlNode object.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>delete</command> $xmlnode;</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+    <sect2 id="XmlNode_copy">
+      <title>XmlNode::copy()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Creates an independent copy of the XmlNode object.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::copy()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.copy();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Return Values for XmlNode::copy()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><link linkend="XmlNode_Class">XmlNode</link></para>
+              </entry>
+              <entry>
+                <para>a copy of the current object</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_childElementCount">
+      <title>XmlNode::childElementCount()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the number of child elements of the XmlNode.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::childElementCount()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.childElementCount();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::childElementCount()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::childElementCount()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Int</para>
+              </entry>
+              <entry>
+                <para>the number of child elements of the XmlNode</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getSpacePreserve">
+      <title>XmlNode::getSpacePreserve()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the space-preserving behavior of the XmlNode object.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getSpacePreserve()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getSpacePreserve();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getSpacePreserve()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getSpacePreserve()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Int</para>
+              </entry>
+              <entry>
+                <para>The space-preserving behavior of the XmlNode: -1 = xml:space is not inherited, 0 = default, 1 = preserve</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getElementType">
+      <title>XmlNode::getElementType()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the type of the XmlNode object; for possible values see <link linkend="XML_Element_Type_Constants">XML Element Type Constants</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getElementType()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getElementType();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getElementType()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getElementType()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Int</para>
+              </entry>
+              <entry>
+                <para>the type of the XmlNode object; for possible values see <link linkend="XML_Element_Type_Constants">XML Element Type Constants</link></para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getElementTypeName">
+      <title>XmlNode::getElementTypeName()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the name of the type of the XmlNode object; for possible values see the <link linkend="ElementTypeMap">ElementTypeMap</link> constant.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getElementTypeName()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getElementTypeName();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getElementTypeName()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getElementTypeName()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the name of the type of the XmlNode object; for possible values see the <link linkend="ElementTypeMap">ElementTypeMap</link> constant</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_firstElementChild">
+      <title>XmlNode::firstElementChild()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::firstElementChild()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.firstElementChild();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::firstElementChild()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::firstElementChild()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><link linkend="XmlNode_Class">XmlNode</link> or NOTHING</para>
+              </entry>
+              <entry>
+                <para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first element child of the current XmlNode object, or NOTHING if there is none</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getLastChild">
+      <title>XmlNode::getLastChild()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or NOTHING if there is none.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getLastChild()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getLastChild();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getLastChild()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getLastChild()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><link linkend="XmlNode_Class">XmlNode</link> or NOTHING</para>
+              </entry>
+              <entry>
+                <para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or NOTHING if there is none</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_lastElementChild">
+      <title>XmlNode::lastElementChild()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::lastElementChild()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.lastElementChild();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::lastElementChild()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::lastElementChild()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><link linkend="XmlNode_Class">XmlNode</link> or NOTHING</para>
+              </entry>
+              <entry>
+                <para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last element child of the current XmlNode object, or NOTHING if there is none</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_nextElementSibling">
+      <title>XmlNode::nextElementSibling()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element at the same level of the current XmlNode object, or NOTHING if there is none.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::nextElementSibling()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.nextElementSibling();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::nextElementSibling()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::nextElementSibling()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><link linkend="XmlNode_Class">XmlNode</link> or NOTHING</para>
+              </entry>
+              <entry>
+                <para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element at the same level of the current XmlNode object, or NOTHING if there is none</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_previousElementSibling">
+      <title>XmlNode::previousElementSibling()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element at the same level of the current XmlNode object, or NOTHING if there is none.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::previousElementSibling()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.previousElementSibling();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::previousElementSibling()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::previousElementSibling()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><link linkend="XmlNode_Class">XmlNode</link> or NOTHING</para>
+              </entry>
+              <entry>
+                <para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element at the same level of the current XmlNode object, or NOTHING if there is none</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getPath">
+      <title>XmlNode::getPath()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a string representing a structured path for the current node.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getPath()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getPath();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getPath()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getPath()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>a string representing a structured path for the current node</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getNsProp">
+      <title>XmlNode::getNsProp()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the value of the given property anchored in the given namespace, or NOTHING if no such property exists in the current XmlNode.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getNsProp(<replaceable>prop, namespace</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getNsProp($prop, $namespace);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getNsProp()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>prop</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The name of the property to retrieve</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>namespace</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The name of the namespace of the property</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getNsProp()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the value of the property or NOTHING if it does not exist</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlNode::getNsProp()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLNODE-GETNSPROP-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid argument</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getProp">
+      <title>XmlNode::getProp()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the value of the given property, or NOTHING if no such property exists in the current XmlNode.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getProp(<replaceable>prop</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getProp($prop);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getProp()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>prop</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The name of the property to retrieve</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getProp()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the value of the property or NOTHING if it does not exist</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlNode::getProp()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLNODE-GETPROP-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid argument</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getContent">
+      <title>XmlNode::getContent()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a string of the content of the current node.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getContent()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getContent();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getContent()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getContent()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>a string of the content of the current node</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getName">
+      <title>XmlNode::getName()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the name of the current node.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getName()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getName();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getName()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getName()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the name of the current node</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getLang">
+      <title>XmlNode::getLang()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then NOTHING is returned.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getLang()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getLang();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getLang()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getLang()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then NOTHING is returned.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_isText">
+      <title>XmlNode::isText()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the node is a text node, False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::isText()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.isText();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::isText()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::isText()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the node is a text node, False if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_isBlank">
+      <title>XmlNode::isBlank()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the node is empty or whitespace only, False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::isBlank()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.isBlank();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::isBlank()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::isBlank()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the node is empty or whitespace only, False if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlNode_getXML">
+      <title>XmlNode::getXML()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns XML corresponding to the current node and all its children.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlNode::getXML()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlnode.getXML();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlNode::getXML()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlNode::getXML()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>XML corresponding to the current node and all its children</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
   </sect1>
 
   <sect1 id="XmlReader_Class">
     <title>Xml::XmlReader Class</title>
 
-    <para>The XmlReader class allows an XML string to be interated and parsed.</para>
+    <para>The XmlReader class allows an XML string to be iterated and parsed.</para>
   </sect1>
     
 </chapter>
