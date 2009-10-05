@@ -162,7 +162,15 @@ public:
    }
 
    DLLLOCAL bool isNamespaceDecl() {
+#ifdef HAVE_XMLTEXTREADERISNAMESPACEDECL
       return xmlTextReaderIsNamespaceDecl(reader) == 1;
+#else
+      xmlNodePtr node = xmlTextReaderCurrentNode(reader);
+      if (!node)
+	 return false;
+
+      return node->type == XML_NAMESPACE_DECL ? true : false;
+#endif
    }
 
    DLLLOCAL bool isValid() {
@@ -200,9 +208,11 @@ public:
       return (const char *)xmlTextReaderConstBaseUri(reader);
    }
 
+#ifdef HAVE_XMLTEXTREADERBYTECONSUMED
    DLLLOCAL int64 bytesConsumed() {
       return xmlTextReaderByteConsumed(reader);
    }
+#endif
 
    DLLLOCAL const char *encoding() {
       return (const char *)xmlTextReaderConstEncoding(reader);
@@ -240,13 +250,17 @@ public:
       return doString(xmlTextReaderGetAttributeNs(reader, (const xmlChar *)lname, (const xmlChar *)ns));
    }
 
+#ifdef HAVE_XMLTEXTREADERGETPARSERCOLUMNNUMBER
    DLLLOCAL int getParserColumnNumber() {
       return xmlTextReaderGetParserColumnNumber(reader);
    }
+#endif
 
+#ifdef HAVE_XMLTEXTREADERGETPARSERLINENUMBER
    DLLLOCAL int getParserLineNumber() {
       return xmlTextReaderGetParserLineNumber(reader);
    }
+#endif
 
    DLLLOCAL QoreStringNode *lookupNamespace(const char *prefix) {
       return doString(xmlTextReaderLookupNamespace(reader, (xmlChar *)prefix));
@@ -277,6 +291,7 @@ public:
    }
 
 /*
+   // only implemented for readers build on a document
    DLLLOCAL int nextSibling() {
       return xmlTextReaderNextSibling(reader);
    }

@@ -663,61 +663,41 @@ if test -n "$LIBXML2_LDFLAGS"; then
    else
       AC_MSG_RESULT([not found])
    fi
-   # check for xmlReaderForDoc()
-   AC_MSG_CHECKING([for xmlReaderForDoc()])
-   file=`grep xmlReaderForDoc $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_ERROR([not found - upgrade libxml2 and run configure again])
-   fi
-   # check for xmlReaderWalker()
-   AC_MSG_CHECKING([for xmlReaderWalker()])
-   file=`grep xmlReaderWalker $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_ERROR([not found - upgrade libxml2 and run configure again])
-   fi
    # check for xmlTextReaderIsNamespaceDecl()
    AC_MSG_CHECKING([for xmlTextReaderIsNamespaceDecl()])
    file=`grep xmlTextReaderIsNamespaceDecl $LIBXML2_INC_DIR/libxml/*.h`
    if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLTEXTREADERISNAMESPACEDECL, 1, [Define if libxml2 defines xmlTextReaderIsNamespaceDecl()])
       AC_MSG_RESULT([found])
    else
-      AC_MSG_ERROR([not found - upgrade libxml2 and run configure again])
+      AC_MSG_RESULT([not found])
    fi
    # check for xmlTextReaderByteConsumed()
    AC_MSG_CHECKING([for xmlTextReaderByteConsumed()])
    file=`grep xmlTextReaderByteConsumed $LIBXML2_INC_DIR/libxml/*.h`
    if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLTEXTREADERBYTECONSUMED, 1, [Define if libxml2 defines xmlTextReaderByteConsumed()])
       AC_MSG_RESULT([found])
    else
-      AC_MSG_ERROR([not found - upgrade libxml2 and run configure again])
+      AC_MSG_RESULT([not found])
    fi
    # check for xmlTextReaderGetParserColumnNumber()
    AC_MSG_CHECKING([for xmlTextReaderGetParserColumnNumber()])
    file=`grep xmlTextReaderGetParserColumnNumber $LIBXML2_INC_DIR/libxml/*.h`
    if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLTEXTREADERGETPARSERCOLUMNNUMBER, 1, [Define if libxml2 defines xmlTextReaderGetParserColumnNumber()])
       AC_MSG_RESULT([found])
    else
-      AC_MSG_ERROR([not found - upgrade libxml2 and run configure again])
+      AC_MSG_RESULT([not found])
    fi
    # check for xmlTextReaderGetParserLineNumber()
    AC_MSG_CHECKING([for xmlTextReaderGetParserLineNumber()])
    file=`grep xmlTextReaderGetParserLineNumber $LIBXML2_INC_DIR/libxml/*.h`
    if test -n "$file"; then
+      AC_DEFINE(HAVE_XMLTEXTREADERGETPARSERLINENUMBER, 1, [Define if libxml2 defines xmlTextReaderGetParserLineNumber()])
       AC_MSG_RESULT([found])
    else
-      AC_MSG_ERROR([not found - upgrade libxml2 and run configure again])
-   fi
-   # check for xmlParserOption enum
-   AC_MSG_CHECKING([for xmlParserOption enum])
-   file=`grep xmlParserOption $LIBXML2_INC_DIR/libxml/parser.h`
-   if test -n "$file"; then
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_ERROR([not found - upgrade libxml2 and run configure again])
+      AC_MSG_RESULT([not found])
    fi
 else
     AC_MSG_ERROR([no libxml2 library found])

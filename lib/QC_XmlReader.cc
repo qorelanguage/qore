@@ -196,14 +196,6 @@ static AbstractQoreNode *XMLREADER_getAttributeNs(QoreObject *self, QoreXmlReade
    return xr->getAttributeNs(lname->getBuffer(), ns->getBuffer());
 }
 
-static AbstractQoreNode *XMLREADER_getParserColumnNumber(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(xr->getParserColumnNumber());
-}
-
-static AbstractQoreNode *XMLREADER_getParserLineNumber(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(xr->getParserLineNumber());
-}
-
 static AbstractQoreNode *XMLREADER_lookupNamespace(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *prefix = test_string_param(params, 0);
 
@@ -320,8 +312,6 @@ QoreClass *initXmlReaderClass() {
    QC_XMLREADER->addMethod("getAttribute",              (q_method_t)XMLREADER_getAttribute);
    QC_XMLREADER->addMethod("getAttributeOffset",        (q_method_t)XMLREADER_getAttributeOffset);
    QC_XMLREADER->addMethod("getAttributeNs",            (q_method_t)XMLREADER_getAttributeNs);
-   QC_XMLREADER->addMethod("getParseColumnNumber",      (q_method_t)XMLREADER_getParserColumnNumber);
-   QC_XMLREADER->addMethod("getParseLineNumber",        (q_method_t)XMLREADER_getParserLineNumber);
    QC_XMLREADER->addMethod("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace);
    QC_XMLREADER->addMethod("moveToAttribute",           (q_method_t)XMLREADER_moveToAttribute);
    QC_XMLREADER->addMethod("moveToAttributeOffset",     (q_method_t)XMLREADER_moveToAttributeOffset);
