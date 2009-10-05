@@ -566,10 +566,10 @@ find_libxml2() {
     # check version
     full=`grep define.*LIBXML_DOTTED_VERSION $inc/libxml/xmlversion.h | cut -f2 -d\"`
     vers=`echo $full | awk 'BEGIN { FS = "."; } {printf("%04d%03d\n", $1 * 1000 + $2, $3);}'`
-    if test "$vers" -ge 2004022; then
+    if test "$vers" -ge 2006000; then
         AC_MSG_RESULT([$full (OK)])
     else
-	AC_MSG_ERROR([libxml2 2.4.22 or higher is needed; found version $full])
+	AC_MSG_ERROR([libxml2 2.6.0 or higher is needed; found version $full])
     fi
 
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $LIBXML2_LDFLAGS"

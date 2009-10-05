@@ -1,5 +1,6 @@
 2009.10.05: David Nichols
 	* updated configure to check for more required features of libxml2
+	* updated configure to check for minimum libxml2 version 2.6.0
 
 2009.10.04: David Nichols
 	* fixed a bug setting the character encoding in strings produced with

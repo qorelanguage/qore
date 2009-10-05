@@ -17,7 +17,7 @@ qore requires bison 1.85 or greater to be able to interface properly with the sc
 *) POSIX threads
 OS-level POSIX thread support is required to build qore.
 
-*) libxml2 2.4.22 or better
+*) libxml2 2.6.0 or better
 for the XML subsystem - note that this is no longer an optional component of Qore
 	http://www.xmlsoft.org
 to find libxml2 headers and libraries in a non-standard location, use the --with-libxml2-dir configure option or set the LIBXML2_DIR environment variable
