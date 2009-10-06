@@ -424,11 +424,17 @@ class QoreClass {
        */
       DLLEXPORT QoreClass *getClass(qore_classid_t cid) const;
       
-      //! returns the number of non-static methods in this class
+      //! returns the number of non-static methods in this class (user and builtin)
       DLLEXPORT int numMethods() const;
 
-      //! returns the number of static methods in this class
+      //! returns the number of static methods in this class (user and builtin)
       DLLEXPORT int numStaticMethods() const;
+
+      //! returns the number of non-static user methods in this class
+      DLLEXPORT int numUserMethods() const;
+
+      //! returns the number of static user methods in this class
+      DLLEXPORT int numStaticUserMethods() const;
 
       //! returns true if the class implements a copy method
       DLLEXPORT bool hasCopy() const;

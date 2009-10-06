@@ -1,3 +1,9 @@
+2009.10.06: David Nichols
+	* fixed a potential race condition in calling QoreClass::numMethods()
+	  and QoreClass::numStaticMethods() (C++ functions)
+	* added QoreClass::numUserMethods() and
+	  QoreClass::numStaticUserMethods() (C++ functions)
+
 2009.10.05: David Nichols
 	* updated configure to check for more required features of libxml2
 	* updated configure to check for minimum libxml2 version 2.6.0

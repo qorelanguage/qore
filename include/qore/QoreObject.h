@@ -529,4 +529,13 @@ class QoreObject : public AbstractQoreNode {
       DLLLOCAL VRMutex *getClassSyncLock();
 };
 
+//! convenience class for holding AbstractPrivateData references
+template <class T>
+class PrivateDataRefHolder : public ReferenceHolder<T> {
+  public:
+   DLLLOCAL PrivateDataRefHolder(QoreObject *o, qore_classid_t cid, ExceptionSink *xsink) : ReferenceHolder<T>(reinterpret_cast<T *>(o->getReferencedPrivateData(cid, xsink)), xsink) {
+   }
+};
+
+
 #endif

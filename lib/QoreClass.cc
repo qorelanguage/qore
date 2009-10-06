@@ -60,13 +60,16 @@ struct qore_qc_private {
       ;
    int domain;                      // capabilities of builtin class to use in the context of parse restrictions
    QoreReferenceCounter nref;       // namespace references
+   int num_methods, num_user_methods, num_static_methods, num_static_user_methods;
 
    DLLLOCAL qore_qc_private(const char *nme, int dom = QDOM_DEFAULT) : bcal(0), scl(0), 
 								       sys(false), initialized(false), has_delete_blocker(false), 
 #ifdef QORE_CLASS_SYNCHRONOUS
 								       synchronous_class(false), has_synchronous_in_hierarchy(false), 
 #endif
-								       domain(dom)
+								       domain(dom), 
+								       num_methods(0), num_user_methods(0),
+								       num_static_methods(0), num_static_user_methods(0)
    {
       name = nme ? strdup(nme) : 0;
 
@@ -799,11 +802,25 @@ const char *QoreClass::getName() const {
 }
 
 int QoreClass::numMethods() const {
-   return priv->hm.size();
+   return priv->num_methods;
+
+   //not thread-safe!
+   //return priv->hm.size();
 }
 
 int QoreClass::numStaticMethods() const {
-   return priv->shm.size();
+   return priv->num_static_methods;
+
+   //not thread-safe!
+   //return priv->shm.size();
+}
+
+int QoreClass::numUserMethods() const {
+   return priv->num_user_methods;
+}
+
+int QoreClass::numStaticUserMethods() const {
+   return priv->num_static_user_methods;
 }
 
 const QoreMethod *QoreClass::parseFindStaticMethod(const char *nme) {
@@ -1978,6 +1995,11 @@ void QoreClass::parseCommit() {
       i = priv->hm_pending.begin();
       insertMethod(m);
       priv->checkSpecial(m);
+
+      // maintain method counts (safely inside parse lock)
+      ++priv->num_methods;
+      if (m->isUser())
+	 ++priv->num_user_methods;
    }
 
    i = priv->shm_pending.begin();
@@ -1986,9 +2008,14 @@ void QoreClass::parseCommit() {
       priv->shm_pending.erase(i);
       i = priv->shm_pending.begin();
       insertStaticMethod(m);
+
+      // maintain method counts (safely inside parse lock)
+      ++priv->num_static_methods;
+      if (m->isUser())
+	 ++priv->num_static_user_methods;
    }
 
-   // add all pending private members
+   // add all pending private members to string set
    strset_t::iterator j = priv->pending_pmm.begin();
    while (j != priv->pending_pmm.end()) { 
       //printd(5, "QoreClass::parseCommit() %s committing private member %08p %s\n", name, *j, *j);

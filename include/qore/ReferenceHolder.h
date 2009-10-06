@@ -39,8 +39,7 @@
     @endcode
 */
 template<typename T>
-class ReferenceHolder
-{
+class ReferenceHolder {
    private:
       DLLLOCAL ReferenceHolder(const ReferenceHolder&); // not implemented
       DLLLOCAL ReferenceHolder& operator=(const ReferenceHolder&); // not implemented
