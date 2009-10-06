@@ -1374,6 +1374,7 @@ sub xml_tests() {
     my $result = ( "methodName" : "test.method", "params" : $params );    
     test_value(parseXMLRPCCall($str), $result, "makeXMLRPCCallStringArgs() and parseXMLRPCCall()");
     $str = makeFormattedXMLRPCCallStringArgs("test.method", $params);
+
     test_value(parseXMLRPCCall($str), $result, "makeFormattedXMLRPCCallStringArgs() and parseXMLRPCCall()");
     $str = makeXMLRPCCallString("test.method", True, $o);
     $result = ( "methodName" : "test.method","params" : (True, $o) );

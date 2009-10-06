@@ -30,9 +30,6 @@ DLLEXPORT extern qore_classid_t CID_XMLNODE;
 DLLEXPORT extern QoreClass *QC_XMLNODE;
 DLLLOCAL QoreNamespace *initXmlNs();
 
-// returns the string corresponding to the node type
-DLLLOCAL const char *get_xml_element_type_name(int t);
-
 class QoreXmlNodeData : public AbstractPrivateData {
 private:
    xmlNodePtr ptr;

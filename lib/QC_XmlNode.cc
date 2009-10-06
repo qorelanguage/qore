@@ -28,35 +28,6 @@
 qore_classid_t CID_XMLNODE;
 QoreClass *QC_XMLNODE;
 
-// list of libxml2 element type names
-static const char *xml_element_type_names[XML_DOCB_DOCUMENT_NODE] = {
-   "XML_ELEMENT_NODE",
-   "XML_ATTRIBUTE_NODE",
-   "XML_TEXT_NODE",
-   "XML_CDATA_SECTION_NODE",
-   "XML_ENTITY_REF_NODE",
-   "XML_ENTITY_NODE",
-   "XML_PI_NODE",
-   "XML_COMMENT_NODE",
-   "XML_DOCUMENT_NODE",
-   "XML_DOCUMENT_TYPE_NODE",
-   "XML_DOCUMENT_FRAG_NODE",
-   "XML_NOTATION_NODE",
-   "XML_HTML_DOCUMENT_NODE",
-   "XML_DTD_NODE",
-   "XML_ELEMENT_DECL",
-   "XML_ATTRIBUTE_DECL",
-   "XML_ENTITY_DECL",
-   "XML_NAMESPACE_DECL",
-   "XML_XINCLUDE_START",
-   "XML_XINCLUDE_END",
-   "XML_DOCB_DOCUMENT_NODE"
-};
-
-const char *get_xml_element_type_name(int t) {
-   return (t > 0 && t <= XML_DOCB_DOCUMENT_NODE) ? xml_element_type_names[t - 1] : 0;
-}
-
 static void XMLNODE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    xsink->raiseException("XMLNODE-CONSTRUCTOR-ERROR", "this class cannot be constructed directly");
 }
@@ -223,6 +194,26 @@ QoreNamespace *initXmlNs() {
    xns->addConstant("XML_XINCLUDE_END",         new QoreBigIntNode(XML_XINCLUDE_END));
    xns->addConstant("XML_DOCB_DOCUMENT_NODE",   new QoreBigIntNode(XML_DOCB_DOCUMENT_NODE));
 
+   xns->addConstant("XML_NODE_TYPE_NONE",                    new QoreBigIntNode(XML_READER_TYPE_NONE));
+   xns->addConstant("XML_NODE_TYPE_ELEMENT",                 new QoreBigIntNode(XML_READER_TYPE_ELEMENT));
+   xns->addConstant("XML_NODE_TYPE_ATTRIBUTE",               new QoreBigIntNode(XML_READER_TYPE_ATTRIBUTE));
+   xns->addConstant("XML_NODE_TYPE_TEXT",                    new QoreBigIntNode(XML_READER_TYPE_TEXT));
+   xns->addConstant("XML_NODE_TYPE_CDATA",                   new QoreBigIntNode(XML_READER_TYPE_CDATA));
+   xns->addConstant("XML_NODE_TYPE_ENTITY_REFERENCE",        new QoreBigIntNode(XML_READER_TYPE_ENTITY_REFERENCE));
+   xns->addConstant("XML_NODE_TYPE_ENTITY",                  new QoreBigIntNode(XML_READER_TYPE_ENTITY));
+   xns->addConstant("XML_NODE_TYPE_PROCESSING_INSTRUCTION",  new QoreBigIntNode(XML_READER_TYPE_PROCESSING_INSTRUCTION));
+   xns->addConstant("XML_NODE_TYPE_COMMENT",                 new QoreBigIntNode(XML_READER_TYPE_COMMENT));
+   xns->addConstant("XML_NODE_TYPE_DOCUMENT",                new QoreBigIntNode(XML_READER_TYPE_DOCUMENT));
+   xns->addConstant("XML_NODE_TYPE_DOCUMENT_TYPE",           new QoreBigIntNode(XML_READER_TYPE_DOCUMENT_TYPE));
+   xns->addConstant("XML_NODE_TYPE_DOCUMENT_FRAGMENT",       new QoreBigIntNode(XML_READER_TYPE_DOCUMENT_FRAGMENT));
+   xns->addConstant("XML_NODE_TYPE_NOTATION",                new QoreBigIntNode(XML_READER_TYPE_NOTATION));
+   xns->addConstant("XML_NODE_TYPE_WHITESPACE",              new QoreBigIntNode(XML_READER_TYPE_WHITESPACE));
+   xns->addConstant("XML_NODE_TYPE_SIGNIFICANT_WHITESPACE",  new QoreBigIntNode(XML_READER_TYPE_SIGNIFICANT_WHITESPACE));
+   xns->addConstant("XML_NODE_TYPE_END_ELEMENT",             new QoreBigIntNode(XML_READER_TYPE_END_ELEMENT));
+   xns->addConstant("XML_NODE_TYPE_END_ENTITY",              new QoreBigIntNode(XML_READER_TYPE_END_ENTITY));
+   xns->addConstant("XML_NODE_TYPE_XML_DECLARATION",         new QoreBigIntNode(XML_READER_TYPE_XML_DECLARATION));
+
+   // set up element map
    QoreHashNode *xm = new QoreHashNode();
    xm->setKeyValue("1",  new QoreStringNode("XML_ELEMENT_NODE"), 0);
    xm->setKeyValue("2",  new QoreStringNode("XML_ATTRIBUTE_NODE"), 0);
@@ -247,7 +238,30 @@ QoreNamespace *initXmlNs() {
    xm->setKeyValue("21", new QoreStringNode("XML_DOCB_DOCUMENT_NODE"), 0);
 
    xns->addConstant("ElementTypeMap", xm);
- 
+
+   // now set up node map
+   xm = new QoreHashNode();
+   xm->setKeyValue("0",  new QoreStringNode("XML_NODE_TYPE_NONE"), 0);
+   xm->setKeyValue("1",  new QoreStringNode("XML_NODE_TYPE_ELEMENT"), 0);
+   xm->setKeyValue("2",  new QoreStringNode("XML_NODE_TYPE_ATTRIBUTE"), 0);
+   xm->setKeyValue("3",  new QoreStringNode("XML_NODE_TYPE_TEXT"), 0);
+   xm->setKeyValue("4",  new QoreStringNode("XML_NODE_TYPE_CDATA"), 0);
+   xm->setKeyValue("5",  new QoreStringNode("XML_NODE_TYPE_ENTITY_REFERENCE"), 0);
+   xm->setKeyValue("6",  new QoreStringNode("XML_NODE_TYPE_ENTITY"), 0);
+   xm->setKeyValue("7",  new QoreStringNode("XML_NODE_TYPE_PROCESSING_INSTRUCTION"), 0);
+   xm->setKeyValue("8",  new QoreStringNode("XML_NODE_TYPE_COMMENT"), 0);
+   xm->setKeyValue("9",  new QoreStringNode("XML_NODE_TYPE_DOCUMENT"), 0);
+   xm->setKeyValue("10", new QoreStringNode("XML_NODE_TYPE_DOCUMENT_TYPE"), 0);
+   xm->setKeyValue("11", new QoreStringNode("XML_NODE_TYPE_DOCUMENT_FRAGMENT"), 0);
+   xm->setKeyValue("12", new QoreStringNode("XML_NODE_TYPE_NOTATION"), 0);
+   xm->setKeyValue("13", new QoreStringNode("XML_NODE_TYPE_WHITESPACE"), 0);
+   xm->setKeyValue("14", new QoreStringNode("XML_NODE_TYPE_SIGNIFICANT_WHITESPACE"), 0);
+   xm->setKeyValue("15", new QoreStringNode("XML_NODE_TYPE_END_ELEMENT"), 0);
+   xm->setKeyValue("16", new QoreStringNode("XML_NODE_TYPE_END_ENTITY"), 0);
+   xm->setKeyValue("17", new QoreStringNode("XML_NODE_TYPE_XML_DECLARATION"), 0);
+
+   xns->addConstant("NodeTypeMap", xm);
+
    xns->addSystemClass(initXmlNodeClass());
    xns->addSystemClass(initXmlDocClass());
    xns->addSystemClass(initXmlReaderClass());

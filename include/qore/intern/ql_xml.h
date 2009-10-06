@@ -35,6 +35,12 @@ DLLLOCAL QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, int o
 DLLLOCAL QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink);
 DLLLOCAL void init_xml_functions();
 
+// returns the string corresponding to the element type
+DLLLOCAL const char *get_xml_element_type_name(int t);
+
+// returns the string corresponding to the node type
+DLLLOCAL const char *get_xml_node_type_name(int t);
+
 class QoreXmlSchemaContext {
    friend class QoreXmlSchemaValidContext;
 protected:

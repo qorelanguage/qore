@@ -98,13 +98,32 @@ public:
       return 0;
    }
 
+   DLLLOCAL int read(const char *info, ExceptionSink *xsink) {
+      if (xmlTextReaderRead(reader) != 1) {
+	 xsink->raiseExceptionArg("PARSE-XML-EXCEPTION", xml ? new QoreStringNode(*xml) : 0, "cannot parse XML string: %s", info);
+	 return -1;
+      }
+      return 0;
+   }
+
    DLLLOCAL int read() {
       return xmlTextReaderRead(reader);
    }
-
+ 
    DLLLOCAL int readSkipWhitespace(ExceptionSink *xsink) {
       while (true) {
 	 if (read(xsink))
+	    return -1;
+ 	 int nt = xmlTextReaderNodeType(reader);
+	 if (nt != XML_READER_TYPE_SIGNIFICANT_WHITESPACE)
+	    break;
+      }
+      return 0;
+   }
+
+   DLLLOCAL int readSkipWhitespace(const char *info, ExceptionSink *xsink) {
+      while (true) {
+	 if (read(info, xsink))
 	    return -1;
  	 int nt = xmlTextReaderNodeType(reader);
 	 if (nt != XML_READER_TYPE_SIGNIFICANT_WHITESPACE)
@@ -122,13 +141,12 @@ public:
       int nt;
       while (true) {
 	 nt = xmlTextReaderNodeType(reader);
-	 if (nt == XML_READER_TYPE_SIGNIFICANT_WHITESPACE) {
-	    // get next element
-	    if (read() != 1)
-	       return -1;
-	    continue;
-	 }
-	 break;
+	 if (nt != XML_READER_TYPE_SIGNIFICANT_WHITESPACE)
+	    break;
+
+	 // get next element
+	 if (read() != 1)
+	    return -1;
       }
       return nt;
    }

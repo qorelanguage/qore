@@ -3,6 +3,8 @@
 	  and QoreClass::numStaticMethods() (C++ functions)
 	* added QoreClass::numUserMethods() and
 	  QoreClass::numStaticUserMethods() (C++ functions)
+	* fixed an XML-RPC parsing bug due to a side-effect in a debugging statement
+	* added XML node type constants and NodeTypeMap constant hash
 
 2009.10.05: David Nichols
 	* updated configure to check for more required features of libxml2

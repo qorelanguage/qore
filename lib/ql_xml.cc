@@ -31,6 +31,63 @@
 #include <string.h>
 #include <memory>
 
+// list of libxml2 element type names
+static const char *xml_element_type_names[] = {
+   "XML_ELEMENT_NODE",
+   "XML_ATTRIBUTE_NODE",
+   "XML_TEXT_NODE",
+   "XML_CDATA_SECTION_NODE",
+   "XML_ENTITY_REF_NODE",
+   "XML_ENTITY_NODE",
+   "XML_PI_NODE",
+   "XML_COMMENT_NODE",
+   "XML_DOCUMENT_NODE",
+   "XML_DOCUMENT_TYPE_NODE",
+   "XML_DOCUMENT_FRAG_NODE",
+   "XML_NOTATION_NODE",
+   "XML_HTML_DOCUMENT_NODE",
+   "XML_DTD_NODE",
+   "XML_ELEMENT_DECL",
+   "XML_ATTRIBUTE_DECL",
+   "XML_ENTITY_DECL",
+   "XML_NAMESPACE_DECL",
+   "XML_XINCLUDE_START",
+   "XML_XINCLUDE_END",
+   "XML_DOCB_DOCUMENT_NODE"
+};
+
+#define XETN_SIZE (sizeof(xml_element_type_names) / sizeof(char *))
+
+static const char *xml_node_type_names[] = {
+    "XML_NODE_TYPE_NONE",
+    "XML_NODE_TYPE_ELEMENT",
+    "XML_NODE_TYPE_ATTRIBUTE",
+    "XML_NODE_TYPE_TEXT",
+    "XML_NODE_TYPE_CDATA",
+    "XML_NODE_TYPE_ENTITY_REFERENCE",
+    "XML_NODE_TYPE_ENTITY",
+    "XML_NODE_TYPE_PROCESSING_INSTRUCTION",
+    "XML_NODE_TYPE_COMMENT",
+    "XML_NODE_TYPE_DOCUMENT",
+    "XML_NODE_TYPE_DOCUMENT_TYPE",
+    "XML_NODE_TYPE_DOCUMENT_FRAGMENT",
+    "XML_NODE_TYPE_NOTATION",
+    "XML_NODE_TYPE_WHITESPACE",
+    "XML_NODE_TYPE_SIGNIFICANT_WHITESPACE",
+    "XML_NODE_TYPE_END_ELEMENT",
+    "XML_NODE_TYPE_END_ENTITY",
+    "XML_NODE_TYPE_XML_DECLARATION",};
+
+#define XNTN_SIZE (sizeof(xml_node_type_names) / sizeof(char *))
+
+const char *get_xml_element_type_name(int t) {
+   return (t > 0 && t <= (int)XETN_SIZE) ? xml_element_type_names[t - 1] : 0;
+}
+
+const char *get_xml_node_type_name(int t) {
+   return (t > 0 && t <= (int)XNTN_SIZE) ? xml_node_type_names[t - 1] : 0;
+}
+
 namespace { // make classes local
 
 class XmlRpcValue {
@@ -234,23 +291,11 @@ public:
    }
 
    DLLLOCAL int readXmlRpc(ExceptionSink *xsink) {
-      int rc = read();
-      if (rc != 1) {
-	 if (!*xsink)
-	    xsink->raiseException("XML-RPC-PARSE-ERROR", "error parsing XML string");
-	 return -1;
-      }
-      return 0;
+      return readSkipWhitespace(xsink);
    }
 
    DLLLOCAL int readXmlRpc(const char *info, ExceptionSink *xsink) {
-      int rc = read();
-      if (rc != 1) {
-	 if (!*xsink)
-	    xsink->raiseExceptionArg("XML-RPC-PARSE-ERROR", xml ? new QoreStringNode(*xml) : 0, "error parsing XML string: %s", info);
-	 return -1;
-      }
-      return 0;
+      return readSkipWhitespace(info, xsink);
    }
 
    DLLLOCAL int readXmlRpcNode(ExceptionSink *xsink) {
@@ -1384,7 +1429,7 @@ int QoreXmlRpcReader::getParams(XmlRpcValue *v, const QoreEncoding *data_ccsid, 
 	    if (readXmlRpc(xsink))
 	       return -1;
 
-	    //printd(5, "just read <value>, now value_depth=%d, depth=%d, nt=%d\n", value_depth, depth(), readXmlRpcNode(xsink));
+	    //printd(5, "just read <value>, now value_depth=%d, depth=%d\n", value_depth, depth());
 
 	    // if this was <value/>, then skip
 	    if (value_depth <= depth()) {
@@ -1410,7 +1455,7 @@ int QoreXmlRpcReader::getParams(XmlRpcValue *v, const QoreEncoding *data_ccsid, 
 	    }
 
 	    if ((nt = nodeTypeSkipWhitespace()) != XML_READER_TYPE_END_ELEMENT) {
-	       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "extra data in params, expecting param close tag");
+	       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "extra data in params, expecting param close tag (got node type %s instead)", get_xml_node_type_name(nt));
 	       return -1;
 	    }	    
 	 }
