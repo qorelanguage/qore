@@ -1357,6 +1357,11 @@ void QoreClass::insertMethod(QoreMethod *m) {
    }
 #endif
    priv->hm[m->getName()] = m;
+
+   // maintain method counts (safely inside parse lock)
+   ++priv->num_methods;
+   if (m->isUser())
+      ++priv->num_user_methods;
 }      
 
 void QoreClass::insertStaticMethod(QoreMethod *m) {
@@ -1369,6 +1374,11 @@ void QoreClass::insertStaticMethod(QoreMethod *m) {
    }
 #endif
    priv->shm[m->getName()] = m;
+
+   // maintain method counts (safely inside parse lock)
+   ++priv->num_static_methods;
+   if (m->isUser())
+      ++priv->num_static_user_methods;
 }      
 
 void QoreClass::addDomain(int dom) {
@@ -1995,11 +2005,6 @@ void QoreClass::parseCommit() {
       i = priv->hm_pending.begin();
       insertMethod(m);
       priv->checkSpecial(m);
-
-      // maintain method counts (safely inside parse lock)
-      ++priv->num_methods;
-      if (m->isUser())
-	 ++priv->num_user_methods;
    }
 
    i = priv->shm_pending.begin();
@@ -2008,11 +2013,6 @@ void QoreClass::parseCommit() {
       priv->shm_pending.erase(i);
       i = priv->shm_pending.begin();
       insertStaticMethod(m);
-
-      // maintain method counts (safely inside parse lock)
-      ++priv->num_static_methods;
-      if (m->isUser())
-	 ++priv->num_static_user_methods;
    }
 
    // add all pending private members to string set
