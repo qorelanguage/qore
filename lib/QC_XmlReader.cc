@@ -72,12 +72,12 @@ static AbstractQoreNode *XMLREADER_readSkipWhitespace(QoreObject *self, QoreXmlR
    return 0;
 }
 
-static AbstractQoreNode *XMLREADER_elementType(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *XMLREADER_nodeType(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(xr->nodeType());
 }
 
-static AbstractQoreNode *XMLREADER_elementTypeName(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   const char *n = get_xml_element_type_name(xr->nodeType());
+static AbstractQoreNode *XMLREADER_nodeTypeName(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
+   const char *n = get_xml_node_type_name(xr->nodeType());
    return n ? new QoreStringNode(n) : 0;
 }
 
@@ -288,8 +288,8 @@ QoreClass *initXmlReaderClass() {
 
    QC_XMLREADER->addMethod("read",                      (q_method_t)XMLREADER_read);
    QC_XMLREADER->addMethod("readSkipWhitespace",        (q_method_t)XMLREADER_readSkipWhitespace);
-   QC_XMLREADER->addMethod("elementType",               (q_method_t)XMLREADER_elementType);
-   QC_XMLREADER->addMethod("elementTypeName",           (q_method_t)XMLREADER_elementTypeName);
+   QC_XMLREADER->addMethod("nodeType",                  (q_method_t)XMLREADER_nodeType);
+   QC_XMLREADER->addMethod("nodeTypeName",              (q_method_t)XMLREADER_nodeTypeName);
    QC_XMLREADER->addMethod("depth",                     (q_method_t)XMLREADER_depth);
    QC_XMLREADER->addMethod("name",                      (q_method_t)XMLREADER_name);
    QC_XMLREADER->addMethod("value",                     (q_method_t)XMLREADER_value);

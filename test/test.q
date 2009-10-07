@@ -1419,7 +1419,7 @@ sub xml_tests() {
     my $xr = new XmlReader($xd);
     # move to first element
     $xr.read();
-    test_value($xr.elementType(), Xml::XML_ELEMENT_NODE, "XmlReader::read(), XmlReader::elementType()");
+    test_value($xr.nodeType(), Xml::XML_NODE_TYPE_ELEMENT, "XmlReader::read(), XmlReader::Type()");
     test_value($xr.toQore() == $mo.o, True, "XmlReader::toQoreData()");
 }
 

@@ -36142,107 +36142,107 @@ $mutex.unlock();</programlisting>
 	  <row>
 	    <entry><para><code>XML_ELEMENT_NODE</code></para></entry>
 	    <entry><para><code>1</code></para></entry>
-	    <entry><para><code>Indicates an element node</code></para></entry>
+	    <entry><para>Indicates an element></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_ATTRIBUTE_NODE</code></para></entry>
 	    <entry><para><code>2</code></para></entry>
-	    <entry><para><code>Indicates an attribute node</code></para></entry>
+	    <entry><para>Indicates an attribute</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_TEXT_NODE</code></para></entry>
 	    <entry><para><code>3</code></para></entry>
-	    <entry><para><code>Indicates a text node</code></para></entry>
+	    <entry><para>Indicates text</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_CDATA_SECTION_NODE</code></para></entry>
 	    <entry><para><code>4</code></para></entry>
-	    <entry><para><code>Indicates a CDATA node: unparsed character data</code></para></entry>
+	    <entry><para>Indicates CDATA: unparsed character data</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_ENTITY_REF_NODE</code></para></entry>
 	    <entry><para><code>5</code></para></entry>
-	    <entry><para><code>Indicates an entity reference node</code></para></entry>
+	    <entry><para>Indicates an entity reference</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_ENTITY_NODE</code></para></entry>
 	    <entry><para><code>6</code></para></entry>
-	    <entry><para><code>Indicates an entity node</code></para></entry>
+	    <entry><para>Indicates an entity</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_PI_NODE</code></para></entry>
 	    <entry><para><code>7</code></para></entry>
-	    <entry><para><code>Indicates a processing instruction node</code></para></entry>
+	    <entry><para>Indicates a processing instruction</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_COMMENT_NODE</code></para></entry>
 	    <entry><para><code>8</code></para></entry>
-	    <entry><para><code>Indicates a comment node</code></para></entry>
+	    <entry><para>Indicates a comment</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_DOCUMENT_NODE</code></para></entry>
 	    <entry><para><code>9</code></para></entry>
-	    <entry><para><code>Indicates a document node</code></para></entry>
+	    <entry><para>Indicates a document</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_DOCUMENT_TYPE_NODE</code></para></entry>
 	    <entry><para><code>10</code></para></entry>
-	    <entry><para><code>Indicates a document type node</code></para></entry>
+	    <entry><para>Indicates a document type</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_DOCUMENT_FRAG_NODE</code></para></entry>
 	    <entry><para><code>11</code></para></entry>
-	    <entry><para><code>Indicates a document fragment node</code></para></entry>
+	    <entry><para>Indicates a document fragment</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_NOTATION_NODE</code></para></entry>
 	    <entry><para><code>12</code></para></entry>
-	    <entry><para><code>Indicates a DTD notation node</code></para></entry>
+	    <entry><para>Indicates a DTD notation</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_HTML_DOCUMENT_NODE</code></para></entry>
 	    <entry><para><code>13</code></para></entry>
-	    <entry><para><code>Indicates an HTML document node</code></para></entry>
+	    <entry><para>Indicates an HTML document</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_DTD_NODE</code></para></entry>
 	    <entry><para><code>14</code></para></entry>
-	    <entry><para><code>Indicates a DTD node</code></para></entry>
+	    <entry><para>Indicates a DTD</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_ELEMENT_DECL</code></para></entry>
 	    <entry><para><code>15</code></para></entry>
-	    <entry><para><code>Indicates an element declaration node</code></para></entry>
+	    <entry><para>Indicates an element declaration</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_ATTRIBUTE_DECL</code></para></entry>
 	    <entry><para><code>16</code></para></entry>
-	    <entry><para><code>Indicates an attribute declaration node</code></para></entry>
+	    <entry><para>Indicates an attribute declaration</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_ENTITY_DECL</code></para></entry>
 	    <entry><para><code>17</code></para></entry>
-	    <entry><para><code>Indicates an entity declaration node</code></para></entry>
+	    <entry><para>Indicates an entity declaration</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_NAMESPACE_DECL</code></para></entry>
 	    <entry><para><code>18</code></para></entry>
-	    <entry><para><code>Indicates a namespace declaration node</code></para></entry>
+	    <entry><para>Indicates a namespace declaration</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_XINCLUDE_START</code></para></entry>
 	    <entry><para><code>19</code></para></entry>
-	    <entry><para><code>Indicates an XML xinlude start node</code></para></entry>
+	    <entry><para>Indicates an XML xinlude start element</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_XINCLUDE_END</code></para></entry>
 	    <entry><para><code>20</code></para></entry>
-	    <entry><para><code>Indicates an XML xinlude end node</code></para></entry>
+	    <entry><para>Indicates an XML xinlude end element</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_DOCB_DOCUMENT_NODE</code></para></entry>
 	    <entry><para><code>21</code></para></entry>
-	    <entry><para><code>Indicates a docbook document node</code></para></entry>
+	    <entry><para>Indicates a docbook document element</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -36343,6 +36343,199 @@ $mutex.unlock();</programlisting>
 	    <entry><para><code>&quot;21&quot;</code></para></entry>
 	    <entry><para><code>XML_DOCB_DOCUMENT_NODE</code></para></entry>
 	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table id="XML_Node_Type_Constants">
+      <title>XML Node Type Constants</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+
+	<thead>
+	  <row>
+	    <entry><para>Constant</para></entry>
+	    <entry><para>Value</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_NONE</code></para></entry>
+            <entry><para><code>0</code></para></entry>
+            <entry><para></para>Indicates no node is available</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_ELEMENT</code></para></entry>
+            <entry><para><code>1</code></para></entry>
+            <entry><para></para>Indicates an XML element</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_ATTRIBUTE</code></para></entry>
+            <entry><para><code>2</code></para></entry>
+            <entry><para></para>Indicates an attribute node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_TEXT</code></para></entry>
+            <entry><para><code>3</code></para></entry>
+            <entry><para></para>Indicates a text node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_CDATA</code></para></entry>
+            <entry><para><code>4</code></para></entry>
+            <entry><para></para>Indicates a CDATA node: unparsed character data</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_ENTITY_REFERENCE</code></para></entry>
+            <entry><para><code>5</code></para></entry>
+            <entry><para></para>Indicates an entity reference node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_ENTITY</code></para></entry>
+            <entry><para><code>6</code></para></entry>
+            <entry><para></para>Indicates an entity node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_PROCESSING_INSTRUCTION</code></para></entry>
+            <entry><para><code>7</code></para></entry>
+            <entry><para></para>Indicates an XML processing instruction</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_COMMENT</code></para></entry>
+            <entry><para><code>8</code></para></entry>
+            <entry><para></para>Indicates an XML comment</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_DOCUMENT</code></para></entry>
+            <entry><para><code>9</code></para></entry>
+            <entry><para></para>Indicates a document node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_DOCUMENT_TYPE</code></para></entry>
+            <entry><para><code>10</code></para></entry>
+            <entry><para></para>Indicates a document type node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_DOCUMENT_FRAGMENT</code></para></entry>
+            <entry><para><code>11</code></para></entry>
+            <entry><para></para>Indicates a document fragment node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_NOTATION</code></para></entry>
+            <entry><para><code>12</code></para></entry>
+            <entry><para></para>Indicates a notation node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_WHITESPACE</code></para></entry>
+            <entry><para><code>13</code></para></entry>
+            <entry><para></para>Indicates a whitespace node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_SIGNIFICANT_WHITESPACE</code></para></entry>
+            <entry><para><code>14</code></para></entry>
+            <entry><para></para>Indicates a significant whitespace node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_END_ELEMENT</code></para></entry>
+            <entry><para><code>15</code></para></entry>
+            <entry><para></para>Indicates an end element node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_END_ENTITY</code></para></entry>
+            <entry><para><code>16</code></para></entry>
+            <entry><para></para>Indicates an end entity node</entry>
+          </row>
+          <row>
+            <entry><para><code>XML_NODE_TYPE_XML_DECLARATION</code></para></entry>
+            <entry><para><code>17</code></para></entry>
+            <entry><para></para>Indicates an XML declaration node</entry>
+          </row>
+	<tbody>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <para>The <code>NodeTypeMap</code> constant in Xml namespace provides a mapping between node type codes and the corresponding string code as defined in the following table.</para>
+    <table id="NodeTypeMap">
+      <title>NodeTypeMap Constant Hash</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Key</para></entry>
+	    <entry><para>Value</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para><code>&quot;0&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_NONE</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;1&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_ELEMENT</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;2&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_ATTRIBUTE</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;3&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_TEXT</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;4&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_CDATA</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;5&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_ENTITY_REFERENCE</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;6&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_ENTITY</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;7&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_PROCESSING_INSTRUCTION</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;8&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_COMMENT</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;9&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_DOCUMENT</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;10&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_DOCUMENT_TYPE</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;11&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_DOCUMENT_FRAGMENT</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;12&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_NOTATION</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;13&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_WHITESPACE</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;14&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_SIGNIFICANT_WHITESPACE</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;15&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_END_ELEMENT</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;16&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_END_ENTITY</code></para></entry>
+          </row>
+          <row>
+            <entry><para><code>&quot;17&quot;</code></para></entry>
+            <entry><para><code>XML_NODE_TYPE_XML_DECLARATION</code></para></entry>
+          </row>
 	</tbody>
       </tgroup>
     </table>

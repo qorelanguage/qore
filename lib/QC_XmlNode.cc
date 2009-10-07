@@ -53,8 +53,8 @@ static AbstractQoreNode *XMLNODE_getElementType(QoreObject *self, QoreXmlNodeDat
 }
 
 static AbstractQoreNode *XMLNODE_getElementTypeName(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
-   int t = xn->getElementType();
-   return (t && t <= XML_DOCB_DOCUMENT_NODE) ? new QoreStringNode(xml_element_type_names[t - 1]) : 0;
+   const char *nt = get_xml_element_type_name(xn->getElementType());
+   return nt ? new QoreStringNode(nt) : 0;
 }
 
 static QoreObject *doObject(QoreXmlNodeData *data) {
