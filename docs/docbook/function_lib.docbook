@@ -550,6 +550,12 @@
           </entry>
         </row>
         <row>
+          <entry><para><link linkend="decode_url">decode_url()</link></para></entry>
+          <entry><para>String</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Decodes percent numeric codes in a URL string and returns the decoded string.</para></entry>
+        </row>
+        <row>
           <entry>
             <para>
               <link linkend="delete_all_thread_data">delete_all_thread_data()</link>
@@ -8591,6 +8597,54 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </tbody>
   </tgroup>
   </table>
+
+</sect2>
+
+<sect2 id="decode_url">
+<title>decode_url()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Decodes percent numeric codes in a URL string and returns the decoded string.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>decode_url(<replaceable>url_string</replaceable>)</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$decoded_url = decode_url($encoded_url);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for decode_url()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><replaceable>url_string</replaceable></para></entry>
+              <entry><para>String</para></entry>
+              <entry><para>Returns a string with numeric percent codes decoded to characters.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <para>This function does not throw any exceptions.</para>
 
 </sect2>
 

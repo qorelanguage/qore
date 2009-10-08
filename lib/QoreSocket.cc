@@ -1722,7 +1722,23 @@ void QoreSocket::convertHeaderToHash(QoreHashNode *h, char *p) {
 	 t++;
       strtolower(buf);
       //printd(5, "setting %s = '%s'\n", buf, t);
-      h->setKeyValue(buf, new QoreStringNode(t), 0);
+
+      AbstractQoreNode *val = new QoreStringNode(t);
+
+      // see if header exists, and if so make it a list and add value to the list
+      AbstractQoreNode **n = h->getKeyValuePtr(buf);
+      if (*n) {
+	 QoreListNode *l;
+	 if ((*n)->getType() == NT_LIST)
+	    l = reinterpret_cast<QoreListNode *>(*n);
+	 else {
+	    l = new QoreListNode();
+	    l->push(*n);
+	 }
+	 l->push(val);
+      }
+      else // otherwise set header normally
+	 *n = val;
    }
 }
 
@@ -1777,8 +1793,9 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
 	 t2++;
 	 if (isdigit(*(t2))) {
 	    h->setKeyValue("status_code", new QoreBigIntNode(atoi(t2)), 0);
-	    if (strlen(t2) > 4)
+	    if (strlen(t2) > 4) {
 	       h->setKeyValue("status_message", new QoreStringNode(t2 + 4), 0);
+	    }
 	 }
       }
    }

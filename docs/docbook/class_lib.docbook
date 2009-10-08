@@ -18562,6 +18562,42 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Reads an HTTP header and returns a hash representing the data read.  Accepts an optional timeout value in milliseconds.</para>
+	    <para>This method sets the keys in the following table in the hash returned as well to give additional information about the HTTP header received.</para>
+
+	    <table>
+	      <title>Special Keys in Hash Returned By Socket::readHTTPHeader()</title>
+	      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+		<thead>
+		  <row>
+		    <entry><para>Key</para></entry>
+		    <entry><para>Description of Value</para></entry>
+		  </row>
+		</thead>
+		<tbody>
+		  <row>
+		    <entry><para><code>http_version</code></para></entry>
+		    <entry><para>A string giving the HTTP version set in the header</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>status_code</code></para></entry>
+		    <entry><para>An integer giving the status code; this key is only set in HTTP responses</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>status_message</code></para></entry>
+		    <entry><para>If present in an HTTP response, this key will be set to the message after the status code</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>method</code></para></entry>
+		    <entry><para>A string giving the HTTP method (i.e. <code>GET</code>, <code>POST</code>, etc); this key is only set when a request header is received</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><code>path</code></para></entry>
+		    <entry><para>A string giving the path in a request without any decoding; use <link linkend="decode_url">decode_url()</link> to decode if necessary.</para></entry>
+		  </row>
+		</tbody>
+	      </tgroup>
+	    </table>
+
 	  </listitem>
 	</varlistentry>
 	<varlistentry>

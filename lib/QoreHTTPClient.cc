@@ -916,6 +916,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    return 0;
       }
 
+      // send HTTP message and get response header
       ans = getResponseHeader(meth, mpath, *(*nh), data, size, code, suppress_content_length, xsink);
       if (!ans)
 	 return 0;
