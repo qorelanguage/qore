@@ -1,7 +1,39 @@
 RELEASE NOTES for qore v0.7.6
 
-release summary: 10 bug fixes and minor new features over 0.7.5
+release summary: 23 bug fixes and major new features over 0.7.5
 
+*) BUG FIX: fixed class method registration so that static method names and
+            non-static method names have independent namespaces (i.e. a static
+	    method may now have the same name as a non-static method).  Static
+	    methods may still be called with normaly method call syntax,
+	    however if there is a non-static method with the same name, then it
+	    will be called instead.
+*) BUG FIX: when an HTTP header is received more than once, return all values
+            as a list under the header name in the resulting hash
+*) BUG FIX: fixed a potential race condition that could cause a crash in very
+            rare circumstances in internal C++ QoreClass::numMethods() and
+	    QoreClass::numStaticMethod() functions; to make a crash a program
+	    would have to be running and parsing new code into the program in
+	    a separate thread as well; this is explicitly supported by Qore,
+	    but very rarely done
+*) BUG FIX: fixed an XML-RPC parsing bug caused by a side-effect in a 
+            debugging statement
+*) BUG FIX: fixed a bug setting the character encoding in strings produced 
+            with makeXMLFragment() and makeFormattedXMLFragment() when the
+	    default character encoding is not UTF8
+*) BUG FIX: fixed concatentation of strings with embedded nulls
+*) BUG FIX: fixed split() to work on strings with embedded nulls
+*) BUG FIX: fixed method resolution for in-object method calls when the target
+            method is static
+*) BUG FIX: fixed a crash in parsing when a class with no parent classes
+            references a base class method of an existing class
+*) BUG FIX: fixed static method calls at the top level of a program
+*) BUG FIX: fixed type comparisons with new qore types implemented in external
+            modules
+*) BUG FIX: fixed configure to ensure compiling in 32-bit mode on Darwin/OSX if
+            32-bit mode is selected
+*) BUG FIX: fixed configure to assume 64-bit mode by default on Darwin 10 (OSX
+            Snow Leopard)
 *) BUG FIX: fixed $ARGV and $QORE_ARGV variables to always be of type list
             as according to the documentation
 *) BUG FIX: fixed Socket::connect() with timeout (affects all classes using
@@ -21,6 +53,18 @@ release summary: 10 bug fixes and minor new features over 0.7.5
        	    the read lock held
 *) BUG FIX: fixed a bug setting the exception location when throwing thread
        	    resource exceptions when shutting down the qore library
+*) NEW FEATURE: added XmlDoc, XmlReader, and XmlNode classes for more robust
+       		XML parsing and document interation
+*) NEW FEATURE: added support for validation with RelaxNG schemas: new 
+                functions: parseXMLWithRelaxNG() and 
+		parseXMLAsDataWithRelaxNG() as well as new method:
+		XmlDoc::validateRelaxNG()
+*) NEW FEATURE: added a new binary_to_string() function to convert a binary 
+                object directly to a string type
+*) NEW FEATURE: implemented binary object concatentation with the + and +=
+                operators
+*) NEW FEATURE: the -= operator now operates on objects (with string and list
+                operands) like it does with hashes
 *) NEW FEATURE: added static method TermIOS::getWindowSize() to get the 
                 current terminal window size (rows and columns)
 *) NEW FEATURE: new C++ APIs are available supporting a generic calling
@@ -28,7 +72,8 @@ release summary: 10 bug fixes and minor new features over 0.7.5
 		using libsmoke; the latest module API is now 0.8
 *) NEW FEATURE: added the HTTPClient::isConnected() method
 *) NEW FEATURE: added the rename() function to rename or move files
-
+*) BUILD CHANGE: minimum libxml2 version required for compiling and linking is
+                 now 2.6.0
 
 ***********************
 *** LANGUAGE ISSUES ***
