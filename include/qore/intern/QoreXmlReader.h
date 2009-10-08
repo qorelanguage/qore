@@ -27,22 +27,32 @@
 
 #include <qore/intern/QoreXmlDoc.h>
 
+// FIXME: need to make error reporting consistent and set ExceptionSink for each call, not in constructor and then fix ql_xml.cc and adjust QC_XmlReader.cc
+
 class QoreXmlReader {
 protected:
    xmlTextReader *reader;
    const QoreString *xml;
+   ExceptionSink *xs;
 
-   static void qore_xml_error_func(ExceptionSink *xsink, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
+   static void qore_xml_error_func(QoreXmlReader *xr, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
       if (severity == XML_PARSER_SEVERITY_VALIDITY_WARNING
 	  || severity == XML_PARSER_SEVERITY_WARNING) {
 	 printd(1, "XML parser warning: %s", msg);
 	 return;
       }
-      if (*xsink)
+      if (!xr->xs)
+	 return;
+      if (*(xr->xs))
 	 return;
       QoreStringNode *desc = new QoreStringNode(msg);
       desc->chomp();
-      xsink->raiseException("PARSE-XML-EXCEPTION", desc);
+      xr->xs->raiseException("PARSE-XML-EXCEPTION", desc);
+   }
+
+   DLLLOCAL void setExceptionSink(ExceptionSink *xsink) {
+      assert((!xsink && xs) || (xsink && !xs));
+      xs = xsink;
    }
 
    DLLLOCAL AbstractQoreNode *getXmlData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink);
@@ -57,7 +67,7 @@ protected:
 	 return;
       }
 	 
-      xmlTextReaderSetErrorHandler(reader, (xmlTextReaderErrorFunc)qore_xml_error_func, xsink);
+      xmlTextReaderSetErrorHandler(reader, (xmlTextReaderErrorFunc)qore_xml_error_func, this);
    }
 
    DLLLOCAL void init(xmlDocPtr doc, ExceptionSink *xsink) {
@@ -72,11 +82,19 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreXmlReader(const QoreString *n_xml, int options, ExceptionSink *xsink) {
+   DLLLOCAL QoreXmlReader(const QoreString *n_xml, int options, ExceptionSink *xsink) : xs(xsink) {
       init(n_xml, options, xsink);
    }
 
-   DLLLOCAL QoreXmlReader(xmlDocPtr doc, ExceptionSink *xsink) {
+   DLLLOCAL QoreXmlReader(xmlDocPtr doc, ExceptionSink *xsink) : xs(xsink) {
+      init(doc, xsink);
+   }
+
+   DLLLOCAL QoreXmlReader(ExceptionSink *xsink, const QoreString *n_xml, int options) : xs(0) {
+      init(n_xml, options, xsink);
+   }
+
+   DLLLOCAL QoreXmlReader(ExceptionSink *xsink, xmlDocPtr doc) : xs(0) {
       init(doc, xsink);
    }
 
@@ -91,19 +109,21 @@ public:
 
    // returns 0=OK, -1=error
    DLLLOCAL int read(ExceptionSink *xsink) {
-      if (xmlTextReaderRead(reader) != 1) {
-	 xsink->raiseExceptionArg("PARSE-XML-EXCEPTION", xml ? new QoreStringNode(*xml) : 0, "cannot parse XML string");
-	 return -1;
+      int rc = read();
+      if (rc == -1) {
+	 if (!*xsink)
+	    xsink->raiseExceptionArg("PARSE-XML-EXCEPTION", xml ? new QoreStringNode(*xml) : 0, "cannot parse XML string");
       }
-      return 0;
+      return rc;
    }
 
    DLLLOCAL int read(const char *info, ExceptionSink *xsink) {
-      if (xmlTextReaderRead(reader) != 1) {
-	 xsink->raiseExceptionArg("PARSE-XML-EXCEPTION", xml ? new QoreStringNode(*xml) : 0, "cannot parse XML string: %s", info);
-	 return -1;
+      int rc = read();
+      if (rc == -1) {
+	 if (!*xsink)
+	    xsink->raiseExceptionArg("PARSE-XML-EXCEPTION", xml ? new QoreStringNode(*xml) : 0, "cannot parse XML string: %s", info);
       }
-      return 0;
+      return rc;
    }
 
    DLLLOCAL int read() {
@@ -111,25 +131,29 @@ public:
    }
  
    DLLLOCAL int readSkipWhitespace(ExceptionSink *xsink) {
+      int rc;
       while (true) {
-	 if (read(xsink))
-	    return -1;
+	 rc = read(xsink);
+	 if (rc != 1)
+	    break;
  	 int nt = xmlTextReaderNodeType(reader);
 	 if (nt != XML_READER_TYPE_SIGNIFICANT_WHITESPACE)
 	    break;
       }
-      return 0;
+      return rc;
    }
 
    DLLLOCAL int readSkipWhitespace(const char *info, ExceptionSink *xsink) {
+      int rc;
       while (true) {
-	 if (read(info, xsink))
-	    return -1;
+	 rc = read(info, xsink);
+	 if (rc != 1)
+	    break;
  	 int nt = xmlTextReaderNodeType(reader);
 	 if (nt != XML_READER_TYPE_SIGNIFICANT_WHITESPACE)
 	    break;
       }
-      return 0;
+      return rc;
    }
 
    DLLLOCAL int nodeType() {
@@ -304,8 +328,11 @@ public:
       return xmlTextReaderMoveToFirstAttribute(reader);
    }
 
-   DLLLOCAL int next() {
-      return xmlTextReaderNext(reader);
+   DLLLOCAL int next(ExceptionSink *xsink) {
+      int rc = xmlTextReaderNext(reader);
+      if (rc == -1 && !*xsink)
+	 xsink->raiseException("PARSE-XML-EXCEPTION", "error parsing XML string");
+      return rc;
    }
 
 /*

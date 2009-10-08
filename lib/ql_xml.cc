@@ -291,11 +291,11 @@ public:
    }
 
    DLLLOCAL int readXmlRpc(ExceptionSink *xsink) {
-      return readSkipWhitespace(xsink);
+      return readSkipWhitespace(xsink) != 1;
    }
 
    DLLLOCAL int readXmlRpc(const char *info, ExceptionSink *xsink) {
-      return readSkipWhitespace(info, xsink);
+      return readSkipWhitespace(info, xsink) != 1;
    }
 
    DLLLOCAL int readXmlRpcNode(ExceptionSink *xsink) {
@@ -1706,7 +1706,7 @@ static int doEmptyValue(XmlRpcValue *v, const char *name, int depth, ExceptionSi
 }
 
 AbstractQoreNode *QoreXmlReader::parseXMLData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink) {
-   if (read(xsink))
+   if (read(xsink) != 1)
       return 0;
 
    AbstractQoreNode *rv = getXmlData(data_ccsid, as_data, xsink);
@@ -2348,7 +2348,7 @@ static AbstractQoreNode *f_parseXMLRPCValue(const QoreListNode *params, Exceptio
    if (!reader)
       return 0;
 
-   if (reader.read(xsink))
+   if (reader.read(xsink) != 1)
       return 0;
 
    XmlRpcValue v;
@@ -2403,7 +2403,7 @@ static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exception
    if (!reader)
       return 0;
 
-   if (reader.read(xsink))
+   if (reader.read(xsink) != 1)
       return 0;
 
    int nt;
@@ -2503,7 +2503,7 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
    if (!reader)
       return 0;
 
-   if (reader.read(xsink))
+   if (reader.read(xsink) != 1)
       return 0;
 
    int nt;

@@ -63,13 +63,13 @@ static void XMLREADER_copy(QoreObject *self, QoreObject *old, QoreXmlReaderData 
 }
 
 static AbstractQoreNode *XMLREADER_read(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   xr->read(xsink);
-   return 0;
+   int rc = xr->read(xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_readSkipWhitespace(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   xr->readSkipWhitespace(xsink);
-   return 0;
+   int rc = xr->readSkipWhitespace(xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_nodeType(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
@@ -245,7 +245,8 @@ static AbstractQoreNode *XMLREADER_moveToNextAttribute(QoreObject *self, QoreXml
 }
 
 static AbstractQoreNode *XMLREADER_next(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(xr->next());
+   int rc = xr->next(xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_getInnerXml(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {

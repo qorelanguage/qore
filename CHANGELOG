@@ -1,3 +1,7 @@
+2009.10.08: David Nichols
+	* updated internal XML APIs; updated XmlReader class; documented
+	  XmlReader class
+
 2009.10.06: David Nichols
 	* fixed a potential race condition in calling QoreClass::numMethods()
 	  and QoreClass::numStaticMethods() (C++ functions)

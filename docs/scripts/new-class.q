@@ -10,6 +10,11 @@ sub generate_toc($name, $class) {
 			       "^value^" : $name + "::" + $m + "()" );
 	$l[1].para = exists $class.methods.$m.exceptions ? "Y" : "N";
 	$l[2].para = get_para($class.methods.$m.desc);
+	# make sure and only get the first paragraph for summary
+	if (type($l[2].para) == Type::List)
+	    $l[2].para = shift $l[2].para;
+	# get only first sentence for summary
+	$l[2].para =~ s/\..*/./;
 	$rows += ( "entry" : $l );
     }
 
@@ -75,7 +80,7 @@ sub get_example($class, $method, $args, $rv) {
 	$l += do_arg("\$" + $key, $args.$key.optional);
 
     my $argstr = sprintf("(%s)", join(", ", $l));
-    printf("method=%N\n", $method);
+    #printf("method=%N\n", $method);
     switch ($method) {
 	case "constructor": {
 	    return ( "^value^" : sprintf("%s = ", $var),

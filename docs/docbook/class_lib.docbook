@@ -2950,7 +2950,7 @@ $f.lock(F_UNLCK);
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Int</para></entry>
+	      <entry><para>Integer</para></entry>
 	      <entry><para>Returns 0 for success, EACCES if the lock would block (only in the case that the lock would block is no exception thrown and EACCES returned).</para></entry>
 	    </row>
 	  </tbody>
@@ -13032,7 +13032,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>options</replaceable></para></entry>
-	      <entry><para>Int</para></entry>
+	      <entry><para>Integer</para></entry>
 	      <entry><para> A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to disable in the parse option mask for the current object.</para></entry>
 	    </row>
 	  </tbody>
@@ -14182,7 +14182,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>options</replaceable></para></entry>
-	      <entry><para>Int</para></entry>
+	      <entry><para>Integer</para></entry>
 	      <entry><para> A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to set in the parse option mask for the current object.</para></entry>
 	    </row>
 	  </tbody>
@@ -36350,7 +36350,6 @@ $mutex.unlock();</programlisting>
     <table id="XML_Node_Type_Constants">
       <title>XML Node Type Constants</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-
 	<thead>
 	  <row>
 	    <entry><para>Constant</para></entry>
@@ -36358,6 +36357,7 @@ $mutex.unlock();</programlisting>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
+	<tbody>
           <row>
             <entry><para><code>XML_NODE_TYPE_NONE</code></para></entry>
             <entry><para><code>0</code></para></entry>
@@ -36448,7 +36448,6 @@ $mutex.unlock();</programlisting>
             <entry><para><code>17</code></para></entry>
             <entry><para></para>Indicates an XML declaration node</entry>
           </row>
-	<tbody>
 	</tbody>
       </tgroup>
     </table>
@@ -36466,75 +36465,75 @@ $mutex.unlock();</programlisting>
 	<tbody>
           <row>
             <entry><para><code>&quot;0&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_NONE</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_NONE&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;1&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_ELEMENT</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_ELEMENT&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;2&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_ATTRIBUTE</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_ATTRIBUTE&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;3&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_TEXT</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_TEXT&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;4&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_CDATA</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_CDATA&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;5&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_ENTITY_REFERENCE</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_ENTITY_REFERENCE&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;6&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_ENTITY</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_ENTITY&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;7&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_PROCESSING_INSTRUCTION</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_PROCESSING_INSTRUCTION&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;8&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_COMMENT</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_COMMENT&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;9&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_DOCUMENT</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_DOCUMENT&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;10&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_DOCUMENT_TYPE</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_DOCUMENT_TYPE&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;11&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_DOCUMENT_FRAGMENT</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_DOCUMENT_FRAGMENT&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;12&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_NOTATION</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_NOTATION&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;13&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_WHITESPACE</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_WHITESPACE&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;14&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_SIGNIFICANT_WHITESPACE</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_SIGNIFICANT_WHITESPACE&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;15&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_END_ELEMENT</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_END_ELEMENT&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;16&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_END_ENTITY</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_END_ENTITY&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>&quot;17&quot;</code></para></entry>
-            <entry><para><code>XML_NODE_TYPE_XML_DECLARATION</code></para></entry>
+            <entry><para><code>&quot;XML_NODE_TYPE_XML_DECLARATION&quot;</code></para></entry>
           </row>
 	</tbody>
       </tgroup>
@@ -37950,7 +37949,7 @@ $mutex.unlock();</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Int</para>
+                <para>Integer</para>
               </entry>
               <entry>
                 <para>the number of child elements of the XmlNode</para>
@@ -38029,7 +38028,7 @@ $mutex.unlock();</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Int</para>
+                <para>Integer</para>
               </entry>
               <entry>
                 <para>The space-preserving behavior of the XmlNode: -1 = xml:space is not inherited, 0 = default, 1 = preserve</para>
@@ -38108,7 +38107,7 @@ $mutex.unlock();</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Int</para>
+                <para>Integer</para>
               </entry>
               <entry>
                 <para>the type of the XmlNode object; for possible values see <link linkend="XML_Element_Type_Constants">XML Element Type Constants</link></para>
@@ -39378,8 +39377,4129 @@ $mutex.unlock();</programlisting>
 
   <sect1 id="XmlReader_Class">
     <title>Xml::XmlReader Class</title>
-
-    <para>The XmlReader class allows an XML string to be iterated and parsed.</para>
-  </sect1>
     
+    <para>The XmlReader class allows XML strings to be iterated and parsed piecewise.</para>
+    <table>
+      <title>XmlReader Class Method Overview</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Method</para>
+            </entry>
+            <entry>
+              <para>Except?</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_constructor">XmlReader::constructor()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Creates the XmlReader object based on the <link linkend="XmlDoc_Class">XmlDoc</link> object or XML string passed.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_destructor">XmlReader::destructor()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Destroys the XmlReader object.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_copy">XmlReader::copy()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Creates an independent copy of the XmlReader object.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_read">XmlReader::read()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the next node in the stream.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_readSkipWhitespace">XmlReader::readSkipWhitespace()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the next node in the stream, skipping any whitespace nodes.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_nodeType">XmlReader::nodeType()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the node type of the current node; for return values, see <link linkend="XML_Node_Type_Constants">XML Node Type Constants</link>.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_nodeTypeName">XmlReader::nodeTypeName()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns a string giving the node type of the current node; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_depth">XmlReader::depth()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the depth of the node in the tree.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_name">XmlReader::name()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the qualified name of the node (prefix:LocalName) or NOTHING if no name is available.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_value">XmlReader::value()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the text value of the node or NOTHING if not available.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_hasAttributes">XmlReader::hasAttributes()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns True if the node has attributes or False if not.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_hasValue">XmlReader::hasValue()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns True if the node has a text value or False if not.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_isDefault">XmlReader::isDefault()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns True if an attribute node was generated from the default value defined in the DTD or schema, False if not.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_isEmptyElement">XmlReader::isEmptyElement()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns True if the current node is empty or False if not.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_isNamespaceDecl">XmlReader::isNamespaceDecl()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns True if the current node is a namespace declaration rather than a regular attribute or False if not.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_isValid">XmlReader::isValid()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns True if the current reader parser context is valid, False if not</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_toQore">XmlReader::toQore()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Returns a hash corresponding to the XML string from the current node position, including all its children.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_toQoreData">XmlReader::toQoreData()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Returns a hash corresponding to the XML string from the current node position, including all its children.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_attributeCount">XmlReader::attributeCount()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the number of attributes of the current node</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_baseUri">XmlReader::baseUri()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the base URI of the node if known, NOTHING if not.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_encoding">XmlReader::encoding()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the encoding of the XML string</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_localName">XmlReader::localName()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the local name of the node or NOTHING if no name is available.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_namespaceUri">XmlReader::namespaceUri()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the URI defining the namespace associated with the node, or NOTHING if not available.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_prefix">XmlReader::prefix()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the shorthand reference to the namespace associated with the node, or NOTHING if not available.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_xmlLang">XmlReader::xmlLang()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the xml:lang scope within which the node resides or NOTHING if there is none.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_xmlVersion">XmlReader::xmlVersion()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns a string giving the XML version of the source document (normally &amp;quot;1.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_getAttribute">XmlReader::getAttribute()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Returns the value of the attribute matching the qualified name passed, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Returns the value of the given attribute anchored in the given namespace, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_getAttributeOffset">XmlReader::getAttributeOffset()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns the value of the attribute with the specified index relative to the containing element, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_lookupNamespace">XmlReader::lookupNamespace()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>returns the namespace corresponding to the given prefix in the scope of the current element.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_moveToAttribute">XmlReader::moveToAttribute()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the attribute with the specified qualified name.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_moveToAttributeNs">XmlReader::moveToAttributeNs()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the attribute with the specified local name and namespace URI.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_moveToAttributeOffset">XmlReader::moveToAttributeOffset()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the attribute with the specified index relative to the containing element.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_moveToElement">XmlReader::moveToElement()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the element node containing the current attribute node.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_moveToFirstAttribute">XmlReader::moveToFirstAttribute()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the first attribute of the current node.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_moveToNextAttribute">XmlReader::moveToNextAttribute()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the next attribute of the current node.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_next">XmlReader::next()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Moves the position of the current instance to the next node in the tree at the same level, skipping any subtree.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns an XML string of the contents of the all current node's child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>N</para>
+            </entry>
+            <entry>
+              <para>Returns an XML string of the contents of the current node and all child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_relaxNGValidate">XmlReader::relaxNGValidate()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <link linkend="XmlReader_schemaValidate">XmlReader::schemaValidate()</link>
+              </para>
+            </entry>
+            <entry>
+              <para>Y</para>
+            </entry>
+            <entry>
+              <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <sect2 id="XmlReader_constructor">
+      <title>XmlReader::constructor()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Creates the XmlReader object based on the <link linkend="XmlDoc_Class">XmlDoc</link> object or XML string passed.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::constructor(<replaceable>xmldoc | xmlstr</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$xmlreader = <command>new</command> XmlReader($xml);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::constructor()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><replaceable>xmldoc</replaceable></para>
+              </entry>
+              <entry>
+                <para><link linkend="XmlDoc_Class">XmlDoc</link></para>
+              </entry>
+              <entry>
+                <para>The pre-parsed XML document object to iterate through.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><replaceable>xmlstr</replaceable></para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The XML string to parse.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Object</para>
+              </entry>
+              <entry>
+                <para>The XmlReader object is returned</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::constructor()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLNODE-CONSTRUCTOR-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid arguments</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_destructor">
+      <title>XmlReader::destructor()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Destroys the XmlReader object.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting><command>delete</command> <replaceable>lvalue</replaceable></programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>delete</command> $xmlreader;</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+    <sect2 id="XmlReader_copy">
+      <title>XmlReader::copy()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Creates an independent copy of the XmlReader object.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::copy()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.copy();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Return Values for XmlReader::copy()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><link linkend="XmlReader_Class">XmlReader</link></para>
+              </entry>
+              <entry>
+                <para>a copy of the current object</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_read">
+      <title>XmlReader::read()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the next node in the stream.  Returns True if the read was successful, False if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised (see below).</para>
+            <para>See also <link linkend="XmlReader_readSkipWhitespace">XmlReader::readSkipWhitespace()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::read()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.read();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::read()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::read()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the read was successful, False if there are no more nodes to read</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::read()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>PARSE-XML-EXCEPTION</code>
+                </para>
+              </entry>
+              <entry>
+                <para>cannot move to next node due to an error parsing the XML string (exception description string contains details about the error)</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_readSkipWhitespace">
+      <title>XmlReader::readSkipWhitespace()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the next node in the stream, skipping any whitespace nodes.  Returns True if the read was successful, False if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised (see below).</para>
+            <para>See also <link linkend="XmlReader_read">XmlReader::read()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::readSkipWhitespace()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.readSkipWhitespace();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::readSkipWhitespace()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::readSkipWhitespace()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the read was successful, False if there are no more nodes to read</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::readSkipWhitespace()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>PARSE-XML-EXCEPTION</code>
+                </para>
+              </entry>
+              <entry>
+                <para>cannot move to next node due to an error parsing the XML string (exception description string contains details about the error)</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_nodeType">
+      <title>XmlReader::nodeType()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the node type of the current node; for return values, see <link linkend="XML_Node_Type_Constants">XML Node Type Constants</link>.</para>
+            <para>See also <link linkend="NodeTypeMap">NodeTypeMap</link>.</para>
+            <para>See also <link linkend="XmlReader_nodeTypeName">XmlReader::nodeTypeName()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::nodeType()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.nodeType();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::nodeType()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::nodeType()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>the node type of the current node; for return values, see <link linkend="XML_Node_Type_Constants">XML Node Type Constants</link></para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_nodeTypeName">
+      <title>XmlReader::nodeTypeName()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a string giving the node type of the current node; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant.</para>
+            <para>See also <link linkend="XmlReader_nodeType">XmlReader::nodeType()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::nodeTypeName()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.nodeTypeName();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::nodeTypeName()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::nodeTypeName()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>a string giving the node type of the current node; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_depth">
+      <title>XmlReader::depth()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the depth of the node in the tree.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::depth()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.depth();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::depth()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::depth()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>the depth of the node in the tree</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_name">
+      <title>XmlReader::name()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the qualified name of the node (prefix:LocalName) or NOTHING if no name is available.</para>
+            <para>See also <link linkend="XmlReader_localName">XmlReader::localName()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::name()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.name();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::name()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::name()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the qualified name of the node (prefix:LocalName) or NOTHING if no name is available</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_value">
+      <title>XmlReader::value()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the text value of the node or NOTHING if not available.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::value()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.value();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::value()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::value()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the text value of the node or NOTHING if not available</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_hasAttributes">
+      <title>XmlReader::hasAttributes()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the node has attributes or False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::hasAttributes()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.hasAttributes();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::hasAttributes()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::hasAttributes()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the node has attributes, False if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_hasValue">
+      <title>XmlReader::hasValue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the node has a text value or False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::hasValue()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.hasValue();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::hasValue()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::hasValue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the node has a text value, False if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_isDefault">
+      <title>XmlReader::isDefault()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if an attribute node was generated from the default value defined in the DTD or schema, False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::isDefault()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.isDefault();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::isDefault()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::isDefault()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the node an attribute node was generated from the default value defined in the DTD or schema, False if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_isEmptyElement">
+      <title>XmlReader::isEmptyElement()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the current node is empty or False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::isEmptyElement()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.isEmptyElement();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::isEmptyElement()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::isEmptyElement()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the current node is empty, False if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_isNamespaceDecl">
+      <title>XmlReader::isNamespaceDecl()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the current node is a namespace declaration rather than a regular attribute or False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::isNamespaceDecl()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.isNamespaceDecl();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::isNamespaceDecl()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::isNamespaceDecl()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the current node is a namespace declaration rather than a regular attribute, False if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_isValid">
+      <title>XmlReader::isValid()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the current reader parser context is valid, False if not</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::isValid()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.isValid();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::isValid()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::isValid()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para>True if the current reader parser context is valid, False if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_toQore">
+      <title>XmlReader::toQore()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a hash corresponding to the XML string from the current node position, including all its children.  If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
+            <para>Functionally similar to <link linkend="parseXML">parseXML()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::toQore()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.toQore();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::toQore()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::toQore()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>a hash corresponding to the XML string from the current node position, including all its children; maintains XML element order by appending a suffix to key names</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::toQore()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>PARSE-XML-EXCEPTION</code>
+                </para>
+              </entry>
+              <entry>
+                <para>error parsing the XML string (exception description string contains details about the error)</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_toQoreData">
+      <title>XmlReader::toQoreData()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a hash corresponding to the XML string from the current node position, including all its children.  Note that data deserialized with this method may not be reserialized to an identical XML string due to the fact that XML elements with the same name are collapsed into Qore lists in the resulting Qore hash irrespective of the order in the original XML string.</para>
+            <para>Functionally similar to <link linkend="parseXMLAsData">parseXMLAsData()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::toQoreData()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.toQoreData();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::toQoreData()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::toQoreData()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Hash</para>
+              </entry>
+              <entry>
+                <para>a hash corresponding to the XML string from the current node position, including all its children; does not guarantee to maintain XML element order in the hash as elements at the same level with the same name are collapsed to a Qore list</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::toQoreData()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>PARSE-XML-EXCEPTION</code>
+                </para>
+              </entry>
+              <entry>
+                <para>error parsing the XML string (exception description string contains details about the error)</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_attributeCount">
+      <title>XmlReader::attributeCount()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the number of attributes of the current node</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::attributeCount()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.attributeCount();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::attributeCount()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::attributeCount()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>the number of attributes of the current node</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_baseUri">
+      <title>XmlReader::baseUri()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the base URI of the node if known, NOTHING if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::baseUri()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.baseUri();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::baseUri()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::baseUri()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the base URI of the node if known, NOTHING if not</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_encoding">
+      <title>XmlReader::encoding()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the encoding of the XML string</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::encoding()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.encoding();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::encoding()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::encoding()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the encoding of the XML string</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_localName">
+      <title>XmlReader::localName()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the local name of the node or NOTHING if no name is available.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::localName()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.localName();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::localName()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::localName()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the local name of the node or NOTHING if no name is available</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_namespaceUri">
+      <title>XmlReader::namespaceUri()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the URI defining the namespace associated with the node, or NOTHING if not available.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::namespaceUri()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.namespaceUri();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::namespaceUri()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::namespaceUri()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the URI defining the namespace associated with the node or NOTHING if not available</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_prefix">
+      <title>XmlReader::prefix()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the shorthand reference to the namespace associated with the node, or NOTHING if not available.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::prefix()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.prefix();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::prefix()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::prefix()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the shorthand reference to the namespace associated with the node or NOTHING if not available</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_xmlLang">
+      <title>XmlReader::xmlLang()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the xml:lang scope within which the node resides or NOTHING if there is none.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::xmlLang()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.xmlLang();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::xmlLang()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::xmlLang()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the xml:lang scope within which the node resides or NOTHING if there is none</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_xmlVersion">
+      <title>XmlReader::xmlVersion()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a string giving the XML version of the source document (normally &amp;quot;1.0&amp;quot;).</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::xmlVersion()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.xmlVersion();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::xmlVersion()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::xmlVersion()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>a string giving the XML version of the source document (normally &amp;quot;1.0&amp;quot;)</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_getAttribute">
+      <title>XmlReader::getAttribute()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the value of the attribute matching the qualified name passed, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            <para>See also <link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::getAttribute(<replaceable>name</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.getAttribute($name);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::getAttribute()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The qualified name of the attribute to retrieve</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::getAttribute()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the value of the attribute or NOTHING if it does not exist</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::getAttribute()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLREADER-GETATTRIBUTE-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid argument</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_getAttributeNs">
+      <title>XmlReader::getAttributeNs()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the value of the given attribute anchored in the given namespace, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            <para>See also <link linkend="XmlReader_getAttribute">XmlReader::getAttribute()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::getAttributeNs(<replaceable>localname, namespaceuri</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.getAttributeNs($localname, $namespaceuri);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::getAttributeNs()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>localname</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The local name of the attribute to retrieve</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>namespaceuri</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The namespace URI of the attribute</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::getAttributeNs()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the value of the attribute or NOTHING if it does not exist</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::getAttributeNs()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLREADER-GETATTRIBUTENS-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid argument</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_getAttributeOffset">
+      <title>XmlReader::getAttributeOffset()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the value of the attribute with the specified index relative to the containing element, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            <para>See also <link linkend="XmlReader_getAttribute">XmlReader::getAttribute()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::getAttributeOffset(<replaceable>offset</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.getAttributeOffset($offset);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::getAttributeOffset()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>offset</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>the index of the attribute relative to the containing element</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::getAttributeOffset()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>the value of the attribute or NOTHING if it does not exist</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_lookupNamespace">
+      <title>XmlReader::lookupNamespace()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>returns the namespace corresponding to the given prefix in the scope of the current element.  If no prefix is given, the default namespace is returned.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::lookupNamespace(<replaceable>prefix</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.lookupNamespace($prefix);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::lookupNamespace()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>prefix</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The namespace prefix to resolve; if no value is sent for this argument, the default namespace is returned.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::lookupNamespace()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The namespace corresponding to the given prefix in the scope of the current element or NOTHING if the prefix could not be resolved.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_moveToAttribute">
+      <title>XmlReader::moveToAttribute()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the attribute with the specified qualified name.</para>
+            <para>See also <link linkend="XmlReader_moveToAttributeNs">XmlReader::moveToAttributeNs()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::moveToAttribute(<replaceable>name</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.moveToAttribute($name);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::moveToAttribute()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>name</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The qualified name of the attribute to move to</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::moveToAttribute()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::moveToAttribute()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLREADER-MOVETOATTRIBUTE-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid argument</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_moveToAttributeNs">
+      <title>XmlReader::moveToAttributeNs()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the attribute with the specified local name and namespace URI.</para>
+            <para>See also <link linkend="XmlReader_moveToAttribute">XmlReader::moveToAttribute()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::moveToAttributeNs(<replaceable>localname, namespaceuri</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.moveToAttributeNs($localname, $namespaceuri);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::moveToAttributeNs()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>localname</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The local name of the attribute to move to</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>namespaceuri</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The namespace URI of the attribute</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::moveToAttributeNs()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::moveToAttributeNs()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLREADER-MOVETOATTRIBUTENS-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid argument</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_moveToAttributeOffset">
+      <title>XmlReader::moveToAttributeOffset()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the attribute with the specified index relative to the containing element.</para>
+            <para>See also <link linkend="XmlReader_moveToAttribute">XmlReader::moveToAttribute()</link></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::moveToAttributeOffset(<replaceable>offset</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.moveToAttributeOffset($offset);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::moveToAttributeOffset()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>offset</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>the index of the attribute relative to the containing element to move to</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::moveToAttributeOffset()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_moveToElement">
+      <title>XmlReader::moveToElement()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the element node containing the current attribute node.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::moveToElement()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.moveToElement();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::moveToElement()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::moveToElement()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_moveToFirstAttribute">
+      <title>XmlReader::moveToFirstAttribute()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the first attribute of the current node.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::moveToFirstAttribute()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.moveToFirstAttribute();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::moveToFirstAttribute()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::moveToFirstAttribute()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_moveToNextAttribute">
+      <title>XmlReader::moveToNextAttribute()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the next attribute of the current node.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::moveToNextAttribute()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.moveToNextAttribute();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::moveToNextAttribute()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::moveToNextAttribute()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Integer</para>
+              </entry>
+              <entry>
+                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_next">
+      <title>XmlReader::next()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Moves the position of the current instance to the next node in the tree at the same level, skipping any subtree.  Returns True if the operation succeeded, False if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::next()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.next();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::next()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::next()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>Boolean</para>
+              </entry>
+              <entry>
+                <para></para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::next()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>PARSE-XML-EXCEPTION</code>
+                </para>
+              </entry>
+              <entry>
+                <para>an error occured parsing the XML string</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_getInnerXml">
+      <title>XmlReader::getInnerXml()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an XML string of the contents of the all current node's child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes.</para>
+            <para>See also <link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::getInnerXml()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.getInnerXml();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::getInnerXml()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::getInnerXml()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>an XML string of the contents of all the current node's child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_getOuterXml">
+      <title>XmlReader::getOuterXml()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns an XML string of the contents of the current node and all child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes.</para>
+            <para>See also <link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::getOuterXml()</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$value = $xmlreader.getOuterXml();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::getOuterXml()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method takes no arguments.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::getOuterXml()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>an XML string of the contents of the current node and all child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_relaxNGValidate">
+      <title>XmlReader::relaxNGValidate()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
+            <para>If any errors occur, an exception is thrown (see below).</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::relaxNGValidate(<replaceable>rng</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$xmlreader.relaxNGValidate($rng);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::relaxNGValidate()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>rng</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The RelaxNG schema string to use for validation</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::relaxNGValidate()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::relaxNGValidate()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLREADER-RELAXNGVALIDATE-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid argument</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLREADER-RELAXNG-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>invalid RelaxNG schema or method called after the first call to XmlReader::read()</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+    <sect2 id="XmlReader_schemaValidate">
+      <title>XmlReader::schemaValidate()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
+            <para>If any errors occur, an exception is thrown (see below).</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <programlisting>XmlReader::schemaValidate(<replaceable>xsd</replaceable>)</programlisting>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$xmlreader.schemaValidate($xsd);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlReader::schemaValidate()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument</para>
+              </entry>
+              <entry>
+                <para>Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <replaceable>xsd</replaceable>
+                </para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+              <entry>
+                <para>The XSD schema string to use for validation</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Return Values for XmlReader::schemaValidate()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para>This method returns no value</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::schemaValidate()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLREADER-SCHEMAVALIDATE-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>missing or invalid argument</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <code>XMLREADER-XSD-ERROR</code>
+                </para>
+              </entry>
+              <entry>
+                <para>invalid RelaxNG schema or method called after the first call to XmlReader::read()</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+  </sect1>
 </chapter>

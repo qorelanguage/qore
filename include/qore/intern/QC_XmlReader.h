@@ -40,10 +40,10 @@ private:
    DLLLOCAL QoreXmlReaderData(const QoreXmlReaderData &orig);
 
 public:
-   DLLLOCAL QoreXmlReaderData(const QoreStringNode *n_xml, ExceptionSink *xsink) : QoreXmlReader(n_xml, QORE_XML_PARSER_OPTIONS, xsink), doc(0), xmlstr(n_xml->stringRefSelf()) {
+   DLLLOCAL QoreXmlReaderData(const QoreStringNode *n_xml, ExceptionSink *xsink) : QoreXmlReader(xsink, n_xml, QORE_XML_PARSER_OPTIONS), doc(0), xmlstr(n_xml->stringRefSelf()) {
    }
 
-   DLLLOCAL QoreXmlReaderData(QoreXmlDocData *n_doc, ExceptionSink *xsink) : QoreXmlReader(n_doc->getDocPtr(), xsink), doc(n_doc), xmlstr(0) {
+   DLLLOCAL QoreXmlReaderData(QoreXmlDocData *n_doc, ExceptionSink *xsink) : QoreXmlReader(xsink, n_doc->getDocPtr()), doc(n_doc), xmlstr(0) {
       doc->ref();
    }
 
