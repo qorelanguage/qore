@@ -1790,6 +1790,10 @@ $var[1].count++;
 		<entry><para><link linkend='Less_Than_Or_Equals_Operator'>logical less than or equals operator</link></para></entry>
 	      </row>
 	      <row>
+		<entry><para>==</para></entry>
+		<entry><para><link linkend='Equals_Operator'>logical equals operator (with type conversions)</link></para></entry>
+	      </row>
+	      <row>
 		<entry><para>~=</para></entry>
 		<entry><para><link linkend='Regular_Expression_Match_Operator'>regular expression match operator</link> (in this case the regular expression may be optionally given without the operator)</para></entry>
 	      </row>

@@ -1,3 +1,6 @@
+2009.10.09: David Nichols
+	* implemented case == <exp> for soft matches in case expressions
+
 2009.10.08: David Nichols
 	* updated internal XML APIs; updated XmlReader class; documented
 	  XmlReader class

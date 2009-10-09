@@ -1083,6 +1083,17 @@ case_code:
 	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LE);
         }
 
+        | TOK_CASE LOGICAL_EQ exp ':' statements
+        {
+	   check_case("==", $3);
+	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_EQ);
+        }
+        | TOK_CASE LOGICAL_EQ exp ':' // nothing
+        {
+	   check_case("==", $3);
+	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_EQ);
+        }
+
         | TOK_CASE '<' exp ':' statements
         {
 	   check_case("<", $3);
