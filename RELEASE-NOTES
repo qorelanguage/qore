@@ -72,6 +72,8 @@ release summary: 23 bug fixes and major new features over 0.7.5
 		using libsmoke; the latest module API is now 0.8
 *) NEW FEATURE: added the HTTPClient::isConnected() method
 *) NEW FEATURE: added the rename() function to rename or move files
+*) NEW FEATURE: case expressions now support the == operator for soft 
+                comparisons
 *) BUILD CHANGE: minimum libxml2 version required for compiling and linking is
                  now 2.6.0
 
