@@ -269,6 +269,7 @@ static AbstractQoreNode *XMLREADER_relaxNGValidate(QoreObject *self, QoreXmlRead
 }
 
 static AbstractQoreNode *XMLREADER_schemaValidate(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
    const QoreStringNode *xsd = test_string_param(params, 0);
    if (!xsd) {
       xsink->raiseException("XMLREADER-SCHEMAVALIDATE-ERROR", "missing string giving the W3C XSD schema as sole argument to XmlReader::schemaValidate()");
@@ -276,6 +277,9 @@ static AbstractQoreNode *XMLREADER_schemaValidate(QoreObject *self, QoreXmlReade
    }
 
    xr->schemaValidate(xsd->getBuffer(), xsink);
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSchemaValidate() function, therefore XmlReader::schemaValidate() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHSCHEMA to check if this method is implemented before calling");
+#endif
    return 0;
 }
 

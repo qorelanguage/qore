@@ -230,25 +230,7 @@ static void qore_xml_structured_error_func(ExceptionSink *xsink, xmlErrorPtr err
 }
 #endif
 
-static void qore_xml_schema_error_func(ExceptionSink *xsink, const char *msg, ...) {
-   if (*xsink)
-      return;
-
-   va_list args;
-   QoreStringNode *desc = new QoreStringNode;
-
-   while (true) {
-      va_start(args, msg);
-      int rc = desc->vsprintf(msg, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-   desc->chomp();
-
-   xsink->raiseException("XML-SCHEMA-PARSE-ERROR", desc);
-}
-
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
 static void qore_xml_relaxng_error_func(ExceptionSink *xsink, const char *msg, ...) {
    if (*xsink)
       return;
@@ -267,7 +249,30 @@ static void qore_xml_relaxng_error_func(ExceptionSink *xsink, const char *msg, .
 
    xsink->raiseException("XML-RELAXNG-PARSE-ERROR", desc);
 }
+#endif
 
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
+static void qore_xml_schema_error_func(ExceptionSink *xsink, const char *msg, ...) {
+   if (*xsink)
+      return;
+
+   va_list args;
+   QoreStringNode *desc = new QoreStringNode;
+
+   while (true) {
+      va_start(args, msg);
+      int rc = desc->vsprintf(msg, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+   desc->chomp();
+
+   xsink->raiseException("XML-SCHEMA-PARSE-ERROR", desc);
+}
+#endif
+
+#if defined(HAVE_XMLTEXTREADERRELAXNGSETSCHEMA) || defined(HAVE_XMLTEXTREADERSETSCHEMA)
 static void qore_xml_schema_warning_func(ExceptionSink *xsink, const char *msg, ...) {
 #ifdef DEBUG
    va_list args;
@@ -284,6 +289,7 @@ static void qore_xml_schema_warning_func(ExceptionSink *xsink, const char *msg, 
    printf("%s", buf.getBuffer());
 #endif
 }
+#endif
 
 class QoreXmlRpcReader : public QoreXmlReader {
 public:
@@ -331,6 +337,7 @@ public:
    DLLLOCAL int getParams(XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink);
 };
 
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
 QoreXmlSchemaContext::QoreXmlSchemaContext(const char *xsd, int size, ExceptionSink *xsink) : schema(0) {
    xmlSchemaParserCtxtPtr scp = xmlSchemaNewMemParserCtxt(xsd, size);
    if (!scp)
@@ -343,7 +350,9 @@ QoreXmlSchemaContext::QoreXmlSchemaContext(const char *xsd, int size, ExceptionS
    schema = xmlSchemaParse(scp);
    xmlSchemaFreeParserCtxt(scp);
 }
+#endif
 
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
 QoreXmlRelaxNGContext::QoreXmlRelaxNGContext(const char *rng, int size, ExceptionSink *xsink) : schema(0) {
    xmlRelaxNGParserCtxtPtr rcp = xmlRelaxNGNewMemParserCtxt(rng, size);
    if (!rcp)
@@ -355,6 +364,7 @@ QoreXmlRelaxNGContext::QoreXmlRelaxNGContext(const char *rng, int size, Exceptio
    schema = xmlRelaxNGParse(rcp);
    xmlRelaxNGFreeParserCtxt(rcp);
 }
+#endif
 
 static int concatSimpleValue(QoreString &str, const AbstractQoreNode *n, ExceptionSink *xsink) {
    //printd(5, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");

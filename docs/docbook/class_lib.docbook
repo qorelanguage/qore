@@ -246,9 +246,14 @@
 	    <entry><para>Indicates if the <link linkend="setegid">setegid()</link> function is available.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><code>HAVE_PARSEXMLWITHRELAXNG</code></para></entry>
+	    <entry><para>Boolean</para></entry>
+	    <entry><para>Indicates if <link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG()</link> and <link linkend="XmlReader_relaxNGValidate">XmlReader::relaxNGValidate()</link> are available.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><code>HAVE_PARSEXMLWITHSCHEMA</code></para></entry>
 	    <entry><para>Boolean</para></entry>
-	    <entry><para>Indicates if the <link linkend="parseXMLWithSchema">parseXMLWithSchema()</link> function is available.</para></entry>
+	    <entry><para>Indicates if <link linkend="parseXMLWithSchema">parseXMLWithSchema()</link> and <link linkend="XmlReader_schemaValidate">XmlReader::schemaValidate()</link> are available.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>HAVE_SHA224</code></para></entry>
@@ -39949,7 +39954,7 @@ $mutex.unlock();</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
+              <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read().  Not available if <code>HAVE_PARSEXMLWITHRELAXNG</code> is False.</link></para>
             </entry>
           </row>
           <row>
@@ -39962,7 +39967,7 @@ $mutex.unlock();</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
+              <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read().  Not available if <code>HAVE_PARSEXMLWITHSCHEMA</code> is False.</link></para>
             </entry>
           </row>
         </tbody>
@@ -43306,6 +43311,7 @@ $mutex.unlock();</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
+        <para>The availability of this function depends on the presence of libxml2's xmlTextReaderRelaxNGValidate() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
             <para>If any errors occur, an exception is thrown (see below).</para>
           </listitem>
         </varlistentry>
@@ -43414,6 +43420,10 @@ $mutex.unlock();</programlisting>
                 <para>invalid RelaxNG schema or method called after the first call to XmlReader::read()</para>
               </entry>
             </row>
+            <row>
+              <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this function.</para></entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
@@ -43425,6 +43435,7 @@ $mutex.unlock();</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
+        <para>The availability of this function depends on the presence of libxml2's xmlTextReaderSchemaValidate() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
             <para>If any errors occur, an exception is thrown (see below).</para>
           </listitem>
         </varlistentry>
@@ -43532,6 +43543,11 @@ $mutex.unlock();</programlisting>
               <entry>
                 <para>invalid RelaxNG schema or method called after the first call to XmlReader::read()</para>
               </entry>
+            </row>
+            <row>
+              <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constan
+t <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this function.</para></entry>
             </row>
           </tbody>
         </tgroup>

@@ -41,6 +41,7 @@ DLLLOCAL const char *get_xml_element_type_name(int t);
 // returns the string corresponding to the node type
 DLLLOCAL const char *get_xml_node_type_name(int t);
 
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
 class QoreXmlSchemaContext {
    friend class QoreXmlSchemaValidContext;
 protected:
@@ -64,6 +65,30 @@ public:
    }
 };
 
+class QoreXmlSchemaValidContext {
+protected:
+   xmlSchemaValidCtxtPtr ptr;
+
+   DLLLOCAL QoreXmlSchemaValidContext(xmlSchemaValidCtxtPtr n_ptr) : ptr(n_ptr) {
+   }
+
+public:
+   DLLLOCAL QoreXmlSchemaValidContext(QoreXmlSchemaContext &c) : ptr(c.getValidCtxtPtr()) {
+      assert(ptr);
+   }
+   DLLLOCAL ~QoreXmlSchemaValidContext() {
+      xmlSchemaFreeValidCtxt(ptr);
+   }
+   DLLLOCAL xmlSchemaValidCtxtPtr getPtr() {
+      return ptr;
+   }
+   DLLLOCAL int validateDoc(xmlDocPtr doc) {
+      return xmlSchemaValidateDoc(ptr, doc);
+   }
+};
+#endif
+
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
 class QoreXmlRelaxNGContext {
    friend class QoreXmlRelaxNGValidContext;
 protected:
@@ -108,27 +133,6 @@ public:
       return xmlRelaxNGValidateDoc(ptr, doc);
    }
 };
-
-class QoreXmlSchemaValidContext {
-protected:
-   xmlSchemaValidCtxtPtr ptr;
-
-   DLLLOCAL QoreXmlSchemaValidContext(xmlSchemaValidCtxtPtr n_ptr) : ptr(n_ptr) {
-   }
-
-public:
-   DLLLOCAL QoreXmlSchemaValidContext(QoreXmlSchemaContext &c) : ptr(c.getValidCtxtPtr()) {
-      assert(ptr);
-   }
-   DLLLOCAL ~QoreXmlSchemaValidContext() {
-      xmlSchemaFreeValidCtxt(ptr);
-   }
-   DLLLOCAL xmlSchemaValidCtxtPtr getPtr() {
-      return ptr;
-   }
-   DLLLOCAL int validateDoc(xmlDocPtr doc) {
-      return xmlSchemaValidateDoc(ptr, doc);
-   }
-};
+#endif
 
 #endif // _QORE_QL_XML_H

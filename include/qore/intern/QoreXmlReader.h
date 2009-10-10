@@ -350,15 +350,19 @@ public:
       return doString(xmlTextReaderReadOuterXml(reader));
    }
 
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
    DLLLOCAL void relaxNGValidate(const char *rng, ExceptionSink *xsink) {
       if (xmlTextReaderRelaxNGValidate(reader, rng))
 	 xsink->raiseException("XMLREADER-RELAXNG-ERROR", "an error occured setting the RelaxNG schema for validation; this function must be called before the first call to XmlReader::read()");
    }
+#endif
 
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
    DLLLOCAL void schemaValidate(const char *xsd, ExceptionSink *xsink) {
       if (xmlTextReaderSchemaValidate(reader, xsd))
 	 xsink->raiseException("XMLREADER-XSD-ERROR", "an error occured setting the W3C XSD schema for validation; this function must be called before the first call to XmlReader::read()");
    }
+#endif
 
    DLLLOCAL AbstractQoreNode *parseXMLData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink);
 };
