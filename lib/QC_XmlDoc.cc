@@ -28,6 +28,7 @@
 
 qore_classid_t CID_XMLDOC;
 
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
 int QoreXmlDoc::validateRelaxNG(const char *rng, int size, ExceptionSink *xsink) {
    QoreXmlRelaxNGContext schema(rng, size, xsink);
    if (!schema) {
@@ -50,7 +51,9 @@ int QoreXmlDoc::validateRelaxNG(const char *rng, int size, ExceptionSink *xsink)
       xsink->raiseException("RELAXNG-ERROR", "The document failed RelaxNG validation", rc);
    return -1;
 }
+#endif
 
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
 int QoreXmlDoc::validateSchema(const char *xsd, int size, ExceptionSink *xsink) {
    QoreXmlSchemaContext schema(xsd, size, xsink);
    if (!schema) {
@@ -73,6 +76,7 @@ int QoreXmlDoc::validateSchema(const char *xsd, int size, ExceptionSink *xsink) 
       xsink->raiseException("XSD-ERROR", "The document failed XSD validation", rc);
    return -1;
 }
+#endif
 
 QoreXmlNodeData *QoreXmlDocData::getRootElement() {
    xmlNodePtr n = xmlDocGetRootElement(ptr);
@@ -167,6 +171,7 @@ static AbstractQoreNode *XMLDOC_getRootElement(QoreObject *self, QoreXmlDocData 
 }
 
 static AbstractQoreNode *XMLDOC_validateRelaxNG(QoreObject *self, QoreXmlDocData *xd, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
    const QoreStringNode *rng = test_string_param(params, 0);
 
    if (!rng) {
@@ -181,9 +186,13 @@ static AbstractQoreNode *XMLDOC_validateRelaxNG(QoreObject *self, QoreXmlDocData
 
    xd->validateRelaxNG(nrng->getBuffer(), nrng->strlen(), xsink);
    return 0;
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderRelaxNGValidate() function, therefore XmlDoc::validateRelaxNG() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHRELAXNG to check if this method is implemented before calling");
+#endif
 }
 
 static AbstractQoreNode *XMLDOC_validateSchema(QoreObject *self, QoreXmlDocData *xd, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_XMLTEXTREADERSETSCHEMA
    const QoreStringNode *xsd = test_string_param(params, 0);
 
    if (!xsd) {
@@ -197,6 +206,9 @@ static AbstractQoreNode *XMLDOC_validateSchema(QoreObject *self, QoreXmlDocData 
       return 0;
 
    xd->validateSchema(nxsd->getBuffer(), nxsd->strlen(), xsink);
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSchemaValidate() function, therefore XmlDoc::validateSchema() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHSCHEMA to check if this method is implemented before calling");
+#endif
    return 0;
 }
 

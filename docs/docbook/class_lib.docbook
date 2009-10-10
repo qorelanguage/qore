@@ -36673,12 +36673,12 @@ $mutex.unlock();</programlisting>
 	  <row>
 	    <entry><para><link linkend="XmlDoc::validateRelaxNG">XmlDoc::validateRelaxNG()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.</para></entry>
+	    <entry><para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.  Not available if <code>HAVE_PARSEXMLWITHRELAXNG</code> is False.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend="XmlDoc::validateSchema">XmlDoc::validateSchema()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.</para></entry>
+	    <entry><para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.  Not available if <code>HAVE_PARSEXMLWITHSCHEMA</code> is False.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -37278,6 +37278,7 @@ $mutex.unlock();</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.</para>
+            <para>The availability of this function depends on the presence of libxml2's xmlTextReaderRelaxNGSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before running this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -37354,6 +37355,10 @@ $mutex.unlock();</programlisting>
 	      <entry><para><code>XML-RELAXNG-PARSE-ERROR</code></para></entry>
 	      <entry><para>The XML document failed RelaxNG validation.</para></entry>
 	    </row>
+            <row>
+              <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this function.</para></entry>
+            </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -37366,6 +37371,7 @@ $mutex.unlock();</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.</para>
+            <para>The availability of this function depends on the presence of libxml2's xmlTextReaderSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -37442,6 +37448,10 @@ $mutex.unlock();</programlisting>
 	      <entry><para><code>XML-SCHEMA-PARSE-ERROR</code></para></entry>
 	      <entry><para>The XML document failed XSD schema validation.</para></entry>
 	    </row>
+            <row>
+              <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this function.</para></entry>
+            </row>
 	  </tbody>
 	</tgroup>
       </table>

@@ -258,6 +258,7 @@ static AbstractQoreNode *XMLREADER_getOuterXml(QoreObject *self, QoreXmlReaderDa
 }
 
 static AbstractQoreNode *XMLREADER_relaxNGValidate(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
    const QoreStringNode *rng = test_string_param(params, 0);
    if (!rng) {
       xsink->raiseException("XMLREADER-RELAXNGVALIDATE-ERROR", "missing string giving the RelaxNG schema as sole argument to XmlReader::relaxNGValidate()");
@@ -265,6 +266,9 @@ static AbstractQoreNode *XMLREADER_relaxNGValidate(QoreObject *self, QoreXmlRead
    }
 
    xr->relaxNGValidate(rng->getBuffer(), xsink);
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderRelaxNGValidate() function, therefore XmlReader::relaxNGValidate() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHRELAXNG to check if this method is implemented before calling");
+#endif
    return 0;
 }
 
