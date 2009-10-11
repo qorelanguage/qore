@@ -759,6 +759,10 @@ void *endParsing() {
 }
 
 // thread-local functions
+bool is_valid_qore_thread() {
+   return (bool)thread_data.get();
+}
+
 int gettid() {
    return (thread_data.get())->tid;
 }

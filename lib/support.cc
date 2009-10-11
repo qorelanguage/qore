@@ -55,8 +55,7 @@ int printe(const char *fmt, ...)
    return 0;
 }
 
-int print_debug(int level, const char *fmt, ...)
-{
+int print_debug(int level, const char *fmt, ...) {
    if (level > debug)
       return 0;
 
@@ -74,8 +73,8 @@ int print_debug(int level, const char *fmt, ...)
 #ifdef QORE_SERIALIZE_DEBUGGING_OUTPUT
    AutoLocker al(debug_output_lock);
 #endif
-   if (threads_initialized) fprintf(stderr, "TID %d: ", gettid());
-   fputs(buf.getBuffer(), stderr);
+   int tid = (threads_initialized && is_valid_qore_thread()) ? gettid() : -1;
+   fprintf(stderr, "TID %d: %s", tid, buf.getBuffer());
    fflush(stderr);
    return 0;
 }

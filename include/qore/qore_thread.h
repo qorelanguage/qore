@@ -38,6 +38,9 @@ typedef void (*qtdest_t)(void *);
 //! pointer to a qore thread resource destructor function
 typedef void (*qtrdest_t)(void *, class ExceptionSink *);
 
+//! returns true if the current thread is a valid qore thread; it is not safe to call most Qore functions unless the thread is registered with Qore
+DLLEXPORT bool is_valid_qore_thread();
+
 //! returns the current TID number
 DLLEXPORT int gettid();
 
