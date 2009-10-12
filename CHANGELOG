@@ -3,6 +3,8 @@
 	  to be consistent with other methods
 	* updated sending HTTP headers to send a single header multiple times
 	  if the value is a list
+        * fixed a typo in the C++ code in the File::open2() method that could
+	  cause a crash
 
 2009.10.10: David Nichols
 	* fixed compiling on systems without xmlTextReaderSchemaValidate()

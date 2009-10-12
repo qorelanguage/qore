@@ -87,8 +87,7 @@ static AbstractQoreNode *FILE_open(QoreObject *self, class File *f, const QoreLi
 
 // open2(filename, [flags, mode, charset])
 // throws an exception if there is an error
-static AbstractQoreNode *FILE_open2(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_open2(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    int flags, mode;
    const QoreEncoding *charset;
@@ -112,7 +111,7 @@ static AbstractQoreNode *FILE_open2(QoreObject *self, class File *f, const QoreL
       mode = 0666;
 
    const QoreStringNode *pstr = test_string_param(params, 3);
-   if (p)
+   if (pstr)
       charset = QEM.findCreate(pstr);
    else
       charset = QCS_DEFAULT;
@@ -121,8 +120,7 @@ static AbstractQoreNode *FILE_open2(QoreObject *self, class File *f, const QoreL
    return 0;
 }
 
-static AbstractQoreNode *FILE_close(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_close(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(f->close());
 }
 

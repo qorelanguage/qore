@@ -1,7 +1,8 @@
 RELEASE NOTES for qore v0.7.6
 
-release summary: 23 bug fixes and major new features over 0.7.5
+release summary: 24 bug fixes and major new features over 0.7.5
 
+*) BUG FIX: fixed a crashing bug in the File::open2() method
 *) BUG FIX: fixed class method registration so that static method names and
             non-static method names have independent namespaces (i.e. a static
 	    method may now have the same name as a non-static method).  Static

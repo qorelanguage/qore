@@ -1794,8 +1794,8 @@ void QoreClass::addMethod(QoreMethod *m) {
 
    // if the method already exists or the user is trying to define a user destructor on a system object
    // (system objects without explicit destructors have an implicit default system destructor that cannot be overridden)
-   if (parseFindMethod(m->getName()) || (priv->sys && dst)) {
-      parse_error("method '%s::%s()' has already been defined", priv->name ? priv->name : "<pending>", m->getName());
+   if ((!m->isStatic() && parseFindMethod(m->getName())) || (m->isStatic() && parseFindStaticMethod(m->getName())) || (priv->sys && dst)) {
+      parse_error("%smethod '%s::%s()' has already been defined", m->isStatic() ? "static " : "", priv->name ? priv->name : "<pending>", m->getName());
       delete m;
    }
    else {

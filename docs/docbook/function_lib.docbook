@@ -20420,7 +20420,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Parses a URL string and returns a hash of the components.</para>
+	<para>Parses a URL string and returns a hash of the components with the following keys (if data in the URL is present): <code>protocol, path, username, password, host, port</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -20451,7 +20451,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<row>
 	  <entry><para>String</para></entry>
 	  <entry><para>Hash</para></entry>
-	  <entry><para>Parses a URL string and returns a hash of the components.  URLs have the format: <code>protocol://username:password@hostname:port/path</code>, where only the hostname is mandatory.</para></entry>
+	  <entry><para>Parses a URL string and returns a hash of the components.  URLs have the format: <code>protocol://username:password@host:port/path</code>, where only <code>host</code> is mandatory.</para></entry>
 	</row>
       </tbody>
     </tgroup>
