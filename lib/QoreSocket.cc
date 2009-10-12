@@ -1559,27 +1559,36 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
    return rc;
 }
 
+static void do_header(const char *key, QoreString &hdr, const AbstractQoreNode *v) {
+   switch (v->getType()) {
+      case NT_STRING:
+	 hdr.sprintf("%s: %s\r\n", key, reinterpret_cast<const QoreStringNode *>(v)->getBuffer());
+	 break;
+      case NT_INT:
+	 hdr.sprintf("%s: %lld\r\n", key, reinterpret_cast<const QoreBigIntNode *>(v)->val);
+	 break;
+      case NT_FLOAT:
+	 hdr.sprintf("%s: %f\r\n", key, reinterpret_cast<const QoreFloatNode *>(v)->f);
+	 break;
+      case NT_BOOLEAN:
+	 hdr.sprintf("%s: %d\r\n", key, reinterpret_cast<const QoreBoolNode *>(v)->getValue());
+	 break;
+   }
+}
+
 static void do_headers(QoreString &hdr, const QoreHashNode *headers, qore_size_t size) {
    if (headers) {
       ConstHashIterator hi(headers);
 
       while (hi.next()) {
 	 const AbstractQoreNode *v = hi.getValue();
-	 if (v) {
-	    qore_type_t vtype = v->getType();
-
-	    if (vtype == NT_STRING) {
-	       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
-	       hdr.sprintf("%s: %s\r\n", hi.getKey(), str->getBuffer());
-	       continue;
-	    }
-	    if (vtype == NT_INT)
-	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), reinterpret_cast<const QoreBigIntNode *>(v)->val);
-	    else if (vtype == NT_FLOAT)
-	       hdr.sprintf("%s: %f\r\n", hi.getKey(), reinterpret_cast<const QoreFloatNode *>(v)->f);
-	    else if (vtype == NT_BOOLEAN)
-	       hdr.sprintf("%s: %d\r\n", hi.getKey(), reinterpret_cast<const QoreBoolNode *>(v)->getValue());
+	 if (v && v->getType() == NT_LIST) {
+	    ConstListIterator li(reinterpret_cast<const QoreListNode *>(v));
+	    while (li.next())
+	       do_header(hi.getKey(), hdr, li.getValue());
 	 }
+	 else
+	    do_header(hi.getKey(), hdr, hi.getValue());
       }
    }
    // add data and content-length header if necessary

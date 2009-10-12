@@ -1,6 +1,8 @@
 2009.10.12: David Nichols
 	* updated XmlReader methods to throw exceptions on XML parsing errors
 	  to be consistent with other methods
+	* updated sending HTTP headers to send a single header multiple times
+	  if the value is a list
 
 2009.10.10: David Nichols
 	* fixed compiling on systems without xmlTextReaderSchemaValidate()
