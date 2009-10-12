@@ -1174,13 +1174,15 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 	 // add attributes to structure if possible
 	 if (hasAttributes()) {
 	    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
-	    while (moveToNextAttribute() == 1) {
+	    while (moveToNextAttribute(xsink) == 1) {
 	       const char *name = constName();
 	       QoreStringNode *value = getValue(data_ccsid, xsink);
 	       if (!value)
 		  return 0;
 	       h->setKeyValue(name, value, xsink);
 	    }
+	    if (*xsink)
+	       return 0;
 
 	    // make new new a hash and assign "^attributes^" key
 	    QoreHashNode *nv = new QoreHashNode();

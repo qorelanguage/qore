@@ -209,11 +209,13 @@ static AbstractQoreNode *XMLREADER_moveToAttribute(QoreObject *self, QoreXmlRead
       return 0;
    }
 
-   return new QoreBigIntNode(xr->moveToAttribute(attr->getBuffer()));
+   int rc = xr->moveToAttribute(attr->getBuffer(), xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_moveToAttributeOffset(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(xr->moveToAttributeOffset(get_bigint_param(params, 0)));
+   int rc = xr->moveToAttributeOffset(get_bigint_param(params, 0), xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_moveToAttributeNs(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
@@ -229,19 +231,23 @@ static AbstractQoreNode *XMLREADER_moveToAttributeNs(QoreObject *self, QoreXmlRe
       return 0;
    }
 
-   return new QoreBigIntNode(xr->moveToAttributeNs(lname->getBuffer(), ns->getBuffer()));
+   int rc = xr->moveToAttributeNs(lname->getBuffer(), ns->getBuffer(), xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_moveToElement(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(xr->moveToElement());
+   int rc = xr->moveToElement(xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_moveToFirstAttribute(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(xr->moveToFirstAttribute());
+   int rc = xr->moveToFirstAttribute(xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_moveToNextAttribute(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(xr->moveToNextAttribute());
+   int rc = xr->moveToNextAttribute(xsink);
+   return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_next(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {

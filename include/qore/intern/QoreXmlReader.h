@@ -81,6 +81,12 @@ protected:
       //xmlTextReaderSetErrorHandler(reader, (xmlTextReaderErrorFunc)qore_xml_error_func, xsink);
    }
 
+   DLLLOCAL int do_int_rv(int rc, ExceptionSink *xsink) {
+      if (rc == -1 && !*xsink)
+	 xsink->raiseExceptionArg("PARSE-XML-EXCEPTION", xml ? new QoreStringNode(*xml) : 0, "error parsing XML string");
+      return rc;
+   }
+
 public:
    DLLLOCAL QoreXmlReader(const QoreString *n_xml, int options, ExceptionSink *xsink) : xs(xsink) {
       init(n_xml, options, xsink);
@@ -219,8 +225,8 @@ public:
       return xmlTextReaderIsValid(reader) == 1;
    }
 
-   DLLLOCAL int moveToNextAttribute() {
-      return xmlTextReaderMoveToNextAttribute(reader);
+   DLLLOCAL int moveToNextAttribute(ExceptionSink *xsink) {
+      return do_int_rv(xmlTextReaderMoveToNextAttribute(reader), xsink);
    }
 
    DLLLOCAL QoreStringNode *getValue(const QoreEncoding *id, ExceptionSink *xsink) {
@@ -308,24 +314,24 @@ public:
       return doString(xmlTextReaderLookupNamespace(reader, (xmlChar *)prefix));
    }
 
-   DLLLOCAL int moveToAttribute(const char *attr) {
-      return xmlTextReaderMoveToAttribute(reader, (xmlChar *)attr);
+   DLLLOCAL int moveToAttribute(const char *attr, ExceptionSink *xsink) {
+      return do_int_rv(xmlTextReaderMoveToAttribute(reader, (xmlChar *)attr), xsink);
    }
 
-   DLLLOCAL int moveToAttributeOffset(int offset) {
-      return xmlTextReaderMoveToAttributeNo(reader, offset);
+   DLLLOCAL int moveToAttributeOffset(int offset, ExceptionSink *xsink) {
+      return do_int_rv(xmlTextReaderMoveToAttributeNo(reader, offset), xsink);
    }
 
-   DLLLOCAL int moveToAttributeNs(const char *lname, const char *ns) {
-      return xmlTextReaderMoveToAttributeNs(reader, (const xmlChar *)lname, (const xmlChar *)ns);
+   DLLLOCAL int moveToAttributeNs(const char *lname, const char *ns, ExceptionSink *xsink) {
+      return do_int_rv(xmlTextReaderMoveToAttributeNs(reader, (const xmlChar *)lname, (const xmlChar *)ns), xsink);
    }
 
-   DLLLOCAL int moveToElement() {
-      return xmlTextReaderMoveToElement(reader);
+   DLLLOCAL int moveToElement(ExceptionSink *xsink) {
+      return do_int_rv(xmlTextReaderMoveToElement(reader), xsink);
    }
 
-   DLLLOCAL int moveToFirstAttribute() {
-      return xmlTextReaderMoveToFirstAttribute(reader);
+   DLLLOCAL int moveToFirstAttribute(ExceptionSink *xsink) {
+      return do_int_rv(xmlTextReaderMoveToFirstAttribute(reader), xsink);
    }
 
    DLLLOCAL int next(ExceptionSink *xsink) {

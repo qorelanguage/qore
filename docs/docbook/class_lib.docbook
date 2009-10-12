@@ -39870,7 +39870,7 @@ $mutex.unlock();</programlisting>
               </para>
             </entry>
             <entry>
-              <para>N</para>
+              <para>Y</para>
             </entry>
             <entry>
               <para>Moves the position of the current instance to the attribute with the specified index relative to the containing element.</para>
@@ -39883,7 +39883,7 @@ $mutex.unlock();</programlisting>
               </para>
             </entry>
             <entry>
-              <para>N</para>
+              <para>Y</para>
             </entry>
             <entry>
               <para>Moves the position of the current instance to the element node containing the current attribute node.</para>
@@ -39896,7 +39896,7 @@ $mutex.unlock();</programlisting>
               </para>
             </entry>
             <entry>
-              <para>N</para>
+              <para>Y</para>
             </entry>
             <entry>
               <para>Moves the position of the current instance to the first attribute of the current node.</para>
@@ -39909,7 +39909,7 @@ $mutex.unlock();</programlisting>
               </para>
             </entry>
             <entry>
-              <para>N</para>
+              <para>Y</para>
             </entry>
             <entry>
               <para>Moves the position of the current instance to the next attribute of the current node.</para>
@@ -42569,12 +42569,8 @@ $mutex.unlock();</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>Integer</para>
-              </entry>
-              <entry>
-                <para>1 in case of success, -1 in case of error, 0 if not found</para>
-              </entry>
+              <entry><para>Boolean</para></entry>
+              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -42594,14 +42590,12 @@ $mutex.unlock();</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <code>XMLREADER-MOVETOATTRIBUTE-ERROR</code>
-                </para>
-              </entry>
-              <entry>
-                <para>missing or invalid argument</para>
-              </entry>
+              <entry><para><code>XMLREADER-MOVETOATTRIBUTE-ERROR</code></para></entry>
+              <entry><para>missing or invalid argument</para></entry>
+            </row>
+            <row>
+              <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
+              <entry><para>error parsing XML</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -42690,14 +42684,8 @@ $mutex.unlock();</programlisting>
             </row>
           </thead>
           <tbody>
-            <row>
-              <entry>
-                <para>Integer</para>
-              </entry>
-              <entry>
-                <para>1 in case of success, -1 in case of error, 0 if not found</para>
-              </entry>
-            </row>
+              <entry><para>Boolean</para></entry>
+              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
           </tbody>
         </tgroup>
       </table>
@@ -42724,6 +42712,10 @@ $mutex.unlock();</programlisting>
               <entry>
                 <para>missing or invalid argument</para>
               </entry>
+            </row>
+            <row>
+	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
+              <entry><para>an error occured parsing the XML string</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -42810,6 +42802,27 @@ $mutex.unlock();</programlisting>
           </tbody>
         </tgroup>
       </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::moveToAttributeOffset()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>err</para>
+              </entry>
+              <entry>
+                <para>desc</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
+              <entry><para>an error occured parsing the XML string</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
     </sect2>
     <sect2 id="XmlReader_moveToElement">
       <title>XmlReader::moveToElement()</title>
@@ -42879,12 +42892,29 @@ $mutex.unlock();</programlisting>
           </thead>
           <tbody>
             <row>
+              <entry><para>Boolean</para></entry>
+              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::moveToElement()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
               <entry>
-                <para>Integer</para>
+                <para>err</para>
               </entry>
               <entry>
-                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+                <para>desc</para>
               </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
+              <entry><para>an error occured parsing the XML string</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -42958,12 +42988,29 @@ $mutex.unlock();</programlisting>
           </thead>
           <tbody>
             <row>
+              <entry><para>Boolean</para></entry>
+              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::moveToFirstAttribute()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
               <entry>
-                <para>Integer</para>
+                <para>err</para>
               </entry>
               <entry>
-                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+                <para>desc</para>
               </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
+              <entry><para>an error occured parsing the XML string</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -43037,12 +43084,29 @@ $mutex.unlock();</programlisting>
           </thead>
           <tbody>
             <row>
+              <entry><para>Boolean</para></entry>
+              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>Exceptions thrown by XmlReader::moveToNextAttribute()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
               <entry>
-                <para>Integer</para>
+                <para>err</para>
               </entry>
               <entry>
-                <para>1 in case of success, -1 in case of error, 0 if not found</para>
+                <para>desc</para>
               </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
+              <entry><para>an error occured parsing the XML string</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -43141,14 +43205,8 @@ $mutex.unlock();</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <code>PARSE-XML-EXCEPTION</code>
-                </para>
-              </entry>
-              <entry>
-                <para>an error occured parsing the XML string</para>
-              </entry>
+	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
+              <entry><para>an error occured parsing the XML string</para></entry>
             </row>
           </tbody>
         </tgroup>

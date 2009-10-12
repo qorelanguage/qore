@@ -1,3 +1,7 @@
+2009.10.12: David Nichols
+	* updated XmlReader methods to throw exceptions on XML parsing errors
+	  to be consistent with other methods
+
 2009.10.10: David Nichols
 	* fixed compiling on systems without xmlTextReaderSchemaValidate()
 
