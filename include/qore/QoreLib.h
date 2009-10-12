@@ -40,6 +40,15 @@
     contains prototypes for various helper functions in the Qore library
  */
 
+//! defined because this version of Qore has the XmlNode Qore class
+#define _QORE_HAS_QORE_XMLNODE_CLASS 1
+
+//! defined because this version of Qore has the XmlReader Qore class
+#define _QORE_HAS_QORE_XMLREADER_CLASS 1
+
+//! defined because this version of Qore has the XmlDoc Qore class
+#define _QORE_HAS_QORE_XMLDOC_CLASS 1
+
 //! function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);
 
@@ -79,8 +88,7 @@ DLLEXPORT void qore_exit_process(int rc);
 //! STL-like list containing all presently-loaded Qore features
 /** this list must be thread-safe for reading, writing under a lock
  */
-class FeatureList : public safe_dslist<std::string>
-{
+class FeatureList : public safe_dslist<std::string> {
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL FeatureList(const FeatureList&);
@@ -100,10 +108,8 @@ class FeatureList : public safe_dslist<std::string>
 DLLEXPORT extern FeatureList qoreFeatureList;
 
 //! find one of any characters in a string
-static inline char *strchrs(const char *str, const char *chars)
-{
-   while (*str)
-   {
+static inline char *strchrs(const char *str, const char *chars) {
+   while (*str) {
       if (strchr(chars, *str))
 	 return (char *)str;
       str++;
@@ -112,11 +118,9 @@ static inline char *strchrs(const char *str, const char *chars)
 }
 
 //! find a character in a string up to len
-static inline char *strnchr(const char *str, int len, char c)
-{
+static inline char *strnchr(const char *str, int len, char c) {
    int i = 0;
-   while (i++ != len)
-   {
+   while (i++ != len) {
       if (*str == c)
 	 return (char *)str;
       ++str;
@@ -125,21 +129,17 @@ static inline char *strnchr(const char *str, int len, char c)
 }
 
 //! convert a string to lower-case in place
-static inline void strtolower(char *str)
-{
-   while (*(str))
-   {
+static inline void strtolower(char *str) {
+   while (*(str)) {
       (*str) = tolower(*str);
       str++;
    }
 }
 
 //! convert a string to upper-case in place
-static inline char *strtoupper(char *str)
-{
+static inline char *strtoupper(char *str) {
    char *p = str;
-   while (*(p))
-   {
+   while (*(p)) {
       *p = toupper(*p);
       p++;
    }
@@ -174,8 +174,7 @@ DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode *a);
 DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode *a);
 
 //! to check if an AbstractQoreNode object is NOTHING
-static inline bool is_nothing(const AbstractQoreNode *n)
-{
+static inline bool is_nothing(const AbstractQoreNode *n) {
    if (!n || n->getType() == NT_NOTHING)
       return true;
    
@@ -183,14 +182,12 @@ static inline bool is_nothing(const AbstractQoreNode *n)
 }
 
 //! to deref an AbstractQoreNode (when the pointer may be 0)
-static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink)
-{
+static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink) {
    if (n)
       n->deref(xsink);
 }
 
-static inline const char *get_type_name(const AbstractQoreNode *n)
-{
+static inline const char *get_type_name(const AbstractQoreNode *n) {
    return n ? n->getTypeName() : "NOTHING";
 }
 
