@@ -185,10 +185,10 @@ static AbstractQoreNode *XMLDOC_validateRelaxNG(QoreObject *self, QoreXmlDocData
       return 0;
 
    xd->validateRelaxNG(nrng->getBuffer(), nrng->strlen(), xsink);
-   return 0;
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderRelaxNGValidate() function, therefore XmlDoc::validateRelaxNG() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHRELAXNG to check if this method is implemented before calling");
 #endif
+   return 0;
 }
 
 static AbstractQoreNode *XMLDOC_validateSchema(QoreObject *self, QoreXmlDocData *xd, const QoreListNode *params, ExceptionSink *xsink) {
