@@ -34,12 +34,13 @@
 %enable-all-warnings
 
 our $o; # global variable for options
+our $start; # global variable for start time
 
 const cstr = "*************************************************";
 const bstr = "-------------------------------------------------";
 
 const opts = 
-    ( "verbose"  : "v,verbose:+",
+    ( "verbose"  : "v,verbose:i+",
       "help"     : "h,help" 
     );
 
@@ -101,6 +102,8 @@ class QueueCallBack {
 
 	    # if the verbose flag is set, then show all literal messages
 	    if ($o.verbose) {
+		if ($o.verbose > 1)
+		    printf("%.9f: ", (clock_getmicros() - $start) / 1000000.0);
 		myprintf("%s %s: %s\n", EVENT_SOURCE_MAP.($e.source), EVENT_MAP.($e.event), QueueCallBack::getstr($e - ("event", "source")));
 		continue;
 	    }
@@ -229,7 +232,7 @@ sub usage($long) {
     exit(1);
 }
 
-sub main() {
+sub main() {    
     my $g = new GetOpt(opts);
 
     try {
@@ -250,13 +253,16 @@ sub main() {
     my $u = parseURL($url);
     my $x;
     my $cb;
+    # get start time
+    $start = clock_getmicros();
     try {
 	switch ($u.protocol) {
 	    case NOTHING:
+	    case "https":
 	    case "http": {
 		my $hc = new HTTPClient(("url" : $url));
-		$cb = new QueueCallBack($hc, $url);
-		
+		$cb = new QueueCallBack($hc, $url);	
+	
 		$x = $hc.get(exists $u.path ? $u.path : "/");
 		break;
 	    }
