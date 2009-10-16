@@ -1,3 +1,8 @@
+2009.10.16: David Nichols
+	* fixed broken access to private members of an object outside the
+	  class; before it was possible to delete and reassign private members
+	  from outside the class which should have been illegal
+
 2009.10.12: David Nichols
 	* updated XmlReader methods to throw exceptions on XML parsing errors
 	  to be consistent with other methods

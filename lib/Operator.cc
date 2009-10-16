@@ -48,10 +48,8 @@ Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_SELECT;
 
 // call to get a node with reference count 1 (copy on write)
-static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink)
-{
-   if (!(*v)->is_unique())
-   {
+static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink) {
+   if (!(*v)->is_unique()) {
       AbstractQoreNode *old = *v;
       (*v) = old->realCopy();
       old->deref(xsink);
@@ -59,10 +57,8 @@ static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink)
 }
 
 // call to get a unique douvle node
-static inline void ensure_unique_float(AbstractQoreNode **v, ExceptionSink *xsink)
-{
-   if ((*v)->getType() != NT_FLOAT)
-   {
+static inline void ensure_unique_float(AbstractQoreNode **v, ExceptionSink *xsink) {
+   if ((*v)->getType() != NT_FLOAT) {
       double f = (*v)->getAsFloat();
       (*v)->deref(xsink);
       (*v) = new QoreFloatNode(f);
@@ -72,8 +68,7 @@ static inline void ensure_unique_float(AbstractQoreNode **v, ExceptionSink *xsin
 }
 
 // call to get a unique int64 node
-static inline void ensure_unique_int(AbstractQoreNode **v, ExceptionSink *xsink)
-{
+static inline void ensure_unique_int(AbstractQoreNode **v, ExceptionSink *xsink) {
    assert(*v);
    if ((*v)->getType() != NT_INT) {
       int64 i = (*v)->getAsBigInt();
@@ -85,63 +80,51 @@ static inline void ensure_unique_int(AbstractQoreNode **v, ExceptionSink *xsink)
 }
 
 // operator functions for builtin types
-static bool op_log_lt_bigint(int64 left, int64 right)
-{
+static bool op_log_lt_bigint(int64 left, int64 right) {
    return left < right;
 }
 
-static bool op_log_gt_bigint(int64 left, int64 right)
-{
+static bool op_log_gt_bigint(int64 left, int64 right) {
    return left > right;
 }
 
-static bool op_log_eq_bigint(int64 left, int64 right)
-{
+static bool op_log_eq_bigint(int64 left, int64 right) {
    return left == right;
 }
 
-static bool op_log_eq_boolean(bool left, bool right)
-{
+static bool op_log_eq_boolean(bool left, bool right) {
    return left == right;
 }
 
-static bool op_log_ne_boolean(bool left, bool right)
-{
+static bool op_log_ne_boolean(bool left, bool right) {
    return left != right;
 }
 
-static bool op_log_ne_bigint(int64 left, int64 right)
-{
+static bool op_log_ne_bigint(int64 left, int64 right) {
    return left != right;
 }
 
-static bool op_log_le_bigint(int64 left, int64 right)
-{
+static bool op_log_le_bigint(int64 left, int64 right) {
    return left <= right;
 }
 
-static bool op_log_ge_bigint(int64 left, int64 right)
-{
+static bool op_log_ge_bigint(int64 left, int64 right) {
    return left >= right;
 }
 
-static bool op_log_eq_date(const DateTimeNode *left, const DateTimeNode *right)
-{
+static bool op_log_eq_date(const DateTimeNode *left, const DateTimeNode *right) {
    return left->isEqual(right);
 }
 
-static bool op_log_gt_date(const DateTimeNode *left, const DateTimeNode *right)
-{
+static bool op_log_gt_date(const DateTimeNode *left, const DateTimeNode *right) {
    return DateTime::compareDates(left, right) > 0;
 }
 
-static bool op_log_ge_date(const DateTimeNode *left, const DateTimeNode *right)
-{
+static bool op_log_ge_date(const DateTimeNode *left, const DateTimeNode *right) {
    return DateTime::compareDates(left, right) >= 0;
 }
 
-static bool op_log_lt_date(const DateTimeNode *left, const DateTimeNode *right)
-{
+static bool op_log_lt_date(const DateTimeNode *left, const DateTimeNode *right) {
    return DateTime::compareDates(left, right) < 0;
 }
 
@@ -201,8 +184,7 @@ static bool op_log_ne_string(const QoreString *left, const QoreString *right, Ex
    return left->compareSoft(right, xsink);
 }
 
-static bool op_absolute_log_eq(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_absolute_log_eq(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder lnp(left, xsink);
    if (*xsink)
       return false;
@@ -224,24 +206,20 @@ static bool op_absolute_log_eq(const AbstractQoreNode *left, const AbstractQoreN
    return lnp->is_equal_hard(*rnp, xsink);
 }
 
-static bool op_absolute_log_neq(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_absolute_log_neq(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    return !op_absolute_log_eq(left, right, xsink);
 }
 
-static bool op_regex_match(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink)
-{
+static bool op_regex_match(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink) {
    return right->exec(left, xsink);
 }
 
-static bool op_regex_nmatch(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink)
-{
+static bool op_regex_nmatch(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink) {
    return !right->exec(left, xsink);
 }
 
 // takes all arguments unevaluated so logic short-circuiting can happen
-static bool op_log_or(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_or(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    bool l = left->boolEval(xsink);   
    if (*xsink)
       return false;
