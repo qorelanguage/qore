@@ -1174,7 +1174,11 @@ sub t($a) {
 }
 
 class Test inherits Socket {
+    private $.a, $.b;
+
     constructor($a, $b, $c) {
+	$.a = 1;
+	$.b = 2;
         $.data = ($a, $b, $c);
     }
     getData($elem) {
@@ -1245,6 +1249,16 @@ sub class_test_File() {
 */
 }
 
+sub err($test) {
+    test_value(True, False, $test);
+}
+
+sub check($err, $test) {
+    test_value($err, "PRIVATE-MEMBER", $test);
+}
+
+class Test2 { private $.a; }
+
 sub class_library_tests() {
     my $t = new Test(1, "gee", 2);
     test_value($t.getData(1), "gee", "first object");
@@ -1253,13 +1267,31 @@ sub class_library_tests() {
     test_value($t.test(), "test", "methodGate() value");
     test_value($t instanceof Test, True, "first instanceof");
     test_value($t instanceof Qore::Socket, True, "second instanceof");
+
+    # verify private member access protection
+    my $test = "object -= private member";
+    try { $t -= "a"; err($test); } catch($ex) { check($ex.err, $test); }
+    $test = "object -= list of private members";
+    try { $t -= ("a", "b"); err($test); } catch($ex) { check($ex.err, $test); }
+    $test = "delete object's private member";
+    try { delete $t.a; err($test); } catch($ex) { check($ex.err, $test); }
+    $test = "reassign object's private member";
+    try { $t.a = 3; err($test); } catch($ex) { check($ex.err, $test); }
+
+    my $t2 = new Test2();
+    $test = "read object's private member";
+    try { my $x = $t2.a; err($test); } catch($ex) { check($ex.err, $test); }
+
+    # test memberGate
+    test_value($t.a, "memberGate-a", "object memberGate() methods");
+
     # test memberNotification()
-    $t.a = 1;
+    $t.x = 1;
     # test object closure
     my $c = $t.closure(1);
     test_value($c(2), "gee-1-2-2", "first object closure");
     test_value($c(2), "gee-1-2-3", "second object closure");
-    test_value($t.t.a, 1, "memberNotification() method");
+    test_value($t.t.x, 1, "memberNotification() method");
     class_test_File();
     class_test_Program();
 }
