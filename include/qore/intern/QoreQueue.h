@@ -29,12 +29,12 @@
 
 class QoreQueueNode {
    public:
-      class AbstractQoreNode *node;
-      class QoreQueueNode *next;
-      class QoreQueueNode *prev;
+      AbstractQoreNode *node;
+      QoreQueueNode *next;
+      QoreQueueNode *prev;
 
       DLLLOCAL QoreQueueNode(AbstractQoreNode *n);
-      DLLLOCAL void del(class ExceptionSink *xsink);
+      DLLLOCAL void del(ExceptionSink *xsink);
 };
 
 class QoreQueue {
@@ -66,15 +66,15 @@ class QoreQueue {
 
       // insert at the beginning of the queue
       DLLLOCAL void insert(const AbstractQoreNode *n);
-      DLLLOCAL AbstractQoreNode *shift(class ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
-      DLLLOCAL AbstractQoreNode *pop(class ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
+      DLLLOCAL AbstractQoreNode *shift(ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
+      DLLLOCAL AbstractQoreNode *pop(ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
       DLLLOCAL int size() const {
 	 return len;
       }
       DLLLOCAL int getWaiting() const {
 	 return waiting;
       }
-      DLLLOCAL void destructor(class ExceptionSink *xsink);
+      DLLLOCAL void destructor(ExceptionSink *xsink);
 };
 
 #endif // _QORE_QOREQUEUE_H

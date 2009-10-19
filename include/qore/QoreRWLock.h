@@ -42,12 +42,20 @@ protected:
 public:
    //! creates and initializes the lock
    DLLLOCAL QoreRWLock() {
+#ifndef NDEBUG
+      int rc =
+#endif
       pthread_rwlock_init(&m, 0);
+      assert(!rc);
    }
 
    //! destroys the lock
    DLLLOCAL ~QoreRWLock() {
+#ifndef NDEBUG
+      int rc =
+#endif
       pthread_rwlock_destroy(&m);
+      assert(!rc);
    }
 
    //! grabs the read lock

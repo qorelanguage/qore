@@ -86,7 +86,22 @@ class QoreCondition
 	 @param timeout the timeout value is milliseconds
 	 @return a non-zero return value indicates a timeout occured
        */
-      DLLEXPORT int wait(QoreThreadLock *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in milli seconds
+      DLLEXPORT int wait(QoreThreadLock *l, int timeout) { return wait(&l->ptm_lock, timeout); }
+
+      //! blocks a thread on a lock until the condition is signaled
+      /**
+	 @param l the QoreThreadLock to wait on
+	 @return 0 for success, non-zero for error
+       */
+      DLLEXPORT int wait(QoreThreadLock &l) { return wait(&l.ptm_lock); }
+
+      //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
+      /**
+	 @param l the QoreThreadLock to wait on
+	 @param timeout the timeout value is milliseconds
+	 @return a non-zero return value indicates a timeout occured
+       */
+      DLLEXPORT int wait(QoreThreadLock &l, int timeout) { return wait(&l.ptm_lock, timeout); }
 };
 
 #endif // QORE_CONDITION
