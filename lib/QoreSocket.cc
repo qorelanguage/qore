@@ -396,7 +396,8 @@ struct qore_socket_private {
 #endif
 	    while (true) {
 	       rc = ::accept(sock, (struct sockaddr *)&addr_un, (socklen_t *)&size);
-	       if (rc != EINTR)
+	       // retry if interrupted by a signal
+	       if (rc != -1 || errno != EINTR)
 		  break;
 	    }
 	    //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
@@ -420,7 +421,8 @@ struct qore_socket_private {
 	    
 	    while (true) {
 	       rc = ::accept(sock, (struct sockaddr *)&addr_in, (socklen_t *)&size);
-	       if (rc != EINTR)
+	       // retry if interrupted by a signal
+	       if (rc != -1 || errno != EINTR)
 		  break;
 	    }
 	    //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
