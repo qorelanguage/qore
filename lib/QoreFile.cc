@@ -154,13 +154,21 @@ struct qore_qf_private {
    DLLLOCAL bool isDataAvailableIntern(int timeout_ms) const {
       fd_set sfs;
       
-      struct timeval tv;
-      tv.tv_sec  = timeout_ms / 1000;
-      tv.tv_usec = (timeout_ms % 1000) * 1000;
-      
       FD_ZERO(&sfs);
       FD_SET(fd, &sfs);
-      return select(fd + 1, &sfs, 0, 0, &tv);   
+
+      struct timeval tv;
+      int rc;
+      while (true) {
+	 tv.tv_sec  = timeout_ms / 1000;
+	 tv.tv_usec = (timeout_ms % 1000) * 1000;
+      
+	 rc = select(fd + 1, &sfs, 0, 0, &tv);   
+	 // retry if we were interrupted by a signal
+	 if (rc >= 0 || errno != EINTR)
+	    break;
+      }
+      return rc;
    }
 
    DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const {
@@ -183,7 +191,13 @@ struct qore_qf_private {
 
    // unlocked, assumes file is open
    DLLLOCAL qore_size_t read(void *buf, qore_size_t bs) const {
-      qore_offset_t rc = ::read(fd, buf, bs);
+      qore_offset_t rc;
+      while (true) {
+	 rc = ::read(fd, buf, bs);
+	 // try again if we were interrupted by a signal
+	 if (rc >= 0 || errno != EINTR)
+	    break;
+      }
 
       if (rc > 0)
 	 do_read_event(rc, rc, bs);
@@ -193,7 +207,13 @@ struct qore_qf_private {
 
    // unlocked, assumes file is open
    DLLLOCAL qore_size_t write(const void *buf, qore_size_t len) const {
-      qore_offset_t rc = ::write(fd, buf, len);
+      qore_offset_t rc;
+      while (true) {
+	 rc = ::write(fd, buf, len);
+	 // try again if we are interrupted by a signal
+	 if (rc >= 0 || errno != EINTR)
+	    break;
+      }
 
       if (rc > 0)
 	 do_write_event(rc, rc, len);
@@ -223,7 +243,13 @@ struct qore_qf_private {
 	    break;
 	 }
 
-	 qore_offset_t rc = ::read(fd, buf, bs);
+	 qore_offset_t rc;
+	 while (true) {
+	    rc = ::read(fd, buf, bs);
+	    // try again if we were interrupted by a signal
+	    if (rc >= 0 || errno != EINTR)
+	       break;
+	 }
 	 //printd(0, "read(%d, %p, %d) rc=%d\n", fd, buf, bs, rc);
 	 if (rc <= 0)
 	    break;
@@ -360,7 +386,13 @@ int QoreFile::lockBlocking(struct flock &fl, ExceptionSink *xsink) {
       return -1;
    }
 
-   int rc = fcntl(priv->fd, F_SETLKW, &fl);
+   int rc;
+   while (true) {
+      rc = fcntl(priv->fd, F_SETLKW, &fl);
+      // try again if we are interrupted by a signal
+      if (rc != -1 || errno != EINTR)
+	 break;
+   }
    if (rc)
       xsink->raiseException("FILE-LOCK-ERROR", "the call to fcntl() failed: %s", strerror(errno));
    return rc;

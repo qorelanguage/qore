@@ -1,7 +1,17 @@
 RELEASE NOTES for qore v0.7.6
 
-release summary: 25 bug fixes and major new features over 0.7.5
+release summary: 29 bug fixes and major new features over 0.7.5
 
+*) BUG FIX: updated the Socket class implementation to retry connect(), 
+       	    accept(), recv(), send(), and select() (Socket::isDataAvailable(),
+	    Socket::connect() with timeout, etc) if interrupted by a signal
+*) BUG FIX: updated the File class implementation to retry read(), write() and
+       	    fcntl() with F_SETLKW (File::lockBlocking()) if interrupted by a
+	    signal
+*) BUG FIX: fixed set_signal_handler() to accept a closure as per the
+       	    documentation
+*) BUG FIX: fixed internal C++ library function test_funcref_param() to return
+       	    a value for call references and closures
 *) BUG FIX: fixed broken access to private members of an object outside the
             class; before it was possible to delete and reassign private
 	    members from outside the class which should have been illegal

@@ -1,3 +1,14 @@
+2009.10.20: David Nichols
+	* fixed set_signal_handler() to accept a closure as per documentation
+	* fixed internal C++ library function test_funcref_param() to return a
+	  value for call references and closures
+	* updated socket code to retry connect(), accept(), recv(), and send()
+	  if interrupted by a signal
+	* updated file code to retry read(), write() and fcntl() with F_SETLKW
+	  if interrupted by a signal
+	* updated select() in socket and file code to retry if interrupted by
+	  a signal
+
 2009.10.16: David Nichols
 	* fixed broken access to private members of an object outside the
 	  class; before it was possible to delete and reassign private members

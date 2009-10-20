@@ -1046,12 +1046,18 @@ void qore_exit_process(int rc) {
    // cause a core dump
    for (int i = 1; i < MAX_QORE_THREADS; ++i) {
       if (i != tid && thread_list[i].ptid) {
-	 pthread_cancel(thread_list[i].ptid);
-	 thread_list[i].joined = true;
+	 int rc = pthread_cancel(thread_list[i].ptid);
+	 if (!rc) {
+	    thread_list[i].joined = true;
 
-	 sl.unlock();
-	 pthread_join(thread_list[i].ptid, 0);
-	 sl.lock();
+	    sl.unlock();
+	    pthread_join(thread_list[i].ptid, 0);
+	    sl.lock();
+	 }
+#ifdef DEBUG
+	 else
+	    printd(0, "pthread_cancel() returned %d (%s) on tid %d (%p)\n", rc, strerror(rc), tid, thread_list[i].ptid);
+#endif
       }
    }
 #ifdef DEBUG

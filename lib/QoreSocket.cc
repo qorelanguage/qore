@@ -394,7 +394,11 @@ struct qore_socket_private {
 #else
             socklen_t size = sizeof(struct sockaddr_un);
 #endif
-	    rc = ::accept(sock, (struct sockaddr *)&addr_un, (socklen_t *)&size);
+	    while (true) {
+	       rc = ::accept(sock, (struct sockaddr *)&addr_un, (socklen_t *)&size);
+	       if (rc != EINTR)
+		  break;
+	    }
 	    //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
 	    
 	    if (rc > 0 && source) {
@@ -414,7 +418,11 @@ struct qore_socket_private {
             socklen_t size = sizeof(struct sockaddr_in);
 #endif
 	    
-	    rc = ::accept(sock, (struct sockaddr *)&addr_in, (socklen_t *)&size);
+	    while (true) {
+	       rc = ::accept(sock, (struct sockaddr *)&addr_in, (socklen_t *)&size);
+	       if (rc != EINTR)
+		  break;
+	    }
 	    //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
 	    
 	    if (rc > 0 && source) {
@@ -641,14 +649,23 @@ struct qore_socket_private {
 	 }
 	 
 	 do_connect_event(AF_UNIX, p, -1);
-	 if ((::connect(sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un))) == -1) {
+	 while (true) {
+	    if (!::connect(sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un)))
+	       break;
+
+	    // try again if we were interrupted by a signal
+	    if (errno == EINTR)
+	       continue;
+
+	    // otherwise close the socket and return an exception with the error code
 	    ::close(sock);
 	    sock = 0;
 	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", "connect returned error %d: ", strerror(errno));
 	    
-	    return -1;
+	    return -1;	    
 	 }
+
 	 // save file name for deleting when socket is closed
 	 socketname = addr.sun_path;
 	 type = AF_UNIX;
@@ -662,26 +679,40 @@ struct qore_socket_private {
     DLLLOCAL int select(int timeout_ms) const {
       fd_set sfs;
 
-      struct timeval tv;
-      tv.tv_sec  = timeout_ms / 1000;
-      tv.tv_usec = (timeout_ms % 1000) * 1000;
-      
       FD_ZERO(&sfs);
       FD_SET(sock, &sfs);
-      return ::select(sock + 1, &sfs, 0, 0, &tv);
+
+      struct timeval tv;
+      int rc;
+      while (true) {
+	 tv.tv_sec  = timeout_ms / 1000;
+	 tv.tv_usec = (timeout_ms % 1000) * 1000;
+
+	 rc = ::select(sock + 1, &sfs, 0, 0, &tv);
+	 if (rc >= 0 || errno != EINTR)
+	    break;
+      }
+      return rc;
    }
 
     // socket must be open!
     DLLLOCAL int selectWrite(int timeout_ms) const {
       fd_set sfs;
-
-      struct timeval tv;
-      tv.tv_sec  = timeout_ms / 1000;
-      tv.tv_usec = (timeout_ms % 1000) * 1000;
       
       FD_ZERO(&sfs);
       FD_SET(sock, &sfs);
-      return ::select(sock + 1, 0, &sfs, 0, &tv);
+
+      struct timeval tv;
+      int rc;
+      while (true) {
+	 tv.tv_sec  = timeout_ms / 1000;
+	 tv.tv_usec = (timeout_ms % 1000) * 1000;
+
+	 rc = ::select(sock + 1, 0, &sfs, 0, &tv);
+	 if (rc >= 0 || errno != EINTR)
+	    break;
+      }
+      return rc;
    }
 
    DLLLOCAL bool isDataAvailable(int timeout_ms) const {
@@ -714,49 +745,56 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int connectINETTimeout(int timeout_ms, struct sockaddr_in &addr_p, ExceptionSink *xsink) {
-      int rc = ::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in));
-      if (rc < 0) {
-	 //printd(0, "timeout_ms=%d errno=%d EINPROGRESS=%d\n", timeout_ms, errno, EINPROGRESS);
-	 if (errno == EINPROGRESS) {
-	    do {
-	       rc = selectWrite(timeout_ms);
+      while (true) {
+	 if (!::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in)))
+	    return 0;
 
-	       //printd(0, "selectWrite(%d) returned %d\n", timeout_ms, rc);
-	       if (rc < 0 && errno != EINTR) { 
+	 // try again if we were interrupted by a signal
+	 if (errno == EINTR)
+	    continue;
+
+	 if (errno != EINPROGRESS)
+	    break;
+
+	 // check for timeout or connection with EINPROGRESS
+	 while (true) {
+	    int rc = selectWrite(timeout_ms);
+
+	    //printd(0, "selectWrite(%d) returned %d\n", timeout_ms, rc);
+	    if (rc < 0 && errno != EINTR) { 
+	       if (xsink)
+		  xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+	       return close_and_exit();
+	    } 
+	    else if (rc > 0) { 
+	       // socket selected for write 
+	       socklen_t lon = sizeof(int);
+	       int val;
+
+	       if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
 		  if (xsink)
-		     xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+		     xsink->raiseException("SOCKET-CONNECT-ERROR", "error in getsockopt(): ", strerror(errno));
 		  return close_and_exit();
 	       } 
-	       else if (rc > 0) { 
-		  // socket selected for write 
-		  socklen_t lon = sizeof(int);
-		  int val;
-
-		  if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
-		     if (xsink)
-			xsink->raiseException("SOCKET-CONNECT-ERROR", "error in getsockopt(): ", strerror(errno));
-		     return close_and_exit();
-		  } 
-
-		  if (val) { 
-		     if (xsink)
-			xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(val));
-		     return close_and_exit();
-		  }
-
-		  break; 
-	       }
-	       else { 
+	       
+	       if (val) { 
 		  if (xsink)
-		     xsink->raiseException("SOCKET-CONNECT-ERROR", "timeout in connection after %dms", timeout_ms);
+		     xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(val));
 		  return close_and_exit();
 	       }
 
-	    } while (true);
+	       // connected successfully within the timeout period
+	       return 0;
+	    }
+	    else { 
+	       if (xsink)
+		  xsink->raiseException("SOCKET-CONNECT-ERROR", "timeout in connection after %dms", timeout_ms);
+	       return close_and_exit();
+	    }
 	 }
       }
 
-      return rc;
+      return -1;
    }
 
    DLLLOCAL int connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink = 0) {
@@ -835,8 +873,13 @@ struct qore_socket_private {
       }
       else {
 	 do_connect_event(AF_INET, host, prt);
-      
-	 rc = ::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in));
+
+	 while (true) {
+	    rc = ::connect(sock, (const sockaddr *)&addr_p, sizeof(struct sockaddr_in));
+	    // try again if rc == -1 and errno == EINTR
+	    if (!rc || errno != EINTR)
+	       break;
+	 }
       }
 
       if (rc < 0) {
@@ -1041,7 +1084,7 @@ int QoreSocket::sendi1(char i) {
    if (!rc || rc < 0)
       return -1;
 
-   //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
+   //printd(5, "QoreSocket::sendi1() sent %d byte(s)\n", bs);
 
    return 0;
 }
@@ -1448,6 +1491,7 @@ QoreStringNode *QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
    qore_size_t br = 0; // bytes received
    while (true) {
       *rc = recv(buf, bs, 0, timeout, false);
+
       if ((*rc) <= 0) {
 	 printd(5, "QoreSocket::recv(%d, %d) bs=%d, br=%d, rc=%d, errno=%d (%s)\n", bufsize, timeout, bs, br, *rc, errno, strerror(errno));
 
@@ -2068,7 +2112,17 @@ int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_
    if (timeout != -1 && !isDataAvailable(timeout))
       return -3;
 
-   int rc = priv->ssl ? priv->ssl->read(buf, bs) : ::recv(priv->sock, buf, bs, flags);
+   int rc;
+   if (!priv->ssl) {
+      while (true) {
+	 rc = ::recv(priv->sock, buf, bs, flags);
+	 // try again if we were interrupted by a signal
+	 if (rc >= 0 || errno != EINTR)
+	    break;
+      }
+   }
+   else
+      rc = priv->ssl->read(buf, bs);
 
    if (rc > 0 && do_event) {
       // register event
@@ -2348,8 +2402,14 @@ int QoreSocket::send(const char *buf, qore_size_t size) {
    while (true) {
       qore_size_t rc;
 
-      if (!priv->ssl)
-	 rc = ::send(priv->sock, buf + bs, size - bs, 0);
+      if (!priv->ssl) {
+	 while (true) {
+	    rc = ::send(priv->sock, buf + bs, size - bs, 0);
+	    // try again if we were interrupted by a signal
+	    if (rc >= 0 || errno != EINTR)
+	       break;
+	 }
+      }
       else
 	 rc = priv->ssl->write(buf + bs, size - bs);
 

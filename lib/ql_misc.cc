@@ -1100,18 +1100,17 @@ static AbstractQoreNode *f_load_module(const QoreListNode *params, ExceptionSink
    return 0;
 }
 
-static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   int signal = p0 ? p0->getAsInt() : 0;
+static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
+   int signal = p ? p->getAsInt() : 0;
    if (!signal || signal > QORE_SIGNAL_MAX) {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return 0;
    }
 
-   const ResolvedCallReferenceNode *p1 = test_funcref_param(params, 1);
+   const ResolvedCallReferenceNode *p1 = test_callref_param(params, 1);
    if (!p1) {
-      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference as second argument to set_signal_handler()");
+      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference or a closure as second argument to set_signal_handler()");
       return 0;
    }
    QoreSignalManager::setHandler(signal, p1, xsink);
@@ -1201,8 +1200,7 @@ static AbstractQoreNode *f_get_qore_library_info(const QoreListNode *params, Exc
    return h;
 }
 
-void init_misc_functions()
-{
+void init_misc_functions() {
    // register builtin functions in this file
    builtinFunctions.add("parse", f_parse);
    builtinFunctions.add("call_function", f_call_function);
