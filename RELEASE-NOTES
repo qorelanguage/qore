@@ -1,7 +1,9 @@
 RELEASE NOTES for qore v0.7.6
 
-release summary: 29 bug fixes and major new features over 0.7.5
+release summary: 30 bug fixes and major new features over 0.7.5
 
+*) BUG FIX: fixed scanner to ignore quoted text in comments (i.e.  "*/" will
+       	    be ignored)
 *) BUG FIX: updated the Socket class implementation to retry connect(), 
        	    accept(), recv(), send(), and select() (Socket::isDataAvailable(),
 	    Socket::connect() with timeout, etc) if interrupted by a signal

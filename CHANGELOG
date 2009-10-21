@@ -1,3 +1,7 @@
+2009.10.21: David Nichols
+	* fixed scanner to ignore quoted text in comments (i.e. "*/" will be
+	  ignored
+
 2009.10.20: David Nichols
 	* fixed set_signal_handler() to accept a closure as per documentation
 	* fixed internal C++ library function test_funcref_param() to return a
