@@ -286,6 +286,26 @@ void Datasource::setPendingPort(int port) {
    priv->p_port = port;
 }
 
+const std::string &Datasource::getUsernameStr() const {
+   return priv->username;
+}
+
+const std::string &Datasource::getPasswordStr() const {
+   return priv->password;
+}
+
+const std::string &Datasource::getDBNameStr() const {
+   return priv->dbname;
+}
+
+const std::string &Datasource::getDBEncodingStr() const {
+   return priv->db_encoding;
+}
+
+const std::string &Datasource::getHostNameStr() const {
+   return priv->hostname;
+}
+
 const char *Datasource::getUsername() const {
    return priv->username.empty() ? 0 : priv->username.c_str();
 }

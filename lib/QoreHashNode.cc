@@ -703,11 +703,13 @@ QoreString *QoreHashNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
       rv->sprintf("(%lu member%s)\n", elements, elements == 1 ? "" : "s");
    else
       rv->concat('(');
-   
+
    ConstHashIterator hi(this);
-   
+
    bool first = false;
    while (hi.next()) {
+      //printd(5, "QoreHashNode::getAsString() h=%p key=%s v=%p\n", this, hi.getKey(), hi.getValue());
+
       if (first)
 	 if (foff != FMT_NONE)
 	    rv->concat('\n');
@@ -715,16 +717,16 @@ QoreString *QoreHashNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 	    rv->concat(", ");
       else
 	 first = true;
-      
+
       if (foff != FMT_NONE)
 	 rv->addch(' ', foff + 2);
-      
+
       QoreNodeAsStringHelper elem(hi.getValue(), foff != FMT_NONE ? foff + 2 : foff, xsink);
       if (*xsink)
 	 return 0;
       rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());
    }
-   
+
    if (foff == FMT_NONE)
       rv->concat(')');
 
