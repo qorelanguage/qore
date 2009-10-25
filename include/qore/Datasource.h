@@ -28,6 +28,8 @@
 
 #include <qore/QoreThreadLock.h>
 
+#include <string>
+
 class DBIDriver;
 
 //! the base class for accessing databases in Qore through a Qore DBI driver
@@ -122,6 +124,36 @@ class Datasource {
 	 @return the port number used for the last connection
        */
       DLLEXPORT int getPort() const;
+
+      //! returns the username used for the last connection
+      /**
+	 @return
+       */
+      DLLEXPORT const std::string &getUsernameStr() const;
+
+      //! returns the password used for the last connection
+      /**
+	 @return the password used for the last connection (or 0 if none)
+       */
+      DLLEXPORT const std::string &getPasswordStr() const;
+
+      //! returns the database (or schema) name used for the last connection
+      /**
+	 @return the database (or schema) name used for the last connection (or 0 if none)
+       */
+      DLLEXPORT const std::string &getDBNameStr() const;
+
+      //! returns the database-specific character encoding name used for the last connection
+      /**
+	 @return the database-specific character encoding name used for the last connection
+       */
+      DLLEXPORT const std::string &getDBEncodingStr() const;
+
+      //! returns the host name used for the last connection
+      /**
+	 @return the host name used for the last connection (or 0 if none)
+       */
+      DLLEXPORT const std::string &getHostNameStr() const;
 
       //! returns the private DBI-specific data structure for this object
       DLLEXPORT void *getPrivateData() const;
@@ -348,3 +380,4 @@ class Datasource {
 };
 
 #endif // _QORE_DATASOURCE_H
+
