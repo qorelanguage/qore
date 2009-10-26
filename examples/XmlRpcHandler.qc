@@ -3,6 +3,8 @@
 # Copyright (C) 2006 - 2009 David Nichols
 # to be registered as a handler to the Qore HTTP server
 
+%requires qore >= 0.7.4
+
 namespace XmlRpcHandler {
     const Version = "0.3.3";
 
@@ -155,7 +157,12 @@ class XmlRpcHandler::XmlRpcHandler {
 	    else
 		$rv = call_function_args($found.function, $params);
 
-	    $h.body = makeXMLRPCResponseString($rv);
+	    # HACK: if request comes from the GUI and the "force-gui-encoding" option is set, then use it
+	    if ($context.gui && exists $.force_gui_encoding)
+		$h.body = makeXMLRPCResponseStringWithEncoding($.force_gui_encoding, $rv);
+	    else
+		$h.body = makeXMLRPCResponseString($rv);
+
 	    return $h;
 	}
 	else
@@ -192,7 +199,8 @@ class XmlRpcHandler::XmlRpcHandler {
 		$xmlrpc = parseXMLRPCCall($body);
 	    }
 	    catch ($ex) {
-	        $.log($context, "error parsing XML-RPC string: %s", $body);
+		$.log($context, XmlRpcHandler::getExceptionString($ex));
+		$.log($context, "error parsing XML-RPC string: %s", $body);
 		return ( "code"   : 200,
 			 "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),
 			 "hdr"    : ( "Content-Type" : "text/xml" ),
@@ -205,11 +213,38 @@ class XmlRpcHandler::XmlRpcHandler {
 	    return ( "code" : 200, "hdr" : ( "Content-Type" : "text/xml" ) ) + $.callMethod($context, $xmlrpc.params);
 	}
 	catch ($ex) {
+	    $.log($context, XmlRpcHandler::getExceptionString($ex));
+	    #log(LL_CRITICAL, "context=%N\nxmlrpc=%N\n", $context, $xmlrpc);
+	    #log(LL_CRITICAL, XmlRpcHandler::getExceptionString($ex));
 	    my $str = sprintf("%s: %s", $ex.err, $ex.desc);
 	    return ( "code"   : 200,
 		     "errlog" : $str,
 		     "hdr"    : ( "Content-Type" : "text/xml" ),
-		     "body"   : makeXMLRPCFaultResponseString(0, $str) );
+		     "body"   : makeXMLRPCFaultResponseString($ex.arg, $str) );
 	}
+    }
+    
+    static getExceptionString($ex) {
+        my $str = "";
+	while (exists $ex) {
+	    $str += sprintf("%s exception: %s:%d: %s: %s%s\ncall stack:", 
+			    $ex.type, $ex.file, $ex.line, $ex.err, $ex.desc,
+			    exists $ex.arg ? sprintf(" (arg=%n)", $ex.arg) : "");
+
+	    if (exists $ex.callstack) {
+		foreach my $l in ($ex.callstack) {
+		    if ($l.type == "new-thread")
+			$str += sprintf("\n  *** thread started by background operator ***");
+		    else if ($l.type == "rethrow")
+			$str += sprintf("\n  *** RETHROW at %s:%d", $l.file, $l.line);
+		    else
+			$str += sprintf("\n  %s() called at %s:%d (%s function)", $l.function, $l.file, $l.line, $l.type);
+		}
+	    }
+	    $ex = $ex.next;
+	    if (exists $ex)
+		$str += "\nchained exception:\n";
+	}
+	return $str;
     }
 }

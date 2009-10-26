@@ -36,6 +36,9 @@ namespace WSDL {
     const XSD_NS       = "http://www.w3.org/2001/XMLSchema";
     const XSI_NS       = "http://www.w3.org/2001/XMLSchema-instance";
 
+    const HTTP_NS      = "http://schemas.xmlsoap.org/wsdl/http/";
+    const MIME_NS      = "http://schemas.xmlsoap.org/wsdl/mime/";
+
     # soap envelope namespaces
     const ENVELOPE_11_NS = 
 	( "soapenv:Envelope" :
@@ -68,6 +71,9 @@ namespace WSDL {
     const SOAP_SERIALIZATION_ERROR = "SOAP-SERIALIZATION-ERROR";
     const SOAP_DESERIALIZATION_ERROR = "SOAP-DESERIALIZATION-ERROR";
     const WSDL_ERROR = "WSDL-ERROR";
+
+    # currently there are no options
+    #const Options = ();
 }
 
 class WSDLLib {
@@ -80,9 +86,15 @@ class WSDLLib {
 	return $f.read(-1);
     }
 
-    static getHTTP($url, $path) {
-	my $hc = new HTTPClient(("url" : $url));
-	return $hc.get(exists $path ? $path : "/", NOTHING);
+    static getHTTP($url, $path, $hc, $headers) {
+	if (exists $hc) {
+	    if (!($hc instanceof HTTPClient))
+		throw "GET-FILE-FROM-URL-ERROR", sprintf("object is not an HTTPClient: %n", type($hc));
+	    $hc.setURL($url);
+	}
+	else
+	    $hc = new HTTPClient(("url" : $url));
+	return $hc.get(exists $path ? $path : "/", $headers);
     }
 
     static getFTP($url, $path) {
@@ -100,7 +112,7 @@ class WSDLLib {
 	return $f.getAsBinary($file);
     }
 
-    static getFileFromURL($url, $def_protocol) {
+    static getFileFromURL($url, $def_protocol, $http_client, $http_headers) {
 	my $u = parseURL($url);
 
 	if (!exists $u.protocol)
@@ -111,7 +123,7 @@ class WSDLLib {
 		return WSDLLib::getFile($url, $u);
 
 	    case /^http(s)?$/:
-		return WSDLLib::getHTTP($url, $u.path);
+		return WSDLLib::getHTTP($url, $u.path, $http_client, $http_headers);
 
 	    case /^ftp(s)?$/:
 		return WSDLLib::getFTP($url, $u.path);
@@ -121,10 +133,128 @@ class WSDLLib {
 	}
     }
 
-    static getWSDL($wsdl) {
+    static getWSDL($wsdl, $http_client, $http_headers) {
 	if ($wsdl instanceof WebService || (strlen($wsdl) > 256 && $wsdl !~ /^\w+:\/\/.*$/))
 	    return $wsdl;
-	return WSDLLib::getFileFromURL($wsdl, "file");
+	return WSDLLib::getFileFromURL($wsdl, "file", $http_client, $http_headers);
+    }
+
+    static parseSOAPMessage($msg) {
+	if (exists $msg."_qore_multipart") {
+	    if ($msg."_qore_multipart" != "related")
+		throw "SOAP-MESSAGE-ERROR", sprintf("don't understand multipart/%s messages, expected multipart/related", $msg."_qore_multipart");
+
+	    my $bdry = $msg."_qore_multipart_boundary";
+	    if (!strlen($bdry))
+		throw "SOAP-MESSAGE-ERROR", sprintf("multipart message received without multipart boundary; headers=%n", $msg - "body");
+
+	    my $mpmsg;
+	    my $l = split("\r\n--" + $bdry, $msg.body);
+
+	    #printf("l=%N\n", $l);
+	    #my $f = new File(); $f.open2("t.bin", O_CREAT|O_WRONLY|O_TRUNC); $f.write(binary($l[3])); exit();
+	    #my $f = new File(); $f.open2("t.bin", O_CREAT|O_WRONLY|O_TRUNC); $f.write(binary($msg.body)); exit();
+
+	    for (my $i = 1; $i < (elements $l - 1); ++$i) {
+		my $m = $l[$i];
+		
+		my $ie = index($m, "\r\n\r\n");
+		if ($ie == -1) {
+		    throw "SOAP-MESSAGE-ERROR", sprintf("part %d has no headers: %n", $i, $m);
+		}
+		my $hh;
+		foreach my $hl in (split("\r\n", substr($m, 2, $ie))) {
+		    trim $hl;
+		    my ($hi, $ignore, $ha) = $hl =~ x/^(.*):([ \t])*(.*)$/;
+		    $hi = tolower($hi);
+		    #printf("hl=%n hi=%n ha=%n\n", $hl, $hi, $ha);exit();
+		    $hh.$hi = $ha;		    
+		}
+		if (!exists $hh."content-id")
+		    throw "SOAP-MESSAGE-ERROR", sprintf("expecting part header Content-ID in part %d; headers: %n", $i, $hh);
+
+		my $b;
+		if ($hh."content-transfer-encoding" == "binary") {
+		    # unfortunately we have to do some tricks to get the binary data out here
+		    $m = force_encoding($m, "ascii");
+		    # recalculate byte offset
+		    $ie = index($m, "\r\n\r\n");
+		    #printf("ie=%d m=%d\n", $ie, strlen($m));exit();
+		    $b = binary(substr($m, $ie + 4));
+
+		    #my $f = new File(); $f.open2("t.bin", O_CREAT|O_WRONLY|O_TRUNC); $f.write($b); exit();
+		}
+		else {
+		    $b = substr($m, $ie + 4);
+
+		    if ($hh."content-type" =~ /charset=/) {
+			my $c = ($hh."content-type" =~ x/charset=([^;]+)/)[0];
+			$b = force_encoding($b, $c);
+		    }
+		}
+
+		if ($hh."content-id" !~ /^\<.*\>$/)
+		    throw "SOAP-MESSAGE-ERROR", sprintf("expected part ID to have the following format: <id>, instead got %s", $hh."content-id");
+
+		my $p = ( "hdr" : $hh,
+			  "body" : $b );
+
+		if ((!exists $msg."_qore_multipart_start" && $i == 1)
+		    || (exists $msg."_qore_multipart_start" && $msg."_qore_multipart_start" == $hh."content-id")) {
+		    $mpmsg.body = $p;
+		}
+		else {
+		    my $id = substr($hh."content-id", 1, -1);
+		    $mpmsg.part.$id = $p;
+		}
+	    }
+	    # check content-type
+	    WSDLLib::checkSOAPContentType($mpmsg.body.hdr."content-type");
+
+	    #printf("part %d hh=%N\nbody=%s (%d)\n", $i, $hh, type($b), elements($b)); #exit();	
+	    my $xmldata = parseXMLAsData($mpmsg.body.body);
+	    
+	    # parse entire data structure to find "href"s or href attributes
+	    WSDLLib::substHref(\$xmldata, $mpmsg.part);
+	    return $xmldata;
+	}
+
+	WSDLLib::checkSOAPContentType($msg."content-type");
+
+	return parseXMLAsData($msg.body);
+    }
+
+    private static checkSOAPContentType($ct) {
+	foreach my $sct in ("application/soap+xml", "text/xml") {
+	    if (bindex($ct, $sct) != -1)
+		return;
+	}
+	
+	throw "SOAP-MESSAGE-ERROR", sprintf("don't know how to handle content-type %n (expecting 'application/soap+xml' or 'text/xml')", $ct);
+    }
+
+    private static processHref($xmldata, $hr, $parts) {
+	if ($hr !~ /^cid:/)
+	    throw "SOAP-MESSAGE-ERROR", sprintf("messages references non-local part %n; cannot handle non-local parts", $hr);
+	$hr = substr($hr, 4);
+	if (!exists $parts.$hr)
+	    throw "SOAP-MESSAGE-ERROR", sprintf("message references non-existent part %n", $hr);
+	$xmldata = $parts.$hr.body;
+    }
+    
+    private static substHref($xmldata, $parts) {
+	foreach my $k in (keys $xmldata) {
+	    if (exists $xmldata.$k."^attributes^".href)
+		WSDLLib::processHref(\$xmldata.$k, $xmldata.$k."^attributes^".href, $parts);
+	    else if (exists $xmldata.$k.href)
+		WSDLLib::processHref(\$xmldata.$k, $xmldata.$k.href, $parts);
+	    else if (type($xmldata.$k) == Type::List) {
+		foreach my $e in (\$xmldata.$k)
+		    WSDLLib::substHref(\$e, $parts);
+	    }
+	    else if (type($xmldata.$k) == Type::Hash)
+		WSDLLib::substHref(\$xmldata.$k, $parts);
+	}
     }
 }
 
@@ -150,6 +280,18 @@ class WSDL::XSDBase {
 	    if (exists $ns) {
 		if (type($h.$k) == Type::Hash)
 		    $h.$k.ns = $ns;
+		$h.$name = $h.$k;
+		$h -= $k;
+	    }
+	}
+    }
+
+    static removeNS2($h) {
+	foreach my $k in (keys $h) {
+	    my ($ns, $name) = $k =~ x/(\w+):(\w+)/;
+	    if (exists $ns) {
+		if (type($h.$k) == Type::Hash)
+		    $h.$k.".ns" = $ns;
 		$h.$name = $h.$k;
 		$h -= $k;
 	    }
@@ -298,6 +440,8 @@ class WSDL::XSDBaseType inherits XSDData {
 	}
 
 	#printf("DEBUG: FORCE: type=%n, nstype=%n, val=%n\n", $type, $.nstype, $val);
+	if ($omit_type == "ns")
+	    return ( "^attributes^" : ( "xmlns:xsi" : XSI_NS, "xsi:type" : $nstype ), "^value^" : $val );
 	return $omit_type ? $val : ( "^attributes^" : ( "xsi:type" : $nstype ), "^value^" : $val );
     }
 
@@ -408,12 +552,13 @@ class WSDL::XSDBaseType inherits XSDData {
 	    case "hexBinary":
 		return parseHexString($val);
 
-	  default:
-	    if ($.type == "anyType")  {
-		if (exists $types.$type)
-		    return $types.$type.deserialize($types, $mrh, $val);
+	    default: {
+		if ($.type == "anyType")  {
+		    if (exists $types.$type)
+			return $types.$type.deserialize($types, $mrh, $val);
+		}
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("don't know how to handle type %n", $.type);
 	    }
-	    throw SOAP_DESERIALIZATION_ERROR, sprintf("don't know how to handle type %n", $.type);
 	}
     }
 
@@ -426,15 +571,53 @@ class WSDL::XSDBaseType inherits XSDData {
     }
 }
 
+class WSDL::XSDArrayType inherits XSDData {
+    constructor($t) {
+	$.type = $t;
+
+	if ($t != "binary")
+	    throw "XSD-ARRAYTYPE-ERROR", sprintf("don't know how to handle arrays of type %n", $t);
+    }
+    serialize($val, $omit_type) {
+	switch ($.type) {
+	    case "binary": {
+		my $t = type($val);
+		if ($t == Type::String)
+		    $val = binary($val);
+		else if ($t != Type::Binary)
+		    throw SOAP_SERIALIZATION_ERROR, sprintf("cannot serialize type %n from type %n; requires string or binary", $.type, $t);
+		return $val;
+	    }
+
+	    default: {
+		throw SOAP_SERIALIZATION_ERROR, sprintf("don't know how to handle type %n", $.type);
+	    }
+	}
+    }
+    deserialize($types, $mrh, $val) {
+	switch ($.type) {
+	    case "binary": {
+		if (type($val) != Type::Binary)
+		    throw SOAP_DESERIALIZATION_ERROR, sprintf("cannot deserialize type %n from type %n; requires binary", $.type, type($val));
+		return $val;
+	    }
+
+	    default: {
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("don't know how to handle type %n", $.type);
+	    }
+	}
+    }
+}
+
 class WSDL::XSDElement inherits XSDNamedData {
     constructor($e, $nsinfo, $unresolved) : XSDNamedData(\$e) {
-	if ($nsinfo instanceof XSDComplexType) {
+	if ($nsinfo instanceof XSDData) {
 	    $.type = $nsinfo;
 	    return;
 	}
 
 	my $a = $e."^attributes^";
-	
+
 	if (exists $a.minOccurs)
 	    $.minOccurs = int($a.minOccurs);
 	else
@@ -458,14 +641,17 @@ class WSDL::XSDElement inherits XSDNamedData {
 	    $.type = WSDL::XSDBase::doType($a.type, $nsinfo);
 
 	    # add self to unresolved list if element type cannot be resolved
-	    if (!($.type instanceof XSDData))
+	    if (!($.type instanceof XSDData)) {
+		#printf("DEBUG: self=%n\n", $self);
 		$unresolved.add($self);
+	    }
 	}
-
-	if (exists $e.simpleType)
+	else if (exists $e.simpleType)
 	    $.type = new XSDSimpleType($e.simpleType, $nsinfo, $unresolved);
 	else if (exists $e.complexType)
 	    $.type = new XSDComplexType($e.complexType, $nsinfo, $unresolved);
+
+	#printf("DEBUG: XSDElement self=%N\n", $self);
     }
 
     serialize($h, $omit_type, $omit_ns, $key, $typename) {
@@ -515,7 +701,7 @@ class WSDL::XSDElement inherits XSDNamedData {
     deserialize($types, $mrh, $val) {
 	my $a = $val."^attributes^";
 	WSDL::XSDBase::removeNS(\$a);
-
+	
 	if (!exists $val || $a.nil == "true") {
 	    if ($.nillable || !$.minOccurs)
 		return;
@@ -604,13 +790,49 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	delete $ct."^attributes^";
 
 	my $d = $ct.complexContent;
-	if (exists $d) {	
+	if (exists $d) {
 	    WSDL::XSDBase::removeNS(\$d);
 	    if (exists $d.restriction) {
+		WSDL::XSDBase::removeNS(\$d.restriction);
+
+		my $base = $d.restriction."^attributes^".base;
+
+		# FIXME: handle namespace
+		my ($ns, $tn) = $base =~ x/(\w+):(\w+)/;
+		if (exists $tn) {
+		    if ($tn == "Array") {
+			# FIXME check that namespace is SOAP encoding
+			my $aa = $d.restriction.attribute."^attributes^";
+			WSDL::XSDBase::removeNS(\$aa);
+			if (!exists $aa.arrayType)
+			    throw WSDL_ERROR, sprintf("cannot parse complexType restriction: %n", $d.restriction);
+
+			# FIXME: handle multiple dimensions?
+			my ($ans, $atn) = $aa.arrayType =~ x/(\w+):(\w+)\[\]$/;
+			if (exists $atn) {
+			    $.array.val = $atn;
+			    $.array.ns  = $ans;
+			}
+			else
+			    $.array.val = $aa.arrayType;
+			
+			delete $d.restriction.attribute;
+			#printf("DEBUG: ans=%n atn=%n aa=%N\n", $ans, $atn, $aa);
+			return;
+		    }
+		    else {
+			$.restriction = $tn;
+		    }
+		}
+		
+		delete $d.restriction."^attributes^";
+
 		$.parseData($d.restriction, $unresolved);
 	    }
 	    else if (exists $d.extension) {
 		$.extension = $d.extension."^attributes^".base;
+
+		# FIXME: check for soap encoding namespace
 		$.extension =~ s/(.*:)(.*)/$2/;
 		delete $d.extension."^attributes^";
 		WSDL::XSDBase::removeNS(\$d.extension);
@@ -663,10 +885,13 @@ class WSDL::XSDComplexType inherits XSDNamedData {
     }
 
     serialize($h, $omit_type, $omit_ns) {
-	my $rh;
+	if (exists $.array)
+	    return $.array.serialize($h, $omit_type, $omit_ns);
 
 	if (type($h) != Type::Hash)
 	    throw SOAP_SERIALIZATION_ERROR, sprintf("expecting hash argument to serialize from complexType %n (got %n, type %n)", $.getName(), $h, type($h));
+
+	my $rh;
 
 	if ($.hash_type == XET_SEQUENCE || $.hash_type == XET_ALL) {
 	    foreach my $p in (keys $.elements) {
@@ -698,12 +923,15 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 	#printf("complex type %s returning %n from %n\n", $.name, $rh, $h);
 	return $rh;
     }
-
+    
     deserialize($types, $mrh, $val) {
-	my $rh;
+	if (exists $.array)
+	    return $.array.deserialize($types, $mrh, $val);
 
 	if (type($val) != Type::Hash)
 	    throw SOAP_DESERIALIZATION_ERROR, sprintf("cannot deserialize type %n from qore type %n (expecting hash)", $.getName(), type($val));
+
+	my $rh;
 
 	my $attr = $val."^attributes^";
 	delete $val."^attributes^";
@@ -718,7 +946,9 @@ class WSDL::XSDComplexType inherits XSDNamedData {
 		throw SOAP_DESERIALIZATION_ERROR, sprintf("expecting ComplexType type %n, got %n", $.getName(), $tn);
 	}
 
-	WSDL::XSDBase::removeNS(\$val);
+	WSDL::XSDBase::removeNS2(\$val);
+
+	my $ns = $val.".ns"; $val -= ".ns";
 
 	if ($.hash_type == XET_SEQUENCE || $.hash_type == XET_ALL) {
 	    foreach my $p in (keys $.elements) {
@@ -771,6 +1001,11 @@ class WSDL::WSOperation inherits XSDNamedData {
 
 	    $.output = $msg;
 	}
+	
+	my $op_ns = $.targetns;
+	if (exists $op_ns && $op_ns !~ /\/$/)
+	    $op_ns += "/";
+	$.soapAction = exists $op_ns ? $op_ns + $.name : $.name;
     }
 
     setDocStyle($idocmap) {
@@ -794,18 +1029,53 @@ class WSDL::WSOperation inherits XSDNamedData {
 	return exists $.request_name ? $.request_name : $.name;
     }
 
-    # returns an XML string in the SOAP request format
-    serializeRequest($h) {
+    # returns a hash: keys: body: XML string in the SOAP request format, hdr: hash of HTTP headers
+    serializeRequest($h, $hdr) {
 	# setup namespaces for SOAP envelope
 	my $rh = $.soap12 ? WSDL::ENVELOPE_12_NS : WSDL::ENVELOPE_11_NS;
 
+	my $mpm;
+	# do we have mime/multipart input format?
+	if (exists $.in.multipart)
+	    $mpm = new MultiPartRelatedMessage();
+
 	#printf("DEBUG: docstyle=%n\n", $.docstyle);
 	if ($.docstyle)
-	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serializeDocument($h, $.targetns, $.usedocns);
+	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serializeDocument($.in, $mpm, $h, $.targetns, $.usedocns);
 	else
-	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serialize($.name, $h, $.targetns);
+	    $rh."soapenv:Envelope"."soapenv:Body" = $.input.serialize($.in, $mpm, $.name, $h, $.targetns);
 
-	return HAVE_LIBRARY_DEBUGGING ? makeFormattedXMLString($rh) : makeXMLString($rh);
+	my $body = HAVE_LIBRARY_DEBUGGING ? makeFormattedXMLString($rh) : makeXMLString($rh);
+
+	if (exists $mpm) {
+	    $mpm.splicePart($body, sprintf("<%s>", $.in.body.parts), $.soap12 ? "application/soap+xml" : "text/xml");
+	    
+	    my $rv = $mpm.getMsgAndHeaders();
+	    if (strlen($.soapAction)) {
+		if ($.soap12)
+		    $rv.hdr."Content-Type" += sprintf(";action=%s", $.soapAction);
+		$rv.hdr += ("SoapAction" : $.soapAction);
+	    }
+
+	    return $rv;
+	}
+
+	my $ct;
+	if ($.soap12) {
+	    $ct = "application/soap+xml";
+	    if (strlen($.soapAction))
+		$ct += sprintf(";action=%s", $.soapAction);
+	}
+	else
+	    $ct = "text/xml";
+
+	my $rv = ( "hdr" : ( "Content-Type" : $ct ),
+		   "body" : $body );
+
+	if (strlen($.soapAction))
+	    $rv.hdr += ( "SoapAction" : $.soapAction );
+
+	return $rv;
     }
 
     # returns an XML string in the SOAP response format
@@ -813,12 +1083,27 @@ class WSDL::WSOperation inherits XSDNamedData {
 	# setup namespaces for SOAP envelope
 	my $rh = $.soap12 ? WSDL::ENVELOPE_12_NS : WSDL::ENVELOPE_11_NS;
 
-	if ($.docstyle)
-	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serializeDocument($h, $.targetns, $.usedocns);
-	else
-	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serialize($.name, $h, $.targetns);
+	my $mpm;
+	# do we have mime/multipart output format?
+	if (exists $.out.multipart)
+	    $mpm = new MultiPartRelatedMessage();
 
-	return HAVE_LIBRARY_DEBUGGING ? makeFormattedXMLString($rh) : makeXMLString($rh);
+	#printf("DEBUG: docstyle=%n\n", $.docstyle);
+	if ($.docstyle)
+	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serializeDocument($.out, $mpm, $h, $.targetns, $.usedocns);
+	else
+	    $rh."soapenv:Envelope"."soapenv:Body" = $.output.serialize($.out, $mpm, $.name, $h, $.targetns);
+
+	my $body = HAVE_LIBRARY_DEBUGGING ? makeFormattedXMLString($rh) : makeXMLString($rh);
+
+	my $ct = $.soap12 ? "application/soap+xml" : "text/xml";
+	if (exists $mpm) {
+	    $mpm.splicePart($body, sprintf("<%s>", $.out.body.parts), $ct);
+	    return $mpm.getMsgAndHeaders();
+	}
+
+	return ( "hdr"  : ( "Content-Type" : $ct ),
+		 "body" : $body );
     }
 
     private processMultiRef($body) {
@@ -871,7 +1156,7 @@ class WSDL::WSOperation inherits XSDNamedData {
 	}
 
 	# remove namespace tags from element names
-	WSDL::XSDBase::removeNS(\$msg);
+	WSDL::XSDBase::removeNS2(\$msg);
 
 	return ($mrh, $msg);
     }
@@ -884,19 +1169,26 @@ class WSDL::WSOperation inherits XSDNamedData {
 
 	my ($mrh, $msg) = $.processMultiRef($body);
 
+	#my $ns = $msg.".ns";
+	$msg -= ".ns";
+
 	return $.docstyle ? $.input.deserializeDocument($.types, $mrh, $msg) : $.input.deserialize($.types, $mrh, $msg);
     }
 
     deserializeResponse($o) {
-	WSDL::XSDBase::removeNS(\$o);
-	WSDL::XSDBase::removeNS(\$o.Envelope);
+	WSDL::XSDBase::removeNS2(\$o);
+	WSDL::XSDBase::removeNS2(\$o.Envelope);
 
 	my $body = $o.Envelope.Body;
 
 	my ($mrh, $msg) = $.processMultiRef($body);
 
+	#my $ns = $msg.".ns";
+	$msg -= ".ns";
+
 	# check for Soap Fault, if so raise an exception immediately with the fault info
-	WSDL::XSDBase::removeNS(\$body);
+	WSDL::XSDBase::removeNS2(\$body);
+
 	if (exists $body.Fault) {
 	    WSDL::XSDBase::removeNS(\$body.Fault);
 	    if ($.soap12) {
@@ -949,11 +1241,71 @@ class WSDL::WSOperation inherits XSDNamedData {
     getTargetNS() {
 	return $.targetns;
     }
+
+    setOutputMultipart($v) {
+	$.out.multipart = $v;
+	$.out.parts = ();
+    }
+
+    private parsePart($msg, $part) {
+	WSDL::XSDBase::removeNS(\$part);
+	my $a = $part."^attributes^";
+	$part -= "^attributes^";
+
+	if (exists $part.body) {
+	    my $pa = $part.body."^attributes^";
+	    if ($pa.use != "literal")
+		throw WSDL_ERROR, sprintf("unsupported body part without use=\"literal\": %n", $part.body);
+	    $msg.body = $pa;
+	}
+	else if (exists $part.content) {
+	    foreach my $c in ($part.content) {
+		my $pa = $c."^attributes^";
+		my $name = $pa.part;
+		if (!exists $name)
+		    throw WSDL_ERROR, sprintf("unsupported content part without part attribute: %n", $c);
+		my $type = $pa.type;
+		if (!exists $type)
+		    throw WSDL_ERROR, sprintf("unsupported content part without type attribute: %n", $c);
+
+		if (!exists $msg.parts.$name)
+		    $msg.parts.$name = $type;
+		else {
+		    if (type($msg.parts.$name) != Type::List)
+			$msg.parts.$name = list($msg.parts.$name);
+		    $msg.parts.$name += $type;
+		}
+	    }
+	}
+	else
+	    throw WSDL_ERROR, sprintf("cannot parse part: %n", $part);
+
+	#printf("DEBUG: part: %N\nmsg=%N\n", $part, $msg);#exit();
+    }
+
+    addOutputPart($part) {
+	if (!exists $.out.multipart)
+	    throw WSDL_ERROR, sprintf("WSOperation::addOutputPart(): internal error: cannot add a part to a non-multipart message; part=%n", $part);
+
+	$.parsePart(\$.out, $part);
+    }
+
+    setInputMultipart($v) {
+	$.in.multipart = $v;
+	$.in.parts = ();
+    }
+
+    addInputPart($part) {
+	if (!exists $.in.multipart)
+	    throw WSDL_ERROR, sprintf("WSOperation::addInputPart(): internal error: cannot add a part to a non-multipart message; part=%n", $part);
+
+	$.parsePart(\$.in, $part);
+    }
 }
 
 class WSDL::WSMessage inherits XSDNamedData {
     constructor($m, $element_map) : XSDNamedData(\$m) {
-	#printf("DEBUG: WSMessage::constructor() element_map: %n\n", $element_map);
+	#printf("DEBUG: WSMessage::constructor() m=%n element_map: %n\n", $m, $element_map);
 
 	$.name = $m."^attributes^".name;
 	foreach my $p in ($m.part) {
@@ -976,7 +1328,7 @@ class WSDL::WSMessage inherits XSDNamedData {
 	}
     }
 
-    serialize($name, $h, $targns) {
+    serialize($msginfo, $mpm, $name, $h, $targns) {
 	my $rh;
 	#printf("DEBUG: message %s: h=%n\n", $.name ,$h);
     
@@ -984,12 +1336,24 @@ class WSDL::WSMessage inherits XSDNamedData {
 	    if (!exists $h.$k)
 		throw SOAP_SERIALIZATION_ERROR, sprintf("missing message argument %n (got %n instead)", $k, keys $h);
 
+	    my $hv;
 	    #printf("DEBUG: arg %n with %n\n", $k, $.args.$k);
 	    if (exists $.args.$k.element)
-		$rh.$k = $.args.$k.element.serialize($h.$k, !$.encoded, True);
+		$hv = $.args.$k.element.serialize($h.$k, !$.encoded, True);
 	    else
-		$rh.$k = $.args.$k.type.serialize($h.$k, !$.encoded, True);
+		$hv = $.args.$k.type.serialize($h.$k, !$.encoded, True);
 	    #printf("DEBUG: arg %s got %n from %n\n", $k, $rh.$k, $h.$k);
+
+	    #printf("DEBUG: WSMessage::serialize() k=%n args=%n, parts=%n\n", $k, keys $.args, $msginfo.parts);
+	    if (exists $msginfo.parts.$k) {
+		my $ct = $msginfo.parts.$k;
+		if (type($ct) == Type::List)
+		    $ct = shift $ct;
+		$mpm.addPart($hv, sprintf("<%s>", $k), $ct);
+		$hv."^attributes^".href = "cid:" + $k;
+	    }
+	    
+	    $rh.$k = $hv;
 	}
 	
 	$rh."^attributes^" = ( "xmlns:ns1" : $targns );
@@ -1004,7 +1368,7 @@ class WSDL::WSMessage inherits XSDNamedData {
 	return $rvh;
     }
 
-    serializeDocument($h, $targns, $force_ns) {
+    serializeDocument($msginfo, $mpm, $h, $targns, $force_ns) {
 	my $k = (keys $.args)[0];
 	#printf("DEBUG: message %s: force_ns=%n args=%n h=%n\n", $.name, $force_ns, keys $.args, $h);
     
@@ -1024,11 +1388,16 @@ class WSDL::WSMessage inherits XSDNamedData {
     deserialize($types, $mrh, $val) {
 	my $ro;
 
+	#my $ns = $val.".ns";
+	$val -= ".ns";
+
 	foreach my $key in (keys $.args) {
 	    if (!exists $val.$key)
-		throw SOAP_DESERIALIZATION_ERROR, sprintf("message %n is missing argument %n", $.name, $key);
-
-	    $ro.$key = $.args.$key.type.deserialize($types, $mrh, $.getValue($mrh, $val.$key));
+		throw SOAP_DESERIALIZATION_ERROR, sprintf("message %n is missing argument %n (%n)", $.name, $key, $val);
+	    
+	    $ro.$key = exists $.args.$key.element 
+		? $.args.$key.element.deserialize($types, $mrh, $.getValue($mrh, $val.$key)) 
+		: $.args.$key.type.deserialize($types, $mrh, $.getValue($mrh, $val.$key));
 	}
 
 	# if there is only one argument, return it directly
@@ -1077,7 +1446,6 @@ class XSDImportHelper {
     }
 }
 
-
 class WSDL::WebService inherits XSDBase {
     constructor($str, $opts) {
         if (type($str) != Type::String)
@@ -1096,7 +1464,7 @@ class WSDL::WebService inherits XSDBase {
 	#printf("%N\n", $h.definitions.types);
 
 	if (exists $h.definitions.types)
-	    $.parseTypes($h.definitions.types);
+	    $.parseTypes($h.definitions.types, $opts.http_client instanceof HTTPClient ? $opts.http_client : NOTHING, $opts.http_headers);
 	
 	if (exists $h.definitions.message)
 	    $.parseMessage($h.definitions.message);
@@ -1158,13 +1526,13 @@ class WSDL::WebService inherits XSDBase {
 
 	# find type
 	if (!exists $.types.($v.val))
-	    throw WSDL_ERROR, sprintf("cannot resolve type %n", $v.val);
+	    throw WSDL_ERROR, sprintf("cannot resolve type %s%s", exists $v.ns ? sprintf("%s:", $v.ns) : "", $v.val);
 
 	return $.types.($v.val);
     }
 
     # parse XSD schema types
-    private parseTypes($data) {
+    private parseTypes($data, $http_client, $http_headers) {
 	WSDL::XSDBase::removeNS(\$data);
 
 	my $sa = $data.schema."^attributes^";
@@ -1179,7 +1547,7 @@ class WSDL::WebService inherits XSDBase {
 		my $a = $schema.import."^attributes^";
 		# import file
 		if (strlen($a.schemaLocation)) {
-		    my $xsd = WSDLLib::getFileFromURL($a.schemaLocation);
+		    my $xsd = WSDLLib::getFileFromURL($a.schemaLocation, "http", $http_client, $http_headers);
 		    if (!strlen($xsd))
 			throw WSDL_ERROR, sprintf("invalid XSD import: %n returns an empty file", $a.schemaLocation);
 
@@ -1231,6 +1599,16 @@ class WSDL::WebService inherits XSDBase {
 		    #    if (!($.types.$t."elements".$e.type instanceof XSDData))
 		    #	    $.types.$t."elements".$e.type = $.resolveType($.types.$t."elements".$e.type);
 
+		    # process restriction info
+		    if (exists $.types.$t.restriction) {
+		    	my $et = $.types.$t.restriction;
+			if (!exists $.types.$et)
+			    throw WSDL_ERROR, sprintf("complexType %s should be restricted from base type %n, but type %n is not defined", $t, $et, $et);
+			# combine base type and new type
+			$.types.$t.elements = $.types.$et.elements + $.types.$t.elements;
+			printf("extended %s with %s (%n)\n", $t, $et, keys $.types.$t.elements);
+		    }
+
 		    # process extension info
 		    if (exists $.types.$t.extension) {
 			my $et = $.types.$t.extension;
@@ -1239,6 +1617,12 @@ class WSDL::WebService inherits XSDBase {
 			# combine base type and new type
 			$.types.$t.elements = $.types.$et.elements + $.types.$t.elements;
 			#printf("extended %s with %s (%n)\n", $t, $et, keys $.types.$t.elements);
+		    }
+
+		    # process array info
+		    if (exists $.types.$t.array) {
+			my $et = $.types.$t.array.val;
+			$.types.$t.array = new XSDArrayType(exists $.types.$et ? $.types.$et : $et);
 		    }
 		}
 	    }
@@ -1253,18 +1637,23 @@ class WSDL::WebService inherits XSDBase {
 			if (!exists $.types.$t)
 			    throw WSDL_ERROR, sprintf("cannot resolve element %n type %n", $el, $t);
 			#printf("DEBUG: adding element %n type %n\n", $attr.name, $t);
-			$.element_map.($attr.name) = new WSDL::XSDElement(("^attributes^":("name":$attr.name)), $.types.$t);
+			$.element_map.($attr.name) = new WSDL::XSDElement(("^attributes^":("name":$attr.name)), $.types.$t, $unresolved);
 		    }
 		    else {
 			#printf("DEBUG: adding element %n type %n\n", $attr.name, $t);
-			$.element_map.($attr.name) = new WSDL::XSDElement(("^attributes^":("name":$attr.name)), $t);
+			$.element_map.($attr.name) = new WSDL::XSDElement(("^attributes^":("name":$attr.name)), $t, $unresolved);
 		    }
 		}
 		else {
 		    #printf("DEBUG: adding element %n\n", $attr.name);
-		    $.element_map.($attr.name) = new WSDL::XSDElement($el, $.ns);
+		    $.element_map.($attr.name) = new WSDL::XSDElement($el, $.ns, $unresolved);
 		}
 	    }
+
+	    # resolve types
+	    foreach my $e in ($unresolved.getList())
+		if (!($e.type instanceof XSDData))
+		    $e.type = $.resolveType($e.type);
 	}
     }
 
@@ -1336,21 +1725,57 @@ class WSDL::WebService inherits XSDBase {
 
 	    WSDL::XSDBase::removeNS(\$ophash);
 
+	    my $sa = $ophash.operation."^attributes^".soapAction;
+	    if (exists $sa)
+		$op.soapAction = $sa;
+
 	    if ($docstyle || $ophash.operation."^attributes^".style == "document") {
 		my $element = $op.setDocStyle(\$.idocmap);
 	    }
 
 	    WSDL::XSDBase::removeNS(\$ophash.input);
-	    if ($ophash.input.body."^attributes^".use == "encoded") {
-		$op.input.encoded = True;
-		#printf("DEBUG: setting encoding = True for %n.%n input\n", $data.name, $name);
+	    if (exists $ophash.input.body) {
+		if ($ophash.input.body."^attributes^".use == "encoded") {
+		    $op.input.encoded = True;
+		    #printf("DEBUG: setting encoding = True for %n.%n input\n", $data.name, $name);
+		}
 	    }
+	    else if (exists $ophash.input.multipartRelated) {
+		$op.setInputMultipart(MPT_RELATED);
+		WSDL::XSDBase::removeNS(\$ophash.input.multipartRelated);		
+
+		if (!exists $ophash.input.multipartRelated.part)
+		    throw WSDL_ERROR, sprintf("missing part definition(s) in input message definition for operation %n: %n", $name, $ophash);
+
+		foreach my $part in ($ophash.input.multipartRelated.part) {
+		    WSDL::XSDBase::removeNS(\$part);
+		    $op.addInputPart($part);
+		}
+	    }
+	    else
+		throw WSDL_ERROR, sprintf("cannot parse input message definition for operation %n: %n", $name, $ophash);
 
 	    WSDL::XSDBase::removeNS(\$ophash.output);
-	    if ($ophash.output.body."^attributes^".use == "encoded") {
-		$op.output.encoded = True;
-		#printf("DEBUG: setting encoding = True for %n.%n output\n", $data.name, $name);
+	    if (exists $ophash.output.body) {
+		if ($ophash.output.body."^attributes^".use == "encoded") {
+		    $op.output.encoded = True;
+		    #printf("DEBUG: setting encoding = True for %n.%n output\n", $data.name, $name);
+		}
 	    }
+	    else if (exists $ophash.output.multipartRelated) {
+		$op.setOutputMultipart(MPT_RELATED);
+		WSDL::XSDBase::removeNS(\$ophash.output.multipartRelated);		
+
+		if (!exists $ophash.output.multipartRelated.part)
+		    throw WSDL_ERROR, sprintf("missing part definition(s) in output message definition for operation %n: %n", $name, $ophash);
+
+		foreach my $part in ($ophash.output.multipartRelated.part) {
+		    WSDL::XSDBase::removeNS(\$part);
+		    $op.addOutputPart($part);
+		}
+	    }
+	    else
+		throw WSDL_ERROR, sprintf("cannot parse output message definition for operation %n: %n", $name, $ophash);
 	}
 
 	$.binding = $data;

@@ -21,7 +21,7 @@ class SoapHandler::SoapHandler {
 
 	foreach my $m in ($methods) {
 	    if (!($m.operation instanceof WSOperation))
-		throw "SOAP-CONSTRUCTOR-ERROR", sprintf("expecting 'operation' key in method hash to be an instance of class WEOperation (%n)", $m);
+		throw "SOAP-CONSTRUCTOR-ERROR", sprintf("expecting 'operation' key in method hash to be an instance of class WSOperation (%n)", $m);
 	    if (!exists $m.function)
 		throw "SOAP-CONSTRUCTOR-ERROR", sprintf("expecting 'function' key in method hash (%n)", $m);
 
@@ -158,7 +158,7 @@ class SoapHandler::SoapHandler {
 	    $args = $method.operation.deserializeRequest($args);
 	}
 	catch ($ex) {
-	    return ( "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),
+	    return ( "errlog" : sprintf("%s:%d: %s: %s", $ex.file, $ex.line, $ex.err, $ex.desc),
 		     "body"   : SoapHandler::makeSoapFaultResponse($soap12, $ex.err, $ex.desc),
 		     "hdr"    : ( "Content-Type" : $soap12 ? "application/soap+xml" : "text/xml" ) );
 	}
@@ -218,16 +218,16 @@ class SoapHandler::SoapHandler {
 
 	# if there is an output message, then serialize the response
 	if (exists $method.operation.output)
-	    $h.body = $method.operation.serializeResponse($rv);
+	    $h += $method.operation.serializeResponse($rv);
 
 	#$.log($context, "body=%N", $h.body);
 	
-	$h.hdr."Content-Type" = $soap12 ? "application/soap+xml" : "text/xml";
 	return $h;
     }
 
     # method called by HTTPServer
     handleRequest($context, $hdr, $body) {
+	#log(LL_DEBUG_1, "soap handler context=%n hdr=%n body=%n ws=%n\n", $context, $hdr, $body, keys $.ws);
 	$context.http_header = $hdr;
 	$context.http_body = $body;
 
@@ -260,18 +260,33 @@ class SoapHandler::SoapHandler {
 		return ( "code" : 501,
 			 "body" : sprintf("don't know how to handle method %n", $hdr.method) );
 
-	    if (!inlist($hdr."content-type", ("application/soap+xml", "text/xml")))
-		return ( "code" : 501,
-			 "body" : sprintf("don't know how to handle content-type %n (expecting 'application/soap+xml')", $hdr."content-type") );
+	    #if (!inlist($hdr."content-type", ("application/soap+xml", "text/xml")))
+	    #return ( "code" : 501,
+		#	 "body" : sprintf("don't know how to handle content-type %n (expecting 'application/soap+xml')", $hdr."content-type") );
 
 	    try {
-		$args = parseXMLAsData($body);
+		my $ct = $hdr."_qore_orig_content_type";
+		# parse multipart messages
+		if ($ct =~ /multipart\//) {
+		    my $x = ($ct =~ x/multipart\/([^;]+)/)[0];
+		    $hdr."_qore_multipart" = $x;
+		    $x = ($ct =~ x/start=([^;]+)/)[0];
+		    if (exists $x)
+			$hdr."_qore_multipart_start" = $x;
+		    $x = ($ct =~ x/boundary=([^;]+)/)[0];
+		    if (exists $x)
+			$hdr."_qore_multipart_boundary" = $x;
+		    #printf("hdr=%N\n", $hdr);
+		}
+
+		$args = WSDLLib::parseSOAPMessage($hdr + ("body" : $body));
+		#$args = parseXMLAsData($body);
 		WSDL::XSDBase::removeNS(\$args);
 		WSDL::XSDBase::removeNS(\$args.Envelope);
 
 		# get SOAP operation name
 		my $element;
-		if (!exists ($element = ($hdr."qore-orig-content-type" =~ x/action=".*\/(.*)"/)[0])) {
+		if (!exists ($element = ($ct =~ x/action=".*\/(.*)"/)[0])) {
 
 		    my $sbody = $args.Envelope.Body;
 		    if (!exists $sbody)
@@ -303,7 +318,7 @@ class SoapHandler::SoapHandler {
 		$context.element = $element;
 	    }
 	    catch ($ex) {
-		$.log($context, "exception parsing SOAP msg: %n", $body);
+		log(LL_DETAIL_2, "exception parsing SOAP msg: %n", $body);
 		my $str = sprintf("exception in %s:%d: %s: %s (1: %N)", $ex.file, $ex.line, $ex.err, $ex.desc, $ex.callstack);
 		return ( "code"   : 200,
 			 "errlog" : sprintf("%s: %s", $ex.err, $ex.desc),

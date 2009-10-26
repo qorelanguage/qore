@@ -305,6 +305,9 @@ class HTTPServer::Listener inherits Qore::Socket {
 		# process ascii encodings in url if present
 		$hdr.path = decode_url($hdr.path);
 
+		if (exists $hdr.authorization)
+		    $context.auth = $hdr.authorization;
+
 		# check for authentication info
 		if (exists $.rbac && $.rbac.requires_authentication()) {
 		    if (exists $hdr.authorization) {
@@ -370,7 +373,7 @@ class HTTPServer::Listener inherits Qore::Socket {
 		$context.encoding = $.getCharset();
 
 		# save original content-type
-		$hdr."qore-orig-content-type" = $hdr."content-type";
+		$hdr."_qore_orig_content_type" = $hdr."content-type";
 
 		# split content-type fields
 		my $ct = split(";", $hdr."content-type");
@@ -620,17 +623,18 @@ class HTTPServer::HTTPServer {
     }
     
     setDefaultHandler($name, $obj) {
-	if (type($obj) != Type::Object)
-	    throw "HTTP-SERVER-SET-DEFAULT-HANDLER-ERROR", "second argument to function is not an HTTP request handler";
+        if (type($obj) != Type::Object)
+            throw "HTTP-SERVER-SET-DEFAULT-HANDLER-ERROR", "second argument to function is not an HTTP request handler";
 	$.defaultHandler = ( "name" : $name,
 			     "obj"  : $obj );
     }
     
-    setHandler($name, $url, $content, $obj) {
+    setHandler($name, $url, $content, $obj, $special_headers) {
 	$.handlers.$name = 
 	    ( "obj"     : $obj,
 	      "content" : $content,
-	      "url"     : $url );
+	      "url"     : $url,
+	      "shdr"    : $special_headers );
     }
 
     private log() {
@@ -748,7 +752,7 @@ class HTTPServer::HTTPServer {
 	my $m;
 	#printf("HTTP DEBUG: handleRequest() hdr=%n, handlers=%n\n", $hdr, $.handlers);
 	foreach my $h in (keys $.handlers) {
-            #printf("HTTP DEBUG: %s: ct=%n, path=%n, hurlre=%n, hcon=%n (url=%n)\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.content, $url);
+            #printf("HTTP DEBUG: %s: ct=%n, path=%n, hurlre=%n, hcon=%n (url=%n) shdr=%n\n", $h, $hdr."content-type", $hdr.path, $.handlers.$h.url, $.handlers.$h.content, $url, $.handlers.$h.shdr);
 	    if (exists $hdr."content-type" && $hdr."content-type" == $.handlers.$h.content) {
 		if (strlen($.handlers.$h.url) && strlen($url.path) && regex($url.path, $.handlers.$h.url)) {
 		    $m = $h;
@@ -758,6 +762,21 @@ class HTTPServer::HTTPServer {
 		    $m = $h;
 		continue;
 	    }
+	    if (exists $.handlers.$h.shdr) {
+		my $found = False;
+		#printf("HTTP DEBUG: checking special headers %n: %n\n", $.handlers.$h.shdr, $hdr);
+		foreach my $shdr in ($.handlers.$h.shdr) {
+		    if (exists $hdr.$shdr) {
+			#printf("HTTP DEBUG: got special header %s: %s\n", $shdr, $hdr.$shdr);
+			$found = True;
+			$m = $h;
+			break;
+		    }
+		    if ($found)
+			break;
+		}
+	    }
+
 	    # path trumps content-type
 	    #printf("regex(%n, %s, %n, %s) %n && %n && %n\n", $hdr.path, type($hdr.path), $.handlers.$h.url, type($.handlers.$h.url), strlen($.handlers.$h.url), strlen($hdr.path), regex($url.path, $.handlers.$h.url));
 	    if (strlen($.handlers.$h.url) && strlen($hdr.path) && regex($url.path, $.handlers.$h.url))
@@ -847,4 +866,27 @@ class HTTPServer::HTTPServer {
 	    $.logError($str);
 	}
     }
+
+    static getURLFromBind($bind, $host) {
+	my $h = parseURL($bind);
+	# if there is only a port number, it will appear in the "host" key
+	if (elements $h == 1 && exists $h.host && int($h.host) == $h.host) {
+	    $h.port = int($h.host);
+	    delete $h.host;
+	}
+
+	if (!exists $h.host)
+	    $h.host = (!exists $host || $host == gethostname()) ? "localhost" : $host;
+
+	my $login = exists $h.password ? ($h.password + ":") : "";    
+	if (exists $h.username)
+	    $login += sprintf("%s@", $h.password);
+
+	return sprintf("%s://%s%s%s%s", exists $h.protocol ? $h.protocol : "http", 
+		       $login, 
+		       $h.host, 
+		       $h.port ? sprintf(":%d", $h.port) : "", 
+		       $h.path);
+    }
+
 }
