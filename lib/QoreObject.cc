@@ -74,14 +74,14 @@ struct qore_object_private {
       QoreReferenceCounter tRefs;  // reference-references
       QoreHashNode *data;
       QoreProgram *pgm;
-      bool system_object, delete_blocker_run;
+   bool system_object, delete_blocker_run, in_destructor;
 
       DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
 	 theclass(oc), status(OS_OK), 
 #ifdef QORE_CLASS_SYNCHRONOUS
 	 sync_vrm(oc->has_synchronous_in_hierarchy() ? new VRMutex : 0),
 #endif 
-	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false)
+	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false)
       {
 #ifdef QORE_DEBUG_OBJ_REFS
 	 printd(QORE_DEBUG_OBJ_REFS, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, references 0->1\n", this, p, oc->getName());
@@ -159,7 +159,7 @@ void QoreObject::externalDelete(qore_classid_t key, ExceptionSink *xsink) {
    {
       AutoLocker al(priv->mutex);
 
-      if (priv->status == OS_DELETED || !priv->privateData)
+      if (priv->in_destructor || priv->status == OS_DELETED || !priv->privateData)
 	 return;
 
       // remove the private data that's already been deleted
@@ -452,7 +452,7 @@ void QoreObject::doDelete(ExceptionSink *xsink) {
       if (priv->status == OS_DELETED)
 	 return;
 
-      if (priv->status > 0) {
+      if (priv->in_destructor || priv->status > 0) {
 	 xsink->raiseException("DOUBLE-DELETE-EXCEPTION", "destructor called from within destructor");
 	 return;
       }
@@ -504,11 +504,13 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
 
       SafeLocker sl(priv->mutex);
 
-      if (priv->status != OS_OK) {
+      if (priv->in_destructor || priv->status != OS_OK) {
 	 sl.unlock();
 	 tDeref();
 	 return;
       }
+
+      priv->in_destructor = true;
 
       // if the scope deletion is blocked, then do not run the destructor
       if (!priv->delete_blocker_run && priv->theclass->has_delete_blocker()) {
