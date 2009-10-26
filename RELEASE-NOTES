@@ -2,8 +2,8 @@ RELEASE NOTES for qore v0.7.6
 
 release summary: 30 bug fixes and major new features over 0.7.5
 
-*) BUG FIX: fixed scanner to ignore quoted text in comments (i.e.  "*/" will
-       	    be ignored)
+*) BUG FIX: fixed scanner to ignore quoted text in comments (i.e. "*/" will be
+       	    ignored)
 *) BUG FIX: updated the Socket class implementation to retry connect(), 
        	    accept(), recv(), send(), and select() (Socket::isDataAvailable(),
 	    Socket::connect() with timeout, etc) if interrupted by a signal
@@ -185,12 +185,14 @@ Parsing
  Currently there is no way in qore to execute SQL in separate threads
  simultaneously on the same datasource if autocommit is off and one of the
  threads has started a transaction (either by calling
- Datasource::beginTransaction() or Datasource::exec()).  Also note that
- transaction locks in the Datasource class and connection allocations in the
- DatasourcePool class are tracked as thread resources using Qore's thread
- resource management infrastructure (so if the thread exits without releasing
- the resource, an exception is thrown and the resouce is automatically
- released).
+ Datasource::beginTransaction() or Datasource::exec()).  This is because	
+ normally a Datasource represents a single socket-based connection to a 
+ database server.  
+ Also note that transaction locks in the Datasource class and connection 
+ allocations in the DatasourcePool class are tracked as thread resources using
+ Qore's thread resource management infrastructure (so if the thread exits
+ without releasing the resource, an exception is thrown and the resouce is
+ automatically released).
 
 
 **************************************

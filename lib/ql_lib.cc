@@ -119,18 +119,15 @@ static AbstractQoreNode *f_geteuid(const QoreListNode *params, ExceptionSink *xs
    return new QoreBigIntNode(getuid());
 }
 
-static AbstractQoreNode *f_getgid(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_getgid(const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(getgid());
 }
 
-static AbstractQoreNode *f_getegid(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_getegid(const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(getgid());
 }
 
-static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsink) {
    int timeout = getSecZeroInt(get_param(params, 0));
    if (!timeout)
       return 0;
@@ -138,8 +135,7 @@ static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsin
    return new QoreBigIntNode(sleep(timeout));
 }
 
-static AbstractQoreNode *f_usleep(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_usleep(const QoreListNode *params, ExceptionSink *xsink) {
    int timeout = getMicroSecZeroInt(get_param(params, 0));
    if (!timeout)
       return 0;
@@ -147,13 +143,11 @@ static AbstractQoreNode *f_usleep(const QoreListNode *params, ExceptionSink *xsi
    return new QoreBigIntNode(usleep(timeout));
 }
 
-static AbstractQoreNode *f_getpid(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_getpid(const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(getpid());
 }
 
-static AbstractQoreNode *f_getppid(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_getppid(const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(getppid());   
 }
 
