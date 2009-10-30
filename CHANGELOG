@@ -1,3 +1,7 @@
+2009.10.30: David Nichols
+	* use gnutar to package releases on darwin to avoid picking up useless
+	  resource files
+
 2009.10.21: David Nichols
 	* fixed scanner to ignore quoted text in comments (i.e. "*/" will be
 	  ignored
