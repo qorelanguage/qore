@@ -122,6 +122,8 @@ case "${host_os}" in
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
 		MODULE_SUFFIX=so
 		AC_DEFINE(DARWIN, 1, [if compiling on Darwin])
+		# use gnutar on darwin to avoid getting those pesky resource files
+		AMTAR=gnutar
 		darwin=yes
 		;;
      *hpux*)    if test "$host_cpu" = "ia64"; then
