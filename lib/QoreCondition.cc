@@ -43,7 +43,7 @@ int QoreCondition::wait(pthread_mutex_t *m) {
 #ifdef DEBUG
    int rc = pthread_cond_wait(&c, m);
    if (rc)
-      printd(0, "QoreCondition::wait(%p) pthread_cond_wait() returned %d\n", rc);
+      printd(0, "QoreCondition::wait(%p) pthread_cond_wait() returned %d\n", m, rc);
    assert(!rc);
    return rc;
 #else
