@@ -95,6 +95,9 @@ release summary: 32 bug fixes and major new features over 0.7.5
 *) NEW FEATURE: added the rename() function to rename or move files
 *) NEW FEATURE: case expressions now support the == operator for soft 
                 comparisons
+*) NEW FEATURE: updated split() to work on binary objects just like on 
+                strings, but will return a list of binary objects split by the
+		marker
 *) BUILD CHANGE: minimum libxml2 version required for compiling and linking is
                  now 2.6.0
 

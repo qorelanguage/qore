@@ -389,33 +389,77 @@ static inline const char *memstr(const char *str, const char *pattern, qore_size
 // syntax: split(pattern, string);
 static AbstractQoreNode *f_split(const QoreListNode *params, ExceptionSink *xsink) {
    const char *str, *pattern;
-   const QoreStringNode *p0, *p1;
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   
+   // pattern length, string length
+   qore_size_t pl, sl;
 
-   if (!(p0 = test_string_param(params, 0)) ||
-       !(p1 = test_string_param(params, 1)))
-      return new QoreListNode();
+   // to be used if necessary to convert string arguments
+   TempEncodingHelper temp;
 
-   // convert pattern encoding to string if necessary
-   TempEncodingHelper temp(p0, p1->getEncoding(), xsink);
-   if (*xsink)
-      return 0;
+   // to be sued when saving a string
+   const QoreEncoding *enc = 0;
 
-   pattern = temp->getBuffer();
-   str = p1->getBuffer();
+   if (p0 && p0->getType() == NT_STRING) {
+      const QoreStringNode *s0 = reinterpret_cast<const QoreStringNode *>(p0);
+      const QoreStringNode *s1 = test_string_param(params, 1);
 
-   //printd(5, "in f_split(\"%s\", \"%s\")\n", pattern, str);
+      if (!s1)
+	 return new QoreListNode();
+
+      // convert pattern encoding to string if necessary
+      temp.set(s0, s1->getEncoding(), xsink);
+      if (*xsink)
+	 return 0;
+
+      pattern = temp->getBuffer();
+      pl = temp->strlen();
+
+      str = s1->getBuffer();
+      sl = s1->strlen();
+      enc = s1->getEncoding();
+   }
+   else {
+      if (!p0 || p0->getType() != NT_BINARY)
+	 return new QoreListNode();
+
+      const BinaryNode *b0 = reinterpret_cast<const BinaryNode *>(p0);
+      const BinaryNode *b1 = test_binary_param(params, 1);
+
+      if (!b1)
+	 return new QoreListNode();
+
+      pattern = (const char*)b0->getPtr();
+      pl = b0->size();
+
+      str = (const char*)b1->getPtr();
+      sl = b1->size();
+   }
+
    QoreListNode *l = new QoreListNode();
-   //while (const char *p = strstr(str, pattern)) {
-   qore_size_t pl = strlen(pattern);
-   while (const char *p = memstr(str, pattern, pl, p1->strlen() - (str - p1->getBuffer()))) {
+   const char *ostr = str;
+   while (const char *p = memstr(str, pattern, pl, sl - (str - ostr))) {
       //printd(5, "str=%08p p=%08p \"%s\" \"%s\"\n", str, p, str, pattern);
-      l->push(new QoreStringNode(str, p - str, p1->getEncoding()));
+      if (enc)
+	 l->push(new QoreStringNode(str, p - str, enc));
+      else {
+	 BinaryNode *b = new BinaryNode();
+	 b->append(str, p - str);
+	 l->push(b);
+      }
       str = p + pl;
    }
-   //printd(5, "f_split() str=%p %d remaining=%d\n", str, *str, p1->strlen() - (str - p1->getBuffer()));
-   // add last field
-   if (*str)
-      l->push(new QoreStringNode(str, p1->strlen() - (str - p1->getBuffer()), p1->getEncoding()));
+   //printd(5, "f_split() str=%p %d remaining=%d\n", str, *str, sl - (str - ostr));
+   // add last field if there is data remaining
+   if (sl - (str - ostr)) {
+      if (enc) 
+	 l->push(new QoreStringNode(str, sl - (str - ostr), enc));
+      else {
+	 BinaryNode *b = new BinaryNode();
+	 b->append(str, sl - (str - ostr));
+	 l->push(b);
+      }
+   }
    return l;
 }
 

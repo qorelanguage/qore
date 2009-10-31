@@ -898,8 +898,13 @@ sub string_tests() {
 
     $str = "gee this is a long string";
     my $a = split(" ", $str);
-    test_value($a[2], "is", "first split()");
-    test_value($a[5], "string", "second split()");
+    test_value($a[2], "is", "first string split()");
+    test_value($a[5], "string", "second string split()");
+
+    $a = split(binary(" "), binary($str));
+    test_value($a[2], binary("is"), "first binary split()");
+    test_value($a[5], binary("string"), "second binary split()");
+
     $str = "äüößÄÖÜ";
     # test length() with UTF-8 multi-byte characters
     test_value(length($str), 7, "length() with UTF-8 multi-byte characters");

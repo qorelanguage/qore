@@ -4,6 +4,8 @@
 	* fixed C++ QoreString constructor when taking ownership of a string
 	  buffer to ensure that the buffer is null terminated when the 
 	  allocated buffer is exactly equal to the string length
+	* updated split() to work on binary objects just like on strings, but
+	  will return a list of binary objects split by the marker
 
 2009.10.30: David Nichols
 	* use gnutar to package releases on darwin to avoid picking up useless
