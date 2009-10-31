@@ -1918,8 +1918,8 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	 }
       }
       // DEBUG
-      //printd(0, "got chunk size (%d bytes) string: %s\n", str.strlen(), str.getBuffer());
-      
+      //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): got chunk size (%d bytes) string: %s\n", str.strlen(), str.getBuffer());
+
       // terminate string at ';' char if present
       char *p = (char *)strchr(str.getBuffer(), ';');
       if (p)
@@ -1932,10 +1932,10 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
 	 return 0;
       }
-      
+
       // prepare string for chunk
       str.allocate(size + 1);
-      
+
       // read chunk directly into string buffer    
       int bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
       int br = 0; // bytes received
@@ -1956,7 +1956,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       // copy string buffer to binary object
       b->append(str.getBuffer(), size);
       // DEBUG
-      //printd(0, "got chunk (%d bytes): %s\n", br, str.getBuffer() -  size);
+      //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size=%d br=%d total=%ld\n", size, br, b->size());
       
       // read crlf after chunk
       char crlf[2];
@@ -1982,6 +1982,8 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       return 0;
    }
    QoreHashNode *h = new QoreHashNode();
+
+   //printd(0, "QoreSocket::readHTTPChunkedBodyBinary(): saving binary body: %p size=%ld\n", b->getPtr(), b->size());
    h->setKeyValue("body", b.release(), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)

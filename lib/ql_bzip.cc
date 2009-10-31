@@ -171,8 +171,7 @@ class qore_bz_decompressor : public qore_bz_stream
 	 return b.release();
       }
 
-      DLLLOCAL QoreStringNode *decompress_to_string(const void *ptr, unsigned long len, const QoreEncoding *enc, ExceptionSink *xsink)
-      {
+      DLLLOCAL QoreStringNode *decompress_to_string(const void *ptr, unsigned long len, const QoreEncoding *enc, ExceptionSink *xsink) {
 	 static char np[] = {'\0'};
 
 	 SimpleRefHolder<BinaryNode> b(decompress(ptr, len, xsink));
@@ -188,8 +187,7 @@ class qore_bz_decompressor : public qore_bz_stream
       }
 };
 
-BinaryNode *qore_bzip2(const void *ptr, unsigned long len, int level, ExceptionSink *xsink)
-{
+BinaryNode *qore_bzip2(const void *ptr, unsigned long len, int level, ExceptionSink *xsink) {
    qore_bz_compressor c(level, xsink);
    if (!c)
       return 0;
@@ -197,8 +195,7 @@ BinaryNode *qore_bzip2(const void *ptr, unsigned long len, int level, ExceptionS
    return c.compress(ptr, len, xsink);
 }
 
-BinaryNode *qore_bunzip2_to_binary(const BinaryNode *b, ExceptionSink *xsink)
-{
+BinaryNode *qore_bunzip2_to_binary(const BinaryNode *b, ExceptionSink *xsink) {
    qore_bz_decompressor c(xsink);
    if (!c)
       return 0;
@@ -206,8 +203,7 @@ BinaryNode *qore_bunzip2_to_binary(const BinaryNode *b, ExceptionSink *xsink)
    return c.decompress(b->getPtr(), b->size(), xsink);
 }
 
-QoreStringNode *qore_bunzip2_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink)
-{
+QoreStringNode *qore_bunzip2_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink) {
    qore_bz_decompressor c(xsink);
    if (!c)
       return 0;
@@ -261,8 +257,7 @@ static AbstractQoreNode *f_bunzip2_to_binary(const QoreListNode *params, Excepti
    return qore_bunzip2_to_binary(b, xsink);
 }
 
-static AbstractQoreNode *f_bunzip2_to_string(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_bunzip2_to_string(const QoreListNode *params, ExceptionSink *xsink) {
    // need binary argument
    const BinaryNode *p = test_binary_param(params, 0);
    if (!p)

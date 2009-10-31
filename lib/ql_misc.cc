@@ -475,16 +475,14 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink)
-{
+QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
    d_stream.opaque = Z_NULL;
 
    int rc = inflateInit(&d_stream);
-   if (rc != Z_OK)
-   {
+   if (rc != Z_OK) {
       do_zlib_exception(rc, "inflateInit", xsink);
       return 0;
    }
@@ -502,21 +500,18 @@ QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *
    d_stream.avail_in = b->size();
    d_stream.avail_out = bsize;
 
-   while (true)
-   {
+   while (true) {
       rc = inflate(&d_stream, Z_NO_FLUSH);
       if (rc == Z_STREAM_END)
 	 break;
-      if (rc == Z_BUF_ERROR)
-      {
+      if (rc == Z_BUF_ERROR) {
 	 int new_space = ((len * 3) + 100);
 	 bsize += new_space;
 	 d_stream.avail_out += new_space;
 	 buf = realloc(buf, bsize);
 	 d_stream.next_out = ((Bytef *)buf) + d_stream.total_out;
       }
-      else if (rc != Z_OK)
-      {
+      else if (rc != Z_OK) {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
 	 return 0;
@@ -526,12 +521,8 @@ QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
 
-   // create the string
-   QoreStringNode *str = new QoreStringNode((char *)buf, len, len, enc);
-   // terminate and set length as appropriate by checking the final byte
-   str->terminate(((char *)buf)[len - 1] ? len : len - 1);
-
-   return str;
+   // create and return the string
+   return new QoreStringNode((char *)buf, len, len, enc);
 }
 
 BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink)
@@ -658,8 +649,7 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink)
-{
+QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
@@ -669,8 +659,7 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
    d_stream.avail_in = bin->size();
 
    int rc = inflateInit2(&d_stream, 47);
-   if (rc != Z_OK)
-   {
+   if (rc != Z_OK) {
       do_zlib_exception(rc, "inflateInit2", xsink);
       return 0;
    }
@@ -686,21 +675,18 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
    d_stream.next_out = (Bytef *)buf;
    d_stream.avail_out = bsize;
 
-   while (true)
-   {
+   while (true) {
       rc = inflate(&d_stream, Z_NO_FLUSH);
       if (rc == Z_STREAM_END)
 	 break;
-      if (rc == Z_BUF_ERROR)
-      {
+      if (rc == Z_BUF_ERROR) {
 	 int new_space = ((len * 3) + 100);
 	 bsize += new_space;
 	 d_stream.avail_out += new_space;
 	 buf = realloc(buf, bsize);
 	 d_stream.next_out = ((Bytef *)buf) + d_stream.total_out;
       }
-      else if (rc != Z_OK)
-      {
+      else if (rc != Z_OK) {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
 	 return 0;
@@ -710,12 +696,8 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
 
-   // create the string
-   QoreStringNode *str = new QoreStringNode((char *)buf, len, len, enc);
-   // terminate and set length as appropriate by checking the final byte
-   str->terminate(((char *)buf)[len - 1] ? len : len - 1);
-
-   return str;
+   // create and return the string
+   return new QoreStringNode((char *)buf, len, len, enc);
 }
 
 BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink)
@@ -810,8 +792,7 @@ static AbstractQoreNode *f_compress(const QoreListNode *params, ExceptionSink *x
 }
 
 // syntax: uncompress_to_string(binary object, [encoding of new string])
-static AbstractQoreNode *f_uncompress_to_string(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_uncompress_to_string(const QoreListNode *params, ExceptionSink *xsink) {
    // need binary argument
    const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
@@ -825,8 +806,7 @@ static AbstractQoreNode *f_uncompress_to_string(const QoreListNode *params, Exce
 }
 
 // syntax: uncompress_to_binary(binary object)
-static AbstractQoreNode *f_uncompress_to_binary(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_uncompress_to_binary(const QoreListNode *params, ExceptionSink *xsink) {
    // need binary argument
    const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
@@ -875,8 +855,7 @@ static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink
 }
 
 // syntax: gunzip_to_string(binary object, [encoding of new string])
-static AbstractQoreNode *f_gunzip_to_string(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_gunzip_to_string(const QoreListNode *params, ExceptionSink *xsink) {
    // need binary argument
    const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)

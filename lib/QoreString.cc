@@ -164,8 +164,7 @@ QoreString::QoreString(char c) : priv(new qore_string_private)
    priv->charset = QCS_DEFAULT;
 }
 
-QoreString::QoreString(int64 i) : priv(new qore_string_private)
-{
+QoreString::QoreString(int64 i) : priv(new qore_string_private) {
    priv->allocated = MAX_BIGINT_STRING_LEN + 1;
    priv->buf = (char *)malloc(sizeof(char) * priv->allocated);
    priv->len = ::snprintf(priv->buf, MAX_BIGINT_STRING_LEN, "%lld", i);
@@ -174,8 +173,7 @@ QoreString::QoreString(int64 i) : priv(new qore_string_private)
    priv->charset = QCS_DEFAULT;
 }
 
-QoreString::QoreString(bool b) : priv(new qore_string_private)
-{
+QoreString::QoreString(bool b) : priv(new qore_string_private) {
    priv->allocated = 2;
    priv->buf = (char *)malloc(sizeof(char) * priv->allocated);
    priv->buf[0] = b ? '1' : '0';
@@ -212,11 +210,15 @@ QoreString::QoreString(const BinaryNode *b) : priv(new qore_string_private)
    concatBase64(b);
 }
 
-QoreString::QoreString(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc) : priv(new qore_string_private)
-{
+QoreString::QoreString(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc) : priv(new qore_string_private) {
+   assert(nallocated >= nlen);
    priv->buf = nbuf;
    priv->len = nlen;
    priv->allocated = nallocated;
+   if (nallocated == nlen) {
+      priv->check_char(nlen);
+      priv->buf[nlen] = '\0';
+   }
    priv->charset = enc;
 }
 
@@ -260,11 +262,9 @@ int QoreString::compare(const char *str) const
    return strcmp(priv->buf, str);
 }
 
-void QoreString::terminate(qore_size_t size)
-{
+void QoreString::terminate(qore_size_t size) {
    if (size > priv->len)
       priv->check_char(size);
-
    priv->len = size;
    priv->buf[size] = '\0';
 }
@@ -312,8 +312,7 @@ void QoreString::take(char *str, qore_size_t size, const QoreEncoding *enc)
    priv->charset = enc;
 }
 
-void QoreString::takeAndTerminate(char *str, qore_size_t size)
-{
+void QoreString::takeAndTerminate(char *str, qore_size_t size) {
    if (priv->buf)
       free(priv->buf);
    priv->buf = str;

@@ -1,3 +1,10 @@
+2009.10.31: David Nichols
+	* changed decompression routines to a string to preserve binary data,
+	  especially trailing nulls
+	* fixed C++ QoreString constructor when taking ownership of a string
+	  buffer to ensure that the buffer is null terminated when the 
+	  allocated buffer is exactly equal to the string length
+
 2009.10.30: David Nichols
 	* use gnutar to package releases on darwin to avoid picking up useless
 	  resource files

@@ -1,7 +1,12 @@
 RELEASE NOTES for qore v0.7.6
 
-release summary: 30 bug fixes and major new features over 0.7.5
+release summary: 32 bug fixes and major new features over 0.7.5
 
+*) BUF FIX: changed decompression routines to a string to preserve binary 
+            data, especially trailing nulls
+*) BUG FIX: fixed C++ QoreString constructor when taking ownership of a string
+            buffer to ensure that the buffer is null terminated when the
+            allocated buffer is exactly equal to the string length
 *) BUG FIX: fixed scanner to ignore quoted text in comments (i.e. "*/" will be
        	    ignored)
 *) BUG FIX: updated the Socket class implementation to retry connect(), 
