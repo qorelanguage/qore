@@ -1,8 +1,10 @@
 RELEASE NOTES for qore v0.7.6
 
-release summary: 32 bug fixes and major new features over 0.7.5
+release summary: 33 bug fixes and major new features over 0.7.5
 
-*) BUF FIX: changed decompression routines to a string to preserve binary 
+*) BUG FIX: updated sleep() to continue sleeping for the remaining time if
+            interrupted by a signal
+*) BUG FIX: changed decompression routines to a string to preserve binary 
             data, especially trailing nulls
 *) BUG FIX: fixed C++ QoreString constructor when taking ownership of a string
             buffer to ensure that the buffer is null terminated when the

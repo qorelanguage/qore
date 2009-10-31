@@ -131,8 +131,14 @@ static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsin
    int timeout = getSecZeroInt(get_param(params, 0));
    if (!timeout)
       return 0;
+
+   while (true) {
+      timeout = sleep(timeout);
+      if (!timeout)
+	 return new QoreBigIntNode(0);
+   }
    
-   return new QoreBigIntNode(sleep(timeout));
+   return 0;
 }
 
 static AbstractQoreNode *f_usleep(const QoreListNode *params, ExceptionSink *xsink) {
