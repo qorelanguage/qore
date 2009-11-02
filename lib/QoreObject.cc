@@ -453,7 +453,7 @@ void QoreObject::doDelete(ExceptionSink *xsink) {
 	 return;
 
       if (priv->in_destructor || priv->status > 0) {
-	 xsink->raiseException("DOUBLE-DELETE-EXCEPTION", "destructor called from within destructor");
+	 xsink->raiseException("DOUBLE-DELETE-EXCEPTION", "destructor called from within destructor for class %s", getClassName());
 	 return;
       }
 
@@ -510,8 +510,6 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
 	 return;
       }
 
-      priv->in_destructor = true;
-
       // if the scope deletion is blocked, then do not run the destructor
       if (!priv->delete_blocker_run && priv->theclass->has_delete_blocker()) {
 	 if (priv->theclass->execDeleteBlocker(this, xsink)) {
@@ -521,6 +519,8 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
 	    return;
 	 }
       }
+
+      priv->in_destructor = true;
 
       //printd(5, "QoreObject::derefImpl() class=%s this=%08p going out of scope\n", getClassName(), this);
 
