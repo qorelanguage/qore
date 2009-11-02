@@ -111,8 +111,9 @@ static AbstractQoreNode *f_is_readable(const QoreListNode *params, ExceptionSink
    if ((rc = stat(p0->getBuffer(), &sbuf)))
       return 0;
    
-   if (sbuf.st_mode & S_IROTH 
-       || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IRUSR)) 
+   uid_t euid = geteuid();
+   if (!euid || sbuf.st_mode & S_IROTH 
+       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IRUSR)) 
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IRGRP)))
       return boolean_true();
    
@@ -131,8 +132,9 @@ static AbstractQoreNode *f_is_writable(const QoreListNode *params, ExceptionSink
    if ((rc = stat(p0->getBuffer(), &sbuf)))
       return 0;
    
-   if (sbuf.st_mode & S_IWOTH 
-       || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IWUSR)) 
+   uid_t euid = geteuid();
+   if (!euid || sbuf.st_mode & S_IWOTH 
+       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR)) 
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IWGRP)))
       return boolean_true();
    

@@ -1,6 +1,8 @@
 2009.11.02: David Nichols
 	* fixed marking objects as in the destructor to be after checking for
 	  a delete blocker in the class
+	* updated is_writable() and is_readable() to always return True if
+	  called by effective UID 0 (root)
 
 2009.10.31: David Nichols
 	* changed decompression routines to a string to preserve binary data,
