@@ -13,6 +13,10 @@
 	* use gnutar to package releases on darwin to avoid picking up useless
 	  resource files
 
+2009.10.26: David Nichols
+	* fixed a race condition in deleting objects by marking objects
+	  atomically as inside destructor
+
 2009.10.21: David Nichols
 	* fixed scanner to ignore quoted text in comments (i.e. "*/" will be
 	  ignored

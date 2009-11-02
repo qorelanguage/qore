@@ -2,6 +2,8 @@ RELEASE NOTES for qore v0.7.6
 
 release summary: 33 bug fixes and major new features over 0.7.5
 
+*) BUG FIX: fixed a race condition in deleting objects by marking objects
+            atomically as inside destructor
 *) BUG FIX: updated sleep() to continue sleeping for the remaining time if
             interrupted by a signal
 *) BUG FIX: changed decompression routines to a string to preserve binary 
