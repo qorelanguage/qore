@@ -81,7 +81,7 @@ release summary: 34 bug fixes and major new features over 0.7.5
 *) BUG FIX: fixed a bug setting the exception location when throwing thread
        	    resource exceptions when shutting down the qore library
 *) NEW FEATURE: added XmlDoc, XmlReader, and XmlNode classes for more robust
-       		XML parsing and document interation
+       		XML parsing and document iteration
 *) NEW FEATURE: added support for validation with RelaxNG schemas: new 
                 functions: parseXMLWithRelaxNG() and 
 		parseXMLAsDataWithRelaxNG() as well as new method:
