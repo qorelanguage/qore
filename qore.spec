@@ -54,8 +54,8 @@
 
 Summary: Qore Programming Language
 Name: qore
-Version: 0.7.6
-Release: 3%{dist}
+Version: 0.7.7
+Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages
 URL: http://www.qoretechnologies.com/qore
@@ -213,6 +213,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Nov 6 2009 David Nichols <david_nichols@users.sourceforge.net>
+- updated to 0.7.7
+
 * Mon Jul 13 2009 David Nichols <david_nichols@users.sourceforge.net>
 - updated to 0.7.6
 
