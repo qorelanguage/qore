@@ -1,6 +1,8 @@
 2009.11.06: David Nichols
 	* fixed a reference counting bug in callObjectMethodArgs() that could
 	  lead to a crash if a list is passed as the 3rd argument
+	* fixed a bug executing builtin functions if an exception is raised
+	  when evaluating the arguments
 
 *** v0.7.6 RELEASE *** 
 

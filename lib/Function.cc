@@ -499,6 +499,8 @@ AbstractQoreNode *BuiltinFunction::evalStatic2(const QoreMethod &method, const Q
    get_pgm_counter(o_ln, o_eln);
 
    QoreListNodeEvalOptionalRefHolder tmp(args, xsink);
+   if (*xsink)
+      return 0;
 
    //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
 
@@ -540,6 +542,8 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
    get_pgm_counter(o_ln, o_eln);
 
    QoreListNodeEvalOptionalRefHolder tmp(args, xsink);
+   if (*xsink)
+      return 0;
 
    //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
 
@@ -753,8 +757,6 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
    }
    if (xsink->isException())
       xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
-   
-
 }
 
 // calls a user constructor method
