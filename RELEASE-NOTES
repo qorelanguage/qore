@@ -1,111 +1,8 @@
-RELEASE NOTES for qore v0.7.6
+RELEASE NOTES for qore v0.7.7
 
-release summary: 34 bug fixes and major new features over 0.7.5
+release summary: under development - no release notes available yet; check
+CHANGELOG
 
-*) BUG FIX: updated is_writable() and is_readable() to always return True if
-       	    called by effective UID 0 (root)
-*) BUG FIX: fixed a race condition in deleting objects by marking objects
-            atomically as inside destructor
-*) BUG FIX: updated sleep() to continue sleeping for the remaining time if
-            interrupted by a signal
-*) BUG FIX: changed decompression routines to a string to preserve binary 
-            data, especially trailing nulls
-*) BUG FIX: fixed C++ QoreString constructor when taking ownership of a string
-            buffer to ensure that the buffer is null terminated when the
-            allocated buffer is exactly equal to the string length
-*) BUG FIX: fixed scanner to ignore quoted text in comments (i.e. "*/" will be
-       	    ignored)
-*) BUG FIX: updated the Socket class implementation to retry connect(), 
-       	    accept(), recv(), send(), and select() (Socket::isDataAvailable(),
-	    Socket::connect() with timeout, etc) if interrupted by a signal
-*) BUG FIX: updated the File class implementation to retry read(), write() and
-       	    fcntl() with F_SETLKW (File::lockBlocking()) if interrupted by a
-	    signal
-*) BUG FIX: fixed set_signal_handler() to accept a closure as per the
-       	    documentation
-*) BUG FIX: fixed internal C++ library function test_funcref_param() to return
-       	    a value for call references and closures
-*) BUG FIX: fixed broken access to private members of an object outside the
-            class; before it was possible to delete and reassign private
-	    members from outside the class which should have been illegal
-*) BUG FIX: fixed a crashing bug in the File::open2() method
-*) BUG FIX: fixed class method registration so that static method names and
-            non-static method names have independent namespaces (i.e. a static
-	    method may now have the same name as a non-static method).  Static
-	    methods may still be called with normaly method call syntax,
-	    however if there is a non-static method with the same name, then it
-	    will be called instead.
-*) BUG FIX: when an HTTP header is received more than once, return all values
-            as a list under the header name in the resulting hash
-*) BUG FIX: fixed a potential race condition that could cause a crash in very
-            rare circumstances in internal C++ QoreClass::numMethods() and
-	    QoreClass::numStaticMethod() functions; to make a crash a program
-	    would have to be running and parsing new code into the program in
-	    a separate thread as well; this is explicitly supported by Qore,
-	    but very rarely done
-*) BUG FIX: fixed an XML-RPC parsing bug caused by a side-effect in a 
-            debugging statement
-*) BUG FIX: fixed a bug setting the character encoding in strings produced 
-            with makeXMLFragment() and makeFormattedXMLFragment() when the
-	    default character encoding is not UTF8
-*) BUG FIX: fixed concatentation of strings with embedded nulls
-*) BUG FIX: fixed split() to work on strings with embedded nulls
-*) BUG FIX: fixed method resolution for in-object method calls when the target
-            method is static
-*) BUG FIX: fixed a crash in parsing when a class with no parent classes
-            references a base class method of an existing class
-*) BUG FIX: fixed static method calls at the top level of a program
-*) BUG FIX: fixed type comparisons with new qore types implemented in external
-            modules
-*) BUG FIX: fixed configure to ensure compiling in 32-bit mode on Darwin/OSX if
-            32-bit mode is selected
-*) BUG FIX: fixed configure to assume 64-bit mode by default on Darwin 10 (OSX
-            Snow Leopard)
-*) BUG FIX: fixed $ARGV and $QORE_ARGV variables to always be of type list
-            as according to the documentation
-*) BUG FIX: fixed Socket::connect() with timeout (affects all classes using
-            sockets for communication
-*) BUG FIX: fixed DatasourcePool handling when a driver-handled auto-reconnect
-            fails (previously would cause a crash)
-*) BUG FIX: added QDOM_TERMINAL_IO to TermIOS class (previously this class
-            would be available even if PO_NO_TERMINAL_IO was in force)
-*) BUG FIX: fixed a bug parsing XML-RPC array data with empty value elements;
-       	    i.e.: <value/>
-*) BUG FIX: fixed a bug waiting on a Condition variable when thread read lock
-            is held by multiple threads (for RWLock)
-*) BUG FIX: fixed a bug calculating the time offset for waiting on a Condition
-            object
-*) BUG FIX: fixed millisecond formatting using "ms" with format_date()
-*) BUG FIX: fixed a crashing bug when a Condition object waits on a RWLock with
-       	    the read lock held
-*) BUG FIX: fixed a bug setting the exception location when throwing thread
-       	    resource exceptions when shutting down the qore library
-*) NEW FEATURE: added XmlDoc, XmlReader, and XmlNode classes for more robust
-       		XML parsing and document iteration
-*) NEW FEATURE: added support for validation with RelaxNG schemas: new 
-                functions: parseXMLWithRelaxNG() and 
-		parseXMLAsDataWithRelaxNG() as well as new method:
-		XmlDoc::validateRelaxNG()
-*) NEW FEATURE: added a new binary_to_string() function to convert a binary 
-                object directly to a string type
-*) NEW FEATURE: implemented binary object concatentation with the + and +=
-                operators
-*) NEW FEATURE: the -= operator now operates on objects (with string and list
-                operands) like it does with hashes
-*) NEW FEATURE: added static method TermIOS::getWindowSize() to get the 
-                current terminal window size (rows and columns)
-*) NEW FEATURE: new C++ APIs are available supporting a generic calling
-             	convention to facilitate the development of the new Qt4 module
-		using libsmoke; the latest module API is now 0.8
-*) NEW FEATURE: added the HTTPClient::isConnected() method
-*) NEW FEATURE: added the rename() function to rename or move files
-*) NEW FEATURE: case expressions now support the == operator for soft 
-                comparisons
-*) NEW FEATURE: updated split() to work on binary objects just like on 
-                strings, but will return a list of binary objects split by the
-		marker
-*) BUILD CHANGE: minimum libxml2 version required for compiling and linking is
-                 now 2.6.0
 
 ***********************
 *** LANGUAGE ISSUES ***
@@ -258,6 +155,118 @@ unknown bugs out there.
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+*****************************
+RELEASE NOTES for qore v0.7.6
+*****************************
+
+release summary: 34 bug fixes and major new features over 0.7.5
+
+*) BUG FIX: updated is_writable() and is_readable() to always return True if
+       	    called by effective UID 0 (root)
+*) BUG FIX: fixed a race condition in deleting objects by marking objects
+            atomically as inside destructor
+*) BUG FIX: updated sleep() to continue sleeping for the remaining time if
+            interrupted by a signal
+*) BUG FIX: changed decompression routines to a string to preserve binary 
+            data, especially trailing nulls
+*) BUG FIX: fixed C++ QoreString constructor when taking ownership of a string
+            buffer to ensure that the buffer is null terminated when the
+            allocated buffer is exactly equal to the string length
+*) BUG FIX: fixed scanner to ignore quoted text in comments (i.e. "*/" will be
+       	    ignored)
+*) BUG FIX: updated the Socket class implementation to retry connect(), 
+       	    accept(), recv(), send(), and select() (Socket::isDataAvailable(),
+	    Socket::connect() with timeout, etc) if interrupted by a signal
+*) BUG FIX: updated the File class implementation to retry read(), write() and
+       	    fcntl() with F_SETLKW (File::lockBlocking()) if interrupted by a
+	    signal
+*) BUG FIX: fixed set_signal_handler() to accept a closure as per the
+       	    documentation
+*) BUG FIX: fixed internal C++ library function test_funcref_param() to return
+       	    a value for call references and closures
+*) BUG FIX: fixed broken access to private members of an object outside the
+            class; before it was possible to delete and reassign private
+	    members from outside the class which should have been illegal
+*) BUG FIX: fixed a crashing bug in the File::open2() method
+*) BUG FIX: fixed class method registration so that static method names and
+            non-static method names have independent namespaces (i.e. a static
+	    method may now have the same name as a non-static method).  Static
+	    methods may still be called with normaly method call syntax,
+	    however if there is a non-static method with the same name, then it
+	    will be called instead.
+*) BUG FIX: when an HTTP header is received more than once, return all values
+            as a list under the header name in the resulting hash
+*) BUG FIX: fixed a potential race condition that could cause a crash in very
+            rare circumstances in internal C++ QoreClass::numMethods() and
+	    QoreClass::numStaticMethod() functions; to make a crash a program
+	    would have to be running and parsing new code into the program in
+	    a separate thread as well; this is explicitly supported by Qore,
+	    but very rarely done
+*) BUG FIX: fixed an XML-RPC parsing bug caused by a side-effect in a 
+            debugging statement
+*) BUG FIX: fixed a bug setting the character encoding in strings produced 
+            with makeXMLFragment() and makeFormattedXMLFragment() when the
+	    default character encoding is not UTF8
+*) BUG FIX: fixed concatentation of strings with embedded nulls
+*) BUG FIX: fixed split() to work on strings with embedded nulls
+*) BUG FIX: fixed method resolution for in-object method calls when the target
+            method is static
+*) BUG FIX: fixed a crash in parsing when a class with no parent classes
+            references a base class method of an existing class
+*) BUG FIX: fixed static method calls at the top level of a program
+*) BUG FIX: fixed type comparisons with new qore types implemented in external
+            modules
+*) BUG FIX: fixed configure to ensure compiling in 32-bit mode on Darwin/OSX if
+            32-bit mode is selected
+*) BUG FIX: fixed configure to assume 64-bit mode by default on Darwin 10 (OSX
+            Snow Leopard)
+*) BUG FIX: fixed $ARGV and $QORE_ARGV variables to always be of type list
+            as according to the documentation
+*) BUG FIX: fixed Socket::connect() with timeout (affects all classes using
+            sockets for communication
+*) BUG FIX: fixed DatasourcePool handling when a driver-handled auto-reconnect
+            fails (previously would cause a crash)
+*) BUG FIX: added QDOM_TERMINAL_IO to TermIOS class (previously this class
+            would be available even if PO_NO_TERMINAL_IO was in force)
+*) BUG FIX: fixed a bug parsing XML-RPC array data with empty value elements;
+       	    i.e.: <value/>
+*) BUG FIX: fixed a bug waiting on a Condition variable when thread read lock
+            is held by multiple threads (for RWLock)
+*) BUG FIX: fixed a bug calculating the time offset for waiting on a Condition
+            object
+*) BUG FIX: fixed millisecond formatting using "ms" with format_date()
+*) BUG FIX: fixed a crashing bug when a Condition object waits on a RWLock with
+       	    the read lock held
+*) BUG FIX: fixed a bug setting the exception location when throwing thread
+       	    resource exceptions when shutting down the qore library
+*) NEW FEATURE: added XmlDoc, XmlReader, and XmlNode classes for more robust
+       		XML parsing and document iteration
+*) NEW FEATURE: added support for validation with RelaxNG schemas: new 
+                functions: parseXMLWithRelaxNG() and 
+		parseXMLAsDataWithRelaxNG() as well as new method:
+		XmlDoc::validateRelaxNG()
+*) NEW FEATURE: added a new binary_to_string() function to convert a binary 
+                object directly to a string type
+*) NEW FEATURE: implemented binary object concatentation with the + and +=
+                operators
+*) NEW FEATURE: the -= operator now operates on objects (with string and list
+                operands) like it does with hashes
+*) NEW FEATURE: added static method TermIOS::getWindowSize() to get the 
+                current terminal window size (rows and columns)
+*) NEW FEATURE: new C++ APIs are available supporting a generic calling
+             	convention to facilitate the development of the new Qt4 module
+		using libsmoke; the latest module API is now 0.8
+*) NEW FEATURE: added the HTTPClient::isConnected() method
+*) NEW FEATURE: added the rename() function to rename or move files
+*) NEW FEATURE: case expressions now support the == operator for soft 
+                comparisons
+*) NEW FEATURE: updated split() to work on binary objects just like on 
+                strings, but will return a list of binary objects split by the
+		marker
+*) BUILD CHANGE: minimum libxml2 version required for compiling and linking is
+                 now 2.6.0
+
 
 *****************************
 RELEASE NOTES for qore v0.7.5

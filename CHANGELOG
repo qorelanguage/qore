@@ -1,3 +1,9 @@
+2009.11.06: David Nichols
+	* fixed a reference counting bug in callObjectMethodArgs() that could
+	  lead to a crash if a list is passed as the 3rd argument
+
+*** v0.7.6 RELEASE *** 
+
 2009.11.02: David Nichols
 	* fixed marking objects as in the destructor to be after checking for
 	  a delete blocker in the class
