@@ -48,8 +48,7 @@ static AbstractQoreNode *f_callObjectMethod(const QoreListNode *params, Exceptio
    ReferenceHolder<QoreListNode> args(xsink);
    
    // if there are arguments to pass
-   if (get_param(params, 2))
-   {
+   if (get_param(params, 2)) {
       // create argument list by copying current list
       ReferenceHolder<QoreListNode> l(params->copyListFrom(2), xsink);
       if (*xsink)
@@ -62,8 +61,7 @@ static AbstractQoreNode *f_callObjectMethod(const QoreListNode *params, Exceptio
    return p0->evalMethod(p1, *args, xsink);
 }
 
-static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, ExceptionSink *xsink) {
    // get object
    QoreObject *p0 = test_object_param(params, 0);
    if (!p0)
@@ -77,15 +75,23 @@ static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, Exce
    ReferenceHolder<QoreListNode> args(xsink);
    const AbstractQoreNode *p2;
 
+   // we do some dangerous playing with reference counts here to avoid potentially 
+   // costly atomic operations
    bool new_args = false;
+   bool targs = false;
    // if there are arguments to pass
-   if ((p2 = get_param(params, 2)))
-   {
-      args = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(p2));
-      if (!args)
-      {
+   if ((p2 = get_param(params, 2))) {
+      args = p2 && p2->getType() == NT_LIST ? const_cast<QoreListNode*>(reinterpret_cast<const QoreListNode *>(p2)) : 0;
+      // if we are using the list as the argument list, then set targs = true
+      // to ensure that it won't be dereferenced at the end; instead we will
+      // reuse the reference count for call to the method
+      if (args)
+	 targs = true;
+      else {
 	 args = new QoreListNode();
 	 args->push(const_cast<AbstractQoreNode *>(p2));
+	 // set new_args = true because we are reusing the reference count of p2
+	 // for the argument list; true means do not dereference
 	 new_args = true;
       }
    }
@@ -95,21 +101,21 @@ static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, Exce
    {
       CodeContextHelper cch(0, p0, xsink);
       rv = p0->evalMethod(p1, *args, xsink);
-
-      // remove value (and borrowed reference) from list if necessary
-      if (new_args)
-	 args->shift();
    }
+
+   // remove value (and borrowed reference) from list if necessary
+   if (new_args)
+      args->shift();
+   else if (targs)
+      args.release();
    
    return rv;
 }
 
-void init_object_functions()
-{
+void init_object_functions() {
    QORE_TRACE("init_object_functions()");
    
    builtinFunctions.add("getMethodList", f_getMethodList);
    builtinFunctions.add("callObjectMethod", f_callObjectMethod);
    builtinFunctions.add("callObjectMethodArgs", f_callObjectMethodArgs);
-
 }
