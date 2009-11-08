@@ -363,9 +363,10 @@ QoreStringNode *QoreFtpClient::getResponse(int &code, ExceptionSink *xsink) {
 	       xsink->raiseException("FTP-RECEIVE-ERROR", "short message received on control port");
 	       return 0;
 	    }
+	    //printd(FTPDEBUG, "QoreFtpClient::getResponse() read %s\n", r->getBuffer());
 	    // in case the buffer gets reallocated
 	    int pos = p - resp->getBuffer();
-	    resp->concat(r);
+	    resp->concat(*r);
 	    p = resp->getBuffer() + pos;
 	 }
 	 p++;

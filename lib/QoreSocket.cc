@@ -566,7 +566,7 @@ struct qore_socket_private {
 	 }
       }
 
-      DLLLOCAL void do_read_event(int bytes_read, int total_read, int bufsize = 0) {
+      DLLLOCAL void do_read_event(qore_size_t bytes_read, qore_size_t total_read, qore_size_t bufsize = 0) {
 	 // post bytes read on event queue, if any
 	 if (cb_queue) {
 	    QoreHashNode *h = new QoreHashNode;
@@ -2116,10 +2116,11 @@ int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_
    if (timeout != -1 && !isDataAvailable(timeout))
       return -3;
 
-   int rc;
+   qore_size_t rc;
    if (!priv->ssl) {
       while (true) {
 	 rc = ::recv(priv->sock, buf, bs, flags);
+	 //printd(0, "QoreSocket::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", priv->sock, buf, bs, flags, rc, errno);
 	 // try again if we were interrupted by a signal
 	 if (rc >= 0 || errno != EINTR)
 	    break;

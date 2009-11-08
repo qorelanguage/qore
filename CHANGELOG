@@ -1,3 +1,7 @@
+2009.11.08: David Nichols
+	* fixed a bug in the FtpClient class that caused the connection to
+	  never get established
+
 2009.11.06: David Nichols
 	* fixed a reference counting bug in callObjectMethodArgs() that could
 	  lead to a crash if a list is passed as the 3rd argument
