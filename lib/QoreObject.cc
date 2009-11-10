@@ -906,12 +906,13 @@ AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, AutoVLock *v
    return rv;
 }
 
-AbstractPrivateData *QoreObject::getReferencedPrivateData(qore_classid_t key, ExceptionSink *xsink) const
-{ 
+AbstractPrivateData *QoreObject::getReferencedPrivateData(qore_classid_t key, ExceptionSink *xsink) const { 
    AutoLocker al(priv->mutex);
 
-   if (priv->status == OS_DELETED || !priv->privateData)
+   if (priv->status == OS_DELETED || !priv->privateData) {
+      makeAccessDeletedObjectException(xsink, getClassName());
       return 0;
+   }
 
    return priv->privateData->getReferencedPrivateData(key);
 }

@@ -1,3 +1,8 @@
+2009.11.10: David Nichols
+	* fixed a bug when a builtin class tries to access private data of an
+	  object that's already been deleted; now an appropriate exception is
+	  thrown
+
 2009.11.08: David Nichols
 	* fixed a bug in the FtpClient class that caused the connection to
 	  never get established
