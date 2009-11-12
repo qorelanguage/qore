@@ -32733,13 +32733,13 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates the Counter object.</para>
+	    <para>Creates the Counter object; an optional integer argument may be given giving the intial value of the Counter.  If no value is given, then the Counter is initialized with 0.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting><command>new</command> Counter()</programlisting>
+	    <programlisting><command>new</command> Counter(<replaceable>[start_value]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -32762,9 +32762,9 @@ $mutex.unlock();</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
+	      <entry><para><replaceable>[start_value]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>If an argument is supplied here, then the Counter will be initialized with this value, otherwise the Counter is initialized with 0.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
