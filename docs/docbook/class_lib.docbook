@@ -34823,7 +34823,7 @@ $mutex.unlock();</programlisting>
 	  <row>
 	    <entry><para><link linkend="Mutex::trylock">Mutex::trylock()</link></para></entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Acquires the lock only if it is not already held by another thread.  Returns 0 for success (lock acquired) or -1 if the call would block.</para></entry>
+	    <entry><para>Acquires the lock only if it is not already held.  Returns 0 for success (lock acquired) or -1 if the call would block.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -35174,7 +35174,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Acquires the lock only if it is not already held by another thread.</para>
+	    <para>Acquires the lock only if it is not already held; the return value indicates success (0, lock acquired) or failure (-1, lock already held).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
