@@ -7,6 +7,7 @@
 # not complete, needs namespace verification, improved XSD support, element
 # groups, etc
 
+# 0.3.2: fixed bugs de/serializing negative values for "int" and "short"
 # 0.3.1: improved XSD imports and namespace handling
 
 # 0.3: implemented WSDLLib class of helper functions
@@ -22,7 +23,7 @@
 %requires qore >= 0.7.6
 
 namespace WSDL {
-    const version     = "0.3.1";
+    const version     = "0.3.2";
 
     const XET_ALL      = "ALL";
     const XET_CHOICE   = "CHOICE";
@@ -71,6 +72,9 @@ namespace WSDL {
     const SOAP_SERIALIZATION_ERROR = "SOAP-SERIALIZATION-ERROR";
     const SOAP_DESERIALIZATION_ERROR = "SOAP-DESERIALIZATION-ERROR";
     const WSDL_ERROR = "WSDL-ERROR";
+
+    const RANGE_SHORT = (-32768, 32767);
+    const RANGE_INT = (-2147483648, 2147483647);
 
     # currently there are no options
     #const Options = ();
@@ -363,14 +367,14 @@ class WSDL::XSDBaseType inherits XSDData {
 
 	    case "short": {
 		my $v = int($val);
-		if (($v & 0xffff) != $v)
+		if ($v < RANGE_SHORT[0] || $v > RANGE_SHORT[1])
 		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
 		break;
 	    }
 
 	    case "int": {
 		my $v = int($val);
-		if (($v & 0xffffffff) != $v)
+		if ($v < RANGE_INT[0] || $v > RANGE_INT[1])
 		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
 		break;
 	    }
@@ -386,19 +390,15 @@ class WSDL::XSDBaseType inherits XSDData {
 
 	    case "unsignedShort": {
 		my $v = int($val);
-		if (($v & 0xffff) != $v)
+		if ($v < 0 || $v > RANGE_SHORT[1])
 		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
-	        if ($v < 0)
-		    throw SOAP_SERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
 		break;
 	    }
 
 	    case "unsignedInt": {
 		my $v = int($val);
-		if (($v & 0xffffffff) != $v)
+		if ($v < 0 || $v > RANGE_INT[1])
 		    throw SOAP_SERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $v, $type);
-	        if ($v < 0)
-		    throw SOAP_SERIALIZATION_ERROR, sprintf("type %n does not accept negative values (value supplied: %d)", $type, $v);
 		break;
 	    }
 
@@ -476,13 +476,13 @@ class WSDL::XSDBaseType inherits XSDData {
 
 	    case "short":
 		$val = int($val);
-		if (($val & 0xffff) != $val)
+		if ($val < RANGE_SHORT[0] || $val > RANGE_SHORT[1])
 		    throw SOAP_DESERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $val, $.type);
 	        return $val;
 
 	    case "int":
 		$val = int($val);
-		if (($val & 0xffffffff) != $val)
+		if ($val < RANGE_INT[0] || $val > RANGE_INT[1])
 		    throw SOAP_DESERIALIZATION_ERROR, sprintf("value %d is out of range for type %n", $val, $.type);
 	        return $val;
 
