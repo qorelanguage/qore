@@ -36183,7 +36183,7 @@ $mutex.unlock();</programlisting>
 	  <row>
 	    <entry><para><code>XML_ELEMENT_NODE</code></para></entry>
 	    <entry><para><code>1</code></para></entry>
-	    <entry><para>Indicates an element></para></entry>
+	    <entry><para>Indicates an element</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>XML_ATTRIBUTE_NODE</code></para></entry>
@@ -36402,92 +36402,92 @@ $mutex.unlock();</programlisting>
           <row>
             <entry><para><code>XML_NODE_TYPE_NONE</code></para></entry>
             <entry><para><code>0</code></para></entry>
-            <entry><para></para>Indicates no node is available</entry>
+            <entry><para>Indicates no node is available</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_ELEMENT</code></para></entry>
             <entry><para><code>1</code></para></entry>
-            <entry><para></para>Indicates an XML element</entry>
+            <entry><para>Indicates an XML element</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_ATTRIBUTE</code></para></entry>
             <entry><para><code>2</code></para></entry>
-            <entry><para></para>Indicates an attribute node</entry>
+            <entry><para>Indicates an attribute node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_TEXT</code></para></entry>
             <entry><para><code>3</code></para></entry>
-            <entry><para></para>Indicates a text node</entry>
+            <entry><para>Indicates a text node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_CDATA</code></para></entry>
             <entry><para><code>4</code></para></entry>
-            <entry><para></para>Indicates a CDATA node: unparsed character data</entry>
+            <entry><para>Indicates a CDATA node: unparsed character data</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_ENTITY_REFERENCE</code></para></entry>
             <entry><para><code>5</code></para></entry>
-            <entry><para></para>Indicates an entity reference node</entry>
+            <entry><para>Indicates an entity reference node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_ENTITY</code></para></entry>
             <entry><para><code>6</code></para></entry>
-            <entry><para></para>Indicates an entity node</entry>
+            <entry><para>Indicates an entity node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_PROCESSING_INSTRUCTION</code></para></entry>
             <entry><para><code>7</code></para></entry>
-            <entry><para></para>Indicates an XML processing instruction</entry>
+            <entry><para>Indicates an XML processing instruction</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_COMMENT</code></para></entry>
             <entry><para><code>8</code></para></entry>
-            <entry><para></para>Indicates an XML comment</entry>
+            <entry><para>Indicates an XML comment</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_DOCUMENT</code></para></entry>
             <entry><para><code>9</code></para></entry>
-            <entry><para></para>Indicates a document node</entry>
+            <entry><para>Indicates a document node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_DOCUMENT_TYPE</code></para></entry>
             <entry><para><code>10</code></para></entry>
-            <entry><para></para>Indicates a document type node</entry>
+            <entry><para>Indicates a document type node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_DOCUMENT_FRAGMENT</code></para></entry>
             <entry><para><code>11</code></para></entry>
-            <entry><para></para>Indicates a document fragment node</entry>
+            <entry><para>Indicates a document fragment node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_NOTATION</code></para></entry>
             <entry><para><code>12</code></para></entry>
-            <entry><para></para>Indicates a notation node</entry>
+            <entry><para>Indicates a notation node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_WHITESPACE</code></para></entry>
             <entry><para><code>13</code></para></entry>
-            <entry><para></para>Indicates a whitespace node</entry>
+            <entry><para>Indicates a whitespace node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_SIGNIFICANT_WHITESPACE</code></para></entry>
             <entry><para><code>14</code></para></entry>
-            <entry><para></para>Indicates a significant whitespace node</entry>
+            <entry><para>Indicates a significant whitespace node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_END_ELEMENT</code></para></entry>
             <entry><para><code>15</code></para></entry>
-            <entry><para></para>Indicates an end element node</entry>
+            <entry><para>Indicates an end element node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_END_ENTITY</code></para></entry>
             <entry><para><code>16</code></para></entry>
-            <entry><para></para>Indicates an end entity node</entry>
+            <entry><para>Indicates an end entity node</para></entry>
           </row>
           <row>
             <entry><para><code>XML_NODE_TYPE_XML_DECLARATION</code></para></entry>
             <entry><para><code>17</code></para></entry>
-            <entry><para></para>Indicates an XML declaration node</entry>
+            <entry><para>Indicates an XML declaration node</para></entry>
           </row>
 	</tbody>
       </tgroup>
@@ -37085,7 +37085,7 @@ $mutex.unlock();</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Returns a Qore hash structure correponding to the XML data contained by the XmlDoc object. If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
-	    <para>For a similar method not preserving the order of keys in the XML in the resulting Qore hash by collapsiong all elements at the same level with the same name to the same Qore list, see <link linkend="XmlDoc::toQoreData">XmlDoc::toQoreData()</link>.  See also <link linkend="parseXMLAsData">parseXMLAsData()</link> and  <link linkend="parseXML">parseXML()</link>.</para>
+	    <para>For a similar method not preserving the order of keys in the XML in the resulting Qore hash by collapsing all elements at the same level with the same name to the same Qore list, see <link linkend="XmlDoc::toQoreData">XmlDoc::toQoreData()</link>.  See also <link linkend="parseXMLAsData">parseXMLAsData()</link> and  <link linkend="parseXML">parseXML()</link>.</para>
 
 	  </listitem>
 	</varlistentry>
@@ -37278,7 +37278,7 @@ $mutex.unlock();</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.</para>
-            <para>The availability of this function depends on the presence of libxml2's xmlTextReaderRelaxNGSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before running this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+            <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderRelaxNGSetSchema()</code> function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before running this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -37371,7 +37371,7 @@ $mutex.unlock();</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.</para>
-            <para>The availability of this function depends on the presence of libxml2's xmlTextReaderSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+            <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderSetSchema()</code> function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -41265,6 +41265,7 @@ $mutex.unlock();</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Returns a hash corresponding to the XML string from the current node position, including all its children.  If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
+	    <para>See also <link linkened="XmlReader_toQoreData">XmlReader::toQoreData()</link>.</para>
             <para>Functionally similar to <link linkend="parseXML">parseXML()</link></para>
           </listitem>
         </varlistentry>
@@ -41372,6 +41373,7 @@ $mutex.unlock();</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Returns a hash corresponding to the XML string from the current node position, including all its children.  Note that data deserialized with this method may not be reserialized to an identical XML string due to the fact that XML elements with the same name are collapsed into Qore lists in the resulting Qore hash irrespective of the order in the original XML string.</para>
+	    <para>See also <link linkened="XmlReader_toQore">XmlReader::toQore()</link>.</para>
             <para>Functionally similar to <link linkend="parseXMLAsData">parseXMLAsData()</link></para>
           </listitem>
         </varlistentry>
@@ -43379,7 +43381,7 @@ $mutex.unlock();</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
-        <para>The availability of this function depends on the presence of libxml2's xmlTextReaderRelaxNGValidate() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+        <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderRelaxNGValidate()</code> function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
             <para>If any errors occur, an exception is thrown (see below).</para>
           </listitem>
         </varlistentry>
@@ -43503,7 +43505,7 @@ $mutex.unlock();</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
-        <para>The availability of this function depends on the presence of libxml2's xmlTextReaderSchemaValidate() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+        <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderSchemaValidate()</code> function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
             <para>If any errors occur, an exception is thrown (see below).</para>
           </listitem>
         </varlistentry>

@@ -1,3 +1,8 @@
+2009.12.14: Davi Nichols
+	* fixed examples/WSDL.qc de/serializing "int" and "short" from
+	  negative numbers
+	* minor documentation fixes
+
 2009.11.10: David Nichols
 	* fixed a bug when a builtin class tries to access private data of an
 	  object that's already been deleted; now an appropriate exception is
