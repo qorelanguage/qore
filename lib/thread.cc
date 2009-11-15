@@ -448,86 +448,94 @@ tid_node::~tid_node() {
 }
 
 class BGThreadParams {
-   public:
-      QoreObject *obj;
-      QoreObject *callobj;
-      AbstractQoreNode *fc;
-      QoreProgram *pgm;
-      int tid;
-      int s_line, e_line;
-      const char *file;
-      bool method_reference;
+private:
+   QoreObject *callobj;
+public:
+   QoreObject *obj;
+   AbstractQoreNode *fc;
+   QoreProgram *pgm;
+   int tid;
+   int s_line, e_line;
+   const char *file;
+   bool method_reference;
+   
+   DLLLOCAL BGThreadParams(AbstractQoreNode *f, int t, ExceptionSink *xsink) : callobj(getStackObject()), obj(0),
+									       fc(f), pgm(getProgram()), tid(t),
+									       file(get_pgm_file()) {
+      // callobj: get and reference the current stack object, if any, for the new call stack
+      // save program location
+      get_pgm_counter(s_line, e_line);
 
-      DLLLOCAL BGThreadParams(AbstractQoreNode *f, int t, ExceptionSink *xsink) : fc(f), tid(t) { 
-	 pgm = getProgram();
-	 get_pgm_counter(s_line, e_line);
-	 file = get_pgm_file();
+      qore_type_t fctype = fc->getType();
+      if (callobj && fctype == NT_FUNCTION_CALL && reinterpret_cast<FunctionCallNode *>(fc)->getFunctionType() == FC_SELF) {
+	 // we reference the object so it won't go out of scope while the thread is running
+	 obj = callobj;
+	 obj->ref();
+	 callobj = 0;
+      }
+      else if (fctype == NT_TREE) {
+	 QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(fc);
+	 if (tree->op == OP_OBJECT_FUNC_REF) {
+	    // evaluate object
+	    QoreNodeEvalOptionalRefHolder n(tree->left, xsink);
+	    if (*xsink || is_nothing(*n))
+	       return;
 
-	 obj = 0;
-	 // get and reference the current stack object, if any, for the new call stack
-	 callobj = getStackObject();
-
-	 qore_type_t fctype = fc->getType();
-	 if (callobj && fctype == NT_FUNCTION_CALL && reinterpret_cast<FunctionCallNode *>(fc)->getFunctionType() == FC_SELF) {
-	    // we reference the object so it won't go out of scope while the thread is running
-	    obj = callobj;
-	    obj->ref();
-	 }
-	 else if (fctype == NT_TREE) {
-	    QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(fc);
-	    if (tree->op == OP_OBJECT_FUNC_REF) {
-	       // evaluate object
-	       AbstractQoreNode *n = tree->left->eval(xsink);
-	       if (!n || xsink->isEvent())
-		  return;
-
+	    // if we have actually evaluated something, then we save the result in the tree
+	    if (n.isTemp()) {
 	       tree->left->deref(xsink);
-	       tree->left = n;
-	       if (n->getType() == NT_OBJECT) {
-		  obj = reinterpret_cast<QoreObject *>(n);
-		  obj->ref();
-	       }
+	       tree->left = n.getReferencedValue();
+	    } else if (n->getType() == NT_OBJECT) {
+	       // we reference the object so it won't go out of scope while the thread is running
+	       obj = reinterpret_cast<QoreObject *>(n.getReferencedValue());
+	       callobj = 0;
 	    }
 	 }
- 
-	 if (callobj)
-	    callobj->tRef();
-
-	 // increment the program's thread counter
-	 pgm->tc_inc();
       }
 
-      DLLLOCAL ~BGThreadParams() {
-	 // decrement program's thread count
-	 pgm->tc_dec();
-      }
+      if (callobj)
+	 callobj->tRef();
 
-      DLLLOCAL void cleanup(ExceptionSink *xsink) {
-	 if (fc) fc->deref(xsink);
-	 derefObj(xsink);
-	 derefCallObj();
-      }
+      // increment the program's thread counter
+      pgm->tc_inc();
+   }
 
-      DLLLOCAL void derefCallObj() {
-	 // dereference call object if present
-	 if (callobj) {
-	    callobj->tDeref();
-	    callobj = 0;
-	 }
-      }
-      DLLLOCAL void derefObj(ExceptionSink *xsink) {
-	 if (obj) {
-	    obj->deref(xsink);
-	    obj = 0;
-	 }
-      }
+   DLLLOCAL ~BGThreadParams() {
+      // decrement program's thread count
+      pgm->tc_dec();
+   }
 
-      DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink) {
-	 AbstractQoreNode *rv = fc->eval(xsink);
-	 fc->deref(xsink);
-	 fc = 0;
-	 return rv;
+   DLLLOCAL QoreObject *getCallObject() {
+      return obj ? obj : callobj;
+   }
+   
+   DLLLOCAL void cleanup(ExceptionSink *xsink) {
+      if (fc) fc->deref(xsink);
+      derefObj(xsink);
+      derefCallObj();
+   }
+   
+   DLLLOCAL void derefCallObj() {
+      // dereference call object if present
+      if (callobj) {
+	 callobj->tDeref();
+	 callobj = 0;
       }
+   }
+
+   DLLLOCAL void derefObj(ExceptionSink *xsink) {
+      if (obj) {
+	 obj->deref(xsink);
+	 obj = 0;
+      }
+   }
+   
+   DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink) {
+      AbstractQoreNode *rv = fc->eval(xsink);
+      fc->deref(xsink);
+      fc = 0;
+      return rv;
+   }
 };
 
 ThreadCleanupList::ThreadCleanupList() {
@@ -847,12 +855,13 @@ CodeContextHelper::CodeContextHelper(const char *code, const QoreObject *obj, Ex
       obj->ref();
    td->current_code = code;
    td->current_obj = const_cast<QoreObject *>(obj);
-   //printd(5, "CodeContextHelper::CodeContextHelper(%s, %08p) this=%08p, old=%s, %08p\n", code ? code : "null", obj, this, old_code ? old_code : "null", old_obj);
+   //printd(5, "CodeContextHelper::CodeContextHelper(code=%s, obj=%08p) this=%08p td=%p, old_code=%s, old_obj=%08p\n", code ? code : "null", obj, this, td, old_code ? old_code : "null", old_obj);
 }
 
 CodeContextHelper::~CodeContextHelper() {
    ThreadData *td  = thread_data.get();
-   //printd(5, "CodeContextHelper::~CodeContextHelper() this=%08p current=(%s, %08p) restoring %s, %08p\n", this, td->current_code ? td->current_code : "null", td->current_obj, old_code ? old_code : "null", old_obj);
+   //printd(5, "CodeContextHelper::~CodeContextHelper() this=%08p td=%p current=(code=%s, obj=%08p) restoring code=%s, obj=%08p\n", this, td, td->current_code ? td->current_code : "null", td->current_obj, old_code ? old_code : "null", old_obj);
+
    if (td->current_obj)
       td->current_obj->deref(xsink);
    td->current_code = old_code;
@@ -922,8 +931,7 @@ CallStack *getCallStack()
 }
 #endif
 
-bool inMethod(const char *name, const QoreObject *o)
-{
+bool inMethod(const char *name, const QoreObject *o) {
    ThreadData *td = thread_data.get();
    if (td->current_obj == o && td->current_code == name)
       return true;
@@ -1145,10 +1153,10 @@ namespace {
       ExceptionSink xsink;
       AbstractQoreNode *rv;
       {
-	 CodeContextHelper cch(0, btp->callobj, &xsink);
+	 CodeContextHelper cch(0, btp->getCallObject(), &xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 	 // push this call on the thread stack
-	 CallStackHelper csh("background operator", CT_NEWTHREAD, btp->callobj, &xsink);
+	 CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
 #endif
 
 	 // instantiate top-level local variables with no value
@@ -1199,13 +1207,9 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
       return 0;
 
    //printd(2, "op_background() before crlr left = %08p\n", left);
-   AbstractQoreNode *nl = copy_and_resolve_lvar_refs(left, xsink);
+   ReferenceHolder<AbstractQoreNode> nl(copy_and_resolve_lvar_refs(left, xsink), xsink);
    //printd(2, "op_background() after crlr nl = %08p\n", nl);
-   if (xsink->isEvent()) {
-      if (nl) nl->deref(xsink);
-      return 0;
-   }
-   if (!nl)
+   if (*xsink || !nl)
       return 0;
 
    // now we are ready to create the new thread
@@ -1217,15 +1221,13 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
 
    // if can't start thread, then throw exception
    if (tid == -1) {
-      if (nl) nl->deref(xsink);
       xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
       return 0;
    }
 
    //printd(2, "creating BGThreadParams(%08p, %d)\n", nl, tid);
-   BGThreadParams *tp = new BGThreadParams(nl, tid, xsink);
-   if (xsink->isEvent()) {
-      if (nl) nl->deref(xsink);
+   BGThreadParams *tp = new BGThreadParams(nl.release(), tid, xsink);
+   if (*xsink) {
       deregister_thread(tid);
       return 0;
    }

@@ -114,7 +114,7 @@ class QoreObject : public AbstractQoreNode {
       //! custom reference handler
       DLLLOCAL virtual void customRef() const;
 
-      //! custom dereference handler
+      //! custom dereference handler - with delete
       DLLLOCAL virtual void customDeref(ExceptionSink *xsink);
 
       //! destructor

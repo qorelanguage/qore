@@ -39,8 +39,7 @@ class QoreNodeEvalOptionalRefHolder {
       ExceptionSink *xsink;
       bool needs_deref;
 
-      DLLLOCAL void discard_intern()
-      {
+      DLLLOCAL void discard_intern() {
 	 if (needs_deref && val)
 	    val->deref(xsink);
       }
@@ -58,13 +57,11 @@ class QoreNodeEvalOptionalRefHolder {
 
    public:
       //! constructor used to create a holder object
-      DLLLOCAL QoreNodeEvalOptionalRefHolder(ExceptionSink *n_xsink) : val(0), xsink(n_xsink), needs_deref(false)
-      {
+      DLLLOCAL QoreNodeEvalOptionalRefHolder(ExceptionSink *n_xsink) : val(0), xsink(n_xsink), needs_deref(false) {
       }
 
       //! constructor with a value that will call the class' eval(needs_deref) method
-      DLLLOCAL QoreNodeEvalOptionalRefHolder(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
-      {
+      DLLLOCAL QoreNodeEvalOptionalRefHolder(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink) {
 	 if (exp)
 	    val = exp->eval(needs_deref, xsink);
 	 else {
@@ -74,30 +71,26 @@ class QoreNodeEvalOptionalRefHolder {
       }
 
       //! discards any temporary value evaluated by the constructor or assigned by "assign()"
-      DLLLOCAL ~QoreNodeEvalOptionalRefHolder()
-      {
+      DLLLOCAL ~QoreNodeEvalOptionalRefHolder() {
 	 discard_intern();
       }
       
       //! discards any temporary value evaluated by the constructor or assigned by "assign()"
-      DLLLOCAL void discard()
-      {
+      DLLLOCAL void discard() {
 	 discard_intern();
 	 needs_deref = false;
 	 val = 0;
       }
 
       //! assigns a new value to this holder object
-      DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode *n_val)
-      {
+      DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode *n_val) {
 	 discard_intern();
 	 needs_deref = n_needs_deref;
 	 val = n_val;
       }
 
       //! returns a referenced value - the caller will own the reference
-      DLLLOCAL AbstractQoreNode *getReferencedValue()
-      {
+      DLLLOCAL AbstractQoreNode *getReferencedValue() {
 	 if (needs_deref)
 	    needs_deref = false;
 	 else if (val)
@@ -113,6 +106,10 @@ class QoreNodeEvalOptionalRefHolder {
 
       //! returns true if a value is being held
       DLLLOCAL operator bool() const { return val != 0; }
+
+      //! returns true if the value is temporary (needs dereferencing)
+      DLLLOCAL bool isTemp() const { return needs_deref; }
+
 };
 
 #endif

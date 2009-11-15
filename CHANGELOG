@@ -1,4 +1,11 @@
-2009.12.14: Davi Nichols
+2009.12.15: David Nichols
+	* fixed a rare race condition in object constructors when an object
+	  launches threads in the object and then the constructor throws an
+	  exception afterwards
+	* removed an extraneous reference and dereference in objects when
+	  launching new threads in objects
+
+2009.12.14: David Nichols
 	* fixed examples/WSDL.qc de/serializing "int" and "short" from
 	  negative numbers
 	* minor documentation fixes

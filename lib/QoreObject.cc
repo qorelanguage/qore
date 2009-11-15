@@ -539,35 +539,41 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
 void QoreObject::obliterate(ExceptionSink *xsink)
 {
    printd(5, "QoreObject::obliterate(this=%08p) class=%s %d->%d\n", this, priv->theclass->getName(), references, references - 1);
-   
-   {
-      SafeLocker sl(priv->mutex);
 
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "QoreObject::obliterate(this=%08p) class=%s: references %d->%d\n", this, getClassName(), references, references - 1);
 #endif
+
+   {
+      AutoLocker slr(priv->ref_mutex);
       if (--references)
 	 return;
+   }
+   
+   {
+      SafeLocker sl(priv->mutex);
+
+      if (priv->in_destructor || priv->status != OS_OK) {
+	 printd(5, "QoreObject::obliterate() %08p data=%08p in_destructor=%d status=%d\n", this, priv->data, priv->in_destructor, priv->status);
+	 //printd(0, "Object lock %08p unlocked (safe)\n", &priv->mutex);
+         sl.unlock();
+         tDeref();
+         return;
+      }
 
       //printd(5, "Object lock %08p locked   (safe)\n", &priv->mutex);
       printd(5, "QoreObject::obliterate() class=%s deleting this=%08p\n", priv->theclass->getName(), this);
 
-      if (priv->status == OS_OK) {
-	 priv->status = OS_DELETED;
-	 QoreHashNode *td = priv->data;
-	 priv->data = 0;
-	 //printd(0, "Object lock %08p unlocked (safe)\n", &priv->mutex);
-	 sl.unlock();
+      priv->status = OS_DELETED;
+      QoreHashNode *td = priv->data;
+      priv->data = 0;
+      //printd(0, "Object lock %08p unlocked (safe)\n", &priv->mutex);
+      sl.unlock();
 	 
-	 if (priv->privateData)
-	    priv->privateData->derefAll(xsink);
+      if (priv->privateData)
+	 priv->privateData->derefAll(xsink);
 	 
-	 cleanup(xsink, td);
-      }
-      else {
-	 printd(5, "QoreObject::obliterate() %08p data=%08p status=%d\n", this, priv->data, priv->status);
-	 //printd(0, "Object lock %08p unlocked (safe)\n", &priv->mutex);
-      }
+      cleanup(xsink, td);
    }
    tDeref();
 }
