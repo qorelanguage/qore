@@ -135,15 +135,17 @@ void Datasource::setAutoCommit(bool ac) {
 
 AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    AbstractQoreNode *rv = priv->dsl->select(this, query_str, args, xsink);
-   if (priv->autocommit)
+   if (priv->autocommit && !priv->connection_aborted)
       priv->dsl->autoCommit(this, xsink);
+
    return rv;
 }
 
 AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    AbstractQoreNode *rv = priv->dsl->selectRows(this, query_str, args, xsink);
-   if (priv->autocommit)
+   if (priv->autocommit && !priv->connection_aborted)
       priv->dsl->autoCommit(this, xsink);
+
    return rv;
 }
 
@@ -153,12 +155,18 @@ AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNo
 
    AbstractQoreNode *rv = priv->dsl->execSQL(this, query_str, args, xsink);
    //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
+
+   if (priv->connection_aborted) {
+      assert(*xsink);
+      assert(!rv);
+      return 0;
+   }
+
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
    else if (!priv->in_transaction) {
       if (xsink->isException()) {
-	 if (!priv->connection_aborted)
-	    priv->dsl->abortTransactionStart(this, xsink);
+	 priv->dsl->abortTransactionStart(this, xsink);
       }
       else
 	 priv->in_transaction = true;	 
@@ -208,6 +216,8 @@ int Datasource::open(ExceptionSink *xsink) {
       // copy pending connection values to connection values
       setConnectionValues();
       
+      priv->connection_aborted = false;
+
       rc = priv->dsl->init(this, xsink);
       if (!xsink->isEvent())
 	 priv->isopen = true;
@@ -223,7 +233,6 @@ int Datasource::close() {
       priv->dsl->close(this);
       priv->isopen = false;
       priv->in_transaction = false;
-      priv->connection_aborted = false;
       return 0;
    }
    return -1;
@@ -233,6 +242,7 @@ void Datasource::connectionAborted() {
    assert(priv->isopen);
 
    priv->connection_aborted = true;
+   close();
 }
 
 bool Datasource::wasConnectionAborted() const {
