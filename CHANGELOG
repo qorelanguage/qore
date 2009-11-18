@@ -1,3 +1,13 @@
+2009.12.18: David Nichols
+	* fixed handling in the Datasource and DatasourcePool classes when
+	  auto-reconnects fail (connection aborted handling) - now the
+	  Datasource class tags the connection as aborted and closes the
+	  connection when Datasource::connectionAborted() is called by the DBI
+	  drivers, and the DatasourcePool class correctly returns the 
+	  Datasource to the pool.  Additionally, the Datasource class will not
+	  execute any action on the Datasource once the connection has been
+	  aborted.  The flag is cleared when the connection is opened again.
+
 2009.12.15: David Nichols
 	* fixed a rare race condition in object constructors when an object
 	  launches threads in the object and then the constructor throws an

@@ -89,22 +89,18 @@ DatasourcePool::~DatasourcePool() {
    delete [] pool;
 }
 
-void DatasourcePool::destructor(ExceptionSink *xsink)
-{
+void DatasourcePool::destructor(ExceptionSink *xsink) {
    AutoLocker al((QoreThreadLock *)this);
 
-   for (int i = 0; i < cmax; i++)
-   {
-      if (pool[i]->isInTransaction())
-      {
+   for (int i = 0; i < cmax; i++) {
+      if (pool[i]->isInTransaction()) {
 	 xsink->raiseException("DATASOURCEPOOL-ERROR", "TID %d deleted DatasourcePool while TID %d using connection %d/%d was in a transaction", gettid(), tid_list[i], i + 1, cmax);
       }
    } 
 }
 
 #ifdef DEBUG
-void DatasourcePool::addSQL(const char *cmd, const QoreString *sql)
-{
+void DatasourcePool::addSQL(const char *cmd, const QoreString *sql) {
    QoreString *str = thread_local_storage.get();
    if (!str)
       str = new QoreString();
@@ -114,18 +110,15 @@ void DatasourcePool::addSQL(const char *cmd, const QoreString *sql)
    thread_local_storage.set(str);
 }
 
-void DatasourcePool::resetSQL()
-{
+void DatasourcePool::resetSQL() {
    QoreString *str = thread_local_storage.get();
-   if (str)
-   {
+   if (str) {
       delete str;
       thread_local_storage.set(0);
    }
 }
 
-class QoreString *DatasourcePool::getAndResetSQL()
-{
+QoreString *DatasourcePool::getAndResetSQL() {
    QoreString *str = thread_local_storage.get();
    thread_local_storage.set(0);
    return str;
@@ -227,7 +220,7 @@ AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNo
 
    rv = ds->select(sql, args, xsink);
 
-   if (new_ds)
+   if (new_ds || ds->wasConnectionAborted())
       freeDS();
 #ifdef DEBUG
    else
@@ -250,7 +243,7 @@ AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreLis
    rv = ds->selectRows(sql, args, xsink);
    //printd(5, "DatasourcePool::selectRow() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
 
-   if (new_ds)
+   if (new_ds || ds->wasConnectionAborted())
       freeDS();
 #ifdef DEBUG
    else
@@ -259,8 +252,7 @@ AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreLis
 
    // return only hash of first row, if any
    QoreListNode *l = dynamic_cast<QoreListNode *>(rv);
-   if (l)
-   {
+   if (l) {
       AbstractQoreNode *h = l->shift();
       rv->deref(xsink);
       rv = h;
@@ -279,7 +271,7 @@ AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreLi
       return 0;
 
    rv = ds->selectRows(sql, args, xsink);
-   if (new_ds)
+   if (new_ds || ds->wasConnectionAborted())
       freeDS();
 #ifdef DEBUG
    else
@@ -299,7 +291,7 @@ int DatasourcePool::beginTransaction(ExceptionSink *xsink) {
 
    int rc = ds->beginTransaction(xsink);
 
-   if (xsink->isException() && new_ds)
+   if ((xsink->isException() && new_ds) || ds->wasConnectionAborted())
       freeDS();
 
    // DEBUG
@@ -321,7 +313,7 @@ AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode
    AbstractQoreNode *rv = ds->exec(sql, args, xsink);
    //printd(5, "DatasourcePool::exec() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
 
-   if (xsink->isException() && new_ds)
+   if ((xsink->isException() && new_ds) || ds->wasConnectionAborted())
       freeDS();
    
    // DEBUG
@@ -369,8 +361,7 @@ QoreStringNode *DatasourcePool::toString() {
    SafeLocker sl((QoreThreadLock *)this);
    str->sprintf("this=%08p, min=%d, max=%d, cmax=%d, wait_count=%d, thread_map = (", this, min, max, cmax, wait_count);
    thread_use_t::const_iterator ti = tmap.begin();
-   while (ti != tmap.end())
-   {
+   while (ti != tmap.end()) {
       str->sprintf("tid %d=%d, ", ti->first, ti->second);
       ti++;
    }
@@ -379,8 +370,7 @@ QoreStringNode *DatasourcePool::toString() {
 
    str->sprintf("), free_list = (");
    free_list_t::const_iterator fi = free_list.begin();
-   while (fi != free_list.end())
-   {
+   while (fi != free_list.end()) {
       str->sprintf("%d, ", *fi);
       fi++;
    }
@@ -462,4 +452,3 @@ bool DatasourcePool::inTransaction() {
    AutoLocker al((QoreThreadLock *)this);
    return tmap.find(tid) != tmap.end();
 }
-

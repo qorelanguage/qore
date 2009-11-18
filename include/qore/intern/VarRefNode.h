@@ -48,8 +48,8 @@ class VarRefNode : public ParseNode {
       char *name;
       int type;
       union var_u {
-	    class LocalVar *id;          // for local variables
-	    class Var *var;    // for global variables
+	    class LocalVar *id;   // for local variables
+	    class Var *var;       // for global variables
       } ref;
 
       // takes over memory for "n"
@@ -71,14 +71,26 @@ class VarRefNode : public ParseNode {
       DLLLOCAL char *takeName();
 };
 
+class VarRefDeclarationNode : public VarRefNode {
+protected:
+   char *class_name;
+   qore_type_t qt;
+   const QoreClass *qc;
+
+public:
+   DLLLOCAL VarRefDeclarationNode(char *n, int t, qore_type_t n_qt) : VarRefNode(n, t), class_name(0), qt(n_qt), qc(0) {
+   }
+   DLLLOCAL VarRefDeclarationNode(char *n, int t, char *n_class_name) : VarRefNode(n, t), class_name(n_class_name), qt(NT_OBJECT), qc(0) {
+   }
+};
+
 class VarRefNodeEvalOptionalRefHolder {
    private:
       AbstractQoreNode *val;
       ExceptionSink *xsink;
       bool needs_deref;
 
-      DLLLOCAL void discard_intern()
-      {
+      DLLLOCAL void discard_intern() {
 	 if (needs_deref && val)
 	    val->deref(xsink);
       }
@@ -96,8 +108,7 @@ class VarRefNodeEvalOptionalRefHolder {
 
    public:
       //! constructor with a value that will call the class' eval(needs_deref) method
-      DLLLOCAL VarRefNodeEvalOptionalRefHolder(const VarRefNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
-      {
+      DLLLOCAL VarRefNodeEvalOptionalRefHolder(const VarRefNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink) {
 	 if (exp)
 	    val = exp->VarRefNode::evalImpl(needs_deref, xsink);
 	 else {
@@ -107,30 +118,26 @@ class VarRefNodeEvalOptionalRefHolder {
       }
 
       //! discards any temporary value evaluated by the constructor or assigned by "assign()"
-      DLLLOCAL ~VarRefNodeEvalOptionalRefHolder()
-      {
+      DLLLOCAL ~VarRefNodeEvalOptionalRefHolder() {
 	 discard_intern();
       }
       
       //! discards any temporary value evaluated by the constructor or assigned by "assign()"
-      DLLLOCAL void discard()
-      {
+      DLLLOCAL void discard() {
 	 discard_intern();
 	 needs_deref = false;
 	 val = 0;
       }
 
       //! assigns a new value to this holder object
-      DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode *n_val)
-      {
+      DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode *n_val) {
 	 discard_intern();
 	 needs_deref = n_needs_deref;
 	 val = n_val;
       }
 
       //! returns a referenced value - the caller will own the reference
-      DLLLOCAL AbstractQoreNode *getReferencedValue()
-      {
+      DLLLOCAL AbstractQoreNode *getReferencedValue() {
 	 if (needs_deref)
 	    needs_deref = false;
 	 else if (val)

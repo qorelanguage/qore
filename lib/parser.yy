@@ -57,17 +57,15 @@
 //#define YYDEBUG 1
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)                                \
-          do                                                                  \
-            if (N)                                                            \
-              {                                                               \
-                (Current).first_line   = YYRHSLOC(Rhs, 1).first_line;         \
-                (Current).last_line    = YYRHSLOC(Rhs, N).last_line;          \
-              }                                                               \
-            else                                                              \
-              {                                                               \
-                (Current).first_line   = (Current).last_line   =              \
-                  YYRHSLOC(Rhs, 0).last_line;                                 \
-              }                                                               \
+          do                                                           \
+            if (N) {                                                   \
+                (Current).first_line   = YYRHSLOC(Rhs, 1).first_line;  \
+                (Current).last_line    = YYRHSLOC(Rhs, N).last_line;   \
+            }                                                          \
+            else {                                                     \
+                (Current).first_line   = (Current).last_line   =       \
+                  YYRHSLOC(Rhs, 0).last_line;                          \
+            }                                                          \
           while (0)
 
 class HashElement {
@@ -154,14 +152,12 @@ HashElement::HashElement(int tag, char *constant, AbstractQoreNode *v)
    //traceout("HashElement::HashElement()");
 }
 
-HashElement::~HashElement()
-{
+HashElement::~HashElement() {
    free(key);
 }
 
 // for constant definitions
-class ConstNode
-{
+class ConstNode {
    public:
       class NamedScope *name;
       AbstractQoreNode *value;
@@ -170,22 +166,20 @@ class ConstNode
       DLLLOCAL inline ~ConstNode() { delete name; }
 };
 
-class ObjClassDef
-{
-   public:
-      class NamedScope *name;
-      class QoreClass *oc;
+class ObjClassDef {
+public:
+   NamedScope *name;
+   QoreClass *oc;
 
-      DLLLOCAL inline ObjClassDef(char *n, class QoreClass *o) { name = new NamedScope(n); oc = o; }
-      DLLLOCAL inline ~ObjClassDef() { delete name; }
+   DLLLOCAL inline ObjClassDef(char *n, class QoreClass *o) { name = new NamedScope(n); oc = o; }
+   DLLLOCAL inline ~ObjClassDef() { delete name; }
 };
 
 #define NSN_OCD   1
 #define NSN_CONST 2
 #define NSN_NS    3
 
-struct NSNode
-{
+struct NSNode {
       int type;
       union {
 	    class ObjClassDef *ocd;
@@ -197,10 +191,8 @@ struct NSNode
       DLLLOCAL NSNode(class QoreNamespace  *s) { type = NSN_NS; n.ns = s; }
 };
 
-static void addNSNode(class QoreNamespace *ns, struct NSNode *n)
-{
-   switch (n->type)
-   {
+static void addNSNode(class QoreNamespace *ns, struct NSNode *n) {
+   switch (n->type) {
       case NSN_OCD:
 	 ns->addClass(n->n.ocd->name, n->n.ocd->oc);
 	 delete n->n.cn;
@@ -216,16 +208,14 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n)
    delete n;
 }
 
-static QoreListNode *make_list(AbstractQoreNode *a1, AbstractQoreNode *a2)
-{
+static QoreListNode *make_list(AbstractQoreNode *a1, AbstractQoreNode *a2) {
    QoreListNode *l = new QoreListNode(true);
    l->push(a1);
    l->push(a2);
    return l;
 }
 
-static QoreListNode *splice_expressions(AbstractQoreNode *a1, AbstractQoreNode *a2)
-{
+static QoreListNode *splice_expressions(AbstractQoreNode *a1, AbstractQoreNode *a2) {
    //tracein("splice_expressions()");
    if (a1 && a1->getType() == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(a1);
@@ -238,27 +228,22 @@ static QoreListNode *splice_expressions(AbstractQoreNode *a1, AbstractQoreNode *
    return make_list(a1, a2);
 }
 
-static int checkParseOption(int o)
-{
+static int checkParseOption(int o) {
    return getParseOptions() & o;
 }
 
-class MemberList : private strset_t
-{
+class MemberList : private strset_t {
    public:
-      DLLLOCAL ~MemberList()
-      {
+      DLLLOCAL ~MemberList() {
 	 strset_t::iterator i;
-	 while ((i = begin()) != end())
-	 {
+	 while ((i = begin()) != end()) {
 	    char *name = *i;
 	    erase(i);
 	    free(name);
 	 }
       }
 
-      DLLLOCAL int add(char *name)
-      {
+      DLLLOCAL int add(char *name) {
 	 if (find(name) != end())
 	    return -1;
 	 // add new member to list
@@ -266,11 +251,9 @@ class MemberList : private strset_t
 	 return 0;
       }
 
-      DLLLOCAL void mergePrivateMembers(class QoreClass *qc)
-      {
+      DLLLOCAL void mergePrivateMembers(QoreClass *qc) {
 	 strset_t::iterator i;
-	 while ((i = begin()) != end())
-	 {
+	 while ((i = begin()) != end()) {
 	    char *name = *i;
 	    erase(i);
 	    qc->addPrivateMember(name);
@@ -278,18 +261,15 @@ class MemberList : private strset_t
       }
 };
 
-static inline void addConstant(NamedScope *name, AbstractQoreNode *value)
-{
+static inline void addConstant(NamedScope *name, AbstractQoreNode *value) {
    getRootNS()->rootAddConstant(name, value);
 }
 
-static inline void addClass(NamedScope *name, QoreClass *oc)
-{
+static inline void addClass(NamedScope *name, QoreClass *oc) {
    getRootNS()->rootAddClass(name, oc);
 }
 
-static inline class QoreClass *parseFindClass(char *name)
-{
+static inline class QoreClass *parseFindClass(char *name) {
    QoreClass *c = getRootNS()->rootFindClass(name);
    if (!c)
       parse_error("reference to undefined class '%s'", name);
@@ -297,8 +277,7 @@ static inline class QoreClass *parseFindClass(char *name)
    return c;
 }
 
-static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r)
-{
+static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
    qore_type_t rtype = r->getType();
    if (rtype == NT_BAREWORD) {
       BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
@@ -320,8 +299,7 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r)
 }
 
 // returns 0 for OK, -1 for error
-static int check_lvalue(AbstractQoreNode *node)
-{
+static int check_lvalue(AbstractQoreNode *node) {
    qore_type_t ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
    if (ntype == NT_VARREF)
@@ -339,8 +317,7 @@ static int check_lvalue(AbstractQoreNode *node)
    return -1;
 }
 
-static inline int check_vars(AbstractQoreNode *n)
-{
+static inline int check_vars(AbstractQoreNode *n) {
    if (n && n->getType() == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
       for (unsigned i = 0; i < l->size(); i++)
@@ -409,8 +386,7 @@ int check_case(const char *op, AbstractQoreNode *exp) {
    return 0;
 }
 
-static bool hasEffect(AbstractQoreNode *n)
-{
+static bool hasEffect(AbstractQoreNode *n) {
    // check for expressions with no effect
    qore_type_t ntype = n->getType();
    if (ntype == NT_FUNCTION_CALL || ntype == NT_STATIC_METHOD_CALL 
@@ -428,8 +404,7 @@ static bool hasEffect(AbstractQoreNode *n)
 #define OFM_SYNCED  2
 #define OFM_STATIC  4
 
-static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAList *bcal, StatementBlock *b)
-{
+static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAList *bcal, StatementBlock *b) {
    class NamedScope *name = new NamedScope(n);
    if (bcal && strcmp(name->getIdentifier(), "constructor")) {
       parse_error("base class constructor lists are only legal when defining ::constructor() methods");
@@ -442,8 +417,7 @@ static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAL
    else {
       QoreMethod *method = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE, mod & OFM_STATIC);
       
-      if (getRootNS()->addMethodToClass(name, method, bcal))
-      {
+      if (getRootNS()->addMethodToClass(name, method, bcal)) {
 	 delete method;
 	 if (bcal)
 	    delete bcal;
@@ -459,19 +433,16 @@ struct MethodNode {
       // base class argument list for constructors
       class BCAList *bcal;
 
-      DLLLOCAL inline MethodNode(class UserFunction *f, bool n_priv, bool n_static, class BCAList *bl) : bcal(bl)
-      {
+      DLLLOCAL inline MethodNode(UserFunction *f, bool n_priv, bool n_static, class BCAList *bl) : bcal(bl) {
 	 m = new QoreMethod(f, n_priv, n_static);
       }
-      DLLLOCAL inline ~MethodNode()
-      {
+      DLLLOCAL inline ~MethodNode() {
 	 if (m)
 	    delete m;
 	 if (bcal)
 	    delete bcal;
       }
-      DLLLOCAL inline void addAndDelete(class QoreClass *qc)
-      {
+      DLLLOCAL inline void addAndDelete(QoreClass *qc) {
 	 qc->addMethod(m);
 	 m = 0;
 	 if (bcal) {
@@ -542,8 +513,7 @@ struct MethodNode {
 
 DLLLOCAL int yylex(LEX_PARAMETERS);
 
-DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
-{
+DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
    //printd(5, "yyerror() location: %d-%d: \"%s\"\n", loc->first_line, loc->last_line, str);
    parse_error("%s", str);
 }
@@ -1493,6 +1463,8 @@ exp:    scalar
         { $$ = new VarRefNode($1, VT_UNRESOLVED); }
         | TOK_MY VAR_REF
         { $$ = new VarRefNode($2, VT_LOCAL); }
+        | TOK_MY IDENTIFIER VAR_REF
+        { $$ = new VarRefNode($3, VT_LOCAL); }
         | TOK_MY '(' list ')' 
         {
 	   $3->setVariableList();
