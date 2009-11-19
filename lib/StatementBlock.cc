@@ -200,33 +200,6 @@ LocalVar *find_local_var(const char *name, bool &in_closure) {
    return 0;
 }
 
-/*
-// this function will put variables on the local stack but will not pop them
-// FIXME: this functionality should be replaced by:
-//        AbstractQoreNode *AbstractQoreNode::parseInit(LocalVar *oflag, int pflag, int &lvids) = 0;
-//        to be implemented in each subclass
-int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag) {
-   int lvids = 0;
-
-   //printd(5, "process_node() %08p type=%s cp=%d, p=%d\n", *node, *node ? (*node)->getTypeName() : "(null)", current_pflag, pflag);
-   if (!(*node))
-      return 0;
-
-   qore_type_t ntype = (*node)->getType();
-
-   // types properly using AbstractQoreNode::parseInit()
-   if (ntype == NT_FUNCREFCALL || ntype == NT_OBJMETHREF || ntype == NT_CLOSURE || ntype == NT_VARREF
-      || ntype == NT_HASH || ntype == NT_REFERENCE || ntype == NT_COMPLEXCONTEXTREF || ntype == NT_TREE
-      || ntype == NT_FIND || ntype == NT_SCOPE_REF || ntype == NT_SELF_VARREF || ntype == NT_BAREWORD
-      || ntype == NT_CONSTANT || ntype == NT_CONTEXTREF || ntype == NT_CONTEXT_ROW || ntype == NT_LIST
-      || ntype == NT_FUNCTION_CALL || ntype == NT_METHOD_CALL || ntype == NT_STATIC_METHOD_CALL
-      || ntype == NT_CLASSREF || ntype == NT_FUNCREF)
-      *node = (*node)->parseInit(oflag, pflag, lvids);
-   
-   return lvids;
-}
-*/
-
 int StatementBlock::parseInitIntern(LocalVar *oflag, int pflag) {
    QORE_TRACE("StatementBlock::parseInitIntern");
 
