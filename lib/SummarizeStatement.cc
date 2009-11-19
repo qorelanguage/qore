@@ -24,10 +24,9 @@
 #include <qore/intern/SummarizeStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    int rc = 0;
-   class Context *context;
+   Context *context;
    AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
    int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
 
@@ -38,13 +37,10 @@ int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink 
    context = new Context(name, xsink, exp, where_exp, sort_type, sort, summarize);
    
    // execute the statements
-   if (code)
-   {
+   if (code) {
       if (context->max_group_pos && !xsink->isEvent())
-	 do
-	 {
-	    if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())
-	    {
+	 do {
+	    if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()) {
 	       rc = 0;
 	       break;
 	    }
@@ -62,27 +58,26 @@ int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink 
    return rc;
 }
 
-int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
+int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    QORE_TRACE("SummarizeStatement::parseInit()");
    
    int lvids = 0;
    
    // initialize context expression
    if (exp)
-      lvids += process_node(&exp, oflag, pflag);
+      exp = exp->parseInit(oflag, pflag, lvids);
    
    // need to push something on the stack even if the context is not named
    push_cvar(name);
 
    if (where_exp)
-      process_node(&where_exp, oflag, pflag);
+      where_exp = where_exp->parseInit(oflag, pflag, lvids);
    if (sort_ascending)
-      process_node(&sort_ascending, oflag, pflag);
+      sort_ascending = sort_ascending->parseInit(oflag, pflag, lvids);
    if (sort_descending)
-      process_node(&sort_descending, oflag, pflag);
+      sort_descending = sort_descending->parseInit(oflag, pflag, lvids);
    if (summarize)
-      process_node(&summarize, oflag, pflag);
+      summarize = summarize->parseInit(oflag, pflag, lvids);
       
    // initialize statement block
    if (code)

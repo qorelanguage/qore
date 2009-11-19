@@ -24,17 +24,14 @@
 #include <qore/intern/DoWhileStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    int rc = 0;
    
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
    
-   do
-   {
-      if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
-      {
+   do {
+      if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())) {
 	 rc = 0;
 	 break;
       }
@@ -49,13 +46,13 @@ int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 
 /* do ... while statements can have variables local to the statement
  * however, it doesn't do much good :-) */
-int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
+int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
    if (code)
       code->parseInitImpl(oflag, pflag);
-   lvids += process_node(&cond, oflag, pflag);
+   if (cond)
+      cond = cond->parseInit(oflag, pflag, lvids);
    
    // save local variables
    lvars = new LVList(lvids);

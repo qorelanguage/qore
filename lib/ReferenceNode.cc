@@ -22,12 +22,10 @@
 
 #include <qore/Qore.h>
 
-ReferenceNode::ReferenceNode(AbstractQoreNode *exp) : SimpleValueQoreNode(NT_REFERENCE), lvexp(exp)
-{
+ReferenceNode::ReferenceNode(AbstractQoreNode *exp) : SimpleValueQoreNode(NT_REFERENCE), lvexp(exp) {
 }
 
-ReferenceNode::~ReferenceNode()
-{
+ReferenceNode::~ReferenceNode() {
    if (lvexp)
       lvexp->deref(0);
 }
@@ -36,48 +34,69 @@ ReferenceNode::~ReferenceNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int ReferenceNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int ReferenceNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.sprintf("reference expression (0x%08p)", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ReferenceNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *ReferenceNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
    return rv;
 }
 
-AbstractQoreNode *ReferenceNode::realCopy() const
-{
+AbstractQoreNode *ReferenceNode::realCopy() const {
    assert(false);
    return 0;
 }
 
 // the type passed must always be equal to the current type
-bool ReferenceNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool ReferenceNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    assert(false);
    return false;
 }
 
-bool ReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool ReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    assert(false);
    return false;
 }
 
 // returns the type name as a c string
-const char *ReferenceNode::getTypeName() const
-{
+const char *ReferenceNode::getTypeName() const {
    return "reference to lvalue";
 }
 
+static inline int getBaseLVType(AbstractQoreNode *n) {
+   while (true) {
+      qore_type_t ntype = n->getType();
+      if (ntype == NT_SELF_VARREF)
+	 return VT_OBJECT;
+      if (ntype == NT_VARREF)
+	 return reinterpret_cast<VarRefNode *>(n)->type;
+      assert(ntype == NT_TREE);
+      // must be a tree
+      n = reinterpret_cast<QoreTreeNode *>(n)->left;
+   }
+}
 
-AbstractQoreNode **ReferenceNode::getExpressionPtr()
-{
-   return &lvexp;
+AbstractQoreNode *ReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   // otherwise throw a parse exception if an illegal reference is used
+   if (!(pflag & PF_REFERENCE_OK)) {	 
+      parse_error("the reference operator can only be used in argument lists and in foreach statements");
+      return this;
+   }
+   if (lvexp)
+      lvexp = lvexp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids);
+
+   // if a background expression is being parsed, then check that no references to local variables
+   // or object members are being used
+   if (pflag & PF_BACKGROUND) {
+      int vtype = getBaseLVType(lvexp);
+      
+      if (vtype == VT_LOCAL)
+	 parse_error("the reference operator cannot be used with local variables in a background expression");
+   }
+   return this;
 }

@@ -24,8 +24,7 @@
 
 #define _QORE_SCOPEDOBJECTCALLNODE_H
 
-class ScopedObjectCallNode : public ParseNoEvalNode
-{
+class ScopedObjectCallNode : public ParseNoEvalNode {
    public:
       class NamedScope *name;
       class QoreClass *oc;
@@ -47,6 +46,7 @@ class ScopedObjectCallNode : public ParseNoEvalNode
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 #endif

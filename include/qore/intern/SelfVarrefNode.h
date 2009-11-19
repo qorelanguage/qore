@@ -24,8 +24,7 @@
 
 #define _QORE_SELFVARREFNODE_H
 
-class SelfVarrefNode : public ParseNode 
-{
+class SelfVarrefNode : public ParseNode  {
    protected:
       DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
       
@@ -57,6 +56,8 @@ class SelfVarrefNode : public ParseNode
 
       // returns the string, caller owns the memory
       DLLLOCAL char *takeString();
+
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 #endif

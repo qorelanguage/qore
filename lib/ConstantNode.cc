@@ -23,12 +23,10 @@
 #include <qore/Qore.h>
 
 // object takes over ownership of NamedScope
-ConstantNode::ConstantNode(char *ref) : ParseNoEvalNode(NT_CONSTANT), scoped_ref(new NamedScope(ref))
-{
+ConstantNode::ConstantNode(char *ref) : ParseNoEvalNode(NT_CONSTANT), scoped_ref(new NamedScope(ref)) {
 }
 
-ConstantNode::~ConstantNode()
-{
+ConstantNode::~ConstantNode() {
    delete scoped_ref;
 }
 
@@ -36,15 +34,13 @@ ConstantNode::~ConstantNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int ConstantNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int ConstantNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.sprintf("constant reference '%s' (0x%08p)", scoped_ref ? scoped_ref->ostr : "<null>", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ConstantNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *ConstantNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -52,21 +48,26 @@ QoreString *ConstantNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 }
 
 // returns the data type
-qore_type_t ConstantNode::getType() const
-{
+qore_type_t ConstantNode::getType() const {
    return NT_CONSTANT;
 }
 
 // returns the type name as a c string
-const char *ConstantNode::getTypeName() const
-{
+const char *ConstantNode::getTypeName() const {
    return "constant reference";
 }
 
-NamedScope *ConstantNode::takeName()
-{
+NamedScope *ConstantNode::takeName() {
    assert(scoped_ref);
    NamedScope *n = scoped_ref;
    scoped_ref = 0;
    return n;
+}
+
+AbstractQoreNode *ConstantNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   printd(5, "ConstantNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
+   AbstractQoreNode *n = this;
+   AbstractQoreNode **node = &n;
+   getRootNS()->resolveScopedConstant(node, 1);
+   return *node;
 }

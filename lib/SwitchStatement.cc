@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 Qore Technologies
+  Copyright (C) 2003 - 2009 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -31,23 +31,20 @@
 #  include "tests/SwitchStatementWithOperators_tests.cc"
 #endif
 
-CaseNode::CaseNode(AbstractQoreNode *v, class StatementBlock *c)
-{
+CaseNode::CaseNode(AbstractQoreNode *v, class StatementBlock *c) {
    val = v;
    code = c;
    next = 0;
 }
 
-CaseNode::~CaseNode()
-{
+CaseNode::~CaseNode() {
    if (val)
       val->deref(0);
    if (code)
       delete code;
 }
 
-bool CaseNode::isCaseNodeImpl() const
-{
+bool CaseNode::isCaseNodeImpl() const {
    return true;
 }
 
@@ -55,20 +52,16 @@ bool CaseNode::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
    return !compareHard(lhs_value, val, xsink); // the ! is because of compareHard() semantics
 }
 
-bool CaseNode::isCaseNode() const
-{
+bool CaseNode::isCaseNode() const {
    return isCaseNodeImpl();
 }
 
 // start and end line are set later
-SwitchStatement::SwitchStatement(class CaseNode *f) : AbstractStatement(-1, -1), head(f), tail(f), sexp(0), deflt(0), lvars(0)
-{
+SwitchStatement::SwitchStatement(class CaseNode *f) : AbstractStatement(-1, -1), head(f), tail(f), sexp(0), deflt(0), lvars(0) {
 }
 
-SwitchStatement::~SwitchStatement()
-{
-   while (head)
-   {
+SwitchStatement::~SwitchStatement() {
+   while (head) {
       class CaseNode *w = head->next;
       delete head;
       head = w;
@@ -79,13 +72,11 @@ SwitchStatement::~SwitchStatement()
       delete lvars;
 }
 
-void SwitchStatement::setSwitch(AbstractQoreNode *s)
-{
+void SwitchStatement::setSwitch(AbstractQoreNode *s) {
    sexp = s;
 }
 
-void SwitchStatement::addCase(class CaseNode *c)
-{
+void SwitchStatement::addCase(class CaseNode *c) {
    if (tail)
       tail->next = c;
    else
@@ -136,13 +127,14 @@ int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
 int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
-   lvids += process_node(&sexp, oflag, pflag);
+   if (sexp)
+      sexp = sexp->parseInit(oflag, pflag, lvids);
    
    CaseNode *w = head;
    ExceptionSink xsink;
    while (w) {
       if (w->val) {
-	 process_node(&w->val, oflag, pflag);
+	 w->val = w->val->parseInit(oflag, pflag, lvids);
 	 //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, w->val ? w->val->getTypeName() : "n/a");
 
 	 // check for duplicate values

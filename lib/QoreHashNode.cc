@@ -751,6 +751,51 @@ QoreHashNode *QoreHashNode::getSlice(const QoreListNode *value_list, ExceptionSi
    return rv.release();
 }
 
+AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   HashIterator hi(this);
+   while (hi.next()) {
+      const char *k = hi.getKey();
+      AbstractQoreNode **value = hi.getValuePtr();
+      
+      // resolve constant references in keys
+      if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
+	 AbstractQoreNode *rv;
+	 if (k[0] == HE_TAG_CONST)
+	    rv = getRootNS()->findConstantValue(k + 1, 1);
+	 else {
+	    NamedScope *nscope = new NamedScope(strdup(k + 1));
+	    rv = getRootNS()->findConstantValue(nscope, 1);
+	    delete nscope;
+	 }
+	 if (rv) {
+	    QoreStringValueHelper t(rv);
+
+	    // reference value for new hash key
+	    if (*value)
+	       (*value)->ref();
+	    // not possible to have an exception here
+	    setKeyValue(t->getBuffer(), *value, 0);
+	    
+	    // now reget new value ptr
+	    value = getKeyValuePtr(t->getBuffer());
+	 }
+	 
+	 // delete the old key (not possible to have an exception here)
+	 hi.deleteKey(0);
+	 continue;
+      }
+
+      if (value && *value) {
+	 (*value) = (*value)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids);
+	 if (!needs_eval_flag && *value && (*value)->needs_eval()) {
+	    //printd(5, "setting needs_eval on hash %08p\n", this);
+	    setNeedsEval();
+	 }
+      }
+   }
+   return this;
+}
+
 HashIterator::HashIterator(QoreHashNode *qh) {
    h = qh;
    ptr = 0;

@@ -24,8 +24,7 @@
 #include <qore/intern/ForStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ForStatement::ForStatement(int start_line, int end_line, AbstractQoreNode *a, AbstractQoreNode *c, AbstractQoreNode *i, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
-{
+ForStatement::ForStatement(int start_line, int end_line, AbstractQoreNode *a, AbstractQoreNode *c, AbstractQoreNode *i, class StatementBlock *cd) : AbstractStatement(start_line, end_line) {
    assignment = a;
    cond = c;
    iterator = i;
@@ -33,8 +32,7 @@ ForStatement::ForStatement(int start_line, int end_line, AbstractQoreNode *a, Ab
    lvars = 0;
 }
 
-ForStatement::~ForStatement()
-{
+ForStatement::~ForStatement() {
    if (assignment)
       assignment->deref(0);
    if (cond)
@@ -47,8 +45,7 @@ ForStatement::~ForStatement()
       delete lvars;
 }
 
-int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    int rc = 0;
    
    // instantiate local variables
@@ -59,16 +56,14 @@ int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
       discard(assignment->eval(xsink), xsink);
    
    // execute "for" body
-   while (!xsink->isEvent())
-   {
+   while (!xsink->isEvent()) {
       // check conditional expression, exit "for" loop if condition is
       // false
       if (cond && (!cond->boolEval(xsink) || xsink->isEvent()))
 	 break;
       
       // otherwise, execute "for" body
-      if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
-      {
+      if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())) {
 	 rc = 0;
 	 break;
       }
@@ -85,23 +80,20 @@ int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
    return rc;
 }
 
-int ForStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
+int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
-   if (assignment)
-   {
-      lvids += process_node(&assignment, oflag, pflag);
-      // enable optimizations when return value is ignored for operator expressions
+   if (assignment) {
+      assignment = assignment->parseInit(oflag, pflag, lvids);
+       // enable optimizations when return value is ignored for operator expressions
       QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(assignment);
       if (tree)
 	 tree->ignoreReturnValue();
    }
    if (cond)
-      lvids += process_node(&cond, oflag, pflag);
-   if (iterator)
-   {
-      lvids += process_node(&iterator, oflag, pflag);
+      cond = cond->parseInit(oflag, pflag, lvids);
+   if (iterator) {
+      iterator = iterator->parseInit(oflag, pflag, lvids);
       // enable optimizations when return value is ignored for operator expressions
 
       QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(iterator);
@@ -116,4 +108,3 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag)
 
    return 0;
 }
-

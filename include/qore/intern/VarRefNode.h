@@ -27,132 +27,138 @@
 class VarRefNode : public ParseNode {
    friend class VarRefNodeEvalOptionalRefHolder;
 
-   protected:
-      DLLLOCAL ~VarRefNode();
+protected:
+   DLLLOCAL ~VarRefNode();
 
-      // evalImpl(): return value requires a deref(xsink)
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+   // evalImpl(): return value requires a deref(xsink)
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
 
-      //! optionally evaluates the argument
-      /** return value requires a deref(xsink) if needs_deref is true
-	  @see AbstractQoreNode::eval()
-      */
-      DLLLOCAL AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   //! optionally evaluates the argument
+   /** return value requires a deref(xsink) if needs_deref is true
+       @see AbstractQoreNode::eval()
+   */
+   DLLLOCAL AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   public:
-      char *name;
-      int type;
-      union var_u {
-	    class LocalVar *id;   // for local variables
-	    class Var *var;       // for global variables
-      } ref;
+public:
+   char *name;
+   int type;
+   union var_u {
+      class LocalVar *id;   // for local variables
+      class Var *var;       // for global variables
+   } ref;
 
-      // takes over memory for "n"
-      DLLLOCAL VarRefNode(char *n, int t);
+   // takes over memory for "n"
+   DLLLOCAL VarRefNode(char *n, int t);
 
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
-      // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const;
+   // returns the type name as a c string
+   DLLLOCAL virtual const char *getTypeName() const;
 
-      DLLLOCAL void resolve();
+   // initializes during parsing
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 
-      DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const;
-      DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) const;
+   DLLLOCAL void resolve();
 
-      // takes the name - caller owns the memory
-      DLLLOCAL char *takeName();
+   DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) const;
+
+   // takes the name - caller owns the memory
+   DLLLOCAL char *takeName();
 };
 
-class VarRefDeclarationNode : public VarRefNode {
+class VarRefDeclNode : public VarRefNode {
 protected:
-   char *class_name;
+   NamedScope *class_loc;
    qore_type_t qt;
    const QoreClass *qc;
 
 public:
-   DLLLOCAL VarRefDeclarationNode(char *n, int t, qore_type_t n_qt) : VarRefNode(n, t), class_name(0), qt(n_qt), qc(0) {
+   DLLLOCAL VarRefDeclNode(char *n, int t, qore_type_t n_qt) : VarRefNode(n, t), class_loc(0), qt(n_qt), qc(0) {
    }
-   DLLLOCAL VarRefDeclarationNode(char *n, int t, char *n_class_name) : VarRefNode(n, t), class_name(n_class_name), qt(NT_OBJECT), qc(0) {
+   DLLLOCAL VarRefDeclNode(char *n, int t, char *n_class_name) : VarRefNode(n, t), class_loc(new NamedScope(n_class_name)), qt(NT_OBJECT), qc(0) {
+   }
+   DLLLOCAL ~VarRefDeclNode() {
+      delete class_loc;
    }
 };
 
 class VarRefNodeEvalOptionalRefHolder {
-   private:
-      AbstractQoreNode *val;
-      ExceptionSink *xsink;
-      bool needs_deref;
+private:
+   AbstractQoreNode *val;
+   ExceptionSink *xsink;
+   bool needs_deref;
 
-      DLLLOCAL void discard_intern() {
-	 if (needs_deref && val)
-	    val->deref(xsink);
-      }
+   DLLLOCAL void discard_intern() {
+      if (needs_deref && val)
+	 val->deref(xsink);
+   }
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL VarRefNodeEvalOptionalRefHolder(const VarRefNodeEvalOptionalRefHolder&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL VarRefNodeEvalOptionalRefHolder(const VarRefNodeEvalOptionalRefHolder&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL VarRefNodeEvalOptionalRefHolder& operator=(const VarRefNodeEvalOptionalRefHolder&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL VarRefNodeEvalOptionalRefHolder& operator=(const VarRefNodeEvalOptionalRefHolder&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      /** this function is not implemented in order to require objects of this type to be allocated on the stack.
-       */
-      DLLLOCAL void *operator new(size_t);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   /** this function is not implemented in order to require objects of this type to be allocated on the stack.
+    */
+   DLLLOCAL void *operator new(size_t);
 
-   public:
-      //! constructor with a value that will call the class' eval(needs_deref) method
-      DLLLOCAL VarRefNodeEvalOptionalRefHolder(const VarRefNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink) {
-	 if (exp)
-	    val = exp->VarRefNode::evalImpl(needs_deref, xsink);
-	 else {
-	    val = 0;
-	    needs_deref = false;
-	 }	    
-      }
-
-      //! discards any temporary value evaluated by the constructor or assigned by "assign()"
-      DLLLOCAL ~VarRefNodeEvalOptionalRefHolder() {
-	 discard_intern();
-      }
-      
-      //! discards any temporary value evaluated by the constructor or assigned by "assign()"
-      DLLLOCAL void discard() {
-	 discard_intern();
-	 needs_deref = false;
+public:
+   //! constructor with a value that will call the class' eval(needs_deref) method
+   DLLLOCAL VarRefNodeEvalOptionalRefHolder(const VarRefNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink) {
+      if (exp)
+	 val = exp->VarRefNode::evalImpl(needs_deref, xsink);
+      else {
 	 val = 0;
-      }
+	 needs_deref = false;
+      }	    
+   }
 
-      //! assigns a new value to this holder object
-      DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode *n_val) {
-	 discard_intern();
-	 needs_deref = n_needs_deref;
-	 val = n_val;
-      }
+   //! discards any temporary value evaluated by the constructor or assigned by "assign()"
+   DLLLOCAL ~VarRefNodeEvalOptionalRefHolder() {
+      discard_intern();
+   }
+      
+   //! discards any temporary value evaluated by the constructor or assigned by "assign()"
+   DLLLOCAL void discard() {
+      discard_intern();
+      needs_deref = false;
+      val = 0;
+   }
 
-      //! returns a referenced value - the caller will own the reference
-      DLLLOCAL AbstractQoreNode *getReferencedValue() {
-	 if (needs_deref)
-	    needs_deref = false;
-	 else if (val)
-	    val->ref();
-	 return val;
-      }
+   //! assigns a new value to this holder object
+   DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode *n_val) {
+      discard_intern();
+      needs_deref = n_needs_deref;
+      val = n_val;
+   }
 
-      //! returns the object being managed
-      DLLLOCAL const AbstractQoreNode *operator->() const { return val; }
+   //! returns a referenced value - the caller will own the reference
+   DLLLOCAL AbstractQoreNode *getReferencedValue() {
+      if (needs_deref)
+	 needs_deref = false;
+      else if (val)
+	 val->ref();
+      return val;
+   }
 
-      //! returns the object being managed
-      DLLLOCAL const AbstractQoreNode *operator*() const { return val; }
+   //! returns the object being managed
+   DLLLOCAL const AbstractQoreNode *operator->() const { return val; }
 
-      //! returns true if a value is being held
-      DLLLOCAL operator bool() const { return val != 0; }
+   //! returns the object being managed
+   DLLLOCAL const AbstractQoreNode *operator*() const { return val; }
+
+   //! returns true if a value is being held
+   DLLLOCAL operator bool() const { return val != 0; }
 };
 
 #endif

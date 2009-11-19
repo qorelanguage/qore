@@ -24,8 +24,7 @@
 
 #define _QORE_QORETREENODE_H
 
-class QoreTreeNode : public ParseNode 
-{
+class QoreTreeNode : public ParseNode {
    protected:
       bool ref_rv;
 
@@ -60,6 +59,8 @@ class QoreTreeNode : public ParseNode
       DLLLOCAL virtual const char *getTypeName() const;
 
       DLLLOCAL void ignoreReturnValue();
+
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 #endif

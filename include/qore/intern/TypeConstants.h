@@ -24,8 +24,7 @@
 
 #define _QORE_TYPECONSTANTS_H
 
-static inline class QoreNamespace *get_type_ns()
-{
+static inline QoreNamespace *get_type_ns() {
    class QoreNamespace *Type = new QoreNamespace("Type");
 
    Type->addConstant("Boolean",        new QoreStringNode(QoreBoolNode::getStaticTypeName()));

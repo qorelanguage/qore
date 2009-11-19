@@ -24,8 +24,7 @@
 
 #define QORE_FINDNODE_H
 
-class FindNode : public ParseNode
-{
+class FindNode : public ParseNode {
    protected:
       // eval(): return value requires a deref(xsink)
       DLLLOCAL virtual class AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
@@ -61,6 +60,7 @@ class FindNode : public ParseNode
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 

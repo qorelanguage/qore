@@ -24,8 +24,7 @@
 
 #define _QORE_CONSTANTNODE_H
 
-class ConstantNode : public ParseNoEvalNode 
-{
+class ConstantNode : public ParseNoEvalNode {
    public:
       NamedScope *scoped_ref;
 
@@ -48,6 +47,8 @@ class ConstantNode : public ParseNoEvalNode
 
       // caller owns NamedScope returned
       DLLLOCAL NamedScope *takeName();
+
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 #endif

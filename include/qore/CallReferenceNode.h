@@ -27,8 +27,7 @@
 //! base class for call references, reference-counted, dynamically allocated only
 /** cannot be a ParseNode or SimpleQoreNode because we require deref(xsink)
  */
-class AbstractCallReferenceNode : public AbstractQoreNode
-{
+class AbstractCallReferenceNode : public AbstractQoreNode {
    private:
       //! this function will never be executed for parse types; this function should never be called directly
       /** in debug mode this function calls assert(false)
@@ -106,15 +105,13 @@ class AbstractCallReferenceNode : public AbstractQoreNode
       //! returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "call reference";
       }
 };
 
 //! base class for resolved call references
-class ResolvedCallReferenceNode : public AbstractCallReferenceNode
-{
+class ResolvedCallReferenceNode : public AbstractCallReferenceNode {
    public:
       //! constructor is not exported outside the library
       DLLLOCAL ResolvedCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF);
@@ -133,8 +130,7 @@ class ResolvedCallReferenceNode : public AbstractCallReferenceNode
        */
       DLLLOCAL virtual QoreProgram *getProgram() const;
 
-      DLLLOCAL ResolvedCallReferenceNode *refRefSelf() const
-      {
+      DLLLOCAL ResolvedCallReferenceNode *refRefSelf() const {
 	 ref();
 	 return const_cast<ResolvedCallReferenceNode *>(this);
       }

@@ -82,8 +82,7 @@ static QoreTreeNode *makeErrorTree(Operator *op, AbstractQoreNode *left, Abstrac
    return new QoreTreeNode(left, op, right);
 }
 
-static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right)
-{
+static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right) {
    //tracein("makeTree()");
    printd(5, "makeTree(): l=%08p (%s, value=%d), r=%08p (%s, value=%d), op=%s\n", 
 	  left, left->getTypeName(), left->is_value(), 
@@ -110,8 +109,7 @@ static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, Abstract
    return new QoreTreeNode(left, op, right);
 }
 
-static QoreListNode *makeArgs(AbstractQoreNode *arg)
-{
+static QoreListNode *makeArgs(AbstractQoreNode *arg) {
    if (!arg)
       return 0;
 
@@ -127,8 +125,7 @@ static QoreListNode *makeArgs(AbstractQoreNode *arg)
    return l;
 }
 
-HashElement::HashElement(AbstractQoreNode *k, AbstractQoreNode *v)
-{
+HashElement::HashElement(AbstractQoreNode *k, AbstractQoreNode *v) {
    //tracein("HashElement::HashElement()");
    if (!k || k->getType() != NT_STRING) {
       parse_error("object member name must be a string value!");
@@ -141,8 +138,7 @@ HashElement::HashElement(AbstractQoreNode *k, AbstractQoreNode *v)
    //traceout("HashElement::HashElement()");
 }
 
-HashElement::HashElement(int tag, char *constant, AbstractQoreNode *v)
-{
+HashElement::HashElement(int tag, char *constant, AbstractQoreNode *v) {
    //tracein("HashElement::HashElement()");
    key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
    key[0] = tag; // mark as constant
@@ -400,12 +396,40 @@ static bool hasEffect(AbstractQoreNode *n) {
    return false;
 }
 
+static qore_type_t getBuiltinType(const char *str) {
+   if (!strcmp(str, "int"))
+      return NT_INT;
+   if (!strcmp(str, "string"))
+      return NT_STRING;
+   if (!strcmp(str, "bool"))
+      return NT_BOOLEAN;
+   if (!strcmp(str, "date"))
+      return NT_DATE;
+   if (!strcmp(str, "float"))
+      return NT_FLOAT;
+   if (!strcmp(str, "list"))
+      return NT_LIST;
+   if (!strcmp(str, "hash"))
+      return NT_HASH;
+   if (!strcmp(str, "object"))
+      return NT_OBJECT;
+   if (!strcmp(str, "binary"))
+      return NT_BINARY;
+   // these last two don't make much sense to use, but...
+   if (!strcmp(str, "null"))
+      return NT_NULL;
+   if (!strcmp(str, "nothing"))
+      return NT_NOTHING;
+
+   return -1;
+}
+
 #define OFM_PRIVATE 1
 #define OFM_SYNCED  2
 #define OFM_STATIC  4
 
 static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAList *bcal, StatementBlock *b) {
-   class NamedScope *name = new NamedScope(n);
+   NamedScope *name = new NamedScope(n);
    if (bcal && strcmp(name->getIdentifier(), "constructor")) {
       parse_error("base class constructor lists are only legal when defining ::constructor() methods");
       if (params)
@@ -429,7 +453,7 @@ static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAL
 struct MethodNode {
    public:
       // method to add to class
-      class QoreMethod *m;
+      QoreMethod *m;
       // base class argument list for constructors
       class BCAList *bcal;
 
@@ -466,9 +490,9 @@ struct MethodNode {
       int i4;
       int64 integer;
       double decimal;
-      class QoreStringNode *String;
+      QoreStringNode *String;
       char *string;
-      class BinaryNode *binary;
+      BinaryNode *binary;
       AbstractQoreNode *node;
       QoreHashNode *hash;
       QoreListNode *list;
@@ -770,7 +794,7 @@ top_namespace_decl:
 namespace_decls:
 	namespace_decl
         {
-	   class QoreNamespace *ns = new QoreNamespace();
+	   QoreNamespace *ns = new QoreNamespace();
 	   addNSNode(ns, $1);
 	   $$ = ns;
         }
@@ -1173,26 +1197,26 @@ object_def:
 	}
 	| TOK_CLASS IDENTIFIER inheritance_list ';'
         { 
-	   class QoreClass *qc = new QoreClass($2);
+	   QoreClass *qc = new QoreClass($2);
 	   qc->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, qc); 	   
 	}
 	| TOK_CLASS SCOPED_REF inheritance_list ';'
         { 
-	   class QoreClass *qc = new QoreClass();
+	   QoreClass *qc = new QoreClass();
 	   $$ = new ObjClassDef($2, qc);
 	   qc->setName($$->name->getIdentifier());
 	   qc->parseSetBaseClassList($3);
 	}
 	| TOK_CLASS IDENTIFIER inheritance_list '{' '}'
         { 
-	   class QoreClass *qc = new QoreClass($2);
+	   QoreClass *qc = new QoreClass($2);
 	   qc->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, qc); 	   
 	}
 	| TOK_CLASS SCOPED_REF inheritance_list '{' '}'
         { 
-	   class QoreClass *qc = new QoreClass();
+	   QoreClass *qc = new QoreClass();
 	   $$ = new ObjClassDef($2, qc);
 	   qc->setName($$->name->getIdentifier());
 	   qc->parseSetBaseClassList($3);
@@ -1463,8 +1487,13 @@ exp:    scalar
         { $$ = new VarRefNode($1, VT_UNRESOLVED); }
         | TOK_MY VAR_REF
         { $$ = new VarRefNode($2, VT_LOCAL); }
-        | TOK_MY IDENTIFIER VAR_REF
-        { $$ = new VarRefNode($3, VT_LOCAL); }
+        | TOK_MY IDENTIFIER VAR_REF {
+	   qore_type_t t = getBuiltinType($2);
+	   $$ = (t >= 0 ? new VarRefDeclNode($3, VT_LOCAL, t) : new VarRefDeclNode($3, VT_LOCAL, $2)); 
+	}
+        | TOK_MY SCOPED_REF VAR_REF {
+	   $$ = new VarRefDeclNode($3, VT_LOCAL, $2); 
+	}
         | TOK_MY '(' list ')' 
         {
 	   $3->setVariableList();
@@ -1903,7 +1932,7 @@ exp:    scalar
 	      if (tree) {
 		 // create an object method call node
 		 // take the string
-		 class QoreStringNode *str = reinterpret_cast<QoreStringNode *>(tree->right);
+		 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(tree->right);
 		 char *cstr = str->giveBuffer();
 		 str->deref();
 		 

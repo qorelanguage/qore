@@ -31,8 +31,7 @@
    it is both a value type and can hold parse expressions as well (in which case it needs to be evaluated)
    the first element in the list is element 0
  */
-class QoreListNode : public AbstractQoreNode
-{   
+class QoreListNode : public AbstractQoreNode {   
       friend class StackList;
 
    private:
@@ -417,6 +416,9 @@ class QoreListNode : public AbstractQoreNode
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
       */
       DLLLOCAL AbstractQoreNode *eval_entry(qore_size_t num, class ExceptionSink *xsink) const;
+
+      //! for initialization of lists in the parse tree at parse time
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 #include <qore/ReferenceHolder.h>

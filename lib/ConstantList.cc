@@ -26,8 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-void ConstantList::remove(hm_qn_t::iterator i)
-{
+void ConstantList::remove(hm_qn_t::iterator i) {
    if (i->second)
       i->second->deref(0);
    
@@ -36,8 +35,7 @@ void ConstantList::remove(hm_qn_t::iterator i)
    free((char *)c);	 
 }
 
-ConstantList::~ConstantList()
-{
+ConstantList::~ConstantList() {
    //QORE_TRACE("ConstantList::~ConstantList()");
    deleteAll();
 
@@ -45,8 +43,7 @@ ConstantList::~ConstantList()
 
 //  NOTE: since constants cannot hold objects (only immediate values)
 //  there is no need for an exception handler with the dereference
-void ConstantList::deleteAll()
-{
+void ConstantList::deleteAll() {
    hm_qn_t::iterator i = hm.begin();
    while (i != hm.end()) {
       remove(i);
@@ -54,16 +51,13 @@ void ConstantList::deleteAll()
    }
 }
 
-void ConstantList::reset()
-{
+void ConstantList::reset() {
    deleteAll();
 }
 
-void ConstantList::add(const char *name, AbstractQoreNode *value)
-{
+void ConstantList::add(const char *name, AbstractQoreNode *value) {
    // first check if the constant has already been defined
-   if (hm.find(name) != hm.end())
-   {
+   if (hm.find(name) != hm.end()) {
       parse_error("constant \"%s\" has already been defined", name);
       value->deref(0);
       return;
@@ -72,8 +66,7 @@ void ConstantList::add(const char *name, AbstractQoreNode *value)
    hm[strdup(name)] = value;
 }
 
-AbstractQoreNode *ConstantList::find(const char *name)
-{
+AbstractQoreNode *ConstantList::find(const char *name) {
    hm_qn_t::iterator i = hm.find(name);
    if (i != hm.end())
       return i->second;
@@ -81,12 +74,10 @@ AbstractQoreNode *ConstantList::find(const char *name)
    return 0;
 }
 
-class ConstantList *ConstantList::copy()
-{
+class ConstantList *ConstantList::copy() {
    class ConstantList *ncl = new ConstantList();
    
-   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
-   {
+   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++) {
       // reference value for new constant definition
       if (i->second)
 	 i->second->ref();
@@ -97,11 +88,9 @@ class ConstantList *ConstantList::copy()
 }
 
 // no duplicate checking is done here
-void ConstantList::assimilate(class ConstantList *n)
-{
+void ConstantList::assimilate(class ConstantList *n) {
    hm_qn_t::iterator i = n->hm.begin();
-   while (i != n->hm.end())
-   {
+   while (i != n->hm.end()) {
       // "move" data to new list
       hm[i->first] = i->second;
       n->hm.erase(i);
@@ -110,28 +99,22 @@ void ConstantList::assimilate(class ConstantList *n)
 }
 
 // duplicate checking is done here
-void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherlist, const char *nsname)
-{
+void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherlist, const char *nsname) {
    // assimilate target list
    hm_qn_t::iterator i = n->hm.begin();
-   while (i != n->hm.end())
-   {
+   while (i != n->hm.end()) {
       hm_qn_t::iterator j = otherlist->hm.find(i->first);
-      if (j != otherlist->hm.end())
-      {
+      if (j != otherlist->hm.end()) {
 	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"", i->first, nsname);
 	 n->remove(i);
       }
-      else
-      {      
+      else {      
 	 j = hm.find(i->first);
-	 if (j != hm.end())
-	 {
+	 if (j != hm.end()) {
 	    parse_error("constant \"%s\" is already pending for namespace \"%s\"", i->first, nsname);
 	    n->remove(i);
 	 }
-	 else
-	 {
+	 else {
 	    // "move" data to new list
 	    hm[i->first] = i->second;
 	    n->hm.erase(i);
@@ -148,15 +131,17 @@ void ConstantList::parseInit() {
       rns->parseInitConstantValue(&i->second, 0);
       printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 
 	     i->first, i->second, i->second ? i->second->getTypeName() : "NULL");
-      if (i->second)
-	  process_node(&i->second, 0, 0);
+      if (i->second) {
+	 int lvids = 0;
+	 i->second = i->second->parseInit(0, 0, lvids);
+	 assert(!lvids);
+      }
       if (!i->second)
 	 i->second = nothing();
    }
 }
 
-QoreHashNode *ConstantList::getInfo()
-{
+QoreHashNode *ConstantList::getInfo() {
    QoreHashNode *h = new QoreHashNode();
 
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)

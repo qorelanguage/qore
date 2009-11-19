@@ -53,10 +53,12 @@ int ThrowStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
    return 0;
 }
 
-int ThrowStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
-   if (args)
-      return process_list_node(&args, oflag, pflag);
+int ThrowStatement::parseInitImpl(LocalVar *oflag, int pflag) {
+   if (args) {
+      int lvids = 0;
+      args->parseInit(oflag, pflag, lvids);
+      return lvids;
+   }
    return 0;
 }
 

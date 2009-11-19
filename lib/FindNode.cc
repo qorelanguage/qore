@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) David Nichols 2003, 2004, 2005, 2006
+ Copyright (C) David Nichols 2003 - 2009
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -23,15 +23,13 @@
 #include <qore/Qore.h>
 #include <qore/intern/FindNode.h>
 
-FindNode::FindNode(AbstractQoreNode *expr, AbstractQoreNode *find_expr, AbstractQoreNode *w) : ParseNode(NT_FIND)
-{
+FindNode::FindNode(AbstractQoreNode *expr, AbstractQoreNode *find_expr, AbstractQoreNode *w) : ParseNode(NT_FIND) {
    exp = expr;
    find_exp = find_expr;
    where = w;
 }
 
-FindNode::~FindNode()
-{
+FindNode::~FindNode() {
    if (find_exp)
       find_exp->deref(0);
    if (exp)
@@ -44,15 +42,13 @@ FindNode::~FindNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int FindNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const
-{
+int FindNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
    qstr.sprintf("find expression (0x%08p)", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -60,22 +56,19 @@ QoreString *FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) con
 }
 
 // returns the type name as a c string
-const char *FindNode::getTypeName() const
-{
+const char *FindNode::getTypeName() const {
    return "find expression";
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *FindNode::evalImpl(ExceptionSink *xsink) const
-{
+AbstractQoreNode *FindNode::evalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(xsink);
    ReferenceHolder<Context> context(new Context(0, xsink, find_exp), xsink);
    if (*xsink)
       return 0;
    
    QoreListNode *lrv = 0;
-   for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
-   {
+   for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++) {
       printd(4, "FindNode::eval() checking %d/%d\n", context->pos, context->max_pos);
       bool b = context->check_condition(where, xsink);
       if (*xsink)
@@ -87,10 +80,8 @@ AbstractQoreNode *FindNode::evalImpl(ExceptionSink *xsink) const
       AbstractQoreNode *result = exp->eval(xsink);
       if (*xsink)
 	 return 0;
-      if (rv)
-      {
-	 if (!lrv)
-	 {
+      if (rv) {
+	 if (!lrv) {
 	    lrv = new QoreListNode();
 	    lrv->push(rv.release());
 	    lrv->push(result);
@@ -107,32 +98,40 @@ AbstractQoreNode *FindNode::evalImpl(ExceptionSink *xsink) const
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *FindNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
+AbstractQoreNode *FindNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
    return FindNode::evalImpl(xsink);
 }
 
-int64 FindNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
+int64 FindNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(FindNode::evalImpl(xsink), xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
-int FindNode::integerEvalImpl(ExceptionSink *xsink) const
-{
+int FindNode::integerEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(FindNode::evalImpl(xsink), xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
-bool FindNode::boolEvalImpl(ExceptionSink *xsink) const
-{
+bool FindNode::boolEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(FindNode::evalImpl(xsink), xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
-double FindNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double FindNode::floatEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(FindNode::evalImpl(xsink), xsink);
    return rv ? rv->getAsFloat() : 0;
+}
+
+AbstractQoreNode *FindNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   push_cvar(0);
+   pflag &= ~PF_REFERENCE_OK;
+   if (find_exp)
+      find_exp = find_exp->parseInit(oflag, pflag, lvids);
+   if (where)
+      where = where->parseInit(oflag, pflag, lvids);
+   if (exp)
+      exp = exp->parseInit(oflag, pflag, lvids);
+   pop_cvar();
+   return this;
 }

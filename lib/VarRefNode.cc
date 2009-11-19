@@ -5,7 +5,7 @@
 
   Copyright 2003 - 2009 David Nichols
 
-  This library is free software; you can redistribute it and/or
+  This library is free software; you can redistribute it and/o
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
@@ -22,14 +22,12 @@
 
 #include <qore/Qore.h>
 
-VarRefNode::VarRefNode(char *nme, int typ) : ParseNode(NT_VARREF)
-{
+VarRefNode::VarRefNode(char *nme, int typ) : ParseNode(NT_VARREF) {
    name = nme;
    type = typ;
 }
 
-VarRefNode::~VarRefNode()
-{
+VarRefNode::~VarRefNode() {
    if (name) {
       printd(3, "VarRefNode::~VarRefNode() deleting variable reference %08p %s\n", name, name);
       free(name);
@@ -40,15 +38,13 @@ VarRefNode::~VarRefNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int VarRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int VarRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.sprintf("variable reference '%s' %s (0x%08p)", name, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *VarRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *VarRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -56,13 +52,11 @@ QoreString *VarRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) c
 }
 
 // returns the type name as a c string
-const char *VarRefNode::getTypeName() const
-{
+const char *VarRefNode::getTypeName() const {
    return "variable reference";
 }
 
-void VarRefNode::resolve()
-{
+void VarRefNode::resolve() {
    LocalVar *id;
 
    bool in_closure;
@@ -85,8 +79,7 @@ void VarRefNode::resolve()
    }
 }
 
-AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const
-{
+AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const {
    if (type == VT_LOCAL) {
       printd(5, "VarRefNode::eval() lvar %08p (%s)\n", ref.id, ref.id->getName());
       return ref.id->eval(xsink);
@@ -100,8 +93,7 @@ AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const
    return ref.var->eval(xsink);
 }
 
-AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
+AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    if (type == VT_LOCAL)
       return ref.id->eval(needs_deref, xsink);
    if (type == VT_CLOSURE) {
@@ -112,32 +104,27 @@ AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) 
    return ref.var->eval(xsink);
 }
 
-int64 VarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
+int64 VarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
-int VarRefNode::integerEvalImpl(ExceptionSink *xsink) const
-{
+int VarRefNode::integerEvalImpl(ExceptionSink *xsink) const {
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
-bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const
-{
+bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
-double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const
-{
+AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const {
    if (type == VT_LOCAL)
       return ref.id->getValuePtr(vl, xsink);
    if (type == VT_CLOSURE) {
@@ -148,8 +135,7 @@ AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) 
    return ref.var->getValuePtr(vl, xsink);
 }
 
-AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) const
-{
+AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) const {
    if (type == VT_LOCAL)
       return ref.id->getValue(vl, xsink);
    if (type == VT_CLOSURE) {
@@ -160,8 +146,7 @@ AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) cons
    return ref.var->getValue(vl);
 }
 
-void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink)
-{
+void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink) {
    if (type == VT_LOCAL)
       ref.id->setValue(n, xsink);
    else if (type == VT_CLOSURE) {
@@ -173,10 +158,24 @@ void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink)
       ref.var->setValue(n, xsink);
 }
 
-char *VarRefNode::takeName()
-{
+char *VarRefNode::takeName() {
    assert(name);
    char *p = name;
    name = 0;
    return p;
+}
+
+AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   // if it is a new variable being declared
+   if (type == VT_LOCAL) {
+      ref.id = push_local_var(name);
+      ++lvids;
+      //printd(5, "VarRefNode::parseInit(): local var '%s' declared (id=%08p)\n", v->name, v->ref.id);
+   }
+   else if (type == VT_GLOBAL)
+      ref.var = getProgram()->createGlobalVar(name);
+   else // otherwise reference must be resolved
+      resolve();
+   
+   return this;
 }

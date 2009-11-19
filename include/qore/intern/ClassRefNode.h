@@ -24,8 +24,7 @@
 
 #define _QORE_CLASSREFNODE_H
 
-class ClassRefNode : public ParseNoEvalNode
-{
+class ClassRefNode : public ParseNoEvalNode {
    private:
       class NamedScope *cscope;
       int cid;
@@ -47,8 +46,9 @@ class ClassRefNode : public ParseNoEvalNode
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;      
 
-      DLLLOCAL void resolve();
       DLLLOCAL int getID() const;
+
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 

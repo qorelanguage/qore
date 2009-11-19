@@ -24,8 +24,7 @@
 
 #define _QORE_BAREWORDNODE_H
 
-class BarewordNode : public ParseNoEvalNode 
-{
+class BarewordNode : public ParseNoEvalNode {
    protected:
       
    public:
@@ -52,6 +51,8 @@ class BarewordNode : public ParseNoEvalNode
       DLLLOCAL QoreStringNode *makeQoreStringNode();
       // returns the string, caller now owns the memory
       DLLLOCAL char *takeString();
+
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 };
 
 #endif

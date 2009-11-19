@@ -22,24 +22,21 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, class Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE)
-{
+QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, class Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE) {
    left = l;
    op = o;
    right = r;
    ref_rv = true;
 }
 
-QoreTreeNode::~QoreTreeNode()
-{
+QoreTreeNode::~QoreTreeNode() {
    if (left)
       left->deref(0);
    if (right)
       right->deref(0);
 }
 
-void QoreTreeNode::ignoreReturnValue()
-{
+void QoreTreeNode::ignoreReturnValue() {
    // OPTIMIZATION: change post incremement to pre increment for top-level expressions to avoid extra SMP cache invalidations
    if (op == OP_POST_INCREMENT)
       op = OP_PRE_INCREMENT;
@@ -54,8 +51,7 @@ void QoreTreeNode::ignoreReturnValue()
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 // FIXME: no deep effect - or is this ever needed?
-int QoreTreeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreTreeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.sprintf("tree (left=%s (0x%08p) op=%s right=%s (%0x08p))", left ? left->getTypeName() : "NOTHING", 
 	       op->getName(), right ? right->getTypeName() : "NOTHING");
 
@@ -63,8 +59,7 @@ int QoreTreeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -72,39 +67,93 @@ QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 }
 
 // returns the type name as a c string
-const char *QoreTreeNode::getTypeName() const
-{
+const char *QoreTreeNode::getTypeName() const {
    return "expression tree";
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *QoreTreeNode::evalImpl(ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreTreeNode::evalImpl(ExceptionSink *xsink) const {
    return op->eval(left, right, ref_rv, xsink);
 }
 
-AbstractQoreNode *QoreTreeNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreTreeNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
    return op->eval(left, right, ref_rv, xsink);
 }
 
-int64 QoreTreeNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
+int64 QoreTreeNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    return op->bigint_eval(left, right, xsink);
 }
 
-int QoreTreeNode::integerEvalImpl(ExceptionSink *xsink) const
-{
+int QoreTreeNode::integerEvalImpl(ExceptionSink *xsink) const {
    return op->bigint_eval(left, right, xsink);
 }
 
-bool QoreTreeNode::boolEvalImpl(ExceptionSink *xsink) const
-{
+bool QoreTreeNode::boolEvalImpl(ExceptionSink *xsink) const {
    return op->bool_eval(left, right, xsink);
 }
 
-double QoreTreeNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double QoreTreeNode::floatEvalImpl(ExceptionSink *xsink) const {
    return op->float_eval(left, right, xsink);
+}
+
+// checks for illegal $self assignments in an object context
+static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
+   // if it's a variable reference
+   qore_type_t ntype = n->getType();
+   if (ntype == NT_VARREF) {
+      VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+      if (v->type == VT_LOCAL && v->ref.id == selfid)
+	 parse_error("illegal assignment to $self in an object context");
+      return;
+   }
+   
+   if (ntype != NT_TREE)
+      return;
+
+   QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
+
+   // otherwise it's a tree: go to root expression 
+   while (tree->left->getType() == NT_TREE) {
+      n = tree->left;
+      tree = reinterpret_cast<QoreTreeNode *>(n);
+   }
+
+   if (tree->left->getType() != NT_VARREF)
+      return;
+
+   VarRefNode *v = reinterpret_cast<VarRefNode *>(tree->left);
+
+   // left must be variable reference, check if the tree is
+   // a list reference; if so, it's invalid
+   if (v->type == VT_LOCAL && v->ref.id == selfid  && tree->op == OP_LIST_REF)
+      parse_error("illegal conversion of $self to a list");
+}
+
+AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   // set "parsing background" flag if the background operator is being parsed
+   if (op == OP_BACKGROUND)
+      pflag |= PF_BACKGROUND;
+
+   // turn off "reference ok" flag
+   pflag &= ~PF_REFERENCE_OK;
+
+   // process left branch of tree
+   if (left)
+      left = left->parseInit(oflag, pflag, lvids);
+   // process right branch if it exists
+   if (right)
+      right = right->parseInit(oflag, pflag, lvids);
+   
+   // check for illegal changes to local variables in background expressions
+   if (pflag & PF_BACKGROUND && op->needsLValue()) {
+      if (left && left->getType() == NT_VARREF && reinterpret_cast<VarRefNode *>(left)->type == VT_LOCAL)
+	 parse_error("illegal local variable modification in background expression");
+   }
+   
+   // throw a parse exception if an assignment is attempted on $self
+   if (op == OP_ASSIGNMENT && oflag)
+      checkSelf(left, oflag);
+   
+   return this;
 }

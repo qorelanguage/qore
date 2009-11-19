@@ -78,16 +78,15 @@ class ReferenceNode : public SimpleValueQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
+      //! initializes during parsing
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+
       //! returns the lvalue expression for this object
       /** @return the lvalue expression for this object
        */
-      DLLLOCAL AbstractQoreNode *getExpression() const
-      {
+      DLLLOCAL AbstractQoreNode *getExpression() const {
 	 return lvexp;
       }
-
-      //! returns a pointer to the lvalue expression
-      DLLLOCAL AbstractQoreNode **getExpressionPtr();
 };
 
 #endif

@@ -22,8 +22,29 @@
 
 #include <qore/Qore.h>
 
-ComplexContextrefNode::ComplexContextrefNode(char *str) : ParseNode(NT_COMPLEXCONTEXTREF)
-{
+// parse context stack
+class CVNode {
+public:
+   const char *name;
+   CVNode *next;
+      
+   DLLLOCAL CVNode(const char *n) : name(n), next(getCVarStack()) {
+      updateCVarStack(this);
+   }
+   DLLLOCAL ~CVNode() {
+      updateCVarStack(next);
+   }
+};
+
+void push_cvar(const char *name) {
+   new CVNode(name);
+}
+
+void pop_cvar() {
+   delete getCVarStack();
+}
+
+ComplexContextrefNode::ComplexContextrefNode(char *str) : ParseNode(NT_COMPLEXCONTEXTREF) {
    char *c = strchr(str, ':');
    *c = '\0';
    name = strdup(str);
@@ -31,8 +52,7 @@ ComplexContextrefNode::ComplexContextrefNode(char *str) : ParseNode(NT_COMPLEXCO
    free(str);
 }
 
-ComplexContextrefNode::~ComplexContextrefNode()
-{
+ComplexContextrefNode::~ComplexContextrefNode() {
    if (name)
       free(name); 
    if (member)
@@ -43,15 +63,13 @@ ComplexContextrefNode::~ComplexContextrefNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int ComplexContextrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const
-{
+int ComplexContextrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
    qstr.sprintf("complex context reference '%s:%s' (0x%08p)", name ? name : "<null>", member ? member : "<null>", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ComplexContextrefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *ComplexContextrefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -59,19 +77,16 @@ QoreString *ComplexContextrefNode::getAsString(bool &del, int foff, ExceptionSin
 }
 
 // returns the type name as a c string
-const char *ComplexContextrefNode::getTypeName() const
-{
+const char *ComplexContextrefNode::getTypeName() const {
    return "complex context reference";
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *ComplexContextrefNode::evalImpl(ExceptionSink *xsink) const
-{
+AbstractQoreNode *ComplexContextrefNode::evalImpl(ExceptionSink *xsink) const {
    int count = 0;
 
    Context *cs = get_context_stack();
-   while (count != stack_offset)
-   {
+   while (count != stack_offset) {
       count++;
       cs = cs->next;
    }
@@ -79,32 +94,52 @@ AbstractQoreNode *ComplexContextrefNode::evalImpl(ExceptionSink *xsink) const
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *ComplexContextrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
+AbstractQoreNode *ComplexContextrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
    return ComplexContextrefNode::evalImpl(xsink);
 }
 
-int64 ComplexContextrefNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
+int64 ComplexContextrefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(ComplexContextrefNode::evalImpl(xsink), xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
-int ComplexContextrefNode::integerEvalImpl(ExceptionSink *xsink) const
-{
+int ComplexContextrefNode::integerEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(ComplexContextrefNode::evalImpl(xsink), xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
-bool ComplexContextrefNode::boolEvalImpl(ExceptionSink *xsink) const
-{
+bool ComplexContextrefNode::boolEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(ComplexContextrefNode::evalImpl(xsink), xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
-double ComplexContextrefNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double ComplexContextrefNode::floatEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(ComplexContextrefNode::evalImpl(xsink), xsink);
    return rv ? rv->getAsFloat() : 0;
+}
+
+AbstractQoreNode *ComplexContextrefNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   if (!getCVarStack()) {
+      parse_error("complex context reference \"%s:%s\" encountered out of context", name, member);
+      return this;
+   }
+      
+   int cur_stack_offset = 0;
+   bool found = false;
+   CVNode *cvn = getCVarStack();
+   while (cvn) {
+      if (cvn->name && !strcmp(name, cvn->name)) {
+	 found = true;
+	 break;
+      }
+      cvn = cvn->next;
+      cur_stack_offset++;
+   }
+   if (!found)
+      parse_error("\"%s\" does not match any current context", name);
+   else
+      stack_offset = cur_stack_offset;
+
+   return this;
 }

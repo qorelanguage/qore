@@ -36,11 +36,7 @@
 
 // all definitions in this file are private to the library and subject to change
 
-DLLLOCAL int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag);
-DLLLOCAL int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag);
-
-class AbstractStatement
-{
+class AbstractStatement {
    private:
       DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) = 0;
       DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) = 0;   

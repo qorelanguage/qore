@@ -23,27 +23,25 @@
 #include <qore/Qore.h>
 #include <qore/intern/ReturnStatement.h>
 
-ReturnStatement::ReturnStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
-{
+ReturnStatement::ReturnStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line) {
    exp = v;
 }
 
-ReturnStatement::~ReturnStatement()
-{
+ReturnStatement::~ReturnStatement() {
    // this should never be 0, but in case the implementation changes...
    if (exp)
       exp->deref(0);
 }
 
-int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    if (exp)
       (*return_value) = exp->eval(xsink);
    return RC_RETURN;
 }
 
-int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
-   return exp ? process_node(&exp, oflag, pflag) : 0;
+int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
+   int lvids = 0;
+   if (exp)
+      exp = exp->parseInit(oflag, pflag, lvids);
+   return lvids;
 }
-

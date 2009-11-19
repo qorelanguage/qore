@@ -22,12 +22,10 @@
 
 #include <qore/Qore.h>
 
-ClassRefNode::ClassRefNode(char *str) : ParseNoEvalNode(NT_CLASSREF), cscope(new NamedScope(str))
-{
+ClassRefNode::ClassRefNode(char *str) : ParseNoEvalNode(NT_CLASSREF), cscope(new NamedScope(str)) {
 }
 
-ClassRefNode::~ClassRefNode()
-{
+ClassRefNode::~ClassRefNode() {
    delete cscope;
 }
 
@@ -35,8 +33,7 @@ ClassRefNode::~ClassRefNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int ClassRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int ClassRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    if (cscope)
       str.sprintf("reference to Qore class '%s' (unresolved, 0x%08p)", cscope->ostr, this);
    else
@@ -45,38 +42,33 @@ int ClassRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ClassRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *ClassRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    return rv;
 }
 
 // returns the data type
-qore_type_t ClassRefNode::getType() const
-{
+qore_type_t ClassRefNode::getType() const {
    return NT_CLASSREF;
 }
 
 // returns the type name as a c string
-const char *ClassRefNode::getTypeName() const
-{
+const char *ClassRefNode::getTypeName() const {
    return "reference to Qore class";
 }
 
-void ClassRefNode::resolve()
-{
-   if (cscope)
-   {
-      class QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
+int ClassRefNode::getID() const {
+   return cid;
+}
+
+AbstractQoreNode *ClassRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   if (cscope) {
+      const QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
       if (qc)
 	 cid = qc->getID();
       delete cscope;
       cscope = 0;
    }
-}
-
-int ClassRefNode::getID() const
-{
-   return cid;
+   return this;
 }

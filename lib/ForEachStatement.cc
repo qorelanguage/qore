@@ -24,12 +24,10 @@
 #include <qore/intern/ForEachStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, class StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0)
-{
+ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, class StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0) {
 }
 
-ForEachStatement::~ForEachStatement()
-{
+ForEachStatement::~ForEachStatement() {
    if (var)
       var->deref(0);
    if (list)
@@ -40,8 +38,7 @@ ForEachStatement::~ForEachStatement()
       delete lvars;
 }
 
-int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    if (is_ref)
       return execRef(return_value, xsink);
 
@@ -184,12 +181,13 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    return rc;
 }
 
-int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
+int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
-   lvids += process_node(&var, oflag, pflag);
-   lvids += process_node(&list, oflag, pflag | PF_REFERENCE_OK);
+   if (var)
+      var = var->parseInit(oflag, pflag, lvids);
+   if (list)
+      list = list->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids);
    if (code)
       code->parseInitImpl(oflag, pflag);
    

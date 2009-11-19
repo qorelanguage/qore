@@ -22,16 +22,13 @@
 
 #include <qore/Qore.h>
 
-ScopedObjectCallNode::ScopedObjectCallNode(NamedScope *n, QoreListNode *a) : ParseNoEvalNode(NT_SCOPE_REF)
-{ 
+ScopedObjectCallNode::ScopedObjectCallNode(NamedScope *n, QoreListNode *a) : ParseNoEvalNode(NT_SCOPE_REF) {
    name = n; 
    args = a; 
 }
 
-ScopedObjectCallNode::~ScopedObjectCallNode()
-{
-   if (name)
-      delete name; 
+ScopedObjectCallNode::~ScopedObjectCallNode() {
+   delete name; 
    if (args)
       args->deref(0);
 }
@@ -40,15 +37,13 @@ ScopedObjectCallNode::~ScopedObjectCallNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int ScopedObjectCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int ScopedObjectCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.sprintf("new operator expression (class '%s')", oc ? oc->getName() : name ? name->ostr : "<null>", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ScopedObjectCallNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *ScopedObjectCallNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -56,13 +51,27 @@ QoreString *ScopedObjectCallNode::getAsString(bool &del, int foff, ExceptionSink
 }
 
 // returns the data type
-qore_type_t ScopedObjectCallNode::getType() const
-{
+qore_type_t ScopedObjectCallNode::getType() const {
    return NT_SCOPE_REF;
 }
 
 // returns the type name as a c string
-const char *ScopedObjectCallNode::getTypeName() const
-{
+const char *ScopedObjectCallNode::getTypeName() const {
    return "new object call";
+}
+
+AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   // find object class
+   if ((oc = getRootNS()->parseFindScopedClass(name))) {
+      // check if parse options allow access to this class
+      if (oc->getDomain() & getProgram()->getParseOptions())
+	 parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+   }
+   delete name;
+   name = 0;
+   if (args)
+      args->parseInit(oflag, pflag, lvids);
+   //lvids += process_list_node(&args, oflag, pflag);
+   
+   return this;
 }

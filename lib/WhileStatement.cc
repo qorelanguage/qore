@@ -24,15 +24,13 @@
 #include <qore/intern/WhileStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-WhileStatement::WhileStatement(int start_line, int end_line, AbstractQoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
-{
+WhileStatement::WhileStatement(int start_line, int end_line, AbstractQoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line) {
    cond = c;
    code = cd;
    lvars = 0;
 }
 
-WhileStatement::~WhileStatement()
-{
+WhileStatement::~WhileStatement() {
    cond->deref(0);
    if (code)
       delete code;
@@ -40,17 +38,14 @@ WhileStatement::~WhileStatement()
       delete lvars;
 }
 
-int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    int rc = 0;
    
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
    
-   while (cond->boolEval(xsink) && !xsink->isEvent())
-   {
-      if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()))
-      {
+   while (cond->boolEval(xsink) && !xsink->isEvent()) {
+      if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())) {
 	 rc = 0;
 	 break;
       }
@@ -63,11 +58,11 @@ int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
    return rc;
 }
 
-int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
+int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
-   lvids += process_node(&cond, oflag, pflag);
+   if (cond)
+      cond = cond->parseInit(oflag, pflag, lvids);
    if (code)
       code->parseInitImpl(oflag, pflag);
    
