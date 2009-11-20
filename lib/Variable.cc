@@ -49,11 +49,29 @@ VarStackPointerClosureHelper::~VarStackPointerClosureHelper() {
    orig->skip = false;
 }
 
+/*
 Var::Var(const char *n_name, AbstractQoreNode *val) : type(GV_VALUE), name(n_name) {
    v.val.value = val;
 }
+*/
 
-Var::Var(class Var *ref, bool ro) : type(GV_IMPORT), name(ref->name) {
+Var::Var(const char *n_name) : type(GV_VALUE), name(n_name) {
+   v.val.value = 0;
+}
+
+Var::Var(const char *n_name, qore_type_t qt) : type(GV_VALUE), name(n_name), typeInfo(qt) {
+   v.val.value = 0;
+}
+
+Var::Var(const char *n_name, char *class_scope) : type(GV_VALUE), name(n_name), typeInfo(class_scope) {
+   v.val.value = 0;
+}
+
+Var::Var(const char *n_name, const QoreTypeInfo *n_typeInfo) : type(GV_VALUE), name(n_name), typeInfo(n_typeInfo) {
+   v.val.value = 0;
+}
+
+Var::Var(Var *ref, bool ro) : type(GV_IMPORT), name(ref->name) {
    v.ivar.refptr = ref;
    v.ivar.readonly = ro;
    ref->ROreference();
@@ -109,7 +127,7 @@ AbstractQoreNode *Var::eval(ExceptionSink *xsink) {
 }
 
 // note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, ExceptionSink *xsink) const {
+AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
    if (type == GV_IMPORT) {
       if (v.ivar.readonly) {
 	 m.unlock();
@@ -121,18 +139,19 @@ AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, ExceptionSink *xsink) c
       m.unlock();
       v.ivar.refptr->m.lock();
 
-      return v.ivar.refptr->getValuePtrIntern(vl, xsink);
+      return v.ivar.refptr->getValuePtrIntern(vl, typeInfo, xsink);
    }
 
    vl->set(&m);
+   // xxx set typeInfo
    return const_cast<AbstractQoreNode **>(&v.val.value);
 }
 
 // note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const {
+AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
    m.lock();
 
-   return getValuePtrIntern(vl, xsink);
+   return getValuePtrIntern(vl, typeInfo, xsink);
 }
 
 // note: unlocking the lock is managed with the AutoVLock object
@@ -248,10 +267,14 @@ static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *v
       return 0;
    }
 
+   const QoreTypeInfo *typeInfo = 0;
+
    // now get left hand side
-   AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
+   AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, typeInfo, xsink);
    if (xsink->isEvent())
       return 0;
+
+   // xxx check type
 
    // if the variable's value is not already a list, then make it one
    // printd(0, "index=%d val=%p (%s)\n", ind, *val, *val ? (*val)->getTypeName() : "(null)");
@@ -289,9 +312,13 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
    if (*xsink)
       return 0;
 
-   AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
+   const QoreTypeInfo *typeInfo = 0;
+
+   AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, typeInfo, xsink);
    if (*xsink)
       return 0;
+
+   // xxx check type
 
    QoreHashNode *h = (*val && (*val)->getType() == NT_HASH) ? reinterpret_cast<QoreHashNode *>(*val) : 0;
    QoreObject *o = 0;
@@ -342,18 +369,20 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
 }
 
 // this function will change the lvalue to the right type if needed (used for assignments)
-AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, ExceptionSink *xsink) {
+AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) {
    qore_type_t ntype = n->getType();
    //printd(0, "get_var_value_ptr(%p) %s\n", n, n->getTypeName());
    if (ntype == NT_VARREF) {
       const VarRefNode *v = reinterpret_cast<const VarRefNode *>(n);
       //printd(5, "get_var_value_ptr(): vref=%s (%p)\n", v->name, v);
-      return v->getValuePtr(vlp, xsink);
+      return v->getValuePtr(vlp, typeInfo, xsink);
    }
    else if (ntype == NT_SELF_VARREF) {
       const SelfVarrefNode *v = reinterpret_cast<const SelfVarrefNode *>(n);
       // need to check for deleted objects
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
+
+      // xxx add type info to call
       AbstractQoreNode **rv = getStackObject()->getMemberValuePtr(v->str, vlp, xsink);
       if (!rv && !xsink->isException())
 	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", v->str);
@@ -499,8 +528,9 @@ static AbstractQoreNode **check_unique(AbstractQoreNode **p, ExceptionSink *xsin
 static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl) {
    printd(5, "getUniqueExistingVarValuePtr(%p) %s\n", n, n->getTypeName());
    qore_type_t ntype = n->getType();
+   const QoreTypeInfo *typeInfo = 0;
    if (ntype == NT_VARREF)
-      return check_unique(reinterpret_cast<VarRefNode *>(n)->getValuePtr(vl, xsink), xsink);
+      return check_unique(reinterpret_cast<VarRefNode *>(n)->getValuePtr(vl, typeInfo, xsink), xsink);
 
    // getStackObject() will always return a value here (self refs are only legal in methods)
    if (ntype == NT_SELF_VARREF) {
@@ -560,7 +590,8 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
 
    // if the node is a variable reference, then find value ptr, dereference it, and return
    if (lvtype == NT_VARREF) {
-      val = reinterpret_cast<VarRefNode *>(lvalue)->getValuePtr(&vl, xsink);
+      const QoreTypeInfo *typeInfo = 0;
+      val = reinterpret_cast<VarRefNode *>(lvalue)->getValuePtr(&vl, typeInfo, xsink);
       if (val && *val) {
 	 printd(5, "delete_var_node() setting ptr %p (val=%p) to NULL\n", val, (*val));
 	 if ((*val)->getType() == NT_OBJECT) {

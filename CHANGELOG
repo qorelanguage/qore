@@ -1,7 +1,14 @@
-2009.11.19: 
+2009.11.20: David Nichols
+	* detected erroneous variable list declarations like:
+	  our (my $x, ...) or my (our $x) and throw a parse exception
+	* major updates towards optional hard typing support
+
+2009.11.19: David Nichols
 	* eliminated the internal function "process_node()" and made parse
 	  tree node parse initilization regular
 	* started implementing support for optional hard typing
+	* fixed memory leaks in parse exceptions with static method call
+	  references
 
 2009.11.18: David Nichols
 	* fixed handling in the Datasource and DatasourcePool classes when

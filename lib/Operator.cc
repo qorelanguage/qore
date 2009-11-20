@@ -56,29 +56,6 @@ static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink) {
    }
 }
 
-// call to get a unique douvle node
-static inline void ensure_unique_float(AbstractQoreNode **v, ExceptionSink *xsink) {
-   if ((*v)->getType() != NT_FLOAT) {
-      double f = (*v)->getAsFloat();
-      (*v)->deref(xsink);
-      (*v) = new QoreFloatNode(f);
-   }
-   else
-      ensure_unique(v, xsink);
-}
-
-// call to get a unique int64 node
-static inline void ensure_unique_int(AbstractQoreNode **v, ExceptionSink *xsink) {
-   assert(*v);
-   if ((*v)->getType() != NT_INT) {
-      int64 i = (*v)->getAsBigInt();
-      (*v)->deref(xsink);
-      (*v) = new QoreBigIntNode(i);
-   }
-   else
-      ensure_unique(v, xsink);
-}
-
 // operator functions for builtin types
 static bool op_log_lt_bigint(int64 left, int64 right) {
    return left < right;
@@ -1760,8 +1737,7 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
    return ref_rv ? val.get_value()->refSelf() : 0;
 }
 
-static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, ExceptionSink *xsink)
-{
+static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, ExceptionSink *xsink) {
    //QORE_TRACE("op_chomp()");
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)

@@ -27,14 +27,14 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQ
    // if it is a global variable declaration, then do not register
    if (exp->getType() == NT_VARREF) {
       is_declaration = true;
-      is_parse_declaration = reinterpret_cast<VarRefNode *>(exp)->type == VT_GLOBAL ? true : false;
+      is_parse_declaration = reinterpret_cast<VarRefNode *>(exp)->getType() == VT_GLOBAL ? true : false;
       return;
    }
 
    QoreListNode *l = dynamic_cast<QoreListNode *>(exp);
    if (l && l->isVariableList()) {
       is_declaration = true;
-      is_parse_declaration = reinterpret_cast<VarRefNode *>(l->retrieve_entry(0))->type == VT_GLOBAL ? true : false;
+      is_parse_declaration = reinterpret_cast<VarRefNode *>(l->retrieve_entry(0))->getType() == VT_GLOBAL ? true : false;
       return;
    }
 

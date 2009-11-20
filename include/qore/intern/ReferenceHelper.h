@@ -24,26 +24,29 @@
 
 #define _QORE_REFERENCEHELPER_H
 
-//! helper class to manage variable references passed to functions and class methods, stack only, cannot be dynamically allocated
-/** Takes care of safely accessing ReferenceNode objects, for example when they are passed
-    as arguments to a builtin function or method.  Locks are automatically acquired in the constructor
-    if necessary and released in the destructor.  The constructor could raise a Qore-language
-    exception if there is a deadlock acquiring any locks to access the ReferenceNode's value
-    as given by the lvalue expression, so the object should be checked for this state right
-    after the constructor as in the following example:
-    @code
-    const AbstractQoreNode *p = get_param(params, 0);   
-    if (p && p->getType() == NT_REFERENCE) {
-       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
-       AutoVLock vl;
-       ReferenceHelper ref(r, vl, xsink);
-       // a deadlock exception occurred accessing the reference's value pointer
-       if (!ref)
-          return 0;
+//! DEPRECATED! DO NOT USE use @see QoreTypeSafeReferenceHelper instead
 
-       // more code to access the reference
-    }
-    @endcode
+/**  helper class to manage variable references passed to functions and class 
+     methods, stack only, cannot be dynamically allocated
+     Takes care of safely accessing ReferenceNode objects, for example when they are passed
+     as arguments to a builtin function or method.  Locks are automatically acquired in the constructor
+     if necessary and released in the destructor.  The constructor could raise a Qore-language
+     exception if there is a deadlock acquiring any locks to access the ReferenceNode's value
+     as given by the lvalue expression, so the object should be checked for this state right
+     after the constructor as in the following example:
+     @code
+     const AbstractQoreNode *p = get_param(params, 0);   
+     if (p && p->getType() == NT_REFERENCE) {
+        const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
+	AutoVLock vl;
+	ReferenceHelper ref(r, vl, xsink);
+        // a deadlock exception occurred accessing the reference's value pointer
+        if (!ref)
+           return 0;
+
+        // more code to access the reference
+     }
+     @endcode
  */
 class ReferenceHelper {
    private:

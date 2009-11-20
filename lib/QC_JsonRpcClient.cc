@@ -135,7 +135,7 @@ static AbstractQoreNode *JRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *
 
    // write info hash to reference
    AutoVLock vl(xsink);
-   ReferenceHelper rh(ref, vl, xsink);
+   QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
    if (!rh)
       return 0;
 
@@ -174,7 +174,7 @@ static AbstractQoreNode *JRC_callWithInfo(QoreObject *self, QoreHTTPClient *clie
 
    // write info hash to reference
    AutoVLock vl(xsink);
-   ReferenceHelper rh(ref, vl, xsink);
+   QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
    if (!rh)
       return 0;
 

@@ -246,7 +246,7 @@ static QoreHashNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreListNod
    if (p0->getType() == NT_REFERENCE) {
       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
       AutoVLock vl(xsink);
-      ReferenceHelper ref(r, vl, xsink);
+      QoreTypeSafeReferenceHelper ref(r, vl, xsink);
       if (!ref)
 	 return 0;
 

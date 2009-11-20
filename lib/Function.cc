@@ -117,8 +117,7 @@ void SelfFunctionCall::resolve() {
    }
 }
 
-AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const {
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
@@ -133,21 +132,24 @@ AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, Exception
 }
 
 
-Paramlist::Paramlist(AbstractQoreNode *params)
-{
+Paramlist::Paramlist(AbstractQoreNode *params) {
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
    lv = 0;
    if (!params) {
       num_params = 0;
       names = 0;
+      typeList = 0;
       return;
    }
 
    if (params->getType() == NT_VARREF) {
       num_params = 1;
       names = new char *[1];
-      names[0] = strdup(reinterpret_cast<const VarRefNode *>(params)->name);
+      typeList = new const QoreTypeInfo *[1];
+      const VarRefNode *v = reinterpret_cast<const VarRefNode *>(params);
+      names[0] = strdup(v->getName());
+      typeList[0] = v->getTypeInfo();
       return;
    }
 
@@ -155,6 +157,7 @@ Paramlist::Paramlist(AbstractQoreNode *params)
       param_error();
       num_params = 0;
       names = 0;
+      typeList = 0;
       return;
    }
 
@@ -162,25 +165,32 @@ Paramlist::Paramlist(AbstractQoreNode *params)
 
    num_params = l->size();
    names = new char *[num_params];
+   typeList = new const QoreTypeInfo *[num_params];
    for (int i = 0; i < num_params; i++) {
       if (l->retrieve_entry(i)->getType() != NT_VARREF) {
 	 param_error();
 	 num_params = 0;
 	 delete [] names;
 	 names = 0;
+	 delete [] typeList;
+	 typeList = 0;
 	 break;
       }
-      else
-	 names[i] = strdup(reinterpret_cast<const VarRefNode *>(l->retrieve_entry(i))->name);
+      else {
+	 const VarRefNode *v = reinterpret_cast<const VarRefNode *>(l->retrieve_entry(i));
+	 names[i] = strdup(v->getName());
+	 typeList[i] = v->getTypeInfo();
+      }
    }
 }
 
-Paramlist::~Paramlist()
-{
+Paramlist::~Paramlist() {
    for (int i = 0; i < num_params; i++)
       free(names[i]);
    if (names)
       delete [] names;
+   if (typeList)
+      delete [] typeList;
    if (lv)
       delete [] lv;
 }
@@ -199,8 +209,7 @@ UserFunction::UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, bo
    statements = b;
 }
 
-UserFunction::~UserFunction()
-{
+UserFunction::~UserFunction() {
    printd(5, "UserFunction::~UserFunction() deleting %s\n", name);
    if (synchronized)
       delete gate;
@@ -211,8 +220,7 @@ UserFunction::~UserFunction()
       free(name);
 }
 
-void UserFunction::deref()
-{
+void UserFunction::deref() {
    if (ROdereference())
       delete this;
 }

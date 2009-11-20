@@ -26,6 +26,82 @@
 
 #include <qore/intern/config.h>
 
+#define NT_NONE  -1
+#define NT_ALL   -2
+
+// the following functions are implemented in support.cc
+DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
+DLLLOCAL void parse_error(const char *fmt, ...);
+DLLLOCAL void parseException(const char *err, const char *fmt, ...);
+DLLLOCAL QoreString *findFileInPath(const char *file, const char *path);
+DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
+
+class QoreTypeInfo {
+public:
+   const QoreClass *qc;
+   qore_type_t qt : 11;
+   bool has_type : 1;
+
+   DLLLOCAL QoreTypeInfo() : qc(0), qt(NT_ALL), has_type(false) {}
+   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : qc(0), qt(n_qt), has_type(true) {}
+
+/*
+   // returns true if types are equal (or both null)
+   DLLLOCAL bool equal(const QoreTypeInfo *typeInfo) const {
+      if (!this || !has_type)
+	 return !typeInfo || !typeInfo->has_type ? true : false;
+      if (!typeInfo || !typeInfo->has_type)
+	 return false;
+      return qt == typeInfo->qt && qc == typeInfo->qc;      
+   }
+*/
+   DLLLOCAL bool equal(const QoreTypeInfo &typeInfo) const {
+      if (!has_type)
+	 return !typeInfo.has_type ? true : false;
+      if (!typeInfo.has_type)
+	 return false;
+      return qt == typeInfo.qt && qc == typeInfo.qc;      
+   }
+   // can be called when this == null
+   DLLLOCAL bool hasType() const { return this ? has_type : false; }
+
+   DLLLOCAL void set(const QoreTypeInfo &ti) {
+      assert(!has_type);
+      assert(ti.has_type);
+      qc = ti.qc;
+      qt = ti.qt;
+      has_type = true;
+   }
+};
+
+#include <qore/intern/NamedScope.h>
+
+class QoreParseTypeInfo : public QoreTypeInfo {
+protected:
+   NamedScope *cscope; // namespace scope for class
+
+public:
+   DLLLOCAL QoreParseTypeInfo() : QoreTypeInfo(), cscope(0) {}
+   DLLLOCAL QoreParseTypeInfo(qore_type_t qt) : QoreTypeInfo(qt), cscope(0) {}
+   DLLLOCAL QoreParseTypeInfo(char *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(new NamedScope(n_cscope)) {}
+   DLLLOCAL QoreParseTypeInfo(const QoreTypeInfo *typeInfo) : QoreTypeInfo(), cscope(0) {
+      if (typeInfo) {
+	 qc = typeInfo->qc;
+	 qt = typeInfo->qt;
+	 has_type = typeInfo->has_type;
+      }
+   }
+/*
+   DLLLOCAL QoreParseTypeInfo(qore_type_t qt, char *n_cscope) : QoreTypeInfo(qt), cscope(n_cscope ? new NamedScope(n_cscope) : 0) {
+      assert(!cscope || qt == NT_OBJECT);
+   }
+*/
+   DLLLOCAL ~QoreParseTypeInfo() {
+      delete cscope;
+   }
+   DLLLOCAL void resolve();
+};
+
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
 #include <inttypes.h>
@@ -73,16 +149,6 @@ typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 // for maps of thread condition variables to TIDs
 typedef std::map<QoreCondition *, int> cond_map_t;
 
-#define NT_NONE  -1
-#define NT_ALL   -2
-
-// the following functions are implemented in support.cc
-DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
-DLLLOCAL void parse_error(const char *fmt, ...);
-DLLLOCAL void parseException(const char *err, const char *fmt, ...);
-DLLLOCAL QoreString *findFileInPath(const char *file, const char *path);
-DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
-
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && defined(HAVE_CHECK_STACK_POS)
 #define QORE_MANAGE_STACK
 #endif
@@ -94,7 +160,6 @@ DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/Variable.h>
 #include <qore/intern/LocalVar.h>
-#include <qore/intern/NamedScope.h>
 #include <qore/intern/ScopedObjectCallNode.h>
 #include <qore/intern/ConstantNode.h>
 #include <qore/intern/ClassRefNode.h>

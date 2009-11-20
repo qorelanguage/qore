@@ -145,7 +145,7 @@ static AbstractQoreNode *HC_send(QoreObject *self, QoreHTTPClient *client, const
    // write info to reference first
    if (ref) {
       AutoVLock vl(xsink);
-      ReferenceHelper rh(ref, vl, xsink);
+      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
       if (!rh)
 	 return 0;
 
@@ -181,7 +181,7 @@ static AbstractQoreNode *HC_get(QoreObject *self, QoreHTTPClient *client, const 
    // write info to reference first
    if (ref) {
       AutoVLock vl(xsink);
-      ReferenceHelper rh(ref, vl, xsink);
+      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
       if (!rh)
 	 return 0;
 
@@ -218,7 +218,7 @@ static AbstractQoreNode *HC_head(QoreObject *self, QoreHTTPClient *client, const
    // write info to reference first
    if (ref) {
       AutoVLock vl(xsink);
-      ReferenceHelper rh(ref, vl, xsink);
+      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
       if (!rh)
 	 return 0;
 
@@ -274,7 +274,7 @@ static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const
    // write info to reference first
    if (ref) {
       AutoVLock vl(xsink);
-      ReferenceHelper rh(ref, vl, xsink);
+      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
       if (!rh)
 	 return 0;
 

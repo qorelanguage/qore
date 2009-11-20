@@ -443,7 +443,7 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
    if (ntype == NT_FIND || ntype == NT_SELF_VARREF)
       return eval_notnull(n, xsink);
 
-   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->type == VT_LOCAL)
+   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->getType() == VT_LOCAL)
       return eval_notnull(n, xsink);
 
    if (ntype == NT_FUNCREFCALL)

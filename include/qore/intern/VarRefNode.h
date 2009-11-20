@@ -28,6 +28,9 @@ class VarRefNode : public ParseNode {
    friend class VarRefNodeEvalOptionalRefHolder;
 
 protected:
+   char *name;
+   qore_var_t type;
+
    DLLLOCAL ~VarRefNode();
 
    // evalImpl(): return value requires a deref(xsink)
@@ -44,16 +47,17 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
+   DLLLOCAL void resolve(const QoreTypeInfo *typeInfo);
+   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo);
+   
 public:
-   char *name;
-   int type;
    union var_u {
       class LocalVar *id;   // for local variables
       class Var *var;       // for global variables
    } ref;
 
    // takes over memory for "n"
-   DLLLOCAL VarRefNode(char *n, int t);
+   DLLLOCAL VarRefNode(char *n, qore_var_t t);
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -64,11 +68,14 @@ public:
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
 
-   DLLLOCAL void resolve();
-
    DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) const;
+   DLLLOCAL qore_var_t getType() const { return type; }
+   DLLLOCAL const char *getName() const { return name; }
+   DLLLOCAL void makeLocal() { assert(type == VT_UNRESOLVED); type = VT_LOCAL; }
+   DLLLOCAL void makeGlobal() { assert(type == VT_UNRESOLVED); type = VT_GLOBAL; }
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const { return 0; }
 
    // takes the name - caller owns the memory
    DLLLOCAL char *takeName();
@@ -76,17 +83,19 @@ public:
 
 class VarRefDeclNode : public VarRefNode {
 protected:
-   NamedScope *class_loc;
-   qore_type_t qt;
-   const QoreClass *qc;
+   QoreParseTypeInfo typeInfo;
 
 public:
-   DLLLOCAL VarRefDeclNode(char *n, int t, qore_type_t n_qt) : VarRefNode(n, t), class_loc(0), qt(n_qt), qc(0) {
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, qore_type_t n_qt) : VarRefNode(n, t), typeInfo(n_qt) {
    }
-   DLLLOCAL VarRefDeclNode(char *n, int t, char *n_class_name) : VarRefNode(n, t), class_loc(new NamedScope(n_class_name)), qt(NT_OBJECT), qc(0) {
+   // takes over ownership of class_name
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, char *class_name) : VarRefNode(n, t), typeInfo(class_name) {
    }
-   DLLLOCAL ~VarRefDeclNode() {
-      delete class_loc;
+   // initializes during parsing
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const { 
+      return static_cast<const QoreTypeInfo *>(&typeInfo); 
    }
 };
 

@@ -22,7 +22,7 @@ DOXYFILES = \
 
 include_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
-	include/qore/ReferenceHelper.h \
+	include/qore/QoreTypeSafeReferenceHelper.h \
 	include/qore/qore_thread.h \
 	include/qore/AbstractThreadResource.h \
 	include/qore/QoreProgram.h \
@@ -99,6 +99,7 @@ noinst_HEADERS = \
 	include/qore/intern/unix-config.h \
 	include/qore/intern/win32-config.h \
 	include/qore/intern/svn-revision.h \
+	include/qore/intern/ReferenceHelper.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/qore_thread_intern.h \

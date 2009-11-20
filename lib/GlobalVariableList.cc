@@ -27,23 +27,19 @@
 
 #include <assert.h>
 
-GlobalVariableList::GlobalVariableList()
-{
+GlobalVariableList::GlobalVariableList() {
 }
 
-GlobalVariableList::~GlobalVariableList()
-{
+GlobalVariableList::~GlobalVariableList() {
    assert(vmap.empty());
 }
 
-void GlobalVariableList::import(class Var *var, ExceptionSink *xsink, bool readonly)
-{
+void GlobalVariableList::import(class Var *var, ExceptionSink *xsink, bool readonly) {
    map_var_t::iterator i = vmap.find(var->getName());
    if (i == vmap.end())
       newVar(var, readonly);
-   else
-   {
-      class Var *v = i->second;
+   else {
+      Var *v = i->second;
       vmap.erase(i);
       v->makeReference(var, xsink, readonly);
       vmap[v->getName()] = v;
@@ -51,15 +47,12 @@ void GlobalVariableList::import(class Var *var, ExceptionSink *xsink, bool reado
 }
 
 // sets all non-imported variables to NULL (dereferences contents if any)
-void GlobalVariableList::clear_all(ExceptionSink *xsink)
-{
+void GlobalVariableList::clear_all(ExceptionSink *xsink) {
    //printd(5, "GlobalVariableList::clear_all() this=%08p (size=%d)\n", this, vmap.size());
    map_var_t::reverse_iterator i = vmap.rbegin();
    
-   while (i != vmap.rend())
-   {
-      if (!i->second->isImported())
-      {
+   while (i != vmap.rend()) {
+      if (!i->second->isImported()) {
 	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%08p)\n", i->first, i->second);
 	 i->second->setValue(0, xsink);
       }
@@ -70,11 +63,9 @@ void GlobalVariableList::clear_all(ExceptionSink *xsink)
    }
 }
 
-void GlobalVariableList::delete_all(ExceptionSink *xsink)
-{
+void GlobalVariableList::delete_all(ExceptionSink *xsink) {
    map_var_t::iterator i;
-   while ((i = vmap.end()) != vmap.begin())
-   {
+   while ((i = vmap.end()) != vmap.begin()) {
       --i;
       class Var *v = i->second;
       vmap.erase(i);
@@ -82,18 +73,16 @@ void GlobalVariableList::delete_all(ExceptionSink *xsink)
    }
 }
 
-class Var *GlobalVariableList::newVar(const char *name)
-{
-   class Var *var = new Var(name);
+Var *GlobalVariableList::newVar(const char *name, const QoreTypeInfo *typeInfo) {
+   Var *var = new Var(name, typeInfo);
    vmap[var->getName()] = var;
    
    printd(5, "GlobalVariableList::newVar(): %s (%08p) added\n", name, var);
    return var;
 }
 
-class Var *GlobalVariableList::newVar(class Var *v, bool readonly)
-{
-   class Var *var = new Var(v, readonly);
+Var *GlobalVariableList::newVar(Var *v, bool readonly) {
+   Var *var = new Var(v, readonly);
    vmap[var->getName()] = var;
    
    printd(5, "GlobalVariableList::newVar(): reference to %s (%08p) added\n", v->getName(), var);
@@ -115,22 +104,21 @@ const Var *GlobalVariableList::findVar(const char *name) const {
 }
 
 // used for resolving unflagged global variables
-class Var *GlobalVariableList::checkVar(const char *name, int *new_var)
-{
+Var *GlobalVariableList::checkVar(const char *name, const QoreTypeInfo *typeInfo, int *new_var) {
    QORE_TRACE("GlobalVariableList::checkVar()");
-   class Var *var;
+   Var *var;
    
-   if (!(var = findVar(name)))
-   {
+   if (!(var = findVar(name))) {
       *new_var = 1;
-      var = newVar(name);
+      var = newVar(name, typeInfo);
    }
+   else if (typeInfo->hasType()) // if a new type has been declared for this global variable
+      var->tryAssignType(*typeInfo);
 
    return var;
 }
 
-QoreListNode *GlobalVariableList::getVarList() const
-{
+QoreListNode *GlobalVariableList::getVarList() const {
    QoreListNode *l = new QoreListNode();
    
    for (map_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++)

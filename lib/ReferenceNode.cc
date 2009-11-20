@@ -68,13 +68,13 @@ const char *ReferenceNode::getTypeName() const {
    return "reference to lvalue";
 }
 
-static inline int getBaseLVType(AbstractQoreNode *n) {
+static inline qore_var_t getBaseLVType(AbstractQoreNode *n) {
    while (true) {
       qore_type_t ntype = n->getType();
       if (ntype == NT_SELF_VARREF)
 	 return VT_OBJECT;
       if (ntype == NT_VARREF)
-	 return reinterpret_cast<VarRefNode *>(n)->type;
+	 return reinterpret_cast<VarRefNode *>(n)->getType();
       assert(ntype == NT_TREE);
       // must be a tree
       n = reinterpret_cast<QoreTreeNode *>(n)->left;
@@ -93,7 +93,7 @@ AbstractQoreNode *ReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvid
    // if a background expression is being parsed, then check that no references to local variables
    // or object members are being used
    if (pflag & PF_BACKGROUND) {
-      int vtype = getBaseLVType(lvexp);
+      qore_var_t vtype = getBaseLVType(lvexp);
       
       if (vtype == VT_LOCAL)
 	 parse_error("the reference operator cannot be used with local variables in a background expression");

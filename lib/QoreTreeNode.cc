@@ -103,7 +103,7 @@ static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
    qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF) {
       VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
-      if (v->type == VT_LOCAL && v->ref.id == selfid)
+      if (v->getType() == VT_LOCAL && v->ref.id == selfid)
 	 parse_error("illegal assignment to $self in an object context");
       return;
    }
@@ -126,7 +126,7 @@ static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
 
    // left must be variable reference, check if the tree is
    // a list reference; if so, it's invalid
-   if (v->type == VT_LOCAL && v->ref.id == selfid  && tree->op == OP_LIST_REF)
+   if (v->getType() == VT_LOCAL && v->ref.id == selfid  && tree->op == OP_LIST_REF)
       parse_error("illegal conversion of $self to a list");
 }
 
@@ -147,7 +147,7 @@ AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    
    // check for illegal changes to local variables in background expressions
    if (pflag & PF_BACKGROUND && op->needsLValue()) {
-      if (left && left->getType() == NT_VARREF && reinterpret_cast<VarRefNode *>(left)->type == VT_LOCAL)
+      if (left && left->getType() == NT_VARREF && reinterpret_cast<VarRefNode *>(left)->getType() == VT_LOCAL)
 	 parse_error("illegal local variable modification in background expression");
    }
    

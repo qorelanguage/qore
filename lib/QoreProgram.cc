@@ -538,12 +538,10 @@ const Var *QoreProgram::findGlobalVar(const char *name) const {
    return priv->global_var_list.findVar(name);
 }
 
-class Var *QoreProgram::checkGlobalVar(const char *name)
-{
+Var *QoreProgram::checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo) {
    int new_var = 0;
-   class Var *rv = priv->global_var_list.checkVar(name, &new_var);
-   if (new_var)
-   {
+   Var *rv = priv->global_var_list.checkVar(name, typeInfo, &new_var);
+   if (new_var) {
       printd(5, "QoreProgram::checkVar() new global var \"%s\" found\n", name);
       // check if unflagged global vars are allowed
       if (priv->parse_options & PO_REQUIRE_OUR)
@@ -557,10 +555,11 @@ class Var *QoreProgram::checkGlobalVar(const char *name)
    return rv;
 }
 
-Var *QoreProgram::createGlobalVar(const char *name)
-{
+Var *QoreProgram::createGlobalVar(const char *name, const QoreTypeInfo *typeInfo) {
    int new_var = 0;
-   class Var *rv = priv->global_var_list.checkVar(name, &new_var);
+
+   Var *rv = priv->global_var_list.checkVar(name, typeInfo, &new_var);
+
    // it's a new global variable: check if global variables are allowed
    if ((priv->parse_options & PO_NO_GLOBAL_VARS) && new_var)
       parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
@@ -570,8 +569,7 @@ Var *QoreProgram::createGlobalVar(const char *name)
    return rv;
 }
 
-LocalVar *QoreProgram::createLocalVar(const char *name)
-{
+LocalVar *QoreProgram::createLocalVar(const char *name) {
    LocalVar *lv = new LocalVar(name);
    priv->local_var_list.push_back(lv);
    return lv;
@@ -579,10 +577,9 @@ LocalVar *QoreProgram::createLocalVar(const char *name)
 
 // if this global variable definition is illegal, then
 // it will be flagged in the parseCommit stage
-void QoreProgram::addGlobalVarDef(const char *name)
-{
+void QoreProgram::addGlobalVarDef(const char *name) {
    int new_var = 0;
-   priv->global_var_list.checkVar(name, &new_var);
+   priv->global_var_list.checkVar(name, 0, &new_var);
    if (!new_var)
       makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
 }

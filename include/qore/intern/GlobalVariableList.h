@@ -39,15 +39,15 @@ private:
 public:
    DLLLOCAL GlobalVariableList();
    DLLLOCAL ~GlobalVariableList();
-   DLLLOCAL void delete_all(class ExceptionSink *xsink);
-   DLLLOCAL void clear_all(class ExceptionSink *xsink);
-   DLLLOCAL void import(Var *var, class ExceptionSink *xsink, bool readonly = false);
-   DLLLOCAL Var *newVar(const char *name);
+   DLLLOCAL void delete_all(ExceptionSink *xsink);
+   DLLLOCAL void clear_all(ExceptionSink *xsink);
+   DLLLOCAL void import(Var *var, ExceptionSink *xsink, bool readonly = false);
+   DLLLOCAL Var *newVar(const char *name, const QoreTypeInfo *typeInfo = 0);
    DLLLOCAL Var *newVar(Var *v, bool readonly);
    DLLLOCAL Var *findVar(const char *name);
    DLLLOCAL const Var *findVar(const char *name) const;
-   DLLLOCAL Var *checkVar(const char *name, int *new_vars);
-   DLLLOCAL class QoreListNode *getVarList() const;
+   DLLLOCAL Var *checkVar(const char *name, const QoreTypeInfo *typeInfo, int *new_vars);
+   DLLLOCAL QoreListNode *getVarList() const;
 };
 
 #endif

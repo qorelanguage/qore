@@ -311,7 +311,7 @@ static AbstractQoreNode *PROGRAM_getGlobalVariable(QoreObject *self, QoreProgram
 
     if (ref) {
 	AutoVLock vl(xsink);
-	ReferenceHelper r(ref, vl, xsink);
+	QoreTypeSafeReferenceHelper r(ref, vl, xsink);
 	if (!r)
 	    return 0;
 

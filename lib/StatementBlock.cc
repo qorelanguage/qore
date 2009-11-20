@@ -165,7 +165,7 @@ LocalVar *push_local_var(const char *name, bool check_dup) {
    }
    
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   vnode = new class VNode(lv);
+   vnode = new VNode(lv);
    vnode->next = getVStack();
    updateVStack(vnode);
    return lv;

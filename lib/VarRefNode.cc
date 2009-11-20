@@ -22,9 +22,7 @@
 
 #include <qore/Qore.h>
 
-VarRefNode::VarRefNode(char *nme, int typ) : ParseNode(NT_VARREF) {
-   name = nme;
-   type = typ;
+VarRefNode::VarRefNode(char *nme, qore_var_t typ) : ParseNode(NT_VARREF), name(nme), type(typ) {
 }
 
 VarRefNode::~VarRefNode() {
@@ -56,7 +54,7 @@ const char *VarRefNode::getTypeName() const {
    return "variable reference";
 }
 
-void VarRefNode::resolve() {
+void VarRefNode::resolve(const QoreTypeInfo *typeInfo) {
    LocalVar *id;
 
    bool in_closure;
@@ -73,7 +71,7 @@ void VarRefNode::resolve() {
       printd(5, "VarRefNode::resolve(): local var %s resolved (id=%08p, in_closure=%d)\n", name, ref.id, in_closure);
    }
    else {
-      ref.var = getProgram()->checkGlobalVar(name);
+      ref.var = getProgram()->checkGlobalVar(name, typeInfo);
       type = VT_GLOBAL;
       printd(5, "VarRefNode::resolve(): global var %s resolved (var=%08p)\n", name, ref.var);
    }
@@ -124,15 +122,15 @@ double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const {
+AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
    if (type == VT_LOCAL)
-      return ref.id->getValuePtr(vl, xsink);
+      return ref.id->getValuePtr(vl, typeInfo, xsink);
    if (type == VT_CLOSURE) {
       printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      return val->getValuePtr(vl, xsink);
+      return val->getValuePtr(vl, typeInfo, xsink);
    }
-   return ref.var->getValuePtr(vl, xsink);
+   return ref.var->getValuePtr(vl, typeInfo, xsink);
 }
 
 AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) const {
@@ -165,7 +163,7 @@ char *VarRefNode::takeName() {
    return p;
 }
 
-AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo) {
    // if it is a new variable being declared
    if (type == VT_LOCAL) {
       ref.id = push_local_var(name);
@@ -173,9 +171,28 @@ AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids) 
       //printd(5, "VarRefNode::parseInit(): local var '%s' declared (id=%08p)\n", v->name, v->ref.id);
    }
    else if (type == VT_GLOBAL)
-      ref.var = getProgram()->createGlobalVar(name);
+      ref.var = getProgram()->createGlobalVar(name, typeInfo);
    else // otherwise reference must be resolved
-      resolve();
+      resolve(typeInfo);
    
    return this;
 }
+
+AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   return parseInitIntern(oflag, pflag, lvids, 0);
+}
+
+AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   typeInfo.resolve();
+   return parseInitIntern(oflag, pflag, lvids, &typeInfo);
+}
+
+void QoreParseTypeInfo::resolve() {
+   if (cscope) {
+      // resolve class
+      qc = getRootNS()->parseFindScopedClass(cscope);
+      delete cscope;
+      cscope = 0;
+   }
+}
+

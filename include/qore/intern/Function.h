@@ -106,6 +106,7 @@ class Paramlist {
    public:
       int num_params;
       char **names;
+      const QoreTypeInfo **typeList;
       LocalVar **lv;
       LocalVar *argvid;
       LocalVar *selfid;

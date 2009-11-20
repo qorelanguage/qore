@@ -899,7 +899,7 @@ statement:
 	   // if the expression has no effect and it's not a variable declaration
 	   qore_type_t t = $1 ? $1->getType() : 0;
 	   if (!hasEffect($1)
-	       && (t != NT_VARREF || reinterpret_cast<VarRefNode *>($1)->type == VT_UNRESOLVED)
+	       && (t != NT_VARREF || reinterpret_cast<VarRefNode *>($1)->getType() == VT_UNRESOLVED)
 	       && (t != NT_LIST || !reinterpret_cast<QoreListNode *>($1)->isVariableList()))
 	      parse_error("statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
 	   if (t == NT_TREE)
@@ -1494,37 +1494,42 @@ exp:    scalar
         | TOK_MY SCOPED_REF VAR_REF {
 	   $$ = new VarRefDeclNode($3, VT_LOCAL, $2); 
 	}
-        | TOK_MY '(' list ')' 
-        {
+        | TOK_MY '(' list ')' {
 	   $3->setVariableList();
-	   for (unsigned i = 0; i < $3->size(); i++)
-	   {
+	   for (unsigned i = 0; i < $3->size(); i++) {
 	      AbstractQoreNode *n = $3->retrieve_entry(i);
 	      if (!n || n->getType() != NT_VARREF)
 		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
-	      else
-		 reinterpret_cast<VarRefNode *>(n)->type = VT_LOCAL;
+	      else {
+		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+		 if (v->getType() != VT_UNRESOLVED) {
+		    parse_error("illegal variable declaration '%s' in local variable declaration list", v->getName());
+		 }
+		 else
+		    v->makeLocal();
+	      }
 	   }
 	   $$ = $3;
 	}
-        | TOK_OUR VAR_REF
-        {
+        | TOK_OUR VAR_REF {
 	   getProgram()->addGlobalVarDef($2);
 	   $$ = new VarRefNode($2, VT_GLOBAL); 
 	}
-        | TOK_OUR '(' list ')'
-        { 
+        | TOK_OUR '(' list ')' { 
 	   $3->setVariableList();
-	   for (unsigned i = 0; i < $3->size(); i++)
-	   {
+	   for (unsigned i = 0; i < $3->size(); i++) {
 	      AbstractQoreNode *n = $3->retrieve_entry(i);
 	      if (!n || n->getType() != NT_VARREF) 
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
-	      else
-	      {
+	      else {
 		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
-		 v->type = VT_GLOBAL;
-		 getProgram()->addGlobalVarDef(v->name);
+		 if (v->getType() != VT_UNRESOLVED) {
+		    parse_error("illegal variable declaration '%s' in global variable declaration list", v->getName());
+		 }
+		 else {
+		    v->makeGlobal();
+		    getProgram()->addGlobalVarDef(v->getName());
+		 }
 	      }
 	   }
 	   $$ = $3;
@@ -1846,52 +1851,42 @@ exp:    scalar
 	}
         | exp '?' exp ':' exp
         { $$ = new QoreTreeNode($1, OP_QUESTION_MARK, make_list($3, $5)); } 
-        | P_INCREMENT exp   // pre-increment
-        {
-	   if (check_lvalue($2))
-	   {
+        | P_INCREMENT exp {  // pre-increment
+	   if (check_lvalue($2)) {
 	      parse_error("pre-increment expression is not an lvalue");
 	      $$ = makeErrorTree(OP_PRE_INCREMENT, $2, 0);
 	   }
 	   else
 	      $$ = makeTree(OP_PRE_INCREMENT, $2, 0);
         }
-        | exp P_INCREMENT   // post-increment
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp P_INCREMENT {  // post-increment
+	   if (check_lvalue($1)) {
 	      parse_error("post-increment expression is not an lvalue");
 	      $$ = makeErrorTree(OP_POST_INCREMENT, $1, 0);
 	   }
 	   else
 	      $$ = makeTree(OP_POST_INCREMENT, $1, 0);
         }
-        | P_DECREMENT exp   // pre-decrement
-        {
-	   if (check_lvalue($2))
-	   {
+        | P_DECREMENT exp {  // pre-decrement
+	   if (check_lvalue($2)) {
 	      parse_error("pre-decrement expression is not an lvalue");
 	      $$ = makeErrorTree(OP_PRE_DECREMENT, $2, 0);
 	   }
 	   else
 	      $$ = makeTree(OP_PRE_DECREMENT, $2, 0);
         }
-        | exp P_DECREMENT   // post-decrement
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp P_DECREMENT {   // post-decrement
+	   if (check_lvalue($1)) {
 	      parse_error("post-decrement expression is not an lvalue");
 	      $$ = makeErrorTree(OP_POST_DECREMENT, $1, 0);
 	   }
 	   else
 	      $$ = makeTree(OP_POST_DECREMENT, $1, 0);
         }
-	| exp '(' myexp ')'
-        {
+	| exp '(' myexp ')' {
 	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
 	   qore_type_t t = $1 ? $1->getType() : 0;
-	   if (t == NT_BAREWORD)
-	   {
+	   if (t == NT_BAREWORD) {
 	      BarewordNode *b = reinterpret_cast<BarewordNode *>($1);
 	      // take string from node and delete node
 	      char *str = b->takeString();
@@ -1899,8 +1894,7 @@ exp:    scalar
 	      printd(5, "parsing call %s() args=%08p %s\n", str, $3, $3 ? $3->getTypeName() : "n/a");
 	      $$ = new FunctionCallNode(str, makeArgs($3));
 	   }
-	   else if (t == NT_CONSTANT)
-	   {
+	   else if (t == NT_CONSTANT) {
 	      ConstantNode *c = reinterpret_cast<ConstantNode *>($1);
 	      // take NamedScope from node and delete node
 	      NamedScope *ns = c->takeName();
@@ -1909,8 +1903,7 @@ exp:    scalar
 	      printd(5, "parsing scoped call (static method or new object call) %s()\n", ns->ostr);
 	      $$ = new StaticMethodCallNode(ns, makeArgs($3));
 	   }
-	   else if (t == NT_SELF_VARREF)
-	   {
+	   else if (t == NT_SELF_VARREF) {
 	      SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>($1);
 	      // take string from node and delete node
 	      char *str = v->takeString();
@@ -1945,22 +1938,20 @@ exp:    scalar
 	      }
 	      else {
 		 VarRefNode *r = dynamic_cast<VarRefNode *>($1);
-		 if (r && r->type != VT_UNRESOLVED)
-		    parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", r->type == VT_GLOBAL ? "global" : "local", r->name);
+		 if (r && r->getType() != VT_UNRESOLVED)
+		    parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
 		 $$ = new CallReferenceCallNode($1, makeArgs($3));
 	      }
 	   }
 	}
-        | BASE_CLASS_CALL '(' myexp ')'
-        {
+        | BASE_CLASS_CALL '(' myexp ')' {
 	   printd(5, "parsing in-object base class method call %s()\n", $1->ostr);
 	   if (!strcmp($1->getIdentifier(), "copy"))
 	      parse_error("illegal call to base class copy method '%s'", $1->ostr);
 
 	   $$ = new FunctionCallNode(makeArgs($3), $1);
 	}
-        | KW_IDENTIFIER_OPENPAREN myexp ')'
-        {
+        | KW_IDENTIFIER_OPENPAREN myexp ')' {
 	   printd(5, "parsing call %s()\n", $1);
 	   $$ = new FunctionCallNode($1, makeArgs($2));
         }
@@ -1970,29 +1961,24 @@ exp:    scalar
 	| exp '|' exp		     { $$ = makeTree(OP_BIN_OR, $1, $3); }
 	| exp '&' exp		     { $$ = makeTree(OP_BIN_AND, $1, $3); }
 	| exp '^' exp		     { $$ = makeTree(OP_BIN_XOR, $1, $3); }
-        | exp REGEX_MATCH REGEX
-        {
+        | exp REGEX_MATCH REGEX {
 	   $$ = makeTree(OP_REGEX_MATCH, $1, $3);
 	}
-        | exp REGEX_NMATCH REGEX
-        {
+        | exp REGEX_NMATCH REGEX {
 	   $$ = makeTree(OP_REGEX_NMATCH, $1, $3);
 	}
         | exp REGEX_MATCH REGEX_SUBST
         {
-	   if (check_lvalue($1))
-	   {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of regular expression substitution operator is not an lvalue");
 	      $$ = makeErrorTree(OP_REGEX_SUBST, $1, $3);
 	   }
-	   else
-	   {
+	   else {
 	      //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
 	      $$ = makeTree(OP_REGEX_SUBST, $1, $3);
 	   }
 	}
-        | exp REGEX_MATCH REGEX_TRANS
-        {
+        | exp REGEX_MATCH REGEX_TRANS {
 	   if (check_lvalue($1))
 	   {
 	      parse_error("left-hand side of transliteration operator is not an lvalue");

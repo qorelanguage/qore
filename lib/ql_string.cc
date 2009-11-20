@@ -652,7 +652,7 @@ static AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsin
    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
 
    AutoVLock vl(xsink);
-   ReferenceHelper ref(r, vl, xsink);
+   QoreTypeSafeReferenceHelper ref(r, vl, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
 
@@ -687,7 +687,7 @@ static AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink
    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
 
    AutoVLock vl(xsink);
-   ReferenceHelper ref(r, vl, xsink);
+   QoreTypeSafeReferenceHelper ref(r, vl, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
 

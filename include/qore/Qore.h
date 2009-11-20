@@ -70,7 +70,7 @@
 #include <qore/CallReferenceNode.h>
 #include <qore/ReferenceNode.h>
 #include <qore/params.h>
-#include <qore/ReferenceHelper.h>
+#include <qore/QoreTypeSafeReferenceHelper.h>
 #include <qore/QoreEvents.h>
 #include <qore/qore-version.h>
 
