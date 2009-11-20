@@ -1501,29 +1501,35 @@ exp:    scalar
 	      AbstractQoreNode *n = $3->retrieve_entry(i);
 	      if (!n || n->getType() != NT_VARREF)
 		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
-	      else
-		 reinterpret_cast<VarRefNode *>(n)->type = VT_LOCAL;
+	      else {
+		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+		 if (v->type != VT_UNRESOLVED)
+		    parse_error("illegal variable declaration '%s' in local variable declaration list", v->name);
+		 else
+		    v->type = VT_LOCAL;
+	      }
 	   }
 	   $$ = $3;
 	}
-        | TOK_OUR VAR_REF
-        {
+        | TOK_OUR VAR_REF {
 	   getProgram()->addGlobalVarDef($2);
 	   $$ = new VarRefNode($2, VT_GLOBAL); 
 	}
-        | TOK_OUR '(' list ')'
-        { 
+        | TOK_OUR '(' list ')' { 
 	   $3->setVariableList();
-	   for (unsigned i = 0; i < $3->size(); i++)
-	   {
+	   for (unsigned i = 0; i < $3->size(); i++) {
 	      AbstractQoreNode *n = $3->retrieve_entry(i);
 	      if (!n || n->getType() != NT_VARREF) 
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
-	      else
-	      {
+	      else {
 		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
-		 v->type = VT_GLOBAL;
-		 getProgram()->addGlobalVarDef(v->name);
+		 if (v->type != VT_UNRESOLVED) {
+		    parse_error("illegal variable declaration '%s' in global variable declaration list", v->name);
+		 }
+		 else {
+		    v->type = VT_GLOBAL;
+		    getProgram()->addGlobalVarDef(v->name);
+		 }
 	      }
 	   }
 	   $$ = $3;

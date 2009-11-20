@@ -496,12 +496,12 @@ UnresolvedStaticMethodCallReferenceNode::~UnresolvedStaticMethodCallReferenceNod
 AbstractCallReferenceNode *UnresolvedStaticMethodCallReferenceNode::resolve() {
    QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
    if (!qc)
-      return 0;
+      return this;
    
    const QoreMethod *qm = qc->parseFindStaticMethodTree(scope->getIdentifier());
    if (!qm) {
       parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
-      return 0;
+      return this;
    }
 
    assert(qm->isStatic());
@@ -509,7 +509,7 @@ AbstractCallReferenceNode *UnresolvedStaticMethodCallReferenceNode::resolve() {
    // check class capabilities against parse options
    if (qc->getDomain() & getProgram()->getParseOptions()) {
       parseException("class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
-      return 0;
+      return this;
    }
 
    return qm->getType() == OTF_USER 
