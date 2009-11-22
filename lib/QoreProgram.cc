@@ -614,6 +614,13 @@ void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc)
    }
 }
 
+ExceptionSink *QoreProgram::getParseExceptionSink() {
+   if (priv->requires_exception)
+      return 0;
+
+   return priv->parseSink;
+}
+
 void QoreProgram::addParseException(ExceptionSink *xsink) {
    if (priv->requires_exception) {
       delete xsink;

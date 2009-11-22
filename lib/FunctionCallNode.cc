@@ -188,7 +188,7 @@ AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
    return 0;
 }
 
-AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    if (ftype == FC_SELF) {
       if (!oflag)
 	 parse_error("cannot call member function '%s' out of an object member function definition", f.sfunc->name);

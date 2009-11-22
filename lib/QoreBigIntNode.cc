@@ -22,63 +22,52 @@
 
 #include <qore/Qore.h>
 
-QoreBigIntNode::QoreBigIntNode() : SimpleValueQoreNode(NT_INT), val(0)
-{
+QoreBigIntNode::QoreBigIntNode() : SimpleValueQoreNode(NT_INT), val(0) {
 }
 
-QoreBigIntNode::QoreBigIntNode(int64 v) : SimpleValueQoreNode(NT_INT), val(v)
-{
+QoreBigIntNode::QoreBigIntNode(int64 v) : SimpleValueQoreNode(NT_INT), val(v) {
 }
 
-QoreBigIntNode::~QoreBigIntNode()
-{
+QoreBigIntNode::~QoreBigIntNode() {
 }
 
 // get the value of the type in a string context (default implementation = del = false and returns NullString)
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
-QoreString *QoreBigIntNode::getStringRepresentation(bool &del) const
-{
+QoreString *QoreBigIntNode::getStringRepresentation(bool &del) const {
    del = true;
    return new QoreString(val);
 }
 
 // concatenate string representation to a QoreString (no action for complex types = default implementation)
-void QoreBigIntNode::getStringRepresentation(QoreString &str) const
-{
+void QoreBigIntNode::getStringRepresentation(QoreString &str) const {
    str.sprintf("%lld", val);
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-DateTime *QoreBigIntNode::getDateTimeRepresentation(bool &del) const
-{
+DateTime *QoreBigIntNode::getDateTimeRepresentation(bool &del) const {
    del = true;
    return new DateTime(val);
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
-void QoreBigIntNode::getDateTimeRepresentation(DateTime &dt) const
-{
+void QoreBigIntNode::getDateTimeRepresentation(DateTime &dt) const {
    dt.setDate(val);
 }
 
-bool QoreBigIntNode::getAsBoolImpl() const
-{
+bool QoreBigIntNode::getAsBoolImpl() const {
    return (bool)val;
 }
 
-int QoreBigIntNode::getAsIntImpl() const
-{
+int QoreBigIntNode::getAsIntImpl() const {
    return val;
 }
 
-int64 QoreBigIntNode::getAsBigIntImpl() const
-{
+int64 QoreBigIntNode::getAsBigIntImpl() const {
    return val;
 }
 
-double QoreBigIntNode::getAsFloatImpl() const
-{
+double QoreBigIntNode::getAsFloatImpl() const {
    return (double)val;
 }
 
@@ -86,19 +75,16 @@ double QoreBigIntNode::getAsFloatImpl() const
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
-QoreString *QoreBigIntNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreBigIntNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    return getStringRepresentation(del);
 }
 
-int QoreBigIntNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreBigIntNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    getStringRepresentation(str);
    return 0;
 }
 
-AbstractQoreNode *QoreBigIntNode::realCopy() const
-{
+AbstractQoreNode *QoreBigIntNode::realCopy() const {
    return new QoreBigIntNode(val);
 }
 
@@ -106,13 +92,11 @@ AbstractQoreNode *QoreBigIntNode::realCopy() const
 // the "val" passed
 //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreBigIntNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreBigIntNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    return v->getAsBigInt() == val;
 }
 
-bool QoreBigIntNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreBigIntNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const QoreBigIntNode *i = dynamic_cast<const QoreBigIntNode *>(v);
    if (!i)
       return false;
@@ -121,7 +105,11 @@ bool QoreBigIntNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsi
 }
 
 // returns the type name as a c string
-const char *QoreBigIntNode::getTypeName() const
-{
+const char *QoreBigIntNode::getTypeName() const {
    return getStaticTypeName();
+}
+
+AbstractQoreNode *QoreBigIntNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = &bigIntTypeInfo;
+   return this;
 }

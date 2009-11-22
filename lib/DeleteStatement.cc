@@ -40,8 +40,10 @@ int DeleteStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
 
 int DeleteStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
-   if (var)
-      var = var->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids);
+   if (var) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      var = var->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
+   }
    return lvids;
 }
 

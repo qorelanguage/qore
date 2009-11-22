@@ -41,7 +41,9 @@ int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
 
 int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
-   if (exp)
-      exp = exp->parseInit(oflag, pflag, lvids);
+   if (exp) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
    return lvids;
 }

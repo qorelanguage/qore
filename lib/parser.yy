@@ -396,34 +396,6 @@ static bool hasEffect(AbstractQoreNode *n) {
    return false;
 }
 
-static qore_type_t getBuiltinType(const char *str) {
-   if (!strcmp(str, "int"))
-      return NT_INT;
-   if (!strcmp(str, "string"))
-      return NT_STRING;
-   if (!strcmp(str, "bool"))
-      return NT_BOOLEAN;
-   if (!strcmp(str, "date"))
-      return NT_DATE;
-   if (!strcmp(str, "float"))
-      return NT_FLOAT;
-   if (!strcmp(str, "list"))
-      return NT_LIST;
-   if (!strcmp(str, "hash"))
-      return NT_HASH;
-   if (!strcmp(str, "object"))
-      return NT_OBJECT;
-   if (!strcmp(str, "binary"))
-      return NT_BINARY;
-   // these last two don't make much sense to use, but...
-   if (!strcmp(str, "null"))
-      return NT_NULL;
-   if (!strcmp(str, "nothing"))
-      return NT_NOTHING;
-
-   return -1;
-}
-
 #define OFM_PRIVATE 1
 #define OFM_SYNCED  2
 #define OFM_STATIC  4

@@ -133,7 +133,8 @@ void ConstantList::parseInit() {
 	     i->first, i->second, i->second ? i->second->getTypeName() : "NULL");
       if (i->second) {
 	 int lvids = 0;
-	 i->second = i->second->parseInit(0, 0, lvids);
+	 const QoreTypeInfo *argTypeInfo = 0;
+	 i->second = i->second->parseInit(0, 0, lvids, argTypeInfo);
 	 assert(!lvids);
       }
       if (!i->second)

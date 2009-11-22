@@ -48,7 +48,7 @@ class ClassRefNode : public ParseNoEvalNode {
 
       DLLLOCAL int getID() const;
 
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 

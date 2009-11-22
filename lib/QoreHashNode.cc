@@ -751,7 +751,7 @@ QoreHashNode *QoreHashNode::getSlice(const QoreListNode *value_list, ExceptionSi
    return rv.release();
 }
 
-AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    HashIterator hi(this);
    while (hi.next()) {
       const char *k = hi.getKey();
@@ -786,7 +786,8 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
       }
 
       if (value && *value) {
-	 (*value) = (*value)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids);
+	 const QoreTypeInfo *argTypeInfo = 0;
+	 (*value) = (*value)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
 	 if (!needs_eval_flag && *value && (*value)->needs_eval()) {
 	    //printd(5, "setting needs_eval on hash %08p\n", this);
 	    setNeedsEval();

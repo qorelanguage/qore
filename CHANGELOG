@@ -7,6 +7,8 @@
 	  will now use new features supporting optional hard typing when
 	  compiled with headers from this version of qore
 	* updated library version to 9 (libqore 5.4)
+	* more hard typing support implementation; some checks are working at
+	  parse and run time
 
 2009.11.20: David Nichols
 	* detected erroneous variable list declarations like:

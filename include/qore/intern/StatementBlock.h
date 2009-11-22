@@ -84,10 +84,10 @@ class StatementBlock : public AbstractStatement
       DLLLOCAL void parseInit(Paramlist *params);
 
       // initialize methods (bcl = subclass constructors with an explicit base class argument list)
-      DLLLOCAL void parseInitMethod(Paramlist *params, class BCList *bcl); 
+      DLLLOCAL void parseInitMethod(const QoreTypeInfo *typeInfo, Paramlist *params, class BCList *bcl); 
 
       // initialize closure blocks
-      DLLLOCAL void parseInitClosure(Paramlist *params, bool in_method, lvar_set_t *vlist);
+      DLLLOCAL void parseInitClosure(Paramlist *params, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
 
       DLLLOCAL void exec();
 

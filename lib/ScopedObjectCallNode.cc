@@ -60,7 +60,7 @@ const char *ScopedObjectCallNode::getTypeName() const {
    return "new object call";
 }
 
-AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // find object class
    if ((oc = getRootNS()->parseFindScopedClass(name))) {
       // check if parse options allow access to this class
@@ -69,9 +69,10 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
    }
    delete name;
    name = 0;
-   if (args)
-      args->parseInit(oflag, pflag, lvids);
-   //lvids += process_list_node(&args, oflag, pflag);
+   if (args) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      args->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
    
    return this;
 }

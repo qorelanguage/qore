@@ -78,14 +78,15 @@ class AbstractFunctionCallNode : public ParseNode {
       bool needs_eval = args->needs_eval();
       for (unsigned i = 0; i < args->size(); ++i) {
 	 AbstractQoreNode **n = args->get_entry_ptr(i);
+	 const QoreTypeInfo *argTypeInfo;
 	 if (*n) {
 	    if ((*n)->getType() == NT_REFERENCE) {
 	       if (!existsUserParam(i))
 		  parse_error("not enough parameters in '%s' to accept reference expression", getName());
-	       (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids);
+	       (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
 	    }
 	    else
-	       (*n) = (*n)->parseInit(oflag, pflag, lvids);
+	       (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
 	    if (!needs_eval && (*n)->needs_eval()) {
 	       args->setNeedsEval();
 	       needs_eval = true;
@@ -151,7 +152,7 @@ class FunctionCallNode : public AbstractFunctionCallNode {
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual const char *getName() const;
 
@@ -192,7 +193,7 @@ class MethodCallNode : public AbstractFunctionCallNode {
       return c_str ? c_str : "copy";
    }
 
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       lvids += parseArgs(oflag, pflag);
       return this;
    }
@@ -262,7 +263,7 @@ class StaticMethodCallNode : public AbstractFunctionCallNode {
       return method->getName();
    }
 
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids) {
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
       if (!qc)
 	 return this;

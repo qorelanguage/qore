@@ -82,18 +82,19 @@ int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
 
 int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
-   
+
+   const QoreTypeInfo *argTypeInfo = 0;
    if (assignment) {
-      assignment = assignment->parseInit(oflag, pflag, lvids);
+      assignment = assignment->parseInit(oflag, pflag, lvids, argTypeInfo);
        // enable optimizations when return value is ignored for operator expressions
       QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(assignment);
       if (tree)
 	 tree->ignoreReturnValue();
    }
    if (cond)
-      cond = cond->parseInit(oflag, pflag, lvids);
+      cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (iterator) {
-      iterator = iterator->parseInit(oflag, pflag, lvids);
+      iterator = iterator->parseInit(oflag, pflag, lvids, argTypeInfo);
       // enable optimizations when return value is ignored for operator expressions
 
       QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(iterator);

@@ -91,7 +91,7 @@ char *SelfVarrefNode::takeString() {
    return p;
 }
 
-AbstractQoreNode *SelfVarrefNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *SelfVarrefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%08p\n", str, oflag);
    if (!oflag)
       parse_error("cannot reference member \"%s\" out of an object member function definition", str);

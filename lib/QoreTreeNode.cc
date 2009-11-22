@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, class Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE) {
+QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE) {
    left = l;
    op = o;
    right = r;
@@ -130,7 +130,7 @@ static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
       parse_error("illegal conversion of $self to a list");
 }
 
-AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // set "parsing background" flag if the background operator is being parsed
    if (op == OP_BACKGROUND)
       pflag |= PF_BACKGROUND;
@@ -138,19 +138,25 @@ AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    // turn off "reference ok" flag
    pflag &= ~PF_REFERENCE_OK;
 
+   const QoreTypeInfo *leftTypeInfo = 0;
    // process left branch of tree
    if (left)
-      left = left->parseInit(oflag, pflag, lvids);
+      left = left->parseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
    // process right branch if it exists
    if (right)
-      right = right->parseInit(oflag, pflag, lvids);
-   
+      right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
+
    // check for illegal changes to local variables in background expressions
    if (pflag & PF_BACKGROUND && op->needsLValue()) {
       if (left && left->getType() == NT_VARREF && reinterpret_cast<VarRefNode *>(left)->getType() == VT_LOCAL)
 	 parse_error("illegal local variable modification in background expression");
    }
-   
+
+   // check argument types for operator   
+   op->parseInit(leftTypeInfo, rightTypeInfo);
+
    // throw a parse exception if an assignment is attempted on $self
    if (op == OP_ASSIGNMENT && oflag)
       checkSelf(left, oflag);

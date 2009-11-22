@@ -104,6 +104,10 @@ public:
       else if (!typeInfo.equal(n_typeInfo))
 	 parse_error("global variable '%s' declared previously with an incompatible type", name.c_str());
    }
+
+   DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
+      return &typeInfo;
+   }
 };
 
 DLLLOCAL AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink);
@@ -132,12 +136,8 @@ public:
    DLLLOCAL operator bool() const { return v != 0; }
    DLLLOCAL const qore_type_t get_type() const { return *v ? (*v)->getType() : NT_NOTHING; }
    DLLLOCAL bool check_type(const qore_type_t t) const {
-      if (!(*v)) {
-	 if (t == NT_NOTHING)
-	    return true;
-	 else
-	    return false;
-      }
+      if (!(*v))
+	 return (t == NT_NOTHING) ? true : false;
       return t == (*v)->getType();
    }
    DLLLOCAL bool is_nothing() const { return ::is_nothing(*v); }
@@ -145,6 +145,9 @@ public:
    DLLLOCAL AbstractQoreNode *take_value() { AbstractQoreNode *rv = *v; *v = 0; return rv; }
 
    DLLLOCAL int assign(AbstractQoreNode *val) {
+      if (typeInfo->checkType(val, xsink))
+	 return -1;
+
       if (*v) {
 	 (*v)->deref(xsink);
 	 if (*xsink) {
@@ -160,8 +163,7 @@ public:
    DLLLOCAL int ensure_unique() {
       assert((*v) && (*v)->getType() != NT_OBJECT);
 
-      if (!(*v)->is_unique())
-      {
+      if (!(*v)->is_unique()) {
 	 AbstractQoreNode *old = *v;
 	 (*v) = old->realCopy();
 	 old->deref(xsink);

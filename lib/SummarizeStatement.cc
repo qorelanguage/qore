@@ -63,21 +63,23 @@ int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    
    int lvids = 0;
    
+   const QoreTypeInfo *argTypeInfo = 0;
+
    // initialize context expression
    if (exp)
-      exp = exp->parseInit(oflag, pflag, lvids);
+      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
    
    // need to push something on the stack even if the context is not named
    push_cvar(name);
 
    if (where_exp)
-      where_exp = where_exp->parseInit(oflag, pflag, lvids);
+      where_exp = where_exp->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (sort_ascending)
-      sort_ascending = sort_ascending->parseInit(oflag, pflag, lvids);
+      sort_ascending = sort_ascending->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (sort_descending)
-      sort_descending = sort_descending->parseInit(oflag, pflag, lvids);
+      sort_descending = sort_descending->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (summarize)
-      summarize = summarize->parseInit(oflag, pflag, lvids);
+      summarize = summarize->parseInit(oflag, pflag, lvids, argTypeInfo);
       
    // initialize statement block
    if (code)

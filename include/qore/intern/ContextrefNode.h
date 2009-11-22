@@ -60,7 +60,7 @@ class ContextrefNode : public ParseNode {
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

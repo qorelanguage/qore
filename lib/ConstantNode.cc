@@ -64,7 +64,7 @@ NamedScope *ConstantNode::takeName() {
    return n;
 }
 
-AbstractQoreNode *ConstantNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *ConstantNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "ConstantNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;

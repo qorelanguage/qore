@@ -368,7 +368,7 @@ class QoreHashNode : public AbstractQoreNode {
       DLLEXPORT bool empty() const;
 
       //! initializes during parsing
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
       DLLLOCAL QoreHashNode(bool ne);
       DLLLOCAL void clear(ExceptionSink *xsink);

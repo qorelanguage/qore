@@ -162,6 +162,7 @@ class QoreMethod {
  */
 class QoreClass {
       friend class BCList;
+      friend class BCNode;
       friend class BCSMList;
       friend class QoreObject;
 
@@ -217,6 +218,8 @@ class QoreClass {
       DLLLOCAL void execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
       // This function must only be called from BCSMList
       DLLLOCAL void execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
+      // This function is only called from BCList
+      DLLEXPORT const QoreClass *getClassIntern(qore_classid_t cid, bool &priv) const;
 
    public:
       //! creates the QoreClass object and assigns the name and the functional domain
@@ -418,12 +421,24 @@ class QoreClass {
       //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
       /** if the class ID is equal to the current class or is a base class
 	  of the current class, the appropriate QoreClass pointer will be
-	  returned.
+	  returned.  Do not delete or change the QoreClass* returned if
+	  non-null.
+	  FIXME: should return const QoreClass*, fix in next update
 	  @param cid the class ID of the QoreClass to find
 	  @return a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
        */
       DLLEXPORT QoreClass *getClass(qore_classid_t cid) const;
-      
+
+      //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy and sets a flag indicating if it's privately inherited or not
+      /** if the class ID is equal to the current class or is a base class
+	  of the current class, the appropriate QoreClass pointer will be
+	  returned.
+	  @param cid the class ID of the QoreClass to find
+	  @param priv a flag indicating if the class is privately inherited or not
+	  @return a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
+       */
+      DLLEXPORT const QoreClass *getClass(qore_classid_t cid, bool &priv) const;
+
       //! returns the number of non-static methods in this class (user and builtin)
       DLLEXPORT int numMethods() const;
 
@@ -591,6 +606,7 @@ class QoreClass {
       DLLLOCAL const QoreMethod *parseFindStaticMethodTree(const char *name);
       // returns true if the class passed is equal to or in the class' hierarchy - to be called only at parse time or under the program's parse lock
       DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
+      DLLLOCAL const QoreTypeInfo *getTypeInfo() const;
 };
 
 #endif // _QORE_QORECLASS_H

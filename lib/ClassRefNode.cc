@@ -62,7 +62,7 @@ int ClassRefNode::getID() const {
    return cid;
 }
 
-AbstractQoreNode *ClassRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *ClassRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    if (cscope) {
       const QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
       if (qc)

@@ -36,9 +36,9 @@ class ConstantNode : public ParseNoEvalNode {
       // the ExceptionSink is only needed for QoreObject where a method may be executed
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
       // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
       // returns the data type
       DLLLOCAL virtual qore_type_t getType() const;
@@ -48,7 +48,7 @@ class ConstantNode : public ParseNoEvalNode {
       // caller owns NamedScope returned
       DLLLOCAL NamedScope *takeName();
 
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

@@ -36,25 +36,25 @@
   base class constructor argument node
 */
 class BCANode {
-   public:
-      class QoreClass *sclass;
-      class NamedScope *ns;
-      char *name;
-      QoreListNode *argexp;
+  public:
+   QoreClass *sclass;
+   NamedScope *ns;
+   char *name;
+   QoreListNode *argexp;
 
-      DLLLOCAL inline BCANode(class NamedScope *n, QoreListNode *arg) {
-	 ns = n;
-	 name = NULL;
-	 argexp = arg;
-      }
-      // this method takes ownership of *n
-      DLLLOCAL inline BCANode(char *n, QoreListNode *arg) {
-	 ns = NULL;
-	 name = n;
-	 argexp = arg;
-      }
-      DLLLOCAL ~BCANode();
-      DLLLOCAL inline void resolve();
+   DLLLOCAL BCANode(NamedScope *n, QoreListNode *arg) {
+      ns = n;
+      name = NULL;
+      argexp = arg;
+   }
+   // this method takes ownership of *n
+   DLLLOCAL BCANode(char *n, QoreListNode *arg) {
+      ns = NULL;
+      name = n;
+      argexp = arg;
+   }
+   DLLLOCAL ~BCANode();
+   DLLLOCAL void resolve();
 };
 
 typedef safe_dslist<BCANode *> bcalist_t;
@@ -111,9 +111,19 @@ class BCNode {
 	 : cname(0), cstr(0), sclass(qc), args(xargs), hasargs(xargs ? true : false), priv(false), is_virtual(n_virtual) {
       }
       DLLLOCAL ~BCNode();
+      DLLLOCAL bool isPrivate() const { return priv; }
+      DLLLOCAL const QoreClass *getClass(qore_classid_t cid, bool &n_priv) const {
+	 const QoreClass *qc = 0;
+	 
+	 qc = (sclass->getID() == cid) ? sclass : sclass->getClassIntern(cid, n_priv);
+
+	 if (qc && !n_priv && priv)
+	    n_priv = true;
+	 return qc;
+      }
 };
 
-typedef safe_dslist<class BCNode *> bclist_t;
+typedef safe_dslist<BCNode *> bclist_t;
 
 //  BCList
 //  linked list of base classes, constructors called head->tail, 
@@ -124,10 +134,10 @@ typedef safe_dslist<class BCNode *> bclist_t;
 class BCList : public QoreReferenceCounter, public bclist_t {
    protected:
       DLLLOCAL inline ~BCList();
-
+      
    public:
-      // special method (constructor, destructor, copy) list for superclasses 
-      class BCSMList sml;
+      // special method (constructor, destructor, copy) list for superclasses
+      BCSMList sml;
 
       DLLLOCAL BCList(BCNode *n);
       DLLLOCAL BCList();
@@ -157,6 +167,17 @@ class BCList : public QoreReferenceCounter, public bclist_t {
       DLLLOCAL bool isPrivateMember(const char *str) const;
       DLLLOCAL void ref() const;
       DLLLOCAL void deref();
+      DLLLOCAL const QoreClass *getClass(qore_classid_t cid, bool &priv) const {
+	 bclist_t::const_iterator i = begin();
+	 while (i != end()) {
+	    const QoreClass *qc = (*i)->getClass(cid, priv);
+	    if (qc)
+	       return qc;
+	    i++;
+	 }
+	 
+	 return 0;
+      }
 };
 
 #endif

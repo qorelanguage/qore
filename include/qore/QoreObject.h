@@ -329,6 +329,16 @@ class QoreObject : public AbstractQoreNode {
        */
       DLLEXPORT const QoreClass *getClass(qore_classid_t cid) const;
 
+      //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy and sets a flag indicating if it's privately inherited or not                                                                             
+      /** if the class ID is equal to the current class or is a base class                                                        
+          of the current class, the appropriate QoreClass pointer will be                                                         
+          returned.                                                                                                               
+          @param cid the class ID of the QoreClass to find                                                                        
+          @param priv a flag indicating if the class is privately inherited or not                                                
+          @return a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy          
+       */
+      DLLEXPORT const QoreClass *getClass(qore_classid_t cid, bool &priv) const;
+
       //! returns a pointer to the QoreClass of this object
       /**
 	 @return a pointer to the QoreClass of this object

@@ -81,14 +81,16 @@ static inline qore_var_t getBaseLVType(AbstractQoreNode *n) {
    }
 }
 
-AbstractQoreNode *ReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *ReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // otherwise throw a parse exception if an illegal reference is used
    if (!(pflag & PF_REFERENCE_OK)) {	 
       parse_error("the reference operator can only be used in argument lists and in foreach statements");
       return this;
    }
-   if (lvexp)
-      lvexp = lvexp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids);
+   if (lvexp) {
+      const QoreTypeInfo *argTypeInfo;
+      lvexp = lvexp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
+   }
 
    // if a background expression is being parsed, then check that no references to local variables
    // or object members are being used

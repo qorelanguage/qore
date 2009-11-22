@@ -127,14 +127,16 @@ int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
 int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
+   const QoreTypeInfo *argTypeInfo = 0;
+
    if (sexp)
-      sexp = sexp->parseInit(oflag, pflag, lvids);
+      sexp = sexp->parseInit(oflag, pflag, lvids, argTypeInfo);
    
    CaseNode *w = head;
    ExceptionSink xsink;
    while (w) {
       if (w->val) {
-	 w->val = w->val->parseInit(oflag, pflag, lvids);
+	 w->val = w->val->parseInit(oflag, pflag, lvids, argTypeInfo);
 	 //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, w->val ? w->val->getTypeName() : "n/a");
 
 	 // check for duplicate values

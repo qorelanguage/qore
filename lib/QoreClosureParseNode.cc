@@ -70,9 +70,9 @@ QoreString *QoreClosureParseNode::getAsString(bool &del, int foff, ExceptionSink
    return rv;
 }
 
-AbstractQoreNode *QoreClosureParseNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *QoreClosureParseNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    in_method = (bool)oflag;
-   uf->statements->parseInitClosure(uf->params, in_method, &vlist);
+   uf->statements->parseInitClosure(uf->params, oflag ? oflag->getTypeInfo() : 0, &vlist);
    return this;
 }
 

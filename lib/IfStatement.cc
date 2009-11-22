@@ -61,8 +61,10 @@ int IfStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 int IfStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
-   if (cond)
-      cond = cond->parseInit(oflag, pflag, lvids);
+   if (cond) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
    if (if_code)
       if_code->parseInitImpl(oflag, pflag);
    if (else_code)

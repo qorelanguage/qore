@@ -61,16 +61,18 @@ struct qore_qc_private {
    int domain;                      // capabilities of builtin class to use in the context of parse restrictions
    QoreReferenceCounter nref;       // namespace references
    int num_methods, num_user_methods, num_static_methods, num_static_user_methods;
+   // to be used in parsing
+   QoreTypeInfo typeInfo;
 
-   DLLLOCAL qore_qc_private(const char *nme, int dom = QDOM_DEFAULT) : bcal(0), scl(0), 
+   DLLLOCAL qore_qc_private(const QoreClass *cls, const char *nme, int dom = QDOM_DEFAULT) : bcal(0), scl(0), 
 								       sys(false), initialized(false), has_delete_blocker(false), 
 #ifdef QORE_CLASS_SYNCHRONOUS
 								       synchronous_class(false), has_synchronous_in_hierarchy(false), 
 #endif
 								       domain(dom), 
 								       num_methods(0), num_user_methods(0),
-								       num_static_methods(0), num_static_user_methods(0)
-   {
+								       num_static_methods(0), num_static_user_methods(0),
+								       typeInfo(cls) {
       name = nme ? strdup(nme) : 0;
 
       // quick pointers
@@ -220,7 +222,7 @@ struct qore_method_private {
       // must be called even if func.userFunc->statements is NULL
       //printd(5, "QoreMethod::parseInit() this=%08p '%s' static_flag=%d\n", this, getName(), static_flag);
       if (!static_flag)
-	 func.userFunc->statements->parseInitMethod(func.userFunc->params, 0);
+	 func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, 0);
       else
 	 func.userFunc->statements->parseInit(func.userFunc->params);
    }
@@ -992,7 +994,7 @@ void QoreMethod::parseInit() {
 
 void QoreMethod::parseInitConstructor(BCList *bcl) {
    // must be called even if func.userFunc->statements is NULL
-   priv->func.userFunc->statements->parseInitMethod(priv->func.userFunc->params, bcl);
+   priv->func.userFunc->statements->parseInitMethod(priv->parent_class->getTypeInfo(), priv->func.userFunc->params, bcl);
 }
 
 QoreMethod *QoreMethod::copy(const QoreClass *p_class) const {
@@ -1115,21 +1117,21 @@ QoreClass *BCSMList::getClass(qore_classid_t cid) const {
 }
 
 QoreClass::QoreClass(const char *nme, int dom) {
-   priv = new qore_qc_private(nme, dom);
+   priv = new qore_qc_private(this, nme, dom);
 
    priv->classID = priv->methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%08p)\n", priv->name, priv->classID, this);
 }
 
 QoreClass::QoreClass() {
-   priv = new qore_qc_private(0);
+   priv = new qore_qc_private(this, 0);
 
    priv->classID = priv->methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating unnamed class ID:%d (this=%08p)\n", priv->classID, this);
 }
 
 QoreClass::QoreClass(qore_classid_t id, const char *nme) {
-   priv = new qore_qc_private(nme);
+   priv = new qore_qc_private(this, nme);
 
    priv->classID = id;
    printd(5, "QoreClass::QoreClass() creating copy of '%s' ID:%d (this=%08p)\n", priv->name, priv->classID, this);
@@ -1147,6 +1149,17 @@ QoreClass *QoreClass::getClass(qore_classid_t cid) const {
    if (cid == priv->classID)
       return (QoreClass *)this;
    return priv->scl ? priv->scl->sml.getClass(cid) : 0;
+}
+
+const QoreClass *QoreClass::getClassIntern(qore_classid_t cid, bool &cpriv) const {
+   if (cid == priv->classID)
+      return (QoreClass *)this;
+   return priv->scl ? priv->scl->getClass(cid, cpriv) : 0;
+}
+
+const QoreClass *QoreClass::getClass(qore_classid_t cid, bool &cpriv) const {
+   cpriv = false;
+   return getClassIntern(cid, cpriv);
 }
 
 AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
@@ -2081,3 +2094,8 @@ const QoreMethod *QoreClass::getMethodGate() const {
 const QoreMethod *QoreClass::getMemberNotificationMethod() const {
    return priv->memberNotification;
 }
+
+const QoreTypeInfo *QoreClass::getTypeInfo() const {
+   return &priv->typeInfo;
+}
+

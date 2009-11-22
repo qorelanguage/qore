@@ -73,11 +73,12 @@ char *BarewordNode::takeString() {
    return p;
 }
 
-AbstractQoreNode *BarewordNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *BarewordNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // resolve simple constant
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;
    printd(5, "BarewordNode::parseInit() resolving simple constant \"%s\"\n", reinterpret_cast<BarewordNode *>(*node)->str);
+   // FIXME: xxx set typeInfo
    getRootNS()->resolveSimpleConstant(node, 1);
    return *node;
 }

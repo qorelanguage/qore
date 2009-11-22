@@ -3323,13 +3323,11 @@ int64 FloatOperatorFunction::bigint_eval(const AbstractQoreNode *left, const Abs
    return (int64)op_func(left, right, xsink);
 }
 
-double FloatOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double FloatOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL))
-   {
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
       l = get_node_type(left, ltype);
       left = *l;
    }
@@ -3341,8 +3339,7 @@ double FloatOperatorFunction::float_eval(const AbstractQoreNode *left, const Abs
    ReferenceHolder<AbstractQoreNode> r(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((right->getType() != rtype) && (rtype != NT_ALL))
-   {
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
       r = get_node_type(right, rtype);
       right = *r;
    }
@@ -3350,44 +3347,12 @@ double FloatOperatorFunction::float_eval(const AbstractQoreNode *left, const Abs
    return op_func(left, right, xsink);
 }
 
-Operator::Operator(int arg, const char *n, const char *desc, int n_evalArgs, bool n_effect, bool n_lvalue)
-{
-   args = arg;
-   name = n;
-   description = desc;
-   evalArgs = n_evalArgs;
-   opMatrix = 0;
-   effect = n_effect;
-   lvalue = n_lvalue;
-}
-
-Operator::~Operator()
-{
+Operator::~Operator() {
    // erase all functions
    for (unsigned i = 0, size = functions.size(); i < size; i++)
       delete functions[i];
    if (opMatrix)
       delete [] opMatrix;
-}
-
-bool Operator::hasEffect() const
-{ 
-   return effect; 
-}
-
-bool Operator::needsLValue() const
-{ 
-   return lvalue;
-}
-
-const char *Operator::getName() const
-{
-   return name;
-}
-
-const char *Operator::getDescription() const
-{
-   return description;
 }
 
 void Operator::init() {
@@ -3402,8 +3367,7 @@ void Operator::init() {
 
 // if there is no exact match, the first partial match counts as a match
 // static method
-int Operator::match(qore_type_t ntype, qore_type_t rtype)
-{
+int Operator::match(qore_type_t ntype, qore_type_t rtype) {
    // if any type is OK, or an exact match
    if (rtype == NT_ALL || ntype == rtype || (rtype == NT_VARREF && ntype == NT_SELF_VARREF))
       return 1;
@@ -3455,8 +3419,7 @@ AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const Abstra
 
       int t;
 
-      if (args == 1)
-      {
+      if (args == 1) {
 	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
 
@@ -3486,11 +3449,9 @@ AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const Abstra
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNode *right_side, ExceptionSink *xsink) const
-{
+bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNode *right_side, ExceptionSink *xsink) const {
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
-   if (evalArgs)
-   {
+   if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left_side, xsink);
       if (*xsink)
 	 return 0;
@@ -3498,8 +3459,7 @@ bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNo
 	 nleft.assign(false, &Nothing);
       
       int t;
-      if (args == 1)
-      {
+      if (args == 1) {
 	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
 
@@ -3529,11 +3489,9 @@ bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNo
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const
-{
+int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const {
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
-   if (evalArgs)
-   {
+   if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left, xsink);
       if (*xsink)
 	 return 0;
@@ -3542,8 +3500,7 @@ int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode
 
       int t;
 
-      if (args == 1)
-      {
+      if (args == 1) {
 	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
 
@@ -3575,8 +3532,7 @@ int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode
 // 3: pass-through all arguments
 double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const {
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
-   if (evalArgs)
-   {
+   if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left, xsink);
       if (*xsink)
 	 return 0;
@@ -3585,8 +3541,7 @@ double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode
 
       int t;
 
-      if (args == 1)
-      {
+      if (args == 1) {
 	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
 
@@ -3651,44 +3606,53 @@ int Operator::findFunction(qore_type_t ltype, qore_type_t rtype) const {
    return m == -1 ? 0 : m;
 }
 
-void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_func_t f)
-{
+void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_func_t f) {
    functions.push_back(new OperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_bool_func_t f)
-{
+void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_bool_func_t f) {
    functions.push_back(new BoolOperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f)
-{
+void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f) {
    functions.push_back(new BigIntOperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f)
-{
+void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f) {
    functions.push_back(new FloatOperatorFunction(lt, rt, f));
 }
 
-OperatorList::OperatorList()
-{
+OperatorList::OperatorList() {
 }
 
-OperatorList::~OperatorList()
-{
+OperatorList::~OperatorList() {
    oplist_t::iterator i;
-   while ((i = begin()) != end())
-   {
+   while ((i = begin()) != end()) {
       delete (*i);
       erase(i);
    }
 }
 
-class Operator *OperatorList::add(class Operator *o)
-{
+Operator *OperatorList::add(Operator *o) {
    push_back(o);
    return o;
+}
+
+static int check_op_assignment(const QoreTypeInfo *l, const QoreTypeInfo *r) {
+   if (!l->hasType() || !r->hasType())
+      return 0;
+
+   if (l->equal(*r))
+      return 0;
+
+   if (getProgram()->getParseExceptionSink()) {
+      QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator (=) expects ");
+      l->getThisType(*desc);
+      desc->concat(", but right-hand side is ");
+      r->getThisType(*desc);
+      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+   }
+   return -1;
 }
 
 // registers the system operators and system operator functions
@@ -3800,7 +3764,7 @@ void OperatorList::init() {
    OP_MODULA->addFunction(op_modula_int);
 
    // non-boolean operators
-   OP_ASSIGNMENT = add(new Operator(2, "=", "assignment", 0, true, true));
+   OP_ASSIGNMENT = add(new Operator(2, "=", "assignment", 0, true, true, check_op_assignment));
    OP_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_assignment);
    
    OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true));

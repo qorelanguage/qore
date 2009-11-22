@@ -96,7 +96,7 @@ class ParseObjectMethodReferenceNode : public AbstractParseObjectMethodReference
    
    public:
       DLLLOCAL ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method);
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
@@ -123,7 +123,7 @@ class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNo
 
    public:
       DLLLOCAL ParseSelfMethodReferenceNode(char *n_method);
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
@@ -151,7 +151,7 @@ class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodRefer
 
    public:
       DLLLOCAL ParseScopedSelfMethodReferenceNode(NamedScope *n_nscope);
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

@@ -293,7 +293,7 @@ void StatementBlock::parseInit(Paramlist *params) {
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl) {
+void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, Paramlist *params, BCList *bcl) {
    QORE_TRACE("StatementBlock::parseInitMethod");
 
    if (params->num_params)
@@ -302,8 +302,7 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl) {
       params->lv = 0;
 
    // this is a class method, push local $self variable
-   // FIXME: xxx push as instantiation of current class
-   params->selfid = push_local_var("self", 0, false);
+   params->selfid = push_local_var("self", typeInfo, false);
    // set oflag to selfid
    LocalVar *oflag = params->selfid;
 
@@ -327,8 +326,10 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl) {
 	    QoreListNode *l = (*i)->args;
 	    for (unsigned j = 0; j < l->size(); j++) {
 	       AbstractQoreNode **n = l->get_entry_ptr(j);
-	       if (*n)
-		  (*n) = (*n)->parseInit(oflag, PF_REFERENCE_OK, tlvids);
+	       if (*n) {
+		  const QoreTypeInfo *argTypeInfo = 0;
+		  (*n) = (*n)->parseInit(oflag, PF_REFERENCE_OK, tlvids, argTypeInfo);
+	       }
 	    }
 	 }
       }
@@ -355,7 +356,7 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl) {
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitClosure(Paramlist *params, bool in_method, lvar_set_t *vlist) {
+void StatementBlock::parseInitClosure(Paramlist *params, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
    QORE_TRACE("StatementBlock::parseInitClosure");
 
    ClosureParseEnvironment cenv(vlist);
@@ -368,9 +369,8 @@ void StatementBlock::parseInitClosure(Paramlist *params, bool in_method, lvar_se
    LocalVar *oflag = 0;
 
    // this is a class method, push local $self variable
-   if (in_method) {
-      // FIXME: xxx push as instantiation of current class
-      params->selfid = push_local_var("self", 0, false);
+   if (classTypeInfo) {
+      params->selfid = push_local_var("self", classTypeInfo, false);
       // set oflag to selfid
       oflag = params->selfid;
    }
@@ -398,6 +398,6 @@ void StatementBlock::parseInitClosure(Paramlist *params, bool in_method, lvar_se
    pop_local_var();
 
    // pop $self id off stack
-   if (in_method)
+   if (classTypeInfo)
       pop_local_var();
 }

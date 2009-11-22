@@ -1015,7 +1015,7 @@ QoreListNode *QoreListNode::listRefSelf() const {
    return const_cast<QoreListNode *>(this);
 }
 
-AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // unset "reference ok" parse flag
    pflag &= ~PF_REFERENCE_OK;
 
@@ -1024,7 +1024,8 @@ AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    for (unsigned i = 0; i < size(); i++) {
       AbstractQoreNode **n = get_entry_ptr(i);
       if (*n) {
-	 (*n) = (*n)->parseInit(oflag, pflag, lvids);
+	 const QoreTypeInfo *argTypeInfo = 0;
+	 (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
 	 if (!needs_eval_flag && *n && (*n)->needs_eval()) {
 	    setNeedsEval();
 	 }

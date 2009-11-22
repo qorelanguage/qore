@@ -56,7 +56,8 @@ int ThrowStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 int ThrowStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (args) {
       int lvids = 0;
-      args->parseInit(oflag, pflag, lvids);
+      const QoreTypeInfo *argTypeInfo = 0;
+      args->parseInit(oflag, pflag, lvids, argTypeInfo);
       return lvids;
    }
    return 0;

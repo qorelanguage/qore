@@ -51,8 +51,10 @@ int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    
    if (code)
       code->parseInitImpl(oflag, pflag);
-   if (cond)
-      cond = cond->parseInit(oflag, pflag, lvids);
+   if (cond) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
    
    // save local variables
    lvars = new LVList(lvids);

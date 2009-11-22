@@ -40,7 +40,7 @@ public:
 
    DLLLOCAL UnresolvedCallReferenceNode(char *n_str);
    DLLLOCAL virtual ~UnresolvedCallReferenceNode();
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
    DLLLOCAL void deref();
 };
 
@@ -74,7 +74,7 @@ protected:
 public:
    DLLLOCAL UnresolvedStaticMethodCallReferenceNode(NamedScope *n_scope);
    DLLLOCAL virtual ~UnresolvedStaticMethodCallReferenceNode();
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
    DLLLOCAL void deref();
 };
 

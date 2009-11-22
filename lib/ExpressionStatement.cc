@@ -31,7 +31,7 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQ
       return;
    }
 
-   QoreListNode *l = dynamic_cast<QoreListNode *>(exp);
+   QoreListNode *l = exp->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(exp) : 0;
    if (l && l->isVariableList()) {
       is_declaration = true;
       is_parse_declaration = reinterpret_cast<VarRefNode *>(l->retrieve_entry(0))->getType() == VT_GLOBAL ? true : false;
@@ -56,8 +56,10 @@ int ExpressionStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink
 int ExpressionStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    //printd(5, "ES::pII() exp=%08p (%s)\n", exp, exp->getTypeName());
    int lvids = 0;
-   if (exp)
-      exp = exp->parseInit(oflag, pflag, lvids);
+   if (exp) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
+   }
    return lvids;
 }
 

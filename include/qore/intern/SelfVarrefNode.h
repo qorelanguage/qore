@@ -57,7 +57,7 @@ class SelfVarrefNode : public ParseNode  {
       // returns the string, caller owns the memory
       DLLLOCAL char *takeString();
 
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

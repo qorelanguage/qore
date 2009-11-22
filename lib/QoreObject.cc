@@ -323,16 +323,19 @@ AbstractQoreNode *QoreObject::evalMethod(const QoreMethod &method, const QoreLis
    return method.eval(this, args, xsink);
 }
 
-const QoreClass *QoreObject::getClass(qore_classid_t cid) const
-{
+const QoreClass *QoreObject::getClass(qore_classid_t cid) const {
    if (cid == priv->theclass->getID())
       return priv->theclass;
    return priv->theclass->getClass(cid);
 }
 
-static bool in_class_call(qore_classid_t id) {
+const QoreClass *QoreObject::getClass(qore_classid_t cid, bool &cpriv) const {
+   return priv->theclass->getClass(cid, cpriv);
+}
+
+bool private_class_access_ok(qore_classid_t id) {
    QoreObject *obj = getStackObject();
-   return (obj && obj->getClass()->getID() == id) ? true : false;
+   return (obj && obj->getClass(id)) ? true : false;
 }
 
 /*
@@ -368,7 +371,7 @@ void QoreObject::doPrivateException(const char *mem, ExceptionSink *xsink) const
 
 bool QoreObject::checkExternalPrivateAccess(const char *mem) const {
    // if accessed outside the class and the member is a private member 
-   return (!in_class_call(priv->theclass->getID()) && priv->theclass->isPrivateMember(mem)) ? true : false;
+   return (!private_class_access_ok(priv->theclass->getID()) && priv->theclass->isPrivateMember(mem)) ? true : false;
 }
 
 bool QoreObject::checkExternalPrivateAccess(const char *mem, ExceptionSink *xsink) const {
@@ -843,7 +846,7 @@ QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const {
 }
 
 QoreHashNode *QoreObject::getRuntimeMemberHash(ExceptionSink *xsink) const {
-   bool inclass = in_class_call(priv->theclass->getID());
+   bool inclass = private_class_access_ok(priv->theclass->getID());
 
    AutoLocker al(priv->mutex);
 

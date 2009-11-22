@@ -36,6 +36,7 @@
 #define FMT_NORMAL 0
 
 class LocalVar;
+class QoreTypeInfo;
 
 //! The base class for all value and parse types in Qore expression trees
 /**
@@ -291,15 +292,15 @@ class AbstractQoreNode : public QoreReferenceCounter {
       DLLEXPORT virtual const char *getTypeName() const = 0;
 
       //! for use by parse types to initialize them for execution during stage 1 parsing
-      /** @note: not yet universally used
-	  This function should only be overridden by types that can appear in
+      /** This function should only be overridden by types that can appear in
 	  the parse tree (i.e. are recognized by the parser)
 	  @param oflag non-zero if initialized within class code
 	  @param pflag bitfield parse flag
 	  @param lvids the number of new local variables declared in this node
+	  @param typeInfo any available type constraints on the initialized value or expression
 	  @return new object
        */
-      DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids) { return this; }
+      DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) { return this; }
 
       //! evaluates the object and returns a value (or 0)
       /** return value requires a deref(xsink) (if not 0).  If needs_eval() returns false,

@@ -49,8 +49,16 @@ int qore_library_options = QLO_NONE;
 
 qore_license_t qore_license;
 
-void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options)
-{
+QoreTypeInfo bigIntTypeInfo(NT_INT);
+QoreTypeInfo floatTypeInfo(NT_FLOAT);
+QoreTypeInfo boolTypeInfo(NT_BOOLEAN);
+QoreTypeInfo stringTypeInfo(NT_STRING);
+QoreTypeInfo binaryTypeInfo(NT_BINARY);
+QoreTypeInfo objectTypeInfo(NT_OBJECT);
+QoreTypeInfo hashTypeInfo(NT_HASH);
+QoreTypeInfo listTypeInfo(NT_LIST);
+
+void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;
 
    qore_library_options = n_qore_library_options;

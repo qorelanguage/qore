@@ -123,15 +123,16 @@ double FindNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode *FindNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *FindNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    push_cvar(0);
    pflag &= ~PF_REFERENCE_OK;
+   const QoreTypeInfo *argTypeInfo = 0;
    if (find_exp)
-      find_exp = find_exp->parseInit(oflag, pflag, lvids);
+      find_exp = find_exp->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (where)
-      where = where->parseInit(oflag, pflag, lvids);
+      where = where->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (exp)
-      exp = exp->parseInit(oflag, pflag, lvids);
+      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
    pop_cvar();
    return this;
 }

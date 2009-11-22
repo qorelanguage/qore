@@ -27,8 +27,7 @@
 #include <qore/AbstractQoreNode.h>
 
 //! this class implements Qore's 64-bit integer data type, reference-counted, dynamically-allocated only
-class QoreBigIntNode : public SimpleValueQoreNode
-{
+class QoreBigIntNode : public SimpleValueQoreNode {
    private:
       //! returns the value as a boolean
       DLLLOCAL virtual bool getAsBoolImpl() const;
@@ -76,7 +75,7 @@ class QoreBigIntNode : public SimpleValueQoreNode
 	  @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
 	  @see DateTimeValueHelper
        */
-      DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
+      DLLEXPORT virtual DateTime *getDateTimeRepresentation(bool &del) const;
 
       //! assigns the date representation of this integer (interpreted as an offset in seconds from January 1, 1970) to the DateTime reference passed
       /** 
@@ -91,7 +90,7 @@ class QoreBigIntNode : public SimpleValueQoreNode
 	  @param xsink is ignored
 	  @return always returns 0
       */
-      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
 
       //! returns a QoreString representing the integer
       /** used for %n and %N printf formatting
@@ -101,9 +100,9 @@ class QoreBigIntNode : public SimpleValueQoreNode
 	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
 	  @see QoreNodeAsStringHelper
       */
-      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
-      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
+      DLLEXPORT virtual AbstractQoreNode *realCopy() const;
 
       //! tests for equality with the possibility of type conversion (soft compare)
       /** this implementation of the function does not throw any Qore-language exceptions
@@ -122,8 +121,10 @@ class QoreBigIntNode : public SimpleValueQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      //! returns the type information
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "integer";
       }
 };

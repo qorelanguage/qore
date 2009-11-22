@@ -98,11 +98,12 @@ double CallReferenceCallNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    pflag &= ~PF_REFERENCE_OK;
 
+   const QoreTypeInfo *argTypeInfo = 0;
    if (exp)
-      exp = exp->parseInit(oflag, pflag, lvids);
+      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
 
    if (args) {
        bool needs_eval = args->needs_eval();
@@ -112,9 +113,9 @@ AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, i
 	   AbstractQoreNode **n = li.getValuePtr();
 	   if (*n) {
                if ((*n)->getType() == NT_REFERENCE)
-		  (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids);
+		  (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
                else
-		  (*n) = (*n)->parseInit(oflag, pflag, lvids);
+		  (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
 
                if (!needs_eval && (*n)->needs_eval()) {
 		   args->setNeedsEval();
@@ -250,9 +251,11 @@ double ParseObjectMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const
    return 0.0;
 }
 
-AbstractQoreNode *ParseObjectMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
-   if (exp)
-      exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids);
+AbstractQoreNode *ParseObjectMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   if (exp) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
+   }
    return this;
 }
 
@@ -291,7 +294,7 @@ double ParseSelfMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
    return 0.0;
 }
 
-AbstractQoreNode *ParseSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *ParseSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
    return this;
@@ -331,7 +334,7 @@ double ParseScopedSelfMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) c
    return 0.0;
 }
 
-AbstractQoreNode *ParseScopedSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *ParseScopedSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
    else {
@@ -397,7 +400,7 @@ UnresolvedCallReferenceNode::~UnresolvedCallReferenceNode() {
    free(str);
 }
 
-AbstractQoreNode *UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    return ::getProgram()->resolveCallReference(this);
 }
 
@@ -452,7 +455,7 @@ UnresolvedStaticMethodCallReferenceNode::~UnresolvedStaticMethodCallReferenceNod
    delete scope;
 }
 
-AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids) {
+AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
    if (!qc)
       return this;

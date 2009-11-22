@@ -24,8 +24,7 @@
 
 #define _QORE_FUNCTIONREFERENCECALLNODE_H
 
-class CallReferenceCallNode : public ParseNode
-{
+class CallReferenceCallNode : public ParseNode {
    private:
       AbstractQoreNode *exp;    // must evaluate to an AbstractCallReference
       QoreListNode *args;
@@ -68,7 +67,7 @@ class CallReferenceCallNode : public ParseNode
       //! returns the arguments (for background operator processing)
       DLLLOCAL const QoreListNode *getArgs() const { return args; }
 
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

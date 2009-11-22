@@ -36,7 +36,40 @@ DLLLOCAL void parseException(const char *err, const char *fmt, ...);
 DLLLOCAL QoreString *findFileInPath(const char *file, const char *path);
 DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
+DLLLOCAL qore_type_t getBuiltinType(const char *str);
+DLLLOCAL const char *getBuiltinTypeName(qore_type_t type);
+DLLLOCAL bool private_class_access_ok(qore_classid_t id);
+
 class QoreTypeInfo {
+protected:
+   DLLLOCAL int doTypeException(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+      // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
+      // for example if there was a "requires" error
+      if (!xsink)
+	 return -1;
+
+      QoreStringNode *desc = new QoreStringNode("expecting ");
+      getThisType(*desc);
+      desc->concat(", but got ");
+      getNodeType(*desc, n);
+      desc->concat(" instead");
+      xsink->raiseException("TYPE-ERROR", desc);
+      return -1;
+   }
+
+   DLLLOCAL int doPrivateClassException(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+      // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
+      // for example if there was a "requires" error
+      if (!xsink)
+	 return -1;
+
+      QoreStringNode *desc = new QoreStringNode("expecting ");
+      getThisType(*desc);
+      desc->concat(", but got an object where this class is privately inherited instead");
+      xsink->raiseException("TYPE-ERROR", desc);
+      return -1;
+   }
+
 public:
    const QoreClass *qc;
    qore_type_t qt : 11;
@@ -44,6 +77,27 @@ public:
 
    DLLLOCAL QoreTypeInfo() : qc(0), qt(NT_ALL), has_type(false) {}
    DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : qc(0), qt(n_qt), has_type(true) {}
+   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : qc(n_qc), qt(NT_OBJECT), has_type(true) {}
+
+   DLLLOCAL void getNodeType(QoreStringNode &str, const AbstractQoreNode *n) const {
+      if (is_nothing(n)) {
+	 str.concat("no value");
+	 return;
+      }
+      if (n->getType() != NT_OBJECT) {
+	 str.sprintf("builtin type '%s'", n->getTypeName());
+	 return;
+      }
+      str.sprintf("object of class '%s'", reinterpret_cast<const QoreObject *>(n)->getClassName());
+   }
+
+   DLLLOCAL void getThisType(QoreStringNode &str) const {
+      if (qc) {
+	 str.sprintf("an object of class '%s'", qc->getName());
+	 return;
+      }
+      str.sprintf("builtin type '%s'", getBuiltinTypeName(qt));
+   }
 
 /*
    // returns true if types are equal (or both null)
@@ -71,6 +125,40 @@ public:
       qc = ti.qc;
       qt = ti.qt;
       has_type = true;
+   }
+
+   DLLLOCAL int checkType(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+      if (!this) return 0;
+      if (qt == NT_NOTHING && is_nothing(n)) return 0;
+      if (is_nothing(n))
+	 return doTypeException(n, xsink);
+
+      // from here on we know n != 0
+      if (qt == NT_OBJECT) {
+	 if (n->getType() != NT_OBJECT)
+	    return doTypeException(n, xsink);
+
+	 if (!qc)
+	    return 0;
+
+	 bool priv;
+	 if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
+	    if (!priv)
+	       return 0;
+
+	    // check private access
+	    if (private_class_access_ok(qc->getID()))
+	       return 0;
+
+	    return doPrivateClassException(n, xsink);
+	 }
+
+	 return doTypeException(n, xsink);
+      }
+      if (n->getType() != qt)
+	 return doTypeException(n, xsink);
+
+      return 0;
    }
 };
 
@@ -229,5 +317,8 @@ DLLLOCAL ResolvedCallReferenceNode *getCallReference(const QoreString *str, Exce
 DLLLOCAL AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
 
 DLLLOCAL void addProgramConstants(QoreNamespace *ns);
+
+DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo, 
+   stringTypeInfo, binaryTypeInfo, objectTypeInfo, hashTypeInfo, listTypeInfo;
 
 #endif
