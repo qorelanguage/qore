@@ -429,7 +429,7 @@ public:
    */
    DLLLOCAL AbstractQoreNode *callFunction(const UserFunction *func, const QoreListNode *args, ExceptionSink *xsink);
 
-   DLLLOCAL LocalVar *createLocalVar(const char *name);
+   DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);
 
    DLLLOCAL void registerUserFunction(UserFunction *u);
    DLLLOCAL void resolveFunction(FunctionCallNode *f);      

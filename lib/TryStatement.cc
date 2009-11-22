@@ -101,15 +101,14 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
    return rc;
 }
 
-int TryStatement::parseInitImpl(LocalVar *oflag, int pflag)
-{
+int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (try_block)
       try_block->parseInitImpl(oflag, pflag);
    
    // prepare catch block and params
-   if (param)
-   {
-      id = push_local_var(param);
+   if (param) {
+      // FIXME: xxx push as exception info type
+      id = push_local_var(param, 0);
       printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%08p)\n", param, id);
    }
    else

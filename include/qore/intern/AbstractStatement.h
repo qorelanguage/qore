@@ -73,7 +73,7 @@ class AbstractStatement {
 DLLLOCAL void push_cvar(const char *name);
 DLLLOCAL void pop_cvar();
 DLLLOCAL LocalVar *pop_local_var();
-DLLLOCAL LocalVar *push_local_var(const char *name, bool check_dup = true);
+DLLLOCAL LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup = true);
 DLLLOCAL LocalVar *find_local_var(const char *name, bool &in_closure);
 
 #endif // _QORE_ABSTRACTSTATEMENT_H

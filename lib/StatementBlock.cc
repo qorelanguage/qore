@@ -145,12 +145,12 @@ void StatementBlock::exec() {
    exec(&xsink);
 }
 
-LocalVar *push_local_var(const char *name, bool check_dup) {
+LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup) {
    VNode *vnode;
 
    QoreProgram *pgm = getProgram();
 
-   LocalVar *lv = pgm->createLocalVar(name);
+   LocalVar *lv = pgm->createLocalVar(name, typeInfo);
 
    // check stack for duplicate entries
    if (check_dup && pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS)) {
@@ -269,12 +269,13 @@ void StatementBlock::parseInit(Paramlist *params) {
       params->lv = 0;
 
    // push $argv var on stack and save id
-   params->argvid = push_local_var("argv", false);
+   // FIXME: xxx push as list if hard typing enforced with parse options
+   params->argvid = push_local_var("argv", 0, false);
    printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
-      params->lv[i] = push_local_var(params->names[i]);
+      params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
       printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
 	     params->names[i], params->lv[i]);
    }
@@ -301,17 +302,19 @@ void StatementBlock::parseInitMethod(Paramlist *params, BCList *bcl) {
       params->lv = 0;
 
    // this is a class method, push local $self variable
-   params->selfid = push_local_var("self", false);
+   // FIXME: xxx push as instantiation of current class
+   params->selfid = push_local_var("self", 0, false);
    // set oflag to selfid
    LocalVar *oflag = params->selfid;
 
    // push $argv var on stack and save id
-   params->argvid = push_local_var("argv", false);
+   // FIXME: xxx push as list if hard typing enforced with parse options
+   params->argvid = push_local_var("argv", 0, false);
    printd(5, "StatementBlock::parseInitMethod() params=%08p argvid=%08p oflag (selfid)=%08p\n", params, params->argvid, oflag);
 
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
-      params->lv[i] = push_local_var(params->names[i]);
+      params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
       printd(3, "StatementBlock::parseInitMethod() reg. local var %s (id=%08p)\n", 
 	     params->names[i], params->lv[i]);
    }
@@ -366,18 +369,20 @@ void StatementBlock::parseInitClosure(Paramlist *params, bool in_method, lvar_se
 
    // this is a class method, push local $self variable
    if (in_method) {
-      params->selfid = push_local_var("self", false);
+      // FIXME: xxx push as instantiation of current class
+      params->selfid = push_local_var("self", 0, false);
       // set oflag to selfid
       oflag = params->selfid;
    }
 
    // push $argv var on stack and save id
-   params->argvid = push_local_var("argv", false);
+   // FIXME: xxx push as list if hard typing enforced with parse options
+   params->argvid = push_local_var("argv", 0, false);
    printd(5, "StatementBlock::parseInitClosure() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
-      params->lv[i] = push_local_var(params->names[i]);
+      params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
       printd(5, "StatementBlock::parseInitClosure() reg. local var %s (id=%08p)\n", params->names[i], params->lv[i]);
    }
 

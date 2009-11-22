@@ -330,6 +330,7 @@ private:
 #endif
    std::string name;
    bool closure_use;
+   const QoreTypeInfo *typeInfo;
 
 #ifdef HAVE_UNLIMITED_THREAD_KEYS
    DLLLOCAL LocalVarValue *get_current_var() const {
@@ -349,7 +350,7 @@ private:
    }
 
 public:
-   DLLLOCAL LocalVar(const char *n_name) : name(n_name), closure_use(false) {
+   DLLLOCAL LocalVar(const char *n_name, const QoreTypeInfo *ti) : name(n_name), closure_use(false), typeInfo(ti) {
    }
 
    DLLLOCAL ~LocalVar() {

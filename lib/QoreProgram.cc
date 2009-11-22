@@ -569,8 +569,8 @@ Var *QoreProgram::createGlobalVar(const char *name, const QoreTypeInfo *typeInfo
    return rv;
 }
 
-LocalVar *QoreProgram::createLocalVar(const char *name) {
-   LocalVar *lv = new LocalVar(name);
+LocalVar *QoreProgram::createLocalVar(const char *name, const QoreTypeInfo *typeInfo) {
+   LocalVar *lv = new LocalVar(name, typeInfo);
    priv->local_var_list.push_back(lv);
    return lv;
 }

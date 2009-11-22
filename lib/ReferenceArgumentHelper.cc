@@ -29,8 +29,7 @@ struct lvih_intern {
       ExceptionSink *xsink;
       ReferenceNode *ref;
 
-      DLLLOCAL lvih_intern(AbstractQoreNode *val, ExceptionSink *xs) : lv("ref_arg_helper"), xsink(xs)
-      {
+      DLLLOCAL lvih_intern(AbstractQoreNode *val, ExceptionSink *xs) : lv("ref_arg_helper", 0), xsink(xs) {
 	 printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %08p (val=%08p type='%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
 	 lv.instantiate(val);
 	 VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
