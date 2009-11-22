@@ -1,3 +1,13 @@
+2009.11.22: David Nichols
+	* updated module API to 0.9, implemented minimum recommended module
+	  api and also set to 0.9 to be used with 'qore --module-api' so that
+	  modules built with this version of qore claim compatibility with the
+	  new API because, even though qore will maintain binary compatibility
+	  with earlier module apis (down to 0.5), by default even old modules
+	  will now use new features supporting optional hard typing when
+	  compiled with headers from this version of qore
+	* updated library version to 9 (libqore 5.4)
+
 2009.11.20: David Nichols
 	* detected erroneous variable list declarations like:
 	  our (my $x, ...) or my (our $x) and throw a parse exception

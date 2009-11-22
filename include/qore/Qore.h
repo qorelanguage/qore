@@ -116,6 +116,12 @@ DLLEXPORT extern const char *qore_build_host;
 //! if the qore library includes debugging or not
 DLLEXPORT bool qore_has_debug();
 
+//! the recommended minimum module api major number to use
+DLLEXPORT extern int qore_min_mod_api_major;
+
+//! the recommended minimum module api minor number to use
+DLLEXPORT extern int qore_min_mod_api_minor;
+
 #define QLO_NONE                    0       //!< no options (default)
 #define QLO_DISABLE_SIGNAL_HANDLING 1 << 0  //!< disable qore signal handling entirely
 

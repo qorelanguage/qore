@@ -43,7 +43,7 @@
 
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
 
-static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 8}, {0, 7}, {0, 6}, {0, 5} };
+static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
 // public symbols
@@ -110,7 +110,7 @@ ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore
 }
 
 /*
-// builtin module info node - when features are compiled into the library
+// builtin module info node - when modules are compiled into the library
 ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del) {
    filename = (char *)"<builtin>";
    name = fn;

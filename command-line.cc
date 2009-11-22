@@ -154,7 +154,7 @@ static void show_module_dir(const char *arg) {
 }
 
 static void show_module_api(const char *arg) {
-   printf("%d.%d\n", qore_mod_api_list[qore_mod_api_list_len - 1].major, qore_mod_api_list[qore_mod_api_list_len - 1].minor);
+   printf("%d.%d\n", qore_min_mod_api_major, qore_min_mod_api_minor);
    exit(0);
 }
 

@@ -45,6 +45,9 @@ const char *qore_cflags              = QORE_LIB_CFLAGS;
 const char *qore_ldflags             = QORE_LIB_LDFLAGS;
 const char *qore_build_host          = QORE_BUILD_HOST;
 
+int qore_min_mod_api_major = QORE_MODULE_COMPAT_API_MAJOR;
+int qore_min_mod_api_minor = QORE_MODULE_COMPAT_API_MINOR;
+
 DLLLOCAL QoreListNode *ARGV = 0;
 DLLLOCAL QoreListNode *QORE_ARGV = 0;
 
