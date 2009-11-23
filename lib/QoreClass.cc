@@ -150,8 +150,7 @@ struct qore_qc_private {
    }
 
    // checks for all special methods except constructor & destructor
-   DLLLOCAL void checkSpecialIntern(const QoreMethod *m)
-   {
+   DLLLOCAL void checkSpecialIntern(const QoreMethod *m) {
       // set quick pointers
       if (!methodGate && !strcmp(m->getName(), "methodGate"))
 	 methodGate = m;
@@ -162,8 +161,7 @@ struct qore_qc_private {
    }
 
    // checks for all special methods except constructor & destructor
-   DLLLOCAL bool checkSpecialStaticIntern(const QoreMethod *m)
-   {
+   DLLLOCAL bool checkSpecialStaticIntern(const QoreMethod *m) {
       // set quick pointers
       if ((!methodGate && !strcmp(m->getName(), "methodGate"))
 	  || (!memberGate && !strcmp(m->getName(), "memberGate"))
@@ -173,8 +171,7 @@ struct qore_qc_private {
    }
 
    // checks for all special methods
-   DLLLOCAL void checkSpecial(const QoreMethod *m)
-   {
+   DLLLOCAL void checkSpecial(const QoreMethod *m) {
       // set quick pointers
       if (!constructor && !strcmp(m->getName(), "constructor"))
 	 constructor = m;
@@ -184,6 +181,23 @@ struct qore_qc_private {
 	 copyMethod = m;
       else 
 	 checkSpecialIntern(m);
+   }
+
+   DLLLOCAL void initialize() {
+      if (!initialized) {
+	 printd(5, "QoreClass::initialize() %s class=%p pending size=%d, scl=%p, bcal=%p\n", name, typeInfo.qc, hm_pending.size(), scl, bcal);
+	 if (scl) {
+	    QoreClass *qc = const_cast<QoreClass *>(typeInfo.qc);
+#ifdef QORE_CLASS_SYNCHRONOUS
+	    scl->parseInit(qc, bcal, has_delete_blocker, has_synchronous_in_hierarchy);
+#else
+	    scl->parseInit(qc, bcal, has_delete_blocker);
+#endif
+      }
+	 if (!sys && domain & getProgram()->getParseOptions())
+	    parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name);
+	 initialized = true;
+      }
    }
 };
 
@@ -225,6 +239,42 @@ struct qore_method_private {
 	 func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, 0);
       else
 	 func.userFunc->statements->parseInit(func.userFunc->params);
+   }
+
+   DLLLOCAL void parseInitConstructor(BCList *bcl) {
+      // must be called even if func.userFunc->statements is NULL
+      func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, bcl);
+   }
+
+   DLLLOCAL void parseInitDestructor() {
+      // make sure there are no parameters in the destructor
+      if (func.userFunc->params->num_params)
+	 parse_error("no parameters may be defined in class destructors");
+
+      // must be called even if func.userFunc->statements is NULL
+      func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, 0);
+   }
+   
+   DLLLOCAL void parseInitCopy() {
+      // make sure there are no parameters in the destructor
+      if (func.userFunc->params->num_params > 1)
+	 parse_error("maximum of one parameter may be defined in class copy methods (%d defined)", func.userFunc->params->num_params);
+      
+      // must be called even if func.userFunc->statements is NULL
+      func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, 0);
+
+      // see if there is a type specification for the sole parameter and make sure it matches the class if there is
+      if (func.userFunc->params->num_params && func.userFunc->params->typeList[0] && !parent_class->getTypeInfo()->equal(*func.userFunc->params->typeList[0])) {
+	 // raise parse exception if parse exception have not been suppressed
+	 if (getProgram()->getParseExceptionSink()) {
+	    QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");
+	    parent_class->getTypeInfo()->getThisType(*desc);
+	    desc->concat(", but the object's parameter was defined expecting ");
+	    func.userFunc->params->typeList[0]->getThisType(*desc);
+	    desc->concat(" instead");
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 }
+      }
    }
    
    DLLLOCAL const UserFunction *getStaticUserFunction() const {
@@ -993,8 +1043,15 @@ void QoreMethod::parseInit() {
 }
 
 void QoreMethod::parseInitConstructor(BCList *bcl) {
-   // must be called even if func.userFunc->statements is NULL
-   priv->func.userFunc->statements->parseInitMethod(priv->parent_class->getTypeInfo(), priv->func.userFunc->params, bcl);
+   priv->parseInitConstructor(bcl);
+}
+
+void QoreMethod::parseInitDestructor() {
+   priv->parseInitDestructor();
+}
+
+void QoreMethod::parseInitCopy() {
+   priv->parseInitCopy();
 }
 
 QoreMethod *QoreMethod::copy(const QoreClass *p_class) const {
@@ -1965,19 +2022,7 @@ QoreListNode *QoreClass::getStaticMethodList() const {
 
 // one-time initialization
 void QoreClass::initialize() {
-   if (!priv->initialized) {
-      printd(5, "QoreClass::parseInit() %s this=%08p pending size=%d, scl=%08p, bcal=%08p\n", priv->name, this, priv->hm_pending.size(), priv->scl, priv->bcal);
-      if (priv->scl) {
-#ifdef QORE_CLASS_SYNCHRONOUS
-	 priv->scl->parseInit(this, priv->bcal, priv->has_delete_blocker, priv->has_synchronous_in_hierarchy);
-#else
-	 priv->scl->parseInit(this, priv->bcal, priv->has_delete_blocker);
-#endif
-      }
-      if (!priv->sys && priv->domain & getProgram()->getParseOptions())
-	 parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", priv->name);
-      priv->initialized = true;
-   }
+   priv->initialize();
 }
 
 // initializes all user methods
@@ -1989,6 +2034,10 @@ void QoreClass::parseInit() {
       // initialize method
       if (!strcmp(i->second->getName(), "constructor"))
 	 i->second->parseInitConstructor(priv->scl);
+      else if (!strcmp(i->second->getName(), "destructor"))
+	 i->second->parseInitDestructor();
+      else if (!strcmp(i->second->getName(), "copy"))
+	 i->second->parseInitCopy();
       else
 	 i->second->parseInit();
    }

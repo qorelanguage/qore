@@ -149,6 +149,8 @@ class QoreMethod {
       DLLLOCAL QoreMethod *copy(const class QoreClass *p_class) const;
       DLLLOCAL void parseInit();
       DLLLOCAL void parseInitConstructor(BCList *bcl);
+      DLLLOCAL void parseInitDestructor();
+      DLLLOCAL void parseInitCopy();
       DLLLOCAL void assign_class(const QoreClass *p_class);
       DLLLOCAL const BuiltinFunction *getStaticBuiltinFunction() const;
       DLLLOCAL const UserFunction *getStaticUserFunction() const;

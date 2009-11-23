@@ -267,4 +267,7 @@ DLLEXPORT extern const qore_option_s *qore_option_list;
 //! number of elements in the option list
 DLLEXPORT extern size_t qore_option_list_size;
 
+//! macro to return the maximum of 2 numbers
+#define QORE_MAX(a, b) ((a) > (b) ? (a) : (b))
+
 #endif // _QORE_QORELIB_H

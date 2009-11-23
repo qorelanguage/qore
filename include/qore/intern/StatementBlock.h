@@ -62,8 +62,7 @@ class LVListInstantiator {
       }
 };
 
-class StatementBlock : public AbstractStatement
-{
+class StatementBlock : public AbstractStatement {
    private:
       typedef safe_dslist<AbstractStatement *> statement_list_t;
       statement_list_t statement_list;

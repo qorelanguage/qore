@@ -298,13 +298,11 @@ void StatementBlock::parseInit(Paramlist *params) {
 void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, Paramlist *params, BCList *bcl) {
    QORE_TRACE("StatementBlock::parseInitMethod");
 
-   if (params->num_params)
-      params->lv = new lvar_ptr_t[params->num_params];
-   else
-      params->lv = 0;
+   params->lv = params->num_params ? new lvar_ptr_t[params->num_params] : 0;
 
    // this is a class method, push local $self variable
    params->selfid = push_local_var("self", typeInfo, false);
+
    // set oflag to selfid
    LocalVar *oflag = params->selfid;
 
@@ -316,8 +314,10 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, Paramlist *pa
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
-      printd(3, "StatementBlock::parseInitMethod() reg. local var %s (id=%08p)\n", 
-	     params->names[i], params->lv[i]);
+      // resolve type if any
+      if (params->typeList[i])
+	 params->typeList[i]->resolve();
+      printd(5, "StatementBlock::parseInitMethod() reg. local var %s (id=%08p)\n", params->names[i], params->lv[i]);
    }
 
    // initialize base constructor arguments
@@ -385,6 +385,9 @@ void StatementBlock::parseInitClosure(Paramlist *params, const QoreTypeInfo *cla
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
+      // resolve type if any
+      if (params->typeList[i])
+	 params->typeList[i]->resolve();
       printd(5, "StatementBlock::parseInitClosure() reg. local var %s (id=%08p)\n", params->names[i], params->lv[i]);
    }
 
