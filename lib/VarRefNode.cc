@@ -191,9 +191,10 @@ AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, 
 }
 
 AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
-   typeInfo.resolve();
-   outTypeInfo = &typeInfo;
-   return parseInitIntern(oflag, pflag, lvids, &typeInfo, outTypeInfo);
+   assert(typeInfo);
+   typeInfo->resolve();
+   outTypeInfo = typeInfo;
+   return parseInitIntern(oflag, pflag, lvids, typeInfo, outTypeInfo);
 }
 
 void QoreParseTypeInfo::resolve() {

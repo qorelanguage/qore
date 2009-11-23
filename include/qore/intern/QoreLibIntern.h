@@ -53,7 +53,7 @@ protected:
       desc->concat(", but got ");
       getNodeType(*desc, n);
       desc->concat(" instead");
-      xsink->raiseException("TYPE-ERROR", desc);
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
 
@@ -66,7 +66,7 @@ protected:
       QoreStringNode *desc = new QoreStringNode("expecting ");
       getThisType(*desc);
       desc->concat(", but got an object where this class is privately inherited instead");
-      xsink->raiseException("TYPE-ERROR", desc);
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
 
@@ -126,9 +126,9 @@ public:
       qt = ti.qt;
       has_type = true;
    }
-
+   
    DLLLOCAL int checkType(const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      if (!this) return 0;
+      if (!this || !has_type) return 0;
       if (qt == NT_NOTHING && is_nothing(n)) return 0;
       if (is_nothing(n))
 	 return doTypeException(n, xsink);

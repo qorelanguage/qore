@@ -30,7 +30,7 @@ ReferenceHelper::ReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, Except
    if (!*xsink && typeInfo->hasType()) {
       // set the pointer to null so it cannot be used
       vp = 0;
-      xsink->raiseException("TYPE-ERROR", "this module uses an old data structure (ReferenceHelper) that is not type aware, and the referenced value has type restrictions; the module must be updated to use the new type 'QoreTypeSafeReferenceHelper' instead");
+      xsink->raiseException("RUNTIME-TYPE-ERROR", "this module uses an old data structure (ReferenceHelper) that is not type aware, and the referenced value has type restrictions; the module must be updated to use the new type 'QoreTypeSafeReferenceHelper' instead");
    }
 }
 

@@ -142,10 +142,11 @@ Paramlist::Paramlist(AbstractQoreNode *params) {
    if (params->getType() == NT_VARREF) {
       num_params = 1;
       names = new char *[1];
-      typeList = new const QoreTypeInfo *[1];
-      const VarRefNode *v = reinterpret_cast<const VarRefNode *>(params);
+      typeList = new QoreParseTypeInfo *[1];
+      VarRefNode *v = reinterpret_cast<VarRefNode *>(params);
       names[0] = strdup(v->getName());
-      typeList[0] = v->getTypeInfo();
+      typeList[0] = v->takeTypeInfo();
+
       return;
    }
 
@@ -161,7 +162,7 @@ Paramlist::Paramlist(AbstractQoreNode *params) {
 
    num_params = l->size();
    names = new char *[num_params];
-   typeList = new const QoreTypeInfo *[num_params];
+   typeList = new QoreParseTypeInfo *[num_params];
    for (int i = 0; i < num_params; i++) {
       if (l->retrieve_entry(i)->getType() != NT_VARREF) {
 	 param_error();
@@ -173,10 +174,10 @@ Paramlist::Paramlist(AbstractQoreNode *params) {
 	 break;
       }
       else {
-	 const VarRefNode *v = reinterpret_cast<const VarRefNode *>(l->retrieve_entry(i));
+	 VarRefNode *v = const_cast<VarRefNode *>(reinterpret_cast<const VarRefNode *>(l->retrieve_entry(i)));
 	 names[i] = strdup(v->getName());
-	 typeList[i] = v->getTypeInfo();
-	 printd(0, "Paralist::Paramlist() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i]->has_type, typeList[i]->qt, typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
+	 typeList[i] = v->takeTypeInfo();
+	 //printd(5, "Paralist::Paramlist() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->has_type : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
       }
    }
 }
@@ -610,7 +611,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 else {
 	    n = n->eval(xsink);
 	    // instantiate if there is no exception or type error
-	    printd(0, "UserFunction::eval() this=%p params=%p i=%d typeList[%d]=%p\n", this, params, i, i, params->typeList[i]);
+	    //printd(5, "UserFunction::eval() this=%p params=%p i=%d typeList[%d]=%p\n", this, params, i, i, params->typeList[i]);
 	    if (!*xsink && !params->typeList[i]->checkType(n, xsink))
 	       params->lv[i]->instantiate(n);
 	 }
@@ -706,8 +707,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 }
 
 // this function will set up user copy constructor calls
-void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const
-{
+void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const {
    QORE_TRACE("UserFunction::evalCopy()");
    printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", getName(), params->num_params, old);
 
@@ -717,8 +717,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
    get_pgm_counter(o_ln, o_eln);
 
    // instantiate local vars from param list
-   for (int i = 0; i < params->num_params; i++)
-   {
+   for (int i = 0; i < params->num_params; i++) {
       QoreObject *n = (i ? 0 : old);
       printd(5, "UserFunction::evalCopy(): instantiating param lvar %d (%08p)\n", i, params->lv[i], n);
       params->lv[i]->instantiate(n ? n->refSelf() : 0);
@@ -726,15 +725,13 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
 
    ReferenceHolder<QoreListNode> argv(xsink);
 
-   if (!params->num_params)
-   {
+   if (!params->num_params) {
       argv = new QoreListNode();
       old->ref();
       argv->push(old);
    }
 
-   if (statements)
-   {
+   if (statements) {
       CodeContextHelper cch(getName(), self, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       // push call on stack
@@ -789,12 +786,10 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    // instantiate local vars from param list
    int num_params = params->num_params;
 
-   for (int i = 0; i < num_params; i++)
-   {
+   for (int i = 0; i < num_params; i++) {
       AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       printd(4, "UserFunction::evalConstructor() eval %d: instantiating param lvar %d (%08p)\n", i, params->lv[i], n);
-      if (n)
-      {
+      if (n) {
 	 if (n->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	    bool is_self_ref = false;
@@ -802,8 +797,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	    if (!xsink->isEvent())
 	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
 	 }
-	 else
-	 {
+	 else {
 	    n = n->eval(xsink);
 	    if (!xsink->isEvent())
 	       params->lv[i]->instantiate(n);
@@ -811,8 +805,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	 // the above if block will only instantiate the local variable if no
 	 // exceptions have occurred. therefore here we do the cleanup the rest
 	 // of any already instantiated local variables if an exception does occur
-	 if (xsink->isEvent())
-	 {
+	 if (xsink->isEvent()) {
 	    if (n)
 	       n->deref(xsink);
 	    for (int j = i; j; j--)
@@ -829,8 +822,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    printd(5, "UserFunction::evalConstructor() params=%d arg=%d\n", num_params, num_args);
    ReferenceHolder<QoreListNode> argv(xsink);
    
-   if (num_params < num_args)
-   {
+   if (num_params < num_args) {
       argv = new QoreListNode();
 
       for (int i = 0; i < (num_args - num_params); i++) {

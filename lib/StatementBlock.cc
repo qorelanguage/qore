@@ -276,6 +276,8 @@ void StatementBlock::parseInit(Paramlist *params) {
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
+      if (params->typeList[i])
+	 params->typeList[i]->resolve();
       printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
 	     params->names[i], params->lv[i]);
    }

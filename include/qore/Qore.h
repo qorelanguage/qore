@@ -144,11 +144,16 @@ DLLEXPORT void qore_init(qore_license_t license = QL_GPL, const char *default_en
  */
 DLLEXPORT void qore_cleanup();
 
+// include configuration before support.h if compiling the library
+#ifdef _QORE_LIB_INTERN
+#include <qore/intern/config.h>
+#endif
+
+#include <qore/support.h>
+
 // include private definitions if compiling the library
 #ifdef _QORE_LIB_INTERN
 #include <qore/intern/QoreLibIntern.h>
 #endif
-
-#include <qore/support.h>
 
 #endif  // _QORE_QORE_H

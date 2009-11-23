@@ -1,3 +1,7 @@
+2009.11.23: David Nichols
+	* more hard typing support implementation; initial support for
+	  defining argument types for functions
+
 2009.11.22: David Nichols
 	* updated module API to 0.9, implemented minimum recommended module
 	  api and also set to 0.9 to be used with 'qore --module-api' so that

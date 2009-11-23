@@ -75,7 +75,7 @@ public:
    DLLLOCAL const char *getName() const { return name; }
    DLLLOCAL void makeLocal() { assert(type == VT_UNRESOLVED); type = VT_LOCAL; }
    DLLLOCAL void makeGlobal() { assert(type == VT_UNRESOLVED); type = VT_GLOBAL; }
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const { return 0; }
+   DLLLOCAL virtual QoreParseTypeInfo *takeTypeInfo() { return 0; }
 
    // takes the name - caller owns the memory
    DLLLOCAL char *takeName();
@@ -83,19 +83,26 @@ public:
 
 class VarRefDeclNode : public VarRefNode {
 protected:
-   QoreParseTypeInfo typeInfo;
+   QoreParseTypeInfo *typeInfo;
 
 public:
-   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, qore_type_t n_qt) : VarRefNode(n, t), typeInfo(n_qt) {
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, qore_type_t n_qt) : VarRefNode(n, t), typeInfo(new QoreParseTypeInfo(n_qt)) {
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
    // takes over ownership of class_name
-   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, char *class_name) : VarRefNode(n, t), typeInfo(class_name) {
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, char *class_name) : VarRefNode(n, t), typeInfo(new QoreParseTypeInfo(class_name)) {
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s class=%s\n", typeInfo, n, class_name);
+   }
+   DLLLOCAL ~VarRefDeclNode() {
+      delete typeInfo;
    }
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const { 
-      return static_cast<const QoreTypeInfo *>(&typeInfo); 
+   DLLLOCAL virtual QoreParseTypeInfo *takeTypeInfo() { 
+      QoreParseTypeInfo *ti = typeInfo;
+      typeInfo = 0;
+      return ti;
    }
 };
 
