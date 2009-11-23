@@ -1457,11 +1457,29 @@ exp:    scalar
         { $$ = new ConstantNode($1); }
         | VAR_REF
         { $$ = new VarRefNode($1, VT_UNRESOLVED); }
-        | TOK_MY VAR_REF
-        { $$ = new VarRefNode($2, VT_LOCAL); }
+        | IDENTIFIER VAR_REF {
+	   qore_type_t t = getBuiltinType($1);
+	   if (t >= 0) {
+	      $$ = new VarRefDeclNode($2, VT_UNRESOLVED, t);
+	      free($1);
+	   }
+	   else
+	      $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1);
+	   //$$ = (t >= 0 ? new VarRefDeclNode($2, VT_UNRESOLVED, t) : new VarRefDeclNode($2, VT_UNRESOLVED, $1));
+	}
+        | SCOPED_REF VAR_REF {
+	   $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1);
+	}
+        | TOK_MY VAR_REF { 
+	   $$ = new VarRefNode($2, VT_LOCAL); }
         | TOK_MY IDENTIFIER VAR_REF {
 	   qore_type_t t = getBuiltinType($2);
-	   $$ = (t >= 0 ? new VarRefDeclNode($3, VT_LOCAL, t) : new VarRefDeclNode($3, VT_LOCAL, $2)); 
+	   if (t >= 0) {
+	      $$ = new VarRefDeclNode($3, VT_LOCAL, t);
+	      free($2);
+	   }
+	   else
+	      $$ = new VarRefDeclNode($3, VT_LOCAL, $2);
 	}
         | TOK_MY SCOPED_REF VAR_REF {
 	   $$ = new VarRefDeclNode($3, VT_LOCAL, $2); 

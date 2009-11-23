@@ -49,30 +49,26 @@ SelfFunctionCall::SelfFunctionCall(const QoreMethod *f) {
    func = f; 
 }
 
-SelfFunctionCall::~SelfFunctionCall() 
-{ 
+SelfFunctionCall::~SelfFunctionCall() { 
    if (name) 
       free(name); 
    if (ns)
       delete ns;
 }
 
-char *SelfFunctionCall::takeName()
-{
+char *SelfFunctionCall::takeName() {
    char *n = name;
    name = 0;
    return n;
 }
 
-class NamedScope *SelfFunctionCall::takeNScope()
-{
+NamedScope *SelfFunctionCall::takeNScope() {
    NamedScope *rns = ns;
    ns = 0;
    return rns;
 }
 
-AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const {
    QoreObject *self = getStackObject();
    
    if (func)
@@ -180,6 +176,7 @@ Paramlist::Paramlist(AbstractQoreNode *params) {
 	 const VarRefNode *v = reinterpret_cast<const VarRefNode *>(l->retrieve_entry(i));
 	 names[i] = strdup(v->getName());
 	 typeList[i] = v->getTypeInfo();
+	 printd(0, "Paralist::Paramlist() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i]->has_type, typeList[i]->qt, typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
       }
    }
 }
@@ -591,39 +588,48 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
    int num_args = args ? args->size() : 0;
    // instantiate local vars from param list
    int num_params = params->num_params;
+   //bool needs_deref[num_params];
    
    ReferenceHolder<QoreListNode> argv(xsink);
 
    for (int i = 0; i < num_params; i++) {
       AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       printd(4, "UserFunction::eval() eval %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->lv[i], params->lv[i], n, n ? n->getTypeName() : "(null)");
+
       if (n) {
 	 if (n->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
-	    if (!*xsink)
+
+	    // instantiate if there is no exception or type error
+	    if (!*xsink && !params->typeList[i]->checkType(n, xsink))
 	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
 	 }
 	 else {
 	    n = n->eval(xsink);
-	    if (!xsink->isEvent())
+	    // instantiate if there is no exception or type error
+	    printd(0, "UserFunction::eval() this=%p params=%p i=%d typeList[%d]=%p\n", this, params, i, i, params->typeList[i]);
+	    if (!*xsink && !params->typeList[i]->checkType(n, xsink))
 	       params->lv[i]->instantiate(n);
 	 }
-	 // the above if block will only instantiate the local variable if no
-	 // exceptions have occurred. therefore here we do the cleanup the rest
-	 // of any already instantiated local variables if an exception does occur
-	 if (*xsink) {
-	    if (n)
-	       n->deref(xsink);
-	    while (i)
-	       params->lv[--i]->uninstantiate(xsink);
-	    return 0;
-	 }
       }
-      else
-	 params->lv[i]->instantiate(0);
+      else {
+	 if (!params->typeList[i]->checkType(n, xsink))
+	    params->lv[i]->instantiate(0);
+      }
+
+      // the above if block will only instantiate the local variable if no
+      // exceptions have occurred. therefore here we do the cleanup the rest
+      // of any already instantiated local variables if an exception does occur
+      if (*xsink) {
+	 if (n)
+	    n->deref(xsink);
+	 while (i)
+	    params->lv[--i]->uninstantiate(xsink);
+	 return 0;
+      }
    }
 
    // if there are more arguments than parameters

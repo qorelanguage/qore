@@ -117,8 +117,7 @@ class Paramlist {
 
 class VRMutex;
 
-class UserFunction : public QoreReferenceCounter
-{
+class UserFunction : public QoreReferenceCounter {
    private:
       bool synchronized;
       // for "synchronized" functions
