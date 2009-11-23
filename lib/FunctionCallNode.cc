@@ -121,7 +121,7 @@ AbstractQoreNode *FunctionCallNode::parseMakeNewObject() {
    return rv;
 }
 
-bool FunctionCallNode::existsUserParam(int i) const {
+bool FunctionCallNode::existsUserParam(unsigned i) const {
    if (ftype == FC_USER)
       return f.ufunc->params->num_params > i;
    if (ftype == FC_IMPORTED)
@@ -189,18 +189,19 @@ AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   Paramlist *params = 0;
    switch (ftype) {
       case FC_SELF: 
 	 if (!oflag)
 	    parse_error("cannot call member function '%s' out of an object member function definition", f.sfunc->name);
 	 else
-	    f.sfunc->resolve();
+	    f.sfunc->resolve(params);
 	 break;
       case FC_UNRESOLVED:
-	 getProgram()->resolveFunction(this);
+	 getProgram()->resolveFunction(this, params);
 	 break;
    }
    
-   lvids += parseArgs(oflag, pflag);
+   lvids += parseArgs(oflag, pflag, params);
    return this;
 }

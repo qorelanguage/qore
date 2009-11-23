@@ -274,7 +274,7 @@ void StatementBlock::parseInit(Paramlist *params) {
    printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
-   for (int i = 0; i < params->num_params; i++) {
+   for (unsigned i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
       if (params->typeList[i])
 	 params->typeList[i]->resolve();
@@ -287,7 +287,7 @@ void StatementBlock::parseInit(Paramlist *params) {
       parseInitImpl(0);
 
    // pop local param vars from stack
-   for (int i = 0; i < params->num_params; i++)
+   for (unsigned i = 0; i < params->num_params; i++)
       pop_local_var();
 
    // pop argv param off stack
@@ -312,7 +312,7 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, Paramlist *pa
    printd(5, "StatementBlock::parseInitMethod() params=%08p argvid=%08p oflag (selfid)=%08p\n", params, params->argvid, oflag);
 
    // init param ids and push local param vars on stack
-   for (int i = 0; i < params->num_params; i++) {
+   for (unsigned i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
       // resolve type if any
       if (params->typeList[i])
@@ -347,7 +347,7 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, Paramlist *pa
       parseInitImpl(oflag);
 
    // pop local param vars from stack
-   for (int i = 0; i < params->num_params; i++)
+   for (unsigned i = 0; i < params->num_params; i++)
       pop_local_var();
 
    // pop argv param off stack
@@ -383,7 +383,7 @@ void StatementBlock::parseInitClosure(Paramlist *params, const QoreTypeInfo *cla
    printd(5, "StatementBlock::parseInitClosure() params=%08p argvid=%08p\n", params, params->argvid);
 
    // init param ids and push local param vars on stack
-   for (int i = 0; i < params->num_params; i++) {
+   for (unsigned i = 0; i < params->num_params; i++) {
       params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
       // resolve type if any
       if (params->typeList[i])
@@ -396,7 +396,7 @@ void StatementBlock::parseInitClosure(Paramlist *params, const QoreTypeInfo *cla
       parseInitImpl(oflag);
 
    // pop local param vars from stack
-   for (int i = 0; i < params->num_params; i++)
+   for (unsigned i = 0; i < params->num_params; i++)
       pop_local_var();
 
    // pop argv param off stack

@@ -46,7 +46,7 @@ class SelfFunctionCall {
    DLLLOCAL SelfFunctionCall(const QoreMethod *f);
    DLLLOCAL ~SelfFunctionCall();
    DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL void resolve();
+   DLLLOCAL void resolve(Paramlist *&params);
    DLLLOCAL char *takeName();
    DLLLOCAL NamedScope *takeNScope();
 };
@@ -64,15 +64,18 @@ class AbstractFunctionCallNode : public ParseNode {
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   DLLLOCAL virtual bool existsUserParam(int i) const {
+   DLLLOCAL virtual bool existsUserParam(unsigned i) const {
       return true;
    }
 
-   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag) {
+   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, Paramlist *params) {
       if (!args)
 	 return 0;
 
       int lvids = 0;
+
+      if (params)
+	 params->resolve();
 
       pflag &= ~PF_REFERENCE_OK;
       bool needs_eval = args->needs_eval();
@@ -90,6 +93,19 @@ class AbstractFunctionCallNode : public ParseNode {
 	    if (!needs_eval && (*n)->needs_eval()) {
 	       args->setNeedsEval();
 	       needs_eval = true;
+	    }
+
+	    // check for compatible types
+	    if (argTypeInfo && params && i < params->num_params && params->typeList[i] && !params->typeList[i]->equal(*argTypeInfo)) {
+	       // raise a parse exception if parse exceptions are enabled
+	       if (getProgram()->getParseExceptionSink()) {
+		  QoreStringNode *desc = new QoreStringNode("argument ");
+		  desc->sprintf("%d expects ", i + 1);
+		  params->typeList[i]->getThisType(*desc);
+		  desc->concat(", but call supplies ");
+		  argTypeInfo->getThisType(*desc);
+		  getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	       }
 	    }
 	 }
       }
@@ -118,7 +134,7 @@ class FunctionCallNode : public AbstractFunctionCallNode {
    // eval(): return value requires a deref(xsink)
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const;
 
-   DLLLOCAL virtual bool existsUserParam(int i) const;
+   DLLLOCAL virtual bool existsUserParam(unsigned i) const;
 
   public:
    union uFCall {
@@ -194,7 +210,7 @@ class MethodCallNode : public AbstractFunctionCallNode {
    }
 
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      lvids += parseArgs(oflag, pflag);
+      lvids += parseArgs(oflag, pflag, 0);
       return this;
    }
 
@@ -235,7 +251,7 @@ class StaticMethodCallNode : public AbstractFunctionCallNode {
       return method->eval(0, args, xsink);
    }
 
-   DLLLOCAL virtual bool existsUserParam(int i) const {
+   DLLLOCAL virtual bool existsUserParam(unsigned i) const {
       return method->existsUserParam(i);
    }
 
@@ -293,7 +309,7 @@ class StaticMethodCallNode : public AbstractFunctionCallNode {
 	 return this;
       }
 
-      lvids += parseArgs(oflag, pflag);
+      lvids += parseArgs(oflag, pflag, method->getParams());
       return this;
    }
 

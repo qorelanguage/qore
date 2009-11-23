@@ -230,6 +230,10 @@ struct qore_method_private {
 	 func.builtin->deref();
    }
 
+   DLLLOCAL Paramlist *getParams() const {
+      return type == OTF_USER ? const_cast<Paramlist *>(func.userFunc->params) : 0;
+   }
+
    DLLLOCAL const char *getName() const { return type == OTF_USER ? func.userFunc->getName() : func.builtin->getName(); }
 
    DLLLOCAL void parseInit() {
@@ -256,7 +260,7 @@ struct qore_method_private {
    }
    
    DLLLOCAL void parseInitCopy() {
-      // make sure there are no parameters in the destructor
+      // make sure there is max one parameter in the copy method      
       if (func.userFunc->params->num_params > 1)
 	 parse_error("maximum of one parameter may be defined in class copy methods (%d defined)", func.userFunc->params->num_params);
       
@@ -264,15 +268,22 @@ struct qore_method_private {
       func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, 0);
 
       // see if there is a type specification for the sole parameter and make sure it matches the class if there is
-      if (func.userFunc->params->num_params && func.userFunc->params->typeList[0] && !parent_class->getTypeInfo()->equal(*func.userFunc->params->typeList[0])) {
-	 // raise parse exception if parse exception have not been suppressed
-	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");
-	    parent_class->getTypeInfo()->getThisType(*desc);
-	    desc->concat(", but the object's parameter was defined expecting ");
-	    func.userFunc->params->typeList[0]->getThisType(*desc);
-	    desc->concat(" instead");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+      if (func.userFunc->params->num_params) {
+	 if (func.userFunc->params->typeList[0]) {
+	    if (!parent_class->getTypeInfo()->equal(*func.userFunc->params->typeList[0])) {
+	       // raise parse exception if parse exceptions have not been suppressed
+	       if (getProgram()->getParseExceptionSink()) {
+		  QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");
+		  parent_class->getTypeInfo()->getThisType(*desc);
+		  desc->concat(", but the object's parameter was defined expecting ");
+		  func.userFunc->params->typeList[0]->getThisType(*desc);
+		  desc->concat(" instead");
+		  getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	       }
+	    }
+	 }
+	 else { // set to class' type
+	    func.userFunc->params->typeList[0] = new QoreParseTypeInfo(parent_class->getTypeInfo());
 	 }
       }
    }
@@ -291,7 +302,7 @@ struct qore_method_private {
       return func.builtin;
    }
    
-   DLLLOCAL bool existsUserParam(int i) const {
+   DLLLOCAL bool existsUserParam(unsigned i) const {
       if (type != OTF_USER)
 	 return true;
       
@@ -966,6 +977,10 @@ QoreMethod::~QoreMethod() {
    delete priv;
 }
 
+Paramlist *QoreMethod::getParams() const {
+   return priv->getParams();
+}
+
 bool QoreMethod::newCallingConvention() const {
    return priv->newCallingConvention();
 }
@@ -1367,7 +1382,7 @@ const BuiltinFunction *QoreMethod::getStaticBuiltinFunction() const {
    return priv->getStaticBuiltinFunction();
 }
 
-bool QoreMethod::existsUserParam(int i) const {
+bool QoreMethod::existsUserParam(unsigned i) const {
    return priv->existsUserParam(i);
 }
 

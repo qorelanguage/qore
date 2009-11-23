@@ -881,38 +881,39 @@ void QoreProgram::endThread(ExceptionSink *xsink) {
 }
 
 // called during parsing (priv->plock already grabbed)
-void QoreProgram::resolveFunction(FunctionCallNode *f) {
+void QoreProgram::resolveFunction(FunctionCallNode *f, Paramlist *&params) {
    QORE_TRACE("QoreProgram::resolveFunction()");
    char *fname = f->f.c_str;
 
-   class UserFunction *ufc;
-   if ((ufc = priv->user_func_list.find(fname)))
-   {
+   UserFunction *ufc;
+   if ((ufc = priv->user_func_list.find(fname))) {
       printd(5, "resolved user function call to %s\n", fname);
       f->ftype = FC_USER;
-      f->f.ufunc = ufc;
+      f->f.ufunc = ufc;      
       free(fname);
+      params = ufc->params;
 
       return;
    }
 
-   class ImportedFunctionNode *ifn;
-   if ((ifn = priv->imported_func_list.findNode(fname)))
-   {
+   ImportedFunctionNode *ifn;
+   if ((ifn = priv->imported_func_list.findNode(fname))) {
       printd(5, "resolved imported function call to %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
       f->ftype = FC_IMPORTED;
       f->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
       free(fname);
+      params = ifn->func->params;
 
       return;
    }
 
    const BuiltinFunction *bfc;
-   if ((bfc = builtinFunctions.find(fname)))
-   {
+   if ((bfc = builtinFunctions.find(fname))) {
       printd(5, "resolved builtin function call to %s\n", fname);
       f->ftype = FC_BUILTIN;
       f->f.bfunc = bfc;
+      // FIXME: xxx set params here when available
+      params = 0;
 
       // check parse options to see if access is allowed
       if (bfc->getType() & priv->parse_options)
@@ -922,6 +923,8 @@ void QoreProgram::resolveFunction(FunctionCallNode *f) {
 
       return;
    }
+
+   params = 0;
 
    // cannot find function, throw exception
    parse_error("function '%s()' cannot be found", fname);

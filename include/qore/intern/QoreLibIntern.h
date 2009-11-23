@@ -109,12 +109,13 @@ public:
       return qt == typeInfo->qt && qc == typeInfo->qc;      
    }
 */
+   // prototype (expecting type) should be "this"
    DLLLOCAL bool equal(const QoreTypeInfo &typeInfo) const {
       if (!has_type)
 	 return !typeInfo.has_type ? true : false;
       if (!typeInfo.has_type)
 	 return false;
-      return qt == typeInfo.qt && qc == typeInfo.qc;      
+      return qt == typeInfo.qt && (!qc || qc == typeInfo.qc);
    }
    // can be called when this == null
    DLLLOCAL bool hasType() const { return this ? has_type : false; }
@@ -172,6 +173,7 @@ public:
    DLLLOCAL QoreParseTypeInfo() : QoreTypeInfo(), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(qore_type_t qt) : QoreTypeInfo(qt), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(char *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(new NamedScope(n_cscope)) {}
+   DLLLOCAL QoreParseTypeInfo(const QoreClass *qc) : QoreTypeInfo(qc) {}
    DLLLOCAL QoreParseTypeInfo(const QoreTypeInfo *typeInfo) : QoreTypeInfo(), cscope(0) {
       if (typeInfo) {
 	 qc = typeInfo->qc;

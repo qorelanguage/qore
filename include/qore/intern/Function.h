@@ -103,16 +103,44 @@ class BuiltinFunction {
 class LocalVar;
 
 class Paramlist {
+   protected:
+      DLLLOCAL void setSingleParamIntern(const char *name, QoreParseTypeInfo *typeInfo) {
+	 num_params = 1;
+	 names = new char *[1];
+	 typeList = new QoreParseTypeInfo *[1];
+	 names[0] = strdup(name);
+	 typeList[0] = typeInfo;
+      }
+
    public:
-      int num_params;
+      unsigned num_params;
       char **names;
       QoreParseTypeInfo **typeList;
       LocalVar **lv;
       LocalVar *argvid;
       LocalVar *selfid;
+      bool resolved;
 
       DLLLOCAL Paramlist(AbstractQoreNode *params);
       DLLLOCAL ~Paramlist();
+      // takes over QoreParseTypeInfo structure
+      DLLLOCAL void setSingleParam(const char *name, QoreParseTypeInfo *typeInfo) {
+	 assert(!num_params);
+	 setSingleParamIntern(name, typeInfo);
+      }
+      DLLLOCAL void resolve() {
+	 if (resolved)
+	    return;
+
+	 resolved = true;
+	 if (!num_params)
+	    return;
+
+	 for (unsigned i = 0; i < num_params; ++i)
+	    if (typeList[i])
+	       typeList[i]->resolve();			 
+      }
+
 };
 
 class VRMutex;
