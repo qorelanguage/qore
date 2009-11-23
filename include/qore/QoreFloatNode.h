@@ -24,9 +24,11 @@
 
 #define _QORE_QOREFLOATNODE_H
 
+class LocalVar;
+class QoreTypeInfo;
+
 //! Qore's floating-point value type, dynamically-allocated only, reference counted
-class QoreFloatNode : public SimpleValueQoreNode
-{
+class QoreFloatNode : public SimpleValueQoreNode {
    private:
       //! returns the value as a bool
       DLLLOCAL virtual bool getAsBoolImpl() const;
@@ -136,12 +138,14 @@ class QoreFloatNode : public SimpleValueQoreNode
        */
       DLLEXPORT virtual const char *getTypeName() const;
 
+      //! returns the type information
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
       //! returns the type name as a c string
       /**
 	 @return the type name as a c string
-       */      
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+       */
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "float";
       }
 };

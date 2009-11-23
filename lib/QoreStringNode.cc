@@ -217,16 +217,14 @@ void QoreStringNode::getDateTimeRepresentation(DateTime &dt) const {
    dt.setDate(getBuffer());
 }
 
-bool QoreStringNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreStringNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    QoreStringValueHelper str(v, getEncoding(), xsink);
    if (*xsink)
       return false;
    return !compare(*str);
 }
 
-bool QoreStringNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreStringNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(v);
    if (!str)
       return false;
@@ -244,4 +242,9 @@ QoreStringNode *QoreStringNode::stringRefSelf() const {
 
 const char *QoreStringNode::getTypeName() const {
    return getStaticTypeName();
+}
+
+AbstractQoreNode *QoreStringNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = &stringTypeInfo;
+   return this;
 }

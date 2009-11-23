@@ -155,7 +155,7 @@ AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    }
 
    // check argument types for operator   
-   op->parseInit(leftTypeInfo, rightTypeInfo);
+   op->parseInit(leftTypeInfo, rightTypeInfo, typeInfo);
 
    // throw a parse exception if an assignment is attempted on $self
    if (op == OP_ASSIGNMENT && oflag)

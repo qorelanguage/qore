@@ -22,59 +22,49 @@
 
 #include <qore/Qore.h>
 
-QoreBoolNode::QoreBoolNode(bool n_b) : UniqueValueQoreNode(NT_BOOLEAN), b(n_b)
-{
+QoreBoolNode::QoreBoolNode(bool n_b) : UniqueValueQoreNode(NT_BOOLEAN), b(n_b) {
 }
 
-QoreBoolNode::~QoreBoolNode()
-{
+QoreBoolNode::~QoreBoolNode() {
 }
 
 // get the value of the type in a string context (default implementation = del = false and returns NullString)
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
-QoreString *QoreBoolNode::getStringRepresentation(bool &del) const
-{
+QoreString *QoreBoolNode::getStringRepresentation(bool &del) const {
    del = true;
    return new QoreString(b);
 }
 
 // concatenate string representation to a QoreString (no action for complex types = default implementation)
-void QoreBoolNode::getStringRepresentation(QoreString &str) const
-{
+void QoreBoolNode::getStringRepresentation(QoreString &str) const {
    str.concat(b ? '1' : '0');
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-class DateTime *QoreBoolNode::getDateTimeRepresentation(bool &del) const
-{
+DateTime *QoreBoolNode::getDateTimeRepresentation(bool &del) const {
    del = true;
    return new DateTime((int64)b);
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
-void QoreBoolNode::getDateTimeRepresentation(DateTime &dt) const
-{
+void QoreBoolNode::getDateTimeRepresentation(DateTime &dt) const {
    dt.setDate((int64)b);
 }
 
-bool QoreBoolNode::getAsBoolImpl() const
-{
+bool QoreBoolNode::getAsBoolImpl() const {
    return b;
 }
 
-int QoreBoolNode::getAsIntImpl() const
-{
+int QoreBoolNode::getAsIntImpl() const {
    return b;
 }
 
-int64 QoreBoolNode::getAsBigIntImpl() const
-{
+int64 QoreBoolNode::getAsBigIntImpl() const {
    return b;
 }
 
-double QoreBoolNode::getAsFloatImpl() const
-{
+double QoreBoolNode::getAsFloatImpl() const {
    return b;
 }
 
@@ -82,15 +72,13 @@ double QoreBoolNode::getAsFloatImpl() const
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int QoreBoolNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreBoolNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.concat(b ? "True" : "False");
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreBoolNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreBoolNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
    return b ? &TrueString : &FalseString;
 }
@@ -99,13 +87,11 @@ QoreString *QoreBoolNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 // the "val" passed
 //DLLLOCAL int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreBoolNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreBoolNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    return v->getAsBool() == b;
 }
 
-bool QoreBoolNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreBoolNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const QoreBoolNode *bn = dynamic_cast<const QoreBoolNode *>(v);
    if (!bn)
       return false;
@@ -114,8 +100,7 @@ bool QoreBoolNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink
 }
 
 // returns the type name as a c string
-const char *QoreBoolNode::getTypeName() const
-{
+const char *QoreBoolNode::getTypeName() const {
    return getStaticTypeName();
 }
 
@@ -124,18 +109,21 @@ static bool qore_bool_true_init = false;
 static bool qore_bool_false_init = false;
 #endif
 
-QoreBoolTrueNode::QoreBoolTrueNode() : QoreBoolNode(true)
-{
+QoreBoolTrueNode::QoreBoolTrueNode() : QoreBoolNode(true) {
 #ifdef DEBUG
    assert(!qore_bool_true_init);
    qore_bool_true_init = true;
 #endif
 }
 
-QoreBoolFalseNode::QoreBoolFalseNode() : QoreBoolNode(false)
-{
+QoreBoolFalseNode::QoreBoolFalseNode() : QoreBoolNode(false) {
 #ifdef DEBUG
    assert(!qore_bool_false_init);
    qore_bool_false_init = true;
 #endif
+}
+
+AbstractQoreNode *QoreBoolNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = &boolTypeInfo;
+   return this;
 }

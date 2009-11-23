@@ -113,7 +113,7 @@ Var *GlobalVariableList::checkVar(const char *name, const QoreTypeInfo *typeInfo
       var = newVar(name, typeInfo);
    }
    else if (typeInfo->hasType()) // if a new type has been declared for this global variable
-      var->tryAssignType(*typeInfo);
+      var->parseCheckAssignType(*typeInfo);
 
    return var;
 }

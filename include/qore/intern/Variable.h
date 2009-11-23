@@ -96,12 +96,12 @@ public:
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl);
    DLLLOCAL AbstractQoreNode *getReferencedValue() const;
-   DLLLOCAL void tryAssignType(const QoreTypeInfo &n_typeInfo) {
+   DLLLOCAL void parseCheckAssignType(const QoreTypeInfo &n_typeInfo) {
       // if no previous type was declared, take the new type
       if (!typeInfo.hasType())
 	 typeInfo.set(n_typeInfo);
       // otherwise ensure the types are equal and throw a parse exception if not
-      else if (!typeInfo.equal(n_typeInfo))
+      else if (!typeInfo.parseEqual(n_typeInfo))
 	 parse_error("global variable '%s' declared previously with an incompatible type", name.c_str());
    }
 

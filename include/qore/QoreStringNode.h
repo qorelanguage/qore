@@ -214,11 +214,12 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
       //! constructor using the private implementation of QoreString; not exported in the library
       DLLLOCAL QoreStringNode(struct qore_string_private *p);
 
-
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "string";
       }
+
+      //! returns the type information
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 extern QoreStringNode *NullString;

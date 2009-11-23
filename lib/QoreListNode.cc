@@ -1016,6 +1016,8 @@ QoreListNode *QoreListNode::listRefSelf() const {
 }
 
 AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = &listTypeInfo;
+   
    // unset "reference ok" parse flag
    pflag &= ~PF_REFERENCE_OK;
 

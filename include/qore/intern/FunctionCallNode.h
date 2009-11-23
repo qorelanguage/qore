@@ -96,7 +96,7 @@ class AbstractFunctionCallNode : public ParseNode {
 	    }
 
 	    // check for compatible types
-	    if (argTypeInfo && params && i < params->num_params && params->typeList[i] && !params->typeList[i]->equal(*argTypeInfo)) {
+	    if (argTypeInfo && params && i < params->num_params && params->typeList[i] && !params->typeList[i]->parseEqual(*argTypeInfo)) {
 	       // raise a parse exception if parse exceptions are enabled
 	       if (getProgram()->getParseExceptionSink()) {
 		  QoreStringNode *desc = new QoreStringNode("argument ");

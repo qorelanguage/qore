@@ -29,8 +29,7 @@
 //! holds arbitrary binary data
 /** this class is implemented simply as a pointer and a length indicator
  */
-class BinaryNode : public SimpleValueQoreNode
-{
+class BinaryNode : public SimpleValueQoreNode {
    private:
       //! pointer to memory owned by the object
       void *ptr;
@@ -90,8 +89,10 @@ class BinaryNode : public SimpleValueQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      //! returns the type information
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "binary";
       }
 

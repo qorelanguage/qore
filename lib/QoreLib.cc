@@ -893,3 +893,34 @@ const char *getBuiltinTypeName(qore_type_t type) {
    assert(false);
    return "<unknown>";
 }
+
+// tests to see if testClass is equal to or a public subclass of shouldBeClass, or
+// if we are currently parsing inside the class, it can be private too
+bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass) {
+   assert(shouldBeClass);
+
+   if (testClass == shouldBeClass)
+      return true;
+
+   if (!testClass)
+      return false;
+
+   bool priv;
+   if (!testClass->getClass(shouldBeClass->getID(), priv))
+      return false;
+
+   if (!priv)
+      return true;
+
+   // here we know that testClass inherits shouldBeClass with private inheritance
+
+   // see if shouldBeClass is a parent class of the class currently being parsed
+   QoreClass *pc = getParseClass();
+   if (!pc)
+      return false;
+
+   if (pc == testClass)
+      return true;
+
+   return testClass->getClass(pc->getID());
+}

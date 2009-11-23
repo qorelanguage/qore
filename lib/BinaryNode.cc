@@ -152,3 +152,8 @@ int BinaryNode::setSize(qore_size_t size) {
    len = size;
    return 0;
 }
+
+AbstractQoreNode *BinaryNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = &binaryTypeInfo;
+   return this;
+}

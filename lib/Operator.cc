@@ -692,8 +692,7 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
    return o->evalMethod(f->f.c_str, f->getArgs(), xsink);
 }
 
-static AbstractQoreNode *op_new_object(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_new_object(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {
    QORE_TRACE("op_new_object()");
    
    assert(left->getType() == NT_SCOPE_REF);
@@ -3638,11 +3637,14 @@ Operator *OperatorList::add(Operator *o) {
    return o;
 }
 
-static int check_op_assignment(const QoreTypeInfo *l, const QoreTypeInfo *r) {
+static int check_op_assignment(const QoreTypeInfo *l, const QoreTypeInfo *r, const QoreTypeInfo *&resultTypeInfo) {
+   if (r->hasType())
+      resultTypeInfo = r;
+
    if (!l->hasType() || !r->hasType())
       return 0;
 
-   if (l->equal(*r))
+   if (l->parseEqual(*r))
       return 0;
 
    if (getProgram()->getParseExceptionSink()) {
@@ -3653,6 +3655,11 @@ static int check_op_assignment(const QoreTypeInfo *l, const QoreTypeInfo *r) {
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
    return -1;
+}
+
+static int check_op_new(const QoreTypeInfo *l, const QoreTypeInfo *r, const QoreTypeInfo *&resultTypeInfo) {
+   resultTypeInfo = l;
+   return 0;
 }
 
 // registers the system operators and system operator functions
@@ -3877,7 +3884,7 @@ void OperatorList::init() {
    OP_OBJECT_FUNC_REF = add(new Operator(2, ".", "object method call", 0, true, false));
    OP_OBJECT_FUNC_REF->addFunction(NT_ALL, NT_ALL, op_object_method_call);
 
-   OP_NEW = add(new Operator(1, "new", "new object", 0, true, false));
+   OP_NEW = add(new Operator(1, "new", "new object", 0, true, false, check_op_new));
    OP_NEW->addFunction(NT_ALL, NT_NONE, op_new_object);
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true));

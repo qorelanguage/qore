@@ -22,63 +22,52 @@
 
 #include <qore/Qore.h>
 
-QoreFloatNode::QoreFloatNode(double n_f) : SimpleValueQoreNode(NT_FLOAT), f(n_f)
-{
+QoreFloatNode::QoreFloatNode(double n_f) : SimpleValueQoreNode(NT_FLOAT), f(n_f) {
 }
 
-QoreFloatNode::QoreFloatNode() : SimpleValueQoreNode(NT_FLOAT), f(0.0)
-{
+QoreFloatNode::QoreFloatNode() : SimpleValueQoreNode(NT_FLOAT), f(0.0) {
 }
 
-QoreFloatNode::~QoreFloatNode()
-{
+QoreFloatNode::~QoreFloatNode() {
 }
 
 // get the value of the type in a string context (default implementation = del = false and returns NullString)
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
-QoreString *QoreFloatNode::getStringRepresentation(bool &del) const
-{
+QoreString *QoreFloatNode::getStringRepresentation(bool &del) const {
    del = true;
    return new QoreString(f);
 }
 
 // concatenate string representation to a QoreString (no action for complex types = default implementation)
-void QoreFloatNode::getStringRepresentation(QoreString &str) const
-{
+void QoreFloatNode::getStringRepresentation(QoreString &str) const {
    str.sprintf("%.9g", f);
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-DateTime *QoreFloatNode::getDateTimeRepresentation(bool &del) const
-{
+DateTime *QoreFloatNode::getDateTimeRepresentation(bool &del) const {
    del = true;
    return new DateTime((int64)f);
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
-void QoreFloatNode::getDateTimeRepresentation(DateTime &dt) const
-{
+void QoreFloatNode::getDateTimeRepresentation(DateTime &dt) const {
    dt.setDate((int64)f);
 }
 
-bool QoreFloatNode::getAsBoolImpl() const
-{
+bool QoreFloatNode::getAsBoolImpl() const {
    return (bool)f;
 }
 
-int QoreFloatNode::getAsIntImpl() const
-{
+int QoreFloatNode::getAsIntImpl() const {
    return (int)f;
 }
 
-int64 QoreFloatNode::getAsBigIntImpl() const
-{
+int64 QoreFloatNode::getAsBigIntImpl() const {
    return (int64)f;
 }
 
-double QoreFloatNode::getAsFloatImpl() const
-{
+double QoreFloatNode::getAsFloatImpl() const {
    return f;
 }
 
@@ -86,20 +75,17 @@ double QoreFloatNode::getAsFloatImpl() const
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int QoreFloatNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreFloatNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    getStringRepresentation(str);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreFloatNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreFloatNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    return getStringRepresentation(del);
 }
 
-AbstractQoreNode *QoreFloatNode::realCopy() const
-{
+AbstractQoreNode *QoreFloatNode::realCopy() const {
    return new QoreFloatNode(f);
 }
 
@@ -107,13 +93,11 @@ AbstractQoreNode *QoreFloatNode::realCopy() const
 // the "val" passed
 //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreFloatNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreFloatNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    return v->getAsFloat() == f;
 }
 
-bool QoreFloatNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreFloatNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const QoreFloatNode *fn = dynamic_cast<const QoreFloatNode *>(v);
    if (!fn)
       return false;
@@ -122,7 +106,11 @@ bool QoreFloatNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsin
 }
 
 // returns the type name as a c string
-const char *QoreFloatNode::getTypeName() const
-{
+const char *QoreFloatNode::getTypeName() const {
    return getStaticTypeName();
+}
+
+AbstractQoreNode *QoreFloatNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = &floatTypeInfo;
+   return this;
 }

@@ -33,8 +33,7 @@
 //! base class for Qore's 2 boolean classes: QoreBoolTrueNode and QoreBoolFalseNode
 /** @note this class cannot be instantiated; use get_bool_node() to get a pointer to an object of a subclass
  */
-class QoreBoolNode : public UniqueValueQoreNode
-{
+class QoreBoolNode : public UniqueValueQoreNode {
    private:
       //! returns the value as a boolean
       DLLLOCAL virtual bool getAsBoolImpl() const;
@@ -88,13 +87,14 @@ class QoreBoolNode : public UniqueValueQoreNode
       // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      //! returns the type information
+      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "bool";
       }
 
-      DLLLOCAL bool getValue() const
-      {
+      DLLLOCAL bool getValue() const {
 	 return b;
       }
 };
@@ -103,8 +103,7 @@ class QoreBoolNode : public UniqueValueQoreNode
 /** @note This class cannot be instantiated (there can only be one of these objects in the entire Qore library).
     Use get_bool_node() or simply &True to acquire a pointer to this object
  */
-class QoreBoolTrueNode : public QoreBoolNode
-{
+class QoreBoolTrueNode : public QoreBoolNode {
    public:
       DLLLOCAL QoreBoolTrueNode();
 };
@@ -113,8 +112,7 @@ class QoreBoolTrueNode : public QoreBoolNode
 /** @note This class cannot be instantiated (there can only be one of these objects in the entire Qore library).
     Use get_bool_node() or simply &False to acquire a pointer to this object
  */
-class QoreBoolFalseNode : public QoreBoolNode
-{
+class QoreBoolFalseNode : public QoreBoolNode {
    public:
       DLLLOCAL QoreBoolFalseNode();
 };
@@ -126,8 +124,7 @@ DLLEXPORT extern QoreBoolFalseNode False;
 DLLEXPORT extern QoreBoolTrueNode True;
 
 //! a little inline helper function for getting a boolean node
-static inline QoreBoolNode *get_bool_node(bool v)
-{
+static inline QoreBoolNode *get_bool_node(bool v) {
    return v ? (QoreBoolNode *)&True : (QoreBoolNode *)&False;
 }
 

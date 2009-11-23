@@ -270,7 +270,7 @@ struct qore_method_private {
       // see if there is a type specification for the sole parameter and make sure it matches the class if there is
       if (func.userFunc->params->num_params) {
 	 if (func.userFunc->params->typeList[0]) {
-	    if (!parent_class->getTypeInfo()->equal(*func.userFunc->params->typeList[0])) {
+	    if (!parent_class->getTypeInfo()->parseEqual(*func.userFunc->params->typeList[0])) {
 	       // raise parse exception if parse exceptions have not been suppressed
 	       if (getProgram()->getParseExceptionSink()) {
 		  QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");

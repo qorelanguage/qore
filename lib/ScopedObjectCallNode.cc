@@ -66,10 +66,14 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
       // check if parse options allow access to this class
       if (oc->getDomain() & getProgram()->getParseOptions())
 	 parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+
+      if (oc)
+	 typeInfo = oc->getTypeInfo();
    }
    delete name;
    name = 0;
    if (args) {
+      // FIXME xxx check args against constructor params
       const QoreTypeInfo *argTypeInfo = 0;
       args->parseInit(oflag, pflag, lvids, argTypeInfo);
    }
