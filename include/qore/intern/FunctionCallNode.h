@@ -68,51 +68,6 @@ class AbstractFunctionCallNode : public ParseNode {
       return true;
    }
 
-   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, Paramlist *params) {
-      if (!args)
-	 return 0;
-
-      int lvids = 0;
-
-      if (params)
-	 params->resolve();
-
-      pflag &= ~PF_REFERENCE_OK;
-      bool needs_eval = args->needs_eval();
-      for (unsigned i = 0; i < args->size(); ++i) {
-	 AbstractQoreNode **n = args->get_entry_ptr(i);
-	 const QoreTypeInfo *argTypeInfo;
-	 if (*n) {
-	    if ((*n)->getType() == NT_REFERENCE) {
-	       if (!existsUserParam(i))
-		  parse_error("not enough parameters in '%s' to accept reference expression", getName());
-	       (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
-	    }
-	    else
-	       (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
-	    if (!needs_eval && (*n)->needs_eval()) {
-	       args->setNeedsEval();
-	       needs_eval = true;
-	    }
-
-	    // check for compatible types
-	    if (argTypeInfo && params && i < params->num_params && params->typeList[i] && !params->typeList[i]->parseEqual(*argTypeInfo)) {
-	       // raise a parse exception if parse exceptions are enabled
-	       if (getProgram()->getParseExceptionSink()) {
-		  QoreStringNode *desc = new QoreStringNode("argument ");
-		  desc->sprintf("%d expects ", i + 1);
-		  params->typeList[i]->getThisType(*desc);
-		  desc->concat(", but call supplies ");
-		  argTypeInfo->getThisType(*desc);
-		  getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-	       }
-	    }
-	 }
-      }
-
-      return lvids;
-   }
-
   public:
    DLLLOCAL AbstractFunctionCallNode(qore_type_t t, QoreListNode *n_args) : ParseNode(t), args(n_args) {}
    DLLLOCAL virtual ~AbstractFunctionCallNode() {
@@ -126,6 +81,55 @@ class AbstractFunctionCallNode : public ParseNode {
    DLLLOCAL virtual const char *getName() const = 0;
 
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
+
+   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, Paramlist *params) {
+      //if (!args)
+      // return 0;
+
+      int lvids = 0;
+
+      if (params)
+	 params->resolve();
+
+      pflag &= ~PF_REFERENCE_OK;
+      bool needs_eval = args ? args->needs_eval() : false;
+
+      unsigned max = QORE_MAX(args ? args->size() : 0, params ? params->num_params : 0);
+
+      for (unsigned i = 0; i < max; ++i) {
+	 AbstractQoreNode **n = args && i < args->size() ? args->get_entry_ptr(i) : 0;
+	 const QoreTypeInfo *argTypeInfo = 0;
+	 if (n && *n) {
+	    if ((*n)->getType() == NT_REFERENCE) {
+	       if (!existsUserParam(i))
+		  parse_error("not enough parameters in '%s' to accept reference expression", getName());
+	       (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
+	    }
+	    else
+	       (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
+	    if (!needs_eval && (*n)->needs_eval()) {
+	       args->setNeedsEval();
+	       needs_eval = true;
+	    }
+	 }
+
+	 // check for compatible types
+	 // note that QoreTypeInfo::parseEqual() can be called when this = 0
+	 if (params && (i < params->num_params) && !params->typeList[i]->parseEqual(argTypeInfo)) {
+	    // raise a parse exception if parse exceptions are enabled
+	    if (getProgram()->getParseExceptionSink()) {
+	       QoreStringNode *desc = new QoreStringNode("argument ");
+	       desc->sprintf("%d expects ", i + 1);
+	       params->typeList[i]->getThisType(*desc);
+	       desc->concat(", but call supplies ");
+	       argTypeInfo->getThisType(*desc);
+	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    }
+	 }
+      }
+
+      return lvids;
+   }
 };
 
 // FIXME: split this into different function call subclasses
@@ -207,6 +211,10 @@ class MethodCallNode : public AbstractFunctionCallNode {
 
    DLLLOCAL virtual const char *getName() const {
       return c_str ? c_str : "copy";
+   }
+
+   DLLLOCAL const char *getRawName() const {
+      return c_str;
    }
 
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

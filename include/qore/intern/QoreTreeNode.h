@@ -60,7 +60,26 @@ class QoreTreeNode : public ParseNode {
 
       DLLLOCAL void ignoreReturnValue();
 
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+      DLLLOCAL void leftParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+	 if (left)
+	    left = left->parseInit(oflag, pflag, lvids, typeInfo);
+      }
+
+      DLLLOCAL void rightParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+	 if (right)
+	    right = right->parseInit(oflag, pflag, lvids, typeInfo);
+      }
+
+      DLLLOCAL AbstractQoreNode *defaultParseInit(LocalVar *oflag, int pflag, int &lvids) {
+	 const QoreTypeInfo *typeInfo = 0;
+	 if (left)
+	    left = left->parseInit(oflag, pflag, lvids, typeInfo);
+	 if (right)
+	    right = right->parseInit(oflag, pflag, lvids, typeInfo);
+	 return this;
+      }
 };
 
 #endif

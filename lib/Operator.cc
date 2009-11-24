@@ -3364,6 +3364,19 @@ void Operator::init() {
 	 opMatrix[i][j] = findFunction(i, j);
 }
 
+AbstractQoreNode *Operator::parseInit(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+   // check for illegal changes to local variables in background expressions                                                                                        
+   if (pflag & PF_BACKGROUND && lvalue) {
+      if (tree->left && tree->left->getType() == NT_VARREF && reinterpret_cast<VarRefNode *>(tree->left)->getType() == VT_LOCAL)
+	 parse_error("illegal local variable modification in background expression");
+   }
+
+   if (!check_args)
+      return tree->defaultParseInit(oflag, pflag, lvids);
+   
+   return check_args(tree, oflag, pflag, lvids, resultTypeInfo);
+}
+
 // if there is no exact match, the first partial match counts as a match
 // static method
 int Operator::match(qore_type_t ntype, qore_type_t rtype) {
@@ -3637,15 +3650,58 @@ Operator *OperatorList::add(Operator *o) {
    return o;
 }
 
-static int check_op_assignment(const QoreTypeInfo *l, const QoreTypeInfo *r, const QoreTypeInfo *&resultTypeInfo) {
+// checks for illegal $self assignments in an object context                                                                                                              
+static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
+   // if it's a variable reference                                                                                                                                        
+   qore_type_t ntype = n->getType();
+   if (ntype == NT_VARREF) {
+      VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+      if (v->getType() == VT_LOCAL && v->ref.id == selfid)
+         parse_error("illegal assignment to $self in an object context");
+      return;
+   }
+
+   if (ntype != NT_TREE)
+      return;
+
+   QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
+
+   // otherwise it's a tree: go to root expression                                                                                                                        
+   while (tree->left->getType() == NT_TREE) {
+      n = tree->left;
+      tree = reinterpret_cast<QoreTreeNode *>(n);
+   }
+
+   if (tree->left->getType() != NT_VARREF)
+      return;
+
+   VarRefNode *v = reinterpret_cast<VarRefNode *>(tree->left);
+
+   // left must be variable reference, check if the tree is                                                                                                               
+   // a list reference; if so, it's invalid                                                                                                                               
+   if (v->getType() == VT_LOCAL && v->ref.id == selfid  && tree->op == OP_LIST_REF)
+      parse_error("illegal conversion of $self to a list");
+}
+
+static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+   const QoreTypeInfo *l = 0;
+   tree->leftParseInit(oflag, pflag, lvids, l);
+
+   const QoreTypeInfo *r = 0;
+   tree->rightParseInit(oflag, pflag, lvids, r);
+
+   // check for illegal assignment to $self
+   if (oflag)
+      checkSelf(tree->left, oflag);
+
    if (r->hasType())
       resultTypeInfo = r;
 
    if (!l->hasType() || !r->hasType())
-      return 0;
+      return tree;
 
-   if (l->parseEqual(*r))
-      return 0;
+   if (l->parseEqual(r))
+      return tree;
 
    if (getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator (=) expects ");
@@ -3654,12 +3710,58 @@ static int check_op_assignment(const QoreTypeInfo *l, const QoreTypeInfo *r, con
       r->getThisType(*desc);
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
-   return -1;
+   return tree;
 }
 
-static int check_op_new(const QoreTypeInfo *l, const QoreTypeInfo *r, const QoreTypeInfo *&resultTypeInfo) {
-   resultTypeInfo = l;
-   return 0;
+static AbstractQoreNode *check_op_new(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+   const QoreTypeInfo *typeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, typeInfo);
+   resultTypeInfo = typeInfo;
+
+   tree->rightParseInit(oflag, pflag, lvids, typeInfo);
+   return tree;
+}
+
+static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+   const QoreTypeInfo *typeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, typeInfo);
+
+   if (!typeInfo || !typeInfo->qc) {
+      tree->rightParseInit(oflag, pflag, lvids, typeInfo);
+      return tree;
+   }
+
+   assert(tree->right && tree->right->getType() == NT_METHOD_CALL);
+   MethodCallNode *mc = reinterpret_cast<MethodCallNode *>(tree->right);
+
+   const char *meth = mc->getRawName();
+
+   //printd(5, "check_op_object_func_ref() l=%p %s::%s()\n", l, l->qc->getName(), meth ? meth : "<copy>");
+
+   const QoreListNode *args = mc->getArgs();
+   if (!strcmp(meth, "copy")) {
+      if (args && args->size())
+	 parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", typeInfo->qc->getName());
+
+      tree->rightParseInit(oflag, pflag, lvids, typeInfo);
+      return tree;
+   }
+
+   const QoreMethod *m = const_cast<QoreClass *>(typeInfo->qc)->parseFindMethodTree(meth);
+   if (!m) {
+      parseException("PARSE-TYPE-ERROR", "call to non-existant method '%s' in class '%s'", meth, typeInfo->qc->getName());
+
+      tree->rightParseInit(oflag, pflag, lvids, typeInfo);
+      return tree;
+   }
+
+   if (m->isPrivate() && !parseCheckCompatibleClass(typeInfo->qc, getParseClass()))
+      parse_error("illegal call to private method %s::%s()", typeInfo->qc->getName(), meth);
+
+   // check parameters, if any
+   lvids += mc->parseArgs(oflag, pflag, m->getParams());
+
+   return tree;
 }
 
 // registers the system operators and system operator functions
@@ -3881,7 +3983,7 @@ void OperatorList::init() {
    OP_QUESTION_MARK = add(new Operator(2, "question", "question-mark colon", 0, false));
    OP_QUESTION_MARK->addFunction(NT_ALL, NT_ALL, op_question_mark);
 
-   OP_OBJECT_FUNC_REF = add(new Operator(2, ".", "object method call", 0, true, false));
+   OP_OBJECT_FUNC_REF = add(new Operator(2, ".", "object method call", 0, true, false, check_op_object_func_ref));
    OP_OBJECT_FUNC_REF->addFunction(NT_ALL, NT_ALL, op_object_method_call);
 
    OP_NEW = add(new Operator(1, "new", "new object", 0, true, false, check_op_new));

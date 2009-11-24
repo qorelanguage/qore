@@ -1,3 +1,8 @@
+2009.11.24: David Nichols
+	* more hard typing support implementation; better call argument
+	  checking at parse time, operator infrastructure changes to allow for
+	  each operator to do parse-time type checking
+
 2009.11.23: David Nichols
 	* more hard typing support implementation; initial support for
 	  defining argument types for functions

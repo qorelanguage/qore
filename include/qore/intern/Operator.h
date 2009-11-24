@@ -616,7 +616,10 @@ typedef std::vector<AbstractOperatorFunction *> opfunc_list_t;
 
 typedef bool (*op_bool_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
 
-typedef int (*op_check_args_t)(const QoreTypeInfo *leftTypeInfo, const QoreTypeInfo *rightTypeInfo, const QoreTypeInfo *&resultTypeInfo);
+class QoreTreeNode;
+class LocalVar;
+
+typedef AbstractQoreNode *(*op_check_args_t)(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo);
 
 class Operator {
    private:
@@ -649,9 +652,7 @@ class Operator {
       }
       DLLLOCAL ~Operator();
       // returns 0 = OK, -1 = parse exception raised
-      DLLLOCAL int parseInit(const QoreTypeInfo *l, const QoreTypeInfo *r, const QoreTypeInfo *&resultTypeInfo) {
-	 return check_args ? check_args(l, r, resultTypeInfo) : 0;
-      }
+      DLLLOCAL AbstractQoreNode *parseInit(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo);
       DLLLOCAL void init();
       DLLLOCAL bool hasEffect() const {
 	 return effect;

@@ -48,7 +48,7 @@ struct qore_qc_private {
 
    qore_classid_t classID,          // class ID
       methodID;                     // for subclasses of builtin classes that will not have their own private data,
-   //   instead they will get the private data from this class
+                                    // instead they will get the private data from this class
    bool sys,                        // system class?
       initialized,                  // is initialized?
       has_delete_blocker            // has a delete_blocker function somewhere in the hierarchy?
@@ -270,7 +270,7 @@ struct qore_method_private {
       // see if there is a type specification for the sole parameter and make sure it matches the class if there is
       if (func.userFunc->params->num_params) {
 	 if (func.userFunc->params->typeList[0]) {
-	    if (!parent_class->getTypeInfo()->parseEqual(*func.userFunc->params->typeList[0])) {
+	    if (!parent_class->getTypeInfo()->parseEqual(func.userFunc->params->typeList[0])) {
 	       // raise parse exception if parse exceptions have not been suppressed
 	       if (getProgram()->getParseExceptionSink()) {
 		  QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");
@@ -479,8 +479,7 @@ void BCList::parseInit(QoreClass *cls, class BCAList *bcal, bool &has_delete_blo
 #ifdef QORE_CLASS_SYNCHRONOUS
 		       , bool &has_synchronous_in_hierarchy
 #endif
-   )
-{
+   ) {
    printd(5, "BCList::parseInit(%s) this=%08p empty=%d, bcal=%08p\n", cls->getName(), this, empty(), bcal);
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if (!(*i)->sclass) {
@@ -1018,15 +1017,13 @@ void QoreMethod::assign_class(const QoreClass *p_class) {
    priv->parent_class = p_class;
 }
 
-bool QoreMethod::isSynchronized() const
-{
+bool QoreMethod::isSynchronized() const {
    if (priv->type == OTF_BUILTIN)
       return false;
    return priv->func.userFunc->isSynchronized();
 }
 
-bool QoreMethod::inMethod(const QoreObject *self) const
-{
+bool QoreMethod::inMethod(const QoreObject *self) const {
    if (priv->type == OTF_USER)
       return ::inMethod(priv->func.userFunc->getName(), self);
    return ::inMethod(priv->func.builtin->getName(), self);
@@ -1508,8 +1505,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
    return self->evalMethod(*w, args, xsink);
 }
 
-AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const {
    printd(5, "QoreClass::evalMethodGate() method=%s args=%08p\n", nme, args);
 
    ReferenceHolder<QoreListNode> args_holder(xsink);
@@ -1531,8 +1527,7 @@ AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, c
    return self->evalMethod(*priv->methodGate, *args_holder, xsink);
 }
 
-bool QoreClass::isPrivateMember(const char *str) const
-{
+bool QoreClass::isPrivateMember(const char *str) const {
    strset_t::const_iterator i = priv->pmm.find((char *)str);
    if (i != priv->pmm.end())
       return true;
@@ -1542,8 +1537,7 @@ bool QoreClass::isPrivateMember(const char *str) const
    return false;
 }
 
-AbstractQoreNode *QoreClass::evalMemberGate(QoreObject *self, const QoreString *nme, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreClass::evalMemberGate(QoreObject *self, const QoreString *nme, ExceptionSink *xsink) const {
    assert(nme && nme->getEncoding() == QCS_DEFAULT);
 
    printd(5, "QoreClass::evalMemberGate() member=%s\n", nme->getBuffer());
@@ -1557,8 +1551,7 @@ AbstractQoreNode *QoreClass::evalMemberGate(QoreObject *self, const QoreString *
    return self->evalMethod(*priv->memberGate, *args, xsink);
 }
 
-void QoreClass::execMemberNotification(QoreObject *self, const char *mem, ExceptionSink *xsink) const
-{
+void QoreClass::execMemberNotification(QoreObject *self, const char *mem, ExceptionSink *xsink) const {
    // cannot run this method when executing from within the class
    assert((this != getStackClass()));
 
@@ -1636,8 +1629,7 @@ void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal,
    }
 }
 
-bool QoreClass::execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const
-{
+bool QoreClass::execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const {
    printd(5, "QoreClass::execDeleteBlocker(self=%08p) this=%08p '%s' has_delete_blocker=%s deleteBlocker=%08p\n", self, this, priv->name, priv->has_delete_blocker ? "true" : "false", priv->deleteBlocker);
    if (priv->has_delete_blocker) {
       if (priv->scl) // execute superclass delete blockers if any

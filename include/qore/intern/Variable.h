@@ -101,7 +101,7 @@ public:
       if (!typeInfo.hasType())
 	 typeInfo.set(n_typeInfo);
       // otherwise ensure the types are equal and throw a parse exception if not
-      else if (!typeInfo.parseEqual(n_typeInfo))
+      else if (!typeInfo.parseEqual(&n_typeInfo))
 	 parse_error("global variable '%s' declared previously with an incompatible type", name.c_str());
    }
 

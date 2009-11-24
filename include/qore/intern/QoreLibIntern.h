@@ -96,6 +96,10 @@ public:
    }
 
    DLLLOCAL void getThisType(QoreStringNode &str) const {
+      if (!this) {
+	 str.sprintf("no value");
+	 return;
+      }
       if (qc) {
 	 str.sprintf("an object of class '%s'", qc->getName());
 	 return;
@@ -103,24 +107,17 @@ public:
       str.sprintf("builtin type '%s'", getBuiltinTypeName(qt));
    }
 
-/*
-   // returns true if types are equal (or both null)
-   DLLLOCAL bool equal(const QoreTypeInfo *typeInfo) const {
+   // prototype (expecting type) should be "this"
+   // returns true if the prototype does not expect any type or the types are compatible, 
+   // false if otherwise
+   DLLLOCAL bool parseEqual(const QoreTypeInfo *typeInfo) const {
       if (!this || !has_type)
-	 return !typeInfo || !typeInfo->has_type ? true : false;
+	 return true;
       if (!typeInfo || !typeInfo->has_type)
 	 return false;
-      return qt == typeInfo->qt && qc == typeInfo->qc;      
+      return qt == typeInfo->qt && (!qc || parseCheckCompatibleClass(qc, typeInfo->qc));
    }
-*/
-   // prototype (expecting type) should be "this"
-   DLLLOCAL bool parseEqual(const QoreTypeInfo &typeInfo) const {
-      if (!has_type)
-	 return !typeInfo.has_type ? true : false;
-      if (!typeInfo.has_type)
-	 return false;
-      return qt == typeInfo.qt && (!qc || parseCheckCompatibleClass(qc, typeInfo.qc));
-   }
+
    // can be called when this == null
    DLLLOCAL bool hasType() const { return this ? has_type : false; }
 
@@ -194,6 +191,9 @@ public:
       delete cscope;
    }
    DLLLOCAL void resolve();
+   DLLLOCAL bool needsResolving() const { 
+      return cscope;
+   }
 };
 
 #ifndef HAVE_ATOLL

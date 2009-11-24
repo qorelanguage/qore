@@ -97,40 +97,7 @@ double QoreTreeNode::floatEvalImpl(ExceptionSink *xsink) const {
    return op->float_eval(left, right, xsink);
 }
 
-// checks for illegal $self assignments in an object context
-static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
-   // if it's a variable reference
-   qore_type_t ntype = n->getType();
-   if (ntype == NT_VARREF) {
-      VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
-      if (v->getType() == VT_LOCAL && v->ref.id == selfid)
-	 parse_error("illegal assignment to $self in an object context");
-      return;
-   }
-   
-   if (ntype != NT_TREE)
-      return;
-
-   QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
-
-   // otherwise it's a tree: go to root expression 
-   while (tree->left->getType() == NT_TREE) {
-      n = tree->left;
-      tree = reinterpret_cast<QoreTreeNode *>(n);
-   }
-
-   if (tree->left->getType() != NT_VARREF)
-      return;
-
-   VarRefNode *v = reinterpret_cast<VarRefNode *>(tree->left);
-
-   // left must be variable reference, check if the tree is
-   // a list reference; if so, it's invalid
-   if (v->getType() == VT_LOCAL && v->ref.id == selfid  && tree->op == OP_LIST_REF)
-      parse_error("illegal conversion of $self to a list");
-}
-
-AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    // set "parsing background" flag if the background operator is being parsed
    if (op == OP_BACKGROUND)
       pflag |= PF_BACKGROUND;
@@ -138,28 +105,6 @@ AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    // turn off "reference ok" flag
    pflag &= ~PF_REFERENCE_OK;
 
-   const QoreTypeInfo *leftTypeInfo = 0;
-   // process left branch of tree
-   if (left)
-      left = left->parseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   // process right branch if it exists
-   if (right)
-      right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   // check for illegal changes to local variables in background expressions
-   if (pflag & PF_BACKGROUND && op->needsLValue()) {
-      if (left && left->getType() == NT_VARREF && reinterpret_cast<VarRefNode *>(left)->getType() == VT_LOCAL)
-	 parse_error("illegal local variable modification in background expression");
-   }
-
    // check argument types for operator   
-   op->parseInit(leftTypeInfo, rightTypeInfo, typeInfo);
-
-   // throw a parse exception if an assignment is attempted on $self
-   if (op == OP_ASSIGNMENT && oflag)
-      checkSelf(left, oflag);
-   
-   return this;
+   return op->parseInit(this, oflag, pflag, lvids, returnTypeInfo);
 }
