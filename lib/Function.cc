@@ -141,8 +141,7 @@ Paramlist::Paramlist(AbstractQoreNode *params) : resolved(false) {
    }
 
    if (params->getType() == NT_VARREF) {
-      VarRefNode *v = reinterpret_cast<VarRefNode *>(params);
-      setSingleParamIntern(v->getName(), v->takeTypeInfo());
+      setSingleParamIntern(reinterpret_cast<VarRefNode *>(params));
       return;
    }
 
@@ -154,14 +153,17 @@ Paramlist::Paramlist(AbstractQoreNode *params) : resolved(false) {
       return;
    }
 
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(params);
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(params);
 
    num_params = l->size();
    names = new char *[num_params];
    typeList = new QoreParseTypeInfo *[num_params];
    for (unsigned i = 0; i < num_params; i++) {
-      if (l->retrieve_entry(i)->getType() != NT_VARREF) {
-	 param_error();
+      AbstractQoreNode *n = l->retrieve_entry(i);
+      qore_type_t t = n ? n->getType() : 0;
+      if (t != NT_VARREF) {
+	 if (n)
+	    param_error();
 	 num_params = 0;
 	 delete [] names;
 	 names = 0;
@@ -169,12 +171,9 @@ Paramlist::Paramlist(AbstractQoreNode *params) : resolved(false) {
 	 typeList = 0;
 	 break;
       }
-      else {
-	 VarRefNode *v = const_cast<VarRefNode *>(reinterpret_cast<const VarRefNode *>(l->retrieve_entry(i)));
-	 names[i] = strdup(v->getName());
-	 typeList[i] = v->takeTypeInfo();
-	 //printd(5, "Paralist::Paramlist() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->has_type : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
-      }
+
+      assignParam(i, reinterpret_cast<VarRefNode *>(n));
+      //printd(5, "Paralist::Paramlist() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->has_type : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
    }
 }
 
@@ -190,6 +189,16 @@ Paramlist::~Paramlist() {
    }
    if (lv)
       delete [] lv;
+}
+
+void Paramlist::assignParam(int i, VarRefNode *v) {
+   names[i] = strdup(v->getName());
+   typeList[0] = v->takeTypeInfo();
+   
+   if (v->getType() == VT_LOCAL)
+      parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
+   else if (v->getType() == VT_GLOBAL)
+      parse_error("invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
 }
 
 UserFunction::UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, bool synced) {

@@ -87,8 +87,7 @@ void AbstractQoreNode::customDeref(ExceptionSink *xsink)
    assert(false);
 }
 
-void AbstractQoreNode::deref(ExceptionSink *xsink)
-{
+void AbstractQoreNode::deref(ExceptionSink *xsink) {
    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS

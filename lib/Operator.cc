@@ -3683,6 +3683,41 @@ static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
       parse_error("illegal conversion of $self to a list");
 }
 
+static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+   assert(tree->left && tree->left->getType() == NT_LIST);
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(tree->left);
+
+   QoreListNodeParseInitHelper li(l, oflag, pflag, lvids);
+   QorePossibleListNodeParseInitHelper ri(tree->right, oflag, pflag, lvids);
+
+   const QoreTypeInfo *argInfo = 0;
+   while (li.next()) {
+      ri.next();
+
+      const QoreTypeInfo *prototypeInfo = 0;
+      li.parseInit(prototypeInfo);
+      
+      ri.parseInit(argInfo);
+
+      if (!prototypeInfo->parseEqual(argInfo)) {
+	 // raise an exception only if aprse exceptions are not disabled
+	 if (getProgram()->getParseExceptionSink()) {
+	    QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
+	    desc->sprintf("%d of list assignment expects ", li.index() + 1);
+	    prototypeInfo->getThisType(*desc);
+	    desc->concat(", but right-hand side is ");
+	    argInfo->getThisType(*desc);
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 }
+      }
+   }
+
+   while (ri.next())
+      ri.parseInit(argInfo);
+
+   return tree;
+}
+
 static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
    const QoreTypeInfo *l = 0;
    tree->leftParseInit(oflag, pflag, lvids, l);
@@ -3876,7 +3911,7 @@ void OperatorList::init() {
    OP_ASSIGNMENT = add(new Operator(2, "=", "assignment", 0, true, true, check_op_assignment));
    OP_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_assignment);
    
-   OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true));
+   OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));
    OP_LIST_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_list_assignment);
    
    OP_BIN_AND = add(new Operator(2, "&", "binary-and", 1, false));

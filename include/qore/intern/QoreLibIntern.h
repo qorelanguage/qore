@@ -111,10 +111,8 @@ public:
    // returns true if the prototype does not expect any type or the types are compatible, 
    // false if otherwise
    DLLLOCAL bool parseEqual(const QoreTypeInfo *typeInfo) const {
-      if (!this || !has_type)
+      if (!this || !has_type || !typeInfo || !typeInfo->has_type)
 	 return true;
-      if (!typeInfo || !typeInfo->has_type)
-	 return false;
       return qt == typeInfo->qt && (!qc || parseCheckCompatibleClass(qc, typeInfo->qc));
    }
 
@@ -326,5 +324,86 @@ DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 
 DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo, 
    stringTypeInfo, binaryTypeInfo, objectTypeInfo, hashTypeInfo, listTypeInfo;
+
+class QoreListNodeParseInitHelper : public ListIterator {
+private:
+   LocalVar *oflag;
+   int pflag;
+   int &lvids;
+
+public:
+   DLLLOCAL QoreListNodeParseInitHelper(QoreListNode *n_l, LocalVar *n_oflag, int n_pflag, int &n_lvids) : 
+      ListIterator(n_l), oflag(n_oflag), pflag(n_pflag & ~PF_REFERENCE_OK), lvids(n_lvids) {
+   }
+   
+   void parseInit(const QoreTypeInfo *&typeInfo) {
+      //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
+
+      typeInfo = 0;
+      AbstractQoreNode *n = getValue();
+      if (n) {
+	 n->parseInit(oflag, pflag, lvids, typeInfo);
+	 if (!getList()->needs_eval() && n->needs_eval())
+	    getList()->setNeedsEval();
+      }
+   }
+};
+
+class QorePossibleListNodeParseInitHelper {
+private:
+   LocalVar *oflag;
+   int pflag;
+   int &lvids;
+   QoreListNode *l;
+   AbstractQoreNode *n;
+   bool finished;
+   qore_size_t pos;
+
+public:
+   DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode *n_n, LocalVar *n_oflag, int n_pflag, int &n_lvids) : 
+      oflag(n_oflag), pflag(n_pflag & ~PF_REFERENCE_OK), lvids(n_lvids), 
+      l(n_n && n_n->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(n_n) : 0),
+      finished(false), pos(-1) {
+      n = l ? 0 : n_n;
+   }
+
+   bool next() {
+      if (finished)
+	 return false;
+      
+      ++pos;
+      if (l) {
+	 if (pos == l->size()) {
+	    finished = true;
+	    return false;
+	 }
+	 return true;
+      }
+      if (pos == 1) {
+	 finished = true;
+	 return false;
+      }
+      return true;
+   }
+   
+   AbstractQoreNode *getValue() {
+      if (finished)
+	 return 0;
+
+      return l ? l->retrieve_entry(pos) : n;
+   }
+
+   void parseInit(const QoreTypeInfo *&typeInfo) {
+      //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
+
+      typeInfo = 0;
+      AbstractQoreNode *p = getValue();
+      if (p) {
+	 p->parseInit(oflag, pflag, lvids, typeInfo);
+	 if (l && !l->needs_eval() && p->needs_eval())
+	    l->setNeedsEval();
+      }
+   }
+};
 
 #endif

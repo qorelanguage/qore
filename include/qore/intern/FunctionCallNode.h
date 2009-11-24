@@ -83,9 +83,6 @@ class AbstractFunctionCallNode : public ParseNode {
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
 
    DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, Paramlist *params) {
-      //if (!args)
-      // return 0;
-
       int lvids = 0;
 
       if (params)

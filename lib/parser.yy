@@ -407,16 +407,14 @@ static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAL
       if (params)
 	 params->deref(0);
       delete bcal;
-      if (b)
-	 delete b;
+      delete b;
    }
    else {
       QoreMethod *method = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE, mod & OFM_STATIC);
       
       if (getRootNS()->addMethodToClass(name, method, bcal)) {
 	 delete method;
-	 if (bcal)
-	    delete bcal;
+	 delete bcal;
       }
    }
    delete name;
@@ -1369,29 +1367,25 @@ method_modifier:
         ;
 
 sub_def:
-        TOK_SUB IDENTIFIER '(' myexp ')' block
-        { 
+        TOK_SUB IDENTIFIER '(' myexp ')' block { 
 	   getProgram()->registerUserFunction(new UserFunction($2, new Paramlist($4), $6)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $2);
 	}
-	| TOK_SYNCHRONIZED TOK_SUB IDENTIFIER '(' myexp ')' block
-        {
+	| TOK_SYNCHRONIZED TOK_SUB IDENTIFIER '(' myexp ')' block {
 	   getProgram()->registerUserFunction(new UserFunction($3, new Paramlist($5), $7, 1)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $3);
 	}
-	| TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' block
-        { 
+	| TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' block { 
 	   getProgram()->registerUserFunction(new UserFunction($2, new Paramlist($3), $5)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $2);
 	}
-	| TOK_SYNCHRONIZED TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' block
-        {
+	| TOK_SYNCHRONIZED TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' block {
 	   getProgram()->registerUserFunction(new UserFunction($3, new Paramlist($4), $6, 1)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
@@ -1402,13 +1396,11 @@ sub_def:
 list:
 	exp ',' exp
         { $$ = splice_expressions($1, $3); }
-        | exp ','
-        {
+        | exp ',' {
 	   QoreListNode *l;
 	   if ($1 && $1->getType() == NT_LIST) 
 	      l = reinterpret_cast<QoreListNode *>($1);
-	   else
-	   {
+	   else {
 	      l = new QoreListNode();
 	      l->push($1);
 	      // parse_error("problem in parsing ',' in list: left side of comma is not a list (type: '%s')", $1 ? $1->getTypeName() : "NOTHING");
@@ -1420,20 +1412,18 @@ list:
         ;
 
 hash:
-	hash_element
-	{
+        hash_element {
 	   $$ = new QoreHashNode(true);
 	   $$->setKeyValue($1->key, $1->value, 0);
 	   delete $1;
 	}
-	| hash ',' hash_element
-	{
+	| hash ',' hash_element	{
 	   $1->setKeyValue($3->key, $3->value, 0);
 	   delete $3;
 	   $$ = $1;
 	}
         | hash ','
-        { /* empty ',' on end of hash */ $$=$1; }
+	{ /* empty ',' on end of hash */ $$=$1; }
 	;
 
 hash_element:
@@ -1492,9 +1482,10 @@ exp:    scalar
 		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else {
 		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
-		 if (v->getType() != VT_UNRESOLVED) {
-		    parse_error("illegal variable declaration '%s' in local variable declaration list", v->getName());
-		 }
+		 if (v->getType() == VT_LOCAL)
+		    parse_error("illegal use of 'my %s' in local variable declaration list", v->getName());
+		 else if (v->getType() == VT_GLOBAL)
+		    parse_error("illegal use of 'our %s' in local variable declaration list", v->getName());
 		 else
 		    v->makeLocal();
 	      }
@@ -1513,9 +1504,10 @@ exp:    scalar
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else {
 		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
-		 if (v->getType() != VT_UNRESOLVED) {
-		    parse_error("illegal variable declaration '%s' in global variable declaration list", v->getName());
-		 }
+		 if (v->getType() == VT_LOCAL)
+		    parse_error("illegal use of 'my %s' in global variable declaration list", v->getName());
+		 else if (v->getType() == VT_GLOBAL)
+		    parse_error("illegal use of 'our %s' in global variable declaration list", v->getName());
 		 else {
 		    v->makeGlobal();
 		    getProgram()->addGlobalVarDef(v->getName());
@@ -1534,20 +1526,16 @@ exp:    scalar
         { $$ = new ComplexContextrefNode($1); } 
         | TOK_FIND exp TOK_IN exp TOK_WHERE '(' exp ')'
         { $$ = new FindNode($2, $4, $7); }
-	| exp PLUS_EQUALS exp
-        {
-	   if (check_lvalue($1))
-	   {
+	| exp PLUS_EQUALS exp {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of plus-equals operator is not an lvalue");
 	      $$ = makeErrorTree(OP_PLUS_EQUALS, $1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_PLUS_EQUALS, $1, $3);
 	}
-        | exp MINUS_EQUALS exp
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp MINUS_EQUALS exp {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of minus-equals operator is not an lvalue");
 	      $$ = makeErrorTree(OP_MINUS_EQUALS, $1, $3);
 	   }
@@ -1555,68 +1543,55 @@ exp:    scalar
 	      $$ = makeTree(OP_MINUS_EQUALS, $1, $3);
 
 	}
-        | exp AND_EQUALS exp
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp AND_EQUALS exp {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of and-equals operator is not an lvalue");
 	      $$ = makeErrorTree(OP_AND_EQUALS, $1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_AND_EQUALS, $1, $3);
 	}
-        | exp OR_EQUALS exp
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp OR_EQUALS exp {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of or-equals operator is not an lvalue");
 	      $$ = makeErrorTree(OP_OR_EQUALS, $1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_OR_EQUALS, $1, $3);
 	}
-        | exp MODULA_EQUALS exp
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp MODULA_EQUALS exp {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of modula-equals operator is not an lvalue");
 	      $$ = makeErrorTree(OP_MODULA_EQUALS, $1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_MODULA_EQUALS, $1, $3);
 	}
-        | exp MULTIPLY_EQUALS exp
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp MULTIPLY_EQUALS exp {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of multiply-equals operator is not an lvalue");
 	      $$ = makeErrorTree(OP_MULTIPLY_EQUALS, $1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_MULTIPLY_EQUALS, $1, $3);
 	}
-        | exp DIVIDE_EQUALS exp
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp DIVIDE_EQUALS exp {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of divide-equals operator is not an lvalue");
 	      $$ = makeErrorTree(OP_DIVIDE_EQUALS, $1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_DIVIDE_EQUALS, $1, $3);
 	}
-        | exp XOR_EQUALS exp
-        {
-	   if (check_lvalue($1))
-	   {
+        | exp XOR_EQUALS exp {
+	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of xor-equals operator is not an lvalue");
 	      $$ = makeErrorTree(OP_XOR_EQUALS, $1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_XOR_EQUALS, $1, $3);
 	}
-        | exp SHIFT_LEFT_EQUALS exp
-        {
+        | exp SHIFT_LEFT_EQUALS exp {
 	   if (check_lvalue($1))
 	   {
 	      parse_error("left-hand side of shift-left-equals operator is not an lvalue");
@@ -1625,8 +1600,7 @@ exp:    scalar
 	   else
 	      $$ = makeTree(OP_SHIFT_LEFT_EQUALS, $1, $3);
 	}
-        | exp SHIFT_RIGHT_EQUALS exp
-        {
+        | exp SHIFT_RIGHT_EQUALS exp {
 	   if (check_lvalue($1))
 	   {
 	      parse_error("left-hand side of shift-right-equals operator is not an lvalue");
@@ -1635,16 +1609,13 @@ exp:    scalar
 	   else
 	      $$ = makeTree(OP_SHIFT_RIGHT_EQUALS, $1, $3);
 	}
-	| exp '=' exp
-        {
+	| exp '=' exp {
 	   if ($1 && $1->getType() == NT_LIST) {
 	      QoreListNode *l = reinterpret_cast<QoreListNode *>($1);
 	      bool ok = true;
-	      for (unsigned i = 0; i < l->size(); i++)
-	      {
+	      for (unsigned i = 0; i < l->size(); i++) {
 		 AbstractQoreNode *n = l->retrieve_entry(i);
-		 if (check_lvalue(n))
-		 {
+		 if (check_lvalue(n)) {
 		    parse_error("element %d in list assignment is not an lvalue (%s)", i, n->getTypeName());
 		    ok = false;
 		 }
@@ -1654,10 +1625,8 @@ exp:    scalar
 	      else
 		 $$ = makeErrorTree(OP_LIST_ASSIGNMENT, $1, $3);
 	   }
-	   else
-	   {
-	      if (check_lvalue($1))
-	      {
+	   else {
+	      if (check_lvalue($1)) {
 		 parse_error("left-hand side of assignment is not an lvalue (%s)", $1->getTypeName());
 		 $$ = makeErrorTree(OP_ASSIGNMENT, $1, $3);
 	      }

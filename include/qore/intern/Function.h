@@ -101,15 +101,17 @@ class BuiltinFunction {
 };
 
 class LocalVar;
+class VarRefNode;
 
 class Paramlist {
    protected:
-      DLLLOCAL void setSingleParamIntern(const char *name, QoreParseTypeInfo *typeInfo) {
+      DLLLOCAL void assignParam(int i, VarRefNode *v);
+
+      DLLLOCAL void setSingleParamIntern(VarRefNode *v) {
 	 num_params = 1;
 	 names = new char *[1];
 	 typeList = new QoreParseTypeInfo *[1];
-	 names[0] = strdup(name);
-	 typeList[0] = typeInfo;
+	 assignParam(0, v);
       }
 
    public:
@@ -123,11 +125,15 @@ class Paramlist {
 
       DLLLOCAL Paramlist(AbstractQoreNode *params);
       DLLLOCAL ~Paramlist();
+
+/*
       // takes over QoreParseTypeInfo structure
-      DLLLOCAL void setSingleParam(const char *name, QoreParseTypeInfo *typeInfo) {
+      DLLLOCAL void setSingleParam(VarRefNode *v) {
 	 assert(!num_params);
-	 setSingleParamIntern(name, typeInfo);
+	 setSingleParamIntern(v);
       }
+*/
+
       DLLLOCAL void resolve() {
 	 if (resolved)
 	    return;

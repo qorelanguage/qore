@@ -449,8 +449,7 @@ typedef ReferenceHolder<QoreListNode> QoreListNodeHolder;
    @endcode
    @see ConstListIterator
 */
-class ListIterator
-{
+class ListIterator {
    private:
       QoreListNode* l;
       qore_size_t pos;
@@ -509,6 +508,9 @@ class ListIterator
 
       //! returns the current iterator position in the list
       DLLLOCAL qore_size_t index() const { return pos; }
+
+      //! returns the list
+      DLLLOCAL QoreListNode *getList() { return l; }
 };
 
 //! For use on the stack only: iterates through elements of a const QoreListNode
@@ -531,8 +533,7 @@ class ListIterator
    @endcode
    @see ListIterator
 */
-class ConstListIterator
-{
+class ConstListIterator {
    private:
       const QoreListNode* l;
       qore_size_t pos;
@@ -586,6 +587,9 @@ class ConstListIterator
 
       //! returns the current iterator position in the list
       DLLLOCAL qore_size_t index() const { return pos; }
+
+      //! returns the list
+      DLLLOCAL const QoreListNode *getList() const { return l; }
 };
 
 //! For use on the stack only: manages result of the optional evaluation of a QoreListNode
@@ -595,8 +599,7 @@ class QoreListNodeEvalOptionalRefHolder {
       ExceptionSink *xsink;
       bool needs_deref;
 
-      DLLLOCAL void discard_intern()
-      {
+      DLLLOCAL void discard_intern() {
 	 if (needs_deref && val)
 	    val->deref(xsink);
       }
@@ -610,36 +613,31 @@ class QoreListNodeEvalOptionalRefHolder {
 
    public:
       //! initializes an empty object and saves the ExceptionSink object
-      DLLLOCAL QoreListNodeEvalOptionalRefHolder(ExceptionSink *n_xsink) : xsink(n_xsink)
-      {
+      DLLLOCAL QoreListNodeEvalOptionalRefHolder(ExceptionSink *n_xsink) : xsink(n_xsink) {
 	 needs_deref = false;
 	 val = 0;
       }
 
       //! performs an optional evaluation of the list (sets the dereference flag)
-      DLLLOCAL QoreListNodeEvalOptionalRefHolder(const QoreListNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
-      {
+      DLLLOCAL QoreListNodeEvalOptionalRefHolder(const QoreListNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink) {
 	 needs_deref = false;
 	 val = exp ? exp->evalList(needs_deref, xsink) : 0;
       }
 
       //! clears the object (dereferences the old object if necessary)
-      DLLLOCAL ~QoreListNodeEvalOptionalRefHolder()
-      {
+      DLLLOCAL ~QoreListNodeEvalOptionalRefHolder() {
 	 discard_intern();
       }
 
       //! clears the object (dereferences the old object if necessary)
-      DLLLOCAL void discard()
-      {
+      DLLLOCAL void discard() {
 	 discard_intern();
 	 needs_deref = false;
 	 val = 0;
       }
 
       //! assigns a new value and dereference flag to this object, dereferences the old object if necessary
-      DLLLOCAL void assign(bool n_needs_deref, QoreListNode *n_val)
-      {
+      DLLLOCAL void assign(bool n_needs_deref, QoreListNode *n_val) {
 	 discard_intern();
 	 needs_deref = n_needs_deref;
 	 val = n_val;
@@ -650,8 +648,7 @@ class QoreListNodeEvalOptionalRefHolder {
 	 The list is referenced if necessary (if it was a temporary value)
 	 @return the list value, where the caller will own the reference count
        */
-      DLLLOCAL QoreListNode *getReferencedValue()
-      {
+      DLLLOCAL QoreListNode *getReferencedValue() {
 	 if (needs_deref)
 	    needs_deref = false;
 	 else if (val)
