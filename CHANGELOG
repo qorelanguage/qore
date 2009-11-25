@@ -1,3 +1,6 @@
+2009.11.25: David Nichols
+	* added type info to constants and constant resolution
+
 2009.11.24: David Nichols
 	* more hard typing support implementation; better call argument
 	  checking at parse time, operator infrastructure changes to allow for

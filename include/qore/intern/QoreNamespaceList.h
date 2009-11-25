@@ -51,8 +51,8 @@ class QoreNamespaceList {
       DLLLOCAL void reset();
       DLLLOCAL void assimilate(QoreNamespaceList *n);
       DLLLOCAL QoreNamespace *parseResolveNamespace(NamedScope *name, int *matched);
-      DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname);
-      DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(NamedScope *name, int *matched);
+      DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
+      DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo);
       DLLLOCAL QoreClass *parseFindScopedClassWithMethod(NamedScope *name, int *matched) const;
       DLLLOCAL QoreClass *parseFindScopedClass(NamedScope *name, int *matched);
       DLLLOCAL QoreClass *parseFindClass(const char *ocname);

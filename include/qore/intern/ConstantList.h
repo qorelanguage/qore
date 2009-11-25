@@ -35,10 +35,21 @@
 #ifdef _QORE_LIB_INTERN
 
 #include <qore/common.h>
-#include <qore/hash_map.h>
 
-class ConstantList
-{
+#include <map>
+
+class ConstantEntry {
+public:
+   const QoreTypeInfo *typeInfo;
+   AbstractQoreNode *node;
+
+   DLLLOCAL ConstantEntry() : typeInfo(0), node(0) {}
+   DLLLOCAL ConstantEntry(AbstractQoreNode *v, const QoreTypeInfo *ti = 0) : typeInfo(ti), node(v) {}
+};
+
+typedef std::map<const char*, ConstantEntry, class ltstr> hm_qn_t;
+
+class ConstantList {
    private:
       hm_qn_t hm;
 
@@ -47,12 +58,13 @@ class ConstantList
 
    public:
       DLLLOCAL ~ConstantList();
-      DLLLOCAL void add(const char *name, class AbstractQoreNode *value);
-      DLLLOCAL class AbstractQoreNode *find(const char *name);
-      DLLLOCAL class ConstantList *copy();
+      DLLLOCAL void add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
+      DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo);
+      DLLLOCAL bool inList(const char *name) const;
+      DLLLOCAL ConstantList *copy();
       DLLLOCAL void reset();
-      DLLLOCAL void assimilate(class ConstantList *n, class ConstantList *otherlist, const char *nsname);
-      DLLLOCAL void assimilate(class ConstantList *n);
+      DLLLOCAL void assimilate(ConstantList *n, ConstantList *otherlist, const char *nsname);
+      DLLLOCAL void assimilate(ConstantList *n);
       DLLLOCAL void parseInit();
       DLLLOCAL QoreHashNode *getInfo();
 };

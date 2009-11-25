@@ -3688,7 +3688,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
    QoreListNode *l = reinterpret_cast<QoreListNode *>(tree->left);
 
    QoreListNodeParseInitHelper li(l, oflag, pflag, lvids);
-   QorePossibleListNodeParseInitHelper ri(tree->right, oflag, pflag, lvids);
+   QorePossibleListNodeParseInitHelper ri(&tree->right, oflag, pflag, lvids);
 
    const QoreTypeInfo *argInfo = 0;
    while (li.next()) {

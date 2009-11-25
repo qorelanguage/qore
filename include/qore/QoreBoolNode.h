@@ -88,7 +88,7 @@ class QoreBoolNode : public UniqueValueQoreNode {
       DLLEXPORT virtual const char *getTypeName() const;
 
       //! returns the type information
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
       DLLLOCAL static const char *getStaticTypeName() {
 	 return "bool";

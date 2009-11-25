@@ -139,7 +139,7 @@ class QoreFloatNode : public SimpleValueQoreNode {
       DLLEXPORT virtual const char *getTypeName() const;
 
       //! returns the type information
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
       //! returns the type name as a c string
       /**

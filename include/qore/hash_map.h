@@ -34,7 +34,6 @@
 #include <map>
 
 typedef std::map<const char*,  class Var *,               class ltstr> map_var_t;
-typedef std::map<const char*,  class AbstractQoreNode *,  class ltstr> hm_qn_t;
 typedef std::map<const char*,  class HashMember *,        class ltstr> hm_hm_t;
 typedef std::map<const char*,  class QoreMethod *,        class ltstr> hm_method_t;
 typedef std::map<const char*,  class BuiltinFunction *,   class ltstr> hm_bf_t;

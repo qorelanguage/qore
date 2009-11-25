@@ -27,8 +27,8 @@
 #include <stdlib.h>
 
 void ConstantList::remove(hm_qn_t::iterator i) {
-   if (i->second)
-      i->second->deref(0);
+   if (i->second.node)
+      i->second.node->deref(0);
    
    const char *c = i->first;
    hm.erase(i);
@@ -38,7 +38,6 @@ void ConstantList::remove(hm_qn_t::iterator i) {
 ConstantList::~ConstantList() {
    //QORE_TRACE("ConstantList::~ConstantList()");
    deleteAll();
-
 }
 
 //  NOTE: since constants cannot hold objects (only immediate values)
@@ -55,7 +54,7 @@ void ConstantList::reset() {
    deleteAll();
 }
 
-void ConstantList::add(const char *name, AbstractQoreNode *value) {
+void ConstantList::add(const char *name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo) {
    // first check if the constant has already been defined
    if (hm.find(name) != hm.end()) {
       parse_error("constant \"%s\" has already been defined", name);
@@ -63,32 +62,40 @@ void ConstantList::add(const char *name, AbstractQoreNode *value) {
       return;
    }
    
-   hm[strdup(name)] = value;
+   hm[strdup(name)] = ConstantEntry(value, typeInfo);
 }
 
-AbstractQoreNode *ConstantList::find(const char *name) {
+AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo) {
    hm_qn_t::iterator i = hm.find(name);
-   if (i != hm.end())
-      return i->second;
-   
+   if (i != hm.end()) {
+      constantTypeInfo = i->second.typeInfo;
+      return i->second.node;
+   }
+
+   constantTypeInfo = 0;
    return 0;
 }
 
-class ConstantList *ConstantList::copy() {
-   class ConstantList *ncl = new ConstantList();
+bool ConstantList::inList(const char *name) const {
+   hm_qn_t::const_iterator i = hm.find(name);
+   return i != hm.end() ? true : false;
+}
+
+ConstantList *ConstantList::copy() {
+   ConstantList *ncl = new ConstantList();
    
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++) {
       // reference value for new constant definition
-      if (i->second)
-	 i->second->ref();
-      ncl->add(i->first, i->second);
+      if (i->second.node)
+	 i->second.node->ref();
+      ncl->add(i->first, i->second.node);
    }
    
    return ncl;
 }
 
 // no duplicate checking is done here
-void ConstantList::assimilate(class ConstantList *n) {
+void ConstantList::assimilate(ConstantList *n) {
    hm_qn_t::iterator i = n->hm.begin();
    while (i != n->hm.end()) {
       // "move" data to new list
@@ -99,7 +106,7 @@ void ConstantList::assimilate(class ConstantList *n) {
 }
 
 // duplicate checking is done here
-void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherlist, const char *nsname) {
+void ConstantList::assimilate(ConstantList *n, ConstantList *otherlist, const char *nsname) {
    // assimilate target list
    hm_qn_t::iterator i = n->hm.begin();
    while (i != n->hm.end()) {
@@ -124,21 +131,24 @@ void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherli
    }
 }
 
+class LocalVar;
 void ConstantList::parseInit() {
    RootQoreNamespace *rns = getRootNS();
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++) {
       printd(5, "ConstantList::parseInit() %s\n", i->first);
-      rns->parseInitConstantValue(&i->second, 0);
-      printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 
-	     i->first, i->second, i->second ? i->second->getTypeName() : "NULL");
-      if (i->second) {
+      rns->parseInitConstantValue(&i->second.node, 0);
+      printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", i->first, i->second.node, i->second.node ? i->second.node->getTypeName() : "n/a");
+      if (i->second.node && !i->second.typeInfo) {
 	 int lvids = 0;
-	 const QoreTypeInfo *argTypeInfo = 0;
-	 i->second = i->second->parseInit(0, 0, lvids, argTypeInfo);
+	 i->second.node = i->second.node->parseInit((LocalVar *)0, 0, lvids, i->second.typeInfo);
+	 
 	 assert(!lvids);
       }
-      if (!i->second)
-	 i->second = nothing();
+      // ensure that the value is not 0
+      if (!i->second.node)
+	 i->second.node = nothing();
+
+      //printd(0, "ConstantList::parseInit() %s: %p (%s type %s %s)\n", i->first, i->second.node, i->second.node->getTypeName(), i->second.typeInfo && i->second.typeInfo->qt ? getBuiltinTypeName(i->second.typeInfo->qt) : "n/a", i->second.typeInfo && i->second.typeInfo->qc ? i->second.typeInfo->qc->getName() : "n/a");
    }
 }
 
@@ -146,7 +156,7 @@ QoreHashNode *ConstantList::getInfo() {
    QoreHashNode *h = new QoreHashNode();
 
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
-      h->setKeyValue(i->first, i->second->refSelf(), 0);
+      h->setKeyValue(i->first, i->second.node->refSelf(), 0);
 
    return h;
 }

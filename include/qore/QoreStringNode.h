@@ -219,7 +219,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
       }
 
       //! returns the type information
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 extern QoreStringNode *NullString;

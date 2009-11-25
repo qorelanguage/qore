@@ -193,7 +193,7 @@ Paramlist::~Paramlist() {
 
 void Paramlist::assignParam(int i, VarRefNode *v) {
    names[i] = strdup(v->getName());
-   typeList[0] = v->takeTypeInfo();
+   typeList[i] = v->takeTypeInfo();
    
    if (v->getType() == VT_LOCAL)
       parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");

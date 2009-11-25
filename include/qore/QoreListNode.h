@@ -418,7 +418,7 @@ class QoreListNode : public AbstractQoreNode {
       DLLLOCAL AbstractQoreNode *eval_entry(qore_size_t num, class ExceptionSink *xsink) const;
 
       //! for initialization of lists in the parse tree at parse time
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #include <qore/ReferenceHolder.h>

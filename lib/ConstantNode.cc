@@ -68,6 +68,6 @@ AbstractQoreNode *ConstantNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    printd(5, "ConstantNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;
-   getRootNS()->resolveScopedConstant(node, 1);
+   getRootNS()->resolveScopedConstant(node, 1, typeInfo);
    return *node;
 }

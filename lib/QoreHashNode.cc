@@ -762,11 +762,13 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
       // resolve constant references in keys
       if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
 	 AbstractQoreNode *rv;
+	 // currently type information is ignored
+	 const QoreTypeInfo *keyTypeInfo = 0;
 	 if (k[0] == HE_TAG_CONST)
-	    rv = getRootNS()->findConstantValue(k + 1, 1);
+	    rv = getRootNS()->findConstantValue(k + 1, 1, keyTypeInfo);
 	 else {
 	    NamedScope *nscope = new NamedScope(strdup(k + 1));
-	    rv = getRootNS()->findConstantValue(nscope, 1);
+	    rv = getRootNS()->findConstantValue(nscope, 1, keyTypeInfo);
 	    delete nscope;
 	 }
 	 if (rv) {
