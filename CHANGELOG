@@ -1,3 +1,10 @@
+2009.11.25: David Nichols
+        * fixed memory bug in CryptoHelper - removed unnecessary and incorrect
+          string termination code (backported from trunk)
+        * fixed a harmless bug in TempEncodingHelper to remove a message from
+          valgrind (although this bug could cause no harm) (backported from
+	  trunk)
+
 2009.11.20: David Nichols
 	* detected erroneous variable list declarations like:
 	  our (my $x, ...) or my (our $x) and throw a parse exception
