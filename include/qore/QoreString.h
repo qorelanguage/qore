@@ -550,7 +550,7 @@ class TempEncodingHelper {
       }
 
       //! creates an empty TempEncodingHelperObject that may be initialized with TempEncodingHelper::set() later
-      DLLLOCAL TempEncodingHelper() : str(0) {
+      DLLLOCAL TempEncodingHelper() : str(0), temp(false) {
       }
 
       //! deletes any temporary string being managed by the object

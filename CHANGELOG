@@ -1,5 +1,9 @@
 2009.11.25: David Nichols
 	* added type info to constants and constant resolution
+	* fixed memory bug in CryptoHelper - removed unnecessary and incorrect
+	  string termination code
+	* fixed a harmless bug in TempEncodingHelper to remove a message from
+	  valgrind (although this bug could cause no harm)
 
 2009.11.24: David Nichols
 	* more hard typing support implementation; better call argument
