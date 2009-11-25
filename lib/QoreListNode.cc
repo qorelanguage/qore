@@ -1017,21 +1017,11 @@ QoreListNode *QoreListNode::listRefSelf() const {
 
 AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = &listTypeInfo;
-   
-   // unset "reference ok" parse flag
-   pflag &= ~PF_REFERENCE_OK;
 
-   // set needs_eval if previously 0 and one of the list members needs evaluation after being resolved
-   // for example with a resolved function reference
-   for (unsigned i = 0; i < size(); i++) {
-      AbstractQoreNode **n = get_entry_ptr(i);
-      if (*n) {
-	 const QoreTypeInfo *argTypeInfo = 0;
-	 (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
-	 if (!needs_eval_flag && *n && (*n)->needs_eval()) {
-	    setNeedsEval();
-	 }
-      }
+   QoreListNodeParseInitHelper li(this, oflag, pflag, lvids);
+   while (li.next()) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      li.parseInit(argTypeInfo);
    }
    
    return this;
