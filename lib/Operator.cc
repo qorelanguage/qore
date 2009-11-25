@@ -3757,7 +3757,7 @@ static AbstractQoreNode *check_op_new(QoreTreeNode *tree, LocalVar *oflag, int p
    return tree;
 }
 
-static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    const QoreTypeInfo *typeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, typeInfo);
 
@@ -3779,6 +3779,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 	 parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", typeInfo->qc->getName());
 
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
+      returnTypeInfo = typeInfo->qc->getTypeInfo();
       return tree;
    }
 
@@ -3792,6 +3793,8 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 
    if (m->isPrivate() && !parseCheckCompatibleClass(typeInfo->qc, getParseClass()))
       parse_error("illegal call to private method %s::%s()", typeInfo->qc->getName(), meth);
+
+   returnTypeInfo = m->getReturnTypeInfo();
 
    // check parameters, if any
    lvids += mc->parseArgs(oflag, pflag, m->getParams());

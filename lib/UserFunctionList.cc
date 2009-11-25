@@ -25,17 +25,14 @@
 #include <qore/intern/Function.h>
 #include <qore/intern/StatementBlock.h>
 
-UserFunctionList::~UserFunctionList()
-{
+UserFunctionList::~UserFunctionList() {
    parseRollback();
    del();
 }
 
-void UserFunctionList::del()
-{
+void UserFunctionList::del() {
    hm_uf_t::iterator i = fmap.begin();
-   while (i != fmap.end())
-   {
+   while (i != fmap.end()) {
       class UserFunction *uf = i->second;
       fmap.erase(i);
       i = fmap.begin();
@@ -43,20 +40,16 @@ void UserFunctionList::del()
    }
 }
 
-void UserFunctionList::add(class UserFunction *func)
-{
+void UserFunctionList::add(class UserFunction *func) {
    QORE_TRACE("UserFunctionList::add()");
    
    if (find(func->getName()))
       parse_error("user function '%s' has already been defined", func->getName());
    else
       pmap[func->getName()] = func;
-   
-
 }
 
-class UserFunction *UserFunctionList::find(const char *name)
-{
+UserFunction *UserFunctionList::find(const char *name) {
    printd(5, "UserFunctionList::find(%s)\n", name);
    // first look in pending functions
    hm_uf_t::iterator i = pmap.find(name);
@@ -71,44 +64,33 @@ class UserFunction *UserFunctionList::find(const char *name)
    return 0;
 }
 
-QoreListNode *UserFunctionList::getList()
-{
+QoreListNode *UserFunctionList::getList() {
    QORE_TRACE("UserFunctionList::getList()");
    
    QoreListNode *l = new QoreListNode();
    hm_uf_t::iterator i = fmap.begin();
-   while (i != fmap.end())
-   {
+   while (i != fmap.end()) {
       l->push(new QoreStringNode(i->first));      
       i++;
    }
-   
-
    return l;
 }
 
 // unlocked
-void UserFunctionList::parseInit()
-{
+void UserFunctionList::parseInit() {
    QORE_TRACE("UserFunctionList::parseInit()");
    
    hm_uf_t::iterator i = pmap.begin();
-   while (i != pmap.end())
-   {
-      // can (and must) be called if if w->statements is NULL
-      i->second->statements->parseInit(i->second->params);
+   while (i != pmap.end()) {
+      i->second->parseInit();
       i++;
    }
-   
-
 }
 
 // unlocked
-void UserFunctionList::parseCommit()
-{
+void UserFunctionList::parseCommit() {
    hm_uf_t::iterator i = pmap.begin();
-   while (i != pmap.end())
-   {
+   while (i != pmap.end()) {
       fmap[i->first] = i->second;
       pmap.erase(i);
       i = pmap.begin();
@@ -116,16 +98,13 @@ void UserFunctionList::parseCommit()
 }
 
 // unlocked
-void UserFunctionList::parseRollback()
-{
+void UserFunctionList::parseRollback() {
    QORE_TRACE("UserFunctionList::parseRollback()");
    hm_uf_t::iterator i = pmap.begin();
-   while (i != pmap.end())
-   {
-      class UserFunction *uf = i->second;
+   while (i != pmap.end()) {
+      UserFunction *uf = i->second;
       pmap.erase(i);
       uf->deref();
       i = pmap.begin();
    }
-
 }

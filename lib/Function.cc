@@ -78,7 +78,7 @@ AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink
 }
 
 // called at parse time
-void SelfFunctionCall::resolve(Paramlist *&params) {
+void SelfFunctionCall::resolve(Paramlist *&params, const QoreTypeInfo *&returnTypeInfo) {
    params = 0;
 #ifdef DEBUG
    if (ns)
@@ -92,6 +92,7 @@ void SelfFunctionCall::resolve(Paramlist *&params) {
       if (!strcmp(name, "copy")) {
 	 free(name);
 	 name = 0;
+	 returnTypeInfo = getParseClass()->getTypeInfo();
 	 printd(5, "SelfFunctionCall:resolve() resolved to copy constructor\n");
 	 return;
       }
@@ -102,6 +103,7 @@ void SelfFunctionCall::resolve(Paramlist *&params) {
 
    if (func) {
       params = func->getParams();
+      returnTypeInfo = func->getReturnTypeInfo();
       printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08p\n", func->getName(), func);
       if (name) {
 	 free(name);
@@ -201,27 +203,16 @@ void Paramlist::assignParam(int i, VarRefNode *v) {
       parse_error("invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
 }
 
-UserFunction::UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, bool synced) {
+UserFunction::UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced) 
+   : synchronized(synced), gate(synced ? new VRMutex() : 0), name(n_name), returnTypeInfo(rv), params(parms), statements(b) {
    printd(5, "UserFunction::UserFunction(%s) parms=%p b=%p synced=%d\n", n_name ? n_name : "null", parms, b, synced);
-   synchronized = synced;
-   if (synced)
-      gate = new VRMutex();
-# ifdef DEBUG
-   else
-      gate = 0;
-# endif
-   name = n_name;
-   params = parms;
-   statements = b;
 }
 
 UserFunction::~UserFunction() {
    printd(5, "UserFunction::~UserFunction() deleting %s\n", name);
-   if (synchronized)
-      delete gate;
+   delete gate;
    delete params;
-   if (statements)
-      delete statements;
+   delete statements;
    if (name)
       free(name);
 }
@@ -229,6 +220,13 @@ UserFunction::~UserFunction() {
 void UserFunction::deref() {
    if (ROdereference())
       delete this;
+}
+
+void UserFunction::parseInit() {
+   if (returnTypeInfo)
+      returnTypeInfo->resolve();
+   // can (and must) be called even if statements is NULL                                                                                                           
+   statements->parseInit(params);
 }
 
 BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ) {
@@ -380,8 +378,7 @@ void BuiltinFunction::evalSystemConstructor(const QoreClass &thisclass, bool new
 }
 
 /*
-AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
    QORE_TRACE("BuiltinFunction::evalWithArgs()");
    printd(2, "BuiltinFunction::evalWithArgs() calling builtin function \"%s\"\n", name);
 
@@ -906,12 +903,10 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 }
 
 // this will only be called with lvalue expressions
-AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink)
-{
+AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink) {
    AbstractQoreNode *rv = 0;
    qore_type_t ntype = n->getType();
-   if (ntype == NT_TREE)
-   {
+   if (ntype == NT_TREE) {
       QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
       ReferenceHolder<AbstractQoreNode> nn(tree->right->eval(xsink), xsink);
       if (*xsink)
@@ -921,8 +916,7 @@ AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, Exceptio
       if (t->left)
 	 rv = t.release();
    }
-   else
-   {
+   else {
       rv = n->refSelf();
       if (ntype == NT_SELF_VARREF)
 	 (*is_self_ref) = true;

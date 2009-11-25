@@ -433,7 +433,7 @@ public:
    DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);
 
    DLLLOCAL void registerUserFunction(UserFunction *u);
-   DLLLOCAL void resolveFunction(FunctionCallNode *f, Paramlist *&params);
+   DLLLOCAL void resolveFunction(FunctionCallNode *f, Paramlist *&params, const QoreTypeInfo *&returnTypeInfo);
    DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedCallReferenceNode *fr);      
    DLLLOCAL void addGlobalVarDef(const char *name);
    DLLLOCAL void addStatement(AbstractStatement *s);

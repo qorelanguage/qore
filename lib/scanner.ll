@@ -202,35 +202,29 @@ static inline DateTimeNode *makeMonths(int months) {
    return new DateTimeNode(0, months, 0, 0, 0, 0, 0, true);
 }
 
-static inline DateTimeNode *makeDays(int days)
-{
+static inline DateTimeNode *makeDays(int days) {
    return new DateTimeNode(0, 0, days, 0, 0, 0, 0, true);
 }
 
-static inline DateTimeNode *makeHours(int hours)
-{
+static inline DateTimeNode *makeHours(int hours) {
    return new DateTimeNode(0, 0, 0, hours, 0, 0, 0, true);
 }
 
-static inline DateTimeNode *makeMinutes(int minutes)
-{
+static inline DateTimeNode *makeMinutes(int minutes) {
    return new DateTimeNode(0, 0, 0, 0, minutes, 0, 0, true);
 }
 
-static inline DateTimeNode *makeSeconds(int seconds)
-{
+static inline DateTimeNode *makeSeconds(int seconds) {
    return new DateTimeNode(0, 0, 0, 0, 0, seconds, 0, true);
 }
 
-static inline DateTimeNode *makeMilliseconds(int ms)
-{
+static inline DateTimeNode *makeMilliseconds(int ms) {
    return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
 }
 
 //2005-03-29-10:19:27
 //0123456789012345678
-static inline void do_date_time_str(char *str)
-{
+static inline void do_date_time_str(char *str) {
    // move day to middle
    memmove(str+9, str+8, 2);
    // move month to middle
@@ -245,8 +239,7 @@ static inline void do_date_time_str(char *str)
 
 //2005-03-29
 //0123456789
-static inline void do_date_str(char *str)
-{
+static inline void do_date_str(char *str) {
    // move month
    memmove(str+4, str+5, 2);
    // move day and null
@@ -255,38 +248,33 @@ static inline void do_date_str(char *str)
 
 //16:03:29
 //01234567
-static inline void do_time_str(char *str)
-{
+static inline void do_time_str(char *str) {
    // move minute back
    memmove(str+2, str+3, 2);
    // move seconds and rest + null char
    memmove(str+4, str+6, strlen(str+6) + 1);
 }
 
-static inline DateTimeNode *makeDateTime(char *str)
-{
+static inline DateTimeNode *makeDateTime(char *str) {
    // move string to middle to form date string
    do_date_time_str(str);
    //printf("new date: %s\n", str + 3);
    return new DateTimeNode(str + 3);
 }
 
-static inline DateTimeNode *makeDate(char *str)
-{
+static inline DateTimeNode *makeDate(char *str) {
    do_date_str(str);
    //printf("new date: %d:%s\n", strlen(str), str);
    return new DateTimeNode(str);
 }
 
-static inline DateTimeNode *makeTime(char *str)
-{
+static inline DateTimeNode *makeTime(char *str) {
    do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
    return new DateTimeNode(str);
 }
 
-static inline DateTimeNode *makeRelativeDateTime(char *str)
-{
+static inline DateTimeNode *makeRelativeDateTime(char *str) {
    // move string to middle to form date string
    do_date_time_str(str);
    //printf("new date: %s\n", str + 3);
@@ -295,8 +283,7 @@ static inline DateTimeNode *makeRelativeDateTime(char *str)
    return dt;
 }
 
-static inline DateTimeNode *makeRelativeDate(char *str)
-{
+static inline DateTimeNode *makeRelativeDate(char *str) {
    do_date_str(str);
    //printf("new date: %d:%s\n", strlen(str), str);
    DateTimeNode *dt = new DateTimeNode();
@@ -304,8 +291,7 @@ static inline DateTimeNode *makeRelativeDate(char *str)
    return dt;
 }
 
-static inline DateTimeNode *makeRelativeTime(char *str)
-{
+static inline DateTimeNode *makeRelativeTime(char *str) {
    do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
    DateTimeNode *dt = new DateTimeNode();
@@ -691,6 +677,7 @@ sub                                     return TOK_SUB;
 const                                   return TOK_CONST;
 namespace				return TOK_NAMESPACE;
 return					return TOK_RETURN;
+returns                                 return TOK_RETURNS;
 my					return TOK_MY;
 our 					return TOK_OUR;
 break					return TOK_BREAK;
@@ -756,20 +743,27 @@ select\(                                yylval->string = strdup("select"); retur
 inherits\(                              yylval->string = strdup("inherits"); return KW_IDENTIFIER_OPENPAREN;
 default{WS}*\(                          yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
 static{WS}*\(                           yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN;
+returns{WS}*\(                          yylval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN;
+\.returns[^A-Za-z_0-9]                  {
+                                           yylval->String = new QoreStringNode("returns");
+					   if (yytext[4])
+					      unput(yytext[4]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
 \.new[^A-Za-z_0-9]                      {
-                                           yylval->String = new QoreStringNode("new"); 
+                                           yylval->String = new QoreStringNode("new");
 					   if (yytext[4])
 					      unput(yytext[4]);
 					   return DOT_KW_IDENTIFIER;
                                         }
 \.private[^A-Za-z_0-9]                  {
-                                           yylval->String = new QoreStringNode("private"); 
+                                           yylval->String = new QoreStringNode("private");
 					   if (yytext[8])
 					      unput(yytext[8]);
 					   return DOT_KW_IDENTIFIER;
                                         }
 \.class[^A-Za-z_0-9]                    {
-                                           yylval->String = new QoreStringNode("class"); 
+                                           yylval->String = new QoreStringNode("class");
 					   if (yytext[6])
 					      unput(yytext[6]);
 					   return DOT_KW_IDENTIFIER;

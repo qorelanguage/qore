@@ -146,7 +146,6 @@ class Paramlist {
 	    if (typeList[i])
 	       typeList[i]->resolve();			 
       }
-
 };
 
 class VRMutex;
@@ -157,6 +156,7 @@ class UserFunction : public QoreReferenceCounter {
       // for "synchronized" functions
       VRMutex *gate;
       char *name;
+      QoreParseTypeInfo *returnTypeInfo;
 
    protected:
       DLLLOCAL ~UserFunction();
@@ -165,19 +165,21 @@ class UserFunction : public QoreReferenceCounter {
       Paramlist *params;
       StatementBlock *statements;
 
-      // the object owns the memory for "n_name", 0 for anonymous closures
-      DLLLOCAL UserFunction(char *n_name, Paramlist *parms, StatementBlock *states, bool synced = false);
+      // the object owns the memory for "n_name", 0 for anonymous closures, takes ownership of parms, b, rv
+      DLLLOCAL UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced = false);
       DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
       DLLLOCAL AbstractQoreNode *evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const;
-      DLLLOCAL bool isSynchronized() const 
-      { 
+      DLLLOCAL bool isSynchronized() const { 
 	 return synchronized; 
       }
       DLLLOCAL void deref();
-      DLLLOCAL const char *getName() const 
-      {
+      DLLLOCAL const char *getName() const {
 	 return name ? name : "<anonymous closure>";
+      }
+      DLLLOCAL void parseInit();
+      DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
+	 return static_cast<QoreTypeInfo *>(returnTypeInfo);
       }
 };
 

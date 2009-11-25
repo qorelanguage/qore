@@ -881,7 +881,7 @@ void QoreProgram::endThread(ExceptionSink *xsink) {
 }
 
 // called during parsing (priv->plock already grabbed)
-void QoreProgram::resolveFunction(FunctionCallNode *f, Paramlist *&params) {
+void QoreProgram::resolveFunction(FunctionCallNode *f, Paramlist *&params, const QoreTypeInfo *&returnTypeInfo) {
    QORE_TRACE("QoreProgram::resolveFunction()");
    char *fname = f->f.c_str;
 
@@ -890,6 +890,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, Paramlist *&params) {
       printd(5, "resolved user function call to %s\n", fname);
       f->ftype = FC_USER;
       f->f.ufunc = ufc;      
+      returnTypeInfo = ufc->getReturnTypeInfo();
       free(fname);
       params = ufc->params;
 

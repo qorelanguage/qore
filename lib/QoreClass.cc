@@ -312,6 +312,10 @@ struct qore_method_private {
    DLLLOCAL bool newCallingConvention() const {
       return new_call_convention;
    }
+
+   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
+      return type == OTF_USER ? func.userFunc->getReturnTypeInfo() : 0;
+   }
 };
 
 class VRMutexHelper {
@@ -1074,6 +1078,10 @@ QoreMethod *QoreMethod::copy(const QoreClass *p_class) const {
 
    priv->func.builtin->ROreference();
    return new QoreMethod(p_class, priv->func.builtin, priv->priv_flag, priv->static_flag);
+}
+
+const QoreTypeInfo *QoreMethod::getReturnTypeInfo() const {
+   return priv->getReturnTypeInfo();
 }
 
 static const QoreClass *getStackClass() {

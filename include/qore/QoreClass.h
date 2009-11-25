@@ -157,6 +157,7 @@ class QoreMethod {
       DLLLOCAL const UserFunction *getStaticUserFunction() const;
       DLLLOCAL bool existsUserParam(unsigned i) const;
       DLLLOCAL Paramlist *getParams() const;
+      DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const;
 };
 
 //! defines a Qore-language class

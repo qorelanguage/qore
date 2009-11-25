@@ -46,7 +46,7 @@ class SelfFunctionCall {
    DLLLOCAL SelfFunctionCall(const QoreMethod *f);
    DLLLOCAL ~SelfFunctionCall();
    DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL void resolve(Paramlist *&params);
+   DLLLOCAL void resolve(Paramlist *&params, const QoreTypeInfo *&returnTypeInfo);
    DLLLOCAL char *takeName();
    DLLLOCAL NamedScope *takeNScope();
 };

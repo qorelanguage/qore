@@ -53,6 +53,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <memory>
+
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
 
@@ -400,24 +402,38 @@ static bool hasEffect(AbstractQoreNode *n) {
 #define OFM_SYNCED  2
 #define OFM_STATIC  4
 
-static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAList *bcal, StatementBlock *b) {
-   NamedScope *name = new NamedScope(n);
-   if (bcal && strcmp(name->getIdentifier(), "constructor")) {
+static int checkMethod(const char *name, BCAList *bcal, QoreParseTypeInfo *returnTypeInfo) {
+   // see if a return type is given for special methods
+   if (returnTypeInfo && (!strcmp(name, "constructor") || !strcmp(name, "destructor"))) {
+      parse_error("%s methods may not declare a return type", name);
+      return -1;
+   }
+
+   if (bcal && strcmp(name, "constructor")) {
       parse_error("base class constructor lists are only legal when defining ::constructor() methods");
+      return -1;
+   }
+
+   return 0;
+}
+
+static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAList *bcal, QoreParseTypeInfo *returnTypeInfo, StatementBlock *b) {
+   std::auto_ptr<NamedScope> name(new NamedScope(n));
+
+   if (checkMethod(name->getIdentifier(), bcal, returnTypeInfo)) {
       if (params)
 	 params->deref(0);
       delete bcal;
       delete b;
+      delete returnTypeInfo;
    }
    else {
-      QoreMethod *method = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE, mod & OFM_STATIC);
-      
-      if (getRootNS()->addMethodToClass(name, method, bcal)) {
-	 delete method;
+      QoreMethod *m = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, returnTypeInfo, mod & OFM_SYNCED), mod & OFM_PRIVATE, mod & OFM_STATIC);
+      if (getRootNS()->addMethodToClass(name.get(), m, bcal)) {
+	 delete m;
 	 delete bcal;
       }
    }
-   delete name;
 }
 
 struct MethodNode {
@@ -491,6 +507,7 @@ struct MethodNode {
       class NamedScope *nscope;
       class QoreRegexNode *Regex;
       class QoreImplicitArgumentNode *implicit_arg;
+      class QoreParseTypeInfo *typeInfo;
 }
 
 %{
@@ -517,6 +534,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 // define string aliases for token names for more user-friendly error reporting
 %token TOK_CLASS "class"
 %token TOK_RETURN "return"
+%token TOK_RETURNS "returns"
 %token TOK_MY "my"
 %token TOK_DO "do"
 %token TOK_TRY "try"
@@ -678,6 +696,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <constnode>   unscoped_const_decl
 %type <i4>          method_modifiers
 %type <i4>          method_modifier
+%type <typeInfo>    return_value
 %type <string>      optname
 %type <statement>   switch_statement
 %type <switchstmt>  case_block
@@ -690,7 +709,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
+%destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes return_value
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
@@ -1279,40 +1298,31 @@ member_list:
 	;
 
 method_definition:
-	method_modifiers IDENTIFIER '(' myexp ')' base_constructor_list block
-	{
-	   if ($6 && strcmp($2, "constructor"))
-	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new MethodNode(new UserFunction($2, new Paramlist($4), $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $6);
+        method_modifiers IDENTIFIER '(' myexp ')' base_constructor_list return_value block {
+	   //static int checkMethod(const char *name, BCAList *bcal, QoreParseTypeInfo *returnTypeInfo);
+	   checkMethod($2, $6, $7);
+	   $$ = new MethodNode(new UserFunction($2, new Paramlist($4), $8, $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $6);
 	}
-	| IDENTIFIER '(' myexp ')' base_constructor_list block
-        {
-	   if ($5 && strcmp($1, "constructor"))
-	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new MethodNode(new UserFunction($1, new Paramlist($3), $6), false, false, $5);
+	| IDENTIFIER '(' myexp ')' base_constructor_list return_value block {
+	   checkMethod($1, $5, $6);
+	   $$ = new MethodNode(new UserFunction($1, new Paramlist($3), $7, $6), false, false, $5);
 	}
-	| method_modifiers KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list block
-	{
-	   if ($5 && strcmp($2, "constructor"))
-	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new MethodNode(new UserFunction($2, new Paramlist($3), $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $5);
+        | method_modifiers KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list return_value block {
+	   checkMethod($2, $5, $6);
+	   $$ = new MethodNode(new UserFunction($2, new Paramlist($3), $7, $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $5);
 	}
-	| KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list block
-        {
-	   if ($4 && strcmp($1, "constructor"))
-	      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
-	   $$ = new MethodNode(new UserFunction($1, new Paramlist($2), $5), false, false, $4);
+	| KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list return_value block {
+	   checkMethod($1, $4, $5);
+	   $$ = new MethodNode(new UserFunction($1, new Paramlist($2), $6, $5), false, false, $4);
 	}
 	;
 
 object_outofline_function_def:
-	method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list block
-	{
-	   tryAddMethod($1, $2, $4, $6, $7);
+	method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
+	   tryAddMethod($1, $2, $4, $6, $7, $8);
 	}
-	| SCOPED_REF '(' myexp ')' base_constructor_list block
-        {
-	   tryAddMethod(0, $1, $3, $5, $6);
+	| SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
+	   tryAddMethod(0, $1, $3, $5, $6, $7);
 	}
 	;
 
@@ -1366,27 +1376,45 @@ method_modifier:
         | TOK_STATIC { $$ = OFM_STATIC; }
         ;
 
+return_value:
+        TOK_RETURNS IDENTIFIER {
+	   qore_type_t t = getBuiltinType($2);
+	   if (t >= 0) {
+	      $$ = new QoreParseTypeInfo(t);
+	      free($2);
+	   }
+	   else
+	      $$ = new QoreParseTypeInfo($2);
+	}
+        | TOK_RETURNS SCOPED_REF {
+	   $$ = new QoreParseTypeInfo($2);
+	}
+        | /* nothing */
+        {
+	   $$ = 0;
+	}
+
 sub_def:
-        TOK_SUB IDENTIFIER '(' myexp ')' block { 
-	   getProgram()->registerUserFunction(new UserFunction($2, new Paramlist($4), $6)); 
+        TOK_SUB IDENTIFIER '(' myexp ')' return_value block { 
+	   getProgram()->registerUserFunction(new UserFunction($2, new Paramlist($4), $7, $6)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $2);
 	}
-	| TOK_SYNCHRONIZED TOK_SUB IDENTIFIER '(' myexp ')' block {
-	   getProgram()->registerUserFunction(new UserFunction($3, new Paramlist($5), $7, 1)); 
+        | TOK_SYNCHRONIZED TOK_SUB IDENTIFIER '(' myexp ')' return_value block {
+	   getProgram()->registerUserFunction(new UserFunction($3, new Paramlist($5), $8, $7, true)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $3);
 	}
-	| TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' block { 
-	   getProgram()->registerUserFunction(new UserFunction($2, new Paramlist($3), $5)); 
+	| TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' return_value block { 
+	   getProgram()->registerUserFunction(new UserFunction($2, new Paramlist($3), $6, $5)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $2);
 	}
-	| TOK_SYNCHRONIZED TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' block {
-	   getProgram()->registerUserFunction(new UserFunction($3, new Paramlist($4), $6, 1)); 
+	| TOK_SYNCHRONIZED TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' return_value block {
+	   getProgram()->registerUserFunction(new UserFunction($3, new Paramlist($4), $7, $6, true)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $3);
@@ -2098,9 +2126,8 @@ exp:    scalar
 	      reinterpret_cast<QoreListNode *>($2)->setFinalized(); 
 	}
         | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
-        | TOK_SUB '(' myexp ')' block
-        { 
-	   UserFunction *uf = new UserFunction(0, new Paramlist($3), $5);
+        | TOK_SUB '(' myexp ')' return_value block { 
+	   UserFunction *uf = new UserFunction(0, new Paramlist($3), $6, $5);
 	   $$ = new QoreClosureParseNode(uf);
 /*
 	   // make sure definition was legal
@@ -2108,9 +2135,8 @@ exp:    scalar
 	      parse_error("illegal closure definition (conflicts with parse option NO_CLOSURES)");
 */
 	}
-	| TOK_SYNCHRONIZED TOK_SUB '(' myexp ')' block
-        {
-	   UserFunction *uf = new UserFunction(0, new Paramlist($4), $6, true);
+	| TOK_SYNCHRONIZED TOK_SUB '(' myexp ')' return_value block {
+	   UserFunction *uf = new UserFunction(0, new Paramlist($4), $7, $6, true);
 	   $$ = new QoreClosureParseNode(uf);
 /*
 	   // make sure definition was legal

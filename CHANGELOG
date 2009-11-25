@@ -4,6 +4,10 @@
 	  string termination code
 	* fixed a harmless bug in TempEncodingHelper to remove a message from
 	  valgrind (although this bug could cause no harm)
+	* implemented "returns" keyword for declaring return types for code,
+	  currently only partially implemented for functions and class methods
+	  at parse time, implementation pending for runtime, closures, etc:
+	  ex: sub func(bool $b, int $i, Thread::Mutex $m) returns string {}
 
 2009.11.24: David Nichols
 	* more hard typing support implementation; better call argument
