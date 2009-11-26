@@ -1521,8 +1521,26 @@ exp:    scalar
 	   $$ = $3;
 	}
         | TOK_OUR VAR_REF {
-	   getProgram()->addGlobalVarDef($2);
-	   $$ = new VarRefNode($2, VT_GLOBAL); 
+	   VarRefNode *v = new VarRefNode($2, VT_GLOBAL); 
+	   v->ref.var = getProgram()->addGlobalVarDef($2, 0);
+	   $$ = v;
+	}
+        | TOK_OUR IDENTIFIER VAR_REF {
+	   qore_type_t t = getBuiltinType($2);
+	   VarRefDeclNode *v;
+	   if (t >= 0) {
+	      v = new VarRefDeclNode($3, VT_GLOBAL, t);
+	      free($2);
+	   }
+	   else
+	      v = new VarRefDeclNode($3, VT_GLOBAL, $2);
+	   v->ref.var = getProgram()->addGlobalVarDef($3, v->getTypeInfo());
+	   $$ = v;
+	}
+        | TOK_OUR SCOPED_REF VAR_REF {
+	   VarRefDeclNode *v = new VarRefDeclNode($3, VT_GLOBAL, $2); 
+	   $$ = v;
+	   v->ref.var = getProgram()->addGlobalVarDef($3, v->getTypeInfo());
 	}
         | TOK_OUR '(' list ')' { 
 	   $3->setVariableList();
@@ -1538,7 +1556,6 @@ exp:    scalar
 		    parse_error("illegal use of 'our %s' in global variable declaration list", v->getName());
 		 else {
 		    v->makeGlobal();
-		    getProgram()->addGlobalVarDef(v->getName());
 		 }
 	      }
 	   }
@@ -1736,18 +1753,15 @@ exp:    scalar
 	   else
 	      $$ = makeTree(OP_POP, $2, 0); 
 	}
-	| TOK_CHOMP exp
-	{
-	   if (check_lvalue($2))
-	   {
+	| TOK_CHOMP exp {
+	   if (check_lvalue($2)) {
 	      parse_error("argument to chomp operator is not an lvalue (use the chomp() function instead)");
 	      $$ = makeErrorTree(OP_CHOMP, $2, 0); 
 	   }
 	   else
 	      $$ = makeTree(OP_CHOMP, $2, 0); 
 	}
-	| TOK_TRIM exp
-	{
+	| TOK_TRIM exp {
 	   if (check_lvalue($2))
 	   {
 	      parse_error("argument to trim operator is not an lvalue (use the trim() function instead)");
@@ -1756,18 +1770,15 @@ exp:    scalar
 	   else
 	      $$ = makeTree(OP_TRIM, $2, 0); 
 	}
-        | TOK_SPLICE exp  // splice lvalue-list, offset, [length, list]
-        {
+        | TOK_SPLICE exp {  // splice lvalue-list, offset, [length, list]
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() < 2 || l->size() > 4) {
 	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (got %s)", get_type_name($2));
 	      $$ = makeErrorTree(OP_SPLICE, $2, 0);
 	   }
-	   else
-	   {
+	   else {
 	      AbstractQoreNode *lv = l->shift();
-	      if (check_lvalue(lv))
-	      {
+	      if (check_lvalue(lv)) {
 		 parse_error("first argument to splice is not an lvalue");
 		 $$ = makeErrorTree(OP_SPLICE, lv, $2);
 	      }
@@ -1775,8 +1786,7 @@ exp:    scalar
 		 $$ = makeTree(OP_SPLICE, lv, $2);
 	   }
 	}
-        | TOK_MAP exp
-        {
+        | TOK_MAP exp {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   int len = l ? l->size() : 0;
 	   if (!l || len < 2 || len > 3) {

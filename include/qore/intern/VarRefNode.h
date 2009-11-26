@@ -47,8 +47,8 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   DLLLOCAL void resolve(const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
-   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
+   DLLLOCAL void resolve(const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
+   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
    
 public:
    union var_u {
@@ -57,7 +57,8 @@ public:
    } ref;
 
    // takes over memory for "n"
-   DLLLOCAL VarRefNode(char *n, qore_var_t t);
+   DLLLOCAL VarRefNode(char *n, qore_var_t t) : ParseNode(NT_VARREF), name(n), type(t) {
+   }
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -74,8 +75,13 @@ public:
    DLLLOCAL qore_var_t getType() const { return type; }
    DLLLOCAL const char *getName() const { return name; }
    DLLLOCAL void makeLocal() { assert(type == VT_UNRESOLVED); type = VT_LOCAL; }
-   DLLLOCAL void makeGlobal() { assert(type == VT_UNRESOLVED); type = VT_GLOBAL; }
+   DLLLOCAL void makeGlobal() { 
+      assert(type == VT_UNRESOLVED); 
+      type = VT_GLOBAL;
+      ref.var =getProgram()->addGlobalVarDef(name, getTypeInfo());
+   }
    DLLLOCAL virtual QoreParseTypeInfo *takeTypeInfo() { return 0; }
+   DLLLOCAL virtual const QoreParseTypeInfo *getTypeInfo() const { return 0; }
 
    // takes the name - caller owns the memory
    DLLLOCAL char *takeName();
@@ -103,6 +109,9 @@ public:
       QoreParseTypeInfo *ti = typeInfo;
       typeInfo = 0;
       return ti;
+   }
+   DLLLOCAL virtual const QoreParseTypeInfo *getTypeInfo() const {
+      return typeInfo;
    }
 };
 

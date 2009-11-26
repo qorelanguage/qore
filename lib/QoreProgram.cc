@@ -538,7 +538,7 @@ const Var *QoreProgram::findGlobalVar(const char *name) const {
    return priv->global_var_list.findVar(name);
 }
 
-Var *QoreProgram::checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo) {
+Var *QoreProgram::checkGlobalVar(const char *name, const QoreParseTypeInfo *typeInfo) {
    int new_var = 0;
    Var *rv = priv->global_var_list.checkVar(name, typeInfo, &new_var);
    if (new_var) {
@@ -555,20 +555,6 @@ Var *QoreProgram::checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo)
    return rv;
 }
 
-Var *QoreProgram::createGlobalVar(const char *name, const QoreTypeInfo *typeInfo) {
-   int new_var = 0;
-
-   Var *rv = priv->global_var_list.checkVar(name, typeInfo, &new_var);
-
-   // it's a new global variable: check if global variables are allowed
-   if ((priv->parse_options & PO_NO_GLOBAL_VARS) && new_var)
-      parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
-
-   printd(5, "QoreProgram::createVar() global var '%s' processed, new_var=%d (val=%08p)\n", name, new_var, rv);
-
-   return rv;
-}
-
 LocalVar *QoreProgram::createLocalVar(const char *name, const QoreTypeInfo *typeInfo) {
    LocalVar *lv = new LocalVar(name, typeInfo);
    priv->local_var_list.push_back(lv);
@@ -577,11 +563,15 @@ LocalVar *QoreProgram::createLocalVar(const char *name, const QoreTypeInfo *type
 
 // if this global variable definition is illegal, then
 // it will be flagged in the parseCommit stage
-void QoreProgram::addGlobalVarDef(const char *name) {
+Var *QoreProgram::addGlobalVarDef(const char *name, const QoreParseTypeInfo *typeInfo) {
    int new_var = 0;
-   priv->global_var_list.checkVar(name, 0, &new_var);
+   Var *v = priv->global_var_list.checkVar(name, typeInfo, &new_var);
    if (!new_var)
       makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
+   else if ((priv->parse_options & PO_NO_GLOBAL_VARS))
+      parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
+
+   return v;
 }
 
 void QoreProgram::makeParseException(const char *err, QoreStringNode *desc) {

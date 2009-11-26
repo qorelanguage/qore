@@ -22,9 +22,6 @@
 
 #include <qore/Qore.h>
 
-VarRefNode::VarRefNode(char *nme, qore_var_t typ) : ParseNode(NT_VARREF), name(nme), type(typ) {
-}
-
 VarRefNode::~VarRefNode() {
    if (name) {
       printd(3, "VarRefNode::~VarRefNode() deleting variable reference %08p %s\n", name, name);
@@ -54,7 +51,7 @@ const char *VarRefNode::getTypeName() const {
    return "variable reference";
 }
 
-void VarRefNode::resolve(const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
+void VarRefNode::resolve(const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
    LocalVar *id;
 
    bool in_closure;
@@ -168,7 +165,7 @@ char *VarRefNode::takeName() {
    return p;
 }
 
-AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
    // if it is a new variable being declared
    if (type == VT_LOCAL) {
       outTypeInfo = typeInfo;
@@ -178,7 +175,6 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    }
    else if (type == VT_GLOBAL) {
       outTypeInfo = typeInfo;
-      ref.var = getProgram()->createGlobalVar(name, typeInfo);
    }
    else // otherwise reference must be resolved
       resolve(typeInfo, outTypeInfo);

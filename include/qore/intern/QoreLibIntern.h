@@ -160,6 +160,9 @@ public:
 
       return 0;
    }
+#ifdef DEBUG
+   DLLLOCAL const char *getTypeName() const { return this && qt >= 0 ? getBuiltinTypeName(qt) : "n/a"; }
+#endif
 };
 
 #include <qore/intern/NamedScope.h>
@@ -188,10 +191,33 @@ public:
    DLLLOCAL ~QoreParseTypeInfo() {
       delete cscope;
    }
+   // prototype (expecting type) should be "this"
+   // returns true if the prototype does not expect any type or the types are compatible, 
+   // false if otherwise
+   DLLLOCAL bool parseStageOneEqual(const QoreParseTypeInfo *typeInfo) const {
+      if (!this || !has_type || !typeInfo || !typeInfo->has_type)
+	 return true;
+
+      if (!cscope && !typeInfo->cscope)
+	 return parseEqual(typeInfo);
+
+      assert(cscope && typeInfo->cscope);
+      // check for equal types or equal class paths
+      if (qt != typeInfo->qt)
+	 return false;
+      if (!cscope && !typeInfo->cscope)
+	 return true;
+      if (!cscope || !typeInfo->cscope)
+	 return false;
+      return !strcmp(cscope->getIdentifier(), typeInfo->cscope->getIdentifier());
+   }
    DLLLOCAL void resolve();
    DLLLOCAL bool needsResolving() const { 
       return cscope;
    }
+#ifdef DEBUG
+   DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }
+#endif
 };
 
 #ifndef HAVE_ATOLL

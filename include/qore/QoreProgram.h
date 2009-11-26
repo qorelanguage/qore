@@ -63,6 +63,7 @@ class Var;
 class LVList;
 class UserFunction;
 class QoreTypeInfo;
+class QoreParseTypeInfo;
 class Paramlist;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
@@ -435,12 +436,12 @@ public:
    DLLLOCAL void registerUserFunction(UserFunction *u);
    DLLLOCAL void resolveFunction(FunctionCallNode *f, Paramlist *&params, const QoreTypeInfo *&returnTypeInfo);
    DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedCallReferenceNode *fr);      
-   DLLLOCAL void addGlobalVarDef(const char *name);
+   DLLLOCAL Var *addGlobalVarDef(const char *name, const QoreParseTypeInfo *typeInfo);
    DLLLOCAL void addStatement(AbstractStatement *s);
    DLLLOCAL Var *findGlobalVar(const char *name);
    DLLLOCAL const Var *findGlobalVar(const char *name) const;
-   DLLLOCAL Var *checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
-   DLLLOCAL Var *createGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
+   DLLLOCAL Var *checkGlobalVar(const char *name, const QoreParseTypeInfo *typeInfo);
+   DLLLOCAL Var *createGlobalVar(const char *name, const QoreParseTypeInfo *typeInfo);
    DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
    DLLLOCAL void makeParseException(const char *err, QoreStringNode *desc);
    DLLLOCAL void makeParseException(int sline, int eline, QoreStringNode *desc);

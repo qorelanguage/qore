@@ -1,3 +1,7 @@
+2009.11.26: David Nichols
+	* implemented optional hard type support for global variables, 
+	  parse-time checks, etc
+
 2009.11.25: David Nichols
 	* added type info to constants and constant resolution
 	* fixed memory bug in CryptoHelper - removed unnecessary and incorrect

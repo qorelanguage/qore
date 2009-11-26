@@ -49,25 +49,11 @@ VarStackPointerClosureHelper::~VarStackPointerClosureHelper() {
    orig->skip = false;
 }
 
-/*
-Var::Var(const char *n_name, AbstractQoreNode *val) : type(GV_VALUE), name(n_name) {
-   v.val.value = val;
-}
-*/
-
 Var::Var(const char *n_name) : type(GV_VALUE), name(n_name) {
    v.val.value = 0;
 }
 
-Var::Var(const char *n_name, qore_type_t qt) : type(GV_VALUE), name(n_name), typeInfo(qt) {
-   v.val.value = 0;
-}
-
-Var::Var(const char *n_name, char *class_scope) : type(GV_VALUE), name(n_name), typeInfo(class_scope) {
-   v.val.value = 0;
-}
-
-Var::Var(const char *n_name, const QoreTypeInfo *n_typeInfo) : type(GV_VALUE), name(n_name), typeInfo(n_typeInfo) {
+Var::Var(const char *n_name, const QoreParseTypeInfo *n_typeInfo) : type(GV_VALUE), name(n_name), typeInfo(n_typeInfo) {
    v.val.value = 0;
 }
 
@@ -127,7 +113,7 @@ AbstractQoreNode *Var::eval(ExceptionSink *xsink) {
 }
 
 // note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
+AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, const QoreTypeInfo *&varTypeInfo, ExceptionSink *xsink) const {
    if (type == GV_IMPORT) {
       if (v.ivar.readonly) {
 	 m.unlock();
@@ -139,19 +125,18 @@ AbstractQoreNode **Var::getValuePtrIntern(AutoVLock *vl, const QoreTypeInfo *&ty
       m.unlock();
       v.ivar.refptr->m.lock();
 
-      return v.ivar.refptr->getValuePtrIntern(vl, typeInfo, xsink);
+      return v.ivar.refptr->getValuePtrIntern(vl, varTypeInfo, xsink);
    }
 
    vl->set(&m);
-   // xxx set typeInfo
+   varTypeInfo = typeInfo;
    return const_cast<AbstractQoreNode **>(&v.val.value);
 }
 
 // note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
+AbstractQoreNode **Var::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&varTypeInfo, ExceptionSink *xsink) const {
    m.lock();
-
-   return getValuePtrIntern(vl, typeInfo, xsink);
+   return getValuePtrIntern(vl, varTypeInfo, xsink);
 }
 
 // note: unlocking the lock is managed with the AutoVLock object
@@ -185,7 +170,6 @@ const AbstractQoreNode *Var::getValueIntern(AutoVLock *vl) const {
 // note: unlocking the lock is managed with the AutoVLock object
 AbstractQoreNode *Var::getValue(AutoVLock *vl) {
    m.lock();
-
    return getValueIntern(vl);
 }
 
@@ -202,6 +186,7 @@ AbstractQoreNode *Var::getReferencedValue() const {
    return rv;
 }
 
+// note: type enforcement is done at a higher level
 void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink) {
    if (type == GV_IMPORT) {
       if (v.ivar.readonly) {
@@ -227,7 +212,6 @@ void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink) {
 
 void Var::setValue(AbstractQoreNode *val, ExceptionSink *xsink) {
    m.lock();
-
    setValueIntern(val, xsink);
 }
 
