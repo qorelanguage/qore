@@ -55,8 +55,11 @@ QoreTypeInfo boolTypeInfo(NT_BOOLEAN);
 QoreTypeInfo stringTypeInfo(NT_STRING);
 QoreTypeInfo binaryTypeInfo(NT_BINARY);
 QoreTypeInfo objectTypeInfo(NT_OBJECT);
+QoreTypeInfo dateTypeInfo(NT_DATE);
 QoreTypeInfo hashTypeInfo(NT_HASH);
 QoreTypeInfo listTypeInfo(NT_LIST);
+QoreTypeInfo nothingTypeInfo(NT_NOTHING);
+QoreTypeInfo nullTypeInfo(NT_NULL);
 
 void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;

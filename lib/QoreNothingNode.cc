@@ -26,21 +26,18 @@
 static bool nothing_flag = 0;
 #endif
 
-QoreNothingNode::QoreNothingNode() : UniqueValueQoreNode(NT_NOTHING)
-{
+QoreNothingNode::QoreNothingNode() : UniqueValueQoreNode(NT_NOTHING) {
 #ifdef DEBUG
    assert(!nothing_flag);
    nothing_flag = true;
 #endif
 }
 
-QoreNothingNode::~QoreNothingNode()
-{
+QoreNothingNode::~QoreNothingNode() {
    //printd(0, "QoreNothingNode::~QoreNothingNode() called this=%08p\n", this);
 }
 
-AbstractQoreNode *QoreNothingNode::evalImpl(class ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreNothingNode::evalImpl(class ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
@@ -49,15 +46,13 @@ AbstractQoreNode *QoreNothingNode::evalImpl(class ExceptionSink *xsink) const
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int QoreNothingNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreNothingNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.concat(&NothingTypeString);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreNothingNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreNothingNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
    return &NothingTypeString;
 }
@@ -66,18 +61,21 @@ QoreString *QoreNothingNode::getAsString(bool &del, int foff, ExceptionSink *xsi
 // the "val" passed
 //DLLLOCAL int QoreNothingNode::compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreNothingNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreNothingNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    return is_nothing(v);
 }
 
-bool QoreNothingNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreNothingNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    return is_nothing(v);
 }
 
 // returns the type name as a c string
-const char *QoreNothingNode::getTypeName() const
-{
+const char *QoreNothingNode::getTypeName() const {
    return getStaticTypeName();
+}
+
+//! returns the type information
+AbstractQoreNode *QoreNothingNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = &nothingTypeInfo;
+   return this;
 }

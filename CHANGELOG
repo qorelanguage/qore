@@ -12,6 +12,7 @@
 	  default.  The new default warning mask enables the following
 	  warnings: "unknown-warning" (always a mistake), "unreachable-code"
 	  (normally an unintentional error), "non-existant-method-call"
+	* implemented more parse-time hard typing checks for operators
 
 2009.11.26: David Nichols
 	* implemented optional hard type support for global variables, 

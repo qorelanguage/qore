@@ -349,7 +349,8 @@ DLLLOCAL AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n,
 DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 
 DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo, 
-   stringTypeInfo, binaryTypeInfo, objectTypeInfo, hashTypeInfo, listTypeInfo;
+   stringTypeInfo, binaryTypeInfo, dateTypeInfo, objectTypeInfo, hashTypeInfo, 
+   listTypeInfo, nothingTypeInfo, nullTypeInfo;
 
 class QoreListNodeParseInitHelper : public ListIterator {
 private:

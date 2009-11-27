@@ -39,8 +39,7 @@
     @note in C++ code, use the is_nothing() function to test an AbstractQoreNode* to see if it's "NOTHING" (because also a null pointer is equivalent to NOTHING)
     @see QoreNullNode
  */
-class QoreNothingNode : public UniqueValueQoreNode
-{
+class QoreNothingNode : public UniqueValueQoreNode {
    protected:
       //! this function is never called for this type
       /** @see AbstractQoreNode::evalImpl()
@@ -88,8 +87,10 @@ class QoreNothingNode : public UniqueValueQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      //! returns the type information
+      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "nothing";
       }
 };

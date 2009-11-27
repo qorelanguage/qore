@@ -91,8 +91,7 @@ static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, Abstract
 	  right, right ? right->getTypeName() : "n/a", right ? right->is_value() : false, op->getName());
 
    // if both nodes are values, then evaluate immediately
-   if (left->is_value() && (!right || right->is_value()))
-   {
+   if (left->is_value() && (!right || right->is_value())) {
       ExceptionSink xsink;
 
       AbstractQoreNode *n_node = op->eval(left, right, true, &xsink);

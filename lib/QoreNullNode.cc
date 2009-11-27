@@ -26,20 +26,17 @@
 static bool null_flag = 0;
 #endif
 
-QoreNullNode::QoreNullNode() : UniqueValueQoreNode(NT_NULL)
-{
+QoreNullNode::QoreNullNode() : UniqueValueQoreNode(NT_NULL) {
 #ifdef DEBUG
    assert(!null_flag);
    null_flag = true;
 #endif
 }
 
-QoreNullNode::~QoreNullNode()
-{
+QoreNullNode::~QoreNullNode() {
 }
 
-AbstractQoreNode *QoreNullNode::evalImpl(class ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreNullNode::evalImpl(class ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
@@ -48,15 +45,13 @@ AbstractQoreNode *QoreNullNode::evalImpl(class ExceptionSink *xsink) const
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int QoreNullNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreNullNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.concat(&NullTypeString);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreNullNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreNullNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
    return &NullTypeString;
 }
@@ -65,18 +60,22 @@ QoreString *QoreNullNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 // the "val" passed
 //DLLLOCAL int QoreNullNode::compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreNullNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreNullNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    return dynamic_cast<const QoreNullNode *>(v);
 }
 
-bool QoreNullNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-{
+bool QoreNullNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    return dynamic_cast<const QoreNullNode *>(v);
 }
 
 // returns the type name as a c string
-const char *QoreNullNode::getTypeName() const
-{
+const char *QoreNullNode::getTypeName() const {
    return getStaticTypeName();
 }
+
+//! returns the type information
+AbstractQoreNode *QoreNullNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = &nullTypeInfo;
+   return this;
+}
+
