@@ -1,7 +1,43 @@
 RELEASE NOTES for qore v0.7.7
 
-release summary: under development - no release notes available yet; check
-CHANGELOG
+release summary: 12 bug fixes from 0.7.6
+
+* BUG FIX: fixed a reference counting bug in callObjectMethodArgs() that could
+           lead to a crash if a list is passed as the 3rd argument
+* BUG FIX: fixed a bug executing builtin functions if an exception is raised
+           when evaluating the arguments (the function was erroneously 
+	   executed)
+* BUG FIX: fixed a bug in the FtpClient class that caused the connection to
+           never get established
+* BUG FIX: fixed a bug when a builtin class tries to access private data of an
+           object that's already been deleted; now an appropriate exception is
+           thrown; previously it would silently fail
+* BUG FIX: fixed examples/WSDL.qc de/serializing "int" and "short" from
+           negative numbers
+* BUG FIX: removed an extraneous reference and dereference in objects when
+           launching new threads in objects (slightly better performance
+	   launching new threads in objects)
+* BUG FIX: fixed a rare race condition in object constructors when an object
+           launches threads in the object and then the constructor throws an
+           exception afterwards
+* BUG FIX: fixed handling in the Datasource and DatasourcePool classes when
+           auto-reconnects fail (connection aborted handling) - now the
+           Datasource class tags the connection as aborted and closes the
+           connection when Datasource::connectionAborted() is called by the 
+	   DBI drivers, and the DatasourcePool class correctly returns the 
+           Datasource to the pool.  Additionally, the Datasource class will
+	   not execute any action on the Datasource once the connection has
+	   been aborted.  The flag is cleared when the connection is opened
+	   again.
+* BUG FIX: fixed memory leaks in parse exceptions with static method call
+           references (backported from 0.8.0/trunk)
+* BUG FIX: detected erroneous variable list declarations like:
+           our (my $x, ...) or my (our $x) and throw a parse exception
+           (backported from 0.8.0/trunk)
+* BUG FIX: fixed a harmless bug in TempEncodingHelper to remove a message from
+           valgrind (backported from 0.8.0/trunk)
+* BUG FIX: fixed memory bug in CryptoHelper - removed unnecessary and incorrect
+           string termination code (backported from 0.8.0/trunk)
 
 
 ***********************
