@@ -1,3 +1,18 @@
+2009.11.27: David Nichols
+	* implemented a new warning: "non-existant-method-call" - this is for
+	  method calls to expressions that evaluate to a class known at parse
+	  time where the method cannot be found.  This could be a valid call,
+	  because the call could only be made on an object of a subclass that
+	  implements the method, so to allow the potential error to be 
+	  reported but to also allow for backwards-compatibility only a
+	  warning is issued
+	* set a default warning mask to enable some warnings; in the past some
+	  warnings that almost always (or always, in the case of the 
+	  "unknown-warning" warning) indicated an error were suppressed by
+	  default.  The new default warning mask enables the following
+	  warnings: "unknown-warning" (always a mistake), "unreachable-code"
+	  (normally an unintentional error), "non-existant-method-call"
+
 2009.11.26: David Nichols
 	* implemented optional hard type support for global variables, 
 	  parse-time checks, etc

@@ -48,11 +48,9 @@ class CharPtrList : public safe_dslist<const char *> {
    public:
       // returns 0 for found, -1 for not found
       // FIXME: use STL find algorithm
-      DLLLOCAL int find(const char *str) const
-      {
+      DLLLOCAL int find(const char *str) const {
 	 const_iterator i = begin();
-	 while (i != end())
-	 {
+	 while (i != end()) {
 	    if (!strcmp(*i, str))
 	       return 0;
 	    i++;
@@ -75,15 +73,12 @@ class SBNode {
 // local variable container
 typedef safe_dslist<LocalVar *> local_var_list_t;
 
-class LocalVariableList : public local_var_list_t
-{
+class LocalVariableList : public local_var_list_t {
    public:
-      DLLLOCAL LocalVariableList()
-      {
+      DLLLOCAL LocalVariableList() {
       }
 
-      DLLLOCAL ~LocalVariableList()
-      {
+      DLLLOCAL ~LocalVariableList() {
 	 for (local_var_list_t::iterator i = begin(), e = end(); i != e; ++i)
 	    delete *i;
       }
@@ -144,8 +139,7 @@ struct qore_program_private {
 	 var->setValue(ENV->copy(), 0);
       }
 
-      DLLLOCAL ~qore_program_private()
-      {
+      DLLLOCAL ~qore_program_private() {
       }
 
       DLLLOCAL const char *parseGetScriptDir() const {
@@ -198,8 +192,7 @@ struct qore_program_private {
 	 }
       }
 
-      DLLLOCAL QoreListNode *getVarList()
-      {
+      DLLLOCAL QoreListNode *getVarList() {
 	 plock.lock();
 	 QoreListNode *l = global_var_list.getVarList();
 	 plock.unlock();
@@ -301,8 +294,7 @@ struct qore_program_private {
       }
 
       // caller must have grabbed the lock and put the current program on the program stack
-      int internParseCommit()
-      {
+      int internParseCommit() {
 	 QORE_TRACE("QoreProgram::internParseCommit()");
 	 printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, parseSink->isEvent());
 
@@ -368,7 +360,8 @@ static const char *qore_warnings_l[] = {
    "unknown-warning",
    "undeclared-var",
    "duplicate-global-vars",
-   "unreachable-code"
+   "unreachable-code",
+   "non-existent-method-call"
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
 
@@ -376,16 +369,14 @@ static const char *qore_warnings_l[] = {
 const char **qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
 
-int get_warning_code(const char *str)
-{
+int get_warning_code(const char *str) {
    for (unsigned i = 0; i < NUM_WARNINGS; i++)
       if (!strcasecmp(str, qore_warnings[i]))
          return 1 << i;
    return 0;
 }
 
-DLLLOCAL void addProgramConstants(class QoreNamespace *ns)
-{
+DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
    ns->addConstant("PO_DEFAULT",                  new QoreBigIntNode(PO_DEFAULT));
    ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreBigIntNode(PO_NO_GLOBAL_VARS));
    ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreBigIntNode(PO_NO_SUBROUTINE_DEFS));  
@@ -409,19 +400,16 @@ DLLLOCAL void addProgramConstants(class QoreNamespace *ns)
    ns->addConstant("PO_NO_GUI",                   new QoreBigIntNode(PO_NO_GUI));
 }
 
-inline SBNode::~SBNode()
-{
+inline SBNode::~SBNode() {
    reset();
 }
 
-inline void SBNode::reset()
-{
+inline void SBNode::reset() {
    delete statements;
    statements = 0;
 }
 
-QoreProgram::~QoreProgram()
-{
+QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this=%08p\n", this);
    delete priv;
 }
@@ -447,8 +435,7 @@ QoreProgram::QoreProgram() : priv(new qore_program_private) {
    priv->RootNS = new RootQoreNamespace(&priv->QoreNS);
 }
 
-QoreProgram::QoreProgram(QoreProgram *pgm, int po, bool ec, const char *ecn) : priv(new qore_program_private)
-{
+QoreProgram::QoreProgram(QoreProgram *pgm, int po, bool ec, const char *ecn) : priv(new qore_program_private) {
    // flag as derived object
    priv->base_object = false;
 
@@ -481,13 +468,11 @@ QoreProgram::QoreProgram(QoreProgram *pgm, int po, bool ec, const char *ecn) : p
    pgm->priv->featureList.populate(&priv->featureList);
 }
 
-class QoreThreadLock *QoreProgram::getParseLock()
-{
+QoreThreadLock *QoreProgram::getParseLock() {
    return &priv->plock;
 }
 
-void QoreProgram::deref(ExceptionSink *xsink)
-{
+void QoreProgram::deref(ExceptionSink *xsink) {
    //printd(5, "QoreProgram::deref() this=%08p %d->%d\n", this, reference_count(), reference_count() - 1);
    if (ROdereference())
    {
@@ -801,8 +786,7 @@ void QoreProgram::addStatement(class AbstractStatement *s) {
    }
 }
 
-bool QoreProgram::existsFunction(const char *name)
-{
+bool QoreProgram::existsFunction(const char *name) {
    // need to grab the parse lock for safe access to the user function map
    AutoLocker al(&priv->plock);
    return priv->user_func_list.find(name);
@@ -1006,8 +990,7 @@ void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, Except
    yylex_destroy(lexer);
 }
 
-void QoreProgram::parse(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm)
-{
+void QoreProgram::parse(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    if (!str->strlen())
       return;
 
@@ -1024,8 +1007,7 @@ void QoreProgram::parse(const QoreString *str, const QoreString *lstr, Exception
    parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
 }
 
-void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm)
-{
+void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    if (!(*code))
       return;
 
@@ -1049,8 +1031,7 @@ void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsin
    priv->plock.unlock();
 }
 
-void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *wS, int wm)
-{
+void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    QORE_TRACE("QoreProgram::parseFile()");
 
    printd(5, "QoreProgram::parseFile(%s)\n", filename);
@@ -1067,8 +1048,7 @@ void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, Exceptio
    parse(fp, filename, xsink, wS, wm);
 }
 
-void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm)
-{
+void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    if (!str->strlen())
       return;
 
@@ -1107,8 +1087,7 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
    return rv;
 }
 
-AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
    UserFunction *ufc;
    SimpleRefHolder<FunctionCallNode> fc;
 
@@ -1151,8 +1130,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    return rv;
 }
 
-AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreListNode *args, ExceptionSink *xsink) {
    // we assign the args to 0 below so that they will not be deleted
    SimpleRefHolder<FunctionCallNode> fc(new FunctionCallNode(ufc, const_cast<QoreListNode *>(args)));
 
@@ -1169,8 +1147,7 @@ AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreL
 }
 
 // called during run time (not during parsing)
-void QoreProgram::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink)
-{
+void QoreProgram::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink) {
    AutoLocker al(&priv->plock);
    // check if a user function already exists with this name
    if (priv->user_func_list.find(u->getName()))
@@ -1181,16 +1158,14 @@ void QoreProgram::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionS
       priv->imported_func_list.add(p, u);
 }
 
-void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm)
-{
+void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    ProgramContextHelper pch(this, xsink);
    priv->parseCommit(xsink, wS, wm);
 }
 
 // this function cannot throw an exception because as long as the 
 // parse lock is held
-void QoreProgram::parseRollback()
-{
+void QoreProgram::parseRollback() {
    ProgramContextHelper pch(this, 0);
 
    // grab program-level parse lock
@@ -1203,12 +1178,10 @@ void QoreProgram::parseRollback()
    priv->plock.unlock();   
 }
 
-void QoreProgram::runClass(const char *classname, ExceptionSink *xsink)
-{
+void QoreProgram::runClass(const char *classname, ExceptionSink *xsink) {
    // find class
    class QoreClass *qc = priv->RootNS->rootFindClass(classname);
-   if (!qc)
-   {
+   if (!qc) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;
    }
@@ -1224,8 +1197,7 @@ void QoreProgram::runClass(const char *classname, ExceptionSink *xsink)
    priv->tcount.dec();
 }
 
-void QoreProgram::parseFileAndRunClass(const char *filename, const char *classname)
-{
+void QoreProgram::parseFileAndRunClass(const char *filename, const char *classname) {
    ExceptionSink xsink;
 
    parseFile(filename, &xsink);
@@ -1234,8 +1206,7 @@ void QoreProgram::parseFileAndRunClass(const char *filename, const char *classna
       runClass(classname, &xsink);
 }
 
-void QoreProgram::parseAndRunClass(FILE *fp, const char *name, const char *classname)
-{
+void QoreProgram::parseAndRunClass(FILE *fp, const char *name, const char *classname) {
    ExceptionSink xsink;
 
    parse(fp, name, &xsink);
@@ -1244,8 +1215,7 @@ void QoreProgram::parseAndRunClass(FILE *fp, const char *name, const char *class
       runClass(classname, &xsink);
 }
 
-void QoreProgram::parseAndRunClass(const char *str, const char *name, const char *classname)
-{
+void QoreProgram::parseAndRunClass(const char *str, const char *name, const char *classname) {
    ExceptionSink xsink;
 
    parse(str, name, &xsink);

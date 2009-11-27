@@ -401,6 +401,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					      getProgram()->makeParseWarning(QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
 					   else if (getProgram()->disableWarning(code))
 					      getProgram()->makeParseWarning(QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
+					   //printd(5, "scanner: disable warning '%s' code=%d\n", cn, code);
 					   free(cn);
 					   BEGIN(INITIAL);
                                         }
