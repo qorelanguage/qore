@@ -9,7 +9,21 @@ sub get_int() {
 }
 
 sub main() {
-    my (int $x, string $y) = (get_bool(), get_int());
+    try {
+	my (int $x, string $y) = (get_bool(), get_int());
+	printf("ERROR\n");
+    }
+    catch ($ex) {
+	printf("OK\n");
+    }
+    try {
+	my int $x = get_bool();
+	printf("ERROR\n");
+    }
+    catch ($ex) {
+	printf("OK\n");
+    }
+
 }
 
 main();
