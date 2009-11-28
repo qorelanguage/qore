@@ -1,3 +1,9 @@
+2009.11.28: David Nichols
+	* fixed a memory leak in runtime hard type exceptions in lvalue
+	  assignments
+	* fixed parse time hard type checking with operators that change
+	  lvalues (++, --, &=, etc)
+
 2009.11.27: David Nichols
 	* implemented a new warning: "non-existant-method-call" - this is for
 	  method calls to expressions that evaluate to a class known at parse

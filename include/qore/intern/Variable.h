@@ -151,8 +151,10 @@ public:
    DLLLOCAL AbstractQoreNode *take_value() { AbstractQoreNode *rv = *v; *v = 0; return rv; }
 
    DLLLOCAL int assign(AbstractQoreNode *val) {
-      if (typeInfo->checkType(val, xsink))
+      if (typeInfo->checkType(val, xsink)) {
+	 discard(val, xsink);
 	 return -1;
+      }
 
       if (*v) {
 	 (*v)->deref(xsink);

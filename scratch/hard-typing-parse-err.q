@@ -70,6 +70,10 @@ sub main() {
     # type error
     $b = 1;
 
+    # type error
+    $b++;
+    ++$b;
+
     #my poon $p;
     
     # type error in return type, 1st argument

@@ -619,7 +619,7 @@ typedef bool (*op_bool_str_str_func_t)(const QoreString *l, const QoreString *r,
 class QoreTreeNode;
 class LocalVar;
 
-typedef AbstractQoreNode *(*op_check_args_t)(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo);
+typedef AbstractQoreNode *(*op_check_args_t)(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc);
 
 class Operator {
    private:

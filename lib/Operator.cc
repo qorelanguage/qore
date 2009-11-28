@@ -1400,8 +1400,7 @@ static AbstractQoreNode *op_plus_binary_binary(const AbstractQoreNode *left, con
    return rv;
 }
 
-static int64 op_cmp_double(double left, double right)
-{
+static int64 op_cmp_double(double left, double right) {
    if (left < right)
        return -1;
        
@@ -1411,39 +1410,32 @@ static int64 op_cmp_double(double left, double right)
    return 1;
 }
 
-static int64 op_modula_int(int64 left, int64 right)
-{
+static int64 op_modula_int(int64 left, int64 right) {
     return right ? left % right : 0;
 }
 
-static int64 op_bin_and_int(int64 left, int64 right)
-{
+static int64 op_bin_and_int(int64 left, int64 right) {
    return left & right;
 }
 
-static int64 op_bin_or_int(int64 left, int64 right)
-{
+static int64 op_bin_or_int(int64 left, int64 right) {
    return left | right;
 }
 
-static int64 op_bin_xor_int(int64 left, int64 right)
-{
+static int64 op_bin_xor_int(int64 left, int64 right) {
    return left ^ right;
 }
 
-static int64 op_shift_left_int(int64 left, int64 right)
-{
+static int64 op_shift_left_int(int64 left, int64 right) {
    return left << right;
 }
 
-static int64 op_shift_right_int(int64 left, int64 right)
-{
+static int64 op_shift_right_int(int64 left, int64 right) {
    return left >> right;
 }
 
 // variable assignment
-static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(left, xsink);
    if (!n)
@@ -3277,7 +3269,7 @@ AbstractQoreNode *Operator::parseInit(QoreTreeNode *tree, LocalVar *oflag, int p
    if (!check_args)
       return tree->defaultParseInit(oflag, pflag, lvids);
    
-   return check_args(tree, oflag, pflag, lvids, resultTypeInfo);
+   return check_args(tree, oflag, pflag, lvids, resultTypeInfo, name, description);
 }
 
 // if there is no exact match, the first partial match counts as a match
@@ -3586,7 +3578,7 @@ static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
       parse_error("illegal conversion of $self to a list");
 }
 
-static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
    assert(tree->left && tree->left->getType() == NT_LIST);
    QoreListNode *l = reinterpret_cast<QoreListNode *>(tree->left);
 
@@ -3621,7 +3613,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
    return tree;
 }
 
-static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *l = 0;
    tree->leftParseInit(oflag, pflag, lvids, l);
 
@@ -3651,7 +3643,7 @@ static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag
    return tree;
 }
 
-static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *typeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, typeInfo);
 
@@ -3697,13 +3689,13 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 }
 
 // for logical operators that always return a boolean
-static AbstractQoreNode *check_op_logical(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+static AbstractQoreNode *check_op_logical(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    returnTypeInfo = &boolTypeInfo;
    return tree->defaultParseInit(oflag, pflag, lvids);
 }
 
 // for operators that always return an integer
-static AbstractQoreNode *check_op_returns_integer(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+static AbstractQoreNode *check_op_returns_integer(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    returnTypeInfo = &bigIntTypeInfo;
    return tree->defaultParseInit(oflag, pflag, lvids);
 }
@@ -3723,7 +3715,7 @@ static AbstractQoreNode *check_op_returns_string(QoreTreeNode *tree, LocalVar *o
 */
 
 // for operators that always return the same type as the left side of the tree
-static AbstractQoreNode *check_op_returns_left(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo) {
+static AbstractQoreNode *check_op_new(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *typeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, typeInfo);
    resultTypeInfo = typeInfo;
@@ -3732,10 +3724,51 @@ static AbstractQoreNode *check_op_returns_left(QoreTreeNode *tree, LocalVar *ofl
    return tree;
 }
 
+static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name, const char *descr) {
+   // make sure the lvalue can take an integer value
+   // note that QoreTypeInfo::parseEqual() can be called with this=0
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!typeInfo->parseEqual(&bigIntTypeInfo) && getProgram()->getParseExceptionSink()) {
+      QoreStringNode *desc = new QoreStringNode("lvalue has type ");
+      typeInfo->getThisType(*desc);
+      desc->sprintf(", but the %s operator will assign it an integer value", name);
+      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+   }   
+}
+
+// for post increment/decrement operators
+static AbstractQoreNode *check_op_post_incdec(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *typeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, typeInfo);
+   // returns the left side
+   resultTypeInfo = typeInfo;
+
+   // make sure left side can take an integer value
+   check_lvalue_int(typeInfo, name, desc);
+
+   tree->rightParseInit(oflag, pflag, lvids, typeInfo);
+   return tree;
+}
+
+// for operators that convert the lvalue to an int and return an int
+static AbstractQoreNode *check_op_lvalue_int(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
+   resultTypeInfo = &bigIntTypeInfo;
+
+   const QoreTypeInfo *typeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, typeInfo);
+
+   // make sure left side can take an integer value
+   check_lvalue_int(typeInfo, name, desc);
+
+   tree->rightParseInit(oflag, pflag, lvids, typeInfo);
+
+   return tree;
+}
+
 #define MATCHES_TYPE(ti, t) ((ti) && (ti)->qt == t)
 
 // set the return value for op_minus (-)
-static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
 
@@ -3762,7 +3795,7 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
 }
 
 // set the return value for op_plus (+)
-static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
 
@@ -3806,7 +3839,7 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
 }
 
 // set the return value for op_multiply (+)
-static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
 
@@ -3823,7 +3856,7 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
 }
 
 // set the return value for op_unary_minus (-)
-static AbstractQoreNode *check_op_unary_minus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+static AbstractQoreNode *check_op_unary_minus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
 
@@ -3979,16 +4012,16 @@ void OperatorList::init() {
    OP_SHIFT_RIGHT = add(new Operator(2, ">>", "shift-right", 1, false, false, check_op_returns_integer));
    OP_SHIFT_RIGHT->addFunction(op_shift_right_int);
 
-   OP_POST_INCREMENT = add(new Operator(1, "++", "post-increment", 0, true, true, check_op_returns_left));
+   OP_POST_INCREMENT = add(new Operator(1, "++", "post-increment", 0, true, true, check_op_post_incdec));
    OP_POST_INCREMENT->addFunction(op_post_inc);
 
-   OP_POST_DECREMENT = add(new Operator(1, "--", "post-decrement", 0, true, true, check_op_returns_left));
+   OP_POST_DECREMENT = add(new Operator(1, "--", "post-decrement", 0, true, true, check_op_post_incdec));
    OP_POST_DECREMENT->addFunction(op_post_dec);
 
-   OP_PRE_INCREMENT = add(new Operator(1, "++", "pre-increment", 0, true, true, check_op_returns_integer));
+   OP_PRE_INCREMENT = add(new Operator(1, "++", "pre-increment", 0, true, true, check_op_lvalue_int));
    OP_PRE_INCREMENT->addFunction(op_pre_inc);
 
-   OP_PRE_DECREMENT = add(new Operator(1, "--", "pre-decrement", 0, true, true, check_op_returns_integer));
+   OP_PRE_DECREMENT = add(new Operator(1, "--", "pre-decrement", 0, true, true, check_op_lvalue_int));
    OP_PRE_DECREMENT->addFunction(op_pre_dec);
 
    // FIXME: set return value
@@ -3999,28 +4032,30 @@ void OperatorList::init() {
    OP_MINUS_EQUALS = add(new Operator(2, "-=", "minus-equals", 0, true, true));
    OP_MINUS_EQUALS->addFunction(op_minus_equals);
 
-   OP_AND_EQUALS = add(new Operator(2, "&=", "and-equals", 0, true, true, check_op_returns_integer));
+   OP_AND_EQUALS = add(new Operator(2, "&=", "and-equals", 0, true, true, check_op_lvalue_int));
    OP_AND_EQUALS->addFunction(op_and_equals);
 
-   OP_OR_EQUALS = add(new Operator(2, "|=", "or-equals", 0, true, true, check_op_returns_integer));
+   OP_OR_EQUALS = add(new Operator(2, "|=", "or-equals", 0, true, true, check_op_lvalue_int));
    OP_OR_EQUALS->addFunction(op_or_equals);
 
-   OP_MODULA_EQUALS = add(new Operator(2, "%=", "modula-equals", 0, true, true, check_op_returns_integer));
+   OP_MODULA_EQUALS = add(new Operator(2, "%=", "modula-equals", 0, true, true, check_op_lvalue_int));
    OP_MODULA_EQUALS->addFunction(op_modula_equals);
 
+   // FIXME: set return value
    OP_MULTIPLY_EQUALS = add(new Operator(2, "*=", "multiply-equals", 0, true, true));
    OP_MULTIPLY_EQUALS->addFunction(op_multiply_equals);
 
+   // FIXME: set return value
    OP_DIVIDE_EQUALS = add(new Operator(2, "/=", "divide-equals", 0, true, true));
    OP_DIVIDE_EQUALS->addFunction(op_divide_equals);
 
-   OP_XOR_EQUALS = add(new Operator(2, "^=", "xor-equals", 0, true, true, check_op_returns_integer));
+   OP_XOR_EQUALS = add(new Operator(2, "^=", "xor-equals", 0, true, true, check_op_lvalue_int));
    OP_XOR_EQUALS->addFunction(op_xor_equals);
 
-   OP_SHIFT_LEFT_EQUALS = add(new Operator(2, "<<=", "shift-left-equals", 0, true, true, check_op_returns_integer));
+   OP_SHIFT_LEFT_EQUALS = add(new Operator(2, "<<=", "shift-left-equals", 0, true, true, check_op_lvalue_int));
    OP_SHIFT_LEFT_EQUALS->addFunction(op_shift_left_equals);
 
-   OP_SHIFT_RIGHT_EQUALS = add(new Operator(2, ">>=", "shift-right-equals", 0, true, true, check_op_returns_integer));
+   OP_SHIFT_RIGHT_EQUALS = add(new Operator(2, ">>=", "shift-right-equals", 0, true, true, check_op_lvalue_int));
    OP_SHIFT_RIGHT_EQUALS->addFunction(op_shift_right_equals);
 
    OP_LIST_REF = add(new Operator(2, "[]", "list-reference", 0, false));
@@ -4039,7 +4074,7 @@ void OperatorList::init() {
    OP_OBJECT_FUNC_REF = add(new Operator(2, ".", "object method call", 0, true, false, check_op_object_func_ref));
    OP_OBJECT_FUNC_REF->addFunction(NT_ALL, NT_ALL, op_object_method_call);
 
-   OP_NEW = add(new Operator(1, "new", "new object", 0, true, false, check_op_returns_left));
+   OP_NEW = add(new Operator(1, "new", "new object", 0, true, false, check_op_new));
    OP_NEW->addFunction(NT_ALL, NT_NONE, op_new_object);
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true));
