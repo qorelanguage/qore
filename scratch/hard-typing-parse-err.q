@@ -102,6 +102,9 @@ sub main() {
     $i1 = NULL + NULL;
     # error: operation returns float
     $i1 = -$f;
+
+    my null $n;
+    $n += 1;
 }
 
 main();

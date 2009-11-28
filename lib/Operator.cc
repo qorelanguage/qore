@@ -522,8 +522,7 @@ static AbstractQoreNode *op_question_mark(const AbstractQoreNode *left, const Ab
    return l->retrieve_entry(1)->eval(xsink);
 }
 
-static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
@@ -552,8 +551,7 @@ static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const Abst
    return ref_rv ? nv->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_regex_trans(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_transliterate(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
@@ -3724,11 +3722,11 @@ static AbstractQoreNode *check_op_new(QoreTreeNode *tree, LocalVar *oflag, int p
    return tree;
 }
 
-static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name, const char *descr) {
+static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
    // make sure the lvalue can take an integer value
    // note that QoreTypeInfo::parseEqual() can be called with this=0
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseEqual(&bigIntTypeInfo) && getProgram()->getParseExceptionSink()) {
+   if (!bigIntTypeInfo.parseEqual(typeInfo) && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("lvalue has type ");
       typeInfo->getThisType(*desc);
       desc->sprintf(", but the %s operator will assign it an integer value", name);
@@ -3744,7 +3742,7 @@ static AbstractQoreNode *check_op_post_incdec(QoreTreeNode *tree, LocalVar *ofla
    resultTypeInfo = typeInfo;
 
    // make sure left side can take an integer value
-   check_lvalue_int(typeInfo, name, desc);
+   check_lvalue_int(typeInfo, name);
 
    tree->rightParseInit(oflag, pflag, lvids, typeInfo);
    return tree;
@@ -3758,7 +3756,7 @@ static AbstractQoreNode *check_op_lvalue_int(QoreTreeNode *tree, LocalVar *oflag
    tree->leftParseInit(oflag, pflag, lvids, typeInfo);
 
    // make sure left side can take an integer value
-   check_lvalue_int(typeInfo, name, desc);
+   check_lvalue_int(typeInfo, name);
 
    tree->rightParseInit(oflag, pflag, lvids, typeInfo);
 
@@ -3866,6 +3864,32 @@ static AbstractQoreNode *check_op_unary_minus(QoreTreeNode *tree, LocalVar *ofla
       returnTypeInfo = &floatTypeInfo;
    else
       returnTypeInfo = &bigIntTypeInfo;
+
+   return tree;
+}
+
+// set the return value for op_plus_equals (+)
+static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   if (MATCHES_TYPE(leftTypeInfo, NT_LIST)
+       || MATCHES_TYPE(leftTypeInfo, NT_HASH)
+       || MATCHES_TYPE(leftTypeInfo, NT_OBJECT)
+       || MATCHES_TYPE(leftTypeInfo, NT_STRING)
+       || MATCHES_TYPE(leftTypeInfo, NT_FLOAT)
+       || MATCHES_TYPE(leftTypeInfo, NT_DATE)
+       || MATCHES_TYPE(leftTypeInfo, NT_BINARY))
+      returnTypeInfo = leftTypeInfo;
+   // otherwise there are 2 possibilities: the lvalue has no value, in which
+   // case it takes the value of the right side, or if it's anything else it's
+   // converted to an integer, so we just check if it can be assigned an
+   // integer value below, this is enough
+   else
+      check_lvalue_int(leftTypeInfo, name);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
    return tree;
 }
@@ -4024,8 +4048,7 @@ void OperatorList::init() {
    OP_PRE_DECREMENT = add(new Operator(1, "--", "pre-decrement", 0, true, true, check_op_lvalue_int));
    OP_PRE_DECREMENT->addFunction(op_pre_dec);
 
-   // FIXME: set return value
-   OP_PLUS_EQUALS = add(new Operator(2, "+=", "plus-equals", 0, true, true));
+   OP_PLUS_EQUALS = add(new Operator(2, "+=", "plus-equals", 0, true, true, check_op_plus_equals));
    OP_PLUS_EQUALS->addFunction(op_plus_equals);
 
    // FIXME: set return value
@@ -4098,7 +4121,7 @@ void OperatorList::init() {
 
    // can return a string or NOTHING
    OP_REGEX_TRANS = add(new Operator(2, "transliteration", "transliteration", 0, true, true));
-   OP_REGEX_TRANS->addFunction(NT_ALL, NT_REGEX_TRANS, op_regex_trans);
+   OP_REGEX_TRANS->addFunction(NT_ALL, NT_REGEX_TRANS, op_transliterate);
 
    // can return a list or NOTHING
    OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 0, false));
