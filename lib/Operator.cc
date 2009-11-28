@@ -1076,8 +1076,7 @@ static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const Ab
    return ref_rv ? b->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder res(right, xsink);
    if (*xsink)
       return 0;
@@ -3734,6 +3733,18 @@ static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
    }   
 }
 
+static void check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) {
+   // make sure the lvalue can take an integer value
+   // note that QoreTypeInfo::parseEqual() can be called with this=0
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!floatTypeInfo.parseEqual(typeInfo) && getProgram()->getParseExceptionSink()) {
+      QoreStringNode *desc = new QoreStringNode("lvalue has type ");
+      typeInfo->getThisType(*desc);
+      desc->sprintf(", but the %s operator will assign it a float value", name);
+      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+   }   
+}
+
 // for post increment/decrement operators
 static AbstractQoreNode *check_op_post_incdec(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *typeInfo = 0;
@@ -3888,8 +3899,10 @@ static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *ofla
    // case it takes the value of the right side, or if it's anything else it's
    // converted to an integer, so we just check if it can be assigned an
    // integer value below, this is enough
-   else
+   else {
+      returnTypeInfo = &bigIntTypeInfo;
       check_lvalue_int(leftTypeInfo, name);
+   }
 
    return tree;
 }
@@ -3912,8 +3925,32 @@ static AbstractQoreNode *check_op_minus_equals(QoreTreeNode *tree, LocalVar *ofl
    // evaluates to a float, or if it's anything else it's converted to an 
    // integer, so we just check if it can be assigned an integer value below,
    // this is enough
-   else
+   else {
+      returnTypeInfo = &bigIntTypeInfo;
       check_lvalue_int(leftTypeInfo, name);
+   }
+
+   return tree;
+}
+
+// set the return value for op_minus_equals (-=)
+static AbstractQoreNode *check_op_multdiv_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT))      
+      returnTypeInfo = &floatTypeInfo;
+   else if (MATCHES_TYPE(rightTypeInfo, NT_FLOAT)) {
+      returnTypeInfo = &floatTypeInfo;
+      check_lvalue_float(leftTypeInfo, name);
+   }
+   else {
+      returnTypeInfo = &bigIntTypeInfo;
+      check_lvalue_int(leftTypeInfo, name);
+   }
 
    return tree;
 }
@@ -4087,12 +4124,11 @@ void OperatorList::init() {
    OP_MODULA_EQUALS = add(new Operator(2, "%=", "modula-equals", 0, true, true, check_op_lvalue_int));
    OP_MODULA_EQUALS->addFunction(op_modula_equals);
 
-   // FIXME: set return value
-   OP_MULTIPLY_EQUALS = add(new Operator(2, "*=", "multiply-equals", 0, true, true));
+   OP_MULTIPLY_EQUALS = add(new Operator(2, "*=", "multiply-equals", 0, true, true, check_op_multdiv_equals));
    OP_MULTIPLY_EQUALS->addFunction(op_multiply_equals);
 
    // FIXME: set return value
-   OP_DIVIDE_EQUALS = add(new Operator(2, "/=", "divide-equals", 0, true, true));
+   OP_DIVIDE_EQUALS = add(new Operator(2, "/=", "divide-equals", 0, true, true, check_op_multdiv_equals));
    OP_DIVIDE_EQUALS->addFunction(op_divide_equals);
 
    OP_XOR_EQUALS = add(new Operator(2, "^=", "xor-equals", 0, true, true, check_op_lvalue_int));

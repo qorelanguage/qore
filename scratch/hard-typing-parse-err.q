@@ -104,8 +104,14 @@ sub main() {
     $i1 = -$f;
 
     my null $n;
+    # type error
     $n += 1;
+    # type error
     $n -= 1;
+    # type error
+    $h *= 5.1;
+    # type error
+    $h /= 5.1;
 }
 
 main();
