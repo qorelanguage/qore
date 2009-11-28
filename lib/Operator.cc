@@ -3868,10 +3868,13 @@ static AbstractQoreNode *check_op_unary_minus(QoreTreeNode *tree, LocalVar *ofla
    return tree;
 }
 
-// set the return value for op_plus_equals (+)
+// set the return value for op_plus_equals (+=)
 static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
    if (MATCHES_TYPE(leftTypeInfo, NT_LIST)
        || MATCHES_TYPE(leftTypeInfo, NT_HASH)
@@ -3888,8 +3891,29 @@ static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *ofla
    else
       check_lvalue_int(leftTypeInfo, name);
 
+   return tree;
+}
+
+// set the return value for op_minus_equals (-=)
+static AbstractQoreNode *check_op_minus_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT)
+       || MATCHES_TYPE(leftTypeInfo, NT_DATE)
+       || MATCHES_TYPE(leftTypeInfo, NT_HASH)
+       || MATCHES_TYPE(leftTypeInfo, NT_OBJECT))
+      returnTypeInfo = leftTypeInfo;
+   // otherwise there are 2 possibilities: the lvalue has no value, in which
+   // case it takes the negative value of the right side if the right side
+   // evaluates to a float, or if it's anything else it's converted to an 
+   // integer, so we just check if it can be assigned an integer value below,
+   // this is enough
+   else
+      check_lvalue_int(leftTypeInfo, name);
 
    return tree;
 }
@@ -4051,8 +4075,7 @@ void OperatorList::init() {
    OP_PLUS_EQUALS = add(new Operator(2, "+=", "plus-equals", 0, true, true, check_op_plus_equals));
    OP_PLUS_EQUALS->addFunction(op_plus_equals);
 
-   // FIXME: set return value
-   OP_MINUS_EQUALS = add(new Operator(2, "-=", "minus-equals", 0, true, true));
+   OP_MINUS_EQUALS = add(new Operator(2, "-=", "minus-equals", 0, true, true, check_op_minus_equals));
    OP_MINUS_EQUALS->addFunction(op_minus_equals);
 
    OP_AND_EQUALS = add(new Operator(2, "&=", "and-equals", 0, true, true, check_op_lvalue_int));

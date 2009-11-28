@@ -4,6 +4,7 @@
 	* fixed parse time hard type checking with operators that change
 	  lvalues (++, --, &=, etc)
 	* implemented parse-time checks for hard typing in += operator
+	* implemented parse-time checks for hard typing in -= operator
 
 2009.11.27: David Nichols
 	* implemented a new warning: "non-existant-method-call" - this is for
