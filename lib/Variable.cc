@@ -49,7 +49,7 @@ VarStackPointerClosureHelper::~VarStackPointerClosureHelper() {
    orig->skip = false;
 }
 
-Var::Var(const char *n_name) : type(GV_VALUE), name(n_name) {
+Var::Var(const char *n_name) : type(GV_VALUE), name(n_name), typeInfo(0) {
    v.val.value = 0;
 }
 
@@ -57,7 +57,7 @@ Var::Var(const char *n_name, const QoreParseTypeInfo *n_typeInfo) : type(GV_VALU
    v.val.value = 0;
 }
 
-Var::Var(Var *ref, bool ro) : type(GV_IMPORT), name(ref->name) {
+Var::Var(Var *ref, bool ro) : type(GV_IMPORT), name(ref->name), typeInfo(0) {
    v.ivar.refptr = ref;
    v.ivar.readonly = ro;
    ref->ROreference();
