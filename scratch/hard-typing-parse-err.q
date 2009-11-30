@@ -134,6 +134,11 @@ sub main() {
     $b = pop $h;
     # invalid operation warning
     $b = push $h, True;
+
+    # invalid type for splice operator
+    splice $b, 0;
+    # invalid type for unshift operator
+    unshift $b, 0;
 }
 
 main();

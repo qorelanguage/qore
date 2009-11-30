@@ -3976,6 +3976,7 @@ static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *of
    return tree;
 }
 
+// issues a warning
 static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
@@ -3989,6 +3990,74 @@ static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, i
       leftTypeInfo->getThisType(*desc);
       desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only have an effect and return a value when used with lists", name);
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+
+   return tree;
+}
+
+// issues a warning
+static AbstractQoreNode *check_op_push(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (!listTypeInfo.parseEqual(leftTypeInfo)) {
+      QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
+      desc->sprintf("'%s' operator is ", name);
+      leftTypeInfo->getThisType(*desc);
+      desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only have an effect and return a value when used with lists", name);
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+   else
+      returnTypeInfo = &listTypeInfo;
+
+   return tree;
+}
+
+// throws a parse exception
+static AbstractQoreNode *check_op_list_op_err(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (!listTypeInfo.parseEqual(leftTypeInfo)) {
+      QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
+      desc->sprintf("'%s' operator is ", name);
+      leftTypeInfo->getThisType(*desc);
+      desc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", name);
+      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+   }
+   else
+      returnTypeInfo = &listTypeInfo;
+
+   return tree;
+}
+
+static AbstractQoreNode *check_op_splice(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (leftTypeInfo->hasType()) {
+      if (!listTypeInfo.parseEqual(leftTypeInfo)
+	  && !stringTypeInfo.parseEqual(leftTypeInfo)) {
+	 // only throw a parse exception if parse exceptions are enabled
+	 if (getProgram()->getParseExceptionSink()) {
+	    QoreStringNode *desc = new QoreStringNode("the lvalue expression with the 'splice' operator is ");
+	    leftTypeInfo->getThisType(*desc);
+	    desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists and strings");
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 }
+      }
+      else {
+	 returnTypeInfo = leftTypeInfo;
+      }
    }
 
    return tree;
@@ -4205,13 +4274,13 @@ void OperatorList::init() {
    OP_POP = add(new Operator(1, "pop", "pop from list", 0, true, true, check_op_list_op));
    OP_POP->addFunction(op_pop);
 
-   OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_list_op));
+   OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_push));
    OP_PUSH->addFunction(op_push);
 
-   OP_SPLICE = add(new Operator(2, "splice", "splice in list or string", 0, true, true));
+   OP_SPLICE = add(new Operator(2, "splice", "splice in list or string", 0, true, true, check_op_splice));
    OP_SPLICE->addFunction(op_splice);
 
-   OP_UNSHIFT = add(new Operator(2, "unshift", "unshift/insert to begnning of list", 0, true, true));
+   OP_UNSHIFT = add(new Operator(2, "unshift", "unshift/insert to begnning of list", 0, true, true, check_op_list_op_err));
    OP_UNSHIFT->addFunction(op_unshift);
 
    // can return a string or NOTHING
