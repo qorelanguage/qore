@@ -44,6 +44,23 @@
 extern QoreListNode *ARGV, *QORE_ARGV;
 extern QoreHashNode *ENV;
 
+// note the number and order of the warnings has to correspond to those in QoreProgram.h
+static const char *qore_warnings_l[] = { 
+   "warning-mask-unchanged",
+   "duplicate-local-vars",
+   "unknown-warning",
+   "undeclared-var",
+   "duplicate-global-vars",
+   "unreachable-code",
+   "non-existent-method-call",
+   "invalid-operation",
+};
+#define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
+
+//public symbols
+const char **qore_warnings = qore_warnings_l;
+unsigned qore_num_warnings = NUM_WARNINGS;
+
 class CharPtrList : public safe_dslist<const char *> {
    public:
       // returns 0 for found, -1 for not found
@@ -353,53 +370,6 @@ struct qore_program_private {
       }
 };
 
-// note the number and order of the warnings has to correspond to those in QoreProgram.h
-static const char *qore_warnings_l[] = { 
-   "warning-mask-unchanged",
-   "duplicate-local-vars",
-   "unknown-warning",
-   "undeclared-var",
-   "duplicate-global-vars",
-   "unreachable-code",
-   "non-existent-method-call"
-};
-#define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
-
-//public symbols
-const char **qore_warnings = qore_warnings_l;
-unsigned qore_num_warnings = NUM_WARNINGS;
-
-int get_warning_code(const char *str) {
-   for (unsigned i = 0; i < NUM_WARNINGS; i++)
-      if (!strcasecmp(str, qore_warnings[i]))
-         return 1 << i;
-   return 0;
-}
-
-DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
-   ns->addConstant("PO_DEFAULT",                  new QoreBigIntNode(PO_DEFAULT));
-   ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreBigIntNode(PO_NO_GLOBAL_VARS));
-   ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreBigIntNode(PO_NO_SUBROUTINE_DEFS));  
-   ns->addConstant("PO_NO_THREAD_CONTROL",        new QoreBigIntNode(PO_NO_THREAD_CONTROL));
-   ns->addConstant("PO_NO_THREAD_CLASSES",        new QoreBigIntNode(PO_NO_THREAD_CLASSES));
-   ns->addConstant("PO_NO_THREADS",               new QoreBigIntNode(PO_NO_THREADS));
-   ns->addConstant("PO_NO_TOP_LEVEL_STATEMENTS",  new QoreBigIntNode(PO_NO_TOP_LEVEL_STATEMENTS));  
-   ns->addConstant("PO_NO_CLASS_DEFS",            new QoreBigIntNode(PO_NO_CLASS_DEFS));
-   ns->addConstant("PO_NO_NAMESPACE_DEFS",        new QoreBigIntNode(PO_NO_NAMESPACE_DEFS));
-   ns->addConstant("PO_NO_CONSTANT_DEFS",         new QoreBigIntNode(PO_NO_CONSTANT_DEFS));
-   ns->addConstant("PO_NO_NEW",                   new QoreBigIntNode(PO_NO_NEW));
-   ns->addConstant("PO_NO_SYSTEM_CLASSES",        new QoreBigIntNode(PO_NO_SYSTEM_CLASSES));
-   ns->addConstant("PO_NO_USER_CLASSES",          new QoreBigIntNode(PO_NO_USER_CLASSES));
-   ns->addConstant("PO_NO_CHILD_PO_RESTRICTIONS", new QoreBigIntNode(PO_NO_CHILD_PO_RESTRICTIONS));
-   ns->addConstant("PO_NO_EXTERNAL_PROCESS",      new QoreBigIntNode(PO_NO_EXTERNAL_PROCESS));
-   ns->addConstant("PO_REQUIRE_OUR",              new QoreBigIntNode(PO_REQUIRE_OUR));
-   ns->addConstant("PO_NO_PROCESS_CONTROL",       new QoreBigIntNode(PO_NO_PROCESS_CONTROL));
-   ns->addConstant("PO_NO_NETWORK",               new QoreBigIntNode(PO_NO_NETWORK));
-   ns->addConstant("PO_NO_FILESYSTEM",            new QoreBigIntNode(PO_NO_FILESYSTEM));
-   ns->addConstant("PO_LOCK_WARNINGS",            new QoreBigIntNode(PO_LOCK_WARNINGS));
-   ns->addConstant("PO_NO_GUI",                   new QoreBigIntNode(PO_NO_GUI));
-}
-
 inline SBNode::~SBNode() {
    reset();
 }
@@ -625,6 +595,19 @@ void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, 
       if (!rc)
          break;
    }
+   QoreException *ne = new ParseException(warn, desc);
+   priv->warnSink->raiseException(ne);
+}
+
+void QoreProgram::makeParseWarning(int code, const char *warn, QoreStringNode *desc) {
+   QORE_TRACE("QoreProgram::makeParseWarning()");
+
+   //printd(5, "QoreProgram::makeParseWarning(code=%d, warn='%s', desc='%s') priv->warn_mask=%d priv->warnSink=%08p %s\n", code, warn, desc->getBuffer(), priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
+   if (!priv->warnSink || !(code & priv->warn_mask)) {
+      desc->deref();
+      return;
+   }
+
    QoreException *ne = new ParseException(warn, desc);
    priv->warnSink->raiseException(ne);
 }
@@ -1348,3 +1331,35 @@ void QoreProgram::parseSetIncludePath(const char *path) {
 const char *QoreProgram::parseGetIncludePath() const {
     return priv->include_path.empty() ? 0 : priv->include_path.c_str();
 }
+
+int get_warning_code(const char *str) {
+   for (unsigned i = 0; i < NUM_WARNINGS; i++)
+      if (!strcasecmp(str, qore_warnings[i]))
+         return 1 << i;
+   return 0;
+}
+
+DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
+   ns->addConstant("PO_DEFAULT",                  new QoreBigIntNode(PO_DEFAULT));
+   ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreBigIntNode(PO_NO_GLOBAL_VARS));
+   ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreBigIntNode(PO_NO_SUBROUTINE_DEFS));  
+   ns->addConstant("PO_NO_THREAD_CONTROL",        new QoreBigIntNode(PO_NO_THREAD_CONTROL));
+   ns->addConstant("PO_NO_THREAD_CLASSES",        new QoreBigIntNode(PO_NO_THREAD_CLASSES));
+   ns->addConstant("PO_NO_THREADS",               new QoreBigIntNode(PO_NO_THREADS));
+   ns->addConstant("PO_NO_TOP_LEVEL_STATEMENTS",  new QoreBigIntNode(PO_NO_TOP_LEVEL_STATEMENTS));  
+   ns->addConstant("PO_NO_CLASS_DEFS",            new QoreBigIntNode(PO_NO_CLASS_DEFS));
+   ns->addConstant("PO_NO_NAMESPACE_DEFS",        new QoreBigIntNode(PO_NO_NAMESPACE_DEFS));
+   ns->addConstant("PO_NO_CONSTANT_DEFS",         new QoreBigIntNode(PO_NO_CONSTANT_DEFS));
+   ns->addConstant("PO_NO_NEW",                   new QoreBigIntNode(PO_NO_NEW));
+   ns->addConstant("PO_NO_SYSTEM_CLASSES",        new QoreBigIntNode(PO_NO_SYSTEM_CLASSES));
+   ns->addConstant("PO_NO_USER_CLASSES",          new QoreBigIntNode(PO_NO_USER_CLASSES));
+   ns->addConstant("PO_NO_CHILD_PO_RESTRICTIONS", new QoreBigIntNode(PO_NO_CHILD_PO_RESTRICTIONS));
+   ns->addConstant("PO_NO_EXTERNAL_PROCESS",      new QoreBigIntNode(PO_NO_EXTERNAL_PROCESS));
+   ns->addConstant("PO_REQUIRE_OUR",              new QoreBigIntNode(PO_REQUIRE_OUR));
+   ns->addConstant("PO_NO_PROCESS_CONTROL",       new QoreBigIntNode(PO_NO_PROCESS_CONTROL));
+   ns->addConstant("PO_NO_NETWORK",               new QoreBigIntNode(PO_NO_NETWORK));
+   ns->addConstant("PO_NO_FILESYSTEM",            new QoreBigIntNode(PO_NO_FILESYSTEM));
+   ns->addConstant("PO_LOCK_WARNINGS",            new QoreBigIntNode(PO_LOCK_WARNINGS));
+   ns->addConstant("PO_NO_GUI",                   new QoreBigIntNode(PO_NO_GUI));
+}
+

@@ -37,45 +37,37 @@ struct qore_es_private {
       }
 };
 
-ExceptionSink::ExceptionSink() : priv(new qore_es_private)
-{
+ExceptionSink::ExceptionSink() : priv(new qore_es_private) {
 }
 
-ExceptionSink::~ExceptionSink()
-{
+ExceptionSink::~ExceptionSink() {
    handleExceptions();
    delete priv;
 }
 
-void ExceptionSink::raiseThreadExit()
-{
+void ExceptionSink::raiseThreadExit() {
    priv->thread_exit = true;
 }
 
-bool ExceptionSink::isEvent() const
-{
+bool ExceptionSink::isEvent() const {
    return priv->head || priv->thread_exit;
 }
 
-bool ExceptionSink::isThreadExit() const
-{
+bool ExceptionSink::isThreadExit() const {
    return priv->thread_exit;
 }
 
-bool ExceptionSink::isException() const
-{
+bool ExceptionSink::isException() const {
    return priv->head;
 }
 
 // creates a stack trace node and adds it to all exceptions in this sink
-void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line)
-{
+void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line) {
    assert(priv->head);
    QoreHashNode *n = QoreException::getStackHash(type, class_name, code, file, start_line, end_line);
 
-   class QoreException *w = priv->head;
-   while (w)
-   {
+   QoreException *w = priv->head;
+   while (w) {
       w->addStackInfo(n);
       w = w->next;
       if (w)
@@ -84,8 +76,7 @@ void ExceptionSink::addStackInfo(int type, const char *class_name, const char *c
 }
 
 // creates a stack trace node and adds it to all exceptions in this sink
-void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code)
-{
+void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code) {
    assert(priv->head);
 
    const char *file = get_pgm_file();
@@ -93,9 +84,8 @@ void ExceptionSink::addStackInfo(int type, const char *class_name, const char *c
    get_pgm_counter(start_line, end_line);
    QoreHashNode *n = QoreException::getStackHash(type, class_name, code, file, start_line, end_line);
 
-   class QoreException *w = priv->head;
-   while (w)
-   {
+   QoreException *w = priv->head;
+   while (w) {
       w->addStackInfo(n);
       w = w->next;
       if (w)
@@ -106,16 +96,13 @@ void ExceptionSink::addStackInfo(int type, const char *class_name, const char *c
 // Intended as a alternative to isException():
 // ExceptionSink xsink;
 // if (xsink) { .. }
-ExceptionSink::operator bool () const
-{
+ExceptionSink::operator bool () const {
    return priv->head || priv->thread_exit;
 }
 
-void ExceptionSink::overrideLocation(int sline, int eline, const char *file)
-{
+void ExceptionSink::overrideLocation(int sline, int eline, const char *file) {
    class QoreException *w = priv->head;
-   while (w)
-   {
+   while (w) {
       w->start_line = sline;
       w->end_line = eline;
       if (w->file)
@@ -125,17 +112,14 @@ void ExceptionSink::overrideLocation(int sline, int eline, const char *file)
    }
 }
 
-class QoreException *ExceptionSink::catchException()
-{
+QoreException *ExceptionSink::catchException() {
    class QoreException *e = priv->head;
    priv->head = priv->tail = 0;
    return e;
 }
 
-void ExceptionSink::handleExceptions()
-{
-   if (priv->head)
-   {
+void ExceptionSink::handleExceptions() {
+   if (priv->head) {
       defaultExceptionHandler(priv->head);
       clear();
    }
@@ -143,35 +127,29 @@ void ExceptionSink::handleExceptions()
       priv->thread_exit = false;
 }
 
-void ExceptionSink::handleWarnings()
-{
-   if (priv->head)
-   {
+void ExceptionSink::handleWarnings() {
+   if (priv->head) {
       defaultWarningHandler(priv->head);
       clear();
    }
 }
 
-void ExceptionSink::clearIntern()
-{
+void ExceptionSink::clearIntern() {
    // delete all exceptions
    ExceptionSink xs;
-   if (priv->head)
-   {
+   if (priv->head) {
       priv->head->del(&xs);
       priv->head = priv->tail = 0;
    }
 }
 
-void ExceptionSink::clear()
-{
+void ExceptionSink::clear() {
    clearIntern();
    priv->head = priv->tail = 0;
    priv->thread_exit = false;
 }
 
-void ExceptionSink::insert(class QoreException *e)
-{
+void ExceptionSink::insert(QoreException *e) {
    // append exception to the list
    if (!priv->head)
       priv->head = e;
@@ -180,14 +158,12 @@ void ExceptionSink::insert(class QoreException *e)
    priv->tail = e;
 }
 
-AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...)
-{
+AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
    QoreStringNode *desc = new QoreStringNode();
    
    va_list args;
    
-   while (true)
-   {
+   while (true) {
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
       va_end(args);
@@ -200,21 +176,18 @@ AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt
 }
 
 // returns 0, takes ownership of the "desc" argument
-AbstractQoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc)
-{
+AbstractQoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc) {
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new QoreException(err, desc));
    return 0;
 }
 
-AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...)
-{
+AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...) {
    QoreStringNode *desc = new QoreStringNode();
    
    va_list args;
    
-   while (true)
-   {
+   while (true) {
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
       va_end(args);
@@ -228,30 +201,24 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQore
    return 0;
 }
 
-void ExceptionSink::raiseException(QoreException *e)
-{
+void ExceptionSink::raiseException(QoreException *e) {
    insert(e);
 }
 
-void ExceptionSink::raiseException(const QoreListNode *n)
-{
+void ExceptionSink::raiseException(const QoreListNode *n) {
    insert(new QoreException(n));
 }
 
-void ExceptionSink::rethrow(class QoreException *old)
-{
+void ExceptionSink::rethrow(class QoreException *old) {
    insert(new QoreException(old, this));
 }
 
-void ExceptionSink::assimilate(ExceptionSink *xs)
-{
-   if (xs->priv->thread_exit)
-   {
+void ExceptionSink::assimilate(ExceptionSink *xs) {
+   if (xs->priv->thread_exit) {
       priv->thread_exit = xs->priv->thread_exit;
       xs->priv->thread_exit = false;
    }
-   if (xs->priv->tail)
-   {
+   if (xs->priv->tail) {
       if (priv->tail)
 	 priv->tail->next = xs->priv->head;
       else
@@ -261,8 +228,7 @@ void ExceptionSink::assimilate(ExceptionSink *xs)
    xs->priv->head = xs->priv->tail = 0;
 }
 
-void ExceptionSink::outOfMemory()
-{
+void ExceptionSink::outOfMemory() {
 #ifdef QORE_OOM
    // get pre-allocated out of memory exception for this thread
    class QoreException *ex = getOutOfMemoryException();

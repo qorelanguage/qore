@@ -12,8 +12,8 @@ class T {
     t1(Mutex $m) returns float {
     }
     private p(FtpClient $f) {
+	# will result in a 'non-existent-method-call' warning
 	$self.x();
-	#$.x();
     }
 }
 
@@ -112,6 +112,10 @@ sub main() {
     $h *= 5.1;
     # type error
     $h /= 5.1;
+
+    $b = $i1.a;
+    $b = $i1[0];
+    $b = keys $i1;
 }
 
 main();

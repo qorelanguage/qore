@@ -335,8 +335,7 @@ static bool op_log_ne_binary(const AbstractQoreNode *left, const AbstractQoreNod
 }
 */
 
-static bool op_exists(const AbstractQoreNode *left, const AbstractQoreNode *x, ExceptionSink *xsink)
-{
+static bool op_exists(const AbstractQoreNode *left, const AbstractQoreNode *x, ExceptionSink *xsink) {
    if (is_nothing(left))
       return false;
    if (!left->needs_eval())
@@ -353,8 +352,7 @@ static bool op_exists(const AbstractQoreNode *left, const AbstractQoreNode *x, E
    return is_nothing(n) ? false : true;
 }
 
-static bool op_instanceof(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink)
-{
+static bool op_instanceof(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {
    assert(r && r->getType() == NT_CLASSREF);
 
    QoreNodeEvalOptionalRefHolder nl(l, xsink);
@@ -366,8 +364,7 @@ static bool op_instanceof(const AbstractQoreNode *l, const AbstractQoreNode *r, 
 }
 
 // takes all arguments unevaluated so logic short-circuiting can happen
-static bool op_log_and(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_and(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    // if left side is 0, then do not evaluate right side
    bool l = left->boolEval(xsink);
    if (xsink->isEvent())
@@ -381,30 +378,24 @@ static bool op_log_and(const AbstractQoreNode *left, const AbstractQoreNode *rig
    return b;
 }
 
-static int64 op_cmp_bigint(int64 left, int64 right)
-{
+static int64 op_cmp_bigint(int64 left, int64 right) {
    return left - right;
 }
 
-static int64 op_minus_bigint(int64 left, int64 right)
-{
+static int64 op_minus_bigint(int64 left, int64 right) {
    return left - right;
 }
 
-static int64 op_plus_bigint(int64 left, int64 right)
-{
+static int64 op_plus_bigint(int64 left, int64 right) {
    return left + right;
 }
 
-static int64 op_multiply_bigint(int64 left, int64 right)
-{
+static int64 op_multiply_bigint(int64 left, int64 right) {
    return left * right;
 }
 
-static int64 op_divide_bigint(int64 left, int64 right, ExceptionSink *xsink)
-{
-   if (!right)
-   {
+static int64 op_divide_bigint(int64 left, int64 right, ExceptionSink *xsink) {
+   if (!right) {
       xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression");
       return 0;
    }
@@ -439,8 +430,7 @@ static double op_divide_float(double left, double right, ExceptionSink *xsink) {
    return left / right;
 }
 
-static QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
-{
+static QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
    QoreStringNodeHolder str(new QoreStringNode(*left));
    //printd(5, "op_plus_string() (%d) %08p \"%s\" + (%d) %08p \"%s\"\n", left->strlen(), left->getBuffer(), left->getBuffer(), right->strlen(), right->getBuffer(), right->getBuffer());
    //printd(5, "op_plus_string() str= (%d) %08p \"%s\"\n", str->strlen(), str->getBuffer(), str->getBuffer());
@@ -452,13 +442,11 @@ static QoreStringNode *op_plus_string(const QoreString *left, const QoreString *
    return str.release();
 }
 
-static int64 op_cmp_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
-{
+static int64 op_cmp_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
    return (int64)left->compare(right);
 }
 
-static int64 op_elements(const AbstractQoreNode *left, const AbstractQoreNode *null, ExceptionSink *xsink)
-{
+static int64 op_elements(const AbstractQoreNode *left, const AbstractQoreNode *null, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder np(left, xsink);
    if (*xsink || !np)
       return 0;
@@ -483,8 +471,7 @@ static int64 op_elements(const AbstractQoreNode *left, const AbstractQoreNode *n
    return 0;
 }
 
-static QoreListNode *get_keys(const AbstractQoreNode *p, ExceptionSink *xsink)
-{   
+static QoreListNode *get_keys(const AbstractQoreNode *p, ExceptionSink *xsink) {   
    if (!p)
       return 0;
 
@@ -498,8 +485,7 @@ static QoreListNode *get_keys(const AbstractQoreNode *p, ExceptionSink *xsink)
 }
 
 // FIXME: do not need ref_rv here - also do not need second argument
-static AbstractQoreNode *op_keys(const AbstractQoreNode *left, const AbstractQoreNode *null, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_keys(const AbstractQoreNode *left, const AbstractQoreNode *null, bool ref_rv, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder np(left, xsink);
    if (*xsink)
       return 0;
@@ -508,8 +494,7 @@ static AbstractQoreNode *op_keys(const AbstractQoreNode *left, const AbstractQor
 }
 
 // FIXME: do not need ref_rv here
-static AbstractQoreNode *op_question_mark(const AbstractQoreNode *left, const AbstractQoreNode *list, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_question_mark(const AbstractQoreNode *left, const AbstractQoreNode *list, bool ref_rv, ExceptionSink *xsink) {
    assert(list && list->getType() == NT_LIST);
    bool b = left->boolEval(xsink);
    if (xsink->isEvent())
@@ -1453,8 +1438,7 @@ static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, 
 }
 
 // variable assignment
-static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(left, xsink);
    if (!n)
@@ -1475,8 +1459,7 @@ static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, 
 }
 
 // variable assignment
-static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(left, xsink);
    if (!n)
@@ -1503,8 +1486,7 @@ static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, E
 }
 
 // variable assignment
-static AbstractQoreNode *op_pre_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_pre_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(left, xsink);
    if (!n)
@@ -1530,8 +1512,7 @@ static AbstractQoreNode *op_pre_dec(const AbstractQoreNode *left, bool ref_rv, E
 }
 
 // unshift lvalue, element
-static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink) {
    printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    QoreNodeEvalOptionalRefHolder value(elem, xsink);
@@ -1562,8 +1543,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
    return ref_rv ? l->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {
    //QORE_TRACE("op_shift()");
    printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
@@ -1587,8 +1567,7 @@ static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQo
    return l->shift();
 }
 
-static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {
    printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
@@ -1611,8 +1590,7 @@ static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQore
    return l->pop();
 }
 
-static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink) {
    //QORE_TRACE("op_push()");
    printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
@@ -1642,8 +1620,7 @@ static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQor
 }
 
 // lvalue, offset, [length, [list]]
-static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQoreNode *n_l, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQoreNode *n_l, bool ref_rv, ExceptionSink *xsink) {
    printd(5, "op_splice(%08p, %08p, isEvent=%d)\n", left, n_l, xsink->isEvent());
 
    assert(n_l->getType() == NT_LIST);
@@ -2063,24 +2040,19 @@ static AbstractQoreNode *get_node_type(const AbstractQoreNode *n, qore_type_t t)
    return 0;
 }
 
-OperatorFunction::OperatorFunction(qore_type_t lt, qore_type_t rt, op_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
-{
+OperatorFunction::OperatorFunction(qore_type_t lt, qore_type_t rt, op_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f) {
 }
 
-BoolOperatorFunction::BoolOperatorFunction(qore_type_t lt, qore_type_t rt, op_bool_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
-{
+BoolOperatorFunction::BoolOperatorFunction(qore_type_t lt, qore_type_t rt, op_bool_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f) {
 }
 
-BigIntOperatorFunction::BigIntOperatorFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
-{
+BigIntOperatorFunction::BigIntOperatorFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f) {
 }
 
-FloatOperatorFunction::FloatOperatorFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
-{
+FloatOperatorFunction::FloatOperatorFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f) {
 }
 
-AbstractQoreNode *OperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *OperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
    // convert node type to required argument types for operator if necessary
@@ -2103,68 +2075,57 @@ AbstractQoreNode *OperatorFunction::eval(const AbstractQoreNode *left, const Abs
    return op_func(left, right, ref_rv, xsink);
 }
 
-bool OperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool OperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(OperatorFunction::eval(left, right, true, args, xsink), xsink);
    return *rv ? rv->getAsBool() : false;
 }
 
-int64 OperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+int64 OperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(OperatorFunction::eval(left, right, true, args, xsink), xsink);
    return *rv ? rv->getAsBigInt() : 0;
 }
 
-double OperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double OperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(OperatorFunction::eval(left, right, true, args, xsink), xsink);
    return *rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode *NodeOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *NodeOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    if (!ref_rv)
       return 0;
    return op_func(left, right, xsink);
 }
 
-bool NodeOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool NodeOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, xsink), xsink);
    return *rv ? rv->getAsBool() : false;
 }
 
-int64 NodeOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+int64 NodeOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, xsink), xsink);
    return *rv ? rv->getAsBigInt() : 0;
 }
 
-double NodeOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double NodeOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, xsink), xsink);
    return *rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode *EffectNoEvalOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *EffectNoEvalOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    return op_func(left, right, ref_rv, xsink);
 }
 
-bool EffectNoEvalOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool EffectNoEvalOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, true, xsink), xsink);
    return *rv ? rv->getAsBool() : false;
 }
 
-int64 EffectNoEvalOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+int64 EffectNoEvalOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, true, xsink), xsink);
    return *rv ? rv->getAsBigInt() : 0;
 }
 
-double EffectNoEvalOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double EffectNoEvalOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, true, xsink), xsink);
    return *rv ? rv->getAsFloat() : 0;
 }
@@ -2276,8 +2237,7 @@ AbstractQoreNode *SimpleBoolOperatorFunction::eval(const AbstractQoreNode *left,
    return get_bool_node(b);
 }
 
-bool SimpleBoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool SimpleBoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    return op_func(left, right);
 }
 
@@ -2306,15 +2266,13 @@ int64 VarRefOperatorFunction::bigint_eval(const AbstractQoreNode *left, const Ab
    return *rv ? rv->getAsBigInt() : 0;
 }
 
-double VarRefOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double VarRefOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    assert(left);
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, true, xsink), xsink);
    return *rv ? rv->getAsFloat() : 0.0;
 }
 
-AbstractQoreNode *StringStringStringOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *StringStringStringOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
    if (!ref_rv) return 0;
 
@@ -2323,8 +2281,7 @@ AbstractQoreNode *StringStringStringOperatorFunction::eval(const AbstractQoreNod
    return op_func(*l, *r, xsink);
 }
 
-bool StringStringStringOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool StringStringStringOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    QoreStringValueHelper l(left);
    QoreStringValueHelper r(right);
 
@@ -2332,8 +2289,7 @@ bool StringStringStringOperatorFunction::bool_eval(const AbstractQoreNode *left,
    return *rv ? rv->getAsBool() : false;
 }
 
-int64 StringStringStringOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+int64 StringStringStringOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    QoreStringValueHelper l(left);
    QoreStringValueHelper r(right);
 
@@ -2341,8 +2297,7 @@ int64 StringStringStringOperatorFunction::bigint_eval(const AbstractQoreNode *le
    return *rv ? rv->getAsBigInt() : 0;
 }
 
-double StringStringStringOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double StringStringStringOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    QoreStringValueHelper l(left);
    QoreStringValueHelper r(right);
 
@@ -2350,8 +2305,7 @@ double StringStringStringOperatorFunction::float_eval(const AbstractQoreNode *le
    return *rv ? rv->getAsFloat() : 0.0;
 }
 
-AbstractQoreNode *ListStringRegexOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *ListStringRegexOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    assert(right && right->getType() == NT_REGEX);
 
    // conditionally evaluate left-hand node only
@@ -2365,8 +2319,7 @@ AbstractQoreNode *ListStringRegexOperatorFunction::eval(const AbstractQoreNode *
    return op_func(*l, reinterpret_cast<const QoreRegexNode *>(right), xsink);
 }
 
-bool ListStringRegexOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool ListStringRegexOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    assert(right && right->getType() == NT_REGEX);
    // this operator can never return a value in this context and cannot have a side-effect
    return false;
@@ -2379,20 +2332,17 @@ int64 ListStringRegexOperatorFunction::bigint_eval(const AbstractQoreNode *left,
    return 0;
 }
 
-double ListStringRegexOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double ListStringRegexOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    assert(right && right->getType() == NT_REGEX);
    // this operator can never return a value in this context and cannot have a side-effect
    return 0.0;
 }
 
-AbstractQoreNode *BoolOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *BoolOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL))
-   {
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
       l = get_node_type(left, ltype);
       left = *l;
    }
@@ -2407,8 +2357,7 @@ AbstractQoreNode *BoolOperatorFunction::eval(const AbstractQoreNode *left, const
    ReferenceHolder<AbstractQoreNode> r(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((right->getType() != rtype) && (rtype != NT_ALL))
-   {
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
       r = get_node_type(right, rtype);
       right = *r;
    }
@@ -2419,13 +2368,11 @@ AbstractQoreNode *BoolOperatorFunction::eval(const AbstractQoreNode *left, const
    return get_bool_node(rv);
 }
 
-bool BoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool BoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL))
-   {
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
       l = get_node_type(left, ltype);
       left = *l;
    }
@@ -2437,8 +2384,7 @@ bool BoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const Abstrac
    ReferenceHolder<AbstractQoreNode> r(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((right->getType() != rtype) && (rtype != NT_ALL))
-   {
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
       r = get_node_type(right, rtype);
       right = *r;
    }
@@ -2446,13 +2392,11 @@ bool BoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const Abstrac
    return op_func(left, right, xsink);
 }
 
-int64 BoolOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+int64 BoolOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL))
-   {
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
       l = get_node_type(left, ltype);
       left = *l;
    }
@@ -2473,13 +2417,11 @@ int64 BoolOperatorFunction::bigint_eval(const AbstractQoreNode *left, const Abst
    return (int64)op_func(left, right, xsink);
 }
 
-double BoolOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double BoolOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL))
-   {
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
       l = get_node_type(left, ltype);
       left = *l;
    }
@@ -2500,8 +2442,7 @@ double BoolOperatorFunction::float_eval(const AbstractQoreNode *left, const Abst
    return (double)op_func(left, right, xsink);
 }
 
-AbstractQoreNode *NoConvertBoolOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *NoConvertBoolOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    if (args == 1) {
       bool rv = op_func(left, 0, xsink);
       if (!ref_rv || *xsink)
@@ -2515,32 +2456,28 @@ AbstractQoreNode *NoConvertBoolOperatorFunction::eval(const AbstractQoreNode *le
    return get_bool_node(rv);
 }
 
-bool NoConvertBoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool NoConvertBoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    if (args == 1)
       return op_func(left, right, xsink);
 
    return op_func(left, right, xsink);
 }
 
-int64 NoConvertBoolOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+int64 NoConvertBoolOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    if (args == 1)
       return (int64)op_func(left, right, xsink);
 
    return (int64)op_func(left, right, xsink);
 }
 
-double NoConvertBoolOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+double NoConvertBoolOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    if (args == 1)
       return (double)op_func(left, right, xsink);
 
    return (double)op_func(left, right, xsink);
 }
 
-AbstractQoreNode *BoolStrStrOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *BoolStrStrOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    QoreStringValueHelper l(left);
    
    bool rv;
@@ -2557,8 +2494,7 @@ AbstractQoreNode *BoolStrStrOperatorFunction::eval(const AbstractQoreNode *left,
    return get_bool_node(rv);
 }
 
-bool BoolStrStrOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+bool BoolStrStrOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    QoreStringValueHelper l(left);
    
    if (args == 1)
@@ -3668,7 +3604,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 
    const QoreMethod *m = const_cast<QoreClass *>(typeInfo->qc)->parseFindMethodTree(meth);
    if (!m) {
-      getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s' in class '%s'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use '%%disable-warning non-existent-method-call' in your code or implement an emtpy method in the base class with the same signature", meth, typeInfo->qc->getName());
+      getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s' in class '%s'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use '%%disable-warning non-existent-method-call' in your code or implement an empty method in the base class with the same name", meth, typeInfo->qc->getName());
 
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
       return tree;
@@ -3955,6 +3891,65 @@ static AbstractQoreNode *check_op_multdiv_equals(QoreTreeNode *tree, LocalVar *o
    return tree;
 }
 
+static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   printd(0, "check_op_list_ref() l=%s (%d, %d, %d, %d)\n", getBuiltinTypeName(leftTypeInfo->qt ? leftTypeInfo->qt : NT_NOTHING),
+	  leftTypeInfo->hasType(), !listTypeInfo.parseEqual(leftTypeInfo), 
+	  !stringTypeInfo.parseEqual(leftTypeInfo), !binaryTypeInfo.parseEqual(leftTypeInfo));
+
+   if (leftTypeInfo->hasType()
+       && !listTypeInfo.parseEqual(leftTypeInfo)
+       && !stringTypeInfo.parseEqual(leftTypeInfo)
+       && !binaryTypeInfo.parseEqual(leftTypeInfo)) {
+      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '[]' operator has type ");
+      leftTypeInfo->getThisType(*desc);
+      desc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+   return tree;
+}
+
+static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (leftTypeInfo->hasType()
+       && !hashTypeInfo.parseEqual(leftTypeInfo)
+       && !objectTypeInfo.parseEqual(leftTypeInfo)) {
+      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '.' operator has type ");
+      leftTypeInfo->getThisType(*desc);
+      desc->concat(" and so this expression will always return NOTHING; the '.' operator only returns a value with hashes and objects");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+   return tree;
+}
+
+static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (leftTypeInfo->hasType()
+       && !hashTypeInfo.parseEqual(leftTypeInfo)
+       && !objectTypeInfo.parseEqual(leftTypeInfo)) {
+      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the 'keys' operator has type ");
+      leftTypeInfo->getThisType(*desc);
+      desc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+   return tree;
+}
+
 // registers the system operators and system operator functions
 void OperatorList::init() {
    QORE_TRACE("OperatorList::init()");
@@ -4127,7 +4122,6 @@ void OperatorList::init() {
    OP_MULTIPLY_EQUALS = add(new Operator(2, "*=", "multiply-equals", 0, true, true, check_op_multdiv_equals));
    OP_MULTIPLY_EQUALS->addFunction(op_multiply_equals);
 
-   // FIXME: set return value
    OP_DIVIDE_EQUALS = add(new Operator(2, "/=", "divide-equals", 0, true, true, check_op_multdiv_equals));
    OP_DIVIDE_EQUALS->addFunction(op_divide_equals);
 
@@ -4140,14 +4134,16 @@ void OperatorList::init() {
    OP_SHIFT_RIGHT_EQUALS = add(new Operator(2, ">>=", "shift-right-equals", 0, true, true, check_op_lvalue_int));
    OP_SHIFT_RIGHT_EQUALS->addFunction(op_shift_right_equals);
 
-   OP_LIST_REF = add(new Operator(2, "[]", "list-reference", 0, false));
+   // cannot validate return type here yet
+   OP_LIST_REF = add(new Operator(2, "[]", "list, string, or binary dereference", 0, false, false, check_op_list_ref));
    OP_LIST_REF->addFunction(NT_ALL, NT_ALL, op_list_ref);
 
-   OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false));
+   // cannot validate return type here yet
+   OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false, false, check_op_object_ref));
    OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref); 
 
    // can return a list or NOTHING
-   OP_KEYS = add(new Operator(1, "keys", "list of keys", 0, false));
+   OP_KEYS = add(new Operator(1, "keys", "list of keys", 0, false, false, check_op_keys));
    OP_KEYS->addFunction(NT_ALL, NT_NONE, op_keys);
 
    OP_QUESTION_MARK = add(new Operator(2, "question", "question-mark colon", 0, false));

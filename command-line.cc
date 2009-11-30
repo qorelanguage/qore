@@ -29,7 +29,7 @@ cl_mod_list_t cl_mod_list;
 
 // global parse_option
 int parse_options = PO_DEFAULT;
-int warnings = QORE_DEFAULT_WARNING_MASK;
+int warnings = QP_WARN_DEFAULT;
 int qore_lib_options = QLO_NONE;
 
 // lock options

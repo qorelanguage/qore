@@ -38,9 +38,10 @@
 #define QP_WARN_DUPLICATE_GLOBAL_VARS    (1 << 4)   //!< when a global variable is declared more than once
 #define QP_WARN_UNREACHABLE_CODE         (1 << 5)   //!< when unreachable code is encountered
 #define QP_WARN_NONEXISTENT_METHOD_CALL  (1 << 6)   //!< when a non-existent method call is encountered
+#define QP_WARN_INVALID_OPERATION        (1 << 7)   //!< when an expression always returns NOTHING, for example
 #define QP_WARN_ALL                      -1         //!< for all possible warnings
 
-#define QORE_DEFAULT_WARNING_MASK (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL)
+#define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION)
 
 //! list of strings of warning codes
 DLLEXPORT extern const char **qore_warnings;
@@ -227,7 +228,7 @@ public:
       @param warn_sink if a warning is raised, the warning information will be added here
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
    */
-   DLLEXPORT void parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QORE_DEFAULT_WARNING_MASK);
+   DLLEXPORT void parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the given string and commits changes to the QoreProgram
    /**
@@ -238,7 +239,7 @@ public:
       @param warn_sink if a warning is raised, the warning information will be added here
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
    */
-   DLLEXPORT void parse(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QORE_DEFAULT_WARNING_MASK);
+   DLLEXPORT void parse(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the given string and commits changes to the QoreProgram
    /**
@@ -249,7 +250,7 @@ public:
       @param warn_sink if a warning is raised, the warning information will be added here
       @param warn_mask the warning mask to set (-1 sets all possible warnings)
    */
-   DLLEXPORT void parse(const char *str, const char *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QORE_DEFAULT_WARNING_MASK);
+   DLLEXPORT void parse(const char *str, const char *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the file given and commits changes to the QoreProgram
    /** Also sets the script path.
@@ -259,7 +260,7 @@ public:
        @param warn_sink if a warning is raised, the warning information will be added here
        @param warn_mask the warning mask to set (-1 sets all possible warnings)
    */
-   DLLEXPORT void parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QORE_DEFAULT_WARNING_MASK);
+   DLLEXPORT void parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the given string but does not commit changes to the QoreProgram
    /**
@@ -271,7 +272,7 @@ public:
       @see QoreProgram::parseCommit()
       @see QoreProgram::parseRollback()
    */
-   DLLEXPORT void parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QORE_DEFAULT_WARNING_MASK);
+   DLLEXPORT void parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! parses code from the given string but does not commit changes to the QoreProgram
    /**
@@ -283,14 +284,14 @@ public:
       @see QoreProgram::parseCommit()
       @see QoreProgram::parseRollback()
    */
-   DLLEXPORT void parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QORE_DEFAULT_WARNING_MASK);
+   DLLEXPORT void parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! commits pending changes to the program
    /**
       @see QoreProgram::parsePending()
       @see QoreProgram::parseRollback()
    */
-   DLLEXPORT void parseCommit(ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QORE_DEFAULT_WARNING_MASK);
+   DLLEXPORT void parseCommit(ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
    //! rolls back changes to the program object that were added with QoreProgram::parsePending()
    /**
@@ -454,6 +455,8 @@ public:
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink *getParseExceptionSink();
    DLLLOCAL void makeParseWarning(int code, const char *warn, const char *fmt, ...);
+   // takes over ownership of "desc"
+   DLLLOCAL void makeParseWarning(int code, const char *warn, QoreStringNode *desc);
    DLLLOCAL void addParseWarning(int code, ExceptionSink *xsink);
    DLLLOCAL void cannotProvideFeature(QoreStringNode *desc);
    DLLLOCAL void exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink);
@@ -486,7 +489,6 @@ public:
    /** @return the script directory, if known (0 if not)
     */
    DLLLOCAL const char *parseGetScriptDir() const;
-
 };
 
 //! safely manages QoreProgram objects
@@ -514,4 +516,4 @@ public:
    DLLLOCAL QoreProgram* operator*() { return pgm; }    
 };
 
-#endif // _QORE_QOREPROGRAM_H
+#endif  // _QORE_QOREPROGRAM_H

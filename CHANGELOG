@@ -1,3 +1,10 @@
+2009.11.30: David Nichols
+	* implemented 'invalid-operation' warning to warn when an expression
+	  always returns NOTHING, for example
+	* added parse-time type checking to the '.', '[]', and 'keys'
+	  operators to raise the INVALID-OPERATION warning whenever it's clear
+	  at parse time that the given expressions will always return NOTHING
+
 2009.11.28: David Nichols
 	* fixed a memory leak in runtime hard type exceptions in lvalue
 	  assignments
