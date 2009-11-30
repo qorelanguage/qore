@@ -1,3 +1,7 @@
+2009.11.30: David Nichols
+	* fixed a bug returning the last builtin data type ID (backported from
+	  trunk)
+
 2009.11.25: David Nichols
         * fixed memory bug in CryptoHelper - removed unnecessary and incorrect
           string termination code (backported from trunk)

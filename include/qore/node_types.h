@@ -68,7 +68,7 @@ const qore_type_t NT_METHOD_CALL        = 34; //!< type value for MethodCallNode
 const qore_type_t NT_STATIC_METHOD_CALL = 35; //!< type value for StaticMethodCallNode (private class)
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 35
+#define QORE_NUM_TYPES 36
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8
