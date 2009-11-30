@@ -14,6 +14,9 @@
 	* implemented return value type checking at parse time
 	* implemented parse-time type checking for the splice and unshift
 	  operators
+	* implemented parse-time type checking for the rest of operators that
+	  need it at the moment and also implemented invalid-operation
+	  warnings where appropriate
 
 2009.11.28: David Nichols
 	* fixed a memory leak in runtime hard type exceptions in lvalue

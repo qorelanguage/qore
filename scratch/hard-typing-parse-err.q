@@ -139,6 +139,14 @@ sub main() {
     splice $b, 0;
     # invalid type for unshift operator
     unshift $b, 0;
+    # warning: invalid type for regex subst operator
+    $b =~ s/1/2/g;
+    # warning: invalid type for transliteration operator
+    $b =~ tr/1/2/;
+    # warning: invalid type for chomp operator
+    chomp $b;
+    # warning: invalid type for chomp operator
+    chomp $b;
 }
 
 main();

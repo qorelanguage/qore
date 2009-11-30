@@ -3912,7 +3912,9 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
       leftTypeInfo->getThisType(*desc);
       desc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      returnTypeInfo = &nothingTypeInfo;
    }
+
    return tree;
 }
 
@@ -3930,7 +3932,9 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
       leftTypeInfo->getThisType(*desc);
       desc->concat(" and so this expression will always return NOTHING; the '.' operator only returns a value with hashes and objects");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      returnTypeInfo = &nothingTypeInfo;
    }
+
    return tree;
 }
 
@@ -3948,6 +3952,7 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
       leftTypeInfo->getThisType(*desc);
       desc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      returnTypeInfo = &nothingTypeInfo;
    }
    return tree;
 }
@@ -3990,6 +3995,7 @@ static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, i
       leftTypeInfo->getThisType(*desc);
       desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only have an effect and return a value when used with lists", name);
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      returnTypeInfo = &nothingTypeInfo;
    }
 
    return tree;
@@ -4009,6 +4015,7 @@ static AbstractQoreNode *check_op_push(QoreTreeNode *tree, LocalVar *oflag, int 
       leftTypeInfo->getThisType(*desc);
       desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only have an effect and return a value when used with lists", name);
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      returnTypeInfo = &nothingTypeInfo;
    }
    else
       returnTypeInfo = &listTypeInfo;
@@ -4025,11 +4032,14 @@ static AbstractQoreNode *check_op_list_op_err(QoreTreeNode *tree, LocalVar *ofla
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
    if (!listTypeInfo.parseEqual(leftTypeInfo)) {
-      QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
-      desc->sprintf("'%s' operator is ", name);
-      leftTypeInfo->getThisType(*desc);
-      desc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", name);
-      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+      // only raise a parse exception if parse exceptions are enabled
+      if (getProgram()->getParseExceptionSink()) {
+	 QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
+	 desc->sprintf("'%s' operator is ", name);
+	 leftTypeInfo->getThisType(*desc);
+	 desc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", name);
+	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+      }
    }
    else
       returnTypeInfo = &listTypeInfo;
@@ -4059,6 +4069,50 @@ static AbstractQoreNode *check_op_splice(QoreTreeNode *tree, LocalVar *oflag, in
 	 returnTypeInfo = leftTypeInfo;
       }
    }
+
+   return tree;
+}
+
+static AbstractQoreNode *check_op_lvalue_string(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *descr) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (!stringTypeInfo.parseEqual(leftTypeInfo)) {
+      QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
+      desc->sprintf("%s operator is ", descr);
+      leftTypeInfo->getThisType(*desc);
+      desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      returnTypeInfo = &nothingTypeInfo;
+   }
+   else
+      returnTypeInfo = &stringTypeInfo;
+
+   return tree;
+}
+
+static AbstractQoreNode *check_op_chomp_trim(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *descr) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   assert(!tree->right);
+
+   if (leftTypeInfo->hasType()
+       && !stringTypeInfo.parseEqual(leftTypeInfo)
+       && !listTypeInfo.parseEqual(leftTypeInfo)
+       && !hashTypeInfo.parseEqual(leftTypeInfo)) {
+      QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
+      desc->sprintf("%s operator is ", name);
+      leftTypeInfo->getThisType(*desc);
+      desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      returnTypeInfo = &nothingTypeInfo;
+   }
+   else
+      returnTypeInfo = &bigIntTypeInfo;
 
    return tree;
 }
@@ -4284,21 +4338,21 @@ void OperatorList::init() {
    OP_UNSHIFT->addFunction(op_unshift);
 
    // can return a string or NOTHING
-   OP_REGEX_SUBST = add(new Operator(2, "regex subst", "regular expression substitution", 0, true, true));
+   OP_REGEX_SUBST = add(new Operator(2, "regex subst", "regular expression substitution", 0, true, true, check_op_lvalue_string));
    OP_REGEX_SUBST->addFunction(NT_ALL, NT_REGEX_SUBST, op_regex_subst);
 
    // can return a string or NOTHING
-   OP_REGEX_TRANS = add(new Operator(2, "transliteration", "transliteration", 0, true, true));
+   OP_REGEX_TRANS = add(new Operator(2, "transliteration", "transliteration", 0, true, true, check_op_lvalue_string));
    OP_REGEX_TRANS->addFunction(NT_ALL, NT_REGEX_TRANS, op_transliterate);
 
    // can return a list or NOTHING
    OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 0, false));
    OP_REGEX_EXTRACT->addFunction(op_regex_extract);
 
-   OP_CHOMP = add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true, check_op_returns_integer));
+   OP_CHOMP = add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true, check_op_chomp_trim));
    OP_CHOMP->addFunction(NT_ALL, NT_NONE, op_chomp);
 
-   OP_TRIM = add(new Operator(1, "trim", "trim characters from an lvalue", 0, true, true));
+   OP_TRIM = add(new Operator(1, "trim", "trim characters from an lvalue", 0, true, true, check_op_chomp_trim));
    OP_TRIM->addFunction(NT_ALL, NT_NONE, op_trim);
 
    // can return a list or NOTHING
