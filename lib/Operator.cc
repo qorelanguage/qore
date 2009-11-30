@@ -3604,7 +3604,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 
    const QoreMethod *m = const_cast<QoreClass *>(typeInfo->qc)->parseFindMethodTree(meth);
    if (!m) {
-      getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s' in class '%s'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use '%%disable-warning non-existent-method-call' in your code or implement an empty method in the base class with the same name", meth, typeInfo->qc->getName());
+      getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use '%%disable-warning non-existent-method-call' in your code or implement an empty method in the base class with the same name", typeInfo->qc->getName(), meth);
 
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
       return tree;
@@ -3897,10 +3897,6 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   printd(0, "check_op_list_ref() l=%s (%d, %d, %d, %d)\n", getBuiltinTypeName(leftTypeInfo->qt ? leftTypeInfo->qt : NT_NOTHING),
-	  leftTypeInfo->hasType(), !listTypeInfo.parseEqual(leftTypeInfo), 
-	  !stringTypeInfo.parseEqual(leftTypeInfo), !binaryTypeInfo.parseEqual(leftTypeInfo));
 
    if (leftTypeInfo->hasType()
        && !listTypeInfo.parseEqual(leftTypeInfo)

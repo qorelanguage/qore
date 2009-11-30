@@ -350,7 +350,8 @@ DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 
 DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo, 
    stringTypeInfo, binaryTypeInfo, dateTypeInfo, objectTypeInfo, hashTypeInfo, 
-   listTypeInfo, nothingTypeInfo, nullTypeInfo;
+   listTypeInfo, nothingTypeInfo, nullTypeInfo, runTimeClosureTypeInfo,
+   callReferenceTypeInfo;
 
 class QoreListNodeParseInitHelper : public ListIterator {
 private:

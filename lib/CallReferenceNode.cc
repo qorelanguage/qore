@@ -101,30 +101,44 @@ double CallReferenceCallNode::floatEvalImpl(ExceptionSink *xsink) const {
 AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    pflag &= ~PF_REFERENCE_OK;
 
-   const QoreTypeInfo *argTypeInfo = 0;
-   if (exp)
-      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
+   const QoreTypeInfo *expTypeInfo = 0;
+   if (exp) {
+      exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
 
-   if (args) {
-       bool needs_eval = args->needs_eval();
-
-       ListIterator li(args);
-       while (li.next()) {
-	   AbstractQoreNode **n = li.getValuePtr();
-	   if (*n) {
-               if ((*n)->getType() == NT_REFERENCE)
-		  (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
-               else
-		  (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
-
-               if (!needs_eval && (*n)->needs_eval()) {
-		   args->setNeedsEval();
-		   needs_eval = true;
-               }
-	   }
-       }
+      if (expTypeInfo->hasType()
+	  && !runTimeClosureTypeInfo.parseEqual(expTypeInfo)
+	  && !callReferenceTypeInfo.parseEqual(expTypeInfo)) {
+	 // raise parse exception only if parse exceptions are enabled
+	 if (getProgram()->getParseExceptionSink()) {
+	    QoreStringNode *desc = new QoreStringNode("invalid call; expression gives ");
+	    expTypeInfo->getThisType(*desc);
+	    desc->concat(", but a call reference or closure is required to make a call");
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 }
+      }
    }
 
+   if (args) {
+      bool needs_eval = args->needs_eval();
+      
+      ListIterator li(args);
+      while (li.next()) {
+	 AbstractQoreNode **n = li.getValuePtr();
+	 if (*n) {
+	    const QoreTypeInfo *argTypeInfo = 0;
+	    if ((*n)->getType() == NT_REFERENCE)
+	       (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
+	    else
+	       (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
+	    
+	    if (!needs_eval && (*n)->needs_eval()) {
+	       args->setNeedsEval();
+	       needs_eval = true;
+	    }
+	 }
+      }
+   }
+   
    return this;
 }
 

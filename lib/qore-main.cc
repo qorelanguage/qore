@@ -60,6 +60,8 @@ QoreTypeInfo hashTypeInfo(NT_HASH);
 QoreTypeInfo listTypeInfo(NT_LIST);
 QoreTypeInfo nothingTypeInfo(NT_NOTHING);
 QoreTypeInfo nullTypeInfo(NT_NULL);
+QoreTypeInfo runTimeClosureTypeInfo(NT_RUNTIME_CLOSURE);
+QoreTypeInfo callReferenceTypeInfo(NT_FUNCREF);
 
 void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;

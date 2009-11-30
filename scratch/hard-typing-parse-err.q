@@ -48,11 +48,8 @@ sub main() {
     my OtherMutex $om;
     my MyMutex $mm;
 
-    # error in return
-    my $closure = sub (int $a, string $b) returns bool { return 1; };
-
-    # errors: return type and arguments
-    my int $cx = $closure(True, 1.1);
+    # type error: using a bool as a closure or call reference
+    my int $cx = $oi(True, 1.1);
 
     # OK
     t1($m);
@@ -74,8 +71,9 @@ sub main() {
     $b++;
     ++$b;
 
-    #my poon $p;
-    
+    # parse exception: reference to undefined class
+    my moon $p;
+
     # type error in return type, 1st argument
     my float $f = test($b, $c);
     # type errors in both arguments
