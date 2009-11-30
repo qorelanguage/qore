@@ -3720,21 +3720,24 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (MATCHES_TYPE(leftTypeInfo, NT_DATE) 
-       || MATCHES_TYPE(rightTypeInfo, NT_DATE))
-      returnTypeInfo = &dateTypeInfo;
-   else if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) 
-       || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
-      returnTypeInfo = &floatTypeInfo;
-   else if (MATCHES_TYPE(leftTypeInfo, NT_INT) 
-       || MATCHES_TYPE(rightTypeInfo, NT_INT))
-      returnTypeInfo = &bigIntTypeInfo;
-   else if ((MATCHES_TYPE(leftTypeInfo, NT_HASH) 
-	|| MATCHES_TYPE(leftTypeInfo, NT_OBJECT))
-       && MATCHES_TYPE(rightTypeInfo, NT_STRING))
-      returnTypeInfo = &hashTypeInfo;
-   else
-      returnTypeInfo = &nothingTypeInfo;
+   if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
+      if (MATCHES_TYPE(leftTypeInfo, NT_DATE) 
+	  || MATCHES_TYPE(rightTypeInfo, NT_DATE))
+	 returnTypeInfo = &dateTypeInfo;
+      else if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) 
+	       || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
+	 returnTypeInfo = &floatTypeInfo;
+      else if (MATCHES_TYPE(leftTypeInfo, NT_INT) 
+	       || MATCHES_TYPE(rightTypeInfo, NT_INT))
+	 returnTypeInfo = &bigIntTypeInfo;
+      else if ((MATCHES_TYPE(leftTypeInfo, NT_HASH) 
+		|| MATCHES_TYPE(leftTypeInfo, NT_OBJECT))
+	       && MATCHES_TYPE(rightTypeInfo, NT_STRING))
+	 returnTypeInfo = &hashTypeInfo;
+      else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) 
+	 // only return type nothing if both types are available
+	 returnTypeInfo = &nothingTypeInfo;
+   }
 
    return tree;
 }
@@ -3747,38 +3750,41 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (MATCHES_TYPE(leftTypeInfo, NT_LIST) 
-       || MATCHES_TYPE(rightTypeInfo, NT_LIST))
-      returnTypeInfo = &listTypeInfo;
+   if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
+      if (MATCHES_TYPE(leftTypeInfo, NT_LIST) 
+	  || MATCHES_TYPE(rightTypeInfo, NT_LIST))
+	 returnTypeInfo = &listTypeInfo;
 
-   else if (MATCHES_TYPE(leftTypeInfo, NT_STRING) 
-       || MATCHES_TYPE(rightTypeInfo, NT_STRING))
-      returnTypeInfo = &dateTypeInfo;
+      else if (MATCHES_TYPE(leftTypeInfo, NT_STRING) 
+	       || MATCHES_TYPE(rightTypeInfo, NT_STRING))
+	 returnTypeInfo = &dateTypeInfo;
 
-   else if (MATCHES_TYPE(leftTypeInfo, NT_DATE) 
-       || MATCHES_TYPE(rightTypeInfo, NT_DATE))
-      returnTypeInfo = &dateTypeInfo;
+      else if (MATCHES_TYPE(leftTypeInfo, NT_DATE) 
+	       || MATCHES_TYPE(rightTypeInfo, NT_DATE))
+	 returnTypeInfo = &dateTypeInfo;
 
-   else if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) 
-       || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
-      returnTypeInfo = &floatTypeInfo;
+      else if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) 
+	       || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
+	 returnTypeInfo = &floatTypeInfo;
 
-   else if (MATCHES_TYPE(leftTypeInfo, NT_INT) 
-       || MATCHES_TYPE(rightTypeInfo, NT_INT))
-      returnTypeInfo = &bigIntTypeInfo;
+      else if (MATCHES_TYPE(leftTypeInfo, NT_INT) 
+	       || MATCHES_TYPE(rightTypeInfo, NT_INT))
+	 returnTypeInfo = &bigIntTypeInfo;
 
-   else if (MATCHES_TYPE(leftTypeInfo, NT_HASH) || MATCHES_TYPE(leftTypeInfo, NT_OBJECT))
-      returnTypeInfo = &hashTypeInfo;
+      else if (MATCHES_TYPE(leftTypeInfo, NT_HASH) || MATCHES_TYPE(leftTypeInfo, NT_OBJECT))
+	 returnTypeInfo = &hashTypeInfo;
+      
+      else if (MATCHES_TYPE(rightTypeInfo, NT_OBJECT))
+	 returnTypeInfo = &objectTypeInfo;
 
-   else if (MATCHES_TYPE(rightTypeInfo, NT_OBJECT))
-      returnTypeInfo = &objectTypeInfo;
+      else if (MATCHES_TYPE(leftTypeInfo, NT_BINARY) 
+	       || MATCHES_TYPE(rightTypeInfo, NT_BINARY))
+	 returnTypeInfo = &binaryTypeInfo;
 
-   else if (MATCHES_TYPE(leftTypeInfo, NT_BINARY) 
-       || MATCHES_TYPE(rightTypeInfo, NT_BINARY))
-      returnTypeInfo = &binaryTypeInfo;
-
-   else
-      returnTypeInfo = &nothingTypeInfo;
+      else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) 
+	 // only return type nothing if both types are available
+	 returnTypeInfo = &nothingTypeInfo;
+   }
 
    return tree;
 }

@@ -8,6 +8,9 @@
 	  operators
         * fixed a bug returning the last builtin data type ID
 	* added callreference/closure call parse-time type checking
+	* implemented UserFuntion::setupCall() so code to set up arguments and
+	  the argv variable can be shared between UserFunction::call() and
+	  UserFunction::callConstructor()
 
 2009.11.28: David Nichols
 	* fixed a memory leak in runtime hard type exceptions in lvalue
