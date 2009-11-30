@@ -113,9 +113,20 @@ sub main() {
     # type error
     $h /= 5.1;
 
+    # invalid operation warning
     $b = $i1.a;
+    # invalid operation warning
     $b = $i1[0];
+    # invalid operation warning
     $b = keys $i1;
+    # invalid operation warning
+    $b = $h ? True : False;
+    # invalid operation warning
+    $b = shift $h;
+    # invalid operation warning
+    $b = pop $h;
+    # invalid operation warning
+    $b = push $h, True;
 }
 
 main();

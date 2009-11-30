@@ -3906,7 +3906,7 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
        && !listTypeInfo.parseEqual(leftTypeInfo)
        && !stringTypeInfo.parseEqual(leftTypeInfo)
        && !binaryTypeInfo.parseEqual(leftTypeInfo)) {
-      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '[]' operator has type ");
+      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
       leftTypeInfo->getThisType(*desc);
       desc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
@@ -3924,7 +3924,7 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
    if (leftTypeInfo->hasType()
        && !hashTypeInfo.parseEqual(leftTypeInfo)
        && !objectTypeInfo.parseEqual(leftTypeInfo)) {
-      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '.' operator has type ");
+      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '.' operator is ");
       leftTypeInfo->getThisType(*desc);
       desc->concat(" and so this expression will always return NOTHING; the '.' operator only returns a value with hashes and objects");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
@@ -3942,11 +3942,53 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
    if (leftTypeInfo->hasType()
        && !hashTypeInfo.parseEqual(leftTypeInfo)
        && !objectTypeInfo.parseEqual(leftTypeInfo)) {
-      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the 'keys' operator has type ");
+      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the 'keys' operator is ");
       leftTypeInfo->getThisType(*desc);
       desc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
+   return tree;
+}
+
+// FIXME: when multiple types can be returned, then return both
+static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (leftTypeInfo->hasType() && 
+       (hashTypeInfo.parseEqual(leftTypeInfo)
+	|| objectTypeInfo.parseEqual(leftTypeInfo)
+	|| binaryTypeInfo.parseEqual(leftTypeInfo)
+	|| listTypeInfo.parseEqual(leftTypeInfo)
+	|| nothingTypeInfo.parseEqual(leftTypeInfo)
+	|| nullTypeInfo.parseEqual(leftTypeInfo))) {
+      QoreStringNode *desc = new QoreStringNode("the initial expression with the '?:' operator is ");
+      leftTypeInfo->getThisType(*desc);
+      desc->concat(" and will always evaluate to False in a boolean context");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+
+   return tree;
+}
+
+static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+   const QoreTypeInfo *leftTypeInfo = 0;
+   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+
+   const QoreTypeInfo *rightTypeInfo = 0;
+   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (!listTypeInfo.parseEqual(leftTypeInfo)) {
+      QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
+      desc->sprintf("'%s' operator is ", name);
+      leftTypeInfo->getThisType(*desc);
+      desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only have an effect and return a value when used with lists", name);
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+
    return tree;
 }
 
@@ -4146,7 +4188,7 @@ void OperatorList::init() {
    OP_KEYS = add(new Operator(1, "keys", "list of keys", 0, false, false, check_op_keys));
    OP_KEYS->addFunction(NT_ALL, NT_NONE, op_keys);
 
-   OP_QUESTION_MARK = add(new Operator(2, "question", "question-mark colon", 0, false));
+   OP_QUESTION_MARK = add(new Operator(2, "question", "question-mark colon", 0, false, false, check_op_question_mark));
    OP_QUESTION_MARK->addFunction(NT_ALL, NT_ALL, op_question_mark);
 
    OP_OBJECT_FUNC_REF = add(new Operator(2, ".", "object method call", 0, true, false, check_op_object_func_ref));
@@ -4155,13 +4197,13 @@ void OperatorList::init() {
    OP_NEW = add(new Operator(1, "new", "new object", 0, true, false, check_op_new));
    OP_NEW->addFunction(NT_ALL, NT_NONE, op_new_object);
 
-   OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true));
+   OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
    OP_SHIFT->addFunction(op_shift);
 
-   OP_POP = add(new Operator(1, "pop", "pop from list", 0, true, true));
+   OP_POP = add(new Operator(1, "pop", "pop from list", 0, true, true, check_op_list_op));
    OP_POP->addFunction(op_pop);
 
-   OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true));
+   OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_list_op));
    OP_PUSH->addFunction(op_push);
 
    OP_SPLICE = add(new Operator(2, "splice", "splice in list or string", 0, true, true));

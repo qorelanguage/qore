@@ -4,6 +4,8 @@
 	* added parse-time type checking to the '.', '[]', and 'keys'
 	  operators to raise the INVALID-OPERATION warning whenever it's clear
 	  at parse time that the given expressions will always return NOTHING
+	* added parse-time type checking to the '?:', shift, pop, and push
+	  operators
 
 2009.11.28: David Nichols
 	* fixed a memory leak in runtime hard type exceptions in lvalue
