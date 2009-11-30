@@ -112,6 +112,7 @@
 #include "QoreCounter.cc"
 #include "ReferenceArgumentHelper.cc"
 #include "ReferenceHelper.cc"
+#include "QoreTypeInfo.cc"
 #include "ql_thread.cc"
 #include "ql_io.cc"
 #include "ql_time.cc"

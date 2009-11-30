@@ -179,6 +179,11 @@ class UserFunction : public QoreReferenceCounter {
 	 return name ? name : "<anonymous closure>";
       }
       DLLLOCAL void parseInit();
+      DLLLOCAL void parseInitMethod(const QoreClass &parent_class, bool static_flag);
+      DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
+      DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
+      DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
+
       DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
 	 return static_cast<QoreTypeInfo *>(returnTypeInfo);
       }

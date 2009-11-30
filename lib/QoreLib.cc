@@ -887,7 +887,7 @@ const char *getBuiltinTypeName(qore_type_t type) {
 	 return "null";
 
       case NT_NOTHING:
-	 return "nothing";      
+	 return "nothing";
    }
 
    assert(false);

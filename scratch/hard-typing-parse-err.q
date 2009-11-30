@@ -3,13 +3,22 @@
 float $g = 0;
 
 class T {
+    constructor() {
+	# type error in return statement
+	return 0;
+    }
+    # param error in destructor
+    destructor($a) {
+    }
     test() {
         $.copy("string");
     }
-    copy(T $a) {
+    copy(T $a) returns T {
         printf("a=%N\nargv=%N\n", $a, $argv);
     }
     t1(Mutex $m) returns float {
+	my int $i;
+	return $i;
     }
     private p(FtpClient $f) {
 	# will result in a 'non-existent-method-call' warning

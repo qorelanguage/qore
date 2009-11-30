@@ -110,6 +110,8 @@ DLLLOCAL QoreObject *substituteObject(QoreObject *o);
 DLLLOCAL void catchSaveException(QoreException *e);
 DLLLOCAL QoreException *catchGetException();
 DLLLOCAL VLock *getVLock();
+DLLLOCAL const QoreTypeInfo *setReturnTypeInfo(const QoreTypeInfo *returnTypeInfo);
+DLLLOCAL const QoreTypeInfo *getReturnTypeInfo();
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(CallNode *cn);
@@ -286,12 +288,10 @@ class CallStackHelper : public CallNode {
       DLLLOCAL void *operator new(size_t);
       
    public:
-      DLLLOCAL CallStackHelper(const char *f, int t, QoreObject *o, ExceptionSink *n_xsink) : CallNode(f, t, o), xsink(n_xsink)
-      {
+      DLLLOCAL CallStackHelper(const char *f, int t, QoreObject *o, ExceptionSink *n_xsink) : CallNode(f, t, o), xsink(n_xsink) {
 	 pushCall(this);
       }
-      DLLLOCAL ~CallStackHelper()
-      {
+      DLLLOCAL ~CallStackHelper() {
 	 popCall(xsink);
       }
 };
@@ -345,5 +345,17 @@ DLLLOCAL extern QorePThreadAttr ta_default;
 #ifdef QORE_MANAGE_STACK
 DLLLOCAL int check_stack(ExceptionSink *xsink);
 #endif
+
+class ReturnTypeInfoHelper {
+private:
+   const QoreTypeInfo *returnTypeInfo;
+
+public:
+   DLLLOCAL ReturnTypeInfoHelper(const QoreTypeInfo *n_returnTypeInfo) : returnTypeInfo(setReturnTypeInfo(n_returnTypeInfo)) {
+   }
+   DLLLOCAL ~ReturnTypeInfoHelper() {
+      setReturnTypeInfo(returnTypeInfo);
+   }
+};
 
 #endif

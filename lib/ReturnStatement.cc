@@ -36,14 +36,36 @@ ReturnStatement::~ReturnStatement() {
 int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    if (exp)
       (*return_value) = exp->eval(xsink);
+
+   const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
+   if (returnTypeInfo->checkType(*return_value, xsink)) {
+      discard(*return_value, xsink);
+      (*return_value) = 0;
+   }
+
    return RC_RETURN;
 }
 
 int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
-   if (exp) {
-      const QoreTypeInfo *argTypeInfo = 0;
+   const QoreTypeInfo *argTypeInfo = 0;
+
+   if (exp)
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
+   else
+      argTypeInfo = &nothingTypeInfo;
+
+   const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
+
+   //printd(5, "ReturnStatement::parseInitImpl() arg=%s rt=%s\n", argTypeInfo->getTypeName(), returnTypeInfo->getTypeName());
+
+   // check return type and throw a parse exception only if parse exceptions are enabled
+   if (!returnTypeInfo->parseEqual(argTypeInfo) && getProgram()->getParseExceptionSink()) {
+      QoreStringNode *desc = new QoreStringNode("return value for this block expects ");
+      returnTypeInfo->getThisType(*desc);
+      desc->concat(", but value given to the return statement is ");
+      argTypeInfo->getThisType(*desc);
+      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
    return lvids;
 }

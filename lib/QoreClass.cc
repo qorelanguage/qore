@@ -237,55 +237,23 @@ struct qore_method_private {
    DLLLOCAL const char *getName() const { return type == OTF_USER ? func.userFunc->getName() : func.builtin->getName(); }
 
    DLLLOCAL void parseInit() {
-      // must be called even if func.userFunc->statements is NULL
-      //printd(5, "QoreMethod::parseInit() this=%08p '%s' static_flag=%d\n", this, getName(), static_flag);
-      if (!static_flag)
-	 func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, 0);
-      else
-	 func.userFunc->statements->parseInit(func.userFunc->params);
+      assert(type == OTF_USER);
+      func.userFunc->parseInitMethod(*parent_class, static_flag);
    }
 
    DLLLOCAL void parseInitConstructor(BCList *bcl) {
-      // must be called even if func.userFunc->statements is NULL
-      func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, bcl);
+      assert(type == OTF_USER);
+      func.userFunc->parseInitConstructor(*parent_class, bcl);
    }
 
    DLLLOCAL void parseInitDestructor() {
-      // make sure there are no parameters in the destructor
-      if (func.userFunc->params->num_params)
-	 parse_error("no parameters may be defined in class destructors");
-
-      // must be called even if func.userFunc->statements is NULL
-      func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, 0);
+      assert(type == OTF_USER);
+      func.userFunc->parseInitDestructor(*parent_class);
    }
    
    DLLLOCAL void parseInitCopy() {
-      // make sure there is max one parameter in the copy method      
-      if (func.userFunc->params->num_params > 1)
-	 parse_error("maximum of one parameter may be defined in class copy methods (%d defined)", func.userFunc->params->num_params);
-      
-      // must be called even if func.userFunc->statements is NULL
-      func.userFunc->statements->parseInitMethod(parent_class->getTypeInfo(), func.userFunc->params, 0);
-
-      // see if there is a type specification for the sole parameter and make sure it matches the class if there is
-      if (func.userFunc->params->num_params) {
-	 if (func.userFunc->params->typeList[0]) {
-	    if (!parent_class->getTypeInfo()->parseEqual(func.userFunc->params->typeList[0])) {
-	       // raise parse exception if parse exceptions have not been suppressed
-	       if (getProgram()->getParseExceptionSink()) {
-		  QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");
-		  parent_class->getTypeInfo()->getThisType(*desc);
-		  desc->concat(", but the object's parameter was defined expecting ");
-		  func.userFunc->params->typeList[0]->getThisType(*desc);
-		  desc->concat(" instead");
-		  getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-	       }
-	    }
-	 }
-	 else { // set to class' type
-	    func.userFunc->params->typeList[0] = new QoreParseTypeInfo(parent_class->getTypeInfo());
-	 }
-      }
+      assert(type == OTF_USER);
+      func.userFunc->parseInitCopy(*parent_class);
    }
    
    DLLLOCAL const UserFunction *getStaticUserFunction() const {

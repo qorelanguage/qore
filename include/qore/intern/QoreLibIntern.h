@@ -44,182 +44,6 @@ DLLLOCAL bool private_class_access_ok(qore_classid_t id);
 // if we are currently parsing inside the class, it can be private too
 bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass);
 
-class QoreTypeInfo {
-protected:
-   DLLLOCAL int doTypeException(const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
-      // for example if there was a "requires" error
-      if (!xsink)
-	 return -1;
-
-      QoreStringNode *desc = new QoreStringNode("expecting ");
-      getThisType(*desc);
-      desc->concat(", but got ");
-      getNodeType(*desc, n);
-      desc->concat(" instead");
-      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-      return -1;
-   }
-
-   DLLLOCAL int doPrivateClassException(const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
-      // for example if there was a "requires" error
-      if (!xsink)
-	 return -1;
-
-      QoreStringNode *desc = new QoreStringNode("expecting ");
-      getThisType(*desc);
-      desc->concat(", but got an object where this class is privately inherited instead");
-      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-      return -1;
-   }
-
-public:
-   const QoreClass *qc;
-   qore_type_t qt : 11;
-   bool has_type : 1;
-
-   DLLLOCAL QoreTypeInfo() : qc(0), qt(NT_ALL), has_type(false) {}
-   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : qc(0), qt(n_qt), has_type(true) {}
-   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : qc(n_qc), qt(NT_OBJECT), has_type(true) {}
-
-   DLLLOCAL void getNodeType(QoreStringNode &str, const AbstractQoreNode *n) const {
-      if (is_nothing(n)) {
-	 str.concat("no value");
-	 return;
-      }
-      if (n->getType() != NT_OBJECT) {
-	 str.sprintf("builtin type '%s'", n->getTypeName());
-	 return;
-      }
-      str.sprintf("object of class '%s'", reinterpret_cast<const QoreObject *>(n)->getClassName());
-   }
-
-   DLLLOCAL void getThisType(QoreStringNode &str) const {
-      if (!this) {
-	 str.sprintf("no value");
-	 return;
-      }
-      if (qc) {
-	 str.sprintf("an object of class '%s'", qc->getName());
-	 return;
-      }
-      str.sprintf("builtin type '%s'", getBuiltinTypeName(qt));
-   }
-
-   // prototype (expecting type) should be "this"
-   // returns true if the prototype does not expect any type or the types are compatible, 
-   // false if otherwise
-   DLLLOCAL bool parseEqual(const QoreTypeInfo *typeInfo) const {
-      if (!this || !has_type || !typeInfo || !typeInfo->has_type)
-	 return true;
-      return qt == typeInfo->qt && (!qc || parseCheckCompatibleClass(qc, typeInfo->qc));
-   }
-
-   // can be called when this == null
-   DLLLOCAL bool hasType() const { return this ? has_type : false; }
-
-   DLLLOCAL void set(const QoreTypeInfo &ti) {
-      assert(!has_type);
-      assert(ti.has_type);
-      qc = ti.qc;
-      qt = ti.qt;
-      has_type = true;
-   }
-   
-   DLLLOCAL int checkType(const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      if (!this || !has_type) return 0;
-      if (qt == NT_NOTHING && is_nothing(n)) return 0;
-      if (is_nothing(n))
-	 return doTypeException(n, xsink);
-
-      // from here on we know n != 0
-      if (qt == NT_OBJECT) {
-	 if (n->getType() != NT_OBJECT)
-	    return doTypeException(n, xsink);
-
-	 if (!qc)
-	    return 0;
-
-	 bool priv;
-	 if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
-	    if (!priv)
-	       return 0;
-
-	    // check private access
-	    if (private_class_access_ok(qc->getID()))
-	       return 0;
-
-	    return doPrivateClassException(n, xsink);
-	 }
-
-	 return doTypeException(n, xsink);
-      }
-      if (n->getType() != qt)
-	 return doTypeException(n, xsink);
-
-      return 0;
-   }
-#ifdef DEBUG
-   DLLLOCAL const char *getTypeName() const { return this && qt >= 0 ? getBuiltinTypeName(qt) : "n/a"; }
-#endif
-};
-
-#include <qore/intern/NamedScope.h>
-
-class QoreParseTypeInfo : public QoreTypeInfo {
-protected:
-   NamedScope *cscope; // namespace scope for class
-
-public:
-   DLLLOCAL QoreParseTypeInfo() : QoreTypeInfo(), cscope(0) {}
-   DLLLOCAL QoreParseTypeInfo(qore_type_t qt) : QoreTypeInfo(qt), cscope(0) {}
-   DLLLOCAL QoreParseTypeInfo(char *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(new NamedScope(n_cscope)) {}
-   DLLLOCAL QoreParseTypeInfo(const QoreClass *qc) : QoreTypeInfo(qc) {}
-   DLLLOCAL QoreParseTypeInfo(const QoreTypeInfo *typeInfo) : QoreTypeInfo(), cscope(0) {
-      if (typeInfo) {
-	 qc = typeInfo->qc;
-	 qt = typeInfo->qt;
-	 has_type = typeInfo->has_type;
-      }
-   }
-/*
-   DLLLOCAL QoreParseTypeInfo(qore_type_t qt, char *n_cscope) : QoreTypeInfo(qt), cscope(n_cscope ? new NamedScope(n_cscope) : 0) {
-      assert(!cscope || qt == NT_OBJECT);
-   }
-*/
-   DLLLOCAL ~QoreParseTypeInfo() {
-      delete cscope;
-   }
-   // prototype (expecting type) should be "this"
-   // returns true if the prototype does not expect any type or the types are compatible, 
-   // false if otherwise
-   DLLLOCAL bool parseStageOneEqual(const QoreParseTypeInfo *typeInfo) const {
-      if (!this || !has_type || !typeInfo || !typeInfo->has_type)
-	 return true;
-
-      if (!cscope && !typeInfo->cscope)
-	 return parseEqual(typeInfo);
-
-      assert(cscope && typeInfo->cscope);
-      // check for equal types or equal class paths
-      if (qt != typeInfo->qt)
-	 return false;
-      if (!cscope && !typeInfo->cscope)
-	 return true;
-      if (!cscope || !typeInfo->cscope)
-	 return false;
-      return !strcmp(cscope->getIdentifier(), typeInfo->cscope->getIdentifier());
-   }
-   DLLLOCAL void resolve();
-   DLLLOCAL bool needsResolving() const { 
-      return cscope;
-   }
-#ifdef DEBUG
-   DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }
-#endif
-};
-
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
 #include <inttypes.h>
@@ -271,6 +95,8 @@ typedef std::map<QoreCondition *, int> cond_map_t;
 #define QORE_MANAGE_STACK
 #endif
 
+#include <qore/intern/NamedScope.h>
+#include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>
 #include <qore/intern/CallReferenceCallNode.h>
 #include <qore/intern/CallReferenceNode.h>
@@ -347,11 +173,6 @@ DLLLOCAL ResolvedCallReferenceNode *getCallReference(const QoreString *str, Exce
 DLLLOCAL AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
 
 DLLLOCAL void addProgramConstants(QoreNamespace *ns);
-
-DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo, 
-   stringTypeInfo, binaryTypeInfo, dateTypeInfo, objectTypeInfo, hashTypeInfo, 
-   listTypeInfo, nothingTypeInfo, nullTypeInfo, runTimeClosureTypeInfo,
-   callReferenceTypeInfo;
 
 class QoreListNodeParseInitHelper : public ListIterator {
 private:

@@ -225,8 +225,83 @@ void UserFunction::deref() {
 void UserFunction::parseInit() {
    if (returnTypeInfo)
       returnTypeInfo->resolve();
+   
+   // push current return type on stack
+   ReturnTypeInfoHelper rtih(returnTypeInfo);
+
    // can (and must) be called even if statements is NULL                                                                                                           
    statements->parseInit(params);
+}
+
+void UserFunction::parseInitMethod(const QoreClass &parent_class, bool static_flag) {
+    if (returnTypeInfo)
+       returnTypeInfo->resolve();
+   
+    // push current return type on stack
+    ReturnTypeInfoHelper rtih(returnTypeInfo);
+
+    // must be called even if statements is NULL
+    //printd(5, "QoreMethod::parseInit() this=%08p '%s' static_flag=%d\n", this, getName(), static_flag);
+    if (!static_flag)
+       statements->parseInitMethod(parent_class.getTypeInfo(), params, 0);
+    else
+       statements->parseInit(params);
+}
+
+void UserFunction::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
+   assert(!returnTypeInfo);
+
+   // push return type on stack (no return value can be used)
+   ReturnTypeInfoHelper rtih(&nothingTypeInfo);
+
+   // must be called even if statements is NULL
+   statements->parseInitMethod(parent_class.getTypeInfo(), params, bcl);
+}
+
+void UserFunction::parseInitDestructor(const QoreClass &parent_class) {
+   assert(!returnTypeInfo);
+
+   // make sure there are no parameters in the destructor
+   if (params->num_params)
+      parse_error("no parameters may be defined in class destructors");
+
+   // push return type on stack (no return value can be used)
+   ReturnTypeInfoHelper rtih(&nothingTypeInfo);
+
+   // must be called even if statements is NULL
+   statements->parseInitMethod(parent_class.getTypeInfo(), params, 0);
+}
+
+void UserFunction::parseInitCopy(const QoreClass &parent_class) {
+   // make sure there is max one parameter in the copy method      
+   if (params->num_params > 1)
+      parse_error("maximum of one parameter may be defined in class copy methods (%d defined)", params->num_params);
+
+   // push return type on stack (no return value can be used)
+   ReturnTypeInfoHelper rtih(&nothingTypeInfo);
+   
+   // must be called even if statements is NULL
+   statements->parseInitMethod(parent_class.getTypeInfo(), params, 0);
+   
+   // see if there is a type specification for the sole parameter and make sure it matches the class if there is
+   if (params->num_params) {
+      if (params->typeList[0]) {
+	 if (!parent_class.getTypeInfo()->parseEqual(params->typeList[0])) {
+	    // raise parse exception if parse exceptions have not been suppressed
+	    if (getProgram()->getParseExceptionSink()) {
+	       QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");
+	       parent_class.getTypeInfo()->getThisType(*desc);
+	       desc->concat(", but the object's parameter was defined expecting ");
+	       params->typeList[0]->getThisType(*desc);
+	       desc->concat(" instead");
+	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    }
+	 }
+      }
+      else { // set to class' type
+	 params->typeList[0] = new QoreParseTypeInfo(parent_class.getTypeInfo());
+      }
+   }
 }
 
 BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ) {
@@ -596,17 +671,17 @@ int UserFunction::setupCall(const QoreListNode *args, ReferenceHolder<QoreListNo
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(np);
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
-	    if (!*xsink && !params->typeList[i]->checkType(n, xsink))
+	    if (!*xsink && !params->typeList[i]->checkTypeInstantiation(params->names[i], n, xsink))
 	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
 	 }
 	 else {
 	    n = np->eval(xsink);
-	    if (!*xsink && ~params->typeList[i]->checkType(n, xsink))
+	    if (!*xsink && ~params->typeList[i]->checkTypeInstantiation(params->names[i], n, xsink))
 	       params->lv[i]->instantiate(n);
 	 }
       }
       else {
-	 if (!params->typeList[i]->checkType(0, xsink))
+	 if (!params->typeList[i]->checkTypeInstantiation(params->names[i], 0, xsink))
 	    params->lv[i]->instantiate(0);
       }
 

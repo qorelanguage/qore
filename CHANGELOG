@@ -11,6 +11,7 @@
 	* implemented UserFuntion::setupCall() so code to set up arguments and
 	  the argv variable can be shared between UserFunction::call() and
 	  UserFunction::callConstructor()
+	* implemented return value type checking at parse time
 
 2009.11.28: David Nichols
 	* fixed a memory leak in runtime hard type exceptions in lvalue

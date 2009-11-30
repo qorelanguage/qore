@@ -369,6 +369,9 @@ class ThreadData {
       // used to detect output of recursive data structures
       const_node_set_t node_set;
 
+      // currently-executing/parsing block's return type
+      const QoreTypeInfo *returnTypeInfo;
+
       DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
 	 tid(ptid), vlock(ptid), 
 	 context_stack(0), plStack(0),
@@ -377,7 +380,8 @@ class ThreadData {
 	 pgm_file(0), parseState(0), vstack(0), cvarstack(0),
 	 parseClass(0), catchException(0), current_code(0),
 	 current_obj(0), current_pgm(p), current_implicit_arg(0),
-	 closure_parse_env(0), closure_rt_env(0), pch_link(0)
+	 closure_parse_env(0), closure_rt_env(0), pch_link(0),
+	 returnTypeInfo(0)
       {
 #ifdef QORE_MANAGE_STACK
 
@@ -651,62 +655,51 @@ ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNo
    return thread_data.get()->cvstack.instantiate(n_id, vexp, obj);
 }
 
-void thread_uninstantiate_closure_var(ExceptionSink *xsink)
-{
+void thread_uninstantiate_closure_var(ExceptionSink *xsink) {
    thread_data.get()->cvstack.uninstantiate(xsink);
 }
 
-ClosureVarValue *thread_find_closure_var(const char *id)
-{
+ClosureVarValue *thread_find_closure_var(const char *id) {
    return thread_data.get()->cvstack.find(id);
 }
 
-ClosureRuntimeEnvironment *thread_get_runtime_closure_env()
-{
+ClosureRuntimeEnvironment *thread_get_runtime_closure_env() {
    return thread_data.get()->closure_rt_env;
 }
 
-void thread_set_runtime_closure_env(ClosureRuntimeEnvironment *cenv)
-{
+void thread_set_runtime_closure_env(ClosureRuntimeEnvironment *cenv) {
    thread_data.get()->closure_rt_env = cenv;
 }
 
-void thread_set_closure_parse_env(ClosureParseEnvironment *cenv)
-{
+void thread_set_closure_parse_env(ClosureParseEnvironment *cenv) {
    thread_data.get()->closure_parse_env = cenv;
 }
 
-ClosureVarValue *thread_get_runtime_closure_var(const LocalVar *id)
-{
+ClosureVarValue *thread_get_runtime_closure_var(const LocalVar *id) {
    return thread_data.get()->closure_rt_env->find(id);
 }
 
-ClosureParseEnvironment *thread_get_closure_parse_env()
-{
+ClosureParseEnvironment *thread_get_closure_parse_env() {
    return thread_data.get()->closure_parse_env;
 }
 
-void set_thread_resource(AbstractThreadResource *atr)
-{
+void set_thread_resource(AbstractThreadResource *atr) {
    ThreadData *td = thread_data.get();
    td->trlist.set(atr);
 }
 
-int remove_thread_resource(AbstractThreadResource *atr)
-{
+int remove_thread_resource(AbstractThreadResource *atr) {
    ThreadData *td = thread_data.get();
    return td->trlist.remove(atr);
 }
 
-void purge_thread_resources(ExceptionSink *xsink)
-{
+void purge_thread_resources(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
    td->trlist.purge(xsink);
 }
 
 // called when a StatementBlock has "on_exit" blocks
-void pushBlock(block_list_t::iterator i)
-{
+void pushBlock(block_list_t::iterator i) {
    ThreadData *td = thread_data.get();
    td->on_block_exit_list.push_back(i);
 }
@@ -833,6 +826,17 @@ void update_parse_location(int start_line, int end_line) {
 
 const char *get_parse_file() {
    return (thread_data.get())->parse_file;
+}
+
+const QoreTypeInfo *setReturnTypeInfo(const QoreTypeInfo *rti) {
+   ThreadData *td = thread_data.get();
+   const QoreTypeInfo *rv = td->returnTypeInfo;
+   td->returnTypeInfo = rti;
+   return rv;
+}
+
+const QoreTypeInfo *getReturnTypeInfo() {
+   return (thread_data.get())->returnTypeInfo;
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {
