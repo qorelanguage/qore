@@ -3583,6 +3583,18 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    tree->leftParseInit(oflag, pflag, lvids, typeInfo);
 
    if (!typeInfo || !typeInfo->qc) {
+      // if the left side has a type and it's not hash or object, then
+      // no call can be made
+      if (typeInfo
+	  && !objectTypeInfo.parseEqual(typeInfo)
+	  && !hashTypeInfo.parseEqual(typeInfo)
+	  && getProgram()->getParseExceptionSink()) {
+	 QoreStringNode *desc = new QoreStringNode("the object method or hash call reference call operator expects an object or a hash on the left side of the '.', but ");
+	 typeInfo->getThisType(*desc);
+	 desc->concat(" was provided instead");
+	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+      }
+
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
       return tree;
    }
@@ -3634,20 +3646,6 @@ static AbstractQoreNode *check_op_returns_integer(QoreTreeNode *tree, LocalVar *
    returnTypeInfo = &bigIntTypeInfo;
    return tree->defaultParseInit(oflag, pflag, lvids);
 }
-
-/*
-// for operators that always return a float
-static AbstractQoreNode *check_op_returns_float(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-   returnTypeInfo = &floatTypeInfo;
-   return tree->defaultParseInit(oflag, pflag, lvids);
-}
-
-// for operators that always return a string
-static AbstractQoreNode *check_op_returns_string(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-   returnTypeInfo = &stringTypeInfo;
-   return tree->defaultParseInit(oflag, pflag, lvids);
-}
-*/
 
 // for operators that always return the same type as the left side of the tree
 static AbstractQoreNode *check_op_new(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
@@ -3702,7 +3700,7 @@ static AbstractQoreNode *check_op_lvalue_int(QoreTreeNode *tree, LocalVar *oflag
    resultTypeInfo = &bigIntTypeInfo;
 
    const QoreTypeInfo *typeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, typeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, typeInfo);
 
    // make sure left side can take an integer value
    check_lvalue_int(typeInfo, name);
@@ -3826,7 +3824,7 @@ static AbstractQoreNode *check_op_unary_minus(QoreTreeNode *tree, LocalVar *ofla
 // set the return value for op_plus_equals (+=)
 static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
@@ -3854,7 +3852,7 @@ static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *ofla
 // set the return value for op_minus_equals (-=)
 static AbstractQoreNode *check_op_minus_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
@@ -3880,7 +3878,7 @@ static AbstractQoreNode *check_op_minus_equals(QoreTreeNode *tree, LocalVar *ofl
 // set the return value for op_minus_equals (-=)
 static AbstractQoreNode *check_op_multdiv_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
@@ -4075,7 +4073,7 @@ static AbstractQoreNode *check_op_list_op_err(QoreTreeNode *tree, LocalVar *ofla
 
 static AbstractQoreNode *check_op_splice(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
@@ -4101,7 +4099,7 @@ static AbstractQoreNode *check_op_splice(QoreTreeNode *tree, LocalVar *oflag, in
 
 static AbstractQoreNode *check_op_lvalue_string(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *descr) {
    const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);

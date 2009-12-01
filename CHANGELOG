@@ -2,6 +2,9 @@
 	* implemented instantiating variables with default values when defined
 	  with hard types of simple types; enforced requiring assignments for
 	  variables defined as complex types
+	* return nothingTypeInfo as the output type for local variable
+	  declarations without any type information if not assigning to allow
+	  more programming errors to be caught at parse time
 
 2009.11.30: David Nichols
 	* implemented 'invalid-operation' warning to warn when an expression

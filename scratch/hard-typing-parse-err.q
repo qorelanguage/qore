@@ -153,8 +153,6 @@ sub main() {
     chomp $b;
     # warning: invalid type for chomp operator
     chomp $b;
-
-    
 }
 
 main();
