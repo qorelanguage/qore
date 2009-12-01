@@ -170,7 +170,7 @@ public:
    DLLLOCAL QoreParseTypeInfo() : QoreTypeInfo(), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(qore_type_t qt) : QoreTypeInfo(qt), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(char *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(new NamedScope(n_cscope)) {}
-   DLLLOCAL QoreParseTypeInfo(const QoreClass *qc) : QoreTypeInfo(qc) {}
+   DLLLOCAL QoreParseTypeInfo(const QoreClass *qc) : QoreTypeInfo(qc), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(const QoreTypeInfo *typeInfo) : QoreTypeInfo(), cscope(0) {
       if (typeInfo) {
 	 qc = typeInfo->qc;
@@ -217,6 +217,16 @@ public:
 #ifdef DEBUG
    DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }
 #endif
+   DLLLOCAL QoreParseTypeInfo *copy() const {
+      if (!this)
+	 return 0;
+
+      if (qc)
+	 return new QoreParseTypeInfo(qc);
+      if (!has_type)
+	 return new QoreParseTypeInfo;
+      return new QoreParseTypeInfo(qt);
+   }
 };
 
 DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo, 

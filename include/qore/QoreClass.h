@@ -574,6 +574,13 @@ class QoreClass {
       DLLLOCAL QoreClass *copyAndDeref();
       DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
 
+      //! adds a name of a private member (not accessible from outside the class hierarchy)
+      /** this method takes ownership of *name
+	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
+	  @param typeInfo unvalidated and unresolved type information available at parse time
+       */
+      DLLLOCAL void addPrivateMember(char *name, QoreParseTypeInfo *typeInfo);
+
       // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
       DLLLOCAL const QoreMethod *findParseMethod(const char *nme);
 

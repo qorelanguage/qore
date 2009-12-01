@@ -40,7 +40,8 @@ struct qore_qc_private {
    hm_method_t hm, hm_pending,     // regular method maps
       shm, shm_pending;            // static method maps
 
-   strset_t pmm, pending_pmm;   // private member lists (sets)
+   member_map_t private_members, pending_private_members;   // private member lists (maps)
+   member_map_t public_members, pending_public_members; // public member lists (maps)
 
    const QoreMethod *system_constructor, *constructor, *destructor,
       *copyMethod, *methodGate, *memberGate, *deleteBlocker,
@@ -102,18 +103,20 @@ struct qore_qc_private {
       }
 
       // delete private member list
-      strset_t::iterator j = pmm.begin();
-      while (j != pmm.end()) {
-	 char *n = *j;
-	 pmm.erase(j);
-	 j = pmm.begin();
+      member_map_t::iterator j = private_members.begin();
+      while (j != private_members.end()) {
+	 char *n = j->first;
+	 delete j->second;
+	 private_members.erase(j);
+	 j = private_members.begin();
 	 //printd(5, "QoreClass::~QoreClass() freeing private member %08p '%s'\n", n, n);
 	 free(n);
       }
 
-      while ((j = pending_pmm.begin()) != pending_pmm.end()) {
-	 char *n = *j;
-	 pending_pmm.erase(j);
+      while ((j = pending_private_members.begin()) != pending_private_members.end()) {
+	 char *n = j->first;
+	 delete j->second;
+	 pending_private_members.erase(j);
 	 //printd(5, "QoreClass::~QoreClass() freeing pending private member %08p '%s'\n", n, n);
 	 free(n);
       }
@@ -1060,10 +1063,14 @@ static const QoreClass *getStackClass() {
 }
 
 void QoreClass::addPrivateMember(char *nme) {
-   if (priv->pmm.find(nme) == priv->pmm.end()) {
-      if (priv->pending_pmm.find(nme) == priv->pending_pmm.end()) {
+   addPrivateMember(nme, 0);
+}
+
+void QoreClass::addPrivateMember(char *nme, QoreParseTypeInfo *typeInfo) {
+   if (priv->private_members.find(nme) == priv->private_members.end()) {
+      if (priv->pending_private_members.find(nme) == priv->pending_private_members.end()) {
 	 //printd(5, "QoreClass::addPrivateMember() this=%08p %s adding %08p %s\n", this, priv->name, nme, nme);
-	 priv->pending_pmm.insert(nme);
+	 priv->pending_private_members[nme] = typeInfo;
       }
       else {
 	 if (priv->name)
@@ -1393,8 +1400,8 @@ QoreClass *QoreClass::copyAndDeref() {
    }
 
    // copy private member list
-   for (strset_t::iterator i = priv->pmm.begin(); i != priv->pmm.end(); i++)
-      noc->priv->pmm.insert(strdup(*i));
+   for (member_map_t::iterator i = priv->private_members.begin(); i != priv->private_members.end(); i++)
+      noc->priv->private_members[strdup(i->first)] = i->second->copy();
 
    if (priv->scl) {
       priv->scl->ref();
@@ -1504,8 +1511,8 @@ AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, c
 }
 
 bool QoreClass::isPrivateMember(const char *str) const {
-   strset_t::const_iterator i = priv->pmm.find((char *)str);
-   if (i != priv->pmm.end())
+   member_map_t::const_iterator i = priv->private_members.find((char *)str);
+   if (i != priv->private_members.end())
       return true;
 
    if (priv->scl)
@@ -2060,13 +2067,13 @@ void QoreClass::parseCommit() {
       insertStaticMethod(m);
    }
 
-   // add all pending private members to string set
-   strset_t::iterator j = priv->pending_pmm.begin();
-   while (j != priv->pending_pmm.end()) { 
+   // add all pending private members to real member list
+   member_map_t::iterator j = priv->pending_private_members.begin();
+   while (j != priv->pending_private_members.end()) { 
       //printd(5, "QoreClass::parseCommit() %s committing private member %08p %s\n", name, *j, *j);
-      priv->pmm.insert(*j);
-      priv->pending_pmm.erase(j);
-      j = priv->pending_pmm.begin();
+      priv->private_members[j->first] = j->second;
+      priv->pending_private_members.erase(j);
+      j = priv->pending_private_members.begin();
    }
 }
 

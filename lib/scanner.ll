@@ -468,7 +468,6 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 						 BEGIN(INITIAL);
 					      }
 					      else {
-
 						 //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
 						 if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
 						    parse_error("cannot include \"%s\"; is not a regular file", fn);
@@ -662,6 +661,7 @@ NULL					return TOK_NULL;
 NOTHING					return TOK_NOTHING;
 class                                   return TOK_CLASS;
 private                                 return TOK_PRIVATE;
+public                                  return TOK_PUBLIC;
 new                                     return TOK_NEW;
 shift                                   return TOK_SHIFT;
 unshift                                 return TOK_UNSHIFT;
@@ -745,6 +745,7 @@ inherits\(                              yylval->string = strdup("inherits"); ret
 default{WS}*\(                          yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
 static{WS}*\(                           yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN;
 returns{WS}*\(                          yylval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN;
+public{WS}*\(                           yylval->string = strdup("public"); return KW_IDENTIFIER_OPENPAREN;
 \.returns[^A-Za-z_0-9]                  {
                                            yylval->String = new QoreStringNode("returns");
 					   if (yytext[4])
@@ -759,6 +760,12 @@ returns{WS}*\(                          yylval->string = strdup("returns"); retu
                                         }
 \.private[^A-Za-z_0-9]                  {
                                            yylval->String = new QoreStringNode("private");
+					   if (yytext[8])
+					      unput(yytext[8]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
+\.public[^A-Za-z_0-9]                   {
+                                           yylval->String = new QoreStringNode("public");
 					   if (yytext[8])
 					      unput(yytext[8]);
 					   return DOT_KW_IDENTIFIER;

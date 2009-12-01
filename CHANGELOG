@@ -5,6 +5,8 @@
 	* return nothingTypeInfo as the output type for local variable
 	  declarations without any type information if not assigning to allow
 	  more programming errors to be caught at parse time
+	* initial support for the 'public' keyword and storing type
+	  declarations for private class members
 
 2009.11.30: David Nichols
 	* implemented 'invalid-operation' warning to warn when an expression

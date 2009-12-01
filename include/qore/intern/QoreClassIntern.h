@@ -27,9 +27,12 @@
 #include <qore/safe_dslist>
 
 #include <list>
+#include <map>
 
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
+
+typedef std::map<char *, QoreParseTypeInfo *, ltstr> member_map_t;
 
 /*
   BCANode

@@ -54,6 +54,7 @@
 #include <stdlib.h>
 
 #include <memory>
+#include <utility>
 
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
@@ -229,31 +230,61 @@ static int checkParseOption(int o) {
    return getParseOptions() & o;
 }
 
-class MemberList : private strset_t {
+typedef std::pair<char *, QoreParseTypeInfo *> member_pair_t;
+
+struct MemberInfo {
+   char *name;
+   QoreParseTypeInfo *typeInfo;
+
+   DLLLOCAL MemberInfo(char *n, QoreParseTypeInfo *ti) : name(n), typeInfo(ti) {}
+   DLLLOCAL ~MemberInfo() {
+      if (name)
+	 free(name);
+      delete typeInfo;
+   }
+   DLLLOCAL member_pair_t getPair() {
+      member_pair_t m = std::make_pair(name, typeInfo);
+      name = 0;
+      typeInfo = 0;
+      return m;
+   }
+};
+
+class MemberList : private member_map_t {
    public:
+      DLLLOCAL MemberList(MemberInfo *member) {
+	 insert(member->getPair());
+	 delete member;
+      }
+
       DLLLOCAL ~MemberList() {
-	 strset_t::iterator i;
+	 member_map_t::iterator i;
 	 while ((i = begin()) != end()) {
-	    char *name = *i;
+	    char *name = i->first;
+	    delete i->second;
 	    erase(i);
 	    free(name);
 	 }
       }
 
-      DLLLOCAL int add(char *name) {
-	 if (find(name) != end())
+      // takes over ownership of name and typeInfo
+      DLLLOCAL int add(MemberInfo *member) {
+	 std::auto_ptr<MemberInfo> mem(member);
+	 if (find(member->name) != end()) {
+	    parse_error("duplicate member declaration '%s'", member->name);
 	    return -1;
+	 }
+
 	 // add new member to list
-	 insert(name);
+	 insert(member->getPair());
 	 return 0;
       }
 
       DLLLOCAL void mergePrivateMembers(QoreClass *qc) {
-	 strset_t::iterator i;
+	 member_map_t::iterator i;
 	 while ((i = begin()) != end()) {
-	    char *name = *i;
+	    qc->addPrivateMember(i->first, i->second);
 	    erase(i);
-	    qc->addPrivateMember(name);
 	 }
       }
 };
@@ -482,6 +513,7 @@ struct MethodNode {
       QoreHashNode *hash;
       QoreListNode *list;
       AbstractStatement *statement;
+      class MemberInfo *memberinfo;
       class StatementBlock *sblock;
       class ContextModList *cmods;
       class ContextMod *cmod;
@@ -556,6 +588,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_IN "in"
 %token TOK_DELETE "delete"
 %token TOK_PRIVATE "private"
+%token TOK_PUBLIC "public"
 %token TOK_SYNCHRONIZED "synchronized"
 %token TOK_CONTEXT "context"
 %token TOK_SORT_BY "sortBy"
@@ -686,6 +719,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <methodnode>  method_definition
 %type <privlist>    private_member_list
 %type <privlist>    member_list
+%type <memberinfo>  member
 %type <qoreclass>   class_attributes
 %type <objdef>      object_def
 %type <ns>          top_namespace_decl
@@ -708,7 +742,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes return_value
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes return_value member
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
@@ -1211,86 +1245,98 @@ object_def:
 	;
 
 inheritance_list:
-        TOK_INHERITS superclass_list
-        {
+        TOK_INHERITS superclass_list {
 	   $$ = $2;
         }
-        | // NOTHING
-        { $$ = 0; }
+        | { // NOTHING
+           $$ = 0;
+	}
         ;
 
 superclass_list:
-        superclass
-        {
+        superclass {
 	   $$ = new BCList($1);
 	}
-        | superclass_list ',' superclass
-        {
+        | superclass_list ',' superclass {
 	   $1->push_back($3);
 	   $$ = $1;
         }
         ;
 
 superclass:
-        IDENTIFIER
-        {
+        IDENTIFIER {
 	   $$ = new BCNode($1, false);
 	}
-        | SCOPED_REF
-        {
+        | SCOPED_REF {
 	   $$ = new BCNode(new NamedScope($1), false);
 	}
-        | TOK_PRIVATE IDENTIFIER
-        {
+        | TOK_PUBLIC IDENTIFIER {
+	   $$ = new BCNode($2, false);
+	}
+        | TOK_PUBLIC SCOPED_REF {
+	   $$ = new BCNode(new NamedScope($2), false);
+	}
+        | TOK_PRIVATE IDENTIFIER {
 	   $$ = new BCNode($2, true);
 	}
-        | TOK_PRIVATE SCOPED_REF
-        {
+        | TOK_PRIVATE SCOPED_REF {
 	   $$ = new BCNode(new NamedScope($2), true);
 	}
 	;
 
 class_attributes:
-	method_definition
-        { 
+	method_definition { 
            $$ = new QoreClass();
 	   $1->addAndDelete($$);
 	}
-        | private_member_list
-        {
+        | private_member_list {
 	   $$ = new QoreClass();
 	   $1->mergePrivateMembers($$);
 	   delete $1;
 	}
-	| class_attributes method_definition
-        { 
+	| class_attributes method_definition { 
 	   $2->addAndDelete($1);
 	   $$ = $1; 
 	}
-	| class_attributes private_member_list
-        { 
+	| class_attributes private_member_list { 
 	   $2->mergePrivateMembers($1);
 	   $$ = $1; 
 	}
         ;
 
 private_member_list:
-	TOK_PRIVATE member_list ';'
-        {
+	TOK_PRIVATE member_list ';' {
 	   $$ = $2;
 	}
         ;
 
-member_list:
-	SELF_REF
-        {
-	   $$ = new MemberList();
-	   $$->add($1);
+member:
+	SELF_REF {
+	   $$ = new MemberInfo($1, 0);
         }
-        | member_list ',' SELF_REF
-        {
-	   if ($1->add($3))
-	      free($3);
+        | SELF_REF IDENTIFIER {
+	   qore_type_t t = getBuiltinType($2);
+	   QoreParseTypeInfo *typeInfo;
+	   if (t >= 0) {
+	      typeInfo = new QoreParseTypeInfo(t);
+	      free($2);
+	   }
+	   else
+	      typeInfo = new QoreParseTypeInfo($2);
+
+	   $$ = new MemberInfo($1, typeInfo);
+        }
+        | SELF_REF SCOPED_REF {
+	   $$ = new MemberInfo($1, new QoreParseTypeInfo($2));
+	}
+        ;
+
+member_list:
+        member {
+	   $$ = new MemberList($1);
+        }
+        | member_list ',' member {
+	   $1->add($3);
 	   $$ = $1;
 	}
 	;
