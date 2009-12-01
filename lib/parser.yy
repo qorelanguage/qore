@@ -749,7 +749,7 @@ top_level_command:
 	   delete $1;
 	}
         | object_outofline_function_def  // registered directly
-	| statement { 
+	| statement {
 	   if ($1) {
 	      if ($1->isParseDeclaration())
 		 delete $1;
@@ -882,8 +882,7 @@ optname:
         ;
 
 statement:
-	exp ';'
-        {
+	exp ';' {
 	   // if the expression has no effect and it's not a variable declaration
 	   qore_type_t t = $1 ? $1->getType() : 0;
 	   if (!hasEffect($1)

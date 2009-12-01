@@ -327,7 +327,7 @@ private:
    QoreThreadLocalStorage<LocalVarValue> var_key;
 #endif
    std::string name;
-   bool closure_use;
+   bool closure_use, needs_value_instantiation;
    const QoreTypeInfo *typeInfo;
 
 #ifdef HAVE_UNLIMITED_THREAD_KEYS
@@ -348,10 +348,25 @@ private:
    }
 
 public:
-   DLLLOCAL LocalVar(const char *n_name, const QoreTypeInfo *ti) : name(n_name), closure_use(false), typeInfo(ti) {
+   DLLLOCAL LocalVar(const char *n_name, const QoreTypeInfo *ti) : name(n_name), closure_use(false), needs_value_instantiation(ti->hasType() ? true : false), typeInfo(ti) {
    }
 
    DLLLOCAL ~LocalVar() {
+   }
+
+   DLLLOCAL void instantiate() const {
+      //printd(5, "LocalVar::instantiate(%08p) this=%08p '%s'\n", value, this, name.c_str());
+
+      AbstractQoreNode *val;
+      if (needs_value_instantiation) {
+	 assert(typeInfo->hasType());
+	 assert(typeInfo->getType() >= 0 && typeInfo->getType() < NT_OBJECT);
+	 val = getDefaultValueForBuitinValueType(typeInfo->getType());
+      }
+      else
+	 val = 0;
+
+      instantiate(val);
    }
 
    DLLLOCAL void instantiate(AbstractQoreNode *value) const {
@@ -486,6 +501,19 @@ public:
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
       return typeInfo;
+   }
+
+   DLLLOCAL bool needsValueInstantiation() const {
+      return needs_value_instantiation;
+   }
+
+   DLLLOCAL void unsetNeedsValueInstantiation() {
+      if (needs_value_instantiation)
+	 needs_value_instantiation = false;
+   }
+
+   DLLLOCAL bool needsAssignmentAtInstantiation() const {
+      return needs_value_instantiation && typeInfo->qt >= NT_OBJECT ? true : false;
    }
 };
 

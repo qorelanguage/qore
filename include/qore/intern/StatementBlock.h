@@ -52,7 +52,7 @@ class LVListInstantiator {
       DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs) {
 	 if (!l) return;
 	 for (int i = 0; i < l->num_lvars; ++i)
-	    l->lv[i]->instantiate(0);
+	    l->lv[i]->instantiate();
       }
 
       DLLLOCAL ~LVListInstantiator() {

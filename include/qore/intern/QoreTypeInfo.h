@@ -26,6 +26,8 @@
 
 class QoreTypeInfo {
 protected:
+   bool must_be_assigned;
+
    DLLLOCAL int doTypeException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
@@ -65,10 +67,11 @@ public:
    qore_type_t qt : 11;
    bool has_type : 1;
 
-   DLLLOCAL QoreTypeInfo() : qc(0), qt(NT_ALL), has_type(false) {}
-   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : qc(0), qt(n_qt), has_type(true) {}
-   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : qc(n_qc), qt(NT_OBJECT), has_type(true) {}
+   DLLLOCAL QoreTypeInfo() : must_be_assigned(false), qc(0), qt(NT_ALL), has_type(false) {}
+   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : must_be_assigned(false), qc(0), qt(n_qt), has_type(true) {}
+   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : must_be_assigned(false), qc(n_qc), qt(NT_OBJECT), has_type(true) {}
 
+   DLLLOCAL qore_type_t getType() const { return qt; }
    DLLLOCAL void getNodeType(QoreStringNode &str, const AbstractQoreNode *n) const {
       if (is_nothing(n)) {
 	 str.concat("no value");
@@ -150,6 +153,9 @@ public:
 
       return 0;
    }
+   DLLLOCAL bool mustBeAssigned() const {
+      return this ? must_be_assigned : false;
+   }
 
 #ifdef DEBUG
    DLLLOCAL const char *getTypeName() const { return this && qt >= 0 ? getBuiltinTypeName(qt) : "n/a"; }
@@ -204,6 +210,10 @@ public:
    DLLLOCAL bool needsResolving() const { 
       return cscope;
    }
+   DLLLOCAL void setMustBeAssigned() { 
+      if (this && qt >= NT_OBJECT)
+	 must_be_assigned = true;
+   }
 #ifdef DEBUG
    DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }
 #endif
@@ -213,5 +223,8 @@ DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo,
    stringTypeInfo, binaryTypeInfo, dateTypeInfo, objectTypeInfo, hashTypeInfo, 
    listTypeInfo, nothingTypeInfo, nullTypeInfo, runTimeClosureTypeInfo,
    callReferenceTypeInfo;
+
+// returns the default value for any type >= 0 and < NT_OBJECT
+DLLLOCAL AbstractQoreNode *getDefaultValueForBuitinValueType(qore_type_t t);
 
 #endif // _QORE_QORETYPEINFO_H

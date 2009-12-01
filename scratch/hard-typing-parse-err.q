@@ -44,21 +44,25 @@ sub main() {
     # ok
     bool $oi = True;
 
+    # error: uninitialized object
     our Mutex $om;
+
     # error
     Condition $om = 1;
 
     my int $x = 1;
     my bool $b = False;
 
-    my Mutex $m;
-    my Thread::Condition $c;
-
-    my OtherMutex $om;
-    my MyMutex $mm;
+    # type error, $m, no value errors: $c, $om, $mm;
+    my (int $x1, Mutex $m, Mutex $m1, Thread::Condition $c, OtherMutex $om, MyMutex $mm) = (1, new OtherMutex(), new MyMutex());
 
     # type error: using a bool as a closure or call reference
     my int $cx = $oi(True, 1.1);
+
+    # type error: $b is a bool
+    $b.val = "string";
+    # type error: $b is a bool
+    $b{"val"} = "string";
 
     # OK
     t1($m);
@@ -89,6 +93,8 @@ sub main() {
     my string $s = test($b, $m);
     # type error in return type, 2nd argument
     $b = test(1, 2);
+    # too few arguments to function
+    $s = test(1);
 
     # OK
     my T $t = new T();
@@ -147,6 +153,8 @@ sub main() {
     chomp $b;
     # warning: invalid type for chomp operator
     chomp $b;
+
+    
 }
 
 main();

@@ -968,8 +968,7 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
    return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    //QORE_TRACE("op_and_equals()");
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
@@ -986,8 +985,7 @@ static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const Abstr
       b = new QoreBigIntNode();
       v.assign(b);
    }
-   else 
-   {
+   else {
       if (v.ensure_unique_int())
 	 return 0;
       b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
@@ -1000,8 +998,7 @@ static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const Abstr
    return ref_rv ? b->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
       return 0;
@@ -1122,8 +1119,7 @@ static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const 
    return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder res(right, xsink);
    if (*xsink)
       return 0;
@@ -1189,8 +1185,7 @@ static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const Ab
    return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
       return 0;
@@ -1221,8 +1216,7 @@ static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const Abstr
    return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
       return 0;
@@ -1252,8 +1246,7 @@ static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, cons
    return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
-static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
-{
+static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    //QORE_TRACE("op_shift_right_equals()");
 
    int64 val = right->bigIntEval(xsink);
@@ -3515,7 +3508,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
    assert(tree->left && tree->left->getType() == NT_LIST);
    QoreListNode *l = reinterpret_cast<QoreListNode *>(tree->left);
 
-   QoreListNodeParseInitHelper li(l, oflag, pflag, lvids);
+   QoreListNodeParseInitHelper li(l, oflag, pflag | PF_FOR_ASSIGNMENT, lvids);
    QorePossibleListNodeParseInitHelper ri(&tree->right, oflag, pflag, lvids);
 
    const QoreTypeInfo *argInfo = 0;
@@ -3528,7 +3521,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
       ri.parseInit(argInfo);
 
       if (!prototypeInfo->parseEqual(argInfo)) {
-	 // raise an exception only if aprse exceptions are not disabled
+	 // raise an exception only if parse exceptions are not disabled
 	 if (getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
 	    desc->sprintf("%d of list assignment expects ", li.index() + 1);
@@ -3537,6 +3530,13 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
 	    argInfo->getThisType(*desc);
 	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	 }
+      }
+      else if (prototypeInfo->mustBeAssigned() && ri.noArgument() && getProgram()->getParseExceptionSink()) {
+	 QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
+	 desc->sprintf("%d of list assignment expects ", li.index() + 1);
+	 prototypeInfo->getThisType(*desc);
+	 desc->concat(", but no value is given on the right-hand side");
+	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
       }
    }
 
@@ -3548,7 +3548,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
 
 static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *l = 0;
-   tree->leftParseInit(oflag, pflag, lvids, l);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, l);
 
    const QoreTypeInfo *r = 0;
    tree->rightParseInit(oflag, pflag, lvids, r);
@@ -3559,6 +3559,8 @@ static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag
 
    if (r->hasType())
       resultTypeInfo = r;
+
+   
 
    if (!l->hasType() || !r->hasType())
       return tree;
@@ -3904,15 +3906,26 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (leftTypeInfo->hasType()
-       && !listTypeInfo.parseEqual(leftTypeInfo)
-       && !stringTypeInfo.parseEqual(leftTypeInfo)
-       && !binaryTypeInfo.parseEqual(leftTypeInfo)) {
-      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
-      leftTypeInfo->getThisType(*desc);
-      desc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-      returnTypeInfo = &nothingTypeInfo;
+   if (leftTypeInfo->hasType()) {
+      // if we are trying to convert to a list
+      if (pflag & PF_FOR_ASSIGNMENT) {
+	 // only throw a parse exception if parse exceptions are enabled
+	 if (!listTypeInfo.parseEqual(leftTypeInfo) && getProgram()->getParseExceptionSink()) {
+	    QoreStringNode *desc = new QoreStringNode("cannot convert lvalue defined as ");
+	    leftTypeInfo->getThisType(*desc);
+	    desc->sprintf(" to a list using the '[]' operator in an assignment expression");
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 }
+      }
+      else if (!listTypeInfo.parseEqual(leftTypeInfo)
+	  && !stringTypeInfo.parseEqual(leftTypeInfo)
+	  && !binaryTypeInfo.parseEqual(leftTypeInfo)) {
+	 QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
+	 leftTypeInfo->getThisType(*desc);
+	 desc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
+	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+	 returnTypeInfo = &nothingTypeInfo;
+      }
    }
 
    return tree;
@@ -3925,14 +3938,27 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (leftTypeInfo->hasType()
-       && !hashTypeInfo.parseEqual(leftTypeInfo)
-       && !objectTypeInfo.parseEqual(leftTypeInfo)) {
-      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '.' operator is ");
-      leftTypeInfo->getThisType(*desc);
-      desc->concat(" and so this expression will always return NOTHING; the '.' operator only returns a value with hashes and objects");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-      returnTypeInfo = &nothingTypeInfo;
+   if (leftTypeInfo->hasType()) {
+      // if we are trying to convert to a hash
+      if (pflag & PF_FOR_ASSIGNMENT) {
+	 // only throw a parse exception if parse exceptions are enabled
+	 if (!hashTypeInfo.parseEqual(leftTypeInfo)
+	     && !objectTypeInfo.parseEqual(leftTypeInfo)
+	     && getProgram()->getParseExceptionSink()) {
+	    QoreStringNode *desc = new QoreStringNode("cannot convert lvalue defined as ");
+	    leftTypeInfo->getThisType(*desc);
+	    desc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 }
+      }
+      else if (!hashTypeInfo.parseEqual(leftTypeInfo)
+	       && !objectTypeInfo.parseEqual(leftTypeInfo)) {
+	 QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
+	 leftTypeInfo->getThisType(*desc);
+	 desc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
+	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+	 returnTypeInfo = &nothingTypeInfo;
+      }
    }
 
    return tree;

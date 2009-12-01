@@ -219,7 +219,11 @@ public:
       n = l ? 0 : n_n;
    }
 
-   bool next() {
+   DLLLOCAL bool noArgument() const {
+      return finished;
+   }
+
+   DLLLOCAL bool next() {
       if (finished)
 	 return false;
       
@@ -238,14 +242,14 @@ public:
       return true;
    }
    
-   AbstractQoreNode **getValuePtr() {
+   DLLLOCAL AbstractQoreNode **getValuePtr() {
       if (finished)
 	 return 0;
 
       return l ? l->get_entry_ptr(pos) : n;
    }
 
-   void parseInit(const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL void parseInit(const QoreTypeInfo *&typeInfo) {
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
 
       typeInfo = 0;

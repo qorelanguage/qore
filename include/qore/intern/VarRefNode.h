@@ -80,11 +80,12 @@ public:
       type = VT_GLOBAL;
       ref.var =getProgram()->addGlobalVarDef(name, getTypeInfo());
    }
-   DLLLOCAL virtual QoreParseTypeInfo *takeTypeInfo() { return 0; }
-   DLLLOCAL virtual const QoreParseTypeInfo *getTypeInfo() const { return 0; }
 
    // takes the name - caller owns the memory
    DLLLOCAL char *takeName();
+
+   DLLLOCAL virtual QoreParseTypeInfo *takeTypeInfo() { return 0; }
+   DLLLOCAL virtual const QoreParseTypeInfo *getTypeInfo() const { return 0; }
 };
 
 class VarRefDeclNode : public VarRefNode {

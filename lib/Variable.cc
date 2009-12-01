@@ -49,20 +49,6 @@ VarStackPointerClosureHelper::~VarStackPointerClosureHelper() {
    orig->skip = false;
 }
 
-Var::Var(const char *n_name) : type(GV_VALUE), name(n_name), typeInfo(0) {
-   v.val.value = 0;
-}
-
-Var::Var(const char *n_name, const QoreParseTypeInfo *n_typeInfo) : type(GV_VALUE), name(n_name), typeInfo(n_typeInfo) {
-   v.val.value = 0;
-}
-
-Var::Var(Var *ref, bool ro) : type(GV_IMPORT), name(ref->name), typeInfo(0) {
-   v.ivar.refptr = ref;
-   v.ivar.readonly = ro;
-   ref->ROreference();
-}
-
 void Var::del(ExceptionSink *xsink) {
    if (type == GV_IMPORT) {
       printd(4, "Var::~Var() refptr=%p\n", v.ivar.refptr);

@@ -444,8 +444,7 @@ QoreThreadLock *QoreProgram::getParseLock() {
 
 void QoreProgram::deref(ExceptionSink *xsink) {
    //printd(5, "QoreProgram::deref() this=%08p %d->%d\n", this, reference_count(), reference_count() - 1);
-   if (ROdereference())
-   {
+   if (ROdereference()) {
       // delete all global variables
       priv->global_var_list.clear_all(xsink);
       // clear thread data if base object

@@ -967,7 +967,7 @@ ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm, ExceptionSink *xs) 
 	    if (!w) {
 	       xsink = xs; // <- marks for uninstantiation
 	       for (int i = 0; i < l->num_lvars; ++i)
-		  l->lv[i]->instantiate(0);
+		  l->lv[i]->instantiate();
 	    }
 	 }
 

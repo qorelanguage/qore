@@ -190,7 +190,22 @@ AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvi
    assert(typeInfo);
    typeInfo->resolve();
    outTypeInfo = typeInfo;
-   return parseInitIntern(oflag, pflag, lvids, typeInfo, outTypeInfo);
+
+   parseInitIntern(oflag, pflag, lvids, typeInfo, outTypeInfo);
+
+   if (type == VT_LOCAL) {
+      if (!(pflag & PF_FOR_ASSIGNMENT)) {
+	 if (ref.id->needsAssignmentAtInstantiation())
+	     parseException("PARSE-TYPE-ERROR", "local variable '$%s' has been defined with a complex type and must be assigned when instantiated", name);
+      }
+      else {
+	 // can be called when this = 0
+	 typeInfo->setMustBeAssigned();
+	 ref.id->unsetNeedsValueInstantiation();
+      }
+   }
+
+   return this;
 }
 
 void QoreParseTypeInfo::resolve() {

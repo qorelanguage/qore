@@ -76,14 +76,37 @@ private:
    DLLLOCAL AbstractQoreNode *getValueIntern(AutoVLock *vl);
    DLLLOCAL const AbstractQoreNode *getValueIntern(AutoVLock *vl) const;
    DLLLOCAL void setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink);
+   DLLLOCAL void assignInitialValue() {
+      assert(type == GV_VALUE);
+      // assign default value
+      if (typeInfo->hasType()) {
+	 qore_type_t t = typeInfo->getType();
+	 if (t >= 0 && t < NT_OBJECT) {
+	    v.val.value = getDefaultValueForBuitinValueType(t);
+	    return;
+	 }
+      }
+      v.val.value = 0;
+   }
 
 protected:
    DLLLOCAL ~Var() {}
 
 public:
-   DLLLOCAL Var(const char *nme);
-   DLLLOCAL Var(const char *nme, const QoreParseTypeInfo *n_typeInfo);
-   DLLLOCAL Var(Var *ref, bool ro = false);
+   DLLLOCAL Var(const char *n_name) : type(GV_VALUE), name(n_name), typeInfo(0) {
+      v.val.value = 0;
+   }
+
+   DLLLOCAL Var(const char *n_name, const QoreParseTypeInfo *n_typeInfo) : type(GV_VALUE), name(n_name), typeInfo(n_typeInfo) {
+      assignInitialValue();
+   }
+
+   DLLLOCAL Var(Var *ref, bool ro = false) : type(GV_IMPORT), name(ref->name), typeInfo(0) {
+      v.ivar.refptr = ref;
+      v.ivar.readonly = ro;
+      ref->ROreference();
+   }
+
    DLLLOCAL const char *getName() const;
    DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
    DLLLOCAL void makeReference(Var *v, ExceptionSink *xsink, bool ro = false);
@@ -103,6 +126,8 @@ public:
       // if no previous type was declared, take the new type
       if (!typeInfo) {
 	 typeInfo = n_typeInfo;
+	 assert(!v.val.value);
+	 assignInitialValue();
 	 return;
       }
 

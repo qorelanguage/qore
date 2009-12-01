@@ -109,6 +109,8 @@ class AbstractFunctionCallNode : public ParseNode {
 	       needs_eval = true;
 	    }
 	 }
+	 else
+	    argTypeInfo = &nothingTypeInfo;
 
 	 // check for compatible types
 	 // note that QoreTypeInfo::parseEqual() can be called when this = 0
