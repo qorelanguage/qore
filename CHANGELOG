@@ -1,3 +1,10 @@
+2009.12.02: David Nichols
+	* fixed a bug where taking a slice from an object could return private
+	  members when called outside the class (backported from trunk)
+	* fixed a bug making a hash slice where the character encoding was not
+	  ensured to be QCS_DEFAULT before trying to match key names
+	  (backported from trunk)
+
 2009.11.30: David Nichols
 	* fixed a bug returning the last builtin data type ID (backported from
 	  trunk)

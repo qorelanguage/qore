@@ -745,7 +745,27 @@ QoreHashNode *QoreObject::getSlice(const QoreListNode *value_list, ExceptionSink
       return 0;
    }
 
-   return priv->data->getSlice(value_list, xsink);
+   bool inclass = in_class_call(priv->theclass->getID());
+   // return all member data requested if called in the class
+   if (inclass)
+      return priv->data->getSlice(value_list, xsink);
+
+   // otherwise build a new list of only public members
+   ReferenceHolder<QoreListNode> nl(new QoreListNode, xsink);
+
+   ConstListIterator li(value_list);
+   while (li.next()) {
+      QoreStringValueHelper key(li.getValue(), QCS_DEFAULT, xsink);
+      if (*xsink)
+	 return 0;
+
+      if (priv->theclass->isPrivateMember(key->getBuffer()))
+	 continue;
+
+      nl->push(new QoreStringNode(*(*key)));
+   }
+
+   return priv->data->getSlice(*nl, xsink);
 }
 
 void QoreObject::setValue(const char *key, AbstractQoreNode *val, ExceptionSink *xsink) {

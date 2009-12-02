@@ -739,7 +739,10 @@ QoreHashNode *QoreHashNode::getSlice(const QoreListNode *value_list, ExceptionSi
 
    ConstListIterator li(value_list);
    while (li.next()) {
-      QoreStringNodeValueHelper key(li.getValue());
+      QoreStringValueHelper key(li.getValue(), QCS_DEFAULT, xsink);
+      if (*xsink)
+	 return 0;
+
       bool exists;
       const AbstractQoreNode *v = getKeyValueExistence(key->getBuffer(), exists);
       if (!exists)
