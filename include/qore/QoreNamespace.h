@@ -88,7 +88,7 @@ class QoreNamespace {
       /**
 	 @param name the name of the constant to add
 	 @param value the value of the constant
-	 @param type information for the constant; must be persistent
+	 @param typeInfo information for the constant; must be persistent
        */
       DLLEXPORT void addConstant(const char *name, AbstractQoreNode *value, const QoreTypeInfo &typeInfo);
 
