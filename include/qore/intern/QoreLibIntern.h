@@ -38,11 +38,16 @@ DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
 DLLLOCAL qore_type_t getBuiltinType(const char *str);
 DLLLOCAL const char *getBuiltinTypeName(qore_type_t type);
-DLLLOCAL bool private_class_access_ok(qore_classid_t id);
+
+// tests to see if the private implementation of the given class ID can be accessed at run time
+DLLLOCAL bool runtimeCheckPrivateClassAccess(const QoreClass *testClass);
+
+// tests to see if the private implementation of the given class can be accessed at run time
+DLLLOCAL bool parseCheckPrivateClassAccess(const QoreClass *testClass);
 
 // tests to see if testClass is equal to or a public subclass of shouldBeClass, or
 // if we are currently parsing inside the class, it can be private too
-bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass);
+DLLLOCAL bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX

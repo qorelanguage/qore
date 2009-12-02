@@ -364,11 +364,25 @@ class QoreClass {
       */
       DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
 
-      //! adds a name of a private member (not accessible from outside the class hierarchy)
+      //! DEPRECATED: use addPrivateMember(char *name, QoreParseTypeInfo *typeInfo) instead: adds a name of a private member (not accessible from outside the class hierarchy)
       /** this method takes ownership of *name
-	  @param name the name of the private member (ownership of the memory is assumed by the QoreClas object)
+	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
        */
       DLLEXPORT void addPrivateMember(char *name);
+
+      //! adds a name of a private member (not accessible from outside the class hierarchy)
+      /** this method takes ownership of *name
+	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
+	  @param typeInfo unvalidated and unresolved type information available at parse time
+       */
+      DLLEXPORT void addPrivateMember(char *name, QoreParseTypeInfo *typeInfo);
+
+      //! adds a public member; if a class has at least one public member then only public members can be accessed externally from the class
+      /** this method takes ownership of *name
+	  @param name the name of the public member (ownership of the memory is assumed by the QoreClass object)
+	  @param typeInfo unvalidated and unresolved type information available at parse time
+       */
+      DLLEXPORT void addPublicMember(char *name, QoreParseTypeInfo *typeInfo);
 
       //! returns true if the member is private
       /** 
@@ -376,6 +390,14 @@ class QoreClass {
 	  @return true if the member is private
        */
       DLLEXPORT bool isPrivateMember(const char *str) const;
+
+      //! returns true if the member is private or public
+      /** 
+	  @param str the member name to check
+	  @param priv true if the member is private, false if public
+	  @return true if the member is private
+       */
+       DLLEXPORT bool isPublicOrPrivateMember(const char *str, bool &priv) const;
 
       //! creates a new object and executes the constructor on it and returns the new object
       /** if a Qore-language exception occurs, 0 is returned.  To create a 
@@ -574,13 +596,6 @@ class QoreClass {
       DLLLOCAL QoreClass *copyAndDeref();
       DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
 
-      //! adds a name of a private member (not accessible from outside the class hierarchy)
-      /** this method takes ownership of *name
-	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
-	  @param typeInfo unvalidated and unresolved type information available at parse time
-       */
-      DLLLOCAL void addPrivateMember(char *name, QoreParseTypeInfo *typeInfo);
-
       // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
       DLLLOCAL const QoreMethod *findParseMethod(const char *nme);
 
@@ -618,6 +633,15 @@ class QoreClass {
       DLLLOCAL const QoreMethod *parseFindStaticMethodTree(const char *name);
       // returns true if the class passed is equal to or in the class' hierarchy - to be called only at parse time or under the program's parse lock
       DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
+      // checks if the given member can be accessed at parse time
+      DLLLOCAL int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *memberTypeInfo) const;
+      // checks if the given member can be accessed from within the class
+      DLLLOCAL int parseCheckInternalMemberAccess(const char *mem) const;
+      // finds the named member in the hierarchy, returns the class implementing the member
+      DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&typeInfo, bool &priv) const;
+      DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
+      DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
+      // returns the type information structure for this class
       DLLLOCAL const QoreTypeInfo *getTypeInfo() const;
 };
 

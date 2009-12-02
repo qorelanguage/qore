@@ -825,6 +825,21 @@ long long q_atoll(const char *str) {
    return atoll(str);
 }
 
+// tests to see if the private implementation of the given class can be accessed at run time
+bool parseCheckPrivateClassAccess(const QoreClass *testClass) {
+   assert(testClass);
+
+   // see if shouldBeClass is a parent class of the class currently being parsed
+   QoreClass *pc = getParseClass();
+   if (!pc)
+      return false;
+
+   if (pc == testClass)
+      return true;
+
+   return pc->getClass(testClass->getID()) || testClass->getClass(pc->getID());
+}
+
 // tests to see if testClass is equal to or a public subclass of shouldBeClass, or
 // if we are currently parsing inside the class, it can be private too
 bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass) {
@@ -844,14 +859,13 @@ bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *
       return true;
 
    // here we know that testClass inherits shouldBeClass with private inheritance
+   return parseCheckPrivateClassAccess(testClass);
+}
 
-   // see if shouldBeClass is a parent class of the class currently being parsed
-   QoreClass *pc = getParseClass();
-   if (!pc)
+// tests to see if the private implementation of the given class ID can be accessed at run time
+bool runtimeCheckPrivateClassAccess(const QoreClass *testClass) {
+   QoreObject *obj = getStackObject();
+   if (!obj)
       return false;
-
-   if (pc == testClass)
-      return true;
-
-   return testClass->getClass(pc->getID());
+   return obj->getClass(testClass->getID()) || testClass->getClass(obj->getClass()->getID());
 }

@@ -81,7 +81,7 @@ public:
 	 str.sprintf("builtin type '%s'", n->getTypeName());
 	 return;
       }
-      str.sprintf("object of class '%s'", reinterpret_cast<const QoreObject *>(n)->getClassName());
+      str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject *>(n)->getClassName());
    }
 
    DLLLOCAL void getThisType(QoreStringNode &str) const {
@@ -140,7 +140,7 @@ public:
 	       return 0;
 
 	    // check private access
-	    if (private_class_access_ok(qc->getID()))
+	    if (!runtimeCheckPrivateClassAccess(qc))
 	       return 0;
 
 	    return doPrivateClassException(param_name, n, xsink);

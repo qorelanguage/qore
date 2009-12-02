@@ -287,6 +287,14 @@ class MemberList : private member_map_t {
 	    erase(i);
 	 }
       }
+
+      DLLLOCAL void mergePublicMembers(QoreClass *qc) {
+	 member_map_t::iterator i;
+	 while ((i = begin()) != end()) {
+	    qc->addPublicMember(i->first, i->second);
+	    erase(i);
+	 }
+      }
 };
 
 static inline void addConstant(NamedScope *name, AbstractQoreNode *value) {
@@ -297,7 +305,7 @@ static inline void addClass(NamedScope *name, QoreClass *oc) {
    getRootNS()->rootAddClass(name, oc);
 }
 
-static inline class QoreClass *parseFindClass(char *name) {
+static inline QoreClass *parseFindClass(char *name) {
    QoreClass *c = getRootNS()->rootFindClass(name);
    if (!c)
       parse_error("reference to undefined class '%s'", name);
@@ -520,7 +528,7 @@ struct MethodNode {
       class HashElement *hashelement;
       class UserFunction *userfunc;	
       class MethodNode *methodnode;
-      class MemberList *privlist;
+      class MemberList *memberlist;
       class QoreClass *qoreclass;
       class ConstNode *constnode;
       class QoreNamespace *ns;
@@ -717,8 +725,9 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <cmods>       context_mods
 %type <cmod>        context_mod
 %type <methodnode>  method_definition
-%type <privlist>    private_member_list
-%type <privlist>    member_list
+%type <memberlist>  private_member_list
+%type <memberlist>  public_member_list
+%type <memberlist>  member_list
 %type <memberinfo>  member
 %type <qoreclass>   class_attributes
 %type <objdef>      object_def
@@ -742,7 +751,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes return_value member
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list base_constructor_list base_constructors class_attributes return_value member
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
@@ -1286,12 +1295,17 @@ superclass:
 
 class_attributes:
 	method_definition { 
-           $$ = new QoreClass();
+           $$ = new QoreClass;
 	   $1->addAndDelete($$);
 	}
         | private_member_list {
-	   $$ = new QoreClass();
+	   $$ = new QoreClass;
 	   $1->mergePrivateMembers($$);
+	   delete $1;
+	}
+        | public_member_list {
+	   $$ = new QoreClass;
+	   $1->mergePublicMembers($$);
 	   delete $1;
 	}
 	| class_attributes method_definition { 
@@ -1302,10 +1316,20 @@ class_attributes:
 	   $2->mergePrivateMembers($1);
 	   $$ = $1; 
 	}
+	| class_attributes public_member_list { 
+	   $2->mergePublicMembers($1);
+	   $$ = $1; 
+	}
         ;
 
 private_member_list:
 	TOK_PRIVATE member_list ';' {
+	   $$ = $2;
+	}
+        ;
+
+public_member_list:
+	TOK_PUBLIC member_list ';' {
 	   $$ = $2;
 	}
         ;

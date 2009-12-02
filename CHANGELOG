@@ -7,6 +7,13 @@
 	  more programming errors to be caught at parse time
 	* initial support for the 'public' keyword and storing type
 	  declarations for private class members
+	* implemented public class members and parse-time and run-time
+	  checking and enforcement
+	* fixed a bug where if a program was running in one thread, other
+	  threads were allowed to execute parse actions in the running program
+	  that could change data structures in use by the running program,
+	  which could cause a crash
+	* fixed checking key encoding when making hash and object slices
 
 2009.11.30: David Nichols
 	* implemented 'invalid-operation' warning to warn when an expression

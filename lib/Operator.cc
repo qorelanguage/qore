@@ -3116,13 +3116,11 @@ bool FloatOperatorFunction::bool_eval(const AbstractQoreNode *left, const Abstra
    return (bool)op_func(left, right, xsink);
 }
 
-int64 FloatOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
-{
+int64 FloatOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((left->getType() != ltype) && (ltype != NT_ALL))
-   {
+   if ((left->getType() != ltype) && (ltype != NT_ALL)) {
       l = get_node_type(left, ltype);
       left = *l;
    }
@@ -3134,8 +3132,7 @@ int64 FloatOperatorFunction::bigint_eval(const AbstractQoreNode *left, const Abs
    ReferenceHolder<AbstractQoreNode> r(xsink);
 
    // convert node type to required argument types for operator if necessary
-   if ((right->getType() != rtype) && (rtype != NT_ALL))
-   {
+   if ((right->getType() != rtype) && (rtype != NT_ALL)) {
       r = get_node_type(right, rtype);
       right = *r;
    }
@@ -3560,8 +3557,6 @@ static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag
    if (r->hasType())
       resultTypeInfo = r;
 
-   
-
    if (!l->hasType() || !r->hasType())
       return tree;
 
@@ -3936,12 +3931,36 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
+   //printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, leftTypeInfo->getTypeName(), leftTypeInfo && leftTypeInfo->qc ? leftTypeInfo->qc->getName() : "n/a", rightTypeInfo, rightTypeInfo->getTypeName());
+
    if (leftTypeInfo->hasType()) {
+      bool is_obj = objectTypeInfo.parseEqual(leftTypeInfo);
+      bool is_hash = hashTypeInfo.parseEqual(leftTypeInfo);
+      if (is_obj) {
+	 // see if we can check for legal access
+	 if (tree->right && leftTypeInfo->qc) {
+	    qore_type_t rt = tree->right->getType();
+	    if (rt == NT_STRING) {
+	       const char *member = reinterpret_cast<const QoreStringNode *>(tree->right)->getBuffer();
+	       leftTypeInfo->qc->parseCheckMemberAccess(member, returnTypeInfo);
+	    }
+	    else if (rt == NT_LIST) { // check object slices as well if strings are available
+	       ConstListIterator li(reinterpret_cast<const QoreListNode *>(tree->right));
+	       while (li.next()) {
+		  if (li.getValue() && li.getValue()->getType() == NT_STRING) {
+		     const char *member = reinterpret_cast<const QoreStringNode *>(li.getValue())->getBuffer();
+		     leftTypeInfo->qc->parseCheckMemberAccess(member, returnTypeInfo);
+		  }
+	       }
+	    }
+	 }
+      }
+
       // if we are trying to convert to a hash
       if (pflag & PF_FOR_ASSIGNMENT) {
 	 // only throw a parse exception if parse exceptions are enabled
-	 if (!hashTypeInfo.parseEqual(leftTypeInfo)
-	     && !objectTypeInfo.parseEqual(leftTypeInfo)
+	 if (!is_hash
+	     && !is_obj
 	     && getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode("cannot convert lvalue defined as ");
 	    leftTypeInfo->getThisType(*desc);
@@ -3949,8 +3968,7 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	 }
       }
-      else if (!hashTypeInfo.parseEqual(leftTypeInfo)
-	       && !objectTypeInfo.parseEqual(leftTypeInfo)) {
+      else if (!is_hash && !is_obj) {
 	 QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
 	 leftTypeInfo->getThisType(*desc);
 	 desc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");

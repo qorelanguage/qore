@@ -34,6 +34,10 @@
 #define OS_OK             0
 #define OS_DELETED       -1
 
+#define QOA_OK          0
+#define QOA_PRIV_ERROR  1
+#define QOA_PUB_ERROR   2
+
 //#define QORE_DEBUG_OBJ_REFS 0
 
 /*
@@ -333,11 +337,6 @@ const QoreClass *QoreObject::getClass(qore_classid_t cid, bool &cpriv) const {
    return priv->theclass->getClass(cid, cpriv);
 }
 
-bool private_class_access_ok(qore_classid_t id) {
-   QoreObject *obj = getStackObject();
-   return (obj && obj->getClass(id)) ? true : false;
-}
-
 /*
 class tAutoLocker : public AutoLocker {
    public:
@@ -369,15 +368,36 @@ void QoreObject::doPrivateException(const char *mem, ExceptionSink *xsink) const
    xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, priv->theclass->getName());
 }
 
-bool QoreObject::checkExternalPrivateAccess(const char *mem) const {
-   // if accessed outside the class and the member is a private member 
-   return (!private_class_access_ok(priv->theclass->getID()) && priv->theclass->isPrivateMember(mem)) ? true : false;
+void QoreObject::doPublicException(const char *mem, ExceptionSink *xsink) const {
+   xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of class '%s'", mem, priv->theclass->getName());
 }
 
-bool QoreObject::checkExternalPrivateAccess(const char *mem, ExceptionSink *xsink) const {
-   if (!checkExternalPrivateAccess(mem))
+int QoreObject::checkMemberAccess(const char *mem) const {
+   // check public access
+   if (priv->theclass->runtimeHasPublicMembersInHierarchy()) {
+      bool priv_member;
+      if (!priv->theclass->isPublicOrPrivateMember(mem, priv_member))
+	 return QOA_PUB_ERROR;
+
+      if (priv_member && !runtimeCheckPrivateClassAccess(priv->theclass))
+	 return QOA_PRIV_ERROR;
+
+      return QOA_OK;
+   }
+
+   // if accessed outside the class and the member is a private member
+   return (!runtimeCheckPrivateClassAccess(priv->theclass) && priv->theclass->isPrivateMember(mem)) ? QOA_PRIV_ERROR : QOA_OK;
+}
+
+int QoreObject::checkMemberAccess(const char *mem, ExceptionSink *xsink) const {
+   int rc = checkMemberAccess(mem);
+   if (!rc)
       return false;
-   doPrivateException(mem, xsink);
+
+   if (rc == QOA_PRIV_ERROR)
+      doPrivateException(mem, xsink);
+   else
+      doPublicException(mem, xsink);
    return true;
 }
 
@@ -391,12 +411,17 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
 
    //printd(5, "QoreObject::evalMember() find_key(%s)=%08p theclass=%s\n", mem, find_key(mem), theclass ? theclass->getName() : "NONE");
 
-   if (checkExternalPrivateAccess(mem)) {
+
+   int rc = checkMemberAccess(mem);
+   if (rc) {
       // run memberGate if it exists
       if (priv->theclass->hasMemberGate())
 	 return priv->theclass->evalMemberGate(this, *tstr, xsink);
 
-      doPrivateException(mem, xsink);
+      if (rc == QOA_PRIV_ERROR)
+	 doPrivateException(mem, xsink);
+      else
+	 doPublicException(mem, xsink);
       return 0;
    }
 
@@ -617,7 +642,7 @@ class qore_object_lock_handoff_manager {
 // unlocking the lock is managed with the AutoVLock object
 AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, AutoVLock *vl, ExceptionSink *xsink) const {
    // check for external access to private members
-   if (checkExternalPrivateAccess(key, xsink))
+   if (checkMemberAccess(key, xsink))
       return 0;
 
    // do lock handoff
@@ -675,7 +700,7 @@ void QoreObject::deleteMemberValue(const QoreString *key, ExceptionSink *xsink) 
 
 void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink) {
    // check for external access to private members
-   if (checkExternalPrivateAccess(key, xsink))
+   if (checkMemberAccess(key, xsink))
       return;
 
    AbstractQoreNode *v;
@@ -708,7 +733,7 @@ void QoreObject::removeMember(const QoreString *key, ExceptionSink *xsink) {
 
 void QoreObject::removeMember(const char *key, ExceptionSink *xsink) {
    // check for external access to private members
-   if (checkExternalPrivateAccess(key, xsink))
+   if (checkMemberAccess(key, xsink))
       return;
 
    AbstractQoreNode *v;
@@ -846,7 +871,7 @@ QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const {
 }
 
 QoreHashNode *QoreObject::getRuntimeMemberHash(ExceptionSink *xsink) const {
-   bool inclass = private_class_access_ok(priv->theclass->getID());
+   bool inclass = runtimeCheckPrivateClassAccess(priv->theclass);
 
    AutoLocker al(priv->mutex);
 
@@ -896,7 +921,7 @@ AbstractQoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, AutoVL
 // we check if the object is already locked
 AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, AutoVLock *vl, ExceptionSink *xsink) const {
    // check for illegal access
-   if (checkExternalPrivateAccess(mem, xsink))
+   if (checkMemberAccess(mem, xsink))
       return 0;
 
    // do lock handoff

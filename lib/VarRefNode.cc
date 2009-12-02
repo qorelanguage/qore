@@ -224,13 +224,3 @@ AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvi
 
    return this;
 }
-
-void QoreParseTypeInfo::resolve() {
-   if (cscope) {
-      // resolve class
-      qc = getRootNS()->parseFindScopedClass(cscope);
-      delete cscope;
-      cscope = 0;
-   }
-}
-

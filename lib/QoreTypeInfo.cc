@@ -134,3 +134,12 @@ const char *getBuiltinTypeName(qore_type_t type) {
    assert(false);
    return "<unknown>";
 }
+
+void QoreParseTypeInfo::resolve() {
+   if (cscope) {
+      // resolve class
+      qc = getRootNS()->parseFindScopedClass(cscope);
+      delete cscope;
+      cscope = 0;
+   }
+}

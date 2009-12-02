@@ -59,10 +59,11 @@ class QoreObject : public AbstractQoreNode {
       DLLLOCAL void cleanup(ExceptionSink *xsink, QoreHashNode *td);
       DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
       DLLLOCAL void doPrivateException(const char *mem, ExceptionSink *xsink) const;
-      // returns true if the member is private and being accessed outside the class, false if not
-      DLLLOCAL bool checkExternalPrivateAccess(const char *mem) const;
-      // same as above but thrown an excetpion as well
-      DLLLOCAL bool checkExternalPrivateAccess(const char *mem, ExceptionSink *xsink) const;
+      DLLLOCAL void doPublicException(const char *mem, ExceptionSink *xsink) const;
+      // returns a code for the type of access
+      DLLLOCAL int checkMemberAccess(const char *mem) const;
+      // same as above but throws an appropriate exception as well
+      DLLLOCAL int checkMemberAccess(const char *mem, ExceptionSink *xsink) const;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreObject(const QoreObject&);

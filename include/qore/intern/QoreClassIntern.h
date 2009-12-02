@@ -77,7 +77,7 @@ typedef std::list<class_virt_pair_t> class_list_t;
 
 class BCEAList;
 
-// BCSMList: Base Class Special QoreMethod List
+// BCSMList: Base Class Special Method List
 // unique list of base classes for a class hierarchy to ensure that "special" methods, constructor(), destructor(), copy() - are executed only once
 // this class also tracks virtual classes to ensure that they are not inserted into the list in a complex tree and executed here
 class BCSMList : public class_list_t {
@@ -168,6 +168,9 @@ class BCList : public QoreReferenceCounter, public bclist_t {
       DLLLOCAL bool execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const;
       DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
       DLLLOCAL bool isPrivateMember(const char *str) const;
+      DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&typeInfo, bool &priv) const;
+      DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
+      DLLLOCAL bool isPublicOrPrivateMember(const char *mem, bool &priv) const;
       DLLLOCAL void ref() const;
       DLLLOCAL void deref();
       DLLLOCAL const QoreClass *getClass(qore_classid_t cid, bool &priv) const {

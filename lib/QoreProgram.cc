@@ -103,6 +103,18 @@ class LocalVariableList : public local_var_list_t {
 
 typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 
+class ProgramThreadCountHelper {
+private:
+   QoreProgram *pgm;
+public:
+   DLLLOCAL ProgramThreadCountHelper(QoreProgram *n_pgm) : pgm(n_pgm) {
+      pgm->tc_inc();
+   }
+   DLLLOCAL ~ProgramThreadCountHelper() {
+      pgm->tc_dec();
+   }
+};
+
 struct qore_program_private {
       UserFunctionList user_func_list;
       ImportedFunctionList imported_func_list;
@@ -110,7 +122,9 @@ struct qore_program_private {
       LocalVariableList local_var_list;
 
       // for the thread counter
-      QoreCounter tcount;
+      QoreCondition tcond;
+      unsigned thread_count;
+
       // to save file names for later deleting
       cstr_vector_t fileList;
       // features present in this Program object
@@ -132,8 +146,9 @@ struct qore_program_private {
       bool po_locked, exec_class, base_object, requires_exception;
 
       qpgm_thread_local_storage_t *thread_local_storage;
+      QoreProgram *pgm;
 
-      DLLLOCAL qore_program_private() {
+      DLLLOCAL qore_program_private(QoreProgram *n_pgm) : thread_count(0), pgm(n_pgm) {
 	 printd(5, "QoreProgram::QoreProgram() (init()) this=%08p\n", this);
 #ifdef DEBUG
 	 parseSink = 0;
@@ -157,6 +172,31 @@ struct qore_program_private {
       }
 
       DLLLOCAL ~qore_program_private() {
+      }
+
+      DLLLOCAL void incThreadCount() {
+	 // grab program-level lock
+	 AutoLocker al(&plock);
+	 ++thread_count;
+      }
+
+      DLLLOCAL void decThreadCount() {
+	 // grab program-level lock
+	 AutoLocker al(&plock);
+	 assert(thread_count > 0);
+	 --thread_count;
+	 if (!thread_count)
+	    tcond.broadcast();
+      }
+
+      DLLLOCAL void waitForAllThreadsToTerminate() {
+	 // grab program-level lock
+	 AutoLocker al(&plock);
+	 while (true) {
+	    if (!thread_count)
+	       return;
+	    tcond.wait(plock);
+	 }
       }
 
       DLLLOCAL const char *parseGetScriptDir() const {
@@ -210,10 +250,8 @@ struct qore_program_private {
       }
 
       DLLLOCAL QoreListNode *getVarList() {
-	 plock.lock();
-	 QoreListNode *l = global_var_list.getVarList();
-	 plock.unlock();
-	 return l;
+	 AutoLocker al(&plock);
+	 return global_var_list.getVarList();
       }
 
       DLLLOCAL void deleteSBList() {
@@ -245,7 +283,7 @@ struct qore_program_private {
 	 return l;
       }
 
-      void internParseRollback() {
+      DLLLOCAL void internParseRollback() {
 	 // delete pending user functions
 	 user_func_list.parseRollback();
 	 
@@ -257,7 +295,7 @@ struct qore_program_private {
       }
 
       // call must push the current program on the stack and pop it afterwards
-      int internParsePending(const char *code, const char *label) {
+      DLLLOCAL int internParsePending(const char *code, const char *label) {
 	 printd(5, "QoreProgram::internParsePending(code=%08p, label=%s)\n", code, label);
 	 
 	 if (!(*code))
@@ -295,7 +333,7 @@ struct qore_program_private {
 	 return rc;
       }
 
-      int parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+      DLLLOCAL int parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
 	 // grab program-level parse lock
 	 AutoLocker al(&plock);
 	 warnSink = wS;
@@ -311,9 +349,9 @@ struct qore_program_private {
       }
 
       // caller must have grabbed the lock and put the current program on the program stack
-      int internParseCommit() {
+      DLLLOCAL int internParseCommit() {
 	 QORE_TRACE("QoreProgram::internParseCommit()");
-	 printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, parseSink->isEvent());
+	 printd(5, "QoreProgram::internParseCommit() pgm=%08p isEvent=%d\n", pgm, parseSink->isEvent());
 
 	 // if the first stage of parsing has already failed, 
 	 // then don't go forward
@@ -325,7 +363,7 @@ struct qore_program_private {
 	    // note: sb_tail->statements may be 0
 	    sb_tail->statements->parseInitTopLevel(RootNS, &user_func_list, sb_head == sb_tail);
 
-	    printd(5, "QoreProgram::internParseCommit() this=%08p priv->RootNS=%08p\n", this, RootNS);
+	    printd(5, "QoreProgram::internParseCommit() this=%08p RootNS=%08p\n", pgm, RootNS);
 	 }
 	 
 	 // if a parse exception has occurred, then back out all new
@@ -351,9 +389,26 @@ struct qore_program_private {
 	 return rc;
       }
 
-      int parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+      // checks to see if parseCommit() can be called - updating existing runtime data structures
+      DLLLOCAL int checkParseCommitUnlocked(ExceptionSink *xsink) {
+	 // if no threads are running, return 0
+	 if (!thread_count)
+	    return 0;
+
+	 // if one thread is running, and it's the current thread, return 0
+	 if (thread_count == 1 && getProgram() == pgm)
+	    return 0;
+
+	 xsink->raiseException("PROGRAM-PARSE-CONFLICT", "cannot execute any operation on a program object that modifies run-time data structures when another thread is currently executing in that program object");
+	 return -1;
+      }
+
+      DLLLOCAL int parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
 	 // grab program-level parse lock
 	 AutoLocker al(&plock);
+	 if (checkParseCommitUnlocked(xsink))
+	    return -1;
+
 	 warnSink = wS;
 	 warn_mask = wm;
 	 parseSink = xsink;
@@ -367,6 +422,145 @@ struct qore_program_private {
 	 warnSink = 0;
 	 // release program-level parse lock
 	 return rc;
+      }
+
+      DLLLOCAL void parseRollback() {
+	 ProgramContextHelper pch(pgm, 0);
+
+	 // grab program-level parse lock and release on exit
+	 AutoLocker al(&plock);
+   
+	 // back out all pending changes
+	 internParseRollback();
+      }
+
+      DLLLOCAL void parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+	 printd(5, "QoreProgram::parse(fp=%08p, name=%s, xsink=%08p, wS=%08p, wm=%d)\n", fp, name, xsink, wS, wm);
+
+	 // if already at the end of file, then return
+	 // try to get one character from file
+	 int c = fgetc(fp);
+	 if (feof(fp)) {
+	    printd(5, "QoreProgram::parse(fp=%08p, name=%s) EOF\n", fp, name);
+	    return;
+	 }
+	 // push back read character
+	 ungetc(c, fp);
+
+	 yyscan_t lexer;
+	 
+	 // grab program-level parse lock
+	 {
+	    AutoLocker al(&plock);
+	    if (checkParseCommitUnlocked(xsink))
+	       return;
+	 
+	    warnSink = wS;
+	    warn_mask = wm;
+	    parseSink = xsink;
+	 
+	    // save this file name for storage in the parse tree and deletion
+	    // when the QoreProgram object is deleted
+	    char *sname = strdup(name);
+	    fileList.push_back(sname);
+	    beginParsing(sname);
+	 
+	    ProgramContextHelper pch(pgm, xsink);
+	    //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
+	    yylex_init(&lexer);
+	    yyset_in(fp, lexer);
+	    // yyparse() will call endParsing() and restore old pgm position
+	    yyparse(lexer);
+	 
+	    // finalize parsing, back out or commit all changes
+	    internParseCommit();
+	 
+#ifdef DEBUG
+	    parseSink = 0;
+#endif
+	    warnSink = 0;
+	    // release program-level parse lock
+	 }
+	 
+	 yylex_destroy(lexer);
+      }
+
+      DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+	 if (!str->strlen())
+	    return;
+
+	 // ensure code string has correct character set encoding
+	 TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    return;
+
+	 // ensure label string has correct character set encoding
+	 TempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    return;
+
+	 parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
+      }
+
+      DLLLOCAL void parse(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+	 if (!(*code))
+	    return;
+
+	 ProgramContextHelper pch(pgm, xsink);
+   
+	 // grab program-level parse lock
+	 AutoLocker al(&plock);
+	 if (checkParseCommitUnlocked(xsink))
+	    return;
+
+	 warnSink = wS;
+	 warn_mask = wm;
+	 parseSink = xsink;
+
+	 // parse text given
+	 if (!internParsePending(code, label))
+	    internParseCommit();   // finalize parsing, back out or commit all changes
+
+#ifdef DEBUG
+	 parseSink = 0;
+#endif
+	 warnSink = 0;
+      }
+
+      DLLLOCAL void parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+	 QORE_TRACE("QoreProgram::parseFile()");
+
+	 printd(5, "QoreProgram::parseFile(%s)\n", filename);
+
+	 FILE *fp;
+	 if (!(fp = fopen(filename, "r"))) {
+	    xsink->raiseException("PARSE-EXCEPTION", "cannot open qore script '%s': %s", filename, strerror(errno));
+	    return;
+	 }
+	 setScriptPath(filename);
+	 
+	 ON_BLOCK_EXIT(fclose, fp);
+      
+	 parse(fp, filename, xsink, wS, wm);
+      }
+   
+      DLLLOCAL void parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+	 if (!str->strlen())
+	    return;
+
+	 // ensure code string has correct character set encoding
+	 TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    return;
+
+	 // ensure label string has correct character set encoding
+	 TempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    return;
+
+	 ProgramContextHelper pch(pgm, xsink);
+      
+	 parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
       }
 };
 
@@ -385,7 +579,7 @@ QoreProgram::~QoreProgram() {
 }
 
 // setup first program object
-QoreProgram::QoreProgram() : priv(new qore_program_private) {
+QoreProgram::QoreProgram() : priv(new qore_program_private(this)) {
    priv->base_object = true;
    priv->parse_options = PO_DEFAULT;
    priv->po_locked = false;
@@ -405,7 +599,7 @@ QoreProgram::QoreProgram() : priv(new qore_program_private) {
    priv->RootNS = new RootQoreNamespace(&priv->QoreNS);
 }
 
-QoreProgram::QoreProgram(QoreProgram *pgm, int po, bool ec, const char *ecn) : priv(new qore_program_private) {
+QoreProgram::QoreProgram(QoreProgram *pgm, int po, bool ec, const char *ecn) : priv(new qore_program_private(this)) {
    // flag as derived object
    priv->base_object = false;
 
@@ -457,7 +651,7 @@ void QoreProgram::deref(ExceptionSink *xsink) {
 void QoreProgram::del(ExceptionSink *xsink) {
    printd(5, "QoreProgram::del() this=%08p (priv->base_object=%d)\n", this, priv->base_object);
    // wait for all threads to terminate
-   priv->tcount.waitForZero();
+   priv->waitForAllThreadsToTerminate();
 
    // have to delete global variables first because of destructors.
    // method call can be repeated
@@ -706,11 +900,11 @@ QoreListNode *QoreProgram::getUserFunctionList() {
 }
 
 void QoreProgram::waitForTermination() {
-   priv->tcount.waitForZero();
+   priv->waitForAllThreadsToTerminate();
 }
 
 void QoreProgram::waitForTerminationAndDeref(ExceptionSink *xsink) {
-   priv->tcount.waitForZero();
+   priv->waitForAllThreadsToTerminate();
    deref(xsink);
 }
 
@@ -927,130 +1121,27 @@ AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallRefer
 }
 
 void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
-   printd(5, "QoreProgram::parse(fp=%08p, name=%s, xsink=%08p, wS=%08p, wm=%d)\n", fp, name, xsink, wS, wm);
-
-   // if already at the end of file, then return
-   // try to get one character from file
-   int c = fgetc(fp);
-   if (feof(fp)) {
-      printd(5, "QoreProgram::parse(fp=%08p, name=%s) EOF\n", fp, name);
-      return;
-   }
-   // push back read character
-   ungetc(c, fp);
-
-   // grab program-level parse lock
-   priv->plock.lock();
-   priv->warnSink = wS;
-   priv->warn_mask = wm;
-   priv->parseSink = xsink;
-
-   // save this file name for storage in the parse tree and deletion
-   // when the QoreProgram object is deleted
-   char *sname = strdup(name);
-   priv->fileList.push_back(sname);
-   beginParsing(sname);
-
-   ProgramContextHelper pch(this, xsink);
-   printd(2, "QoreProgram::parse(): about to call yyparse()\n");
-   yyscan_t lexer;
-   yylex_init(&lexer);
-   yyset_in(fp, lexer);
-   // yyparse() will call endParsing() and restore old pgm position
-   yyparse(lexer);
-
-   // finalize parsing, back out or commit all changes
-   priv->internParseCommit();
-
-#ifdef DEBUG
-   priv->parseSink = 0;
-#endif
-   priv->warnSink = 0;
-   // release program-level parse lock
-   priv->plock.unlock();
-
-   yylex_destroy(lexer);
+   priv->parse(fp, name, xsink, wS, wm);
 }
 
 void QoreProgram::parse(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
-   if (!str->strlen())
-      return;
-
-   // ensure code string has correct character set encoding
-   TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return;
-
-   // ensure label string has correct character set encoding
-   TempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return;
-
-   parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
+   priv->parse(str, lstr, xsink, wS, wm);
 }
 
 void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
-   if (!(*code))
-      return;
-
-   ProgramContextHelper pch(this, xsink);
-   
-   // grab program-level parse lock
-   priv->plock.lock();
-   priv->warnSink = wS;
-   priv->warn_mask = wm;
-   priv->parseSink = xsink;
-
-   // parse text given
-   if (!priv->internParsePending(code, label))
-      priv->internParseCommit();   // finalize parsing, back out or commit all changes
-
-#ifdef DEBUG
-   priv->parseSink = 0;
-#endif
-   priv->warnSink = 0;
-   // release program-level parse lock
-   priv->plock.unlock();
+   priv->parse(code, label, xsink, wS, wm);
 }
 
 void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
-   QORE_TRACE("QoreProgram::parseFile()");
-
-   printd(5, "QoreProgram::parseFile(%s)\n", filename);
-
-   FILE *fp;
-   if (!(fp = fopen(filename, "r"))) {
-      xsink->raiseException("PARSE-EXCEPTION", "cannot open qore script '%s': %s", filename, strerror(errno));
-      return;
-   }
-   priv->setScriptPath(filename);
-
-   ON_BLOCK_EXIT(fclose, fp);
-
-   parse(fp, filename, xsink, wS, wm);
+   priv->parseFile(filename, xsink, wS, wm);
 }
 
 void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
-   if (!str->strlen())
-      return;
-
-   // ensure code string has correct character set encoding
-   TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return;
-
-   // ensure label string has correct character set encoding
-   TempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return;
-
-   ProgramContextHelper pch(this, xsink);
-
-   priv->parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
+   priv->parsePending(str, lstr, xsink, wS, wm);
 }
 
 AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
-   priv->tcount.inc();
+   ProgramThreadCountHelper tch(this);
 
    AbstractQoreNode *rv = 0;
    SBNode *w = priv->sb_head;
@@ -1065,7 +1156,6 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
 	 w = w->next;
       } 
    }
-   priv->tcount.dec();
    return rv;
 }
 
@@ -1101,6 +1191,9 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    }
 
    AbstractQoreNode *rv;
+
+   ProgramThreadCountHelper tch(this);
+
    {
       ProgramContextHelper pch(this, xsink);
       rv = fc->eval(xsink);
@@ -1117,6 +1210,9 @@ AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreL
    SimpleRefHolder<FunctionCallNode> fc(new FunctionCallNode(ufc, const_cast<QoreListNode *>(args)));
 
    AbstractQoreNode *rv;
+
+   ProgramThreadCountHelper tch(this);
+
    {
       ProgramContextHelper pch(this, xsink);
       rv = fc->eval(xsink);
@@ -1148,35 +1244,24 @@ void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
 // this function cannot throw an exception because as long as the 
 // parse lock is held
 void QoreProgram::parseRollback() {
-   ProgramContextHelper pch(this, 0);
-
-   // grab program-level parse lock
-   priv->plock.lock();
-   
-   // back out all pending changes
-   priv->internParseRollback();
-
-   // release program-level parse lock
-   priv->plock.unlock();   
+   priv->parseRollback();
 }
 
 void QoreProgram::runClass(const char *classname, ExceptionSink *xsink) {
    // find class
-   class QoreClass *qc = priv->RootNS->rootFindClass(classname);
+   QoreClass *qc = priv->RootNS->rootFindClass(classname);
    if (!qc) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;
    }
    //printd(5, "QoreProgram::runClass(%s)\n", classname);
 
-   priv->tcount.inc();
+   ProgramThreadCountHelper tch(this);
 
    {
       ProgramContextHelper pch(this, xsink);
       discard(qc->execConstructor(0, xsink), xsink); 
-   }
-   
-   priv->tcount.dec();
+   }   
 }
 
 void QoreProgram::parseFileAndRunClass(const char *filename, const char *classname) {
@@ -1279,11 +1364,11 @@ QoreListNode *QoreProgram::getVarList() {
 }
 
 void QoreProgram::tc_inc() {
-   priv->tcount.inc();
+   priv->incThreadCount();
 }
 
 void QoreProgram::tc_dec() {
-   priv->tcount.dec();
+   priv->decThreadCount();
 }
 
 const char *QoreProgram::parseGetScriptDir() const {
