@@ -283,7 +283,7 @@ class MemberList : private member_map_t {
       DLLLOCAL void mergePrivateMembers(QoreClass *qc) {
 	 member_map_t::iterator i;
 	 while ((i = begin()) != end()) {
-	    qc->addPrivateMember(i->first, i->second);
+	    qc->parseAddPrivateMember(i->first, i->second);
 	    erase(i);
 	 }
       }
@@ -291,7 +291,7 @@ class MemberList : private member_map_t {
       DLLLOCAL void mergePublicMembers(QoreClass *qc) {
 	 member_map_t::iterator i;
 	 while ((i = begin()) != end()) {
-	    qc->addPublicMember(i->first, i->second);
+	    qc->parseAddPublicMember(i->first, i->second);
 	    erase(i);
 	 }
       }
@@ -479,16 +479,14 @@ struct MethodNode {
       // method to add to class
       QoreMethod *m;
       // base class argument list for constructors
-      class BCAList *bcal;
+      BCAList *bcal;
 
-      DLLLOCAL inline MethodNode(UserFunction *f, bool n_priv, bool n_static, class BCAList *bl) : bcal(bl) {
+      DLLLOCAL inline MethodNode(UserFunction *f, bool n_priv, bool n_static, BCAList *bl) : bcal(bl) {
 	 m = new QoreMethod(f, n_priv, n_static);
       }
       DLLLOCAL inline ~MethodNode() {
-	 if (m)
-	    delete m;
-	 if (bcal)
-	    delete bcal;
+	 delete m;
+	 delete bcal;
       }
       DLLLOCAL inline void addAndDelete(QoreClass *qc) {
 	 qc->addMethod(m);
@@ -533,7 +531,7 @@ struct MethodNode {
       class ConstNode *constnode;
       class QoreNamespace *ns;
       class NSNode *nsn;
-      class ObjClassDef *objdef;
+      class ObjClassDef *classdef;
       class DateTimeNode *datetime;
       class RegexSubstNode *RegexSubst;
       class RegexTransNode *RegexTrans;
@@ -668,7 +666,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token <string> VAR_REF "variable reference"
 %token <string> BACKQUOTE "backquote expression"
 %token <string> SELF_REF "in-object member reference"
-%token <string> KW_IDENTIFIER_OPENPAREN "keyword used as function or method identifier"
+%token <string> KW_IDENTIFIER_OPENPAREN "identifier or keyword used as function or method identifier"
 %token <string> SCOPED_REF "namespace or class-scoped reference"
 %token <string> CONTEXT_REF "context reference"
 %token <string> COMPLEX_CONTEXT_REF "named context reference"
@@ -730,7 +728,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <memberlist>  member_list
 %type <memberinfo>  member
 %type <qoreclass>   class_attributes
-%type <objdef>      object_def
+%type <classdef>    class_def
 %type <ns>          top_namespace_decl
 %type <ns>          namespace_decls
 %type <nsn>         namespace_decl
@@ -751,7 +749,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list base_constructor_list base_constructors class_attributes return_value member
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list base_constructor_list base_constructors class_attributes return_value member
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
@@ -764,7 +762,7 @@ top_level_commands:
 
 top_level_command:
         sub_def                      // registered directly
-        | object_def		     
+        | class_def		     
         {
 	   addClass($1->name, $1->oc); 
 	   // see if class definitions are allowed
@@ -853,7 +851,7 @@ namespace_decl:
 	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)",
 			  $1->name->ostr);
 	}
-	| object_def          
+	| class_def          
         { 
 	   $$ = new NSNode($1); 
 	   // see if class definitions are allowed
@@ -1212,7 +1210,7 @@ myexp:     /* empty */          { $$ = 0; }
 //        | TOK_FINALLY statement { $$ = $2; }
 //        ;
 
-object_def:
+class_def:
 	TOK_CLASS IDENTIFIER inheritance_list '{' class_attributes '}'
         {
 	   $$ = new ObjClassDef($2, $5); 

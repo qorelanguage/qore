@@ -365,26 +365,6 @@ class QoreClass {
       */
       DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
 
-      //! DEPRECATED: use addPrivateMember(char *name, QoreParseTypeInfo *typeInfo) instead: adds a name of a private member (not accessible from outside the class hierarchy)
-      /** this method takes ownership of *name
-	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
-       */
-      DLLEXPORT void addPrivateMember(char *name);
-
-      //! adds a name of a private member (not accessible from outside the class hierarchy)
-      /** this method takes ownership of *name
-	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
-	  @param typeInfo unvalidated and unresolved type information available at parse time
-       */
-      DLLEXPORT void addPrivateMember(char *name, QoreParseTypeInfo *typeInfo);
-
-      //! adds a public member; if a class has at least one public member then only public members can be accessed externally from the class
-      /** this method takes ownership of *name
-	  @param name the name of the public member (ownership of the memory is assumed by the QoreClass object)
-	  @param typeInfo unvalidated and unresolved type information available at parse time
-       */
-      DLLEXPORT void addPublicMember(char *name, QoreParseTypeInfo *typeInfo);
-
       //! returns true if the member is private
       /** 
 	  @param str the member name to check
@@ -602,6 +582,20 @@ class QoreClass {
 
       // used when parsing, finds committed static methods within the entire class hierarchy (local class plus base classes)
       DLLLOCAL const QoreMethod *findParseStaticMethod(const char *nme);
+
+      //! adds a name of a private member (not accessible from outside the class hierarchy)
+      /** this method takes ownership of *name
+	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
+	  @param typeInfo unvalidated and unresolved type information available at parse time
+       */
+      DLLLOCAL void parseAddPrivateMember(char *name, QoreParseTypeInfo *typeInfo);
+
+      //! adds a public member; if a class has at least one public member then only public members can be accessed externally from the class
+      /** this method takes ownership of *name
+	  @param name the name of the public member (ownership of the memory is assumed by the QoreClass object)
+	  @param typeInfo unvalidated and unresolved type information available at parse time
+       */
+      DLLLOCAL void parseAddPublicMember(char *name, QoreParseTypeInfo *typeInfo);
 
       // returns 0 for success, -1 for error
       DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);

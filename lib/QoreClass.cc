@@ -32,6 +32,8 @@
 // global class ID sequence
 DLLLOCAL Sequence classIDSeq;
 
+static inline const char *pubpriv(bool pub) { return pub ? "private" : "public"; }
+
 // private QoreClass implementation
 struct qore_qc_private {
    char *name;                  // the name of the class
@@ -213,9 +215,19 @@ struct qore_qc_private {
 #else
 	    scl->parseInit(qc, bcal, has_delete_blocker);
 #endif
-      }
+	 }
+
 	 if (!sys && domain & getProgram()->getParseOptions())
 	    parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name);
+
+	 // check new members for conflicts in base classes
+	 for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
+	    parseCheckMemberInBaseClasses(i->first, i->second, true);
+	 }
+
+	 for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
+	    parseCheckMemberInBaseClasses(i->first, i->second, false);
+	 }
       }
    }
 
@@ -301,37 +313,36 @@ struct qore_qc_private {
       return scl ? scl->parseFindPublicPrivateMember(mem, memberTypeInfo, priv) : 0;
    }
 
-   DLLLOCAL void addPrivateMember(char *mem, QoreParseTypeInfo *memberTypeInfo) {
-      bool priv;
-      const QoreTypeInfo *existingMemberTypeInfo;
-      const QoreClass *sclass = parseFindPublicPrivateMember(mem, existingMemberTypeInfo, priv);
-      if (!sclass) {
-	 //printd(5, "QoreClass::addPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
-	 pending_private_members[mem] = memberTypeInfo;
-	 return;
-      }
+   DLLLOCAL int checkExistingMember(char *mem, QoreParseTypeInfo *memberTypeInfo, bool priv, const QoreClass *sclass, const QoreTypeInfo *existingMemberTypeInfo, bool is_priv) {
+      //printd(5, "checkExistingMember() mem=%s priv=%d is_priv=%d sclass=%s\n", mem, priv, is_priv, sclass->getName());
 
       // here we know that the member already exists, so either it will be a
       // duplicate declaration, in which case it is ignored, or it is a
       // contradictory declaration, in which case a parse exception is raised
 
       // if the member was previously declared public
-      if (!priv) {
+      if (priv != is_priv) {
 	 // raise an exception only if parse exceptions are enabled
 	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("cannot declare private member ");
-	    desc->sprintf("'%s', when ", mem);
+	    QoreStringNode *desc = new QoreStringNode;
+	    if (name)
+	       desc->sprintf("class '%s' ", name);
+	    desc->concat("cannot declare ");
+	    desc->sprintf("%s member ", pubpriv(priv));
+	    desc->sprintf("'%s' when ", mem);
 	    if (sclass == typeInfo.qc)
 	       desc->concat("this class");
 	    else
 	       desc->sprintf("base class '%s'", sclass->getName());
-	    desc->concat(" already declared this member as public");
+	    desc->sprintf(" already declared this member as %s", pubpriv(is_priv));
 	    getProgram()->makeParseException("PARSE-ERROR", desc);
 	 }
+	 return -1;
       }
       else if (memberTypeInfo || existingMemberTypeInfo) {
 	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("private member ");
+	    QoreStringNode *desc = new QoreStringNode;
+	    desc->sprintf("%s member ", pubpriv(priv));
 	    desc->sprintf("'%s' was already declared in ", mem);
 	    if (sclass == typeInfo.qc)
 	       desc->concat("this class");
@@ -339,58 +350,55 @@ struct qore_qc_private {
 	       desc->sprintf("base class '%s'", sclass->getName());
 	    if (existingMemberTypeInfo)
 	       desc->sprintf(" with a type definition");
-	    desc->concat(", and cannot be declared again if the member has a type definition");
+	    desc->concat(" and cannot be declared again");
+	    if (name)
+	       desc->sprintf(" in class '%s'", name);
+	    desc->concat(" if the member has a type definition");
 	    
 	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	 }
+	 return -1;
+      }
+      
+      return 0;
+   }
+
+   DLLLOCAL int parseCheckMember(char *mem, QoreParseTypeInfo *memberTypeInfo, bool priv) {
+      bool is_priv;
+      const QoreTypeInfo *existingMemberTypeInfo;
+      const QoreClass *sclass = parseFindPublicPrivateMember(mem, existingMemberTypeInfo, is_priv);
+      if (!sclass)
+	 return 0;
+
+      return checkExistingMember(mem, memberTypeInfo, priv, sclass, existingMemberTypeInfo, is_priv);
+   }
+
+   DLLLOCAL int parseCheckMemberInBaseClasses(char *mem, QoreParseTypeInfo *memberTypeInfo, bool priv) {
+      bool is_priv;
+      const QoreTypeInfo *existingMemberTypeInfo;
+      const QoreClass *sclass = scl ? scl->parseFindPublicPrivateMember(mem, existingMemberTypeInfo, is_priv) : 0;
+      if (!sclass)
+	 return 0;
+
+      return checkExistingMember(mem, memberTypeInfo, priv, sclass, existingMemberTypeInfo, is_priv);
+   }
+
+   DLLLOCAL void parseAddPrivateMember(char *mem, QoreParseTypeInfo *memberTypeInfo) {
+      if (!parseCheckMember(mem, memberTypeInfo, true)) {
+	 //printd(5, "QoreClass::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
+	 pending_private_members[mem] = memberTypeInfo;
+	 return;
       }
 
       free(mem);
       delete memberTypeInfo;
    }
 
-   DLLLOCAL void addPublicMember(char *mem, QoreParseTypeInfo *memberTypeInfo) {
-      bool priv;
-      const QoreTypeInfo *existingMemberTypeInfo;
-      const QoreClass *sclass = parseFindPublicPrivateMember(mem, existingMemberTypeInfo, priv);
-      if (!sclass) {
-	 //printd(5, "QoreClass::addPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
+   DLLLOCAL void parseAddPublicMember(char *mem, QoreParseTypeInfo *memberTypeInfo) {
+      if (!parseCheckMember(mem, memberTypeInfo, false)) {
+	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name, mem, mem);
 	 pending_public_members[mem] = memberTypeInfo;
 	 return;
-      }
-
-      // here we know that the member already exists, so either it will be a
-      // duplicate declaration, in which case it is ignored, or it is a
-      // contradictory declaration, in which case a parse exception is raised
-
-      // if the member was previously declared public
-      if (priv) {
-	 // raise an exception only if parse exceptions are enabled
-	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("cannot declare public member ");
-	    desc->sprintf("'%s', when ", mem);
-	    if (sclass == typeInfo.qc)
-	       desc->concat("this class");
-	    else
-	       desc->sprintf("base class '%s'", sclass->getName());
-	    desc->concat(" already declared this member as private");
-	    getProgram()->makeParseException("PARSE-ERROR", desc);
-	 }
-      }
-      else if (memberTypeInfo || existingMemberTypeInfo) {
-	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("public member ");
-	    desc->sprintf("'%s' was already declared in ", mem);
-	    if (sclass == typeInfo.qc)
-	       desc->concat("this class");
-	    else
-	       desc->sprintf("base class '%s'", sclass->getName());
-	    if (existingMemberTypeInfo)
-	       desc->sprintf(" with a type definition");
-	    desc->concat(", and cannot be declared again if the member has a type definition");
-	    
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-	 }
       }
 
       free(mem);
@@ -1376,16 +1384,12 @@ static const QoreClass *getStackClass() {
    return 0;
 }
 
-void QoreClass::addPrivateMember(char *nme) {
-   addPrivateMember(nme, 0);
+void QoreClass::parseAddPrivateMember(char *nme, QoreParseTypeInfo *typeInfo) {
+   priv->parseAddPrivateMember(nme, typeInfo);
 }
 
-void QoreClass::addPrivateMember(char *nme, QoreParseTypeInfo *typeInfo) {
-   priv->addPrivateMember(nme, typeInfo);
-}
-
-void QoreClass::addPublicMember(char *nme, QoreParseTypeInfo *typeInfo) {
-   priv->addPublicMember(nme, typeInfo);
+void QoreClass::parseAddPublicMember(char *nme, QoreParseTypeInfo *typeInfo) {
+   priv->parseAddPublicMember(nme, typeInfo);
 }
 
 bool BCSMList::isBaseClass(QoreClass *qc) const {
