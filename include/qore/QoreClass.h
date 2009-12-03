@@ -63,8 +63,8 @@ class Paramlist;
     @see QoreClass
  */
 class QoreMethod {
-      friend class QoreObject;
       friend class StaticMethodCallNode;
+      friend class QoreObject;
 
    private:
       //! private implementation of the method
@@ -169,6 +169,7 @@ class QoreClass {
       friend class BCList;
       friend class BCNode;
       friend class BCSMList;
+      friend class qore_object_private;
       friend class QoreObject;
 
    private:

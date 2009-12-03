@@ -261,7 +261,7 @@ struct qore_qc_private {
    }
 
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const {
-      if (!public_members.empty() || !pending_public_members.empty())
+      if (has_public_members || !pending_public_members.empty())
 	 return true;
       
       return scl ? scl->parseHasPublicMembersInHierarchy() : false;
@@ -473,7 +473,7 @@ struct qore_qc_private {
       // it's safe to call parseHasPublicMembersInHierarchy() because the 2nd stage
       // of parsing has completed without any errors (or we wouldn't be
       // running parseCommit())
-      if (!has_public_members && (!public_members.empty() || scl ? scl->parseHasPublicMembersInHierarchy() : false))
+      if (!has_public_members && (!public_members.empty() || (scl ? scl->parseHasPublicMembersInHierarchy() : false)))
 	 has_public_members = true;
    }
 
