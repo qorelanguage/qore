@@ -83,8 +83,6 @@ private:
    //! private implementation
    struct qore_program_private *priv;
       
-   DLLLOCAL void initGlobalVars();
-   DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *uf, ExceptionSink *xsink);
    DLLLOCAL void del(ExceptionSink *xsink);
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used

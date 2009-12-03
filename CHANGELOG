@@ -2,6 +2,8 @@
 	* implemented member checking for object slices
 	* moved all private methods of QoreObject into the private class
 	  implementation
+	* moved all private methods of QoreProgram into the private class
+	  implementation
 
 2009.12.01: David Nichols
 	* implemented instantiating variables with default values when defined

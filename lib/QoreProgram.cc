@@ -562,6 +562,61 @@ struct qore_program_private {
       
 	 parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
       }
+
+      // called during run time (not during parsing)
+      DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink) {
+	 AutoLocker al(&plock);
+	 // check if a user function already exists with this name
+	 if (user_func_list.find(u->getName()))
+	    xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
+	 else if (imported_func_list.findNode(u->getName()))
+	    xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
+	 else
+	    imported_func_list.add(p, u);
+      }
+
+      DLLLOCAL void del(ExceptionSink *xsink) {
+	 printd(5, "QoreProgram::del() pgm=%08p (base_object=%d)\n", pgm, base_object);
+	 // wait for all threads to terminate
+	 waitForAllThreadsToTerminate();
+
+	 // have to delete global variables first because of destructors.
+	 // method call can be repeated
+	 global_var_list.delete_all(xsink);
+
+	 // delete user functions in case there are constant objects which are 
+	 // instances of classes that may be deleted below (call can be repeated)
+	 user_func_list.del();
+
+	 // method call can be repeated
+	 deleteSBList();
+
+	 if (base_object) {
+	    endThread(xsink);
+
+	    // delete thread local storage key
+	    delete thread_local_storage;
+	    base_object = false;
+	 }
+
+	 //printd(5, "QoreProgram::~QoreProgram() this=%p deleting root ns %p\n", this, RootNS);
+
+	 delete RootNS;
+	 RootNS = 0;
+      }
+
+      DLLLOCAL QoreHashNode *clearThreadData(ExceptionSink *xsink) {
+	 QoreHashNode *h = thread_local_storage->get();
+	 printd(5, "QoreProgram::clearThreadData() this=%08p h=%08p (size=%d)\n", this, h, h->size());
+	 h->clear(xsink);
+	 return h;
+      }
+
+      DLLLOCAL void endThread(ExceptionSink *xsink) {
+	 // delete thread local storage data
+	 QoreHashNode *h = clearThreadData(xsink);
+	 h->deref(xsink);
+      }
 };
 
 inline SBNode::~SBNode() {
@@ -643,39 +698,9 @@ void QoreProgram::deref(ExceptionSink *xsink) {
       priv->global_var_list.clear_all(xsink);
       // clear thread data if base object
       if (priv->base_object)
-	 clearThreadData(xsink);
+	 priv->clearThreadData(xsink);
       depDeref(xsink);
    }
-}
-
-void QoreProgram::del(ExceptionSink *xsink) {
-   printd(5, "QoreProgram::del() this=%08p (priv->base_object=%d)\n", this, priv->base_object);
-   // wait for all threads to terminate
-   priv->waitForAllThreadsToTerminate();
-
-   // have to delete global variables first because of destructors.
-   // method call can be repeated
-   priv->global_var_list.delete_all(xsink);
-
-   // delete user functions in case there are constant objects which are 
-   // instances of classes that may be deleted below (call can be repeated)
-   priv->user_func_list.del();
-
-   // method call can be repeated
-   priv->deleteSBList();
-
-   if (priv->base_object) {
-      endThread(xsink);
-
-      // delete thread local storage key
-      delete priv->thread_local_storage;
-      priv->base_object = false;
-   }
-
-   //printd(5, "QoreProgram::~QoreProgram() this=%p deleting root ns %p\n", this, priv->RootNS);
-
-   delete priv->RootNS;
-   priv->RootNS = 0;
 }
 
 Var *QoreProgram::findGlobalVar(const char *name) {
@@ -841,7 +866,7 @@ void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, Exception
       if (!u)
 	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function \"%s\" does not exist in the current program scope", name);
       else
-	 p->importUserFunction(this, u, xsink);
+	 p->priv->importUserFunction(this, u, xsink);
    }
 }
 
@@ -933,7 +958,7 @@ void QoreProgram::depRef() {
 void QoreProgram::depDeref(ExceptionSink *xsink) {
    //printd(5, "QoreProgram::depDeref() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
    if (priv->dc.ROdereference()) {
-      del(xsink);
+      priv->del(xsink);
       delete this;
    }
 }
@@ -1018,16 +1043,11 @@ AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink) {
 }
 
 QoreHashNode *QoreProgram::clearThreadData(ExceptionSink *xsink) {
-   QoreHashNode *h = priv->thread_local_storage->get();
-   printd(5, "QoreProgram::clearThreadData() this=%08p h=%08p (size=%d)\n", this, h, h->size());
-   h->clear(xsink);
-   return h;
+   return priv->clearThreadData(xsink);
 }
 
 void QoreProgram::endThread(ExceptionSink *xsink) {
-   // delete thread local storage data
-   QoreHashNode *h = clearThreadData(xsink);
-   h->deref(xsink);
+   priv->endThread(xsink);
 }
 
 // called during parsing (priv->plock already grabbed)
@@ -1222,18 +1242,6 @@ AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreL
    fc->take_args();
 
    return rv;
-}
-
-// called during run time (not during parsing)
-void QoreProgram::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink) {
-   AutoLocker al(&priv->plock);
-   // check if a user function already exists with this name
-   if (priv->user_func_list.find(u->getName()))
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
-   else if (priv->imported_func_list.findNode(u->getName()))
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
-   else
-      priv->imported_func_list.add(p, u);
 }
 
 void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
