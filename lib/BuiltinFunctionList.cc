@@ -1,5 +1,5 @@
 /*
-  Function.cc
+  BuiltinFunctionList.cc
 
   Qore Programming language
 
@@ -52,19 +52,15 @@ hm_bf_t BuiltinFunctionList::hm;
 class QoreThreadLock BuiltinFunctionList::mutex;
 class BuiltinFunctionList builtinFunctions;
 
-BuiltinFunctionList::BuiltinFunctionList()
-{
+BuiltinFunctionList::BuiltinFunctionList() {
 }
 
-BuiltinFunctionList::~BuiltinFunctionList()
-{
+BuiltinFunctionList::~BuiltinFunctionList() {
 //   assert(hm.empty());
 }
 
-void BuiltinFunctionList::add(const char *name, q_func_t f, int typ)
-{
-   if (init_done)
-   {
+void BuiltinFunctionList::add(const char *name, q_func_t f, int typ) {
+   if (init_done) {
       mutex.lock();
       // version with cloning the name: hm[strdup(name)] = new BuiltinFunction(name, f, typ);
       hm[name] = new BuiltinFunction(name, f, typ);
@@ -75,12 +71,10 @@ void BuiltinFunctionList::add(const char *name, q_func_t f, int typ)
    }
 }
 
-void BuiltinFunctionList::clear()
-{
+void BuiltinFunctionList::clear() {
    //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() this=%08p\n", this);
    hm_bf_t::iterator i = hm.begin();
-   while (i != hm.end())
-   {
+   while (i != hm.end()) {
       //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() deleting '%s()'\n", i->first);
       // char *c = (char *)i->first; - was used for deleting the cloned function name
 
@@ -97,8 +91,7 @@ void BuiltinFunctionList::clear()
    }
 }
 
-const BuiltinFunction *BuiltinFunctionList::find(const char *name)
-{
+const BuiltinFunction *BuiltinFunctionList::find(const char *name) {
    const BuiltinFunction *rv = 0;
    if (init_done)
       mutex.lock();
@@ -110,13 +103,11 @@ const BuiltinFunction *BuiltinFunctionList::find(const char *name)
    return rv;
 }
 
-inline int BuiltinFunctionList::size()
-{
+inline int BuiltinFunctionList::size() {
    return hm.size();
 }
 
-void BuiltinFunctionList::init()
-{
+void BuiltinFunctionList::init() {
    QORE_TRACE("BuiltinFunctionList::init()");
 
    init_string_functions();
@@ -141,6 +132,4 @@ void BuiltinFunctionList::init()
    init_debug_functions();
 #endif
    init_done = true;
-
-
 }

@@ -147,6 +147,7 @@ noinst_HEADERS = \
 	include/qore/intern/GlobalVariableList.h \
 	include/qore/intern/DatasourcePool.h \
 	include/qore/intern/Function.h \
+	include/qore/intern/BuiltinFunction.h \
 	include/qore/intern/FindNode.h \
 	include/qore/intern/ExecArgList.h \
 	include/qore/intern/ErrnoConstants.h \

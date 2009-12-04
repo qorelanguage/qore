@@ -148,7 +148,7 @@ void ConstantList::parseInit() {
       if (!i->second.node)
 	 i->second.node = nothing();
 
-      //printd(0, "ConstantList::parseInit() %s: %p (%s type %s %s)\n", i->first, i->second.node, i->second.node->getTypeName(), i->second.typeInfo && i->second.typeInfo->qt ? getBuiltinTypeName(i->second.typeInfo->qt) : "n/a", i->second.typeInfo && i->second.typeInfo->qc ? i->second.typeInfo->qc->getName() : "n/a");
+      //printd(0, "ConstantList::parseInit() %s: %p (%s type %s %s)\n", i->first, i->second.node, i->second.node->getTypeName(), i->second.typeInfo && i->second.typeInfo->getType() ? getBuiltinTypeName(i->second.typeInfo->qt) : "n/a", i->second.typeInfo && i->second.typeInfo->qc ? i->second.typeInfo->qc->getName() : "n/a");
    }
 }
 

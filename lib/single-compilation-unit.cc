@@ -28,6 +28,7 @@
 #include "QoreClosureNode.cc"
 #include "QoreImplicitArgumentNode.cc"
 #include "Function.cc"
+#include "BuiltinFunction.cc"
 #include "BuiltinFunctionList.cc"
 #include "UserFunctionList.cc"
 #include "GlobalVariableList.cc"

@@ -106,6 +106,7 @@ typedef std::map<QoreCondition *, int> cond_map_t;
 #include <qore/intern/CallReferenceCallNode.h>
 #include <qore/intern/CallReferenceNode.h>
 #include <qore/intern/Function.h>
+#include <qore/intern/BuiltinFunction.h>
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/Variable.h>
 #include <qore/intern/LocalVar.h>

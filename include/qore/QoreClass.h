@@ -57,6 +57,8 @@ class QoreObject;
 class QoreClass;
 class BCEAList;
 class Paramlist;
+class BuiltinStaticMethod;
+class BuiltinStaticMethod2;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -153,7 +155,8 @@ class QoreMethod {
       DLLLOCAL void parseInitDestructor();
       DLLLOCAL void parseInitCopy();
       DLLLOCAL void assign_class(const QoreClass *p_class);
-      DLLLOCAL const BuiltinFunction *getStaticBuiltinFunction() const;
+      DLLLOCAL const BuiltinStaticMethod *getStaticBuiltinFunction() const;
+      DLLLOCAL const BuiltinStaticMethod2 *getStaticBuiltinFunction2() const;
       DLLLOCAL const UserFunction *getStaticUserFunction() const;
       DLLLOCAL bool existsUserParam(unsigned i) const;
       DLLLOCAL Paramlist *getParams() const;

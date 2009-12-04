@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/Sequence.h>
-#include <qore/intern/BuiltinMethod.h>
 #include <qore/intern/QoreClassIntern.h>
 
 #include <string.h>
@@ -563,11 +562,20 @@ struct qore_method_private {
       return func.userFunc;
    }
    
-   DLLLOCAL const BuiltinFunction *getStaticBuiltinFunction() const {
+   DLLLOCAL const BuiltinStaticMethod *getStaticBuiltinFunction() const {
       assert(static_flag);
       assert(type == OTF_BUILTIN);
-      
-      return func.builtin;
+      assert(!new_call_convention);
+
+      return reinterpret_cast<BuiltinStaticMethod*>(func.builtin);
+   }
+   
+   DLLLOCAL const BuiltinStaticMethod2 *getStaticBuiltinFunction2() const {
+      assert(static_flag);
+      assert(type == OTF_BUILTIN);
+      assert(new_call_convention);
+
+      return reinterpret_cast<BuiltinStaticMethod2*>(func.builtin);
    }
    
    DLLLOCAL bool existsUserParam(unsigned i) const {
@@ -1021,11 +1029,6 @@ BCAList::~BCAList() {
    }
 }
 
-void BuiltinMethod::deref() {
-   if (ROdereference())
-      delete this;
-}
-
 bool QoreClass::has_delete_blocker() const {
    return priv->has_delete_blocker;
 }
@@ -1243,12 +1246,12 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass *qc) {
 
 void QoreClass::setSystemConstructor(q_system_constructor_t m) {
    priv->sys = true;
-   priv->system_constructor = new QoreMethod(this, new BuiltinMethod(this, m));
+   priv->system_constructor = new QoreMethod(this, new BuiltinSystemConstructor(this, m));
 }
 
 void QoreClass::setSystemConstructor2(q_system_constructor2_t m) {
    priv->sys = true;
-   priv->system_constructor = new QoreMethod(this, new BuiltinMethod(this, m), false, false, true);
+   priv->system_constructor = new QoreMethod(this, new BuiltinSystemConstructor2(this, m), false, false, true);
 }
 
 // deletes all pending user methods
@@ -1328,7 +1331,10 @@ bool QoreMethod::inMethod(const QoreObject *self) const {
 
 void QoreMethod::evalSystemConstructor(QoreObject *self, int code, va_list args) const {
    // type must be OTF_BUILTIN
-   priv->func.builtin->evalSystemConstructor(*priv->parent_class, priv->new_call_convention, self, code, args);
+   if (priv->new_call_convention)
+      reinterpret_cast<BuiltinSystemConstructor2 *>(priv->func.builtin)->eval(*priv->parent_class, self, code, args);
+   else
+      reinterpret_cast<BuiltinSystemConstructor*>(priv->func.builtin)->eval(self, code, args);
 }
 
 void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
@@ -1343,7 +1349,10 @@ void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) co
       VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
       assert(!(lck && !vh));
 #endif
-      priv->func.builtin->evalSystemDestructor(*priv->parent_class, priv->new_call_convention, self, ptr, xsink);
+      if (priv->new_call_convention)
+	 reinterpret_cast<BuiltinDestructor2*>(priv->func.builtin)->evalSystem(*priv->parent_class, self, ptr, xsink);
+      else
+	 reinterpret_cast<BuiltinDestructor*>(priv->func.builtin)->evalSystem(self, ptr, xsink);
    }
 }
 
@@ -1531,8 +1540,8 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
       if (priv->type == OTF_USER)
 	 return priv->func.userFunc->eval(args, 0, xsink, priv->parent_class->getName());
       if (priv->new_call_convention)
-	 return priv->func.builtin->evalStatic2(*this, args, xsink);
-      return priv->func.builtin->eval(args, xsink, priv->parent_class->getName());
+	 return reinterpret_cast<BuiltinStaticMethod2*>(priv->func.builtin)->eval(*this, args, xsink);
+      return reinterpret_cast<BuiltinStaticMethod*>(priv->func.builtin)->eval(*this, args, xsink);
    }
 
    AbstractQoreNode *rv = 0;
@@ -1604,9 +1613,9 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
       // switch to new program for imported objects
       ProgramContextHelper pch(self->getProgram(), xsink);
       if (priv->new_call_convention)
-	 priv->func.builtin->evalConstructor2(*priv->parent_class, self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
+	 reinterpret_cast<BuiltinConstructor2*>(priv->func.builtin)->eval(*priv->parent_class, self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
       else
-	 priv->func.builtin->evalConstructor(self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
+	 reinterpret_cast<BuiltinConstructor*>(priv->func.builtin)->eval(self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
    }
 
 #ifdef DEBUG
@@ -1652,7 +1661,10 @@ void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
 	 VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
 	 assert(!(lck && !vh));
 #endif
-	 priv->func.builtin->evalDestructor(*priv->parent_class, self, ptr, priv->parent_class->getName(), priv->new_call_convention, xsink);
+	 if (priv->new_call_convention)
+	    reinterpret_cast<BuiltinDestructor2*>(priv->func.builtin)->eval(*priv->parent_class, self, ptr, priv->parent_class->getName(), xsink);
+	 else
+	    reinterpret_cast<BuiltinDestructor*>(priv->func.builtin)->eval(self, ptr, priv->parent_class->getName(), xsink);
       }
       // in case there is no private data, ignore: we cannot execute the destructor
       // this might happen in the case that the data was deleted externally, for example
@@ -1664,8 +1676,12 @@ const UserFunction *QoreMethod::getStaticUserFunction() const {
    return priv->getStaticUserFunction();
 }
 
-const BuiltinFunction *QoreMethod::getStaticBuiltinFunction() const {
+const BuiltinStaticMethod *QoreMethod::getStaticBuiltinFunction() const {
    return priv->getStaticBuiltinFunction();
+}
+
+const BuiltinStaticMethod2 *QoreMethod::getStaticBuiltinFunction2() const {
+   return priv->getStaticBuiltinFunction2();
 }
 
 bool QoreMethod::existsUserParam(unsigned i) const {
@@ -1828,7 +1844,7 @@ void QoreClass::execMemberNotification(QoreObject *self, const char *mem, Except
 QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const {
    // create new object
    QoreObject *o = new QoreObject(this, getProgram());
-   class BCEAList *bceal;
+   BCEAList *bceal;
    if (priv->scl)
       bceal = new BCEAList();
    else
@@ -2168,7 +2184,7 @@ void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag) {
    assert(strcmp(nme, "copy"));
 
    priv->sys = true;
-   BuiltinMethod *b = new BuiltinMethod(this, nme, m);
+   BuiltinMethod *b = new BuiltinNormalMethod(this, nme, m, 0, QDOM_DEFAULT);
    QoreMethod *o = new QoreMethod(this, b, priv_flag);
    insertMethod(o);
    // check for special methods (except constructor and destructor)
@@ -2182,7 +2198,7 @@ void QoreClass::addMethod2(const char *nme, q_method2_t m, bool priv_flag) {
    assert(strcmp(nme, "copy"));
 
    priv->sys = true;
-   BuiltinMethod *b = new BuiltinMethod(this, nme, m);
+   BuiltinMethod *b = new BuiltinNormalMethod2(this, nme, m, 0, QDOM_DEFAULT);
    QoreMethod *o = new QoreMethod(this, b, priv_flag, false, true);
    insertMethod(o);
    // check for special methods (except constructor and destructor)
@@ -2195,7 +2211,7 @@ void QoreClass::addStaticMethod2(const char *nme, q_static_method2_t m, bool pri
    assert(strcmp(nme, "destructor"));
 
    priv->sys = true;
-   BuiltinMethod *b = new BuiltinMethod(this, nme, m);
+   BuiltinMethod *b = new BuiltinStaticMethod2(this, nme, m, 0, QDOM_DEFAULT);
    QoreMethod *o = new QoreMethod(this, b, priv_flag, true, true);
    insertStaticMethod(o);
 
@@ -2209,7 +2225,7 @@ void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag) {
    assert(strcmp(nme, "destructor"));
 
    priv->sys = true;
-   BuiltinMethod *b = new BuiltinMethod(this, nme, m);
+   BuiltinMethod *b = new BuiltinStaticMethod(this, nme, m, 0, QDOM_DEFAULT);
    QoreMethod *o = new QoreMethod(this, b, priv_flag, true);
    insertStaticMethod(o);
 
@@ -2220,7 +2236,7 @@ void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag) {
 // sets a builtin function as constructor - no duplicate checking is made
 void QoreClass::setConstructor(q_constructor_t m) {
    priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
+   QoreMethod *o = new QoreMethod(this, new BuiltinConstructor(this, m));
    insertMethod(o);
    priv->constructor = o;
 }
@@ -2228,7 +2244,7 @@ void QoreClass::setConstructor(q_constructor_t m) {
 // sets a builtin function as constructor - no duplicate checking is made
 void QoreClass::setConstructor2(q_constructor2_t m) {
    priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m), false, false, true);
+   QoreMethod *o = new QoreMethod(this, new BuiltinConstructor2(this, m), false, false, true);
    insertMethod(o);
    priv->constructor = o;
 }
@@ -2236,7 +2252,7 @@ void QoreClass::setConstructor2(q_constructor2_t m) {
 // sets a builtin function as class destructor - no duplicate checking is made
 void QoreClass::setDestructor(q_destructor_t m) {
    priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
+   QoreMethod *o = new QoreMethod(this, new BuiltinDestructor(this, m));
    insertMethod(o);
    priv->destructor = o;
 }
@@ -2244,7 +2260,7 @@ void QoreClass::setDestructor(q_destructor_t m) {
 // sets a builtin function as class destructor - no duplicate checking is made
 void QoreClass::setDestructor2(q_destructor2_t m) {
    priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m), false, false, true);
+   QoreMethod *o = new QoreMethod(this, new BuiltinDestructor2(this, m), false, false, true);
    insertMethod(o);
    priv->destructor = o;
 }
@@ -2252,7 +2268,7 @@ void QoreClass::setDestructor2(q_destructor2_t m) {
 // sets a builtin function as class copy constructor - no duplicate checking is made
 void QoreClass::setCopy(q_copy_t m) {
    priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
+   QoreMethod *o = new QoreMethod(this, new BuiltinCopy(this, m));
    insertMethod(o);
    priv->copyMethod = o;
 }
@@ -2260,7 +2276,7 @@ void QoreClass::setCopy(q_copy_t m) {
 // sets a builtin function as class copy constructor - no duplicate checking is made
 void QoreClass::setCopy2(q_copy2_t m) {
    priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m), false, false, true);
+   QoreMethod *o = new QoreMethod(this, new BuiltinCopy2(this, m), false, false, true);
    insertMethod(o);
    priv->copyMethod = o;
 }
@@ -2268,7 +2284,7 @@ void QoreClass::setCopy2(q_copy2_t m) {
 // sets the delete_blocker function
 void QoreClass::setDeleteBlocker(q_delete_blocker_t m) {
    priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinMethod(this, m));
+   QoreMethod *o = new QoreMethod(this, new BuiltinDeleteBlocker(this, m));
    insertMethod(o);
    priv->deleteBlocker = o;
    priv->has_delete_blocker = true;

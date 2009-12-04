@@ -23,7 +23,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/BuiltinMethod.h>
 #include <qore/intern/QoreClassIntern.h>
 
 #include <stdlib.h>
@@ -437,7 +436,7 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(BuiltinMethod *me
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink), xsink);
 
    if (pd)
-      return meth->evalMethod(this, *pd, args, xsink);
+      return reinterpret_cast<BuiltinNormalMethod*>(meth)->eval(this, *pd, args, xsink);
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
    return check_meth_eval(priv->theclass, meth, xsink);
@@ -448,7 +447,7 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod 
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink), xsink);
 
    if (pd)
-      return meth->evalMethod(method, this, *pd, args, xsink);
+      return reinterpret_cast<BuiltinNormalMethod2*>(meth)->eval(method, this, *pd, args, xsink);
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
    return check_meth_eval(priv->theclass, meth, xsink);
@@ -459,7 +458,10 @@ void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, Built
    AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getID(), xsink);
 
    if (pd) {
-      meth->evalCopy(thisclass, self, this, pd, new_calling_convention, xsink);
+      if (new_calling_convention)
+	 reinterpret_cast<BuiltinCopy2*>(meth)->eval(thisclass, self, this, pd, xsink);
+      else
+	 reinterpret_cast<BuiltinCopy*>(meth)->eval(thisclass, self, this, pd, xsink);
       pd->deref(xsink);
       return;
    }
@@ -481,7 +483,7 @@ bool QoreObject::evalDeleteBlocker(BuiltinMethod *meth) {
    ReferenceHolder<AbstractPrivateData> pd(priv->privateData->getReferencedPrivateData(meth->myclass->getIDForMethod()), &xsink);
 
    if (pd)
-      return meth->evalDeleteBlocker(this, *pd);
+      return reinterpret_cast<BuiltinDeleteBlocker*>(meth)->eval(this, *pd);
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
    return false;

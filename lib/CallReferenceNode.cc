@@ -488,9 +488,16 @@ AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
       return this;
    }
 
-   AbstractQoreNode *rv = qm->getType() == OTF_USER 
-      ? (AbstractCallReferenceNode *)new UserCallReferenceNode(qm->getStaticUserFunction(), getProgram())
-      : (AbstractCallReferenceNode *)new BuiltinCallReferenceNode(qm->getStaticBuiltinFunction());
+   AbstractQoreNode *rv;
+   if (qm->getType() == OTF_USER)
+      rv = new UserCallReferenceNode(qm->getStaticUserFunction(), getProgram());
+   else {
+      if (qm->newCallingConvention())
+	 rv = new BuiltinStaticCallReferenceNode2(qm, qm->getStaticBuiltinFunction2());
+      else
+	 rv = new BuiltinStaticCallReferenceNode(qm, qm->getStaticBuiltinFunction());
+   }
+
    deref();
    return rv;
 }
@@ -556,6 +563,24 @@ AbstractQoreNode *BuiltinCallReferenceNode::exec(const QoreListNode *args, Excep
 bool BuiltinCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const BuiltinCallReferenceNode *vc = dynamic_cast<const BuiltinCallReferenceNode *>(v);
    return vc && vc->bf == bf;
+}
+
+AbstractQoreNode *BuiltinStaticCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
+   return bf->eval(*method, args, xsink);
+}
+
+bool BuiltinStaticCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+   const BuiltinStaticCallReferenceNode *vc = dynamic_cast<const BuiltinStaticCallReferenceNode *>(v);
+   return vc && vc->bf == bf;
+}
+
+AbstractQoreNode *BuiltinStaticCallReferenceNode2::exec(const QoreListNode *args, ExceptionSink *xsink) const {
+   return bf->eval(*method, args, xsink);
+}
+
+bool BuiltinStaticCallReferenceNode2::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+   const BuiltinStaticCallReferenceNode2 *vc = dynamic_cast<const BuiltinStaticCallReferenceNode2 *>(v);
+   return vc && vc->bf == bf && vc->method == method;
 }
 
 ImportedCallReferenceNode::ImportedCallReferenceNode(ImportedFunctionCall *n_ifunc) : ifunc(n_ifunc) {

@@ -50,6 +50,7 @@ libqore_la_SOURCES = \
 	QoreNullNode.cc \
 	QoreNothingNode.cc \
 	Function.cc \
+	BuiltinFunction.cc \
 	BuiltinFunctionList.cc \
 	UserFunctionList.cc \
 	GlobalVariableList.cc \

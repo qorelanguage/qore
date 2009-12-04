@@ -1,11 +1,17 @@
+2009.12.04: David Nichols
+	* cleaned up builtin function and builtin method implementation
+	  (somewhat) in preparation for hard typing support in builtin code
+
+2009.12.03: David Nichols
+	* fixed public/private member verification during 2nd stage parsing in
+	  class hierarchies
+
 2009.12.02: David Nichols
 	* implemented member checking for object slices
 	* moved all private methods of QoreObject into the private class
 	  implementation
 	* moved all private methods of QoreProgram into the private class
 	  implementation
-	* fixed public/private member verification during 2nd stage parsing in
-	  class hierarchies
 
 2009.12.01: David Nichols
 	* implemented instantiating variables with default values when defined

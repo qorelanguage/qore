@@ -123,6 +123,34 @@ public:
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 };
 
+//! a call reference to a builtin static function
+class BuiltinStaticCallReferenceNode : public ResolvedCallReferenceNode {
+   const QoreMethod *method;
+   const BuiltinStaticMethod *bf;
+
+public:
+   DLLLOCAL BuiltinStaticCallReferenceNode(const QoreMethod *n_method, const BuiltinStaticMethod *n_bf) : method(n_method), bf(n_bf) {}
+   DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+      return BuiltinStaticCallReferenceNode::is_equal_hard(v, xsink);
+   }
+   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+};
+
+//! a call reference to a builtin static function with the new calling convention
+class BuiltinStaticCallReferenceNode2 : public ResolvedCallReferenceNode {
+   const QoreMethod *method;
+   const BuiltinStaticMethod2 *bf;
+
+public:
+   DLLLOCAL BuiltinStaticCallReferenceNode2(const QoreMethod *n_method, const BuiltinStaticMethod2 *n_bf) : method(n_method), bf(n_bf) {}
+   DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+      return BuiltinStaticCallReferenceNode2::is_equal_hard(v, xsink);
+   }
+   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+};
+
 class ImportedFunctionCall;
 
 //! a call reference to an imported function
