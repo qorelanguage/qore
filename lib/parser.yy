@@ -230,22 +230,22 @@ static int checkParseOption(int o) {
    return getParseOptions() & o;
 }
 
-typedef std::pair<char *, QoreParseTypeInfo *> member_pair_t;
+typedef std::pair<char *, QoreMemberInfo *> member_pair_t;
 
 struct MemberInfo {
    char *name;
-   QoreParseTypeInfo *typeInfo;
+   QoreMemberInfo *memberInfo;
 
-   DLLLOCAL MemberInfo(char *n, QoreParseTypeInfo *ti) : name(n), typeInfo(ti) {}
+   DLLLOCAL MemberInfo(char *n, QoreMemberInfo *mi, AbstractQoreNode *e = 0) : name(n), memberInfo(mi)  {}
    DLLLOCAL ~MemberInfo() {
       if (name)
 	 free(name);
-      delete typeInfo;
+      delete memberInfo;
    }
    DLLLOCAL member_pair_t getPair() {
-      member_pair_t m = std::make_pair(name, typeInfo);
+      member_pair_t m = std::make_pair(name, memberInfo);
       name = 0;
-      typeInfo = 0;
+      memberInfo = 0;
       return m;
    }
 };
@@ -727,6 +727,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <memberlist>  public_member_list
 %type <memberlist>  member_list
 %type <memberinfo>  member
+%type <memberlist>  member_list2
+%type <memberinfo>  member2
 %type <qoreclass>   class_attributes
 %type <classdef>    class_def
 %type <ns>          top_namespace_decl
@@ -749,7 +751,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list base_constructor_list base_constructors class_attributes return_value member
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
@@ -1324,11 +1326,53 @@ private_member_list:
 	TOK_PRIVATE member_list ';' {
 	   $$ = $2;
 	}
+        | TOK_PRIVATE '(' member_list2 ')' ';' {
+	   $$ = $3;
+	}
         ;
 
 public_member_list:
 	TOK_PUBLIC member_list ';' {
 	   $$ = $2;
+	}
+	| TOK_PUBLIC '(' member_list2 ')' ';' {
+	   $$ = $3;
+	}
+        ;
+
+member2:
+	SELF_REF {
+	   $$ = new MemberInfo($1, 0);
+        }
+        | SCOPED_REF SELF_REF {
+	   $$ = new MemberInfo($2, new QoreMemberInfo($1));
+	}
+        | IDENTIFIER SELF_REF {
+	   qore_type_t t = getBuiltinType($1);
+	   QoreMemberInfo *memberInfo;
+	   if (t >= 0) {
+	      memberInfo = new QoreMemberInfo(t);
+	      free($1);
+	   }
+	   else
+	      memberInfo = new QoreMemberInfo($1);
+	   
+	   $$ = new MemberInfo($2, memberInfo);
+        }
+        | IDENTIFIER SELF_REF '=' exp {
+	   qore_type_t t = getBuiltinType($1);
+	   QoreMemberInfo *memberInfo;
+	   if (t >= 0) {
+	      memberInfo = new QoreMemberInfo(t, $4);
+	      free($1);
+	   }
+	   else
+	      memberInfo = new QoreMemberInfo($1, $4);
+
+	   $$ = new MemberInfo($2, memberInfo);
+        }
+        | SCOPED_REF SELF_REF '=' exp {
+	   $$ = new MemberInfo($2, new QoreMemberInfo($1, $4));
 	}
         ;
 
@@ -1336,20 +1380,8 @@ member:
 	SELF_REF {
 	   $$ = new MemberInfo($1, 0);
         }
-        | SELF_REF IDENTIFIER {
-	   qore_type_t t = getBuiltinType($2);
-	   QoreParseTypeInfo *typeInfo;
-	   if (t >= 0) {
-	      typeInfo = new QoreParseTypeInfo(t);
-	      free($2);
-	   }
-	   else
-	      typeInfo = new QoreParseTypeInfo($2);
-
-	   $$ = new MemberInfo($1, typeInfo);
-        }
         | SELF_REF SCOPED_REF {
-	   $$ = new MemberInfo($1, new QoreParseTypeInfo($2));
+	   $$ = new MemberInfo($1, new QoreMemberInfo($2));
 	}
         ;
 
@@ -1358,6 +1390,16 @@ member_list:
 	   $$ = new MemberList($1);
         }
         | member_list ',' member {
+	   $1->add($3);
+	   $$ = $1;
+	}
+	;
+
+member_list2:
+        member2 {
+	   $$ = new MemberList($1);
+        }
+        | member_list2 ',' member2 {
 	   $1->add($3);
 	   $$ = $1;
 	}

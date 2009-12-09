@@ -1,3 +1,8 @@
+2009.12.09: David Nichols
+	* initial (non-functional) implementation of object member
+	  initialization at construction time; re-worked public and private
+	  member declarations with types
+
 2009.12.04: David Nichols
 	* cleaned up builtin function and builtin method implementation
 	  (somewhat) in preparation for hard typing support in builtin code

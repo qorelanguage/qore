@@ -32,7 +32,31 @@
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
 
-typedef std::map<char *, QoreParseTypeInfo *, ltstr> member_map_t;
+struct QoreMemberInfo : public QoreParseTypeInfo {
+   AbstractQoreNode *exp;
+
+   DLLLOCAL QoreMemberInfo(qore_type_t t, AbstractQoreNode *e = 0) : QoreParseTypeInfo(t), exp(e) {
+   }
+   DLLLOCAL QoreMemberInfo(char *n, AbstractQoreNode *e = 0) : QoreParseTypeInfo(n), exp(e) {
+   }
+   DLLLOCAL QoreMemberInfo(const QoreClass *qc, AbstractQoreNode *e) : QoreParseTypeInfo(qc), exp(e) {
+   }
+   DLLLOCAL ~QoreMemberInfo() {
+      if (exp)
+	 exp->deref(0);
+   }
+   DLLLOCAL QoreMemberInfo *copy() const {
+      if (!this)
+         return 0;
+
+      assert(has_type);
+      if (qc)
+         return new QoreMemberInfo(qc, exp ? exp->refSelf() : 0);
+      return new QoreMemberInfo(qt, exp ? exp->refSelf() : 0);
+   }
+};
+
+typedef std::map<char *, QoreMemberInfo *, ltstr> member_map_t;
 
 /*
   BCANode

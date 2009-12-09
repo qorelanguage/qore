@@ -59,6 +59,7 @@ class BCEAList;
 class Paramlist;
 class BuiltinStaticMethod;
 class BuiltinStaticMethod2;
+class QoreMemberInfo;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -589,16 +590,16 @@ class QoreClass {
       //! adds a name of a private member (not accessible from outside the class hierarchy)
       /** this method takes ownership of *name
 	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
-	  @param typeInfo unvalidated and unresolved type information available at parse time
+	  @param mInfo unvalidated and unresolved type and initialization information available at parse time
        */
-      DLLLOCAL void parseAddPrivateMember(char *name, QoreParseTypeInfo *typeInfo);
+      DLLLOCAL void parseAddPrivateMember(char *name, QoreMemberInfo *mInfo);
 
       //! adds a public member; if a class has at least one public member then only public members can be accessed externally from the class
       /** this method takes ownership of *name
 	  @param name the name of the public member (ownership of the memory is assumed by the QoreClass object)
-	  @param typeInfo unvalidated and unresolved type information available at parse time
+	  @param typeInfo unvalidated and unresolved type and initialization information available at parse time
        */
-      DLLLOCAL void parseAddPublicMember(char *name, QoreParseTypeInfo *typeInfo);
+      DLLLOCAL void parseAddPublicMember(char *name, QoreMemberInfo *mInfo);
 
       // returns 0 for success, -1 for error
       DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);

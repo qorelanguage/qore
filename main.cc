@@ -62,9 +62,9 @@ int main(int argc, char *argv[]) {
       
       // parse immediate argument if any
       if (eval_arg) {
-	 QoreString str("printf(\"%N\n\", ");
+	 QoreString str("printf(\"%N\n\", (");
 	 str.concat(eval_arg);
-	 str.concat(");");
+	 str.concat("));");
 	 qpgm->parse(str.getBuffer(), "<command-line>", &xsink, &wsink, warnings);
       }
       else  {

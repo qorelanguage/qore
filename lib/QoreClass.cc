@@ -382,26 +382,26 @@ struct qore_qc_private {
       return checkExistingMember(mem, memberTypeInfo, priv, sclass, existingMemberTypeInfo, is_priv);
    }
 
-   DLLLOCAL void parseAddPrivateMember(char *mem, QoreParseTypeInfo *memberTypeInfo) {
-      if (!parseCheckMember(mem, memberTypeInfo, true)) {
+   DLLLOCAL void parseAddPrivateMember(char *mem, QoreMemberInfo *memberInfo) {
+      if (!parseCheckMember(mem, memberInfo, true)) {
 	 //printd(5, "QoreClass::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
-	 pending_private_members[mem] = memberTypeInfo;
+	 pending_private_members[mem] = memberInfo;
 	 return;
       }
 
       free(mem);
-      delete memberTypeInfo;
+      delete memberInfo;
    }
 
-   DLLLOCAL void parseAddPublicMember(char *mem, QoreParseTypeInfo *memberTypeInfo) {
-      if (!parseCheckMember(mem, memberTypeInfo, false)) {
+   DLLLOCAL void parseAddPublicMember(char *mem, QoreMemberInfo *memberInfo) {
+      if (!parseCheckMember(mem, memberInfo, false)) {
 	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name, mem, mem);
-	 pending_public_members[mem] = memberTypeInfo;
+	 pending_public_members[mem] = memberInfo;
 	 return;
       }
 
       free(mem);
-      delete memberTypeInfo;
+      delete memberInfo;
    }
 
    DLLLOCAL void insertStaticMethod(QoreMethod *m) {
@@ -1393,12 +1393,12 @@ static const QoreClass *getStackClass() {
    return 0;
 }
 
-void QoreClass::parseAddPrivateMember(char *nme, QoreParseTypeInfo *typeInfo) {
-   priv->parseAddPrivateMember(nme, typeInfo);
+void QoreClass::parseAddPrivateMember(char *nme, QoreMemberInfo *mInfo) {
+   priv->parseAddPrivateMember(nme, mInfo);
 }
 
-void QoreClass::parseAddPublicMember(char *nme, QoreParseTypeInfo *typeInfo) {
-   priv->parseAddPublicMember(nme, typeInfo);
+void QoreClass::parseAddPublicMember(char *nme, QoreMemberInfo *mInfo) {
+   priv->parseAddPublicMember(nme, mInfo);
 }
 
 bool BCSMList::isBaseClass(QoreClass *qc) const {
