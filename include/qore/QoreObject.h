@@ -532,6 +532,9 @@ class QoreObject : public AbstractQoreNode {
 
       //! returns the class-synchronous lock (if any) for the object
       DLLLOCAL VRMutex *getClassSyncLock();
+
+      //! returns a pointer to an object member during initialization (no locking; interal use only)
+      DLLLOCAL AbstractQoreNode **getMemberValuePtrForInitialization(const char *member);
 };
 
 //! convenience class for holding AbstractPrivateData references

@@ -54,6 +54,33 @@ struct QoreMemberInfo : public QoreParseTypeInfo {
          return new QoreMemberInfo(qc, exp ? exp->refSelf() : 0);
       return new QoreMemberInfo(qt, exp ? exp->refSelf() : 0);
    }
+
+   DLLLOCAL void parseInit(const char *name, bool priv) {
+      resolve();
+
+      if (exp) {
+	 const QoreTypeInfo *argTypeInfo = 0;
+	 int lvids = 0;
+	 exp = exp->parseInit(0, 0, lvids, argTypeInfo);
+	 if (lvids) {
+	    parse_error("illegal local variable declaration in member initialization expression");
+	    while (lvids)
+	       pop_local_var();
+	 }
+	 // throw a type exception only if parse exceptions are enabled
+	 if (!parseEqual(argTypeInfo) && getProgram()->getParseExceptionSink()) {
+            QoreStringNode *desc = new QoreStringNode("initialization expression for ");
+	    desc->sprintf("%s member '$.%s' returns ", priv ? "private" : "public", name);
+            argTypeInfo->getThisType(*desc);
+            desc->concat(", but the member was declared as ");
+            getThisType(*desc);
+            getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+         }
+      }
+      else if (hasType() && qt == NT_OBJECT) {
+	 parseException("PARSE-TYPE-ERROR", "%s member '$.%s' has been defined with a complex type and must be assigned when instantiated", priv ? "private" : "public", name);
+      }
+   }
 };
 
 typedef std::map<char *, QoreMemberInfo *, ltstr> member_map_t;
@@ -198,16 +225,56 @@ class BCList : public QoreReferenceCounter, public bclist_t {
       DLLLOCAL void ref() const;
       DLLLOCAL void deref();
       DLLLOCAL const QoreClass *getClass(qore_classid_t cid, bool &priv) const {
-	 bclist_t::const_iterator i = begin();
-	 while (i != end()) {
+	 for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
 	    const QoreClass *qc = (*i)->getClass(cid, priv);
 	    if (qc)
 	       return qc;
-	    i++;
 	 }
 	 
 	 return 0;
       }
+      DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const {
+	 for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+	    if ((*i)->sclass->initMembers(o, xsink))
+	       return -1;
+	 }
+	 
+	 return 0;
+      }
+};
+
+// BCEANode
+// base constructor evaluated argument node; created locally at run time
+class BCEANode {
+public:
+   QoreListNode *args;
+   bool execed;
+      
+   DLLLOCAL BCEANode(QoreListNode *arg) : args(arg), execed(false) {}
+   DLLLOCAL BCEANode() : args(0), execed(true) {}
+};
+
+struct ltqc {
+   bool operator()(const class QoreClass *qc1, const class QoreClass *qc2) const {
+      return qc1 < qc2;
+   }
+};
+
+typedef std::map<const QoreClass *, class BCEANode *, ltqc> bceamap_t;
+
+/*
+  BCEAList
+  base constructor evaluated argument list
+*/
+class BCEAList : public bceamap_t {
+protected:
+   DLLLOCAL ~BCEAList() { }
+   
+public:
+   DLLLOCAL void deref(ExceptionSink *xsink);
+   // evaluates arguments, returns -1 if an exception was thrown
+   DLLLOCAL int add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink);
+   DLLLOCAL QoreListNode *findArgs(const QoreClass *qc, bool *aexeced);
 };
 
 #endif

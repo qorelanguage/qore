@@ -82,7 +82,7 @@ private:
       if (typeInfo->hasType()) {
 	 qore_type_t t = typeInfo->getType();
 	 if (t >= 0 && t < NT_OBJECT) {
-	    v.val.value = getDefaultValueForBuitinValueType(t);
+	    v.val.value = getDefaultValueForBuiltinValueType(t);
 	    return;
 	 }
       }

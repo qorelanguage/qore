@@ -2,6 +2,8 @@
 	* initial (non-functional) implementation of object member
 	  initialization at construction time; re-worked public and private
 	  member declarations with types
+	* functional implementation of object member initialization and type
+	  declarations at object construction time
 
 2009.12.04: David Nichols
 	* cleaned up builtin function and builtin method implementation

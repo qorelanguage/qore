@@ -1326,7 +1326,7 @@ private_member_list:
 	TOK_PRIVATE member_list ';' {
 	   $$ = $2;
 	}
-        | TOK_PRIVATE '(' member_list2 ')' ';' {
+        | TOK_PRIVATE '{' member_list2 '}' {
 	   $$ = $3;
 	}
         ;
@@ -1335,19 +1335,19 @@ public_member_list:
 	TOK_PUBLIC member_list ';' {
 	   $$ = $2;
 	}
-	| TOK_PUBLIC '(' member_list2 ')' ';' {
+	| TOK_PUBLIC '{' member_list2 '}' {
 	   $$ = $3;
 	}
         ;
 
 member2:
-	SELF_REF {
+	SELF_REF ';' {
 	   $$ = new MemberInfo($1, 0);
         }
-        | SCOPED_REF SELF_REF {
+        | SCOPED_REF SELF_REF ';' {
 	   $$ = new MemberInfo($2, new QoreMemberInfo($1));
 	}
-        | IDENTIFIER SELF_REF {
+        | IDENTIFIER SELF_REF ';' {
 	   qore_type_t t = getBuiltinType($1);
 	   QoreMemberInfo *memberInfo;
 	   if (t >= 0) {
@@ -1359,7 +1359,7 @@ member2:
 	   
 	   $$ = new MemberInfo($2, memberInfo);
         }
-        | IDENTIFIER SELF_REF '=' exp {
+        | IDENTIFIER SELF_REF '=' exp ';' {
 	   qore_type_t t = getBuiltinType($1);
 	   QoreMemberInfo *memberInfo;
 	   if (t >= 0) {
@@ -1371,7 +1371,7 @@ member2:
 
 	   $$ = new MemberInfo($2, memberInfo);
         }
-        | SCOPED_REF SELF_REF '=' exp {
+        | SCOPED_REF SELF_REF '=' exp ';' {
 	   $$ = new MemberInfo($2, new QoreMemberInfo($1, $4));
 	}
         ;
@@ -1399,8 +1399,8 @@ member_list2:
         member2 {
 	   $$ = new MemberList($1);
         }
-        | member_list2 ',' member2 {
-	   $1->add($3);
+        | member_list2 member2 {
+	   $1->add($2);
 	   $$ = $1;
 	}
 	;

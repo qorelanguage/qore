@@ -38,7 +38,7 @@ QoreTypeInfo bigIntTypeInfo(NT_INT),
    callReferenceTypeInfo(NT_FUNCREF)
    ;
 
-AbstractQoreNode *getDefaultValueForBuitinValueType(qore_type_t t) {
+AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t) {
    switch (t) {
       case NT_INT:
 	 return new QoreBigIntNode(0);

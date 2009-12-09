@@ -361,7 +361,7 @@ public:
       if (needs_value_instantiation) {
 	 assert(typeInfo->hasType());
 	 assert(typeInfo->getType() >= 0 && typeInfo->getType() < NT_OBJECT);
-	 val = getDefaultValueForBuitinValueType(typeInfo->getType());
+	 val = getDefaultValueForBuiltinValueType(typeInfo->getType());
       }
       else
 	 val = 0;

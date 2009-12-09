@@ -1212,3 +1212,7 @@ VRMutex *QoreObject::getClassSyncLock() {
    return priv->sync_vrm;
 }
 #endif
+
+AbstractQoreNode **QoreObject::getMemberValuePtrForInitialization(const char *member) {
+   return priv->data->getKeyValuePtr(member);
+}

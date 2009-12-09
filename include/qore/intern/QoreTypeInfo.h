@@ -62,6 +62,64 @@ protected:
       return -1;
    }
 
+   DLLLOCAL int doObjectTypeException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+      assert(xsink);
+      QoreStringNode *desc = new QoreStringNode;
+      desc->sprintf("member '$.%s' is ", param_name);
+      desc->concat("expecting ");
+      getThisType(*desc);
+      desc->concat(", but got ");
+      getNodeType(*desc, n);
+      desc->concat(" instead");
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+      return -1;
+   }
+
+   DLLLOCAL int doObjectPrivateClassException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+      assert(xsink);
+      QoreStringNode *desc = new QoreStringNode;
+      desc->sprintf("member '$.%s' is ", param_name);
+      desc->concat("expecting ");
+      getThisType(*desc);
+      desc->concat(", but got an object where this class is privately inherited instead");
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+      return -1;
+   }
+
+   DLLLOCAL int checkTypeInstantiationIntern(bool obj, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+      if (!this || !has_type) return 0;
+      if (qt == NT_NOTHING && is_nothing(n)) return 0;
+      if (is_nothing(n))
+	 return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+
+      // from here on we know n != 0
+      if (qt == NT_OBJECT) {
+	 if (n->getType() != NT_OBJECT)
+	    return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+
+	 if (!qc)
+	    return 0;
+
+	 bool priv;
+	 if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
+	    if (!priv)
+	       return 0;
+
+	    // check private access
+	    if (!runtimeCheckPrivateClassAccess(qc))
+	       return 0;
+
+	    return obj ? doObjectPrivateClassException(param_name, n, xsink) : doPrivateClassException(param_name, n, xsink);
+	 }
+
+	 return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+      }
+      if (n->getType() != qt)
+	 return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+
+      return 0;
+   }
+
 public:
    const QoreClass *qc;
    qore_type_t qt : 11;
@@ -121,38 +179,13 @@ public:
    }
 
    DLLLOCAL int checkTypeInstantiation(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      if (!this || !has_type) return 0;
-      if (qt == NT_NOTHING && is_nothing(n)) return 0;
-      if (is_nothing(n))
-	 return doTypeException(param_name, n, xsink);
-
-      // from here on we know n != 0
-      if (qt == NT_OBJECT) {
-	 if (n->getType() != NT_OBJECT)
-	    return doTypeException(param_name, n, xsink);
-
-	 if (!qc)
-	    return 0;
-
-	 bool priv;
-	 if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
-	    if (!priv)
-	       return 0;
-
-	    // check private access
-	    if (!runtimeCheckPrivateClassAccess(qc))
-	       return 0;
-
-	    return doPrivateClassException(param_name, n, xsink);
-	 }
-
-	 return doTypeException(param_name, n, xsink);
-      }
-      if (n->getType() != qt)
-	 return doTypeException(param_name, n, xsink);
-
-      return 0;
+      return checkTypeInstantiationIntern(false, param_name, n, xsink);
    }
+
+   DLLLOCAL int checkMemberTypeInstantiation(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+      return checkTypeInstantiationIntern(true, param_name, n, xsink);
+   }
+
    DLLLOCAL bool mustBeAssigned() const {
       return this ? must_be_assigned : false;
    }
@@ -235,6 +268,6 @@ DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo,
    callReferenceTypeInfo;
 
 // returns the default value for any type >= 0 and < NT_OBJECT
-DLLLOCAL AbstractQoreNode *getDefaultValueForBuitinValueType(qore_type_t t);
+DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
 
 #endif // _QORE_QORETYPEINFO_H

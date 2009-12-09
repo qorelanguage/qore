@@ -195,16 +195,16 @@ struct qore_qc_private {
 	 initialized = true;
 	 printd(5, "QoreClass::initialize() %s class=%p pending size=%d, scl=%p, bcal=%p\n", name, typeInfo.qc, hm_pending.size(), scl, bcal);
 
-	 // resolve types for new private members
+	 // initialize new private members
 	 for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
 	    if (i->second)
-	       i->second->resolve();
+	       i->second->parseInit(i->first, true);
 	 }
    
-	 // resolve types for new public members
+	 // initialize new public members
 	 for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
 	    if (i->second)
-	       i->second->resolve();
+	       i->second->parseInit(i->first, false);
 	 }
    
 	 if (scl) {
@@ -498,6 +498,71 @@ struct qore_qc_private {
       return scl ? scl->isPublicOrPrivateMember(mem, priv) : false;
    }
 
+   DLLLOCAL int initMembers(QoreObject *o, member_map_t::const_iterator i, member_map_t::const_iterator e, ExceptionSink *xsink) const {
+      for (; i != e; ++i) {
+	 if (i->second) {
+	    AbstractQoreNode **v = o->getMemberValuePtrForInitialization(i->first);
+	    // skip if already assigned by a subclass
+	    if (*v)
+	       continue;
+	    if (i->second->exp) {
+	       ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
+	       if (*xsink)
+		  return -1;
+	       // check types
+	       if (i->second->checkMemberTypeInstantiation(i->first, *val, xsink))
+		  return -1;
+	       *v = val.release();
+	    }
+	    else {
+	       *v = getDefaultValueForBuiltinValueType(i->second->getType());
+	    }
+	 }
+      } 
+      return 0;
+   }
+
+   DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const {
+      if (initMembers(o, private_members.begin(), private_members.end(), xsink)
+	  || initMembers(o, public_members.begin(), public_members.end(), xsink))
+	 return -1;
+      return 0;
+   }
+
+   DLLLOCAL QoreObject *execConstructor(const QoreListNode *args, ExceptionSink *xsink) const {
+      // create new object
+      QoreObject *o = new QoreObject(typeInfo.qc, getProgram());
+
+      ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : 0, xsink);
+
+      printd(5, "QoreClass::execConstructor() %s::constructor() o=%p\n", name, o);
+
+      // first, instantiate any members
+      if (initMembers(o, xsink) || (scl && scl->initMembers(o, xsink))) {
+	 o->deref(xsink);
+	 return 0;
+      }
+
+      if (!constructor) {
+	 if (scl) // execute superconstructors if any
+	    scl->execConstructors(o, *bceal, xsink);
+      }
+      else { 
+	 // no lock is sent with constructor, because no variable has been assigned yet
+	 constructor->evalConstructor(o, args, scl, *bceal, xsink);
+      }
+
+      if (*xsink) {
+	 // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
+	 // which will clear out all the private data by running their dereference methods which must be OK
+	 o->obliterate(xsink);
+	 printd(5, "QoreClass::execConstructor() %s::constructor() o=%p, exception in constructor, dereferencing object and returning NULL\n", name, o);
+	 return 0;
+      }
+
+      printd(5, "QoreClass::execConstructor() %s::constructor() returning o=%p\n", name, o);
+      return o;
+   }
 };
 
 struct qore_method_private {
@@ -609,51 +674,6 @@ public:
    }
    DLLLOCAL operator bool() const { return m != 0; }
 };
-
-// BCEANode
-// base constructor evaluated argument node; created locally at run time
-class BCEANode {
-public:
-   QoreListNode *args;
-   bool execed;
-      
-   DLLLOCAL BCEANode(QoreListNode *arg);
-   DLLLOCAL BCEANode();
-};
-
-struct ltqc {
-   bool operator()(const class QoreClass *qc1, const class QoreClass *qc2) const {
-      return qc1 < qc2;
-   }
-};
-
-#include <map>
-typedef std::map<const QoreClass *, class BCEANode *, ltqc> bceamap_t;
-
-/*
-  BCEAList
-  base constructor evaluated argument list
-*/
-class BCEAList : public bceamap_t {
-protected:
-   DLLLOCAL ~BCEAList() { }
-   
-public:
-   DLLLOCAL void deref(ExceptionSink *xsink);
-   // evaluates arguments, returns -1 if an exception was thrown
-   DLLLOCAL int add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink);
-   DLLLOCAL QoreListNode *findArgs(const QoreClass *qc, bool *aexeced);
-};
-
-BCEANode::BCEANode(QoreListNode *arg) {
-   args = arg;
-   execed = false;
-}
-
-BCEANode::BCEANode() {
-   args = 0;
-   execed = true;
-}
 
 QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced) {
    bceamap_t::iterator i = find(qc);
@@ -1842,38 +1862,7 @@ void QoreClass::execMemberNotification(QoreObject *self, const char *mem, Except
 }
 
 QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const {
-   // create new object
-   QoreObject *o = new QoreObject(this, getProgram());
-   BCEAList *bceal;
-   if (priv->scl)
-      bceal = new BCEAList();
-   else
-      bceal = 0;
-
-   printd(5, "QoreClass::execConstructor() %s::constructor() o=%p\n", priv->name, o);
-
-   if (!priv->constructor) {
-      if (priv->scl) // execute superconstructors if any
-	 priv->scl->execConstructors(o, bceal, xsink);
-   }
-   else { 
-      // no lock is sent with constructor, because no variable has been assigned yet
-      priv->constructor->evalConstructor(o, args, priv->scl, bceal, xsink);
-   }
-
-   if (bceal)
-      bceal->deref(xsink);
-
-   if (*xsink) {
-      // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
-      // which will clear out all the private data by running their dereference methods which should generally be OK
-      o->obliterate(xsink);
-      printd(5, "QoreClass::execConstructor() %s::constructor() o=%p, exception in constructor, dereferencing object and returning NULL\n", priv->name, o);
-      return 0;
-   }
-
-   printd(5, "QoreClass::execConstructor() %s::constructor() returning o=%p\n", priv->name, o);
-   return o;
+   return priv->execConstructor(args, xsink);
 }
 
 QoreObject *QoreClass::execSystemConstructor(int code, ...) const {
@@ -2430,4 +2419,8 @@ bool QoreClass::runtimeHasPublicMembersInHierarchy() const {
 
 bool QoreClass::isPublicOrPrivateMember(const char *str, bool &priv_member) const {
    return priv->isPublicOrPrivateMember(str, priv_member);
+}
+
+int QoreClass::initMembers(QoreObject *o, ExceptionSink *xsink) const {
+   return priv->initMembers(o, xsink);
 }
