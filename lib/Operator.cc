@@ -3931,7 +3931,7 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   //printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, leftTypeInfo->getTypeName(), leftTypeInfo && leftTypeInfo->qc ? leftTypeInfo->qc->getName() : "n/a", rightTypeInfo, rightTypeInfo->getTypeName());
+   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, leftTypeInfo->getTypeName(), leftTypeInfo && leftTypeInfo->qc ? leftTypeInfo->qc->getName() : "n/a", rightTypeInfo, rightTypeInfo->getTypeName());
 
    if (leftTypeInfo->hasType()) {
       bool is_obj = objectTypeInfo.parseEqual(leftTypeInfo);

@@ -597,7 +597,7 @@ class QoreClass {
       //! adds a public member; if a class has at least one public member then only public members can be accessed externally from the class
       /** this method takes ownership of *name
 	  @param name the name of the public member (ownership of the memory is assumed by the QoreClass object)
-	  @param typeInfo unvalidated and unresolved type and initialization information available at parse time
+	  @param mInfo unvalidated and unresolved type and initialization information available at parse time
        */
       DLLLOCAL void parseAddPublicMember(char *name, QoreMemberInfo *mInfo);
 
@@ -633,7 +633,7 @@ class QoreClass {
       // returns true if the class passed is equal to or in the class' hierarchy - to be called only at parse time or under the program's parse lock
       DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
       // checks if the given member can be accessed at parse time
-      DLLLOCAL int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *memberTypeInfo) const;
+      DLLLOCAL int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const;
       // checks if the given member can be accessed from within the class
       DLLLOCAL int parseCheckInternalMemberAccess(const char *mem) const;
       // finds the named member in the hierarchy, returns the class implementing the member

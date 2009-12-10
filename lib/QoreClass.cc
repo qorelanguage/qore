@@ -230,12 +230,12 @@ struct qore_qc_private {
       }
    }
 
-   DLLLOCAL const int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *memberTypeInfo) const {
+   DLLLOCAL const int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
       const_cast<qore_qc_private *>(this)->initialize();
 
       bool priv;
       const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, priv);
-
+      
       if (!sclass) {
 	 if (parseHasPublicMembersInHierarchy()) {
 	    parse_error("illegal access to unknown member '%s' in a class with a public member list (or inherited public member list)", mem);
@@ -312,7 +312,7 @@ struct qore_qc_private {
       return scl ? scl->parseFindPublicPrivateMember(mem, memberTypeInfo, priv) : 0;
    }
 
-   DLLLOCAL int checkExistingMember(char *mem, QoreParseTypeInfo *memberTypeInfo, bool priv, const QoreClass *sclass, const QoreTypeInfo *existingMemberTypeInfo, bool is_priv) {
+   DLLLOCAL int checkExistingMember(char *mem, const QoreParseTypeInfo *memberTypeInfo, bool priv, const QoreClass *sclass, const QoreTypeInfo *existingMemberTypeInfo, bool is_priv) const {
       //printd(5, "checkExistingMember() mem=%s priv=%d is_priv=%d sclass=%s\n", mem, priv, is_priv, sclass->getName());
 
       // here we know that the member already exists, so either it will be a
@@ -362,7 +362,7 @@ struct qore_qc_private {
       return 0;
    }
 
-   DLLLOCAL int parseCheckMember(char *mem, QoreParseTypeInfo *memberTypeInfo, bool priv) {
+   DLLLOCAL int parseCheckMember(char *mem, const QoreParseTypeInfo *memberTypeInfo, bool priv) const {
       bool is_priv;
       const QoreTypeInfo *existingMemberTypeInfo;
       const QoreClass *sclass = parseFindPublicPrivateMember(mem, existingMemberTypeInfo, is_priv);
@@ -372,7 +372,7 @@ struct qore_qc_private {
       return checkExistingMember(mem, memberTypeInfo, priv, sclass, existingMemberTypeInfo, is_priv);
    }
 
-   DLLLOCAL int parseCheckMemberInBaseClasses(char *mem, QoreParseTypeInfo *memberTypeInfo, bool priv) {
+   DLLLOCAL int parseCheckMemberInBaseClasses(char *mem, const QoreParseTypeInfo *memberTypeInfo, bool priv) const {
       bool is_priv;
       const QoreTypeInfo *existingMemberTypeInfo;
       const QoreClass *sclass = scl ? scl->parseFindPublicPrivateMember(mem, existingMemberTypeInfo, is_priv) : 0;
@@ -2397,7 +2397,7 @@ const QoreTypeInfo *QoreClass::getTypeInfo() const {
    return &priv->typeInfo;
 }
 
-int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *memberTypeInfo) const {
+int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
    return priv->parseCheckMemberAccess(mem, memberTypeInfo);
 }
 

@@ -3,6 +3,11 @@
 float $g = 0;
 
 class T {
+    # declare public members
+    public {
+	int $.a;
+    }
+
     constructor() {
 	# type error in return statement
 	return 0;
@@ -98,6 +103,9 @@ sub main() {
 
     # OK
     my T $t = new T();
+
+    # error: parse error in member type
+    $b = $t.a;
 
     # error: copy method with arguments
     my $t1 = $t.copy(1 + 1);

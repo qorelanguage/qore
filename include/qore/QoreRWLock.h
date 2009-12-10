@@ -89,7 +89,6 @@ public:
     object is created and releasing it when the object is destroyed.
     @see QoreAutoRWWriteLocker
 */
-
 class QoreAutoRWReadLocker {
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -122,6 +121,11 @@ public:
    }
 };
 
+//! provides a safe and exception-safe way to hold write locks in Qore, only to be used on the stack, cannot be dynamically allocated
+/** Ensures that write locks are released by locking the write lock when the
+    object is created and releasing it when the object is destroyed.
+    @see QoreAutoRWReadLocker
+*/
 class QoreAutoRWWriteLocker {
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
