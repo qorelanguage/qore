@@ -852,7 +852,7 @@ bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *
       return false;
 
    bool priv;
-   if (!testClass->getClass(shouldBeClass->getID(), priv))
+   if (!testClass->parseGetClass(shouldBeClass->getID(), priv))
       return false;
 
    if (!priv)

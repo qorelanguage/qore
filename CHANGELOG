@@ -1,5 +1,7 @@
 2009.12.10: David Nichols
 	 * fixed parse-time type checking of object member references
+	 * fixed an issue with inialization order when checking types at parse
+	   time
 
 2009.12.09: David Nichols
 	* initial implementation of object member initialization at

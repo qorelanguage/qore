@@ -1538,6 +1538,14 @@ QoreClass *QoreClass::getClass(qore_classid_t cid) const {
    return priv->scl ? priv->scl->sml.getClass(cid) : 0;
 }
 
+const QoreClass *QoreClass::parseGetClass(qore_classid_t cid, bool &cpriv) const {
+   cpriv = false;
+   const_cast<QoreClass *>(this)->priv->initialize();
+   if (cid == priv->classID)
+      return (QoreClass *)this;
+   return priv->scl ? priv->scl->getClass(cid, cpriv) : 0;
+}
+
 const QoreClass *QoreClass::getClassIntern(qore_classid_t cid, bool &cpriv) const {
    if (cid == priv->classID)
       return (QoreClass *)this;

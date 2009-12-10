@@ -167,10 +167,8 @@ class BCNode {
       DLLLOCAL ~BCNode();
       DLLLOCAL bool isPrivate() const { return priv; }
       DLLLOCAL const QoreClass *getClass(qore_classid_t cid, bool &n_priv) const {
-	 const QoreClass *qc = 0;
-	 
-	 qc = (sclass->getID() == cid) ? sclass : sclass->getClassIntern(cid, n_priv);
-
+	 assert(sclass);
+	 const QoreClass *qc = (sclass->getID() == cid) ? sclass : sclass->getClassIntern(cid, n_priv);
 	 if (qc && !n_priv && priv)
 	    n_priv = true;
 	 return qc;

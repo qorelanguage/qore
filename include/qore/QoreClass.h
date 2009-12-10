@@ -643,6 +643,7 @@ class QoreClass {
       // returns the type information structure for this class
       DLLLOCAL const QoreTypeInfo *getTypeInfo() const;
       DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const;
+      DLLLOCAL const QoreClass *parseGetClass(qore_classid_t cid, bool &priv) const;
 };
 
 #endif // _QORE_QORECLASS_H
