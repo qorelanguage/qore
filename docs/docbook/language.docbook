@@ -1760,6 +1760,10 @@ $var[1].count++;
       <term>Description</term>
       <listitem>
 	<para>The first expression is evaluated and then compared to the value of each <command>case</command> expression in declaration order until one of the <command>case</command> expressions matches or is evaluated to True.  In this case all code up to a <command>break</command> statement is executed, at which time execution flow exits the <command>switch</command> statement.  Unless relational operators are used, the comparisons are "hard" comparisons; no type conversions are done, so in order for a match to be made, both the value and types of the expressions must match exactly.  When relational operators are used, the operators are executed exactly as they are in the rest of qore, so type conversions may be performed if nesessary.</para>
+	<para>To use soft comparisons, you must explicitly specify the soft equals operator as follows:
+	  <programlisting>switch (1) {
+    case == "1": print("true\n"); break;
+}</programlisting></para>
 	<para>If no match is found and a <command>default</command> label has been given, then any statements after the <command>default</command> label will be executed.  If a match is made, then the statements following that <command>case</command> label are executed.</para>
 	<para>To break out of the switch statement, use the <command>break</command> statement.</para>
 
