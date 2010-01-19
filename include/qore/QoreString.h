@@ -559,11 +559,14 @@ class TempEncodingHelper {
       }
 
       //! discards any current state and sets and converts (if necessary) a new string to the desired encoding
-      /**
-	 @param s a pointer to the QoreString input value
-	 @param qe the QoreEncoding required
-	 @param xsink if an error occurs, the Qore-language exception information will be added here
-	 @return 0=OK, -1=an error occurred and a Qore-language exception was raised
+      /** note that the return value is the opposite of most qore functions because 
+	  it was implemented incorrectly; the documentation has been changed to reflect
+	  the incorrect implementation; the implementation was not fixed in order to preserve
+	  source compatibility
+	  @param s a pointer to the QoreString input value
+	  @param qe the QoreEncoding required
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return 1=OK, 0=an error occurred and a Qore-language exception was raised
        */
       DLLLOCAL int set(const QoreString *s, const QoreEncoding *qe, ExceptionSink *xsink) {
 	 discard_intern();
