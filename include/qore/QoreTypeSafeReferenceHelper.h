@@ -74,12 +74,12 @@ class QoreTypeSafeReferenceHelper {
       //! returns true if the reference is valid, false if not
       /** false will only be returned if a Qore-language exception was raised in the constructor
        */
-      DLLLOCAL operator bool() const;
+      DLLEXPORT operator bool() const;
 
       //! returns the type of the reference's value
       /** @return the type of the reference's value
        */
-      DLLLOCAL qore_type_t getType() const;
+      DLLEXPORT qore_type_t getType() const;
 
       //! returns a pointer to the value with a unique reference count (so it can be updated in place), assumes the reference is valid
       /** @param xsink required for the call to AbstractQoreNode::deref()

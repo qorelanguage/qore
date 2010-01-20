@@ -2,6 +2,7 @@
 	 * added new library API: BuiltinFunctionList::add2() to allow for
 	   setting the return type and parameter types and default parameter
 	   values for builtin functions
+	 * fixed symbol visibility in QoreTypeSafeReferenceHelper class
 
 2009.12.10: David Nichols
 	 * fixed parse-time type checking of object member references
