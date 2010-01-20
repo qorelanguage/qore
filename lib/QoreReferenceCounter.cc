@@ -34,7 +34,7 @@ QoreReferenceCounter::~QoreReferenceCounter()
 void QoreReferenceCounter::ROreference() const
 {
 #ifdef DEBUG
-   if (references < 0 || references > 100000) {
+   if (references < 0 || references > 10000000) {
       printd(0, "QoreReferenceCounter::ROreference() this=%08p references=%d\n", this, references);
       assert(false);
    }
@@ -52,7 +52,7 @@ void QoreReferenceCounter::ROreference() const
 bool QoreReferenceCounter::ROdereference() const
 {
 #ifdef DEBUG
-   if (references <= 0 || references > 250000) {
+   if (references <= 0 || references > 10000000) {
       printd(0, "QoreReferenceCounter::ROdereference() this=%08p references=%d\n", this, references);
       assert(false);
    }

@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright 2003 - 2009 David Nichols
+  Copyright 2003 - 2010 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,8 @@
 #include <qore/Restrictions.h>
 #include <qore/QoreThreadLock.h>
 
+#include <stdarg.h>
+
 /** @file BuiltinFunctionList.h
     defines the BuiltinFunctionList class for the Qore library
  */
@@ -39,17 +41,18 @@ DLLLOCAL void init_builtin_functions();
 /** The object is thread-safe; a hash or hash-map is used for lookups.
     There is only one of these, therefore we have static members and methods.
  */
-class BuiltinFunctionList
-{
+class BuiltinFunctionList {
+   friend class BuiltinFunctionListOptionalLockHelper;
    private:
       DLLLOCAL static bool init_done;
       DLLLOCAL static hm_bf_t hm;
-      DLLLOCAL static class QoreThreadLock mutex;
+      DLLLOCAL static QoreThreadLock mutex;
 
       // not implemented
       DLLLOCAL BuiltinFunctionList(const BuiltinFunctionList&);
       DLLLOCAL BuiltinFunctionList& operator=(const BuiltinFunctionList&);
       DLLLOCAL void *operator new(size_t);
+      DLLLOCAL static int add_intern(BuiltinFunction *bf);
 
    public:
       DLLLOCAL BuiltinFunctionList();
@@ -60,21 +63,29 @@ class BuiltinFunctionList
       /**
 	 @param name the name of the function
 	 @param f a pointer to the actual C++ function to be executed when the function is called
-	 @param typ a capability mask of the function so that access to the function can be restricted if necessary
+	 @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
        */
-      DLLEXPORT static void add(const char *name, q_func_t f, int typ = QDOM_DEFAULT);
+      DLLEXPORT static void add(const char *name, q_func_t f, int functional_domain = QDOM_DEFAULT);
 
-      //! finds a function by its name
+      //! adds a new builtin function to the list and allows for the return type and parameter list to be set
       /**
-	 @return a pointer to the function found
-       */
-      DLLEXPORT static const class BuiltinFunction *find(const char *name);
+	 @param name the name of the function
+	 @param f a pointer to the actual C++ function to be executed when the function is called
+	 @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
+      */
+      DLLEXPORT static void add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...);
 
       //! returns the number of functions in the hash
       /**
 	 @return the number of functions in the hash
        */
       DLLEXPORT static int size();
+
+      //! finds a function by its name
+      /**
+	 @return a pointer to the function found
+       */
+      DLLEXPORT static const BuiltinFunction *find(const char *name);
 
       DLLLOCAL static void init();
 };

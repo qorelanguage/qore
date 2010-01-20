@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2009 David Nichols
+  Copyright 2003 - 2010 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -706,10 +706,10 @@ void init_string_functions()
    builtinFunctions.add("tolower", f_tolower);
    builtinFunctions.add("toupper", f_toupper);
    builtinFunctions.add("substr", f_substr);
-   builtinFunctions.add("index", f_index);
-   builtinFunctions.add("bindex", f_bindex);
-   builtinFunctions.add("rindex", f_rindex);
-   builtinFunctions.add("brindex", f_brindex);
+   builtinFunctions.add2("index", f_index, QDOM_DEFAULT, &bigIntTypeInfo, 0);
+   builtinFunctions.add2("bindex", f_bindex, QDOM_DEFAULT, &bigIntTypeInfo, 0);
+   builtinFunctions.add2("rindex", f_rindex, QDOM_DEFAULT, &bigIntTypeInfo, 0);
+   builtinFunctions.add2("brindex", f_brindex, QDOM_DEFAULT, &bigIntTypeInfo, 0);
    builtinFunctions.add("ord", f_ord);
    builtinFunctions.add("chr", f_chr);
    builtinFunctions.add("split", f_split);

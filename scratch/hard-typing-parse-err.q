@@ -100,6 +100,8 @@ sub main() {
     $b = test(1, 2);
     # too few arguments to function
     $s = test(1);
+    # return type error
+    $s = index();
 
     # OK
     my T $t = new T();

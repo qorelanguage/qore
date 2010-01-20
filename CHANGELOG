@@ -1,3 +1,8 @@
+2010.01.20: David Nichols
+	 * added new library API: BuiltinFunctionList::add2() to allow for
+	   setting the return type and parameter types and default parameter
+	   values for builtin functions
+
 2009.12.10: David Nichols
 	 * fixed parse-time type checking of object member references
 	 * fixed an issue with inialization order when checking types at parse

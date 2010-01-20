@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2009 David Nichols
+  Copyright 2003 - 2010 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -98,7 +98,7 @@ void AbstractQoreNode::deref(ExceptionSink *xsink) {
       printd(5, "AbstractQoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
 
 #endif
-   if (references > 200000 || references <= 0){
+   if (references > 10000000 || references <= 0){
       if (type == NT_STRING)
 	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references=%d (type=%s) (val=\"%s\")\n",
 		this, references, getTypeName(), ((QoreStringNode *)this)->getBuffer());

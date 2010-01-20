@@ -2,7 +2,10 @@
 
 %enable-all-warnings
 
+our Condition $gc;
+
 class T {
+    private $.t;
 
     private {
 	$.a;
@@ -18,6 +21,7 @@ class T {
     }
 
     constructor() {
+	#needs_condition($.c);
     }
 }
 

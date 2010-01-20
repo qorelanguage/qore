@@ -1,3 +1,5 @@
+* implement a new C++ API for adding functions internally, check BuiltinFunctionList::add*() for duplicates when used by modules
+* fix %n and %N to not output private members when called outside the class
 * fix parse directives to ignore comments after them
 * fix strange problem with unknown parse directives (i.e. %warnings-as-errors)
 * make sure exit() will exit - may need to interrupt threads (ex: thread waiting on accept() will not exit)

@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2009 David Nichols
+  Copyright 2003 - 2010 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -1072,6 +1072,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, Paramlist *&params, const
       printd(5, "resolved imported function call to %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
       f->ftype = FC_IMPORTED;
       f->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
+      returnTypeInfo = ifn->func->getReturnTypeInfo();
       free(fname);
       params = ifn->func->params;
 
@@ -1083,6 +1084,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, Paramlist *&params, const
       printd(5, "resolved builtin function call to %s\n", fname);
       f->ftype = FC_BUILTIN;
       f->f.bfunc = bfc;
+      returnTypeInfo = bfc->getReturnTypeInfo();
       // FIXME: xxx set params here when available
       params = 0;
 

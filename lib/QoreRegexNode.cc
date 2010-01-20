@@ -1,7 +1,7 @@
 /*
  QoreRegexNode.cc
  
- Copyright 2003 - 2009 David Nichols
+ Copyright 2003 - 2010 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public

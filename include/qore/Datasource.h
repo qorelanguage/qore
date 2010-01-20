@@ -3,7 +3,7 @@
 
   Qore Programming Language
  
-  Copyright 2003 - 2009 David Nichols
+  Copyright 2003 - 2010 David Nichols
  
   The Datasource class provides the low-level interface to Qore DBI drivers.
   

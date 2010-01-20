@@ -3,7 +3,7 @@
 
   Qore Programming language
 
-  Copyright 2003 - 2009 David Nichols
+  Copyright 2003 - 2010 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -49,8 +49,9 @@
 
 bool BuiltinFunctionList::init_done = false;
 hm_bf_t BuiltinFunctionList::hm;
-class QoreThreadLock BuiltinFunctionList::mutex;
-class BuiltinFunctionList builtinFunctions;
+// the mutex is needed because the list is global and also searched at runtime
+QoreThreadLock BuiltinFunctionList::mutex;
+BuiltinFunctionList builtinFunctions;
 
 BuiltinFunctionList::BuiltinFunctionList() {
 }
@@ -59,16 +60,46 @@ BuiltinFunctionList::~BuiltinFunctionList() {
 //   assert(hm.empty());
 }
 
-void BuiltinFunctionList::add(const char *name, q_func_t f, int typ) {
+int BuiltinFunctionList::add_intern(BuiltinFunction *bf) {
    if (init_done) {
-      mutex.lock();
-      // version with cloning the name: hm[strdup(name)] = new BuiltinFunction(name, f, typ);
-      hm[name] = new BuiltinFunction(name, f, typ);
-      mutex.unlock();
+      AutoLocker al(mutex);
+      if (hm.find(bf->getName()) != hm.end()) {
+	 fprintf(stderr, "ERROR: module is loading duplicate builtin function '%s()'; ignoring function\n", bf->getName());
+	 delete bf;
+	 return -1;
+      }
+      hm[bf->getName()] = bf;
    } else {
-      //version with cloning the name:  hm[strdup(name)] = new BuiltinFunction(name, f, typ);
-      hm[name] = new BuiltinFunction(name, f, typ);
+      // assert that the function has not already beed added
+      assert(hm.find(bf->getName()) == hm.end());
+      hm[bf->getName()] = bf;
    }
+   return 0;
+}
+
+void BuiltinFunctionList::add(const char *name, q_func_t f, int functional_domain) {
+   add_intern(new BuiltinFunction(name, f, functional_domain));
+}
+
+void BuiltinFunctionList::add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   const QoreTypeInfo **typeList = 0;
+   const AbstractQoreNode **defaultArgList = 0;
+   if (num_params) {
+      typeList = new const QoreTypeInfo *[num_params];
+      defaultArgList = new const AbstractQoreNode *[num_params];
+
+      va_list args;
+      va_start(args, num_params);
+      for (unsigned i = 0; i < num_params; ++i) {
+	 typeList[i] = va_arg(args, const QoreTypeInfo *);
+	 defaultArgList[i] = va_arg(args, const AbstractQoreNode *);
+	 // DEBUG: for now we cannot accept default argument values
+	 assert(!defaultArgList[i]);
+      }
+      va_end(args);
+   }
+
+   add_intern(new BuiltinFunction(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 void BuiltinFunctionList::clear() {
@@ -76,7 +107,6 @@ void BuiltinFunctionList::clear() {
    hm_bf_t::iterator i = hm.begin();
    while (i != hm.end()) {
       //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() deleting '%s()'\n", i->first);
-      // char *c = (char *)i->first; - was used for deleting the cloned function name
 
       // delete function
       delete i->second;
@@ -85,22 +115,25 @@ void BuiltinFunctionList::clear() {
       hm.erase(i);
 
       i = hm.begin();
-
-      // delete name
-      // free(c); - uncomment if the names are cloned, uncomment the 'c' declaration above too
    }
 }
 
+class BuiltinFunctionListOptionalLockHelper {
+public:
+   DLLLOCAL BuiltinFunctionListOptionalLockHelper() {
+      if (BuiltinFunctionList::init_done)
+	 BuiltinFunctionList::mutex.lock();
+   }
+   DLLLOCAL ~BuiltinFunctionListOptionalLockHelper() {
+      if (BuiltinFunctionList::init_done)
+	 BuiltinFunctionList::mutex.unlock();
+   }
+};
+
 const BuiltinFunction *BuiltinFunctionList::find(const char *name) {
-   const BuiltinFunction *rv = 0;
-   if (init_done)
-      mutex.lock();
+   BuiltinFunctionListOptionalLockHelper ol;
    hm_bf_t::iterator i = hm.find(name);
-   if (i != hm.end())
-      rv = i->second;
-   if (init_done)
-      mutex.unlock();
-   return rv;
+   return i != hm.end() ? i->second : 0;
 }
 
 inline int BuiltinFunctionList::size() {

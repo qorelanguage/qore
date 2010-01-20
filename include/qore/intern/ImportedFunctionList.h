@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright 2003 - 2009 David Nichols
+ Copyright 2003 - 2010 David Nichols
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -28,25 +28,23 @@
 
 #include <map>
 
-class ImportedFunctionNode
-{
+class ImportedFunctionNode {
 public:
-   class QoreProgram *pgm;
-   class UserFunction *func;
+   QoreProgram *pgm;
+   UserFunction *func;
    
-   DLLLOCAL ImportedFunctionNode(class QoreProgram *p, class UserFunction *u);
+   DLLLOCAL ImportedFunctionNode(QoreProgram *p, UserFunction *u);
 };
 
-typedef std::map<const char *, class ImportedFunctionNode *, class ltstr> ifn_map_t;
+typedef std::map<const char *, ImportedFunctionNode *, class ltstr> ifn_map_t;
 
-class ImportedFunctionList : public ifn_map_t
-{
+class ImportedFunctionList : public ifn_map_t {
 public:
    DLLLOCAL ImportedFunctionList();
    DLLLOCAL ~ImportedFunctionList();
-   DLLLOCAL void add(class QoreProgram *pgm, class UserFunction *func);
-   DLLLOCAL class UserFunction *find(const char *name) const;
-   DLLLOCAL class ImportedFunctionNode *findNode(const char *name) const;
+   DLLLOCAL void add(QoreProgram *pgm, UserFunction *func);
+   DLLLOCAL UserFunction *find(const char *name) const;
+   DLLLOCAL ImportedFunctionNode *findNode(const char *name) const;
 };
 
 #endif
