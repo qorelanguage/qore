@@ -5,6 +5,7 @@
 	 * fixed symbol visibility in QoreTypeSafeReferenceHelper class
 	 * infrastructure changes to accommodate consistent parameter handling
 	   with user and builtin types
+	 * builtin function and method return type and parameter type handling
 
 2009.12.10: David Nichols
 	 * fixed parse-time type checking of object member references

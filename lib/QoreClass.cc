@@ -595,8 +595,9 @@ struct qore_method_private {
    }
 
    DLLLOCAL ParamList *getParams() const {
-      // FIXME: return params for builtin types
-      return type == OTF_USER ? const_cast<UserParamList *>(func.userFunc->params) : 0;
+      if (type == OTF_USER) 
+	 return const_cast<UserParamList *>(func.userFunc->params);
+      return const_cast<ParamList *>(func.builtin->getParams()); 
    }
 
    DLLLOCAL const char *getName() const { return type == OTF_USER ? func.userFunc->getName() : func.builtin->getName(); }
@@ -656,7 +657,9 @@ struct qore_method_private {
    }
 
    DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
-      return type == OTF_USER ? func.userFunc->getReturnTypeInfo() : 0;
+      if (type == OTF_USER)
+	 return func.userFunc->getReturnTypeInfo();
+      return func.builtin->getReturnTypeInfo();
    }
 };
 

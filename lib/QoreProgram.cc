@@ -1085,8 +1085,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, ParamList *&params, const
       f->ftype = FC_BUILTIN;
       f->f.bfunc = bfc;
       returnTypeInfo = bfc->getReturnTypeInfo();
-      // FIXME: xxx set params here when available
-      params = 0;
+      params = bfc->getParams();
 
       // check parse options to see if access is allowed
       if (bfc->getType() & priv->parse_options)

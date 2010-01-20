@@ -24,23 +24,37 @@
 
 #define _QORE_BUILTINFUNCTION_H
 
+class BuiltinParamList : public ParamList {
+public:
+   const QoreTypeInfo **typeList;
+
+   DLLLOCAL BuiltinParamList(unsigned n_num_params, const QoreTypeInfo **n_typeList) : ParamList(n_num_params), typeList(n_typeList) {
+   }
+   DLLLOCAL virtual ~BuiltinParamList() {
+      delete [] typeList;
+   }
+   DLLLOCAL virtual void resolve() {}
+   DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const {
+      return typeList[num];
+   }
+};
+
 class BuiltinFunctionBase {
 protected:
    const char *name;
    // functionality bitmap for parse restrictions
    int functionality;
    const QoreTypeInfo *returnTypeInfo;
-   unsigned num_params;
-   const QoreTypeInfo **typeList;
+   BuiltinParamList params;
    const AbstractQoreNode **defaultArgList;
 
 public:
-   DLLLOCAL BuiltinFunctionBase(const char *n_name, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params, const QoreTypeInfo **n_typeList, const AbstractQoreNode **n_defaultArgList) : name(n_name), functionality(n_functionality), returnTypeInfo(n_returnTypeInfo), num_params(n_num_params), typeList(n_typeList), defaultArgList(n_defaultArgList) {}
-   DLLLOCAL BuiltinFunctionBase() : name(0), returnTypeInfo(0), num_params(0), typeList(0), defaultArgList(0) {
+   DLLLOCAL BuiltinFunctionBase(const char *n_name, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params, const QoreTypeInfo **n_typeList, const AbstractQoreNode **n_defaultArgList) : name(n_name), functionality(n_functionality), returnTypeInfo(n_returnTypeInfo), params(n_num_params, n_typeList), defaultArgList(n_defaultArgList) {
+   }
+   DLLLOCAL BuiltinFunctionBase() : name(0), returnTypeInfo(0), params(0, 0), defaultArgList(0) {
       assert(false);
    }
    DLLLOCAL ~BuiltinFunctionBase() {
-      delete [] typeList;
       delete [] defaultArgList;
    }
    DLLLOCAL int getType() const {
@@ -51,6 +65,9 @@ public:
    }
    DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
       return returnTypeInfo;
+   }
+   DLLLOCAL ParamList *getParams() const {
+      return const_cast<BuiltinParamList *>(&params);
    }
 };
 
