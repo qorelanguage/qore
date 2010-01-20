@@ -52,90 +52,184 @@ AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, Ex
 class LocalVar;
 class VarRefNode;
 
-class Paramlist {
-   protected:
-      DLLLOCAL void assignParam(int i, VarRefNode *v);
+class ParamList {
+protected:
+   unsigned num_params;
 
-      DLLLOCAL void setSingleParamIntern(VarRefNode *v) {
-	 num_params = 1;
-	 names = new char *[1];
-	 typeList = new QoreParseTypeInfo *[1];
-	 assignParam(0, v);
+public:
+   DLLLOCAL ParamList(unsigned n_num_params) : num_params(n_num_params) {
+   }
+   DLLLOCAL virtual ~ParamList() {
+   }
+   DLLLOCAL unsigned numParams() const {
+      return num_params;
+   }
+   DLLLOCAL const QoreTypeInfo *getParamTypeInfo(unsigned num) const {
+      return num >= num_params ? 0 : getParamTypeInfoImpl(num);
+   }
+   DLLLOCAL virtual void resolve() = 0;
+   DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const = 0;
+};
+
+class UserParamList : public ParamList {
+protected:
+   DLLLOCAL void assignParam(int i, VarRefNode *v);
+
+   DLLLOCAL void setSingleParamIntern(VarRefNode *v) {
+      num_params = 1;
+      names = new char *[1];
+      typeList = new QoreParseTypeInfo *[1];
+      assignParam(0, v);
+   }
+
+   DLLLOCAL static void param_error() {
+      parse_error("parameter list contains non-variable reference expressions");
+   }
+
+public:
+   char **names;
+   QoreParseTypeInfo **typeList;
+   LocalVar **lv;
+   LocalVar *argvid;
+   LocalVar *selfid;
+   bool resolved;
+
+   DLLLOCAL UserParamList(AbstractQoreNode *params) : ParamList(0), resolved(false) {
+      ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
+      
+      lv = 0;
+      if (!params) {
+	 num_params = 0;
+	 names = 0;
+	 typeList = 0;
+	 return;
+      }
+      
+      if (params->getType() == NT_VARREF) {
+	 setSingleParamIntern(reinterpret_cast<VarRefNode *>(params));
+	 return;
       }
 
-   public:
-      unsigned num_params;
-      char **names;
-      QoreParseTypeInfo **typeList;
-      LocalVar **lv;
-      LocalVar *argvid;
-      LocalVar *selfid;
-      bool resolved;
-
-      DLLLOCAL Paramlist(AbstractQoreNode *params);
-      DLLLOCAL ~Paramlist();
-
-/*
-      // takes over QoreParseTypeInfo structure
-      DLLLOCAL void setSingleParam(VarRefNode *v) {
-	 assert(!num_params);
-	 setSingleParamIntern(v);
+      if (params->getType() != NT_LIST) {
+	 param_error();
+	 num_params = 0;
+	 names = 0;
+	 typeList = 0;
+	 return;
       }
-*/
-
-      DLLLOCAL void resolve() {
-	 if (resolved)
-	    return;
-
-	 resolved = true;
-	 if (!num_params)
-	    return;
-
-	 for (unsigned i = 0; i < num_params; ++i)
-	    if (typeList[i])
-	       typeList[i]->resolve();			 
+      
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(params);
+      
+      num_params = l->size();
+      names = new char *[num_params];
+      typeList = new QoreParseTypeInfo *[num_params];
+      for (unsigned i = 0; i < num_params; i++) {
+	 AbstractQoreNode *n = l->retrieve_entry(i);
+	 qore_type_t t = n ? n->getType() : 0;
+	 if (t != NT_VARREF) {
+	    if (n)
+	       param_error();
+	    num_params = 0;
+	    delete [] names;
+	    names = 0;
+	    delete [] typeList;
+	    typeList = 0;
+	    break;
+	 }
+	 
+	 assignParam(i, reinterpret_cast<VarRefNode *>(n));
+	 //printd(5, "UserParamList::UserParamList() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->has_type : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
       }
+   }
+
+   DLLLOCAL virtual ~UserParamList() {
+      for (unsigned i = 0; i < num_params; i++)
+	 free(names[i]);
+      if (names)
+	 delete [] names;
+      if (typeList) {
+	 for (unsigned i = 0; i < num_params; i++)
+	    delete typeList[i];
+	 delete [] typeList;
+      }
+      if (lv)
+	 delete [] lv;
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const {
+      return typeList[num];
+   }
+      
+   DLLLOCAL virtual void resolve() {
+      if (resolved)
+	 return;
+      
+      resolved = true;
+      if (!num_params)
+	 return;
+
+      for (unsigned i = 0; i < num_params; ++i)
+	 if (typeList[i])
+	    typeList[i]->resolve();			 
+   }
+
+   DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo);
+
+   DLLLOCAL void parseInitPopLocalVars();
+};
+
+class UserParamListLocalVarHelper {
+protected:
+   UserParamList *l;
+
+public:
+   DLLLOCAL UserParamListLocalVarHelper(UserParamList *n_l, const QoreTypeInfo *classTypeInfo = 0) : l(n_l) {
+      l->parseInitPushLocalVars(classTypeInfo);
+   }
+   DLLLOCAL ~UserParamListLocalVarHelper() {
+      l->parseInitPopLocalVars();
+   }
 };
 
 class VRMutex;
 
 class UserFunction : public QoreReferenceCounter {
-   private:
-      bool synchronized;
-      // for "synchronized" functions
-      VRMutex *gate;
-      char *name;
-      QoreParseTypeInfo *returnTypeInfo;
+private:
+   bool synchronized;
+   // for "synchronized" functions
+   VRMutex *gate;
+   char *name;
+   QoreParseTypeInfo *returnTypeInfo;
 
-   protected:
-      DLLLOCAL ~UserFunction();
+protected:
+   DLLLOCAL ~UserFunction();
 
-   public:
-      Paramlist *params;
-      StatementBlock *statements;
+public:
+   UserParamList *params;
+   StatementBlock *statements;
 
-      // the object owns the memory for "n_name", 0 for anonymous closures, takes ownership of parms, b, rv
-      DLLLOCAL UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced = false);
-      DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
-      DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
-      DLLLOCAL AbstractQoreNode *evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, ExceptionSink *xsink) const;
-      DLLLOCAL void evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const;
-      DLLLOCAL bool isSynchronized() const { 
-	 return synchronized; 
-      }
-      DLLLOCAL void deref();
-      DLLLOCAL const char *getName() const {
-	 return name ? name : "<anonymous closure>";
-      }
-      DLLLOCAL void parseInit();
-      DLLLOCAL void parseInitMethod(const QoreClass &parent_class, bool static_flag);
-      DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
-      DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
-      DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
+   // the object owns the memory for "n_name", 0 for anonymous closures, takes ownership of parms, b, rv
+   DLLLOCAL UserFunction(char *n_name, UserParamList *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced = false);
+   DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
+   DLLLOCAL AbstractQoreNode *evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, ExceptionSink *xsink) const;
+   DLLLOCAL void evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const;
+   DLLLOCAL bool isSynchronized() const { 
+      return synchronized; 
+   }
+   DLLLOCAL void deref();
+   DLLLOCAL const char *getName() const {
+      return name ? name : "<anonymous closure>";
+   }
+   DLLLOCAL void parseInit();
+   DLLLOCAL void parseInitMethod(const QoreClass &parent_class, bool static_flag);
+   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
+   DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
+   DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
 
-      DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
-	 return static_cast<QoreTypeInfo *>(returnTypeInfo);
-      }
+   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
+      return static_cast<QoreTypeInfo *>(returnTypeInfo);
+   }
 };
 
 #endif // _QORE_FUNCTION_H

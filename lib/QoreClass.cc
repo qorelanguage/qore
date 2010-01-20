@@ -594,8 +594,9 @@ struct qore_method_private {
 	 func.builtin->deref();
    }
 
-   DLLLOCAL Paramlist *getParams() const {
-      return type == OTF_USER ? const_cast<Paramlist *>(func.userFunc->params) : 0;
+   DLLLOCAL ParamList *getParams() const {
+      // FIXME: return params for builtin types
+      return type == OTF_USER ? const_cast<UserParamList *>(func.userFunc->params) : 0;
    }
 
    DLLLOCAL const char *getName() const { return type == OTF_USER ? func.userFunc->getName() : func.builtin->getName(); }
@@ -647,7 +648,7 @@ struct qore_method_private {
       if (type != OTF_USER)
 	 return true;
       
-      return func.userFunc->params->num_params > i;
+      return func.userFunc->params->numParams() > i;
    }
 
    DLLLOCAL bool newCallingConvention() const {
@@ -1296,7 +1297,7 @@ QoreMethod::~QoreMethod() {
    delete priv;
 }
 
-Paramlist *QoreMethod::getParams() const {
+ParamList *QoreMethod::getParams() const {
    return priv->getParams();
 }
 

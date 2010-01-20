@@ -46,7 +46,7 @@ class SelfFunctionCall {
    DLLLOCAL SelfFunctionCall(const QoreMethod *f);
    DLLLOCAL ~SelfFunctionCall();
    DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL void resolve(Paramlist *&params, const QoreTypeInfo *&returnTypeInfo);
+   DLLLOCAL void resolve(ParamList *&params, const QoreTypeInfo *&returnTypeInfo);
    DLLLOCAL char *takeName();
    DLLLOCAL NamedScope *takeNScope();
 };
@@ -82,7 +82,7 @@ class AbstractFunctionCallNode : public ParseNode {
 
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
 
-   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, Paramlist *params) {
+   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, ParamList *params) {
       int lvids = 0;
 
       if (params)
@@ -91,7 +91,7 @@ class AbstractFunctionCallNode : public ParseNode {
       pflag &= ~PF_REFERENCE_OK;
       bool needs_eval = args ? args->needs_eval() : false;
 
-      unsigned max = QORE_MAX(args ? args->size() : 0, params ? params->num_params : 0);
+      unsigned max = QORE_MAX(args ? args->size() : 0, params ? params->numParams() : 0);
 
       for (unsigned i = 0; i < max; ++i) {
 	 AbstractQoreNode **n = args && i < args->size() ? args->get_entry_ptr(i) : 0;
@@ -113,16 +113,19 @@ class AbstractFunctionCallNode : public ParseNode {
 	    argTypeInfo = &nothingTypeInfo;
 
 	 // check for compatible types
-	 // note that QoreTypeInfo::parseEqual() can be called when this = 0
-	 if (params && (i < params->num_params) && !params->typeList[i]->parseEqual(argTypeInfo)) {
-	    // raise a parse exception if parse exceptions are enabled
-	    if (getProgram()->getParseExceptionSink()) {
-	       QoreStringNode *desc = new QoreStringNode("argument ");
-	       desc->sprintf("%d expects ", i + 1);
-	       params->typeList[i]->getThisType(*desc);
-	       desc->concat(", but call supplies ");
-	       argTypeInfo->getThisType(*desc);
-	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 if (params) {
+	    const QoreTypeInfo *paramTypeInfo = params->getParamTypeInfo(i);
+	    // note that QoreTypeInfo::parseEqual() can be called when this = 0
+	    if (!paramTypeInfo->parseEqual(argTypeInfo)) {
+	       // raise a parse exception if parse exceptions are enabled
+	       if (getProgram()->getParseExceptionSink()) {
+		  QoreStringNode *desc = new QoreStringNode("argument ");
+		  desc->sprintf("%d expects ", i + 1);
+		  paramTypeInfo->getThisType(*desc);
+		  desc->concat(", but call supplies ");
+		  argTypeInfo->getThisType(*desc);
+		  getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	       }
 	    }
 	 }
       }

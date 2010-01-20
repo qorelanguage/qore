@@ -123,9 +123,9 @@ AbstractQoreNode *FunctionCallNode::parseMakeNewObject() {
 
 bool FunctionCallNode::existsUserParam(unsigned i) const {
    if (ftype == FC_USER)
-      return f.ufunc->params->num_params > i;
+      return f.ufunc->params->numParams() > i;
    if (ftype == FC_IMPORTED)
-      return f.ifunc->func->params->num_params > i;
+      return f.ifunc->func->params->numParams() > i;
    return true;
 }
 
@@ -189,7 +189,7 @@ AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-   Paramlist *params = 0;
+   ParamList *params = 0;
    switch (ftype) {
       case FC_SELF: 
 	 if (!oflag)

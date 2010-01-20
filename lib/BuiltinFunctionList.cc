@@ -47,11 +47,108 @@
 #include <string.h>
 #include <assert.h>
 
-bool BuiltinFunctionList::init_done = false;
-hm_bf_t BuiltinFunctionList::hm;
-// the mutex is needed because the list is global and also searched at runtime
-QoreThreadLock BuiltinFunctionList::mutex;
+static bool library_init_done = false;
+
 BuiltinFunctionList builtinFunctions;
+
+typedef std::map<const char*, BuiltinFunction *, class ltstr> hm_bf_t;
+
+class BuiltinFunctionListPrivate {
+   friend class BuiltinFunctionListOptionalLockHelper;
+protected:
+   DLLLOCAL hm_bf_t hm;
+   // the mutex is needed because the list is global and also searched at runtime
+   DLLLOCAL mutable QoreThreadLock mutex;
+
+   DLLLOCAL int add_intern(BuiltinFunction *bf) {
+      if (library_init_done) {
+	 AutoLocker al(mutex);
+	 if (hm.find(bf->getName()) != hm.end()) {
+	    fprintf(stderr, "ERROR: module is loading duplicate builtin function '%s()'; ignoring function\n", bf->getName());
+	    delete bf;
+	    return -1;
+	 }
+	 hm[bf->getName()] = bf;
+      } else {
+	 // assert that the function has not already beed added
+	 assert(hm.find(bf->getName()) == hm.end());
+	 hm[bf->getName()] = bf;
+      }
+      return 0;
+   }
+
+public:
+   DLLLOCAL BuiltinFunctionListPrivate() {
+   }
+
+   DLLLOCAL void add(const char *name, q_func_t f, int functional_domain) {
+      add_intern(new BuiltinFunction(name, f, functional_domain));
+   }
+
+   void add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
+      const QoreTypeInfo **typeList = 0;
+      const AbstractQoreNode **defaultArgList = 0;
+      if (num_params) {
+	 typeList = new const QoreTypeInfo *[num_params];
+	 defaultArgList = new const AbstractQoreNode *[num_params];
+
+	 for (unsigned i = 0; i < num_params; ++i) {
+	    typeList[i] = va_arg(args, const QoreTypeInfo *);
+	    defaultArgList[i] = va_arg(args, const AbstractQoreNode *);
+	    // DEBUG: for now we cannot accept default argument values
+	    assert(!defaultArgList[i]);
+	 }
+      }
+
+      add_intern(new BuiltinFunction(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
+   }
+
+   DLLLOCAL void clear() {
+      //printd(5, "BuiltinFunctionListPrivate::~BuiltinFunctionListPrivate() this=%08p\n", this);
+      hm_bf_t::iterator i = hm.begin();
+      while (i != hm.end()) {
+	 //printd(5, "BuiltinFunctionListPrivate::~BuiltinFunctionListPrivate() deleting '%s()'\n", i->first);
+	 
+	 // delete function
+	 delete i->second;
+	 
+	 // erase hash entry
+	 hm.erase(i);
+	 
+	 i = hm.begin();
+      }
+   }
+
+   DLLLOCAL const BuiltinFunction *find(const char *name) const;
+   DLLLOCAL int size() const;
+};
+
+class BuiltinFunctionListOptionalLockHelper {
+protected:
+   const BuiltinFunctionListPrivate *l;
+public:
+   DLLLOCAL BuiltinFunctionListOptionalLockHelper(const BuiltinFunctionListPrivate *n_l) : l(n_l) {
+      if (library_init_done)
+	 l->mutex.lock();
+   }
+   DLLLOCAL ~BuiltinFunctionListOptionalLockHelper() {
+      if (library_init_done)
+	 l->mutex.unlock();
+   }
+};
+
+static BuiltinFunctionListPrivate bfl;
+
+const BuiltinFunction *BuiltinFunctionListPrivate::find(const char *name) const {
+   BuiltinFunctionListOptionalLockHelper ol(this);
+   hm_bf_t::const_iterator i = hm.find(name);
+   return i != hm.end() ? i->second : 0;
+}
+
+int BuiltinFunctionListPrivate::size() const {
+   BuiltinFunctionListOptionalLockHelper ol(this);
+   return hm.size();
+}
 
 BuiltinFunctionList::BuiltinFunctionList() {
 }
@@ -60,84 +157,27 @@ BuiltinFunctionList::~BuiltinFunctionList() {
 //   assert(hm.empty());
 }
 
-int BuiltinFunctionList::add_intern(BuiltinFunction *bf) {
-   if (init_done) {
-      AutoLocker al(mutex);
-      if (hm.find(bf->getName()) != hm.end()) {
-	 fprintf(stderr, "ERROR: module is loading duplicate builtin function '%s()'; ignoring function\n", bf->getName());
-	 delete bf;
-	 return -1;
-      }
-      hm[bf->getName()] = bf;
-   } else {
-      // assert that the function has not already beed added
-      assert(hm.find(bf->getName()) == hm.end());
-      hm[bf->getName()] = bf;
-   }
-   return 0;
-}
-
 void BuiltinFunctionList::add(const char *name, q_func_t f, int functional_domain) {
-   add_intern(new BuiltinFunction(name, f, functional_domain));
+   bfl.add(name, f, functional_domain);
 }
 
 void BuiltinFunctionList::add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   const QoreTypeInfo **typeList = 0;
-   const AbstractQoreNode **defaultArgList = 0;
-   if (num_params) {
-      typeList = new const QoreTypeInfo *[num_params];
-      defaultArgList = new const AbstractQoreNode *[num_params];
-
-      va_list args;
-      va_start(args, num_params);
-      for (unsigned i = 0; i < num_params; ++i) {
-	 typeList[i] = va_arg(args, const QoreTypeInfo *);
-	 defaultArgList[i] = va_arg(args, const AbstractQoreNode *);
-	 // DEBUG: for now we cannot accept default argument values
-	 assert(!defaultArgList[i]);
-      }
-      va_end(args);
-   }
-
-   add_intern(new BuiltinFunction(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
+   va_list args;
+   va_start(args, num_params);
+   bfl.add2(name, f, functional_domain, returnTypeInfo, num_params, args);
+   va_end(args);
 }
 
 void BuiltinFunctionList::clear() {
-   //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() this=%08p\n", this);
-   hm_bf_t::iterator i = hm.begin();
-   while (i != hm.end()) {
-      //printd(5, "BuiltinFunctionList::~BuiltinFunctionList() deleting '%s()'\n", i->first);
-
-      // delete function
-      delete i->second;
-
-      // erase hash entry
-      hm.erase(i);
-
-      i = hm.begin();
-   }
+   bfl.clear();
 }
 
-class BuiltinFunctionListOptionalLockHelper {
-public:
-   DLLLOCAL BuiltinFunctionListOptionalLockHelper() {
-      if (BuiltinFunctionList::init_done)
-	 BuiltinFunctionList::mutex.lock();
-   }
-   DLLLOCAL ~BuiltinFunctionListOptionalLockHelper() {
-      if (BuiltinFunctionList::init_done)
-	 BuiltinFunctionList::mutex.unlock();
-   }
-};
-
 const BuiltinFunction *BuiltinFunctionList::find(const char *name) {
-   BuiltinFunctionListOptionalLockHelper ol;
-   hm_bf_t::iterator i = hm.find(name);
-   return i != hm.end() ? i->second : 0;
+   return bfl.find(name);
 }
 
 inline int BuiltinFunctionList::size() {
-   return hm.size();
+   return bfl.size();
 }
 
 void BuiltinFunctionList::init() {
@@ -164,5 +204,5 @@ void BuiltinFunctionList::init() {
 #ifdef DEBUG
    init_debug_functions();
 #endif
-   init_done = true;
+   library_init_done = true;
 }

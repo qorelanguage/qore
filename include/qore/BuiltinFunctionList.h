@@ -37,27 +37,22 @@
 
 DLLLOCAL void init_builtin_functions();
 
-//! the container that manages all builtin functions in the library
+class BuiltinFunction;
+
+//! the interface to the global list of all builtin functions in the library
 /** The object is thread-safe; a hash or hash-map is used for lookups.
-    There is only one of these, therefore we have static members and methods.
+    There is only one of these, therefore we have static functions.
  */
 class BuiltinFunctionList {
-   friend class BuiltinFunctionListOptionalLockHelper;
    private:
-      DLLLOCAL static bool init_done;
-      DLLLOCAL static hm_bf_t hm;
-      DLLLOCAL static QoreThreadLock mutex;
-
       // not implemented
       DLLLOCAL BuiltinFunctionList(const BuiltinFunctionList&);
       DLLLOCAL BuiltinFunctionList& operator=(const BuiltinFunctionList&);
       DLLLOCAL void *operator new(size_t);
-      DLLLOCAL static int add_intern(BuiltinFunction *bf);
 
    public:
       DLLLOCAL BuiltinFunctionList();
       DLLLOCAL ~BuiltinFunctionList();
-      DLLLOCAL void clear();
 
       //! adds a new builtin function to the list
       /**
@@ -87,10 +82,12 @@ class BuiltinFunctionList {
        */
       DLLEXPORT static const BuiltinFunction *find(const char *name);
 
+      // internal functions
+      DLLLOCAL void clear();
       DLLLOCAL static void init();
 };
 
-//! the global list of builtin functions in the qore library
+//! interface to the global list of builtin functions in the qore library
 DLLEXPORT extern BuiltinFunctionList builtinFunctions;
 
 #endif // _QORE_BUILTINFUNCTIONLIST_H

@@ -47,8 +47,6 @@ class VNode {
       DLLLOCAL const char *getName() const { return lvar->getName(); }
 };
 
-typedef LocalVar *lvar_ptr_t;
-
 LVList::LVList(int num) {
    if (num) {
       lv = new lvar_ptr_t[num];
@@ -260,65 +258,24 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
 }
 
 // NOTE: can also be called with this = 0
-void StatementBlock::parseInit(Paramlist *params) {
+void StatementBlock::parseInit(UserParamList *params) {
    QORE_TRACE("StatementBlock::parseInit");
 
-   if (params->num_params)
-      params->lv = new lvar_ptr_t[params->num_params];
-   else
-      params->lv = 0;
-
-   // push $argv var on stack and save id
-   // FIXME: xxx push as list if hard typing enforced with parse options
-   params->argvid = push_local_var("argv", 0, false);
-   printd(5, "StatementBlock::parseInit() params=%08p argvid=%08p\n", params, params->argvid);
-
-   // init param ids and push local param vars on stack
-   for (unsigned i = 0; i < params->num_params; i++) {
-      params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
-      if (params->typeList[i])
-	 params->typeList[i]->resolve();
-      printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
-	     params->names[i], params->lv[i]);
-   }
+   UserParamListLocalVarHelper ph(params);
 
    // initialize code block
    if (this)
       parseInitImpl(0);
-
-   // pop local param vars from stack
-   for (unsigned i = 0; i < params->num_params; i++)
-      pop_local_var();
-
-   // pop argv param off stack
-   pop_local_var();
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, Paramlist *params, BCList *bcl) {
+void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserParamList *params, BCList *bcl) {
    QORE_TRACE("StatementBlock::parseInitMethod");
 
-   params->lv = params->num_params ? new lvar_ptr_t[params->num_params] : 0;
-
-   // this is a class method, push local $self variable
-   params->selfid = push_local_var("self", typeInfo, false);
+   UserParamListLocalVarHelper ph(params, typeInfo);
 
    // set oflag to selfid
    LocalVar *oflag = params->selfid;
-
-   // push $argv var on stack and save id
-   // FIXME: xxx push as list if hard typing enforced with parse options
-   params->argvid = push_local_var("argv", 0, false);
-   printd(5, "StatementBlock::parseInitMethod() params=%08p argvid=%08p oflag (selfid)=%08p\n", params, params->argvid, oflag);
-
-   // init param ids and push local param vars on stack
-   for (unsigned i = 0; i < params->num_params; i++) {
-      params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
-      // resolve type if any
-      if (params->typeList[i])
-	 params->typeList[i]->resolve();
-      printd(5, "StatementBlock::parseInitMethod() reg. local var %s (id=%08p)\n", params->names[i], params->lv[i]);
-   }
 
    // initialize base constructor arguments
    if (bcl) {
@@ -345,64 +302,17 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, Paramlist *pa
    // initialize code block
    if (this)
       parseInitImpl(oflag);
-
-   // pop local param vars from stack
-   for (unsigned i = 0; i < params->num_params; i++)
-      pop_local_var();
-
-   // pop argv param off stack
-   pop_local_var();
-
-   // pop $self id off stack
-   pop_local_var();
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitClosure(Paramlist *params, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
+void StatementBlock::parseInitClosure(UserParamList *params, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
    QORE_TRACE("StatementBlock::parseInitClosure");
 
    ClosureParseEnvironment cenv(vlist);
 
-   if (params->num_params)
-      params->lv = new lvar_ptr_t[params->num_params];
-   else
-      params->lv = 0;
-
-   LocalVar *oflag = 0;
-
-   // this is a class method, push local $self variable
-   if (classTypeInfo) {
-      params->selfid = push_local_var("self", classTypeInfo, false);
-      // set oflag to selfid
-      oflag = params->selfid;
-   }
-
-   // push $argv var on stack and save id
-   // FIXME: xxx push as list if hard typing enforced with parse options
-   params->argvid = push_local_var("argv", 0, false);
-   printd(5, "StatementBlock::parseInitClosure() params=%08p argvid=%08p\n", params, params->argvid);
-
-   // init param ids and push local param vars on stack
-   for (unsigned i = 0; i < params->num_params; i++) {
-      params->lv[i] = push_local_var(params->names[i], params->typeList[i]);
-      // resolve type if any
-      if (params->typeList[i])
-	 params->typeList[i]->resolve();
-      printd(5, "StatementBlock::parseInitClosure() reg. local var %s (id=%08p)\n", params->names[i], params->lv[i]);
-   }
+   UserParamListLocalVarHelper ph(params, classTypeInfo);
 
    // initialize code block
    if (this)
-      parseInitImpl(oflag);
-
-   // pop local param vars from stack
-   for (unsigned i = 0; i < params->num_params; i++)
-      pop_local_var();
-
-   // pop argv param off stack
-   pop_local_var();
-
-   // pop $self id off stack
-   if (classTypeInfo)
-      pop_local_var();
+      parseInitImpl(params->selfid);
 }

@@ -56,7 +56,7 @@ class BCSMList;
 class QoreObject;
 class QoreClass;
 class BCEAList;
-class Paramlist;
+class ParamList;
 class BuiltinStaticMethod;
 class BuiltinStaticMethod2;
 class QoreMemberInfo;
@@ -160,7 +160,7 @@ class QoreMethod {
       DLLLOCAL const BuiltinStaticMethod2 *getStaticBuiltinFunction2() const;
       DLLLOCAL const UserFunction *getStaticUserFunction() const;
       DLLLOCAL bool existsUserParam(unsigned i) const;
-      DLLLOCAL Paramlist *getParams() const;
+      DLLLOCAL ParamList *getParams() const;
       DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const;
 };
 

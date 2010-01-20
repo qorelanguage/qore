@@ -1051,7 +1051,7 @@ void QoreProgram::endThread(ExceptionSink *xsink) {
 }
 
 // called during parsing (priv->plock already grabbed)
-void QoreProgram::resolveFunction(FunctionCallNode *f, Paramlist *&params, const QoreTypeInfo *&returnTypeInfo) {
+void QoreProgram::resolveFunction(FunctionCallNode *f, ParamList *&params, const QoreTypeInfo *&returnTypeInfo) {
    QORE_TRACE("QoreProgram::resolveFunction()");
    char *fname = f->f.c_str;
 

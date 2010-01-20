@@ -517,4 +517,6 @@ public:
    }
 };
 
+typedef LocalVar *lvar_ptr_t;
+
 #endif

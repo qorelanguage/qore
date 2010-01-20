@@ -27,10 +27,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-static inline void param_error() {
-   parse_error("parameter list contains non-variable reference expressions.");
-}
-
 SelfFunctionCall::SelfFunctionCall(char *n) { 
    ns = 0;
    name = n; 
@@ -78,7 +74,7 @@ AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink
 }
 
 // called at parse time
-void SelfFunctionCall::resolve(Paramlist *&params, const QoreTypeInfo *&returnTypeInfo) {
+void SelfFunctionCall::resolve(ParamList *&params, const QoreTypeInfo *&returnTypeInfo) {
    params = 0;
 #ifdef DEBUG
    if (ns)
@@ -130,70 +126,38 @@ AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, Exception
    return rv;
 }
 
+void UserParamList::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
+   lv = num_params ? new lvar_ptr_t[num_params] : 0;
 
-Paramlist::Paramlist(AbstractQoreNode *params) : resolved(false) {
-   ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
-
-   lv = 0;
-   if (!params) {
-      num_params = 0;
-      names = 0;
-      typeList = 0;
-      return;
-   }
-
-   if (params->getType() == NT_VARREF) {
-      setSingleParamIntern(reinterpret_cast<VarRefNode *>(params));
-      return;
-   }
-
-   if (params->getType() != NT_LIST) {
-      param_error();
-      num_params = 0;
-      names = 0;
-      typeList = 0;
-      return;
-   }
-
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(params);
-
-   num_params = l->size();
-   names = new char *[num_params];
-   typeList = new QoreParseTypeInfo *[num_params];
-   for (unsigned i = 0; i < num_params; i++) {
-      AbstractQoreNode *n = l->retrieve_entry(i);
-      qore_type_t t = n ? n->getType() : 0;
-      if (t != NT_VARREF) {
-	 if (n)
-	    param_error();
-	 num_params = 0;
-	 delete [] names;
-	 names = 0;
-	 delete [] typeList;
-	 typeList = 0;
-	 break;
-      }
-
-      assignParam(i, reinterpret_cast<VarRefNode *>(n));
-      //printd(5, "Paralist::Paramlist() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->has_type : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
+   selfid = classTypeInfo ? push_local_var("self", classTypeInfo, false) : 0;
+   
+   // push $argv var on stack and save id
+   // FIXME: xxx push as list if hard typing enforced with parse options
+   argvid = push_local_var("argv", 0, false);
+   printd(5, "UserParamList::parseInitPushLocalVars() this=%p argvid=%p\n", this, argvid);
+   
+   // init param ids and push local param vars on stack
+   for (unsigned i = 0; i < num_params; ++i) {
+      lv[i] = push_local_var(names[i], typeList[i]);
+      if (typeList[i])
+	 typeList[i]->resolve();
+      printd(3, "UserParamList::parseInitPushLocalVars() registered local var %s (id=%p)\n", names[i], lv[i]);
    }
 }
 
-Paramlist::~Paramlist() {
+void UserParamList::parseInitPopLocalVars() {
    for (unsigned i = 0; i < num_params; i++)
-      free(names[i]);
-   if (names)
-      delete [] names;
-   if (typeList) {
-      for (unsigned i = 0; i < num_params; i++)
-	 delete typeList[i];
-      delete [] typeList;
-   }
-   if (lv)
-      delete [] lv;
+      pop_local_var();
+   
+   // pop $argv param off stack
+   pop_local_var();
+
+   // pop $self off stack if present
+   if (selfid)
+      pop_local_var();
 }
 
-void Paramlist::assignParam(int i, VarRefNode *v) {
+void UserParamList::assignParam(int i, VarRefNode *v) {
    names[i] = strdup(v->getName());
    typeList[i] = v->takeTypeInfo();
    
@@ -203,7 +167,7 @@ void Paramlist::assignParam(int i, VarRefNode *v) {
       parse_error("invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
 }
 
-UserFunction::UserFunction(char *n_name, Paramlist *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced) 
+UserFunction::UserFunction(char *n_name, UserParamList *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced) 
    : synchronized(synced), gate(synced ? new VRMutex() : 0), name(n_name), returnTypeInfo(rv), params(parms), statements(b) {
    printd(5, "UserFunction::UserFunction(%s) parms=%p b=%p synced=%d\n", n_name ? n_name : "null", parms, b, synced);
 }
@@ -262,7 +226,7 @@ void UserFunction::parseInitDestructor(const QoreClass &parent_class) {
    assert(!returnTypeInfo);
 
    // make sure there are no parameters in the destructor
-   if (params->num_params)
+   if (params->numParams())
       parse_error("no parameters may be defined in class destructors");
 
    // push return type on stack (no return value can be used)
@@ -274,8 +238,8 @@ void UserFunction::parseInitDestructor(const QoreClass &parent_class) {
 
 void UserFunction::parseInitCopy(const QoreClass &parent_class) {
    // make sure there is max one parameter in the copy method      
-   if (params->num_params > 1)
-      parse_error("maximum of one parameter may be defined in class copy methods (%d defined)", params->num_params);
+   if (params->numParams() > 1)
+      parse_error("maximum of one parameter may be defined in class copy methods (%d defined)", params->numParams());
 
    // push return type on stack (no return value can be used)
    ReturnTypeInfoHelper rtih(&nothingTypeInfo);
@@ -284,7 +248,7 @@ void UserFunction::parseInitCopy(const QoreClass &parent_class) {
    statements->parseInitMethod(parent_class.getTypeInfo(), params, 0);
    
    // see if there is a type specification for the sole parameter and make sure it matches the class if there is
-   if (params->num_params) {
+   if (params->numParams()) {
       if (params->typeList[0]) {
 	 if (!parent_class.getTypeInfo()->parseEqual(params->typeList[0])) {
 	    // raise parse exception if parse exceptions have not been suppressed
@@ -308,7 +272,7 @@ void UserFunction::parseInitCopy(const QoreClass &parent_class) {
 int UserFunction::setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const {
    unsigned num_args = args ? args->size() : 0;
    // instantiate local vars from param list
-   unsigned num_params = params->num_params;
+   unsigned num_params = params->numParams();
 
    for (unsigned i = 0; i < num_params; i++) {
       AbstractQoreNode *np = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
@@ -420,11 +384,11 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
    else
       argv = 0; // dereference argv now
 
-   if (params->num_params) {
-      printd(5, "UserFunction::eval() about to uninstantiate %d vars\n", params->num_params);
+   if (params->numParams()) {
+      printd(5, "UserFunction::eval() about to uninstantiate %d vars\n", params->numParams());
 
       // uninstantiate local vars from param list
-      for (unsigned i = 0; i < params->num_params; i++)
+      for (unsigned i = 0; i < params->numParams(); i++)
 	 params->lv[i]->uninstantiate(xsink);
    }
 
@@ -439,7 +403,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 // this function will set up user copy constructor calls
 void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const {
    QORE_TRACE("UserFunction::evalCopy()");
-   printd(5, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", getName(), params->num_params, old);
+   printd(5, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", getName(), params->numParams(), old);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -447,12 +411,12 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
    get_pgm_counter(o_ln, o_eln);
 
    // there can only be max 1 param
-   assert(params->num_params <= 1);
+   assert(params->numParams() <= 1);
 
    ReferenceHolder<QoreListNode> argv(xsink);
 
    // instantiate local vars from param list
-   if (params->num_params) {
+   if (params->numParams()) {
       //printd(5, "UserFunction::evalCopy(): instantiating param %d '%s' lvar %p (n=%p %s)\n", i, params->lv[i]->getName(), params->lv[i], n, n ? n->getTypeName() : 0);
       params->lv[0]->instantiate(old->refSelf());
    }
@@ -488,11 +452,11 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
       params->selfid->uninstantiate(xsink);
    }
 
-   if (params->num_params) {
-      printd(5, "UserFunction::evalCopy() about to uninstantiate %d vars\n", params->num_params);
+   if (params->numParams()) {
+      printd(5, "UserFunction::evalCopy() about to uninstantiate %d vars\n", params->numParams());
 
       // uninstantiate local vars from param list
-      for (unsigned i = 0; i < params->num_params; i++)
+      for (unsigned i = 0; i < params->numParams(); i++)
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
@@ -562,11 +526,11 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	 argv = 0; // dereference argv now
    }
 
-   if (params->num_params) {
-      printd(5, "UserFunction::evalConstructor() about to uninstantiate %d vars\n", params->num_params);
+   if (params->numParams()) {
+      printd(5, "UserFunction::evalConstructor() about to uninstantiate %d vars\n", params->numParams());
 
       // uninstantiate local vars from param list
-      for (unsigned i = 0; i < params->num_params; i++)
+      for (unsigned i = 0; i < params->numParams(); i++)
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
