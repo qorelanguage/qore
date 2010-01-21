@@ -84,11 +84,10 @@ void SelfFunctionCall::resolve(ParamList *&params, const QoreTypeInfo *&returnTy
    assert(!func);
 #endif
    if (name) {
-      // copy method calls will be recognized by func = 0
+      // copy method calls will be recognized by name = 0
       if (!strcmp(name, "copy")) {
 	 free(name);
 	 name = 0;
-	 returnTypeInfo = getParseClass()->getTypeInfo();
 	 printd(5, "SelfFunctionCall:resolve() resolved to copy constructor\n");
 	 return;
       }

@@ -53,6 +53,17 @@ BuiltinFunctionList builtinFunctions;
 
 typedef std::map<const char*, BuiltinFunction *, class ltstr> hm_bf_t;
 
+void qore_process_params(unsigned num_params, const QoreTypeInfo **&typeList, const AbstractQoreNode **&defaultArgList, va_list args) {
+   typeList = new const QoreTypeInfo *[num_params];
+   defaultArgList = new const AbstractQoreNode *[num_params];
+   for (unsigned i = 0; i < num_params; ++i) {
+      typeList[i] = va_arg(args, const QoreTypeInfo *);
+      defaultArgList[i] = va_arg(args, const AbstractQoreNode *);
+      // DEBUG: for now we cannot accept default argument values
+      assert(!defaultArgList[i]);
+   }
+}
+
 class BuiltinFunctionListPrivate {
    friend class BuiltinFunctionListOptionalLockHelper;
 protected:
@@ -88,17 +99,8 @@ public:
    void add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
       const QoreTypeInfo **typeList = 0;
       const AbstractQoreNode **defaultArgList = 0;
-      if (num_params) {
-	 typeList = new const QoreTypeInfo *[num_params];
-	 defaultArgList = new const AbstractQoreNode *[num_params];
-
-	 for (unsigned i = 0; i < num_params; ++i) {
-	    typeList[i] = va_arg(args, const QoreTypeInfo *);
-	    defaultArgList[i] = va_arg(args, const AbstractQoreNode *);
-	    // DEBUG: for now we cannot accept default argument values
-	    assert(!defaultArgList[i]);
-	 }
-      }
+      if (num_params)
+	 qore_process_params(num_params, typeList, defaultArgList, args);
 
       add_intern(new BuiltinFunction(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
    }

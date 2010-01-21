@@ -26,6 +26,8 @@
 
 #include <qore/intern/config.h>
 
+#include <stdarg.h>
+
 #define NT_NONE  -1
 #define NT_ALL   -2
 
@@ -48,6 +50,9 @@ DLLLOCAL bool parseCheckPrivateClassAccess(const QoreClass *testClass);
 // tests to see if testClass is equal to or a public subclass of shouldBeClass, or
 // if we are currently parsing inside the class, it can be private too
 DLLLOCAL bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass);
+
+// processes parameter information
+DLLLOCAL void qore_process_params(unsigned num_params, const QoreTypeInfo **&typeList, const AbstractQoreNode **&defaultArgList, va_list args);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX

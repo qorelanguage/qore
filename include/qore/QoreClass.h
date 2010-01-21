@@ -267,8 +267,14 @@ class QoreClass {
        */
       DLLEXPORT void addMethod(const char *n_name, q_method_t meth, bool priv = false);
 
+      //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
+      DLLEXPORT void addMethodExtended(const char *n_name, q_method_t meth, bool priv, int n_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...);
+
       //! adds a builtin method with the new generic calling convention
       DLLEXPORT void addMethod2(const char *n_name, q_method2_t meth, bool priv = false);
+
+      //! adds a builtin method with the new calling convention and extended information; additional functional domain info, return and parameter type info
+      DLLEXPORT void addMethodExtended2(const char *n_name, q_method2_t meth, bool priv, int n_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...);
 
       //! adds a builtin static method to a class
       /**
