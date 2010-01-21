@@ -587,6 +587,13 @@ struct qore_qc_private {
       // check for special methods (except constructor and destructor) and abort if found
       assert(!checkSpecialStaticIntern(o));
    }
+
+   DLLLOCAL void addBuiltinConstructor(BuiltinMethod *b, bool priv_flag, bool new_calling_convention) {
+      sys = true;
+      QoreMethod *o = new QoreMethod(typeInfo.qc, b, priv_flag, false, new_calling_convention);
+      insertMethod(o);
+      constructor = o;
+   }
 };
 
 struct qore_method_private {
@@ -2302,18 +2309,48 @@ void QoreClass::addStaticMethodExtendedList(const char *nme, q_func_t m, bool pr
 
 // sets a builtin function as constructor - no duplicate checking is made
 void QoreClass::setConstructor(q_constructor_t m) {
-   priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinConstructor(this, m));
-   insertMethod(o);
-   priv->constructor = o;
+   priv->addBuiltinConstructor(new BuiltinConstructor(this, m), false, false);
+}
+
+void QoreClass::setConstructorExtended(q_constructor_t m, bool priv_flag, int n_domain, unsigned num_params, ...) {
+   const QoreTypeInfo **typeList = 0;
+   const AbstractQoreNode **defaultArgList = 0;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, args);
+      va_end(args);
+   }
+   BuiltinMethod *b = new BuiltinConstructor(this, m, n_domain, num_params, typeList, defaultArgList);
+   priv->addBuiltinConstructor(b, priv_flag, false);
+}
+
+void QoreClass::setConstructorExtendedList(q_constructor_t m, bool priv_flag, int n_domain, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
+   BuiltinMethod *b = new BuiltinConstructor(this, m, n_domain, num_params, typeList, defaultArgList);
+   priv->addBuiltinConstructor(b, priv_flag, false);
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
 void QoreClass::setConstructor2(q_constructor2_t m) {
-   priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinConstructor2(this, m), false, false, true);
-   insertMethod(o);
-   priv->constructor = o;
+   priv->addBuiltinConstructor(new BuiltinConstructor2(this, m), false, true);
+}
+
+void QoreClass::setConstructorExtended2(q_constructor2_t m, bool priv_flag, int n_domain, unsigned num_params, ...) {
+   const QoreTypeInfo **typeList = 0;
+   const AbstractQoreNode **defaultArgList = 0;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, args);
+      va_end(args);
+   }
+   BuiltinMethod *b = new BuiltinConstructor2(this, m, n_domain, num_params, typeList, defaultArgList);
+   priv->addBuiltinConstructor(b, priv_flag, false);
+}
+
+void QoreClass::setConstructorExtendedList2(q_constructor2_t m, bool priv_flag, int n_domain, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
+   BuiltinMethod *b = new BuiltinConstructor2(this, m, n_domain, num_params, typeList, defaultArgList);
+   priv->addBuiltinConstructor(b, priv_flag, false);
 }
 
 // sets a builtin function as class destructor - no duplicate checking is made

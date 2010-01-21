@@ -89,7 +89,7 @@ protected:
 public:
    // return type info is set to 0 because the new operator actually returns the new object, not the constructor
    // also with functionality - enforced by the new operator
-   DLLLOCAL BuiltinConstructor(QoreClass *c, q_constructor_t m, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, "constructor", 0, 0, n_num_params, n_typeList, n_defaultArgList), constructor(m) {
+   DLLLOCAL BuiltinConstructor(QoreClass *c, q_constructor_t m, int n_functionality = QDOM_DEFAULT, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, "constructor", n_functionality, 0, n_num_params, n_typeList, n_defaultArgList), constructor(m) {
    }
    
    DLLLOCAL void eval(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
@@ -102,7 +102,7 @@ protected:
 public:
    // return type info is set to 0 because the new operator actually returns the new object, not the constructor
    // also with functionality - enforced by the new operator
-   DLLLOCAL BuiltinConstructor2(QoreClass *c, q_constructor2_t m, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, "constructor", 0, 0, n_num_params, n_typeList, n_defaultArgList), constructor(m) {
+   DLLLOCAL BuiltinConstructor2(QoreClass *c, q_constructor2_t m, int n_functionality = QDOM_DEFAULT, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, "constructor", n_functionality, 0, n_num_params, n_typeList, n_defaultArgList), constructor(m) {
    }
    
    DLLLOCAL void eval(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;

@@ -340,11 +340,23 @@ class QoreClass {
        */
       DLLEXPORT void setConstructor(q_constructor_t m);
 
+      //! adds a constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info
+      DLLEXPORT void setConstructorExtended(q_constructor_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
+
+      //! adds a constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists
+      DLLEXPORT void setConstructorExtendedList(q_constructor_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
+
       //! sets the builtin constructor method for the class using the new calling convention
       /**
 	 @param m the constructor method
        */
       DLLEXPORT void setConstructor2(q_constructor2_t m);
+
+      //! adds a constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info
+      DLLEXPORT void setConstructorExtended2(q_constructor2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
+
+      //! adds a constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists
+      DLLEXPORT void setConstructorExtendedList2(q_constructor2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
 
       //! sets the builtin constructor for system objects (ex: used as constant values)
       /** @note system constructors in a class hierarchy must call the base class constructors manually
