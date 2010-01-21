@@ -163,6 +163,14 @@ sub main() {
     chomp $b;
     # warning: invalid type for chomp operator
     chomp $b;
+
+    my File $f = new File();
+    # error: return type and missing required argument
+    $b = $f.open();
+    # error: return type
+    $b = $f.getTerminalAttributes();
+    # error: return type and missing required argument
+    $b = $f.setTerminalAttributes();
 }
 
 main();

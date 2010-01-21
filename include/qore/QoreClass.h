@@ -50,6 +50,7 @@ DLLEXPORT extern qore_classid_t CID_SSLPRIVATEKEY;
 DLLEXPORT extern qore_classid_t CID_SEQUENCE;
 DLLEXPORT extern qore_classid_t CID_SOCKET;
 DLLEXPORT extern qore_classid_t CID_XMLRPCCLIENT;
+DLLEXPORT extern qore_classid_t CID_TERMIOS;
 
 class BCList;
 class BCSMList;
@@ -268,13 +269,13 @@ class QoreClass {
       DLLEXPORT void addMethod(const char *n_name, q_method_t meth, bool priv = false);
 
       //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
-      DLLEXPORT void addMethodExtended(const char *n_name, q_method_t meth, bool priv, int n_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...);
+      DLLEXPORT void addMethodExtended(const char *n_name, q_method_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
       //! adds a builtin method with the new generic calling convention
       DLLEXPORT void addMethod2(const char *n_name, q_method2_t meth, bool priv = false);
 
       //! adds a builtin method with the new calling convention and extended information; additional functional domain info, return and parameter type info
-      DLLEXPORT void addMethodExtended2(const char *n_name, q_method2_t meth, bool priv, int n_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...);
+      DLLEXPORT void addMethodExtended2(const char *n_name, q_method2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
       //! adds a builtin static method to a class
       /**

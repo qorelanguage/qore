@@ -3,6 +3,8 @@
 	   type and parameter type information with builtin class methods;
 	   added C++ functions: QoreClass::addMethodExtended() and
 	   QoreClass::addMethodExtended2()
+	 * API tuning for type information for builtin methods, added type
+	   information for all File class methods
 
 2010.01.20: David Nichols
 	 * added new library API: BuiltinFunctionList::add2() to allow for

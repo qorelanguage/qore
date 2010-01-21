@@ -52,12 +52,10 @@ static void FILE_copy(QoreObject *self, QoreObject *old, class File *f, Exceptio
 }
 
 // open(filename, [flags, mode, charset])
-static AbstractQoreNode *FILE_open(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_open(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
    p0 = test_string_param(params, 0);
-   if (!p0)
-   {
+   if (!p0) {
       xsink->raiseException("FILE-OPEN-PARAMETER-ERROR", "expecting string filename as first argument of File::open()");
       return 0;
    }
@@ -92,8 +90,7 @@ static AbstractQoreNode *FILE_open2(QoreObject *self, class File *f, const QoreL
    int flags, mode;
    const QoreEncoding *charset;
    p0 = test_string_param(params, 0);
-   if (!p0)
-   {
+   if (!p0) {
       xsink->raiseException("FILE-OPEN2-PARAMETER-ERROR", "expecting string filename as first argument of File::open2()");
       return 0;
    }
@@ -124,8 +121,7 @@ static AbstractQoreNode *FILE_close(QoreObject *self, class File *f, const QoreL
    return new QoreBigIntNode(f->close());
 }
 
-static AbstractQoreNode *FILE_sync(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_sync(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(f->sync());
 }
 
@@ -436,13 +432,11 @@ static AbstractQoreNode *FILE_f_vprintf(QoreObject *self, class File *f, const Q
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *FILE_readLine(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_readLine(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    return f->readLine(xsink);
 }
 
-static AbstractQoreNode *FILE_setCharset(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_setCharset(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreEncoding *charset;
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (p0)
@@ -532,8 +526,7 @@ static AbstractQoreNode *FILE_lock(QoreObject *self, class File *f, const QoreLi
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *FILE_lockBlocking(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FILE_lockBlocking(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink) {
    struct flock fl;
 
    if (lock_intern(fl, params, xsink))
@@ -580,7 +573,7 @@ static AbstractQoreNode *FILE_getTerminalAttributes(QoreObject *self, class File
    QoreTermIOS *ios = p ? (QoreTermIOS *)p->getReferencedPrivateData(CID_TERMIOS, xsink) : 0;
    if (!ios) {
       if (!*xsink)
-         xsink->raiseException("TERMIOS-GETTERMINALATTRIBUTES-ERROR", "expecting a TermIOS object as argument to File::getTerminalAttributes()");
+         xsink->raiseException("TERMIOS-GETTERMINALATTRIBUTES-ERROR", "expecting a TermIOS object as sole argument to File::getTerminalAttributes()");
       return 0;
    }
    ReferenceHolder<QoreTermIOS> holder(ios, xsink);
@@ -596,7 +589,7 @@ static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, class File
    QoreTermIOS *ios = p1 ? (QoreTermIOS *)p1->getReferencedPrivateData(CID_TERMIOS, xsink) : 0;
    if (!ios) {
       if (!*xsink)
-         xsink->raiseException("TERMIOS-SETTERMINALATTRIBUTES-ERROR", "expecting a TermIOS object as argument to File::setTerminalAttributes()");
+         xsink->raiseException("TERMIOS-SETTERMINALATTRIBUTES-ERROR", "expecting a TermIOS object as second argument to File::setTerminalAttributes()");
       return 0;
    }
    ReferenceHolder<QoreTermIOS> holder(ios, xsink);
@@ -614,7 +607,7 @@ static AbstractQoreNode *FILE_setEventQueue(QoreObject *self, File *f, const Qor
     return 0;
 }
 
-QoreClass *initFileClass() {
+QoreClass *initFileClass(QoreClass *QC_TermIOS) {
    QORE_TRACE("initFileClass()");
 
    QC_File = new QoreClass("File", QDOM_FILESYSTEM);
@@ -624,52 +617,52 @@ QoreClass *initFileClass() {
    QC_File->setConstructor(FILE_constructor);
    QC_File->setCopy((q_copy_t)FILE_copy);
 
-   QC_File->addMethod("open",              (q_method_t)FILE_open);
-   QC_File->addMethod("open2",             (q_method_t)FILE_open2);
-   QC_File->addMethod("close",             (q_method_t)FILE_close);
-   QC_File->addMethod("sync",              (q_method_t)FILE_sync);
-   QC_File->addMethod("read",              (q_method_t)FILE_read);
-   QC_File->addMethod("readu1",            (q_method_t)FILE_readu1);
-   QC_File->addMethod("readu2",            (q_method_t)FILE_readu2);
-   QC_File->addMethod("readu4",            (q_method_t)FILE_readu4);
-   QC_File->addMethod("readu2LSB",         (q_method_t)FILE_readu2LSB);
-   QC_File->addMethod("readu4LSB",         (q_method_t)FILE_readu4LSB);
-   QC_File->addMethod("readi1",            (q_method_t)FILE_readi1);
-   QC_File->addMethod("readi2",            (q_method_t)FILE_readi2);
-   QC_File->addMethod("readi4",            (q_method_t)FILE_readi4);
-   QC_File->addMethod("readi8",            (q_method_t)FILE_readi8);
-   QC_File->addMethod("readi2LSB",         (q_method_t)FILE_readi2LSB);
-   QC_File->addMethod("readi4LSB",         (q_method_t)FILE_readi4LSB);
-   QC_File->addMethod("readi8LSB",         (q_method_t)FILE_readi8LSB);
-   QC_File->addMethod("readBinary",        (q_method_t)FILE_readBinary);
-   QC_File->addMethod("write",             (q_method_t)FILE_write);
-   QC_File->addMethod("writei1",           (q_method_t)FILE_writei1);
-   QC_File->addMethod("writei2",           (q_method_t)FILE_writei2);
-   QC_File->addMethod("writei4",           (q_method_t)FILE_writei4);
-   QC_File->addMethod("writei8",           (q_method_t)FILE_writei8);
-   QC_File->addMethod("writei2LSB",        (q_method_t)FILE_writei2LSB);
-   QC_File->addMethod("writei4LSB",        (q_method_t)FILE_writei4LSB);
-   QC_File->addMethod("writei8LSB",        (q_method_t)FILE_writei8LSB);
-   QC_File->addMethod("readLine",          (q_method_t)FILE_readLine);
-   QC_File->addMethod("setCharset",        (q_method_t)FILE_setCharset);
-   QC_File->addMethod("getCharset",        (q_method_t)FILE_getCharset);
-   QC_File->addMethod("setPos",            (q_method_t)FILE_setPos);
+   QC_File->addMethodExtended("open",              (q_method_t)FILE_open, false, QDOM_DEFAULT, &bigIntTypeInfo, 1, &stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_File->addMethodExtended("open2",             (q_method_t)FILE_open2, false, QDOM_DEFAULT, &nothingTypeInfo, 1, &stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_File->addMethodExtended("close",             (q_method_t)FILE_close, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("sync",              (q_method_t)FILE_sync, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("read",              (q_method_t)FILE_read, false, QDOM_DEFAULT, &stringTypeInfo);
+   QC_File->addMethodExtended("readu1",            (q_method_t)FILE_readu1, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readu2",            (q_method_t)FILE_readu2, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readu4",            (q_method_t)FILE_readu4, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readu2LSB",         (q_method_t)FILE_readu2LSB, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readu4LSB",         (q_method_t)FILE_readu4LSB, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readi1",            (q_method_t)FILE_readi1, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readi2",            (q_method_t)FILE_readi2, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readi4",            (q_method_t)FILE_readi4, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readi8",            (q_method_t)FILE_readi8, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readi2LSB",         (q_method_t)FILE_readi2LSB, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readi4LSB",         (q_method_t)FILE_readi4LSB, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readi8LSB",         (q_method_t)FILE_readi8LSB, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readBinary",        (q_method_t)FILE_readBinary, false, QDOM_DEFAULT, &stringTypeInfo);
+   QC_File->addMethodExtended("write",             (q_method_t)FILE_write, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("writei1",           (q_method_t)FILE_writei1, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("writei2",           (q_method_t)FILE_writei2, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("writei4",           (q_method_t)FILE_writei4, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("writei8",           (q_method_t)FILE_writei8, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("writei2LSB",        (q_method_t)FILE_writei2LSB, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("writei4LSB",        (q_method_t)FILE_writei4LSB, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("writei8LSB",        (q_method_t)FILE_writei8LSB, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("readLine",          (q_method_t)FILE_readLine, false, QDOM_DEFAULT, &stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_File->addMethodExtended("setCharset",        (q_method_t)FILE_setCharset, false, QDOM_DEFAULT, &nothingTypeInfo);
+   QC_File->addMethodExtended("getCharset",        (q_method_t)FILE_getCharset, false, QDOM_DEFAULT, &stringTypeInfo);
+   QC_File->addMethodExtended("setPos",            (q_method_t)FILE_setPos, false, QDOM_DEFAULT, &bigIntTypeInfo);
    //QC_File->addMethod("setPosFromEnd",     (q_method_t)FILE_setPosFromEnd);
    //QC_File->addMethod("setPosFromCurrent", (q_method_t)FILE_setPosFromCurrent);
-   QC_File->addMethod("getPos",            (q_method_t)FILE_getPos);
-   QC_File->addMethod("getchar",           (q_method_t)FILE_getchar);
-   QC_File->addMethod("printf",            (q_method_t)FILE_printf);
-   QC_File->addMethod("vprintf",           (q_method_t)FILE_vprintf);
-   QC_File->addMethod("f_printf",          (q_method_t)FILE_f_printf);
-   QC_File->addMethod("f_vprintf",         (q_method_t)FILE_f_vprintf);
-   QC_File->addMethod("lock",              (q_method_t)FILE_lock);
-   QC_File->addMethod("lockBlocking",      (q_method_t)FILE_lockBlocking);
-   QC_File->addMethod("getLockInfo",       (q_method_t)FILE_getLockInfo);
-   QC_File->addMethod("chown",             (q_method_t)FILE_chown);
-   QC_File->addMethod("isDataAvailable",        (q_method_t)FILE_isDataAvailable);
-   QC_File->addMethod("getTerminalAttributes",  (q_method_t)FILE_getTerminalAttributes);
-   QC_File->addMethod("setTerminalAttributes",  (q_method_t)FILE_setTerminalAttributes);
-   QC_File->addMethod("setEventQueue",          (q_method_t)FILE_setEventQueue);
+   QC_File->addMethodExtended("getPos",            (q_method_t)FILE_getPos, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("getchar",           (q_method_t)FILE_getchar, false, QDOM_DEFAULT, &stringTypeInfo);
+   QC_File->addMethodExtended("printf",            (q_method_t)FILE_printf, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("vprintf",           (q_method_t)FILE_vprintf, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("f_printf",          (q_method_t)FILE_f_printf, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("f_vprintf",         (q_method_t)FILE_f_vprintf, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("lock",              (q_method_t)FILE_lock, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_File->addMethodExtended("lockBlocking",      (q_method_t)FILE_lockBlocking, false, QDOM_DEFAULT, &nothingTypeInfo);
+   QC_File->addMethodExtended("getLockInfo",       (q_method_t)FILE_getLockInfo, false, QDOM_DEFAULT, &hashTypeInfo);
+   QC_File->addMethodExtended("chown",             (q_method_t)FILE_chown, false, QDOM_DEFAULT, &nothingTypeInfo);
+   QC_File->addMethodExtended("isDataAvailable",        (q_method_t)FILE_isDataAvailable, false, QDOM_DEFAULT, &boolTypeInfo);
+   QC_File->addMethodExtended("getTerminalAttributes",  (q_method_t)FILE_getTerminalAttributes, false, QDOM_DEFAULT, &nothingTypeInfo, 1, QC_TermIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
+   QC_File->addMethodExtended("setTerminalAttributes",  (q_method_t)FILE_setTerminalAttributes, false, QDOM_DEFAULT, &nothingTypeInfo, 2, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QC_TermIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
+   QC_File->addMethodExtended("setEventQueue",          (q_method_t)FILE_setEventQueue, false, QDOM_DEFAULT, &nothingTypeInfo);
 
    return QC_File;
 }

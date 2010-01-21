@@ -1330,7 +1330,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qns->addSystemClass(initSSLCertificateClass());
    qns->addSystemClass(initSSLPrivateKeyClass());
    qns->addSystemClass(initProgramClass());
-   qns->addSystemClass(File = initFileClass());
+   QoreClass *TermIOS;
+   qns->addSystemClass(TermIOS = initTermIOSClass());
+   qns->addSystemClass(File = initFileClass(TermIOS));
    qns->addSystemClass(initDirClass());
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
@@ -1338,7 +1340,6 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qns->addSystemClass(initAutoGateClass());
    qns->addSystemClass(initAutoReadLockClass());
    qns->addSystemClass(initAutoWriteLockClass());
-   qns->addSystemClass(initTermIOSClass());
 
    // add Xml namespace
    qns->addInitialNamespace(initXmlNs());

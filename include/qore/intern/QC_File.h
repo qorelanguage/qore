@@ -27,7 +27,7 @@
 DLLEXPORT extern qore_classid_t CID_FILE;
 DLLEXPORT extern QoreClass *QC_File;
 
-DLLLOCAL QoreClass *initFileClass();
+DLLLOCAL QoreClass *initFileClass(QoreClass *QC_TermIOS);
 static inline void addFileConstants(QoreNamespace *ns);
 
 #include <qore/QoreFile.h>

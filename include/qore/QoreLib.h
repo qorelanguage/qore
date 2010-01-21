@@ -270,4 +270,6 @@ DLLEXPORT extern size_t qore_option_list_size;
 //! macro to return the maximum of 2 numbers
 #define QORE_MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define QORE_PARAM_NO_ARG (NULL)
+
 #endif // _QORE_QORELIB_H

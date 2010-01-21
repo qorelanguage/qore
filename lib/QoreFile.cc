@@ -77,7 +77,7 @@ struct qore_qf_private {
 	 else {	    
 	    rc = ::close(fd);
 	    is_open = false;
-	    do_close_event();
+	    do_close_event_unlocked();
 	 }
       }
       else
@@ -91,13 +91,13 @@ struct qore_qf_private {
       if (!flags)
 	 flags = O_RDONLY;
 
-      do_open_event(fn, flags, mode, cs);
+      do_open_event_unlocked(fn, flags, mode, cs);
 
       fd = ::open(fn, flags, mode);
       if (fd < 0)
 	 return fd;
 
-      do_opened_event(fn, flags, mode, cs);
+      do_opened_event_unlocked(fn, flags, mode, cs);
 
       filename = fn;
       if (cs)
@@ -200,7 +200,7 @@ struct qore_qf_private {
       }
 
       if (rc > 0)
-	 do_read_event(rc, rc, bs);
+	 do_read_event_unlocked(rc, rc, bs);
 
       return rc;
    }
@@ -216,7 +216,7 @@ struct qore_qf_private {
       }
 
       if (rc > 0)
-	 do_write_event(rc, rc, len);
+	 do_write_event_unlocked(rc, rc, len);
 
       return rc;
    }
@@ -260,7 +260,7 @@ struct qore_qf_private {
 	 memcpy(bbuf + br, buf, rc);
 	 br += rc;
 
-	 do_read_event(rc, br, size);
+	 do_read_event_unlocked(rc, br, size);
       
 	 if (size > 0) {
 	    if (size - br < bs)
@@ -280,14 +280,15 @@ struct qore_qf_private {
    }
 
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink) {
+      AutoLocker al(m);
       if (cb_queue)
 	 cb_queue->deref(xsink);
       cb_queue = cbq;
    }
 
    DLLLOCAL void cleanup(ExceptionSink *xsink) {
+      AutoLocker al(m);
       if (cb_queue) {
-	 
 	 // close the file before the delete message is put on the queue
 	 // the file would be closed anyway in the destructor
 	 close_intern();
@@ -304,7 +305,7 @@ struct qore_qf_private {
       }
    }
 
-   DLLLOCAL void do_open_event(const char *fn, int flags, int mode, const QoreEncoding *enc) const {
+   DLLLOCAL void do_open_event_unlocked(const char *fn, int flags, int mode, const QoreEncoding *enc) const {
       if (cb_queue) {
 	 QoreHashNode *h = new QoreHashNode;
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_OPEN_FILE), 0);
@@ -318,7 +319,7 @@ struct qore_qf_private {
       }
    }
 
-   DLLLOCAL void do_opened_event(const char *fn, int flags, int mode, const QoreEncoding *enc) const {
+   DLLLOCAL void do_opened_event_unlocked(const char *fn, int flags, int mode, const QoreEncoding *enc) const {
       if (cb_queue) {
 	 QoreHashNode *h = new QoreHashNode;
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_FILE_OPENED), 0);
@@ -332,7 +333,7 @@ struct qore_qf_private {
       }
    }
 
-   DLLLOCAL void do_close_event() const {
+   DLLLOCAL void do_close_event_unlocked() const {
       if (cb_queue) {
 	 QoreHashNode *h = new QoreHashNode;
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
@@ -342,7 +343,7 @@ struct qore_qf_private {
       }
    }
 
-   DLLLOCAL void do_read_event(int bytes_read, int total_read, int bufsize) const {
+   DLLLOCAL void do_read_event_unlocked(int bytes_read, int total_read, int bufsize) const {
       // post bytes read on event queue, if any
       if (cb_queue) {
 	 QoreHashNode *h = new QoreHashNode;
@@ -356,7 +357,7 @@ struct qore_qf_private {
       }
    }
 
-   DLLLOCAL void do_write_event(int bytes_written, int total_written, int bufsize) const {
+   DLLLOCAL void do_write_event_unlocked(int bytes_written, int total_written, int bufsize) const {
       // post bytes sent on event queue, if any
       if (cb_queue) {
 	 QoreHashNode *h = new QoreHashNode;
