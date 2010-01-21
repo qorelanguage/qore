@@ -563,6 +563,30 @@ struct qore_qc_private {
       printd(5, "QoreClass::execConstructor() %s::constructor() returning o=%p\n", name, o);
       return o;
    }
+
+   DLLLOCAL void addBuiltinMethod(BuiltinMethod *b, bool priv_flag, bool new_calling_convention) {
+      assert(strcmp(b->getName(), "constructor"));
+      assert(strcmp(b->getName(), "destructor"));
+      assert(strcmp(b->getName(), "copy"));
+
+      sys = true;
+      QoreMethod *o = new QoreMethod(typeInfo.qc, b, priv_flag, false, new_calling_convention);
+      insertMethod(o);
+      // check for special methods (except constructor and destructor)
+      checkSpecialIntern(o);
+   }
+
+   DLLLOCAL void addBuiltinStaticMethod(BuiltinMethod *b, bool priv_flag, bool new_calling_convention) {
+      assert(strcmp(b->getName(), "constructor"));
+      assert(strcmp(b->getName(), "destructor"));
+
+      sys = true;
+      QoreMethod *o = new QoreMethod(typeInfo.qc, b, priv_flag, true, new_calling_convention);
+      insertStaticMethod(o);
+
+      // check for special methods (except constructor and destructor) and abort if found
+      assert(!checkSpecialStaticIntern(o));
+   }
 };
 
 struct qore_method_private {
@@ -2180,25 +2204,10 @@ int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal) {
 
 // adds a builtin method to the class (duplicate checking is made in debug mode and causes an abort)
 void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag) {
-   assert(strcmp(nme, "constructor"));
-   assert(strcmp(nme, "destructor"));
-   assert(strcmp(nme, "copy"));
-
-   priv->sys = true;
-   BuiltinMethod *b = new BuiltinNormalMethod(this, nme, m, QDOM_DEFAULT, 0);
-   QoreMethod *o = new QoreMethod(this, b, priv_flag);
-   insertMethod(o);
-   // check for special methods (except constructor and destructor)
-   priv->checkSpecialIntern(o);
+   priv->addBuiltinMethod(new BuiltinNormalMethod(this, nme, m, QDOM_DEFAULT, 0), priv_flag, false);
 }
 
 void QoreClass::addMethodExtended(const char *nme, q_method_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   assert(strcmp(nme, "constructor"));
-   assert(strcmp(nme, "destructor"));
-   assert(strcmp(nme, "copy"));
-
-   priv->sys = true;
-
    const QoreTypeInfo **typeList = 0;
    const AbstractQoreNode **defaultArgList = 0;
    if (num_params) {
@@ -2209,33 +2218,20 @@ void QoreClass::addMethodExtended(const char *nme, q_method_t m, bool priv_flag,
    }
 
    BuiltinMethod *b = new BuiltinNormalMethod(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   QoreMethod *o = new QoreMethod(this, b, priv_flag);
-   insertMethod(o);
-   // check for special methods (except constructor and destructor)
-   priv->checkSpecialIntern(o);
+   priv->addBuiltinMethod(b, priv_flag, false);
+}
+
+void QoreClass::addMethodExtendedList(const char *nme, q_method_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
+   BuiltinMethod *b = new BuiltinNormalMethod(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
+   priv->addBuiltinMethod(b, priv_flag, false);
 }
 
 // adds a builtin method with the new generic calling convention to the class (duplicate checking is made in debug mode and causes an abort)
 void QoreClass::addMethod2(const char *nme, q_method2_t m, bool priv_flag) {
-   assert(strcmp(nme, "constructor"));
-   assert(strcmp(nme, "destructor"));
-   assert(strcmp(nme, "copy"));
-
-   priv->sys = true;
-   BuiltinMethod *b = new BuiltinNormalMethod2(this, nme, m, QDOM_DEFAULT, 0);
-   QoreMethod *o = new QoreMethod(this, b, priv_flag, false, true);
-   insertMethod(o);
-   // check for special methods (except constructor and destructor)
-   priv->checkSpecialIntern(o);
+   priv->addBuiltinMethod(new BuiltinNormalMethod2(this, nme, m, QDOM_DEFAULT, 0), priv_flag, true);
 }
 
 void QoreClass::addMethodExtended2(const char *nme, q_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   assert(strcmp(nme, "constructor"));
-   assert(strcmp(nme, "destructor"));
-   assert(strcmp(nme, "copy"));
-
-   priv->sys = true;
-
    const QoreTypeInfo **typeList = 0;
    const AbstractQoreNode **defaultArgList = 0;
    if (num_params) {
@@ -2246,38 +2242,62 @@ void QoreClass::addMethodExtended2(const char *nme, q_method2_t m, bool priv_fla
    }
 
    BuiltinMethod *b = new BuiltinNormalMethod2(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   QoreMethod *o = new QoreMethod(this, b, priv_flag);
-   insertMethod(o);
-   // check for special methods (except constructor and destructor)
-   priv->checkSpecialIntern(o);
+   priv->addBuiltinMethod(b, priv_flag, true);
+}
+
+void QoreClass::addMethodExtendedList2(const char *nme, q_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
+   BuiltinMethod *b = new BuiltinNormalMethod2(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
+   priv->addBuiltinMethod(b, priv_flag, true);
 }
 
 // adds a builtin static method to the class
 void QoreClass::addStaticMethod2(const char *nme, q_static_method2_t m, bool priv_flag) {
-   assert(strcmp(nme, "constructor"));
-   assert(strcmp(nme, "destructor"));
-
-   priv->sys = true;
    BuiltinMethod *b = new BuiltinStaticMethod2(this, nme, m, QDOM_DEFAULT, 0);
-   QoreMethod *o = new QoreMethod(this, b, priv_flag, true, true);
-   insertStaticMethod(o);
+   priv->addBuiltinStaticMethod(b, priv_flag, true);
+}
 
-   // check for special methods (except constructor and destructor) and abort if found
-   assert(!priv->checkSpecialStaticIntern(o));
+void QoreClass::addStaticMethodExtended2(const char *nme, q_static_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   const QoreTypeInfo **typeList = 0;
+   const AbstractQoreNode **defaultArgList = 0;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, args);
+      va_end(args);
+   }
+
+   BuiltinMethod *b = new BuiltinStaticMethod2(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
+   priv->addBuiltinStaticMethod(b, priv_flag, true);
+}
+
+void QoreClass::addStaticMethodExtendedList2(const char *nme, q_static_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
+   BuiltinMethod *b = new BuiltinStaticMethod2(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
+   priv->addBuiltinStaticMethod(b, priv_flag, true);
 }
 
 // adds a builtin static method to the class
 void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag) {
-   assert(strcmp(nme, "constructor"));
-   assert(strcmp(nme, "destructor"));
-
-   priv->sys = true;
    BuiltinMethod *b = new BuiltinStaticMethod(this, nme, m, QDOM_DEFAULT, 0);
-   QoreMethod *o = new QoreMethod(this, b, priv_flag, true);
-   insertStaticMethod(o);
+   priv->addBuiltinStaticMethod(b, priv_flag, false);
+}
 
-   // check for special methods (except constructor and destructor) and abort if found
-   assert(!priv->checkSpecialStaticIntern(o));
+void QoreClass::addStaticMethodExtended(const char *nme, q_func_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+   const QoreTypeInfo **typeList = 0;
+   const AbstractQoreNode **defaultArgList = 0;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, args);
+      va_end(args);
+   }
+
+   BuiltinMethod *b = new BuiltinStaticMethod(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
+   priv->addBuiltinStaticMethod(b, priv_flag, false);
+}
+
+void QoreClass::addStaticMethodExtendedList(const char *nme, q_func_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
+   BuiltinMethod *b = new BuiltinStaticMethod(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
+   priv->addBuiltinStaticMethod(b, priv_flag, false);
 }
 
 // sets a builtin function as constructor - no duplicate checking is made

@@ -106,6 +106,10 @@ public:
       add_intern(new BuiltinFunction(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
    }
 
+   void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
+      add_intern(new BuiltinFunction(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
+   }
+
    DLLLOCAL void clear() {
       //printd(5, "BuiltinFunctionListPrivate::~BuiltinFunctionListPrivate() this=%08p\n", this);
       hm_bf_t::iterator i = hm.begin();
@@ -169,6 +173,10 @@ void BuiltinFunctionList::add2(const char *name, q_func_t f, int functional_doma
    va_start(args, num_params);
    bfl.add2(name, f, functional_domain, returnTypeInfo, num_params, args);
    va_end(args);
+}
+
+void BuiltinFunctionList::add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
+   bfl.add3(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList);
 }
 
 void BuiltinFunctionList::clear() {

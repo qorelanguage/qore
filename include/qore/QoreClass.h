@@ -271,11 +271,17 @@ class QoreClass {
       //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
       DLLEXPORT void addMethodExtended(const char *n_name, q_method_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
+      //! adds a builtin method with extended information; additional functional domain info, return and parameter type info from lists
+      DLLEXPORT void addMethodExtendedList(const char *n_name, q_method_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
+
       //! adds a builtin method with the new generic calling convention
       DLLEXPORT void addMethod2(const char *n_name, q_method2_t meth, bool priv = false);
 
       //! adds a builtin method with the new calling convention and extended information; additional functional domain info, return and parameter type info
       DLLEXPORT void addMethodExtended2(const char *n_name, q_method2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+      //! adds a builtin method with the new calling convention and extended information; additional functional domain info, return and parameter type info from lists
+      DLLEXPORT void addMethodExtendedList2(const char *n_name, q_method2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
 
       //! adds a builtin static method to a class
       /**
@@ -285,8 +291,20 @@ class QoreClass {
        */
       DLLEXPORT void addStaticMethod(const char *n_name, q_func_t meth, bool priv = false);
 
+      //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
+      DLLEXPORT void addStaticMethodExtended(const char *n_name, q_func_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+      //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info from lists
+      DLLEXPORT void addStaticMethodExtendedList(const char *n_name, q_func_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
+
       //! adds a builtin static method with the new generic calling convention
       DLLEXPORT void addStaticMethod2(const char *n_name, q_static_method2_t meth, bool priv = false);
+
+      //! adds a builtin static method with the new generic calling convention with extended information; additional functional domain info, return and parameter type info
+      DLLEXPORT void addStaticMethodExtended2(const char *n_name, q_static_method2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+      //! adds a builtin static method with the new generic calling convention with extended information; additional functional domain info, return and parameter type info from lists
+      DLLEXPORT void addStaticMethodExtendedList2(const char *n_name, q_static_method2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
 
       //! sets the builtin destructor method for the class
       /** you only need to implement destructor methods if the destructor should destroy the object

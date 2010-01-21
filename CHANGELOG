@@ -5,6 +5,8 @@
 	   QoreClass::addMethodExtended2()
 	 * API tuning for type information for builtin methods, added type
 	   information for all File class methods
+	 * new APIs for pre-defined type lists for type information (will be
+	   required by the libsmoke-based qt4 module, for example)
 
 2010.01.20: David Nichols
 	 * added new library API: BuiltinFunctionList::add2() to allow for
