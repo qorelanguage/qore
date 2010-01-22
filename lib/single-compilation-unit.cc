@@ -10,7 +10,6 @@
 #include "ComplexContextrefNode.cc"
 #include "ContextRowNode.cc"
 #include "ClassRefNode.cc"
-#include "ScopedObjectCallNode.cc"
 #include "ConstantNode.cc"
 #include "AbstractQoreNode.cc"
 #include "QoreStringNode.cc"

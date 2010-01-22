@@ -200,7 +200,6 @@ private:
    VRMutex *gate;
    char *name;
    QoreParseTypeInfo *returnTypeInfo;
-   bool initialized;
 
 protected:
    DLLLOCAL ~UserFunction();
@@ -227,6 +226,13 @@ public:
    DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
    DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
    DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
+
+   DLLLOCAL const QoreTypeInfo *parseGetReturnTypeInfo() const {
+      if (returnTypeInfo)
+	 returnTypeInfo->resolve();
+
+      return static_cast<QoreTypeInfo *>(returnTypeInfo);
+   }
 
    DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
       return static_cast<QoreTypeInfo *>(returnTypeInfo);

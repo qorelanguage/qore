@@ -68,25 +68,56 @@ public:
       delete name; 
    }
 
-   // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-   // the ExceptionSink is only needed for QoreObject where a method may be executed
-   // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-   // returns -1 for exception raised, 0 = OK
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+   /* get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+      the ExceptionSink is only needed for QoreObject where a method may be executed
+      use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+      returns -1 for exception raised, 0 = OK 
+   */
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const {
+      str.sprintf("new operator expression (class '%s')", oc ? oc->getName() : name ? name->ostr : "<null>", this);
+      return 0;
+   }
+
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const {
+      del = true;
+      QoreString *rv = new QoreString();
+      getAsString(*rv, foff, xsink);
+      return rv;
+   }
    
    // returns the data type
-   DLLLOCAL virtual qore_type_t getType() const;
+   DLLLOCAL virtual qore_type_t getType() const {
+      return NT_SCOPE_REF;
+   }
+
    // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const;
+   DLLLOCAL virtual const char *getTypeName() const {
+      return "new object call";
+   }
 
    // returns the description
    DLLLOCAL virtual const char *getName() const {
       return desc.getBuffer();
    }
    
-   DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      // find object class
+      if ((oc = getRootNS()->parseFindScopedClass(name))) {
+	 // check if parse options allow access to this class
+	 if (oc->getDomain() & getProgram()->getParseOptions())
+	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+	 
+	 typeInfo = oc->getTypeInfo();
+	 desc.sprintf("new %s", oc->getName());
+      }
+      delete name;
+      name = 0;
+      const QoreMethod *constructor = oc ? oc->getConstructor() : 0;
+      lvids += parseArgs(oflag, pflag, constructor ? constructor->getParams() : 0);
+      
+      return this;
+   }
 };
 
 #endif
