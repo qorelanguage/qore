@@ -171,6 +171,8 @@ sub main() {
     $b = $f.getTerminalAttributes();
     # error: return type and missing required argument
     $b = $f.setTerminalAttributes();
+    # error: missing required argument in constructor
+    my AutoLock $al = new AutoLock();
 }
 
 main();

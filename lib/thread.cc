@@ -36,6 +36,10 @@
 #include <qore/intern/QC_Gate.h>
 #include <qore/intern/QC_Sequence.h>
 #include <qore/intern/QC_Counter.h>
+#include <qore/intern/QC_AutoLock.h>
+#include <qore/intern/QC_AutoGate.h>
+#include <qore/intern/QC_AutoReadLock.h>
+#include <qore/intern/QC_AutoWriteLock.h>
 
 #include <pthread.h>
 #include <sys/time.h>
@@ -1301,14 +1305,21 @@ QoreNamespace *get_thread_ns() {
    // create Qore::Thread namespace
    QoreNamespace *Thread = new QoreNamespace("Thread");
 
+   QoreClass *Mutex;
    Thread->addSystemClass(initQueueClass());
-   Thread->addSystemClass(initMutexClass());
+   Thread->addSystemClass(Mutex = initMutexClass());
    Thread->addSystemClass(initRMutexClass());
    Thread->addSystemClass(initConditionClass());
    Thread->addSystemClass(initRWLockClass());
    Thread->addSystemClass(initGateClass());
    Thread->addSystemClass(initSequenceClass());
    Thread->addSystemClass(initCounterClass());
+
+   Thread->addSystemClass(initAutoLockClass(Mutex));
+   Thread->addSystemClass(initAutoGateClass());
+   Thread->addSystemClass(initAutoReadLockClass());
+   Thread->addSystemClass(initAutoWriteLockClass());
+
 
    return Thread;
 }

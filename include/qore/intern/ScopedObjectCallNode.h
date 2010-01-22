@@ -24,29 +24,69 @@
 
 #define _QORE_SCOPEDOBJECTCALLNODE_H
 
-class ScopedObjectCallNode : public ParseNoEvalNode {
-   public:
-      class NamedScope *name;
-      class QoreClass *oc;
-      QoreListNode *args;
+#include <qore/intern/FunctionCallNode.h>
+
+// objects of this class will not be evaluated
+class ScopedObjectCallNode : public AbstractFunctionCallNode {
+protected:
+      DLLLOCAL virtual int64 bigIntEvalImpl(class ExceptionSink *xsink) const {
+         assert(false);
+         return 0;
+      }
+      DLLLOCAL virtual int integerEvalImpl(class ExceptionSink *xsink) const {
+         assert(false);
+         return 0;
+      }
+      DLLLOCAL virtual bool boolEvalImpl(class ExceptionSink *xsink) const {
+         assert(false);
+         return false;
+      }
+      DLLLOCAL virtual double floatEvalImpl(class ExceptionSink *xsink) const {
+         assert(false);
+         return 0.0;
+      }
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const {
+         assert(false);
+         return 0;
+      }
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const {
+         assert(false);
+         return 0;
+      }
+
+public:
+   NamedScope *name;
+   QoreClass *oc;
+   QoreListNode *args;
+   QoreString desc;
       
-      DLLLOCAL ScopedObjectCallNode(NamedScope *n, QoreListNode *a);
-      DLLLOCAL virtual ~ScopedObjectCallNode();
+   DLLLOCAL ScopedObjectCallNode(NamedScope *n, QoreListNode *a) : AbstractFunctionCallNode(NT_SCOPE_REF, a, false) {
+      name = n; 
+      args = a; 
+   }
+   DLLLOCAL virtual ~ScopedObjectCallNode() {
+      delete name; 
+   }
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+   // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+   // the ExceptionSink is only needed for QoreObject where a method may be executed
+   // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+   // returns -1 for exception raised, 0 = OK
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+   
+   // returns the data type
+   DLLLOCAL virtual qore_type_t getType() const;
+   // returns the type name as a c string
+   DLLLOCAL virtual const char *getTypeName() const;
 
-      // returns the data type
-      DLLLOCAL virtual qore_type_t getType() const;
-      // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const;
-
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   // returns the description
+   DLLLOCAL virtual const char *getName() const {
+      return desc.getBuffer();
+   }
+   
+   DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

@@ -30,6 +30,6 @@
 
 DLLEXPORT extern qore_classid_t CID_MUTEX;
 
-DLLLOCAL class QoreClass *initMutexClass();
+DLLLOCAL QoreClass *initMutexClass();
 
 #endif // _QORE_CLASS_MUTEX

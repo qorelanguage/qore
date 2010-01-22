@@ -29,47 +29,38 @@
 
 DLLEXPORT extern qore_classid_t CID_AUTOLOCK;
 
-DLLLOCAL class QoreClass *initAutoLockClass();
+DLLLOCAL QoreClass *initAutoLockClass(QoreClass *QC_Mutex);
 
-class QoreAutoLock : public AbstractPrivateData
-{
-   class SmartMutex *m;
+class QoreAutoLock : public AbstractPrivateData {
+   SmartMutex *m;
 
 public:
-   DLLLOCAL QoreAutoLock(class SmartMutex *mt, class ExceptionSink *xsink)
-   {
+   DLLLOCAL QoreAutoLock(class SmartMutex *mt, class ExceptionSink *xsink) {
       m = mt;
       m->grab(xsink);
    }
 
-   DLLLOCAL virtual void deref(class ExceptionSink *xsink) 
-   {
-      if (ROdereference())
-      {
+   DLLLOCAL virtual void deref(class ExceptionSink *xsink) {
+      if (ROdereference()) {
 	 m->deref(xsink);
 	 delete this;
       }
    }
 
-   DLLLOCAL virtual void destructor(class ExceptionSink *xsink) 
-   {
+   DLLLOCAL virtual void destructor(class ExceptionSink *xsink) {
       if (m->owns_lock())
 	 m->release(xsink);
    }
    
-   DLLLOCAL int lock(class ExceptionSink *xsink)
-   {
+   DLLLOCAL int lock(class ExceptionSink *xsink) {
       return m->grab(xsink);
    }
-   DLLLOCAL int unlock(class ExceptionSink *xsink)
-   {
+   DLLLOCAL int unlock(class ExceptionSink *xsink) {
       return m->release(xsink);
    }
-   DLLLOCAL int trylock()
-   {
+   DLLLOCAL int trylock() {
       return m->tryGrab();
    }
 };
-
 
 #endif

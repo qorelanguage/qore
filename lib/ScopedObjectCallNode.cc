@@ -22,17 +22,6 @@
 
 #include <qore/Qore.h>
 
-ScopedObjectCallNode::ScopedObjectCallNode(NamedScope *n, QoreListNode *a) : ParseNoEvalNode(NT_SCOPE_REF) {
-   name = n; 
-   args = a; 
-}
-
-ScopedObjectCallNode::~ScopedObjectCallNode() {
-   delete name; 
-   if (args)
-      args->deref(0);
-}
-
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
@@ -67,16 +56,13 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
       if (oc->getDomain() & getProgram()->getParseOptions())
 	 parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
 
-      if (oc)
-	 typeInfo = oc->getTypeInfo();
+      typeInfo = oc->getTypeInfo();
+      desc.sprintf("new %s", oc->getName());
    }
    delete name;
    name = 0;
-   if (args) {
-      // FIXME xxx check args against constructor params
-      const QoreTypeInfo *argTypeInfo = 0;
-      args->parseInit(oflag, pflag, lvids, argTypeInfo);
-   }
+   const QoreMethod *constructor = oc ? oc->getConstructor() : 0;
+   lvids += parseArgs(oflag, pflag, constructor ? constructor->getParams() : 0);
    
    return this;
 }

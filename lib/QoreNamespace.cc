@@ -49,10 +49,6 @@
 #include <qore/intern/QC_HTTPClient.h>
 #include <qore/intern/QC_XmlRpcClient.h>
 #include <qore/intern/QC_JsonRpcClient.h>
-#include <qore/intern/QC_AutoLock.h>
-#include <qore/intern/QC_AutoGate.h>
-#include <qore/intern/QC_AutoReadLock.h>
-#include <qore/intern/QC_AutoWriteLock.h>
 #include <qore/intern/QC_TermIOS.h>
 #include <qore/intern/QC_XmlNode.h>
 
@@ -1325,6 +1321,8 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
 
    QoreNamespace *qns = new QoreNamespace("Qore");
 
+   qns->addInitialNamespace(get_thread_ns());
+
    // add system object types
    qns->addSystemClass(initSocketClass());
    qns->addSystemClass(initSSLCertificateClass());
@@ -1336,10 +1334,6 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qns->addSystemClass(initDirClass());
    qns->addSystemClass(initGetOptClass());
    qns->addSystemClass(initFtpClientClass());
-   qns->addSystemClass(initAutoLockClass());
-   qns->addSystemClass(initAutoGateClass());
-   qns->addSystemClass(initAutoReadLockClass());
-   qns->addSystemClass(initAutoWriteLockClass());
 
    // add Xml namespace
    qns->addInitialNamespace(initXmlNs());
@@ -1375,8 +1369,6 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qns->addSystemClass(desc_multi);
 }
 #endif
-
-   qns->addInitialNamespace(get_thread_ns());
 
    // add ssl socket constants
    addSSLConstants(qns);

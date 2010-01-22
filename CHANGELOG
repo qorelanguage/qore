@@ -1,3 +1,6 @@
+2010.01.22: David Nichols
+	 * implement type enforcing at parse time for builtin constructors
+
 2010.01.21: David Nichols
 	 * infrastructure changes and new QoreClass APIs for setting return
 	   type and parameter type information with builtin class methods;

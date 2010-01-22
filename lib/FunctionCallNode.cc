@@ -200,6 +200,8 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
       case FC_UNRESOLVED:
 	 getProgram()->resolveFunction(this, params, returnTypeInfo);
 	 break;
+      default: // should only be one of the above at parse time
+	 assert(false);
    }
    
    lvids += parseArgs(oflag, pflag, params);

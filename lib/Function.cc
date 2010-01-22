@@ -167,7 +167,7 @@ void UserParamList::assignParam(int i, VarRefNode *v) {
 }
 
 UserFunction::UserFunction(char *n_name, UserParamList *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced) 
-   : synchronized(synced), gate(synced ? new VRMutex() : 0), name(n_name), returnTypeInfo(rv), params(parms), statements(b) {
+   : synchronized(synced), gate(synced ? new VRMutex() : 0), name(n_name), returnTypeInfo(rv), initialized(false), params(parms), statements(b) {
    printd(5, "UserFunction::UserFunction(%s) parms=%p b=%p synced=%d\n", n_name ? n_name : "null", parms, b, synced);
 }
 
@@ -186,6 +186,10 @@ void UserFunction::deref() {
 }
 
 void UserFunction::parseInit() {
+   if (initialized)
+      return;
+   initialized = true;
+
    if (returnTypeInfo)
       returnTypeInfo->resolve();
    
@@ -197,21 +201,29 @@ void UserFunction::parseInit() {
 }
 
 void UserFunction::parseInitMethod(const QoreClass &parent_class, bool static_flag) {
-    if (returnTypeInfo)
-       returnTypeInfo->resolve();
-   
-    // push current return type on stack
-    ReturnTypeInfoHelper rtih(returnTypeInfo);
+   if (initialized)
+      return;
+   initialized = true;
 
-    // must be called even if statements is NULL
-    //printd(5, "QoreMethod::parseInit() this=%08p '%s' static_flag=%d\n", this, getName(), static_flag);
-    if (!static_flag)
-       statements->parseInitMethod(parent_class.getTypeInfo(), params, 0);
-    else
-       statements->parseInit(params);
+   if (returnTypeInfo)
+      returnTypeInfo->resolve();
+   
+   // push current return type on stack
+   ReturnTypeInfoHelper rtih(returnTypeInfo);
+   
+   // must be called even if statements is NULL
+   //printd(5, "QoreMethod::parseInit() this=%08p '%s' static_flag=%d\n", this, getName(), static_flag);
+   if (!static_flag)
+      statements->parseInitMethod(parent_class.getTypeInfo(), params, 0);
+   else
+      statements->parseInit(params);
 }
 
 void UserFunction::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
+   if (initialized)
+      return;
+   initialized = true;
+
    assert(!returnTypeInfo);
 
    // push return type on stack (no return value can be used)
@@ -222,6 +234,10 @@ void UserFunction::parseInitConstructor(const QoreClass &parent_class, BCList *b
 }
 
 void UserFunction::parseInitDestructor(const QoreClass &parent_class) {
+   if (initialized)
+      return;
+   initialized = true;
+
    assert(!returnTypeInfo);
 
    // make sure there are no parameters in the destructor
@@ -236,6 +252,10 @@ void UserFunction::parseInitDestructor(const QoreClass &parent_class) {
 }
 
 void UserFunction::parseInitCopy(const QoreClass &parent_class) {
+   if (initialized)
+      return;
+   initialized = true;
+
    // make sure there is max one parameter in the copy method      
    if (params->numParams() > 1)
       parse_error("maximum of one parameter may be defined in class copy methods (%d defined)", params->numParams());

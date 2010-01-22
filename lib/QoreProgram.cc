@@ -1060,6 +1060,8 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, ParamList *&params, const
       printd(5, "resolved user function call to %s\n", fname);
       f->ftype = FC_USER;
       f->f.ufunc = ufc;      
+      // make sure the return type is initialized
+      ufc->parseInit();
       returnTypeInfo = ufc->getReturnTypeInfo();
       free(fname);
       params = ufc->params;

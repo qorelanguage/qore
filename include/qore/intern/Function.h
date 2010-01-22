@@ -200,6 +200,7 @@ private:
    VRMutex *gate;
    char *name;
    QoreParseTypeInfo *returnTypeInfo;
+   bool initialized;
 
 protected:
    DLLLOCAL ~UserFunction();
@@ -208,7 +209,7 @@ public:
    UserParamList *params;
    StatementBlock *statements;
 
-   // the object owns the memory for "n_name", 0 for anonymous closures, takes ownership of parms, b, rv
+   // the object owns the memory for "n_name", name is 0 for anonymous closures, also takes ownership of parms, b, rv
    DLLLOCAL UserFunction(char *n_name, UserParamList *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced = false);
    DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;

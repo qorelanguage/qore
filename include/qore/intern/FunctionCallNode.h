@@ -52,7 +52,7 @@ class SelfFunctionCall {
 };
 
 class AbstractFunctionCallNode : public ParseNode {
-  protected:
+protected:
    QoreListNode *args;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const = 0;
@@ -68,8 +68,8 @@ class AbstractFunctionCallNode : public ParseNode {
       return true;
    }
 
-  public:
-   DLLLOCAL AbstractFunctionCallNode(qore_type_t t, QoreListNode *n_args) : ParseNode(t), args(n_args) {}
+public:
+   DLLLOCAL AbstractFunctionCallNode(qore_type_t t, QoreListNode *n_args, bool needs_eval = true) : ParseNode(t, needs_eval), args(n_args) {}
    DLLLOCAL virtual ~AbstractFunctionCallNode() {
       // there could be an object here in the case of a background expression
       if (args) {
@@ -77,29 +77,29 @@ class AbstractFunctionCallNode : public ParseNode {
 	 args->deref(&xsink);
       }
    }
-     
+
    DLLLOCAL virtual const char *getName() const = 0;
 
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
 
    DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, ParamList *params) {
       int lvids = 0;
-
+   
       if (params)
 	 params->resolve();
-
+   
       pflag &= ~PF_REFERENCE_OK;
       bool needs_eval = args ? args->needs_eval() : false;
-
+   
       unsigned max = QORE_MAX(args ? args->size() : 0, params ? params->numParams() : 0);
-
+   
       for (unsigned i = 0; i < max; ++i) {
 	 AbstractQoreNode **n = args && i < args->size() ? args->get_entry_ptr(i) : 0;
 	 const QoreTypeInfo *argTypeInfo = 0;
 	 if (n && *n) {
 	    if ((*n)->getType() == NT_REFERENCE) {
 	       if (!existsUserParam(i))
-		  parse_error("not enough parameters in '%s' to accept reference expression", getName());
+		  parse_error("not enough parameters in '%s()' to accept reference expression", getName());
 	       (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo);
 	    }
 	    else
@@ -111,7 +111,7 @@ class AbstractFunctionCallNode : public ParseNode {
 	 }
 	 else
 	    argTypeInfo = &nothingTypeInfo;
-
+      
 	 // check for compatible types
 	 if (params) {
 	    const QoreTypeInfo *paramTypeInfo = params->getParamTypeInfo(i);
@@ -120,7 +120,7 @@ class AbstractFunctionCallNode : public ParseNode {
 	       // raise a parse exception if parse exceptions are enabled
 	       if (getProgram()->getParseExceptionSink()) {
 		  QoreStringNode *desc = new QoreStringNode("argument ");
-		  desc->sprintf("%d expects ", i + 1);
+		  desc->sprintf("%d to '%s()' expects ", i + 1, getName());
 		  paramTypeInfo->getThisType(*desc);
 		  desc->concat(", but call supplies ");
 		  argTypeInfo->getThisType(*desc);
@@ -129,7 +129,7 @@ class AbstractFunctionCallNode : public ParseNode {
 	    }
 	 }
       }
-
+   
       return lvids;
    }
 };
@@ -296,7 +296,7 @@ class StaticMethodCallNode : public AbstractFunctionCallNode {
 
       method = qc->parseFindStaticMethodTree(scope->getIdentifier());
       if (!method) {
-	 parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
+	 parseException("INVALID-METHOD", "class '%s' has no static method '%s()'", qc->getName(), scope->getIdentifier());
 	 return this;
       }
 

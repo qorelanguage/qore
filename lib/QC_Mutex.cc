@@ -26,28 +26,23 @@
 
 qore_classid_t CID_MUTEX;
 
-static void MUTEX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
+static void MUTEX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static void MUTEX_destructor(QoreObject *self, class SmartMutex *m, ExceptionSink *xsink)
-{
+static void MUTEX_destructor(QoreObject *self, class SmartMutex *m, ExceptionSink *xsink) {
    m->destructor(xsink);
    m->deref(xsink);
 }
 
-static void MUTEX_copy(QoreObject *self, QoreObject *old, SmartMutex *m, ExceptionSink *xsink)
-{
+static void MUTEX_copy(QoreObject *self, QoreObject *old, SmartMutex *m, ExceptionSink *xsink) {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static AbstractQoreNode *MUTEX_lock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *MUTEX_lock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
    // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
-   if (!is_nothing(p))
-   {
+   if (!is_nothing(p)) {
       int timeout_ms = getMsZeroInt(p);
       int rc = m->grab(xsink, timeout_ms);
       if (!*xsink)
@@ -58,30 +53,27 @@ static AbstractQoreNode *MUTEX_lock(QoreObject *self, class SmartMutex *m, const
    return 0;
 }
 
-static AbstractQoreNode *MUTEX_trylock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *MUTEX_trylock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(m->tryGrab()); 
 }
 
-static AbstractQoreNode *MUTEX_unlock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *MUTEX_unlock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
    m->release(xsink);
    return 0;
 }
 
-class QoreClass *initMutexClass()
-{
+QoreClass *initMutexClass() {
    QORE_TRACE("initMutexClass()");
 
-   class QoreClass *QC_MUTEX = new QoreClass("Mutex", QDOM_THREAD_CLASS);
+   QoreClass *QC_MUTEX = new QoreClass("Mutex", QDOM_THREAD_CLASS);
    CID_MUTEX = QC_MUTEX->getID();
    QC_MUTEX->setConstructor(MUTEX_constructor);
    QC_MUTEX->setDestructor((q_destructor_t)MUTEX_destructor);
    QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);
-   QC_MUTEX->addMethod("lock",          (q_method_t)MUTEX_lock);
-   QC_MUTEX->addMethod("trylock",       (q_method_t)MUTEX_trylock);
-   QC_MUTEX->addMethod("unlock",        (q_method_t)MUTEX_unlock);
 
+   QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock);
+   QC_MUTEX->addMethodExtended("trylock",  (q_method_t)MUTEX_trylock, false, QDOM_DEFAULT, &bigIntTypeInfo);
+   QC_MUTEX->addMethodExtended("unlock",   (q_method_t)MUTEX_unlock, false, QDOM_DEFAULT, &nothingTypeInfo);
 
    return QC_MUTEX;
 }
