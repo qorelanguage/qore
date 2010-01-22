@@ -167,7 +167,7 @@ void UserParamList::assignParam(int i, VarRefNode *v) {
 }
 
 UserFunction::UserFunction(char *n_name, UserParamList *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced) 
-   : synchronized(synced), gate(synced ? new VRMutex() : 0), name(n_name), returnTypeInfo(rv), initialized(false), params(parms), statements(b) {
+   : synchronized(synced), gate(synced ? new VRMutex() : 0), name(n_name), returnTypeInfo(rv), params(parms), statements(b) {
    printd(5, "UserFunction::UserFunction(%s) parms=%p b=%p synced=%d\n", n_name ? n_name : "null", parms, b, synced);
 }
 
@@ -186,10 +186,6 @@ void UserFunction::deref() {
 }
 
 void UserFunction::parseInit() {
-   if (initialized)
-      return;
-   initialized = true;
-
    if (returnTypeInfo)
       returnTypeInfo->resolve();
    
@@ -201,10 +197,6 @@ void UserFunction::parseInit() {
 }
 
 void UserFunction::parseInitMethod(const QoreClass &parent_class, bool static_flag) {
-   if (initialized)
-      return;
-   initialized = true;
-
    if (returnTypeInfo)
       returnTypeInfo->resolve();
    
@@ -220,10 +212,6 @@ void UserFunction::parseInitMethod(const QoreClass &parent_class, bool static_fl
 }
 
 void UserFunction::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
-   if (initialized)
-      return;
-   initialized = true;
-
    assert(!returnTypeInfo);
 
    // push return type on stack (no return value can be used)
@@ -234,10 +222,6 @@ void UserFunction::parseInitConstructor(const QoreClass &parent_class, BCList *b
 }
 
 void UserFunction::parseInitDestructor(const QoreClass &parent_class) {
-   if (initialized)
-      return;
-   initialized = true;
-
    assert(!returnTypeInfo);
 
    // make sure there are no parameters in the destructor
@@ -252,10 +236,6 @@ void UserFunction::parseInitDestructor(const QoreClass &parent_class) {
 }
 
 void UserFunction::parseInitCopy(const QoreClass &parent_class) {
-   if (initialized)
-      return;
-   initialized = true;
-
    // make sure there is max one parameter in the copy method      
    if (params->numParams() > 1)
       parse_error("maximum of one parameter may be defined in class copy methods (%d defined)", params->numParams());

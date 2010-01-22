@@ -1061,8 +1061,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, ParamList *&params, const
       f->ftype = FC_USER;
       f->f.ufunc = ufc;      
       // make sure the return type is initialized
-      ufc->parseInit();
-      returnTypeInfo = ufc->getReturnTypeInfo();
+      returnTypeInfo = ufc->parseGetReturnTypeInfo();
       free(fname);
       params = ufc->params;
 
