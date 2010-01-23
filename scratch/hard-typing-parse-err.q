@@ -1,5 +1,7 @@
 #!/usr/bin/env qore
 
+%requires qore >= 0.8.0
+
 float $g = 0;
 
 class T {
