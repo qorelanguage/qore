@@ -34,12 +34,18 @@
 
 struct QoreMemberInfo : public QoreParseTypeInfo {
    AbstractQoreNode *exp;
+   // store parse location in case of errors
+   int first_line, last_line;
+   const char *file;
 
-   DLLLOCAL QoreMemberInfo(qore_type_t t, AbstractQoreNode *e = 0) : QoreParseTypeInfo(t), exp(e) {
+   DLLLOCAL QoreMemberInfo(int nfl, int nll, qore_type_t t, AbstractQoreNode *e = 0) : QoreParseTypeInfo(t), exp(e), first_line(nfl), last_line(nll) {
+      file = get_parse_file();
    }
-   DLLLOCAL QoreMemberInfo(char *n, AbstractQoreNode *e = 0) : QoreParseTypeInfo(n), exp(e) {
+   DLLLOCAL QoreMemberInfo(int nfl, int nll, char *n, AbstractQoreNode *e = 0) : QoreParseTypeInfo(n), exp(e), first_line(nfl), last_line(nll) {
+      file = get_parse_file();
    }
-   DLLLOCAL QoreMemberInfo(const QoreClass *qc, AbstractQoreNode *e) : QoreParseTypeInfo(qc), exp(e) {
+   DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreClass *qc, AbstractQoreNode *e) : QoreParseTypeInfo(qc), exp(e), first_line(nfl), last_line(nll) {
+      file = get_parse_file();
    }
    DLLLOCAL ~QoreMemberInfo() {
       if (exp)
@@ -50,9 +56,13 @@ struct QoreMemberInfo : public QoreParseTypeInfo {
          return 0;
 
       assert(has_type);
+      QoreMemberInfo *mi;
       if (qc)
-         return new QoreMemberInfo(qc, exp ? exp->refSelf() : 0);
-      return new QoreMemberInfo(qt, exp ? exp->refSelf() : 0);
+         mi = new QoreMemberInfo(first_line, last_line, qc, exp ? exp->refSelf() : 0);
+      else
+	 mi = new QoreMemberInfo(first_line, last_line, qt, exp ? exp->refSelf() : 0);
+      mi->file = file;
+      return mi;
    }
 
    DLLLOCAL void parseInit(const char *name, bool priv) {
@@ -63,6 +73,7 @@ struct QoreMemberInfo : public QoreParseTypeInfo {
 	 int lvids = 0;
 	 exp = exp->parseInit(0, 0, lvids, argTypeInfo);
 	 if (lvids) {
+	    update_parse_location(first_line, last_line, file);
 	    parse_error("illegal local variable declaration in member initialization expression");
 	    while (lvids)
 	       pop_local_var();
@@ -74,10 +85,12 @@ struct QoreMemberInfo : public QoreParseTypeInfo {
             argTypeInfo->getThisType(*desc);
             desc->concat(", but the member was declared as ");
             getThisType(*desc);
+	    update_parse_location(first_line, last_line, file);
             getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
          }
       }
       else if (hasType() && qt == NT_OBJECT) {
+	 update_parse_location(first_line, last_line, file);
 	 parseException("PARSE-TYPE-ERROR", "%s member '$.%s' has been defined with a complex type and must be assigned when instantiated", priv ? "private" : "public", name);
       }
    }

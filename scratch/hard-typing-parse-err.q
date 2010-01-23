@@ -7,7 +7,7 @@ float $g = 0;
 class T {
     # declare public members
     public {
-	int $.a;
+	int $.a = False;
     }
 
     constructor() {

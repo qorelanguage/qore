@@ -1345,17 +1345,17 @@ member2:
 	   $$ = new MemberInfo($1, 0);
         }
         | SCOPED_REF SELF_REF ';' {
-	   $$ = new MemberInfo($2, new QoreMemberInfo($1));
+	   $$ = new MemberInfo($2, new QoreMemberInfo(@1.first_line, @2.last_line, $1));
 	}
         | IDENTIFIER SELF_REF ';' {
 	   qore_type_t t = getBuiltinType($1);
 	   QoreMemberInfo *memberInfo;
 	   if (t >= 0) {
-	      memberInfo = new QoreMemberInfo(t);
+	      memberInfo = new QoreMemberInfo(@1.first_line, @2.last_line, t);
 	      free($1);
 	   }
 	   else
-	      memberInfo = new QoreMemberInfo($1);
+	      memberInfo = new QoreMemberInfo(@1.first_line, @2.last_line, $1);
 	   
 	   $$ = new MemberInfo($2, memberInfo);
         }
@@ -1363,16 +1363,16 @@ member2:
 	   qore_type_t t = getBuiltinType($1);
 	   QoreMemberInfo *memberInfo;
 	   if (t >= 0) {
-	      memberInfo = new QoreMemberInfo(t, $4);
+	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, t, $4);
 	      free($1);
 	   }
 	   else
-	      memberInfo = new QoreMemberInfo($1, $4);
+	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, $1, $4);
 
 	   $$ = new MemberInfo($2, memberInfo);
         }
         | SCOPED_REF SELF_REF '=' exp ';' {
-	   $$ = new MemberInfo($2, new QoreMemberInfo($1, $4));
+	   $$ = new MemberInfo($2, new QoreMemberInfo(@1.first_line, @4.last_line, $1, $4));
 	}
         ;
 
@@ -1381,7 +1381,7 @@ member:
 	   $$ = new MemberInfo($1, 0);
         }
         | SELF_REF SCOPED_REF {
-	   $$ = new MemberInfo($1, new QoreMemberInfo($2));
+	   $$ = new MemberInfo($1, new QoreMemberInfo(@1.first_line, @2.last_line, $2));
 	}
         ;
 
