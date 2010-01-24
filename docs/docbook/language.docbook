@@ -112,6 +112,10 @@
 	  <entry><para>Provides <code>xmldsig</code> and <code>xmlenc</code> functionality to Qore.</para></entry>
 	</row>
 	<row>
+	  <entry><para><code>ssh2</code></para></entry>
+	  <entry><para>Provides SSH2 and SFTP functionality to Qore.</para></entry>
+	</row>
+	<row>
 	  <entry><para><code>tibrv</code></para></entry>
 	  <entry><para>Provides TIBCO Rendezvous(R) (TIBCO, Inc) functionality to Qore.</para></entry>
 	</row>
@@ -132,6 +136,10 @@
 	  <entry><para>Provides a PostgreSQL DBI driver to Qore.</para></entry>
 	</row>
 	<row>
+	  <entry><para><code>sqlite3</code></para></entry>
+	  <entry><para>Provides a SQLite3 DBI driver to Qore.</para></entry>
+	</row>
+	<row>
 	  <entry><para><code>sybase</code></para></entry>
 	  <entry><para>Provides a Sybase DBI driver to Qore.</para></entry>
 	</row>
@@ -144,6 +152,10 @@
 	  <entry><para>Provides an Oracle DBI driver to Qore.</para></entry>
 	</row>
 	<row>
+	  <entry><para><code>db2</code></para></entry>
+	  <entry><para>Provides an IBM DB2 driver to Qore.</para></entry>
+	</row>
+	<row>
 	  <entry><para><code>glut</code></para></entry>
 	  <entry><para>Provides GLUT functionality to Qore.</para></entry>
 	</row>
@@ -153,7 +165,11 @@
 	</row>
 	<row>
 	  <entry><para><code>qt-core, qt-gui, qt-svn, qt-opengl</code></para></entry>
-	  <entry><para>Provides QT4 APIs to Qore.</para></entry>
+	  <entry><para>DEPRECATED: old QT4 module: please use the much more complete qt4 module.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>qt4</code></para></entry>
+	  <entry><para>Provides Nokia (formerly Trolltech) QT4 APIs for GUI development in Qore.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>ncurses</code></para></entry>
@@ -2308,7 +2324,7 @@ $name = getName();</programlisting>
 	<varlistentry>
 	  <term>Description</term>
 	  <listitem>
-	    <para>The <command>on_success</command> statement provides a clean way to do block-level cleanup within Qore code in the case that no exception is thrown in the block.  Any single statment (or statement block) after the <command>on_success</command> keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - <command>on_success</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_success</command> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited.  Even if a <command>return</command> statement is executed later in the block, any <command>on_exit</command> code that is queued will be executed as long as there is no active (unhandled) exception.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with <link linkend="on_error_Statements">on_error</link> statements, which are executed in a manner similar to <command>on_success</command> statements, except <link linkend="on_error_Statements">on_error</link> statements are only executed when there is an active exception when the block is exited.</para>
+	    <para>The <command>on_success</command> statement provides a clean way to do block-level cleanup within Qore code in the case that no exception is thrown in the block.  Any single statment (or statement block) after the <command>on_success</command> keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - <command>on_success</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_success</command> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited.  Even if a <command>return</command> statement is executed later in the block, any <command>on_success</command> code that is queued will be executed as long as there is no active (unhandled) exception.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with <link linkend="on_error_Statements">on_error</link> statements, which are executed in a manner similar to <command>on_success</command> statements, except <link linkend="on_error_Statements">on_error</link> statements are only executed when there is an active exception when the block is exited.</para>
 	    <para>Note that if this statement is reached when executing in a loop, the <command>on_success</command> code will be executed for each iteration of the loop (as long as there is no active exception).</para>
 	  </listitem>
 	</varlistentry>
@@ -2354,8 +2370,8 @@ $name = getName();</programlisting>
 	<varlistentry>
 	  <term>Description</term>
 	  <listitem>
-	    <para>The <command>on_error</command> statement provides a clean way to do block-level cleanup within Qore code in the case that an exception is thrown in the block.  Any single statment (or statement block) after the <command>on_error</command> keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - <command>on_error</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_error</command> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited.  Even if a <command>return</command> statement is executed later in the block, any <command>on_exit</command> code that is queued will be executed as long as there is an active (unhandled) exception.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with <link linkend="on_success_Statements">on_success</link> statements, which are executed in a manner similar to <command>on_error</command> statements, except <link linkend="on_success_Statements">on_success</link> statements are only executed when there is no active exception when the block is exited.</para>
-	    <para>Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception.</para>
+	    <para>The <command>on_error</command> statement provides a clean way to do block-level cleanup within Qore code in the case that an exception is thrown in the block.  Any single statment (or statement block) after the <command>on_error</command> keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - <command>on_error</command> statements that are never reached when executing will have no effect).  The the position of the <command>on_error</command> statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited.  Even if a <command>return</command> statement is executed later in the block, any <command>on_error</command> code that is queued will be executed as long as there is an active (unhandled) exception.  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with <link linkend="on_success_Statements">on_success</link> statements, which are executed in a manner similar to <command>on_error</command> statements, except <link linkend="on_success_Statements">on_success</link> statements are only executed when there is no active exception when the block is exited.</para>
+	    <para>Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception (in contrast to <link linkend="on_success_Statements">on_success</link> and <link linkend="on_exit_Statements">on_exit</link> statements, which are executed for every iteration of a loop).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3332,7 +3348,7 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 
     <para>Qore supports a simple event-handling mechanism to provide
 notification and details of socket and network events in higher-level classes.
-Classes curerntly supporting events are the <link linkend="Socket_Class">Socket</link>,
+Classes currently supporting events are the <link linkend="Socket_Class">Socket</link>,
 <link linkend="HTTPClient_Class">HTTPClient</link>, and <link linkend="FtpClient_Class">FtpClient</link> classes.</para>
 
     <para>See <link linkend="event_constants">Event Constants</link> for a list

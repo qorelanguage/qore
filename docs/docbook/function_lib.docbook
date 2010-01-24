@@ -7371,7 +7371,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the current date and time with resolution to the millisecond.  For a similar function returning the current date and time with courser granularity, when resolution only to the second is needed, see <link linkend="now">now()</link>.</para>
+	<para>Returns the current date and time with resolution to the millisecond.  For a similar function returning the current date and time with coarser granularity, when resolution only to the second is needed, see <link linkend="now">now()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
