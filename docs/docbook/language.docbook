@@ -391,7 +391,7 @@ print("global a = %d\n", $a); </programlisting>
 <sect1 id="Basic_Data_Types">
 <title>Basic Data Types</title>
 
-<para>The following are the basic data types in Qore:</para>
+<para>The following are the basic data types in Qore (see <link linkend="Container_Data_Type">Container Data Types</link> for container data types):</para>
 
 <table><title>Basic data types</title>
 <tgroup cols='4' align='left' colsep='1' rowsep='1'>
@@ -605,6 +605,8 @@ is a multiline string";</programlisting>
 
   <para>The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a memory pointer and a size indicator. </para>
 
+  <para>Binary data can be concatenated with the <link linkend="Plus_Operator">+</link> and <link linkend="Plus_Equals_Operator">+=</para> operators.</para>
+
   <para>This data can be manipulated by being written and read from File, Socket, and Datasource objects, or converted and parsed to/from base64 encoded strings using the <link linkend="makeBase64String">makeBase64String()</link> and <link linkend="parseBase64String">parseBase64String()</link> functions, or compressed and decompressed using the <link linkend="compress">compress()</link>, <link linkend="gzip">gzip()</link>, <link linkend="bzip2">bzip2()</link>, etc. functions, and processed by most <link linkend="Cryptographic_Functions">cryptographic funtions</link>, among others.</para>
 
   <para>Binary objects can be read from a File object using the <link linkend="File_readBinary">File::readBinary()</link> method and can be written using the <link linkend="File_write">File::write()</link> method.  Please see the <link linkend='File_Class'>File Class</link> for more information.</para>
@@ -657,11 +659,11 @@ is a multiline string";</programlisting>
 
     <para>Lists are specified by giving expressions separated by commas as follows:</para>
 
-    <programlisting>$list = <replaceable>expression</replaceable>, <replaceable>expression</replaceable> [, <replaceable>expression</replaceable> ...];</programlisting>
+    <programlisting>$list = (<replaceable>expression</replaceable>, <replaceable>expression</replaceable> [, <replaceable>expression</replaceable> ...]);</programlisting>
 
     <para>Here is a concrete example:</para>
 
-    <programlisting>$list = 1, 2, "three", 4.0, 5, 6;</programlisting>
+    <programlisting>$list = (1, 2, "three", 4.0, 5, 6);</programlisting>
 
     <note>
       <para>Note that trailing commas can be left on the end of a list (or a hash, for that matter).  This makes it easier to comment-out the last element of a multi-line list without having to worry about removing the trailing comma.</para>
@@ -692,7 +694,7 @@ is a multiline string";</programlisting>
     <programlisting>$hash = ( "apple" : 1 + 1,
           "pear"  : "good" );</programlisting>
 
-    <para>Hashes are dereferenced in one of two ways, either using curly brackets: "{" and "}", where any valid Qore expression can be used, or using the dot "." hash member dereferencing operator, where only literal strings can be used.</para>
+    <para>Hashes are dereferenced in one of two ways, either using curly brackets: "{" and "}", where any valid Qore expression can be used, or using the dot "." hash member dereferencing operator, where literal strings can be used.</para>
 
     <programlisting>$element3 = $hash{"pe" + "ar"};</programlisting>
 
@@ -704,11 +706,20 @@ is a multiline string";</programlisting>
 
     <programlisting>$element3 = $hash."pear";</programlisting>
 
+    <para>and:</para>
+
+    <programlisting>$element3 = $hash.("pe" + "ar");</programlisting>
+
+    <para>Hash members can have the names of keywords, but in this case to dereference them, you cannot use the dot operator with a literal string, otherwise a parse error will be raised.  Use quotes around the member name when dereferencing hash members with the same name as a qore keyword as follows:</para>
+
+    <programlisting>$element3 = $hash."keys";</programlisting>
+    <programlisting>$element3 = $hash{"keys"};</programlisting>
+
     <para>A literal string after the dot "." hash member dereferencing operator must be a valid Qore identifier; therefore if you want to use a hash key that's not a valid identifier, enclose the string in quotes.</para>
     
     <para>If you want to use the result of an expression to dereference the hash, then the curly bracket syntax must be used.</para>
     
-    <para>Note that hash keys can also be given by constants (as long as the constant resolved to a string).</para>
+    <para>Note that hash keys can also be given by constants (as long as the constant resolves to a string) when using curly brackets.</para>
     
   </sect2>
   <sect2 id="Objects">
