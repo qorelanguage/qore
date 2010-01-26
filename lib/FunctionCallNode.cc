@@ -68,7 +68,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
 
    assert(name || ns);
 
-   ParamList *params = 0;
+   AbstractFunctionSignature *sig = 0;
 #ifdef DEBUG
    if (ns)
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolving base class call '%s'\n", this, ns->ostr);
@@ -90,7 +90,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
       func = getParseClass()->resolveSelfMethod(ns);
 
    if (func) {
-      params = func->getParams();
+      sig = func->getSignature();
       returnTypeInfo = func->getReturnTypeInfo();
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved '%s' to %p\n", this, func->getName(), func);
       if (name) {
@@ -104,7 +104,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
 
    }
 
-   lvids += parseArgs(oflag, pflag, params);
+   lvids += parseArgs(oflag, pflag, sig);
    return this;
 }
 
@@ -209,6 +209,6 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
 
    returnTypeInfo = func->parseGetReturnTypeInfo();
    
-   lvids += parseArgs(oflag, pflag, func->getParams());
+   lvids += parseArgs(oflag, pflag, func->getSignature());
    return this;
 }

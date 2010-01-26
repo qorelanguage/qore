@@ -57,16 +57,16 @@ public:
 
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
 
-   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, ParamList *params) {
+   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, AbstractFunctionSignature *sig) {
       int lvids = 0;
    
-      if (params)
-	 params->resolve();
+      if (sig)
+	 sig->resolve();
    
       pflag &= ~PF_REFERENCE_OK;
       bool needs_eval = args ? args->needs_eval() : false;
    
-      unsigned max = QORE_MAX(args ? args->size() : 0, params ? params->numParams() : 0);
+      unsigned max = QORE_MAX(args ? args->size() : 0, sig ? sig->numParams() : 0);
    
       for (unsigned i = 0; i < max; ++i) {
 	 AbstractQoreNode **n = args && i < args->size() ? args->get_entry_ptr(i) : 0;
@@ -88,8 +88,8 @@ public:
 	    argTypeInfo = &nothingTypeInfo;
       
 	 // check for compatible types
-	 if (params) {
-	    const QoreTypeInfo *paramTypeInfo = params->getParamTypeInfo(i);
+	 if (sig) {
+	    const QoreTypeInfo *paramTypeInfo = sig->getParamTypeInfo(i);
 	    // note that QoreTypeInfo::parseEqual() can be called when this = 0
 	    if (!paramTypeInfo->parseEqual(argTypeInfo)) {
 	       // raise a parse exception if parse exceptions are enabled
@@ -336,7 +336,7 @@ public:
 	 return this;
       }
 
-      lvids += parseArgs(oflag, pflag, method->getParams());
+      lvids += parseArgs(oflag, pflag, method->getSignature());
       return this;
    }
 

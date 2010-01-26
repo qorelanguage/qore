@@ -258,10 +258,10 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
 }
 
 // NOTE: can also be called with this = 0
-void StatementBlock::parseInit(UserParamList *params) {
+void StatementBlock::parseInit(UserSignature *sig) {
    QORE_TRACE("StatementBlock::parseInit");
 
-   UserParamListLocalVarHelper ph(params);
+   UserParamListLocalVarHelper ph(sig);
 
    // initialize code block
    if (this)
@@ -269,13 +269,13 @@ void StatementBlock::parseInit(UserParamList *params) {
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserParamList *params, BCList *bcl) {
+void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserSignature *sig, BCList *bcl) {
    QORE_TRACE("StatementBlock::parseInitMethod");
 
-   UserParamListLocalVarHelper ph(params, typeInfo);
+   UserParamListLocalVarHelper ph(sig, typeInfo);
 
    // set oflag to selfid
-   LocalVar *oflag = params->selfid;
+   LocalVar *oflag = sig->selfid;
 
    // initialize base constructor arguments
    if (bcl) {
@@ -305,14 +305,14 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserParamList
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitClosure(UserParamList *params, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
+void StatementBlock::parseInitClosure(UserSignature *sig, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
    QORE_TRACE("StatementBlock::parseInitClosure");
 
    ClosureParseEnvironment cenv(vlist);
 
-   UserParamListLocalVarHelper ph(params, classTypeInfo);
+   UserParamListLocalVarHelper ph(sig, classTypeInfo);
 
    // initialize code block
    if (this)
-      parseInitImpl(params->selfid);
+      parseInitImpl(sig->selfid);
 }

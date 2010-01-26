@@ -114,7 +114,7 @@ public:
       delete name;
       name = 0;
       const QoreMethod *constructor = oc ? oc->getConstructor() : 0;
-      lvids += parseArgs(oflag, pflag, constructor ? constructor->getParams() : 0);
+      lvids += parseArgs(oflag, pflag, constructor ? constructor->getSignature() : 0);
       
       return this;
    }

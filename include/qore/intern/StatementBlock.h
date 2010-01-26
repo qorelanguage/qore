@@ -80,13 +80,13 @@ class StatementBlock : public AbstractStatement {
 
       DLLLOCAL void addStatement(AbstractStatement *s);
       DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink);
-      DLLLOCAL void parseInit(UserParamList *params);
+      DLLLOCAL void parseInit(UserSignature *sig);
 
       // initialize methods (bcl = subclass constructors with an explicit base class argument list)
-      DLLLOCAL void parseInitMethod(const QoreTypeInfo *typeInfo, UserParamList *params, class BCList *bcl); 
+      DLLLOCAL void parseInitMethod(const QoreTypeInfo *typeInfo, UserSignature *sig, class BCList *bcl); 
 
       // initialize closure blocks
-      DLLLOCAL void parseInitClosure(UserParamList *params, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
+      DLLLOCAL void parseInitClosure(UserSignature *sig, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
 
       DLLLOCAL void exec();
 

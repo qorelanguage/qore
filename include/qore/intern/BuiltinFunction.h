@@ -23,23 +23,30 @@
 #ifndef _QORE_BUILTINFUNCTION_H
 
 #define _QORE_BUILTINFUNCTION_H
-
 class BCList;
 class BCEAList;
 
-class BuiltinParamList : public ParamList {
+class BuiltinSignature : public AbstractFunctionSignature {
 public:
    const QoreTypeInfo **typeList;
+   const QoreTypeInfo *returnTypeInfo;
 
-   DLLLOCAL BuiltinParamList(unsigned n_num_params, const QoreTypeInfo **n_typeList) : ParamList(n_num_params), typeList(n_typeList) {
+   DLLLOCAL BuiltinSignature(const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params, const QoreTypeInfo **n_typeList) : AbstractFunctionSignature(n_num_params), typeList(n_typeList), returnTypeInfo(n_returnTypeInfo) {
    }
-   DLLLOCAL virtual ~BuiltinParamList() {
+   DLLLOCAL virtual ~BuiltinSignature() {
       delete [] typeList;
    }
    DLLLOCAL virtual void resolve() {}
    DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const {
       return typeList[num];
    }
+   DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
+      return returnTypeInfo;
+   }
+   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
+      return returnTypeInfo;
+   }
+   //DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const = 0;
 };
 
 class BuiltinFunctionBase : public AbstractQoreFunction {
@@ -47,14 +54,13 @@ protected:
    const char *name;
    // functionality bitmap for parse restrictions
    int functionality;
-   const QoreTypeInfo *returnTypeInfo;
-   BuiltinParamList params;
+   BuiltinSignature params;
    const AbstractQoreNode **defaultArgList;
 
 public:
-   DLLLOCAL BuiltinFunctionBase(const char *n_name, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params, const QoreTypeInfo **n_typeList, const AbstractQoreNode **n_defaultArgList) : name(n_name), functionality(n_functionality), returnTypeInfo(n_returnTypeInfo), params(n_num_params, n_typeList), defaultArgList(n_defaultArgList) {
+   DLLLOCAL BuiltinFunctionBase(const char *n_name, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params, const QoreTypeInfo **n_typeList, const AbstractQoreNode **n_defaultArgList) : name(n_name), functionality(n_functionality), params(n_returnTypeInfo, n_num_params, n_typeList), defaultArgList(n_defaultArgList) {
    }
-   DLLLOCAL BuiltinFunctionBase() : name(0), returnTypeInfo(0), params(0, 0), defaultArgList(0) {
+   DLLLOCAL BuiltinFunctionBase() : name(0), params(0, 0, 0), defaultArgList(0) {
       assert(false);
    }
    DLLLOCAL virtual ~BuiltinFunctionBase() {
@@ -64,13 +70,13 @@ public:
       return name;
    }
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
-      return returnTypeInfo;
+      return params.parseGetReturnTypeInfo();
    }
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
-      return returnTypeInfo;
+      return params.getReturnTypeInfo();
    }
-   DLLLOCAL virtual ParamList *getParams() const {
-      return const_cast<BuiltinParamList *>(&params);
+   DLLLOCAL virtual AbstractFunctionSignature *getSignature() const {
+      return const_cast<BuiltinSignature *>(&params);
    }
    DLLLOCAL int getType() const {
       return functionality;
@@ -274,10 +280,15 @@ public:
    }
 };
 
+/*
 struct BuiltinFunctionVariant {
    q_func_t func;
+};
+
+struct BuiltinFunctionVariantElement : public BuiltinFunctionVariant {
    BuiltinFunctionVariant *next;
 };
+*/
 
 class BuiltinFunction : public BuiltinFunctionBase {
 protected:

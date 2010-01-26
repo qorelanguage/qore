@@ -62,8 +62,8 @@ public:
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
       return func->getReturnTypeInfo();
    }
-   DLLLOCAL virtual ParamList *getParams() const {
-      return func->getParams();
+   DLLLOCAL virtual AbstractFunctionSignature *getSignature() const {
+      return func->getSignature();
    }
    DLLLOCAL virtual bool isUserCode() const {
       return true;

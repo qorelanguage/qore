@@ -606,8 +606,8 @@ struct qore_method_private {
       func->deref();
    }
 
-   DLLLOCAL ParamList *getParams() const {
-      return func->getParams();
+   DLLLOCAL AbstractFunctionSignature *getSignature() const {
+      return func->getSignature();
    }
 
    DLLLOCAL const char *getName() const {
@@ -646,7 +646,7 @@ struct qore_method_private {
       if (type != OTF_USER)
 	 return true;
       
-      return reinterpret_cast<UserFunction *>(func)->params->numParams() > i;
+      return reinterpret_cast<UserFunction *>(func)->getSignature()->numParams() > i;
    }
 
    DLLLOCAL bool newCallingConvention() const {
@@ -1290,8 +1290,8 @@ QoreMethod::~QoreMethod() {
    delete priv;
 }
 
-ParamList *QoreMethod::getParams() const {
-   return priv->getParams();
+AbstractFunctionSignature *QoreMethod::getSignature() const {
+   return priv->getSignature();
 }
 
 bool QoreMethod::newCallingConvention() const {

@@ -63,6 +63,7 @@ class BuiltinStaticMethod2;
 class QoreMemberInfo;
 class BuiltinMethod;
 class AbstractQoreFunction;
+class AbstractFunctionSignature;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -165,7 +166,7 @@ class QoreMethod {
       DLLLOCAL const BuiltinMethod *getBuiltinMethod() const;
       DLLLOCAL const UserFunction *getStaticUserFunction() const;
       DLLLOCAL bool existsUserParam(unsigned i) const;
-      DLLLOCAL ParamList *getParams() const;
+      DLLLOCAL AbstractFunctionSignature *getSignature() const;
       DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const;
 };
 

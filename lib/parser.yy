@@ -465,7 +465,7 @@ static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAL
       delete returnTypeInfo;
    }
    else {
-      QoreMethod *m = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new UserParamList(params), b, returnTypeInfo, mod & OFM_SYNCED), mod & OFM_PRIVATE, mod & OFM_STATIC);
+      QoreMethod *m = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), b, params, returnTypeInfo, mod & OFM_SYNCED), mod & OFM_PRIVATE, mod & OFM_STATIC);
       if (getRootNS()->addMethodToClass(name.get(), m, bcal)) {
 	 delete m;
 	 delete bcal;
@@ -1408,19 +1408,19 @@ method_definition:
         method_modifiers IDENTIFIER '(' myexp ')' base_constructor_list return_value block {
 	   //static int checkMethod(const char *name, BCAList *bcal, QoreParseTypeInfo *returnTypeInfo);
 	   checkMethod($2, $6, $7);
-	   $$ = new MethodNode(new UserFunction($2, new UserParamList($4), $8, $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $6);
+	   $$ = new MethodNode(new UserFunction($2, $8, $4, $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $6);
 	}
         | method_modifiers KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list return_value block {
 	   checkMethod($2, $5, $6);
-	   $$ = new MethodNode(new UserFunction($2, new UserParamList($3), $7, $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $5);
+	   $$ = new MethodNode(new UserFunction($2, $7, $3, $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $5);
 	}
 	| IDENTIFIER '(' myexp ')' base_constructor_list return_value block {
 	   checkMethod($1, $5, $6);
-	   $$ = new MethodNode(new UserFunction($1, new UserParamList($3), $7, $6), false, false, $5);
+	   $$ = new MethodNode(new UserFunction($1, $7, $3, $6), false, false, $5);
 	}
 	| KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list return_value block {
 	   checkMethod($1, $4, $5);
-	   $$ = new MethodNode(new UserFunction($1, new UserParamList($2), $6, $5), false, false, $4);
+	   $$ = new MethodNode(new UserFunction($1, $6, $2, $5), false, false, $4);
 	}
 	;
 
@@ -1503,25 +1503,25 @@ return_value:
 
 sub_def:
         TOK_SUB IDENTIFIER '(' myexp ')' return_value block { 
-	   getProgram()->registerUserFunction(new UserFunction($2, new UserParamList($4), $7, $6)); 
+	   getProgram()->registerUserFunction(new UserFunction($2, $7, $4, $6)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $2);
 	}
         | TOK_SYNCHRONIZED TOK_SUB IDENTIFIER '(' myexp ')' return_value block {
-	   getProgram()->registerUserFunction(new UserFunction($3, new UserParamList($5), $8, $7, true)); 
+	   getProgram()->registerUserFunction(new UserFunction($3, $8, $5, $7, true)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $3);
 	}
 	| TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' return_value block { 
-	   getProgram()->registerUserFunction(new UserFunction($2, new UserParamList($3), $6, $5)); 
+	   getProgram()->registerUserFunction(new UserFunction($2, $6, $3, $5)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $2);
 	}
 	| TOK_SYNCHRONIZED TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' return_value block {
-	   getProgram()->registerUserFunction(new UserFunction($3, new UserParamList($4), $7, $6, true)); 
+	   getProgram()->registerUserFunction(new UserFunction($3, $7, $4, $6, true)); 
 	   // make sure definition was legal
 	   if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
 	      parse_error("subroutine \"%s\" defined (conflicts with parse option NO_SUBROUTINE_DEFS)", $3);
@@ -2238,7 +2238,7 @@ exp:    scalar
 	}
         | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
         | TOK_SUB '(' myexp ')' return_value block { 
-	   UserFunction *uf = new UserFunction(0, new UserParamList($3), $6, $5);
+	   UserFunction *uf = new UserFunction(0, $6, $3, $5);
 	   $$ = new QoreClosureParseNode(uf);
 /*
 	   // make sure definition was legal
@@ -2247,7 +2247,7 @@ exp:    scalar
 */
 	}
 	| TOK_SYNCHRONIZED TOK_SUB '(' myexp ')' return_value block {
-	   UserFunction *uf = new UserFunction(0, new UserParamList($4), $7, $6, true);
+	   UserFunction *uf = new UserFunction(0, $7, $4, $6, true);
 	   $$ = new QoreClosureParseNode(uf);
 /*
 	   // make sure definition was legal

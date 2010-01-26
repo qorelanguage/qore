@@ -5,6 +5,8 @@
            background operator
 	 * fixed a bug processing arguments to static method calls in the
            background operator
+	 * implemented AbstractFunctionSignature C++ class for consistent
+	   handling of type information for all function types
 
 2010.01.23: David Nichols
 	 * fixed line number reporting for type errors in initializer

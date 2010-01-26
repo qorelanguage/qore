@@ -72,7 +72,7 @@ QoreString *QoreClosureParseNode::getAsString(bool &del, int foff, ExceptionSink
 
 AbstractQoreNode *QoreClosureParseNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    in_method = (bool)oflag;
-   uf->statements->parseInitClosure(uf->params, oflag ? oflag->getTypeInfo() : 0, &vlist);
+   uf->statements->parseInitClosure(uf->getUserSignature(), oflag ? oflag->getTypeInfo() : 0, &vlist);
    return this;
 }
 

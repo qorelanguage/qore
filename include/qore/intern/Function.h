@@ -24,20 +24,22 @@
 
 #define _QORE_FUNCTION_H
 
-#include <qore/QoreReferenceCounter.h>
-#include <qore/Restrictions.h>
-#include <qore/common.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// constructors and destructors can never be explicitly called so we don't need FunctionCall constants for them
-#define FC_UNRESOLVED       1
-#define FC_RESOLVED_GENERIC 2
-
 // these data structures are all private to the library
-// FIXME: messy implementation - clean up!
+
+class AbstractQoreFunctionVariant {
+protected:
+public:
+   DLLLOCAL AbstractQoreFunctionVariant() {}
+   DLLLOCAL virtual ~AbstractQoreFunctionVariant() {}
+
+};
+
+// type for lists of function variants
+typedef safe_dslist<AbstractQoreFunctionVariant *> qore_variant_list_t;
 
 AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink);
 
@@ -46,23 +48,28 @@ AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, Ex
 class LocalVar;
 class VarRefNode;
 
-class ParamList {
+class AbstractFunctionSignature {
 protected:
    unsigned num_params;
 
 public:
-   DLLLOCAL ParamList(unsigned n_num_params) : num_params(n_num_params) {
+   DLLLOCAL AbstractFunctionSignature(unsigned n_num_params) : num_params(n_num_params) {
    }
-   DLLLOCAL virtual ~ParamList() {
+   DLLLOCAL virtual ~AbstractFunctionSignature() {
    }
+   DLLLOCAL virtual void resolve() = 0;
+   DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const = 0;
+   // called at parse time to include optional type resolution
+   DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const = 0;
+   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const = 0;
+   //DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const = 0;
+
    DLLLOCAL unsigned numParams() const {
       return num_params;
    }
    DLLLOCAL const QoreTypeInfo *getParamTypeInfo(unsigned num) const {
       return num >= num_params ? 0 : getParamTypeInfoImpl(num);
    }
-   DLLLOCAL virtual void resolve() = 0;
-   DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const = 0;
 };
 
 class AbstractQoreFunction {
@@ -71,13 +78,13 @@ public:
    DLLLOCAL virtual const char *getName() const = 0;
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const = 0;
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const = 0;
-   DLLLOCAL virtual ParamList *getParams() const = 0;
+   DLLLOCAL virtual AbstractFunctionSignature *getSignature() const = 0;
    DLLLOCAL virtual bool isUserCode() const = 0;
    DLLLOCAL virtual void ref() = 0;
    DLLLOCAL virtual void deref() = 0;
    DLLLOCAL virtual unsigned numParams() const {
-      ParamList *pl = getParams();
-      return pl ? pl->numParams() : 0;
+      AbstractFunctionSignature *sig = getSignature();
+      return sig ? sig->numParams() : 0;
    }
    DLLLOCAL virtual AbstractQoreNode *evalFunction(const QoreListNode *args, ExceptionSink *xsink) const {
       assert(false);
@@ -105,8 +112,10 @@ public:
    }
 };
 
-class UserParamList : public ParamList {
+class UserSignature : public AbstractFunctionSignature {
 protected:
+   QoreParseTypeInfo *returnTypeInfo;
+
    DLLLOCAL void assignParam(int i, VarRefNode *v);
 
    DLLLOCAL void setSingleParamIntern(VarRefNode *v) {
@@ -128,17 +137,17 @@ public:
    LocalVar *selfid;
    bool resolved;
 
-   DLLLOCAL UserParamList(AbstractQoreNode *params) : ParamList(0), resolved(false) {
-      ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
-      
-      lv = 0;
+   DLLLOCAL UserSignature(AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo) : 
+      AbstractFunctionSignature(0), returnTypeInfo(n_returnTypeInfo), lv(0), argvid(0), 
+      selfid(0), resolved(false) {
       if (!params) {
-	 num_params = 0;
 	 names = 0;
 	 typeList = 0;
 	 return;
       }
-      
+
+      ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
+            
       if (params->getType() == NT_VARREF) {
 	 setSingleParamIntern(reinterpret_cast<VarRefNode *>(params));
 	 return;
@@ -146,14 +155,13 @@ public:
 
       if (params->getType() != NT_LIST) {
 	 param_error();
-	 num_params = 0;
 	 names = 0;
 	 typeList = 0;
 	 return;
       }
-      
+
       QoreListNode *l = reinterpret_cast<QoreListNode *>(params);
-      
+
       num_params = l->size();
       names = new char *[num_params];
       typeList = new QoreParseTypeInfo *[num_params];
@@ -172,22 +180,20 @@ public:
 	 }
 	 
 	 assignParam(i, reinterpret_cast<VarRefNode *>(n));
-	 //printd(5, "UserParamList::UserParamList() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->has_type : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
-      }
+	 //printd(5, "UserSignature::UserSignature() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->has_type : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
+}
    }
 
-   DLLLOCAL virtual ~UserParamList() {
+   DLLLOCAL virtual ~UserSignature() {
       for (unsigned i = 0; i < num_params; i++)
 	 free(names[i]);
-      if (names)
-	 delete [] names;
+      delete [] names;
       if (typeList) {
 	 for (unsigned i = 0; i < num_params; i++)
 	    delete typeList[i];
 	 delete [] typeList;
       }
-      if (lv)
-	 delete [] lv;
+      delete [] lv;
    }
 
    DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const {
@@ -207,6 +213,20 @@ public:
 	    typeList[i]->resolve();			 
    }
 
+   // called at parse time to include optional type resolution
+   DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
+      if (returnTypeInfo)
+	 returnTypeInfo->resolve();
+
+      return returnTypeInfo;
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
+      return returnTypeInfo;
+   }
+
+   //DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const = 0;
+
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo);
 
    DLLLOCAL void parseInitPopLocalVars();
@@ -214,10 +234,10 @@ public:
 
 class UserParamListLocalVarHelper {
 protected:
-   UserParamList *l;
+   UserSignature *l;
 
 public:
-   DLLLOCAL UserParamListLocalVarHelper(UserParamList *n_l, const QoreTypeInfo *classTypeInfo = 0) : l(n_l) {
+   DLLLOCAL UserParamListLocalVarHelper(UserSignature *n_l, const QoreTypeInfo *classTypeInfo = 0) : l(n_l) {
       l->parseInitPushLocalVars(classTypeInfo);
    }
    DLLLOCAL ~UserParamListLocalVarHelper() {
@@ -228,22 +248,21 @@ public:
 class VRMutex;
 
 class UserFunction : public AbstractQoreFunction, protected QoreReferenceCounter {
-private:
+protected:
    bool synchronized;
    // for "synchronized" functions
    VRMutex *gate;
    char *name;
-   QoreParseTypeInfo *returnTypeInfo;
+   UserSignature signature;
 
-protected:
    DLLLOCAL virtual ~UserFunction();
 
 public:
-   UserParamList *params;
    StatementBlock *statements;
 
-   // the object owns the memory for "n_name", name is 0 for anonymous closures, also takes ownership of parms, b, rv
-   DLLLOCAL UserFunction(char *n_name, UserParamList *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced = false);
+   // the object owns the memory for "n_name", name is 0 for anonymous closures, also takes ownership of params, b, rv
+   DLLLOCAL UserFunction(char *n_name, StatementBlock *b, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced = false);
+
    DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
    DLLLOCAL virtual bool isUserCode() const {
       return true;
@@ -278,18 +297,19 @@ public:
    }
 
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
-      if (returnTypeInfo)
-	 returnTypeInfo->resolve();
-
-      return static_cast<QoreTypeInfo *>(returnTypeInfo);
+      return signature.parseGetReturnTypeInfo();
    }
 
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
-      return static_cast<QoreTypeInfo *>(returnTypeInfo);
+      return signature.getReturnTypeInfo();
    }
 
-   DLLLOCAL virtual ParamList *getParams() const {
-      return const_cast<UserParamList *>(params);
+   DLLLOCAL virtual AbstractFunctionSignature *getSignature() const {
+      return const_cast<UserSignature *>(&signature);
+   }
+
+   DLLLOCAL virtual UserSignature *getUserSignature() const {
+      return const_cast<UserSignature *>(&signature);
    }
 
    DLLLOCAL virtual void ref() {

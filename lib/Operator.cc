@@ -3597,7 +3597,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    assert(tree->right && tree->right->getType() == NT_METHOD_CALL);
    MethodCallNode *mc = reinterpret_cast<MethodCallNode *>(tree->right);
 
-   const char *meth = mc->getRawName();
+   const char *meth = mc->getName();
 
    //printd(5, "check_op_object_func_ref() l=%p %s::%s()\n", l, l->qc->getName(), meth ? meth : "<copy>");
 
@@ -3625,7 +3625,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    returnTypeInfo = m->getReturnTypeInfo();
 
    // check parameters, if any
-   lvids += mc->parseArgs(oflag, pflag, m->getParams());
+   lvids += mc->parseArgs(oflag, pflag, m->getSignature());
 
    return tree;
 }
