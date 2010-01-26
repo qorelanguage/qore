@@ -343,14 +343,7 @@ static inline AbstractQoreNode *crlr_selfcall_copy(const SelfFunctionCallNode *n
 static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink *xsink) {
    QoreListNode *na = n->getArgs() ? crlr_list_copy(n->getArgs(), xsink) : 0;
 
-   switch (n->getFunctionType()) {
-      case FC_RESOLVED_GENERIC:
-	 return new FunctionCallNode(n->f.func, na);
-      case FC_IMPORTED:
-	 return new FunctionCallNode(n->f.ifunc->pgm, n->f.ifunc->func, na);
-   }
-   assert(false);
-   return 0;
+   return new FunctionCallNode(n->getFunction(), na);
 }
 
 static inline AbstractQoreNode *crlr_mcall_copy(const MethodCallNode *m, ExceptionSink *xsink) {

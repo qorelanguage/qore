@@ -567,11 +567,11 @@ bool BuiltinStaticCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, Ex
    return vc && vc->bf == bf;
 }
 
-ImportedCallReferenceNode::ImportedCallReferenceNode(ImportedFunctionCall *n_ifunc) : ifunc(n_ifunc) {
+ImportedCallReferenceNode::ImportedCallReferenceNode(ImportedFunctionEntry *n_ifunc) : ifunc(n_ifunc) {
 }
 
 AbstractQoreNode *ImportedCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return ifunc->eval(args, xsink);
+   return ifunc->evalFunction(args, xsink);
 }
 
 ImportedCallReferenceNode::~ImportedCallReferenceNode() {
@@ -579,7 +579,7 @@ ImportedCallReferenceNode::~ImportedCallReferenceNode() {
 }
 
 QoreProgram *ImportedCallReferenceNode::getProgram() const {
-   return ifunc->pgm;
+   return ifunc->getProgram();
 }
 
 bool ImportedCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {

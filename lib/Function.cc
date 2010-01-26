@@ -27,20 +27,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const {
-   // save current program location in case there's an exception
-   const char *o_fn = get_pgm_file();
-   int o_ln, o_eln;
-   get_pgm_counter(o_ln, o_eln);
-   
-   AbstractQoreNode *rv = pgm->callFunction(func, args, xsink);
-
-   if (xsink->isException())
-      xsink->addStackInfo(CT_USER, 0, func->getName(), o_fn, o_ln, o_eln);
-   
-   return rv;
-}
-
 void UserParamList::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
    lv = num_params ? new lvar_ptr_t[num_params] : 0;
 

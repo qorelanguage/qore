@@ -35,7 +35,6 @@
 // constructors and destructors can never be explicitly called so we don't need FunctionCall constants for them
 #define FC_UNRESOLVED       1
 #define FC_RESOLVED_GENERIC 2
-#define FC_IMPORTED         3
 
 // these data structures are all private to the library
 // FIXME: messy implementation - clean up!

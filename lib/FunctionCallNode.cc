@@ -133,74 +133,41 @@ AbstractQoreNode *SelfFunctionCallNode::makeReferenceNodeAndDeref() {
    return rv;
 }
 
-FunctionCallNode::FunctionCallNode(const AbstractQoreFunction *af, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a) {
-   ftype = FC_RESOLVED_GENERIC;
-   f.func = af;
+FunctionCallNode::FunctionCallNode(const AbstractQoreFunction *af, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(af), c_str(0) {
 }
 
-FunctionCallNode::FunctionCallNode(char *name, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a) {
-   ftype = FC_UNRESOLVED;
-   f.c_str = name;
-}
-
-FunctionCallNode::FunctionCallNode(QoreProgram *p, const UserFunction *u, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a) {
-   ftype = FC_IMPORTED;
-   f.ifunc = new ImportedFunctionCall(p, u);
+FunctionCallNode::FunctionCallNode(char *name, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(0), c_str(name) {
 }
 
 FunctionCallNode::~FunctionCallNode() {
-   printd(5, "FunctionCallNode::~FunctionCallNode(): ftype=%d args=%p (%s)\n",
-	  ftype, args, (ftype == FC_UNRESOLVED && f.c_str) ? f.c_str : "(null)");
+   printd(5, "FunctionCallNode::~FunctionCallNode(): func=%p c_str=%p (%s) args=%p\n", func, c_str, c_str ? c_str : "n/a", args);
 
-   switch (ftype) {
-      case FC_RESOLVED_GENERIC:
-	 break;
-      case FC_UNRESOLVED:
-	 if (f.c_str)
-	    free(f.c_str);
-	 break;
-      case FC_IMPORTED:
-	 delete f.ifunc;
-	 break;
-   }
+   if (c_str)
+      free(c_str);
 }
 
 char *FunctionCallNode::takeName() {
-   char *str = f.c_str;
-   f.c_str = 0;
+   char *str = c_str;
+   c_str = 0;
    return str;
 }
 
 // makes a "new" operator call from a function call
 AbstractQoreNode *FunctionCallNode::parseMakeNewObject() {
-   ScopedObjectCallNode *rv = new ScopedObjectCallNode(new NamedScope(f.c_str), args);
-   f.c_str = 0;
+   assert(c_str);
+   ScopedObjectCallNode *rv = new ScopedObjectCallNode(new NamedScope(c_str), args);
+   c_str = 0;
    args = 0;
    return rv;
 }
 
 bool FunctionCallNode::existsUserParam(unsigned i) const {
-   if (ftype == FC_RESOLVED_GENERIC)
-      return f.func->isUserCode() ? f.func->numParams() > i : true;
-   if (ftype == FC_IMPORTED)
-      return f.ifunc->func->params->numParams() > i;
-   return true;
-}
-
-int FunctionCallNode::getFunctionType() const {
-   return ftype;
+   assert(func);
+   return func->isUserCode() ? func->numParams() > i : true;
 }
 
 const char *FunctionCallNode::getName() const {
-   switch (ftype) {
-      case FC_RESOLVED_GENERIC:
-	 return f.func->getName();
-      case FC_IMPORTED:
-	 return f.ifunc->func->getName();
-      case FC_UNRESOLVED:
-	 return f.c_str ? f.c_str : "copy";
-   }
-   return 0;
+   return func ? func->getName() : c_str;
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -208,7 +175,7 @@ const char *FunctionCallNode::getName() const {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int FunctionCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("function call (0x%p)", this);
+   str.sprintf("function call to '%s()' (0x%p)", getName(), this);
    return 0;
 }
 
@@ -227,27 +194,21 @@ const char *FunctionCallNode::getTypeName() const {
 
 // eval(): return value requires a deref(xsink)
 AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
-   switch (ftype) {
-      case FC_RESOLVED_GENERIC:
-	 return f.func->evalFunction(args, xsink);
-      case FC_IMPORTED:
-	 return f.ifunc->eval(args, xsink);
-   }
-
-   assert(false);
-   return 0;
+   return func->evalFunction(args, xsink);
 }
 
 AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-   ParamList *params = 0;
-   switch (ftype) {
-      case FC_UNRESOLVED:
-	 getProgram()->resolveFunction(this, params, returnTypeInfo);
-	 break;
-      default: // should only be one of the above at parse time
-	 assert(false);
-   }
+   assert(!func);
+   assert(c_str);
+
+   func = getProgram()->resolveFunction(c_str);
+   free(c_str);
+   c_str = 0;
+   if (!func)
+      return this;
+
+   returnTypeInfo = func->parseGetReturnTypeInfo();
    
-   lvids += parseArgs(oflag, pflag, params);
+   lvids += parseArgs(oflag, pflag, func->getParams());
    return this;
 }

@@ -643,26 +643,26 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
       return 0;
 
    assert(func && func->getType() == NT_METHOD_CALL);
-   const FunctionCallNode *f = reinterpret_cast<const FunctionCallNode *>(func);
+   const MethodCallNode *m = reinterpret_cast<const MethodCallNode *>(func);
 
    if (*op && (*op)->getType() == NT_HASH) {
       // FIXME: this is an ugly hack!
       const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(*op);
       // see if the hash member is a call reference
-      const AbstractQoreNode *ref = h->getKeyValue(f->f.c_str);
+      const AbstractQoreNode *ref = h->getKeyValue(m->getName());
       if (ref && (ref->getType() == NT_FUNCREF || ref->getType() == NT_RUNTIME_CLOSURE))
-	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->exec(f->getArgs(), xsink);
+	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->exec(m->getArgs(), xsink);
    }
 
    if (!(*op) || (*op)->getType() != NT_OBJECT) {
       //printd(5, "op=%08p (%s) func=%08p (%s)\n", op, op ? op->getTypeName() : "n/a", func, func ? func->getTypeName() : "n/a");
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
-			    f->f.c_str, op ? op->getTypeName() : "NOTHING" );
+			    m->getName(), op ? op->getTypeName() : "NOTHING" );
       return 0;
    }
 
    QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
-   return o->evalMethod(f->f.c_str, f->getArgs(), xsink);
+   return o->evalMethod(m->getName(), m->getArgs(), xsink);
 }
 
 static AbstractQoreNode *op_new_object(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {

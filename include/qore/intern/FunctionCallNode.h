@@ -26,15 +26,6 @@
 
 #include <qore/Qore.h>
 
-class ImportedFunctionCall {
-  public:
-   QoreProgram *pgm;
-   const UserFunction *func;
-
-   DLLLOCAL ImportedFunctionCall(QoreProgram *p, const UserFunction *f) { pgm = p; func = f; }
-   DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
-};
-
 class AbstractFunctionCallNode : public ParseNode {
 protected:
    QoreListNode *args;
@@ -118,24 +109,17 @@ public:
    }
 };
 
-// FIXME: split this into different function call subclasses
 class FunctionCallNode : public AbstractFunctionCallNode {
-  protected:
+protected:
+   const AbstractQoreFunction *func;
+   char *c_str;
+
    // eval(): return value requires a deref(xsink)
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const;
 
    DLLLOCAL virtual bool existsUserParam(unsigned i) const;
 
-  public:
-   union uFCall {
-      const AbstractQoreFunction *func;
-      ImportedFunctionCall *ifunc;
-      char *c_str;
-   } f;
-   int ftype;
-
-   //DLLLOCAL FunctionCallNode(const UserFunction *u, QoreListNode *a);
-   //DLLLOCAL FunctionCallNode(const BuiltinFunction *b, QoreListNode *a);
+public:
    DLLLOCAL FunctionCallNode(const AbstractQoreFunction *f, QoreListNode *a);
 
    // normal function call constructor
@@ -155,8 +139,11 @@ class FunctionCallNode : public AbstractFunctionCallNode {
 
    DLLLOCAL virtual const char *getName() const;
 
+   DLLLOCAL const AbstractQoreFunction *getFunction() const {
+      return func;
+   }
+
    DLLLOCAL AbstractQoreNode *parseMakeNewObject();
-   DLLLOCAL int getFunctionType() const;
 
    // FIXME: delete when unresolved function call node implemented properly
    DLLLOCAL char *takeName();
@@ -275,7 +262,7 @@ public:
 };
 
 class StaticMethodCallNode : public AbstractFunctionCallNode {
-  protected:
+protected:
    NamedScope *scope;
    const QoreMethod *method;
 
@@ -287,7 +274,7 @@ class StaticMethodCallNode : public AbstractFunctionCallNode {
       return method->existsUserParam(i);
    }
 
-  public:
+public:
    DLLLOCAL StaticMethodCallNode(NamedScope *n_scope, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(n_scope), method(0) {
    }
 

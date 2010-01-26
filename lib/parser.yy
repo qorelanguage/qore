@@ -324,11 +324,10 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
 
    if (rtype == NT_FUNCTION_CALL) {
       FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(r);
-      if (f->getFunctionType() == FC_UNRESOLVED) {
-	 MethodCallNode *m = new MethodCallNode(f->takeName(), f->take_args());
-	 f->deref();
-	 return makeTree(OP_OBJECT_FUNC_REF, l, m);
-      }
+      assert(!f->getFunction());
+      MethodCallNode *m = new MethodCallNode(f->takeName(), f->take_args());
+      f->deref();
+      return makeTree(OP_OBJECT_FUNC_REF, l, m);
    }
 
    return makeTree(OP_OBJECT_REF, l, r);
@@ -2127,7 +2126,7 @@ exp:    scalar
 		 $$ = $2;
 	      }
 	      else {
-		 assert(f->getFunctionType() == FC_UNRESOLVED);
+		 assert(!f->getFunction());
 		 $$ = new UnresolvedCallReferenceNode(f->takeName());
 		 f->deref();
 	      }

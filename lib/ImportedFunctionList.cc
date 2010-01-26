@@ -25,39 +25,26 @@
 
 #include <string.h>
 
-ImportedFunctionNode::ImportedFunctionNode(QoreProgram *p, class UserFunction *u)
-{
-   pgm = p;
-   func = u;
+ImportedFunctionList::ImportedFunctionList() {
 }
 
-ImportedFunctionList::ImportedFunctionList()
-{
-}
-
-ImportedFunctionList::~ImportedFunctionList()
-{
+ImportedFunctionList::~ImportedFunctionList() {
    ifn_map_t::iterator i;
-   while ((i = begin()) != end())
-   {
-      class ImportedFunctionNode *n = i->second;
+   while ((i = begin()) != end()) {
+      ImportedFunctionEntry *n = i->second;
       erase(i);
       delete n;
    }
 }
 
-void ImportedFunctionList::add(QoreProgram *pgm, class UserFunction *func)
-{
+void ImportedFunctionList::add(QoreProgram *pgm, UserFunction *func) {
    QORE_TRACE("ImportedFunctionList::add()");
    
-   ImportedFunctionNode *n = new ImportedFunctionNode(pgm, func);
+   ImportedFunctionEntry *n = new ImportedFunctionEntry(pgm, func);
    insert(std::make_pair(func->getName(), n));
-   
-
 }
 
-class ImportedFunctionNode *ImportedFunctionList::findNode(const char *name) const
-{
+ImportedFunctionEntry *ImportedFunctionList::findNode(const char *name) const {
    printd(5, "ImportedFunctionList::findNode(%s)\n", name);
 
    ifn_map_t::const_iterator i = ifn_map_t::find(name);
@@ -67,13 +54,12 @@ class ImportedFunctionNode *ImportedFunctionList::findNode(const char *name) con
    return 0;
 }
 
-class UserFunction *ImportedFunctionList::find(const char *name) const
-{
+UserFunction *ImportedFunctionList::find(const char *name) const {
    printd(5, "ImportedFunctionList::findFunction(%s) (UserFunction)\n", name);
 
    ifn_map_t::const_iterator i = ifn_map_t::find(name);
    if (i != end())
-      return i->second->func;
+      return i->second->getFunction();
 
    return 0;
 }

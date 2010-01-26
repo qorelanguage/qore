@@ -1050,58 +1050,34 @@ void QoreProgram::endThread(ExceptionSink *xsink) {
    priv->endThread(xsink);
 }
 
-// called during parsing (priv->plock already grabbed)
-void QoreProgram::resolveFunction(FunctionCallNode *f, ParamList *&params, const QoreTypeInfo *&returnTypeInfo) {
+const AbstractQoreFunction *QoreProgram::resolveFunction(const char *fname) {
    QORE_TRACE("QoreProgram::resolveFunction()");
-   char *fname = f->f.c_str;
 
-   UserFunction *ufc;
-   if ((ufc = priv->user_func_list.find(fname))) {
+   const AbstractQoreFunction *f;
+   if ((f = priv->user_func_list.find(fname))) {
       printd(5, "resolved user function call to %s\n", fname);
-      f->ftype = FC_RESOLVED_GENERIC;
-      f->f.func = ufc;      
-      // make sure the return type is initialized
-      returnTypeInfo = ufc->parseGetReturnTypeInfo();
-      free(fname);
-      params = ufc->params;
-
-      return;
+      return f;
    }
 
-   ImportedFunctionNode *ifn;
-   if ((ifn = priv->imported_func_list.findNode(fname))) {
-      printd(5, "resolved imported function call to %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
-      f->ftype = FC_IMPORTED;
-      f->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
-      returnTypeInfo = ifn->func->getReturnTypeInfo();
-      free(fname);
-      params = ifn->func->params;
-
-      return;
+   if ((f = priv->imported_func_list.findNode(fname))) {
+      printd(5, "resolved imported function call to %s\n", fname);
+      return f;
    }
 
-   const BuiltinFunction *bfc;
-   if ((bfc = builtinFunctions.find(fname))) {
+   if ((f = builtinFunctions.find(fname))) {
       printd(5, "resolved builtin function call to %s\n", fname);
-      f->ftype = FC_RESOLVED_GENERIC;
-      f->f.func = bfc;
-      returnTypeInfo = bfc->getReturnTypeInfo();
-      params = bfc->getParams();
 
       // check parse options to see if access is allowed
-      if (bfc->getType() & priv->parse_options)
-	 parse_error("parse options do not allow access to builtin function '%s'", fname);
-
-      free(fname);
-
-      return;
+      const BuiltinFunction *bf = reinterpret_cast<const BuiltinFunction *>(f);
+      if (bf->getType() & priv->parse_options)
+	 parse_error("parse options do not allow access to builtin function '%s()'", fname);
+      return f;
    }
-
-   params = 0;
 
    // cannot find function, throw exception
    parse_error("function '%s()' cannot be found", fname);
 
+   return 0;
 }
 
 // called during parsing (plock already grabbed)
@@ -1118,10 +1094,10 @@ AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallRefer
    }
    
    {
-      ImportedFunctionNode *ifn;
+      ImportedFunctionEntry *ifn;
       if ((ifn = priv->imported_func_list.findNode(fname))) {
-	 printd(5, "QoreProgram::resolveCallReference() resolved function reference to imported function %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
-	 return new ImportedCallReferenceNode(new ImportedFunctionCall(ifn->pgm, ifn->func));
+	 printd(5, "QoreProgram::resolveCallReference() resolved function reference to imported function %s (pgm=%08p, func=%08p)\n", fname, ifn->getProgram(), ifn->getFunction());
+	 return new ImportedCallReferenceNode(new ImportedFunctionEntry(*ifn));
       }
    }
    

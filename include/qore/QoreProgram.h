@@ -69,6 +69,7 @@ class UserFunction;
 class QoreTypeInfo;
 class QoreParseTypeInfo;
 class ParamList;
+class AbstractQoreFunction;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -436,7 +437,10 @@ public:
    DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);
 
    DLLLOCAL void registerUserFunction(UserFunction *u);
-   DLLLOCAL void resolveFunction(FunctionCallNode *f, ParamList *&params, const QoreTypeInfo *&returnTypeInfo);
+
+   // raises a parse exception if the function cannot be found
+   DLLLOCAL const AbstractQoreFunction *resolveFunction(const char *name);
+
    DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedCallReferenceNode *fr);      
    DLLLOCAL Var *addGlobalVarDef(const char *name, const QoreParseTypeInfo *typeInfo);
    DLLLOCAL void addStatement(AbstractStatement *s);

@@ -153,14 +153,14 @@ public:
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 };
 
-class ImportedFunctionCall;
+class ImportedFunctionEntry;
 
 //! a call reference to an imported function
 class ImportedCallReferenceNode :  public ResolvedCallReferenceNode {
-   ImportedFunctionCall *ifunc;
+   ImportedFunctionEntry *ifunc;
 
 public:
-   DLLLOCAL ImportedCallReferenceNode(ImportedFunctionCall *n_ifunc);
+   DLLLOCAL ImportedCallReferenceNode(ImportedFunctionEntry *n_ifunc);
    DLLLOCAL virtual ~ImportedCallReferenceNode();
    DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL virtual QoreProgram *getProgram() const;
