@@ -44,36 +44,38 @@ class QoreException {
       char *file;
       QoreListNode *callStack;
       AbstractQoreNode *err, *desc, *arg;
-      class QoreException *next;
+      QoreException *next;
 
       DLLLOCAL ~QoreException();
-      DLLLOCAL void addStackInfo(class AbstractQoreNode *n);
-      DLLLOCAL static class QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
+      DLLLOCAL void addStackInfo(AbstractQoreNode *n);
+      DLLLOCAL static QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
 
    public:
       // called for generic exceptions
-      DLLLOCAL class QoreHashNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);
-      DLLLOCAL class QoreHashNode *makeExceptionObject();
+      DLLLOCAL QoreHashNode *makeExceptionObjectAndDelete(ExceptionSink *xsink);
+      DLLLOCAL QoreHashNode *makeExceptionObject();
 
       // called for runtime exceptions
-      DLLLOCAL QoreException(const char *err, class QoreStringNode *desc);
+      DLLLOCAL QoreException(const char *err, QoreStringNode *desc);
       // called for rethrow
-      DLLLOCAL QoreException(class QoreException *old, class ExceptionSink *xsink);
+      DLLLOCAL QoreException(QoreException *old, ExceptionSink *xsink);
       // called for user exceptions
-      DLLLOCAL QoreException(const class QoreListNode *n);
+      DLLLOCAL QoreException(const QoreListNode *n);
       // for derived classes
       DLLLOCAL QoreException();
-      DLLLOCAL void del(class ExceptionSink *xsink);
+      DLLLOCAL void del(ExceptionSink *xsink);
 };
 
-class ParseException : public QoreException
-{
+class ParseException : public QoreException {
    public:
       // called for parse exceptions
-      DLLLOCAL ParseException(const char *err, class QoreStringNode *desc);
+      DLLLOCAL ParseException(const char *err, QoreStringNode *desc);
 
       // called for parse exceptions
-      DLLLOCAL ParseException(int s_line, int e_line, const char *err, class QoreStringNode *desc);
+      DLLLOCAL ParseException(int s_line, int e_line, const char *err, QoreStringNode *desc);
+
+      // called for parse exceptions
+      DLLLOCAL ParseException(int s_line, int e_line, const char *file, const char *err, QoreStringNode *desc);
 };
 
 #endif

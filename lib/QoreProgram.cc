@@ -767,12 +767,23 @@ void QoreProgram::makeParseException(QoreStringNode *desc) {
    }
 }
 
+// FIXME: remove this function
 void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc) {
    QORE_TRACE("QoreProgram::makeParseException()");
 
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception) {
       class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
+      priv->parseSink->raiseException(ne);
+   }
+}
+
+void QoreProgram::makeParseException(int sline, int eline, const char *file, QoreStringNode *desc) {
+   QORE_TRACE("QoreProgram::makeParseException()");
+
+   QoreStringNodeHolder d(desc);
+   if (!priv->requires_exception) {
+      class QoreException *ne = new ParseException(sline, eline, file, "PARSE-EXCEPTION", d.release());
       priv->parseSink->raiseException(ne);
    }
 }

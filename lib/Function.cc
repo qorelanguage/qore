@@ -68,8 +68,8 @@ void UserSignature::assignParam(int i, VarRefNode *v) {
       parse_error("invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
 }
 
-UserFunction::UserFunction(char *n_name, StatementBlock *b, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced) 
-   : synchronized(synced), gate(synced ? new VRMutex() : 0), name(n_name), signature(params, rv), statements(b) {
+UserFunction::UserFunction(char *n_name, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced) 
+   : synchronized(synced), gate(synced ? new VRMutex() : 0), name(n_name), signature(n_sig_first_line, n_sig_last_line, params, rv), statements(b) {
    printd(5, "UserFunction::UserFunction(%s) params=%p rv=%p b=%p synced=%d\n", n_name ? n_name : "null", params, rv, b, synced);
 }
 
@@ -116,7 +116,7 @@ void UserFunction::parseInitDestructor(const QoreClass &parent_class) {
 
    // make sure there are no parameters in the destructor
    if (signature.numParams())
-      parse_error("no parameters may be defined in class destructors");
+      parse_error(signature.getParseFile(), signature.firstLine(), signature.lastLine(), "illegal parameters defined in %s::destructor(); no parameters may be defined in class destructors", parent_class.getName());
 
    // push return type on stack (no return value can be used)
    ReturnTypeInfoHelper rtih(&nothingTypeInfo);

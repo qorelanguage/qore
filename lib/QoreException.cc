@@ -81,6 +81,21 @@ ParseException::ParseException(int s_line, int e_line, const char *e, QoreString
    next = 0;
 }
 
+// called when parsing
+ParseException::ParseException(int s_line, int e_line, const char *f, const char *e, QoreStringNode *d) {
+   type = ET_SYSTEM;
+   start_line = s_line;
+   end_line = e_line;
+   file = f ? strdup(f) : 0;
+   callStack = new QoreListNode();
+
+   err = new QoreStringNode(e);
+   desc = d;
+   arg = 0;
+
+   next = 0;
+}
+
 QoreException::~QoreException() {
    if (file)
       free(file);

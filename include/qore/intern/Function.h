@@ -112,9 +112,13 @@ public:
    }
 };
 
+extern const char *get_parse_file();
+
 class UserSignature : public AbstractFunctionSignature {
 protected:
    QoreParseTypeInfo *returnTypeInfo;
+   int first_line, last_line;
+   const char *parse_file;
 
    DLLLOCAL void assignParam(int i, VarRefNode *v);
 
@@ -137,8 +141,10 @@ public:
    LocalVar *selfid;
    bool resolved;
 
-   DLLLOCAL UserSignature(AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo) : 
-      AbstractFunctionSignature(0), returnTypeInfo(n_returnTypeInfo), lv(0), argvid(0), 
+   DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo) : 
+      AbstractFunctionSignature(0), returnTypeInfo(n_returnTypeInfo), 
+      first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
+      lv(0), argvid(0), 
       selfid(0), resolved(false) {
       if (!params) {
 	 names = 0;
@@ -194,6 +200,7 @@ public:
 	 delete [] typeList;
       }
       delete [] lv;
+      delete returnTypeInfo;
    }
 
    DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const {
@@ -223,6 +230,18 @@ public:
 
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
       return returnTypeInfo;
+   }
+
+   DLLLOCAL int firstLine() const {
+      return first_line;
+   }
+   
+   DLLLOCAL int lastLine() const {
+      return last_line;
+   }
+   
+   DLLLOCAL const char *getParseFile() const {
+      return parse_file;
    }
 
    //DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const = 0;
@@ -261,7 +280,7 @@ public:
    StatementBlock *statements;
 
    // the object owns the memory for "n_name", name is 0 for anonymous closures, also takes ownership of params, b, rv
-   DLLLOCAL UserFunction(char *n_name, StatementBlock *b, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced = false);
+   DLLLOCAL UserFunction(char *n_name, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced = false);
 
    DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
    DLLLOCAL virtual bool isUserCode() const {

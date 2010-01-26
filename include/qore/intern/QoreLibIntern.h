@@ -32,7 +32,10 @@
 #define NT_ALL   -2
 
 // the following functions are implemented in support.cc
+// FIXME: remove this function and use the one below
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
+DLLLOCAL void parse_error(const char *file, int sline, int eline, const char *fmt, ...);
+
 DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
 DLLLOCAL QoreString *findFileInPath(const char *file, const char *path);

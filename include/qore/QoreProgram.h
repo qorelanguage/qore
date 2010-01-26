@@ -451,6 +451,7 @@ public:
    DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
    DLLLOCAL void makeParseException(const char *err, QoreStringNode *desc);
    DLLLOCAL void makeParseException(int sline, int eline, QoreStringNode *desc);
+   DLLLOCAL void makeParseException(int sline, int eline, const char *file, QoreStringNode *desc);
    DLLLOCAL void makeParseException(QoreStringNode *desc);
    // takes over ownership of the xsink arg
    DLLLOCAL void addParseException(ExceptionSink *xsink);

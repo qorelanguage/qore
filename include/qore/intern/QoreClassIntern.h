@@ -98,6 +98,20 @@ struct QoreMemberInfo : public QoreParseTypeInfo {
 
 typedef std::map<char *, QoreMemberInfo *, ltstr> member_map_t;
 
+class QoreMemberMap : public member_map_t {
+public:
+   DLLLOCAL ~QoreMemberMap() {
+      member_map_t::iterator j;
+      while ((j = begin()) != end()) {
+         char *n = j->first;
+         delete j->second;
+         erase(j);
+         //printd(5, "QoreMemberMap::~QoreMemberMap() this=%p freeing pending private member %p '%s'\n", this, n, n);
+         free(n);
+      }
+   }
+};
+
 /*
   BCANode
   base class constructor argument node

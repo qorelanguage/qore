@@ -41,8 +41,8 @@ struct qore_qc_private {
    hm_method_t hm, hm_pending,     // regular method maps
       shm, shm_pending;            // static method maps
 
-   member_map_t private_members, pending_private_members;   // private member lists (maps)
-   member_map_t public_members, pending_public_members; // public member lists (maps)
+   QoreMemberMap private_members, pending_private_members;   // private member lists (maps)
+   QoreMemberMap public_members, pending_public_members; // public member lists (maps)
 
    const QoreMethod *system_constructor, *constructor, *destructor,
       *copyMethod, *methodGate, *memberGate, *deleteBlocker,
@@ -98,34 +98,13 @@ struct qore_qc_private {
 	 delete m;
       }
 
-      // delete private member list
-      member_map_t::iterator j = private_members.begin();
-      while (j != private_members.end()) {
-	 char *n = j->first;
-	 delete j->second;
-	 private_members.erase(j);
-	 j = private_members.begin();
-	 //printd(5, "QoreClass::~QoreClass() freeing private member %p '%s'\n", n, n);
-	 free(n);
-      }
-
-      while ((j = pending_private_members.begin()) != pending_private_members.end()) {
-	 char *n = j->first;
-	 delete j->second;
-	 pending_private_members.erase(j);
-	 //printd(5, "QoreClass::~QoreClass() freeing pending private member %p '%s'\n", n, n);
-	 free(n);
-      }
-
       // delete any pending methods
       delete_pending_methods();
       free(name);
       if (scl)
 	 scl->deref();
-      if (bcal)
-	 delete bcal;
-      if (system_constructor)
-	 delete system_constructor;
+      delete bcal;
+      delete system_constructor;
    }
 
    DLLLOCAL void delete_pending_methods() {
