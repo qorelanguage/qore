@@ -198,6 +198,10 @@ class MethodCallNode : public AbstractFunctionCallNode
 	 return c_str ? c_str : "copy";
       }
 
+      DLLLOCAL virtual const char *getRawName() const {
+	 return c_str;
+      }
+
       DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag) {
 	 return parseArgs(oflag, pflag);   
       }
@@ -252,8 +256,15 @@ class StaticMethodCallNode : public AbstractFunctionCallNode {
       DLLLOCAL StaticMethodCallNode(NamedScope *n_scope, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(n_scope), method(0) {
       }
 
+      DLLLOCAL StaticMethodCallNode(const QoreMethod *m, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(0), method(m) {
+      }
+
       DLLLOCAL virtual ~StaticMethodCallNode() {
 	 delete scope;
+      }
+
+      DLLLOCAL const QoreMethod *getMethod() const {
+	 return method;
       }
       
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
