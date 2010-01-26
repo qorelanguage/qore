@@ -27,90 +27,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-SelfFunctionCall::SelfFunctionCall(char *n) { 
-   ns = 0;
-   name = n; 
-   func = 0; 
-}
-
-SelfFunctionCall::SelfFunctionCall(class NamedScope *n) { 
-   ns = n;
-   name = 0; 
-   func = 0; 
-}
-
-SelfFunctionCall::SelfFunctionCall(const QoreMethod *f) { 
-   ns = 0;
-   name = 0;
-   func = f; 
-}
-
-SelfFunctionCall::~SelfFunctionCall() { 
-   if (name) 
-      free(name); 
-   if (ns)
-      delete ns;
-}
-
-char *SelfFunctionCall::takeName() {
-   char *n = name;
-   name = 0;
-   return n;
-}
-
-NamedScope *SelfFunctionCall::takeNScope() {
-   NamedScope *rns = ns;
-   ns = 0;
-   return rns;
-}
-
-AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const {
-   QoreObject *self = getStackObject();
-   
-   if (func)
-      return self->evalMethod(*func, args, xsink);
-   // otherwise exec copy method
-   return self->getClass()->execCopy(self, xsink);
-}
-
-// called at parse time
-void SelfFunctionCall::resolve(ParamList *&params, const QoreTypeInfo *&returnTypeInfo) {
-   params = 0;
-#ifdef DEBUG
-   if (ns)
-      printd(5, "SelfFunctionCall:resolve() resolving base class call '%s'\n", ns->ostr);
-   else 
-      printd(5, "SelfFunctionCall:resolve() resolving '%s'\n", name ? name : "(null)");
-   assert(!func);
-#endif
-   if (name) {
-      // copy method calls will be recognized by name = 0
-      if (!strcmp(name, "copy")) {
-	 free(name);
-	 name = 0;
-	 printd(5, "SelfFunctionCall:resolve() resolved to copy constructor\n");
-	 return;
-      }
-      func = getParseClass()->resolveSelfMethod(name);
-   }
-   else
-      func = getParseClass()->resolveSelfMethod(ns);
-
-   if (func) {
-      params = func->getParams();
-      returnTypeInfo = func->getReturnTypeInfo();
-      printd(5, "SelfFunctionCall:resolve() resolved '%s' to %08p\n", func->getName(), func);
-      if (name) {
-	 free(name);
-	 name = 0;
-      }
-      else if (ns) {
-	 delete ns;
-	 ns = 0;
-      }
-   }
-}
-
 AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const {
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -178,11 +94,6 @@ UserFunction::~UserFunction() {
    delete statements;
    if (name)
       free(name);
-}
-
-void UserFunction::deref() {
-   if (ROdereference())
-      delete this;
 }
 
 void UserFunction::parseInit() {
@@ -297,7 +208,7 @@ int UserFunction::setupCall(const QoreListNode *args, ReferenceHolder<QoreListNo
       }
 
       // the above if block will only instantiate the local variable if no
-      // exceptions have occurred. therefore here we do the cleanup the rest
+      // exceptions have occurred. therefore here we cleanup the rest
       // of any already instantiated local variables if an exception does occur
       if (*xsink) {
 	 if (n)
@@ -400,7 +311,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 }
 
 // this function will set up user copy constructor calls
-void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const {
+void UserFunction::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    QORE_TRACE("UserFunction::evalCopy()");
    printd(5, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", getName(), params->numParams(), old);
 
@@ -459,13 +370,13 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, thisclass.getName(), getName(), o_fn, o_ln, o_eln);
 }
 
 // calls a user constructor method
-AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
+void UserFunction::evalConstructor(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
    QORE_TRACE("UserFunction::evalConstructor()");
-   printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", class_name, getName(), args, args ? args->size() : 0);
+   printd(2, "UserFunction::evalConstructor(): %s::%s(): args=%08p (size=%d)\n", thisclass.getName(), getName(), args, args ? args->size() : 0);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -475,18 +386,13 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    ReferenceHolder<QoreListNode> argv(xsink);
    
    if (setupCall(args, argv, xsink))
-      return 0;
+      return;
 
    // evaluate base constructors (if any)
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
 
-   AbstractQoreNode *val = 0;
-
    if (!*xsink) {
-      // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram(), xsink);
- 
       // execute constructor
       if (statements) {
 	 CodeContextHelper cch(getName(), self, xsink);
@@ -507,8 +413,8 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	    // enter gate if necessary
 	    if (!synchronized || (gate->enter(xsink) >= 0)) {
 	       // execute function
-	       val = statements->exec(xsink);
-	       
+	       discard(statements->exec(xsink), xsink);
+
 	       // exit gate if necessary
 	       if (synchronized)
 		  gate->exit();
@@ -533,9 +439,9 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, class_name, getName(), o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, thisclass.getName(), getName(), o_fn, o_ln, o_eln);
 
-   return val;
+   return;
 }
 
 // this will only be called with lvalue expressions

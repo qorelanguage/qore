@@ -33,14 +33,9 @@
 #include <string.h>
 
 // constructors and destructors can never be explicitly called so we don't need FunctionCall constants for them
-#define FC_UNRESOLVED     1
-#define FC_USER           2
-#define FC_BUILTIN        3
-#define FC_SELF           4
-#define FC_IMPORTED       5
-#define FC_METHOD         6
-#define FC_STATICUSERREF  7 // only used by CallReference
-#define FC_STATIC_METHOD2 8
+#define FC_UNRESOLVED       1
+#define FC_RESOLVED_GENERIC 2
+#define FC_IMPORTED         3
 
 // these data structures are all private to the library
 // FIXME: messy implementation - clean up!
@@ -69,6 +64,46 @@ public:
    }
    DLLLOCAL virtual void resolve() = 0;
    DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const = 0;
+};
+
+class AbstractQoreFunction {
+public:
+   DLLLOCAL virtual ~AbstractQoreFunction() {}
+   DLLLOCAL virtual const char *getName() const = 0;
+   DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const = 0;
+   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const = 0;
+   DLLLOCAL virtual ParamList *getParams() const = 0;
+   DLLLOCAL virtual bool isUserCode() const = 0;
+   DLLLOCAL virtual void ref() = 0;
+   DLLLOCAL virtual void deref() = 0;
+   DLLLOCAL virtual unsigned numParams() const {
+      ParamList *pl = getParams();
+      return pl ? pl->numParams() : 0;
+   }
+   DLLLOCAL virtual AbstractQoreNode *evalFunction(const QoreListNode *args, ExceptionSink *xsink) const {
+      assert(false);
+      return 0;
+   }
+   DLLLOCAL virtual AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+      assert(false);
+      return 0;
+   }
+   DLLLOCAL virtual AbstractQoreNode *evalNormalMethod(const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
+      assert(false);
+      return 0;
+   }
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
+      assert(false);
+      return;
+   }
+   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
+      assert(false);
+      return;
+   }
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+      assert(false);
+      return;
+   }
 };
 
 class UserParamList : public ParamList {
@@ -193,7 +228,7 @@ public:
 
 class VRMutex;
 
-class UserFunction : public QoreReferenceCounter {
+class UserFunction : public AbstractQoreFunction, protected QoreReferenceCounter {
 private:
    bool synchronized;
    // for "synchronized" functions
@@ -202,7 +237,7 @@ private:
    QoreParseTypeInfo *returnTypeInfo;
 
 protected:
-   DLLLOCAL ~UserFunction();
+   DLLLOCAL virtual ~UserFunction();
 
 public:
    UserParamList *params;
@@ -211,32 +246,66 @@ public:
    // the object owns the memory for "n_name", name is 0 for anonymous closures, also takes ownership of parms, b, rv
    DLLLOCAL UserFunction(char *n_name, UserParamList *parms, StatementBlock *b, QoreParseTypeInfo *rv, bool synced = false);
    DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool isUserCode() const {
+      return true;
+   }
    DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
-   DLLLOCAL AbstractQoreNode *evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, ExceptionSink *xsink) const;
-   DLLLOCAL void evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode *evalFunction(const QoreListNode *args, ExceptionSink *xsink) const {
+      return eval(args, 0, xsink);
+   }
+
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
+      discard(eval(0, self, xsink, thisclass.getName()), xsink);
+   }
+
+   DLLLOCAL virtual AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+      return eval(args, 0, xsink, method.getClass()->getName());
+   }
+   
+   DLLLOCAL virtual AbstractQoreNode *evalNormalMethod(const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
+      return eval(args, self, xsink, method.getClass()->getName());
+   }
+
    DLLLOCAL bool isSynchronized() const { 
       return synchronized; 
    }
-   DLLLOCAL void deref();
-   DLLLOCAL const char *getName() const {
+
+   DLLLOCAL virtual const char *getName() const {
       return name ? name : "<anonymous closure>";
    }
-   DLLLOCAL void parseInit();
-   DLLLOCAL void parseInitMethod(const QoreClass &parent_class, bool static_flag);
-   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
-   DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
-   DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
 
-   DLLLOCAL const QoreTypeInfo *parseGetReturnTypeInfo() const {
+   DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
       if (returnTypeInfo)
 	 returnTypeInfo->resolve();
 
       return static_cast<QoreTypeInfo *>(returnTypeInfo);
    }
 
-   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
+   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
       return static_cast<QoreTypeInfo *>(returnTypeInfo);
    }
+
+   DLLLOCAL virtual ParamList *getParams() const {
+      return const_cast<UserParamList *>(params);
+   }
+
+   DLLLOCAL virtual void ref() {
+      ROreference();
+   }
+   DLLLOCAL virtual void deref() {
+      if (ROdereference())
+	 delete this;
+   }
+
+   DLLLOCAL void parseInit();
+   DLLLOCAL void parseInitMethod(const QoreClass &parent_class, bool static_flag);
+   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
+   DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
+   DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
 };
 
 #endif // _QORE_FUNCTION_H

@@ -24,6 +24,9 @@
 
 #define _QORE_BUILTINFUNCTION_H
 
+class BCList;
+class BCEAList;
+
 class BuiltinParamList : public ParamList {
 public:
    const QoreTypeInfo **typeList;
@@ -39,7 +42,7 @@ public:
    }
 };
 
-class BuiltinFunctionBase {
+class BuiltinFunctionBase : public AbstractQoreFunction {
 protected:
    const char *name;
    // functionality bitmap for parse restrictions
@@ -54,29 +57,38 @@ public:
    DLLLOCAL BuiltinFunctionBase() : name(0), returnTypeInfo(0), params(0, 0), defaultArgList(0) {
       assert(false);
    }
-   DLLLOCAL ~BuiltinFunctionBase() {
+   DLLLOCAL virtual ~BuiltinFunctionBase() {
       delete [] defaultArgList;
+   }
+   DLLLOCAL virtual const char *getName() const { 
+      return name;
+   }
+   DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
+      return returnTypeInfo;
+   }
+   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
+      return returnTypeInfo;
+   }
+   DLLLOCAL virtual ParamList *getParams() const {
+      return const_cast<BuiltinParamList *>(&params);
    }
    DLLLOCAL int getType() const {
       return functionality;
    }
-   DLLLOCAL const char *getName() const { 
-      return name;
-   }
-   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
-      return returnTypeInfo;
-   }
-   DLLLOCAL ParamList *getParams() const {
-      return const_cast<BuiltinParamList *>(&params);
+   DLLLOCAL virtual bool isUserCode() const {
+      return false;
    }
 };
 
-class BuiltinMethod : public BuiltinFunctionBase, public QoreReferenceCounter {
+class BuiltinMethod : public BuiltinFunctionBase, protected QoreReferenceCounter {
 public:
    QoreClass *myclass;
    DLLLOCAL BuiltinMethod(QoreClass *n_myclass, const char *n_name, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinFunctionBase(n_name, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), myclass(n_myclass) {
    }
-   DLLLOCAL void deref() {
+   DLLLOCAL virtual void ref() {
+      ROreference();
+   }
+   DLLLOCAL virtual void deref() {
       if (ROdereference())
 	 delete this;
    }
@@ -92,7 +104,7 @@ public:
    DLLLOCAL BuiltinConstructor(QoreClass *c, q_constructor_t m, int n_functionality = QDOM_DEFAULT, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, "constructor", n_functionality, 0, n_num_params, n_typeList, n_defaultArgList), constructor(m) {
    }
    
-   DLLLOCAL void eval(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
 };
 
 class BuiltinConstructor2 : public BuiltinMethod {
@@ -105,7 +117,7 @@ public:
    DLLLOCAL BuiltinConstructor2(QoreClass *c, q_constructor2_t m, int n_functionality = QDOM_DEFAULT, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, "constructor", n_functionality, 0, n_num_params, n_typeList, n_defaultArgList), constructor(m) {
    }
    
-   DLLLOCAL void eval(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const;
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
 };
 
 class BuiltinSystemConstructor : public BuiltinMethod {
@@ -145,7 +157,7 @@ protected:
 public:
    DLLLOCAL BuiltinDestructor(QoreClass *c, q_destructor_t m) : BuiltinMethod(c, "destructor", 0, 0), destructor(m) {
    }
-   DLLLOCAL void eval(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
+   DLLLOCAL void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const;
    DLLLOCAL void evalSystem(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
       destructor(self, private_data, xsink);
    }
@@ -158,54 +170,72 @@ protected:
 public:
    DLLLOCAL BuiltinDestructor2(QoreClass *c, q_destructor2_t m) : BuiltinMethod(c, "destructor", 0, 0), destructor(m) {
    }
-   DLLLOCAL void eval(const QoreClass &thisclass, QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const;
+   DLLLOCAL void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const;
    DLLLOCAL void evalSystem(const QoreClass &thisclass, QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
       destructor(thisclass, self, private_data, xsink);
    }
 };
 
-class BuiltinCopy : public BuiltinMethod {
+class BuiltinCopyBase : public BuiltinMethod {
+public:
+   DLLLOCAL BuiltinCopyBase(QoreClass *c, const char *n_name, int n_functionality, const QoreTypeInfo *n_returnTypeInfo) : BuiltinMethod(c, n_name, n_functionality, n_returnTypeInfo) {} 
+   DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {      
+      old->evalCopyMethodWithPrivateData(thisclass, this, self, xsink);
+   }
+};
+
+class BuiltinCopy : public BuiltinCopyBase {
 protected:
    q_copy_t copy;
 
 public:
-   DLLLOCAL BuiltinCopy(QoreClass *c, q_copy_t m) : BuiltinMethod(c, "copy", 0, 0), copy(m) {
+   DLLLOCAL BuiltinCopy(QoreClass *c, q_copy_t m) : BuiltinCopyBase(c, "copy", 0, 0), copy(m) {
    }
-   DLLLOCAL void eval(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const;
+   DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const;
 };
 
-class BuiltinCopy2 : public BuiltinMethod {
+class BuiltinCopy2 : public BuiltinCopyBase {
 protected:
    q_copy2_t copy;
 
 public:
-   DLLLOCAL BuiltinCopy2(QoreClass *c, q_copy2_t m) : BuiltinMethod(c, "copy", 0, c->getTypeInfo()), copy(m) {
+   DLLLOCAL BuiltinCopy2(QoreClass *c, q_copy2_t m) : BuiltinCopyBase(c, "copy", 0, c->getTypeInfo()), copy(m) {
    }
-   DLLLOCAL void eval(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const;
+   DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const;
+};
+
+class BuiltinNormalMethodBase : public BuiltinMethod {
+public:
+   DLLLOCAL BuiltinNormalMethodBase(QoreClass *c, const char *n_name, int n_functionality, const QoreTypeInfo *returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList) {}
+
+   DLLLOCAL virtual AbstractQoreNode *evalNormalMethod(const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const = 0;
 };
 
 // for non-static methods
-class BuiltinNormalMethod : public BuiltinMethod {
+class BuiltinNormalMethod : public BuiltinNormalMethodBase {
 protected:
    q_method_t method;
 
 public:
-   DLLLOCAL BuiltinNormalMethod(QoreClass *c, const char *n_name, q_method_t m, int n_functionality, const QoreTypeInfo *returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), method(m) {
+   DLLLOCAL BuiltinNormalMethod(QoreClass *c, const char *n_name, q_method_t m, int n_functionality, const QoreTypeInfo *returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinNormalMethodBase(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), method(m) {
    }
    
-   DLLLOCAL AbstractQoreNode *eval(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 // for non-static methods
-class BuiltinNormalMethod2 : public BuiltinMethod {
+class BuiltinNormalMethod2 : public BuiltinNormalMethodBase {
 protected:
    q_method2_t method;
 
 public:
-   DLLLOCAL BuiltinNormalMethod2(QoreClass *c, const char *n_name, q_method2_t m, int n_functionality, const QoreTypeInfo *returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), method(m) {
+   DLLLOCAL BuiltinNormalMethod2(QoreClass *c, const char *n_name, q_method2_t m, int n_functionality, const QoreTypeInfo *returnTypeInfo, int n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinNormalMethodBase(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), method(m) {
    }
    
-   DLLLOCAL AbstractQoreNode *eval(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(const QoreMethod &method, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 // for static methods
@@ -214,10 +244,10 @@ protected:
    q_func_t static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethod(QoreClass *c, const char *n_name, q_func_t m, int n_functionality, const QoreTypeInfo *returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
+   DLLLOCAL BuiltinStaticMethod(QoreClass *c, const char *n_name, q_func_t m, int n_functionality, const QoreTypeInfo *returnTypeInfo, int n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
    }
    
-   DLLLOCAL AbstractQoreNode *eval(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 class BuiltinStaticMethod2 : public BuiltinMethod {
@@ -225,10 +255,10 @@ protected:
    q_static_method2_t static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethod2(QoreClass *c, const char *n_name, q_static_method2_t m, int n_functionality, const QoreTypeInfo *returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
+   DLLLOCAL BuiltinStaticMethod2(QoreClass *c, const char *n_name, q_static_method2_t m, int n_functionality, const QoreTypeInfo *returnTypeInfo, int n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethod(c, n_name, n_functionality, returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
    }
    
-   DLLLOCAL AbstractQoreNode *eval(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 class BuiltinDeleteBlocker : public BuiltinMethod {
@@ -244,13 +274,31 @@ public:
    }
 };
 
-class BuiltinFunction : public BuiltinFunctionBase {
-public:
+struct BuiltinFunctionVariant {
    q_func_t func;
+   BuiltinFunctionVariant *next;
+};
 
-   DLLLOCAL BuiltinFunction(const char *nme, q_func_t f, int typ, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinFunctionBase(nme, typ, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), func(f) {
+class BuiltinFunction : public BuiltinFunctionBase {
+protected:
+   // variant list type
+   typedef safe_dslist<q_func_t> flist_t;
+
+   // default function without argument information
+   q_func_t func;
+   // variant list
+   flist_t vlist;
+
+public:
+   DLLLOCAL BuiltinFunction(const char *nme, q_func_t f, int typ, const QoreTypeInfo *n_returnTypeInfo = 0, int n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinFunctionBase(nme, typ, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), func(f) {
    }
-   DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *evalFunction(const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL virtual void ref() {
+      assert(false);
+   }
+   DLLLOCAL virtual void deref() {
+      assert(false);
+   }
 };
 
 #endif // _QORE_BUILTIN_FUNCTION

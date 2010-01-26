@@ -677,8 +677,8 @@ struct qore_socket_private {
 	 return 0;
       }
 
-    // socket must be open!
-    DLLLOCAL int select(int timeout_ms) const {
+   // socket must be open!
+   DLLLOCAL int select(int timeout_ms) const {
       fd_set sfs;
 
       FD_ZERO(&sfs);
@@ -2113,6 +2113,7 @@ bool QoreSocket::isWriteFinished(int timeout) const {
 }
 
 int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event) {
+   //printd(5, "QoreSocket::recv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p\n", buf, (int)bs, flags, timeout, (int)do_event, this);
    if (timeout != -1 && !isDataAvailable(timeout))
       return -3;
 

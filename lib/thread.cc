@@ -475,7 +475,11 @@ public:
       get_pgm_counter(s_line, e_line);
 
       qore_type_t fctype = fc->getType();
-      if (callobj && fctype == NT_FUNCTION_CALL && reinterpret_cast<FunctionCallNode *>(fc)->getFunctionType() == FC_SELF) {
+      //printd(5, "BGThreadParams::BGThreadParams(f=%p (%s %d), t=%d) this=%p callobj=%p\n", f, f->getTypeName(), f->getType(), t, this, callobj);
+      if (fctype == NT_SELF_CALL) {
+	 // must have a current object if an in-object method call is being executed
+	 // (i.e. $.method())
+	 assert(callobj);
 	 // we reference the object so it won't go out of scope while the thread is running
 	 obj = callobj;
 	 obj->ref();
@@ -539,6 +543,7 @@ public:
    }
    
    DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink) {
+      //printd(5, "BGThreadParams::exec() this=%p fc=%p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
       AbstractQoreNode *rv = fc->eval(xsink);
       fc->deref(xsink);
       fc = 0;
@@ -1152,7 +1157,7 @@ namespace {
       register_thread(btp->tid, pthread_self(), btp->pgm);
       printd(5, "op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
       //printf("op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
-
+      
       // create thread-local data for this thread in the program object
       btp->pgm->startThread();
       // set program counter for new thread
@@ -1233,18 +1238,18 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
       return 0;
    }
 
-   //printd(2, "creating BGThreadParams(%08p, %d)\n", nl, tid);
+   //printd(5, "creating BGThreadParams(%p, %d)\n", *nl, tid);
    BGThreadParams *tp = new BGThreadParams(nl.release(), tid, xsink);
    if (*xsink) {
       deregister_thread(tid);
       return 0;
    }
-   //printd(2, "tp = %08p\n", tp);
+   //printd(5, "tp = %08p\n", tp);
    // create thread
    int rc;
    pthread_t ptid;
 
-   //printd(2, "calling pthread_create(%08p, %08p, %08p, %08p)\n", &ptid, &ta_default, op_background_thread, tp);
+   //printd(5, "calling pthread_create(%08p, %08p, %08p, %08p)\n", &ptid, &ta_default, op_background_thread, tp);
 
    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
       tp->cleanup(xsink);

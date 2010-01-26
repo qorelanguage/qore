@@ -66,9 +66,10 @@ const qore_type_t NT_RUNTIME_CLOSURE    = 32; //!< type value for ResolvedCallRe
 const qore_type_t NT_IMPLICIT_ARG       = 33; //!< type value for QoreImplicitArgumentNode (private class)
 const qore_type_t NT_METHOD_CALL        = 34; //!< type value for MethodCallNode (private class)
 const qore_type_t NT_STATIC_METHOD_CALL = 35; //!< type value for StaticMethodCallNode (private class)
+const qore_type_t NT_SELF_CALL          = 36; //!< type value for SelfFunctionCallNode (private class)
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 36
+#define QORE_NUM_TYPES 37
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

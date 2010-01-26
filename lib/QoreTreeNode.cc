@@ -30,6 +30,7 @@ QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r
 }
 
 QoreTreeNode::~QoreTreeNode() {
+   //printd(5, "QoreTreeNode::~QoreTreeNode() this=%p left=%p right=%p\n", this, left, right);
    if (left)
       left->deref(0);
    if (right)

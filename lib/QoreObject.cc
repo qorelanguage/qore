@@ -117,9 +117,6 @@ public:
       const QoreClass *theclass;
       int status;
       mutable QoreThreadLock mutex;
-#ifdef QORE_CLASS_SYNCHRONOUS
-      mutable VRMutex *sync_vrm;
-#endif
       // used for references, to ensure that assignments will not deadlock when the object is locked for update
       mutable QoreThreadLock ref_mutex;
       KeyList *privateData;
@@ -131,9 +128,6 @@ public:
 
       DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
 	 theclass(oc), status(OS_OK), 
-#ifdef QORE_CLASS_SYNCHRONOUS
-	 sync_vrm(oc->has_synchronous_in_hierarchy() ? new VRMutex : 0),
-#endif 
 	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false),
 	 obj(n_obj)
       {
@@ -431,37 +425,23 @@ static AbstractQoreNode *check_meth_eval(const QoreClass *cls, const BuiltinMeth
    return 0;
 }
 
-AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink) {
+AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod &method, const BuiltinNormalMethodBase *meth, const QoreListNode *args, ExceptionSink *xsink) {
    // get referenced object
    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink), xsink);
 
    if (pd)
-      return reinterpret_cast<BuiltinNormalMethod*>(meth)->eval(this, *pd, args, xsink);
+      return meth->evalImpl(method, this, *pd, args, xsink);
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
    return check_meth_eval(priv->theclass, meth, xsink);
 }
 
-AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod &method, BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink) {
-   // get referenced object
-   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink), xsink);
-
-   if (pd)
-      return reinterpret_cast<BuiltinNormalMethod2*>(meth)->eval(method, this, *pd, args, xsink);
-
-   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
-   return check_meth_eval(priv->theclass, meth, xsink);
-}
-
-void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, BuiltinMethod *meth, QoreObject *self, bool new_calling_convention, ExceptionSink *xsink) {
+void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyBase *meth, QoreObject *self, ExceptionSink *xsink) {
    // get referenced object
    AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getID(), xsink);
 
    if (pd) {
-      if (new_calling_convention)
-	 reinterpret_cast<BuiltinCopy2*>(meth)->eval(thisclass, self, this, pd, xsink);
-      else
-	 reinterpret_cast<BuiltinCopy*>(meth)->eval(thisclass, self, this, pd, xsink);
+      meth->evalImpl(thisclass, self, this, pd, xsink);
       pd->deref(xsink);
       return;
    }
@@ -475,7 +455,7 @@ void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, Built
 }
 
 // note that the lock is already held when this method is called
-bool QoreObject::evalDeleteBlocker(BuiltinMethod *meth) {
+bool QoreObject::evalDeleteBlocker(BuiltinDeleteBlocker *meth) {
    // FIXME: eliminate reference counts for private data, private data should be destroyed after the destructor terminates
 
    // get referenced object
@@ -483,7 +463,7 @@ bool QoreObject::evalDeleteBlocker(BuiltinMethod *meth) {
    ReferenceHolder<AbstractPrivateData> pd(priv->privateData->getReferencedPrivateData(meth->myclass->getIDForMethod()), &xsink);
 
    if (pd)
-      return reinterpret_cast<BuiltinDeleteBlocker*>(meth)->eval(this, *pd);
+      return meth->eval(this, *pd);
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
    return false;
@@ -1206,12 +1186,6 @@ bool QoreObject::hasMemberNotification() const {
 void QoreObject::execMemberNotification(const char *member, ExceptionSink *xsink) {
    priv->theclass->execMemberNotification(this, member, xsink);
 }
-
-#ifdef QORE_CLASS_SYNCHRONOUS
-VRMutex *QoreObject::getClassSyncLock() {
-   return priv->sync_vrm;
-}
-#endif
 
 AbstractQoreNode **QoreObject::getMemberValuePtrForInitialization(const char *member) {
    return priv->data->getKeyValuePtr(member);

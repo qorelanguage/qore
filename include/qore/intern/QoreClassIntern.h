@@ -206,11 +206,7 @@ class BCList : public QoreReferenceCounter, public bclist_t {
 
       DLLLOCAL BCList(BCNode *n);
       DLLLOCAL BCList();
-      DLLLOCAL void parseInit(QoreClass *thisclass, BCAList *bcal, bool &has_delete_blocker
-#ifdef QORE_CLASS_SYNCHRONOUS
-			      , bool &synchronous_in_hierarchy
-#endif
-	 );
+      DLLLOCAL void parseInit(QoreClass *thisclass, BCAList *bcal, bool &has_delete_blocker);
       DLLLOCAL const QoreMethod *resolveSelfMethod(const char *name);
 
       // only looks in committed method lists

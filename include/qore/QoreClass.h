@@ -61,6 +61,8 @@ class ParamList;
 class BuiltinStaticMethod;
 class BuiltinStaticMethod2;
 class QoreMemberInfo;
+class BuiltinMethod;
+class AbstractQoreFunction;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -81,7 +83,10 @@ class QoreMethod {
       DLLLOCAL QoreMethod& operator=(const QoreMethod&);
 
       //! private constructor
-      DLLLOCAL QoreMethod(const QoreClass *p_class, UserFunction *u, bool n_priv, bool n_static);
+      DLLLOCAL QoreMethod(const QoreClass *p_class, UserFunction *f, bool n_priv, bool n_static);
+
+      //! private constructor
+      DLLLOCAL QoreMethod(const QoreClass *p_class, int type, AbstractQoreFunction *f, bool n_priv, bool n_static, bool new_calling_convention);
 
       //! evaluates the method and returns the result
       /** should only be called by QoreObject; use QoreObject::evalMethod(const QoreMethod &meth, const QoreListNode *args, ExceptionSink *xsink) instead
@@ -157,8 +162,7 @@ class QoreMethod {
       DLLLOCAL void parseInitDestructor();
       DLLLOCAL void parseInitCopy();
       DLLLOCAL void assign_class(const QoreClass *p_class);
-      DLLLOCAL const BuiltinStaticMethod *getStaticBuiltinFunction() const;
-      DLLLOCAL const BuiltinStaticMethod2 *getStaticBuiltinFunction2() const;
+      DLLLOCAL const BuiltinMethod *getBuiltinMethod() const;
       DLLLOCAL const UserFunction *getStaticUserFunction() const;
       DLLLOCAL bool existsUserParam(unsigned i) const;
       DLLLOCAL ParamList *getParams() const;

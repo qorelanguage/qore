@@ -55,11 +55,6 @@ struct qore_qc_private {
       initialized,                  // is initialized?
       has_delete_blocker,           // has a delete_blocker function somewhere in the hierarchy?
       has_public_members            // has a public member list somewhere in the hierarchy?
-#ifdef QORE_CLASS_SYNCHRONOUS
-      ,
-      synchronous_class,            // should all class methods be wrapped in a recursive thread lock?
-      has_synchronous_in_hierarchy  // is there at least one class somewhere in the hierarchy requiring the recursive lock?
-#endif
       ;
    int domain;                      // capabilities of builtin class to use in the context of parse restrictions
    QoreReferenceCounter nref;       // namespace references
@@ -71,9 +66,6 @@ struct qore_qc_private {
       : bcal(0), scl(0), 
 	sys(false), initialized(false), has_delete_blocker(false), 
 	has_public_members(false),
-#ifdef QORE_CLASS_SYNCHRONOUS
-	synchronous_class(false), has_synchronous_in_hierarchy(false), 
-#endif
 	domain(dom), 
 	num_methods(0), num_user_methods(0),
 	num_static_methods(0), num_static_user_methods(0),
@@ -209,11 +201,7 @@ struct qore_qc_private {
    
 	 if (scl) {
 	    QoreClass *qc = const_cast<QoreClass *>(typeInfo.qc);
-#ifdef QORE_CLASS_SYNCHRONOUS
-	    scl->parseInit(qc, bcal, has_delete_blocker, has_synchronous_in_hierarchy);
-#else
 	    scl->parseInit(qc, bcal, has_delete_blocker);
-#endif
 	 }
 
 	 if (!sys && domain & getProgram()->getParseOptions())
@@ -600,17 +588,10 @@ struct qore_method_private {
    const QoreClass *parent_class;
    int type;
    bool new_call_convention;
-   union mf_u {
-      UserFunction *userFunc;
-      BuiltinMethod *builtin;
-      
-      DLLLOCAL mf_u(UserFunction *u) : userFunc(u) {}
-      DLLLOCAL mf_u(BuiltinMethod *b) : builtin(b) {}
-   } func;
+   AbstractQoreFunction *func;
    bool priv_flag, static_flag;
 
-   DLLLOCAL qore_method_private(const QoreClass *p_class, UserFunction *uf, bool n_priv, bool n_static) : parent_class(p_class), type(OTF_USER), new_call_convention(false), func(uf), priv_flag(n_priv), static_flag(n_static) {
-   }
+   DLLLOCAL qore_method_private(const QoreClass *p_class, UserFunction *uf, bool n_priv, bool n_static) : parent_class(p_class), type(OTF_USER), new_call_convention(false), func(uf), priv_flag(n_priv), static_flag(n_static) {}
 
    DLLLOCAL qore_method_private(UserFunction *uf, bool n_priv, bool n_static) : parent_class(0), type(OTF_USER), new_call_convention(false), func(uf), priv_flag(n_priv), static_flag(n_static) {
    }
@@ -618,69 +599,54 @@ struct qore_method_private {
    DLLLOCAL qore_method_private(const QoreClass *n_class, BuiltinMethod *b, bool n_priv, bool n_static, bool ncc = false) : parent_class(n_class), type(OTF_BUILTIN), new_call_convention(ncc), func(b), priv_flag(n_priv), static_flag(n_static) {
    }
 
+   DLLLOCAL qore_method_private(const QoreClass *n_class, int type, AbstractQoreFunction *b, bool n_priv, bool n_static, bool ncc = false) : parent_class(n_class), type(type), new_call_convention(ncc), func(b), priv_flag(n_priv), static_flag(n_static) {
+   }
+
    DLLLOCAL ~qore_method_private() {
-      if (type == OTF_USER)
-	 func.userFunc->deref();
-      else
-	 func.builtin->deref();
+      func->deref();
    }
 
    DLLLOCAL ParamList *getParams() const {
-      if (type == OTF_USER) 
-	 return const_cast<UserParamList *>(func.userFunc->params);
-      return const_cast<ParamList *>(func.builtin->getParams()); 
+      return func->getParams();
    }
 
-   DLLLOCAL const char *getName() const { return type == OTF_USER ? func.userFunc->getName() : func.builtin->getName(); }
+   DLLLOCAL const char *getName() const {
+      return func->getName();
+   }
 
    DLLLOCAL void parseInit() {
-      assert(type == OTF_USER);
-      func.userFunc->parseInitMethod(*parent_class, static_flag);
+      reinterpret_cast<UserFunction *>(func)->parseInitMethod(*parent_class, static_flag);
    }
 
    DLLLOCAL void parseInitConstructor(BCList *bcl) {
-      assert(type == OTF_USER);
-      func.userFunc->parseInitConstructor(*parent_class, bcl);
+      reinterpret_cast<UserFunction *>(func)->parseInitConstructor(*parent_class, bcl);
    }
 
    DLLLOCAL void parseInitDestructor() {
-      assert(type == OTF_USER);
-      func.userFunc->parseInitDestructor(*parent_class);
+      reinterpret_cast<UserFunction *>(func)->parseInitDestructor(*parent_class);
    }
    
    DLLLOCAL void parseInitCopy() {
-      assert(type == OTF_USER);
-      func.userFunc->parseInitCopy(*parent_class);
+      reinterpret_cast<UserFunction *>(func)->parseInitCopy(*parent_class);
    }
    
    DLLLOCAL const UserFunction *getStaticUserFunction() const {
       assert(static_flag);
       assert(type == OTF_USER);
       
-      return func.userFunc;
+      return reinterpret_cast<UserFunction *>(func);
    }
    
-   DLLLOCAL const BuiltinStaticMethod *getStaticBuiltinFunction() const {
-      assert(static_flag);
+   DLLLOCAL const BuiltinMethod *getBuiltinMethod() const {
       assert(type == OTF_BUILTIN);
-      assert(!new_call_convention);
-
-      return reinterpret_cast<BuiltinStaticMethod*>(func.builtin);
-   }
-   
-   DLLLOCAL const BuiltinStaticMethod2 *getStaticBuiltinFunction2() const {
-      assert(static_flag);
-      assert(type == OTF_BUILTIN);
-      assert(new_call_convention);
-
-      return reinterpret_cast<BuiltinStaticMethod2*>(func.builtin);
+      return reinterpret_cast<BuiltinMethod*>(func);
    }
    
    DLLLOCAL bool existsUserParam(unsigned i) const {
       if (type != OTF_USER)
 	 return true;
       
-      return func.userFunc->params->numParams() > i;
+      return reinterpret_cast<UserFunction *>(func)->params->numParams() > i;
    }
 
    DLLLOCAL bool newCallingConvention() const {
@@ -688,9 +654,7 @@ struct qore_method_private {
    }
 
    DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
-      if (type == OTF_USER)
-	 return func.userFunc->getReturnTypeInfo();
-      return func.builtin->getReturnTypeInfo();
+      return func->getReturnTypeInfo();
    }
 };
 
@@ -810,11 +774,7 @@ void BCList::deref() {
       delete this;
 }
 
-void BCList::parseInit(QoreClass *cls, BCAList *bcal, bool &has_delete_blocker
-#ifdef QORE_CLASS_SYNCHRONOUS
-		       , bool &has_synchronous_in_hierarchy
-#endif
-   ) {
+void BCList::parseInit(QoreClass *cls, BCAList *bcal, bool &has_delete_blocker) {
    printd(5, "BCList::parseInit(%s) this=%p empty=%d, bcal=%p\n", cls->getName(), this, empty(), bcal);
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if (!(*i)->sclass) {
@@ -836,10 +796,6 @@ void BCList::parseInit(QoreClass *cls, BCAList *bcal, bool &has_delete_blocker
 	 (*i)->sclass->initialize();
 	 if (!has_delete_blocker && (*i)->sclass->has_delete_blocker())
 	    has_delete_blocker = true;
-#ifdef QORE_CLASS_SYNCHRONOUS
-	 if (!has_synchronous_in_hierarchy && (*i)->sclass->has_synchronous_in_hierarchy())
-	    has_synchronous_in_hierarchy = true;
-#endif
          (*i)->sclass->addBaseClassesToSubclass(cls, (*i)->is_virtual);
 	 // include all subclass domains in this class' domain
 	 cls->addDomain((*i)->sclass->getDomain());
@@ -1314,17 +1270,20 @@ void QoreClass::parseRollback() {
    priv->delete_pending_methods();
 }
 
-QoreMethod::QoreMethod(const QoreClass *p_class, UserFunction *u, bool n_priv, bool n_static) : priv(new qore_method_private(p_class, u, n_priv, n_static)) {
+QoreMethod::QoreMethod(const QoreClass *p_class, UserFunction *f, bool n_priv, bool n_static) : priv(new qore_method_private(p_class, f, n_priv, n_static)) {
 }
 
 // created at parse time, parent class assigned when method attached to class
 QoreMethod::QoreMethod(UserFunction *u, bool n_priv, bool n_static) : priv(new qore_method_private(u, n_priv, n_static)) {
 }
 
-QoreMethod::QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv, bool n_static) : priv(new qore_method_private(p_class, b, n_priv, n_static)) {
+QoreMethod::QoreMethod(const QoreClass *p_class, BuiltinMethod *f, bool n_priv, bool n_static) : priv(new qore_method_private(p_class, f, n_priv, n_static)) {
 }
 
 QoreMethod::QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv, bool n_static, bool new_calling_convention) : priv(new qore_method_private(p_class, b, n_priv, n_static, new_calling_convention)) {
+}
+
+QoreMethod::QoreMethod(const QoreClass *p_class, int type, AbstractQoreFunction *f, bool n_priv, bool n_static, bool new_calling_convention) : priv(new qore_method_private(p_class, type, f, n_priv, n_static, new_calling_convention)) {
 }
 
 QoreMethod::~QoreMethod() {
@@ -1375,39 +1334,32 @@ void QoreMethod::assign_class(const QoreClass *p_class) {
 bool QoreMethod::isSynchronized() const {
    if (priv->type == OTF_BUILTIN)
       return false;
-   return priv->func.userFunc->isSynchronized();
+   return reinterpret_cast<UserFunction *>(priv->func)->isSynchronized();
 }
 
 bool QoreMethod::inMethod(const QoreObject *self) const {
-   if (priv->type == OTF_USER)
-      return ::inMethod(priv->func.userFunc->getName(), self);
-   return ::inMethod(priv->func.builtin->getName(), self);
+   return ::inMethod(priv->func->getName(), self);
 }
 
 void QoreMethod::evalSystemConstructor(QoreObject *self, int code, va_list args) const {
-   // type must be OTF_BUILTIN
+   assert(priv->type == OTF_BUILTIN);
    if (priv->new_call_convention)
-      reinterpret_cast<BuiltinSystemConstructor2 *>(priv->func.builtin)->eval(*priv->parent_class, self, code, args);
+      reinterpret_cast<BuiltinSystemConstructor2 *>(priv->func)->eval(*priv->parent_class, self, code, args);
    else
-      reinterpret_cast<BuiltinSystemConstructor*>(priv->func.builtin)->eval(self, code, args);
+      reinterpret_cast<BuiltinSystemConstructor*>(priv->func)->eval(self, code, args);
 }
 
 void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
+   assert(priv->type == OTF_BUILTIN);
    // get pointer to private data object from class ID of base type
-   AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->func.builtin->myclass->getID(), xsink);
-   //printd(5, "QoreMethod::evalSystemDestructor() class=%s (%p) id=%d ptr=%p\n", priv->func.builtin->myclass->getName(), priv->func.builtin->myclass, priv->func.builtin->myclass->getID(), ptr);
+   AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->parent_class->getID(), xsink);
+   //printd(5, "QoreMethod::evalSystemDestructor() class=%s (%p) id=%d ptr=%p\n", priv->parent_class->getName(), priv->parent_class, priv->parent_class->getID(), ptr);
    // NOTE: ptr may be null for builtin subclasses without private data
    if (ptr) {
-#ifdef QORE_CLASS_SYNCHRONOUS
-      // grab class synchronous lock if appropriate
-      bool lck = priv->parent_class->is_synchronous_class();
-      VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
-      assert(!(lck && !vh));
-#endif
       if (priv->new_call_convention)
-	 reinterpret_cast<BuiltinDestructor2*>(priv->func.builtin)->evalSystem(*priv->parent_class, self, ptr, xsink);
+	 reinterpret_cast<BuiltinDestructor2*>(priv->func)->evalSystem(*priv->parent_class, self, ptr, xsink);
       else
-	 reinterpret_cast<BuiltinDestructor*>(priv->func.builtin)->evalSystem(self, ptr, xsink);
+	 reinterpret_cast<BuiltinDestructor*>(priv->func)->evalSystem(self, ptr, xsink);
    }
 }
 
@@ -1428,13 +1380,8 @@ void QoreMethod::parseInitCopy() {
 }
 
 QoreMethod *QoreMethod::copy(const QoreClass *p_class) const {
-   if (priv->type == OTF_USER) {
-      priv->func.userFunc->ROreference();
-      return new QoreMethod(p_class, priv->func.userFunc, priv->priv_flag, priv->static_flag);
-   }
-
-   priv->func.builtin->ROreference();
-   return new QoreMethod(p_class, priv->func.builtin, priv->priv_flag, priv->static_flag);
+   priv->func->ref();
+   return new QoreMethod(p_class, priv->type, priv->func, priv->priv_flag, priv->static_flag, priv->new_call_convention);
 }
 
 const QoreTypeInfo *QoreMethod::getReturnTypeInfo() const {
@@ -1599,152 +1546,51 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    printd(5, "QoreMethod::eval() %s::%s() (object=%p, pgm=%p, static=%s)\n", oname, getName(), self, self ? self->getProgram() : 0, isStatic() ? "true" : "false");
 #endif
 
-   if (isStatic()) {
-      if (priv->type == OTF_USER)
-	 return priv->func.userFunc->eval(args, 0, xsink, priv->parent_class->getName());
-      if (priv->new_call_convention)
-	 return reinterpret_cast<BuiltinStaticMethod2*>(priv->func.builtin)->eval(*this, args, xsink);
-      return reinterpret_cast<BuiltinStaticMethod*>(priv->func.builtin)->eval(*this, args, xsink);
-   }
+   if (isStatic())
+      return priv->func->evalStaticMethod(*this, args, xsink);
 
-   AbstractQoreNode *rv = 0;
-   {
-      // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram(), xsink);
+   // switch to new program for imported objects
+   ProgramContextHelper pch(self->getProgram(), xsink);
 
-      if (priv->type == OTF_USER) {
-	 // ignore class synchronous flags for user methods - currently only possible
-	 // with builtin classes and therefore only affects builtin code
-	 // allowing it to be used in user methods could open up the possibility for deadlocks
-	 // on the destructor, which we would like to avoid
-	 rv = priv->func.userFunc->eval(args, self, xsink, priv->parent_class->getName());
-      }
-      else {
-	 // save current program location in case there's an exception
-	 const char *o_fn = get_pgm_file();
-	 int o_ln, o_eln;
-	 get_pgm_counter(o_ln, o_eln);
-
-	 // evalute arguments before calling builtin method
-	 QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
-	 if (*xsink)
-	    return 0;
-
-	 // reset program position after arguments are evaluted
-	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);   
-
-	 {
-#ifdef QORE_CLASS_SYNCHRONOUS
-	    // grab class synchronous lock if appropriate
-	    bool lck = priv->parent_class->is_synchronous_class();
-	    VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
-	    assert(!(lck && !vh));
-#endif
-	    if (priv->new_call_convention)
-	       rv = self->evalBuiltinMethodWithPrivateData(*this, priv->func.builtin, *new_args, xsink);
-	    else
-	       rv = self->evalBuiltinMethodWithPrivateData(priv->func.builtin, *new_args, xsink);
-	 }
-	 if (xsink->isException())
-	    xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), getName(), o_fn, o_ln, o_eln);
-      }
-   }
-   
-#ifdef DEBUG
-   printd(5, "QoreMethod::eval() %s::%s() returning %p (type=%s, refs=%d)\n",
-	  oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
-#endif
-
+   AbstractQoreNode *rv = priv->func->evalNormalMethod(*this, self, args, xsink);
+   printd(5, "QoreMethod::eval() %s::%s() returning %p (type=%s, refs=%d)\n", oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
    return rv;
 }
 
-void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const {
+void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
    QORE_TRACE("QoreMethod::evalConstructor()");
-#ifdef DEBUG
-   const char *oname = self->getClass()->getName();
-   printd(5, "QoreMethod::evalConstructor() %s::%s() (object=%p, pgm=%p)\n", oname, getName(), self, self->getProgram());
-#endif
+   printd(5, "QoreMethod::evalConstructor() %s::%s() (args=%p object=%p, pgm=%p)\n", self->getClass()->getName(), getName(), args, self, self->getProgram());
 
-   if (priv->type == OTF_USER)
-      discard(priv->func.userFunc->evalConstructor(args, self, bcl, bceal, priv->parent_class->getName(), xsink), xsink);
-   else {
-      // evalute arguments before calling builtin method
-      QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
-      if (*xsink)
-	 return;
+   priv->func->evalConstructor(*priv->parent_class, self, args, bcl, bceal, xsink);
 
-      // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram(), xsink);
-      if (priv->new_call_convention)
-	 reinterpret_cast<BuiltinConstructor2*>(priv->func.builtin)->eval(*priv->parent_class, self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
-      else
-	 reinterpret_cast<BuiltinConstructor*>(priv->func.builtin)->eval(self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
-   }
-
-#ifdef DEBUG
-   printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", oname, getName());
-#endif
+   printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", self->getClass()->getName(), getName());
 }
 
 void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram(), xsink);
 
-   if (priv->type == OTF_USER)
-      priv->func.userFunc->evalCopy(old, self, priv->parent_class->getName(), xsink);
-   else { 
-      // builtin function
-#ifdef QORE_CLASS_SYNCHRONOUS
-      // grab class synchronous lock if appropriate
-      bool lck = priv->parent_class->is_synchronous_class();
-      VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
-      assert(!(lck && !vh));
-#endif
-      old->evalCopyMethodWithPrivateData(*priv->parent_class, priv->func.builtin, self, priv->new_call_convention, xsink);
-   }
+   priv->func->evalCopy(*priv->parent_class, self, old, xsink);
 }
 
 bool QoreMethod::evalDeleteBlocker(QoreObject *self) const {
    // can only be builtin
-   return self->evalDeleteBlocker(priv->func.builtin);
+   return self->evalDeleteBlocker(reinterpret_cast<BuiltinDeleteBlocker *>(priv->func));
 }
 
 void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram(), xsink);
 
-   if (priv->type == OTF_USER)
-      priv->func.userFunc->eval(0, self, xsink, priv->parent_class->getName());
-   else { // builtin function
-      AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->parent_class->getID(), xsink);
-      if (ptr) {
-#ifdef QORE_CLASS_SYNCHRONOUS
-	 // grab class synchronous lock if appropriate
-	 bool lck = priv->parent_class->is_synchronous_class();
-	 VRMutexHelper vh(lck ? self->getClassSyncLock() : 0, xsink);
-	 assert(!(lck && !vh));
-#endif
-	 if (priv->new_call_convention)
-	    reinterpret_cast<BuiltinDestructor2*>(priv->func.builtin)->eval(*priv->parent_class, self, ptr, priv->parent_class->getName(), xsink);
-	 else
-	    reinterpret_cast<BuiltinDestructor*>(priv->func.builtin)->eval(self, ptr, priv->parent_class->getName(), xsink);
-      }
-      // in case there is no private data, ignore: we cannot execute the destructor
-      // this might happen in the case that the data was deleted externally, for example
-      // with QoreObject::externalDelete()
-   }
+   priv->func->evalDestructor(*priv->parent_class, self, xsink);
 }
 
 const UserFunction *QoreMethod::getStaticUserFunction() const {
    return priv->getStaticUserFunction();
 }
 
-const BuiltinStaticMethod *QoreMethod::getStaticBuiltinFunction() const {
-   return priv->getStaticBuiltinFunction();
-}
-
-const BuiltinStaticMethod2 *QoreMethod::getStaticBuiltinFunction2() const {
-   return priv->getStaticBuiltinFunction2();
+const BuiltinMethod *QoreMethod::getBuiltinMethod() const {
+   return priv->getBuiltinMethod();
 }
 
 bool QoreMethod::existsUserParam(unsigned i) const {
@@ -2462,23 +2308,6 @@ bool QoreClass::parseCheckHierarchy(const QoreClass *cls) const {
 
    return priv->scl ? priv->scl->parseCheckHierarchy(cls) : false;
 }
-
-#ifdef QORE_CLASS_SYNCHRONOUS
-void QoreClass::setSynchronousClass() {
-   assert(!priv->synchronous_class);
-
-   priv->synchronous_class = true;
-   priv->has_synchronous_in_hierarchy = true;
-}
-
-bool QoreClass::has_synchronous_in_hierarchy() const {
-   return priv->has_synchronous_in_hierarchy;
-}
-
-bool QoreClass::is_synchronous_class() const {
-   return priv->synchronous_class;
-}
-#endif
 
 const QoreMethod *QoreClass::getConstructor() const {
    return priv->constructor;

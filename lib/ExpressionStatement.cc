@@ -43,6 +43,7 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQ
 }
 
 ExpressionStatement::~ExpressionStatement() {
+   //printd(5, "ExpressionStatement::~ExpressionStatement() this=%p exp=%p (%s)\n", this, exp, exp ? exp->getTypeName() : "n/a");
    // this should never be 0, but in case the implementation changes...
    if (exp)
       exp->deref(0);
@@ -59,8 +60,6 @@ int ExpressionStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (exp) {
       const QoreTypeInfo *argTypeInfo = 0;
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
-
-      //if ()
    }
    return lvids;
 }

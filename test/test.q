@@ -101,6 +101,11 @@ sub hash_sort_callback($l, $r) {
     return $l.key1 <=> $r.key1;
 }
 
+class SC;
+static SC::hash_sort_callback($l, $r) {
+    return $l.key1 <=> $r.key1;
+}
+
 # array tests
 sub array_tests() {
     my ($a, $b, $c, $d);
@@ -194,7 +199,7 @@ sub array_tests() {
     my $r_sorted_hl = reverse($sorted_hl);
     test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
     test_value(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
-    test_value(sortDescending($hl, \hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
+    test_value(sortDescending($hl, \SC::hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
     test_value(sortDescending($hl, \$s.hash()), $r_sorted_hl, "second sortDescending() with callback");
     test_value(sortDescending($hl, "hash_sort_callback"), $r_sorted_hl, "third sortDescending() with callback");
     test_value(sortDescending($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $r_sorted_hl, "sortDescending() with closure callback");
@@ -206,7 +211,7 @@ sub array_tests() {
     test_value(sortStable($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $stable_sorted_hl, "sortStable() with closure callback");
 
     my $r_stable_sorted_hl = reverse($stable_sorted_hl);
-    test_value(sortDescendingStable($hl, \hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
+    test_value(sortDescendingStable($hl, \SC::hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $r_stable_sorted_hl, "sortDescendingStable() with closure callback");
@@ -216,7 +221,7 @@ sub array_tests() {
     test_value(min($hl, \hash_sort_callback()), ( "key1" : 1, "key2" : "eight" ), "first min() with callback");
     test_value(min($hl, \$s.hash()), ( "key1" : 1, "key2" : "eight" ), "second min() with callback");
     test_value(min($hl, "hash_sort_callback"), ( "key1" : 1, "key2" : "eight" ), "third min() with callback");
-    test_value(max($hl, \hash_sort_callback()), ( "key1" : 9, "key2" : "three" ), "first max() with callback");
+    test_value(max($hl, \SC::hash_sort_callback()), ( "key1" : 9, "key2" : "three" ), "first max() with callback");
     test_value(max($hl, \$s.hash()), ( "key1" : 9, "key2" : "three" ), "second max() with callback");
     test_value(max($hl, "hash_sort_callback"), ( "key1" : 9, "key2" : "three" ), "third max() with callback");
     my $v = shift $l2;

@@ -426,7 +426,7 @@ static bool hasEffect(AbstractQoreNode *n) {
    // check for expressions with no effect
    qore_type_t ntype = n->getType();
    if (ntype == NT_FUNCTION_CALL || ntype == NT_STATIC_METHOD_CALL 
-       || ntype == NT_FIND || ntype == NT_FUNCREFCALL)
+       || ntype == NT_FIND || ntype == NT_FUNCREFCALL || ntype == NT_SELF_CALL)
       return true;
 
    if (ntype == NT_TREE)
@@ -448,7 +448,7 @@ static int checkMethod(const char *name, BCAList *bcal, QoreParseTypeInfo *retur
    }
 
    if (bcal && strcmp(name, "constructor")) {
-      parse_error("base class constructor lists are only legal when defining ::constructor() methods");
+      parse_error("base class constructor lists are only legal when defining constructor() methods");
       return -1;
    }
 
@@ -1411,13 +1411,13 @@ method_definition:
 	   checkMethod($2, $6, $7);
 	   $$ = new MethodNode(new UserFunction($2, new UserParamList($4), $8, $7, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $6);
 	}
-	| IDENTIFIER '(' myexp ')' base_constructor_list return_value block {
-	   checkMethod($1, $5, $6);
-	   $$ = new MethodNode(new UserFunction($1, new UserParamList($3), $7, $6), false, false, $5);
-	}
         | method_modifiers KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list return_value block {
 	   checkMethod($2, $5, $6);
 	   $$ = new MethodNode(new UserFunction($2, new UserParamList($3), $7, $6, $1 & OFM_SYNCED), $1 & OFM_PRIVATE, $1 & OFM_STATIC, $5);
+	}
+	| IDENTIFIER '(' myexp ')' base_constructor_list return_value block {
+	   checkMethod($1, $5, $6);
+	   $$ = new MethodNode(new UserFunction($1, new UserParamList($3), $7, $6), false, false, $5);
 	}
 	| KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list return_value block {
 	   checkMethod($1, $4, $5);
@@ -2014,7 +2014,7 @@ exp:    scalar
 	      char *str = v->takeString();
 	      v->deref();
 	      printd(5, "parsing in-object method call %s()\n", str);
-	      $$ = new FunctionCallNode(makeArgs($3), str);
+	      $$ = new SelfFunctionCallNode(str, makeArgs($3));
 	   }
 	   else {
 	      QoreTreeNode *tree;
@@ -2054,7 +2054,7 @@ exp:    scalar
 	   if (!strcmp($1->getIdentifier(), "copy"))
 	      parse_error("illegal call to base class copy method '%s'", $1->ostr);
 
-	   $$ = new FunctionCallNode(makeArgs($3), $1);
+	   $$ = new SelfFunctionCallNode($1, makeArgs($3));
 	}
         | KW_IDENTIFIER_OPENPAREN myexp ')' {
 	   printd(5, "parsing call %s()\n", $1);
@@ -2127,19 +2127,13 @@ exp:    scalar
 		 $$ = $2;
 	      }
 	      else {
-		 if (f->getFunctionType() == FC_UNRESOLVED)
-		    $$ = new UnresolvedCallReferenceNode(f->takeName());
-		 else {// must be self call
-		    assert(f->getFunctionType() == FC_SELF);
-		    if (f->f.sfunc->name)
-		       $$ = new ParseSelfMethodReferenceNode(f->f.sfunc->takeName());
-		    else {
-		       assert(f->f.sfunc->ns);
-		       $$ = new ParseScopedSelfMethodReferenceNode(f->f.sfunc->takeNScope());
-		    }
-		 }
+		 assert(f->getFunctionType() == FC_UNRESOLVED);
+		 $$ = new UnresolvedCallReferenceNode(f->takeName());
 		 f->deref();
 	      }
+	   }
+	   else if (t == NT_SELF_CALL) {
+	      $$ = reinterpret_cast<SelfFunctionCallNode *>($2)->makeReferenceNodeAndDeref();
 	   }
 	   else if (t == NT_STATIC_METHOD_CALL) {
 	      StaticMethodCallNode *m = reinterpret_cast<StaticMethodCallNode *>($2);

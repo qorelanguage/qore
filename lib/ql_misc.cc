@@ -131,7 +131,7 @@ static AbstractQoreNode *f_call_builtin_function(const QoreListNode *params, Exc
    if (num_params(params) > 1)
       args = params->copyListFrom(1);
 
-   return f->eval(*args, xsink);
+   return f->evalFunction(*args, xsink);
 }
 
 static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params, ExceptionSink *xsink)
@@ -163,7 +163,7 @@ static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params
       args->push(const_cast<AbstractQoreNode *>(p1));
    }
 
-   AbstractQoreNode *rv = f->eval(args, xsink);
+   AbstractQoreNode *rv = f->evalFunction(args, xsink);
 
    if (p1 != args) {
       // we remove the element from the list without dereferencing

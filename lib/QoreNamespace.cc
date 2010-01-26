@@ -801,20 +801,23 @@ QoreClass *RootQoreNamespace::parseFindScopedClass(NamedScope *nscope) const {
 }
 
 QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(NamedScope *scname) const {
+   // must have at least 2 elements
+   assert(scname->elements > 1);
+
    QoreClass *oc;
 
    int m = 0;
    oc = rootFindScopedClassWithMethod(scname, &m);
    
    if (!oc) {
-      if (m != (scname->elements - 1))
-	 parse_error("cannot resolve namespace '%s' in '%s()'", scname->strlist[m], scname->ostr);
-      else  {
+      if (m >= (scname->elements - 2))
+	 parse_error("cannot resolve class '%s' in '%s()'", scname->strlist[m], scname->ostr);
+      else  {	 
 	 QoreString err;
-	 err.sprintf("cannot find class '%s' in any namespace '", scname->getIdentifier());
-	 for (int i = 0; i < (scname->elements - 1); i++) {
+	 err.sprintf("cannot find class '%s' in any namespace '", scname->strlist[scname->elements - 2]);
+	 for (int i = 0; i < (scname->elements - 2); i++) {
 	    err.concat(scname->strlist[i]);
-	    if (i != (scname->elements - 2))
+	    if (i != (scname->elements - 3))
 	       err.concat("::");
 	 }
 	 err.concat("'");

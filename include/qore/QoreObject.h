@@ -30,7 +30,9 @@
 
 class AutoVLock;
 class VRMutex;
-class BuiltinMethod;
+class BuiltinNormalMethodBase;
+class BuiltinCopyBase;
+class BuiltinDeleteBlocker;
 
 //! the implementation of Qore's object data type, reference counted, dynamically-allocated only
 /** objects in Qore are unique unless copied explicitly (similar to Java)
@@ -444,18 +446,10 @@ class QoreObject : public AbstractQoreNode {
 	 @param args the arguments for the method
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(const QoreMethod &method, BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(const QoreMethod &method, const BuiltinNormalMethodBase *meth, const QoreListNode *args, ExceptionSink *xsink);
 
-      //! called to evaluate a builtin method with the new calling convention when private data is available
-      /**
-	 @param meth the name of the method to evalute
-	 @param args the arguments for the method
-	 @param xsink if an error occurs, the Qore-language exception information will be added here
-       */
-      DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink);
-
-      //! called on the old object (this) to acquire private data, copy method called on "self" (new copy)
-      DLLLOCAL void evalCopyMethodWithPrivateData(const QoreClass &thisclass, BuiltinMethod *meth, QoreObject *self, bool new_calling_convention, ExceptionSink *xsink);
+      //! called on the old object (this) to acquire private data, copy method called with pointer to "self" (new copy)
+      DLLLOCAL void evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyBase *meth, QoreObject *self, ExceptionSink *xsink);
 
       //! concatenates info about private data to a string
       /**
@@ -522,7 +516,7 @@ class QoreObject : public AbstractQoreNode {
       DLLLOCAL QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *d);
 
       //! evaluates the delete blocker function for the managed private data
-      DLLLOCAL bool evalDeleteBlocker(BuiltinMethod *meth);
+      DLLLOCAL bool evalDeleteBlocker(BuiltinDeleteBlocker *meth);
 
       //! returns true if the class has a memberNotification method
       DLLLOCAL bool hasMemberNotification() const;

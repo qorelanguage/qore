@@ -30,32 +30,30 @@
 #define TRACK_REFS 0
 
 #if TRACK_REFS
+//#define REF_LVL (type!=NT_FUNCREF)
 #endif
 
-AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers)
-{
+AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers) {
 #if TRACK_REFS
-   printd(5, "AbstractQoreNode::ref() %08p type=%d (0->1)\n", this, type);
+   printd(REF_LVL, "AbstractQoreNode::ref() %08p type=%d (0->1)\n", this, type);
 #endif
 }
 
-AbstractQoreNode::~AbstractQoreNode()
-{
+AbstractQoreNode::~AbstractQoreNode() {
 #if 0
    printd(5, "AbstractQoreNode::~AbstractQoreNode() type=%d (%s)\n", type, getTypeName());
 #endif
 }
 
-void AbstractQoreNode::ref() const
-{
+void AbstractQoreNode::ref() const {
 #ifdef DEBUG
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(this);
-      printd(5, "AbstractQoreNode::ref() %08p type=object (%d->%d) object=%08p, class=%s\n", this, references, references + 1, o, o->getClass()->getName());
+      printd(REF_LVL, "AbstractQoreNode::ref() %08p type=object (%d->%d) object=%08p, class=%s\n", this, references, references + 1, o, o->getClass()->getName());
    }
    else
-      printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
+      printd(REF_LVL, "AbstractQoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
 #endif
 #endif
    if (!there_can_be_only_one) {
@@ -66,24 +64,20 @@ void AbstractQoreNode::ref() const
    }
 }
 
-AbstractQoreNode *AbstractQoreNode::refSelf() const
-{
+AbstractQoreNode *AbstractQoreNode::refSelf() const {
    ref();
    return const_cast<AbstractQoreNode *>(this);
 }
 
-bool AbstractQoreNode::derefImpl(ExceptionSink *xsink)
-{
+bool AbstractQoreNode::derefImpl(ExceptionSink *xsink) {
    return true;
 }
 
-void AbstractQoreNode::customRef() const
-{
+void AbstractQoreNode::customRef() const {
    assert(false);
 }
 
-void AbstractQoreNode::customDeref(ExceptionSink *xsink)
-{
+void AbstractQoreNode::customDeref(ExceptionSink *xsink) {
    assert(false);
 }
 
@@ -91,11 +85,11 @@ void AbstractQoreNode::deref(ExceptionSink *xsink) {
    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS
-   if (type == NT_STRING) printd(5, "AbstractQoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
+   if (type == NT_STRING) printd(REF_LVL, "AbstractQoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
    else if (type == NT_OBJECT)
-      printd(5, "QoreObject::deref() %08p class=%s (%d->%d) %d\n", this, ((QoreObject *)this)->getClassName(), references, references - 1, custom_reference_handlers);
+      printd(REF_LVL, "QoreObject::deref() %08p class=%s (%d->%d) %d\n", this, ((QoreObject *)this)->getClassName(), references, references - 1, custom_reference_handlers);
    else
-      printd(5, "AbstractQoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
+      printd(REF_LVL, "AbstractQoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
 
 #endif
    if (references > 10000000 || references <= 0){
@@ -121,21 +115,17 @@ void AbstractQoreNode::deref(ExceptionSink *xsink) {
       if (type < NUM_SIMPLE_TYPES || derefImpl(xsink))
 	 delete this;
    }
-
-
 }
 
 // AbstractQoreNode::eval(): return value requires a dereference
-AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const
-{
+AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const {
    if (!needs_eval_flag)
       return refSelf();
    return evalImpl(xsink);
 }
 
 // AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
-AbstractQoreNode *AbstractQoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
-{
+AbstractQoreNode *AbstractQoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const {
    if (!needs_eval_flag) {
       needs_deref = false;
       return const_cast<AbstractQoreNode *>(this);
@@ -144,89 +134,76 @@ AbstractQoreNode *AbstractQoreNode::eval(bool &needs_deref, ExceptionSink *xsink
    return evalImpl(needs_deref, xsink);
 }
 
-int64 AbstractQoreNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
+int64 AbstractQoreNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
-int AbstractQoreNode::integerEvalImpl(ExceptionSink *xsink) const
-{
+int AbstractQoreNode::integerEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
-bool AbstractQoreNode::boolEvalImpl(ExceptionSink *xsink) const
-{
+bool AbstractQoreNode::boolEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
-double AbstractQoreNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double AbstractQoreNode::floatEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsFloat() : 0;
 }
 
-int64 AbstractQoreNode::bigIntEval(ExceptionSink *xsink) const
-{
+int64 AbstractQoreNode::bigIntEval(ExceptionSink *xsink) const {
    if (needs_eval_flag)
       return bigIntEvalImpl(xsink);
    return getAsBigInt();
 }
 
-int AbstractQoreNode::integerEval(ExceptionSink *xsink) const
-{
+int AbstractQoreNode::integerEval(ExceptionSink *xsink) const {
    if (needs_eval_flag)
       return integerEvalImpl(xsink);
    return getAsInt();
 }
 
-bool AbstractQoreNode::boolEval(ExceptionSink *xsink) const
-{
+bool AbstractQoreNode::boolEval(ExceptionSink *xsink) const {
    if (needs_eval_flag)
       return boolEvalImpl(xsink);
    return getAsBool();
 }
 
-double AbstractQoreNode::floatEval(ExceptionSink *xsink) const
-{
+double AbstractQoreNode::floatEval(ExceptionSink *xsink) const {
    if (needs_eval_flag)
       return floatEvalImpl(xsink);
    return getAsFloat();
 }
 
-bool AbstractQoreNode::getAsBool() const
-{
+bool AbstractQoreNode::getAsBool() const {
    if (type == NT_BOOLEAN)
       return reinterpret_cast<const QoreBoolNode *>(this)->getValue();
    return getAsBoolImpl();
 }
 
-int AbstractQoreNode::getAsInt() const
-{
+int AbstractQoreNode::getAsInt() const {
    if (type == NT_INT)
       return reinterpret_cast<const QoreBigIntNode *>(this)->val;
    return getAsIntImpl();
 }
 
-int64 AbstractQoreNode::getAsBigInt() const
-{
+int64 AbstractQoreNode::getAsBigInt() const {
    if (type == NT_INT)
       return reinterpret_cast<const QoreBigIntNode *>(this)->val;
    return getAsBigIntImpl();
 }
 
-double AbstractQoreNode::getAsFloat() const
-{
+double AbstractQoreNode::getAsFloat() const {
    if (type == NT_FLOAT)
       return reinterpret_cast<const QoreFloatNode *>(this)->f;
    return getAsFloatImpl();
 }
 
 // for getting relative time values or integer values
-int getSecZeroInt(const AbstractQoreNode *a)
-{
+int getSecZeroInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return 0;
 
@@ -236,8 +213,7 @@ int getSecZeroInt(const AbstractQoreNode *a)
    return a->getAsInt();
 }
 
-int64 getSecZeroBigInt(const AbstractQoreNode *a)
-{
+int64 getSecZeroBigInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return 0;
 
@@ -248,8 +224,7 @@ int64 getSecZeroBigInt(const AbstractQoreNode *a)
 }
 
 // for getting relative time values or integer values
-int getSecMinusOneInt(const AbstractQoreNode *a)
-{
+int getSecMinusOneInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return -1;
 
@@ -259,8 +234,7 @@ int getSecMinusOneInt(const AbstractQoreNode *a)
    return a->getAsInt();
 }
 
-int64 getSecMinusOneBigInt(const AbstractQoreNode *a)
-{
+int64 getSecMinusOneBigInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return -1;
 
@@ -270,8 +244,7 @@ int64 getSecMinusOneBigInt(const AbstractQoreNode *a)
    return a->getAsBigInt();
 }
 
-int getMsZeroInt(const AbstractQoreNode *a)
-{
+int getMsZeroInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return 0;
 
@@ -281,8 +254,7 @@ int getMsZeroInt(const AbstractQoreNode *a)
    return a->getAsInt();
 }
 
-int64 getMsZeroBigInt(const AbstractQoreNode *a)
-{
+int64 getMsZeroBigInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return 0;
 
@@ -293,8 +265,7 @@ int64 getMsZeroBigInt(const AbstractQoreNode *a)
 }
 
 // for getting relative time values or integer values
-int getMsMinusOneInt(const AbstractQoreNode *a)
-{
+int getMsMinusOneInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return -1;
 
@@ -304,8 +275,7 @@ int getMsMinusOneInt(const AbstractQoreNode *a)
    return a->getAsInt();
 }
 
-int64 getMsMinusOneBigInt(const AbstractQoreNode *a)
-{
+int64 getMsMinusOneBigInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return -1;
 
@@ -315,8 +285,7 @@ int64 getMsMinusOneBigInt(const AbstractQoreNode *a)
    return a->getAsBigInt();
 }
 
-int getMicroSecZeroInt(const AbstractQoreNode *a)
-{
+int getMicroSecZeroInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
       return 0;
 
@@ -326,8 +295,7 @@ int getMicroSecZeroInt(const AbstractQoreNode *a)
    return a->getAsInt();
 }
 
-static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink *xsink)
-{
+static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink *xsink) {
    // if it's not an immediate list, then there can't be any
    // variable references in it at any level, so return copy
    if (!n->needs_eval()) {
@@ -345,8 +313,7 @@ static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink 
    return l.release();
 }
 
-static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink)
-{
+static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink) {
    // if it's not an immediate hash, then there can't be any
    // variable references in it at any level, so return copy
    if (!n->needs_eval())
@@ -362,40 +329,60 @@ static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionS
    return h.release();
 }
 
-static inline AbstractQoreNode *crlr_tree_copy(const QoreTreeNode *n, ExceptionSink *xsink)
-{
+static inline AbstractQoreNode *crlr_tree_copy(const QoreTreeNode *n, ExceptionSink *xsink) {
    return new QoreTreeNode(copy_and_resolve_lvar_refs(n->left, xsink), n->op,
 			   n->right ? copy_and_resolve_lvar_refs(n->right, xsink) : 0);
 }
 
-static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink *xsink)
-{
+static inline AbstractQoreNode *crlr_selfcall_copy(const SelfFunctionCallNode *n, ExceptionSink *xsink) {
    QoreListNode *na = n->getArgs() ? crlr_list_copy(n->getArgs(), xsink) : 0;
 
-   switch (n->getFunctionType())
-   {
-      case FC_USER:
-	 return new FunctionCallNode(n->f.ufunc, na);
-      case FC_BUILTIN:
-	 return new FunctionCallNode(n->f.bfunc, na);
-      case FC_SELF:
-	 return new FunctionCallNode(n->f.sfunc->func, na);
-      case FC_UNRESOLVED:
-	 return new FunctionCallNode(strdup(n->f.c_str), na);
+   return new SelfFunctionCallNode(n->getMethod(), na);
+}
+
+static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink *xsink) {
+   QoreListNode *na = n->getArgs() ? crlr_list_copy(n->getArgs(), xsink) : 0;
+
+   switch (n->getFunctionType()) {
+      case FC_RESOLVED_GENERIC:
+	 return new FunctionCallNode(n->f.func, na);
       case FC_IMPORTED:
 	 return new FunctionCallNode(n->f.ifunc->pgm, n->f.ifunc->func, na);
-      case FC_METHOD: {
-	 FunctionCallNode *nn = new FunctionCallNode(strdup(n->f.c_str), na);
-	 nn->ftype = FC_METHOD;
-	 return nn;
-      }
    }
    assert(false);
    return 0;
 }
 
-static inline AbstractQoreNode *call_ref_call_copy(const CallReferenceCallNode *n, ExceptionSink *xsink)
-{
+static inline AbstractQoreNode *crlr_mcall_copy(const MethodCallNode *m, ExceptionSink *xsink) {
+   QoreListNode *args = const_cast<QoreListNode *>(m->getArgs());
+   //printd(5, "crlr_mcall_copy() m=%p (%s) args=%p (len=%d)\n", m, m->getName(), args, args ? args->size() : 0);
+   if (args) {
+      ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
+      if (*xsink)
+	 return 0;
+
+      args = args_holder.release();
+   }
+
+   const char *name = const_cast<char *>(m->getRawName());
+   return new MethodCallNode(name ? strdup(name) : 0, args);
+}
+
+static inline AbstractQoreNode *crlr_smcall_copy(const StaticMethodCallNode *m, ExceptionSink *xsink) {
+   QoreListNode *args = const_cast<QoreListNode *>(m->getArgs());
+   //printd(5, "crlr_mcall_copy() m=%p (%s) args=%p (len=%d)\n", m, m->getName(), args, args ? args->size() : 0);
+   if (args) {
+      ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
+      if (*xsink)
+	 return 0;
+
+      args = args_holder.release();
+   }
+
+   return new StaticMethodCallNode(m->getMethod(), args);
+}
+
+static inline AbstractQoreNode *call_ref_call_copy(const CallReferenceCallNode *n, ExceptionSink *xsink) {
    ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
    if (*xsink)
       return 0;
@@ -412,16 +399,14 @@ static inline AbstractQoreNode *call_ref_call_copy(const CallReferenceCallNode *
    return new CallReferenceCallNode(exp.release(), args);
 }
 
-static inline AbstractQoreNode *eval_notnull(const AbstractQoreNode *n, ExceptionSink *xsink)
-{
+static inline AbstractQoreNode *eval_notnull(const AbstractQoreNode *n, ExceptionSink *xsink) {
    n = n->eval(xsink);
    if (!xsink->isEvent() && !n)
       return nothing();
    return const_cast<AbstractQoreNode *>(n);
 }
 
-AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink)
-{
+AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink) {
    if (!n) return 0;
 
    qore_type_t ntype = n->getType();
@@ -434,6 +419,9 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
 
    if (ntype == NT_TREE)
       return crlr_tree_copy(reinterpret_cast<const QoreTreeNode *>(n), xsink);
+
+   if (ntype == NT_SELF_CALL)
+      return crlr_selfcall_copy(reinterpret_cast<const SelfFunctionCallNode *>(n), xsink);
 
    if (ntype == NT_FUNCTION_CALL)
       return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode *>(n), xsink);
@@ -448,36 +436,37 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
    if (ntype == NT_FUNCREFCALL)
       return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode *>(n), xsink);
 
+   if (ntype == NT_METHOD_CALL)
+      return crlr_mcall_copy(reinterpret_cast<const MethodCallNode *>(n), xsink);
+
+   if (ntype == NT_STATIC_METHOD_CALL)
+      return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode *>(n), xsink);
+
    return n->refSelf();
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)
-QoreString *AbstractQoreNode::getStringRepresentation(bool &del) const
-{
+QoreString *AbstractQoreNode::getStringRepresentation(bool &del) const {
    del = false;
    return NullString;
 }
 
 // empty default implementation
-void AbstractQoreNode::getStringRepresentation(QoreString &str) const
-{
+void AbstractQoreNode::getStringRepresentation(QoreString &str) const {
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-DateTime *AbstractQoreNode::getDateTimeRepresentation(bool &del) const
-{
+DateTime *AbstractQoreNode::getDateTimeRepresentation(bool &del) const {
    del = false;
    return ZeroDate;
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
-void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const
-{
+void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const {
    dt.setDate(0LL);
 }
 
-void SimpleQoreNode::deref()
-{
+void SimpleQoreNode::deref() {
    if (there_can_be_only_one) {
       assert(is_unique());
       return;
@@ -487,43 +476,36 @@ void SimpleQoreNode::deref()
       delete this;   
 }
 
-AbstractQoreNode *SimpleValueQoreNode::evalImpl(ExceptionSink *xsink) const
-{
+AbstractQoreNode *SimpleValueQoreNode::evalImpl(ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
 
-AbstractQoreNode *SimpleValueQoreNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
+AbstractQoreNode *SimpleValueQoreNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
 
-int64 SimpleValueQoreNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
+int64 SimpleValueQoreNode::bigIntEvalImpl(ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
 
-int SimpleValueQoreNode::integerEvalImpl(ExceptionSink *xsink) const
-{
+int SimpleValueQoreNode::integerEvalImpl(ExceptionSink *xsink) const {
    assert(false);
    return 0;
 }
 
-bool SimpleValueQoreNode::boolEvalImpl(ExceptionSink *xsink) const
-{
+bool SimpleValueQoreNode::boolEvalImpl(ExceptionSink *xsink) const {
    assert(false);
    return false;
 }
 
-double SimpleValueQoreNode::floatEvalImpl(ExceptionSink *xsink) const
-{
+double SimpleValueQoreNode::floatEvalImpl(ExceptionSink *xsink) const {
    assert(false);
    return 0.0;
 }
 
-AbstractQoreNode *UniqueValueQoreNode::realCopy() const
-{
+AbstractQoreNode *UniqueValueQoreNode::realCopy() const {
    return const_cast<UniqueValueQoreNode *>(this);
 }

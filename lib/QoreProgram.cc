@@ -1058,8 +1058,8 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, ParamList *&params, const
    UserFunction *ufc;
    if ((ufc = priv->user_func_list.find(fname))) {
       printd(5, "resolved user function call to %s\n", fname);
-      f->ftype = FC_USER;
-      f->f.ufunc = ufc;      
+      f->ftype = FC_RESOLVED_GENERIC;
+      f->f.func = ufc;      
       // make sure the return type is initialized
       returnTypeInfo = ufc->parseGetReturnTypeInfo();
       free(fname);
@@ -1083,8 +1083,8 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, ParamList *&params, const
    const BuiltinFunction *bfc;
    if ((bfc = builtinFunctions.find(fname))) {
       printd(5, "resolved builtin function call to %s\n", fname);
-      f->ftype = FC_BUILTIN;
-      f->f.bfunc = bfc;
+      f->ftype = FC_RESOLVED_GENERIC;
+      f->f.func = bfc;
       returnTypeInfo = bfc->getReturnTypeInfo();
       params = bfc->getParams();
 
@@ -1106,14 +1106,14 @@ void QoreProgram::resolveFunction(FunctionCallNode *f, ParamList *&params, const
 
 // called during parsing (plock already grabbed)
 AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallReferenceNode *fr) {
-   SimpleRefHolder<UnresolvedCallReferenceNode> fr_holder(fr);
+   std::auto_ptr<UnresolvedCallReferenceNode> fr_holder(fr);
    char *fname = fr->str;
 
    {   
       UserFunction *ufc;
       if ((ufc = priv->user_func_list.find(fname))) {
 	  printd(5, "QoreProgram::resolveCallReference() resolved function reference to user function %s (%p)\n", fname, ufc);
-	 return new StaticUserCallReferenceNode(ufc, this);
+	 return new LocalUserCallReferenceNode(ufc, this);
       }
    }
    

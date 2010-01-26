@@ -1,3 +1,4 @@
+* check for arguments to copy methods in self calls ($.copy())
 * check object method references at parse time to verify the type of the object expression if available (and then check if the the method exists)
 * implement a new C++ API for adding functions internally, check BuiltinFunctionList::add*() for duplicates when used by modules
 * fix %n and %N to not output private members when called outside the class

@@ -35,22 +35,6 @@ class ImportedFunctionCall {
    DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
-class SelfFunctionCall {
-  public:
-   char *name;
-   class NamedScope *ns;
-   const QoreMethod *func;
-
-   DLLLOCAL SelfFunctionCall(char *n);
-   DLLLOCAL SelfFunctionCall(NamedScope *n);
-   DLLLOCAL SelfFunctionCall(const QoreMethod *f);
-   DLLLOCAL ~SelfFunctionCall();
-   DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, ExceptionSink *xsink) const;
-   DLLLOCAL void resolve(ParamList *&params, const QoreTypeInfo *&returnTypeInfo);
-   DLLLOCAL char *takeName();
-   DLLLOCAL NamedScope *takeNScope();
-};
-
 class AbstractFunctionCallNode : public ParseNode {
 protected:
    QoreListNode *args;
@@ -144,21 +128,15 @@ class FunctionCallNode : public AbstractFunctionCallNode {
 
   public:
    union uFCall {
-      const UserFunction *ufunc;
-      const BuiltinFunction *bfunc;
-      SelfFunctionCall *sfunc;
+      const AbstractQoreFunction *func;
       ImportedFunctionCall *ifunc;
       char *c_str;
    } f;
    int ftype;
 
-   DLLLOCAL FunctionCallNode(const UserFunction *u, QoreListNode *a);
-   DLLLOCAL FunctionCallNode(const BuiltinFunction *b, QoreListNode *a);
-
-   // "self" in-object function call constructors
-   DLLLOCAL FunctionCallNode(QoreListNode *a, char *name);
-   DLLLOCAL FunctionCallNode(QoreListNode *a, class NamedScope *n);
-   DLLLOCAL FunctionCallNode(const QoreMethod *func, QoreListNode *a);
+   //DLLLOCAL FunctionCallNode(const UserFunction *u, QoreListNode *a);
+   //DLLLOCAL FunctionCallNode(const BuiltinFunction *b, QoreListNode *a);
+   DLLLOCAL FunctionCallNode(const AbstractQoreFunction *f, QoreListNode *a);
 
    // normal function call constructor
    DLLLOCAL FunctionCallNode(char *name, QoreListNode *a);
@@ -168,7 +146,6 @@ class FunctionCallNode : public AbstractFunctionCallNode {
    DLLLOCAL virtual ~FunctionCallNode();
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
    // returns the type name as a c string
@@ -192,8 +169,53 @@ class FunctionCallNode : public AbstractFunctionCallNode {
    }
 };
 
+class SelfFunctionCallNode : public AbstractFunctionCallNode {
+protected:
+   char *name;
+   NamedScope *ns;
+   const QoreMethod *func;
+
+   DLLLOCAL char *takeName() {
+      char *n = name;
+      name = 0;
+      return n;
+   }
+   DLLLOCAL NamedScope *takeNScope() {
+      NamedScope *rns = ns;
+      ns = 0;
+      return rns;
+   }
+
+public:
+   DLLLOCAL SelfFunctionCallNode(char *n, QoreListNode *n_args) : AbstractFunctionCallNode(NT_SELF_CALL, n_args), name(n), ns(0), func(0) {
+   }
+   DLLLOCAL SelfFunctionCallNode(NamedScope *n_ns, QoreListNode *n_args) : AbstractFunctionCallNode(NT_SELF_CALL, n_args), name(0), ns(n_ns), func(0) {}
+   DLLLOCAL SelfFunctionCallNode(const QoreMethod *f, QoreListNode *n_args) : AbstractFunctionCallNode(NT_SELF_CALL, n_args), name(0), ns(0), func(f) {}
+   DLLLOCAL virtual ~SelfFunctionCallNode() {
+      if (name)
+	 free(name);
+      delete ns;
+   }
+   DLLLOCAL virtual const char *getTypeName() const {
+      return "in-object method call";
+   }
+   DLLLOCAL virtual const char *getName() const {
+      return name ? name : (ns ? ns->ostr : func->getName());
+   }
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
+
+   DLLLOCAL const QoreMethod *getMethod() const {
+      return func;
+   }
+   DLLLOCAL AbstractQoreNode *makeReferenceNodeAndDeref();
+};
+
 class MethodCallNode : public AbstractFunctionCallNode {
-  protected:
+protected:
    char *c_str;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const {
@@ -201,7 +223,7 @@ class MethodCallNode : public AbstractFunctionCallNode {
       return 0;
    }
 
-  public:
+public:
    DLLLOCAL MethodCallNode(char *name, QoreListNode *n_args) : AbstractFunctionCallNode(NT_METHOD_CALL, n_args), c_str(name) {
       //printd(0, "MethodCallNode::MethodCallNode() this=%08p name='%s' args=%08p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
    }
@@ -269,8 +291,16 @@ class StaticMethodCallNode : public AbstractFunctionCallNode {
    DLLLOCAL StaticMethodCallNode(NamedScope *n_scope, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(n_scope), method(0) {
    }
 
+   // used when copying (for background expressions with processed arguments)
+   DLLLOCAL StaticMethodCallNode(const QoreMethod *m, QoreListNode *args) : AbstractFunctionCallNode(NT_STATIC_METHOD_CALL, args), scope(0), method(m) {
+   }
+
    DLLLOCAL virtual ~StaticMethodCallNode() {
       delete scope;
+   }
+
+   DLLLOCAL const QoreMethod *getMethod() const {
+      return method;
    }
       
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {

@@ -23,9 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 
-AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink *xsink) const {
+AbstractQoreNode *BuiltinFunction::evalFunction(const QoreListNode *args, ExceptionSink *xsink) const {
    AbstractQoreNode *rv;
-   ExceptionSink newsink;
 
    QORE_TRACE("BuiltinFunction::eval(Node)");
    printd(3, "BuiltinFunction::eval(Node) calling builtin function \"%s\"\n", name);
@@ -50,14 +49,7 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
       CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
 #endif
 
-      // execute the function if no new exception has happened
-      // necessary only in the case of a builtin object destructor
-      if (!newsink.isEvent())
-	 rv = func(*tmp, xsink);
-      else
-	 rv = 0;
-
-      xsink->assimilate(&newsink);
+      rv = func(*tmp, xsink);
    }
 
    if (xsink->isException())
@@ -66,8 +58,13 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
    return rv;
 }
 
-void BuiltinConstructor::eval(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
-   QORE_TRACE("BuiltinConstructor::eval()");
+void BuiltinConstructor::evalConstructor(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinConstructor::evalConstructor()");
+
+   // evalute arguments before calling builtin method
+   QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
+   if (*xsink)
+      return;
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -85,14 +82,19 @@ void BuiltinConstructor::eval(QoreObject *self, const QoreListNode *args, BCList
       bcl->execConstructorsWithArgs(self, bceal, xsink);
    
    if (!xsink->isEvent()) {
-      constructor(self, args, xsink);
+      constructor(self, *new_args, xsink);
       if (xsink->isException())
-	 xsink->addStackInfo(CT_BUILTIN, class_name, name, o_fn, o_ln, o_eln);
+	 xsink->addStackInfo(CT_BUILTIN, thisclass.getName(), name, o_fn, o_ln, o_eln);
    }
 }
 
-void BuiltinConstructor2::eval(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const {
-   QORE_TRACE("BuiltinConstructor2::eval()");
+void BuiltinConstructor2::evalConstructor(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinConstructor2::evalConstructor()");
+
+   // evalute arguments before calling builtin method
+   QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
+   if (*xsink)
+      return;
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -110,15 +112,19 @@ void BuiltinConstructor2::eval(const QoreClass &thisclass, QoreObject *self, con
       bcl->execConstructorsWithArgs(self, bceal, xsink);
    
    if (!xsink->isEvent()) {
-      constructor(thisclass, self, args, xsink);
+      constructor(thisclass, self, *new_args, xsink);
       if (xsink->isException())
-	 xsink->addStackInfo(CT_BUILTIN, class_name, name, o_fn, o_ln, o_eln);
+	 xsink->addStackInfo(CT_BUILTIN, thisclass.getName(), name, o_fn, o_ln, o_eln);
    }
 }
 
-void BuiltinDestructor::eval(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const {
-   QORE_TRACE("BuiltinDestructor::eval()");
+void BuiltinDestructor::evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinDestructor::evalDestructor()");
    
+   AbstractPrivateData *private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   if (!private_data)
+      return;
+
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
@@ -135,11 +141,15 @@ void BuiltinDestructor::eval(QoreObject *self, AbstractPrivateData *private_data
    }
    
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, class_name, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_BUILTIN, thisclass.getName(), name, o_fn, o_ln, o_eln);
 }
 
-void BuiltinDestructor2::eval(const QoreClass &thisclass, QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const {
-   QORE_TRACE("BuiltinDestructor2::eval()");
+void BuiltinDestructor2::evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinDestructor2::evalDestructor()");
+
+   AbstractPrivateData *private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   if (!private_data)
+      return;
    
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -157,11 +167,11 @@ void BuiltinDestructor2::eval(const QoreClass &thisclass, QoreObject *self, Abst
    }
    
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, class_name, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_BUILTIN, thisclass.getName(), name, o_fn, o_ln, o_eln);
 }
 
-void BuiltinCopy::eval(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
-   QORE_TRACE("BuiltinCopy::eval()");
+void BuiltinCopy::evalImpl(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinCopy::evalImpl()");
    
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -182,8 +192,8 @@ void BuiltinCopy::eval(const QoreClass &thisclass, QoreObject *self, QoreObject 
       xsink->addStackInfo(CT_BUILTIN, thisclass.getName(), "copy", o_fn, o_ln, o_eln);
 }
 
-void BuiltinCopy2::eval(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
-   QORE_TRACE("BuiltinCopy2::eval()");
+void BuiltinCopy2::evalImpl(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
+   QORE_TRACE("BuiltinCopy2::evalImpl()");
    
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -204,8 +214,19 @@ void BuiltinCopy2::eval(const QoreClass &thisclass, QoreObject *self, QoreObject
       xsink->addStackInfo(CT_BUILTIN, thisclass.getName(), name, o_fn, o_ln, o_eln);
 }
 
-AbstractQoreNode *BuiltinNormalMethod::eval(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
-   printd(2, "BuiltinNormalMethod::eval() calling builtin func '%s' old calling convention obj=%08p data=%08p\n", name, self, private_data);
+AbstractQoreNode *BuiltinNormalMethodBase::evalNormalMethod(const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
+   // save current program location in case there's an exception
+   const char *o_fn = get_pgm_file();
+   int o_ln, o_eln;
+   get_pgm_counter(o_ln, o_eln);
+      
+   // evalute arguments before calling builtin method
+   QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
+   if (*xsink)
+      return 0;
+
+   // reset program position after arguments are evaluted
+   update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);   
 
    CodeContextHelper cch(name, self, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -213,31 +234,31 @@ AbstractQoreNode *BuiltinNormalMethod::eval(QoreObject *self, AbstractPrivateDat
    CallStackHelper csh(name, CT_BUILTIN, self, xsink);
 #endif
 
+   AbstractQoreNode *rv = self->evalBuiltinMethodWithPrivateData(method, reinterpret_cast<const BuiltinNormalMethodBase *>(this), *new_args, xsink);
+   if (xsink->isException())
+      xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), getName(), o_fn, o_ln, o_eln);
+   return rv;
+}
+
+AbstractQoreNode *BuiltinNormalMethod::evalImpl(const QoreMethod &qmethod, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
+   printd(2, "BuiltinNormalMethod::evalImpl() calling builtin func '%s' old calling convention obj=%08p data=%08p\n", name, self, private_data);
    // exception information added at the level above
    // (program location must be saved before arguments are evaluated)
    return method(self, private_data, args, xsink);
 }
 
-AbstractQoreNode *BuiltinNormalMethod2::eval(const QoreMethod &qmethod, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
-   printd(2, "BuiltinNormalMethod2::evalMethod() calling builtin func '%s' new calling convention obj=%08p data=%08p\n", name, self, private_data);
-
-   CodeContextHelper cch(name, self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   // push call on call stack in debugging mode
-   CallStackHelper csh(name, CT_BUILTIN, self, xsink);
-#endif
-
+AbstractQoreNode *BuiltinNormalMethod2::evalImpl(const QoreMethod &qmethod, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
+   printd(2, "BuiltinNormalMethod2::evalImpl() calling builtin func '%s' new calling convention obj=%08p data=%08p\n", name, self, private_data);
    // exception information added at the level above
    // (program location must be saved before arguments are evaluated)
    return method(qmethod, self, private_data, args, xsink);
 }
 
-AbstractQoreNode *BuiltinStaticMethod::eval(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+AbstractQoreNode *BuiltinStaticMethod::evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
    AbstractQoreNode *rv;
-   ExceptionSink newsink;
 
-   QORE_TRACE("BuiltinStaticMethod::eval(Node)");
-   printd(3, "BuiltinStaticMethod::eval(Node) calling builtin function \"%s\"\n", name);
+   QORE_TRACE("BuiltinStaticMethod::evalStaticMethod(Node)");
+   printd(3, "BuiltinStaticMethod::evalStaticMethod(Node) calling builtin function \"%s\"\n", name);
    
    //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->getTypeName() : "(null)");
 
@@ -259,11 +280,7 @@ AbstractQoreNode *BuiltinStaticMethod::eval(const QoreMethod &method, const Qore
       CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
 #endif
 
-      // execute the function if no new exception has happened
-      // necessary only in the case of a builtin object destructor
-      rv = !newsink.isEvent() ? static_method(*tmp, xsink) : 0;
-
-      xsink->assimilate(&newsink);
+      rv = static_method(*tmp, xsink);
    }
 
    if (xsink->isException())
@@ -272,14 +289,13 @@ AbstractQoreNode *BuiltinStaticMethod::eval(const QoreMethod &method, const Qore
    return rv;
 }
 
-AbstractQoreNode *BuiltinStaticMethod2::eval(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+AbstractQoreNode *BuiltinStaticMethod2::evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
    AbstractQoreNode *rv;
-   ExceptionSink newsink;
 
-   QORE_TRACE("BuiltinStaticMethod2:eval()");
-   printd(3, "BuiltinStaticMethod2::eval() calling builtin function \"%s\"\n", name);
+   QORE_TRACE("BuiltinStaticMethod2:evalStaticMethod()");
+   printd(3, "BuiltinStaticMethod2::evalStaticMethod() calling builtin function \"%s\"\n", name);
    
-   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->getTypeName() : "(null)");
+   //printd(5, "BuiltinStaticMethod2::evalStaticMethod() args=%08p %s\n", args, args ? args->getTypeName() : "(null)");
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -290,7 +306,7 @@ AbstractQoreNode *BuiltinStaticMethod2::eval(const QoreMethod &method, const Qor
    if (*xsink)
       return 0;
 
-   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
+   //printd(5, "BuiltinStaticMethod2::evalStaticMethod() after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
 
    {
       CodeContextHelper cch(name, 0, xsink);
@@ -301,9 +317,7 @@ AbstractQoreNode *BuiltinStaticMethod2::eval(const QoreMethod &method, const Qor
 
       // execute the function if no new exception has happened
       // necessary only in the case of a builtin object destructor
-      rv = !newsink.isEvent() ? static_method(method, *tmp, xsink) :  0;
-
-      xsink->assimilate(&newsink);
+      rv = static_method(method, *tmp, xsink);
    }
 
    if (xsink->isException())
