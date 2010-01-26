@@ -397,7 +397,7 @@ static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, Excep
 
 static inline AbstractQoreNode *crlr_mcall_copy(const MethodCallNode *m, ExceptionSink *xsink) {
    QoreListNode *args = const_cast<QoreListNode *>(m->getArgs());
-   printd(0, "crlr_mcall_copy() m=%p (%s) args=%p (len=%d)\n", m, m->getName(), args, args ? args->size() : 0);
+   //printd(5, "crlr_mcall_copy() m=%p (%s) args=%p (len=%d)\n", m, m->getName(), args, args ? args->size() : 0);
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)
