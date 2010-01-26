@@ -395,8 +395,22 @@ static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, Excep
    return 0;
 }
 
-static inline AbstractQoreNode *call_ref_call_copy(const CallReferenceCallNode *n, ExceptionSink *xsink)
-{
+static inline AbstractQoreNode *crlr_mcall_copy(const MethodCallNode *m, ExceptionSink *xsink) {
+   QoreListNode *args = const_cast<QoreListNode *>(m->getArgs());
+   printd(0, "crlr_mcall_copy() m=%p (%s) args=%p (len=%d)\n", m, m->getName(), args, args ? args->size() : 0);
+   if (args) {
+      ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
+      if (*xsink)
+         return 0;
+
+      args = args_holder.release();
+   }
+
+   const char *name = const_cast<char *>(m->getRawName());
+   return new MethodCallNode(name ? strdup(name) : 0, args);
+}
+
+static inline AbstractQoreNode *call_ref_call_copy(const CallReferenceCallNode *n, ExceptionSink *xsink) {
    ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
    if (*xsink)
       return 0;
@@ -448,6 +462,9 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
 
    if (ntype == NT_FUNCREFCALL)
       return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode *>(n), xsink);
+
+   if (ntype == NT_METHOD_CALL)
+      return crlr_mcall_copy(reinterpret_cast<const MethodCallNode *>(n), xsink);
 
    return n->refSelf();
 }

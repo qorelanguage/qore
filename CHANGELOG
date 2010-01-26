@@ -1,3 +1,9 @@
+2010.01.26: David Nichols
+	* fixed a bug processing arguments to in-object method calls in the
+	  background operator (backported from trunk/0.8.0)
+
+*** v0.7.7 RELEASE *** 
+
 2009.12.02: David Nichols
 	* fixed a bug where taking a slice from an object could return private
 	  members when called outside the class (backported from trunk)
