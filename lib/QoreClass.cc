@@ -592,11 +592,11 @@ struct qore_class_private {
 
    DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink *xsink) const;
 
-   DLLLOCAL void execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const;
+   DLLLOCAL void execBaseClassDestructor(QoreObject *self, ExceptionSink *xsink) const;
 
-   DLLLOCAL void execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
+   DLLLOCAL void execBaseClassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
 
-   DLLLOCAL void execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
+   DLLLOCAL void execBaseClassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
 
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit();
@@ -1502,7 +1502,7 @@ void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const {
    while (i != rend()) {
       printd(5, "BCSMList::execDestructors() %s::destructor() o=%p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
       if (!(*i).second)
-	 (*i).first->priv->execSubclassDestructor(o, xsink);
+	 (*i).first->priv->execBaseClassDestructor(o, xsink);
       i++;
    }
 }
@@ -1512,7 +1512,7 @@ void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const 
    while (i != rend()) {
       printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
       if (!(*i).second)
-	 (*i).first->priv->execSubclassSystemDestructor(o, xsink);
+	 (*i).first->priv->execBaseClassSystemDestructor(o, xsink);
       i++;
    }
 }
@@ -1521,7 +1521,7 @@ void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink 
    class_list_t::const_iterator i = begin();
    while (i != end()) {
       if (!(*i).second) {
-	 (*i).first->priv->execSubclassCopy(self, old, xsink);
+	 (*i).first->priv->execBaseClassCopy(self, old, xsink);
 	 if (xsink->isEvent())
 	    break;
       }
@@ -1848,7 +1848,7 @@ void qore_class_private::execDestructor(QoreObject *self, ExceptionSink *xsink) 
    xsink->assimilate(&de);
 }
 
-void qore_class_private::execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const {
+void qore_class_private::execBaseClassDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
@@ -1860,7 +1860,7 @@ void qore_class_private::execSubclassDestructor(QoreObject *self, ExceptionSink 
    xsink->assimilate(&de);
 }
 
-void qore_class_private::execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
+void qore_class_private::execBaseClassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
@@ -1872,7 +1872,7 @@ void qore_class_private::execSubclassSystemDestructor(QoreObject *self, Exceptio
    xsink->assimilate(&de);
 }
 
-void qore_class_private::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
+void qore_class_private::execBaseClassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
    if (copyMethod)
       copyMethod->priv->evalCopy(self, old, xsink);
 }

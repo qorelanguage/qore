@@ -212,12 +212,6 @@ class QoreClass {
       DLLLOCAL bool execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const;
       // This function must only be called from QoreObject
       DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      // This function must only be called from BCSMList
-      DLLLOCAL void execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      // This function must only be called from BCSMList
-      DLLLOCAL void execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      // This function must only be called from BCSMList
-      DLLLOCAL void execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
       // This function is only called from BCList
       DLLEXPORT const QoreClass *getClassIntern(qore_classid_t cid, bool &priv) const;
 

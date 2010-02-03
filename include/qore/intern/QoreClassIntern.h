@@ -221,7 +221,7 @@ public:
 
 class BuiltinMethodVariant : public MethodVariant, public BuiltinFunctionVariantBase {
 public:
-   DLLLOCAL BuiltinMethodVariant(int n_priv_flag, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : MethodVariant(n_priv_flag), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList) {}
+   DLLLOCAL BuiltinMethodVariant(bool n_priv_flag, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : MethodVariant(n_priv_flag), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList) {}
 
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
@@ -229,7 +229,7 @@ public:
 
 class BuiltinNormalMethodVariantBase : public BuiltinMethodVariant {
 public:
-   DLLLOCAL BuiltinNormalMethodVariantBase(int n_priv_flag, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList) {}
+   DLLLOCAL BuiltinNormalMethodVariantBase(bool n_priv_flag, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList) {}
 
    DLLLOCAL virtual AbstractQoreNode *evalNormalMethod(const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
       return self->evalBuiltinMethodWithPrivateData(method, this, args, xsink);
@@ -247,7 +247,7 @@ protected:
    q_method_t method;
 
 public:
-   DLLLOCAL BuiltinNormalMethodVariant(q_method_t m, int n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinNormalMethodVariantBase(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), method(m) {
+   DLLLOCAL BuiltinNormalMethodVariant(q_method_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinNormalMethodVariantBase(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), method(m) {
    }
    DLLLOCAL virtual AbstractQoreNode *evalImpl(const QoreMethod &meth, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
       return method(self, private_data, args, xsink);
@@ -259,7 +259,7 @@ protected:
    q_method2_t method;
 
 public:
-   DLLLOCAL BuiltinNormalMethod2Variant(q_method2_t m, int n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinNormalMethodVariantBase(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), method(m) {
+   DLLLOCAL BuiltinNormalMethod2Variant(q_method2_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinNormalMethodVariantBase(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), method(m) {
    }
    DLLLOCAL virtual AbstractQoreNode *evalImpl(const QoreMethod &meth, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
       return method(meth, self, private_data, args, xsink);
@@ -271,7 +271,7 @@ protected:
    q_func_t static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethodVariant(q_func_t m, int n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
+   DLLLOCAL BuiltinStaticMethodVariant(q_func_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
    }
    DLLLOCAL virtual AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
       return static_method(args, xsink);
@@ -288,7 +288,7 @@ protected:
    q_static_method2_t static_method;
 
 public:
-   DLLLOCAL BuiltinStaticMethod2Variant(q_static_method2_t m, int n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
+   DLLLOCAL BuiltinStaticMethod2Variant(q_static_method2_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
    }
    DLLLOCAL AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
       return static_method(method, args, xsink);

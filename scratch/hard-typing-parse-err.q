@@ -14,9 +14,6 @@ class T {
 	# type error in return statement
 	return 0;
     }
-    # param error in destructor
-    destructor($a) {
-    }
     test() {
         $.copy("string");
     }

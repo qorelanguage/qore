@@ -495,6 +495,8 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
       }
       return new UserDestructorVariant(b, n_sig_first_line, n_sig_last_line);
    }
+   if (!strcmp(name, "copy") && !(mod & OFM_SYNCED))
+      return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
 
    return new UserMethodVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
 }
@@ -1254,9 +1256,9 @@ myexp:     /* empty */          { $$ = 0; }
 class_def:
 	TOK_CLASS IDENTIFIER inheritance_list '{' class_attributes '}'
         {
-	   $$ = new ObjClassDef($2, $5); 
 	   $5->setName($2);
 	   $5->parseSetBaseClassList($3);
+	   $$ = new ObjClassDef($2, $5); 
 	}
         | TOK_CLASS SCOPED_REF inheritance_list '{' class_attributes '}'
         { 
