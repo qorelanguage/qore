@@ -281,10 +281,10 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
 	 return 0;
       }
    }
-   qore_call_t ct = variant->getCallType();
 
    CodeContextHelper cch(fname, 0, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   qore_call_t ct = variant->getCallType();
    // push call on call stack in debugging mode
    CallStackHelper csh(fname, ct, 0, xsink);
 #endif
@@ -305,9 +305,9 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
       return 0;
    }
 
-   qore_call_t ct = variant->getCallType();
    CodeContextHelper cch(fname, 0, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   qore_call_t ct = variant->getCallType();
    // push call on call stack in debugging mode
    CallStackHelper csh(fname, ct, 0, xsink);
 #endif

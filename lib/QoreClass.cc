@@ -1982,10 +1982,9 @@ int QoreClass::addUserMethod(const char *mname, MethodVariantBase *f, bool n_sta
 }
 
 int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, bool n_static) {
-   bool n_priv = f->isPrivate();
    // FIXME: set class name at parse time
    const char *tname = name ? name : "<pending>";
-   printd(5, "QoreClass::addUserMethod(%s, umv=%p, priv=%d, static=%d) this=%p %s\n", mname, f, n_priv, n_static, this, tname);
+   printd(5, "QoreClass::addUserMethod(%s, umv=%p, priv=%d, static=%d) this=%p %s\n", mname, f, f->isPrivate(), n_static, this, tname);
 
    std::auto_ptr<MethodVariantBase> func(f);
 
@@ -2547,10 +2546,10 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
-   qore_call_t ct = variant->getCallType();
 
    CodeContextHelper cch(mname, self, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   qore_call_t ct = variant->getCallType();
    // push call on call stack in debugging mode
    CallStackHelper csh(mname, ct, self, xsink);
 #endif
@@ -2571,10 +2570,10 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
-   qore_call_t ct = variant->getCallType();
 
    CodeContextHelper cch(mname, 0, xsink);
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   qore_call_t ct = variant->getCallType();
    // push call on call stack in debugging mode
    CallStackHelper csh(mname, ct, 0, xsink);
 #endif

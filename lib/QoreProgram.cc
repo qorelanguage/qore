@@ -876,7 +876,7 @@ void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, Exception
 	 p->priv->importUserFunction(this, u, xsink);
       }
       else {
-	 QoreProgram *ipgm;
+	 QoreProgram *ipgm = 0;
 	 u = priv->imported_func_list.find(name, ipgm);
 	 priv->plock.unlock();
 	 if (!u)
@@ -1193,7 +1193,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
       fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), 0);
    }
    else {
-      QoreProgram *ipgm;
+      QoreProgram *ipgm = 0;
       ufc = priv->imported_func_list.find(name, ipgm);
       priv->plock.unlock();
       if (ufc) {

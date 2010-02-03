@@ -402,7 +402,7 @@ public:
       if (!same_return_type)
 	 return 0;
 
-      const QoreTypeInfo *rv;
+      const QoreTypeInfo *rv = 0;
       for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
 	 rv = (*i)->parseGetReturnTypeInfo();
       }
