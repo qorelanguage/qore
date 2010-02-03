@@ -49,6 +49,9 @@
 //! defined because this version of Qore has the XmlDoc Qore class
 #define _QORE_HAS_QORE_XMLDOC_CLASS 1
 
+//! defined because this version of Qore supports hard typing and overloading
+#define _QORE_HAS_HARD_TYPING 1
+
 //! function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);
 
