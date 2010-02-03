@@ -29,7 +29,7 @@
 class ScopedObjectCallNode : public AbstractFunctionCallNode {
 protected:
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      return oc->execConstructor(args, xsink);
+      return oc->execConstructor(variant, args, xsink);
    }
    // WARNING: pay attention when subclassing; this method must also be implemented in the subclass
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
@@ -96,6 +96,8 @@ public:
       name = 0;
       const QoreMethod *constructor = oc ? oc->getConstructor() : 0;
       lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0);
+
+      //printd(5, "ScopedObjectCallNode::parseInit() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
       
       return this;
    }

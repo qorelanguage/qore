@@ -49,7 +49,7 @@ DLLEXPORT extern int debug;
 #define printd print_debug
 
 //! a macro for tracing, when "DEBUG" is not defined, the function call to trace_function() will not be included in the compiled output
-#define QORE_TRACE(a) { trace_function(TRACE_IN, a); ON_BLOCK_EXIT(trace_function, TRACE_OUT, a); }
+#define QORE_TRACE(a) trace_function(TRACE_IN, a); ON_BLOCK_EXIT(trace_function, TRACE_OUT, a)
 
 #else
 #ifdef __GNUC__

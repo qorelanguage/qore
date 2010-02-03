@@ -103,15 +103,13 @@ class QoreMethod {
        */
       DLLEXPORT bool newCallingConvention() const;
 
-      //! DEPRECATED: always returns true, do not use
-      /** this method no longer returns useful information due to method overloading
-	  @return DEPRECATED: always returns true
+      //! returns true if all variants of the method are user variants
+      /** @return true if all variants of the method are user variants
        */
       DLLEXPORT bool isUser() const;
 
-      //! DEPRECATED: always returns false, do not use
-      /** this method no longer returns useful information due to method overloading
-	  @return DEPRECATED: always returns false
+      //! returns true if all variants of the method are builtin variants
+      /** @return true if all variants of the method are builtin variants
        */
       DLLEXPORT bool isBuiltin() const;
 

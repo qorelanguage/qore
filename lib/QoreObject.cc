@@ -37,7 +37,7 @@
 #define QOA_PRIV_ERROR  1
 #define QOA_PUB_ERROR   2
 
-//#define QORE_DEBUG_OBJ_REFS 0
+#define QORE_DEBUG_OBJ_REFS 1
 
 /*
   Qore internal class data is stored against the object with this data structure
@@ -132,7 +132,7 @@ public:
 	 obj(n_obj)
       {
 #ifdef QORE_DEBUG_OBJ_REFS
-	 printd(QORE_DEBUG_OBJ_REFS, "QoreObject::QoreObject() this=%p, pgm=%p, class=%s, references 0->1\n", this, p, oc->getName());
+	 printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
 #endif
 	 /* instead of referencing the class, we reference the program, because the
 	    program contains the namespace that contains the class, and the class'
@@ -140,7 +140,7 @@ public:
 	    disappear when the program is deleted
 	 */
 	 if (p) {
-	    printd(5, "QoreObject::init() this=%p (%s) calling QoreProgram::depRef() (%p)\n", this, theclass->getName(), p);
+	    printd(5, "qore_object_private::qore_object_private() obj=%p (%s) calling QoreProgram::depRef() (%p)\n", obj, theclass->getName(), p);
 	    p->depRef();
 	 }
       }
@@ -232,7 +232,7 @@ public:
 
       // lock not already held
       DLLLOCAL void doDeleteIntern(ExceptionSink *xsink) {
-	 printd(5, "QoreObject::doDeleteIntern() execing destructor()\n");   
+	 printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);   
 	 theclass->execDestructor(obj, xsink);
 
 	 QoreHashNode *td;
@@ -256,7 +256,7 @@ public:
 	 }
    
 	 if (pgm) {
-	    printd(5, "QoreObject::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
+	    printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
 	    pgm->depDeref(xsink);
 #ifdef DEBUG
 	    pgm = 0;
@@ -268,10 +268,10 @@ public:
 
       // this method is called when there is an exception in a constructor and the object should be deleted
       DLLLOCAL void obliterate(ExceptionSink *xsink) {
-	 printd(5, "QoreObject::obliterate() obj=%p class=%s %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
+	 printd(5, "qore_object_private::obliterate() obj=%p class=%s %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
 
 #ifdef QORE_DEBUG_OBJ_REFS
-	 printd(QORE_DEBUG_OBJ_REFS, "QoreObject::obliterate(obj=%p) class=%s: references %d->%d\n", obj, getClassName(), obj->references, obj->references - 1);
+	 printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::obliterate() obj=%p class=%s: references %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
 #endif
 	 
 	 {
@@ -284,7 +284,7 @@ public:
 	    SafeLocker sl(mutex);
 	    
 	    if (in_destructor || status != OS_OK) {
-	       printd(5, "QoreObject::obliterate() %p data=%p in_destructor=%d status=%d\n", obj, data, in_destructor, status);
+	       printd(5, "qore_object_private::obliterate() obj=%p data=%p in_destructor=%d status=%d\n", obj, data, in_destructor, status);
 	       //printd(0, "Object lock %p unlocked (safe)\n", &mutex);
 	       sl.unlock();
 	       tDeref();
@@ -292,7 +292,7 @@ public:
 	    }
 	    
 	    //printd(5, "Object lock %p locked   (safe)\n", &mutex);
-	    printd(5, "QoreObject::obliterate() class=%s deleting obj=%p\n", theclass->getName(), obj);
+	    printd(5, "qore_object_private::obliterate() obj=%p class=%s\n", obj, theclass->getName());
 	    
 	    status = OS_DELETED;
 	    QoreHashNode *td = data;
@@ -318,14 +318,14 @@ public:
 
       DLLLOCAL void tRef() const {
 #ifdef QORE_DEBUG_OBJ_REFS
-	 printd(QORE_DEBUG_OBJ_REFS, "QoreObject::tRef() obj=%p class=%s: tref %d->%d\n", obj, theclass->getName(), tRefs.reference_count(), tRefs.reference_count() + 1);
+	 printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::tRef() obj=%p class=%s: tref %d->%d\n", obj, theclass->getName(), tRefs.reference_count(), tRefs.reference_count() + 1);
 #endif
 	 tRefs.ROreference();
       }
 
       DLLLOCAL void tDeref() {
 #ifdef QORE_DEBUG_OBJ_REFS
-	 printd(QORE_DEBUG_OBJ_REFS, "QoreObject::tDeref() obj=%p class=%s: tref %d->%d\n", obj, theclass->getName(), tRefs.reference_count(), tRefs.reference_count() - 1);
+	 printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::tDeref() obj=%p class=%s: tref %d->%d\n", obj, theclass->getName(), tRefs.reference_count(), tRefs.reference_count() - 1);
 #endif
 	 if (tRefs.ROdereference())
 	    delete obj;
@@ -606,7 +606,7 @@ void QoreObject::customRefIntern() const {
    if (!references)
       tRef();
 #ifdef QORE_DEBUG_OBJ_REFS
-   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customRefIntern(this=%p) class=%s: references %d->%d\n", this, getClassName(), references, references + 1);
+   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customRefIntern() this=%p class=%s references %d->%d\n", this, getClassName(), references, references + 1);
 #endif
    ++references;
 }

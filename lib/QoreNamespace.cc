@@ -1152,7 +1152,7 @@ QoreClass *QoreNamespace::parseMatchScopedClass(NamedScope *nscope, int *matched
 }
 
 AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(NamedScope *nscope, int *matched, const QoreTypeInfo *&typeInfo) const {
-   printd(5, "QoreNamespace::parseMatchScopedConstantValue() trying to find %s in %s (%p)\n", 
+   printd(5, "QoreNamespace::parseMatchScopedConstantValue() trying to find %s in %s (%p) typeInfo=%p\n", 
 	  nscope->getIdentifier(), priv->name.c_str(), getConstantValue(nscope->getIdentifier(), typeInfo));
 
    if (strcmp(nscope->strlist[0], priv->name.c_str()))

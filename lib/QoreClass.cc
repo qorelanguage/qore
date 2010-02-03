@@ -422,86 +422,13 @@ struct qore_class_private {
 
    DLLLOCAL QoreObject *execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
 
-   DLLLOCAL void addBuiltinMethod(const char *mname, MethodVariantBase *variant) {
-      assert(strcmp(mname, "constructor"));
-      assert(strcmp(mname, "destructor"));
-      assert(strcmp(mname, "copy"));
-
-      hm_method_t::iterator i = hm.find(mname);
-      MethodFunctionBase *m;
-      if (i == hm.end()) {
-	 m = new BuiltinMethod(mname);
-	 QoreMethod *nm = new QoreMethod(typeInfo.qc, m, false);
-	 insertBuiltinMethod(nm);
-      }
-      else {
-	 m = i->second->getFunction();
-      }
-      m->addBuiltinMethodVariant(variant);
-   }
-
-   DLLLOCAL void addBuiltinStaticMethod(const char *mname, MethodVariantBase *variant) {
-      assert(strcmp(mname, "constructor"));
-      assert(strcmp(mname, "destructor"));
-
-      hm_method_t::iterator i = shm.find(mname);
-      MethodFunctionBase *m;
-      if (i == shm.end()) {
-	 m = new BuiltinMethod(mname);
-	 QoreMethod *nm = new QoreMethod(typeInfo.qc, m, true);
-	 insertBuiltinStaticMethod(nm);
-      }
-      else {
-	 m = i->second->getFunction();
-      }
-      m->addBuiltinMethodVariant(variant);
-   }
-
-   DLLLOCAL void addBuiltinConstructor(BuiltinConstructorVariantBase *variant) {
-      MethodFunctionBase *m;
-      if (!constructor) {
-	 m = new ConstructorMethodFunction;
-	 QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
-	 constructor = qm;
-	 insertBuiltinMethod(qm);
-      }
-      else {
-	 m = constructor->getFunction();
-      }
-      m->addBuiltinMethodVariant(variant);
-   }
-
-   DLLLOCAL void addBuiltinDestructor(BuiltinDestructorVariantBase *variant) {
-      assert(!destructor);
-      DestructorMethodFunction *m = new DestructorMethodFunction;
-      QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
-      destructor = qm;
-      insertBuiltinMethod(qm);
-      m->addBuiltinMethodVariant(variant);
-   }
-
-   DLLLOCAL void addBuiltinCopyMethod(BuiltinCopyVariantBase *variant) {
-      assert(!copyMethod);
-      CopyMethodFunction *m = new CopyMethodFunction;
-      QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
-      copyMethod = qm;
-      insertBuiltinMethod(qm);
-      m->addBuiltinMethodVariant(variant);
-   }
-
-   DLLLOCAL void setDeleteBlocker(q_delete_blocker_t func) {
-      assert(!deleteBlocker);
-      BuiltinDeleteBlocker *m = new BuiltinDeleteBlocker(func);
-      QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
-      deleteBlocker = qm;
-      insertBuiltinMethod(qm);
-   }
-
-   DLLLOCAL void setBuiltinSystemConstructor(BuiltinSystemConstructorBase *m) {
-      assert(!system_constructor);
-      QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
-      system_constructor = qm;
-   }
+   DLLLOCAL void addBuiltinMethod(const char *mname, MethodVariantBase *variant);
+   DLLLOCAL void addBuiltinStaticMethod(const char *mname, MethodVariantBase *variant);
+   DLLLOCAL void addBuiltinConstructor(BuiltinConstructorVariantBase *variant);
+   DLLLOCAL void addBuiltinDestructor(BuiltinDestructorVariantBase *variant);
+   DLLLOCAL void addBuiltinCopyMethod(BuiltinCopyVariantBase *variant);
+   DLLLOCAL void setDeleteBlocker(q_delete_blocker_t func);
+   DLLLOCAL void setBuiltinSystemConstructor(BuiltinSystemConstructorBase *m);
 
    DLLLOCAL void execBaseClassConstructor(QoreObject *self, BCEAList *bceal, ExceptionSink *xsink) const;
    DLLLOCAL QoreObject *execSystemConstructor(QoreObject *self, int code, va_list args) const;
@@ -607,17 +534,30 @@ struct qore_class_private {
 struct qore_method_private {
    const QoreClass *parent_class;
    MethodFunctionBase *func;
-   bool static_flag;   
+   bool static_flag, all_user;
 
-   DLLLOCAL qore_method_private(const QoreClass *n_parent_class, MethodFunctionBase *n_func, bool n_static) : parent_class(n_parent_class), func(n_func), static_flag(n_static) {
+   DLLLOCAL qore_method_private(const QoreClass *n_parent_class, MethodFunctionBase *n_func, bool n_static) : parent_class(n_parent_class), func(n_func), static_flag(n_static), all_user(true) {
    }
 
    DLLLOCAL ~qore_method_private() {
       func->deref();
    }
+   
+   DLLLOCAL void setBuiltin() {
+      all_user = false;
+   }
+
+   DLLLOCAL bool isUniquelyUser() const {
+      return all_user;
+   }
 
    DLLLOCAL int addUserVariant(MethodVariantBase *variant) {
       return func->parseAddVariant(variant);
+   }
+
+   DLLLOCAL void addBuiltinVariant(MethodVariantBase *variant) {
+      all_user = false;
+      func->addBuiltinMethodVariant(variant);
    }
 
    DLLLOCAL MethodFunctionBase *getFunction() const {
@@ -762,7 +702,7 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
    }
    else {
       constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
-      printd(5, "qore_class_private::evalConstructor() class=%p %s done\n", typeInfo.qc, name);
+      printd(5, "qore_class_private::execConstructor() class=%p %s done\n", typeInfo.qc, name);
    }
 
    if (*xsink) {
@@ -825,6 +765,89 @@ void qore_class_private::parseCommit() {
    // running parseCommit())
    if (!has_public_members && (!public_members.empty() || (scl ? scl->parseHasPublicMembersInHierarchy() : false)))
       has_public_members = true;
+}
+
+void qore_class_private::addBuiltinMethod(const char *mname, MethodVariantBase *variant) {
+   assert(strcmp(mname, "constructor"));
+   assert(strcmp(mname, "destructor"));
+   assert(strcmp(mname, "copy"));
+
+   hm_method_t::iterator i = hm.find(mname);
+   QoreMethod *nm;
+   if (i == hm.end()) {
+      MethodFunctionBase *m = new BuiltinMethod(mname);
+      nm = new QoreMethod(typeInfo.qc, m, false);
+      insertBuiltinMethod(nm);
+   }
+   else {
+      nm = i->second;
+   }
+   nm->priv->addBuiltinVariant(variant);
+}
+
+void qore_class_private::addBuiltinStaticMethod(const char *mname, MethodVariantBase *variant) {
+   assert(strcmp(mname, "constructor"));
+   assert(strcmp(mname, "destructor"));
+
+   hm_method_t::iterator i = shm.find(mname);
+   QoreMethod *nm;
+   if (i == shm.end()) {
+      MethodFunctionBase *m = new BuiltinMethod(mname);
+      nm = new QoreMethod(typeInfo.qc, m, true);
+      insertBuiltinStaticMethod(nm);
+   }
+   else {
+      nm = i->second;
+   }
+   nm->priv->addBuiltinVariant(variant);
+}
+
+void qore_class_private::addBuiltinConstructor(BuiltinConstructorVariantBase *variant) {
+   QoreMethod *nm;
+   if (!constructor) {
+      MethodFunctionBase *m = new ConstructorMethodFunction;
+      nm = new QoreMethod(typeInfo.qc, m, false);
+      constructor = nm;
+      insertBuiltinMethod(nm);
+   }
+   else {
+      nm = const_cast<QoreMethod *>(constructor);
+   }
+   nm->priv->addBuiltinVariant(variant);
+}
+
+void qore_class_private::addBuiltinDestructor(BuiltinDestructorVariantBase *variant) {
+   assert(!destructor);
+   DestructorMethodFunction *m = new DestructorMethodFunction;
+   QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+   destructor = qm;
+   insertBuiltinMethod(qm);
+   qm->priv->addBuiltinVariant(variant);
+}
+
+void qore_class_private::addBuiltinCopyMethod(BuiltinCopyVariantBase *variant) {
+   assert(!copyMethod);
+   CopyMethodFunction *m = new CopyMethodFunction;
+   QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+   copyMethod = qm;
+   insertBuiltinMethod(qm);
+   qm->priv->addBuiltinVariant(variant);
+}
+
+void qore_class_private::setDeleteBlocker(q_delete_blocker_t func) {
+   assert(!deleteBlocker);
+   BuiltinDeleteBlocker *m = new BuiltinDeleteBlocker(func);
+   QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+   qm->priv->setBuiltin();
+   deleteBlocker = qm;
+   insertBuiltinMethod(qm);
+}
+
+void qore_class_private::setBuiltinSystemConstructor(BuiltinSystemConstructorBase *m) {
+   assert(!system_constructor);
+   QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+   qm->priv->setBuiltin();
+   system_constructor = qm;
 }
 
 QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced, const AbstractQoreFunctionVariant *&variant) {
@@ -1136,13 +1159,13 @@ bool BCList::execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const {
 
 void BCList::execConstructors(QoreObject *o, BCEAList *bceal, ExceptionSink *xsink) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
-      printd(5, "BCList::execConstructors() %s::constructor() o=%p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName()); 
+      printd(5, "BCList::execConstructors() %s::constructor() o=%p (for subclass %s) virtual=%d\n", (*i)->sclass->getName(), o, o->getClass()->getName(), (*i)->is_virtual); 
 
       // do not execute constructors for virtual base classes
       if ((*i)->is_virtual)
 	 continue;
       (*i)->sclass->priv->execBaseClassConstructor(o, bceal, xsink);
-      if (xsink->isEvent())
+      if (*xsink)
 	 break;
    }
 }
@@ -1395,11 +1418,11 @@ bool QoreMethod::newCallingConvention() const {
 }
 
 bool QoreMethod::isUser() const {
-   return true;
+   return priv->isUniquelyUser();
 }
 
 bool QoreMethod::isBuiltin() const {
-   return false;
+   return !priv->isUniquelyUser();
 }
 
 bool QoreMethod::isPrivate() const { 
