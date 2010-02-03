@@ -391,7 +391,7 @@ print("global a = %d\n", $a); </programlisting>
 <sect1 id="Basic_Data_Types">
 <title>Basic Data Types</title>
 
-<para>The following are the basic data types in Qore (see <link linkend="Container_Data_Type">Container Data Types</link> for container data types):</para>
+<para>The following are the basic data types in Qore (see <link linkend="Container_Data_Types">Container Data Types</link> for container data types):</para>
 
 <table><title>Basic data types</title>
 <tgroup cols='4' align='left' colsep='1' rowsep='1'>
@@ -605,7 +605,7 @@ is a multiline string";</programlisting>
 
   <para>The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a memory pointer and a size indicator. </para>
 
-  <para>Binary data can be concatenated with the <link linkend="Plus_Operator">+</link> and <link linkend="Plus_Equals_Operator">+=</para> operators.</para>
+  <para>Binary data can be concatenated with the <link linkend="Plus_Operator">+</link> and <link linkend="Plus_Equals_Operator">+=</link> operators.</para>
 
   <para>This data can be manipulated by being written and read from File, Socket, and Datasource objects, or converted and parsed to/from base64 encoded strings using the <link linkend="makeBase64String">makeBase64String()</link> and <link linkend="parseBase64String">parseBase64String()</link> functions, or compressed and decompressed using the <link linkend="compress">compress()</link>, <link linkend="gzip">gzip()</link>, <link linkend="bzip2">bzip2()</link>, etc. functions, and processed by most <link linkend="Cryptographic_Functions">cryptographic funtions</link>, among others.</para>
 
