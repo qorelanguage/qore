@@ -26,22 +26,23 @@
 
 #include <qore/hash_map.h>
 
+class UserFunction;
+
 // all read and write access to this list is done within the program object's parse lock
-class UserFunctionList
-{
+class UserFunctionList {
 private:
-   hm_uf_t fmap, pmap;   // maps of functions for quick lookups
+   hm_uf_t fmap;  // map of functions for quick lookups
 
 public:
    DLLLOCAL UserFunctionList() {}
    DLLLOCAL ~UserFunctionList();
    DLLLOCAL void del();
-   DLLLOCAL class UserFunction *find(const char *name);
-   DLLLOCAL void add(class UserFunction *func);
+   DLLLOCAL UserFunction *find(const char *name);
+   DLLLOCAL void add(UserFunction *func);
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit();
-   DLLLOCAL class QoreListNode *getList();
+   DLLLOCAL QoreListNode *getList();
 };
 
 #endif

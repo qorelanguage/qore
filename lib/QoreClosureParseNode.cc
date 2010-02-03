@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreClosureParseNode::QoreClosureParseNode(UserFunction *n_uf, bool n_lambda) : ParseNode(NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
+QoreClosureParseNode::QoreClosureParseNode(UserClosureFunction *n_uf, bool n_lambda) : ParseNode(NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
 }
 
 QoreClosureNode *QoreClosureParseNode::evalClosure() const {
@@ -72,7 +72,7 @@ QoreString *QoreClosureParseNode::getAsString(bool &del, int foff, ExceptionSink
 
 AbstractQoreNode *QoreClosureParseNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    in_method = (bool)oflag;
-   uf->statements->parseInitClosure(uf->getUserSignature(), oflag ? oflag->getTypeInfo() : 0, &vlist);
+   uf->parseInitClosure(oflag ? oflag->getTypeInfo() : 0, &vlist);
    return this;
 }
 
@@ -80,6 +80,6 @@ const char *QoreClosureParseNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode *QoreClosureParseNode::exec(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const {
-   return uf->eval(args, self, xsink);
+AbstractQoreNode *QoreClosureParseNode::exec(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const {   
+   return uf->evalClosure(args, self, xsink);
 }

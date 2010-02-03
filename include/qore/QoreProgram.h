@@ -66,6 +66,7 @@ class UnresolvedCallReferenceNode;
 class Var;
 class LVList;
 class UserFunction;
+class UserFunctionVariant;
 class QoreTypeInfo;
 class QoreParseTypeInfo;
 class ParamList;
@@ -426,20 +427,12 @@ public:
       
    DLLLOCAL QoreProgram(QoreProgram *pgm, int po, bool ec = false, const char *ecn = 0);
 
-   /// calls a function from a UserFunction pointer and returns the return value
-   /* if the function does not exist, an exception is added to "xsink"
-      @param func the name of the function to call
-      @param args the argument to the function (can be 0)
-      @param xsink if a Qore-language exception is raised, the error information is added here
-   */
-   DLLLOCAL AbstractQoreNode *callFunction(const UserFunction *func, const QoreListNode *args, ExceptionSink *xsink);
-
    DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);
-
-   DLLLOCAL void registerUserFunction(UserFunction *u);
+   
+   DLLLOCAL void registerUserFunctionVariant(char *name, UserFunctionVariant *variant);
 
    // raises a parse exception if the function cannot be found
-   DLLLOCAL const AbstractQoreFunction *resolveFunction(const char *name);
+   DLLLOCAL const AbstractQoreFunction *resolveFunction(const char *name, QoreProgram *&pgm);
 
    DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedCallReferenceNode *fr);      
    DLLLOCAL Var *addGlobalVarDef(const char *name, const QoreParseTypeInfo *typeInfo);

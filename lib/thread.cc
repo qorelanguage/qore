@@ -899,6 +899,7 @@ ArgvContextHelper::~ArgvContextHelper()
 }
 
 SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink) : xsink(n_xsink) {
+   //printd(0, "SingleArgvContextHelper::SingleArgvContextHelper() this=%p arg=%p (%s)\n", this, val, val ? val->getTypeName() : 0);
    ThreadData *td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    QoreListNode *argv;
@@ -911,8 +912,7 @@ SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode *val, Ex
    td->current_implicit_arg = argv;
 }
 
-SingleArgvContextHelper::~SingleArgvContextHelper()
-{
+SingleArgvContextHelper::~SingleArgvContextHelper() {
    ThreadData *td  = thread_data.get();
    if (td->current_implicit_arg)
       td->current_implicit_arg->deref(xsink);

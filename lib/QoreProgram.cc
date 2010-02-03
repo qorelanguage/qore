@@ -871,23 +871,39 @@ void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, Exception
       UserFunction *u;
       priv->plock.lock();
       u = priv->user_func_list.find(name);
-      if (!u)
-	 u = priv->imported_func_list.find(name);
-      priv->plock.unlock();
-      if (!u)
-	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function \"%s\" does not exist in the current program scope", name);
-      else
+      if (u) {
+	 priv->plock.unlock();
 	 p->priv->importUserFunction(this, u, xsink);
+      }
+      else {
+	 QoreProgram *ipgm;
+	 u = priv->imported_func_list.find(name, ipgm);
+	 priv->plock.unlock();
+	 if (!u)
+	    xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function \"%s\" does not exist in the current program scope", name);
+	 else
+	    p->priv->importUserFunction(ipgm, u, xsink);
+      }
    }
 }
 
 // called during parsing (priv->plock already grabbed)
-void QoreProgram::registerUserFunction(UserFunction *u) {
+void QoreProgram::registerUserFunctionVariant(char *name, UserFunctionVariant *v) {
    // check if an imported function already exists with this name
-   if (priv->imported_func_list.findNode(u->getName()))
-      parse_error("function \"%s\" has already been imported into this program", u->getName());
-   else
+   if (priv->imported_func_list.findNode(name)) {
+      parse_error("function '%s' has already been imported into this program", name);
+      free(name);
+      return;
+   }
+   UserFunction *u = priv->user_func_list.find(name);
+   if (!u) {
+      u = new UserFunction(name);
+      u->parseAddVariant(v);
       priv->user_func_list.add(u);
+      return;
+   }
+   free(name);
+   u->parseAddVariant(v);
 }
 
 void QoreProgram::importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly) {
@@ -1061,7 +1077,7 @@ void QoreProgram::endThread(ExceptionSink *xsink) {
    priv->endThread(xsink);
 }
 
-const AbstractQoreFunction *QoreProgram::resolveFunction(const char *fname) {
+const AbstractQoreFunction *QoreProgram::resolveFunction(const char *fname, QoreProgram *&pgm) {
    QORE_TRACE("QoreProgram::resolveFunction()");
 
    const AbstractQoreFunction *f;
@@ -1070,18 +1086,13 @@ const AbstractQoreFunction *QoreProgram::resolveFunction(const char *fname) {
       return f;
    }
 
-   if ((f = priv->imported_func_list.findNode(fname))) {
+   if ((f = priv->imported_func_list.find(fname, pgm))) {
       printd(5, "resolved imported function call to %s\n", fname);
       return f;
    }
 
    if ((f = builtinFunctions.find(fname))) {
       printd(5, "resolved builtin function call to %s\n", fname);
-
-      // check parse options to see if access is allowed
-      const BuiltinFunction *bf = reinterpret_cast<const BuiltinFunction *>(f);
-      if (bf->getType() & priv->parse_options)
-	 parse_error("parse options do not allow access to builtin function '%s()'", fname);
       return f;
    }
 
@@ -1100,7 +1111,7 @@ AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallRefer
       UserFunction *ufc;
       if ((ufc = priv->user_func_list.find(fname))) {
 	  printd(5, "QoreProgram::resolveCallReference() resolved function reference to user function %s (%p)\n", fname, ufc);
-	 return new LocalUserCallReferenceNode(ufc, this);
+	 return new LocalUserCallReferenceNode(ufc);
       }
    }
    
@@ -1108,7 +1119,7 @@ AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallRefer
       ImportedFunctionEntry *ifn;
       if ((ifn = priv->imported_func_list.findNode(fname))) {
 	 printd(5, "QoreProgram::resolveCallReference() resolved function reference to imported function %s (pgm=%08p, func=%08p)\n", fname, ifn->getProgram(), ifn->getFunction());
-	 return new ImportedCallReferenceNode(new ImportedFunctionEntry(*ifn));
+	 return new UserCallReferenceNode(ifn->getFunction(), ifn->getProgram());
       }
    }
    
@@ -1117,7 +1128,7 @@ AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallRefer
       printd(5, "QoreProgram::resolveCallReference() resolved function reference to builtin function to %s\n", fname);
       
       // check parse options to see if access is allowed
-      if (bfc->getType() & priv->parse_options)
+      if (bfc->getUniqueFunctionality() & priv->parse_options)
 	 parse_error("parse options do not allow access to builtin function '%s'", fname);
       else 
 	 return new BuiltinCallReferenceNode(bfc);
@@ -1176,31 +1187,33 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    // need to grab parse lock for safe access to the user function map and imported function map
    priv->plock.lock();
    ufc = priv->user_func_list.find(name);
-   if (!ufc)
-      ufc = priv->imported_func_list.find(name);
-   priv->plock.unlock();
-
-   if (ufc) // we assign the args to 0 below so that they will not be deleted
-      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args));
+   if (ufc) {
+      priv->plock.unlock();
+      // we assign the args to 0 below so that they will not be deleted
+      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), 0);
+   }
    else {
-      const BuiltinFunction *bfc;
-      if ((bfc = builtinFunctions.find(name))) {
-	 // check parse options & function type
-	 if (bfc->getType() & priv->parse_options) {
-	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s'", name);
-	    return 0;
-	 }
+      QoreProgram *ipgm;
+      ufc = priv->imported_func_list.find(name, ipgm);
+      priv->plock.unlock();
+      if (ufc) {
 	 // we assign the args to 0 below so that they will not be deleted
-	 fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args));
+	 fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), ipgm);
       }
       else {
-	 xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
-	 return 0;
+	 const BuiltinFunction *bfc;
+	 if ((bfc = builtinFunctions.find(name))) {
+	    // we assign the args to 0 below so that they will not be deleted
+	    fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args), 0);
+	 }
+	 else {
+	    xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
+	    return 0;
+	 }
       }
    }
-
+   
    AbstractQoreNode *rv;
-
    ProgramThreadCountHelper tch(this);
 
    {
@@ -1214,9 +1227,10 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    return rv;
 }
 
+/*
 AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreListNode *args, ExceptionSink *xsink) {
    // we assign the args to 0 below so that they will not be deleted
-   SimpleRefHolder<FunctionCallNode> fc(new FunctionCallNode(ufc, const_cast<QoreListNode *>(args)));
+   SimpleRefHolder<FunctionCallNode> fc(new FunctionCallNode(ufc, const_cast<QoreListNode *>(args)), 0);
 
    AbstractQoreNode *rv;
 
@@ -1232,6 +1246,7 @@ AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreL
 
    return rv;
 }
+*/
 
 void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
    ProgramContextHelper pch(this, xsink);

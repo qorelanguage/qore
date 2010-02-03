@@ -120,18 +120,12 @@ static AbstractQoreNode *f_call_builtin_function(const QoreListNode *params, Exc
       return 0;
    }
 
-   // check access
-   if (f->getType() & getProgram()->getParseOptions()) {
-      xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s()'", p0->getBuffer());
-      return 0;
-   }
-
    ReferenceHolder<QoreListNode> args(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_params(params) > 1)
       args = params->copyListFrom(1);
 
-   return f->evalFunction(*args, xsink);
+   return f->evalDynamic(*args, xsink);
 }
 
 static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params, ExceptionSink *xsink)
@@ -148,12 +142,6 @@ static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params
       return 0;
    }
 
-   // check access
-   if (f->getType() & getProgram()->getParseOptions()) {
-      xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s()'", p0->getBuffer());
-      return 0;
-   }
-
    const AbstractQoreNode *p1 = get_param(params, 1);
 
    QoreListNode *args = (p1 && p1->getType() == NT_LIST) ? const_cast<QoreListNode *>(reinterpret_cast<const QoreListNode *>(p1)) : 0;
@@ -163,7 +151,7 @@ static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params
       args->push(const_cast<AbstractQoreNode *>(p1));
    }
 
-   AbstractQoreNode *rv = f->evalFunction(args, xsink);
+   AbstractQoreNode *rv = f->evalDynamic(args, xsink);
 
    if (p1 != args) {
       // we remove the element from the list without dereferencing
@@ -762,22 +750,19 @@ static AbstractQoreNode *f_compress(const QoreListNode *params, ExceptionSink *x
    const AbstractQoreNode *p1 = get_param(params, 1);
    int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
 
-   if (!level || level > 9)
-   {
+   if (!level || level > 9) {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
       return 0;
    }
 
    const void *ptr;
    unsigned long len;
-   if (p0->getType() == NT_STRING)
-   {
+   if (p0->getType() == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       ptr = str->getBuffer();
       len = str->strlen();
    }
-   else if (p0->getType() == NT_BINARY)
-   {
+   else if (p0->getType() == NT_BINARY) {
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
       ptr = b->getPtr();
       len = b->size();
@@ -815,8 +800,7 @@ static AbstractQoreNode *f_uncompress_to_binary(const QoreListNode *params, Exce
    return qore_inflate_to_binary(p0, xsink);
 }
 
-static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink) {
    // need a string or binary argument
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -825,22 +809,19 @@ static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p1 = get_param(params, 1);
    int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
 
-   if (!level || level > 9)
-   {
+   if (!level || level > 9) {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
       return 0;
    }
 
    const void *ptr;
    unsigned long len;
-   if (p0->getType() == NT_STRING)
-   {
+   if (p0->getType() == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       ptr = str->getBuffer();
       len = str->strlen();
    }
-   else if (p0->getType() == NT_BINARY)
-   {
+   else if (p0->getType() == NT_BINARY) {
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
       ptr = b->getPtr();
       len = b->size();

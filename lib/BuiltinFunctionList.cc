@@ -65,6 +65,14 @@ void qore_process_params(unsigned num_params, const QoreTypeInfo **&typeList, co
    }
 }
 
+class BFLAutoLocker {
+protected:
+   QoreThreadLock *mutex;
+public:
+   DLLLOCAL BFLAutoLocker(QoreThreadLock *n_mutex) : mutex(n_mutex) { if (mutex) mutex->lock(); }
+   DLLLOCAL ~BFLAutoLocker() { if (mutex) mutex->unlock(); }
+};
+
 class BuiltinFunctionListPrivate {
    friend class BuiltinFunctionListOptionalLockHelper;
 protected:
@@ -72,20 +80,18 @@ protected:
    // the mutex is needed because the list is global and also searched at runtime
    DLLLOCAL mutable QoreThreadLock mutex;
 
-   DLLLOCAL int add_intern(BuiltinFunction *bf) {
-      if (library_init_done) {
-	 AutoLocker al(mutex);
-	 if (hm.find(bf->getName()) != hm.end()) {
-	    fprintf(stderr, "ERROR: module is loading duplicate builtin function '%s()'; ignoring function\n", bf->getName());
-	    delete bf;
-	    return -1;
-	 }
-	 hm[bf->getName()] = bf;
-      } else {
-	 // assert that the function has not already beed added
-	 assert(hm.find(bf->getName()) == hm.end());
+   DLLLOCAL int add_intern(const char *name, BuiltinFunctionVariant *bfv) {
+      BFLAutoLocker al(library_init_done ? &mutex : 0);
+
+      hm_bf_t::iterator i = hm.find(name);
+      BuiltinFunction *bf;
+      if (i == hm.end()) {
+	 bf = new BuiltinFunction(name);
 	 hm[bf->getName()] = bf;
       }
+      else 
+	 bf = i->second;
+      bf->addBuiltinVariant(bfv);
       return 0;
    }
 
@@ -94,7 +100,7 @@ public:
    }
 
    DLLLOCAL void add(const char *name, q_func_t f, int functional_domain) {
-      add_intern(new BuiltinFunction(name, f, functional_domain));
+      add_intern(name, new BuiltinFunctionVariant(f, functional_domain));
    }
 
    void add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
@@ -103,11 +109,11 @@ public:
       if (num_params)
 	 qore_process_params(num_params, typeList, defaultArgList, args);
 
-      add_intern(new BuiltinFunction(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
+      add_intern(name, new BuiltinFunctionVariant(f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
    }
 
    void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-      add_intern(new BuiltinFunction(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
+      add_intern(name, new BuiltinFunctionVariant(f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
    }
 
    DLLLOCAL void clear() {

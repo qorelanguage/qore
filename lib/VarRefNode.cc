@@ -34,7 +34,7 @@ VarRefNode::~VarRefNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int VarRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("variable reference '%s' %s (0x%08p)", name, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
+   str.sprintf("variable reference '%s' %s (0x%p)", name, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
    return 0;
 }
 
@@ -69,27 +69,27 @@ void VarRefNode::resolve(const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *
 	 ref.id = id;
       }
       outTypeInfo = id->getTypeInfo();
-      printd(5, "VarRefNode::resolve(): local var %s resolved (id=%08p, in_closure=%d)\n", name, ref.id, in_closure);
+      printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name, ref.id, in_closure);
    }
    else {
       ref.var = getProgram()->checkGlobalVar(name, typeInfo);
       outTypeInfo = ref.var->getTypeInfo();
       type = VT_GLOBAL;
-      printd(5, "VarRefNode::resolve(): global var %s resolved (var=%08p)\n", name, ref.var);
+      printd(5, "VarRefNode::resolve(): global var %s resolved (var=%p)\n", name, ref.var);
    }
 }
 
 AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const {
    if (type == VT_LOCAL) {
-      printd(5, "VarRefNode::eval() lvar %08p (%s)\n", ref.id, ref.id->getName());
+      printd(5, "VarRefNode::eval() lvar %p (%s)\n", ref.id, ref.id->getName());
       return ref.id->eval(xsink);
    }
    if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id->getName());
+      printd(5, "VarRefNode::eval() closure var %p (%s)\n", ref.id, ref.id->getName());
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->eval(xsink);
    }
-   printd(5, "VarRefNode::eval() global var=%08p\n", ref.var);
+   printd(5, "VarRefNode::eval() global var=%p\n", ref.var);
    return ref.var->eval(xsink);
 }
 
@@ -128,7 +128,7 @@ AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&t
    if (type == VT_LOCAL)
       return ref.id->getValuePtr(vl, typeInfo, xsink);
    if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
+      printd(5, "VarRefNode::eval() closure var %p (%s)\n", ref.id, ref.id);
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->getValuePtr(vl, typeInfo, xsink);
    }
@@ -139,7 +139,7 @@ AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) cons
    if (type == VT_LOCAL)
       return ref.id->getValue(vl, xsink);
    if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
+      printd(5, "VarRefNode::eval() closure var %p (%s)\n", ref.id, ref.id);
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       return val->getValue(vl, xsink);
    }
@@ -150,7 +150,7 @@ void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink) {
    if (type == VT_LOCAL)
       ref.id->setValue(n, xsink);
    else if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::eval() closure var %08p (%s)\n", ref.id, ref.id);
+      printd(5, "VarRefNode::eval() closure var %p (%s)\n", ref.id, ref.id);
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       val->setValue(n, xsink);
    }
@@ -171,7 +171,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
       outTypeInfo = typeInfo;
       ref.id = push_local_var(name, typeInfo);
       ++lvids;
-      //printd(5, "VarRefNode::parseInit(): local var '%s' declared (id=%08p)\n", v->name, v->ref.id);
+      //printd(5, "VarRefNode::parseInit(): local var '%s' declared (id=%p)\n", v->name, v->ref.id);
    }
    else if (type == VT_GLOBAL) {
       outTypeInfo = typeInfo;

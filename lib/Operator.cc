@@ -37,7 +37,7 @@ Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_POST_INCREMENT, *OP_POST_DECREMENT, *OP_PRE_INCREMENT, *OP_PRE_DECREMENT, 
    *OP_LOG_CMP, *OP_PLUS_EQUALS, *OP_MINUS_EQUALS, *OP_AND_EQUALS, *OP_OR_EQUALS, 
    *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK, 
-   *OP_OBJECT_FUNC_REF, *OP_NEW, *OP_SHIFT, *OP_POP, *OP_PUSH,
+   *OP_OBJECT_FUNC_REF, *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, *OP_SPLICE, *OP_MODULA_EQUALS, 
    *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS, *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, 
    *OP_SHIFT_RIGHT_EQUALS, *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
@@ -663,18 +663,6 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
 
    QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
    return o->evalMethod(m->getName(), m->getArgs(), xsink);
-}
-
-static AbstractQoreNode *op_new_object(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {
-   QORE_TRACE("op_new_object()");
-   
-   assert(left->getType() == NT_SCOPE_REF);
-   const ScopedObjectCallNode *c = reinterpret_cast<const ScopedObjectCallNode *>(left);
-   AbstractQoreNode *rv = c->oc->execConstructor(c->args, xsink);
-   printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, c->oc->getName());
-   // if there's an exception, the constructor will delete the object without the destructor
-
-   return rv;
 }
 
 static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
@@ -1804,6 +1792,7 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(*arg));
    while (li.next()) {
       SingleArgvContextHelper argv_helper(li.getValue(), xsink);
+      //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
       if (*xsink)
 	 return 0;
@@ -3622,10 +3611,10 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    if (m->isPrivate() && !parseCheckCompatibleClass(typeInfo->qc, getParseClass()))
       parse_error("illegal call to private method %s::%s()", typeInfo->qc->getName(), meth);
 
-   returnTypeInfo = m->getReturnTypeInfo();
+   returnTypeInfo = m->getUniqueReturnTypeInfo();
 
    // check parameters, if any
-   lvids += mc->parseArgs(oflag, pflag, m->getSignature());
+   lvids += mc->parseArgsFindVariant(oflag, pflag, m->getFunction());
 
    return tree;
 }
@@ -3640,16 +3629,6 @@ static AbstractQoreNode *check_op_logical(QoreTreeNode *tree, LocalVar *oflag, i
 static AbstractQoreNode *check_op_returns_integer(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    returnTypeInfo = &bigIntTypeInfo;
    return tree->defaultParseInit(oflag, pflag, lvids);
-}
-
-// for operators that always return the same type as the left side of the tree
-static AbstractQoreNode *check_op_new(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *typeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, typeInfo);
-   resultTypeInfo = typeInfo;
-
-   tree->rightParseInit(oflag, pflag, lvids, typeInfo);
-   return tree;
 }
 
 static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
@@ -4360,9 +4339,6 @@ void OperatorList::init() {
 
    OP_OBJECT_FUNC_REF = add(new Operator(2, ".", "object method call", 0, true, false, check_op_object_func_ref));
    OP_OBJECT_FUNC_REF->addFunction(NT_ALL, NT_ALL, op_object_method_call);
-
-   OP_NEW = add(new Operator(1, "new", "new object", 0, true, false, check_op_new));
-   OP_NEW->addFunction(NT_ALL, NT_NONE, op_new_object);
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
    OP_SHIFT->addFunction(op_shift);

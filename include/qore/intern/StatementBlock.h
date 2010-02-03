@@ -30,10 +30,10 @@
 #include <set>
 
 // all definitions in this file are private to the library and subject to change
-typedef std::set<LocalVar *> lvar_set_t;
-
 class RootQoreNamespace;
 class UserFunctionList;
+class BCAList;
+class BCList;
 
 class LVList {
    public:
@@ -82,8 +82,9 @@ class StatementBlock : public AbstractStatement {
       DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink);
       DLLLOCAL void parseInit(UserSignature *sig);
 
-      // initialize methods (bcl = subclass constructors with an explicit base class argument list)
-      DLLLOCAL void parseInitMethod(const QoreTypeInfo *typeInfo, UserSignature *sig, class BCList *bcl); 
+      // initialize methods
+      DLLLOCAL void parseInitMethod(const QoreTypeInfo *typeInfo, UserSignature *sig); 
+      DLLLOCAL void parseInitConstructor(const QoreTypeInfo *typeInfo, UserSignature *sig, BCAList *bcal, BCList *bcl); 
 
       // initialize closure blocks
       DLLLOCAL void parseInitClosure(UserSignature *sig, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);

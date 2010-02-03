@@ -1015,7 +1015,7 @@ QoreListNode *QoreListNode::listRefSelf() const {
    return const_cast<QoreListNode *>(this);
 }
 
-AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+QoreListNode *QoreListNode::parseInitList(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = &listTypeInfo;
 
    QoreListNodeParseInitHelper li(this, oflag, pflag, lvids);
@@ -1025,4 +1025,8 @@ AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    }
    
    return this;
+}
+
+AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   return parseInitList(oflag, pflag, lvids, typeInfo);
 }

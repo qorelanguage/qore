@@ -54,6 +54,7 @@ DLLEXPORT extern qore_classid_t CID_TERMIOS;
 
 class BCList;
 class BCSMList;
+class BCAList;
 class QoreObject;
 class QoreClass;
 class BCEAList;
@@ -63,7 +64,12 @@ class BuiltinStaticMethod2;
 class QoreMemberInfo;
 class BuiltinMethod;
 class AbstractQoreFunction;
+class AbstractQoreFunctionVariant;
 class AbstractFunctionSignature;
+class UserMethod;
+class BCANode;
+class qore_method_private;
+class MethodFunctionBase;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -72,6 +78,7 @@ class AbstractFunctionSignature;
 class QoreMethod {
       friend class StaticMethodCallNode;
       friend class QoreObject;
+      friend class qore_class_private;
 
    private:
       //! private implementation of the method
@@ -83,43 +90,33 @@ class QoreMethod {
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreMethod& operator=(const QoreMethod&);
 
-      //! private constructor
-      DLLLOCAL QoreMethod(const QoreClass *p_class, UserFunction *f, bool n_priv, bool n_static);
-
-      //! private constructor
-      DLLLOCAL QoreMethod(const QoreClass *p_class, int type, AbstractQoreFunction *f, bool n_priv, bool n_static, bool new_calling_convention);
-
-      //! evaluates the method and returns the result
-      /** should only be called by QoreObject; use QoreObject::evalMethod(const QoreMethod &meth, const QoreListNode *args, ExceptionSink *xsink) instead
-	  @param self a pointer to the object the method will be executed on
-	  @param args the list of arguments to the method
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-	  @return the result of the evaluation (can be 0)
-       */
-      DLLLOCAL AbstractQoreNode *eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-
    public:
-      //! returns true if the method is synchronized (has a recursive thread lock associated with it)
-      /**
-	 @return true if the method is synchronized (has a recursive thread lock associated with it)
+      //! DEPRECATED: always returns false, do not use
+      /** this method no longer returns useful information due to method overloading
+	  @return DEPRECATED: always returns false, do not use
        */
       DLLEXPORT bool isSynchronized() const;
 
-      //! returns true if the method is a user-defined method (implemented with Qore-language code)
-      /**
-	 @return true if the method is a user-defined method (implemented with Qore-language code)
+      //! DEPRECATED: always returns false, do not use
+      /** this method no longer returns useful information due to method overloading
+	  @return always returns false
+       */
+      DLLEXPORT bool newCallingConvention() const;
+
+      //! DEPRECATED: always returns true, do not use
+      /** this method no longer returns useful information due to method overloading
+	  @return DEPRECATED: always returns true
        */
       DLLEXPORT bool isUser() const;
 
-      //! returns true if the method is builtin
-      /**
-	 @return true if the method is builtin
+      //! DEPRECATED: always returns false, do not use
+      /** this method no longer returns useful information due to method overloading
+	  @return DEPRECATED: always returns false
        */
       DLLEXPORT bool isBuiltin() const;
 
-      //! returns true if the method is private
-      /**
-	 @return true if the method is private
+      //! returns true if all overloaded variants of a methods are private, false if at least one variant is public
+      /** @return true if all overloaded variants of a methods are private, false if at least one variant is public
        */
       DLLEXPORT bool isPrivate() const;
 
@@ -135,39 +132,30 @@ class QoreMethod {
        */
       DLLEXPORT const char *getName() const;
 
-      //! returns true if it's a builtin method with the new generic calling convention
-      /**
-	 @return true if it's a builtin method with the new generic calling convention
-       */
-      DLLEXPORT bool newCallingConvention() const;
-
       //! returns a pointer to the parent class
       DLLEXPORT const QoreClass *getClass() const;
 
-      DLLLOCAL QoreMethod(UserFunction *u, bool n_priv, bool n_static);
-      DLLLOCAL QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv = false, bool n_static = false);
-      DLLLOCAL QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv, bool n_static, bool new_calling_convention);
+      DLLLOCAL QoreMethod(const QoreClass *p_class, MethodFunctionBase *n_func, bool n_static = false);
+
       DLLLOCAL ~QoreMethod();
-      DLLLOCAL int getType() const;
       DLLLOCAL bool inMethod(const QoreObject *self) const;
-      DLLLOCAL void evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
-      //DLLLOCAL void evalConstructor2(const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
-      DLLLOCAL void evalDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const;
-      DLLLOCAL void evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
-      DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
-      DLLLOCAL bool evalDeleteBlocker(QoreObject *self) const;
-      DLLLOCAL QoreMethod *copy(const class QoreClass *p_class) const;
-      DLLLOCAL void parseInit();
-      DLLLOCAL void parseInitConstructor(BCList *bcl);
-      DLLLOCAL void parseInitDestructor();
-      DLLLOCAL void parseInitCopy();
+      DLLLOCAL QoreMethod *copy(const QoreClass *p_class) const;
       DLLLOCAL void assign_class(const QoreClass *p_class);
-      DLLLOCAL const BuiltinMethod *getBuiltinMethod() const;
-      DLLLOCAL const UserFunction *getStaticUserFunction() const;
-      DLLLOCAL bool existsUserParam(unsigned i) const;
-      DLLLOCAL AbstractFunctionSignature *getSignature() const;
-      DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const;
+      DLLLOCAL MethodFunctionBase *getFunction() const;
+      /* returns the return type information for the method if it is available and if
+	 there is only one return type (there can be more return types if the method is
+	 overloaded)
+      */
+      DLLLOCAL const QoreTypeInfo *getUniqueReturnTypeInfo() const;
+
+      //! evaluates the method and returns the result
+      /** should only be called by QoreObject; use QoreObject::evalMethod(const QoreMethod &meth, const QoreListNode *args, ExceptionSink *xsink) instead
+	  @param self a pointer to the object the method will be executed on
+	  @param args the list of arguments to the method
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return the result of the evaluation (can be 0)
+       */
+      DLLLOCAL AbstractQoreNode *eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 //! defines a Qore-language class
@@ -181,6 +169,8 @@ class QoreClass {
       friend class BCSMList;
       friend class qore_object_private;
       friend class QoreObject;
+      friend class BCANode;
+      friend class qore_method_private;
 
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -190,22 +180,18 @@ class QoreClass {
       DLLLOCAL QoreClass& operator=(const QoreClass&);
 
       //! private implementation of the class
-      struct qore_qc_private *priv;
+      struct qore_class_private *priv;
 
       // private constructor only called when the class is copied
       DLLLOCAL QoreClass(qore_classid_t id, const char *nme);
 
-      // looks in current and pending method lists for non-static methods, only for local class
-      DLLLOCAL const QoreMethod *parseFindMethod(const char *name);
-
-      // looks in current and pending method lists for static methods, only for local class
-      DLLLOCAL const QoreMethod *parseFindStaticMethod(const char *name);
-
       DLLLOCAL void insertMethod(QoreMethod *o);
       DLLLOCAL void insertStaticMethod(QoreMethod *o);
       DLLLOCAL AbstractQoreNode *evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const;
-      DLLLOCAL const QoreMethod *resolveSelfMethodIntern(const char *nme);
-      DLLLOCAL BCAList *getBaseClassConstructorArgumentList() const;
+      DLLLOCAL const QoreMethod *parseResolveSelfMethodIntern(const char *nme);
+
+      // FIXME: remove once I figure out what it does and make a replacement
+      //DLLLOCAL BCAList *getBaseClassConstructorArgumentList() const;
 
       //! evaluates a method on an object and returns the result
       /** if the method name is not valid or is private (and the call is made outside the object)
@@ -224,8 +210,6 @@ class QoreClass {
       DLLLOCAL void execMemberNotification(QoreObject *self, const char *mem, ExceptionSink *xsink) const;
       // This function must only be called from QoreObject and BCList
       DLLLOCAL bool execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const;
-      // This function must only be called from BCList
-      DLLLOCAL void execSubclassConstructor(QoreObject *self, BCEAList *bceal, ExceptionSink *xsink) const;
       // This function must only be called from QoreObject
       DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink *xsink) const;
       // This function must only be called from BCSMList
@@ -339,28 +323,28 @@ class QoreClass {
        */
       DLLEXPORT void setDestructor2(q_destructor2_t m);
 
-      //! sets the builtin constructor method for the class
+      //! sets the builtin constructor method for the class (or adds an overloaded variant)
       /**
 	 @param m the constructor method
        */
       DLLEXPORT void setConstructor(q_constructor_t m);
 
-      //! adds a constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info
+      //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
       DLLEXPORT void setConstructorExtended(q_constructor_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
-      //! adds a constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists
+      //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
       DLLEXPORT void setConstructorExtendedList(q_constructor_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
 
-      //! sets the builtin constructor method for the class using the new calling convention
+      //! sets the builtin constructor method for the class using the new calling convention (or adds an overloaded variant)
       /**
 	 @param m the constructor method
        */
       DLLEXPORT void setConstructor2(q_constructor2_t m);
 
-      //! adds a constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info
+      //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
       DLLEXPORT void setConstructorExtended2(q_constructor2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
-      //! adds a constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists
+      //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
       DLLEXPORT void setConstructorExtendedList2(q_constructor2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
 
       //! sets the builtin constructor for system objects (ex: used as constant values)
@@ -423,15 +407,15 @@ class QoreClass {
 	  @param str the member name to check
 	  @param priv true if the member is private, false if public
 	  @return true if the member is private
-       */
-       DLLEXPORT bool isPublicOrPrivateMember(const char *str, bool &priv) const;
+      */
+      DLLEXPORT bool isPublicOrPrivateMember(const char *str, bool &priv) const;
 
       //! creates a new object and executes the constructor on it and returns the new object
-      /** if a Qore-language exception occurs, 0 is returned.  To create a 
+      /** if a Qore-language exception occurs, 0 is returned.
 	  @param args the arguments for the method
 	  @param xsink Qore-language exception information is added here
 	  @return the object created
-       */
+      */
       DLLEXPORT QoreObject *execConstructor(const QoreListNode *args, ExceptionSink *xsink) const;
 
       //! creates a new "system" object for use as the value of a constant, executes the system constructor on it and returns the new object
@@ -449,13 +433,17 @@ class QoreClass {
       DLLEXPORT QoreObject *execCopy(QoreObject *old, ExceptionSink *xsink) const;
 
       //! looks for a non-static method in the current class without searching base classes
-      /** @param name the name of the method
+      /** not thread-safe with parsing operations; do not call this function while new code
+	  is being parsed into the class
+	  @param name the name of the method
 	  @returns a pointer to the method found, or 0 if no such method exists in the class
       */
       DLLEXPORT const QoreMethod *findLocalMethod(const char *name) const;
 
       //! looks for a static method in the current class without searching base classes
-      /** @param name the name of the static method
+      /** not thread-safe with parsing operations; do not call this function while new code
+	  is being parsed into the class
+	  @param name the name of the static method
 	  @returns a pointer to the method found, or 0 if no such method exists in the class
       */
       DLLEXPORT const QoreMethod *findLocalStaticMethod(const char *name) const;
@@ -541,23 +529,20 @@ class QoreClass {
       DLLEXPORT const QoreMethod *findStaticMethod(const char *nme, bool &priv) const;
 
       //! make a builtin class a child of another builtin class
-      /** Private inheritance makes no sense with builtin classes (there would be
-	  too much overhead to use user-level qore interfaces to call private methods)
-	  but base class constructor arguments can be given.
-	  This function takes over ownership for the reference for the xargs pointer argument
+      /** the xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
 	  @param qc the base class to add
-	  @param xargs the argument expression for the base class constructor call
+	  @param xargs DEPRECATED must be 0; do not use
       */
-      DLLEXPORT void addBuiltinBaseClass(QoreClass *qc, class QoreListNode *xargs = 0);
+      DLLEXPORT void addBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs = 0);
 
       //! make a builtin class a child of another builtin class and ensures that the given class' private data will be used in all class methods
       /** In the case this function is used, this objects of class cannot have
 	  private data saved against the class ID.
-	  This function takes over ownership for the reference for the xargs pointer argument
+	  The xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
 	  @param qc the base class to add
-	  @param xargs the argument expression for the base class constructor call
+	  @param xargs DEPRECATED must be 0; do not use
       */
-      DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass *qc, class QoreListNode *xargs = 0);
+      DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs = 0);
 
       //! sets "virtual" base class for a class, meaning that the base class data is appropriate for use in the subclass builtin methods
       /** this method adds a base class placeholder for a subclass - where the subclass' private data 
@@ -617,17 +602,17 @@ class QoreClass {
 
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(QoreMethod *f);
-      DLLLOCAL const QoreMethod *resolveSelfMethod(const char *nme);
-      DLLLOCAL const QoreMethod *resolveSelfMethod(class NamedScope *nme);
+      DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *nme);
+      DLLLOCAL const QoreMethod *parseResolveSelfMethod(NamedScope *nme);
       DLLLOCAL void addDomain(int dom);
       DLLLOCAL QoreClass *copyAndDeref();
       DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
 
       // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
-      DLLLOCAL const QoreMethod *findParseMethod(const char *nme);
+      DLLLOCAL const QoreMethod *parseFindCommittedMethod(const char *nme);
 
       // used when parsing, finds committed static methods within the entire class hierarchy (local class plus base classes)
-      DLLLOCAL const QoreMethod *findParseStaticMethod(const char *nme);
+      //DLLLOCAL const QoreMethod *parseFindCommittedStaticMethod(const char *nme);
 
       //! adds a name of a private member (not accessible from outside the class hierarchy)
       /** this method takes ownership of *name
@@ -644,7 +629,7 @@ class QoreClass {
       DLLLOCAL void parseAddPublicMember(char *name, QoreMemberInfo *mInfo);
 
       // returns 0 for success, -1 for error
-      DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);
+      DLLLOCAL int parseAddBaseClassArgumentList(BCAList *bcal);
       // only called when parsing, sets the name of the class
       DLLLOCAL void setName(const char *n);
       // returns true if reference count is 1
@@ -663,7 +648,7 @@ class QoreClass {
       // returns true if the class has a delete_blocker function (somewhere in the hierarchy)
       DLLLOCAL bool has_delete_blocker() const;
       // returns true if the class has a synchronous class somewhere in the class' hierarchy
-      DLLLOCAL bool has_synchronous_in_hierarchy() const;
+      //DLLLOCAL bool has_synchronous_in_hierarchy() const;
       // returns true if the class itself is synchronous
       DLLLOCAL bool is_synchronous_class() const;
       // one-time initialization
@@ -686,6 +671,10 @@ class QoreClass {
       DLLLOCAL const QoreTypeInfo *getTypeInfo() const;
       DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const;
       DLLLOCAL const QoreClass *parseGetClass(qore_classid_t cid, bool &priv) const;
+      DLLLOCAL int addUserMethod(const char *mname, MethodVariantBase *f, bool n_static);
+      // returns true if the class has one or more parent classes
+      DLLLOCAL bool hasParentClass() const;
+      DLLLOCAL QoreObject *execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 #endif // _QORE_QORECLASS_H

@@ -22,6 +22,53 @@
 
 #include <qore/Qore.h>
 
+int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func) {
+   // number of local variables declared in arguments
+   int lvids = 0;
+
+   // turn off reference ok flag
+   pflag &= ~PF_REFERENCE_OK;
+
+   // number of arguments in call
+   unsigned num_args = args ? args->size() : 0;
+
+   // argument type list
+   const QoreTypeInfo *argTypeInfo[num_args];
+
+   // initialize arguments and setup argument type list (argTypeInfo)
+   if (num_args) {
+      // do arguments need to be evaluated?
+      bool needs_eval = args->needs_eval();
+      
+      // loop through all args
+      for (unsigned i = 0; i < num_args; ++i) {
+	 AbstractQoreNode **n = args->get_entry_ptr(i);
+	 assert(*n);
+	 argTypeInfo[i] = 0;
+	 //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p (%s) oflag=%p pflag=%d func=%p i=%d/%d arg=%p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
+	 if ((*n)->getType() == NT_REFERENCE)
+	    (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo[i]);
+	 else
+	    (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo[i]);
+	 if (!needs_eval && (*n)->needs_eval()) {
+	    args->setNeedsEval();
+	    needs_eval = true;
+	 }
+      }
+   }
+   
+   // find variant
+   variant = func ? func->parseFindVariant(num_args, argTypeInfo) : 0;
+
+   if (variant && variant->getFunctionality() & getProgram()->getParseOptions()) {
+      // func will always be non-zero with builtin functions
+      parse_error("parse options do not allow access to builtin function '%s()'", func->getName());
+      return 0;
+   }
+
+   return lvids;
+}
+ 
 // evalImpl(): return value requires a deref(xsink) if not 0
 AbstractQoreNode *AbstractFunctionCallNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
@@ -68,7 +115,6 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
 
    assert(name || ns);
 
-   AbstractFunctionSignature *sig = 0;
 #ifdef DEBUG
    if (ns)
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolving base class call '%s'\n", this, ns->ostr);
@@ -84,14 +130,21 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
 	 printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved to copy constructor\n", this);
       }
       else
-	 func = getParseClass()->resolveSelfMethod(name);
+	 func = getParseClass()->parseResolveSelfMethod(name);
    }
    else
-      func = getParseClass()->resolveSelfMethod(ns);
+      func = getParseClass()->parseResolveSelfMethod(ns);
+
+   lvids += parseArgsFindVariant(oflag, pflag, func ? func->getFunction() : 0);
+
+   if (variant)
+      returnTypeInfo = variant->getReturnTypeInfo();
+   else if (func)
+      returnTypeInfo = func->getUniqueReturnTypeInfo();
+   else
+      returnTypeInfo = 0;
 
    if (func) {
-      sig = func->getSignature();
-      returnTypeInfo = func->getReturnTypeInfo();
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved '%s' to %p\n", this, func->getName(), func);
       if (name) {
 	 free(name);
@@ -104,7 +157,6 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
 
    }
 
-   lvids += parseArgs(oflag, pflag, sig);
    return this;
 }
 
@@ -133,25 +185,6 @@ AbstractQoreNode *SelfFunctionCallNode::makeReferenceNodeAndDeref() {
    return rv;
 }
 
-FunctionCallNode::FunctionCallNode(const AbstractQoreFunction *af, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(af), c_str(0) {
-}
-
-FunctionCallNode::FunctionCallNode(char *name, QoreListNode *a) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(0), c_str(name) {
-}
-
-FunctionCallNode::~FunctionCallNode() {
-   printd(5, "FunctionCallNode::~FunctionCallNode(): func=%p c_str=%p (%s) args=%p\n", func, c_str, c_str ? c_str : "n/a", args);
-
-   if (c_str)
-      free(c_str);
-}
-
-char *FunctionCallNode::takeName() {
-   char *str = c_str;
-   c_str = 0;
-   return str;
-}
-
 // makes a "new" operator call from a function call
 AbstractQoreNode *FunctionCallNode::parseMakeNewObject() {
    assert(c_str);
@@ -159,15 +192,6 @@ AbstractQoreNode *FunctionCallNode::parseMakeNewObject() {
    c_str = 0;
    args = 0;
    return rv;
-}
-
-bool FunctionCallNode::existsUserParam(unsigned i) const {
-   assert(func);
-   return func->isUserCode() ? func->numParams() > i : true;
-}
-
-const char *FunctionCallNode::getName() const {
-   return func ? func->getName() : c_str;
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -187,28 +211,33 @@ QoreString *FunctionCallNode::getAsString(bool &del, int foff, ExceptionSink *xs
    return rv;
 }
 
-// returns the type name as a c string
-const char *FunctionCallNode::getTypeName() const {
-   return "function call";
-}
-
 // eval(): return value requires a deref(xsink)
 AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
-   return func->evalFunction(args, xsink);
+   // if pgm is 0, then ProgramContextHelper does nothing
+   ProgramContextHelper(pgm, xsink);
+   return func->evalFunction(variant, args, xsink);
 }
 
 AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    assert(!func);
    assert(c_str);
 
-   func = getProgram()->resolveFunction(c_str);
+   // resolves the function and assigns pgm for imported code
+   func = ::getProgram()->resolveFunction(c_str, pgm);
    free(c_str);
    c_str = 0;
    if (!func)
       return this;
 
-   returnTypeInfo = func->parseGetReturnTypeInfo();
-   
-   lvids += parseArgs(oflag, pflag, func->getSignature());
+   lvids += parseArgsFindVariant(oflag, pflag, const_cast<AbstractQoreFunction *>(func));
+
+   // check variant functionality
+   if (variant) {
+      returnTypeInfo = variant->parseGetReturnTypeInfo();
+   }
+   else {
+      returnTypeInfo = func->parseGetUniqueReturnTypeInfo();
+   }
+
    return this;
 }

@@ -42,6 +42,7 @@ class ConstantList;
 class QoreNamespaceList;
 class QoreClassList;
 class NamedScope;
+class MethodVariantBase;
 
 //! contains constants, classes, and subnamespaces in QoreProgram objects
 class QoreNamespace {
@@ -213,7 +214,7 @@ class RootQoreNamespace : public QoreNamespace {
       // returns 0 for success, non-zero for error
       DLLLOCAL int resolveScopedConstant(AbstractQoreNode **, int level, const QoreTypeInfo *&) const;
       // returns 0 for success, non-zero for error
-      DLLLOCAL int addMethodToClass(NamedScope *name, QoreMethod *qcmethod, class BCAList *bcal);
+      DLLLOCAL int addMethodToClass(NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
 };
 
 #endif // QORE_NAMESPACE_H

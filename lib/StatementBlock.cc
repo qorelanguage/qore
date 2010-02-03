@@ -257,7 +257,7 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
-// NOTE: can also be called with this = 0
+// can also be called with this = 0
 void StatementBlock::parseInit(UserSignature *sig) {
    QORE_TRACE("StatementBlock::parseInit");
 
@@ -269,39 +269,33 @@ void StatementBlock::parseInit(UserSignature *sig) {
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserSignature *sig, BCList *bcl) {
+void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserSignature *sig) {
    QORE_TRACE("StatementBlock::parseInitMethod");
 
    UserParamListLocalVarHelper ph(sig, typeInfo);
 
-   // set oflag to selfid
-   LocalVar *oflag = sig->selfid;
+   // initialize code block
+   if (this)
+      parseInitImpl(sig->selfid);
+}
 
-   // initialize base constructor arguments
-   if (bcl) {
-      int tlvids = 0;
-      for (bclist_t::iterator i = bcl->begin(); i != bcl->end(); i++) {
-	 if ((*i)->args) {
-	    QoreListNode *l = (*i)->args;
-	    for (unsigned j = 0; j < l->size(); j++) {
-	       AbstractQoreNode **n = l->get_entry_ptr(j);
-	       if (*n) {
-		  const QoreTypeInfo *argTypeInfo = 0;
-		  (*n) = (*n)->parseInit(oflag, PF_REFERENCE_OK, tlvids, argTypeInfo);
-	       }
-	    }
-	 }
-      }
-      if (tlvids) {
-	 parse_error("illegal local variable declaration in base constructor argument");
-	 while (tlvids--)
-	    pop_local_var();
+// can also be called with this=NULL
+void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserSignature *sig, BCAList *bcal, BCList *bcl) {
+   QORE_TRACE("StatementBlock::parseInitMethod");
+
+   UserParamListLocalVarHelper ph(sig, typeInfo);
+
+   // if there is a base constructor list, resolve all classes and 
+   // ensure that all classes referenced are base classes of this class
+   if (bcal) {
+      for (bcalist_t::iterator i = bcal->begin(), e = bcal->end(); i != e; ++i) {
+	 (*i)->parseInit(bcl, typeInfo->qc->getName());
       }
    }
 
    // initialize code block
    if (this)
-      parseInitImpl(oflag);
+      parseInitImpl(sig->selfid);
 }
 
 // can also be called with this=NULL

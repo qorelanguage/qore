@@ -1717,6 +1717,7 @@ sub closure_tests() {
 }
 
 sub do_tests() {
+    on_exit $counter.dec();
     try {
 	for (my $i = 0; $i < $o.iters; $i++) {
 	    if ($o.verbose)
@@ -1743,10 +1744,8 @@ sub do_tests() {
     }
     catch () {
 	++$errors;
-	$counter.dec();
 	rethrow;	
     }
-    $counter.dec();
 }
 
 sub main() {

@@ -143,7 +143,7 @@ public:
    }
 
    DLLLOCAL void getThisType(QoreStringNode &str) const {
-      if (!this) {
+      if (!this || qt == NT_NOTHING) {
 	 str.sprintf("no value");
 	 return;
       }
@@ -173,6 +173,38 @@ public:
       qt = ti.qt;
       has_type = true;
    }
+
+   // returns true for compatible, false for not, "this" is the parameter type, n is the argument
+   DLLLOCAL bool testTypeCompatibility(const AbstractQoreNode *n) const {
+      if (!this || !has_type) return true;
+      if (qt == NT_NOTHING && is_nothing(n)) return true;
+      if (is_nothing(n))
+	 return false;
+
+      if (n->getType() != qt)
+	 return false;
+
+      // from here on we know n != 0
+      if (qt == NT_OBJECT) {
+	 if (!qc)
+	    return true;
+
+	 bool priv;
+	 if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
+	    if (!priv)
+	       return true;
+
+	    // check private access
+	    if (!runtimeCheckPrivateClassAccess(qc))
+	       return true;
+
+	    return false;
+	 }
+
+	 return false;
+      }
+      return true;
+   }
    
    DLLLOCAL int checkType(const AbstractQoreNode *n, ExceptionSink *xsink) const {
       return checkTypeInstantiation(0, n, xsink);
@@ -194,6 +226,12 @@ public:
    DLLLOCAL const char *getTypeName() const { return this && qt >= 0 ? getBuiltinTypeName(qt) : "n/a"; }
 #endif
 };
+
+// used for return values when checking types with functions that return numeric codes
+#define QTI_IDENT      -1  // the types are identical
+#define QTI_AMBIGUOUS   1  // the types are ambiguously identical (NT_OBJECT and specific class)
+#define QTI_NOT_EQUAL   0  // not equal
+#define QTI_RECHECK     2  // possibly not equal
 
 class QoreParseTypeInfo : public QoreTypeInfo {
 protected:
@@ -239,6 +277,89 @@ public:
 	 return false;
       return !strcmp(cscope->getIdentifier(), typeInfo->cscope->getIdentifier());
    }
+
+   // used when parsing user code to find duplicate signatures
+   DLLLOCAL int parseStageOneIdenticalWithParsed(const QoreTypeInfo *typeInfo) const {
+      bool thisnt = (!this || !has_type);
+      bool typent = (!typeInfo || !typeInfo->has_type);
+
+      if (thisnt && typent)
+	 return QTI_IDENT;
+
+      if (thisnt || typent)
+	 return QTI_NOT_EQUAL;
+
+      // from this point on, we know that both have types
+      if (qt != typeInfo->qt)
+	 return QTI_NOT_EQUAL;
+
+      // both types are identical
+      if (qt != NT_OBJECT)
+	 return QTI_IDENT;
+
+      if (cscope) {
+	 if (!typeInfo->qc)
+	    return QTI_AMBIGUOUS;
+	 // both have class info
+	 return strcmp(cscope->getIdentifier(), qc->getName()) ? QTI_RECHECK : QTI_NOT_EQUAL;
+      }
+      return typeInfo->qc ? QTI_AMBIGUOUS : QTI_IDENT;
+   }
+
+   // used when parsing user code to find duplicate signatures
+   DLLLOCAL int parseStageOneIdentical(const QoreParseTypeInfo *typeInfo) const {
+      bool thisnt = (!this || !has_type);
+      bool typent = (!typeInfo || !typeInfo->has_type);
+
+      if (thisnt && typent)
+	 return QTI_IDENT;
+
+      if (thisnt || typent)
+	 return QTI_NOT_EQUAL;
+
+      // from this point on, we know that both have types
+      if (qt != typeInfo->qt)
+	 return QTI_NOT_EQUAL;
+
+      // both types are identical
+      if (qt != NT_OBJECT)
+	 return QTI_IDENT;
+
+      if (cscope) {
+	 if (!typeInfo->cscope)
+	    return QTI_AMBIGUOUS;
+	 return strcmp(cscope->ostr, typeInfo->cscope->ostr) ? QTI_NOT_EQUAL : QTI_IDENT;
+      }
+      return typeInfo->cscope ? QTI_AMBIGUOUS : QTI_IDENT;
+   }
+
+   // used when parsing user code to find duplicate signatures after types are resolved
+   DLLLOCAL int parseCheckResolvedIdentical(const QoreTypeInfo *typeInfo) const {
+      bool thisnt = (!this || !has_type);
+      bool typent = (!typeInfo || !typeInfo->has_type);
+
+      if (thisnt && typent)
+	 return QTI_IDENT;
+
+      if (thisnt || typent)
+	 return QTI_NOT_EQUAL;
+
+      // from this point on, we know that both have types
+      if (qt != typeInfo->qt)
+	 return QTI_NOT_EQUAL;
+
+      // both types are identical
+      if (qt != NT_OBJECT)
+	 return QTI_IDENT;
+
+      if (qc) {
+	 if (!typeInfo->qc)
+	    return QTI_AMBIGUOUS;
+	 return qc == typeInfo->qc ? QTI_IDENT : QTI_NOT_EQUAL;
+      }
+      return typeInfo->qc ? QTI_AMBIGUOUS : QTI_IDENT;
+   }
+
    DLLLOCAL void resolve();
    DLLLOCAL bool needsResolving() const { 
       return cscope;

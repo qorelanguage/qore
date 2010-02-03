@@ -69,15 +69,9 @@ class LocalVarValue;
 class ClosureParseEnvironment;
 class ClosureRuntimeEnvironment;
 class ClosureVarValue;
+class VLock;
 
 DLLLOCAL extern Operator *OP_BACKGROUND;
-
-enum qore_call_t {
-   CT_USER       = 0,
-   CT_BUILTIN    = 1,
-   CT_NEWTHREAD  = 2,
-   CT_RETHROW    = 3
-};
 
 class VNode;
 
@@ -166,7 +160,7 @@ class QoreContainerHelper {
    const AbstractQoreNode *n;
    bool err;
 
-  public:
+public:
    DLLLOCAL QoreContainerHelper(const AbstractQoreNode *n_n) {
       // FIXME! need to have an AbstactQoreNode::isContainer() function!
       qore_type_t t = n_n ? n_n->getType() : NT_NOTHING;
@@ -195,20 +189,18 @@ class QoreContainerHelper {
 };
 
 class QoreClosureRuntimeEnvironmentHelper {
-   private:
-      ClosureRuntimeEnvironment *cenv;
+private:
+   ClosureRuntimeEnvironment *cenv;
       
-   public:
-      DLLLOCAL QoreClosureRuntimeEnvironmentHelper(ClosureRuntimeEnvironment *n_cenv)
-      {
-	 cenv = thread_get_runtime_closure_env();
-	 thread_set_runtime_closure_env(n_cenv);
-      }
-
-      DLLLOCAL ~QoreClosureRuntimeEnvironmentHelper()
-      {
-	 thread_set_runtime_closure_env(cenv);
-      }
+public:
+   DLLLOCAL QoreClosureRuntimeEnvironmentHelper(ClosureRuntimeEnvironment *n_cenv) {
+      cenv = thread_get_runtime_closure_env();
+      thread_set_runtime_closure_env(n_cenv);
+   }
+   
+   DLLLOCAL ~QoreClosureRuntimeEnvironmentHelper() {
+      thread_set_runtime_closure_env(cenv);
+   }
 };
 
 DLLLOCAL const QoreListNode *thread_get_implicit_args();

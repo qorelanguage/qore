@@ -352,7 +352,7 @@ AbstractQoreNode *ParseScopedSelfMethodReferenceNode::parseInit(LocalVar *oflag,
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
    else {
-      method = getParseClass()->resolveSelfMethod(nscope);
+      method = getParseClass()->parseResolveSelfMethod(nscope);
       delete nscope;
       nscope = 0;
    }
@@ -424,42 +424,41 @@ void UnresolvedCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 */
 
-UserCallReferenceNode::UserCallReferenceNode(const UserFunction *n_uf, QoreProgram *n_pgm) : uf(n_uf), pgm(n_pgm) {
-   //printd(5, "UserCallReferenceNode::UserCallReferenceNode() this=%08p (%s) calling QoreProgram::depRef() pgm=%08p\n", this, uf->getName(), pgm);
+AbstractQoreNode *LocalStaticMethodCallReferenceNode::evalImpl(ExceptionSink *xsink) const {
+   return new StaticMethodCallReferenceNode(method, ::getProgram());
+}
+
+// evalImpl(): return value requires a deref(xsink) if not 0
+AbstractQoreNode *LocalStaticMethodCallReferenceNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   needs_deref = true;
+   return new StaticMethodCallReferenceNode(method, ::getProgram());
+}
+
+AbstractQoreNode *LocalStaticMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
+   return method->eval(0, args, xsink);
+}
+
+bool LocalStaticMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {   
+   const LocalStaticMethodCallReferenceNode *vc = dynamic_cast<const LocalStaticMethodCallReferenceNode *>(v);
+   //printd(0, "LocalStaticMethodCallReferenceNode::is_equal_hard() %p == %p (%p %s)\n", uf, vc ? vc->uf : 0, v, v ? v->getTypeName() : "n/a");
+   return vc && method == vc->method;
+}
+
+StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
+   assert(pgm);
+   //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this=%p calling QoreProgram::depRef() pgm=%p\n", this, pgm);
    pgm->depRef();
 }
 
-QoreProgram *UserCallReferenceNode::getProgram() const {
-   return pgm;
-}
-
-bool UserCallReferenceNode::derefImpl(ExceptionSink *xsink) {
-   //printd(5, "UserCallReferenceNode::deref() this=%08p pgm=%08p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   //printd(5, "UserCallReferenceNode::deref() this=%08p calling QoreProgram::depDeref() pgm=%08p\n", this, pgm);
+bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
+   //printd(5, "StaticMethodCallReferenceNode::deref() this=%p pgm=%p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
    pgm->depDeref(xsink);
    return true;
 }
 
-AbstractQoreNode *UserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
+AbstractQoreNode *StaticMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
    ProgramContextHelper pch(pgm, xsink);
-   return uf->eval(args, 0, xsink);
-}
-
-bool UserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {   
-   {
-      const UserCallReferenceNode *vc = dynamic_cast<const UserCallReferenceNode *>(v);
-      //printd(0, "UserCallReferenceNode::is_equal_hard() %p == %p (%p %s)\n", uf, vc ? vc->uf : 0, v, v ? v->getTypeName() : "n/a");
-      if (vc)
-	 return uf == vc->uf;
-   }
-
-   const LocalUserCallReferenceNode *vc = dynamic_cast<const LocalUserCallReferenceNode *>(v);
-   return vc && uf == vc->uf;
-}
-
-AbstractQoreNode *LocalStaticUserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramContextHelper pch(pgm, xsink);
-   return uf->eval(args, 0, xsink, thisclass->getName());
+   return method->eval(0, args, xsink);
 }
 
 UnresolvedStaticMethodCallReferenceNode::UnresolvedStaticMethodCallReferenceNode(NamedScope *n_scope) : AbstractUnresolvedCallReferenceNode(false), scope(n_scope) {
@@ -490,101 +489,58 @@ AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
       return this;
    }
 
-   AbstractQoreNode *rv;
-   if (qm->isUser())
-      rv = new LocalStaticUserCallReferenceNode(qm->getClass(), qm->getStaticUserFunction(), getProgram());
-   else
-      rv = new BuiltinStaticCallReferenceNode(qm, qm->getBuiltinMethod());
-
+   AbstractQoreNode *rv = new LocalStaticMethodCallReferenceNode(qm);
    deref();
    return rv;
 }
 
-LocalUserCallReferenceNode::LocalUserCallReferenceNode(const UserFunction *n_uf, QoreProgram *n_pgm) : ResolvedCallReferenceNode(true), uf(n_uf), pgm(n_pgm) {
+LocalUserCallReferenceNode::LocalUserCallReferenceNode(const UserFunction *n_uf, bool n_needs_eval) : ResolvedCallReferenceNode(n_needs_eval), uf(n_uf) {
+}
+
+LocalUserCallReferenceNode::LocalUserCallReferenceNode(const UserFunction *n_uf) : ResolvedCallReferenceNode(true), uf(n_uf) {
 }
 
 AbstractQoreNode *LocalUserCallReferenceNode::evalImpl(ExceptionSink *xsink) const {
-   return new UserCallReferenceNode(uf, pgm);
+   return new UserCallReferenceNode(uf, ::getProgram());
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
 AbstractQoreNode *LocalUserCallReferenceNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
-   return new UserCallReferenceNode(uf, pgm);
+   return new UserCallReferenceNode(uf, ::getProgram());
 }
 
-int64 LocalUserCallReferenceNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   return 0;
+AbstractQoreNode *LocalUserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
+   return uf->evalFunction(0, args, xsink);
 }
 
-int LocalUserCallReferenceNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return 0;
-}
-
-bool LocalUserCallReferenceNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return false;
-}
-
-double LocalUserCallReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return 0.0;
-}
-
-AbstractQoreNode *LocalUserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const{
-   assert(false);
-   return 0;
-}
-
-bool LocalUserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
-   {
-      const UserCallReferenceNode *vc = dynamic_cast<const UserCallReferenceNode *>(v);
-      //printd(0, "UserCallReferenceNode::is_equal_hard() %p == %p (%p %s)\n", uf, vc ? vc->uf : 0, v, v ? v->getTypeName() : "n/a");
-      if (vc)
-	 return uf == vc->uf;
-   }
-
+bool LocalUserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {   
    const LocalUserCallReferenceNode *vc = dynamic_cast<const LocalUserCallReferenceNode *>(v);
+   //printd(0, "LocalUserCallReferenceNode::is_equal_hard() %p == %p (%p %s)\n", uf, vc ? vc->uf : 0, v, v ? v->getTypeName() : "n/a");
    return vc && uf == vc->uf;
+}
+
+bool UserCallReferenceNode::derefImpl(ExceptionSink *xsink) {
+   //printd(5, "UserCallReferenceNode::deref() this=%p pgm=%p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
+   pgm->depDeref(xsink);
+   return true;
+}
+
+AbstractQoreNode *UserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
+   ProgramContextHelper pch(pgm, xsink);
+   return uf->evalFunction(0, args, xsink);
 }
 
 BuiltinCallReferenceNode::BuiltinCallReferenceNode(const BuiltinFunction *n_bf) : bf(n_bf) {
 }
 
 AbstractQoreNode *BuiltinCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return bf->evalFunction(args, xsink);
+   return bf->evalFunction(0, args, xsink);
 }
 
 bool BuiltinCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
    const BuiltinCallReferenceNode *vc = dynamic_cast<const BuiltinCallReferenceNode *>(v);
    return vc && vc->bf == bf;
-}
-
-AbstractQoreNode *BuiltinStaticCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return bf->evalStaticMethod(*method, args, xsink);
-}
-
-bool BuiltinStaticCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
-   const BuiltinStaticCallReferenceNode *vc = dynamic_cast<const BuiltinStaticCallReferenceNode *>(v);
-   return vc && vc->bf == bf;
-}
-
-ImportedCallReferenceNode::ImportedCallReferenceNode(ImportedFunctionEntry *n_ifunc) : ifunc(n_ifunc) {
-}
-
-AbstractQoreNode *ImportedCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return ifunc->evalFunction(args, xsink);
-}
-
-ImportedCallReferenceNode::~ImportedCallReferenceNode() {
-   delete ifunc;
-}
-
-QoreProgram *ImportedCallReferenceNode::getProgram() const {
-   return ifunc->getProgram();
-}
-
-bool ImportedCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
-   const ImportedCallReferenceNode *vc = dynamic_cast<const ImportedCallReferenceNode *>(v);
-   return vc && vc->ifunc == ifunc;
 }
 
 ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type) {

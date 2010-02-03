@@ -22,8 +22,7 @@
 
 #include <qore/Qore.h>
 
-ClosureRuntimeEnvironment::ClosureRuntimeEnvironment(const lvar_set_t *vlist)
-{
+ClosureRuntimeEnvironment::ClosureRuntimeEnvironment(const lvar_set_t *vlist) {
    for (lvar_set_t::const_iterator i = vlist->begin(), e = vlist->end(); i != e; ++i) {
       ClosureVarValue *cvar = thread_find_closure_var((*i)->getName());
       cmap[*i] = cvar;
@@ -31,20 +30,17 @@ ClosureRuntimeEnvironment::ClosureRuntimeEnvironment(const lvar_set_t *vlist)
    }
 }
 
-ClosureRuntimeEnvironment::~ClosureRuntimeEnvironment()
-{
+ClosureRuntimeEnvironment::~ClosureRuntimeEnvironment() {
    assert(cmap.empty());
 }
 
-ClosureVarValue *ClosureRuntimeEnvironment::find(const LocalVar *id)
-{
+ClosureVarValue *ClosureRuntimeEnvironment::find(const LocalVar *id) {
    cvar_map_t::iterator i = cmap.find(id);
    assert(i != cmap.end());
    return i->second;
 }
 
-void ClosureRuntimeEnvironment::del(ExceptionSink *xsink)
-{
+void ClosureRuntimeEnvironment::del(ExceptionSink *xsink) {
    for (cvar_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
       i->second->deref(xsink);
 
@@ -53,46 +49,38 @@ void ClosureRuntimeEnvironment::del(ExceptionSink *xsink)
 #endif
 }
 
-QoreClosureNode::QoreClosureNode(const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), pgm(::getProgram())
-{
+QoreClosureNode::QoreClosureNode(const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), pgm(::getProgram()) {
    pgm->depRef();
 }
 
-QoreClosureNode::~QoreClosureNode()
-{
+QoreClosureNode::~QoreClosureNode() {
 }
 
-bool QoreClosureNode::derefImpl(ExceptionSink *xsink)
-{
+bool QoreClosureNode::derefImpl(ExceptionSink *xsink) {
    closure_env.del(xsink);
    pgm->depDeref(xsink);
    return true;
 }
 
-AbstractQoreNode *QoreClosureNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreClosureNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
    QoreClosureRuntimeEnvironmentHelper ch(&closure_env);
    return closure->exec(args, 0, xsink);
 }
 
-QoreObjectClosureNode::QoreObjectClosureNode(QoreObject *n_obj, const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), obj(n_obj)
-{
+QoreObjectClosureNode::QoreObjectClosureNode(QoreObject *n_obj, const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), obj(n_obj) {
    obj->ref();
 }
 
-QoreObjectClosureNode::~QoreObjectClosureNode()
-{
+QoreObjectClosureNode::~QoreObjectClosureNode() {
 }
 
-bool QoreObjectClosureNode::derefImpl(ExceptionSink *xsink)
-{
+bool QoreObjectClosureNode::derefImpl(ExceptionSink *xsink) {
    closure_env.del(xsink);
    obj->deref(xsink);
    return true;
 }
 
-AbstractQoreNode *QoreObjectClosureNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
-{
+AbstractQoreNode *QoreObjectClosureNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
    QoreClosureRuntimeEnvironmentHelper ch(&closure_env);
    return closure->exec(args, obj, xsink);
 }

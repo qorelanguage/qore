@@ -33,35 +33,24 @@ UserFunctionList::~UserFunctionList() {
 void UserFunctionList::del() {
    hm_uf_t::iterator i = fmap.begin();
    while (i != fmap.end()) {
-      class UserFunction *uf = i->second;
+      UserFunction *uf = i->second;
       fmap.erase(i);
       i = fmap.begin();
       uf->deref();
    }
 }
 
-void UserFunctionList::add(class UserFunction *func) {
+void UserFunctionList::add(UserFunction *func) {
    QORE_TRACE("UserFunctionList::add()");
    
-   if (find(func->getName()))
-      parse_error("user function '%s' has already been defined", func->getName());
-   else
-      pmap[func->getName()] = func;
+   assert(!find((func->getName())));
+   fmap[func->getName()] = func;
 }
 
 UserFunction *UserFunctionList::find(const char *name) {
    printd(5, "UserFunctionList::find(%s)\n", name);
-   // first look in pending functions
-   hm_uf_t::iterator i = pmap.find(name);
-   if (i != pmap.end())
-      return i->second;
-   
-   i = fmap.find(name);
-   if (i != fmap.end())
-      return i->second;
-   
-   //printd(5, "UserFunctionList::find(%s) returning %08p\n", name, w);
-   return 0;
+   hm_uf_t::iterator i = fmap.find(name);
+   return i != fmap.end() ? i->second : 0;
 }
 
 QoreListNode *UserFunctionList::getList() {
@@ -80,31 +69,27 @@ QoreListNode *UserFunctionList::getList() {
 void UserFunctionList::parseInit() {
    QORE_TRACE("UserFunctionList::parseInit()");
    
-   hm_uf_t::iterator i = pmap.begin();
-   while (i != pmap.end()) {
+   for (hm_uf_t::iterator i = fmap.begin(), e = fmap.end(); i != e; ++i)
       i->second->parseInit();
-      i++;
-   }
 }
 
 // unlocked
 void UserFunctionList::parseCommit() {
-   hm_uf_t::iterator i = pmap.begin();
-   while (i != pmap.end()) {
-      fmap[i->first] = i->second;
-      pmap.erase(i);
-      i = pmap.begin();
-   }
+   for (hm_uf_t::iterator i = fmap.begin(), e = fmap.end(); i != e; ++i)
+      i->second->parseCommit();
 }
 
 // unlocked
 void UserFunctionList::parseRollback() {
    QORE_TRACE("UserFunctionList::parseRollback()");
-   hm_uf_t::iterator i = pmap.begin();
-   while (i != pmap.end()) {
-      UserFunction *uf = i->second;
-      pmap.erase(i);
-      uf->deref();
-      i = pmap.begin();
+
+   for (hm_uf_t::iterator i = fmap.begin(), e = fmap.end(); i != e;) {
+      if (i->second->committedEmpty()) {
+	 i->second->deref();
+	 fmap.erase(i++);
+	 continue;
+      }
+      i->second->parseRollback();
+      ++i;
    }
 }

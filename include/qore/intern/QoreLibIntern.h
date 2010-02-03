@@ -91,6 +91,7 @@ static inline long long atoll(const char *str) {
 #include <set>
 
 typedef std::set<const AbstractQoreNode *> const_node_set_t;
+typedef std::set<LocalVar *> lvar_set_t;
 
 #include <list>
 
@@ -108,12 +109,21 @@ typedef std::map<QoreCondition *, int> cond_map_t;
 #define QORE_MANAGE_STACK
 #endif
 
+enum qore_call_t {
+   CT_UNUSED     = -1,
+   CT_USER       =  0,
+   CT_BUILTIN    =  1,
+   CT_NEWTHREAD  =  2,
+   CT_RETHROW    =  3
+};
+
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>
+#include <qore/intern/qore_thread_intern.h>
+#include <qore/intern/Function.h>
 #include <qore/intern/CallReferenceCallNode.h>
 #include <qore/intern/CallReferenceNode.h>
-#include <qore/intern/Function.h>
 #include <qore/intern/BuiltinFunction.h>
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/Variable.h>
@@ -134,7 +144,6 @@ typedef std::map<QoreCondition *, int> cond_map_t;
 #include <qore/intern/VRMutex.h>
 #include <qore/intern/VLock.h>
 #include <qore/intern/QoreException.h>
-#include <qore/intern/qore_thread_intern.h>
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/VarRefNode.h>
 #include <qore/intern/FunctionCallNode.h>
@@ -196,7 +205,7 @@ private:
 
 public:
    DLLLOCAL QoreListNodeParseInitHelper(QoreListNode *n_l, LocalVar *n_oflag, int n_pflag, int &n_lvids) : 
-      ListIterator(n_l), oflag(n_oflag), pflag(n_pflag & ~PF_REFERENCE_OK), lvids(n_lvids) {
+      ListIterator(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
    }
    
    void parseInit(const QoreTypeInfo *&typeInfo) {

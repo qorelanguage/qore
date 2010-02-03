@@ -26,33 +26,16 @@
 
 #include <qore/intern/FunctionCallNode.h>
 
-// objects of this class will not be evaluated
 class ScopedObjectCallNode : public AbstractFunctionCallNode {
 protected:
-      DLLLOCAL virtual int64 bigIntEvalImpl(class ExceptionSink *xsink) const {
-         assert(false);
-         return 0;
-      }
-      DLLLOCAL virtual int integerEvalImpl(class ExceptionSink *xsink) const {
-         assert(false);
-         return 0;
-      }
-      DLLLOCAL virtual bool boolEvalImpl(class ExceptionSink *xsink) const {
-         assert(false);
-         return false;
-      }
-      DLLLOCAL virtual double floatEvalImpl(class ExceptionSink *xsink) const {
-         assert(false);
-         return 0.0;
-      }
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const {
-         assert(false);
-         return 0;
-      }
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const {
-         assert(false);
-         return 0;
-      }
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
+      return oc->execConstructor(args, xsink);
+   }
+   // WARNING: pay attention when subclassing; this method must also be implemented in the subclass
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+      needs_deref = true;
+      return oc->execConstructor(variant, args, xsink);
+   }
 
 public:
    NamedScope *name;
@@ -60,9 +43,7 @@ public:
    QoreListNode *args;
    QoreString desc;
       
-   DLLLOCAL ScopedObjectCallNode(NamedScope *n, QoreListNode *a) : AbstractFunctionCallNode(NT_SCOPE_REF, a, false) {
-      name = n; 
-      args = a; 
+   DLLLOCAL ScopedObjectCallNode(NamedScope *n, QoreListNode *a) : AbstractFunctionCallNode(NT_SCOPE_REF, a), name(n), args(a) {
    }
    DLLLOCAL virtual ~ScopedObjectCallNode() {
       delete name; 
@@ -114,7 +95,7 @@ public:
       delete name;
       name = 0;
       const QoreMethod *constructor = oc ? oc->getConstructor() : 0;
-      lvids += parseArgs(oflag, pflag, constructor ? constructor->getSignature() : 0);
+      lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0);
       
       return this;
    }

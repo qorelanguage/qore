@@ -723,7 +723,9 @@ QoreClass *QoreNamespaceList::parseFindScopedClass(NamedScope *name, int *matche
 }
 
 // returns 0 for success, non-zero return value means error
-int RootQoreNamespace::addMethodToClass(NamedScope *scname, QoreMethod *qcmethod, class BCAList *bcal) {
+int RootQoreNamespace::addMethodToClass(NamedScope *scname, MethodVariantBase *qcmethod, bool static_flag) {
+   std::auto_ptr<MethodVariantBase> v(qcmethod);
+
    // find class
    QoreClass *oc;
 
@@ -750,12 +752,15 @@ int RootQoreNamespace::addMethodToClass(NamedScope *scname, QoreMethod *qcmethod
       }
    }
 
-   oc->addMethod(qcmethod);
+   return oc->addUserMethod(method, v.release(), static_flag);
+
+/*
    // after the addMethod call, we can no longer return an error code if 
    // oc->parseAddBaseClassArgumentList() fails (because the caller will 
    // delete it if we return an error code), so we delete it here
    if (bcal && oc->parseAddBaseClassArgumentList(bcal))
       delete bcal;
+*/
 
    return 0;
 }

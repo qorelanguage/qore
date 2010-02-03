@@ -54,12 +54,14 @@ ImportedFunctionEntry *ImportedFunctionList::findNode(const char *name) const {
    return 0;
 }
 
-UserFunction *ImportedFunctionList::find(const char *name) const {
+UserFunction *ImportedFunctionList::find(const char *name, QoreProgram *&pgm) const {
    printd(5, "ImportedFunctionList::findFunction(%s) (UserFunction)\n", name);
 
    ifn_map_t::const_iterator i = ifn_map_t::find(name);
-   if (i != end())
+   if (i != end()) {
+      pgm = i->second->getProgram();
       return i->second->getFunction();
+   }
 
    return 0;
 }

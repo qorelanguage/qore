@@ -28,7 +28,8 @@
 
 #include <map>
 
-class ImportedFunctionEntry : public AbstractQoreFunction {
+// imported functions are handled with FunctionCallNode; the program is set and the function is executed
+class ImportedFunctionEntry {
 protected:
    QoreProgram *pgm;
    UserFunction *func;
@@ -38,18 +39,13 @@ public:
    }
    DLLLOCAL ImportedFunctionEntry(const ImportedFunctionEntry &ife) : pgm(ife.pgm), func(ife.func) {
    }
-   DLLLOCAL virtual AbstractQoreNode *evalFunction(const QoreListNode *args, ExceptionSink *xsink) const {
-      // save current program location in case there's an exception
-      const char *o_fn = get_pgm_file();
-      int o_ln, o_eln;
-      get_pgm_counter(o_ln, o_eln);
-                                                                                                                                                                                   
-      AbstractQoreNode *rv = pgm->callFunction(func, args, xsink);
-      if (xsink->isException())
-	 xsink->addStackInfo(CT_USER, 0, func->getName(), o_fn, o_ln, o_eln);
-
-      return rv;                             
+   DLLLOCAL QoreProgram *getProgram() {
+      return pgm;
    }
+   DLLLOCAL UserFunction *getFunction() {
+      return func;
+   }
+/*
    DLLLOCAL virtual const char *getName() const {
       return func->getName();
    }
@@ -57,25 +53,20 @@ public:
       // we do not have to call UserFunction::parseGetReturnTypeInfo()
       // because ImportedFunctionEntry objects are only created at
       // run time
-      return func->getReturnTypeInfo();
+      return func->getUniqueReturnTypeInfo();
    }
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
-      return func->getReturnTypeInfo();
-   }
-   DLLLOCAL virtual AbstractFunctionSignature *getSignature() const {
-      return func->getSignature();
-   }
-   DLLLOCAL virtual bool isUserCode() const {
-      return true;
+      return func->getUniqueReturnTypeInfo();
    }
    DLLLOCAL virtual void ref() {}
    DLLLOCAL virtual void deref() {}
-   DLLLOCAL QoreProgram *getProgram() {
-      return pgm;
+   DLLLOCAL virtual void parseInit() {
    }
-   DLLLOCAL UserFunction *getFunction() {
-      return func;
+   DLLLOCAL virtual void parseCommit() {
    }
+   DLLLOCAL virtual void parseRollback() {
+   }
+*/
 };
 
 typedef std::map<const char *, ImportedFunctionEntry *, class ltstr> ifn_map_t;
@@ -85,7 +76,7 @@ public:
    DLLLOCAL ImportedFunctionList();
    DLLLOCAL ~ImportedFunctionList();
    DLLLOCAL void add(QoreProgram *pgm, UserFunction *func);
-   DLLLOCAL UserFunction *find(const char *name) const;
+   DLLLOCAL UserFunction *find(const char *name, QoreProgram *&pgm) const;
    DLLLOCAL ImportedFunctionEntry *findNode(const char *name) const;
 };
 

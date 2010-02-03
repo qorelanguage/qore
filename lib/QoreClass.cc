@@ -33,16 +33,21 @@ DLLLOCAL Sequence classIDSeq;
 
 static inline const char *pubpriv(bool priv) { return priv ? "private" : "public"; }
 
-// private QoreClass implementation
-struct qore_qc_private {
-   char *name;                  // the name of the class
-   BCAList *bcal;               // base constructor argument list
-   BCList *scl;                 // base class list
-   hm_method_t hm, hm_pending,     // regular method maps
-      shm, shm_pending;            // static method maps
+typedef std::map<const char*, QoreMethod *, class ltstr> hm_method_t;
 
-   QoreMemberMap private_members, pending_private_members;   // private member lists (maps)
-   QoreMemberMap public_members, pending_public_members; // public member lists (maps)
+// FIXME: check private method variant access at runtime
+// eliminate UserMethod (name)
+
+// private QoreClass implementation
+struct qore_class_private {
+
+   char *name;      // the name of the class
+   BCList *scl;     // base class list
+   hm_method_t hm,  // "normal" (non-static) method map
+      shm;          // static method map
+
+   QoreMemberMap private_members, pending_private_members; // private member lists (maps)
+   QoreMemberMap public_members, pending_public_members;   // public member lists (maps)
 
    const QoreMethod *system_constructor, *constructor, *destructor,
       *copyMethod, *methodGate, *memberGate, *deleteBlocker,
@@ -62,8 +67,8 @@ struct qore_qc_private {
    // to be used in parsing
    QoreTypeInfo typeInfo;
 
-   DLLLOCAL qore_qc_private(const QoreClass *cls, const char *nme, int dom = QDOM_DEFAULT) 
-      : bcal(0), scl(0), 
+   DLLLOCAL qore_class_private(const QoreClass *cls, const char *nme, int dom = QDOM_DEFAULT) 
+      : scl(0), 
 	sys(false), initialized(false), has_delete_blocker(false), 
 	has_public_members(false),
 	domain(dom), 
@@ -77,7 +82,7 @@ struct qore_qc_private {
 	 methodGate = memberGate = deleteBlocker = memberNotification = 0;
    }
 
-   DLLLOCAL ~qore_qc_private() {
+   DLLLOCAL ~qore_class_private() {
       //printd(5, "QoreClass::~QoreClass() deleting %p %s\n", this, name);
 
       hm_method_t::iterator i = hm.begin();
@@ -98,37 +103,14 @@ struct qore_qc_private {
 	 delete m;
       }
 
-      // delete any pending methods
-      delete_pending_methods();
       free(name);
       if (scl)
 	 scl->deref();
-      delete bcal;
       delete system_constructor;
    }
 
-   DLLLOCAL void delete_pending_methods() {
-      hm_method_t::iterator i = hm_pending.begin();
-      while (i != hm_pending.end()) {
-	 const QoreMethod *m = i->second;
-	 //printd(5, "QoreClass::~QoreClass() deleting pending method %p %s::%s()\n", m, name, m->getName());
-	 hm_pending.erase(i);
-	 i = hm_pending.begin();
-	 delete m;
-      }
-
-      i = shm_pending.begin();
-      while (i != shm_pending.end()) {
-	 const QoreMethod *m = i->second;
-	 //printd(5, "QoreClass::~QoreClass() deleting static pending method %p %s::%s()\n", m, name, m->getName());
-	 shm_pending.erase(i);
-	 i = shm_pending.begin();
-	 delete m;
-      }
-   }
-
    // checks for all special methods except constructor & destructor
-   DLLLOCAL void checkSpecialIntern(const QoreMethod *m) {
+   DLLLOCAL void checkAssignSpecialIntern(const QoreMethod *m) {
       // set quick pointers
       if (!methodGate && !strcmp(m->getName(), "methodGate"))
 	 methodGate = m;
@@ -139,17 +121,17 @@ struct qore_qc_private {
    }
 
    // checks for all special methods except constructor & destructor
-   DLLLOCAL bool checkSpecialStaticIntern(const QoreMethod *m) {
+   DLLLOCAL bool checkSpecialStaticIntern(const char *mname) {
       // set quick pointers
-      if ((!methodGate && !strcmp(m->getName(), "methodGate"))
-	  || (!memberGate && !strcmp(m->getName(), "memberGate"))
-	  || (!memberNotification && !strcmp(m->getName(), "memberNotification")))
+      if ((!methodGate && !strcmp(mname, "methodGate"))
+	  || (!memberGate && !strcmp(mname, "memberGate"))
+	  || (!memberNotification && !strcmp(mname, "memberNotification")))
 	 return true;
       return false;
    }
 
    // checks for all special methods
-   DLLLOCAL void checkSpecial(const QoreMethod *m) {
+   DLLLOCAL void checkAssignSpecial(const QoreMethod *m) {
       // set quick pointers
       if (!constructor && !strcmp(m->getName(), "constructor"))
 	 constructor = m;
@@ -158,13 +140,13 @@ struct qore_qc_private {
       else if (!copyMethod && !strcmp(m->getName(), "copy"))
 	 copyMethod = m;
       else 
-	 checkSpecialIntern(m);
+	 checkAssignSpecialIntern(m);
    }
 
    DLLLOCAL void initialize() {
       if (!initialized) {
 	 initialized = true;
-	 printd(5, "QoreClass::initialize() %s class=%p pending size=%d, scl=%p, bcal=%p\n", name, typeInfo.qc, hm_pending.size(), scl, bcal);
+	 printd(5, "QoreClass::initialize() %s class=%p scl=%p\n", name, typeInfo.qc, scl);
 
 	 // initialize new private members
 	 for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
@@ -180,7 +162,7 @@ struct qore_qc_private {
    
 	 if (scl) {
 	    QoreClass *qc = const_cast<QoreClass *>(typeInfo.qc);
-	    scl->parseInit(qc, bcal, has_delete_blocker);
+	    scl->parseInit(qc, has_delete_blocker);
 	 }
 
 	 if (!sys && domain & getProgram()->getParseOptions())
@@ -198,7 +180,7 @@ struct qore_qc_private {
    }
 
    DLLLOCAL const int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
-      const_cast<qore_qc_private *>(this)->initialize();
+      const_cast<qore_class_private *>(this)->initialize();
 
       bool priv;
       const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, priv);
@@ -225,7 +207,7 @@ struct qore_qc_private {
    }
 
    DLLLOCAL const int parseCheckInternalMemberAccess(const char *mem) const {
-      const_cast<qore_qc_private *>(this)->initialize();
+      const_cast<qore_class_private *>(this)->initialize();
 
       // throws a parse exception if there are public members and the name is not valid
       bool priv;
@@ -371,84 +353,26 @@ struct qore_qc_private {
       delete memberInfo;
    }
 
-   DLLLOCAL void insertStaticMethod(QoreMethod *m) {
+   DLLLOCAL void insertBuiltinStaticMethod(QoreMethod *m) {
       assert(m->isStatic());
-   //printd(5, "QoreClass::insertStaticMethod() %s::%s() size=%d\n", priv->name, m->getName(), numMethods());
-#ifdef DEBUG
-      if (shm[m->getName()]) {
-	 printd(0, "ERROR: static method '%s::%s()' inserted twice; fix your source code!\n", name, m->getName());
-	 assert(false);
-      }
-#endif
+      //printd(5, "QoreClass::insertBuiltinStaticMethod() %s::%s() size=%d\n", name, m->getName(), numMethods());
       shm[m->getName()] = m;
-      
       // maintain method counts (safely inside parse lock)
       ++num_static_methods;
-      if (m->isUser())
-	 ++num_static_user_methods;
+      if (!sys) sys = true;
+      // check for special methods (except constructor and destructor) and abort if found
+      assert(!checkSpecialStaticIntern(m->getName()));      
    }
 
-   DLLLOCAL void insertMethod(QoreMethod *m) {
+   DLLLOCAL void insertBuiltinMethod(QoreMethod *m) {
       assert(!m->isStatic());
-      //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", name, m->getName(), numMethods());
-#ifdef DEBUG
-      if (hm[m->getName()]) {
-	 printd(0, "ERROR: '%s::%s()' inserted twice; fix your source code!\n", name, m->getName());
-	 assert(false);
-      }
-#endif
-      hm[m->getName()] = m;
-      
+      //printd(5, "QoreClass::insertBuiltinMethod() %s::%s() size=%d\n", name, m->getName(), numMethods());
+      hm[m->getName()] = m;      
       // maintain method counts (safely inside parse lock)
       ++num_methods;
-      if (m->isUser())
-	 ++num_user_methods;
-   }
-
-   DLLLOCAL void parseCommit() {
-      printd(5, "QoreClass::parseCommit() %s this=%p size=%d\n", name, this, hm_pending.size());
-
-      hm_method_t::iterator i = hm_pending.begin();
-      while (i != hm_pending.end()) {
-	 QoreMethod *m = i->second;
-	 hm_pending.erase(i);
-	 i = hm_pending.begin();
-	 insertMethod(m);
-	 checkSpecial(m);
-      }
-      
-      i = shm_pending.begin();
-      while (i != shm_pending.end()) {
-	 QoreMethod *m = i->second;
-	 shm_pending.erase(i);
-	 i = shm_pending.begin();
-	 insertStaticMethod(m);
-      }
-      
-      // add all pending private members to real member list
-      member_map_t::iterator j = pending_private_members.begin();  
-      while (j != pending_private_members.end()) { 
-	 //printd(5, "QoreClass::parseCommit() %s committing private member %p %s\n", name, j->first, j->first);
-	 private_members[j->first] = j->second;
-	 pending_private_members.erase(j);
-	 j = pending_private_members.begin();
-      }
-
-      // add all pending public members to real member list
-      member_map_t::iterator k = pending_public_members.begin();  
-      while (k != pending_public_members.end()) { 
-	 //printd(5, "QoreClass::parseCommit() %s committing public member %p %s\n", name, j->first, j->first);
-	 public_members[k->first] = k->second;
-	 pending_public_members.erase(k);
-	 k = pending_public_members.begin();
-      }
-
-      // we check base classes if they have public members if we don't have any
-      // it's safe to call parseHasPublicMembersInHierarchy() because the 2nd stage
-      // of parsing has completed without any errors (or we wouldn't be
-      // running parseCommit())
-      if (!has_public_members && (!public_members.empty() || (scl ? scl->parseHasPublicMembersInHierarchy() : false)))
-	 has_public_members = true;
+      if (!sys) sys = true;
+      // check for special methods (except constructor and destructor)
+      checkAssignSpecialIntern(m);
    }
 
    DLLLOCAL bool isPublicOrPrivateMember(const char *mem, bool &priv) const {
@@ -496,97 +420,208 @@ struct qore_qc_private {
       return 0;
    }
 
-   DLLLOCAL QoreObject *execConstructor(const QoreListNode *args, ExceptionSink *xsink) const {
-      // create new object
-      QoreObject *o = new QoreObject(typeInfo.qc, getProgram());
+   DLLLOCAL QoreObject *execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
 
-      ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : 0, xsink);
+   DLLLOCAL void addBuiltinMethod(const char *mname, MethodVariantBase *variant) {
+      assert(strcmp(mname, "constructor"));
+      assert(strcmp(mname, "destructor"));
+      assert(strcmp(mname, "copy"));
 
-      printd(5, "QoreClass::execConstructor() %s::constructor() o=%p\n", name, o);
-
-      // first, instantiate any members
-      if (initMembers(o, xsink) || (scl && scl->initMembers(o, xsink))) {
-	 o->deref(xsink);
-	 return 0;
+      hm_method_t::iterator i = hm.find(mname);
+      MethodFunctionBase *m;
+      if (i == hm.end()) {
+	 m = new BuiltinMethod(mname);
+	 QoreMethod *nm = new QoreMethod(typeInfo.qc, m, false);
+	 insertBuiltinMethod(nm);
       }
+      else {
+	 m = i->second->getFunction();
+      }
+      m->addBuiltinMethodVariant(variant);
+   }
 
+   DLLLOCAL void addBuiltinStaticMethod(const char *mname, MethodVariantBase *variant) {
+      assert(strcmp(mname, "constructor"));
+      assert(strcmp(mname, "destructor"));
+
+      hm_method_t::iterator i = shm.find(mname);
+      MethodFunctionBase *m;
+      if (i == shm.end()) {
+	 m = new BuiltinMethod(mname);
+	 QoreMethod *nm = new QoreMethod(typeInfo.qc, m, true);
+	 insertBuiltinStaticMethod(nm);
+      }
+      else {
+	 m = i->second->getFunction();
+      }
+      m->addBuiltinMethodVariant(variant);
+   }
+
+   DLLLOCAL void addBuiltinConstructor(BuiltinConstructorVariantBase *variant) {
+      MethodFunctionBase *m;
       if (!constructor) {
-	 if (scl) // execute superconstructors if any
-	    scl->execConstructors(o, *bceal, xsink);
+	 m = new ConstructorMethodFunction;
+	 QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+	 constructor = qm;
+	 insertBuiltinMethod(qm);
       }
-      else { 
-	 // no lock is sent with constructor, because no variable has been assigned yet
-	 constructor->evalConstructor(o, args, scl, *bceal, xsink);
+      else {
+	 m = constructor->getFunction();
       }
-
-      if (*xsink) {
-	 // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
-	 // which will clear out all the private data by running their dereference methods which must be OK
-	 o->obliterate(xsink);
-	 printd(5, "QoreClass::execConstructor() %s::constructor() o=%p, exception in constructor, dereferencing object and returning NULL\n", name, o);
-	 return 0;
-      }
-
-      printd(5, "QoreClass::execConstructor() %s::constructor() returning o=%p\n", name, o);
-      return o;
+      m->addBuiltinMethodVariant(variant);
    }
 
-   DLLLOCAL void addBuiltinMethod(BuiltinMethod *b, bool priv_flag, bool new_calling_convention) {
-      assert(strcmp(b->getName(), "constructor"));
-      assert(strcmp(b->getName(), "destructor"));
-      assert(strcmp(b->getName(), "copy"));
-
-      sys = true;
-      QoreMethod *o = new QoreMethod(typeInfo.qc, b, priv_flag, false, new_calling_convention);
-      insertMethod(o);
-      // check for special methods (except constructor and destructor)
-      checkSpecialIntern(o);
+   DLLLOCAL void addBuiltinDestructor(BuiltinDestructorVariantBase *variant) {
+      assert(!destructor);
+      DestructorMethodFunction *m = new DestructorMethodFunction;
+      QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+      destructor = qm;
+      insertBuiltinMethod(qm);
+      m->addBuiltinMethodVariant(variant);
    }
 
-   DLLLOCAL void addBuiltinStaticMethod(BuiltinMethod *b, bool priv_flag, bool new_calling_convention) {
-      assert(strcmp(b->getName(), "constructor"));
-      assert(strcmp(b->getName(), "destructor"));
-
-      sys = true;
-      QoreMethod *o = new QoreMethod(typeInfo.qc, b, priv_flag, true, new_calling_convention);
-      insertStaticMethod(o);
-
-      // check for special methods (except constructor and destructor) and abort if found
-      assert(!checkSpecialStaticIntern(o));
+   DLLLOCAL void addBuiltinCopyMethod(BuiltinCopyVariantBase *variant) {
+      assert(!copyMethod);
+      CopyMethodFunction *m = new CopyMethodFunction;
+      QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+      copyMethod = qm;
+      insertBuiltinMethod(qm);
+      m->addBuiltinMethodVariant(variant);
    }
 
-   DLLLOCAL void addBuiltinConstructor(BuiltinMethod *b, bool priv_flag, bool new_calling_convention) {
-      sys = true;
-      QoreMethod *o = new QoreMethod(typeInfo.qc, b, priv_flag, false, new_calling_convention);
-      insertMethod(o);
-      constructor = o;
+   DLLLOCAL void setDeleteBlocker(q_delete_blocker_t func) {
+      assert(!deleteBlocker);
+      BuiltinDeleteBlocker *m = new BuiltinDeleteBlocker(func);
+      QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+      deleteBlocker = qm;
+      insertBuiltinMethod(qm);
    }
+
+   DLLLOCAL void setBuiltinSystemConstructor(BuiltinSystemConstructorBase *m) {
+      assert(!system_constructor);
+      QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+      system_constructor = qm;
+   }
+
+   DLLLOCAL void execBaseClassConstructor(QoreObject *self, BCEAList *bceal, ExceptionSink *xsink) const;
+   DLLLOCAL QoreObject *execSystemConstructor(QoreObject *self, int code, va_list args) const;
+   DLLLOCAL bool execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const;
+   DLLLOCAL QoreObject *execCopy(QoreObject *old, ExceptionSink *xsink) const;
+
+   // returns a non-static method if it exists in the local class
+   DLLLOCAL QoreMethod *parseFindLocalMethod(const char *nme) {
+      hm_method_t::iterator i = hm.find(nme);
+      return (i != hm.end()) ? i->second : 0;
+   }
+   // returns a non-static method if it exists in the local class
+   DLLLOCAL const QoreMethod *parseFindLocalMethod(const char *nme) const {
+      hm_method_t::const_iterator i = hm.find(nme);
+      return (i != hm.end()) ? i->second : 0;
+   }
+
+   // returns a static method if it exists in the local class
+   DLLLOCAL QoreMethod *parseFindLocalStaticMethod(const char *nme) {
+      hm_method_t::iterator i = shm.find(nme);
+      return (i != shm.end()) ? i->second : 0;
+   }
+   // returns a static method if it exists in the local class
+   DLLLOCAL const QoreMethod *parseFindLocalStaticMethod(const char *nme) const {
+      hm_method_t::const_iterator i = shm.find(nme);
+      return (i != shm.end()) ? i->second : 0;
+   }
+
+   // returns a non-static method if it exists in the local class and has been committed to the class
+   DLLLOCAL QoreMethod *findLocalCommittedMethod(const char *nme);
+   // returns a non-static method if it exists in the local class and has been committed to the class
+   DLLLOCAL const QoreMethod *findLocalCommittedMethod(const char *nme) const;
+
+   // returns a static method if it exists in the local class and has been committed to the class
+   DLLLOCAL QoreMethod *findLocalCommittedStaticMethod(const char *nme);
+   // returns a static method if it exists in the local class and has been committed to the class
+   DLLLOCAL const QoreMethod *findLocalCommittedStaticMethod(const char *nme) const;
+
+   // returns a non-static method if it exists in class hierarchy and has been committed to the class, initializes base classes if necessary
+   DLLLOCAL const QoreMethod *parseFindCommittedMethod(const char *nme) {
+      const QoreMethod *m = findLocalCommittedMethod(nme);
+      if (!m && scl)
+	 m = scl->parseFindCommittedMethod(nme);
+      return m;
+   }
+
+/*
+   // returns a static method if it exists in the local class and has been committed to the class, initializes base classes if necessary
+   DLLLOCAL const QoreMethod *parseFindCommittedStaticMethod(const char *nme) {
+      const QoreMethod *m = findLocalCommittedStaticMethod(nme);
+      if (!m && scl)
+	 m = scl->parseFindCommittedStaticMethod(nme);
+      return m;
+   }
+*/
+
+   // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
+   DLLLOCAL const QoreMethod *parseFindMethod(const char *mname) {
+      const QoreMethod *m = parseFindLocalMethod(mname);      
+      if (!m && scl)
+	 m = scl->parseFindMethodTree(mname);
+      return m;
+   }
+
+   // finds a static method in the class hierarchy at parse time, optionally initializes classes
+   DLLLOCAL const QoreMethod *parseFindStaticMethod(const char *mname) {
+      const QoreMethod *m = parseFindLocalStaticMethod(mname);      
+      if (!m && scl)
+	 m = scl->parseFindStaticMethodTree(mname);
+      return m;
+   }
+
+   // returns a non-static method if it exists in class hierarchy and has been committed to the class
+   DLLLOCAL const QoreMethod *findCommittedStaticMethod(const char *nme, bool &p) const {
+      const QoreMethod *w = findLocalCommittedStaticMethod(nme);
+      if (!w && scl)
+	 w = scl->findCommittedStaticMethod(nme, p);
+      return w;
+   }
+
+   // returns a non-static method if it exists in class hierarchy and has been committed to the class
+   DLLLOCAL const QoreMethod *findCommittedMethod(const char *nme, bool &p) const {
+      const QoreMethod *w = findLocalCommittedMethod(nme);
+      if (!w && scl)
+	 w = scl->findCommittedMethod(nme, p);
+      return w;
+   }
+
+   DLLLOCAL void execDestructor(QoreObject *self, ExceptionSink *xsink) const;
+
+   DLLLOCAL void execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const;
+
+   DLLLOCAL void execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const;
+
+   DLLLOCAL void execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
+
+   DLLLOCAL void parseInit();
+   DLLLOCAL void parseCommit();
+   DLLLOCAL void parseRollback();
+   DLLLOCAL int addUserMethod(const char *mname, MethodVariantBase *f, bool n_static);
 };
 
 struct qore_method_private {
    const QoreClass *parent_class;
-   int type;
-   bool new_call_convention;
-   AbstractQoreFunction *func;
-   bool priv_flag, static_flag;
+   MethodFunctionBase *func;
+   bool static_flag;   
 
-   DLLLOCAL qore_method_private(const QoreClass *p_class, UserFunction *uf, bool n_priv, bool n_static) : parent_class(p_class), type(OTF_USER), new_call_convention(false), func(uf), priv_flag(n_priv), static_flag(n_static) {}
-
-   DLLLOCAL qore_method_private(UserFunction *uf, bool n_priv, bool n_static) : parent_class(0), type(OTF_USER), new_call_convention(false), func(uf), priv_flag(n_priv), static_flag(n_static) {
-   }
-
-   DLLLOCAL qore_method_private(const QoreClass *n_class, BuiltinMethod *b, bool n_priv, bool n_static, bool ncc = false) : parent_class(n_class), type(OTF_BUILTIN), new_call_convention(ncc), func(b), priv_flag(n_priv), static_flag(n_static) {
-   }
-
-   DLLLOCAL qore_method_private(const QoreClass *n_class, int type, AbstractQoreFunction *b, bool n_priv, bool n_static, bool ncc = false) : parent_class(n_class), type(type), new_call_convention(ncc), func(b), priv_flag(n_priv), static_flag(n_static) {
+   DLLLOCAL qore_method_private(const QoreClass *n_parent_class, MethodFunctionBase *n_func, bool n_static) : parent_class(n_parent_class), func(n_func), static_flag(n_static) {
    }
 
    DLLLOCAL ~qore_method_private() {
       func->deref();
    }
 
-   DLLLOCAL AbstractFunctionSignature *getSignature() const {
-      return func->getSignature();
+   DLLLOCAL int addUserVariant(MethodVariantBase *variant) {
+      return func->parseAddVariant(variant);
+   }
+
+   DLLLOCAL MethodFunctionBase *getFunction() const {
+      return const_cast<MethodFunctionBase *>(func);
    }
 
    DLLLOCAL const char *getName() const {
@@ -594,46 +629,59 @@ struct qore_method_private {
    }
 
    DLLLOCAL void parseInit() {
-      reinterpret_cast<UserFunction *>(func)->parseInitMethod(*parent_class, static_flag);
+      assert(!static_flag);
+
+      //printd(0, "qore_method_private::parseInit() this=%p %s::%s() func=%p\n", this, parent_class->getName(), func->getName(), func);
+
+      if (!strcmp(func->getName(), "constructor"))
+	 CONMF(func)->parseInitConstructor(*parent_class, parent_class->priv->scl);
+      else if (!strcmp(func->getName(), "destructor"))
+	 DESMF(func)->parseInitDestructor(*parent_class);
+      else if (!strcmp(func->getName(), "copy"))
+	 COPYMF(func)->parseInitCopy(*parent_class);
+      else
+	 METHF(func)->parseInitMethod(*parent_class, false);
    }
 
-   DLLLOCAL void parseInitConstructor(BCList *bcl) {
-      reinterpret_cast<UserFunction *>(func)->parseInitConstructor(*parent_class, bcl);
-   }
-
-   DLLLOCAL void parseInitDestructor() {
-      reinterpret_cast<UserFunction *>(func)->parseInitDestructor(*parent_class);
-   }
-   
-   DLLLOCAL void parseInitCopy() {
-      reinterpret_cast<UserFunction *>(func)->parseInitCopy(*parent_class);
-   }
-   
-   DLLLOCAL const UserFunction *getStaticUserFunction() const {
+   DLLLOCAL void parseInitStatic() {
       assert(static_flag);
-      assert(type == OTF_USER);
-      
-      return reinterpret_cast<UserFunction *>(func);
-   }
-   
-   DLLLOCAL const BuiltinMethod *getBuiltinMethod() const {
-      assert(type == OTF_BUILTIN);
-      return reinterpret_cast<BuiltinMethod*>(func);
-   }
-   
-   DLLLOCAL bool existsUserParam(unsigned i) const {
-      if (type != OTF_USER)
-	 return true;
-      
-      return reinterpret_cast<UserFunction *>(func)->getSignature()->numParams() > i;
+      METHF(func)->parseInitMethod(*parent_class, true);
    }
 
-   DLLLOCAL bool newCallingConvention() const {
-      return new_call_convention;
+   DLLLOCAL const QoreTypeInfo *getUniqueReturnTypeInfo() const {
+      return func->getUniqueReturnTypeInfo();
    }
 
-   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
-      return func->getReturnTypeInfo();
+   DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant *variant, QoreObject *self, const QoreListNode *args, BCEAList *bceal, ExceptionSink *xsink) {
+      CONMF(func)->evalConstructor(variant, *parent_class, self, args, parent_class->priv->scl, bceal, xsink);
+   }
+
+   DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
+      // switch to new program for imported objects
+      ProgramContextHelper pch(self->getProgram(), xsink);
+
+      COPYMF(func)->evalCopy(*parent_class, self, old, parent_class->priv->scl, xsink);
+   }
+
+   DLLLOCAL bool evalDeleteBlocker(QoreObject *self) const {
+      // can only be builtin
+      return self->evalDeleteBlocker(parent_class->priv->methodID, reinterpret_cast<BuiltinDeleteBlocker *>(func));
+   }
+
+   DLLLOCAL void evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
+      // switch to new program for imported objects
+      ProgramContextHelper pch(self->getProgram(), xsink);
+
+      DESMF(func)->evalDestructor(*parent_class, self, xsink);
+   }
+
+   DLLLOCAL void evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
+      // execute function directly
+      DESMF(func)->evalDestructor(*parent_class, self, xsink);
+   }
+
+   DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const {
+      BSYSCONB(func)->eval(*parent_class, self, code, args);
    }
 };
 
@@ -653,33 +701,165 @@ public:
    DLLLOCAL operator bool() const { return m != 0; }
 };
 
-QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced) {
+// returns a non-static method if it exists in the local class and has been committed to the class
+QoreMethod *qore_class_private::findLocalCommittedMethod(const char *nme) {
+   QoreMethod *m = parseFindLocalMethod(nme);
+   return m && !m->priv->func->committedEmpty() ? m : 0;
+}
+
+// returns a non-static method if it exists in the local class and has been committed to the class
+const QoreMethod *qore_class_private::findLocalCommittedMethod(const char *nme) const {
+   const QoreMethod *m = parseFindLocalMethod(nme);
+   return m && !m->priv->func->committedEmpty() ? m : 0;
+}
+
+// returns a static method if it exists in the local class and has been committed to the class
+QoreMethod *qore_class_private::findLocalCommittedStaticMethod(const char *nme) {
+   QoreMethod *m = parseFindLocalStaticMethod(nme);
+   return m && !m->priv->func->committedEmpty() ? m : 0;
+}
+
+// returns a static method if it exists in the local class and has been committed to the class
+const QoreMethod *qore_class_private::findLocalCommittedStaticMethod(const char *nme) const {
+   const QoreMethod *m = parseFindLocalStaticMethod(nme);
+   return m && !m->priv->func->committedEmpty() ? m : 0;
+}
+
+void qore_class_private::execBaseClassConstructor(QoreObject *self, BCEAList *bceal, ExceptionSink *xsink) const {
+   // if there is no constructor, execute the superclass constructors directly
+   if (!constructor){
+      if (scl) // execute base class constructors if any
+	 scl->execConstructors(self, bceal, xsink);
+      return;
+   }
+   // no lock is sent with constructor, because no variable has been assigned yet
+   bool already_executed;
+   const AbstractQoreFunctionVariant *variant;
+   QoreListNode *args = bceal->findArgs(typeInfo.qc, &already_executed, variant);
+   if (!already_executed) {
+      constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
+   }
+}
+
+QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const {
+   // create new object
+   QoreObject *self = new QoreObject(typeInfo.qc, getProgram());
+
+   ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : 0, xsink);
+
+   printd(5, "qore_class_private::execConstructor() class=%p %s::constructor() o=%p variant=%p\n", typeInfo.qc, name, self, variant);
+
+   // first, instantiate any members
+   if (initMembers(self, xsink) || (scl && scl->initMembers(self, xsink))) {
+      self->deref(xsink);
+      return 0;
+   }
+
+   if (!constructor) {
+      assert(!variant);
+      if (scl) // execute superconstructors if any
+	 scl->execConstructors(self, *bceal, xsink);
+   }
+   else {
+      constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
+      printd(5, "qore_class_private::evalConstructor() class=%p %s done\n", typeInfo.qc, name);
+   }
+
+   if (*xsink) {
+      // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
+      // which will clear out all the private data by running their dereference methods which must be OK
+      self->obliterate(xsink);
+      printd(5, "qore_class_private::execConstructor() this=%p %s::constructor() o=%p, exception in constructor, obliterating QoreObject and returning 0\n", this, name, self);
+      return 0;
+   }
+
+   printd(5, "qore_class_private::execConstructor() this=%p %s::constructor() returning o=%p\n", this, name, self);
+   return self;
+}
+
+void qore_class_private::parseCommit() {
+   printd(5, "qore_class_private::parseCommit() %s this=%p\n", name, this);
+
+   // commit pending "normal" (non-static) method variants
+   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      bool is_new = i->second->priv->func->committedEmpty();
+      i->second->priv->func->parseCommitMethod();
+      if (is_new) {
+	 checkAssignSpecial(i->second);
+	 ++num_methods;
+	 ++num_user_methods;
+      }
+   }
+
+   // commit pending static method variants
+   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+      bool is_new = i->second->priv->func->committedEmpty();
+      i->second->priv->func->parseCommitMethod();
+      if (is_new) {
+	 ++num_static_methods;
+	 ++num_static_user_methods;
+      }
+   }
+
+   // add all pending private members to real member list
+   member_map_t::iterator j = pending_private_members.begin();  
+   while (j != pending_private_members.end()) { 
+      //printd(5, "QoreClass::parseCommit() %s committing private member %p %s\n", name, j->first, j->first);
+      private_members[j->first] = j->second;
+      pending_private_members.erase(j);
+      j = pending_private_members.begin();
+   }
+   
+   // add all pending public members to real member list
+   member_map_t::iterator k = pending_public_members.begin();  
+   while (k != pending_public_members.end()) { 
+      //printd(5, "QoreClass::parseCommit() %s committing public member %p %s\n", name, j->first, j->first);
+      public_members[k->first] = k->second;
+      pending_public_members.erase(k);
+      k = pending_public_members.begin();
+   }
+   
+   // we check base classes if they have public members if we don't have any
+   // it's safe to call parseHasPublicMembersInHierarchy() because the 2nd stage
+   // of parsing has completed without any errors (or we wouldn't be
+   // running parseCommit())
+   if (!has_public_members && (!public_members.empty() || (scl ? scl->parseHasPublicMembersInHierarchy() : false)))
+      has_public_members = true;
+}
+
+QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced, const AbstractQoreFunctionVariant *&variant) {
    bceamap_t::iterator i = find(qc);
    if (i != end()) {
       if (i->second->execed) {
 	 *aexeced = true;
+	 variant = 0;
 	 return 0;
       }
       *aexeced = false;
       i->second->execed = true;
+      variant = i->second->variant;
       return i->second->args;
    }
 
-   insert(std::make_pair(qc, new BCEANode()));
+   insert(std::make_pair(qc, new BCEANode));
    *aexeced = false;
+   variant = 0;
    return 0;
 }
 
-int BCEAList::add(const QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink) {
+int BCEAList::add(const QoreClass *qc, const QoreListNode *arg, const AbstractQoreFunctionVariant *variant, ExceptionSink *xsink) {
    // see if class already exists in the list
    bceamap_t::iterator i = find(qc);
    if (i != end())
       return 0;
 
-   // evaluate and save arguments
-   insert(std::make_pair(qc, new BCEANode(arg ? arg->evalList(xsink) : 0)));
-   if (xsink->isEvent())
+   // evaluate arguments
+   ReferenceHolder<QoreListNode> nargs(arg ? arg->evalList(xsink) : 0, xsink);
+   if (*xsink)
       return -1;
+
+   // save arguments
+   insert(std::make_pair(qc, new BCEANode(nargs.release(), variant)));
    return 0;
 }
 
@@ -696,36 +876,47 @@ void BCEAList::deref(ExceptionSink *xsink) {
    delete this;
 }
 
-BCANode::~BCANode() {
-   if (ns)
-      delete ns;
-   if (name)
-      free(name);
-   if (argexp)
-      argexp->deref(0);
-}
-
-void BCANode::resolve() {
+// resolves classes, parses arguments, and attempts to find constructor variant
+void BCANode::parseInit(BCList *bcl, const char *classname) {
+   assert(args); 
    if (ns) {
       sclass = getRootNS()->parseFindScopedClass(ns);
-      printd(5, "BCANode::resolve() this=%p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
+      printd(5, "BCANode::parseInit() this=%p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
       delete ns;
       ns = 0;
    }
    else {
       sclass = getRootNS()->parseFindClass(name);
-      printd(5, "BCANode::resolve() this=%p resolved %s -> %p\n", this, name, sclass);
+      printd(5, "BCANode::parseInit() this=%p resolved %s -> %p\n", this, name, sclass);
       free(name);
       name = 0;
-   }   
+   }
+
+   if (sclass && !bcl->match(sclass))
+      parse_error("%s in base constructor argument list is not a base class of %s", sclass->getName(), classname);
+   else {
+      // find constructor variant
+      const QoreMethod *m = sclass->getConstructor();
+      int lvids = 0;
+      if (m) {
+	 lvids = parseArgsFindVariant(0, 0, m->getFunction());
+      }
+      else {
+	 const QoreTypeInfo *argTypeInfo;	 
+	 args = args->parseInitList(0, PF_REFERENCE_OK, lvids, argTypeInfo);
+      }
+      if (lvids) {
+         parse_error("illegal local variable declaration in base class constructor argument");
+         while (lvids--)
+            pop_local_var();
+      }
+   }
 }
 
 BCNode::~BCNode() {
    delete cname;
    if (cstr)
       free(cstr);
-   if (args)
-      args->deref(0);
 }
 
 BCList::BCList(class BCNode *n) {
@@ -753,9 +944,9 @@ void BCList::deref() {
       delete this;
 }
 
-void BCList::parseInit(QoreClass *cls, BCAList *bcal, bool &has_delete_blocker) {
-   printd(5, "BCList::parseInit(%s) this=%p empty=%d, bcal=%p\n", cls->getName(), this, empty(), bcal);
-   for (bclist_t::iterator i = begin(); i != end(); i++) {
+void BCList::parseInit(QoreClass *cls, bool &has_delete_blocker) {
+   printd(5, "BCList::parseInit(%s) this=%p empty=%d\n", cls->getName(), this, empty());
+   for (bclist_t::iterator i = begin(), e = end(); i != e; i++) {
       if (!(*i)->sclass) {
 	 if ((*i)->cname) {
 	    (*i)->sclass = getRootNS()->parseFindScopedClass((*i)->cname);
@@ -782,23 +973,13 @@ void BCList::parseInit(QoreClass *cls, BCAList *bcal, bool &has_delete_blocker) 
    }
 
    // compare each class in the list to ensure that there are no duplicates
-   for (bclist_t::iterator i = begin(); i != end(); i++) {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 bclist_t::iterator j = i;
 	 while (++j != end())
 	    if ((*i)->sclass == (*j)->sclass)
 	       parse_error("class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
       }	 
-   }
-
-   // if there is a base constructor list, resolve all classes and 
-   // ensure that all classes referenced are base classes of this class
-   if (bcal) {
-      for (bcalist_t::iterator i = bcal->begin(); i != bcal->end(); i++) {
-	 (*i)->resolve();
-	 if ((*i)->sclass && !match(*i))
-	    parse_error("%s in base constructor argument list is not a base class of %s", (*i)->sclass->getName(), cls->getName());
-      }
    }
 }
 
@@ -828,27 +1009,30 @@ const QoreClass *BCList::parseFindPublicPrivateMember(const char *mem, const Qor
 }
 
 // called at run time
-const QoreMethod *BCList::findMethod(const char *name) const {
+const QoreMethod *BCList::findCommittedMethod(const char *name, bool &priv_flag) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 // assert that the base class list has already been initialized if it exists
 	 assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
 
 	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->findMethod(name)))
+	 if ((m = (*i)->sclass->priv->findCommittedMethod(name, priv_flag))) {
+	    if ((*i)->priv)
+	       priv_flag = true;
 	    return m;
+	 }
       }
    }
    return 0;
 }
 
 // called at parse time
-const QoreMethod *BCList::findParseMethod(const char *name) {
-   for (bclist_t::iterator i = begin(); i != end(); i++) {
+const QoreMethod *BCList::parseFindCommittedMethod(const char *name) {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->findParseMethod(name)))
+	 if ((m = (*i)->sclass->priv->parseFindCommittedMethod(name)))
 	    return m;
       }
    }
@@ -856,7 +1040,7 @@ const QoreMethod *BCList::findParseMethod(const char *name) {
 }
 
 const QoreMethod *BCList::parseFindMethodTree(const char *name) {
-   for (bclist_t::iterator i = begin(); i != end(); i++) {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
@@ -867,14 +1051,17 @@ const QoreMethod *BCList::parseFindMethodTree(const char *name) {
    return 0;
 }
 
-// only called at run-time
-const QoreMethod *BCList::findMethod(const char *name, bool &priv) const {
-   for (bclist_t::const_iterator i = begin(); i != end(); i++) {
+// called at run time
+const QoreMethod *BCList::findCommittedStaticMethod(const char *name, bool &priv_flag) const {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
+	 // assert that the base class list has already been initialized if it exists
+	 assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
+
 	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->findMethod(name, priv))) {
+	 if ((m = (*i)->sclass->priv->findCommittedStaticMethod(name, priv_flag))) {
 	    if ((*i)->priv)
-	       priv = true;
+	       priv_flag = true;
 	    return m;
 	 }
       }
@@ -882,67 +1069,36 @@ const QoreMethod *BCList::findMethod(const char *name, bool &priv) const {
    return 0;
 }
 
-// called at run time
-const QoreMethod *BCList::findStaticMethod(const char *name) const {
-   for (bclist_t::const_iterator i = begin(); i != end(); i++) {
-      if ((*i)->sclass) {
-	 // assert that the base class list has already been initialized if it exists
-	 assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
-
-	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->findStaticMethod(name)))
-	    return m;
-      }
-   }
-   return 0;
-}
-
+/*
 // called at parse time
-const QoreMethod *BCList::findParseStaticMethod(const char *name) {
+const QoreMethod *BCList::parseFindCommittedStaticMethod(const char *name) {
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->findParseStaticMethod(name)))
+	 if ((m = (*i)->sclass->priv->parseFindCommittedStaticMethod(name)))
 	    return m;
       }
    }
    return 0;
 }
+*/
 
 const QoreMethod *BCList::parseFindStaticMethodTree(const char *name) {
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->parseFindStaticMethodTree(name)))
+	 if ((m = (*i)->sclass->priv->parseFindStaticMethod(name)))
 	    return m;
       }
    }
    return 0;
 }
 
-// only called at run-time
-const QoreMethod *BCList::findStaticMethod(const char *name, bool &priv) const {
-   for (bclist_t::const_iterator i = begin(); i != end(); i++) {
-      if ((*i)->sclass) {
-	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->findStaticMethod(name, priv))) {
-	    if ((*i)->priv)
-	       priv = true;
-	    return m;
-	 }
-      }
-   }
-   return 0;
-}
-
-bool BCList::match(class BCANode *bca) {
+bool BCList::match(const QoreClass *cls) {
    for (bclist_t::iterator i = begin(); i != end(); i++) {
-      if (bca->sclass == (*i)->sclass) {
-	 (*i)->args = bca->argexp;
-	 bca->argexp = 0;
-	 (*i)->hasargs = true;
+      if (cls == (*i)->sclass) {
 	 return true;
       }
    }
@@ -956,12 +1112,12 @@ bool BCList::isPrivateMember(const char *str) const {
    return false;
 }
 
-const QoreMethod *BCList::resolveSelfMethod(const char *name) {
+const QoreMethod *BCList::parseResolveSelfMethod(const char *name) {
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->resolveSelfMethodIntern(name)))
+	 if ((m = (*i)->sclass->parseResolveSelfMethodIntern(name)))
 	    return m;
       }
    }
@@ -978,26 +1134,17 @@ bool BCList::execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const {
    return false;
 }
 
-void BCList::execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const {
+void BCList::execConstructors(QoreObject *o, BCEAList *bceal, ExceptionSink *xsink) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       printd(5, "BCList::execConstructors() %s::constructor() o=%p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName()); 
-      
+
       // do not execute constructors for virtual base classes
       if ((*i)->is_virtual)
 	 continue;
-      (*i)->sclass->execSubclassConstructor(o, bceal, xsink);
+      (*i)->sclass->priv->execBaseClassConstructor(o, bceal, xsink);
       if (xsink->isEvent())
 	 break;
    }
-}
-
-void BCList::execConstructorsWithArgs(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const {
-   // if there are base constructor arguments that haven't already been overridden
-   // by a base constructor argument specification in a subclass, evaluate them now
-   for (bclist_t::const_iterator i = begin(); i != end(); ++i)
-      if ((*i)->hasargs && bceal->add((*i)->sclass, (*i)->args, xsink))
-	 return;
-   execConstructors(o, bceal, xsink);
 }
 
 bool BCList::parseCheckHierarchy(const QoreClass *cls) const {
@@ -1019,6 +1166,14 @@ BCAList::~BCAList() {
    }
 }
 
+int BCAList::execBaseClassConstructorArgs(BCEAList *bceal, ExceptionSink *xsink) const {
+   for (bcalist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+      if (bceal->add((*i)->sclass, (*i)->getArgs(), (*i)->getVariant(), xsink))
+	 return -1;
+   }
+   return 0;
+}
+
 bool QoreClass::has_delete_blocker() const {
    return priv->has_delete_blocker;
 }
@@ -1028,75 +1183,59 @@ BCSMList *QoreClass::getBCSMList() const {
 }
 
 const QoreMethod *QoreClass::findLocalStaticMethod(const char *nme) const {
-   hm_method_t::const_iterator i = priv->shm.find(nme);
-   return (i != priv->shm.end()) ? i->second : 0;
+   return priv->findLocalCommittedStaticMethod(nme);
 }
 
 const QoreMethod *QoreClass::findLocalMethod(const char *nme) const {
-   hm_method_t::const_iterator i = priv->hm.find(nme);
-   return (i != priv->hm.end()) ? i->second : 0;
+   return priv->findLocalCommittedMethod(nme);
 }
 
+// FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod *QoreClass::findStaticMethod(const char *nme) const {
-   const QoreMethod *w;
-   if (!(w = findLocalStaticMethod(nme))) {
+   const QoreMethod *w;   
+   if (!(w = priv->findLocalCommittedStaticMethod(nme))) {
       // search superclasses
-      if (priv->scl)
-	 w = priv->scl->findStaticMethod(nme);
+      if (priv->scl) {
+	 bool p = false;
+	 w = priv->scl->findCommittedStaticMethod(nme, p);
+      }
    }
    return w;
 }
 
+// FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
+const QoreMethod *QoreClass::findStaticMethod(const char *nme, bool &priv_flag) const {
+   const QoreMethod *w;
+   if (!(w = priv->findLocalCommittedStaticMethod(nme))) {
+      // search superclasses
+      if (priv->scl)
+	 w = priv->scl->findCommittedStaticMethod(nme, priv_flag);
+   }
+   return w;
+}
+
+// FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod *QoreClass::findMethod(const char *nme) const {
    const QoreMethod *w;
-   if (!(w = findLocalMethod(nme))) {
+   if (!(w = priv->findLocalCommittedMethod(nme))) {
       // search superclasses
-      if (priv->scl)
-	 w = priv->scl->findMethod(nme);
+      if (priv->scl) {
+	 bool p = false;
+	 w = priv->scl->findCommittedMethod(nme, p);
+      }
    }
    return w;
 }
 
-const QoreMethod *QoreClass::findStaticMethod(const char *nme, bool &priv_flag) const {
-   priv_flag = false;
-
-   const QoreMethod *w;
-   if (!(w = findLocalStaticMethod(nme))) {
-      // search superclasses
-      if (priv->scl)
-	 w = priv->scl->findStaticMethod(nme, priv_flag);
-   }
-   return w;
-}
-
+// FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const {
-   priv_flag = false;
-
    const QoreMethod *w;
-   if (!(w = findLocalMethod(nme))) {
+   if (!(w = priv->findLocalCommittedMethod(nme))) {
       // search superclasses
       if (priv->scl)
-	 w = priv->scl->findMethod(nme, priv_flag);
+	 w = priv->scl->findCommittedMethod(nme, priv_flag);
    }
    return w;
-}
-
-const QoreMethod *QoreClass::findParseMethod(const char *nme) {
-   const QoreMethod *w;
-   if ((w = findLocalMethod(nme)))
-      return w;
-
-   // search superclasses
-   return priv->scl ? priv->scl->findParseMethod(nme) : 0;
-}
-
-const QoreMethod *QoreClass::findParseStaticMethod(const char *nme) {
-   const QoreMethod *w;
-   if ((w = findLocalStaticMethod(nme)))
-      return w;
-
-   // search superclasses
-   return priv->scl ? priv->scl->findParseStaticMethod(nme) : 0;
 }
 
 // only called when parsing
@@ -1155,16 +1294,10 @@ const char *QoreClass::getName() const {
 
 int QoreClass::numMethods() const {
    return priv->num_methods;
-
-   //not thread-safe!
-   //return priv->hm.size();
 }
 
 int QoreClass::numStaticMethods() const {
    return priv->num_static_methods;
-
-   //not thread-safe!
-   //return priv->shm.size();
 }
 
 int QoreClass::numUserMethods() const {
@@ -1175,47 +1308,25 @@ int QoreClass::numStaticUserMethods() const {
    return priv->num_static_user_methods;
 }
 
-const QoreMethod *QoreClass::parseFindStaticMethod(const char *nme) {
-   const QoreMethod *m;
-   if ((m = findLocalStaticMethod(nme)))
-      return m;
-
-   // look in pending methods
-   hm_method_t::iterator i = priv->shm_pending.find(nme);
-   return i != priv->shm_pending.end() ? i->second : 0;
-}
-
-const QoreMethod *QoreClass::parseFindMethod(const char *nme) {
-   const QoreMethod *m;
-   if ((m = findLocalMethod(nme)))
-      return m;
-
-   // look in pending methods
-   hm_method_t::iterator i = priv->hm_pending.find(nme);
-   if (i != priv->hm_pending.end())
-      return i->second;
-
-   return 0;
-}
-
 const QoreMethod *QoreClass::parseFindMethodTree(const char *nme) {
-   const QoreMethod *m = parseFindMethod(nme);
+   const QoreMethod *m = priv->parseFindMethod(nme);
    if (!m && priv->scl)
       m = priv->scl->parseFindMethodTree(nme);
    return m;
 }
 
 const QoreMethod *QoreClass::parseFindStaticMethodTree(const char *nme) {
-   const QoreMethod *m = parseFindStaticMethod(nme);
+   const QoreMethod *m = priv->parseFindStaticMethod(nme);
    if (!m && priv->scl)
       m = priv->scl->parseFindStaticMethodTree(nme);
    return m;
 }
 
 void QoreClass::addBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs) {
+   assert(!xargs);
    if (!priv->scl)
       priv->scl = new BCList();
-   priv->scl->push_back(new BCNode(qc, xargs));
+   priv->scl->push_back(new BCNode(qc));
 }
 
 void QoreClass::addDefaultBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs) {
@@ -1231,66 +1342,68 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass *qc) {
    //printd(5, "adding %s as virtual base class to %s\n", qc->priv->name, priv->name);
    if (!priv->scl)
       priv->scl = new BCList();
-   priv->scl->push_back(new BCNode(qc, 0, true));   
-}
-
-void QoreClass::setSystemConstructor(q_system_constructor_t m) {
-   priv->sys = true;
-   priv->system_constructor = new QoreMethod(this, new BuiltinSystemConstructor(this, m));
-}
-
-void QoreClass::setSystemConstructor2(q_system_constructor2_t m) {
-   priv->sys = true;
-   priv->system_constructor = new QoreMethod(this, new BuiltinSystemConstructor2(this, m), false, false, true);
+   priv->scl->push_back(new BCNode(qc, true));   
 }
 
 // deletes all pending user methods
 void QoreClass::parseRollback() {
-   priv->delete_pending_methods();
+   priv->parseRollback();
 }
 
-QoreMethod::QoreMethod(const QoreClass *p_class, UserFunction *f, bool n_priv, bool n_static) : priv(new qore_method_private(p_class, f, n_priv, n_static)) {
+void qore_class_private::parseRollback() {
+   // rollback pending "normal" (non-static) method variants
+   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e;) {
+      // if there are no committed variants, then the method must be deleted
+      if (i->second->priv->func->committedEmpty()) {
+	 delete i->second;
+	 hm.erase(i++);
+	 continue;
+      }
+
+      i->second->priv->func->parseRollback();
+      ++i;
+   }
+
+   // rollback pending static method variants
+   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e;) {
+      // if there are no committed variants, then the method must be deleted
+      if (i->second->priv->func->committedEmpty()) {
+	 delete i->second;
+	 hm.erase(i++);
+	 continue;
+      }
+
+      i->second->priv->func->parseRollback();
+      ++i;
+   }
 }
 
-// created at parse time, parent class assigned when method attached to class
-QoreMethod::QoreMethod(UserFunction *u, bool n_priv, bool n_static) : priv(new qore_method_private(u, n_priv, n_static)) {
-}
-
-QoreMethod::QoreMethod(const QoreClass *p_class, BuiltinMethod *f, bool n_priv, bool n_static) : priv(new qore_method_private(p_class, f, n_priv, n_static)) {
-}
-
-QoreMethod::QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv, bool n_static, bool new_calling_convention) : priv(new qore_method_private(p_class, b, n_priv, n_static, new_calling_convention)) {
-}
-
-QoreMethod::QoreMethod(const QoreClass *p_class, int type, AbstractQoreFunction *f, bool n_priv, bool n_static, bool new_calling_convention) : priv(new qore_method_private(p_class, type, f, n_priv, n_static, new_calling_convention)) {
+QoreMethod::QoreMethod(const QoreClass *n_parent_class, MethodFunctionBase *n_func, bool n_static) : priv(new qore_method_private(n_parent_class, n_func, n_static)) {
 }
 
 QoreMethod::~QoreMethod() {
    delete priv;
 }
 
-AbstractFunctionSignature *QoreMethod::getSignature() const {
-   return priv->getSignature();
+MethodFunctionBase *QoreMethod::getFunction() const {
+   return priv->getFunction();
 }
 
+// DEPRECATED
 bool QoreMethod::newCallingConvention() const {
-   return priv->newCallingConvention();
-}
-
-int QoreMethod::getType() const {
-   return priv->type;
+   return false;
 }
 
 bool QoreMethod::isUser() const {
-   return priv->type == CT_USER;
+   return true;
 }
 
 bool QoreMethod::isBuiltin() const {
-   return priv->type == CT_BUILTIN;
+   return false;
 }
 
 bool QoreMethod::isPrivate() const { 
-   return priv->priv_flag; 
+   return priv->func->isUniquelyPrivate();
 }
 
 bool QoreMethod::isStatic() const {
@@ -1310,61 +1423,23 @@ void QoreMethod::assign_class(const QoreClass *p_class) {
    priv->parent_class = p_class;
 }
 
+// FIXME: DEPRECATED API non functional
 bool QoreMethod::isSynchronized() const {
-   if (priv->type == OTF_BUILTIN)
-      return false;
-   return reinterpret_cast<UserFunction *>(priv->func)->isSynchronized();
+   return false;
 }
 
+// only called for ::methodGate() and ::memberGate() which cannot be overloaded
 bool QoreMethod::inMethod(const QoreObject *self) const {
    return ::inMethod(priv->func->getName(), self);
 }
 
-void QoreMethod::evalSystemConstructor(QoreObject *self, int code, va_list args) const {
-   assert(priv->type == OTF_BUILTIN);
-   if (priv->new_call_convention)
-      reinterpret_cast<BuiltinSystemConstructor2 *>(priv->func)->eval(*priv->parent_class, self, code, args);
-   else
-      reinterpret_cast<BuiltinSystemConstructor*>(priv->func)->eval(self, code, args);
-}
-
-void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
-   assert(priv->type == OTF_BUILTIN);
-   // get pointer to private data object from class ID of base type
-   AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->parent_class->getID(), xsink);
-   //printd(5, "QoreMethod::evalSystemDestructor() class=%s (%p) id=%d ptr=%p\n", priv->parent_class->getName(), priv->parent_class, priv->parent_class->getID(), ptr);
-   // NOTE: ptr may be null for builtin subclasses without private data
-   if (ptr) {
-      if (priv->new_call_convention)
-	 reinterpret_cast<BuiltinDestructor2*>(priv->func)->evalSystem(*priv->parent_class, self, ptr, xsink);
-      else
-	 reinterpret_cast<BuiltinDestructor*>(priv->func)->evalSystem(self, ptr, xsink);
-   }
-}
-
-void QoreMethod::parseInit() {
-   priv->parseInit();
-}
-
-void QoreMethod::parseInitConstructor(BCList *bcl) {
-   priv->parseInitConstructor(bcl);
-}
-
-void QoreMethod::parseInitDestructor() {
-   priv->parseInitDestructor();
-}
-
-void QoreMethod::parseInitCopy() {
-   priv->parseInitCopy();
-}
-
 QoreMethod *QoreMethod::copy(const QoreClass *p_class) const {
    priv->func->ref();
-   return new QoreMethod(p_class, priv->type, priv->func, priv->priv_flag, priv->static_flag, priv->new_call_convention);
+   return new QoreMethod(p_class, priv->func, priv->static_flag);
 }
 
-const QoreTypeInfo *QoreMethod::getReturnTypeInfo() const {
-   return priv->getReturnTypeInfo();
+const QoreTypeInfo *QoreMethod::getUniqueReturnTypeInfo() const {
+   return priv->getUniqueReturnTypeInfo();
 }
 
 static const QoreClass *getStackClass() {
@@ -1427,7 +1502,7 @@ void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const {
    while (i != rend()) {
       printd(5, "BCSMList::execDestructors() %s::destructor() o=%p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
       if (!(*i).second)
-	 (*i).first->execSubclassDestructor(o, xsink);
+	 (*i).first->priv->execSubclassDestructor(o, xsink);
       i++;
    }
 }
@@ -1437,7 +1512,7 @@ void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const 
    while (i != rend()) {
       printd(5, "BCSMList::execSystemDestructors() %s::destructor() o=%p virt=%s (subclass %s)\n", (*i).first->getName(), o, (*i).second ? "true" : "false", o->getClass()->getName());
       if (!(*i).second)
-	 (*i).first->execSubclassSystemDestructor(o, xsink);
+	 (*i).first->priv->execSubclassSystemDestructor(o, xsink);
       i++;
    }
 }
@@ -1446,7 +1521,7 @@ void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink 
    class_list_t::const_iterator i = begin();
    while (i != end()) {
       if (!(*i).second) {
-	 (*i).first->execSubclassCopy(self, old, xsink);
+	 (*i).first->priv->execSubclassCopy(self, old, xsink);
 	 if (xsink->isEvent())
 	    break;
       }
@@ -1465,21 +1540,21 @@ QoreClass *BCSMList::getClass(qore_classid_t cid) const {
 }
 
 QoreClass::QoreClass(const char *nme, int dom) {
-   priv = new qore_qc_private(this, nme, dom);
+   priv = new qore_class_private(this, nme, dom);
 
    priv->classID = priv->methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%p)\n", priv->name, priv->classID, this);
 }
 
 QoreClass::QoreClass() {
-   priv = new qore_qc_private(this, 0);
+   priv = new qore_class_private(this, 0);
 
    priv->classID = priv->methodID = classIDSeq.next();
    printd(5, "QoreClass::QoreClass() creating unnamed class ID:%d (this=%p)\n", priv->classID, this);
 }
 
 QoreClass::QoreClass(qore_classid_t id, const char *nme) {
-   priv = new qore_qc_private(this, nme);
+   priv = new qore_class_private(this, nme);
 
    priv->classID = id;
    printd(5, "QoreClass::QoreClass() creating copy of '%s' ID:%d (this=%p)\n", priv->name, priv->classID, this);
@@ -1489,9 +1564,11 @@ QoreClass::~QoreClass() {
    delete priv;
 }
 
+/*
 BCAList *QoreClass::getBaseClassConstructorArgumentList() const {
    return priv->bcal;
 }
+*/
 
 QoreClass *QoreClass::getClass(qore_classid_t cid) const {
    if (cid == priv->classID)
@@ -1526,54 +1603,14 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
 #endif
 
    if (isStatic())
-      return priv->func->evalStaticMethod(*this, args, xsink);
+      return METHF(priv->func)->evalStaticMethod(0, *this, args, xsink);
 
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram(), xsink);
 
-   AbstractQoreNode *rv = priv->func->evalNormalMethod(*this, self, args, xsink);
+   AbstractQoreNode *rv = METHF(priv->func)->evalNormalMethod(0, *this, self, args, xsink);
    printd(5, "QoreMethod::eval() %s::%s() returning %p (type=%s, refs=%d)\n", oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
    return rv;
-}
-
-void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
-   QORE_TRACE("QoreMethod::evalConstructor()");
-   printd(5, "QoreMethod::evalConstructor() %s::%s() (args=%p object=%p, pgm=%p)\n", self->getClass()->getName(), getName(), args, self, self->getProgram());
-
-   priv->func->evalConstructor(*priv->parent_class, self, args, bcl, bceal, xsink);
-
-   printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", self->getClass()->getName(), getName());
-}
-
-void QoreMethod::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
-   // switch to new program for imported objects
-   ProgramContextHelper pch(self->getProgram(), xsink);
-
-   priv->func->evalCopy(*priv->parent_class, self, old, xsink);
-}
-
-bool QoreMethod::evalDeleteBlocker(QoreObject *self) const {
-   // can only be builtin
-   return self->evalDeleteBlocker(reinterpret_cast<BuiltinDeleteBlocker *>(priv->func));
-}
-
-void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
-   // switch to new program for imported objects
-   ProgramContextHelper pch(self->getProgram(), xsink);
-
-   priv->func->evalDestructor(*priv->parent_class, self, xsink);
-}
-
-const UserFunction *QoreMethod::getStaticUserFunction() const {
-   return priv->getStaticUserFunction();
-}
-
-const BuiltinMethod *QoreMethod::getBuiltinMethod() const {
-   return priv->getBuiltinMethod();
-}
-
-bool QoreMethod::existsUserParam(unsigned i) const {
-   return priv->existsUserParam(i);
 }
 
 QoreClass *QoreClass::copyAndDeref() {
@@ -1623,11 +1660,11 @@ QoreClass *QoreClass::copyAndDeref() {
 }
 
 void QoreClass::insertMethod(QoreMethod *m) {
-   priv->insertMethod(m);
+   priv->insertBuiltinMethod(m);
 }      
 
 void QoreClass::insertStaticMethod(QoreMethod *m) {
-   priv->insertStaticMethod(m);
+   priv->insertBuiltinStaticMethod(m);
 }      
 
 void QoreClass::addDomain(int dom) {
@@ -1643,7 +1680,8 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
    if (!strcmp(nme, "copy"))
       return execCopy(self, xsink);
 
-   bool priv_flag;
+   bool priv_flag = false;
+   // FIXME: check locking when accessing method maps at runtime
    if (!(w = findMethod(nme, priv_flag)) && !(w = findStaticMethod(nme, priv_flag))) {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
 	 return evalMethodGate(self, nme, args, xsink);
@@ -1729,145 +1767,135 @@ void QoreClass::execMemberNotification(QoreObject *self, const char *mem, Except
    discard(self->evalMethod(*priv->memberNotification, *args, xsink), xsink);
 }
 
+QoreObject *QoreClass::execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const {
+   return priv->execConstructor(variant, args, xsink);
+}
+
 QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const {
-   return priv->execConstructor(args, xsink);
+   return priv->execConstructor(0, args, xsink);
+}
+
+QoreObject *qore_class_private::execSystemConstructor(QoreObject *self, int code, va_list args) const {
+   assert(system_constructor);
+   // no lock is sent with constructor, because no variable has been assigned yet
+   system_constructor->priv->evalSystemConstructor(self, code, args);
+   return self;
 }
 
 QoreObject *QoreClass::execSystemConstructor(int code, ...) const {
-   assert(priv->system_constructor);
-
    va_list args;
 
    // create new object
    QoreObject *o = new QoreObject(this, 0);
 
    va_start(args, code);
-   // no lock is sent with constructor, because no variable has been assigned yet
-   priv->system_constructor->evalSystemConstructor(o, code, args);
+   priv->execSystemConstructor(o, code, args);
    va_end(args);
 
    printd(5, "QoreClass::execSystemConstructor() %s::execSystemConstructor() returning %p\n", priv->name, o);
    return o;
 }
 
-void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const {
-   // if there is no constructor, execute the superclass constructors directly
-   if (!priv->constructor){
-      if (priv->scl) // execute superconstructors if any
-	 priv->scl->execConstructors(self, bceal, xsink);
-   }
-   else { // no lock is sent with constructor, because no variable has been assigned yet
-      bool already_executed;
-      QoreListNode *args = bceal->findArgs(this, &already_executed);
-      if (!already_executed) {
-	 priv->constructor->evalConstructor(self, args, priv->scl, bceal, xsink);
-      }
-   }
+bool QoreClass::execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const {
+   return priv->execDeleteBlocker(self, xsink);
 }
 
-bool QoreClass::execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const {
-   printd(5, "QoreClass::execDeleteBlocker(self=%p) this=%p '%s' has_delete_blocker=%s deleteBlocker=%p\n", self, this, priv->name, priv->has_delete_blocker ? "true" : "false", priv->deleteBlocker);
-   if (priv->has_delete_blocker) {
-      if (priv->scl) // execute superclass delete blockers if any
-	 if (priv->scl->execDeleteBlockers(self, xsink))
+bool qore_class_private::execDeleteBlocker(QoreObject *self, ExceptionSink *xsink) const {
+   printd(5, "qore_class_private::execDeleteBlocker(self=%p) this=%p '%s' has_delete_blocker=%s deleteBlocker=%p\n", self, this, name, has_delete_blocker ? "true" : "false", deleteBlocker);
+   if (has_delete_blocker) {
+      if (scl) // execute superclass delete blockers if any
+	 if (scl->execDeleteBlockers(self, xsink))
 	    return true;
-      if (priv->deleteBlocker) {
-	 return priv->deleteBlocker->evalDeleteBlocker(self);
+      if (deleteBlocker) {
+	 return deleteBlocker->priv->evalDeleteBlocker(self);
       }
    }
    return false;
 }
 
 void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink) const {
-   printd(5, "QoreClass::execDestructor() %s::destructor() o=%p\n", priv->name, self);
+   priv->execDestructor(self, xsink);
+}
+
+void qore_class_private::execDestructor(QoreObject *self, ExceptionSink *xsink) const {
+   printd(5, "qore_class_private::execDestructor() %s::destructor() o=%p\n", name, self);
 
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
 
    if (self->isSystemObject()) {
-      if (priv->destructor)
-	 priv->destructor->evalSystemDestructor(self, &de);
+      if (destructor) 
+	 destructor->priv->evalSystemDestructor(self, &de);
       else
-	 self->defaultSystemDestructor(priv->classID, &de);
+	 self->defaultSystemDestructor(classID, &de);
 
       // execute superclass destructors
-      if (priv->scl)
-	 priv->scl->sml.execSystemDestructors(self, &de);
+      if (scl)
+	 scl->sml.execSystemDestructors(self, &de);
    }
    else {
-      if (priv->destructor)
-	 priv->destructor->evalDestructor(self, &de);
-      else if (priv->sys)
-	 self->defaultSystemDestructor(priv->classID, &de);
+      if (destructor)
+	 destructor->priv->evalDestructor(self, &de);
+      else if (sys)
+	 self->defaultSystemDestructor(classID, &de);
 
       // execute superclass destructors
-      if (priv->scl)
-	 priv->scl->sml.execDestructors(self, &de);
+      if (scl)
+	 scl->sml.execDestructors(self, &de);
    }
 
    xsink->assimilate(&de);
 }
 
-void QoreClass::execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const {
+void qore_class_private::execSubclassDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
-   if (priv->destructor)
-      priv->destructor->evalDestructor(self, &de);
-   else if (priv->sys)
-      self->defaultSystemDestructor(priv->classID, &de);
+   if (destructor)
+      destructor->priv->evalDestructor(self, &de);
+   else if (sys)
+      self->defaultSystemDestructor(classID, &de);
 
    xsink->assimilate(&de);
 }
 
-void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
+void qore_class_private::execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
-   if (priv->destructor)
-      priv->destructor->evalSystemDestructor(self, &de);
-   else if (priv->sys)
-      self->defaultSystemDestructor(priv->classID, &de);
+   if (destructor)
+      destructor->priv->evalSystemDestructor(self, &de);
+   else if (sys)
+      self->defaultSystemDestructor(classID, &de);
 
    xsink->assimilate(&de);
+}
+
+void qore_class_private::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
+   if (copyMethod)
+      copyMethod->priv->evalCopy(self, old, xsink);
 }
 
 QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
-   QoreHashNode *h = old->copyData(xsink);
-   if (*xsink)
-      return 0;
-
-   // save current program location in case there's an exception
-   const char *o_fn = 0;
-   int o_ln = 0, o_eln = 0;
-
-   ReferenceHolder<QoreObject> self(new QoreObject(this, getProgram(), h), xsink);
-
-   // execute superclass copy methods
-   if (priv->scl) {
-      o_fn = get_pgm_file();
-      get_pgm_counter(o_ln, o_eln);
-
-      priv->scl->sml.execCopyMethods(*self, old, xsink);
-   }
-   
-   if (priv->copyMethod && !xsink->isEvent()) {
-      // reload the old position for the copy method
-      if (o_fn)
-	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);
-      
-      priv->copyMethod->evalCopy(*self, old, xsink);
-      if (xsink->isException())
-	 xsink->addStackInfo(priv->copyMethod->getType(), old->getClass()->getName(), "copy", o_fn, o_ln, o_eln);
-   }
-
-   return *xsink ? 0 : self.release();
+   return priv->execCopy(old, xsink);
 }
 
-void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
-   if (priv->copyMethod)
-      priv->copyMethod->evalCopy(self, old, xsink);
+QoreObject *qore_class_private::execCopy(QoreObject *old, ExceptionSink *xsink) const {
+   QoreHashNode *h = old->copyData(xsink);
+   if (*xsink) {
+      assert(!h);
+      return 0;
+   }
+
+   ReferenceHolder<QoreObject> self(new QoreObject(typeInfo.qc, getProgram(), h), xsink);
+
+   if (copyMethod)
+      copyMethod->priv->evalCopy(*self, old, xsink);
+   else if (scl) // execute superclass copy methods
+      scl->sml.execCopyMethods(*self, old, xsink);
+
+   return *xsink ? 0 : self.release();
 }
 
 void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual) {
@@ -1877,79 +1905,39 @@ void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual) {
 }
 
 // private, called from subclasses only
-const QoreMethod *QoreClass::resolveSelfMethodIntern(const char *nme) {
-   const QoreMethod *m = parseFindMethod(nme);
+const QoreMethod *QoreClass::parseResolveSelfMethodIntern(const char *nme) {
+   const QoreMethod *m = priv->parseFindLocalMethod(nme);
    if (!m)
-      m = parseFindStaticMethod(nme);
+      m = priv->parseFindLocalStaticMethod(nme);
 
    // if still not found now look in superclass methods
    if (!m && priv->scl)
-      m = priv->scl->resolveSelfMethod(nme);
+      m = priv->scl->parseResolveSelfMethod(nme);
 
    return m;
 }
 
-const QoreMethod *QoreClass::resolveSelfMethod(const char *nme) {
-   const QoreMethod *m = findLocalMethod(nme);
-#ifdef DEBUG
-   if (m)
-      printd(5, "QoreClass::resolveSelfMethod(%s) resolved to %s::%s() %p\n", nme, getName(), nme, m);
-#endif
-   bool err = false;
-   if (m && (m == priv->constructor || m == priv->destructor))
-      err = true;
+// searches all methods, both pending and comitted
+const QoreMethod *QoreClass::parseResolveSelfMethod(const char *nme) {
+   const QoreMethod *m = parseResolveSelfMethodIntern(nme);
 
-   // look in pending methods
    if (!m) {
-      // pending methods are not set to the quick pointers, so we have to compare the strings...
-      if (!strcmp(nme, "constructor") || !strcmp(nme, "destructor"))
-	 err = true;
-      else {
-	 hm_method_t::iterator i = priv->hm_pending.find(nme);
-	 if (i != priv->hm_pending.end()) {
-	    m = i->second;
-	    printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending method %s::%s() %p\n", nme, getName(), nme, m);
-	 }
-      }
-   }
-
-   // if not found check static methods
-   if (!err && !m) {
-      m = findLocalStaticMethod(nme);
-      // check pending methods
-      if (!m) {
-	 hm_method_t::iterator i = priv->shm_pending.find(nme);
-	 if (i != priv->shm_pending.end()) {
-	    m = i->second;
-	    printd(5, "QoreClass::resolveSelfMethod(%s) resolved to pending static method %s::%s() %p\n", nme, getName(), nme, m);
-	 }
-      }
-#ifdef DEBUG
-      else
-	 printd(5, "QoreClass::resolveSelfMethod(%s) resolved to static %s::%s() %p\n", nme, getName(), nme, m);
-#endif
-   }
-
-   // if still not found now look in superclass methods
-   if (!err && !m && priv->scl) {
-      m = priv->scl->resolveSelfMethod(nme);
-#ifdef DEBUG
-      if (m)
-	 printd(5, "QoreClass::resolveSelfMethod(%s) resolved to <base class>::%s() %p\n", nme, nme, m);
-#endif
-   }
-
-   if (err) {
-      parse_error("explicit calls to ::%s() methods are not allowed", nme);
-      m = 0;
-   }
-   else if (!m)
       parse_error("no method %s::%s() has been defined", priv->name ? priv->name : "<pending>", nme);
+      return 0;
+   }
+   printd(5, "QoreClass::parseResolveSelfMethod(%s) resolved to %s::%s() %p (static=%d)\n", nme, getName(), nme, m, m->isStatic());
+
+   const char *mname = m->getName();
+   // make sure we're not calling a method that cannot be called directly
+   if (!m->isStatic() && (!strcmp(mname, "constructor") || !strcmp(mname, "destructor") || !strcmp(mname, "copy"))) {
+      parse_error("explicit calls to ::%s() methods are not allowed", nme);
+      return 0;
+   }
 
    return m;
 }
 
-const QoreMethod *QoreClass::resolveSelfMethod(NamedScope *nme) {
+const QoreMethod *QoreClass::parseResolveSelfMethod(NamedScope *nme) {
    // first find class
    QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(nme);
    if (!qc)
@@ -1961,82 +1949,81 @@ const QoreMethod *QoreClass::resolveSelfMethod(NamedScope *nme) {
       return 0;
    }
 
-   const char *nstr = nme->getIdentifier();
-   const QoreMethod *m = qc->findParseMethod(nstr);
-   bool err = false;
-   if (m && (m == priv->constructor || m == priv->destructor))
-      err = true;
-
-   // look in pending methods
-   if (!m) {
-      // pending methods are not set to the quick pointers, so we have to compare the strings...
-      if (!strcmp(nstr, "constructor") || !strcmp(nstr, "destructor"))
-	 err = true;
-      else {
-	 hm_method_t::iterator i = qc->priv->hm_pending.find(nstr);
-	 if (i != qc->priv->hm_pending.end())
-	    m = i->second;
-      }
-   }
-
-   if (err) {
-      parse_error("explicit calls to ::%s() methods are not allowed", nstr);
-      m = 0;
-   }
-   else if (!m)
-      parse_error("no method %s::%s() has been defined", qc->getName(), nstr);
-
-   return m;
+   return qc->parseResolveSelfMethod(nme->getIdentifier());
 }
 
 // for adding user-defined (qore language) methods to a class
-void QoreClass::addMethod(QoreMethod *m) {
-   printd(5, "QoreClass::addMethod(%p) %s.%s() (this=%p)\n", m, priv->name ? priv->name : "<pending>", m->getName(), this);
-
-   m->assign_class(this);
-   bool dst = !strcmp(m->getName(), "destructor");
-   // check for illegal private constructor or destructor
-   if (!strcmp(m->getName(), "constructor") || dst) {
-      if (m->isPrivate())
-	 parseException("ILLEGAL-PRIVATE-METHOD", "%s methods cannot be private", m->getName());
-      if (m->isStatic())
-	 parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", m->getName());
-   }
-   else if (m->isStatic() && priv->checkSpecialStaticIntern(m))
-      parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", m->getName());
-
-   // if the method already exists or the user is trying to define a user destructor on a system object
-   // (system objects without explicit destructors have an implicit default system destructor that cannot be overridden)
-   if ((!m->isStatic() && parseFindMethod(m->getName())) || (m->isStatic() && parseFindStaticMethod(m->getName())) || (priv->sys && dst)) {
-      parse_error("%smethod '%s::%s()' has already been defined", m->isStatic() ? "static " : "", priv->name ? priv->name : "<pending>", m->getName());
-      delete m;
-   }
-   else {
-      // insert in appropriate pending list for parse init
-      if (m->isStatic())
-	 priv->shm_pending[m->getName()] = m;
-      else
-	 priv->hm_pending[m->getName()] = m;
-   }
+int QoreClass::addUserMethod(const char *mname, MethodVariantBase *f, bool n_static) {
+   return priv->addUserMethod(mname, f, n_static);
 }
 
-int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal) {
-   // if the constructor is being defined after the class has already been initialized, then throw a parse exception
-   if (numMethods()) {
-      parse_error("constructors giving explicit arguments to base constructors must be defined when the class is defined");
+int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, bool n_static) {
+   bool n_priv = f->isPrivate();
+   // FIXME: set class name at parse time
+   const char *tname = name ? name : "<pending>";
+   printd(5, "QoreClass::addUserMethod(%s, umv=%p, priv=%d, static=%d) this=%p %s\n", mname, f, n_priv, n_static, this, tname);
+
+   std::auto_ptr<MethodVariantBase> func(f);
+
+   bool dst = !strcmp(mname, "destructor");
+   bool con = !strcmp(mname, "constructor");
+
+   // check for illegal static method
+   if (n_static && (con || dst || checkSpecialStaticIntern(mname))) {
+      parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
       return -1;
    }
-   else if (priv->bcal) {
-      parse_error("a constructor with a base class argument list has already been defined");
+
+   bool cpy = !strcmp(mname, "copy");
+   // check for illegal method overloads
+   if (sys && con) {
+      parseException("ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; constructors in builtin classes cannot be overloaded; create a subclass instead", name);
       return -1;
    }
-   priv->bcal = new_bcal;
+
+   QoreMethod *m = const_cast<QoreMethod *>(!n_static ? parseFindMethod(mname) : parseFindStaticMethod(mname));
+   if (!n_static && m && (dst || cpy)) {
+      parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
+      return -1;
+   }
+
+   bool is_new = false;
+   // if the method does not exist, then create it
+   if (!m) {
+      is_new = true;
+      MethodFunctionBase *mfb;
+      if (con)
+	 mfb = new ConstructorMethodFunction;
+      else if (dst)
+	 mfb = new DestructorMethodFunction;
+      else if (cpy)
+	 mfb = new CopyMethodFunction;
+      else
+	 mfb = new UserMethod(mname);
+
+      m = new QoreMethod(typeInfo.qc, mfb, n_static);
+   }
+
+   // add this variant to the method
+   if (m->priv->addUserVariant(func.release())) {
+      if (is_new)
+	 delete m;
+      return -1;
+   }
+
+   // add the new method to the class if it's a new method
+   if (is_new) {
+      if (n_static)
+	 shm[m->getName()] = m;
+      else
+	 hm[m->getName()] = m;
+   }
    return 0;
 }
 
 // adds a builtin method to the class (duplicate checking is made in debug mode and causes an abort)
 void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag) {
-   priv->addBuiltinMethod(new BuiltinNormalMethod(this, nme, m, QDOM_DEFAULT, 0), priv_flag, false);
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag));
 }
 
 void QoreClass::addMethodExtended(const char *nme, q_method_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
@@ -2049,18 +2036,16 @@ void QoreClass::addMethodExtended(const char *nme, q_method_t m, bool priv_flag,
       va_end(args);
    }
 
-   BuiltinMethod *b = new BuiltinNormalMethod(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   priv->addBuiltinMethod(b, priv_flag, false);
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 void QoreClass::addMethodExtendedList(const char *nme, q_method_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   BuiltinMethod *b = new BuiltinNormalMethod(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   priv->addBuiltinMethod(b, priv_flag, false);
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 // adds a builtin method with the new generic calling convention to the class (duplicate checking is made in debug mode and causes an abort)
 void QoreClass::addMethod2(const char *nme, q_method2_t m, bool priv_flag) {
-   priv->addBuiltinMethod(new BuiltinNormalMethod2(this, nme, m, QDOM_DEFAULT, 0), priv_flag, true);
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag));
 }
 
 void QoreClass::addMethodExtended2(const char *nme, q_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
@@ -2073,19 +2058,16 @@ void QoreClass::addMethodExtended2(const char *nme, q_method2_t m, bool priv_fla
       va_end(args);
    }
 
-   BuiltinMethod *b = new BuiltinNormalMethod2(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   priv->addBuiltinMethod(b, priv_flag, true);
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 void QoreClass::addMethodExtendedList2(const char *nme, q_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   BuiltinMethod *b = new BuiltinNormalMethod2(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   priv->addBuiltinMethod(b, priv_flag, true);
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 // adds a builtin static method to the class
 void QoreClass::addStaticMethod2(const char *nme, q_static_method2_t m, bool priv_flag) {
-   BuiltinMethod *b = new BuiltinStaticMethod2(this, nme, m, QDOM_DEFAULT, 0);
-   priv->addBuiltinStaticMethod(b, priv_flag, true);
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag));
 }
 
 void QoreClass::addStaticMethodExtended2(const char *nme, q_static_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
@@ -2098,19 +2080,16 @@ void QoreClass::addStaticMethodExtended2(const char *nme, q_static_method2_t m, 
       va_end(args);
    }
 
-   BuiltinMethod *b = new BuiltinStaticMethod2(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   priv->addBuiltinStaticMethod(b, priv_flag, true);
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 void QoreClass::addStaticMethodExtendedList2(const char *nme, q_static_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   BuiltinMethod *b = new BuiltinStaticMethod2(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   priv->addBuiltinStaticMethod(b, priv_flag, true);
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 // adds a builtin static method to the class
 void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag) {
-   BuiltinMethod *b = new BuiltinStaticMethod(this, nme, m, QDOM_DEFAULT, 0);
-   priv->addBuiltinStaticMethod(b, priv_flag, false);
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag));
 }
 
 void QoreClass::addStaticMethodExtended(const char *nme, q_func_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
@@ -2123,18 +2102,16 @@ void QoreClass::addStaticMethodExtended(const char *nme, q_func_t m, bool priv_f
       va_end(args);
    }
 
-   BuiltinMethod *b = new BuiltinStaticMethod(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   priv->addBuiltinStaticMethod(b, priv_flag, false);
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 void QoreClass::addStaticMethodExtendedList(const char *nme, q_func_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   BuiltinMethod *b = new BuiltinStaticMethod(this, nme, m, domain, returnTypeInfo, num_params, typeList, defaultArgList);
-   priv->addBuiltinStaticMethod(b, priv_flag, false);
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
 void QoreClass::setConstructor(q_constructor_t m) {
-   priv->addBuiltinConstructor(new BuiltinConstructor(this, m), false, false);
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, false));
 }
 
 void QoreClass::setConstructorExtended(q_constructor_t m, bool priv_flag, int n_domain, unsigned num_params, ...) {
@@ -2146,18 +2123,16 @@ void QoreClass::setConstructorExtended(q_constructor_t m, bool priv_flag, int n_
       qore_process_params(num_params, typeList, defaultArgList, args);
       va_end(args);
    }
-   BuiltinMethod *b = new BuiltinConstructor(this, m, n_domain, num_params, typeList, defaultArgList);
-   priv->addBuiltinConstructor(b, priv_flag, false);
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_domain, num_params, typeList, defaultArgList));
 }
 
 void QoreClass::setConstructorExtendedList(q_constructor_t m, bool priv_flag, int n_domain, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   BuiltinMethod *b = new BuiltinConstructor(this, m, n_domain, num_params, typeList, defaultArgList);
-   priv->addBuiltinConstructor(b, priv_flag, false);
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_domain, num_params, typeList, defaultArgList));
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
 void QoreClass::setConstructor2(q_constructor2_t m) {
-   priv->addBuiltinConstructor(new BuiltinConstructor2(this, m), false, true);
+   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, false));
 }
 
 void QoreClass::setConstructorExtended2(q_constructor2_t m, bool priv_flag, int n_domain, unsigned num_params, ...) {
@@ -2169,60 +2144,50 @@ void QoreClass::setConstructorExtended2(q_constructor2_t m, bool priv_flag, int 
       qore_process_params(num_params, typeList, defaultArgList, args);
       va_end(args);
    }
-   BuiltinMethod *b = new BuiltinConstructor2(this, m, n_domain, num_params, typeList, defaultArgList);
-   priv->addBuiltinConstructor(b, priv_flag, false);
+   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_domain, num_params, typeList, defaultArgList));
 }
 
 void QoreClass::setConstructorExtendedList2(q_constructor2_t m, bool priv_flag, int n_domain, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   BuiltinMethod *b = new BuiltinConstructor2(this, m, n_domain, num_params, typeList, defaultArgList);
-   priv->addBuiltinConstructor(b, priv_flag, false);
+   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_domain, num_params, typeList, defaultArgList));
 }
 
 // sets a builtin function as class destructor - no duplicate checking is made
 void QoreClass::setDestructor(q_destructor_t m) {
-   priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinDestructor(this, m));
-   insertMethod(o);
-   priv->destructor = o;
+   priv->addBuiltinDestructor(new BuiltinDestructorVariant(m));
 }
 
 // sets a builtin function as class destructor - no duplicate checking is made
 void QoreClass::setDestructor2(q_destructor2_t m) {
-   priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinDestructor2(this, m), false, false, true);
-   insertMethod(o);
-   priv->destructor = o;
+   priv->addBuiltinDestructor(new BuiltinDestructor2Variant(m));
 }
 
 // sets a builtin function as class copy constructor - no duplicate checking is made
 void QoreClass::setCopy(q_copy_t m) {
-   priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinCopy(this, m));
-   insertMethod(o);
-   priv->copyMethod = o;
+   priv->addBuiltinCopyMethod(new BuiltinCopyVariant(this, m));
 }
 
 // sets a builtin function as class copy constructor - no duplicate checking is made
 void QoreClass::setCopy2(q_copy2_t m) {
-   priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinCopy2(this, m), false, false, true);
-   insertMethod(o);
-   priv->copyMethod = o;
+   priv->addBuiltinCopyMethod(new BuiltinCopy2Variant(this, m));
 }
 
 // sets the delete_blocker function
 void QoreClass::setDeleteBlocker(q_delete_blocker_t m) {
-   priv->sys = true;
-   QoreMethod *o = new QoreMethod(this, new BuiltinDeleteBlocker(this, m));
-   insertMethod(o);
-   priv->deleteBlocker = o;
-   priv->has_delete_blocker = true;
+   priv->setDeleteBlocker(m);
+}
+
+void QoreClass::setSystemConstructor(q_system_constructor_t m) {
+   priv->setBuiltinSystemConstructor(new BuiltinSystemConstructor(m));
+}
+
+void QoreClass::setSystemConstructor2(q_system_constructor2_t m) {
+   priv->setBuiltinSystemConstructor(new BuiltinSystemConstructor2(m));
 }
 
 QoreListNode *QoreClass::getMethodList() const {
    QoreListNode *l = new QoreListNode();
 
-   for (hm_method_t::const_iterator i = priv->hm.begin(); i != priv->hm.end(); i++)
+   for (hm_method_t::const_iterator i = priv->hm.begin(), e = priv->hm.end(); i != e; ++i)
       l->push(new QoreStringNode(i->first));
    return l;
 }
@@ -2230,7 +2195,7 @@ QoreListNode *QoreClass::getMethodList() const {
 QoreListNode *QoreClass::getStaticMethodList() const {
    QoreListNode *l = new QoreListNode();
 
-   for (hm_method_t::const_iterator i = priv->shm.begin(); i != priv->shm.end(); i++)
+   for (hm_method_t::const_iterator i = priv->shm.begin(), e = priv->shm.end(); i != e; ++i)
       l->push(new QoreStringNode(i->first));
    return l;
 }
@@ -2242,33 +2207,26 @@ void QoreClass::initialize() {
 
 // initializes all user methods
 void QoreClass::parseInit() {
-   setParseClass(this);
+   priv->parseInit();
+}
+
+void qore_class_private::parseInit() {
+   setParseClass(const_cast<QoreClass *>(typeInfo.qc));
    initialize();
 
    // initialize methods
-   for (hm_method_t::iterator i = priv->hm_pending.begin(); i != priv->hm_pending.end(); i++) {
-      if (!strcmp(i->second->getName(), "constructor"))
-	 i->second->parseInitConstructor(priv->scl);
-      else if (!strcmp(i->second->getName(), "destructor"))
-	 i->second->parseInitDestructor();
-      else if (!strcmp(i->second->getName(), "copy"))
-	 i->second->parseInitCopy();
-      else
-	 i->second->parseInit();
+   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      i->second->priv->parseInit();
    }
 
    // initialize static methods
-   for (hm_method_t::iterator i = priv->shm_pending.begin(); i != priv->shm_pending.end(); i++) {
-      i->second->parseInit();
+   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+      i->second->priv->parseInitStatic();
    }
+}
 
-   if (priv->bcal) {
-      if (!priv->scl) {
-	 parse_error("base constructor arguments given for a class that has no parent classes");
-      }
-      delete priv->bcal;
-      priv->bcal = 0;
-   }
+bool QoreClass::hasParentClass() const {
+   return (bool)priv->scl;
 }
 
 // commits all pending user methods and pending private members
@@ -2346,4 +2304,256 @@ bool QoreClass::isPublicOrPrivateMember(const char *str, bool &priv_member) cons
 
 int QoreClass::initMembers(QoreObject *o, ExceptionSink *xsink) const {
    return priv->initMembers(o, xsink);
+}
+
+void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {
+   checkAddVariant(variant);
+   addBuiltinVariant(variant);
+}
+
+void MethodFunctionBase::parseCommitMethod() {
+   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      // maintain all_private flag
+      checkAddVariant(METHVB(*i));
+      vlist.push_back(*i);
+   }
+   pending_vlist.clear();
+}
+
+void MethodFunctionBase::checkAddVariant(MethodVariantBase *variant) {
+   if (vlist.empty())
+      all_private = variant->isPrivate();
+   else if (all_private && !variant->isPrivate())
+      all_private = false;
+}
+
+void MethodFunction::parseInitMethod(const QoreClass &parent_class, bool static_flag) {
+   //printd(5, "UserMethod::parseInitMethod() this=%p %s::%s() static_flag=%d\n", this, parent_class.getName(), getName(), static_flag);
+   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      UserMethodVariant *v = UMV(*i);
+      v->parseInitMethod(parent_class, static_flag);
+
+      // recheck types against committed types if necessary
+      if (v->getRecheck())
+	 parseCheckDuplicateSignatureCommitted(v);
+   }
+}
+
+void ConstructorMethodFunction::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
+   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      UserConstructorVariant *v = UCONV(*i);
+      v->parseInitConstructor(parent_class, bcl);
+
+      // recheck types against committed types if necessary
+      if (v->getRecheck())
+	 parseCheckDuplicateSignatureCommitted(v);
+   }
+}
+
+void DestructorMethodFunction::parseInitDestructor(const QoreClass &parent_class) {
+   // there can be only one destructor variant
+   assert(!pending_vlist.plural());
+
+   if (pending_vlist.empty())
+      return;
+
+   UserDestructorVariant *v = UDESV(pending_first());
+   assert(!v->getRecheck());
+   v->parseInitDestructor(parent_class);
+}
+
+void CopyMethodFunction::parseInitCopy(const QoreClass &parent_class) {
+   // there can be only one copy method variant
+   assert(!pending_vlist.plural());
+
+   if (pending_vlist.empty())
+      return;
+
+   UserCopyVariant *v = UCOPYV(pending_first());
+   assert(!v->getRecheck());
+   v->parseInitCopy(parent_class);
+}
+
+int ConstructorMethodVariant::evalBaseClassConstructors(CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+   const BCAList *bcal = getBaseClassArgumentList();
+   if (bcal) {
+      bcal->execBaseClassConstructorArgs(bceal, xsink);
+      if (*xsink)
+	 return -1;
+   }
+   bcl->execConstructors(self, bceal, xsink);
+   if (*xsink)
+      return -1;
+   ceh.restorePosition();
+   return 0;
+}
+
+UserConstructorVariant::~UserConstructorVariant() {
+   delete bcal;
+}
+
+void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
+   assert(!signature.getReturnTypeInfo());
+      
+   // push return type on stack (no return value can be used)
+   ReturnTypeInfoHelper rtih(&nothingTypeInfo);
+
+   if (bcal && !parent_class.hasParentClass()) {
+      parse_error("base constructor arguments given for class '%s' that has no parent classes", parent_class.getName());
+      delete bcal;
+      bcal = 0;
+   }
+
+   //printd(5, "UserConstructorVariant::parseInitConstructor() this=%p %s::constructor() params=%d\n", this, parent_class.getName(), signature.numParams());
+   // must be called even if statements is NULL
+   statements->parseInitConstructor(parent_class.getTypeInfo(), &signature, bcal, bcl);
+}
+
+void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
+   // make sure there is max one parameter in the copy method      
+   if (signature.numParams() > 1)
+      parse_error("maximum of one parameter may be defined in class copy methods (%d defined); this parameter will be assigned to the old object when the method is executed", signature.numParams());
+
+   // push return type on stack (no return value can be used)
+   ReturnTypeInfoHelper rtih(&nothingTypeInfo);
+   
+   // must be called even if statements is NULL
+   statements->parseInitMethod(parent_class.getTypeInfo(), &signature);
+   
+   // see if there is a type specification for the sole parameter and make sure it matches the class if there is
+   if (signature.numParams()) {
+      if (signature.typeList[0]) {
+	 if (!parent_class.getTypeInfo()->parseEqual(signature.typeList[0])) {
+	    // raise parse exception if parse exceptions have not been suppressed
+	    if (getProgram()->getParseExceptionSink()) {
+	       QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");
+	       parent_class.getTypeInfo()->getThisType(*desc);
+	       desc->concat(", but the object's parameter was defined expecting ");
+	       signature.typeList[0]->getThisType(*desc);
+	       desc->concat(" instead");
+	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    }
+	 }
+      }
+      else { // set to class' type
+	 signature.typeList[0] = new QoreParseTypeInfo(parent_class.getTypeInfo());
+      }
+   }
+}
+
+void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVariant *variant, const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+   // setup call, save runtime position, and evaluate arguments
+   CodeEvaluationHelper ceh(xsink, "constructor", args, thisclass.getName());
+   if (*xsink)
+      return;
+
+   // find variant with evaluated args
+   if (!variant) {
+      variant = findVariant(ceh.getArgs(), xsink);
+      if (!variant) {
+	 assert(*xsink);
+	 return;
+      }
+   }
+   qore_call_t ct = variant->getCallType();
+   ceh.setCallType(ct);
+
+   CodeContextHelper cch("constructor", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack
+   CallStackHelper csh("constructor", ct, self, xsink);
+#endif
+
+   CONMV_const(variant)->evalConstructor(thisclass, self, ceh, bcl, bceal, xsink);      
+}
+
+void CopyMethodFunction::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, BCList *scl, ExceptionSink *xsink) const {
+   assert(vlist.singular());
+
+   const AbstractQoreFunctionVariant *variant = first();
+   qore_call_t ct = variant->getCallType();
+
+   // setup call, save runtime position
+   CodeEvaluationHelper ceh(xsink, "copy", 0, thisclass.getName(), ct);
+
+   CodeContextHelper cch("copy", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack
+   CallStackHelper csh("copy", ct, self, xsink);
+#endif
+
+   if (scl) {
+      scl->sml.execCopyMethods(self, old, xsink);
+      if (*xsink)
+	 return;
+      ceh.restorePosition();
+   }
+
+   COPYMV_const(variant)->evalCopy(thisclass, self, old, xsink);
+}
+
+void DestructorMethodFunction::evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
+   assert(vlist.singular());
+
+   const AbstractQoreFunctionVariant *variant = first();
+   qore_call_t ct = variant->getCallType();
+
+   // setup call, save runtime position
+   CodeEvaluationHelper ceh(xsink, "destructor", 0, thisclass.getName(), ct);
+
+   CodeContextHelper cch("destructor", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack
+   CallStackHelper csh("destructor", ct, self, xsink);
+#endif
+
+   DESMV_const(variant)->evalDestructor(thisclass, self, xsink);
+}
+
+// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVariant *variant, const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
+   const char *mname = method.getName();
+   CodeEvaluationHelper ceh(xsink, mname, args, method.getClass()->getName());
+   if (*xsink) return 0;
+
+   if (!variant) {
+      variant = findVariant(ceh.getArgs(), xsink);
+      if (!variant) {
+	 assert(*xsink);
+	 return 0;
+      }
+   }
+   qore_call_t ct = variant->getCallType();
+
+   CodeContextHelper cch(mname, self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack in debugging mode
+   CallStackHelper csh(mname, ct, self, xsink);
+#endif
+
+   return METHV_const(variant)->evalNormalMethod(method, self, ceh.getArgs(), xsink);      
+}
+
+// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVariant *variant, const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+   const char *mname = method.getName();
+   CodeEvaluationHelper ceh(xsink, mname, args, method.getClass()->getName());
+   if (*xsink) return 0;
+
+   if (!variant) {
+      variant = findVariant(ceh.getArgs(), xsink);
+      if (!variant) {
+	 assert(*xsink);
+	 return 0;
+      }
+   }
+   qore_call_t ct = variant->getCallType();
+
+   CodeContextHelper cch(mname, 0, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   // push call on call stack in debugging mode
+   CallStackHelper csh(mname, ct, 0, xsink);
+#endif
+
+   return METHV_const(variant)->evalStaticMethod(method, ceh.getArgs(), xsink);      
 }

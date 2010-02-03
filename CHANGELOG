@@ -1,3 +1,6 @@
+2010.02.03: David Nichols
+	 * massive internal updates for function and method overloading
+
 2010.01.26: David Nichols
 	 * massive internal updates to streamline function, method, and 
 	   call implementations

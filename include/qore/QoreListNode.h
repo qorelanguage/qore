@@ -64,7 +64,7 @@ class QoreListNode : public AbstractQoreNode {
       DLLLOCAL int mergesort(const class ResolvedCallReferenceNode *fr, bool ascending, class ExceptionSink *xsink);
 
       //! does an unconditional evaluation of the list and returns the new list, 0 if there is a qore-language exception
-      DLLLOCAL QoreListNode *eval_intern(class ExceptionSink *xsink) const;
+      DLLLOCAL QoreListNode *eval_intern(ExceptionSink *xsink) const;
 
       //! the destructor is protected so it cannot be called directly
       /** use the deref(ExceptionSink) function to release the reference count
@@ -249,10 +249,10 @@ class QoreListNode : public AbstractQoreNode {
       //! optionally evaluates the list
       /** return value requires a deref(xsink) if needs_deref is true
 	  NOTE: if the list requires evaluation and there is an exception, 0 will be returned
-	  NOTE: do not use this function directly, use the QoreListEvalOptionalRefHolder class instead
+	  NOTE: do not use this function directly, use the QoreListNodeEvalOptionalRefHolder class instead
 	  @param needs_deref this is an output parameter, if needs_deref is true then the value returned must be dereferenced	  
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
-	  @see QoreListEvalOptionalRefHolder
+	  @see QoreListNodeEvalOptionalRefHolder
       */
       DLLEXPORT QoreListNode *evalList(bool &needs_deref, class ExceptionSink *xsink) const;
 
@@ -417,8 +417,11 @@ class QoreListNode : public AbstractQoreNode {
       */
       DLLLOCAL AbstractQoreNode *eval_entry(qore_size_t num, class ExceptionSink *xsink) const;
 
-      //! for initialization of lists in the parse tree at parse time
+      //! for initialization of lists in the parse tree at parse time (always returns "this")
       DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+      //! for initialization of lists in the parse tree at parse time (always returns "this")
+      DLLLOCAL QoreListNode *parseInitList(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #include <qore/ReferenceHolder.h>
@@ -604,6 +607,15 @@ class QoreListNodeEvalOptionalRefHolder {
 	    val->deref(xsink);
       }
 
+      DLLLOCAL void eval_intern(const QoreListNode *exp) {
+	 if (exp)
+	    val = exp->evalList(needs_deref, xsink);
+	 else {
+	    val = 0;
+	    needs_deref = false;
+	 }
+      }
+
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreListNodeEvalOptionalRefHolder(const QoreListNodeEvalOptionalRefHolder&);
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -620,8 +632,7 @@ class QoreListNodeEvalOptionalRefHolder {
 
       //! performs an optional evaluation of the list (sets the dereference flag)
       DLLLOCAL QoreListNodeEvalOptionalRefHolder(const QoreListNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink) {
-	 needs_deref = false;
-	 val = exp ? exp->evalList(needs_deref, xsink) : 0;
+	 eval_intern(exp);
       }
 
       //! clears the object (dereferences the old object if necessary)
@@ -636,11 +647,22 @@ class QoreListNodeEvalOptionalRefHolder {
 	 val = 0;
       }
 
+      //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
+      DLLLOCAL void assignEval(const QoreListNode *exp) {
+	 discard_intern();
+	 eval_intern(exp);
+      }
+
       //! assigns a new value and dereference flag to this object, dereferences the old object if necessary
       DLLLOCAL void assign(bool n_needs_deref, QoreListNode *n_val) {
 	 discard_intern();
 	 needs_deref = n_needs_deref;
 	 val = n_val;
+      }
+
+      //! returns true if the object contains a temporary (evaluated) value that needs a dereference
+      DLLLOCAL bool needsDeref() const {
+	 return needs_deref;
       }
 
       //! returns a referenced value - the caller will own the reference

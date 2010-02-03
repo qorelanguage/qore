@@ -86,10 +86,13 @@ template<typename T> struct _qore_list_const_iterator {
    typedef _qore_list_const_iterator<T> self_t;
    
    // data for the node
-   node_t *node;
+   const node_t *node;
 
+   DLLLOCAL _qore_list_const_iterator(_qore_list_iterator<T> i) {
+      node = i.node;
+   }
    DLLLOCAL _qore_list_const_iterator(const node_t *n) { 
-      node = (node_t *)n; 
+      node = n; 
    }
    DLLLOCAL _qore_list_const_iterator() { 
       node = 0; 
@@ -274,6 +277,16 @@ public:
 	 n->next = i.node->next;
       }
       delete i.node;
+   }
+
+   DLLLOCAL size_t size() const {
+      size_t i = 0;
+      node_t *n = head;
+      while (n) {
+	 ++i;
+	 n = n->next;
+      }
+      return i;
    }
 };
 
