@@ -841,6 +841,7 @@ void qore_class_private::setDeleteBlocker(q_delete_blocker_t func) {
    qm->priv->setBuiltin();
    deleteBlocker = qm;
    insertBuiltinMethod(qm);
+   has_delete_blocker = true;
 }
 
 void qore_class_private::setBuiltinSystemConstructor(BuiltinSystemConstructorBase *m) {
