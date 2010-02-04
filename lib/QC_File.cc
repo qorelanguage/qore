@@ -80,7 +80,7 @@ static AbstractQoreNode *FILE_open(QoreObject *self, class File *f, const QoreLi
    if (pstr)
       charset = QEM.findCreate(pstr);
    else
-      charset = QCS_DEFAULT;
+      charset = f->getEncoding();
 
    return new QoreBigIntNode(f->open(p0->getBuffer(), flags, mode, charset));
 }
@@ -114,7 +114,7 @@ static AbstractQoreNode *FILE_open2(QoreObject *self, class File *f, const QoreL
    if (pstr)
       charset = QEM.findCreate(pstr);
    else
-      charset = QCS_DEFAULT;
+      charset = f->getEncoding();
    
    f->open2(xsink, p0->getBuffer(), flags, mode, charset);
    return 0;
@@ -605,13 +605,14 @@ static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, class File
 }
 
 static AbstractQoreNode *FILE_setEventQueue(QoreObject *self, File *f, const QoreListNode *params, ExceptionSink *xsink) {
-    const QoreObject *o = test_object_param(params, 0);
-    Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
-    if (*xsink)
-        return 0;
-    // pass reference from QoreObject::getReferencedPrivateData() to function
-    f->setEventQueue(q, xsink);
-    return 0;
+   // no queue may be passed, which means to clear the event queue
+   const QoreObject *o = test_object_param(params, 0);
+   Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
+   if (*xsink)
+      return 0;
+   // pass reference from QoreObject::getReferencedPrivateData() to function
+   f->setEventQueue(q, xsink);
+   return 0;
 }
 
 QoreClass *initFileClass() {
