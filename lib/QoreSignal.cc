@@ -312,26 +312,26 @@ void QoreSignalManager::signal_handler_thread() {
 	    handlers[sig].del(sig, &xsink);
 	 }
       }
-      
+
       thread_running = false;
       tid = -1;
       sl.unlock();
-      
-      printd(5, "QoreSignalManager::signal_handler_thread() pid=%d signal handler thread terminating\n", getpid());
-      
-      // delete internal thread data structure
-      delete_thread_data();
-      
-      // deregister_thread
-      deregister_signal_thread();
-      
-      // run thread cleanup handlers
-      tclist.exec();
-      
-      tcount.dec();
-      //printf("signal handler thread %d stopped (count=%d)\n", c_tid, tcount.getCount());fflush(stdout);
-      pthread_exit(0);
    }
+
+   printd(5, "QoreSignalManager::signal_handler_thread() pid=%d signal handler thread terminating\n", getpid());
+   
+   // delete internal thread data structure
+   delete_thread_data();
+      
+   // deregister_thread
+   deregister_signal_thread();
+      
+   // run thread cleanup handlers
+   tclist.exec();
+      
+   tcount.dec();
+   //printf("signal handler thread %d stopped (count=%d)\n", c_tid, tcount.getCount());fflush(stdout);
+   pthread_exit(0);
 }
 
 extern "C" void *sig_thread(void *x) {
