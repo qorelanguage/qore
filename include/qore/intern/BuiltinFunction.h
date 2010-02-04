@@ -34,6 +34,10 @@ public:
    const AbstractQoreNode **defaultArgList;
 
    DLLLOCAL BuiltinSignature(const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params, const QoreTypeInfo **n_typeList, const AbstractQoreNode **n_defaultArgList) : AbstractFunctionSignature(n_num_params), typeList(n_typeList), returnTypeInfo(n_returnTypeInfo), defaultArgList(n_defaultArgList) {
+      for (unsigned i = 0; i < num_params; ++i) {
+	 if (typeList[i])
+	    ++num_param_types;
+      }
    }
    DLLLOCAL virtual ~BuiltinSignature() {
       delete [] typeList;
@@ -51,10 +55,6 @@ public:
    }
    DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const {
       return defaultArgList;
-   }
-   // returns the number of parameters that have type information
-   DLLLOCAL virtual unsigned getParamTypes() const {
-      return num_params;
    }
 };
 

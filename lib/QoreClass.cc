@@ -1999,8 +1999,8 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
 
    bool cpy = !strcmp(mname, "copy");
    // check for illegal method overloads
-   if (sys && con) {
-      parseException("ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; constructors in builtin classes cannot be overloaded; create a subclass instead", name);
+   if (sys && (con || cpy)) {
+      parseException("ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name, mname);
       return -1;
    }
 

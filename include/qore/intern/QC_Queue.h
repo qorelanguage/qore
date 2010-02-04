@@ -27,15 +27,15 @@
 #include <qore/intern/QoreQueue.h>
 
 DLLEXPORT extern qore_classid_t CID_QUEUE;
-DLLLOCAL class QoreClass *initQueueClass();
+DLLLOCAL QoreClass *initQueueClass();
+DLLLOCAL extern QoreClass *QC_QUEUE;
 
-class Queue : public AbstractPrivateData, public QoreQueue
-{
-   protected:
-      DLLLOCAL virtual ~Queue() {}
+class Queue : public AbstractPrivateData, public QoreQueue {
+protected:
+   DLLLOCAL virtual ~Queue() {}
 
-   public:
-      DLLLOCAL Queue() {}
+public:
+   DLLLOCAL Queue() {}
 };
 
 #endif // _QORE_CLASS_QUEUE

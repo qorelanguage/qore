@@ -291,7 +291,7 @@ static AbstractQoreNode *DIR_openFile(QoreObject *self, class Dir *d, const Qore
   }
 
   // create the QoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
-  QoreObject *o = new QoreObject(QC_File, getProgram());
+  QoreObject *o = new QoreObject(QC_FILE, getProgram());
   o->setPrivate(CID_FILE, f.release());
   return o;
 }

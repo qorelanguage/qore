@@ -1,8 +1,10 @@
 #!/usr/bin/env qore
 
-%requires qore >= 0.8.0
+%require-our
 
-float $g = 0;
+%requires qore >= 0.8
+
+our float $g = 0;
 
 class T {
     # declare public members

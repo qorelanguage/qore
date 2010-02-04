@@ -24,6 +24,7 @@
 #include <qore/intern/QC_Queue.h>
 
 qore_classid_t CID_QUEUE;
+QoreClass *QC_QUEUE;
 
 static void QUEUE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    self->setPrivate(CID_QUEUE, new Queue());
@@ -92,7 +93,7 @@ static AbstractQoreNode *QUEUE_getWaiting(QoreObject *self, Queue *q, const Qore
 QoreClass *initQueueClass() {
    QORE_TRACE("initQueueClass()");
 
-   QoreClass *QC_QUEUE = new QoreClass("Queue", QDOM_THREAD_CLASS);
+   QC_QUEUE = new QoreClass("Queue", QDOM_THREAD_CLASS);
    CID_QUEUE = QC_QUEUE->getID();
    QC_QUEUE->setConstructor(QUEUE_constructor);
    QC_QUEUE->setDestructor((q_destructor_t)QUEUE_destructor);

@@ -38,10 +38,13 @@ class BCAList;
 
 class AbstractFunctionSignature {
 protected:
-   unsigned num_params;
+   // number of parameters
+   unsigned short num_params;
+   // number of parameters that have type information
+   unsigned short num_param_types;
 
 public:
-   DLLLOCAL AbstractFunctionSignature(unsigned n_num_params) : num_params(n_num_params) {
+   DLLLOCAL AbstractFunctionSignature(unsigned n_num_params) : num_params(n_num_params), num_param_types(0) {
    }
    DLLLOCAL virtual ~AbstractFunctionSignature() {
    }
@@ -60,7 +63,9 @@ public:
       return num_params;
    }
    // number of params with type information
-   DLLLOCAL virtual unsigned getParamTypes() const = 0;
+   DLLLOCAL unsigned getParamTypes() const {
+      return num_param_types;
+   }
    DLLLOCAL const QoreTypeInfo *getParamTypeInfo(unsigned num) const {
       return num >= num_params ? 0 : getParamTypeInfoImpl(num);
    }
@@ -71,8 +76,6 @@ protected:
    QoreParseTypeInfo *returnTypeInfo;
    int first_line, last_line;
    const char *parse_file;
-   // number of parameters that have type information
-   unsigned short num_param_types;
 
    DLLLOCAL void assignParam(int i, VarRefNode *v);
 
@@ -157,11 +160,6 @@ public:
 
    DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const {
       return 0;
-   }
-
-   // returns the number of parameters that have type information
-   DLLLOCAL virtual unsigned getParamTypes() const {
-      return num_param_types;
    }
 
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo);

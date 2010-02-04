@@ -78,6 +78,20 @@ static inline int64 get_bigint_param(const QoreListNode *n, qore_size_t i) {
    return is_nothing(p) ? 0 : p->getAsBigInt();
 }
 
+//! returns an integer corresponding to the argument given or a default value if there is none
+static inline int get_int_param_with_default(const QoreListNode *n, qore_size_t i, int def) {
+   if (!n) return def;
+   const AbstractQoreNode *p = n->retrieve_entry(i);
+   return is_nothing(p) ? def : p->getAsInt();
+}
+
+//! returns a 64-bit integer corresponding to the argument given or a default value if there is none
+static inline int64 get_bigint_param_with_default(const QoreListNode *n, qore_size_t i, int64 def) {
+   if (!n) return def;
+   const AbstractQoreNode *p = n->retrieve_entry(i);
+   return is_nothing(p) ? def : p->getAsBigInt();
+}
+
 //! returns a boolean value corresponding to the argument given or false if there is none
 static inline bool get_bool_param(const QoreListNode *n, qore_size_t i) {
    if (!n) return 0;
@@ -210,5 +224,25 @@ static inline bool test_nothing_param(const QoreListNode *n, qore_size_t i) {
    if (!n) return true;
    return is_nothing(n->retrieve_entry(i));
 }
+
+//! returns the QoreEncoding corresponding to the string passed or a default encoding
+static inline const QoreEncoding *get_encoding_param(const QoreListNode *n, qore_size_t i, const QoreEncoding *def = QCS_DEFAULT) {
+   const QoreStringNode *str = test_string_param(n, i);
+   return str ? QEM.findCreate(str) : def;
+}
+
+//! returns the given type for hard typed parameters
+template <typename T>
+static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
+   assert(n);
+   assert(dynamic_cast<T *>(n->retrieve_entry(i)));
+   return reinterpret_cast<T *>(n->retrieve_entry(i));
+}
+
+// returns a hard typed parameter
+#define HARD_QORE_PARAM(name, Type, list, i) Type *name = get_hard_param<Type>(list, i)
+
+// returns an object pointer
+#define HARD_QORE_OBJ_PARAM(name, Type, list, i, cid, xsink) HARD_QORE_PARAM(obj_##name, const QoreObject, list, i); Type *name = reinterpret_cast<Type *>(obj_##name->getReferencedPrivateData(cid, xsink)); assert(name || *xsink)
 
 #endif

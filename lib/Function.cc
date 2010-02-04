@@ -35,7 +35,7 @@ static inline void duplicateSignatureException(const char *name, UserVariantBase
 UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo) : 
    AbstractFunctionSignature(0), returnTypeInfo(n_returnTypeInfo), 
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
-   num_param_types(0), names(0), typeList(0), lv(0), argvid(0), selfid(0), resolved(false) {
+   names(0), typeList(0), lv(0), argvid(0), selfid(0), resolved(false) {
    if (!params) {
       return;
    }
