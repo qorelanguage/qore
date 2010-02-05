@@ -24,7 +24,7 @@
 
 #define _QORE_QORETYPEINFO_H
 
-#define NO_TYPE_INFO "<no type info"
+#define NO_TYPE_INFO "<no type info>"
 
 // used for return values when checking types with functions that return numeric codes
 #define QTI_IDENT      -1  // the types are identical

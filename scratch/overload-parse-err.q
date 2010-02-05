@@ -3,7 +3,6 @@
 %require-our
 
 %requires qore >= 0.8
-
 sub test(int $x) {}
 sub test(string $x) {}
 # parse error: duplicate signature

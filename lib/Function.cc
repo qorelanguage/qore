@@ -29,7 +29,7 @@
 
 // FIXME: xxx add signature information, set parse location
 static inline void duplicateSignatureException(const char *name, UserVariantBase *uvb) {
-   parseException("DUPLICATE-SIGNATURE", "%s() has already been declared with the same or a compatible signature", name);
+   parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared with the same or a compatible signature", name, uvb->getUserSignature()->getSignatureText());
 }
 
 UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo) : 
@@ -37,6 +37,7 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
    names(0), typeList(0), lv(0), argvid(0), selfid(0), resolved(false) {
    if (!params) {
+      str = NO_TYPE_INFO;
       return;
    }
 
@@ -145,6 +146,27 @@ bool AbstractQoreFunction::existsVariant(unsigned p_num_params, const QoreTypeIn
    return false;
 }
 
+void addArgs(QoreStringNode &desc, const QoreListNode *args) {
+   if (!args || !args->size()) {
+      desc.concat(NO_TYPE_INFO);
+      return;
+   }   
+   for (unsigned i = 0; i < args->size(); ++i) {
+      const AbstractQoreNode *n = args->retrieve_entry(i);
+      if (is_nothing(n))
+	 desc.concat("NOTHING");
+      else {
+	 qore_type_t t = n ? n->getType() : NT_NOTHING;
+	 if (t == NT_OBJECT)
+	    desc.concat(reinterpret_cast<const QoreObject *>(n)->getClassName());
+	 else
+	    desc.concat(n->getTypeName());
+      }
+      if (i != (args->size() - 1))
+	 desc.concat(", ");
+   }
+}
+
 // finds a variant at runtime
 const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreListNode *args, ExceptionSink *xsink) const {
    unsigned match = 0;
@@ -181,12 +203,19 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 }
       }
    }
-   if (!variant)
-      xsink->raiseException("RUNTIME-OVERLOAD-ERROR", "no appropriate variant of '%s()' can be found matching the arguments given", getName());
+   // FIXME: show variants checked - add class name for methods
+   if (!variant) {
+      QoreStringNode *desc = new QoreStringNode("no variant matching '");
+      desc->sprintf("%s(", getName());
+      addArgs(*desc, args);
+      desc->concat(") can be found");
+      // FIXME: show variants that exist
+      xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
+   }
    else {
       // check parse options
       if (variant->getFunctionality() & getProgram()->getParseOptions()) {
-	 xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s()'", getName());
+	 xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s(%s)'", getName(), variant->getSignature()->getSignatureText());
 	 return 0;
       }
    }
@@ -221,7 +250,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	       // raise a detailed parse exception immediately if there is only one variant
 	       if (vlist.singular() && pending_vlist.empty() && getProgram()->getParseExceptionSink()) {
 		  QoreStringNode *desc = new QoreStringNode("argument ");
-                  desc->sprintf("%d to '%s()' expects ", pi + 1, getName());
+                  desc->sprintf("%d to '%s(%s)' expects ", pi + 1, getName(), sig->getSignatureText());
                   t->getThisType(*desc);
                   desc->concat(", but call supplies ");
                   argTypeInfo[pi]->getThisType(*desc);
@@ -268,7 +297,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	       // raise a detailed parse exception immediately if there is only one variant
 	       if (pending_vlist.singular() && vlist.empty() && getProgram()->getParseExceptionSink()) {
 		  QoreStringNode *desc = new QoreStringNode("argument ");
-                  desc->sprintf("%d to '%s()' expects ", pi + 1, getName());
+                  desc->sprintf("%d to '%s(%s)' expects ", pi + 1, getName(), sig->getSignatureText());
                   t->getThisType(*desc);
                   desc->concat(", but call supplies ");
                   argTypeInfo[pi]->getThisType(*desc);
@@ -290,8 +319,20 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	 }
       }
    }
+   // FIXME: show variants checked - add class name for methods
    if (!variant) {
-      parse_error("no appropriate variant of '%s()' can be found matching the arguments given", getName());
+      QoreStringNode *desc = new QoreStringNode("no variant matching '");
+      desc->sprintf("%s(", getName());
+      if (!num_args)
+	 desc->concat(NO_TYPE_INFO);
+      else
+	 for (unsigned i = 0; i < num_args; ++i) {
+	    desc->concat(argTypeInfo[i]->getName());
+	    if (i != (num_args - 1))
+	       desc->concat(", ");
+	 }
+      desc->concat(") can be found");
+      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
    return variant;
 }
@@ -354,7 +395,7 @@ void AbstractQoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant *varian
       if (tp != sig->numParams())
 	 continue;
       if (!tp) {
-	 printd(0, "BuiltinFunctionBase::addBuiltinVariant() this=%p %s() added twice: %p, %p\n", this, getName(), *i, variant);
+	 printd(0, "BuiltinFunctionBase::addBuiltinVariant() this=%p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
 	 assert(false);
       }
       bool ok = false;
