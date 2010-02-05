@@ -36,11 +36,10 @@ QoreString EmptyListString("<EMPTY LIST>");
 
 static qore_type_t lastid = QORE_NUM_TYPES;
 
-class QoreTypeManager
-{
-   public:
-      DLLLOCAL QoreTypeManager();
-      DLLLOCAL ~QoreTypeManager();
+class QoreTypeManager {
+public:
+   DLLLOCAL QoreTypeManager() {}
+   DLLLOCAL ~QoreTypeManager() {}
 };
 
 static QoreTypeManager QTM;
@@ -56,22 +55,12 @@ QoreHashNode *emptyHash;
 QoreStringNode *NullString;
 DateTimeNode *ZeroDate;
 
-qore_type_t get_next_type_id()
-{
+qore_type_t get_next_type_id() {
    return lastid++;
 }
 
-QoreTypeManager::QoreTypeManager()
-{
-}
-
-QoreTypeManager::~QoreTypeManager()
-{
-}
-
 // at least the NullString must be created after the default character encoding is set
-void init_qore_types()
-{
+void init_qore_types() {
    // initialize global default values
    NullString    = new QoreStringNode("");
    ZeroDate      = new DateTimeNode((int64)0);
@@ -80,8 +69,7 @@ void init_qore_types()
    emptyHash     = new QoreHashNode();
 }
 
-void delete_qore_types()
-{
+void delete_qore_types() {
    // dereference global default values
    NullString->deref();
    ZeroDate->deref();
@@ -90,8 +78,7 @@ void delete_qore_types()
 }
 
 // 0 = equal, 1 = not equal
-bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink)
-{
+bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {
    if (is_nothing(l)) {
       if (is_nothing(r))
          return 0;
@@ -108,8 +95,21 @@ bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
 // this function calls the operator function that will
 // convert values to do the conversion
 // 0 = equal, 1 = not equal
-bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink)
-{
+bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {
    // logical equals always returns an integer result
    return !OP_LOG_EQ->bool_eval(l, r, xsink);
+}
+
+QoreTypeInfoHelper::QoreTypeInfoHelper() : typeInfo(new QoreTypeInfo) {
+}
+
+QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id) : typeInfo(new QoreTypeInfo(id)) {
+}
+
+QoreTypeInfoHelper::~QoreTypeInfoHelper() {
+   delete typeInfo;
+}
+
+void QoreTypeInfoHelper::assign(qore_type_t id) {
+   typeInfo->qt = id;
 }

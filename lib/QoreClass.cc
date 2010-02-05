@@ -2419,7 +2419,7 @@ void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class,
    assert(!signature.getReturnTypeInfo());
       
    // push return type on stack (no return value can be used)
-   ReturnTypeInfoHelper rtih(&nothingTypeInfo);
+   ReturnTypeInfoHelper rtih(nothingTypeInfo);
 
    if (bcal && !parent_class.hasParentClass()) {
       parse_error("base constructor arguments given for class '%s' that has no parent classes", parent_class.getName());
@@ -2438,7 +2438,7 @@ void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
       parse_error("maximum of one parameter may be defined in class copy methods (%d defined); this parameter will be assigned to the old object when the method is executed", signature.numParams());
 
    // push return type on stack (no return value can be used)
-   ReturnTypeInfoHelper rtih(&nothingTypeInfo);
+   ReturnTypeInfoHelper rtih(nothingTypeInfo);
    
    // must be called even if statements is NULL
    statements->parseInitMethod(parent_class.getTypeInfo(), &signature);

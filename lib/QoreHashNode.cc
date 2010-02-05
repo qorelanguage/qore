@@ -755,7 +755,7 @@ QoreHashNode *QoreHashNode::getSlice(const QoreListNode *value_list, ExceptionSi
 }
 
 AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   typeInfo = &hashTypeInfo;
+   typeInfo = hashTypeInfo;
 
    HashIterator hi(this);
    while (hi.next()) {

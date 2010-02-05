@@ -195,7 +195,7 @@ AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, 
    // return type
    if (!is_assignment && new_local_var) { 
       assert(!outTypeInfo);
-      outTypeInfo = &nothingTypeInfo;
+      outTypeInfo = nothingTypeInfo;
    }
 
    return this;

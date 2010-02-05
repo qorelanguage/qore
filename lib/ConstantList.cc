@@ -54,15 +54,15 @@ void ConstantList::reset() {
    deleteAll();
 }
 
-void ConstantList::add(const char *name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo) {
+void ConstantList::add(const char *name, AbstractQoreNode *value) {
    // first check if the constant has already been defined
    if (hm.find(name) != hm.end()) {
       parse_error("constant \"%s\" has already been defined", name);
       value->deref(0);
       return;
    }
-   
-   hm[strdup(name)] = ConstantEntry(value, typeInfo);
+
+   hm[strdup(name)] = ConstantEntry(value, getTypeInfoForValue(value));
 }
 
 AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo) {

@@ -111,6 +111,6 @@ const char *QoreFloatNode::getTypeName() const {
 }
 
 AbstractQoreNode *QoreFloatNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   typeInfo = &floatTypeInfo;
+   typeInfo = floatTypeInfo;
    return this;
 }

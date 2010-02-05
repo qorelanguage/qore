@@ -75,7 +75,7 @@ const char *QoreNullNode::getTypeName() const {
 
 //! returns the type information
 AbstractQoreNode *QoreNullNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   typeInfo = &nullTypeInfo;
+   typeInfo = nullTypeInfo;
    return this;
 }
 

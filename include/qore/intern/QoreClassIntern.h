@@ -179,7 +179,7 @@ public:
       assert(!signature.getReturnTypeInfo());
 
       // push return type on stack (no return value can be used)
-      ReturnTypeInfoHelper rtih(&nothingTypeInfo);
+      ReturnTypeInfoHelper rtih(nothingTypeInfo);
 
       // must be called even if statements is NULL
       statements->parseInitMethod(parent_class.getTypeInfo(), &signature);

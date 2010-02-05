@@ -78,20 +78,12 @@ class QoreNamespace {
       //! destroys the object and frees all associated memory
       DLLEXPORT ~QoreNamespace();
 
-      //! DEPRECATED: use addConstant() with typeinfo: adds a constant definition to the namespace
+      //! adds a constant definition to the namespace
       /**
 	 @param name the name of the constant to add
 	 @param value the value of the constant
        */
       DLLEXPORT void addConstant(const char *name, AbstractQoreNode *value);
-
-      //! adds a constant definition to the namespace with it's type information
-      /**
-	 @param name the name of the constant to add
-	 @param value the value of the constant
-	 @param typeInfo type information for the constant; must be persistent
-       */
-      DLLEXPORT void addConstant(const char *name, AbstractQoreNode *value, const QoreTypeInfo &typeInfo);
 
       //! adds a class to a namespace
       /**

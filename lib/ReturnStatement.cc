@@ -53,7 +53,7 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (exp)
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
    else
-      argTypeInfo = &nothingTypeInfo;
+      argTypeInfo = nothingTypeInfo;
 
    const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
 

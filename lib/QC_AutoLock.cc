@@ -75,9 +75,9 @@ QoreClass *initAutoLockClass(QoreClass *Mutex) {
    QC_AutoLock->setDestructor((q_destructor_t)AL_destructor);
    QC_AutoLock->setCopy((q_copy_t)AL_copy);
 
-   QC_AutoLock->addMethodExtended("lock",    (q_method_t)AL_lock, false, QDOM_DEFAULT, &nothingTypeInfo);
-   QC_AutoLock->addMethodExtended("trylock", (q_method_t)AL_trylock, false, QDOM_DEFAULT, &bigIntTypeInfo);
-   QC_AutoLock->addMethodExtended("unlock",  (q_method_t)AL_unlock, false, QDOM_DEFAULT, &nothingTypeInfo);
+   QC_AutoLock->addMethodExtended("lock",    (q_method_t)AL_lock, false, QDOM_DEFAULT, nothingTypeInfo);
+   QC_AutoLock->addMethodExtended("trylock", (q_method_t)AL_trylock, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_AutoLock->addMethodExtended("unlock",  (q_method_t)AL_unlock, false, QDOM_DEFAULT, nothingTypeInfo);
 
    return QC_AutoLock;
 }

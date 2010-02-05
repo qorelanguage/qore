@@ -458,10 +458,6 @@ void QoreNamespace::addConstant(const char *cname, AbstractQoreNode *val) {
    priv->constant->add(cname, val);
 }
 
-void QoreNamespace::addConstant(const char *cname, AbstractQoreNode *val, const QoreTypeInfo &typeInfo) {
-   priv->constant->add(cname, val, &typeInfo);
-}
-
 void QoreNamespace::addInitialNamespace(QoreNamespace *ns) {
    priv->nsl->add(ns);
 }
@@ -1382,63 +1378,63 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    addSSLConstants(qns);
 
    // add boolean constants for true and false
-   qns->addConstant("True",          boolean_true(),  boolTypeInfo);
-   qns->addConstant("False",         boolean_false(), boolTypeInfo);
+   qns->addConstant("True",          boolean_true());
+   qns->addConstant("False",         boolean_false());
 
    // add File object constants for stdin (0), stdout (1), stderr (2)
-   qns->addConstant("stdin",         File->execSystemConstructor(0), *File->getTypeInfo());
-   qns->addConstant("stdout",        File->execSystemConstructor(1), *File->getTypeInfo());
-   qns->addConstant("stderr",        File->execSystemConstructor(2), *File->getTypeInfo());
+   qns->addConstant("stdin",         File->execSystemConstructor(0));
+   qns->addConstant("stdout",        File->execSystemConstructor(1));
+   qns->addConstant("stderr",        File->execSystemConstructor(2));
 
    // keep a copy of File to dereference last
    File = File->getReference();
    //printd(5, "RootQoreNamespace::RootQoreNamespace() this=%p saving File=%p\n", this, File);
    
    // add constants for exception types
-   qns->addConstant("ET_System",     new QoreStringNode("System"), stringTypeInfo);
-   qns->addConstant("ET_User",       new QoreStringNode("User"),   stringTypeInfo);
+   qns->addConstant("ET_System",     new QoreStringNode("System"));
+   qns->addConstant("ET_User",       new QoreStringNode("User"));
 
    // create constants for call types
-   qns->addConstant("CT_User",       new QoreBigIntNode(CT_USER),      bigIntTypeInfo);
-   qns->addConstant("CT_Builtin",    new QoreBigIntNode(CT_BUILTIN),   bigIntTypeInfo);
-   qns->addConstant("CT_NewThread",  new QoreBigIntNode(CT_NEWTHREAD), bigIntTypeInfo);
-   qns->addConstant("CT_Rethrow",    new QoreBigIntNode(CT_RETHROW),   bigIntTypeInfo);
+   qns->addConstant("CT_User",       new QoreBigIntNode(CT_USER));
+   qns->addConstant("CT_Builtin",    new QoreBigIntNode(CT_BUILTIN));
+   qns->addConstant("CT_NewThread",  new QoreBigIntNode(CT_NEWTHREAD));
+   qns->addConstant("CT_Rethrow",    new QoreBigIntNode(CT_RETHROW));
 
    // create constants for version and platform information
-   qns->addConstant("VersionString", new QoreStringNode(qore_version_string), stringTypeInfo);
-   qns->addConstant("VersionMajor",  new QoreBigIntNode(qore_version_major),  bigIntTypeInfo);
-   qns->addConstant("VersionMinor",  new QoreBigIntNode(qore_version_minor),  bigIntTypeInfo);
-   qns->addConstant("VersionSub",    new QoreBigIntNode(qore_version_sub),    bigIntTypeInfo);
-   qns->addConstant("Build",         new QoreBigIntNode(qore_build_number),   bigIntTypeInfo);
-   qns->addConstant("PlatformCPU",   new QoreStringNode(TARGET_ARCH),         stringTypeInfo);
-   qns->addConstant("PlatformOS",    new QoreStringNode(TARGET_OS),           stringTypeInfo);
+   qns->addConstant("VersionString", new QoreStringNode(qore_version_string));
+   qns->addConstant("VersionMajor",  new QoreBigIntNode(qore_version_major));
+   qns->addConstant("VersionMinor",  new QoreBigIntNode(qore_version_minor));
+   qns->addConstant("VersionSub",    new QoreBigIntNode(qore_version_sub));
+   qns->addConstant("Build",         new QoreBigIntNode(qore_build_number));
+   qns->addConstant("PlatformCPU",   new QoreStringNode(TARGET_ARCH));
+   qns->addConstant("PlatformOS",    new QoreStringNode(TARGET_OS));
 
    // constants for build info
-   qns->addConstant("BuildHost",     new QoreStringNode(qore_build_host),         stringTypeInfo);
-   qns->addConstant("Compiler",      new QoreStringNode(qore_cplusplus_compiler), stringTypeInfo);
-   qns->addConstant("CFLAGS",        new QoreStringNode(qore_cflags),             stringTypeInfo);
-   qns->addConstant("LDFLAGS",       new QoreStringNode(qore_ldflags),            stringTypeInfo);
+   qns->addConstant("BuildHost",     new QoreStringNode(qore_build_host));
+   qns->addConstant("Compiler",      new QoreStringNode(qore_cplusplus_compiler));
+   qns->addConstant("CFLAGS",        new QoreStringNode(qore_cflags));
+   qns->addConstant("LDFLAGS",       new QoreStringNode(qore_ldflags));
 
    // add constants for regex() function options
-   qns->addConstant("RE_Caseless",   new QoreBigIntNode(PCRE_CASELESS),  bigIntTypeInfo);
-   qns->addConstant("RE_DotAll",     new QoreBigIntNode(PCRE_DOTALL),    bigIntTypeInfo);
-   qns->addConstant("RE_Extended",   new QoreBigIntNode(PCRE_EXTENDED),  bigIntTypeInfo);
-   qns->addConstant("RE_MultiLine",  new QoreBigIntNode(PCRE_MULTILINE), bigIntTypeInfo);
+   qns->addConstant("RE_Caseless",   new QoreBigIntNode(PCRE_CASELESS));
+   qns->addConstant("RE_DotAll",     new QoreBigIntNode(PCRE_DOTALL));
+   qns->addConstant("RE_Extended",   new QoreBigIntNode(PCRE_EXTENDED));
+   qns->addConstant("RE_MultiLine",  new QoreBigIntNode(PCRE_MULTILINE));
    // note that the following constant is > 32-bits so it can't collide with PCRE constants
-   qns->addConstant("RE_Global",     new QoreBigIntNode(QRE_GLOBAL),     bigIntTypeInfo);
+   qns->addConstant("RE_Global",     new QoreBigIntNode(QRE_GLOBAL));
 
    // network constants
-   qns->addConstant("AF_INET",       new QoreBigIntNode(AF_INET),        bigIntTypeInfo);
-   qns->addConstant("AF_INET6",      new QoreBigIntNode(AF_INET6),       bigIntTypeInfo);
-   qns->addConstant("AF_UNIX",       new QoreBigIntNode(AF_UNIX),        bigIntTypeInfo);
+   qns->addConstant("AF_INET",       new QoreBigIntNode(AF_INET));
+   qns->addConstant("AF_INET6",      new QoreBigIntNode(AF_INET6));
+   qns->addConstant("AF_UNIX",       new QoreBigIntNode(AF_UNIX));
 #ifdef AF_LOCAL
-   qns->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_LOCAL),       bigIntTypeInfo); // POSIX synonym for AF_UNIX
+   qns->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_LOCAL)); // POSIX synonym for AF_UNIX
 #else
-   qns->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_UNIX),        bigIntTypeInfo);
+   qns->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_UNIX));
 #endif
 
    // math constants
-   qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846), floatTypeInfo);
+   qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
    // event constants
    QoreHashNode *qesm = new QoreHashNode();
@@ -1446,12 +1442,12 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qesm->setKeyValue("2", new QoreStringNode("HTTPCLIENT"), 0);
    qesm->setKeyValue("3", new QoreStringNode("FTPCLIENT"), 0);
    qesm->setKeyValue("4", new QoreStringNode("FILE"), 0);
-   qns->addConstant("EVENT_SOURCE_MAP", qesm, hashTypeInfo);
+   qns->addConstant("EVENT_SOURCE_MAP", qesm);
 
-   qns->addConstant("SOURCE_SOCKET", new QoreBigIntNode(QORE_SOURCE_SOCKET), bigIntTypeInfo);
-   qns->addConstant("SOURCE_HTTPCLIENT", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT), bigIntTypeInfo);
-   qns->addConstant("SOURCE_FTPCLIENT", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT), bigIntTypeInfo);
-   qns->addConstant("SOURCE_FILE", new QoreBigIntNode(QORE_SOURCE_FILE), bigIntTypeInfo);
+   qns->addConstant("SOURCE_SOCKET", new QoreBigIntNode(QORE_SOURCE_SOCKET));
+   qns->addConstant("SOURCE_HTTPCLIENT", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT));
+   qns->addConstant("SOURCE_FTPCLIENT", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT));
+   qns->addConstant("SOURCE_FILE", new QoreBigIntNode(QORE_SOURCE_FILE));
 
    QoreHashNode *qsam = new QoreHashNode();
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_PACKET_READ), new QoreStringNode("PACKET_READ"), 0);
@@ -1479,153 +1475,153 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_FILE_OPENED), new QoreStringNode("FILE_OPENED"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DATA_READ), new QoreStringNode("DATA_READ"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DATA_WRITTEN), new QoreStringNode("DATA_WRITTEN"), 0);
-   qns->addConstant("EVENT_MAP", qsam, hashTypeInfo);
+   qns->addConstant("EVENT_MAP", qsam);
 
-   qns->addConstant("EVENT_PACKET_READ", new QoreBigIntNode(QORE_EVENT_PACKET_READ), bigIntTypeInfo);
-   qns->addConstant("EVENT_PACKET_SENT", new QoreBigIntNode(QORE_EVENT_PACKET_SENT), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_CONTENT_LENGTH", new QoreBigIntNode(QORE_EVENT_HTTP_CONTENT_LENGTH), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_CHUNKED_START", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_START), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_CHUNKED_END", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_END), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_REDIRECT", new QoreBigIntNode(QORE_EVENT_HTTP_REDIRECT), bigIntTypeInfo);
-   qns->addConstant("EVENT_CHANNEL_CLOSED", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), bigIntTypeInfo);
-   qns->addConstant("EVENT_DELETED", new QoreBigIntNode(QORE_EVENT_DELETED), bigIntTypeInfo);
-   qns->addConstant("EVENT_FTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_FTP_SEND_MESSAGE), bigIntTypeInfo);
-   qns->addConstant("EVENT_FTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_RECEIVED), bigIntTypeInfo);
-   qns->addConstant("EVENT_HOSTNAME_LOOKUP", new QoreBigIntNode(QORE_EVENT_HOSTNAME_LOOKUP), bigIntTypeInfo);
-   qns->addConstant("EVENT_HOSTNAME_RESOLVED", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_MESSAGE_RECEIVED), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_FOOTERS_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_FOOTERS_RECEIVED), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_CHUNKED_DATA_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED), bigIntTypeInfo);
-   qns->addConstant("EVENT_HTTP_CHUNK_SIZE", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNK_SIZE), bigIntTypeInfo);
-   qns->addConstant("EVENT_CONNECTING", new QoreBigIntNode(QORE_EVENT_CONNECTING), bigIntTypeInfo);
-   qns->addConstant("EVENT_CONNECTED", new QoreBigIntNode(QORE_EVENT_CONNECTED), bigIntTypeInfo);
-   qns->addConstant("EVENT_START_SSL", new QoreBigIntNode(QORE_EVENT_START_SSL), bigIntTypeInfo);
-   qns->addConstant("EVENT_SSL_ESTABLISHED", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED), bigIntTypeInfo);
-   qns->addConstant("EVENT_OPEN_FILE", new QoreBigIntNode(QORE_EVENT_OPEN_FILE), bigIntTypeInfo);
-   qns->addConstant("EVENT_FILE_OPENED", new QoreBigIntNode(QORE_EVENT_FILE_OPENED), bigIntTypeInfo);
-   qns->addConstant("EVENT_DATA_READ", new QoreBigIntNode(QORE_EVENT_DATA_READ), bigIntTypeInfo);
-   qns->addConstant("EVENT_DATA_WRITTEN", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN), bigIntTypeInfo);
-   //qns->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_), bigIntTypeInfo);
+   qns->addConstant("EVENT_PACKET_READ", new QoreBigIntNode(QORE_EVENT_PACKET_READ));
+   qns->addConstant("EVENT_PACKET_SENT", new QoreBigIntNode(QORE_EVENT_PACKET_SENT));
+   qns->addConstant("EVENT_HTTP_CONTENT_LENGTH", new QoreBigIntNode(QORE_EVENT_HTTP_CONTENT_LENGTH));
+   qns->addConstant("EVENT_HTTP_CHUNKED_START", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_START));
+   qns->addConstant("EVENT_HTTP_CHUNKED_END", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_END));
+   qns->addConstant("EVENT_HTTP_REDIRECT", new QoreBigIntNode(QORE_EVENT_HTTP_REDIRECT));
+   qns->addConstant("EVENT_CHANNEL_CLOSED", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED));
+   qns->addConstant("EVENT_DELETED", new QoreBigIntNode(QORE_EVENT_DELETED));
+   qns->addConstant("EVENT_FTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_FTP_SEND_MESSAGE));
+   qns->addConstant("EVENT_FTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_RECEIVED));
+   qns->addConstant("EVENT_HOSTNAME_LOOKUP", new QoreBigIntNode(QORE_EVENT_HOSTNAME_LOOKUP));
+   qns->addConstant("EVENT_HOSTNAME_RESOLVED", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED));
+   qns->addConstant("EVENT_HTTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE));
+   qns->addConstant("EVENT_HTTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_MESSAGE_RECEIVED));
+   qns->addConstant("EVENT_HTTP_FOOTERS_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_FOOTERS_RECEIVED));
+   qns->addConstant("EVENT_HTTP_CHUNKED_DATA_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED));
+   qns->addConstant("EVENT_HTTP_CHUNK_SIZE", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNK_SIZE));
+   qns->addConstant("EVENT_CONNECTING", new QoreBigIntNode(QORE_EVENT_CONNECTING));
+   qns->addConstant("EVENT_CONNECTED", new QoreBigIntNode(QORE_EVENT_CONNECTED));
+   qns->addConstant("EVENT_START_SSL", new QoreBigIntNode(QORE_EVENT_START_SSL));
+   qns->addConstant("EVENT_SSL_ESTABLISHED", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED));
+   qns->addConstant("EVENT_OPEN_FILE", new QoreBigIntNode(QORE_EVENT_OPEN_FILE));
+   qns->addConstant("EVENT_FILE_OPENED", new QoreBigIntNode(QORE_EVENT_FILE_OPENED));
+   qns->addConstant("EVENT_DATA_READ", new QoreBigIntNode(QORE_EVENT_DATA_READ));
+   qns->addConstant("EVENT_DATA_WRITTEN", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN));
+   //qns->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
    // setup terminal mode constants
    // input modes
-   qns->addConstant("IGNBRK", new QoreBigIntNode(IGNBRK), bigIntTypeInfo);
-   qns->addConstant("BRKINT", new QoreBigIntNode(BRKINT), bigIntTypeInfo);
-   qns->addConstant("IGNPAR", new QoreBigIntNode(IGNPAR), bigIntTypeInfo);
-   qns->addConstant("PARMRK", new QoreBigIntNode(PARMRK), bigIntTypeInfo);
-   qns->addConstant("INPCK", new QoreBigIntNode(INPCK), bigIntTypeInfo);
-   qns->addConstant("ISTRIP", new QoreBigIntNode(ISTRIP), bigIntTypeInfo);
-   qns->addConstant("INLCR", new QoreBigIntNode(INLCR), bigIntTypeInfo);
-   qns->addConstant("IGNCR", new QoreBigIntNode(IGNCR), bigIntTypeInfo);
-   qns->addConstant("ICRNL", new QoreBigIntNode(ICRNL), bigIntTypeInfo);
-   qns->addConstant("IXON", new QoreBigIntNode(IXON), bigIntTypeInfo);
-   qns->addConstant("IXOFF", new QoreBigIntNode(IXOFF), bigIntTypeInfo);
-   qns->addConstant("IXANY", new QoreBigIntNode(IXANY), bigIntTypeInfo);
-   qns->addConstant("IMAXBEL", new QoreBigIntNode(IMAXBEL), bigIntTypeInfo);
+   qns->addConstant("IGNBRK", new QoreBigIntNode(IGNBRK));
+   qns->addConstant("BRKINT", new QoreBigIntNode(BRKINT));
+   qns->addConstant("IGNPAR", new QoreBigIntNode(IGNPAR));
+   qns->addConstant("PARMRK", new QoreBigIntNode(PARMRK));
+   qns->addConstant("INPCK", new QoreBigIntNode(INPCK));
+   qns->addConstant("ISTRIP", new QoreBigIntNode(ISTRIP));
+   qns->addConstant("INLCR", new QoreBigIntNode(INLCR));
+   qns->addConstant("IGNCR", new QoreBigIntNode(IGNCR));
+   qns->addConstant("ICRNL", new QoreBigIntNode(ICRNL));
+   qns->addConstant("IXON", new QoreBigIntNode(IXON));
+   qns->addConstant("IXOFF", new QoreBigIntNode(IXOFF));
+   qns->addConstant("IXANY", new QoreBigIntNode(IXANY));
+   qns->addConstant("IMAXBEL", new QoreBigIntNode(IMAXBEL));
 #ifdef IUCLC
-   qns->addConstant("IUCLC", new QoreBigIntNode(IUCLC), bigIntTypeInfo);
+   qns->addConstant("IUCLC", new QoreBigIntNode(IUCLC));
 #endif
 
    // output modes
-   qns->addConstant("OPOST", new QoreBigIntNode(OPOST), bigIntTypeInfo);
-   qns->addConstant("ONLCR", new QoreBigIntNode(ONLCR), bigIntTypeInfo);
+   qns->addConstant("OPOST", new QoreBigIntNode(OPOST));
+   qns->addConstant("ONLCR", new QoreBigIntNode(ONLCR));
 #ifdef OXTABS
-   qns->addConstant("OXTABS", new QoreBigIntNode(OXTABS), bigIntTypeInfo);
+   qns->addConstant("OXTABS", new QoreBigIntNode(OXTABS));
 #endif
 #ifdef ONOEOT
-   qns->addConstant("ONOEOT", new QoreBigIntNode(ONOEOT), bigIntTypeInfo);
+   qns->addConstant("ONOEOT", new QoreBigIntNode(ONOEOT));
 #endif
-   qns->addConstant("OCRNL", new QoreBigIntNode(OCRNL), bigIntTypeInfo);
+   qns->addConstant("OCRNL", new QoreBigIntNode(OCRNL));
 #ifdef OLCUC
-   qns->addConstant("OLCUC", new QoreBigIntNode(OLCUC), bigIntTypeInfo);
+   qns->addConstant("OLCUC", new QoreBigIntNode(OLCUC));
 #endif
-   qns->addConstant("ONOCR", new QoreBigIntNode(ONOCR), bigIntTypeInfo);
-   qns->addConstant("ONLRET", new QoreBigIntNode(ONLRET), bigIntTypeInfo);
+   qns->addConstant("ONOCR", new QoreBigIntNode(ONOCR));
+   qns->addConstant("ONLRET", new QoreBigIntNode(ONLRET));
 
    // control modes
-   qns->addConstant("CSIZE", new QoreBigIntNode(CSIZE), bigIntTypeInfo);
-   qns->addConstant("CS5", new QoreBigIntNode(CS5), bigIntTypeInfo);
-   qns->addConstant("CS6", new QoreBigIntNode(CS6), bigIntTypeInfo);
-   qns->addConstant("CS7", new QoreBigIntNode(CS7), bigIntTypeInfo);
-   qns->addConstant("CS8", new QoreBigIntNode(CS8), bigIntTypeInfo);
-   qns->addConstant("CSTOPB", new QoreBigIntNode(CSTOPB), bigIntTypeInfo);
-   qns->addConstant("CREAD", new QoreBigIntNode(CREAD), bigIntTypeInfo);
-   qns->addConstant("PARENB", new QoreBigIntNode(PARENB), bigIntTypeInfo);
-   qns->addConstant("PARODD", new QoreBigIntNode(PARODD), bigIntTypeInfo);
-   qns->addConstant("HUPCL", new QoreBigIntNode(HUPCL), bigIntTypeInfo);
-   qns->addConstant("CLOCAL", new QoreBigIntNode(CLOCAL), bigIntTypeInfo);
+   qns->addConstant("CSIZE", new QoreBigIntNode(CSIZE));
+   qns->addConstant("CS5", new QoreBigIntNode(CS5));
+   qns->addConstant("CS6", new QoreBigIntNode(CS6));
+   qns->addConstant("CS7", new QoreBigIntNode(CS7));
+   qns->addConstant("CS8", new QoreBigIntNode(CS8));
+   qns->addConstant("CSTOPB", new QoreBigIntNode(CSTOPB));
+   qns->addConstant("CREAD", new QoreBigIntNode(CREAD));
+   qns->addConstant("PARENB", new QoreBigIntNode(PARENB));
+   qns->addConstant("PARODD", new QoreBigIntNode(PARODD));
+   qns->addConstant("HUPCL", new QoreBigIntNode(HUPCL));
+   qns->addConstant("CLOCAL", new QoreBigIntNode(CLOCAL));
 #ifdef CCTS_OFLOW
-   qns->addConstant("CCTS_OFLOW", new QoreBigIntNode(CCTS_OFLOW), bigIntTypeInfo);
+   qns->addConstant("CCTS_OFLOW", new QoreBigIntNode(CCTS_OFLOW));
 #endif
 #ifdef CRTSCTS
-   qns->addConstant("CRTSCTS", new QoreBigIntNode(CRTSCTS), bigIntTypeInfo);
+   qns->addConstant("CRTSCTS", new QoreBigIntNode(CRTSCTS));
 #endif
 #ifdef CRTS_IFLOW
-   qns->addConstant("CRTS_IFLOW", new QoreBigIntNode(CRTS_IFLOW), bigIntTypeInfo);
+   qns->addConstant("CRTS_IFLOW", new QoreBigIntNode(CRTS_IFLOW));
 #endif
 #ifdef MDMBUF
-   qns->addConstant("MDMBUF", new QoreBigIntNode(MDMBUF), bigIntTypeInfo);
+   qns->addConstant("MDMBUF", new QoreBigIntNode(MDMBUF));
 #endif
 
    // local modes
-   qns->addConstant("ECHOKE", new QoreBigIntNode(ECHOKE), bigIntTypeInfo);
-   qns->addConstant("ECHOE", new QoreBigIntNode(ECHOE), bigIntTypeInfo);
-   qns->addConstant("ECHO", new QoreBigIntNode(ECHO), bigIntTypeInfo);
-   qns->addConstant("ECHONL", new QoreBigIntNode(ECHONL), bigIntTypeInfo);
-   qns->addConstant("ECHOPRT", new QoreBigIntNode(ECHOPRT), bigIntTypeInfo);
-   qns->addConstant("ECHOCTL", new QoreBigIntNode(ECHOCTL), bigIntTypeInfo);
-   qns->addConstant("ISIG", new QoreBigIntNode(ISIG), bigIntTypeInfo);
-   qns->addConstant("ICANON", new QoreBigIntNode(ICANON), bigIntTypeInfo);
+   qns->addConstant("ECHOKE", new QoreBigIntNode(ECHOKE));
+   qns->addConstant("ECHOE", new QoreBigIntNode(ECHOE));
+   qns->addConstant("ECHO", new QoreBigIntNode(ECHO));
+   qns->addConstant("ECHONL", new QoreBigIntNode(ECHONL));
+   qns->addConstant("ECHOPRT", new QoreBigIntNode(ECHOPRT));
+   qns->addConstant("ECHOCTL", new QoreBigIntNode(ECHOCTL));
+   qns->addConstant("ISIG", new QoreBigIntNode(ISIG));
+   qns->addConstant("ICANON", new QoreBigIntNode(ICANON));
 #ifdef ALTWERASE
-   qns->addConstant("ALTWERASE", new QoreBigIntNode(ALTWERASE), bigIntTypeInfo);
+   qns->addConstant("ALTWERASE", new QoreBigIntNode(ALTWERASE));
 #endif
-   qns->addConstant("IEXTEN", new QoreBigIntNode(IEXTEN), bigIntTypeInfo);
+   qns->addConstant("IEXTEN", new QoreBigIntNode(IEXTEN));
 #ifdef EXTPROC
-   qns->addConstant("EXTPROC", new QoreBigIntNode(EXTPROC), bigIntTypeInfo);
+   qns->addConstant("EXTPROC", new QoreBigIntNode(EXTPROC));
 #endif
-   qns->addConstant("TOSTOP", new QoreBigIntNode(TOSTOP), bigIntTypeInfo);
-   qns->addConstant("FLUSHO", new QoreBigIntNode(FLUSHO), bigIntTypeInfo);
+   qns->addConstant("TOSTOP", new QoreBigIntNode(TOSTOP));
+   qns->addConstant("FLUSHO", new QoreBigIntNode(FLUSHO));
 #ifdef NOKERNINFO
-   qns->addConstant("NOKERNINFO", new QoreBigIntNode(NOKERNINFO), bigIntTypeInfo);
+   qns->addConstant("NOKERNINFO", new QoreBigIntNode(NOKERNINFO));
 #endif
-   qns->addConstant("PENDIN", new QoreBigIntNode(PENDIN), bigIntTypeInfo);
-   qns->addConstant("NOFLSH", new QoreBigIntNode(NOFLSH), bigIntTypeInfo);
+   qns->addConstant("PENDIN", new QoreBigIntNode(PENDIN));
+   qns->addConstant("NOFLSH", new QoreBigIntNode(NOFLSH));
    
    // control characters
-   qns->addConstant("VEOF", new QoreBigIntNode(VEOF), bigIntTypeInfo);
-   qns->addConstant("VEOL", new QoreBigIntNode(VEOL), bigIntTypeInfo);
-   qns->addConstant("VEOL2", new QoreBigIntNode(VEOL2), bigIntTypeInfo);
-   qns->addConstant("VERASE", new QoreBigIntNode(VERASE), bigIntTypeInfo);
-   qns->addConstant("VWERASE", new QoreBigIntNode(VWERASE), bigIntTypeInfo);
-   qns->addConstant("VKILL", new QoreBigIntNode(VKILL), bigIntTypeInfo);
+   qns->addConstant("VEOF", new QoreBigIntNode(VEOF));
+   qns->addConstant("VEOL", new QoreBigIntNode(VEOL));
+   qns->addConstant("VEOL2", new QoreBigIntNode(VEOL2));
+   qns->addConstant("VERASE", new QoreBigIntNode(VERASE));
+   qns->addConstant("VWERASE", new QoreBigIntNode(VWERASE));
+   qns->addConstant("VKILL", new QoreBigIntNode(VKILL));
 #ifdef VREPRINT
-   qns->addConstant("VREPRINT", new QoreBigIntNode(VREPRINT), bigIntTypeInfo);
+   qns->addConstant("VREPRINT", new QoreBigIntNode(VREPRINT));
 #endif
-   qns->addConstant("VINTR", new QoreBigIntNode(VINTR), bigIntTypeInfo);
-   qns->addConstant("VQUIT", new QoreBigIntNode(VQUIT), bigIntTypeInfo);
-   qns->addConstant("VSUSP", new QoreBigIntNode(VSUSP), bigIntTypeInfo);
+   qns->addConstant("VINTR", new QoreBigIntNode(VINTR));
+   qns->addConstant("VQUIT", new QoreBigIntNode(VQUIT));
+   qns->addConstant("VSUSP", new QoreBigIntNode(VSUSP));
 #ifdef VDSUSP
-   qns->addConstant("VDSUSP", new QoreBigIntNode(VDSUSP), bigIntTypeInfo);
+   qns->addConstant("VDSUSP", new QoreBigIntNode(VDSUSP));
 #endif
-   qns->addConstant("VSTART", new QoreBigIntNode(VSTART), bigIntTypeInfo);
-   qns->addConstant("VSTOP", new QoreBigIntNode(VSTOP), bigIntTypeInfo);
-   qns->addConstant("VLNEXT", new QoreBigIntNode(VLNEXT), bigIntTypeInfo);
+   qns->addConstant("VSTART", new QoreBigIntNode(VSTART));
+   qns->addConstant("VSTOP", new QoreBigIntNode(VSTOP));
+   qns->addConstant("VLNEXT", new QoreBigIntNode(VLNEXT));
 #ifdef VDISCARD
-   qns->addConstant("VDISCARD", new QoreBigIntNode(VDISCARD), bigIntTypeInfo);
+   qns->addConstant("VDISCARD", new QoreBigIntNode(VDISCARD));
 #endif
-   qns->addConstant("VMIN", new QoreBigIntNode(VMIN), bigIntTypeInfo);
-   qns->addConstant("VTIME", new QoreBigIntNode(VTIME), bigIntTypeInfo);
+   qns->addConstant("VMIN", new QoreBigIntNode(VMIN));
+   qns->addConstant("VTIME", new QoreBigIntNode(VTIME));
 #ifdef VSTATUS
-   qns->addConstant("VSTATUS", new QoreBigIntNode(VSTATUS), bigIntTypeInfo);
+   qns->addConstant("VSTATUS", new QoreBigIntNode(VSTATUS));
 #endif
 
    // terminal setting actions
-   qns->addConstant("TCSANOW", new QoreBigIntNode(TCSANOW), bigIntTypeInfo);
-   qns->addConstant("TCSADRAIN", new QoreBigIntNode(TCSADRAIN), bigIntTypeInfo);
-   qns->addConstant("TCSAFLUSH", new QoreBigIntNode(TCSAFLUSH), bigIntTypeInfo);
+   qns->addConstant("TCSANOW", new QoreBigIntNode(TCSANOW));
+   qns->addConstant("TCSADRAIN", new QoreBigIntNode(TCSADRAIN));
+   qns->addConstant("TCSAFLUSH", new QoreBigIntNode(TCSAFLUSH));
 #ifdef TCSASOFT
-   qns->addConstant("TCSASOFT", new QoreBigIntNode(TCSASOFT), bigIntTypeInfo);
+   qns->addConstant("TCSASOFT", new QoreBigIntNode(TCSASOFT));
 #endif
 
    // set up Option namespace for Qore options
@@ -1633,91 +1629,91 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
 
    // add constant for features found with configure
 #ifdef HAVE_ATOMIC_MACROS
-   option->addConstant("HAVE_ATOMIC_OPERATIONS", &True, boolTypeInfo);
+   option->addConstant("HAVE_ATOMIC_OPERATIONS", &True);
 #else
-   option->addConstant("HAVE_ATOMIC_OPERATIONS", &False, boolTypeInfo);
+   option->addConstant("HAVE_ATOMIC_OPERATIONS", &False);
 #endif
 
 #ifdef HAVE_CHECK_STACK_POS
-   option->addConstant("HAVE_STACK_GUARD", &True, boolTypeInfo);
+   option->addConstant("HAVE_STACK_GUARD", &True);
 #else
-   option->addConstant("HAVE_STACK_GUARD", &False, boolTypeInfo);
+   option->addConstant("HAVE_STACK_GUARD", &False);
 #endif
 
 #ifdef DEBUG
-   option->addConstant("HAVE_LIBRARY_DEBUGGING", &True, boolTypeInfo);
+   option->addConstant("HAVE_LIBRARY_DEBUGGING", &True);
 #else
-   option->addConstant("HAVE_LIBRARY_DEBUGGING", &False, boolTypeInfo);
+   option->addConstant("HAVE_LIBRARY_DEBUGGING", &False);
 #endif
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &True, boolTypeInfo);
+   option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &True);
 #else
-   option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &False, boolTypeInfo);
+   option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &False);
 #endif
 
 #ifdef HAVE_ROUND
-   option->addConstant("HAVE_ROUND",    &True, boolTypeInfo);
+   option->addConstant("HAVE_ROUND",    &True);
 #else
-   option->addConstant("HAVE_ROUND",    &False, boolTypeInfo);
+   option->addConstant("HAVE_ROUND",    &False);
 #endif
 
 #ifdef HAVE_TIMEGM
-   option->addConstant("HAVE_TIMEGM",   &True, boolTypeInfo);
+   option->addConstant("HAVE_TIMEGM",   &True);
 #else
-   option->addConstant("HAVE_TIMEGM",   &False, boolTypeInfo);
+   option->addConstant("HAVE_TIMEGM",   &False);
 #endif
 
 #ifdef HAVE_SETEUID
-   option->addConstant("HAVE_SETEUID",  &True, boolTypeInfo);
+   option->addConstant("HAVE_SETEUID",  &True);
 #else
-   option->addConstant("HAVE_SETEUID",  &False, boolTypeInfo);
+   option->addConstant("HAVE_SETEUID",  &False);
 #endif
 
 #ifdef HAVE_SETEGID
-   option->addConstant("HAVE_SETEGID",  &True, boolTypeInfo);
+   option->addConstant("HAVE_SETEGID",  &True);
 #else
-   option->addConstant("HAVE_SETEGID",  &False, boolTypeInfo);
+   option->addConstant("HAVE_SETEGID",  &False);
 #endif
 
 #ifdef HAVE_XMLTEXTREADERSETSCHEMA
-   option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &True, boolTypeInfo);
+   option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &True);
 #else
-   option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &False, boolTypeInfo);
+   option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &False);
 #endif
 
 #ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
-   option->addConstant("HAVE_PARSEXMLWITHRELAXNG",  &True, boolTypeInfo);
+   option->addConstant("HAVE_PARSEXMLWITHRELAXNG",  &True);
 #else
-   option->addConstant("HAVE_PARSEXMLWITHRELAXNG",  &False, boolTypeInfo);
+   option->addConstant("HAVE_PARSEXMLWITHRELAXNG",  &False);
 #endif
 
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
-   option->addConstant("HAVE_SHA224",  &True, boolTypeInfo);
-   option->addConstant("HAVE_SHA256",  &True, boolTypeInfo);
+   option->addConstant("HAVE_SHA224",  &True);
+   option->addConstant("HAVE_SHA256",  &True);
 #else
-   option->addConstant("HAVE_SHA224",  &False, boolTypeInfo);
-   option->addConstant("HAVE_SHA256",  &False, boolTypeInfo);
+   option->addConstant("HAVE_SHA224",  &False);
+   option->addConstant("HAVE_SHA256",  &False);
 #endif
 
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
-   option->addConstant("HAVE_SHA384",  &True, boolTypeInfo);
-   option->addConstant("HAVE_SHA512",  &True, boolTypeInfo);
+   option->addConstant("HAVE_SHA384",  &True);
+   option->addConstant("HAVE_SHA512",  &True);
 #else
-   option->addConstant("HAVE_SHA384",  &False, boolTypeInfo);
-   option->addConstant("HAVE_SHA512",  &False, boolTypeInfo);
+   option->addConstant("HAVE_SHA384",  &False);
+   option->addConstant("HAVE_SHA512",  &False);
 #endif
 
 #ifndef OPENSSL_NO_MDC2
-   option->addConstant("HAVE_MDC2",  &True, boolTypeInfo);
+   option->addConstant("HAVE_MDC2",  &True);
 #else
-   option->addConstant("HAVE_MDC2",  &False, boolTypeInfo);
+   option->addConstant("HAVE_MDC2",  &False);
 #endif
 
 #ifndef OPENSSL_NO_RC5
-   option->addConstant("HAVE_RC5",  &True, boolTypeInfo);
+   option->addConstant("HAVE_RC5",  &True);
 #else
-   option->addConstant("HAVE_RC5",  &False, boolTypeInfo);
+   option->addConstant("HAVE_RC5",  &False);
 #endif
 
    qns->addInitialNamespace(option);

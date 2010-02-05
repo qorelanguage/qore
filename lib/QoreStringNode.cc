@@ -245,6 +245,6 @@ const char *QoreStringNode::getTypeName() const {
 }
 
 AbstractQoreNode *QoreStringNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   typeInfo = &stringTypeInfo;
+   typeInfo = stringTypeInfo;
    return this;
 }

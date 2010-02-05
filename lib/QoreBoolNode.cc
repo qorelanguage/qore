@@ -125,6 +125,6 @@ QoreBoolFalseNode::QoreBoolFalseNode() : QoreBoolNode(false) {
 
 AbstractQoreNode *QoreBoolNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    //printd(0, "QoreBoolNode::parseInit() this=%p val=%s\n", this, b ? "true" : "false");
-   typeInfo = &boolTypeInfo;
+   typeInfo = boolTypeInfo;
    return this;
 }

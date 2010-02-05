@@ -38,6 +38,12 @@ DLLEXPORT extern DateTimeNode *ZeroDate;
 DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString, 
    FalseString, EmptyHashString, EmptyListString;
 
+class QoreTypeInfo;
+DLLEXPORT extern const QoreTypeInfo *bigIntTypeInfo, *floatTypeInfo, *boolTypeInfo, 
+   *stringTypeInfo, *binaryTypeInfo, *dateTypeInfo, *objectTypeInfo, *hashTypeInfo, 
+   *listTypeInfo, *nothingTypeInfo, *nullTypeInfo, *runTimeClosureTypeInfo,
+   *callReferenceTypeInfo;
+
 DLLEXPORT qore_type_t get_next_type_id();
 
 DLLLOCAL void init_qore_types();
@@ -46,36 +52,52 @@ DLLLOCAL void delete_qore_types();
 DLLEXPORT bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
 DLLEXPORT bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
 
-static inline AbstractQoreNode *boolean_false()
-{
+static inline AbstractQoreNode *boolean_false() {
    return &False;
 }
 
-static inline AbstractQoreNode *boolean_true()
-{
+static inline AbstractQoreNode *boolean_true() {
    return &True;
 }
 
-static inline class QoreBigIntNode *zero()
-{
+static inline class QoreBigIntNode *zero() {
    return new QoreBigIntNode();
 }
 
-static inline class AbstractQoreNode *zero_float()
-{
+static inline class AbstractQoreNode *zero_float() {
    return new QoreFloatNode(0.0);
 }
 
-static inline DateTimeNode *zero_date()
-{
+static inline DateTimeNode *zero_date() {
    ZeroDate->ref();
    return ZeroDate;
 }
 
-static inline class QoreStringNode *null_string()
-{
+static inline class QoreStringNode *null_string() {
    NullString->ref();
    return NullString;
 }
+
+//! helper type to allocate and manage QoreTypeInfo objects (not exported by the library)
+/** should be used to allocate and deallocate QoreTypeInfo objects for new types created in modules
+ */
+class QoreTypeInfoHelper {
+private:
+   QoreTypeInfo *typeInfo;
+
+public:
+   //! allocates a QoreTypeInfo object with no type information
+   DLLEXPORT QoreTypeInfoHelper();
+   //! allocates a QoreTypeInfo object of the requested type
+   DLLEXPORT QoreTypeInfoHelper(qore_type_t id);
+   //! deallocates the managed QoreTypeInfo object
+   DLLEXPORT ~QoreTypeInfoHelper();
+   //! returns a pointer to the object
+   DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
+      return typeInfo;
+   }
+   DLLLOCAL void assign(qore_type_t id);
+};
+
 
 #endif // _QORE_QORETYPE_H

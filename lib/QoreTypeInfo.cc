@@ -22,21 +22,69 @@
 
 #include <qore/Qore.h>
 
-// global reference types
-QoreTypeInfo bigIntTypeInfo(NT_INT), 
-   floatTypeInfo(NT_FLOAT),
-   boolTypeInfo(NT_BOOLEAN),
-   stringTypeInfo(NT_STRING),
-   binaryTypeInfo(NT_BINARY),
-   objectTypeInfo(NT_OBJECT),
-   dateTypeInfo(NT_DATE),
-   hashTypeInfo(NT_HASH),
-   listTypeInfo(NT_LIST),
-   nothingTypeInfo(NT_NOTHING),
-   nullTypeInfo(NT_NULL),
-   runTimeClosureTypeInfo(NT_RUNTIME_CLOSURE),
-   callReferenceTypeInfo(NT_FUNCREF)
+// static reference types
+static QoreTypeInfo staticBigIntTypeInfo(NT_INT), 
+   staticFloatTypeInfo(NT_FLOAT),
+   staticBoolTypeInfo(NT_BOOLEAN),
+   staticStringTypeInfo(NT_STRING),
+   staticBinaryTypeInfo(NT_BINARY),
+   staticObjectTypeInfo(NT_OBJECT),
+   staticDateTypeInfo(NT_DATE),
+   staticHashTypeInfo(NT_HASH),
+   staticListTypeInfo(NT_LIST),
+   staticNothingTypeInfo(NT_NOTHING),
+   staticNullTypeInfo(NT_NULL),
+   staticRunTimeClosureTypeInfo(NT_RUNTIME_CLOSURE),
+   staticCallReferenceTypeInfo(NT_FUNCREF)
    ;
+
+// const pointers to static reference types
+const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo,
+   *floatTypeInfo = &staticFloatTypeInfo,
+   *boolTypeInfo = &staticBoolTypeInfo,
+   *stringTypeInfo = &staticStringTypeInfo,
+   *binaryTypeInfo = &staticBinaryTypeInfo,
+   *objectTypeInfo = &staticObjectTypeInfo,
+   *dateTypeInfo = &staticDateTypeInfo,
+   *hashTypeInfo = &staticHashTypeInfo,
+   *listTypeInfo = &staticListTypeInfo,
+   *nothingTypeInfo = &staticNothingTypeInfo,
+   *nullTypeInfo = &staticNullTypeInfo,
+   *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
+   *callReferenceTypeInfo = &staticCallReferenceTypeInfo
+   ;
+
+const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n) {
+   qore_type_t t = n ? n->getType() : NT_NOTHING;
+   if (t != NT_OBJECT) {
+      switch (t) {
+	 case NT_INT:
+	    return bigIntTypeInfo;
+	 case NT_STRING:
+	    return stringTypeInfo;
+	 case NT_BOOLEAN:
+	    return boolTypeInfo;
+	 case NT_FLOAT:
+	    return floatTypeInfo;
+	 case NT_BINARY:
+	    return binaryTypeInfo;
+	 case NT_LIST:
+	    return listTypeInfo;
+	 case NT_HASH:
+	    return hashTypeInfo;
+	 case NT_DATE:
+	    return dateTypeInfo;
+	 case NT_NULL:
+	    return nullTypeInfo;
+	 case NT_NOTHING:
+	    return nothingTypeInfo;
+	 default:
+	    //printd(5, "getTypeInfoForValue() %s %d not found\n", n->getTypeName(), n->getType());
+	    return 0;
+      }
+   }
+   return reinterpret_cast<const QoreObject *>(n)->getClass()->getTypeInfo();
+}
 
 AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t) {
    switch (t) {

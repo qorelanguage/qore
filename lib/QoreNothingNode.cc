@@ -76,6 +76,6 @@ const char *QoreNothingNode::getTypeName() const {
 
 //! returns the type information
 AbstractQoreNode *QoreNothingNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   typeInfo = &nothingTypeInfo;
+   typeInfo = nothingTypeInfo;
    return this;
 }

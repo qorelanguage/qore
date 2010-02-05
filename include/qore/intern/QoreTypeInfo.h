@@ -383,12 +383,9 @@ public:
    }
 };
 
-DLLLOCAL extern QoreTypeInfo bigIntTypeInfo, floatTypeInfo, boolTypeInfo, 
-   stringTypeInfo, binaryTypeInfo, dateTypeInfo, objectTypeInfo, hashTypeInfo, 
-   listTypeInfo, nothingTypeInfo, nullTypeInfo, runTimeClosureTypeInfo,
-   callReferenceTypeInfo;
-
 // returns the default value for any type >= 0 and < NT_OBJECT
 DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
+// returns type info information for parse types (values)
+DLLLOCAL const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n);
 
 #endif // _QORE_QORETYPEINFO_H

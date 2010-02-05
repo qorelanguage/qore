@@ -106,8 +106,8 @@ AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, i
       exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
 
       if (expTypeInfo->hasType()
-	  && !runTimeClosureTypeInfo.parseEqual(expTypeInfo)
-	  && !callReferenceTypeInfo.parseEqual(expTypeInfo)) {
+	  && !runTimeClosureTypeInfo->parseEqual(expTypeInfo)
+	  && !callReferenceTypeInfo->parseEqual(expTypeInfo)) {
 	 // raise parse exception only if parse exceptions are enabled
 	 if (getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode("invalid call; expression gives ");
