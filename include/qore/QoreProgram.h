@@ -512,4 +512,17 @@ public:
    DLLLOCAL QoreProgram* operator*() { return pgm; }    
 };
 
+/*
+FIXME: either implement or delete
+//! provides information about function variants
+class ExternalVariant {
+private:
+   AbstractQoreFunctionVariant *variant;
+
+public:
+   DLLLOCAL ExternalVariant(AbstractQoreFunctionVariant *n_variant) : variant(n_variant) {
+   }
+};
+*/
+
 #endif  // _QORE_QOREPROGRAM_H

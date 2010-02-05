@@ -136,6 +136,12 @@ class QoreMethod {
       //! returns true if a variant with the given parameter signature already exists in the method
       DLLEXPORT bool existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const;
 
+      /* returns the return type information for the method if it is available and if
+	 there is only one return type (there can be more return types if the method is
+	 overloaded)
+      */
+      DLLEXPORT const QoreTypeInfo *getUniqueReturnTypeInfo() const;
+
       DLLLOCAL QoreMethod(const QoreClass *p_class, MethodFunctionBase *n_func, bool n_static = false);
 
       DLLLOCAL ~QoreMethod();
@@ -143,11 +149,6 @@ class QoreMethod {
       DLLLOCAL QoreMethod *copy(const QoreClass *p_class) const;
       DLLLOCAL void assign_class(const QoreClass *p_class);
       DLLLOCAL MethodFunctionBase *getFunction() const;
-      /* returns the return type information for the method if it is available and if
-	 there is only one return type (there can be more return types if the method is
-	 overloaded)
-      */
-      DLLLOCAL const QoreTypeInfo *getUniqueReturnTypeInfo() const;
 
       //! evaluates the method and returns the result
       /** should only be called by QoreObject; use QoreObject::evalMethod(const QoreMethod &meth, const QoreListNode *args, ExceptionSink *xsink) instead
@@ -172,6 +173,8 @@ class QoreClass {
       friend class QoreObject;
       friend class BCANode;
       friend class qore_method_private;
+      friend class QoreMethodIterator;
+      friend class QoreStaticMethodIterator;
 
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -595,6 +598,9 @@ class QoreClass {
       */
       DLLEXPORT const QoreMethod *getMemberNotificationMethod() const;
 
+      //! returns the type information structure for this class
+      DLLEXPORT const QoreTypeInfo *getTypeInfo() const;
+
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(QoreMethod *f);
       DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *nme);
@@ -642,10 +648,6 @@ class QoreClass {
       DLLLOCAL BCSMList *getBCSMList() const;
       // returns true if the class has a delete_blocker function (somewhere in the hierarchy)
       DLLLOCAL bool has_delete_blocker() const;
-      // returns true if the class has a synchronous class somewhere in the class' hierarchy
-      //DLLLOCAL bool has_synchronous_in_hierarchy() const;
-      // returns true if the class itself is synchronous
-      DLLLOCAL bool is_synchronous_class() const;
       // one-time initialization
       DLLLOCAL void initialize();
       // looks in current and pending method lists for the entire hierarchy (local class plus base classes), non-static methods only
@@ -662,14 +664,34 @@ class QoreClass {
       DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&typeInfo, bool &priv) const;
       DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
       DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
-      // returns the type information structure for this class
-      DLLLOCAL const QoreTypeInfo *getTypeInfo() const;
       DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const;
       DLLLOCAL const QoreClass *parseGetClass(qore_classid_t cid, bool &priv) const;
       DLLLOCAL int addUserMethod(const char *mname, MethodVariantBase *f, bool n_static);
       // returns true if the class has one or more parent classes
       DLLLOCAL bool hasParentClass() const;
       DLLLOCAL QoreObject *execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
+};
+
+class QoreMethodIterator {
+private:
+   void *priv;
+
+public:
+   DLLEXPORT QoreMethodIterator(const QoreClass *qc);
+   DLLEXPORT ~QoreMethodIterator();
+   DLLEXPORT bool next();
+   DLLEXPORT const QoreMethod *getMethod() const;
+};
+
+class QoreStaticMethodIterator {
+private:
+   void *priv;
+
+public:
+   DLLEXPORT QoreStaticMethodIterator(const QoreClass *qc);
+   DLLEXPORT ~QoreStaticMethodIterator();
+   DLLEXPORT bool next();
+   DLLEXPORT const QoreMethod *getMethod() const;
 };
 
 #endif // _QORE_QORECLASS_H

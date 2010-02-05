@@ -3,6 +3,7 @@
 	   used in modules
 	 * more API updates so type and variant information is accessible in
 	   modules
+	 * implemented C++ iterators for QoreClass methods
 
 2010.02.04: David Nichols
 	 * fixed a bug where File::open*() would reset the encoding given in

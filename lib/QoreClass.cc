@@ -2584,3 +2584,56 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
 
    return METHV_const(variant)->evalStaticMethod(method, ceh.getArgs(), xsink);      
 }
+
+class qmi_priv {
+public:
+   hm_method_t &m;
+   hm_method_t::iterator i;
+
+   DLLLOCAL qmi_priv(hm_method_t &n_m) : m(n_m) {
+      i = m.end();
+   }
+   DLLLOCAL bool next() {
+      if (i == m.end())
+	 i = m.begin();
+      else
+	 ++i;
+      return i != m.end();
+   }
+   DLLLOCAL const QoreMethod *getMethod() const {
+      assert(i != m.end());
+      return i->second;
+   }
+};
+#define HMI_CAST(p) (reinterpret_cast<qmi_priv *>(p))
+
+QoreMethodIterator::QoreMethodIterator(const QoreClass *qc) : priv(new qmi_priv(qc->priv->hm)) {
+}
+
+QoreMethodIterator::~QoreMethodIterator() {
+   delete HMI_CAST(priv);
+}
+
+bool QoreMethodIterator::next() {
+   return HMI_CAST(priv)->next();
+}
+
+const QoreMethod *QoreMethodIterator::getMethod() const {
+   return HMI_CAST(priv)->getMethod();
+}
+
+QoreStaticMethodIterator::QoreStaticMethodIterator(const QoreClass *qc) : priv(new qmi_priv(qc->priv->shm)) {
+}
+
+QoreStaticMethodIterator::~QoreStaticMethodIterator() {
+   delete HMI_CAST(priv);
+}
+
+bool QoreStaticMethodIterator::next() {
+   return HMI_CAST(priv)->next();
+}
+
+const QoreMethod *QoreStaticMethodIterator::getMethod() const {
+   return HMI_CAST(priv)->getMethod();
+}
+

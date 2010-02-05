@@ -226,7 +226,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
                   desc->concat(", but call supplies ");
                   argTypeInfo[pi]->getThisType(*desc);
                   getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-		  return;
+		  return 0;
 	       }
 
 	       break;
@@ -273,7 +273,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
                   desc->concat(", but call supplies ");
                   argTypeInfo[pi]->getThisType(*desc);
                   getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-		  return;
+		  return 0;
 	       }
 
 	       break;
