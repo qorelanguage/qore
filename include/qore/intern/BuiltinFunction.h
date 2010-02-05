@@ -37,6 +37,12 @@ public:
       for (unsigned i = 0; i < num_params; ++i) {
 	 if (typeList[i])
 	    ++num_param_types;
+
+	 typeList[i]->concatName(str);
+
+	 // add a comma to the signature string if it's not the last parameter
+	 if (i != ((unsigned)(num_params - 1)))
+	    str.append(", ");
       }
    }
    DLLLOCAL virtual ~BuiltinSignature() {

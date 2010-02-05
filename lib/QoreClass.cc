@@ -1637,6 +1637,10 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    return rv;
 }
 
+bool QoreMethod::existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const {
+   return priv->func->existsVariant(p_num_params, paramTypeInfo);
+}
+
 QoreClass *QoreClass::copyAndDeref() {
    QORE_TRACE("QoreClass::copyAndDeref");
    QoreClass *noc = new QoreClass(priv->classID, priv->name);

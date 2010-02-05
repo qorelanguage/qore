@@ -100,10 +100,10 @@ bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
    return !OP_LOG_EQ->bool_eval(l, r, xsink);
 }
 
-QoreTypeInfoHelper::QoreTypeInfoHelper() : typeInfo(new QoreTypeInfo) {
+QoreTypeInfoHelper::QoreTypeInfoHelper(const char *n_tname) : typeInfo(new ExternalTypeInfo(n_tname)) {
 }
 
-QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id) : typeInfo(new QoreTypeInfo(id)) {
+QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char *n_tname) : typeInfo(new ExternalTypeInfo(id, n_tname)) {
 }
 
 QoreTypeInfoHelper::~QoreTypeInfoHelper() {
@@ -111,5 +111,9 @@ QoreTypeInfoHelper::~QoreTypeInfoHelper() {
 }
 
 void QoreTypeInfoHelper::assign(qore_type_t id) {
-   typeInfo->qt = id;
+   typeInfo->assign(id);
+}
+
+const QoreTypeInfo *QoreTypeInfoHelper::getTypeInfo() const {
+   return typeInfo;
 }

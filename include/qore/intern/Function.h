@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <string>
+
 // these data structures are all private to the library
 
 DLLLOCAL AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink);
@@ -42,6 +44,8 @@ protected:
    unsigned short num_params;
    // number of parameters that have type information
    unsigned short num_param_types;
+   // parameter signature string
+   std::string str;
 
 public:
    DLLLOCAL AbstractFunctionSignature(unsigned n_num_params) : num_params(n_num_params), num_param_types(0) {
@@ -56,7 +60,7 @@ public:
    DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const = 0;
 
    DLLLOCAL const char *getSignatureText() const {
-      return "AbstractFunctionSignature::getSignatureText() UNIMPLEMENTED";
+      return str.c_str();
    }
 
    DLLLOCAL unsigned numParams() const {
@@ -426,6 +430,8 @@ public:
    }
 
    DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant *variant);
+
+   DLLLOCAL bool existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const;
 };
 
 class AbstractReferencedFunction : public AbstractQoreFunction, protected QoreReferenceCounter {

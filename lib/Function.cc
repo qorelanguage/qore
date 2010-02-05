@@ -72,8 +72,24 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
       }
 	 
       assignParam(i, reinterpret_cast<VarRefNode *>(n));
-      //printd(5, "UserSignature::UserSignature() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->has_type : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
+      // add a comma to the signature string if it's not the last parameter
+      if (i != (unsigned)(num_params - 1))
+	 str.append(", ");
+      //printd(5, "UserSignature::UserSignature() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->hasType() : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
    }
+}
+
+void UserSignature::assignParam(int i, VarRefNode *v) {
+   names[i] = strdup(v->getName());
+   typeList[i] = v->takeTypeInfo();
+   if (typeList[i]->hasType())
+      ++num_param_types;
+   typeList[i]->concatName(str);
+
+   if (v->getType() == VT_LOCAL)
+      parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
+   else if (v->getType() == VT_GLOBAL)
+      parse_error("invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
@@ -107,16 +123,26 @@ void UserSignature::parseInitPopLocalVars() {
       pop_local_var();
 }
 
-void UserSignature::assignParam(int i, VarRefNode *v) {
-   names[i] = strdup(v->getName());
-   typeList[i] = v->takeTypeInfo();
-   if (typeList[i]->hasType())
-      ++num_param_types;
-   
-   if (v->getType() == VT_LOCAL)
-      parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
-   else if (v->getType() == VT_GLOBAL)
-      parse_error("invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
+bool AbstractQoreFunction::existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const {
+   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+      AbstractFunctionSignature *sig = (*i)->getSignature();
+      assert(sig);
+      unsigned np = sig->numParams();
+      if (np != p_num_params)
+	 continue;
+      if (!np)
+	 return true;
+      bool ok = true;
+      for (unsigned pi = 0; pi < np; ++pi) {
+	 if (paramTypeInfo[pi]->checkIdentical(sig->getParamTypeInfoImpl(pi)) == QTI_NOT_EQUAL) {
+	    ok = false;
+	    break;
+	 }
+      }
+      if (ok)
+	 return true;
+   }
+   return false;
 }
 
 // finds a variant at runtime
@@ -200,6 +226,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
                   desc->concat(", but call supplies ");
                   argTypeInfo[pi]->getThisType(*desc);
                   getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+		  return;
 	       }
 
 	       break;
@@ -246,6 +273,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
                   desc->concat(", but call supplies ");
                   argTypeInfo[pi]->getThisType(*desc);
                   getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+		  return;
 	       }
 
 	       break;
@@ -507,7 +535,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
       bool recheck = false;
       for (unsigned pi = 0; pi < max; ++pi) {
 	 // compare the unresolved type with resolved types in committed variants
-	 int rc = sig->getParseParamTypeInfo(pi)->parseCheckResolvedIdentical(vs->getParamTypeInfo(pi));
+	 int rc = sig->getParseParamTypeInfo(pi)->checkIdentical(vs->getParamTypeInfo(pi));
 	 if (rc == QTI_NOT_EQUAL) {
 	    recheck = false;
 	    dup = false;

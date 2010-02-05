@@ -1,6 +1,8 @@
 2010.02.05: David Nichols
 	 * API updates to export type information for basic value types to be
 	   used in modules
+	 * more API updates so type and variant information is accessible in
+	   modules
 
 2010.02.04: David Nichols
 	 * fixed a bug where File::open*() would reset the encoding given in

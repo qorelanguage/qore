@@ -78,24 +78,24 @@ static inline class QoreStringNode *null_string() {
    return NullString;
 }
 
+class ExternalTypeInfo;
+
 //! helper type to allocate and manage QoreTypeInfo objects (not exported by the library)
 /** should be used to allocate and deallocate QoreTypeInfo objects for new types created in modules
  */
 class QoreTypeInfoHelper {
 private:
-   QoreTypeInfo *typeInfo;
+   ExternalTypeInfo *typeInfo;
 
 public:
    //! allocates a QoreTypeInfo object with no type information
-   DLLEXPORT QoreTypeInfoHelper();
+   DLLEXPORT QoreTypeInfoHelper(const char *n_tname);
    //! allocates a QoreTypeInfo object of the requested type
-   DLLEXPORT QoreTypeInfoHelper(qore_type_t id);
+   DLLEXPORT QoreTypeInfoHelper(qore_type_t id, const char *n_tname);
    //! deallocates the managed QoreTypeInfo object
    DLLEXPORT ~QoreTypeInfoHelper();
    //! returns a pointer to the object
-   DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
-      return typeInfo;
-   }
+   DLLLOCAL const QoreTypeInfo *getTypeInfo() const;
    DLLLOCAL void assign(qore_type_t id);
 };
 

@@ -191,3 +191,68 @@ void QoreParseTypeInfo::resolve() {
       cscope = 0;
    }
 }
+
+int QoreTypeInfo::checkTypeInstantiationIntern(bool obj, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   if (!this || !has_type) return 0;
+   if (qt == NT_NOTHING && is_nothing(n)) return 0;
+   if (is_nothing(n))
+      return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+
+   // from here on we know n != 0
+   if (qt == NT_OBJECT) {
+      if (n->getType() != NT_OBJECT)
+	 return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+
+      if (!qc)
+	 return 0;
+
+      bool priv;
+      if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
+	 if (!priv)
+	    return 0;
+
+	 // check private access
+	 if (!runtimeCheckPrivateClassAccess(qc))
+	    return 0;
+
+	 return obj ? doObjectPrivateClassException(param_name, n, xsink) : doPrivateClassException(param_name, n, xsink);
+      }
+
+      return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+   }
+   if (n->getType() != qt)
+      return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+
+   return 0;
+}
+
+bool QoreTypeInfo::testTypeCompatibility(const AbstractQoreNode *n) const {
+   if (!this || !has_type) return true;
+   if (qt == NT_NOTHING && is_nothing(n)) return true;
+   if (is_nothing(n))
+      return false;
+
+   if (n->getType() != qt)
+      return false;
+
+   // from here on we know n != 0
+   if (qt == NT_OBJECT) {
+      if (!qc)
+	 return true;
+
+      bool priv;
+      if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
+	 if (!priv)
+	    return true;
+
+	 // check private access
+	 if (!runtimeCheckPrivateClassAccess(qc))
+	    return true;
+
+	 return false;
+      }
+
+      return false;
+   }
+   return true;
+}

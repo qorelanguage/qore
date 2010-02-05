@@ -24,12 +24,56 @@
 
 #define _QORE_QORETYPEINFO_H
 
-class QoreTypeInfo {
+#define NO_TYPE_INFO "<no type info"
+
+// used for return values when checking types with functions that return numeric codes
+#define QTI_IDENT      -1  // the types are identical
+#define QTI_AMBIGUOUS   1  // the types are ambiguously identical (NT_OBJECT and specific class)
+#define QTI_NOT_EQUAL   0  // not equal
+#define QTI_RECHECK     2  // possibly not equal
+
+class AbstractQoreTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const = 0;
+   DLLLOCAL virtual void concatNameImpl(std::string &str) const = 0;
+
+   DLLLOCAL void concatClass(std::string &str, const char *cn) const {
+      str.append("<class: ");
+      str.append(cn);
+      str.push_back('>');
+   }
+
+public:
+   // FIXME: make protected
+   qore_type_t qt : 11;
+   bool has_type : 1;
+
+   DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), has_type(true) {
+   }
+   DLLLOCAL AbstractQoreTypeInfo() : qt(NT_ALL), has_type(false) {
+   }
+   DLLLOCAL virtual ~AbstractQoreTypeInfo() {
+   }
+   DLLLOCAL const char *getName() const {
+      if (!this || !has_type)
+	 return NO_TYPE_INFO;
+      return getNameImpl();
+   }
+   DLLLOCAL void concatName(std::string &str) const {
+      if (!this || !has_type) {
+	 str.append(NO_TYPE_INFO);
+	 return;
+      }
+      return concatNameImpl(str);
+   }
+};
+
+class QoreTypeInfo : public AbstractQoreTypeInfo {
 protected:
    bool must_be_assigned;
 
    DLLLOCAL int doTypeException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
+      // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
       if (!xsink)
 	 return -1;
@@ -86,48 +130,27 @@ protected:
       return -1;
    }
 
-   DLLLOCAL int checkTypeInstantiationIntern(bool obj, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      if (!this || !has_type) return 0;
-      if (qt == NT_NOTHING && is_nothing(n)) return 0;
-      if (is_nothing(n))
-	 return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+   DLLLOCAL int checkTypeInstantiationIntern(bool obj, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const;
 
-      // from here on we know n != 0
-      if (qt == NT_OBJECT) {
-	 if (n->getType() != NT_OBJECT)
-	    return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return qc ? qc->getName() : getBuiltinTypeName(qt);
+   }
 
-	 if (!qc)
-	    return 0;
-
-	 bool priv;
-	 if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
-	    if (!priv)
-	       return 0;
-
-	    // check private access
-	    if (!runtimeCheckPrivateClassAccess(qc))
-	       return 0;
-
-	    return obj ? doObjectPrivateClassException(param_name, n, xsink) : doPrivateClassException(param_name, n, xsink);
-	 }
-
-	 return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
-      }
-      if (n->getType() != qt)
-	 return obj ? doObjectTypeException(param_name, n, xsink) : doTypeException(param_name, n, xsink);
-
-      return 0;
+   DLLLOCAL virtual void concatNameImpl(std::string &str) const {
+      if (qc)
+	 concatClass(str, qc->getName());
+      else
+	 str.append(getBuiltinTypeName(qt));
    }
 
 public:
    const QoreClass *qc;
-   qore_type_t qt : 11;
-   bool has_type : 1;
 
-   DLLLOCAL QoreTypeInfo() : must_be_assigned(false), qc(0), qt(NT_ALL), has_type(false) {}
-   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : must_be_assigned(false), qc(0), qt(n_qt), has_type(true) {}
-   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : must_be_assigned(false), qc(n_qc), qt(NT_OBJECT), has_type(true) {}
+   DLLLOCAL QoreTypeInfo() : must_be_assigned(false), qc(0) {}
+   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : AbstractQoreTypeInfo(n_qt), must_be_assigned(false), qc(0) {}
+   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : AbstractQoreTypeInfo(NT_OBJECT), must_be_assigned(false), qc(n_qc) {}
+   DLLLOCAL virtual ~QoreTypeInfo() {
+   }
 
    DLLLOCAL qore_type_t getType() const { return qt; }
    DLLLOCAL void getNodeType(QoreStringNode &str, const AbstractQoreNode *n) const {
@@ -175,36 +198,7 @@ public:
    }
 
    // returns true for compatible, false for not, "this" is the parameter type, n is the argument
-   DLLLOCAL bool testTypeCompatibility(const AbstractQoreNode *n) const {
-      if (!this || !has_type) return true;
-      if (qt == NT_NOTHING && is_nothing(n)) return true;
-      if (is_nothing(n))
-	 return false;
-
-      if (n->getType() != qt)
-	 return false;
-
-      // from here on we know n != 0
-      if (qt == NT_OBJECT) {
-	 if (!qc)
-	    return true;
-
-	 bool priv;
-	 if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
-	    if (!priv)
-	       return true;
-
-	    // check private access
-	    if (!runtimeCheckPrivateClassAccess(qc))
-	       return true;
-
-	    return false;
-	 }
-
-	 return false;
-      }
-      return true;
-   }
+   DLLLOCAL bool testTypeCompatibility(const AbstractQoreNode *n) const;
    
    DLLLOCAL int checkType(const AbstractQoreNode *n, ExceptionSink *xsink) const {
       return checkTypeInstantiation(0, n, xsink);
@@ -222,22 +216,55 @@ public:
       return this ? must_be_assigned : false;
    }
 
+   // used when parsing user code to find duplicate signatures after types are resolved
+   DLLLOCAL int checkIdentical(const QoreTypeInfo *typeInfo) const {
+      bool thisnt = (!this || !has_type);
+      bool typent = (!typeInfo || !typeInfo->has_type);
+
+      if (thisnt && typent)
+	 return QTI_IDENT;
+
+      if (thisnt || typent)
+	 return QTI_NOT_EQUAL;
+
+      // from this point on, we know that both have types
+      if (qt != typeInfo->qt)
+	 return QTI_NOT_EQUAL;
+
+      // both types are identical
+      if (qt != NT_OBJECT)
+	 return QTI_IDENT;
+
+      if (qc) {
+	 if (!typeInfo->qc)
+	    return QTI_AMBIGUOUS;
+	 return qc == typeInfo->qc ? QTI_IDENT : QTI_NOT_EQUAL;
+      }
+      return typeInfo->qc ? QTI_AMBIGUOUS : QTI_IDENT;
+   }
+
 #ifdef DEBUG
    DLLLOCAL const char *getTypeName() const { return this && qt >= 0 ? getBuiltinTypeName(qt) : "n/a"; }
 #endif
 };
 
-// used for return values when checking types with functions that return numeric codes
-#define QTI_IDENT      -1  // the types are identical
-#define QTI_AMBIGUOUS   1  // the types are ambiguously identical (NT_OBJECT and specific class)
-#define QTI_NOT_EQUAL   0  // not equal
-#define QTI_RECHECK     2  // possibly not equal
-
 class QoreParseTypeInfo : public QoreTypeInfo {
 protected:
-   NamedScope *cscope; // namespace scope for class
+   DLLLOCAL virtual const char *getNameImpl() const {
+      if (cscope)
+	 return cscope->getIdentifier();
+      return qc ? qc->getName() : getBuiltinTypeName(qt);
+   }
+
+   DLLLOCAL virtual void concatNameImpl(std::string &str) const {
+      if (cscope)
+	 concatClass(str, cscope->getIdentifier());
+      QoreTypeInfo::concatNameImpl(str);
+   }
 
 public:
+   NamedScope *cscope; // namespace scope for class
+
    DLLLOCAL QoreParseTypeInfo() : QoreTypeInfo(), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(qore_type_t qt) : QoreTypeInfo(qt), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(char *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(new NamedScope(n_cscope)) {}
@@ -254,7 +281,7 @@ public:
       assert(!cscope || qt == NT_OBJECT);
    }
 */
-   DLLLOCAL ~QoreParseTypeInfo() {
+   DLLLOCAL virtual ~QoreParseTypeInfo() {
       delete cscope;
    }
    // prototype (expecting type) should be "this"
@@ -333,33 +360,6 @@ public:
       return typeInfo->cscope ? QTI_AMBIGUOUS : QTI_IDENT;
    }
 
-   // used when parsing user code to find duplicate signatures after types are resolved
-   DLLLOCAL int parseCheckResolvedIdentical(const QoreTypeInfo *typeInfo) const {
-      bool thisnt = (!this || !has_type);
-      bool typent = (!typeInfo || !typeInfo->has_type);
-
-      if (thisnt && typent)
-	 return QTI_IDENT;
-
-      if (thisnt || typent)
-	 return QTI_NOT_EQUAL;
-
-      // from this point on, we know that both have types
-      if (qt != typeInfo->qt)
-	 return QTI_NOT_EQUAL;
-
-      // both types are identical
-      if (qt != NT_OBJECT)
-	 return QTI_IDENT;
-
-      if (qc) {
-	 if (!typeInfo->qc)
-	    return QTI_AMBIGUOUS;
-	 return qc == typeInfo->qc ? QTI_IDENT : QTI_NOT_EQUAL;
-      }
-      return typeInfo->qc ? QTI_AMBIGUOUS : QTI_IDENT;
-   }
-
    DLLLOCAL void resolve();
    DLLLOCAL bool needsResolving() const { 
       return cscope;
@@ -380,6 +380,31 @@ public:
       if (!has_type)
 	 return new QoreParseTypeInfo;
       return new QoreParseTypeInfo(qt);
+   }
+};
+
+class ExternalTypeInfo : public QoreTypeInfo {
+protected:
+   const char *tname;
+
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return tname;
+   }
+
+   DLLLOCAL virtual void concatNameImpl(std::string &str) const {
+      str.append(tname);
+   }
+
+public:
+   DLLLOCAL ExternalTypeInfo(qore_type_t n_qt, const char *n_tname) : QoreTypeInfo(n_qt), tname(n_tname) {
+      // ensure this class is only used for external classes
+      assert(qt >= QORE_NUM_TYPES); 
+   }
+   DLLLOCAL ExternalTypeInfo(const char *n_tname) : tname(n_tname) {
+   }
+   DLLLOCAL void assign(qore_type_t n_qt) {
+      has_type = true;
+      qt = n_qt;
    }
 };
 
