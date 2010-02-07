@@ -80,7 +80,7 @@
     <title>Qore Modules</title>
     <para>Qore modules allow the Qore language to be extended at run-time.  Qore modules must conform to the Qore Module API and have the file extension <command><code>*.qmod</code></command>.  Qore modules normally depend on other shared libraries and therefore can only be loaded if the libraries they require are present on the system and can be found in the library path.</para>
 
-  <para>Please note that as of version 0.7.0, modules are no longer delivered with the Qore library.  Modules must be downloaded separately; see <ulink url="http://www.qoretechnologies.com/qore">Qore's home page</ulink> for more information.</para>
+  <para>Please note that as of version 0.7.0, modules are no longer delivered with the Qore library.  Modules must be downloaded separately; see <ulink url="http://qore.org">Qore's home page</ulink> for more information.</para>
 
     <para>To load a module at parse time (normally required for most modules), use the <link linkend="requires"><code>%requires</code></link> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
 
