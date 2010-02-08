@@ -129,6 +129,8 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
 	 free(name);
 	 name = 0;
 	 printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved to copy constructor\n", this);
+	 if (args)
+	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", oflag->getTypeInfo()->qc->getName());
       }
       else
 	 func = getParseClass()->parseResolveSelfMethod(name);
