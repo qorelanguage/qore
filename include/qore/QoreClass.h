@@ -150,6 +150,11 @@ class QoreMethod {
       DLLLOCAL void assign_class(const QoreClass *p_class);
       DLLLOCAL MethodFunctionBase *getFunction() const;
 
+      //! returns true if all overloaded variants of a methods are private, false if at least one variant is public (including pending uncommitted variants)
+      /** @return true if all overloaded variants of a methods are private, false if at least one variant is public (including pending uncommitted variants)
+       */
+      DLLLOCAL bool parseIsPrivate() const;
+
       //! evaluates the method and returns the result
       /** should only be called by QoreObject; use QoreObject::evalMethod(const QoreMethod &meth, const QoreListNode *args, ExceptionSink *xsink) instead
 	  @param self a pointer to the object the method will be executed on
@@ -612,9 +617,6 @@ class QoreClass {
       // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
       DLLLOCAL const QoreMethod *parseFindCommittedMethod(const char *nme);
 
-      // used when parsing, finds committed static methods within the entire class hierarchy (local class plus base classes)
-      //DLLLOCAL const QoreMethod *parseFindCommittedStaticMethod(const char *nme);
-
       //! adds a name of a private member (not accessible from outside the class hierarchy)
       /** this method takes ownership of *name
 	  @param name the name of the private member (ownership of the memory is assumed by the QoreClass object)
@@ -670,6 +672,9 @@ class QoreClass {
       // returns true if the class has one or more parent classes
       DLLLOCAL bool hasParentClass() const;
       DLLLOCAL QoreObject *execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL bool hasPrivateCopyMethod() const;
+      // returns the status including the pending variant (if any)
+      DLLLOCAL bool parseHasPrivateCopyMethod() const;
 };
 
 class QoreMethodIterator {

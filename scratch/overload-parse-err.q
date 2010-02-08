@@ -7,8 +7,10 @@
 class T { private copy() {} }
 
 my T $t = new T();
+# parse error: private copy method
 my T $x = $t.copy();
 
+/*
 sub test(int $x) {}
 sub test(string $x) {}
 # parse error: duplicate signature
@@ -25,3 +27,4 @@ Mutex::destructor() {}
 Mutex::copy() {}
 # parse error: duplicate signature
 Mutex::lock() {}
+*/

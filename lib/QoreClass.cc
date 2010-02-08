@@ -552,7 +552,7 @@ struct qore_method_private {
    }
 
    DLLLOCAL int addUserVariant(MethodVariantBase *variant) {
-      return func->parseAddVariant(variant);
+      return func->parseAddUserMethodVariant(variant);
    }
 
    DLLLOCAL void addBuiltinVariant(MethodVariantBase *variant) {
@@ -1384,7 +1384,7 @@ void qore_class_private::parseRollback() {
 	 continue;
       }
 
-      i->second->priv->func->parseRollback();
+      i->second->priv->func->parseRollbackMethod();
       ++i;
    }
 
@@ -1397,7 +1397,7 @@ void qore_class_private::parseRollback() {
 	 continue;
       }
 
-      i->second->priv->func->parseRollback();
+      i->second->priv->func->parseRollbackMethod();
       ++i;
    }
 }
@@ -1428,6 +1428,10 @@ bool QoreMethod::isBuiltin() const {
 
 bool QoreMethod::isPrivate() const { 
    return priv->func->isUniquelyPrivate();
+}
+
+bool QoreMethod::parseIsPrivate() const { 
+   return priv->func->parseIsUniquelyPrivate();
 }
 
 bool QoreMethod::isStatic() const {
@@ -2333,25 +2337,37 @@ int QoreClass::initMembers(QoreObject *o, ExceptionSink *xsink) const {
    return priv->initMembers(o, xsink);
 }
 
+bool QoreClass::hasPrivateCopyMethod() const {
+   return priv->copyMethod && priv->copyMethod->isPrivate() ? true : false;
+}
+
+bool QoreClass::parseHasPrivateCopyMethod() const {
+   return priv->copyMethod && priv->copyMethod->parseIsPrivate() ? true : false;
+}
+
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {
-   checkAddVariant(variant);
+   if (all_private && !variant->isPrivate())
+      all_private = false;
    addBuiltinVariant(variant);
 }
 
-void MethodFunctionBase::parseCommitMethod() {
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      // maintain all_private flag
-      checkAddVariant(METHVB(*i));
-      vlist.push_back(*i);
-   }
-   pending_vlist.clear();
+int MethodFunctionBase::parseAddUserMethodVariant(MethodVariantBase *variant) {
+   int rc = parseAddVariant(variant);
+   if (!rc && pending_all_private && !variant->isPrivate())
+      pending_all_private = false;
+   return rc;
 }
 
-void MethodFunctionBase::checkAddVariant(MethodVariantBase *variant) {
-   if (vlist.empty())
-      all_private = variant->isPrivate();
-   else if (all_private && !variant->isPrivate())
+void MethodFunctionBase::parseCommitMethod() {
+   parseCommit();
+   if (all_private && !pending_all_private)
       all_private = false;
+   pending_all_private = true;
+}
+
+void MethodFunctionBase::parseRollbackMethod() {
+   parseRollback();
+   pending_all_private = true;
 }
 
 void MethodFunction::parseInitMethod(const QoreClass &parent_class, bool static_flag) {
@@ -2636,4 +2652,3 @@ bool QoreStaticMethodIterator::next() {
 const QoreMethod *QoreStaticMethodIterator::getMethod() const {
    return HMI_CAST(priv)->getMethod();
 }
-

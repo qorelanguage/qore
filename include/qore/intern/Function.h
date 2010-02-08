@@ -449,19 +449,23 @@ class MethodVariantBase;
 
 class MethodFunctionBase : public AbstractReferencedFunction {
 protected:
-   bool all_private;
-
-   DLLLOCAL void checkAddVariant(MethodVariantBase *variant);
+   bool all_private, pending_all_private;
 
 public:
-   DLLLOCAL MethodFunctionBase() : all_private(false) {
+   DLLLOCAL MethodFunctionBase() : all_private(true), pending_all_private(true) {
    }
+   // returns -1 for error, 0 = OK
+   DLLLOCAL int parseAddUserMethodVariant(MethodVariantBase *variant);
    // maintains all_private flag and commits the builtin variant
    DLLLOCAL void addBuiltinMethodVariant(MethodVariantBase *variant);
    // maintains all_private flag and commits user variants
    DLLLOCAL void parseCommitMethod();
+   DLLLOCAL void parseRollbackMethod();
    DLLLOCAL bool isUniquelyPrivate() const {
       return all_private;
+   }
+   DLLLOCAL bool parseIsUniquelyPrivate() const {
+      return all_private && pending_all_private;
    }
 };
 
