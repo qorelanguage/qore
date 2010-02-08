@@ -21,6 +21,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreClassIntern.h>
 
 int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func) {
    // number of local variables declared in arguments
@@ -239,5 +240,30 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
       returnTypeInfo = func->parseGetUniqueReturnTypeInfo();
    }
 
+   return this;
+}
+
+AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   // find object class
+   if ((oc = getRootNS()->parseFindScopedClass(name))) {
+      // check if parse options allow access to this class
+      if (oc->getDomain() & getProgram()->getParseOptions())
+	 parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+       
+      typeInfo = oc->getTypeInfo();
+      desc.sprintf("new %s", oc->getName());
+   }
+   delete name;
+   name = 0;
+   const QoreMethod *constructor = oc ? oc->parseGetConstructor() : 0;
+   lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0);
+
+   //printd(5, "ScopedObjectCallNode::parseInit() this=%p constructor=%p variant=%p\n", this, constructor, variant);
+
+   if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !parseCheckPrivateClassAccess(oc))
+      parse_error("illegal external access to private constructor of class %s", oc->getName());
+
+   //printd(5, "ScopedObjectCallNode::parseInit() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
+      
    return this;
 }

@@ -2,6 +2,8 @@
 	 * fixed illegal private method call detection at parse time,
 	   including illegal private copy method calls
 	 * fixed illegal runtime private copy method call detection
+	 * implemented support for private constructors and catching invalid
+	   instantiations with private constructors at parse and run time
 
 2010.02.05: David Nichols
 	 * API updates to export type information for basic value types to be

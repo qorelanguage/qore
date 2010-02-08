@@ -652,6 +652,8 @@ class QoreClass {
       DLLLOCAL bool has_delete_blocker() const;
       // one-time initialization
       DLLLOCAL void initialize();
+      // looks in current and pending method lists, non-static methods only, no initialization
+      DLLLOCAL const QoreMethod *parseFindLocalMethod(const char *name) const;
       // looks in current and pending method lists for the entire hierarchy (local class plus base classes), non-static methods only
       DLLLOCAL const QoreMethod *parseFindMethodTree(const char *name);
       // looks in current and pending method lists for the entire hierarchy (local class plus base classes), static methods only
@@ -675,6 +677,7 @@ class QoreClass {
       DLLLOCAL bool hasPrivateCopyMethod() const;
       // returns the status including the pending variant (if any)
       DLLLOCAL bool parseHasPrivateCopyMethod() const;
+      DLLLOCAL const QoreMethod *parseGetConstructor() const;
 };
 
 class QoreMethodIterator {

@@ -697,8 +697,15 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 
    if (!constructor) {
       assert(!variant);
-      if (scl) // execute superconstructors if any
+      if (scl) { // execute superconstructors if any
+	 CodeContextHelper cch("constructor", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+	 // push call on call stack
+	 CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
+#endif
+
 	 scl->execConstructors(self, *bceal, xsink);
+      }
    }
    else {
       constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
@@ -1196,6 +1203,16 @@ int BCAList::execBaseClassConstructorArgs(BCEAList *bceal, ExceptionSink *xsink)
 	 return -1;
    }
    return 0;
+}
+
+const QoreMethod *QoreClass::parseGetConstructor() const {
+   if (priv->constructor)
+      return priv->constructor;
+   return priv->parseFindLocalMethod("constructor");
+}
+
+const QoreMethod *QoreClass::parseFindLocalMethod(const char *name) const {
+   return priv->parseFindLocalMethod(name);
 }
 
 bool QoreClass::has_delete_blocker() const {
@@ -1709,7 +1726,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
    if (!strcmp(nme, "copy"))
       return execCopy(self, xsink);
 
-   int external = (this != getStackClass());
+   bool external = (this != getStackClass());
    printd(5, "QoreClass::evalMethod() %s::%s() %s call attempted\n", priv->name, nme, external ? "external" : "internal" );
 
    const QoreMethod *w;
@@ -2506,6 +2523,12 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
 	 return;
       }
    }
+
+   if (CONMV_const(variant)->isPrivate() && !runtimeCheckPrivateClassAccess(&thisclass)) {
+      xsink->raiseException("CONSTRUCTOR-IS-PRIVATE", "%s::constructor() is private and therefore this class cannot be directly instantiated with the new operator by external code", thisclass.getName());
+      return;
+   }
+
    qore_call_t ct = variant->getCallType();
    ceh.setCallType(ct);
 

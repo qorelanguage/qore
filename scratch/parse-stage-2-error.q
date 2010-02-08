@@ -4,8 +4,9 @@
 
 %requires qore >= 0.8
 
-class T { private copy() {} private p() {} }
+class T { private constructor() {} private copy() {} private p() {} }
 
+# parse error: private constructor
 my T $t = new T();
 # parse error: private copy method
 my T $x = $t.copy();

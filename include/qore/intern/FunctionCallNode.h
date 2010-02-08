@@ -295,7 +295,7 @@ public:
       delete scope;
       scope = 0;
 
-      if (method->isPrivate()) {
+      if (method->parseIsPrivate()) {
 	 const QoreClass *cls = getParseClass();
 	 if (!cls || !cls->parseCheckHierarchy(qc)) {
 	    parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
