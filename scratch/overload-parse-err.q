@@ -3,6 +3,12 @@
 %require-our
 
 %requires qore >= 0.8
+
+class T { private copy() {} }
+
+my T $t = new T();
+my T $x = $t.copy();
+
 sub test(int $x) {}
 sub test(string $x) {}
 # parse error: duplicate signature
