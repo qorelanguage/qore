@@ -154,6 +154,12 @@ public:
       if (setupCall(ceh.getArgs(), argv, xsink))
 	 return;
 
+      CodeContextHelper cch("constructor", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      // push call on call stack in debugging mode
+      CallStackHelper csh("constructor", CT_USER, self, xsink);
+#endif
+
       if (bcl && evalBaseClassConstructors(ceh, self, bcl, bceal, xsink))
 	 return;
 
@@ -323,6 +329,12 @@ public:
    }
 
    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+      CodeContextHelper cch("constructor", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      // push call on call stack
+      CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
+#endif
+
       if (bcl && evalBaseClassConstructors(ceh, self, bcl, bceal, xsink))
 	 return;
 
@@ -338,7 +350,13 @@ public:
    // return type info is set to 0 because the new operator actually returns the new object, not the constructor
    DLLLOCAL BuiltinConstructor2Variant(q_constructor2_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinConstructorVariantBase(n_priv_flag, n_functionality, n_num_params, n_typeList, n_defaultArgList), constructor(m) {
    }
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const { 
+      CodeContextHelper cch("constructor", self, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      // push call on call stack
+      CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
+#endif
+
       if (bcl && evalBaseClassConstructors(ceh, self, bcl, bceal, xsink))
 	 return;
 

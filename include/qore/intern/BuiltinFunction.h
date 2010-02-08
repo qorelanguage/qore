@@ -94,7 +94,13 @@ public:
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
-   DLLLOCAL AbstractQoreNode *evalFunction(const QoreListNode *args, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode *evalFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) const {
+      CodeContextHelper cch(name, 0, xsink);
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+      // push call on call stack in debugging mode
+      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
+#endif
+
       return func(args, xsink);
    }
 };

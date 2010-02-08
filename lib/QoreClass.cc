@@ -2532,12 +2532,6 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
    qore_call_t ct = variant->getCallType();
    ceh.setCallType(ct);
 
-   CodeContextHelper cch("constructor", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   // push call on call stack
-   CallStackHelper csh("constructor", ct, self, xsink);
-#endif
-
    CONMV_const(variant)->evalConstructor(thisclass, self, ceh, bcl, bceal, xsink);      
 }
 

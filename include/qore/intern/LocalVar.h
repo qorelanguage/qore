@@ -103,12 +103,12 @@ public:
 
    DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
       if (!is_ref) {
-	 //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' val=%08p\n", this, id, val.value);
+	 //printd(5, "LocalVarValue::uninstantiate() this=%p uninstantiating local variable '%s' val=%p\n", this, id, val.value);
 	 discard(val.value, xsink);
 	 return;
       }
 
-      //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' reference expression vexp=%08p\n", this, id, val.ref.vexp);
+      //printd(5, "LocalVarValue::uninstantiate() this=%p uninstantiating local variable '%s' reference expression vexp=%p\n", this, id, val.ref.vexp);
       val.ref.vexp->deref(xsink);
       if (val.ref.obj)
 	 val.ref.obj->tDeref();
@@ -203,12 +203,12 @@ struct ClosureVarValue : public QoreReferenceCounter, public QoreThreadLock {
 private:
    DLLLOCAL void del(ExceptionSink *xsink) {
       if (!is_ref) {
-	 //printd(5, "ClosureVarValue::del() this=%08p uninstantiating closure variable '%s' val=%08p\n", this, id, val->val.value);
+	 //printd(5, "ClosureVarValue::del() this=%p uninstantiating closure variable '%s' val=%p\n", this, id, val->val.value);
 	 discard(val.value, xsink);
 	 return;
       }
       else {
-	 //printd(5, "ClosureVarValue::del() this=%08p uninstantiating closure variable '%s' reference expression vexp=%08p\n", this, id, val->val.ref.vexp);
+	 //printd(5, "ClosureVarValue::del() this=%p uninstantiating closure variable '%s' reference expression vexp=%p\n", this, id, val->val.ref.vexp);
 	 val.ref.vexp->deref(xsink);
 	 if (val.ref.obj)
 	    val.ref.obj->tDeref();
@@ -355,7 +355,7 @@ public:
    }
 
    DLLLOCAL void instantiate() const {
-      //printd(5, "LocalVar::instantiate(%08p) this=%08p '%s'\n", value, this, name.c_str());
+      //printd(5, "LocalVar::instantiate(%p) this=%p '%s'\n", value, this, name.c_str());
 
       AbstractQoreNode *val;
       if (needs_value_instantiation) {
@@ -370,7 +370,7 @@ public:
    }
 
    DLLLOCAL void instantiate(AbstractQoreNode *value) const {
-      //printd(5, "LocalVar::instantiate(%08p) this=%08p '%s'\n", value, this, name.c_str());
+      //printd(5, "LocalVar::instantiate(%p) this=%p '%s'\n", value, this, name.c_str());
 
       if (!closure_use) {
 	 LocalVarValue *val = thread_instantiate_lvar();
@@ -387,7 +387,7 @@ public:
    }
 
    DLLLOCAL void instantiate_object(QoreObject *value) const {
-      //printd(5, "LocalVar::instantiate_object(%08p) this=%08p '%s'\n", value, this, name.c_str());
+      //printd(5, "LocalVar::instantiate_object(%p) this=%p '%s'\n", value, this, name.c_str());
 
       if (!closure_use) {
 	 LocalVarValue *val = thread_instantiate_lvar();
@@ -406,7 +406,7 @@ public:
    }
 
    DLLLOCAL void instantiate(AbstractQoreNode *vexp, QoreObject *obj) {
-      //printd(5, "LocalVar::instantiate(%08p, %08p) this=%08p '%s'\n", vexp, obj, this, name.c_str());
+      //printd(5, "LocalVar::instantiate(%p, %p) this=%p '%s'\n", vexp, obj, this, name.c_str());
 
       if (!closure_use) {
 	 LocalVarValue *val = thread_instantiate_lvar();

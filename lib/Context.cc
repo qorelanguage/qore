@@ -278,8 +278,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type)
 
 Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, AbstractQoreNode *cond, 
 		 int sort_type, AbstractQoreNode *sort, AbstractQoreNode *summary,
-		 int ignore_key)
-{
+		 int ignore_key) : value(0) {
    int allocated = 0;
    //int sense, lcolumn = -1, fcolumn = -1
    //class Key *key = 0;

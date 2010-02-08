@@ -351,14 +351,7 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
       }
    }
 
-   CodeContextHelper cch(fname, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   qore_call_t ct = variant->getCallType();
-   // push call on call stack in debugging mode
-   CallStackHelper csh(fname, ct, 0, xsink);
-#endif
-
-   return variant->evalFunction(ceh.getArgs(), xsink);
+   return variant->evalFunction(fname, ceh.getArgs(), xsink);
 }
 
 // finds a variant and checks variant capabilities against current
@@ -374,14 +367,7 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
       return 0;
    }
 
-   CodeContextHelper cch(fname, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   qore_call_t ct = variant->getCallType();
-   // push call on call stack in debugging mode
-   CallStackHelper csh(fname, ct, 0, xsink);
-#endif
-
-   return variant->evalFunction(ceh.getArgs(), xsink);
+   return variant->evalFunction(fname, ceh.getArgs(), xsink);
 }
 
 void AbstractQoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant *variant) {
@@ -426,6 +412,7 @@ UserVariantBase::~UserVariantBase() {
 }
 
 // evaluates arguments and sets up the argv variable
+// FIXME: eliminate second reference here (argument already evaluated)
 int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const {
    unsigned num_args = args ? args->size() : 0;
    // instantiate local vars from param list
