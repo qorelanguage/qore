@@ -1705,12 +1705,14 @@ void QoreClass::addDomain(int dom) {
 
 AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const {
    QORE_TRACE("QoreClass::evalMethod()");
-   const QoreMethod *w;
-   int external = (this != getStackClass());
-   printd(5, "QoreClass::evalMethod() %s::%s() %s call attempted\n", priv->name, nme, external ? "external" : "internal" );
 
    if (!strcmp(nme, "copy"))
       return execCopy(self, xsink);
+
+   int external = (this != getStackClass());
+   printd(5, "QoreClass::evalMethod() %s::%s() %s call attempted\n", priv->name, nme, external ? "external" : "internal" );
+
+   const QoreMethod *w;
 
    bool priv_flag = false;
    // FIXME: check locking when accessing method maps at runtime
@@ -1914,6 +1916,12 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
 }
 
 QoreObject *qore_class_private::execCopy(QoreObject *old, ExceptionSink *xsink) const {
+   // check for illegal private calls
+   if (copyMethod && copyMethod->isPrivate() && typeInfo.qc != getStackClass()) {
+      xsink->raiseException("METHOD-IS-PRIVATE", "%s::copy() is private and cannot be accessed externally", name);
+      return 0;
+   }
+
    QoreHashNode *h = old->copyData(xsink);
    if (*xsink) {
       assert(!h);

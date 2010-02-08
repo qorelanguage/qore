@@ -3589,8 +3589,8 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    const char *meth = mc->getName();
 
    const QoreMethod *m = const_cast<QoreClass *>(typeInfo->qc)->parseFindMethodTree(meth);
-
-   //printd(0, "check_op_object_func_ref() %s::%s() method=%p (private=%s)\n", typeInfo->qc->getName(), meth, m, m && m->parseIsPrivate() ? "true" : "false" );
+   
+   // printd(5, "check_op_object_func_ref() %s::%s() method=%p (private=%s)\n", typeInfo->qc->getName(), meth, m, m && m->parseIsPrivate() ? "true" : "false" );
 
    const QoreListNode *args = mc->getArgs();
    if (!strcmp(meth, "copy")) {
