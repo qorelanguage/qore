@@ -42,11 +42,11 @@ public:
    DLLLOCAL void delete_all(ExceptionSink *xsink);
    DLLLOCAL void clear_all(ExceptionSink *xsink);
    DLLLOCAL void import(Var *var, ExceptionSink *xsink, bool readonly = false);
-   DLLLOCAL Var *newVar(const char *name, const QoreParseTypeInfo *typeInfo = 0);
+   DLLLOCAL Var *newVar(const char *name, QoreParseTypeInfo *typeInfo = 0);
    DLLLOCAL Var *newVar(Var *v, bool readonly);
    DLLLOCAL Var *findVar(const char *name);
    DLLLOCAL const Var *findVar(const char *name) const;
-   DLLLOCAL Var *checkVar(const char *name, const QoreParseTypeInfo *typeInfo, int *new_vars);
+   DLLLOCAL Var *checkVar(const char *name, QoreParseTypeInfo *typeInfo, int *new_vars);
    DLLLOCAL QoreListNode *getVarList() const;
 };
 

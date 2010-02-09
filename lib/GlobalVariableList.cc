@@ -73,7 +73,7 @@ void GlobalVariableList::delete_all(ExceptionSink *xsink) {
    }
 }
 
-Var *GlobalVariableList::newVar(const char *name, const QoreParseTypeInfo *typeInfo) {
+Var *GlobalVariableList::newVar(const char *name, QoreParseTypeInfo *typeInfo) {
    Var *var = new Var(name, typeInfo);
    vmap[var->getName()] = var;
    
@@ -104,7 +104,7 @@ const Var *GlobalVariableList::findVar(const char *name) const {
 }
 
 // used for resolving unflagged global variables
-Var *GlobalVariableList::checkVar(const char *name, const QoreParseTypeInfo *typeInfo, int *new_var) {
+Var *GlobalVariableList::checkVar(const char *name, QoreParseTypeInfo *typeInfo, int *new_var) {
    QORE_TRACE("GlobalVariableList::checkVar()");
    Var *var;
    

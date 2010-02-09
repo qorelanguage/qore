@@ -711,7 +711,7 @@ const Var *QoreProgram::findGlobalVar(const char *name) const {
    return priv->global_var_list.findVar(name);
 }
 
-Var *QoreProgram::checkGlobalVar(const char *name, const QoreParseTypeInfo *typeInfo) {
+Var *QoreProgram::checkGlobalVar(const char *name, QoreParseTypeInfo *typeInfo) {
    int new_var = 0;
    Var *rv = priv->global_var_list.checkVar(name, typeInfo, &new_var);
    if (new_var) {
@@ -736,7 +736,7 @@ LocalVar *QoreProgram::createLocalVar(const char *name, const QoreTypeInfo *type
 
 // if this global variable definition is illegal, then
 // it will be flagged in the parseCommit stage
-Var *QoreProgram::addGlobalVarDef(const char *name, const QoreParseTypeInfo *typeInfo) {
+Var *QoreProgram::addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo) {
    int new_var = 0;
    Var *v = priv->global_var_list.checkVar(name, typeInfo, &new_var);
    if (!new_var)

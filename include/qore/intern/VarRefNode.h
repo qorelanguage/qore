@@ -47,8 +47,8 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   DLLLOCAL void resolve(const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
-   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
+   DLLLOCAL void resolve(QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
+   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
    
 public:
    union var_u {
@@ -85,7 +85,7 @@ public:
    DLLLOCAL char *takeName();
 
    DLLLOCAL virtual QoreParseTypeInfo *takeTypeInfo() { return 0; }
-   DLLLOCAL virtual const QoreParseTypeInfo *getTypeInfo() const { return 0; }
+   DLLLOCAL virtual QoreParseTypeInfo *getTypeInfo() { return 0; }
 };
 
 class VarRefDeclNode : public VarRefNode {
@@ -101,7 +101,8 @@ public:
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s class=%s\n", typeInfo, n, class_name);
    }
    DLLLOCAL ~VarRefDeclNode() {
-      delete typeInfo;
+      if (type != VT_GLOBAL)
+	 delete typeInfo;
    }
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
@@ -111,7 +112,10 @@ public:
       typeInfo = 0;
       return ti;
    }
-   DLLLOCAL virtual const QoreParseTypeInfo *getTypeInfo() const {
+   DLLLOCAL virtual QoreParseTypeInfo *getTypeInfo() {
+      return typeInfo;
+   }
+   DLLLOCAL QoreParseTypeInfo *getParseTypeInfo() {
       return typeInfo;
    }
 };

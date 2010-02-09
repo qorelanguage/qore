@@ -207,15 +207,28 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 }
       }
    }
-   // FIXME: show variants checked - add class name for methods
    if (!variant) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
       if (class_name)
 	 desc->sprintf("%s::", class_name);
       desc->sprintf("%s(", getName());
       addArgs(*desc, args);
-      desc->concat(") can be found");
-      // FIXME: show variants that exist
+      desc->concat(") can be found; the following variants were tested:");
+
+      // add variants tested
+      for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+	 desc->concat("\n   ");
+	 if (class_name)
+	    desc->sprintf("%s::", class_name);
+	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+      }
+      for (vlist_t::const_iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+	 desc->concat("\n   ");
+	 if (class_name)
+	    desc->sprintf("%s::", class_name);
+	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+      }
+
       xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
    }
    else {
@@ -325,8 +338,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	 }
       }
    }
-   // FIXME: show variants checked - add class name for methods
-   if (!variant) {
+
+   if (!variant && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
       if (class_name)
 	 desc->sprintf("%s::", class_name);
@@ -339,7 +352,21 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	    if (i != (num_args - 1))
 	       desc->concat(", ");
 	 }
-      desc->concat(") can be found");
+      desc->concat(") can be found; the following variants were tested:");
+
+      // add variants tested
+      for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+	 desc->concat("\n   ");
+	 if (class_name)
+	    desc->sprintf("%s::", class_name);
+	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+      }
+      for (vlist_t::const_iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+	 desc->concat("\n   ");
+	 if (class_name)
+	    desc->sprintf("%s::", class_name);
+	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+      }
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
    return variant;

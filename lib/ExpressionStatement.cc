@@ -27,7 +27,8 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQ
    // if it is a global variable declaration, then do not register
    if (exp->getType() == NT_VARREF) {
       is_declaration = true;
-      is_parse_declaration = reinterpret_cast<VarRefNode *>(exp)->getType() == VT_GLOBAL ? true : false;
+      VarRefNode *vr = reinterpret_cast<VarRefNode *>(exp);
+      is_parse_declaration = vr->getType() == VT_GLOBAL ? true : false;
       return;
    }
 

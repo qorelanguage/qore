@@ -1669,13 +1669,13 @@ exp:    scalar
 	   }
 	   else
 	      v = new VarRefDeclNode($3, VT_GLOBAL, $2);
-	   v->ref.var = getProgram()->addGlobalVarDef($3, v->getTypeInfo());
+	   v->ref.var = getProgram()->addGlobalVarDef($3, v->getParseTypeInfo());
 	   $$ = v;
 	}
         | TOK_OUR SCOPED_REF VAR_REF {
 	   VarRefDeclNode *v = new VarRefDeclNode($3, VT_GLOBAL, $2); 
 	   $$ = v;
-	   v->ref.var = getProgram()->addGlobalVarDef($3, v->getTypeInfo());
+	   v->ref.var = getProgram()->addGlobalVarDef($3, v->getParseTypeInfo());
 	}
         | TOK_OUR '(' list ')' { 
 	   $3->setVariableList();

@@ -41,6 +41,7 @@ enum qore_var_t {
 #include <stdlib.h>
 
 #include <string>
+#include <memory>
 
 #ifndef QORE_THREAD_STACK_BLOCK
 #define QORE_THREAD_STACK_BLOCK 128
@@ -68,7 +69,7 @@ private:
    union VarValue v;
    std::string name;
    mutable QoreThreadLock m;
-   const QoreParseTypeInfo *typeInfo;
+   QoreParseTypeInfo *typeInfo;
 
    DLLLOCAL void del(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *evalIntern(ExceptionSink *xsink);
@@ -90,14 +91,14 @@ private:
    }
 
 protected:
-   DLLLOCAL ~Var() {}
+   DLLLOCAL ~Var() { delete typeInfo; }
 
 public:
    DLLLOCAL Var(const char *n_name) : type(GV_VALUE), name(n_name), typeInfo(0) {
       v.val.value = 0;
    }
 
-   DLLLOCAL Var(const char *n_name, const QoreParseTypeInfo *n_typeInfo) : type(GV_VALUE), name(n_name), typeInfo(n_typeInfo) {
+   DLLLOCAL Var(const char *n_name, QoreParseTypeInfo *n_typeInfo) : type(GV_VALUE), name(n_name), typeInfo(n_typeInfo) {
       assignInitialValue();
    }
 
@@ -116,7 +117,9 @@ public:
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl);
    DLLLOCAL AbstractQoreNode *getReferencedValue() const;
-   DLLLOCAL void parseCheckAssignType(const QoreParseTypeInfo *n_typeInfo) {
+   DLLLOCAL void parseCheckAssignType(QoreParseTypeInfo *n_typeInfo) {
+      std::auto_ptr<QoreParseTypeInfo> ti(n_typeInfo);
+
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
       // it is safe to call QoreTypeInfo::hasType() when this is 0
       if (!n_typeInfo->hasType())
@@ -125,7 +128,7 @@ public:
       // here we know that n_typeInfo is not null
       // if no previous type was declared, take the new type
       if (!typeInfo) {
-	 typeInfo = n_typeInfo;
+	 typeInfo = ti.release();
 	 assert(!v.val.value);
 	 assignInitialValue();
 	 return;
@@ -134,6 +137,11 @@ public:
       // make sure types are identical or throw an exception
       if (!typeInfo->parseStageOneEqual(n_typeInfo))
 	 parse_error("global variable '%s' declared previously with an incompatible type", name.c_str());
+   }
+
+   DLLLOCAL const QoreTypeInfo *parseGetTypeInfo() {
+      if (typeInfo) typeInfo->resolve();
+      return typeInfo;
    }
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {

@@ -37,9 +37,11 @@ protected:
    DLLLOCAL virtual const char *getNameImpl() const = 0;
    DLLLOCAL virtual void concatNameImpl(std::string &str) const = 0;
 
-   DLLLOCAL void concatClass(std::string &str, const char *cn) const {
+   DLLLOCAL void concatClass(std::string &str, const char *cn, bool unresolved = false) const {
       str.append("<class: ");
       str.append(cn);
+      if (unresolved)
+	 str.append(" (unresolved)");
       str.push_back('>');
    }
 
@@ -258,7 +260,7 @@ protected:
 
    DLLLOCAL virtual void concatNameImpl(std::string &str) const {
       if (cscope)
-	 concatClass(str, cscope->getIdentifier());
+	 concatClass(str, cscope->getIdentifier(), true);
       QoreTypeInfo::concatNameImpl(str);
    }
 

@@ -51,7 +51,7 @@ const char *VarRefNode::getTypeName() const {
    return "variable reference";
 }
 
-void VarRefNode::resolve(const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
+void VarRefNode::resolve(QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
    LocalVar *id;
 
    bool in_closure;
@@ -73,7 +73,7 @@ void VarRefNode::resolve(const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *
    }
    else {
       ref.var = getProgram()->checkGlobalVar(name, typeInfo);
-      outTypeInfo = ref.var->getTypeInfo();
+      outTypeInfo = ref.var->parseGetTypeInfo();
       type = VT_GLOBAL;
       printd(5, "VarRefNode::resolve(): global var %s resolved (var=%p)\n", name, ref.var);
    }
@@ -165,7 +165,7 @@ char *VarRefNode::takeName() {
    return p;
 }
 
-AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
    // if it is a new variable being declared
    if (type == VT_LOCAL) {
       outTypeInfo = typeInfo;

@@ -3,6 +3,7 @@
 	   user variants
 	 * add class name to overload parse and runtime errors
 	 * added type information to math functions
+	 * fixed a bug resolving type information with global vars
 
 2010.02.08: David Nichols
 	 * fixed illegal private method call detection at parse time,
