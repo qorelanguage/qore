@@ -197,7 +197,6 @@ public:
       return const_cast<AbstractQoreFunctionVariant *>(this)->getUserVariantBase();
    }
 
-   // FIXME xxx add name to signature
    DLLLOCAL virtual AbstractQoreNode *evalFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) const {
       assert(false);
       return 0;
@@ -217,13 +216,13 @@ protected:
    // flag to recheck params against committed after type resolution
    bool recheck;
 
-   DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink *xsink, const char *class_name) const;
-   DLLLOCAL AbstractQoreNode *eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
+   DLLLOCAL AbstractQoreNode *eval(const char *name, const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
+   DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
 
 public:
    DLLLOCAL UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced);
-   DLLLOCAL ~UserVariantBase();
+   DLLLOCAL virtual ~UserVariantBase();
    DLLLOCAL UserSignature *getUserSignature() const {
       return const_cast<UserSignature *>(&signature);
    }
@@ -257,7 +256,7 @@ public:
    COMMON_USER_VARIANT_FUNCTIONS
 
    DLLLOCAL virtual AbstractQoreNode *evalFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) const {
-      return eval(args, 0, xsink);
+      return eval(name, args, 0, xsink);
    }
    DLLLOCAL void parseInit();
 };
@@ -508,7 +507,7 @@ public:
    }
    DLLLOCAL void parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
    DLLLOCAL AbstractQoreNode *evalClosure(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const {
-      return eval(args, self, xsink);
+      return eval("<anonymous closure>", args, self, xsink);
    }
 };
 

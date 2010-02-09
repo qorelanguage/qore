@@ -421,7 +421,7 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
    for (unsigned i = 0; i < num_params; i++) {
       AbstractQoreNode *np = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       AbstractQoreNode *n = 0;
-      printd(4, "UserVariantBase::setupCall() eval %d: instantiating param lvar %d (%08p)\n", i, signature.lv[i], n);
+      printd(4, "UserVariantBase::setupArgs() eval %d: instantiating param lvar %d (%08p)\n", i, signature.lv[i], n);
       if (!is_nothing(np)) {
 	 if (np->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(np);
@@ -468,7 +468,6 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 }
 
 // FIXME: argv should hold unreferenced values and can be emptied before being dereferenced when destroyed
-
 AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink *xsink, const char *class_name) const {
    AbstractQoreNode *val = 0;
    if (statements) {
@@ -502,9 +501,9 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
    else
       argv = 0; // dereference argv now
 
-   // FIXME: move setupCall and this to a class that takes care of initialization and cleanup
+   // FIXME: move setupArgs and this to a class that takes care of initialization and cleanup
    if (signature.numParams()) {
-      printd(5, "UserFunctionVariant::eval() about to uninstantiate %d vars\n", signature.numParams());
+      printd(5, "UserFunctionVariant::evalIntern() about to uninstantiate %d vars\n", signature.numParams());
 
       // uninstantiate local vars from param list
       for (unsigned i = 0; i < signature.numParams(); i++)
@@ -515,16 +514,18 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
 }
 
 // primary function for executing user code
-AbstractQoreNode *UserVariantBase::eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name) const {
+AbstractQoreNode *UserVariantBase::eval(const char *name, const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name) const {
    QORE_TRACE("UserVariantBase::eval()");
-   printd(5, "UserVariantBase::eval() this=%p args=%p (size=%d) self=%p\n", this, args, args ? args->size() : 0, self);
+   printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, args, args ? args->size() : 0, self);
 
    ReferenceHolder<QoreListNode> argv(xsink);
 
-   // FIXME: move setupCall and cleanup to a class that takes care of initialization and cleanup
+   // FIXME: move setupArgs and cleanup to a class that takes care of initialization and cleanup
    if (setupCall(args, argv, xsink))
       return 0;
 
+   CODE_CONTEXT_HELPER(CT_USER, name, self, xsink);
+     
    return evalIntern(argv, self, xsink, class_name);
 }
 
@@ -712,11 +713,6 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, "<anonymous closure>", args, 0, CT_USER);
 
-   CodeContextHelper cch("<anonymous closure>", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   // push call on call stack
-   CallStackHelper csh("<anonymous closure>", CT_USER, self, xsink);
-#endif
    //printd(0, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
 
    return variant->evalClosure(ceh.getArgs(), self, xsink);

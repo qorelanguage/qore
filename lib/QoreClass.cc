@@ -698,11 +698,7 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
    if (!constructor) {
       assert(!variant);
       if (scl) { // execute superconstructors if any
-	 CodeContextHelper cch("constructor", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-	 // push call on call stack
-	 CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
-#endif
+	 CODE_CONTEXT_HELPER(CT_BUILTIN, "constructor", self, xsink);
 
 	 scl->execConstructors(self, *bceal, xsink);
       }
@@ -2477,6 +2473,28 @@ void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class,
    statements->parseInitConstructor(parent_class.getTypeInfo(), &signature, bcal, bcl);
 }
 
+void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const {
+   // there can only be max 1 param
+   assert(signature.numParams() <= 1);
+
+   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+   args->push(self->refSelf());
+   ReferenceHolder<QoreListNode> argv(xsink);
+   if (setupCall(*args, argv, xsink))
+      return;
+
+   CODE_CONTEXT_HELPER(CT_USER, "copy", self, xsink);
+
+   if (scl) {
+      scl->sml.execCopyMethods(self, old, xsink);
+      if (*xsink)
+	 return;
+      ceh.restorePosition();
+   }
+   
+   discard(evalIntern(argv, self, xsink, thisclass.getName()), xsink);
+}
+
 void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
    // make sure there is max one parameter in the copy method      
    if (signature.numParams() > 1)
@@ -2507,6 +2525,19 @@ void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
 	 signature.typeList[0] = new QoreParseTypeInfo(parent_class.getTypeInfo());
       }
    }
+}
+
+void BuiltinCopyVariantBase::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const {
+   CODE_CONTEXT_HELPER(CT_BUILTIN, "copy", self, xsink);
+   
+   if (scl) {
+      scl->sml.execCopyMethods(self, old, xsink);
+      if (*xsink)
+	 return;
+      ceh.restorePosition();
+   }
+   
+   old->evalCopyMethodWithPrivateData(thisclass, this, self, xsink);
 }
 
 void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVariant *variant, const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
@@ -2544,20 +2575,7 @@ void CopyMethodFunction::evalCopy(const QoreClass &thisclass, QoreObject *self, 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, "copy", 0, thisclass.getName(), ct);
 
-   CodeContextHelper cch("copy", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   // push call on call stack
-   CallStackHelper csh("copy", ct, self, xsink);
-#endif
-
-   if (scl) {
-      scl->sml.execCopyMethods(self, old, xsink);
-      if (*xsink)
-	 return;
-      ceh.restorePosition();
-   }
-
-   COPYMV_const(variant)->evalCopy(thisclass, self, old, xsink);
+   COPYMV_const(variant)->evalCopy(thisclass, self, old, ceh, scl, xsink);
 }
 
 void DestructorMethodFunction::evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
@@ -2568,12 +2586,6 @@ void DestructorMethodFunction::evalDestructor(const QoreClass &thisclass, QoreOb
 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, "destructor", 0, thisclass.getName(), ct);
-
-   CodeContextHelper cch("destructor", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   // push call on call stack
-   CallStackHelper csh("destructor", ct, self, xsink);
-#endif
 
    DESMV_const(variant)->evalDestructor(thisclass, self, xsink);
 }
@@ -2592,13 +2604,6 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
       }
    }
 
-   CodeContextHelper cch(mname, self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   qore_call_t ct = variant->getCallType();
-   // push call on call stack in debugging mode
-   CallStackHelper csh(mname, ct, self, xsink);
-#endif
-
    return METHV_const(variant)->evalNormalMethod(method, self, ceh.getArgs(), xsink);      
 }
 
@@ -2615,13 +2620,6 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
-
-   CodeContextHelper cch(mname, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   qore_call_t ct = variant->getCallType();
-   // push call on call stack in debugging mode
-   CallStackHelper csh(mname, ct, 0, xsink);
-#endif
 
    return METHV_const(variant)->evalStaticMethod(method, ceh.getArgs(), xsink);      
 }

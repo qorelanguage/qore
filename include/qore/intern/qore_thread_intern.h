@@ -215,78 +215,81 @@ DLLLOCAL QoreObject *getStackObject();
 DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
 
 class CodeContextHelper {
-   private:
-      const char *old_code;
-      QoreObject *old_obj;
-      ExceptionSink *xsink;
-	 
-   public:
-      DLLLOCAL CodeContextHelper(const char *code = NULL, const QoreObject *obj = NULL, ExceptionSink *xs = NULL);
-      DLLLOCAL ~CodeContextHelper();
+private:
+   const char *old_code;
+   QoreObject *old_obj;
+   ExceptionSink *xsink;
+   
+public:
+   DLLLOCAL CodeContextHelper(const char *code = NULL, const QoreObject *obj = NULL, ExceptionSink *xs = NULL);
+   DLLLOCAL ~CodeContextHelper();
 };
 
 class ObjectSubstitutionHelper {
-   private:
-      QoreObject *old_obj;
+private:
+   QoreObject *old_obj;
 
-   public:
-      DLLLOCAL ObjectSubstitutionHelper(QoreObject *obj);
-      DLLLOCAL ~ObjectSubstitutionHelper();
+public:
+   DLLLOCAL ObjectSubstitutionHelper(QoreObject *obj);
+   DLLLOCAL ~ObjectSubstitutionHelper();
 };
 
 class ProgramContextHelper {
-   private:
-      QoreProgram *old_pgm;
-      ProgramContextHelper *last;
-      ExceptionSink *xsink;  // to keep for uninstantiating program thread-local variables if necessary
-      bool restore;
+private:
+   QoreProgram *old_pgm;
+   ProgramContextHelper *last;
+   ExceptionSink *xsink;  // to keep for uninstantiating program thread-local variables if necessary
+   bool restore;
    
-   public:
-      DLLLOCAL ProgramContextHelper(QoreProgram *pgm, ExceptionSink *xsink);
-      DLLLOCAL ~ProgramContextHelper();
+public:
+   DLLLOCAL ProgramContextHelper(QoreProgram *pgm, ExceptionSink *xsink);
+   DLLLOCAL ~ProgramContextHelper();
 };
 
 class ArgvContextHelper {
-   private:
-      QoreListNode *old_argv;
-      ExceptionSink *xsink;
+private:
+   QoreListNode *old_argv;
+   ExceptionSink *xsink;
    
-   public:
-      DLLLOCAL ArgvContextHelper(QoreListNode *argv, ExceptionSink *n_xsink);
-      // calls deref(xsink) on list in destructor
-      DLLLOCAL ~ArgvContextHelper();
+public:
+   DLLLOCAL ArgvContextHelper(QoreListNode *argv, ExceptionSink *n_xsink);
+   // calls deref(xsink) on list in destructor
+   DLLLOCAL ~ArgvContextHelper();
 };
 
 class SingleArgvContextHelper {
-   private:
-      QoreListNode *old_argv;
-      ExceptionSink *xsink;
+private:
+   QoreListNode *old_argv;
+   ExceptionSink *xsink;
    
-   public:
-      DLLLOCAL SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink);
-      // calls deref(xsink) on list in destructor
-      DLLLOCAL ~SingleArgvContextHelper();
+public:
+   DLLLOCAL SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink);
+   // calls deref(xsink) on list in destructor
+   DLLLOCAL ~SingleArgvContextHelper();
 };
 
 #include <qore/intern/CallStack.h>
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 class CallStackHelper : public CallNode {
-      ExceptionSink *xsink;
-
-      // not implemented
-      DLLLOCAL CallStackHelper(const CallStackHelper&);
-      DLLLOCAL CallStackHelper& operator=(const CallStackHelper&);
-      DLLLOCAL void *operator new(size_t);
-      
-   public:
-      DLLLOCAL CallStackHelper(const char *f, int t, QoreObject *o, ExceptionSink *n_xsink) : CallNode(f, t, o), xsink(n_xsink) {
-	 pushCall(this);
-      }
-      DLLLOCAL ~CallStackHelper() {
-	 popCall(xsink);
-      }
+   ExceptionSink *xsink;
+   
+   // not implemented
+   DLLLOCAL CallStackHelper(const CallStackHelper&);
+   DLLLOCAL CallStackHelper& operator=(const CallStackHelper&);
+   DLLLOCAL void *operator new(size_t);
+   
+public:
+   DLLLOCAL CallStackHelper(const char *f, int t, QoreObject *o, ExceptionSink *n_xsink) : CallNode(f, t, o), xsink(n_xsink) {
+      pushCall(this);
+   }
+   DLLLOCAL ~CallStackHelper() {
+      popCall(xsink);
+   }
 };
+#define CODE_CONTEXT_HELPER(type, name, self, xsink) CodeContextHelper cch_auto(name, self, xsink); CallStackHelper(name, type, self, xsink)
+#else
+#define CODE_CONTEXT_HELPER(type, name, self, xsink) CodeContextHelper cch_auto(name, self, xsink)
 #endif
 
 DLLLOCAL void init_qore_threads();
@@ -296,40 +299,40 @@ DLLLOCAL QoreListNode *get_thread_list();
 DLLLOCAL QoreHashNode *getAllCallStacks();
 
 class QorePThreadAttr {
-   private:
-      pthread_attr_t attr;
+private:
+   pthread_attr_t attr;
 
-   public:
-      DLLLOCAL QorePThreadAttr() {
-	 pthread_attr_init(&attr);
-	 pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-      }
+public:
+   DLLLOCAL QorePThreadAttr() {
+      pthread_attr_init(&attr);
+      pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+   }
 
-      DLLLOCAL ~QorePThreadAttr() {
-	 //printd(2, "calling pthread_attr_destroy(%08p)\n", &attr);
-	 pthread_attr_destroy(&attr);
-	 //printd(2, "returned from pthread_attr_destroy(%08p)\n", &attr);
-      }
+   DLLLOCAL ~QorePThreadAttr() {
+      //printd(2, "calling pthread_attr_destroy(%08p)\n", &attr);
+      pthread_attr_destroy(&attr);
+      //printd(2, "returned from pthread_attr_destroy(%08p)\n", &attr);
+   }
 
 #ifdef HAVE_PTHREAD_ATTR_GETSTACK
-      DLLLOCAL void getstack(void *&ptr, size_t &ssize) {
-	 pthread_attr_getstack(&attr, &ptr, &ssize);
-      }
+   DLLLOCAL void getstack(void *&ptr, size_t &ssize) {
+      pthread_attr_getstack(&attr, &ptr, &ssize);
+   }
 #endif
       
-      DLLLOCAL size_t getstacksize() const {
-	 size_t ssize;
-	 pthread_attr_getstacksize(&attr, &ssize);
-	 return ssize;
-      }
+   DLLLOCAL size_t getstacksize() const {
+      size_t ssize;
+      pthread_attr_getstacksize(&attr, &ssize);
+      return ssize;
+   }
 
-      DLLLOCAL int setstacksize(size_t ssize) {
-	 return pthread_attr_setstacksize(&attr, ssize);
-      }
+   DLLLOCAL int setstacksize(size_t ssize) {
+      return pthread_attr_setstacksize(&attr, ssize);
+   }
 
-      DLLLOCAL pthread_attr_t *get_ptr() {
-	 return &attr;
-      }
+   DLLLOCAL pthread_attr_t *get_ptr() {
+      return &attr;
+   }
 };
 
 DLLLOCAL extern QorePThreadAttr ta_default;

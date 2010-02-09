@@ -97,7 +97,7 @@ protected:
 public:
    DLLLOCAL CopyMethodVariant(bool n_priv_flag) : MethodVariantBase(n_priv_flag) {
    }
-   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const = 0;
 };
 
 #define COPYMV(f) (reinterpret_cast<CopyMethodVariant *>(f))
@@ -122,10 +122,10 @@ public:
 	 statements->parseInit(&signature);
    }
    DLLLOCAL virtual AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
-      return eval(args, 0, xsink, method.getClass()->getName());
+      return eval(method.getName(), args, 0, xsink, method.getClass()->getName());
    }
    DLLLOCAL virtual AbstractQoreNode *evalNormalMethod(const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
-      return eval(args, self, xsink, method.getClass()->getName());
+      return eval(method.getName(), args, self, xsink, method.getClass()->getName());
    }
 };
 
@@ -194,7 +194,7 @@ public:
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
       // there cannot be any params
       assert(!signature.numParams());
-      discard(eval(0, self, xsink, thisclass.getName()), xsink);
+      discard(eval("destructor", 0, self, xsink, thisclass.getName()), xsink);
    }
 };
 
@@ -211,16 +211,7 @@ public:
    COMMON_USER_VARIANT_FUNCTIONS
 
    DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
-   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
-      // there can only be max 1 param
-      assert(signature.numParams() <= 1);
-
-      // setup argument list with old object as sole argument
-      ReferenceHolder<QoreListNode> argv(new QoreListNode, xsink);
-      argv->push(old->refSelf());
-      
-      discard(eval(*argv, self, xsink, thisclass.getName()), xsink);
-   }
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const;
 };
 
 #define UCOPYV(f) (reinterpret_cast<UserCopyVariant *>(f))
@@ -238,6 +229,8 @@ public:
    DLLLOCAL BuiltinNormalMethodVariantBase(bool n_priv_flag, int n_functionality, const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList) {}
 
    DLLLOCAL virtual AbstractQoreNode *evalNormalMethod(const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
+      CODE_CONTEXT_HELPER(CT_BUILTIN, method.getName(), self, xsink);
+
       return self->evalBuiltinMethodWithPrivateData(method, this, args, xsink);
    }
    // this function should never be called
@@ -280,6 +273,8 @@ public:
    DLLLOCAL BuiltinStaticMethodVariant(q_func_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
    }
    DLLLOCAL virtual AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+      CODE_CONTEXT_HELPER(CT_BUILTIN, method.getName(), 0, xsink);
+
       return static_method(args, xsink);
    }
    // this function should never be called
@@ -297,6 +292,8 @@ public:
    DLLLOCAL BuiltinStaticMethod2Variant(q_static_method2_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), static_method(m) {
    }
    DLLLOCAL AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
+      CODE_CONTEXT_HELPER(CT_BUILTIN, method.getName(), 0, xsink);
+
       return static_method(method, args, xsink);
    }
    // this function should never be called
@@ -379,6 +376,8 @@ public:
    }
 
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
+      CODE_CONTEXT_HELPER(CT_BUILTIN, "destructor", self, xsink);
+
       AbstractPrivateData *private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
       if (!private_data)
 	 return;
@@ -394,10 +393,11 @@ public:
    DLLLOCAL BuiltinDestructor2Variant(q_destructor2_t n_destructor) : destructor(n_destructor) {
    }
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
+      CODE_CONTEXT_HELPER(CT_BUILTIN, "destructor", self, xsink);
+
       AbstractPrivateData *private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
       if (!private_data)
 	 return;
-
       destructor(thisclass, self, private_data, xsink);
    }
 };
@@ -411,9 +411,7 @@ public:
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
-   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
-      old->evalCopyMethodWithPrivateData(thisclass, this, self, xsink);
-   }
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const;
    DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const = 0;
 };
 

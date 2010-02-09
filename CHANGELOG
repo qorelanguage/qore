@@ -1,3 +1,7 @@
+2010.02.09: David Nichols
+	 * streamlined user variant execution, fixed argument processing for
+	   user variants
+
 2010.02.08: David Nichols
 	 * fixed illegal private method call detection at parse time,
 	   including illegal private copy method calls
