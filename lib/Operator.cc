@@ -3775,11 +3775,14 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) 
-       || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
+   if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
       returnTypeInfo = floatTypeInfo;
-   else
+   else if (MATCHES_TYPE(leftTypeInfo, NT_INT) && MATCHES_TYPE(rightTypeInfo, NT_INT))
       returnTypeInfo = bigIntTypeInfo;
+   else
+      returnTypeInfo = 0;
+
+   //printd(5, "check_op_multiply() %s %s = %s\n", leftTypeInfo->getName(), rightTypeInfo->getName(), returnTypeInfo->getName());
 
    return tree;
 }

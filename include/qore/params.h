@@ -92,6 +92,13 @@ static inline int64 get_bigint_param_with_default(const QoreListNode *n, qore_si
    return is_nothing(p) ? def : p->getAsBigInt();
 }
 
+//! returns a float corresponding to the argument given or 0 if there is none
+static inline double get_float_param(const QoreListNode *n, qore_size_t i) {
+   if (!n) return 0;
+   const AbstractQoreNode *p = n->retrieve_entry(i);
+   return is_nothing(p) ? 0 : p->getAsFloat();
+}
+
 //! returns a boolean value corresponding to the argument given or false if there is none
 static inline bool get_bool_param(const QoreListNode *n, qore_size_t i) {
    if (!n) return 0;
@@ -241,6 +248,12 @@ static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
 
 // returns a hard typed parameter
 #define HARD_QORE_PARAM(name, Type, list, i) Type *name = get_hard_param<Type>(list, i)
+
+// returns an int64 from a hard typed int param
+#define HARD_QORE_INT(list, i) get_hard_param<const QoreBigIntNode>(list, i)->val
+
+// returns an int64 from a hard typed int param
+#define HARD_QORE_FLOAT(list, i) get_hard_param<const QoreFloatNode>(list, i)->f
 
 // returns an object pointer
 #define HARD_QORE_OBJ_PARAM(name, Type, list, i, cid, xsink) HARD_QORE_PARAM(obj_##name, const QoreObject, list, i); Type *name = reinterpret_cast<Type *>(obj_##name->getReferencedPrivateData(cid, xsink)); assert(name || *xsink)
