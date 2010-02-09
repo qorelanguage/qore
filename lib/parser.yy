@@ -1486,8 +1486,7 @@ base_constructor_list:
 	;
 
 base_constructors:
-        base_constructor
-	{
+        base_constructor {
 	   $$ = new BCAList($1);
 	}
 	| base_constructors ',' base_constructor

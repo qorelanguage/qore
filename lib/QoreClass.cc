@@ -905,7 +905,6 @@ void BCEAList::deref(ExceptionSink *xsink) {
 
 // resolves classes, parses arguments, and attempts to find constructor variant
 void BCANode::parseInit(BCList *bcl, const char *classname) {
-   assert(args); 
    if (ns) {
       sclass = getRootNS()->parseFindScopedClass(ns);
       printd(5, "BCANode::parseInit() this=%p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
@@ -930,7 +929,8 @@ void BCANode::parseInit(BCList *bcl, const char *classname) {
       }
       else {
 	 const QoreTypeInfo *argTypeInfo;	 
-	 args = args->parseInitList(0, PF_REFERENCE_OK, lvids, argTypeInfo);
+	 if (args)
+	    args = args->parseInitList(0, PF_REFERENCE_OK, lvids, argTypeInfo);
       }
       if (lvids) {
          parse_error("illegal local variable declaration in base class constructor argument");
@@ -1181,7 +1181,7 @@ bool BCList::parseCheckHierarchy(const QoreClass *cls) const {
    return false;
 }
 
-BCAList::BCAList(class BCANode *n) {
+BCAList::BCAList(BCANode *n) {
    push_back(n);
 }
 
@@ -1604,12 +1604,6 @@ QoreClass::QoreClass(qore_classid_t id, const char *nme) {
 QoreClass::~QoreClass() {
    delete priv;
 }
-
-/*
-BCAList *QoreClass::getBaseClassConstructorArgumentList() const {
-   return priv->bcal;
-}
-*/
 
 QoreClass *QoreClass::getClass(qore_classid_t cid) const {
    if (cid == priv->classID)
