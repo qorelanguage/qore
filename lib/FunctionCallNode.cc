@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 
-int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func) {
+int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const char *class_name) {
    // number of local variables declared in arguments
    int lvids = 0;
 
@@ -59,7 +59,7 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
    }
    
    // find variant
-   variant = func ? func->parseFindVariant(num_args, argTypeInfo) : 0;
+   variant = func ? func->parseFindVariant(num_args, argTypeInfo, class_name) : 0;
 
    if (variant && variant->getFunctionality() & getProgram()->getParseOptions()) {
       // func will always be non-zero with builtin functions
@@ -138,7 +138,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
    else
       func = getParseClass()->parseResolveSelfMethod(ns);
 
-   lvids += parseArgsFindVariant(oflag, pflag, func ? func->getFunction() : 0);
+   lvids += parseArgsFindVariant(oflag, pflag, func ? func->getFunction() : 0, getParseClass()->getName());
 
    if (variant)
       returnTypeInfo = variant->getReturnTypeInfo();
@@ -258,7 +258,7 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
    delete name;
    name = 0;
    const QoreMethod *constructor = oc ? oc->parseGetConstructor() : 0;
-   lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0);
+   lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0, oc ? oc->getName() : 0);
 
    //printd(5, "ScopedObjectCallNode::parseInit() this=%p constructor=%p variant=%p\n", this, constructor, variant);
 

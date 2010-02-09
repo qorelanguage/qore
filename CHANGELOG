@@ -1,6 +1,7 @@
 2010.02.09: David Nichols
 	 * streamlined user variant execution, fixed argument processing for
 	   user variants
+	 * add class name to overload parse and runtime errors
 
 2010.02.08: David Nichols
 	 * fixed illegal private method call detection at parse time,

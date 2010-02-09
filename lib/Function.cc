@@ -168,7 +168,7 @@ void addArgs(QoreStringNode &desc, const QoreListNode *args) {
 }
 
 // finds a variant at runtime
-const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreListNode *args, ExceptionSink *xsink) const {
+const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreListNode *args, ExceptionSink *xsink, const char *class_name) const {
    unsigned match = 0;
    const AbstractQoreFunctionVariant *variant = 0;
 
@@ -177,6 +177,9 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
    for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       AbstractFunctionSignature *sig = (*i)->getSignature();
       assert(sig);
+
+      //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d)\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0);
+
       // skip variants with signatures with fewer elements than the best match already
       if (!variant || sig->numParams() > match) {
 	 if (!sig->numParams()) {
@@ -191,6 +194,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	       ok = false;
 	       break;
 	    }
+
 	    // only increment for actual type matches (t may be NULL)
 	    if (t)
 	       ++count;
@@ -206,6 +210,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
    // FIXME: show variants checked - add class name for methods
    if (!variant) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
+      if (class_name)
+	 desc->sprintf("%s::", class_name);
       desc->sprintf("%s(", getName());
       addArgs(*desc, args);
       desc->concat(") can be found");
@@ -224,7 +230,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 }
 
 // finds a variant at parse time
-const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsigned num_args, const QoreTypeInfo **argTypeInfo) {
+const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsigned num_args, const QoreTypeInfo **argTypeInfo, const char *class_name) {
    unsigned match = 0;
    const AbstractQoreFunctionVariant *variant = 0;
 
@@ -322,6 +328,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
    // FIXME: show variants checked - add class name for methods
    if (!variant) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
+      if (class_name)
+	 desc->sprintf("%s::", class_name);
       desc->sprintf("%s(", getName());
       if (!num_args)
 	 desc->concat(NO_TYPE_INFO);

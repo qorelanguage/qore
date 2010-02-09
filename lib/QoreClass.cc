@@ -925,7 +925,7 @@ void BCANode::parseInit(BCList *bcl, const char *classname) {
       const QoreMethod *m = sclass->getConstructor();
       int lvids = 0;
       if (m) {
-	 lvids = parseArgsFindVariant(0, 0, m->getFunction());
+	 lvids = parseArgsFindVariant(0, 0, m->getFunction(), m->getClassName());
       }
       else {
 	 const QoreTypeInfo *argTypeInfo;	 
@@ -1457,6 +1457,10 @@ const char *QoreMethod::getName() const {
 
 const QoreClass *QoreMethod::getClass() const {
    return priv->parent_class;
+}
+
+const char *QoreMethod::getClassName() const {
+   return priv->parent_class->getName();
 }
 
 void QoreMethod::assign_class(const QoreClass *p_class) {
@@ -2542,7 +2546,7 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
 
    // find variant with evaluated args
    if (!variant) {
-      variant = findVariant(ceh.getArgs(), xsink);
+      variant = findVariant(ceh.getArgs(), xsink, thisclass.getName());
       if (!variant) {
 	 assert(*xsink);
 	 return;
@@ -2591,7 +2595,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
    if (*xsink) return 0;
 
    if (!variant) {
-      variant = findVariant(ceh.getArgs(), xsink);
+      variant = findVariant(ceh.getArgs(), xsink, method.getClassName());
       if (!variant) {
 	 assert(*xsink);
 	 return 0;
@@ -2608,7 +2612,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
    if (*xsink) return 0;
 
    if (!variant) {
-      variant = findVariant(ceh.getArgs(), xsink);
+      variant = findVariant(ceh.getArgs(), xsink, method.getClassName());
       if (!variant) {
 	 assert(*xsink);
 	 return 0;

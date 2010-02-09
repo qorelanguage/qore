@@ -372,7 +372,7 @@ protected:
    }
 
    // find variant at runtime
-   DLLLOCAL const AbstractQoreFunctionVariant *findVariant(const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL const AbstractQoreFunctionVariant *findVariant(const QoreListNode *args, ExceptionSink *xsink, const char *class_name = 0) const;
 
 public:
    DLLLOCAL AbstractQoreFunction() : same_return_type(true), unique_functionality(QDOM_DEFAULT) {
@@ -421,7 +421,7 @@ public:
    DLLLOCAL AbstractQoreNode *evalDynamic(const QoreListNode *args, ExceptionSink *xsink) const;
 
    // find variant at parse time, throw parse exception if no variant can be matched
-   DLLLOCAL const AbstractQoreFunctionVariant *parseFindVariant(unsigned num_args, const QoreTypeInfo **argTypeInfo);
+   DLLLOCAL const AbstractQoreFunctionVariant *parseFindVariant(unsigned num_args, const QoreTypeInfo **argTypeInfo, const char *class_name = 0);
 
    // returns true if there are no committed variants in the function
    DLLLOCAL bool committedEmpty() const {

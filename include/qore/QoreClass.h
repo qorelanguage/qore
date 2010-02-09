@@ -133,6 +133,9 @@ class QoreMethod {
       //! returns a pointer to the parent class
       DLLEXPORT const QoreClass *getClass() const;
 
+      //! returns the class name for the method
+      DLLEXPORT const char *getClassName() const;
+
       //! returns true if a variant with the given parameter signature already exists in the method
       DLLEXPORT bool existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const;
 
