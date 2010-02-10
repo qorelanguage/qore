@@ -117,6 +117,11 @@ public:
       delete returnTypeInfo;
    }
 
+   DLLLOCAL void setSelfId(LocalVar *n_selfid) {
+      assert(!selfid);
+      selfid = n_selfid;
+   }
+
    DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const {
       return typeList[num];
    }

@@ -36,7 +36,22 @@ static inline const char *pubpriv(bool priv) { return priv ? "private" : "public
 typedef std::map<const char*, QoreMethod *, class ltstr> hm_method_t;
 
 // FIXME: check private method variant access at runtime
-// eliminate UserMethod (name)
+
+struct SelfLocalVarParseHelper {
+   DLLLOCAL SelfLocalVarParseHelper(LocalVar *selfid) { push_self_var(selfid); }
+   DLLLOCAL ~SelfLocalVarParseHelper() { pop_local_var(); }
+};
+
+struct SelfInstantiatorHelper {
+   LocalVar *selfid;
+   ExceptionSink *xsink;
+   DLLLOCAL SelfInstantiatorHelper(LocalVar *n_selfid, QoreObject *self, ExceptionSink *n_xsink) : selfid(n_selfid), xsink(n_xsink) {
+      selfid->instantiate_object(self);
+   }
+   DLLLOCAL ~SelfInstantiatorHelper() {
+      selfid->uninstantiate(xsink);
+   }
+};
 
 // private QoreClass implementation
 struct qore_class_private {
@@ -66,6 +81,8 @@ struct qore_class_private {
    int num_methods, num_user_methods, num_static_methods, num_static_user_methods;
    // to be used in parsing
    QoreTypeInfo typeInfo;
+   // common "self" local variable for all constructors
+   mutable LocalVar selfid;
 
    DLLLOCAL qore_class_private(const QoreClass *cls, const char *nme, int dom = QDOM_DEFAULT) 
       : scl(0), 
@@ -74,7 +91,7 @@ struct qore_class_private {
 	domain(dom), 
 	num_methods(0), num_user_methods(0),
 	num_static_methods(0), num_static_user_methods(0),
-	typeInfo(cls) {
+	typeInfo(cls), selfid("self", &typeInfo) {
       name = nme ? strdup(nme) : 0;
 
       // quick pointers
@@ -148,18 +165,6 @@ struct qore_class_private {
 	 initialized = true;
 	 printd(5, "QoreClass::initialize() %s class=%p scl=%p\n", name, typeInfo.qc, scl);
 
-	 // initialize new private members
-	 for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
-	    if (i->second)
-	       i->second->parseInit(i->first, true);
-	 }
-   
-	 // initialize new public members
-	 for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
-	    if (i->second)
-	       i->second->parseInit(i->first, false);
-	 }
-   
 	 if (scl) {
 	    QoreClass *qc = const_cast<QoreClass *>(typeInfo.qc);
 	    scl->parseInit(qc, has_delete_blocker);
@@ -168,6 +173,21 @@ struct qore_class_private {
 	 if (!sys && domain & getProgram()->getParseOptions())
 	    parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name);
 
+	 {
+	    SelfLocalVarParseHelper slvph(&selfid);
+	    // initialize new private members
+	    for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
+	       if (i->second)
+		  i->second->parseInit(i->first, true);
+	    }
+   
+	    // initialize new public members
+	    for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
+	       if (i->second)
+		  i->second->parseInit(i->first, false);
+	    }
+	 }
+   
 	 // check new members for conflicts in base classes
 	 for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
 	    parseCheckMemberInBaseClasses(i->first, i->second, true);
@@ -393,9 +413,11 @@ struct qore_class_private {
       for (; i != e; ++i) {
 	 if (i->second) {
 	    AbstractQoreNode **v = o->getMemberValuePtrForInitialization(i->first);
-	    // skip if already assigned by a subclass
+	    /*
+	    // now assigned by base class
 	    if (*v)
 	       continue;
+	    */
 	    if (i->second->exp) {
 	       ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
 	       if (*xsink)
@@ -414,6 +436,11 @@ struct qore_class_private {
    }
 
    DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const {
+      if (public_members.empty() && private_members.empty())
+	 return 0;
+
+      SelfInstantiatorHelper sih(&selfid, o, xsink);
+
       if (initMembers(o, private_members.begin(), private_members.end(), xsink)
 	  || initMembers(o, public_members.begin(), public_members.end(), xsink))
 	 return -1;
@@ -574,7 +601,7 @@ struct qore_method_private {
       //printd(0, "qore_method_private::parseInit() this=%p %s::%s() func=%p\n", this, parent_class->getName(), func->getName(), func);
 
       if (!strcmp(func->getName(), "constructor"))
-	 CONMF(func)->parseInitConstructor(*parent_class, parent_class->priv->scl);
+	 CONMF(func)->parseInitConstructor(*parent_class, parent_class->priv->selfid, parent_class->priv->scl);
       else if (!strcmp(func->getName(), "destructor"))
 	 DESMF(func)->parseInitDestructor(*parent_class);
       else if (!strcmp(func->getName(), "copy"))
@@ -670,6 +697,9 @@ void qore_class_private::execBaseClassConstructor(QoreObject *self, BCEAList *bc
    if (!constructor){
       if (scl) // execute base class constructors if any
 	 scl->execConstructors(self, bceal, xsink);
+
+      // instantiate members after base constructors have been executed
+      initMembers(self, xsink);
       return;
    }
    // no lock is sent with constructor, because no variable has been assigned yet
@@ -689,12 +719,6 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 
    printd(5, "qore_class_private::execConstructor() class=%p %s::constructor() o=%p variant=%p\n", typeInfo.qc, name, self, variant);
 
-   // first, instantiate any members
-   if (initMembers(self, xsink) || (scl && scl->initMembers(self, xsink))) {
-      self->deref(xsink);
-      return 0;
-   }
-
    if (!constructor) {
       assert(!variant);
       if (scl) { // execute superconstructors if any
@@ -702,6 +726,10 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 
 	 scl->execConstructors(self, *bceal, xsink);
       }
+
+      // instantiate members after base constructors have been executed
+      if (!*xsink)
+	 initMembers(self, xsink);
    }
    else {
       constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
@@ -944,13 +972,6 @@ BCNode::~BCNode() {
    delete cname;
    if (cstr)
       free(cstr);
-}
-
-BCList::BCList(class BCNode *n) {
-   push_back(n);
-}
-
-BCList::BCList() {
 }
 
 BCList::~BCList() {
@@ -2401,10 +2422,10 @@ void MethodFunction::parseInitMethod(const QoreClass &parent_class, bool static_
    }
 }
 
-void ConstructorMethodFunction::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
+void ConstructorMethodFunction::parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl) {
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       UserConstructorVariant *v = UCONV(*i);
-      v->parseInitConstructor(parent_class, bcl);
+      v->parseInitConstructor(parent_class, selfid, bcl);
 
       // recheck types against committed types if necessary
       if (v->getRecheck())
@@ -2436,16 +2457,23 @@ void CopyMethodFunction::parseInitCopy(const QoreClass &parent_class) {
    v->parseInitCopy(parent_class);
 }
 
-int ConstructorMethodVariant::evalBaseClassConstructors(CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
-   const BCAList *bcal = getBaseClassArgumentList();
-   if (bcal) {
-      bcal->execBaseClassConstructorArgs(bceal, xsink);
+int ConstructorMethodVariant::constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+   if (bcl) {
+      const BCAList *bcal = getBaseClassArgumentList();
+      if (bcal) {
+	 bcal->execBaseClassConstructorArgs(bceal, xsink);
+	 if (*xsink)
+	    return -1;
+      }
+      bcl->execConstructors(self, bceal, xsink);
       if (*xsink)
 	 return -1;
    }
-   bcl->execConstructors(self, bceal, xsink);
-   if (*xsink)
+
+   // initialize members
+   if (thisclass.initMembers(self, xsink))
       return -1;
+
    ceh.restorePosition();
    return 0;
 }
@@ -2454,9 +2482,9 @@ UserConstructorVariant::~UserConstructorVariant() {
    delete bcal;
 }
 
-void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
+void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl) {
    assert(!signature.getReturnTypeInfo());
-      
+
    // push return type on stack (no return value can be used)
    ReturnTypeInfoHelper rtih(nothingTypeInfo);
 
@@ -2466,6 +2494,7 @@ void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class,
       bcal = 0;
    }
 
+   getUserSignature()->setSelfId(&selfid);
    //printd(5, "UserConstructorVariant::parseInitConstructor() this=%p %s::constructor() params=%d\n", this, parent_class.getName(), signature.numParams());
    // must be called even if statements is NULL
    statements->parseInitConstructor(parent_class.getTypeInfo(), &signature, bcal, bcl);

@@ -835,7 +835,7 @@ int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
 
    QoreContainerHelper cch(this);
    if (!cch) {
-      str.concat("(ERROR: recursive reference)");
+      str.sprintf("(ERROR: recursive reference to list %p)", this);
       return 0;
    }
 

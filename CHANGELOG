@@ -1,3 +1,9 @@
+2010.02.10: David Nichols
+	 * width updated object member initialization to allow references to
+	   $self
+	 * updated recursive reference error messages to provide more
+	   information about the recursively-referenced data
+
 2010.02.09: David Nichols
 	 * streamlined user variant execution, fixed argument processing for
 	   user variants

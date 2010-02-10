@@ -1085,7 +1085,7 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
    else {
       QoreContainerHelper cch(this);
       if (!cch) {
-	 str.concat("(ERROR: recursive reference)");
+	 str.sprintf("(ERROR: recursive reference to object %p (class %s))", this, getClassName());
 	 return 0;
       }
 

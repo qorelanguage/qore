@@ -143,16 +143,25 @@ void StatementBlock::exec() {
    exec(&xsink);
 }
 
-LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup) {
-   VNode *vnode;
+static void push_var_intern(LocalVar *lv) {
+   VNode *vnode = new VNode(lv);
+   vnode->next = getVStack();
+   updateVStack(vnode);
+}
 
+// used for constructor methods sharing a common "self" local variable
+void push_self_var(LocalVar *lv) {
+   push_var_intern(lv);
+}
+
+LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup) {
    QoreProgram *pgm = getProgram();
 
    LocalVar *lv = pgm->createLocalVar(name, typeInfo);
 
    // check stack for duplicate entries
    if (check_dup && pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS)) {
-      vnode = getVStack();
+      VNode *vnode = getVStack();
       while (vnode) {
 	 if (!strcmp(vnode->getName(), name)) {
 	    getProgram()->makeParseWarning(QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
@@ -163,14 +172,12 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
    }
    
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   vnode = new VNode(lv);
-   vnode->next = getVStack();
-   updateVStack(vnode);
+   push_var_intern(lv);
    return lv;
 }
 
 LocalVar *pop_local_var() {
-   class VNode *vnode = getVStack();
+   VNode *vnode = getVStack();
    LocalVar *rc = vnode->lvar;
 
    assert(vnode);
@@ -281,7 +288,7 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserSignature
 
 // can also be called with this=NULL
 void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserSignature *sig, BCAList *bcal, BCList *bcl) {
-   QORE_TRACE("StatementBlock::parseInitMethod");
+   QORE_TRACE("StatementBlock::parseInitConstructor");
 
    UserParamListLocalVarHelper ph(sig, typeInfo);
 

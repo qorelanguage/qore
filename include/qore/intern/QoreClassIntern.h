@@ -69,7 +69,8 @@ public:
 
 class ConstructorMethodVariant : public MethodVariantBase {
 protected:
-   DLLLOCAL int evalBaseClassConstructors(CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
+   // evaluates base class constructors and initializes members
+   DLLLOCAL int constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
 
 public:
    DLLLOCAL ConstructorMethodVariant(bool n_priv_flag) : MethodVariantBase(n_priv_flag) {
@@ -160,13 +161,13 @@ public:
       CallStackHelper csh("constructor", CT_USER, self, xsink);
 #endif
 
-      if (bcl && evalBaseClassConstructors(ceh, self, bcl, bceal, xsink))
+      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
       discard(evalIntern(argv, self, xsink, thisclass.getName()), xsink);
    }
 
-   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
+   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl);
 };
 
 #define UCONV(f) (reinterpret_cast<UserConstructorVariant *>(f))
@@ -332,7 +333,7 @@ public:
       CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
 #endif
 
-      if (bcl && evalBaseClassConstructors(ceh, self, bcl, bceal, xsink))
+      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
       constructor(self, ceh.getArgs(), xsink);
@@ -354,7 +355,7 @@ public:
       CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
 #endif
 
-      if (bcl && evalBaseClassConstructors(ceh, self, bcl, bceal, xsink))
+      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
       constructor(thisclass, self, ceh.getArgs(), xsink);
@@ -458,7 +459,7 @@ public:
 // abstract class for constructor method functions
 class ConstructorMethodFunction : public MethodFunctionBase {
 public:
-   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
+   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl);
    DLLLOCAL virtual const char *getName() const {
       return "constructor";
    }
@@ -716,8 +717,8 @@ public:
    NamedScope *cname;
    char *cstr;
    QoreClass *sclass;
-   bool priv;
-   bool is_virtual;
+   bool priv : 1;
+   bool is_virtual : 1;
    
    // FIXME: check new BCNode(...)! constructors changed
 
@@ -757,8 +758,11 @@ public:
    // special method (constructor, destructor, copy) list for superclasses
    BCSMList sml;
 
-   DLLLOCAL BCList(BCNode *n);
-   DLLLOCAL BCList();
+   DLLLOCAL BCList(BCNode *n) {
+      push_back(n);
+   }
+   DLLLOCAL BCList() {
+   }
    DLLLOCAL void parseInit(QoreClass *thisclass, bool &has_delete_blocker);
    DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *name);
 
@@ -792,6 +796,7 @@ public:
 	 
       return 0;
    }
+/*
    DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const {
       for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
 	 if ((*i)->sclass->initMembers(o, xsink))
@@ -800,6 +805,7 @@ public:
       
       return 0;
    }
+*/
 };
 
 // BCEANode

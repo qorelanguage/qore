@@ -96,7 +96,10 @@ void UserSignature::assignParam(int i, VarRefNode *v) {
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
    lv = num_params ? new lvar_ptr_t[num_params] : 0;
 
-   selfid = classTypeInfo ? push_local_var("self", classTypeInfo, false) : 0;
+   if (selfid)
+      push_self_var(selfid);
+   else if (classTypeInfo)
+      selfid = push_local_var("self", classTypeInfo, false);
    
    // push $argv var on stack and save id
    // FIXME: push as list if hard typing enforced with parse options

@@ -652,7 +652,7 @@ int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
 
    QoreContainerHelper cch(this);
    if (!cch) {
-      str.concat("(ERROR: recursive reference)");
+      str.sprintf("(ERROR: recursive reference to hash %p)", this);
       return 0;
    }
 
