@@ -27,13 +27,16 @@
 #define NO_TYPE_INFO "<no type info>"
 
 // used for return values when checking types with functions that return numeric codes
-#define QTI_IDENT      -1  // the types are identical
-#define QTI_AMBIGUOUS   1  // the types are ambiguously identical (NT_OBJECT and specific class)
 #define QTI_NOT_EQUAL   0  // not equal
-#define QTI_RECHECK     2  // possibly not equal
+#define QTI_AMBIGUOUS   1  // the types are ambiguously identical (ex: NT_OBJECT =~ specific class)
+#define QTI_IDENT       2  // the types are identical
+#define QTI_RECHECK     3  // possibly not equal
 
 class AbstractQoreTypeInfo {
 protected:
+   qore_type_t qt : 11;
+   bool has_type : 1;
+
    DLLLOCAL virtual const char *getNameImpl() const = 0;
    DLLLOCAL virtual void concatNameImpl(std::string &str) const = 0;
 
@@ -46,10 +49,6 @@ protected:
    }
 
 public:
-   // FIXME: make protected
-   qore_type_t qt : 11;
-   bool has_type : 1;
-
    DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), has_type(true) {
    }
    DLLLOCAL AbstractQoreTypeInfo() : qt(NT_ALL), has_type(false) {
@@ -67,6 +66,9 @@ public:
 	 return;
       }
       return concatNameImpl(str);
+   }
+   DLLLOCAL bool hasDefaultValue() const {
+      return qt < NT_OBJECT;
    }
 };
 
@@ -132,7 +134,7 @@ protected:
       return -1;
    }
 
-   DLLLOCAL int checkTypeInstantiationIntern(bool obj, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *checkTypeInstantiationIntern(bool obj, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual const char *getNameImpl() const {
       return qc ? qc->getName() : getBuiltinTypeName(qt);
@@ -152,6 +154,10 @@ public:
    DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : AbstractQoreTypeInfo(n_qt), must_be_assigned(false), qc(0) {}
    DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : AbstractQoreTypeInfo(NT_OBJECT), must_be_assigned(false), qc(n_qc) {}
    DLLLOCAL virtual ~QoreTypeInfo() {
+   }
+
+   DLLLOCAL bool parseExactMatch(qore_type_t t) const {
+      return this && qt == t;
    }
 
    DLLLOCAL qore_type_t getType() const { return qt; }
@@ -180,13 +186,12 @@ public:
    }
 
    // prototype (expecting type) should be "this"
-   // returns true if the prototype does not expect any type or the types are compatible, 
+   // returns:
+   //  QTI_IDENT      if the prototype does not expect any type or the types are equal
+   //  QTI_AMBIGUOUS  if the prototype can accept the given type
+   //  QTI_NOT_EQUAL  if the prototype cannot accept the given type
    // false if otherwise
-   DLLLOCAL bool parseEqual(const QoreTypeInfo *typeInfo) const {
-      if (!this || !has_type || !typeInfo || !typeInfo->has_type)
-	 return true;
-      return qt == typeInfo->qt && (!qc || parseCheckCompatibleClass(qc, typeInfo->qc));
-   }
+   DLLLOCAL int parseEqual(const QoreTypeInfo *typeInfo) const;
 
    // can be called when this == null
    DLLLOCAL bool hasType() const { return this ? has_type : false; }
@@ -199,18 +204,18 @@ public:
       has_type = true;
    }
 
-   // returns true for compatible, false for not, "this" is the parameter type, n is the argument
-   DLLLOCAL bool testTypeCompatibility(const AbstractQoreNode *n) const;
+   // returns QTI_IDENT for perfect match, QTI_AMBIGUOUS for an acceptible match, QTI_NOT_EQUAL for no match, "this" is the parameter type, n is the argument
+   DLLLOCAL int testTypeCompatibility(const AbstractQoreNode *n) const;
    
-   DLLLOCAL int checkType(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode *checkType(AbstractQoreNode *n, ExceptionSink *xsink) const {
       return checkTypeInstantiation(0, n, xsink);
    }
 
-   DLLLOCAL int checkTypeInstantiation(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode *checkTypeInstantiation(const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
       return checkTypeInstantiationIntern(false, param_name, n, xsink);
    }
 
-   DLLLOCAL int checkMemberTypeInstantiation(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode *checkMemberTypeInstantiation(const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
       return checkTypeInstantiationIntern(true, param_name, n, xsink);
    }
 
@@ -274,8 +279,8 @@ public:
    DLLLOCAL QoreParseTypeInfo(const QoreTypeInfo *typeInfo) : QoreTypeInfo(), cscope(0) {
       if (typeInfo) {
 	 qc = typeInfo->qc;
-	 qt = typeInfo->qt;
-	 has_type = typeInfo->has_type;
+	 qt = typeInfo->getType();
+	 has_type = typeInfo->hasType();
       }
    }
 /*
@@ -310,7 +315,7 @@ public:
    // used when parsing user code to find duplicate signatures
    DLLLOCAL int parseStageOneIdenticalWithParsed(const QoreTypeInfo *typeInfo) const {
       bool thisnt = (!this || !has_type);
-      bool typent = (!typeInfo || !typeInfo->has_type);
+      bool typent = (!typeInfo || !typeInfo->hasType());
 
       if (thisnt && typent)
 	 return QTI_IDENT;
@@ -319,7 +324,7 @@ public:
 	 return QTI_NOT_EQUAL;
 
       // from this point on, we know that both have types
-      if (qt != typeInfo->qt)
+      if (qt != typeInfo->getType())
 	 return QTI_NOT_EQUAL;
 
       // both types are identical

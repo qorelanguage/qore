@@ -501,6 +501,9 @@ class ListIterator {
       //! returns the current value with an incremented reference count
       DLLEXPORT AbstractQoreNode *getReferencedValue() const;
 
+      //! if the list is unique (has reference count = 1), returns the current value with the reference count that belongs to the list and sets the list entry to 0, otherwise returns getReferencesValue()
+      DLLEXPORT AbstractQoreNode *takeValue();
+
       //! returns true when the iterator is pointing to the first element in the list
       DLLEXPORT bool first() const;
 

@@ -630,10 +630,12 @@ struct QoreMemberInfo : public QoreParseTypeInfo {
             getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
          }
       }
+#if 0
       else if (hasType() && qt == NT_OBJECT) {
 	 update_parse_location(first_line, last_line, file);
 	 parseException("PARSE-TYPE-ERROR", "%s member '$.%s' has been defined with a complex type and must be assigned when instantiated", priv ? "private" : "public", name);
       }
+#endif
    }
 };
 

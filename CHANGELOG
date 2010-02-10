@@ -3,6 +3,10 @@
 	   $self
 	 * updated recursive reference error messages to provide more
 	   information about the recursively-referenced data
+	 * implemented partial matches and best match checking; fixed several
+	   bugs in variant matching
+	 * fixed a bug calculating the return type for the + operator at parse
+	   time
 
 2010.02.09: David Nichols
 	 * streamlined user variant execution, fixed argument processing for

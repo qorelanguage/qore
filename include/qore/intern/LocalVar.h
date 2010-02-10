@@ -381,27 +381,14 @@ public:
 #else
 	 val->set(name.c_str(), value);
 #endif
-	 return;
       }
-      thread_instantiate_closure_var(name.c_str(), value);
+      else
+	 thread_instantiate_closure_var(name.c_str(), value);
    }
 
    DLLLOCAL void instantiate_object(QoreObject *value) const {
       //printd(5, "LocalVar::instantiate_object(%p) this=%p '%s'\n", value, this, name.c_str());
-
-      if (!closure_use) {
-	 LocalVarValue *val = thread_instantiate_lvar();
-#ifdef HAVE_UNLIMITED_THREAD_KEYS
-	 val->prev = get_current_var();
-	 var_key.set(val);
-	 val->set(value);
-#else
-	 val->set(name.c_str(), value);
-#endif
-      }
-      else
-	 thread_instantiate_closure_var(name.c_str(), value);
-
+      instantiate(value);
       value->ref();
    }
 
@@ -417,9 +404,9 @@ public:
 #else
 	 val->set(name.c_str(), vexp, obj);
 #endif
-	 return;
       }
-      thread_instantiate_closure_var(name.c_str(), vexp, obj);
+      else
+	 thread_instantiate_closure_var(name.c_str(), vexp, obj);
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink *xsink) const  {
@@ -429,9 +416,9 @@ public:
 	 var_key.set(val->prev);
 #endif
 	 thread_uninstantiate_lvar(xsink);
-	 return;
       }
-      thread_uninstantiate_closure_var(xsink);
+      else
+	 thread_uninstantiate_closure_var(xsink);
    }
 
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ExceptionSink *xsink) const {
@@ -513,7 +500,7 @@ public:
    }
 
    DLLLOCAL bool needsAssignmentAtInstantiation() const {
-      return needs_value_instantiation && typeInfo->qt >= NT_OBJECT ? true : false;
+      return needs_value_instantiation && !typeInfo->hasDefaultValue() ? true : false;
    }
 };
 

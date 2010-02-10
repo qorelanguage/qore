@@ -243,10 +243,10 @@ struct qore_class_private {
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const {
       if (has_public_members || !pending_public_members.empty())
 	 return true;
-      
+
       return scl ? scl->parseHasPublicMembersInHierarchy() : false;
    }
-   
+
    DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const {
       bool found = false;
       member_map_t::const_iterator i = private_members.find(const_cast<char *>(mem));
@@ -413,19 +413,16 @@ struct qore_class_private {
       for (; i != e; ++i) {
 	 if (i->second) {
 	    AbstractQoreNode **v = o->getMemberValuePtrForInitialization(i->first);
-	    /*
-	    // now assigned by base class
-	    if (*v)
-	       continue;
-	    */
 	    if (i->second->exp) {
 	       ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
 	       if (*xsink)
 		  return -1;
 	       // check types
-	       if (i->second->checkMemberTypeInstantiation(i->first, *val, xsink))
+	       AbstractQoreNode *nv = i->second->checkMemberTypeInstantiation(i->first, *val, xsink);
+	       if (*xsink)
 		  return -1;
-	       *v = val.release();
+	       *v = nv;
+	       val.release();
 	    }
 	    else {
 	       *v = getDefaultValueForBuiltinValueType(i->second->getType());

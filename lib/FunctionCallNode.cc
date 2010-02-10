@@ -36,6 +36,7 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
    // argument type list
    const QoreTypeInfo *argTypeInfo[num_args];
 
+   bool have_arg_type_info = false;
    // initialize arguments and setup argument type list (argTypeInfo)
    if (num_args) {
       // do arguments need to be evaluated?
@@ -51,6 +52,8 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
 	    (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo[i]);
 	 else
 	    (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo[i]);
+	 if (!have_arg_type_info && argTypeInfo[i])
+	    have_arg_type_info = true;
 	 if (!needs_eval && (*n)->needs_eval()) {
 	    args->setNeedsEval();
 	    needs_eval = true;
@@ -59,7 +62,7 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
    }
    
    // find variant
-   variant = func ? func->parseFindVariant(num_args, argTypeInfo, class_name) : 0;
+   variant = func && have_arg_type_info ? func->parseFindVariant(num_args, argTypeInfo, class_name) : 0;
 
    if (variant && variant->getFunctionality() & getProgram()->getParseOptions()) {
       // func will always be non-zero with builtin functions

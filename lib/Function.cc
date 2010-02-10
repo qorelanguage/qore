@@ -193,14 +193,16 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 bool ok = true;
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfoImpl(pi);
-	    if (!t->testTypeCompatibility(args ? args->retrieve_entry(pi) : 0)) {
+	    const AbstractQoreNode *n = args ? args->retrieve_entry(pi) : 0;
+	    int rc = t->testTypeCompatibility(n);
+	    if (rc == QTI_NOT_EQUAL) {
 	       ok = false;
 	       break;
 	    }
 
 	    // only increment for actual type matches (t may be NULL)
 	    if (t)
-	       ++count;
+	       count += rc;
 	 }
 	 if (!ok)
 	    continue;
@@ -249,6 +251,10 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsigned num_args, const QoreTypeInfo **argTypeInfo, const char *class_name) {
    unsigned match = 0;
    const AbstractQoreFunctionVariant *variant = 0;
+   // do not throw an exception if some types could not be matched; they will be matched at runtime
+   bool missing_types = false;
+
+   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), num_args);
 
    assert(!vlist.empty() || !pending_vlist.empty());
    // check committed list
@@ -262,20 +268,29 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	    continue;
 	 }
 
+	 bool variant_missing_types = false;
 	 unsigned count = 0;
 	 bool ok = true;
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfoImpl(pi);
-	    if (!t->parseEqual((num_args && num_args > pi) ? argTypeInfo[pi] : 0)) {
+	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
+	    if (t->hasType() && !a) {
+	       variant_missing_types = true;
+	       continue;
+	    }
+
+	    int rc = t->parseEqual(a);
+
+	    if (rc == QTI_NOT_EQUAL) {
 	       ok = false;
-	       
+
 	       // raise a detailed parse exception immediately if there is only one variant
 	       if (vlist.singular() && pending_vlist.empty() && getProgram()->getParseExceptionSink()) {
 		  QoreStringNode *desc = new QoreStringNode("argument ");
                   desc->sprintf("%d to '%s(%s)' expects ", pi + 1, getName(), sig->getSignatureText());
                   t->getThisType(*desc);
                   desc->concat(", but call supplies ");
-                  argTypeInfo[pi]->getThisType(*desc);
+                  a->getThisType(*desc);
                   getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 		  return 0;
 	       }
@@ -284,13 +299,17 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	    }
 	    // only increment for actual type matches (t may be NULL)
 	    if (t)
-	       ++count;
+	       count += rc;
 	 }
 	 if (!ok)
 	    continue;
 	 if (!variant || count > match) {
-	    match = count;
-	    variant = *i;
+	    if (variant_missing_types)
+	       missing_types = true;
+	    else {
+	       match = count;
+	       variant = *i;
+	    }
 	 }
       }
    }
@@ -306,14 +325,24 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
       if (!variant || sig->numParams() > match) {
 	 if (!sig->numParams()) {
 	    variant = *i;
+	    //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() setting variant = %p from pending (0 params)\n", this, getName(), variant);
 	    continue;
 	 }
 
+	 bool variant_missing_types = false;
 	 unsigned count = 0;
 	 bool ok = true;
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfoImpl(pi);
-	    if (!t->parseEqual((num_args && num_args > pi) ? argTypeInfo[pi] : 0)) {
+	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
+	    if (t->hasType() && !a) {
+	       variant_missing_types = true;
+	       continue;
+	    }
+
+	    int rc = t->parseEqual(a);
+
+	    if (rc == QTI_NOT_EQUAL) {
 	       ok = false;
 	       
 	       // raise a detailed parse exception immediately if there is only one variant
@@ -330,19 +359,26 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	       break;
 	    }
 	    // only increment for actual type matches (t may be NULL)
-	    if (t)
-	       ++count;
+	    if (t) {
+	       //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), argTypeInfo[pi]->getName());
+	       count += rc;
+	    }
 	 }
 	 if (!ok)
 	    continue;
 	 if (!variant || count > match) {
-	    match = count;
-	    variant = *i;
+	    if (variant_missing_types)
+	       missing_types = true;
+	    else {
+	       match = count;
+	       variant = *i;
+	       //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() setting variant = %p from pending (%d params, match = %d)\n", this, getName(), variant, sig->numParams(), match);
+	    }
 	 }
       }
    }
 
-   if (!variant && getProgram()->getParseExceptionSink()) {
+   if (!variant && !missing_types && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
       if (class_name)
 	 desc->sprintf("%s::", class_name);
@@ -372,6 +408,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
       }
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
+   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() returning variant %p\n", this, getName(), variant);
    return variant;
 }
 
@@ -449,14 +486,24 @@ UserVariantBase::~UserVariantBase() {
    delete statements;
 }
 
+// this functions allows us to take a referenced value from a unique list (and set the list entry to 0)
+// or reference the value if the list is shared
+static inline void zeroOrRefValue(QoreListNode *args, unsigned i, AbstractQoreNode *v) {
+   if (args->is_unique()) {
+      AbstractQoreNode **p = args->get_entry_ptr(i);
+      *p = 0;
+   }
+   else
+      v->refSelf();
+}
+
 // evaluates arguments and sets up the argv variable
-// FIXME: eliminate second reference here (argument already evaluated)
 int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const {
    unsigned num_args = args ? args->size() : 0;
    // instantiate local vars from param list
    unsigned num_params = signature.numParams();
 
-   for (unsigned i = 0; i < num_params; i++) {
+   for (unsigned i = 0; i < num_params; ++i) {
       AbstractQoreNode *np = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       AbstractQoreNode *n = 0;
       printd(4, "UserVariantBase::setupArgs() eval %d: instantiating param lvar %d (%08p)\n", i, signature.lv[i], n);
@@ -465,17 +512,24 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(np);
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
-	    if (!*xsink && !signature.typeList[i]->checkTypeInstantiation(signature.names[i], n, xsink))
-	       signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
+	    if (!*xsink) {
+	       n = signature.typeList[i]->checkTypeInstantiation(signature.names[i], n, xsink);
+	       if (!*xsink)
+		  signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
+	    }
 	 }
 	 else {
-	    n = np->refSelf();
-	    if (!signature.typeList[i]->checkTypeInstantiation(signature.names[i], n, xsink))
+	    // here we will either take the reference from the unique list
+	    // or we reference for the variable instantiation
+	    zeroOrRefValue(const_cast<QoreListNode *>(args), i, np);
+	    n = signature.typeList[i]->checkTypeInstantiation(signature.names[i], np, xsink);
+	    if (!*xsink)
 	       signature.lv[i]->instantiate(n);
 	 }
       }
       else {
-	 if (!signature.typeList[i]->checkTypeInstantiation(signature.names[i], 0, xsink))
+	 signature.typeList[i]->checkTypeInstantiation(signature.names[i], 0, xsink);
+	 if (!*xsink)
 	    signature.lv[i]->instantiate(0);
       }
 
@@ -483,10 +537,8 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
       // exceptions have occurred. therefore here we cleanup the rest
       // of any already instantiated local variables if an exception does occur
       if (*xsink) {
-	 if (n)
-	    n->deref(xsink);
-	 while (i)
-	    signature.lv[--i]->uninstantiate(xsink);
+	 if (n) n->deref(xsink);
+	 while (i) signature.lv[--i]->uninstantiate(xsink);
 	 return -1;
       }
    }
@@ -495,17 +547,20 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
    printd(5, "UserVariantBase::setupCall() params=%d args=%d\n", num_params, num_args);
 
    if (num_params < num_args) {
-      argv = new QoreListNode();
+      argv = new QoreListNode;
 
       for (unsigned i = 0; i < (num_args - num_params); i++) {
-	 argv->push(args->get_referenced_entry(i + num_params));
+	 // here we try to take the reference from args if possible
+	 AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i + num_params)) : 0;
+	 if (n)
+	    zeroOrRefValue(const_cast<QoreListNode *>(args), i + num_params, n);
+	 argv->push(n);
       }
    }
 
    return 0;
 }
 
-// FIXME: argv should hold unreferenced values and can be emptied before being dereferenced when destroyed
 AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink *xsink, const char *class_name) const {
    AbstractQoreNode *val = 0;
    if (statements) {

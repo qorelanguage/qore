@@ -8,7 +8,7 @@
 %no-child-restrictions
 
 # make sure we have the right version of qore
-%requires qore >= 0.7.6
+%requires qore >= 0.8.0
 
 # global variables needed for tests
 our $to = new Test("program-test.q");
@@ -40,7 +40,7 @@ const opts =
       "threads" : "threads,t=i" );
 
 sub parse_command_line() {
-    my $g = new GetOpt(opts);
+    my GetOpt $g = new GetOpt(opts);
     $o = $g.parse(\$ARGV);
     if (exists $o."_ERRORS_") {
         printf("%s\n", $o."_ERRORS_"[0]);
@@ -61,7 +61,7 @@ sub parse_command_line() {
 	$o.threads = 1;
 }
 
-sub test_value($v1, $v2, $msg) {
+sub test_value($v1, $v2, string $msg) {
     if ($v1 === $v2) {
 	if ($o.verbose)
 	    printf("OK: %s test\n", $msg);
@@ -77,7 +77,7 @@ sub test_value($v1, $v2, $msg) {
 sub test1() { return 1;} sub test2() { return 2; } 
 sub test3() { return (1, 2, 3); }
 
-sub array_helper($a) {
+sub array_helper(list $a) {
     $a[1][1] = 2;
     test_value($a[1][1], 2, "passed local array variable assignment");    
 }
@@ -93,16 +93,16 @@ sub hash_return($var) {
 }
 
 class Sort {
-    hash($l, $r) {
+    hash(hash $l, hash $r) returns int {
 	return $l.key1 <=> $r.key1;
     }
 }
-sub hash_sort_callback($l, $r) {
+sub hash_sort_callback(hash $l, hash $r) returns int {
     return $l.key1 <=> $r.key1;
 }
 
 class SC;
-static SC::hash_sort_callback($l, $r) {
+static SC::hash_sort_callback(hash $l, hash $r) returns int {
     return $l.key1 <=> $r.key1;
 }
 
@@ -1168,7 +1168,37 @@ sub io_tests() {
     test_value(f_sprintf("%3s", "niña"), "niñ", "UTF-8 f_sprintf()");
 }
 
-sub function_library_test() {
+sub f1_test(string $x) returns string {
+    return type($x);
+}
+
+sub f1_test(float $x) returns string {
+    return type($x);
+}
+
+sub f_test(int $x) returns string {
+    return type($x);
+}
+
+sub f_test(float $x) returns string {
+    return type($x);
+}
+
+sub overload_tests() {
+    test_value(f_test(1), "integer", "first overload partial match");
+    test_value(f_test(1.1), "float", "second overload partial match");
+    test_value(f1_test(1), "float", "third overload partial match");
+    test_value(f1_test(1.1), "float", "fourth overload partial match");
+    test_value(f1_test("str"), "string", "fifth overload partial match");
+    my $i = 1;
+    test_value(f_test($i), "integer", "first runtime overload partial match");
+    test_value(f1_test($i), "float", "second runtime overload partial match");
+    $i = 1.1;
+    test_value(f_test($i), "float", "third runtime overload partial match");
+    test_value(f1_test($i), "float", "fourth runtime overload partial match");
+}
+
+sub function_tests() {
     date_time_tests();
     binary_tests();
     string_tests();  
@@ -1177,6 +1207,7 @@ sub function_library_test() {
     math_tests();
     lib_tests();
     io_tests();
+    overload_tests();
 }
 
 sub t($a) {
@@ -1730,7 +1761,7 @@ sub do_tests() {
 	    recursive_function_test();
 	    parameter_tests();
 	    class_library_tests();
-	    function_library_test();
+	    function_tests();
 	    context_tests();
 	    constant_tests();	
 	    xml_tests();

@@ -926,6 +926,17 @@ AbstractQoreNode *ListIterator::getReferencedValue() const {
    return rv ? rv->refSelf() : 0;
 }
 
+AbstractQoreNode *ListIterator::takeValue() {
+   if (l->is_unique()) {
+      AbstractQoreNode **p = l->get_entry_ptr(pos);
+      AbstractQoreNode *rv = *p;
+      *p = 0;
+      return rv;
+   }
+   AbstractQoreNode *rv = l->retrieve_entry(pos);
+   return rv ? rv->refSelf() : 0;
+}
+
 AbstractQoreNode **ListIterator::getValuePtr() const {
    if (pos > l->size())
       return 0;

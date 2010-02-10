@@ -3688,8 +3688,6 @@ static AbstractQoreNode *check_op_lvalue_int(QoreTreeNode *tree, LocalVar *oflag
    return tree;
 }
 
-#define MATCHES_TYPE(ti, t) ((ti) && (ti)->qt == t)
-
 // set the return value for op_minus (-)
 static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
@@ -3699,18 +3697,18 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
    if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
-      if (MATCHES_TYPE(leftTypeInfo, NT_DATE) 
-	  || MATCHES_TYPE(rightTypeInfo, NT_DATE))
+      if (leftTypeInfo->parseExactMatch(NT_DATE) 
+	  || rightTypeInfo->parseExactMatch(NT_DATE))
 	 returnTypeInfo = dateTypeInfo;
-      else if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) 
-	       || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
+      else if (leftTypeInfo->parseExactMatch(NT_FLOAT) 
+	       || rightTypeInfo->parseExactMatch(NT_FLOAT))
 	 returnTypeInfo = floatTypeInfo;
-      else if (MATCHES_TYPE(leftTypeInfo, NT_INT) 
-	       || MATCHES_TYPE(rightTypeInfo, NT_INT))
+      else if (leftTypeInfo->parseExactMatch(NT_INT) 
+	       || rightTypeInfo->parseExactMatch(NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
-      else if ((MATCHES_TYPE(leftTypeInfo, NT_HASH) 
-		|| MATCHES_TYPE(leftTypeInfo, NT_OBJECT))
-	       && MATCHES_TYPE(rightTypeInfo, NT_STRING))
+      else if ((leftTypeInfo->parseExactMatch(NT_HASH) 
+		|| leftTypeInfo->parseExactMatch(NT_OBJECT))
+	       && rightTypeInfo->parseExactMatch(NT_STRING))
 	 returnTypeInfo = hashTypeInfo;
       else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) 
 	 // only return type nothing if both types are available
@@ -3729,34 +3727,35 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
    if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
-      if (MATCHES_TYPE(leftTypeInfo, NT_LIST) 
-	  || MATCHES_TYPE(rightTypeInfo, NT_LIST))
+      if (leftTypeInfo->parseExactMatch(NT_LIST) 
+	  || rightTypeInfo->parseExactMatch(NT_LIST))
 	 returnTypeInfo = listTypeInfo;
 
-      else if (MATCHES_TYPE(leftTypeInfo, NT_STRING) 
-	       || MATCHES_TYPE(rightTypeInfo, NT_STRING))
+      else if (leftTypeInfo->parseExactMatch(NT_STRING) 
+	       || rightTypeInfo->parseExactMatch(NT_STRING))
+	 returnTypeInfo = stringTypeInfo;
+
+      else if (leftTypeInfo->parseExactMatch(NT_DATE) 
+	       || rightTypeInfo->parseExactMatch(NT_DATE))
 	 returnTypeInfo = dateTypeInfo;
 
-      else if (MATCHES_TYPE(leftTypeInfo, NT_DATE) 
-	       || MATCHES_TYPE(rightTypeInfo, NT_DATE))
-	 returnTypeInfo = dateTypeInfo;
-
-      else if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) 
-	       || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
+      else if (leftTypeInfo->parseExactMatch(NT_FLOAT) 
+	       || rightTypeInfo->parseExactMatch(NT_FLOAT))
 	 returnTypeInfo = floatTypeInfo;
 
-      else if (MATCHES_TYPE(leftTypeInfo, NT_INT) 
-	       || MATCHES_TYPE(rightTypeInfo, NT_INT))
+      else if (leftTypeInfo->parseExactMatch(NT_INT) 
+	       || rightTypeInfo->parseExactMatch(NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
 
-      else if (MATCHES_TYPE(leftTypeInfo, NT_HASH) || MATCHES_TYPE(leftTypeInfo, NT_OBJECT))
+      else if (leftTypeInfo->parseExactMatch(NT_HASH)
+	       || leftTypeInfo->parseExactMatch(NT_OBJECT))
 	 returnTypeInfo = hashTypeInfo;
       
-      else if (MATCHES_TYPE(rightTypeInfo, NT_OBJECT))
+      else if (rightTypeInfo->parseExactMatch(NT_OBJECT))
 	 returnTypeInfo = objectTypeInfo;
 
-      else if (MATCHES_TYPE(leftTypeInfo, NT_BINARY) 
-	       || MATCHES_TYPE(rightTypeInfo, NT_BINARY))
+      else if (leftTypeInfo->parseExactMatch(NT_BINARY) 
+	       || rightTypeInfo->parseExactMatch(NT_BINARY))
 	 returnTypeInfo = binaryTypeInfo;
 
       else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) 
@@ -3775,9 +3774,9 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT) || MATCHES_TYPE(rightTypeInfo, NT_FLOAT))
+   if (leftTypeInfo->parseExactMatch(NT_FLOAT) || rightTypeInfo->parseExactMatch(NT_FLOAT))
       returnTypeInfo = floatTypeInfo;
-   else if (MATCHES_TYPE(leftTypeInfo, NT_INT) && MATCHES_TYPE(rightTypeInfo, NT_INT))
+   else if (leftTypeInfo->parseExactMatch(NT_INT) && rightTypeInfo->parseExactMatch(NT_INT))
       returnTypeInfo = bigIntTypeInfo;
    else
       returnTypeInfo = 0;
@@ -3794,7 +3793,7 @@ static AbstractQoreNode *check_op_unary_minus(QoreTreeNode *tree, LocalVar *ofla
 
    assert(!tree->right);
 
-   if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT))
+   if (leftTypeInfo->parseExactMatch(NT_FLOAT))
       returnTypeInfo = floatTypeInfo;
    else
       returnTypeInfo = bigIntTypeInfo;
@@ -3810,13 +3809,13 @@ static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *ofla
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (MATCHES_TYPE(leftTypeInfo, NT_LIST)
-       || MATCHES_TYPE(leftTypeInfo, NT_HASH)
-       || MATCHES_TYPE(leftTypeInfo, NT_OBJECT)
-       || MATCHES_TYPE(leftTypeInfo, NT_STRING)
-       || MATCHES_TYPE(leftTypeInfo, NT_FLOAT)
-       || MATCHES_TYPE(leftTypeInfo, NT_DATE)
-       || MATCHES_TYPE(leftTypeInfo, NT_BINARY))
+   if (leftTypeInfo->parseExactMatch(NT_LIST)
+       || leftTypeInfo->parseExactMatch(NT_HASH)
+       || leftTypeInfo->parseExactMatch(NT_OBJECT)
+       || leftTypeInfo->parseExactMatch(NT_STRING)
+       || leftTypeInfo->parseExactMatch(NT_FLOAT)
+       || leftTypeInfo->parseExactMatch(NT_DATE)
+       || leftTypeInfo->parseExactMatch(NT_BINARY))
       returnTypeInfo = leftTypeInfo;
    // otherwise there are 2 possibilities: the lvalue has no value, in which
    // case it takes the value of the right side, or if it's anything else it's
@@ -3838,10 +3837,10 @@ static AbstractQoreNode *check_op_minus_equals(QoreTreeNode *tree, LocalVar *ofl
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT)
-       || MATCHES_TYPE(leftTypeInfo, NT_DATE)
-       || MATCHES_TYPE(leftTypeInfo, NT_HASH)
-       || MATCHES_TYPE(leftTypeInfo, NT_OBJECT))
+   if (leftTypeInfo->parseExactMatch(NT_FLOAT)
+       || leftTypeInfo->parseExactMatch(NT_DATE)
+       || leftTypeInfo->parseExactMatch(NT_HASH)
+       || leftTypeInfo->parseExactMatch(NT_OBJECT))
       returnTypeInfo = leftTypeInfo;
    // otherwise there are 2 possibilities: the lvalue has no value, in which
    // case it takes the negative value of the right side if the right side
@@ -3864,9 +3863,9 @@ static AbstractQoreNode *check_op_multdiv_equals(QoreTreeNode *tree, LocalVar *o
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (MATCHES_TYPE(leftTypeInfo, NT_FLOAT))      
+   if (leftTypeInfo->parseExactMatch(NT_FLOAT))      
       returnTypeInfo = floatTypeInfo;
-   else if (MATCHES_TYPE(rightTypeInfo, NT_FLOAT)) {
+   else if (rightTypeInfo->parseExactMatch(NT_FLOAT)) {
       returnTypeInfo = floatTypeInfo;
       check_lvalue_float(leftTypeInfo, name);
    }
