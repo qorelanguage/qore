@@ -79,11 +79,22 @@ class QoreNamespace {
       DLLEXPORT ~QoreNamespace();
 
       //! adds a constant definition to the namespace
+      /** use addConstant(const char *name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo) when adding
+	  constants of externally-defined base (non-class) types; all other types (and all objects) can have
+	  their type information automatically added
+	  @param name the name of the constant to add
+	  @param value the value of the constant
+       */
+      DLLEXPORT void addConstant(const char *name, AbstractQoreNode *value);
+
+      //! adds a constant definition to the namespace with type information
       /**
 	 @param name the name of the constant to add
 	 @param value the value of the constant
+	 @param type the type of the constant
+	 @see QoreTypeInfoHelper
        */
-      DLLEXPORT void addConstant(const char *name, AbstractQoreNode *value);
+      DLLEXPORT void addConstant(const char *name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo);
 
       //! adds a class to a namespace
       /**

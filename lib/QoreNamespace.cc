@@ -458,6 +458,10 @@ void QoreNamespace::addConstant(const char *cname, AbstractQoreNode *val) {
    priv->constant->add(cname, val);
 }
 
+void QoreNamespace::addConstant(const char *cname, AbstractQoreNode *val, const QoreTypeInfo *typeInfo) {
+   priv->constant->add(cname, val, typeInfo);
+}
+
 void QoreNamespace::addInitialNamespace(QoreNamespace *ns) {
    priv->nsl->add(ns);
 }

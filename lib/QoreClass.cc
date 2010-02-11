@@ -74,26 +74,25 @@ struct qore_class_private {
    bool sys,                        // system class?
       initialized,                  // is initialized?
       has_delete_blocker,           // has a delete_blocker function somewhere in the hierarchy?
-      has_public_members            // has a public member list somewhere in the hierarchy?
+      has_public_members,           // has a public member list somewhere in the hierarchy?
+      owns_typeinfo                 // do we own the typeinfo data or not?
       ;
    int domain;                      // capabilities of builtin class to use in the context of parse restrictions
    QoreReferenceCounter nref;       // namespace references
    int num_methods, num_user_methods, num_static_methods, num_static_user_methods;
-   // to be used in parsing
-   QoreTypeInfo typeInfo;
+   // type information for the class
+   QoreTypeInfo *typeInfo;
    // common "self" local variable for all constructors
    mutable LocalVar selfid;
 
-   DLLLOCAL qore_class_private(const QoreClass *cls, const char *nme, int dom = QDOM_DEFAULT) 
-      : scl(0), 
+   DLLLOCAL qore_class_private(const QoreClass *cls, const char *nme, int dom = QDOM_DEFAULT, QoreTypeInfo *n_typeInfo = 0) 
+      : name(nme ? strdup(nme) : 0), scl(0), 
 	sys(false), initialized(false), has_delete_blocker(false), 
-	has_public_members(false),
+	has_public_members(false), owns_typeinfo(n_typeInfo ? false : true),
 	domain(dom), 
 	num_methods(0), num_user_methods(0),
 	num_static_methods(0), num_static_user_methods(0),
-	typeInfo(cls), selfid("self", &typeInfo) {
-      name = nme ? strdup(nme) : 0;
-
+	typeInfo(n_typeInfo ? n_typeInfo : new QoreTypeInfo(cls)), selfid("self", typeInfo) {
       // quick pointers
       system_constructor = constructor = destructor = copyMethod = 
 	 methodGate = memberGate = deleteBlocker = memberNotification = 0;
@@ -124,6 +123,13 @@ struct qore_class_private {
       if (scl)
 	 scl->deref();
       delete system_constructor;
+
+      if (owns_typeinfo)
+	 delete typeInfo;
+   }
+
+   const QoreTypeInfo *getTypeInfo() const {
+      return typeInfo;
    }
 
    // checks for all special methods except constructor & destructor
@@ -163,10 +169,10 @@ struct qore_class_private {
    DLLLOCAL void initialize() {
       if (!initialized) {
 	 initialized = true;
-	 printd(5, "QoreClass::initialize() %s class=%p scl=%p\n", name, typeInfo.qc, scl);
+	 printd(5, "QoreClass::initialize() %s class=%p scl=%p\n", name, typeInfo->qc, scl);
 
 	 if (scl) {
-	    QoreClass *qc = const_cast<QoreClass *>(typeInfo.qc);
+	    QoreClass *qc = const_cast<QoreClass *>(typeInfo->qc);
 	    scl->parseInit(qc, has_delete_blocker);
 	 }
 
@@ -214,7 +220,7 @@ struct qore_class_private {
       }
 
       if (priv) {
-	 if (!parseCheckPrivateClassAccess(typeInfo.qc)) {
+	 if (!parseCheckPrivateClassAccess(typeInfo->qc)) {
 	    memberTypeInfo = 0;
 	    if (name)
 	       parse_error("illegal access to private member '%s' of class '%s'", mem, name);
@@ -260,7 +266,7 @@ struct qore_class_private {
       if (found) {
 	 priv = true;
 	 memberTypeInfo = i->second;
-	 return typeInfo.qc;
+	 return typeInfo->qc;
       }
 
       i = public_members.find(const_cast<char *>(mem));
@@ -275,7 +281,7 @@ struct qore_class_private {
       if (found) {
 	 priv = false;
 	 memberTypeInfo = i->second;
-	 return typeInfo.qc;
+	 return typeInfo->qc;
       }
 
       return scl ? scl->parseFindPublicPrivateMember(mem, memberTypeInfo, priv) : 0;
@@ -298,7 +304,7 @@ struct qore_class_private {
 	    desc->concat("cannot declare ");
 	    desc->sprintf("%s member ", pubpriv(priv));
 	    desc->sprintf("'%s' when ", mem);
-	    if (sclass == typeInfo.qc)
+	    if (sclass == typeInfo->qc)
 	       desc->concat("this class");
 	    else
 	       desc->sprintf("base class '%s'", sclass->getName());
@@ -312,7 +318,7 @@ struct qore_class_private {
 	    QoreStringNode *desc = new QoreStringNode;
 	    desc->sprintf("%s member ", pubpriv(priv));
 	    desc->sprintf("'%s' was already declared in ", mem);
-	    if (sclass == typeInfo.qc)
+	    if (sclass == typeInfo->qc)
 	       desc->concat("this class");
 	    else
 	       desc->sprintf("base class '%s'", sclass->getName());
@@ -702,7 +708,7 @@ void qore_class_private::execBaseClassConstructor(QoreObject *self, BCEAList *bc
    // no lock is sent with constructor, because no variable has been assigned yet
    bool already_executed;
    const AbstractQoreFunctionVariant *variant;
-   QoreListNode *args = bceal->findArgs(typeInfo.qc, &already_executed, variant);
+   QoreListNode *args = bceal->findArgs(typeInfo->qc, &already_executed, variant);
    if (!already_executed) {
       constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
    }
@@ -710,11 +716,11 @@ void qore_class_private::execBaseClassConstructor(QoreObject *self, BCEAList *bc
 
 QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const {
    // create new object
-   QoreObject *self = new QoreObject(typeInfo.qc, getProgram());
+   QoreObject *self = new QoreObject(typeInfo->qc, getProgram());
 
    ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : 0, xsink);
 
-   printd(5, "qore_class_private::execConstructor() class=%p %s::constructor() o=%p variant=%p\n", typeInfo.qc, name, self, variant);
+   printd(5, "qore_class_private::execConstructor() class=%p %s::constructor() o=%p variant=%p\n", typeInfo->qc, name, self, variant);
 
    if (!constructor) {
       assert(!variant);
@@ -730,7 +736,7 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
    }
    else {
       constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
-      printd(5, "qore_class_private::execConstructor() class=%p %s done\n", typeInfo.qc, name);
+      printd(5, "qore_class_private::execConstructor() class=%p %s done\n", typeInfo->qc, name);
    }
 
    if (*xsink) {
@@ -804,7 +810,7 @@ void qore_class_private::addBuiltinMethod(const char *mname, MethodVariantBase *
    QoreMethod *nm;
    if (i == hm.end()) {
       MethodFunctionBase *m = new BuiltinMethod(mname);
-      nm = new QoreMethod(typeInfo.qc, m, false);
+      nm = new QoreMethod(typeInfo->qc, m, false);
       insertBuiltinMethod(nm);
    }
    else {
@@ -821,7 +827,7 @@ void qore_class_private::addBuiltinStaticMethod(const char *mname, MethodVariant
    QoreMethod *nm;
    if (i == shm.end()) {
       MethodFunctionBase *m = new BuiltinMethod(mname);
-      nm = new QoreMethod(typeInfo.qc, m, true);
+      nm = new QoreMethod(typeInfo->qc, m, true);
       insertBuiltinStaticMethod(nm);
    }
    else {
@@ -834,7 +840,7 @@ void qore_class_private::addBuiltinConstructor(BuiltinConstructorVariantBase *va
    QoreMethod *nm;
    if (!constructor) {
       MethodFunctionBase *m = new ConstructorMethodFunction;
-      nm = new QoreMethod(typeInfo.qc, m, false);
+      nm = new QoreMethod(typeInfo->qc, m, false);
       constructor = nm;
       insertBuiltinMethod(nm);
    }
@@ -847,7 +853,7 @@ void qore_class_private::addBuiltinConstructor(BuiltinConstructorVariantBase *va
 void qore_class_private::addBuiltinDestructor(BuiltinDestructorVariantBase *variant) {
    assert(!destructor);
    DestructorMethodFunction *m = new DestructorMethodFunction;
-   QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+   QoreMethod *qm = new QoreMethod(typeInfo->qc, m, false);
    destructor = qm;
    insertBuiltinMethod(qm);
    qm->priv->addBuiltinVariant(variant);
@@ -856,7 +862,7 @@ void qore_class_private::addBuiltinDestructor(BuiltinDestructorVariantBase *vari
 void qore_class_private::addBuiltinCopyMethod(BuiltinCopyVariantBase *variant) {
    assert(!copyMethod);
    CopyMethodFunction *m = new CopyMethodFunction;
-   QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+   QoreMethod *qm = new QoreMethod(typeInfo->qc, m, false);
    copyMethod = qm;
    insertBuiltinMethod(qm);
    qm->priv->addBuiltinVariant(variant);
@@ -865,7 +871,7 @@ void qore_class_private::addBuiltinCopyMethod(BuiltinCopyVariantBase *variant) {
 void qore_class_private::setDeleteBlocker(q_delete_blocker_t func) {
    assert(!deleteBlocker);
    BuiltinDeleteBlocker *m = new BuiltinDeleteBlocker(func);
-   QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+   QoreMethod *qm = new QoreMethod(typeInfo->qc, m, false);
    qm->priv->setBuiltin();
    deleteBlocker = qm;
    insertBuiltinMethod(qm);
@@ -874,7 +880,7 @@ void qore_class_private::setDeleteBlocker(q_delete_blocker_t func) {
 
 void qore_class_private::setBuiltinSystemConstructor(BuiltinSystemConstructorBase *m) {
    assert(!system_constructor);
-   QoreMethod *qm = new QoreMethod(typeInfo.qc, m, false);
+   QoreMethod *qm = new QoreMethod(typeInfo->qc, m, false);
    qm->priv->setBuiltin();
    system_constructor = qm;
 }
@@ -1609,6 +1615,14 @@ QoreClass::QoreClass(const char *nme, int dom) {
    printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%p)\n", priv->name, priv->classID, this);
 }
 
+QoreClass::QoreClass(const char *nme, int dom, const QoreTypeInfo *typeInfo) {
+   assert(typeInfo);
+   priv = new qore_class_private(this, nme, dom, const_cast<QoreTypeInfo *>(typeInfo));
+
+   priv->classID = priv->methodID = classIDSeq.next();
+   printd(0, "QoreClass::QoreClass() creating '%s' ID:%d (this=%p) with custom typeinfo\n", priv->name, priv->classID, this);
+}
+
 QoreClass::QoreClass() {
    priv = new qore_class_private(this, 0);
 
@@ -1946,7 +1960,7 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const {
 
 QoreObject *qore_class_private::execCopy(QoreObject *old, ExceptionSink *xsink) const {
    // check for illegal private calls
-   if (copyMethod && copyMethod->isPrivate() && typeInfo.qc != getStackClass()) {
+   if (copyMethod && copyMethod->isPrivate() && typeInfo->qc != getStackClass()) {
       xsink->raiseException("METHOD-IS-PRIVATE", "%s::copy() is private and cannot be accessed externally", name);
       return 0;
    }
@@ -1957,7 +1971,7 @@ QoreObject *qore_class_private::execCopy(QoreObject *old, ExceptionSink *xsink) 
       return 0;
    }
 
-   ReferenceHolder<QoreObject> self(new QoreObject(typeInfo.qc, getProgram(), h), xsink);
+   ReferenceHolder<QoreObject> self(new QoreObject(typeInfo->qc, getProgram(), h), xsink);
 
    if (copyMethod)
       copyMethod->priv->evalCopy(*self, old, xsink);
@@ -2069,7 +2083,7 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
       else
 	 mfb = new UserMethod(mname);
 
-      m = new QoreMethod(typeInfo.qc, mfb, n_static);
+      m = new QoreMethod(typeInfo->qc, mfb, n_static);
    }
 
    // add this variant to the method
@@ -2279,7 +2293,7 @@ void QoreClass::parseInit() {
 }
 
 void qore_class_private::parseInit() {
-   setParseClass(const_cast<QoreClass *>(typeInfo.qc));
+   setParseClass(const_cast<QoreClass *>(typeInfo->qc));
    initialize();
 
    // initialize methods
@@ -2343,7 +2357,7 @@ const QoreMethod *QoreClass::getMemberNotificationMethod() const {
 }
 
 const QoreTypeInfo *QoreClass::getTypeInfo() const {
-   return &priv->typeInfo;
+   return priv->typeInfo;
 }
 
 int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {

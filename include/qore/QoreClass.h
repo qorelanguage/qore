@@ -236,6 +236,16 @@ class QoreClass {
        */
       DLLEXPORT QoreClass(const char *n_name, int n_domain = QDOM_DEFAULT);
 
+      //! creates the QoreClass object and assigns the name, the functional domain, and a custom QoreTypeInfo object created with AbstractQoreClassTypeInfoHelper
+      /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
+	  @param n_name the name of the class
+	  @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
+	  @param n_typeInfo the custom QoreTypeInfo object created with AbstractQoreClassTypeInfoHelper
+	  @see QoreProgram
+	  @see AbstractQoreClassTypeInfoHelper
+       */
+      DLLEXPORT QoreClass(const char *n_name, int n_domain, const QoreTypeInfo *n_typeInfo);
+
       //! deletes the object and frees all memory
       DLLEXPORT ~QoreClass();
 

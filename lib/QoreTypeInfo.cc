@@ -229,7 +229,7 @@ int QoreTypeInfo::checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_
 }
 
 int QoreTypeInfo::testTypeCompatibilityDefault(const AbstractQoreNode *n) const {
-   if (!this || !has_type) return QTI_IDENT;
+   if (!this || !has_type) return QTI_AMBIGUOUS;
    if (qt == NT_NOTHING && is_nothing(n)) return QTI_IDENT;
    if (is_nothing(n))
       return QTI_NOT_EQUAL;
@@ -243,17 +243,7 @@ int QoreTypeInfo::testTypeCompatibilityDefault(const AbstractQoreNode *n) const 
       if (!qc)
 	 return QTI_AMBIGUOUS;
 
-      bool priv;
-      if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
-	 if (!priv)
-	    return QTI_IDENT;
-
-	 // check private access
-	 if (!runtimeCheckPrivateClassAccess(qc))
-	    return QTI_IDENT;
-      }
-
-      return QTI_NOT_EQUAL;
+      return testObjectClassAccess(reinterpret_cast<const QoreObject *>(n), qc);
    }
 
    if (t == qt)
@@ -268,14 +258,17 @@ int QoreTypeInfo::testTypeCompatibilityDefault(const AbstractQoreNode *n) const 
 
 int QoreTypeInfo::parseEqualDefault(const QoreTypeInfo *typeInfo) const {
    if (!this || !has_type || !typeInfo || !typeInfo->has_type)
-      return QTI_IDENT;
+      return QTI_AMBIGUOUS;
 
    if (qt == NT_OBJECT) {
       if (typeInfo->qt != NT_OBJECT)
 	 return QTI_NOT_EQUAL;
 
-      if (!qc)
+      if (!qc || !typeInfo->qc)
 	 return QTI_AMBIGUOUS;
+
+      if (qc == typeInfo->qc)
+	 return QTI_IDENT;
 
       return parseCheckCompatibleClass(qc, typeInfo->qc) ? QTI_IDENT : QTI_NOT_EQUAL;
    }

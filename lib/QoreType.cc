@@ -100,10 +100,10 @@ bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
    return !OP_LOG_EQ->bool_eval(l, r, xsink);
 }
 
-QoreTypeInfoHelper::QoreTypeInfoHelper(const char *n_tname) : typeInfo(new ExternalTypeInfo(n_tname)) {
+QoreTypeInfoHelper::QoreTypeInfoHelper(const char *n_tname) : typeInfo(new ExternalTypeInfo(n_tname, *this)) {
 }
 
-QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char *n_tname) : typeInfo(new ExternalTypeInfo(id, n_tname)) {
+QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char *n_tname) : typeInfo(new ExternalTypeInfo(id, n_tname, *this)) {
 }
 
 QoreTypeInfoHelper::~QoreTypeInfoHelper() {
@@ -117,3 +117,54 @@ void QoreTypeInfoHelper::assign(qore_type_t id) {
 const QoreTypeInfo *QoreTypeInfoHelper::getTypeInfo() const {
    return typeInfo;
 }
+
+bool QoreTypeInfoHelper::checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+   return false;
+}
+
+int QoreTypeInfoHelper::testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+   return QTI_NOT_EQUAL;
+}
+
+int QoreTypeInfoHelper::parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+   return QTI_NOT_EQUAL;
+}
+
+AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper(const char *name, int n_domain) : QoreTypeInfoHelper(new ExternalTypeInfo(*this)), qc(new QoreClass(name, n_domain, typeInfo)) {
+   typeInfo->assign(qc);
+   printd(0, "AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper() this=%p typeInfo=%p\n", this, typeInfo);
+}
+
+AbstractQoreClassTypeInfoHelper::~AbstractQoreClassTypeInfoHelper() {
+   delete qc;
+}
+
+QoreClass *AbstractQoreClassTypeInfoHelper::getClass() {
+   QoreClass *rv = qc;
+   qc = 0;
+   return rv;
+}
+
+int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass) {
+   const QoreClass *objectclass = obj->getClass();
+   if (shouldbeclass == objectclass)
+      return QTI_IDENT;
+
+   bool priv;
+   if (!objectclass->getClass(shouldbeclass->getID(), priv))
+      return QTI_NOT_EQUAL;
+
+   if (!priv)
+      return QTI_AMBIGUOUS;
+
+   return runtimeCheckPrivateClassAccess(shouldbeclass) ? QTI_NOT_EQUAL : QTI_AMBIGUOUS;
+}
+
+const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo) {
+   return typeInfo->qc;
+}
+
+qore_type_t typeInfoGetType(const QoreTypeInfo *typeInfo) {
+   return typeInfo->getType();
+}
+
