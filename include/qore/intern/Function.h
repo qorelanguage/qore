@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include <string>
+#include <vector>
 
 // these data structures are all private to the library
 
@@ -40,64 +41,70 @@ class BCAList;
 
 class AbstractFunctionSignature {
 protected:
-   // number of parameters
-   unsigned short num_params;
    // number of parameters that have type information
    unsigned short num_param_types;
+
+   const QoreTypeInfo *returnTypeInfo;
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+
    // parameter signature string
    std::string str;
 
 public:
-   DLLLOCAL AbstractFunctionSignature(unsigned n_num_params) : num_params(n_num_params), num_param_types(0) {
+   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo *n_returnTypeInfo = 0) : num_param_types(0), returnTypeInfo(n_returnTypeInfo) {
+   }
+   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) : num_param_types(0), returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList) {
    }
    DLLLOCAL virtual ~AbstractFunctionSignature() {
    }
-   DLLLOCAL virtual void resolve() = 0;
-   DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const = 0;
    // called at parse time to include optional type resolution
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const = 0;
-   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const = 0;
-   DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const = 0;
+
+   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
+      return returnTypeInfo;
+   }
+   DLLLOCAL const arg_vec_t &getDefaultArgList() const {
+      return defaultArgList;
+   }
 
    DLLLOCAL const char *getSignatureText() const {
       return str.c_str();
    }
 
    DLLLOCAL unsigned numParams() const {
-      return num_params;
+      return typeList.size();
    }
    // number of params with type information
    DLLLOCAL unsigned getParamTypes() const {
       return num_param_types;
    }
    DLLLOCAL const QoreTypeInfo *getParamTypeInfo(unsigned num) const {
-      return num >= num_params ? 0 : getParamTypeInfoImpl(num);
+      return num >= typeList.size() ? 0 : typeList[num];
    }
 };
 
+typedef std::vector<QoreParseTypeInfo *> ptype_vec_t;
+typedef std::vector<std::string> name_vec_t;
+typedef std::vector<LocalVar *> lvar_vec_t;
+
 class UserSignature : public AbstractFunctionSignature {
 protected:
-   QoreParseTypeInfo *returnTypeInfo;
+   ptype_vec_t parseTypeList;
+   QoreParseTypeInfo *parseReturnTypeInfo;
+   name_vec_t names;
+
    int first_line, last_line;
    const char *parse_file;
 
-   DLLLOCAL void assignParam(int i, VarRefNode *v);
-
-   DLLLOCAL void setSingleParamIntern(VarRefNode *v) {
-      num_params = 1;
-      names = new char *[1];
-      typeList = new QoreParseTypeInfo *[1];
-      assignParam(0, v);
-   }
+   DLLLOCAL void pushParam(VarRefNode *v);
 
    DLLLOCAL static void param_error() {
       parse_error("parameter list contains non-variable reference expressions");
    }
 
 public:
-   char **names;
-   QoreParseTypeInfo **typeList;
-   LocalVar **lv;
+   lvar_vec_t lv;
    LocalVar *argvid;
    LocalVar *selfid;
    bool resolved;
@@ -105,16 +112,19 @@ public:
    DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo);
 
    DLLLOCAL virtual ~UserSignature() {
-      for (unsigned i = 0; i < num_params; i++)
-	 free(names[i]);
-      delete [] names;
-      if (typeList) {
-	 for (unsigned i = 0; i < num_params; i++)
-	    delete typeList[i];
-	 delete [] typeList;
-      }
-      delete [] lv;
-      delete returnTypeInfo;
+      for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i)
+	 delete *i;
+      delete parseReturnTypeInfo;
+   }
+
+   DLLLOCAL const char *getName(unsigned i) const {
+      assert(i < names.size());
+      return names[i].c_str();
+   }
+
+   DLLLOCAL void setFirstParamType(const QoreTypeInfo *typeInfo) {
+      assert(!typeList.empty());
+      typeList[0] = typeInfo;
    }
 
    DLLLOCAL void setSelfId(LocalVar *n_selfid) {
@@ -122,36 +132,36 @@ public:
       selfid = n_selfid;
    }
 
-   DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const {
-      return typeList[num];
-   }
-
    DLLLOCAL const QoreParseTypeInfo *getParseParamTypeInfo(unsigned num) const {
-      return num < num_params ? typeList[num] : 0;
+      return num < parseTypeList.size() ? parseTypeList[num] : 0;
    }
       
-   DLLLOCAL virtual void resolve() {
+   // resolves all parse types to the final types
+   DLLLOCAL void resolve() {
       if (resolved)
 	 return;
       
       resolved = true;
-      if (!num_params)
-	 return;
 
-      for (unsigned i = 0; i < num_params; ++i)
-	 if (typeList[i])
-	    typeList[i]->resolve();			 
+      returnTypeInfo = parseReturnTypeInfo->resolveAndDelete();
+      parseReturnTypeInfo = 0;
+
+      typeList.reserve(parseTypeList.size());
+      for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i) {
+	 const QoreTypeInfo *typeInfo = (*i)->resolveAndDelete();
+	 typeList.push_back(typeInfo);
+      }
+      parseTypeList.clear();
    }
 
-   // called at parse time to include optional type resolution
+   // called at parse time to ensure types are resolved
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
-      if (returnTypeInfo)
-	 returnTypeInfo->resolve();
-
+      const_cast<UserSignature *>(this)->resolve();
       return returnTypeInfo;
    }
 
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
+      assert(resolved);
       return returnTypeInfo;
    }
 
@@ -165,10 +175,6 @@ public:
    
    DLLLOCAL const char *getParseFile() const {
       return parse_file;
-   }
-
-   DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const {
-      return 0;
    }
 
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo);

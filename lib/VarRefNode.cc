@@ -51,7 +51,7 @@ const char *VarRefNode::getTypeName() const {
    return "variable reference";
 }
 
-void VarRefNode::resolve(QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
+void VarRefNode::resolve(const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
    LocalVar *id;
 
    bool in_closure;
@@ -165,7 +165,7 @@ char *VarRefNode::takeName() {
    return p;
 }
 
-AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
    // if it is a new variable being declared
    if (type == VT_LOCAL) {
       outTypeInfo = typeInfo;
@@ -202,8 +202,9 @@ AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, 
 }
 
 AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
-   assert(typeInfo);
-   typeInfo->resolve();
+   assert(parseTypeInfo);
+   typeInfo = parseTypeInfo->resolveAndDelete();
+   parseTypeInfo = 0;
    outTypeInfo = typeInfo;
 
    parseInitIntern(oflag, pflag, lvids, typeInfo, outTypeInfo);
@@ -215,11 +216,8 @@ AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvi
 	 if (ref.id->needsAssignmentAtInstantiation())
 	     parseException("PARSE-TYPE-ERROR", "local variable '$%s' has been defined with a complex type and must be assigned when instantiated", name);
       }
-      else {
-	 // can be called when this = 0
-	 typeInfo->setMustBeAssigned();
+      else
 	 ref.id->unsetNeedsValueInstantiation();
-      }
    }
 
    return this;

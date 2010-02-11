@@ -80,7 +80,7 @@ class BuiltinFunctionList {
 	 @param typeList a list of types for each parameter; must have num_param entries
 	 @param defaultArgList a list of default argument values for each parameter if no argument is supplied by the caller
       */
-      DLLEXPORT static void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params = 0, const QoreTypeInfo **typeList = 0, const AbstractQoreNode **defaultArgList = 0);
+      DLLEXPORT static void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
       //! returns the number of functions in the hash
       /**

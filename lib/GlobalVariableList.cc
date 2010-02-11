@@ -34,7 +34,7 @@ GlobalVariableList::~GlobalVariableList() {
    assert(vmap.empty());
 }
 
-void GlobalVariableList::import(class Var *var, ExceptionSink *xsink, bool readonly) {
+void GlobalVariableList::import(Var *var, ExceptionSink *xsink, bool readonly) {
    map_var_t::iterator i = vmap.find(var->getName());
    if (i == vmap.end())
       newVar(var, readonly);
@@ -67,7 +67,7 @@ void GlobalVariableList::delete_all(ExceptionSink *xsink) {
    map_var_t::iterator i;
    while ((i = vmap.end()) != vmap.begin()) {
       --i;
-      class Var *v = i->second;
+      Var *v = i->second;
       vmap.erase(i);
       v->deref(xsink);
    }
@@ -77,7 +77,15 @@ Var *GlobalVariableList::newVar(const char *name, QoreParseTypeInfo *typeInfo) {
    Var *var = new Var(name, typeInfo);
    vmap[var->getName()] = var;
    
-   printd(5, "GlobalVariableList::newVar(): %s (%08p) added\n", name, var);
+   printd(5, "GlobalVariableList::newVar(): %s (%08p) added (parseType %s)\n", name, var, typeInfo->getName());
+   return var;
+}
+
+Var *GlobalVariableList::newVar(const char *name, const QoreTypeInfo *typeInfo) {
+   Var *var = new Var(name, typeInfo);
+   vmap[var->getName()] = var;
+   
+   printd(5, "GlobalVariableList::newVar(): %s (%08p) added (resolved type %s)\n", name, var, typeInfo->getName());
    return var;
 }
 
@@ -116,6 +124,26 @@ Var *GlobalVariableList::checkVar(const char *name, QoreParseTypeInfo *typeInfo,
       var->parseCheckAssignType(typeInfo);
 
    return var;
+}
+
+// used for resolving unflagged global variables
+Var *GlobalVariableList::checkVar(const char *name, const QoreTypeInfo *typeInfo, int *new_var) {
+   QORE_TRACE("GlobalVariableList::checkVar()");
+   Var *var;
+
+   if (!(var = findVar(name))) {
+      *new_var = 1;
+      var = newVar(name, typeInfo);
+   }
+   else // check if a new type has been declared for this global variable
+      var->checkAssignType(typeInfo);
+
+   return var;
+}
+
+void GlobalVariableList::parseInit() {
+   for (map_var_t::iterator i = vmap.begin(); i != vmap.end(); i++)
+      i->second->parseInit();
 }
 
 QoreListNode *GlobalVariableList::getVarList() const {

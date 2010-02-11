@@ -439,7 +439,7 @@ public:
    DLLLOCAL void addStatement(AbstractStatement *s);
    DLLLOCAL Var *findGlobalVar(const char *name);
    DLLLOCAL const Var *findGlobalVar(const char *name) const;
-   DLLLOCAL Var *checkGlobalVar(const char *name, QoreParseTypeInfo *typeInfo);
+   DLLLOCAL Var *checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
    DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
    DLLLOCAL void makeParseException(const char *err, QoreStringNode *desc);
    DLLLOCAL void makeParseException(int sline, int eline, QoreStringNode *desc);

@@ -363,6 +363,9 @@ struct qore_program_private {
 	    // note: sb_tail->statements may be 0
 	    sb_tail->statements->parseInitTopLevel(RootNS, &user_func_list, sb_head == sb_tail);
 
+	    // initialize all new global variables (resolve types)
+	    global_var_list.parseInit();
+
 	    printd(5, "QoreProgram::internParseCommit() this=%08p RootNS=%08p\n", pgm, RootNS);
 	 }
 	 
@@ -711,7 +714,7 @@ const Var *QoreProgram::findGlobalVar(const char *name) const {
    return priv->global_var_list.findVar(name);
 }
 
-Var *QoreProgram::checkGlobalVar(const char *name, QoreParseTypeInfo *typeInfo) {
+Var *QoreProgram::checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo) {
    int new_var = 0;
    Var *rv = priv->global_var_list.checkVar(name, typeInfo, &new_var);
    if (new_var) {

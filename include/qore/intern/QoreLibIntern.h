@@ -55,7 +55,7 @@ DLLLOCAL bool parseCheckPrivateClassAccess(const QoreClass *testClass);
 DLLLOCAL bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass);
 
 // processes parameter information
-DLLLOCAL void qore_process_params(unsigned num_params, const QoreTypeInfo **&typeList, const AbstractQoreNode **&defaultArgList, va_list args);
+DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX

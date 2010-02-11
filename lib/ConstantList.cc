@@ -62,7 +62,7 @@ void ConstantList::add(const char *name, AbstractQoreNode *value, const QoreType
       return;
    }
 
-   hm[strdup(name)] = ConstantEntry(value, typeInfo ? typeInfo : getTypeInfoForValue(value));
+   hm[strdup(name)] = ConstantEntry(value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value));
 }
 
 AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo) {

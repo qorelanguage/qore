@@ -54,35 +54,40 @@ const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo
    ;
 
+const QoreTypeInfo *getTypeInfoForType(qore_type_t t) {
+   switch (t) {
+      case NT_INT:
+	 return bigIntTypeInfo;
+      case NT_STRING:
+	 return stringTypeInfo;
+      case NT_BOOLEAN:
+	 return boolTypeInfo;
+      case NT_FLOAT:
+	 return floatTypeInfo;
+      case NT_BINARY:
+	 return binaryTypeInfo;
+      case NT_LIST:
+	 return listTypeInfo;
+      case NT_HASH:
+	 return hashTypeInfo;
+      case NT_OBJECT:
+	 return objectTypeInfo;
+      case NT_DATE:
+	 return dateTypeInfo;
+      case NT_NULL:
+	 return nullTypeInfo;
+      case NT_NOTHING:
+	 return nothingTypeInfo;
+   }
+   printd(0, "getTypeInfoForValue() %d not found\n", t);
+   assert(false);
+   return 0;
+}
+
 const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n) {
    qore_type_t t = n ? n->getType() : NT_NOTHING;
-   if (t != NT_OBJECT) {
-      switch (t) {
-	 case NT_INT:
-	    return bigIntTypeInfo;
-	 case NT_STRING:
-	    return stringTypeInfo;
-	 case NT_BOOLEAN:
-	    return boolTypeInfo;
-	 case NT_FLOAT:
-	    return floatTypeInfo;
-	 case NT_BINARY:
-	    return binaryTypeInfo;
-	 case NT_LIST:
-	    return listTypeInfo;
-	 case NT_HASH:
-	    return hashTypeInfo;
-	 case NT_DATE:
-	    return dateTypeInfo;
-	 case NT_NULL:
-	    return nullTypeInfo;
-	 case NT_NOTHING:
-	    return nothingTypeInfo;
-	 default:
-	    //printd(5, "getTypeInfoForValue() %s %d not found\n", n->getTypeName(), n->getType());
-	    return 0;
-      }
-   }
+   if (t != NT_OBJECT)
+      return getTypeInfoForType(t);
    return reinterpret_cast<const QoreObject *>(n)->getClass()->getTypeInfo();
 }
 
@@ -184,13 +189,20 @@ const char *getBuiltinTypeName(qore_type_t type) {
    return "<unknown>";
 }
 
-void QoreParseTypeInfo::resolve() {
+const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
+   if (!this)
+      return 0;
+
    if (cscope) {
       // resolve class
       qc = getRootNS()->parseFindScopedClass(cscope);
       delete cscope;
       cscope = 0;
    }
+
+   const QoreTypeInfo *rv = qc ? qc->getTypeInfo() : getTypeInfoForType(qt);
+   delete this;
+   return rv;
 }
 
 int QoreTypeInfo::checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_error) const {

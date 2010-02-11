@@ -49,6 +49,12 @@ VarStackPointerClosureHelper::~VarStackPointerClosureHelper() {
    orig->skip = false;
 }
 
+VarValue::VarValue(Var *n_refptr, bool n_readonly) {
+   ivar.refptr = n_refptr;
+   ivar.readonly = n_readonly;
+   ivar.refptr->ROreference();
+}
+
 void Var::del(ExceptionSink *xsink) {
    if (type == GV_IMPORT) {
       printd(4, "Var::~Var() refptr=%p\n", v.ivar.refptr);

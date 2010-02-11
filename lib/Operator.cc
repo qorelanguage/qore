@@ -3506,23 +3506,25 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
       
       ri.parseInit(argInfo);
 
-      if (!prototypeInfo->parseEqual(argInfo)) {
-	 // raise an exception only if parse exceptions are not disabled
-	 if (getProgram()->getParseExceptionSink()) {
+      if (prototypeInfo->hasType()) {
+	 if (!prototypeInfo->parseEqual(argInfo)) {
+	    // raise an exception only if parse exceptions are not disabled
+	    if (getProgram()->getParseExceptionSink()) {
+	       QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
+	       desc->sprintf("%d of list assignment expects ", li.index() + 1);
+	       prototypeInfo->getThisType(*desc);
+	       desc->concat(", but right-hand side is ");
+	       argInfo->getThisType(*desc);
+	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    }
+	 }
+	 else if (prototypeInfo->getType() == NT_OBJECT && ri.noArgument() && getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
 	    desc->sprintf("%d of list assignment expects ", li.index() + 1);
 	    prototypeInfo->getThisType(*desc);
-	    desc->concat(", but right-hand side is ");
-	    argInfo->getThisType(*desc);
+	    desc->concat(", but no value is given on the right-hand side");
 	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	 }
-      }
-      else if (prototypeInfo->mustBeAssigned() && ri.noArgument() && getProgram()->getParseExceptionSink()) {
-	 QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
-	 desc->sprintf("%d of list assignment expects ", li.index() + 1);
-	 prototypeInfo->getThisType(*desc);
-	 desc->concat(", but no value is given on the right-hand side");
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
       }
    }
 

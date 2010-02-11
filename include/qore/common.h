@@ -30,6 +30,7 @@
 
 #include <string.h>
 #include <strings.h>
+#include <stdarg.h>
 
 #include <string>
 #include <functional>
@@ -37,6 +38,7 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include <set>
 
 //! used to identify unique Qore data and parse types (descendents of AbstractQoreNode)
 typedef short qore_type_t;
@@ -83,6 +85,10 @@ class QoreListNode;
 class ExceptionSink;
 class QoreObject;
 class AbstractPrivateData;
+class QoreMethod;
+class QoreBuiltinMethod;
+class QoreClass;
+class QoreTypeInfo;
 
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void> {
@@ -148,16 +154,15 @@ class cstr_vector_t : public std::vector<char *> {
    }
 };
 
-#include <set>
+//! vector of type information for parameter lists 
+typedef std::vector<const QoreTypeInfo *> type_vec_t;
+
+//! vector of value information for default argument lists
+typedef std::vector<AbstractQoreNode *> arg_vec_t;
+
 typedef std::set<char *, ltstr> strset_t;
 
 typedef long long int64;
-
-#include <stdarg.h>
-
-class QoreMethod;
-class QoreBuiltinMethod;
-class QoreClass;
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access

@@ -53,14 +53,16 @@ BuiltinFunctionList builtinFunctions;
 
 typedef std::map<const char*, BuiltinFunction *, class ltstr> hm_bf_t;
 
-void qore_process_params(unsigned num_params, const QoreTypeInfo **&typeList, const AbstractQoreNode **&defaultArgList, va_list args) {
-   typeList = new const QoreTypeInfo *[num_params];
-   defaultArgList = new const AbstractQoreNode *[num_params];
+void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args) {
+   typeList.reserve(num_params);
+   defaultArgList.reserve(num_params);
    for (unsigned i = 0; i < num_params; ++i) {
-      typeList[i] = va_arg(args, const QoreTypeInfo *);
-      defaultArgList[i] = va_arg(args, const AbstractQoreNode *);
-      // DEBUG: for now we cannot accept default argument values
+      typeList.push_back(va_arg(args, const QoreTypeInfo *));
+      defaultArgList.push_back(va_arg(args, AbstractQoreNode *));
+
       //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
+
+      // DEBUG: for now we cannot accept default argument values
       assert(!defaultArgList[i]);
    }
 }
@@ -104,16 +106,16 @@ public:
    }
 
    void add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
-      const QoreTypeInfo **typeList = 0;
-      const AbstractQoreNode **defaultArgList = 0;
+      type_vec_t typeList;
+      arg_vec_t defaultArgList;
       if (num_params)
 	 qore_process_params(num_params, typeList, defaultArgList, args);
 
-      add_intern(name, new BuiltinFunctionVariant(f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
+      add_intern(name, new BuiltinFunctionVariant(f, functional_domain, returnTypeInfo, typeList, defaultArgList));
    }
 
-   void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-      add_intern(name, new BuiltinFunctionVariant(f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList));
+   void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList, const arg_vec_t &defaultArgList) {
+      add_intern(name, new BuiltinFunctionVariant(f, functional_domain, returnTypeInfo, typeList, defaultArgList));
    }
 
    DLLLOCAL void clear() {
@@ -181,8 +183,8 @@ void BuiltinFunctionList::add2(const char *name, q_func_t f, int functional_doma
    va_end(args);
 }
 
-void BuiltinFunctionList::add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   bfl.add3(name, f, functional_domain, returnTypeInfo, num_params, typeList, defaultArgList);
+void BuiltinFunctionList::add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList, const arg_vec_t &defaultArgList) {
+   bfl.add3(name, f, functional_domain, returnTypeInfo, typeList, defaultArgList);
 }
 
 void BuiltinFunctionList::clear() {

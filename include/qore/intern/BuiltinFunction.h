@@ -24,43 +24,29 @@
 
 #define _QORE_BUILTINFUNCTION_H
 
+#include <vector>
+
 class BCList;
 class BCEAList;
 
 class BuiltinSignature : public AbstractFunctionSignature {
 public:
-   const QoreTypeInfo **typeList;
-   const QoreTypeInfo *returnTypeInfo;
-   const AbstractQoreNode **defaultArgList;
-
-   DLLLOCAL BuiltinSignature(const QoreTypeInfo *n_returnTypeInfo, unsigned n_num_params, const QoreTypeInfo **n_typeList, const AbstractQoreNode **n_defaultArgList) : AbstractFunctionSignature(n_num_params), typeList(n_typeList), returnTypeInfo(n_returnTypeInfo), defaultArgList(n_defaultArgList) {
-      for (unsigned i = 0; i < num_params; ++i) {
+   DLLLOCAL BuiltinSignature(const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList) {
+      for (unsigned i = 0; i < typeList.size(); ++i) {
 	 if (typeList[i])
 	    ++num_param_types;
 
 	 typeList[i]->concatName(str);
 
 	 // add a comma to the signature string if it's not the last parameter
-	 if (i != ((unsigned)(num_params - 1)))
+	 if (i != (typeList.size() - 1))
 	    str.append(", ");
       }
    }
    DLLLOCAL virtual ~BuiltinSignature() {
-      delete [] typeList;
-      delete [] defaultArgList;
-   }
-   DLLLOCAL virtual void resolve() {}
-   DLLLOCAL virtual const QoreTypeInfo *getParamTypeInfoImpl(unsigned num) const {
-      return typeList[num];
    }
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
       return returnTypeInfo;
-   }
-   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
-      return returnTypeInfo;
-   }
-   DLLLOCAL virtual const AbstractQoreNode **getDefaultArgList() const {
-      return defaultArgList;
    }
 };
 
@@ -68,8 +54,8 @@ public:
 #define COMMON_BUILTIN_VARIANT_FUNCTIONS DLLLOCAL virtual qore_call_t getCallType() const { return CT_BUILTIN; } \
    DLLLOCAL virtual int getFunctionality() const { return functionality; } \
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const { return const_cast<BuiltinSignature *>(&signature); } \
-   DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const { return signature.returnTypeInfo; } \
-   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const { return signature.returnTypeInfo; } \
+   DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const { return signature.getReturnTypeInfo(); } \
+   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const { return signature.getReturnTypeInfo(); } \
    DLLLOCAL virtual UserVariantBase *getUserVariantBase() { return 0; }
 
 class BuiltinFunctionVariantBase {
@@ -78,8 +64,8 @@ public:
    // functionality bitmap for parse restrictions
    int functionality;
 
-   DLLLOCAL BuiltinFunctionVariantBase(int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) :
-      signature(n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), functionality(n_functionality) {
+   DLLLOCAL BuiltinFunctionVariantBase(int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) :
+      signature(n_returnTypeInfo, n_typeList, n_defaultArgList), functionality(n_functionality) {
    }
 };
 
@@ -88,7 +74,7 @@ protected:
    q_func_t func;
 
 public:
-   DLLLOCAL BuiltinFunctionVariant(q_func_t m, int n_functionality, const QoreTypeInfo *n_returnTypeInfo = 0, unsigned n_num_params = 0, const QoreTypeInfo **n_typeList = 0, const AbstractQoreNode **n_defaultArgList = 0) : BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_num_params, n_typeList, n_defaultArgList), func(m) {
+   DLLLOCAL BuiltinFunctionVariant(q_func_t m, int n_functionality, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList), func(m) {
    }
 
    // the following defines the pure virtual functions that are common to all builtin variants

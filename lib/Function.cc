@@ -33,9 +33,9 @@ static inline void duplicateSignatureException(const char *name, UserVariantBase
 }
 
 UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo) : 
-   AbstractFunctionSignature(0), returnTypeInfo(n_returnTypeInfo), 
+   parseReturnTypeInfo(n_returnTypeInfo), 
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
-   names(0), typeList(0), lv(0), argvid(0), selfid(0), resolved(false) {
+   lv(0), argvid(0), selfid(0), resolved(false) {
    if (!params) {
       str = NO_TYPE_INFO;
       return;
@@ -44,7 +44,7 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
             
    if (params->getType() == NT_VARREF) {
-      setSingleParamIntern(reinterpret_cast<VarRefNode *>(params));
+      pushParam(reinterpret_cast<VarRefNode *>(params));
       return;
    }
 
@@ -55,37 +55,34 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(params);
 
-   num_params = l->size();
-   names = new char *[num_params];
-   typeList = new QoreParseTypeInfo *[num_params];
-   for (unsigned i = 0; i < num_params; i++) {
-      AbstractQoreNode *n = l->retrieve_entry(i);
+   parseTypeList.reserve(l->size());
+   ListIterator li(l);
+   while (li.next()) {
+      AbstractQoreNode *n = li.getValue();
       qore_type_t t = n ? n->getType() : 0;
       if (t != NT_VARREF) {
 	 if (n)
 	    param_error();
-	 num_params = 0;
-	 delete [] names;
-	 names = 0;
-	 delete [] typeList;
-	 typeList = 0;
 	 break;
       }
 	 
-      assignParam(i, reinterpret_cast<VarRefNode *>(n));
+      pushParam(reinterpret_cast<VarRefNode *>(n));
       // add a comma to the signature string if it's not the last parameter
-      if (i != (unsigned)(num_params - 1))
+      if (!li.last())
 	 str.append(", ");
-      //printd(5, "UserSignature::UserSignature() this=%p i=%d %s typelist[%d]=%p has_type=%d type=%d class=%s\n", this, i, names[i], i, typeList[i], typeList[i] ? typeList[i]->hasType() : 0, typeList[i] ? typeList[i]->qt : 0, typeList[i] && typeList[i]->qc ? typeList[i]->qc->getName() : "n/a");
    }
 }
 
-void UserSignature::assignParam(int i, VarRefNode *v) {
-   names[i] = strdup(v->getName());
-   typeList[i] = v->takeTypeInfo();
-   if (typeList[i]->hasType())
+void UserSignature::pushParam(VarRefNode *v) {
+   names.push_back(v->getName());
+
+   QoreParseTypeInfo *pti = v->takeTypeInfo();
+   parseTypeList.push_back(pti);
+   if (pti->hasType())
       ++num_param_types;
-   typeList[i]->concatName(str);
+
+   // add type name to signature
+   pti->concatName(str);
 
    if (v->getType() == VT_LOCAL)
       parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
@@ -94,7 +91,7 @@ void UserSignature::assignParam(int i, VarRefNode *v) {
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
-   lv = num_params ? new lvar_ptr_t[num_params] : 0;
+   lv.reserve(parseTypeList.size());
 
    if (selfid)
       push_self_var(selfid);
@@ -106,17 +103,17 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
    argvid = push_local_var("argv", 0, false);
    printd(5, "UserSignature::parseInitPushLocalVars() this=%p argvid=%p\n", this, argvid);
 
+   resolve();
+
    // init param ids and push local param vars on stack
-   for (unsigned i = 0; i < num_params; ++i) {
-      lv[i] = push_local_var(names[i], typeList[i]);
-      if (typeList[i])
-	 typeList[i]->resolve();
-      printd(3, "UserSignature::parseInitPushLocalVars() registered local var %s (id=%p)\n", names[i], lv[i]);
+   for (unsigned i = 0; i < typeList.size(); ++i) {
+      lv.push_back(push_local_var(names[i].c_str(), typeList[i]));
+      printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id=%p)\n", names[i].c_str(), lv[i]);
    }
 }
 
 void UserSignature::parseInitPopLocalVars() {
-   for (unsigned i = 0; i < num_params; i++)
+   for (unsigned i = 0; i < typeList.size(); ++i)
       pop_local_var();
    
    // pop $argv param off stack
@@ -138,7 +135,7 @@ bool AbstractQoreFunction::existsVariant(unsigned p_num_params, const QoreTypeIn
 	 return true;
       bool ok = true;
       for (unsigned pi = 0; pi < np; ++pi) {
-	 if (!paramTypeInfo[pi]->checkIdentical(sig->getParamTypeInfoImpl(pi))) {
+	 if (!paramTypeInfo[pi]->checkIdentical(sig->getParamTypeInfo(pi))) {
 	    ok = false;
 	    break;
 	 }
@@ -183,8 +180,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 
       //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d)\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0);
 
-      // skip variants with signatures with fewer elements than the best match already
-      if (!variant || sig->numParams() > match) {
+      // skip variants with signatures with fewer possible elements than the best match already
+      if (!variant || (sig->numParams() * 2) > match) {
 	 if (!sig->numParams()) {
 	    variant = *i;
 	    continue;
@@ -192,7 +189,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 unsigned count = 0;
 	 bool ok = true;
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
-	    const QoreTypeInfo *t = sig->getParamTypeInfoImpl(pi);
+	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const AbstractQoreNode *n = args ? args->retrieve_entry(pi) : 0;
 	    int rc = t->testTypeCompatibility(n);
 	    if (rc == QTI_NOT_EQUAL) {
@@ -227,12 +224,6 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	    desc->sprintf("%s::", class_name);
 	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
       }
-      for (vlist_t::const_iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-	 desc->concat("\n   ");
-	 if (class_name)
-	    desc->sprintf("%s::", class_name);
-	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
-      }
 
       xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
    }
@@ -261,8 +252,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
    for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       AbstractFunctionSignature *sig = (*i)->getSignature();
 
-      // skip variants with signatures with fewer elements than the best match already
-      if (!variant || sig->numParams() > match) {
+      // skip variants with signatures with fewer possible elements than the best match already
+      if (!variant || (sig->numParams() * 2) > match) {
 	 if (!sig->numParams()) {
 	    variant = *i;
 	    continue;
@@ -272,7 +263,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	 unsigned count = 0;
 	 bool ok = true;
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
-	    const QoreTypeInfo *t = sig->getParamTypeInfoImpl(pi);
+	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 	    if (t->hasType() && !a) {
 	       variant_missing_types = true;
@@ -321,8 +312,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
       // resolve types in signature if necessary
       sig->resolve();
 
-      // skip variants with signatures with fewer elements than the best match already
-      if (!variant || sig->numParams() > match) {
+      // skip variants with signatures with fewer possible elements than the best match already
+      if (!variant || (sig->numParams() * 2) > match) {
 	 if (!sig->numParams()) {
 	    variant = *i;
 	    //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() setting variant = %p from pending (0 params)\n", this, getName(), variant);
@@ -333,7 +324,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	 unsigned count = 0;
 	 bool ok = true;
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
-	    const QoreTypeInfo *t = sig->getParamTypeInfoImpl(pi);
+	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 	    if (t->hasType() && !a) {
 	       variant_missing_types = true;
@@ -461,7 +452,7 @@ void AbstractQoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant *varian
       }
       bool ok = false;
       for (unsigned pi = 0; pi < tp; ++pi) {
-	 if (vs->getParamTypeInfoImpl(pi) != sig->getParamTypeInfoImpl(pi)) {
+	 if (vs->getParamTypeInfo(pi) != sig->getParamTypeInfo(pi)) {
 	    ok = true;
 	    break;
 	 }
@@ -506,6 +497,7 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
    for (unsigned i = 0; i < num_params; ++i) {
       AbstractQoreNode *np = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       AbstractQoreNode *n = 0;
+      const QoreTypeInfo *paramTypeInfo = signature.getParamTypeInfo(i);
       printd(4, "UserVariantBase::setupArgs() eval %d: instantiating param lvar %d (%08p)\n", i, signature.lv[i], n);
       if (!is_nothing(np)) {
 	 if (np->getType() == NT_REFERENCE) {
@@ -513,7 +505,7 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    if (!*xsink) {
-	       n = signature.typeList[i]->checkTypeInstantiation(signature.names[i], n, xsink);
+	       n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), n, xsink);
 	       if (!*xsink)
 		  signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
 	    }
@@ -522,13 +514,13 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	    // here we will either take the reference from the unique list
 	    // or we reference for the variable instantiation
 	    zeroOrRefValue(const_cast<QoreListNode *>(args), i, np);
-	    n = signature.typeList[i]->checkTypeInstantiation(signature.names[i], np, xsink);
+	    n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), np, xsink);
 	    if (!*xsink)
 	       signature.lv[i]->instantiate(n);
 	 }
       }
       else {
-	 signature.typeList[i]->checkTypeInstantiation(signature.names[i], 0, xsink);
+	 paramTypeInfo->checkTypeInstantiation(signature.getName(i), 0, xsink);
 	 if (!*xsink)
 	    signature.lv[i]->instantiate(0);
       }
@@ -671,11 +663,14 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
 int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant) {
    // check for duplicate parameter signatures
    UserSignature *sig = variant->getUserSignature();
+   assert(!sig->resolved);
 
    unsigned vp = sig->getParamTypes();
    // first check pending variants
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       UserSignature *vs = reinterpret_cast<UserSignature *>((*i)->getSignature());
+      assert(!vs->resolved);
+
       // get number of parameters with type information
       unsigned tp = vs->getParamTypes();
       // shortcut: if the two variants have different numbers of parameters with type information, then they do not match
@@ -796,8 +791,10 @@ void UserClosureFunction::parseInitClosure(const QoreTypeInfo *classTypeInfo, lv
 }
 
 void UserFunctionVariant::parseInit() {
+   signature.resolve();
+
    // resolve and push current return type on stack
-   ReturnTypeInfoHelper rtih(signature.parseGetReturnTypeInfo());
+   ReturnTypeInfoHelper rtih(signature.getReturnTypeInfo());
    
    // can (and must) be called even if statements is NULL
    statements->parseInit(&signature);

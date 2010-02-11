@@ -72,8 +72,6 @@ public:
 
 class QoreTypeInfo : public AbstractQoreTypeInfo {
 protected:
-   bool must_be_assigned;
-
    DLLLOCAL int doTypeException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
@@ -186,9 +184,9 @@ protected:
 public:
    const QoreClass *qc;
 
-   DLLLOCAL QoreTypeInfo() : must_be_assigned(false), qc(0) {}
-   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : AbstractQoreTypeInfo(n_qt), must_be_assigned(false), qc(0) {}
-   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : AbstractQoreTypeInfo(NT_OBJECT), must_be_assigned(false), qc(n_qc) {}
+   DLLLOCAL QoreTypeInfo() : qc(0) {}
+   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : AbstractQoreTypeInfo(n_qt), qc(0) {}
+   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : AbstractQoreTypeInfo(NT_OBJECT), qc(n_qc) {}
    DLLLOCAL virtual ~QoreTypeInfo() {
    }
 
@@ -263,10 +261,6 @@ public:
 
    DLLLOCAL AbstractQoreNode *checkMemberTypeInstantiation(const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
       return checkTypeInstantiationIntern(true, param_name, n, xsink);
-   }
-
-   DLLLOCAL bool mustBeAssigned() const {
-      return this ? must_be_assigned : false;
    }
 
    // used when parsing user code to find duplicate signatures after types are resolved
@@ -416,13 +410,10 @@ public:
       return !typeInfo->cscope;
    }
 
-   DLLLOCAL void resolve();
+   // resolves the current type to a QoreTypeInfo pointer and deletes itself
+   DLLLOCAL const QoreTypeInfo *resolveAndDelete();
    DLLLOCAL bool needsResolving() const { 
       return cscope;
-   }
-   DLLLOCAL void setMustBeAssigned() { 
-      if (this && qt >= NT_OBJECT)
-	 must_be_assigned = true;
    }
 #ifdef DEBUG
    DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }
@@ -430,6 +421,8 @@ public:
    DLLLOCAL QoreParseTypeInfo *copy() const {
       if (!this)
 	 return 0;
+
+      assert(!cscope);
 
       if (qc)
 	 return new QoreParseTypeInfo(qc);
@@ -517,6 +510,9 @@ public:
 
 // returns the default value for any type >= 0 and < NT_OBJECT
 DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
+
+// returns type info for base types
+DLLLOCAL const QoreTypeInfo *getTypeInfoForType(qore_type_t t);
 // returns type info information for parse types (values)
 DLLLOCAL const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n);
 

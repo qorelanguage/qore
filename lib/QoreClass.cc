@@ -169,6 +169,8 @@ struct qore_class_private {
    DLLLOCAL void initialize() {
       if (!initialized) {
 	 initialized = true;
+
+	 assert(name);
 	 printd(5, "QoreClass::initialize() %s class=%p scl=%p\n", name, typeInfo->qc, scl);
 
 	 if (scl) {
@@ -196,11 +198,11 @@ struct qore_class_private {
    
 	 // check new members for conflicts in base classes
 	 for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
-	    parseCheckMemberInBaseClasses(i->first, i->second, true);
+	    parseCheckMemberInBaseClasses(i->first, i->second->parseHasTypeInfo(), true);
 	 }
 
 	 for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
-	    parseCheckMemberInBaseClasses(i->first, i->second, false);
+	    parseCheckMemberInBaseClasses(i->first, i->second->parseHasTypeInfo(), false);
 	 }
       }
    }
@@ -209,7 +211,8 @@ struct qore_class_private {
       const_cast<qore_class_private *>(this)->initialize();
 
       bool priv;
-      const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, priv);
+      bool member_has_type_info;
+      const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv);
       
       if (!sclass) {
 	 if (parseHasPublicMembersInHierarchy()) {
@@ -237,8 +240,9 @@ struct qore_class_private {
 
       // throws a parse exception if there are public members and the name is not valid
       bool priv;
+      bool member_has_type_info;
       const QoreTypeInfo *memberTypeInfo;
-      const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, priv);
+      const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv);
       if (!sclass && parseHasPublicMembersInHierarchy()) {
 	 parse_error("illegal access to unknown member '%s' (class has a public member list or inherited public member list)", mem);
 	 return -1;
@@ -253,7 +257,7 @@ struct qore_class_private {
       return scl ? scl->parseHasPublicMembersInHierarchy() : false;
    }
 
-   DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const {
+   DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
       bool found = false;
       member_map_t::const_iterator i = private_members.find(const_cast<char *>(mem));
       if (i != private_members.end())
@@ -265,7 +269,8 @@ struct qore_class_private {
       }
       if (found) {
 	 priv = true;
-	 memberTypeInfo = i->second;
+	 member_has_type_info = i->second->parseHasTypeInfo();
+	 memberTypeInfo = i->second->getTypeInfo();
 	 return typeInfo->qc;
       }
 
@@ -280,14 +285,15 @@ struct qore_class_private {
 
       if (found) {
 	 priv = false;
-	 memberTypeInfo = i->second;
+	 member_has_type_info = i->second->parseHasTypeInfo();
+	 memberTypeInfo = i->second->getTypeInfo();
 	 return typeInfo->qc;
       }
 
-      return scl ? scl->parseFindPublicPrivateMember(mem, memberTypeInfo, priv) : 0;
+      return scl ? scl->parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv) : 0;
    }
 
-   DLLLOCAL int checkExistingMember(char *mem, const QoreParseTypeInfo *memberTypeInfo, bool priv, const QoreClass *sclass, const QoreTypeInfo *existingMemberTypeInfo, bool is_priv) const {
+   DLLLOCAL int checkExistingMember(char *mem, bool decl_has_type_info, bool priv, const QoreClass *sclass, bool member_has_type_info, bool is_priv) const {
       //printd(5, "checkExistingMember() mem=%s priv=%d is_priv=%d sclass=%s\n", mem, priv, is_priv, sclass->getName());
 
       // here we know that the member already exists, so either it will be a
@@ -313,7 +319,7 @@ struct qore_class_private {
 	 }
 	 return -1;
       }
-      else if (memberTypeInfo || existingMemberTypeInfo) {
+      else if (decl_has_type_info || member_has_type_info) {
 	 if (getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode;
 	    desc->sprintf("%s member ", pubpriv(priv));
@@ -322,7 +328,7 @@ struct qore_class_private {
 	       desc->concat("this class");
 	    else
 	       desc->sprintf("base class '%s'", sclass->getName());
-	    if (existingMemberTypeInfo)
+	    if (member_has_type_info)
 	       desc->sprintf(" with a type definition");
 	    desc->concat(" and cannot be declared again");
 	    if (name)
@@ -337,28 +343,30 @@ struct qore_class_private {
       return 0;
    }
 
-   DLLLOCAL int parseCheckMember(char *mem, const QoreParseTypeInfo *memberTypeInfo, bool priv) const {
+   DLLLOCAL int parseCheckMember(char *mem, bool decl_has_type_info, bool priv) const {
+      const QoreTypeInfo *memberTypeInfo;
+      bool member_has_type_info;
       bool is_priv;
-      const QoreTypeInfo *existingMemberTypeInfo;
-      const QoreClass *sclass = parseFindPublicPrivateMember(mem, existingMemberTypeInfo, is_priv);
+      const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, is_priv);
       if (!sclass)
 	 return 0;
 
-      return checkExistingMember(mem, memberTypeInfo, priv, sclass, existingMemberTypeInfo, is_priv);
+      return checkExistingMember(mem, decl_has_type_info, priv, sclass, member_has_type_info, is_priv);
    }
 
-   DLLLOCAL int parseCheckMemberInBaseClasses(char *mem, const QoreParseTypeInfo *memberTypeInfo, bool priv) const {
+   DLLLOCAL int parseCheckMemberInBaseClasses(char *mem, bool decl_has_type_info, bool priv) const {
+      const QoreTypeInfo *memberTypeInfo;
+      bool member_has_type_info;
       bool is_priv;
-      const QoreTypeInfo *existingMemberTypeInfo;
-      const QoreClass *sclass = scl ? scl->parseFindPublicPrivateMember(mem, existingMemberTypeInfo, is_priv) : 0;
+      const QoreClass *sclass = scl ? scl->parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, is_priv) : 0;
       if (!sclass)
 	 return 0;
 
-      return checkExistingMember(mem, memberTypeInfo, priv, sclass, existingMemberTypeInfo, is_priv);
+      return checkExistingMember(mem, decl_has_type_info, priv, sclass, member_has_type_info, is_priv);
    }
 
    DLLLOCAL void parseAddPrivateMember(char *mem, QoreMemberInfo *memberInfo) {
-      if (!parseCheckMember(mem, memberInfo, true)) {
+      if (!parseCheckMember(mem, memberInfo->parseHasTypeInfo(), true)) {
 	 //printd(5, "QoreClass::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
 	 pending_private_members[mem] = memberInfo;
 	 return;
@@ -369,7 +377,7 @@ struct qore_class_private {
    }
 
    DLLLOCAL void parseAddPublicMember(char *mem, QoreMemberInfo *memberInfo) {
-      if (!parseCheckMember(mem, memberInfo, false)) {
+      if (!parseCheckMember(mem, memberInfo->parseHasTypeInfo(), false)) {
 	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name, mem, mem);
 	 pending_public_members[mem] = memberInfo;
 	 return;
@@ -424,14 +432,14 @@ struct qore_class_private {
 	       if (*xsink)
 		  return -1;
 	       // check types
-	       AbstractQoreNode *nv = i->second->checkMemberTypeInstantiation(i->first, *val, xsink);
+	       AbstractQoreNode *nv = i->second->getTypeInfo()->checkMemberTypeInstantiation(i->first, *val, xsink);
 	       if (*xsink)
 		  return -1;
 	       *v = nv;
 	       val.release();
 	    }
-	    else {
-	       *v = getDefaultValueForBuiltinValueType(i->second->getType());
+	    else if (i->second->getTypeInfo()) {
+	       *v = getDefaultValueForBuiltinValueType(i->second->getTypeInfo()->getType());
 	    }
 	 }
       } 
@@ -1048,10 +1056,10 @@ bool BCList::parseHasPublicMembersInHierarchy() const {
    return false;
 }
    
-const QoreClass *BCList::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&typeInfo, bool &priv) const {
+const QoreClass *BCList::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
-	 const QoreClass *qc = (*i)->sclass->parseFindPublicPrivateMember(mem, typeInfo, priv);
+	 const QoreClass *qc = (*i)->sclass->parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv);
 	 if (qc)
 	    return qc;
       }
@@ -2109,8 +2117,8 @@ void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag) {
 }
 
 void QoreClass::addMethodExtended(const char *nme, q_method_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   const QoreTypeInfo **typeList = 0;
-   const AbstractQoreNode **defaultArgList = 0;
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
@@ -2118,11 +2126,11 @@ void QoreClass::addMethodExtended(const char *nme, q_method_t m, bool priv_flag,
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
-void QoreClass::addMethodExtendedList(const char *nme, q_method_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
+void QoreClass::addMethodExtendedList(const char *nme, q_method_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // adds a builtin method with the new generic calling convention to the class (duplicate checking is made in debug mode and causes an abort)
@@ -2131,8 +2139,8 @@ void QoreClass::addMethod2(const char *nme, q_method2_t m, bool priv_flag) {
 }
 
 void QoreClass::addMethodExtended2(const char *nme, q_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   const QoreTypeInfo **typeList = 0;
-   const AbstractQoreNode **defaultArgList = 0;
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
@@ -2140,11 +2148,11 @@ void QoreClass::addMethodExtended2(const char *nme, q_method2_t m, bool priv_fla
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
-void QoreClass::addMethodExtendedList2(const char *nme, q_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
+void QoreClass::addMethodExtendedList2(const char *nme, q_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // adds a builtin static method to the class
@@ -2153,8 +2161,8 @@ void QoreClass::addStaticMethod2(const char *nme, q_static_method2_t m, bool pri
 }
 
 void QoreClass::addStaticMethodExtended2(const char *nme, q_static_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   const QoreTypeInfo **typeList = 0;
-   const AbstractQoreNode **defaultArgList = 0;
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
@@ -2162,11 +2170,11 @@ void QoreClass::addStaticMethodExtended2(const char *nme, q_static_method2_t m, 
       va_end(args);
    }
 
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
-void QoreClass::addStaticMethodExtendedList2(const char *nme, q_static_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
+void QoreClass::addStaticMethodExtendedList2(const char *nme, q_static_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // adds a builtin static method to the class
@@ -2175,8 +2183,8 @@ void QoreClass::addStaticMethod(const char *nme, q_func_t m, bool priv_flag) {
 }
 
 void QoreClass::addStaticMethodExtended(const char *nme, q_func_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
-   const QoreTypeInfo **typeList = 0;
-   const AbstractQoreNode **defaultArgList = 0;
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
@@ -2184,11 +2192,11 @@ void QoreClass::addStaticMethodExtended(const char *nme, q_func_t m, bool priv_f
       va_end(args);
    }
 
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
-void QoreClass::addStaticMethodExtendedList(const char *nme, q_func_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, domain, returnTypeInfo, num_params, typeList, defaultArgList));
+void QoreClass::addStaticMethodExtendedList(const char *nme, q_func_t m, bool priv_flag, int n_domain, const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, n_domain, n_returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
@@ -2197,19 +2205,19 @@ void QoreClass::setConstructor(q_constructor_t m) {
 }
 
 void QoreClass::setConstructorExtended(q_constructor_t m, bool priv_flag, int n_domain, unsigned num_params, ...) {
-   const QoreTypeInfo **typeList = 0;
-   const AbstractQoreNode **defaultArgList = 0;
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
       qore_process_params(num_params, typeList, defaultArgList, args);
       va_end(args);
    }
-   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_domain, num_params, typeList, defaultArgList));
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_domain, typeList, defaultArgList));
 }
 
-void QoreClass::setConstructorExtendedList(q_constructor_t m, bool priv_flag, int n_domain, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_domain, num_params, typeList, defaultArgList));
+void QoreClass::setConstructorExtendedList(q_constructor_t m, bool priv_flag, int n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_domain, n_typeList, n_defaultArgList));
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
@@ -2218,19 +2226,19 @@ void QoreClass::setConstructor2(q_constructor2_t m) {
 }
 
 void QoreClass::setConstructorExtended2(q_constructor2_t m, bool priv_flag, int n_domain, unsigned num_params, ...) {
-   const QoreTypeInfo **typeList = 0;
-   const AbstractQoreNode **defaultArgList = 0;
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
    if (num_params) {
       va_list args;
       va_start(args, num_params);
       qore_process_params(num_params, typeList, defaultArgList, args);
       va_end(args);
    }
-   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_domain, num_params, typeList, defaultArgList));
+   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_domain, typeList, defaultArgList));
 }
 
-void QoreClass::setConstructorExtendedList2(q_constructor2_t m, bool priv_flag, int n_domain, unsigned num_params, const QoreTypeInfo **typeList, const AbstractQoreNode **defaultArgList) {
-   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_domain, num_params, typeList, defaultArgList));
+void QoreClass::setConstructorExtendedList2(q_constructor2_t m, bool priv_flag, int n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_domain, n_typeList, n_defaultArgList));
 }
 
 // sets a builtin function as class destructor - no duplicate checking is made
@@ -2368,8 +2376,8 @@ int QoreClass::parseCheckInternalMemberAccess(const char *mem) const {
    return priv->parseCheckInternalMemberAccess(mem);
 }
 
-const QoreClass *QoreClass::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&typeInfo, bool &priv_member) const {
-   return priv->parseFindPublicPrivateMember(mem, typeInfo, priv_member);
+const QoreClass *QoreClass::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv_member) const {
+   return priv->parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv_member);
 }
 
 bool QoreClass::parseHasPublicMembersInHierarchy() const {
@@ -2494,6 +2502,7 @@ UserConstructorVariant::~UserConstructorVariant() {
 }
 
 void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl) {
+   signature.resolve();
    assert(!signature.getReturnTypeInfo());
 
    // push return type on stack (no return value can be used)
@@ -2534,6 +2543,8 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, Qor
 }
 
 void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
+   signature.resolve();
+
    // make sure there is max one parameter in the copy method      
    if (signature.numParams() > 1)
       parse_error("maximum of one parameter may be defined in class copy methods (%d defined); this parameter will be assigned to the old object when the method is executed", signature.numParams());
@@ -2546,21 +2557,22 @@ void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
    
    // see if there is a type specification for the sole parameter and make sure it matches the class if there is
    if (signature.numParams()) {
-      if (signature.typeList[0]) {
-	 if (!parent_class.getTypeInfo()->parseEqual(signature.typeList[0])) {
+      const QoreTypeInfo *typeInfo = signature.getParamTypeInfo(0);
+      if (typeInfo) {
+	 if (!parent_class.getTypeInfo()->parseEqual(typeInfo)) {
 	    // raise parse exception if parse exceptions have not been suppressed
 	    if (getProgram()->getParseExceptionSink()) {
 	       QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");
 	       parent_class.getTypeInfo()->getThisType(*desc);
 	       desc->concat(", but the object's parameter was defined expecting ");
-	       signature.typeList[0]->getThisType(*desc);
+	       typeInfo->getThisType(*desc);
 	       desc->concat(" instead");
 	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	    }
 	 }
       }
       else { // set to class' type
-	 signature.typeList[0] = new QoreParseTypeInfo(parent_class.getTypeInfo());
+	 signature.setFirstParamType(parent_class.getTypeInfo());
       }
    }
 }

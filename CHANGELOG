@@ -1,6 +1,8 @@
 2010.02.11: David Nichols
 	 * fine-tuned overload patching at parse and runtime to allow for more
 	   flexibility and automatic type conversions with partial matches
+	 * reimplemented parse type support and fixed bugs in the new
+	   implementation 
 
 2010.02.10: David Nichols
 	 * width updated object member initialization to allow references to

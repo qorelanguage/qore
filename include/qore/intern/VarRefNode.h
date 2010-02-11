@@ -47,8 +47,8 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   DLLLOCAL void resolve(QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
-   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, QoreParseTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
+   DLLLOCAL void resolve(const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
+   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
    
 public:
    union var_u {
@@ -90,33 +90,33 @@ public:
 
 class VarRefDeclNode : public VarRefNode {
 protected:
-   QoreParseTypeInfo *typeInfo;
+   QoreParseTypeInfo *parseTypeInfo;
+   const QoreTypeInfo *typeInfo;
 
 public:
-   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, qore_type_t n_qt) : VarRefNode(n, t), typeInfo(new QoreParseTypeInfo(n_qt)) {
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, qore_type_t n_qt) : VarRefNode(n, t), parseTypeInfo(new QoreParseTypeInfo(n_qt)) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
    // takes over ownership of class_name
-   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, char *class_name) : VarRefNode(n, t), typeInfo(new QoreParseTypeInfo(class_name)) {
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, char *class_name) : VarRefNode(n, t), parseTypeInfo(new QoreParseTypeInfo(class_name)) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s class=%s\n", typeInfo, n, class_name);
    }
    DLLLOCAL ~VarRefDeclNode() {
-      if (type != VT_GLOBAL)
-	 delete typeInfo;
+      delete parseTypeInfo;
    }
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual QoreParseTypeInfo *takeTypeInfo() { 
-      QoreParseTypeInfo *ti = typeInfo;
-      typeInfo = 0;
+      QoreParseTypeInfo *ti = parseTypeInfo;
+      parseTypeInfo = 0;
       return ti;
    }
    DLLLOCAL virtual QoreParseTypeInfo *getTypeInfo() {
-      return typeInfo;
+      return parseTypeInfo;
    }
    DLLLOCAL QoreParseTypeInfo *getParseTypeInfo() {
-      return typeInfo;
+      return parseTypeInfo;
    }
 };
 

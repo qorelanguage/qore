@@ -59,6 +59,11 @@ union VarValue {
       Var *refptr;
       bool readonly;
    } ivar;
+
+   DLLLOCAL VarValue(AbstractQoreNode *n_value) {
+      val.value = n_value;
+   }
+   DLLLOCAL VarValue(Var *n_refptr, bool n_readonly);
 };
 
 // structure for global variables
@@ -69,7 +74,8 @@ private:
    union VarValue v;
    std::string name;
    mutable QoreThreadLock m;
-   QoreParseTypeInfo *typeInfo;
+   QoreParseTypeInfo *parseTypeInfo;
+   const QoreTypeInfo *typeInfo;
 
    DLLLOCAL void del(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *evalIntern(ExceptionSink *xsink);
@@ -91,21 +97,19 @@ private:
    }
 
 protected:
-   DLLLOCAL ~Var() { delete typeInfo; }
+   DLLLOCAL ~Var() { delete parseTypeInfo; }
 
 public:
-   DLLLOCAL Var(const char *n_name) : type(GV_VALUE), name(n_name), typeInfo(0) {
-      v.val.value = 0;
+   DLLLOCAL Var(const char *n_name) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(0), typeInfo(0) {
    }
 
-   DLLLOCAL Var(const char *n_name, QoreParseTypeInfo *n_typeInfo) : type(GV_VALUE), name(n_name), typeInfo(n_typeInfo) {
-      assignInitialValue();
+   DLLLOCAL Var(const char *n_name, QoreParseTypeInfo *n_parseTypeInfo) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0) {
    }
 
-   DLLLOCAL Var(Var *ref, bool ro = false) : type(GV_IMPORT), name(ref->name), typeInfo(0) {
-      v.ivar.refptr = ref;
-      v.ivar.readonly = ro;
-      ref->ROreference();
+   DLLLOCAL Var(const char *n_name, const QoreTypeInfo *n_typeInfo) : type(GV_VALUE), v(0), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo) {
+   }
+
+   DLLLOCAL Var(Var *ref, bool ro = false) : type(GV_IMPORT), v(ref, ro), name(ref->name), parseTypeInfo(0), typeInfo(0) {
    }
 
    DLLLOCAL const char *getName() const;
@@ -117,9 +121,39 @@ public:
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl);
    DLLLOCAL AbstractQoreNode *getReferencedValue() const;
-   DLLLOCAL void parseCheckAssignType(QoreParseTypeInfo *n_typeInfo) {
-      std::auto_ptr<QoreParseTypeInfo> ti(n_typeInfo);
 
+   DLLLOCAL void doDoubleDeclarationError() {
+      // make sure types are identical or throw an exception
+      if (parseTypeInfo) {
+	 parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), parseTypeInfo->getName());
+	 assert(!typeInfo);
+      }
+      if (typeInfo) {
+	 parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), typeInfo->getName());
+	 assert(!parseTypeInfo);
+      }
+   }
+
+   DLLLOCAL void parseCheckAssignType(QoreParseTypeInfo *n_parseTypeInfo) {
+      std::auto_ptr<QoreParseTypeInfo> ti(n_parseTypeInfo);
+
+      //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
+      // it is safe to call QoreTypeInfo::hasType() when this is 0
+      if (!n_parseTypeInfo->hasType())
+	 return;
+
+      // here we know that n_typeInfo is not null
+      // if no previous type was declared, take the new type
+      if (parseTypeInfo || typeInfo) {
+	 doDoubleDeclarationError();
+	 return;
+      }
+
+      parseTypeInfo = ti.release();
+      assert(!v.val.value);
+   }
+
+   DLLLOCAL void checkAssignType(const QoreTypeInfo *n_typeInfo) {
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
       // it is safe to call QoreTypeInfo::hasType() when this is 0
       if (!n_typeInfo->hasType())
@@ -127,24 +161,29 @@ public:
 
       // here we know that n_typeInfo is not null
       // if no previous type was declared, take the new type
-      if (!typeInfo) {
-	 typeInfo = ti.release();
-	 assert(!v.val.value);
-	 assignInitialValue();
+      if (parseTypeInfo || typeInfo) {
+	 doDoubleDeclarationError();
 	 return;
       }
 
-      // make sure types are identical or throw an exception
-      if (!typeInfo->parseStageOneEqual(n_typeInfo))
-	 parse_error("global variable '%s' declared previously with an incompatible type", name.c_str());
+      typeInfo = n_typeInfo;
+      assert(!v.val.value);
+   }
+
+   DLLLOCAL void parseInit() {
+      if (parseTypeInfo) {
+	 typeInfo = parseTypeInfo->resolveAndDelete();
+	 parseTypeInfo = 0;
+      }
    }
 
    DLLLOCAL const QoreTypeInfo *parseGetTypeInfo() {
-      if (typeInfo) typeInfo->resolve();
+      parseInit();
       return typeInfo;
    }
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
+      assert(!parseTypeInfo);
       return typeInfo;
    }
 };
