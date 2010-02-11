@@ -48,6 +48,18 @@ protected:
       str.push_back('>');
    }
 
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      return false;
+   }
+
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      return QTI_NOT_EQUAL;
+   }
+
+   DLLLOCAL int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      return QTI_NOT_EQUAL;
+   }
+
 public:
    DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), has_type(true) {
    }
@@ -134,7 +146,33 @@ protected:
       return -1;
    }
 
-   DLLLOCAL AbstractQoreNode *checkTypeInstantiationIntern(bool obj, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
+   DLLLOCAL int checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_error) const;
+
+   DLLLOCAL AbstractQoreNode *checkTypeInstantiationIntern(bool obj, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+      bool priv_error = false;
+      if (!checkTypeInstantiationDefault(n, priv_error))
+	 return n;
+
+      // exceptions for builtin types here
+      if (qt == NT_FLOAT && n && n->getType() == NT_INT) {
+	 QoreFloatNode *f = new QoreFloatNode(n->getAsFloat());
+	 n->deref(xsink);
+	 return f;
+      }
+
+      //printd(0, "QoreTypeInfo::checkTypeInstantiationIntern() this=%p %s n=%p %s\n", this, getName(), n, n ? n->getTypeName() : "NOTHING");
+      if (!checkTypeInstantiationImpl(n, xsink)) {
+	 if (priv_error) {
+	    if (obj) doObjectPrivateClassException(param_name, n, xsink);
+	    else doPrivateClassException(param_name, n, xsink);
+	 }
+	 else {
+	    if (obj) doObjectTypeException(param_name, n, xsink);
+	    else doTypeException(param_name, n, xsink);
+	 }
+      }
+      return n;
+   }
 
    DLLLOCAL virtual const char *getNameImpl() const {
       return qc ? qc->getName() : getBuiltinTypeName(qt);
@@ -191,7 +229,12 @@ public:
    //  QTI_AMBIGUOUS  if the prototype can accept the given type
    //  QTI_NOT_EQUAL  if the prototype cannot accept the given type
    // false if otherwise
-   DLLLOCAL int parseEqual(const QoreTypeInfo *typeInfo) const;
+   DLLLOCAL int parseEqualDefault(const QoreTypeInfo *typeInfo) const;
+
+   DLLLOCAL int parseEqual(const QoreTypeInfo *typeInfo) const {
+      int rc = parseEqualDefault(typeInfo);
+      return rc == QTI_NOT_EQUAL ? parseEqualImpl(typeInfo) : rc;
+   }
 
    // can be called when this == null
    DLLLOCAL bool hasType() const { return this ? has_type : false; }
@@ -205,7 +248,12 @@ public:
    }
 
    // returns QTI_IDENT for perfect match, QTI_AMBIGUOUS for an acceptible match, QTI_NOT_EQUAL for no match, "this" is the parameter type, n is the argument
-   DLLLOCAL int testTypeCompatibility(const AbstractQoreNode *n) const;
+   DLLLOCAL int testTypeCompatibilityDefault(const AbstractQoreNode *n) const;
+
+   DLLLOCAL int testTypeCompatibility(const AbstractQoreNode *n) const {
+      int rc = testTypeCompatibilityDefault(n);
+      return rc == QTI_NOT_EQUAL ? testTypeCompatibilityDefault(n) : rc;
+   }
    
    DLLLOCAL AbstractQoreNode *checkType(AbstractQoreNode *n, ExceptionSink *xsink) const {
       return checkTypeInstantiation(0, n, xsink);
@@ -224,30 +272,30 @@ public:
    }
 
    // used when parsing user code to find duplicate signatures after types are resolved
-   DLLLOCAL int checkIdentical(const QoreTypeInfo *typeInfo) const {
+   DLLLOCAL bool checkIdentical(const QoreTypeInfo *typeInfo) const {
       bool thisnt = (!this || !has_type);
       bool typent = (!typeInfo || !typeInfo->has_type);
 
       if (thisnt && typent)
-	 return QTI_IDENT;
+	 return true;
 
       if (thisnt || typent)
-	 return QTI_NOT_EQUAL;
+	 return false;
 
       // from this point on, we know that both have types
       if (qt != typeInfo->qt)
-	 return QTI_NOT_EQUAL;
+	 return false;
 
       // both types are identical
       if (qt != NT_OBJECT)
-	 return QTI_IDENT;
+	 return true;
 
       if (qc) {
 	 if (!typeInfo->qc)
-	    return QTI_AMBIGUOUS;
-	 return qc == typeInfo->qc ? QTI_IDENT : QTI_NOT_EQUAL;
+	    return false;
+	 return qc == typeInfo->qc;
       }
-      return typeInfo->qc ? QTI_AMBIGUOUS : QTI_IDENT;
+      return !typeInfo->qc;
    }
 
 #ifdef DEBUG
@@ -313,58 +361,61 @@ public:
    }
 
    // used when parsing user code to find duplicate signatures
-   DLLLOCAL int parseStageOneIdenticalWithParsed(const QoreTypeInfo *typeInfo) const {
+   DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo *typeInfo, bool &recheck) const {
       bool thisnt = (!this || !has_type);
       bool typent = (!typeInfo || !typeInfo->hasType());
 
       if (thisnt && typent)
-	 return QTI_IDENT;
+	 return true;
 
       if (thisnt || typent)
-	 return QTI_NOT_EQUAL;
+	 return false;
 
       // from this point on, we know that both have types
       if (qt != typeInfo->getType())
-	 return QTI_NOT_EQUAL;
+	 return false;
 
       // both types are identical
       if (qt != NT_OBJECT)
-	 return QTI_IDENT;
+	 return true;
 
       if (cscope) {
 	 if (!typeInfo->qc)
-	    return QTI_AMBIGUOUS;
+	    return false;
 	 // both have class info
-	 return strcmp(cscope->getIdentifier(), qc->getName()) ? QTI_RECHECK : QTI_NOT_EQUAL;
+	 if (!strcmp(cscope->getIdentifier(), qc->getName()))
+	    return recheck = true;
+	 else
+	    return false;
       }
-      return typeInfo->qc ? QTI_AMBIGUOUS : QTI_IDENT;
+      return !typeInfo->qc;
    }
 
    // used when parsing user code to find duplicate signatures
-   DLLLOCAL int parseStageOneIdentical(const QoreParseTypeInfo *typeInfo) const {
+   DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo *typeInfo) const {
       bool thisnt = (!this || !has_type);
       bool typent = (!typeInfo || !typeInfo->has_type);
 
       if (thisnt && typent)
-	 return QTI_IDENT;
+	 return true;
 
       if (thisnt || typent)
-	 return QTI_NOT_EQUAL;
+	 return false;
 
       // from this point on, we know that both have types
       if (qt != typeInfo->qt)
-	 return QTI_NOT_EQUAL;
+	 return false;
 
       // both types are identical
       if (qt != NT_OBJECT)
-	 return QTI_IDENT;
+	 return true;
 
       if (cscope) {
 	 if (!typeInfo->cscope)
-	    return QTI_AMBIGUOUS;
-	 return strcmp(cscope->ostr, typeInfo->cscope->ostr) ? QTI_NOT_EQUAL : QTI_IDENT;
+	    return false;
+	 return !strcmp(cscope->ostr, typeInfo->cscope->ostr);
       }
-      return typeInfo->cscope ? QTI_AMBIGUOUS : QTI_IDENT;
+      return !typeInfo->cscope;
    }
 
    DLLLOCAL void resolve();
@@ -389,6 +440,24 @@ public:
       return new QoreParseTypeInfo(qt);
    }
 };
+
+/*
+class FloatTypeInfo : public QoreTypeInfo {
+public:
+   DLLLOCAL FloatTypeInfo() : QoreTypeInfo(NT_FLOAT) {
+   }
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      //printd(0, "FloatTypeInfo::checkTypeInstantiationImpl() n=%p %s\n", n, n->getTypeName());
+      if (n->getType() != NT_INT)
+	 return false;
+
+      QoreFloatNode *f = new QoreFloatNode(reinterpret_cast<QoreBigIntNode *>(n)->val);
+      n->deref(xsink);
+      n = f;
+      return true;
+   }
+};
+*/
 
 class ExternalTypeInfo : public QoreTypeInfo {
 protected:

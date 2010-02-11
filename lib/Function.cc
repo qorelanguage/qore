@@ -29,7 +29,7 @@
 
 // FIXME: xxx add signature information, set parse location
 static inline void duplicateSignatureException(const char *name, UserVariantBase *uvb) {
-   parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared with the same or a compatible signature", name, uvb->getUserSignature()->getSignatureText());
+   parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared with this signature", name, uvb->getUserSignature()->getSignatureText());
 }
 
 UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo) : 
@@ -138,7 +138,7 @@ bool AbstractQoreFunction::existsVariant(unsigned p_num_params, const QoreTypeIn
 	 return true;
       bool ok = true;
       for (unsigned pi = 0; pi < np; ++pi) {
-	 if (paramTypeInfo[pi]->checkIdentical(sig->getParamTypeInfoImpl(pi)) == QTI_NOT_EQUAL) {
+	 if (!paramTypeInfo[pi]->checkIdentical(sig->getParamTypeInfoImpl(pi))) {
 	    ok = false;
 	    break;
 	 }
@@ -653,20 +653,12 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
 
       bool dup = true;
       unsigned max = QORE_MAX(tp, vp);
-      //bool ambiguous = false;
-      bool recheck = false;
       for (unsigned pi = 0; pi < max; ++pi) {
 	 // compare the unresolved type with resolved types in committed variants
-	 int rc = sig->getParseParamTypeInfo(pi)->checkIdentical(vs->getParamTypeInfo(pi));
-	 if (rc == QTI_NOT_EQUAL) {
-	    recheck = false;
+	 if (!sig->getParseParamTypeInfo(pi)->checkIdentical(vs->getParamTypeInfo(pi))) {
 	    dup = false;
 	    break;
 	 }
-	 /*
-	   if (rc == QTI_AMBIGUOUS)
-	   ambiguous = true;
-	 */
       }
       if (dup) {
 	 duplicateSignatureException(getName(), variant);
@@ -698,17 +690,11 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 
       bool dup = true;
       unsigned max = QORE_MAX(tp, vp);
-      //bool ambiguous = false;
       for (unsigned pi = 0; pi < max; ++pi) {
-	 int rc = sig->getParseParamTypeInfo(pi)->parseStageOneIdentical(vs->getParseParamTypeInfo(pi));
-	 if (rc == QTI_NOT_EQUAL) {
+	 if (!sig->getParseParamTypeInfo(pi)->parseStageOneIdentical(vs->getParseParamTypeInfo(pi))) {
 	    dup = false;
 	    break;
 	 }
-	 /*
-	   if (rc == QTI_AMBIGUOUS)
-	   ambiguous = true;
-	 */
       }
       if (dup) {
 	 duplicateSignatureException(getName(), variant);
@@ -734,25 +720,14 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 
       bool dup = true;
       unsigned max = QORE_MAX(tp, vp);
-      //bool ambiguous = false;
       bool recheck = false;
       for (unsigned pi = 0; pi < max; ++pi) {
 	 // compare the unresolved type with resolved types in committed variants
-	 int rc = sig->getParseParamTypeInfo(pi)->parseStageOneIdenticalWithParsed(uvsig->getParamTypeInfo(pi));
-	 // QTI_RECHECK means that the type needs to be rechecked after types are resolved
-	 if (rc == QTI_RECHECK) {
-	    recheck = true;
-	    continue;
-	 }
-	 if (rc == QTI_NOT_EQUAL) {
+	 if (!sig->getParseParamTypeInfo(pi)->parseStageOneIdenticalWithParsed(uvsig->getParamTypeInfo(pi), recheck)) {
 	    recheck = false;
 	    dup = false;
 	    break;
 	 }
-	 /*
-	   if (rc == QTI_AMBIGUOUS)
-	   ambiguous = true;
-	 */
       }
       if (dup) {
 	 duplicateSignatureException(getName(), variant);

@@ -193,63 +193,42 @@ void QoreParseTypeInfo::resolve() {
    }
 }
 
-AbstractQoreNode *QoreTypeInfo::checkTypeInstantiationIntern(bool obj, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+int QoreTypeInfo::checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_error) const {
    //printd(0, "QoreTypeInfo::checkTypeInstantiationIntern() this=%p has_type=%d (%s) n=%p (%s)\n", this, this ? has_type : 0, getName(), n, n ? n->getTypeName() : "NOTHING");
-   if (!this || !has_type) return n;
-   if (qt == NT_NOTHING && is_nothing(n)) return n;
-   if (is_nothing(n)) {
-      if (obj) doObjectTypeException(param_name, n, xsink);
-      else doTypeException(param_name, n, xsink);
-      return n;
-   }
-      
+   if (!this || !has_type) return 0;
+   if (qt == NT_NOTHING && is_nothing(n)) return 0;
+   if (is_nothing(n))
+      return -1;
+
+   qore_type_t t = n->getType();
+
+   if (qt != t)
+      return -1;
+
    // from here on we know n != 0
    if (qt == NT_OBJECT) {
-      if (n->getType() != NT_OBJECT) {
-	 if (obj) doObjectTypeException(param_name, n, xsink);
-	 else doTypeException(param_name, n, xsink);
-	 return n;
-      }
-
       if (!qc)
-	 return n;
+	 return 0;
 
       bool priv;
       if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
 	 if (!priv)
-	    return n;
+	    return 0;
 
 	 // check private access
 	 if (!runtimeCheckPrivateClassAccess(qc))
-	    return n;
+	    return 0;
 
-	 if (obj) doObjectPrivateClassException(param_name, n, xsink);
-	 else doPrivateClassException(param_name, n, xsink);
-	 return n;
+	 priv_error = true;
       }
 
-      if (obj) doObjectTypeException(param_name, n, xsink);
-      else doTypeException(param_name, n, xsink);
-   }
-   qore_type_t t = n->getType();
-
-   if (t == qt)
-      return n;
-
-   // exceptions here
-   if (qt == NT_FLOAT && t == NT_INT) {
-      QoreFloatNode *rv = new QoreFloatNode(n->getAsFloat());
-      n->deref(xsink);
-      return rv;
+      return -1;
    }
 
-   if (obj) doObjectTypeException(param_name, n, xsink);
-   else doTypeException(param_name, n, xsink);
-
-   return n;
+   return 0;
 }
 
-int QoreTypeInfo::testTypeCompatibility(const AbstractQoreNode *n) const {
+int QoreTypeInfo::testTypeCompatibilityDefault(const AbstractQoreNode *n) const {
    if (!this || !has_type) return QTI_IDENT;
    if (qt == NT_NOTHING && is_nothing(n)) return QTI_IDENT;
    if (is_nothing(n))
@@ -277,17 +256,17 @@ int QoreTypeInfo::testTypeCompatibility(const AbstractQoreNode *n) const {
       return QTI_NOT_EQUAL;
    }
 
-   // exceptions here
-   if (qt == NT_FLOAT && t == NT_INT)
-      return QTI_AMBIGUOUS;
-
    if (t == qt)
       return QTI_IDENT;
+
+   // builtin exceptions here
+   if (qt == NT_FLOAT && t == NT_INT)
+      return QTI_AMBIGUOUS;
 
    return QTI_NOT_EQUAL;
 }
 
-int QoreTypeInfo::parseEqual(const QoreTypeInfo *typeInfo) const {
+int QoreTypeInfo::parseEqualDefault(const QoreTypeInfo *typeInfo) const {
    if (!this || !has_type || !typeInfo || !typeInfo->has_type)
       return QTI_IDENT;
 
@@ -301,12 +280,12 @@ int QoreTypeInfo::parseEqual(const QoreTypeInfo *typeInfo) const {
       return parseCheckCompatibleClass(qc, typeInfo->qc) ? QTI_IDENT : QTI_NOT_EQUAL;
    }
 
+   if (typeInfo->qt == qt)
+      return QTI_IDENT;
+
    // exceptions here
    if (qt == NT_FLOAT && typeInfo->qt == NT_INT)
       return QTI_AMBIGUOUS;
-
-   if (typeInfo->qt == qt)
-      return QTI_IDENT;
 
    return QTI_NOT_EQUAL;
 }
