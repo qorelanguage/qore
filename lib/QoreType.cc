@@ -147,6 +147,10 @@ QoreClass *AbstractQoreClassTypeInfoHelper::getClass() {
    return rv;
 }
 
+bool AbstractQoreClassTypeInfoHelper::hasClass() const {
+   return qc;
+}
+
 int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass) {
    const QoreClass *objectclass = obj->getClass();
    if (shouldbeclass == objectclass)
@@ -168,5 +172,9 @@ const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo) {
 
 qore_type_t typeInfoGetType(const QoreTypeInfo *typeInfo) {
    return typeInfo->getType();
+}
+
+const char *typeInfoGetName(const QoreTypeInfo *typeInfo) {
+   return typeInfo->getName();
 }
 

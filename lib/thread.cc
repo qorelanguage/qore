@@ -175,13 +175,16 @@ class ThreadLocalVariableData {
    public:
       DLLLOCAL ThreadLocalVariableData() {
 	 curr = new ThreadVariableBlock;
-	 //printf("this=%08p: first curr=%08p\n", this, curr);
+	 //printf("this=%p: first curr=%p\n", this, curr);
       }
 
       DLLLOCAL ~ThreadLocalVariableData() {
+#ifdef DEBUG
+	 if (curr->pos)
+	    printf("~ThreadLocalVariableData::~~ThreadLocalVariableData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
+#endif
 	 assert(!curr->prev);
 	 assert(!curr->pos);
-	 //printf("this=%08p: del curr=%08p\n", this, curr);
 	 if (curr->next)
 	    delete curr->next;
 	 delete curr;
@@ -193,7 +196,7 @@ class ThreadLocalVariableData {
 	       curr = curr->next;
 	    else {
 	       curr->next = new ThreadVariableBlock(curr);
-	       //printf("this=%08p: add curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	       //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
 	       curr = curr->next;
 	    }
 	 }
@@ -203,7 +206,7 @@ class ThreadLocalVariableData {
       DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
 	 if (!curr->pos) {
 	    if (curr->next) {
-	       //printf("this %08p: del curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	       //printf("this %p: del curr=%p, curr->next=%p\n", this, curr, curr->next);
 	       delete curr->next;
 	       curr->next = 0;
 	    }
@@ -253,7 +256,7 @@ class ThreadClosureVariableStack {
 	       curr = curr->next;
 	    else {
 	       curr->next = new ThreadClosureVariableBlock(curr);
-	       //printf("this=%08p: add curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	       //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
 	       curr = curr->next;
 	    }
 	 }
@@ -263,13 +266,13 @@ class ThreadClosureVariableStack {
    public:
       DLLLOCAL ThreadClosureVariableStack() {
 	 curr = new ThreadClosureVariableBlock;
-	 //printf("this=%08p: first curr=%08p\n", this, curr);
+	 //printf("this=%p: first curr=%p\n", this, curr);
       }
 
       DLLLOCAL ~ThreadClosureVariableStack() {
 	 assert(!curr->prev);
 	 assert(!curr->pos);
-	 //printf("this=%08p: del curr=%08p\n", this, curr);
+	 //printf("this=%p: del curr=%p\n", this, curr);
 	 if (curr->next)
 	    delete curr->next;
 	 delete curr;
@@ -290,7 +293,7 @@ class ThreadClosureVariableStack {
       DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
 	 if (!curr->pos) {
 	    if (curr->next) {
-	       //printf("this %08p: del curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	       //printf("this %p: del curr=%p, curr->next=%p\n", this, curr, curr->next);
 	       delete curr->next;
 	       curr->next = 0;
 	    }
@@ -557,7 +560,7 @@ ThreadCleanupList::ThreadCleanupList() {
 }
 
 ThreadCleanupList::~ThreadCleanupList() {
-   //printf("ThreadCleanupList::~ThreadCleanupList() head=%08p\n", head);
+   //printf("ThreadCleanupList::~ThreadCleanupList() head=%p\n", head);
 
    while (head) {
       class ThreadCleanupNode *w = head->next;
@@ -580,11 +583,11 @@ void ThreadCleanupList::push(qtdest_t func, void *arg) {
    w->func = func;
    w->arg = arg;
    head = w;
-   //printf("TCL::push() this=%08p, &head=%08p, head=%08p, head->next=%08p\n", this, &head, head, head->next);
+   //printf("TCL::push() this=%p, &head=%p, head=%p, head->next=%p\n", this, &head, head, head->next);
 }
 
 void ThreadCleanupList::pop(bool exec) {
-   //printf("TCL::pop() this=%08p, &head=%08p, head=%08p\n", this, &head, head);
+   //printf("TCL::pop() this=%p, &head=%p, head=%p\n", this, &head, head);
    // NOTE: if exit() is called, then somehow head = 0 !!!
    // I can't explain it, but that's why the if statement is there... :-(
    if (head) {
@@ -731,7 +734,7 @@ void advanceOnBlockExit() {
 void beginParsing(char *file, void *ps) {
    ThreadData *td = thread_data.get();
    
-   //printd(5, "beginParsing() of %08p (%s), (stack=%s)\n", file, file ? file : "null", (td->plStack ? td->plStack->file : "NONE"));
+   //printd(5, "beginParsing() of %p (%s), (stack=%s)\n", file, file ? file : "null", (td->plStack ? td->plStack->file : "NONE"));
    
    // if current position exists, then save
    if (td->parse_file) {
@@ -753,7 +756,7 @@ void *endParsing() {
    ThreadData *td = thread_data.get();
    void *rv = td->parseState;
    
-   printd(5, "endParsing() ending parsing of \"%s\", returning %08p\n", td->parse_file, rv);
+   printd(5, "endParsing() ending parsing of \"%s\", returning %p\n", td->parse_file, rv);
    if (td->plStack) {
       ProgramLocation *pl = td->plStack->next;
       td->parse_file  = td->plStack->file;
@@ -868,12 +871,12 @@ CodeContextHelper::CodeContextHelper(const char *code, const QoreObject *obj, Ex
       obj->ref();
    td->current_code = code;
    td->current_obj = const_cast<QoreObject *>(obj);
-   //printd(5, "CodeContextHelper::CodeContextHelper(code=%s, obj=%08p) this=%08p td=%p, old_code=%s, old_obj=%08p\n", code ? code : "null", obj, this, td, old_code ? old_code : "null", old_obj);
+   //printd(5, "CodeContextHelper::CodeContextHelper(code=%s, obj=%p) this=%p td=%p, old_code=%s, old_obj=%p\n", code ? code : "null", obj, this, td, old_code ? old_code : "null", old_obj);
 }
 
 CodeContextHelper::~CodeContextHelper() {
    ThreadData *td  = thread_data.get();
-   //printd(5, "CodeContextHelper::~CodeContextHelper() this=%08p td=%p current=(code=%s, obj=%08p) restoring code=%s, obj=%08p\n", this, td, td->current_code ? td->current_code : "null", td->current_obj, old_code ? old_code : "null", old_obj);
+   //printd(5, "CodeContextHelper::~CodeContextHelper() this=%p td=%p current=(code=%s, obj=%p) restoring code=%s, obj=%p\n", this, td, td->current_code ? td->current_code : "null", td->current_obj, old_code ? old_code : "null", old_obj);
 
    if (td->current_obj)
       td->current_obj->deref(xsink);
@@ -886,7 +889,7 @@ ArgvContextHelper::ArgvContextHelper(QoreListNode *argv, ExceptionSink *n_xsink)
    ThreadData *td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    td->current_implicit_arg = argv;
-   //printd(5, "ArgvContextHelper::ArgvContextHelper() setting argv=%08p\n", argv);
+   //printd(5, "ArgvContextHelper::ArgvContextHelper() setting argv=%p\n", argv);
 }
 
 ArgvContextHelper::~ArgvContextHelper()
@@ -895,7 +898,7 @@ ArgvContextHelper::~ArgvContextHelper()
    if (td->current_implicit_arg)
       td->current_implicit_arg->deref(xsink);
    td->current_implicit_arg = old_argv;
-   //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv=%08p\n", old_argv);
+   //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv=%p\n", old_argv);
 }
 
 SingleArgvContextHelper::SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink) : xsink(n_xsink) {
@@ -921,7 +924,7 @@ SingleArgvContextHelper::~SingleArgvContextHelper() {
 
 const QoreListNode *thread_get_implicit_args()
 {
-   //printd(5, "thread_get_implicit_args() returning %08p\n", thread_data.get()->current_implicit_arg);
+   //printd(5, "thread_get_implicit_args() returning %p\n", thread_data.get()->current_implicit_arg);
    return thread_data.get()->current_implicit_arg;
 }
 
@@ -1047,14 +1050,14 @@ QoreClass *getParseClass() {
 // to save the exception for "rethrow"
 void catchSaveException(QoreException *e) {
    ThreadData *td = thread_data.get();
-   //printd(5, "cSE() td=%08p e=%08p\n", td, e);
+   //printd(5, "cSE() td=%p e=%p\n", td, e);
    td->catchException = e;
 }
 
 // for "rethrow"
 QoreException *catchGetException() {
    ThreadData *td = thread_data.get();
-   //printd(5, "cGE() td=%08p e=%08p\n", td, td->catchException);
+   //printd(5, "cGE() td=%p e=%p\n", td, td->catchException);
    assert(td->catchException);
    return td->catchException;
 }
@@ -1155,8 +1158,8 @@ namespace {
       BGThreadParams *btp = (BGThreadParams *)x;
       // register thread
       register_thread(btp->tid, pthread_self(), btp->pgm);
-      printd(5, "op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
-      //printf("op_background_thread() btp=%08p TID %d started\n", btp, btp->tid);
+      printd(5, "op_background_thread() btp=%p TID %d started\n", btp, btp->tid);
+      //printf("op_background_thread() btp=%p TID %d started\n", btp, btp->tid);
       
       // create thread-local data for this thread in the program object
       btp->pgm->startThread();
@@ -1219,9 +1222,9 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
    if (!left)
       return 0;
 
-   //printd(2, "op_background() before crlr left = %08p\n", left);
+   //printd(2, "op_background() before crlr left = %p\n", left);
    ReferenceHolder<AbstractQoreNode> nl(copy_and_resolve_lvar_refs(left, xsink), xsink);
-   //printd(2, "op_background() after crlr nl = %08p\n", nl);
+   //printd(2, "op_background() after crlr nl = %p\n", nl);
    if (*xsink || !nl)
       return 0;
 
@@ -1244,12 +1247,12 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
       deregister_thread(tid);
       return 0;
    }
-   //printd(5, "tp = %08p\n", tp);
+   //printd(5, "tp = %p\n", tp);
    // create thread
    int rc;
    pthread_t ptid;
 
-   //printd(5, "calling pthread_create(%08p, %08p, %08p, %08p)\n", &ptid, &ta_default, op_background_thread, tp);
+   //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
 
    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
       tp->cleanup(xsink);

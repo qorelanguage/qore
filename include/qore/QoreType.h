@@ -125,6 +125,8 @@ public:
    DLLEXPORT ~AbstractQoreClassTypeInfoHelper();
    //! returns the QoreClass object created and zeros out the internal pointer (can only be called once)
    DLLEXPORT QoreClass *getClass();
+   //! returns true if the object still holds the class, false if not
+   DLLEXPORT bool hasClass() const;
 
    //! must be reimplemented in derived class
    DLLEXPORT virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const = 0;
@@ -137,5 +139,6 @@ public:
 DLLEXPORT int testObjectClassAccess(const QoreObject *obj, const QoreClass *classtoaccess);
 DLLEXPORT const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo);
 DLLEXPORT qore_type_t typeInfoGetType(const QoreTypeInfo *typeInfo);
+DLLEXPORT const char *typeInfoGetName(const QoreTypeInfo *typeInfo);
 
 #endif // _QORE_QORETYPE_H

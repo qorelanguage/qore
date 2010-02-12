@@ -181,7 +181,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d)\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0);
 
       // skip variants with signatures with fewer possible elements than the best match already
-      if (!variant || (sig->numParams() * 2) > match) {
+      if (!variant || sig->numParams() > match) {
 	 if (!sig->numParams()) {
 	    variant = *i;
 	    continue;
@@ -254,7 +254,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       AbstractFunctionSignature *sig = (*i)->getSignature();
 
       // skip variants with signatures with fewer possible elements than the best match already
-      if (!variant || (sig->numParams() * 2) > match) {
+      if (!variant || sig->numParams() > match) {
 	 if (!sig->numParams()) {
 	    variant = *i;
 	    continue;
@@ -293,6 +293,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    if (t)
 	       count += rc;
 	 }
+	 //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d\n", this, getName(), sig->getSignatureText(), ok, count, match);
 	 if (!ok)
 	    continue;
 	 if (!variant || count > match) {
@@ -314,7 +315,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       sig->resolve();
 
       // skip variants with signatures with fewer possible elements than the best match already
-      if (!variant || (sig->numParams() * 2) > match) {
+      if (!variant || sig->numParams() > match) {
 	 if (!sig->numParams()) {
 	    variant = *i;
 	    //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() setting variant = %p from pending (0 params)\n", this, getName(), variant);
