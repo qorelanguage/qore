@@ -124,12 +124,12 @@ void UserSignature::parseInitPopLocalVars() {
       pop_local_var();
 }
 
-bool AbstractQoreFunction::existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const {
+bool AbstractQoreFunction::existsVariant(const type_vec_t &paramTypeInfo) const {
    for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       AbstractFunctionSignature *sig = (*i)->getSignature();
       assert(sig);
       unsigned np = sig->numParams();
-      if (np != p_num_params)
+      if (np != paramTypeInfo.size())
 	 continue;
       if (!np)
 	 return true;

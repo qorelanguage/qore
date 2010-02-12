@@ -22,6 +22,12 @@
 
 #include <qore/Qore.h>
 
+// global external type map
+static type_info_map_t type_info_map;
+
+// rwlock for global type map
+static QoreRWLock type_info_map_lock;
+
 // static reference types
 static QoreTypeInfo staticBigIntTypeInfo(NT_INT), 
    staticBoolTypeInfo(NT_BOOLEAN),
@@ -56,6 +62,12 @@ const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo
    ;
 
+void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo) {
+   QoreAutoRWWriteLocker al(type_info_map_lock);
+   assert(type_info_map.find(t) == type_info_map.end());
+   type_info_map[t] = typeInfo;
+}
+
 const QoreTypeInfo *getTypeInfoForType(qore_type_t t) {
    switch (t) {
       case NT_INT:
@@ -81,9 +93,17 @@ const QoreTypeInfo *getTypeInfoForType(qore_type_t t) {
       case NT_NOTHING:
 	 return nothingTypeInfo;
    }
-   printd(0, "getTypeInfoForValue() %d not found\n", t);
-   assert(false);
-   return 0;
+   const QoreTypeInfo *rv;
+   {
+      QoreAutoRWReadLocker al(type_info_map_lock);
+      rv = type_info_map[t];
+   }
+
+#ifdef DEBUG
+   if (!rv) printd(0, "getTypeInfoForValue() %d not found in map\n", t);
+   assert(rv);
+#endif
+   return rv;
 }
 
 const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n) {

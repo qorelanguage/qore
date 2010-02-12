@@ -137,7 +137,7 @@ public:
    DLLEXPORT const char *getClassName() const;
 
    //! returns true if a variant with the given parameter signature already exists in the method
-   DLLEXPORT bool existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const;
+   DLLEXPORT bool existsVariant(const type_vec_t &paramTypeInfo) const;
 
    /* returns the return type information for the method if it is available and if
       there is only one return type (there can be more return types if the method is

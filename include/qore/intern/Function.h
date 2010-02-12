@@ -441,7 +441,7 @@ public:
 
    DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant *variant);
 
-   DLLLOCAL bool existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const;
+   DLLLOCAL bool existsVariant(const type_vec_t &paramTypeInfo) const;
 };
 
 class AbstractReferencedFunction : public AbstractQoreFunction, protected QoreReferenceCounter {

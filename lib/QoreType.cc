@@ -104,6 +104,7 @@ QoreTypeInfoHelper::QoreTypeInfoHelper(const char *n_tname) : typeInfo(new Exter
 }
 
 QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char *n_tname) : typeInfo(new ExternalTypeInfo(id, n_tname, *this)) {
+   add_to_type_map(id, typeInfo);
 }
 
 QoreTypeInfoHelper::~QoreTypeInfoHelper() {
@@ -112,6 +113,7 @@ QoreTypeInfoHelper::~QoreTypeInfoHelper() {
 
 void QoreTypeInfoHelper::assign(qore_type_t id) {
    typeInfo->assign(id);
+   add_to_type_map(id, typeInfo);
 }
 
 const QoreTypeInfo *QoreTypeInfoHelper::getTypeInfo() const {

@@ -1662,20 +1662,21 @@ exp:    scalar
 	}
         | TOK_OUR IDENTIFIER VAR_REF {
 	   qore_type_t t = getBuiltinType($2);
-	   VarRefDeclNode *v;
+	   QoreParseTypeInfo *pi;
 	   if (t >= 0) {
-	      v = new VarRefDeclNode($3, VT_GLOBAL, t);
+	      pi = new QoreParseTypeInfo(t);
 	      free($2);
 	   }
 	   else
-	      v = new VarRefDeclNode($3, VT_GLOBAL, $2);
-	   v->ref.var = getProgram()->addGlobalVarDef($3, v->getParseTypeInfo());
+	      pi = new QoreParseTypeInfo($2);
+	   VarRefNode *v = new VarRefNode($3, VT_GLOBAL);
+	   v->ref.var = getProgram()->addGlobalVarDef($3, pi);
 	   $$ = v;
 	}
         | TOK_OUR SCOPED_REF VAR_REF {
-	   VarRefDeclNode *v = new VarRefDeclNode($3, VT_GLOBAL, $2); 
+	   VarRefNode *v = new VarRefNode($3, VT_GLOBAL); 
 	   $$ = v;
-	   v->ref.var = getProgram()->addGlobalVarDef($3, v->getParseTypeInfo());
+	   v->ref.var = getProgram()->addGlobalVarDef($3, new QoreParseTypeInfo($2));
 	}
         | TOK_OUR '(' list ')' { 
 	   $3->setVariableList();

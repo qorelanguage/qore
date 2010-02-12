@@ -1692,8 +1692,8 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    return rv;
 }
 
-bool QoreMethod::existsVariant(unsigned p_num_params, const QoreTypeInfo **paramTypeInfo) const {
-   return priv->func->existsVariant(p_num_params, paramTypeInfo);
+bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
+   return priv->func->existsVariant(paramTypeInfo);
 }
 
 QoreClass *QoreClass::copyAndDeref() {

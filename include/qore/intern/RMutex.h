@@ -29,15 +29,15 @@
 #include <pthread.h>
 
 class RMutex {
-   private:
-      pthread_mutex_t m;
+private:
+   pthread_mutex_t m;
 
-   public:
-      DLLLOCAL RMutex();
-      DLLLOCAL ~RMutex();
-      DLLLOCAL int enter();
-      DLLLOCAL int tryEnter();
-      DLLLOCAL int exit();
+public:
+   DLLLOCAL RMutex();
+   DLLLOCAL ~RMutex();
+   DLLLOCAL int enter();
+   DLLLOCAL int tryEnter();
+   DLLLOCAL int exit();
 };
 
 #endif

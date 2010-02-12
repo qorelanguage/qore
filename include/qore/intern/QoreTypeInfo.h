@@ -24,7 +24,14 @@
 
 #define _QORE_QORETYPEINFO_H
 
+#include <map>
+
 #define NO_TYPE_INFO "<no type info>"
+
+typedef std::map<qore_type_t, const QoreTypeInfo *> type_info_map_t;
+
+// adds external types to global type map
+DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo);
 
 class AbstractQoreTypeInfo {
 protected:
