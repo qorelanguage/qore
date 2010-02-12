@@ -130,6 +130,7 @@ protected:
       return -1;
    }
 
+   // returns 0 = OK, -1 = error
    DLLLOCAL int checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_error) const;
 
    DLLLOCAL AbstractQoreNode *checkTypeInstantiationIntern(bool obj, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
@@ -137,15 +138,10 @@ protected:
       if (!checkTypeInstantiationDefault(n, priv_error))
 	 return n;
 
-      // exceptions for builtin types here
-      if (qt == NT_FLOAT && n && n->getType() == NT_INT) {
-	 QoreFloatNode *f = new QoreFloatNode(n->getAsFloat());
-	 n->deref(xsink);
-	 return f;
-      }
-
       //printd(0, "QoreTypeInfo::checkTypeInstantiationIntern() this=%p %s n=%p %s\n", this, getName(), n, n ? n->getTypeName() : "NOTHING");
       if (!checkTypeInstantiationImpl(n, xsink)) {
+	 if (*xsink)
+	    return n;
 	 if (priv_error) {
 	    if (obj) doObjectPrivateClassException(param_name, n, xsink);
 	    else doPrivateClassException(param_name, n, xsink);
@@ -248,7 +244,7 @@ public:
 
    DLLLOCAL int testTypeCompatibility(const AbstractQoreNode *n) const {
       int rc = testTypeCompatibilityDefault(n);
-      return rc == QTI_NOT_EQUAL ? testTypeCompatibilityDefault(n) : rc;
+      return rc == QTI_NOT_EQUAL ? testTypeCompatibilityImpl(n) : rc;
    }
    
    DLLLOCAL AbstractQoreNode *checkType(AbstractQoreNode *n, ExceptionSink *xsink) const {
@@ -432,14 +428,11 @@ public:
    }
 };
 
-/*
 class FloatTypeInfo : public QoreTypeInfo {
-public:
-   DLLLOCAL FloatTypeInfo() : QoreTypeInfo(NT_FLOAT) {
-   }
+protected:
    DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       //printd(0, "FloatTypeInfo::checkTypeInstantiationImpl() n=%p %s\n", n, n->getTypeName());
-      if (n->getType() != NT_INT)
+      if (!n || n->getType() != NT_INT)
 	 return false;
 
       QoreFloatNode *f = new QoreFloatNode(reinterpret_cast<QoreBigIntNode *>(n)->val);
@@ -447,8 +440,17 @@ public:
       n = f;
       return true;
    }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      return n && n->getType() == NT_INT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      return typeInfo && typeInfo->getType() == NT_INT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+public:
+   DLLLOCAL FloatTypeInfo() : QoreTypeInfo(NT_FLOAT) {
+   }
 };
-*/
 
 class ExternalTypeInfo : public QoreTypeInfo {
 protected:

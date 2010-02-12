@@ -202,9 +202,6 @@ private:
    DLLLOCAL AbstractQoreNode *evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL const QoreMethod *parseResolveSelfMethodIntern(const char *nme);
 
-   // FIXME: remove once I figure out what it does and make a replacement
-   //DLLLOCAL BCAList *getBaseClassConstructorArgumentList() const;
-
    //! evaluates a method on an object and returns the result
    /** if the method name is not valid or is private (and the call is made outside the object)
        then an exception will be raised and 0 will be returned.

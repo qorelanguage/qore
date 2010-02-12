@@ -24,7 +24,6 @@
 
 // static reference types
 static QoreTypeInfo staticBigIntTypeInfo(NT_INT), 
-   staticFloatTypeInfo(NT_FLOAT),
    staticBoolTypeInfo(NT_BOOLEAN),
    staticStringTypeInfo(NT_STRING),
    staticBinaryTypeInfo(NT_BINARY),
@@ -37,6 +36,9 @@ static QoreTypeInfo staticBigIntTypeInfo(NT_INT),
    staticRunTimeClosureTypeInfo(NT_RUNTIME_CLOSURE),
    staticCallReferenceTypeInfo(NT_FUNCREF)
    ;
+
+// provides limited compatibility with integers
+static FloatTypeInfo staticFloatTypeInfo;
 
 // const pointers to static reference types
 const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo,
@@ -152,35 +154,25 @@ const char *getBuiltinTypeName(qore_type_t type) {
    switch (type) {
       case NT_INT:
 	 return "int";
-
       case NT_STRING:
 	 return "string";
-
       case NT_BOOLEAN:
 	 return "bool";
-
       case NT_DATE:
 	 return "date";
-
       case NT_FLOAT:
 	 return "float";
-
       case NT_LIST:
 	 return "list";
-
       case NT_HASH:
 	 return "hash";
-
       case NT_OBJECT:
 	 return "object";
-
       case NT_BINARY:
 	 return "binary";
-
 	 // these last two don't make much sense to use, but...
       case NT_NULL:
 	 return "null";
-
       case NT_NOTHING:
 	 return "nothing";
    }
@@ -261,10 +253,6 @@ int QoreTypeInfo::testTypeCompatibilityDefault(const AbstractQoreNode *n) const 
    if (t == qt)
       return QTI_IDENT;
 
-   // builtin exceptions here
-   if (qt == NT_FLOAT && t == NT_INT)
-      return QTI_AMBIGUOUS;
-
    return QTI_NOT_EQUAL;
 }
 
@@ -287,10 +275,6 @@ int QoreTypeInfo::parseEqualDefault(const QoreTypeInfo *typeInfo) const {
 
    if (typeInfo->qt == qt)
       return QTI_IDENT;
-
-   // exceptions here
-   if (qt == NT_FLOAT && typeInfo->qt == NT_INT)
-      return QTI_AMBIGUOUS;
 
    return QTI_NOT_EQUAL;
 }
