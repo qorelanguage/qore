@@ -477,17 +477,6 @@ UserVariantBase::~UserVariantBase() {
    delete statements;
 }
 
-// this functions allows us to take a referenced value from a unique list (and set the list entry to 0)
-// or reference the value if the list is shared
-static inline void zeroOrRefValue(QoreListNode *args, unsigned i, AbstractQoreNode *v) {
-   if (args->is_unique()) {
-      AbstractQoreNode **p = args->get_entry_ptr(i);
-      *p = 0;
-   }
-   else
-      v->refSelf();
-}
-
 // evaluates arguments and sets up the argv variable
 int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const {
    unsigned num_args = args ? args->size() : 0;
@@ -498,7 +487,7 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
       AbstractQoreNode *np = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       AbstractQoreNode *n = 0;
       const QoreTypeInfo *paramTypeInfo = signature.getParamTypeInfo(i);
-      printd(4, "UserVariantBase::setupArgs() eval %d: instantiating param lvar %d (%08p)\n", i, signature.lv[i], n);
+      printd(4, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p (%s) (exp %p %s)\n", i, signature.lv[i], signature.lv[i]->getName(), np, np ? np->getTypeName() : "NOTHING");
       if (!is_nothing(np)) {
 	 if (np->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(np);
@@ -511,18 +500,15 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	    }
 	 }
 	 else {
-	    // here we will either take the reference from the unique list
-	    // or we reference for the variable instantiation
-	    zeroOrRefValue(const_cast<QoreListNode *>(args), i, np);
-	    n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), np, xsink);
+	    n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), np->refSelf(), xsink);
 	    if (!*xsink)
 	       signature.lv[i]->instantiate(n);
 	 }
       }
       else {
-	 paramTypeInfo->checkTypeInstantiation(signature.getName(i), 0, xsink);
+	 n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), 0, xsink);
 	 if (!*xsink)
-	    signature.lv[i]->instantiate(0);
+	    signature.lv[i]->instantiate(n);
       }
 
       // the above if block will only instantiate the local variable if no
@@ -543,9 +529,7 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 
       for (unsigned i = 0; i < (num_args - num_params); i++) {
 	 // here we try to take the reference from args if possible
-	 AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i + num_params)) : 0;
-	 if (n)
-	    zeroOrRefValue(const_cast<QoreListNode *>(args), i + num_params, n);
+	 AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->get_referenced_entry(i + num_params)) : 0;
 	 argv->push(n);
       }
    }

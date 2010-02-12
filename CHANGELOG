@@ -1,3 +1,7 @@
+2010.02.12: David Nichols
+	 * removed incorrect optimization in user function execution that
+	   corrupted argument lists
+
 2010.02.11: David Nichols
 	 * fine-tuned overload patching at parse and runtime to allow for more
 	   flexibility and automatic type conversions with partial matches
