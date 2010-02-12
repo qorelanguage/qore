@@ -239,11 +239,12 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 }
 
 // finds a variant at parse time
-const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsigned num_args, const QoreTypeInfo **argTypeInfo, const char *class_name) {
+const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const type_vec_t &argTypeInfo, const char *class_name) {
    unsigned match = 0;
    const AbstractQoreFunctionVariant *variant = 0;
    // do not throw an exception if some types could not be matched; they will be matched at runtime
    bool missing_types = false;
+   unsigned num_args = argTypeInfo.size();
 
    //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), num_args);
 
@@ -342,7 +343,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
                   desc->sprintf("%d to '%s(%s)' expects ", pi + 1, getName(), sig->getSignatureText());
                   t->getThisType(*desc);
                   desc->concat(", but call supplies ");
-                  argTypeInfo[pi]->getThisType(*desc);
+                  a->getThisType(*desc);
                   getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 		  return 0;
 	       }
@@ -351,7 +352,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(unsign
 	    }
 	    // only increment for actual type matches (t may be NULL)
 	    if (t) {
-	       //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), argTypeInfo[pi]->getName());
+	       //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
 	       count += rc;
 	    }
 	 }
@@ -767,11 +768,11 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
    return variant->evalClosure(ceh.getArgs(), self, xsink);
 }
 
-void UserClosureFunction::parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
+void UserClosureFunction::parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *lvlist) {
    // closures cannot be overloaded
    assert(pending_vlist.singular());
    UserClosureVariant *v = UCLOV(pending_first());
-   v->parseInitClosure(classTypeInfo, vlist);
+   v->parseInitClosure(classTypeInfo, lvlist);
    // we can commit the code now because if there are any errors, the entire closure will be deleted
    parseCommit();
 }

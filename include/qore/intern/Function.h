@@ -432,7 +432,7 @@ public:
    DLLLOCAL AbstractQoreNode *evalDynamic(const QoreListNode *args, ExceptionSink *xsink) const;
 
    // find variant at parse time, throw parse exception if no variant can be matched
-   DLLLOCAL const AbstractQoreFunctionVariant *parseFindVariant(unsigned num_args, const QoreTypeInfo **argTypeInfo, const char *class_name = 0);
+   DLLLOCAL const AbstractQoreFunctionVariant *parseFindVariant(const type_vec_t &argTypeInfo, const char *class_name = 0);
 
    // returns true if there are no committed variants in the function
    DLLLOCAL bool committedEmpty() const {

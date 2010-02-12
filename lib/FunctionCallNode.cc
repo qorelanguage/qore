@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 
+#include <vector>
+
 int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const char *class_name) {
    // number of local variables declared in arguments
    int lvids = 0;
@@ -34,7 +36,8 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
    unsigned num_args = args ? args->size() : 0;
 
    // argument type list
-   const QoreTypeInfo *argTypeInfo[num_args];
+   type_vec_t argTypeInfo;
+   argTypeInfo.reserve(num_args);
 
    bool have_arg_type_info = false;
    // initialize arguments and setup argument type list (argTypeInfo)
@@ -46,7 +49,7 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
       for (unsigned i = 0; i < num_args; ++i) {
 	 AbstractQoreNode **n = args->get_entry_ptr(i);
 	 assert(*n);
-	 argTypeInfo[i] = 0;
+	 argTypeInfo.push_back(0);
 	 //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p (%s) oflag=%p pflag=%d func=%p i=%d/%d arg=%p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
 	 if ((*n)->getType() == NT_REFERENCE)
 	    (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo[i]);
@@ -62,7 +65,7 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
    }
    
    // find variant
-   variant = func && have_arg_type_info ? func->parseFindVariant(num_args, argTypeInfo, class_name) : 0;
+   variant = func && have_arg_type_info ? func->parseFindVariant(argTypeInfo, class_name) : 0;
 
    if (variant && variant->getFunctionality() & getProgram()->getParseOptions()) {
       // func will always be non-zero with builtin functions

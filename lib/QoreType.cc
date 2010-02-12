@@ -126,7 +126,7 @@ int QoreTypeInfoHelper::testTypeCompatibilityImpl(const AbstractQoreNode *n) con
    return QTI_NOT_EQUAL;
 }
 
-int QoreTypeInfoHelper::parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+int QoreTypeInfoHelper::parseEqualImpl(const QoreTypeInfo *otherTypeInfo) const {
    return QTI_NOT_EQUAL;
 }
 

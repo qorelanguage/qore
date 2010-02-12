@@ -2,6 +2,8 @@
 	 * removed incorrect optimization in user function execution that
 	   corrupted argument lists
 	 * fixed call stack reporting when exceptions are raised
+	 * updates to address warnings and compile errors with the SunPro
+	   compiler
 
 2010.02.11: David Nichols
 	 * fine-tuned overload patching at parse and runtime to allow for more
