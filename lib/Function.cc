@@ -416,6 +416,7 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
 	 return 0;
       }
    }
+   ceh.setCallType(variant->getCallType());
 
    return variant->evalFunction(fname, ceh.getArgs(), xsink);
 }
@@ -432,6 +433,7 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
       assert(*xsink);
       return 0;
    }
+   ceh.setCallType(variant->getCallType());
 
    return variant->evalFunction(fname, ceh.getArgs(), xsink);
 }

@@ -2653,6 +2653,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
+   ceh.setCallType(variant->getCallType());
 
    return METHV_const(variant)->evalNormalMethod(method, self, ceh.getArgs(), xsink);      
 }
@@ -2670,6 +2671,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
+   ceh.setCallType(variant->getCallType());
 
    return METHV_const(variant)->evalStaticMethod(method, ceh.getArgs(), xsink);      
 }

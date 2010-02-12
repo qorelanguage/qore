@@ -1,6 +1,7 @@
 2010.02.12: David Nichols
 	 * removed incorrect optimization in user function execution that
 	   corrupted argument lists
+	 * fixed call stack reporting when exceptions are raised
 
 2010.02.11: David Nichols
 	 * fine-tuned overload patching at parse and runtime to allow for more
