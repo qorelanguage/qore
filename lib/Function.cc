@@ -470,6 +470,15 @@ void AbstractQoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant *varian
    addVariant(variant);
 }
 
+UserVariantExecHelper::~UserVariantExecHelper() {
+   if (!uvb)
+      return;
+   UserSignature *sig = uvb->getUserSignature();
+   // uninstantiate local vars from param list
+   for (unsigned i = 0; i < sig->numParams(); ++i)
+      sig->lv[i]->uninstantiate(xsink);
+}
+
 UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced) 
    : statements(b), signature(n_sig_first_line, n_sig_last_line, params, rv), synchronized(synced), gate(synced ? new VRMutex() : 0),
      recheck(false) {
@@ -574,15 +583,6 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
    else
       argv = 0; // dereference argv now
 
-   // FIXME: move setupArgs and this to a class that takes care of initialization and cleanup
-   if (signature.numParams()) {
-      printd(5, "UserFunctionVariant::evalIntern() about to uninstantiate %d vars\n", signature.numParams());
-
-      // uninstantiate local vars from param list
-      for (unsigned i = 0; i < signature.numParams(); i++)
-	 signature.lv[i]->uninstantiate(xsink);
-   }
-
    return val;
 }
 
@@ -591,15 +591,13 @@ AbstractQoreNode *UserVariantBase::eval(const char *name, const QoreListNode *ar
    QORE_TRACE("UserVariantBase::eval()");
    printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, args, args ? args->size() : 0, self);
 
-   ReferenceHolder<QoreListNode> argv(xsink);
-
-   // FIXME: move setupArgs and cleanup to a class that takes care of initialization and cleanup
-   if (setupCall(args, argv, xsink))
+   UserVariantExecHelper uveh(this, args, xsink);
+   if (!uveh)
       return 0;
 
    CODE_CONTEXT_HELPER(CT_USER, name, self, xsink);
      
-   return evalIntern(argv, self, xsink, class_name);
+   return evalIntern(uveh.getArgv(), self, xsink, class_name);
 }
 
 UserFunction::UserFunction(char *n_name) : name(n_name) {

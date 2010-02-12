@@ -40,7 +40,8 @@ static QoreTypeInfo staticBigIntTypeInfo(NT_INT),
    staticNothingTypeInfo(NT_NOTHING),
    staticNullTypeInfo(NT_NULL),
    staticRunTimeClosureTypeInfo(NT_RUNTIME_CLOSURE),
-   staticCallReferenceTypeInfo(NT_FUNCREF)
+   staticCallReferenceTypeInfo(NT_FUNCREF),
+   staticReferenceTypeInfo(NT_REFERENCE)
    ;
 
 // provides limited compatibility with integers
@@ -59,7 +60,8 @@ const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo,
    *nothingTypeInfo = &staticNothingTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
-   *callReferenceTypeInfo = &staticCallReferenceTypeInfo
+   *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
+   *referenceTypeInfo = &staticReferenceTypeInfo
    ;
 
 void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo) {

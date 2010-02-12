@@ -7,6 +7,8 @@
 	 * fixed bugs in flexible/extensible type matching support
 	 * fixed internal APIs and added supoprt for caching lookup maps from
 	   externally-implemented types and type information
+	 * fixed a bug in user variant execution that left local variables on
+	   the stack after an exception when setting up the user code
 
 2010.02.11: David Nichols
 	 * fine-tuned overload patching at parse and runtime to allow for more

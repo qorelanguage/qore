@@ -152,8 +152,8 @@ public:
    }
 
    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
-      ReferenceHolder<QoreListNode> argv(xsink);
-      if (setupCall(ceh.getArgs(), argv, xsink))
+      UserVariantExecHelper uveh(this, ceh.getArgs(), xsink);
+      if (!uveh)
 	 return;
 
       CodeContextHelper cch("constructor", self, xsink);
@@ -165,7 +165,7 @@ public:
       if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
-      discard(evalIntern(argv, self, xsink, thisclass.getName()), xsink);
+      discard(evalIntern(uveh.getArgv(), self, xsink, thisclass.getName()), xsink);
    }
 
    DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl);

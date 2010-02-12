@@ -2526,8 +2526,9 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, Qor
 
    ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
    args->push(self->refSelf());
-   ReferenceHolder<QoreListNode> argv(xsink);
-   if (setupCall(*args, argv, xsink))
+
+   UserVariantExecHelper uveh(this, *args, xsink);
+   if (!uveh)
       return;
 
    CODE_CONTEXT_HELPER(CT_USER, "copy", self, xsink);
@@ -2539,7 +2540,7 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, Qor
       ceh.restorePosition();
    }
    
-   discard(evalIntern(argv, self, xsink, thisclass.getName()), xsink);
+   discard(evalIntern(uveh.getArgv(), self, xsink, thisclass.getName()), xsink);
 }
 
 void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {

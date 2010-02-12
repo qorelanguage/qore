@@ -215,9 +215,12 @@ public:
 };
 
 class VRMutex;
+class UserVariantExecHelper;
 
 // base implementation shared between all user variants
 class UserVariantBase {
+   friend class UserVariantExecHelper;
+
 protected:
    StatementBlock *statements;
    UserSignature signature;
@@ -253,6 +256,27 @@ public:
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const { return const_cast<UserSignature *>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); } \
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const { return signature.getReturnTypeInfo(); }
+
+// this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
+class UserVariantExecHelper {
+protected:
+   const UserVariantBase *uvb;
+   ReferenceHolder<QoreListNode> argv;
+   ExceptionSink *xsink;
+
+public:
+   DLLLOCAL UserVariantExecHelper(const UserVariantBase *n_uvb, const QoreListNode *args, ExceptionSink *n_xsink) : uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+      if (uvb->setupCall(args, argv, xsink))
+	 uvb = 0;
+   }
+   DLLLOCAL ~UserVariantExecHelper();
+   DLLLOCAL operator bool() const {
+      return uvb;
+   }
+   DLLLOCAL ReferenceHolder<QoreListNode> &getArgv() {
+      return argv;
+   }
+};
 
 class UserFunctionVariant : public AbstractQoreFunctionVariant, public UserVariantBase {
 protected:
