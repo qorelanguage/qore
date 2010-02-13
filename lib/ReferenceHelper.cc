@@ -75,7 +75,6 @@ const AbstractQoreNode *ReferenceHelper::getValue() const {
    return *vp;
 }
 
-// xxx implement type-safe operations
 struct qore_type_safe_ref_helper_priv_t {
    AbstractQoreNode **vp;
    const QoreTypeInfo *typeInfo;
@@ -97,6 +96,12 @@ struct qore_type_safe_ref_helper_priv_t {
 
    DLLLOCAL int assign(AbstractQoreNode *val, ExceptionSink *xsink) {
       assert(vp);
+      if (typeInfo) {
+	 val = typeInfo->checkTypeInstantiation("<reference>", val, xsink);
+	 if (*xsink)
+	    return -1;
+      }
+
       if (*vp) {
 	 (*vp)->deref(xsink);
 	 if (*xsink) {

@@ -197,6 +197,8 @@ const char *getBuiltinTypeName(qore_type_t type) {
 	 return "null";
       case NT_NOTHING:
 	 return "nothing";
+      case NT_REFERENCE:
+	 return "reference to lvalue";
    }
 
    assert(false);

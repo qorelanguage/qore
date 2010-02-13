@@ -259,10 +259,12 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode *checkTypeInstantiation(const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+      if (!this) return n;
       return checkTypeInstantiationIntern(false, param_name, n, xsink);
    }
 
    DLLLOCAL AbstractQoreNode *checkMemberTypeInstantiation(const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+      if (!this) return n;
       return checkTypeInstantiationIntern(true, param_name, n, xsink);
    }
 

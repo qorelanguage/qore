@@ -1,3 +1,6 @@
+2010.02.13: David Nichols
+	 * minor fixes matching variants and assigning values to references
+
 2010.02.12: David Nichols
 	 * removed incorrect optimization in user function execution that
 	   corrupted argument lists
