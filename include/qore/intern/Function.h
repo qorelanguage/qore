@@ -35,6 +35,8 @@
 
 DLLLOCAL AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink);
 
+DLLLOCAL AbstractQoreNode *f_noop(const QoreListNode *args, ExceptionSink *xsink);
+
 class LocalVar;
 class VarRefNode;
 class BCAList;

@@ -1,5 +1,6 @@
 2010.02.13: David Nichols
 	 * minor fixes matching variants and assigning values to references
+	 * started adding hard typing to xml functions in lib/ql_xml.cc
 
 2010.02.12: David Nichols
 	 * removed incorrect optimization in user function execution that

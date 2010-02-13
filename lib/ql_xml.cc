@@ -649,131 +649,90 @@ static bool hash_ok(const QoreHashNode *h) {
    return count == 1;
 }
 
-// usage: makeXMLString(object (with only one top-level element) [, encoding])
-// usage: makeXMLString(string (top-level-element), object [, encoding])
-static AbstractQoreNode *f_makeXMLString(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreHashNode *pobj;
-   int i;
-   const QoreEncoding *ccs;
-   const QoreStringNode *pstr = 0;
-
-   QORE_TRACE("f_makeXMLString()");
-   if ((pobj = test_hash_param(params, 0)) && hash_ok(pobj)) {
-      pstr = 0;
-      i = 1;
-   }
-   else {
-      if (!(pstr = test_string_param(params, 0)) || !(pobj = test_hash_param(params, 1))) {
-	 xsink->raiseException("MAKE-XML-STRING-PARAMETER-EXCEPTION",
-			       "expecting either hash with one member or string, hash as parameters");
-	 return 0;
-      }
-      i = 2;
-   }
-   const QoreStringNode *pcs;
-   if ((pcs = test_string_param(params, i)))
-      ccs = QEM.findCreate(pcs);
-   else
-      ccs = QCS_UTF8;
-
-   QoreStringNode *str = new QoreStringNode(ccs);
+static AbstractQoreNode *makeXMLStringIntern(const QoreStringNode *pstr, const QoreHashNode *pobj, const QoreEncoding *ccs, bool format, ExceptionSink *xsink) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>", ccs->getCode());
 
    if (pstr) {
       TempEncodingHelper key(pstr, QCS_UTF8, xsink);
       if (!key)
 	 return 0;
-      addXMLElement(key->getBuffer(), *str, pobj, 0, 0, xsink);
+      addXMLElement(key->getBuffer(), *(*str), pobj, 0, 0, xsink);
    }
    else
-      makeXMLString(*str, *pobj, 0, 0, xsink);
+      makeXMLString(*(*str), *pobj, 0, 0, xsink);
 
    //printd(5, "f_makeXMLString() returning %s\n", str->getBuffer());
 
-   return str;
+   return str.release();
 }
 
-// usage: makeFormattedXMLString(object (with only one top-level element) [, encoding])
-// usage: makeFormattedXMLString(string (top-level-element), object [, encoding])
+static AbstractQoreNode *f_makeXMLString_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(pstr, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(pobj, const QoreHashNode, params, 1);
+
+   const QoreEncoding *ccsid = get_encoding_param(params, 2, QCS_UTF8);
+   return makeXMLStringIntern(pstr, pobj, ccsid, false, xsink);
+}
+
+static AbstractQoreNode *f_makeXMLString(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(pobj, const QoreHashNode, params, 0);
+   
+   if (!hash_ok(pobj)) {
+      xsink->raiseException("MAKE-XML-STRING-PARAMETER-EXCEPTION",
+			    "this variant of makeXMLString() expects a hash with a single key for the top-level XML element name");
+      return 0;
+   }
+
+   const QoreEncoding *ccsid = get_encoding_param(params, 1, QCS_UTF8);
+   return makeXMLStringIntern(0, pobj, ccsid, false, xsink);
+}
+
+static AbstractQoreNode *f_makeFormattedXMLString_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(pstr, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(pobj, const QoreHashNode, params, 1);
+   const QoreEncoding *ccsid = get_encoding_param(params, 2, QCS_UTF8);
+
+   return makeXMLStringIntern(pstr, pobj, ccsid, true, xsink);
+}
+
 static AbstractQoreNode *f_makeFormattedXMLString(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreHashNode *pobj;
-   int i;
-   const QoreStringNode *pstr;
-
-   QORE_TRACE("f_makeFormattedXMLString()");
-   if ((pobj = test_hash_param(params, 0)) && hash_ok(pobj)) {
-      pstr = 0;
-      i = 1;
-   }
-   else {
-      if (!(pstr = test_string_param(params, 0)) || !(pobj = test_hash_param(params, 1))) {
-	 xsink->raiseException("MAKE-FORMATTED-XML-STRING-PARAMETER-EXCEPTION",
-			       "expecting either hash with one member or (string, hash) as parameters");
-	 return 0;
-      }
-      i = 2;
+   HARD_QORE_PARAM(pobj, const QoreHashNode, params, 0);
+   
+   if (!hash_ok(pobj)) {
+      xsink->raiseException("MAKE-FORMATTED-XML-STRING-PARAMETER-EXCEPTION",
+			    "this variant of makeFormattedXMLString() expects a hash with a single key for the top-level XML element name");
+      return 0;
    }
 
-   const QoreEncoding *ccs;
-   const QoreStringNode *pcs;
-   if ((pcs = test_string_param(params, i)))
-      ccs = QEM.findCreate(pcs);
-   else
-      ccs = QCS_UTF8;
-
-   QoreStringNode *str = new QoreStringNode(ccs);
-   str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n", ccs->getCode());
-   if (pstr) {
-      TempEncodingHelper key(pstr, QCS_UTF8, xsink);
-      if (!key)
-	 return 0;
-      addXMLElement(key->getBuffer(), *str, pobj, 0, 1, xsink);
-   }
-   else
-      makeXMLString(*str, *pobj, 0, 1, xsink);
-
-   return str;
+   const QoreEncoding *ccsid = get_encoding_param(params, 1, QCS_UTF8);
+   return makeXMLStringIntern(0, pobj, ccsid, true, xsink);
 }
 
 static AbstractQoreNode *f_makeXMLFragment(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreHashNode *pobj;
-
    QORE_TRACE("f_makeXMLFragment()");
-   pobj = test_hash_param(params, 0);
-   if (!pobj)
+
+   HARD_QORE_PARAM(pobj, const QoreHashNode, params, 0);
+   const QoreEncoding *ccsid = get_encoding_param(params, 1);
+
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(ccsid));
+   if (makeXMLString(*(*str), *pobj, 0, 0, xsink))
       return 0;
-
-   const QoreEncoding *ccs;
-   const QoreStringNode *pcs;
-   if ((pcs = test_string_param(params, 1)))
-      ccs = QEM.findCreate(pcs);
-   else
-      ccs = QCS_UTF8;
-
-   QoreStringNode *str = new QoreStringNode(ccs);
-   makeXMLString(*str, *pobj, 0, 0, xsink);
-
-   return str;
+   
+   return str.release();
 }
 
 static AbstractQoreNode *f_makeFormattedXMLFragment(const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_makeFormattedXMLFragment()");
 
-   const QoreHashNode *pobj = test_hash_param(params, 0);
-   if (!pobj)
+   HARD_QORE_PARAM(pobj, const QoreHashNode, params, 0);
+   const QoreEncoding *ccsid = get_encoding_param(params, 1);
+
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(ccsid));
+   if (makeXMLString(*(*str), *pobj, 0, 1, xsink))
       return 0;
-
-   const QoreEncoding *ccs;
-   const QoreStringNode *pcs;
-   if ((pcs = test_string_param(params, 1)))
-      ccs = QEM.findCreate(pcs);
-   else
-      ccs = QCS_UTF8;
-
-   QoreStringNode *str = new QoreStringNode(ccs);
-   makeXMLString(*str, *pobj, 0, 1, xsink);
-
-   return str;
+   
+   return str.release();
 }
 
 static void addXMLRPCValue(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink);
@@ -1921,18 +1880,11 @@ int QoreXmlRpcReader::getValueData(XmlRpcValue *v, const QoreEncoding *data_ccsi
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml string [, output encoding])
 static AbstractQoreNode *parseXMLIntern(bool as_data, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0, *p1;
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+   const QoreEncoding *ccsid = get_encoding_param(params, 1);
 
    //printd(5, "parseXMLintern(%d, %s)\n", as_data, p0->getBuffer());
-
-   const QoreEncoding *ccsid;
-   if ((p1 = test_string_param(params, 1)))
-      ccsid = QEM.findCreate(p1);
-   else
-      ccsid = QCS_DEFAULT;
 
    // convert to UTF-8 
    TempEncodingHelper str(p0, QCS_UTF8, xsink);
@@ -2338,19 +2290,12 @@ static AbstractQoreNode *f_makeFormattedXMLRPCValueString(const QoreListNode *pa
    return str.release();
 }
 
-static AbstractQoreNode *f_parseXMLRPCValue(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0, *p1;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+static AbstractQoreNode *f_parseXMLRPCValue(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   const QoreEncoding *ccsid = get_encoding_param(params, 1);
 
    printd(5, "parseXMLRPCValue(%s)\n", p0->getBuffer());
-
-   const QoreEncoding *ccsid;
-   if ((p1 = test_string_param(params, 1)))
-      ccsid = QEM.findCreate(p1->getBuffer());
-   else
-      ccsid = QCS_DEFAULT;
 
    TempEncodingHelper str(p0, QCS_UTF8, xsink);
    if (!str)
@@ -2395,17 +2340,11 @@ static inline QoreHashNode *qore_xml_hash_exception(const char *ex, ExceptionSin
 }
 
 static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0, *p1;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   const QoreEncoding *ccsid = get_encoding_param(params, 1);
 
    //printd(5, "parseXMLRPCCall() c=%d str=%s\n", p0->getBuffer()[0], p0->getBuffer());
-
-   const QoreEncoding *ccsid;
-   if ((p1 = test_string_param(params, 1)))
-      ccsid = QEM.findCreate(p1);
-   else
-      ccsid = QCS_DEFAULT;
 
    TempEncodingHelper str(p0, QCS_UTF8, xsink);
    if (!str)
@@ -2649,17 +2588,10 @@ QoreHashNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccs
 }
 
 static AbstractQoreNode *f_parseXMLRPCResponse(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0, *p1;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
+   const QoreEncoding *ccsid = get_encoding_param(params, 1);
    printd(5, "parseXMLRPCCall(%s)\n", p0->getBuffer());
-
-   const QoreEncoding *ccsid;
-   if ((p1 = test_string_param(params, 1)))
-      ccsid = QEM.findCreate(p1);
-   else
-      ccsid = QCS_DEFAULT;
 
    return parseXMLRPCResponse(p0, ccsid, xsink);
 }
@@ -2668,25 +2600,12 @@ static AbstractQoreNode *f_parseXMLRPCResponse(const QoreListNode *params, Excep
 // syntax: parseXML(xml_string, xsd_string [, output encoding])
 static AbstractQoreNode *parseXMLWithSchemaIntern(bool as_data, const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_XMLTEXTREADERSETSCHEMA
-   const QoreStringNode *p0, *p1, *p2;
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(p1, const QoreStringNode, params, 1);
 
-   if (!(p0 = test_string_param(params, 0))) {
-      xsink->raiseException(as_data ? "PARSE-XML-AS-DATA-WITH-SCHEMA-ERROR" : "PARSE-XML-WITH-SCHEMA-ERROR", "expecting XML string as first argument to parseXMLWithSchema()");
-      return 0;
-   }
-
-   if (!(p1 = test_string_param(params, 1))) {
-      xsink->raiseException(as_data ? "PARSE-XML-AS-DATA-WITH-SCHEMA-ERROR" : "PARSE-XML-WITH-SCHEMA-ERROR", "expecting XML schema string (xsd) as second argument to parseXMLWithSchema()");
-      return 0;
-   }
+   const QoreEncoding *ccsid = get_encoding_param(params, 2);
 
    printd(5, "parseXMLWithSchema() xml=%s\n xsd=%s\n", p0->getBuffer(), p1->getBuffer());
-
-   const QoreEncoding *ccsid;
-   if ((p2 = test_string_param(params, 2)))
-      ccsid = QEM.findCreate(p1);
-   else
-      ccsid = QCS_DEFAULT;
 
    // convert to UTF-8 
    TempEncodingHelper str(p0, QCS_UTF8, xsink);
@@ -2726,25 +2645,12 @@ static AbstractQoreNode *parseXMLWithSchemaIntern(bool as_data, const QoreListNo
 // syntax: parseXMLWithRelaxNGIntern(xml_string, xsd_string [, output encoding])
 static AbstractQoreNode *parseXMLWithRelaxNGIntern(bool as_data, const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
-   const QoreStringNode *p0, *p1, *p2;
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(p1, const QoreStringNode, params, 1);
 
-   if (!(p0 = test_string_param(params, 0))) {
-      xsink->raiseException(as_data ? "PARSE-XML-AS-DATA-WITH-RELAXNG-ERROR" : "PARSE-XML-WITH-RELAXNG-ERROR", "expecting XML string as first argument to parseXMLWithRelaxNG()");
-      return 0;
-   }
-
-   if (!(p1 = test_string_param(params, 1))) {
-      xsink->raiseException(as_data ? "PARSE-XML-AS-DATA-WITH-RELAXNG-ERROR" : "PARSE-XML-WITH-RELAXNG-ERROR", "expecting RelaxNG schema string as second argument to parseXMLWithRelaxNG()");
-      return 0;
-   }
+   const QoreEncoding *ccsid = get_encoding_param(params, 2);
 
    printd(5, "parseXMLWithRelaxNG() xml=%s\n xsd=%s\n", p0->getBuffer(), p1->getBuffer());
-
-   const QoreEncoding *ccsid;
-   if ((p2 = test_string_param(params, 2)))
-      ccsid = QEM.findCreate(p1);
-   else
-      ccsid = QCS_DEFAULT;
 
    // convert to UTF-8 
    TempEncodingHelper str(p0, QCS_UTF8, xsink);
@@ -2797,13 +2703,75 @@ static AbstractQoreNode *f_parseXMLAsDataWithRelaxNG(const QoreListNode *params,
 }
 
 void init_xml_functions() {
-   builtinFunctions.add("parseXML",                                           f_parseXML);
+   builtinFunctions.add2("parseXML",                                           f_noop, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("parseXML",                                           f_parseXML, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("makeFormattedXMLString",                             f_makeFormattedXMLString);
-   builtinFunctions.add("makeFormattedXMLFragment",                           f_makeFormattedXMLFragment);
+   // parse_xml variants with hard typing
+   builtinFunctions.add2("parse_xml",                                          f_parseXML, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parse_xml",                                          f_parseXML, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("makeXMLString",                                      f_makeXMLString);
-   builtinFunctions.add("makeXMLFragment",                                    f_makeXMLFragment);
+   builtinFunctions.add2("parseXMLAsData",                                     f_noop, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("parseXMLAsData",                                     f_parseXMLAsData, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // parse_xml_as_data variants with hard typing
+   builtinFunctions.add2("parse_xml_as_data",                                  f_parseXMLAsData, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parse_xml_as_data",                                  f_parseXMLAsData, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("parseXMLWithSchema",                                 f_parseXMLWithSchema, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parseXMLWithRelaxNG",                                f_parseXMLWithRelaxNG, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("parseXMLAsDataWithSchema",                           f_parseXMLAsDataWithSchema, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parseXMLAsDataWithRelaxNG",                          f_parseXMLAsDataWithRelaxNG, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("parseXMLRPCValue",                                   f_noop, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("parseXMLRPCValue",                                   f_parseXMLRPCValue, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parseXMLRPCValue",                                   f_parseXMLRPCValue, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // parse_xmlrpc_value variants with hard typing
+   builtinFunctions.add2("parse_xmlrpc_value",                                 f_parseXMLRPCValue, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parse_xmlrpc_value",                                 f_parseXMLRPCValue, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("parseXMLRPCCall",                                    f_noop, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("parseXMLRPCCall",                                    f_parseXMLRPCCall, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parseXMLRPCCall",                                    f_parseXMLRPCCall, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // parse_xmlrpc_call variants with hard typing
+   builtinFunctions.add2("parse_xmlrpc_call",                                  f_parseXMLRPCCall, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parse_xmlrpc_call",                                  f_parseXMLRPCCall, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("parseXMLRPCResponse",                                f_noop, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("parseXMLRPCResponse",                                f_parseXMLRPCResponse, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parseXMLRPCResponse",                                f_parseXMLRPCResponse, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // parse_xmlrpc_response variants with hard typing
+   builtinFunctions.add2("parse_xmlrpc_response",                              f_parseXMLRPCResponse, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parse_xmlrpc_response",                              f_parseXMLRPCResponse, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("makeFormattedXMLString",                             f_makeFormattedXMLString, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeFormattedXMLString",                             f_makeFormattedXMLString, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeFormattedXMLString",                             f_makeFormattedXMLString_str, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeFormattedXMLString",                             f_makeFormattedXMLString_str, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("makeFormattedXMLFragment",                           f_noop, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("makeFormattedXMLFragment",                           f_makeFormattedXMLFragment, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeFormattedXMLFragment",                           f_makeFormattedXMLFragment, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // make_formatted_xml_fragment variants with hard typing
+   builtinFunctions.add2("make_formatted_xml_fragment",                        f_makeFormattedXMLFragment, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("make_formatted_xml_fragment",                        f_makeFormattedXMLFragment, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("makeXMLString",                                      f_makeXMLString, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeXMLString",                                      f_makeXMLString, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeXMLString",                                      f_makeXMLString_str, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeXMLString",                                      f_makeXMLString_str, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("makeXMLFragment",                                    f_noop, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("makeXMLFragment",                                    f_makeXMLFragment, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeXMLFragment",                                    f_makeXMLFragment, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // make__xml_fragment variants with hard typing
+   builtinFunctions.add2("make_xml_fragment",                                  f_makeXMLFragment, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("make_xml_fragment",                                  f_makeXMLFragment, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("makeXMLRPCCallString",                               f_makeXMLRPCCallString);
    builtinFunctions.add("makeXMLRPCCallStringWithEncoding",                   f_makeXMLRPCCallStringWithEncoding);
@@ -2832,15 +2800,4 @@ void init_xml_functions() {
    builtinFunctions.add("makeFormattedXMLRPCFaultResponseStringWithEncoding", f_makeFormattedXMLRPCFaultResponseStringWithEncoding);
 
    builtinFunctions.add("makeFormattedXMLRPCValueString",                     f_makeFormattedXMLRPCValueString);
-
-   builtinFunctions.add("parseXMLRPCValue",                                   f_parseXMLRPCValue);
-   builtinFunctions.add("parseXMLRPCCall",                                    f_parseXMLRPCCall);
-   builtinFunctions.add("parseXMLRPCResponse",                                f_parseXMLRPCResponse);
-
-   builtinFunctions.add("parseXMLWithSchema",                                 f_parseXMLWithSchema);
-   builtinFunctions.add("parseXMLWithRelaxNG",                                f_parseXMLWithRelaxNG);
-
-   builtinFunctions.add("parseXMLAsData",                                     f_parseXMLAsData);
-   builtinFunctions.add("parseXMLAsDataWithSchema",                           f_parseXMLAsDataWithSchema);
-   builtinFunctions.add("parseXMLAsDataWithRelaxNG",                          f_parseXMLAsDataWithRelaxNG);
 }
