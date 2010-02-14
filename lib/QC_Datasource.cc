@@ -116,6 +116,13 @@ static AbstractQoreNode *DS_vexec(QoreObject *self, ManagedDatasource *ds, const
    return ds->exec(p0, args, xsink);
 }
 
+static AbstractQoreNode *DS_execRaw(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
+   return ds->execRaw(p0, xsink);
+}
+
 static AbstractQoreNode *DS_select(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p = test_string_param(params, 0);
    if (!p)
@@ -316,6 +323,7 @@ QoreClass *initDatasourceClass() {
    QC_DATASOURCE->addMethod("commit",            (q_method_t)DS_commit);
    QC_DATASOURCE->addMethod("rollback",          (q_method_t)DS_rollback);
    QC_DATASOURCE->addMethod("exec",              (q_method_t)DS_exec);
+   QC_DATASOURCE->addMethod("execRaw",           (q_method_t)DS_execRaw);
    QC_DATASOURCE->addMethod("select",            (q_method_t)DS_select);
    QC_DATASOURCE->addMethod("selectRow",         (q_method_t)DS_selectRow);
    QC_DATASOURCE->addMethod("selectRows",        (q_method_t)DS_selectRows);

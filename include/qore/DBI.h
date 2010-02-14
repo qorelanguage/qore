@@ -54,8 +54,10 @@
 #define QDBI_METHOD_ABORT_TRANSACTION_START   9
 #define QDBI_METHOD_GET_SERVER_VERSION       10
 #define QDBI_METHOD_GET_CLIENT_VERSION       11
+#define QDBI_METHOD_EXECRAW                  12
 
-#define QDBI_VALID_CODES 12
+
+#define QDBI_VALID_CODES 13
 
 class Datasource;
 class ExceptionSink;
@@ -113,6 +115,15 @@ typedef AbstractQoreNode *(*q_dbi_select_rows_t)(Datasource *ds, const QoreStrin
  */
 typedef AbstractQoreNode *(*q_dbi_exec_t)(Datasource *ds, const QoreString *str, const QoreListNode *args, ExceptionSink *xsink);
 
+//! signature for the DBI "execRawSQL" method - must be defined in each DBI driver
+/**
+    @param ds the Datasource for the connection
+    @param str the SQL string to execute, may not be in the encoding of the Datasource
+    @param xsink if any errors occur, error information should be added to this object
+    @return the data returned by executing the SQL or 0
+ */
+typedef AbstractQoreNode *(*q_dbi_execraw_t)(Datasource *ds, const QoreString *str, ExceptionSink *xsink);
+
 //! signature for the DBI "commit" method - must be defined in each DBI driver
 /** 
     @param ds the Datasource for the connection
@@ -166,7 +177,7 @@ typedef std::pair<int, void *> qore_dbi_method_t;
 typedef safe_dslist<qore_dbi_method_t> dbi_method_list_t;
 
 //! this is the data structure Qore DBI drivers will use to pass the supported DBI methods
-/** the minimum methods that must be supported are: open, close, select, selectRows, execSQL, commit, and rollback
+/** the minimum methods that must be supported are: open, close, select, selectRows, execSQL, execRawSQL, commit, and rollback
  */
 class qore_dbi_method_list
 {
@@ -187,6 +198,8 @@ class qore_dbi_method_list
       DLLEXPORT void add(int code, q_dbi_close_t method);
       // covers select, select_rows. and exec
       DLLEXPORT void add(int code, q_dbi_select_t method);
+      // covers execRaw
+      DLLEXPORT void add(int code, q_dbi_execraw_t method);
       // covers get_server_version
       DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
       // covers get_client_version
@@ -226,6 +239,7 @@ class DBIDriver {
       DLLLOCAL AbstractQoreNode *select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode *selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode *execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink);
       DLLLOCAL int commit(Datasource *, ExceptionSink *xsink);
       DLLLOCAL int rollback(Datasource *, ExceptionSink *xsink);
       DLLLOCAL int autoCommit(Datasource *, ExceptionSink *xsink);

@@ -58,6 +58,7 @@ class DBIDriverFunctions {
       q_dbi_select_t select;
       q_dbi_select_rows_t selectRows;
       q_dbi_exec_t execSQL;
+      q_dbi_execraw_t execRawSQL;
       q_dbi_commit_t commit;
       q_dbi_rollback_t rollback;
       q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
@@ -74,6 +75,7 @@ class DBIDriverFunctions {
 	 select = 0;
 	 selectRows = 0;
 	 execSQL = 0;
+     execRawSQL = 0;
 	 commit = 0;
 	 rollback = 0;
 	 begin_transaction = 0;
@@ -110,6 +112,12 @@ void qore_dbi_method_list::add(int code, q_dbi_close_t method)
 
 // covers select, select_rows. and exec
 void qore_dbi_method_list::add(int code, q_dbi_select_t method)
+{
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers execRaw
+void qore_dbi_method_list::add(int code, q_dbi_execraw_t method)
 {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
@@ -163,6 +171,10 @@ struct qore_dbi_private {
 		  assert(!f.execSQL);
 		  f.execSQL = (q_dbi_exec_t)(*i).second;
 		  break;
+           case QDBI_METHOD_EXECRAW:
+               assert(!f.execRawSQL);
+               f.execRawSQL = (q_dbi_execraw_t)(*i).second;
+               break;
 	       case QDBI_METHOD_COMMIT:
 		  assert(!f.commit);
 		  f.commit = (q_dbi_commit_t)(*i).second;
@@ -199,6 +211,8 @@ struct qore_dbi_private {
 	 assert(f.select);
 	 assert(f.selectRows);
 	 assert(f.execSQL);
+     // TODO/FIXME: allow this assertion afer implementation in modules
+     //assert(f.execRawSQL);
 	 assert(f.commit);
 	 assert(f.rollback);
    
@@ -258,6 +272,11 @@ AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, c
 AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    return priv->f.execSQL(ds, sql, args, xsink);
+}
+
+AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink)
+{
+   return priv->f.execRawSQL(ds, sql, xsink);
 }
 
 int DBIDriver::commit(Datasource *ds, ExceptionSink *xsink)

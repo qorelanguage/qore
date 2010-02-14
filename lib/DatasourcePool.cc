@@ -321,6 +321,29 @@ AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode
    return rv;
 }
 
+// TODO/FIXME: share the code with exec()
+AbstractQoreNode *DatasourcePool::execRaw(const QoreString *sql, ExceptionSink *xsink) {
+   bool new_ds = false;
+   Datasource *ds = getDS(new_ds, xsink);
+
+   if (!ds)
+      return 0;
+
+#ifdef DEBUG
+   addSQL("execRaw", sql);
+#endif
+
+   AbstractQoreNode *rv = ds->execRaw(sql, xsink);
+   //printd(5, "DatasourcePool::exec() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
+
+   if ((xsink->isException() && new_ds) || ds->wasConnectionAborted())
+      freeDS();
+
+   // DEBUG
+   //printf("DSP::beginTransaction() ds=%N\n", $ds);
+   return rv;
+}
+
 int DatasourcePool::commit(ExceptionSink *xsink) {
    bool new_ds = false;
    Datasource *ds = getDS(new_ds, xsink);

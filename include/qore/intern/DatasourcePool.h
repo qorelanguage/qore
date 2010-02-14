@@ -84,6 +84,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL AbstractQoreNode *selectRows(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
       DLLLOCAL int beginTransaction(ExceptionSink *xsink);
       DLLLOCAL AbstractQoreNode *exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *execRaw(const QoreString *sql, ExceptionSink *xsink);
       DLLLOCAL int commit(ExceptionSink *xsink);
       DLLLOCAL int rollback(ExceptionSink *xsink);
       DLLLOCAL QoreStringNode *toString();

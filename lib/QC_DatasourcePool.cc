@@ -126,6 +126,13 @@ static AbstractQoreNode *DSP_vexec(QoreObject *self, DatasourcePool *ds, const Q
    return ds->exec(p0, args, xsink);
 }
 
+static AbstractQoreNode *DSP_execRaw(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
+      return 0;
+   return ds->execRaw(p0, xsink);
+}
+
 static AbstractQoreNode *DSP_select(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p = test_string_param(params, 0);
    if (!p)
@@ -256,6 +263,7 @@ class QoreClass *initDatasourcePoolClass()
    QC_DATASOURCEPOOL->addMethod("rollback",          (q_method_t)DSP_rollback);
    QC_DATASOURCEPOOL->addMethod("exec",              (q_method_t)DSP_exec);
    QC_DATASOURCEPOOL->addMethod("vexec",             (q_method_t)DSP_vexec);
+   QC_DATASOURCEPOOL->addMethod("execRaw",           (q_method_t)DSP_execRaw);
    QC_DATASOURCEPOOL->addMethod("select",            (q_method_t)DSP_select);
    QC_DATASOURCEPOOL->addMethod("selectRow",         (q_method_t)DSP_selectRow);
    QC_DATASOURCEPOOL->addMethod("selectRows",        (q_method_t)DSP_selectRows);

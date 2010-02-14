@@ -255,6 +255,15 @@ class Datasource {
        */
       DLLEXPORT AbstractQoreNode *exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
 
+      //! executes SQL throught the "execRaw" function of the DBI driver and returns the result, makes an implicit connection if necessary
+      /** The "in_transaction" flag will be set to true if this method executes without
+      throwing an exception and the object was not already in a transaction.
+      this function is not "const" to allow for implicit connections (and reconnections)
+      @param query_str the qurey to execute
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT AbstractQoreNode *execRaw(const QoreString *query_str, ExceptionSink *xsink);
+
       //! commits the current transaction to the database
       /** Calls the DBI driver's "commit" method.
 	  this function is not "const" to allow for implicit connections (and reconnections)

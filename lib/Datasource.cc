@@ -175,6 +175,34 @@ AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNo
    return rv;
 }
 
+// TODO/FIXME: share the code with ::exec()!
+DLLEXPORT AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, ExceptionSink *xsink) {
+   if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
+      return 0;
+
+   AbstractQoreNode *rv = priv->dsl->execRawSQL(this, query_str, xsink);
+   //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
+
+   if (priv->connection_aborted) {
+      assert(*xsink);
+      assert(!rv);
+      return 0;
+   }
+
+   if (priv->autocommit)
+      priv->dsl->autoCommit(this, xsink);
+   else if (!priv->in_transaction) {
+      if (xsink->isException()) {
+     priv->dsl->abortTransactionStart(this, xsink);
+      }
+      else
+     priv->in_transaction = true;
+   }
+
+   return rv;
+}
+
+
 int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {
    //printd(5, "Datasource::beginImplicitTransaction() autocommit=%s\n", autocommit ? "true" : "false");
    if (priv->autocommit) {
