@@ -258,4 +258,10 @@ static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
 // returns an object pointer
 #define HARD_QORE_OBJ_PARAM(name, Type, list, i, cid, xsink) HARD_QORE_PARAM(obj_##name, const QoreObject, list, i); Type *name = reinterpret_cast<Type *>(obj_##name->getReferencedPrivateData(cid, xsink)); assert(name || *xsink)
 
+//! returns the QoreEncoding corresponding to the string passed or a default encoding
+static inline const QoreEncoding *get_hard_qore_encoding_param(const QoreListNode *n, qore_size_t i) {
+   HARD_QORE_PARAM(str, const QoreStringNode, n, i);
+   return QEM.findCreate(str);
+}
+
 #endif
