@@ -1,3 +1,4 @@
+/* -*- mode: c++; indent-tabs-mode nil -*- */
 /*
  IfStatement.h
  

@@ -1,0 +1,543 @@
+/*
+  QC_File.cpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2010 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_File.h>
+#include <qore/intern/QC_Queue.h>
+
+qore_classid_t CID_FILE;
+QoreClass *QC_FILE = 0;
+
+static void FILE_system_constructor(QoreObject *self, int fd, va_list args) {
+   //printd(5, "FILE_system_constructor() self=%08p, descriptor=%d\n", self, fd);
+   File *f = new File(QCS_DEFAULT);
+   f->makeSpecial(fd);
+   self->setPrivate(CID_FILE, f);
+}
+
+static void FILE_constructor(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
+   // get encoding name if available
+   const QoreEncoding *cs = get_encoding_param(args, 0);
+   self->setPrivate(CID_FILE, new File(cs));
+}
+
+static void FILE_copy(QoreObject *self, QoreObject *old, File *f, ExceptionSink *xsink) {
+   self->setPrivate(CID_FILE, new File(f->getEncoding()));
+}
+
+// open(filename, [flags, mode, charset])
+static AbstractQoreNode *FILE_open(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *p0;
+   p0 = test_string_param(args, 0);
+   if (!p0) {
+      xsink->raiseException("FILE-OPEN-PARAMETER-ERROR", "expecting string filename as first argument of File::open()");
+      return 0;
+   }
+
+   int flags = get_int_param_with_default(args, 1, O_RDONLY);
+   int mode = get_int_param_with_default(args, 2, 0666);
+   const QoreEncoding *charset = get_encoding_param(args, 3, f->getEncoding());
+
+   return new QoreBigIntNode(f->open(p0->getBuffer(), flags, mode, charset));
+}
+
+// open2(filename, [flags, mode, charset])
+// throws an exception if there is an error
+static AbstractQoreNode *FILE_open2(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = test_string_param(args, 0);
+   if (!p0) {
+      xsink->raiseException("FILE-OPEN2-PARAMETER-ERROR", "expecting string filename as first argument of File::open2()");
+      return 0;
+   }
+
+   int flags = get_int_param_with_default(args, 1, O_RDONLY);
+   int mode = get_int_param_with_default(args, 2, 0666);
+   const QoreEncoding *charset = get_encoding_param(args, 3, f->getEncoding());
+   
+   f->open2(xsink, p0->getBuffer(), flags, mode, charset);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_close(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return new QoreBigIntNode(f->close());
+}
+
+static AbstractQoreNode *FILE_sync(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return new QoreBigIntNode(f->sync());
+}
+
+static AbstractQoreNode *FILE_read(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int size = get_int_param(args, 0);
+
+   if (!size) {
+      xsink->raiseException("FILE-READ-PARAMETER-ERROR", "expecting size as first parameter of File::read()");
+      return 0;
+   }
+
+   // get timeout
+   int timeout_ms = getMsMinusOneInt(get_param(args, 1));
+
+   return f->read(size, timeout_ms, xsink);
+}
+
+static AbstractQoreNode *FILE_readu1(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   unsigned char c;
+   if (f->readu1(&c, xsink))
+      return 0;
+   return new QoreBigIntNode(c);
+}
+
+static AbstractQoreNode *FILE_readu2(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   unsigned short s;
+   if (f->readu2(&s, xsink))
+      return 0;
+   return new QoreBigIntNode(s);
+}
+
+static AbstractQoreNode *FILE_readu4(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   unsigned int i;
+   if (f->readu4(&i, xsink))
+      return 0;
+   
+   return new QoreBigIntNode(i);
+}
+
+static AbstractQoreNode *FILE_readu2LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   unsigned short s;
+   if (f->readu2LSB(&s, xsink))
+      return 0;
+   
+   return new QoreBigIntNode(s);
+}
+
+static AbstractQoreNode *FILE_readu4LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   unsigned int i;
+   if (f->readu4LSB(&i, xsink))
+      return 0;
+   
+   return new QoreBigIntNode(i);
+}
+
+static AbstractQoreNode *FILE_readi1(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   char c;
+   if (f->readi1(&c, xsink))
+      return 0;
+   return new QoreBigIntNode(c);
+}
+
+static AbstractQoreNode *FILE_readi2(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   short s;
+   if (f->readi2(&s, xsink))
+      return 0;
+   return new QoreBigIntNode(s);
+}
+
+static AbstractQoreNode *FILE_readi4(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int i;
+   if (f->readi4(&i, xsink))
+      return 0;
+
+   return new QoreBigIntNode(i);
+}
+
+static AbstractQoreNode *FILE_readi8(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int64 i;
+   if (f->readi8(&i, xsink))
+      return 0;
+   
+   return new QoreBigIntNode(i);
+}
+
+static AbstractQoreNode *FILE_readi2LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   short s;
+   if (f->readi2LSB(&s, xsink))
+      return 0;
+
+   return new QoreBigIntNode(s);
+}
+
+static AbstractQoreNode *FILE_readi4LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int i;
+   if (f->readi4LSB(&i, xsink))
+      return 0;
+
+   return new QoreBigIntNode(i);
+}
+
+static AbstractQoreNode *FILE_readi8LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int64 i;
+   if (f->readi8LSB(&i, xsink))
+      return 0;
+   
+   return new QoreBigIntNode(i);
+}
+
+static AbstractQoreNode *FILE_readBinary(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int size = get_int_param(args, 0);
+   if (!size) {
+      xsink->raiseException("FILE-READ-BINARY-PARAMETER-ERROR", "expecting size as first parameter of File::readBinary()");
+      return 0;
+   }
+
+   // get timeout
+   int timeout_ms = getMsMinusOneInt(get_param(args, 1));
+
+   return f->readBinary(size, timeout_ms, xsink);
+}
+
+static AbstractQoreNode *FILE_write_bin(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(bin, const BinaryNode, args, 0);
+
+   int rc = f->write(bin, xsink);
+   return *xsink ? 0 : new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_write_str(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, args, 0);
+
+   int rc = f->write(str, xsink);
+   return *xsink ? 0 : new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_writei1(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   char c = get_int_param(args, 0);
+   int rc = f->writei1(c, xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_writei2(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   short s = get_int_param(args, 0);
+   int rc = f->writei2(s, xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_writei4(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int i = get_int_param(args, 0);
+   int rc = f->writei4(i, xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_writei8(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int64 i = get_bigint_param(args, 0);
+   int rc = f->writei8(i, xsink);
+   if (xsink->isEvent())
+      return 0;
+   
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_writei2LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   short s = get_int_param(args, 0);
+   int rc = f->writei2LSB(s, xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_writei4LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int i = get_int_param(args, 0);
+   int rc = f->writei4LSB(i, xsink);
+   if (xsink->isEvent())
+      return 0;
+
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_writei8LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int64 i = get_bigint_param(args, 0);
+   int rc = f->writei8LSB(i, xsink);
+   if (xsink->isEvent())
+      return 0;
+   
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_printf(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   QoreStringNodeHolder str(q_sprintf(args, 0, 0, xsink));
+   if (!str)
+      return 0;
+
+   int rc = f->write(*str, xsink);
+
+   return *xsink ? 0 : new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_vprintf(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   QoreStringNodeHolder str(q_vsprintf(args, 0, 0, xsink));
+   if (!str)
+      return 0;
+
+   int rc = f->write(*str, xsink);
+
+   return *xsink ? 0 : new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_f_printf(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   QoreStringNodeHolder str(q_sprintf(args, 1, 0, xsink));
+   if (!str)
+      return 0;
+
+   int rc = f->write(*str, xsink);
+
+   return *xsink ? 0 : new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_f_vprintf(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   QoreStringNodeHolder str(q_vsprintf(args, 1, 0, xsink));
+   if (!str)
+      return 0;
+
+   int rc = f->write(*str, xsink);
+
+   return *xsink ? 0 : new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_readLine(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return f->readLine(xsink);
+}
+
+static AbstractQoreNode *FILE_setCharset(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreEncoding *charset = get_encoding_param(args, 0);
+   f->setEncoding(charset);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_getCharset(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return new QoreStringNode(f->getEncoding()->getCode());
+}
+
+static AbstractQoreNode *FILE_setPos(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int pos = get_int_param(args, 0);
+   return new QoreBigIntNode(f->setPos(pos));
+}
+
+/*
+static AbstractQoreNode *FILE_setPosFromEnd(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink)
+{
+   //f->open();
+   return 0;
+}
+
+static AbstractQoreNode *FILE_setPosFromCurrent(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink)
+{
+   //f->open();
+   return 0;
+}
+*/
+
+static AbstractQoreNode *FILE_getPos(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return new QoreBigIntNode(f->getPos());
+}
+
+static AbstractQoreNode *FILE_getchar(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return f->getchar();
+}
+
+static int lock_intern(struct flock &fl, const QoreListNode *args, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(args, 0);
+   fl.l_type = p ? p->getAsInt() : 0;
+
+   p = get_param(args, 1);
+   fl.l_start = !is_nothing(p) ? p->getAsInt() : 0;
+
+   p = get_param(args, 2);
+   if (!is_nothing(p)) {
+      fl.l_len = p->getAsInt();
+      if (fl.l_len < 0) {
+	 xsink->raiseException("FILE-LOCK-ERROR", "length of locked area cannot be negative (value passed=%d)", fl.l_len);
+	 return -1;
+      }
+   }
+   else
+      fl.l_len = 0;
+   
+   p = get_param(args, 3);
+   fl.l_whence = !is_nothing(p) ? p->getAsInt() : SEEK_SET;
+   return 0;
+}
+
+static AbstractQoreNode *FILE_lock(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   struct flock fl;
+
+   if (lock_intern(fl, args, xsink))
+      return 0;
+
+   int rc = f->lock(fl, xsink);
+   if (*xsink)
+      return 0;
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FILE_lockBlocking(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   struct flock fl;
+
+   if (lock_intern(fl, args, xsink))
+      return 0;
+
+   f->lockBlocking(fl, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_getLockInfo(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   struct flock fl;
+   if (f->getLockInfo(fl, xsink))
+      return 0;
+
+   QoreHashNode *h = new QoreHashNode();
+   h->setKeyValue("start", new QoreBigIntNode(fl.l_start), xsink);
+   h->setKeyValue("len", new QoreBigIntNode(fl.l_len), xsink);
+   h->setKeyValue("pid", new QoreBigIntNode(fl.l_pid), xsink);
+   h->setKeyValue("type", new QoreBigIntNode(fl.l_type), xsink);
+   h->setKeyValue("whence", new QoreBigIntNode(fl.l_whence), xsink);
+
+   return h;
+}
+
+static AbstractQoreNode *FILE_chown(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   uid_t owner = (uid_t)get_int_param(args, 0);
+   gid_t group = (gid_t)get_int_param(args, 1);
+   f->chown(owner, group, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_isDataAvailable(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int timeout_ms = getMsZeroInt(get_param(args, 0));
+   bool rc = f->isDataAvailable(timeout_ms, xsink);
+   return *xsink ? 0 : get_bool_node(rc);
+}
+
+static AbstractQoreNode *FILE_getTerminalAttributes(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   QoreObject *p = test_object_param(args, 0);
+   QoreTermIOS *ios = p ? (QoreTermIOS *)p->getReferencedPrivateData(CID_TERMIOS, xsink) : 0;
+   if (!ios) {
+      if (!*xsink)
+         xsink->raiseException("TERMIOS-GETTERMINALATTRIBUTES-ERROR", "expecting a TermIOS object as sole argument to File::getTerminalAttributes()");
+      return 0;
+   }
+   ReferenceHolder<QoreTermIOS> holder(ios, xsink);
+   f->getTerminalAttributes(ios, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   int action = get_int_param(args, 0);
+
+   HARD_QORE_OBJ_PARAM(ios, QoreTermIOS, args, 1, CID_TERMIOS, xsink);
+   if (*xsink)
+      return 0;
+
+   ReferenceHolder<QoreTermIOS> holder(ios, xsink);
+   f->setTerminalAttributes(action, ios, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_setEventQueue_queue(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_OBJ_PARAM(q, Queue, args, 0, CID_QUEUE, xsink);
+   if (*xsink)
+      return 0;
+
+   // pass reference from QoreObject::getReferencedPrivateData() to function
+   f->setEventQueue(q, xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FILE_setEventQueue_nothing(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   f->setEventQueue(0, xsink);
+   return 0;
+}
+
+QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
+   QORE_TRACE("initFileClass()");
+
+   QC_FILE = new QoreClass("File", QDOM_FILESYSTEM);
+   CID_FILE = QC_FILE->getID();
+
+   QC_FILE->setSystemConstructor(FILE_system_constructor);
+   QC_FILE->setConstructor(FILE_constructor);
+   QC_FILE->setCopy((q_copy_t)FILE_copy);
+
+   QC_FILE->addMethodExtended("open",              (q_method_t)FILE_open, false, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FILE->addMethodExtended("open2",             (q_method_t)FILE_open2, false, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FILE->addMethodExtended("close",             (q_method_t)FILE_close, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("sync",              (q_method_t)FILE_sync, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("read",              (q_method_t)FILE_read, false, QDOM_DEFAULT, stringTypeInfo);
+   QC_FILE->addMethodExtended("readu1",            (q_method_t)FILE_readu1, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readu2",            (q_method_t)FILE_readu2, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readu4",            (q_method_t)FILE_readu4, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readu2LSB",         (q_method_t)FILE_readu2LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readu4LSB",         (q_method_t)FILE_readu4LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readi1",            (q_method_t)FILE_readi1, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readi2",            (q_method_t)FILE_readi2, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readi4",            (q_method_t)FILE_readi4, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readi8",            (q_method_t)FILE_readi8, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readi2LSB",         (q_method_t)FILE_readi2LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readi4LSB",         (q_method_t)FILE_readi4LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readi8LSB",         (q_method_t)FILE_readi8LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readBinary",        (q_method_t)FILE_readBinary, false, QDOM_DEFAULT, stringTypeInfo);
+
+   // overloaded write method
+   QC_FILE->addMethodExtended("write",             (q_method_t)FILE_write_bin, false, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FILE->addMethodExtended("write",             (q_method_t)FILE_write_str, false, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_FILE->addMethodExtended("writei1",           (q_method_t)FILE_writei1, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("writei2",           (q_method_t)FILE_writei2, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("writei4",           (q_method_t)FILE_writei4, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("writei8",           (q_method_t)FILE_writei8, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("writei2LSB",        (q_method_t)FILE_writei2LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("writei4LSB",        (q_method_t)FILE_writei4LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("writei8LSB",        (q_method_t)FILE_writei8LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("readLine",          (q_method_t)FILE_readLine, false, QDOM_DEFAULT, stringTypeInfo);
+   QC_FILE->addMethodExtended("setCharset",        (q_method_t)FILE_setCharset, false, QDOM_DEFAULT, nothingTypeInfo);
+   QC_FILE->addMethodExtended("getCharset",        (q_method_t)FILE_getCharset, false, QDOM_DEFAULT, stringTypeInfo);
+   QC_FILE->addMethodExtended("setPos",            (q_method_t)FILE_setPos, false, QDOM_DEFAULT, bigIntTypeInfo);
+   //QC_FILE->addMethod("setPosFromEnd",     (q_method_t)FILE_setPosFromEnd);
+   //QC_FILE->addMethod("setPosFromCurrent", (q_method_t)FILE_setPosFromCurrent);
+   QC_FILE->addMethodExtended("getPos",            (q_method_t)FILE_getPos, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("getchar",           (q_method_t)FILE_getchar, false, QDOM_DEFAULT, stringTypeInfo);
+   QC_FILE->addMethodExtended("printf",            (q_method_t)FILE_printf, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("vprintf",           (q_method_t)FILE_vprintf, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("f_printf",          (q_method_t)FILE_f_printf, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("f_vprintf",         (q_method_t)FILE_f_vprintf, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("lock",              (q_method_t)FILE_lock, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("lockBlocking",      (q_method_t)FILE_lockBlocking, false, QDOM_DEFAULT, nothingTypeInfo);
+   QC_FILE->addMethodExtended("getLockInfo",       (q_method_t)FILE_getLockInfo, false, QDOM_DEFAULT, hashTypeInfo);
+   QC_FILE->addMethodExtended("chown",             (q_method_t)FILE_chown, false, QDOM_DEFAULT, nothingTypeInfo);
+   QC_FILE->addMethodExtended("isDataAvailable",        (q_method_t)FILE_isDataAvailable, false, QDOM_DEFAULT, boolTypeInfo);
+   QC_FILE->addMethodExtended("getTerminalAttributes",  (q_method_t)FILE_getTerminalAttributes, false, QDOM_DEFAULT, nothingTypeInfo, 1, QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
+   QC_FILE->addMethodExtended("setTerminalAttributes",  (q_method_t)FILE_setTerminalAttributes, false, QDOM_DEFAULT, nothingTypeInfo, 2, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
+
+   // overloaded setEventQueue() method
+   QC_FILE->addMethodExtended("setEventQueue",          (q_method_t)FILE_setEventQueue_queue, false, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
+   QC_FILE->addMethodExtended("setEventQueue",          (q_method_t)FILE_setEventQueue_nothing, false, QDOM_DEFAULT, nothingTypeInfo);
+
+   return QC_FILE;
+}

@@ -1,6 +1,8 @@
 2010.02.15: David Nichols
 	 * added warning constants and documented warning masks in Program
 	   methods
+	 * renamed all c++ source files to cpp to make porting to Windows
+	   easier
 
 2010.02.14: David Nichols
 	 * finished adding hard typing to xml functions in lib/ql_xml.cc

@@ -339,11 +339,11 @@ endif
 
 bin_PROGRAMS = qore
 if COND_SINGLE_COMPILATION_UNIT
-qore_SOURCES = single-compilation-unit.cc
+qore_SOURCES = single-compilation-unit.cpp
 else
 qore_SOURCES = \
-	main.cc \
-	command-line.cc
+	main.cpp \
+	command-line.cpp
 endif
 
 BUILD=$(shell $(top_srcdir)/next_build.sh -b)
