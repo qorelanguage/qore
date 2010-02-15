@@ -1,9 +1,9 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version='1.0'>
   <!--
   <xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets-1.73.2/html/docbook.xsl"/>
-  <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/1.74.0/html/docbook.xsl"/>
-  -->
   <xsl:import href="/opt/local/share/xsl/docbook-xsl/html/docbook.xsl"/>
+  -->
+  <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/1.75.2/html/docbook.xsl"/>
 
   <xsl:param name="chapter.autolabel">1</xsl:param>
   <xsl:param name="section.autolabel">1</xsl:param>

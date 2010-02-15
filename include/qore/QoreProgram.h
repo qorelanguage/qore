@@ -30,6 +30,7 @@
 #include <qore/Restrictions.h>
 
 // warnings - must correspond with the string order in QoreProgram.cc
+// new warnigns must also be added as constants
 #define QP_WARN_NONE                     0
 #define QP_WARN_WARNING_MASK_UNCHANGED   (1 << 0)   //!< when the warning mask is attempted to be changed but it's locked
 #define QP_WARN_DUPLICATE_LOCAL_VARS     (1 << 1)   //!< duplicate local variable name

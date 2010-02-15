@@ -344,6 +344,60 @@
       </tgroup>
     </table>
 
+    <table id="Warning_Constants">
+      <title>Warning Constants</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row>
+            <entry><para><code>WARN_NONE</code></para></entry>
+            <entry><para>No warnings are enabled with this constant</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_WARNING_MASK_UNCHANGED</code></para></entry>
+            <entry><para>This warning means that the embedded code tried to change the warning mask, but it was locked, so the warning mask was actually unchanged</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_DUPLICATE_LOCAL_VARS</code></para></entry>
+            <entry><para>Indicates that a local variable was redeclared with the same name in the same local scope</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_UNKNOWN_WARNING</code></para></entry>
+            <entry><para>Indicates that the embedded code tried to enable or disable an unknown warning</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_UNDECLARED_VAR</code></para></entry>
+            <entry><para>Indicates that the embedded code referenced an undeclared variable that will be assumed to be a global variable</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_DUPLICATE_GLOBAL_VARS</code></para></entry>
+            <entry><para>Indicates that the embedded code has declared the same global variable more than once</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_UNREACHABLE_CODE</code></para></entry>
+            <entry><para>Indicates that code cannot be reached (for example; code in the same local block after an unconditional <command>return</command> or <command>thread_exit</command> statement)</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_NONEXISTENT_METHOD_CALL</code></para></entry>
+            <entry><para>Indicates that the embedded code is calling an unknown method in a class; this may be vaild if the calling method is only called from a base class that actually implements the method</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_INVALID_OPERATION</code></para></entry>
+            <entry><para>Indicates that the embedded code performs some operation that is guaranteed to produce no result (for example, using the [] operator on an integer value)</para></entry>
+          </row>
+          <row>
+            <entry><para><code>WARN_ALL</code></para></entry>
+            <entry><para>Enables all warnings</para></entry>
+          </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <table id="event_constants">
       <title>Event Constants</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -13783,12 +13837,13 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Parses the string argument and adds the code to the program object.</para>
+	    <para>If a warning mask is given and masked warnings are raised during parsing, this method will return a hash with warning information.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Program::parse(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
+	    <programlisting>Program::parse(<replaceable>string</replaceable>, <replaceable>label</replaceable>, <replaceable>[warning_mask]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13820,6 +13875,11 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	      <entry><para>String</para></entry>
 	      <entry><para>The code to parse.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><replaceable>[warning_mask]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>An optional warning mask of bitwise-ORed <link linkend="Warning_Constants">warning values</link>; if this option is non-zero and any warnings are raised during parsing, then a hash is returned of warning information.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -13835,8 +13895,8 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
+	      <entry><para>Hash or NOTHING</para></entry>
+	      <entry><para>If a warning mask is set and any masked warnings are raised during parsing, then an <link linkend="Exception_Hash">exception hash</link> is returned of warning information (multiple warnings are linked in the hash through the &quot;next&quot; key, as with chained exceptions).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13868,12 +13928,13 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Commits and pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> to the Program object and resolves all outstanding references in the pending code.  An exception in this method causes all pending code to be rolled back immediately.</para>
+	    <para>If a warning mask is given and masked warnings are raised during parsing, this method will return a hash with warning information.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Program::parseCommit()</programlisting>
+	    <programlisting>Program::parseCommit(<replaceable>[warning_mask]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13896,9 +13957,9 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
+	      <entry><para><replaceable>[warning_mask]</replaceable></para></entry>
+	      <entry><para>Integer</para></entry>
+	      <entry><para>An optional warning mask of bitwise-ORed <link linkend="Warning_Constants">warning values</link>; if this option is non-zero and any warnings are raised during parsing, then a hash is returned of warning information..</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13915,8 +13976,8 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
+	      <entry><para>Hash or NOTHING</para></entry>
+	      <entry><para>If a warning mask is set and any masked warnings are raised during parsing, then an <link linkend="Exception_Hash">exception hash</link> is returned of warning information (multiple warnings are linked in the hash through the &quot;next&quot; key, as with chained exceptions).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13948,12 +14009,13 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object.  References are resolved in the <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link> method.  If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.</para>
+	    <para>If a warning mask is given and masked warnings are raised during parsing, this method will return a hash with warning information.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>Program::parsePending(<replaceable>string</replaceable>, <replaceable>label</replaceable>)</programlisting>
+	    <programlisting>Program::parsePending(<replaceable>string</replaceable>, <replaceable>label</replaceable>, <replaceable>[warning_mask]</replaceable>)</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13985,6 +14047,11 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	      <entry><para>String</para></entry>
 	      <entry><para>The code to parse.</para></entry>
 	    </row>
+            <row>
+              <entry><para><replaceable>[warning_mask]</replaceable></para></entry>
+              <entry><para>Integer</para></entry>
+              <entry><para>An optional warning mask of bitwise-ORed <link linkend="Warning_Constants">warning values</link>; if this option is non-zero and any warnings are raised during parsing, then a hash is returned of warning information.</para></entry>
+            </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -14000,8 +14067,8 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
+             <entry><para>Hash or NOTHING</para></entry>
+              <entry><para>If a warning mask is set and any masked warnings are raised during parsing, then an <link linkend="Exception_Hash">exception hash</link> is returned of warning information (multiple warnings are linked in the hash through the &quot;next&quot; key, as with chained exceptions).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

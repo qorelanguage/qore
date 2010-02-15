@@ -2,9 +2,9 @@
 
   <!--
   <xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets-1.73.2/html/chunk.xsl"/>
-  <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/1.74.0/html/chunk.xsl"/>
-  -->
   <xsl:import href="/opt/local/share/xsl/docbook-xsl/html/chunk.xsl"/>
+  -->
+  <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/1.75.2/html/chunk.xsl"/>
 
   <xsl:param name="chapter.autolabel">1</xsl:param>
   <xsl:param name="section.autolabel">1</xsl:param>

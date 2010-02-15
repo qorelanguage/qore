@@ -1440,6 +1440,18 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    // math constants
    qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
+   // warning constants
+   qns->addConstant("WARN_NONE",                      new QoreBigIntNode(QP_WARN_NONE));
+   qns->addConstant("WARN_WARNING_MASK_UNCHANGED",    new QoreBigIntNode(QP_WARN_WARNING_MASK_UNCHANGED));
+   qns->addConstant("WARN_DUPLICATE_LOCAL_VARS",      new QoreBigIntNode(QP_WARN_DUPLICATE_LOCAL_VARS));
+   qns->addConstant("WARN_UNKNOWN_WARNING",           new QoreBigIntNode(QP_WARN_UNKNOWN_WARNING));
+   qns->addConstant("WARN_UNDECLARED_VAR",            new QoreBigIntNode(QP_WARN_UNDECLARED_VAR));
+   qns->addConstant("WARN_DUPLICATE_GLOBAL_VARS",     new QoreBigIntNode(QP_WARN_DUPLICATE_GLOBAL_VARS));
+   qns->addConstant("WARN_UNREACHABLE_CODE",          new QoreBigIntNode(QP_WARN_UNREACHABLE_CODE));
+   qns->addConstant("WARN_NONEXISTENT_METHOD_CALL",   new QoreBigIntNode(QP_WARN_NONEXISTENT_METHOD_CALL));
+   qns->addConstant("WARN_INVALID_OPERATION",         new QoreBigIntNode(QP_WARN_INVALID_OPERATION));
+   qns->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
+
    // event constants
    QoreHashNode *qesm = new QoreHashNode();
    qesm->setKeyValue("1", new QoreStringNode("SOCKET"), 0);
