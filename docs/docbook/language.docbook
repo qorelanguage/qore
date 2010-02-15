@@ -2133,7 +2133,7 @@ $var[1].count++;
 
 <command>context</command> ($service_history) <command>where</command> (%service_type == "voice")
 <command>sortBy</command> (%effective_start_date) {
-   printf("%s: start date: %s\n", %msisdn, format_date(%effective_start_date, "YYYY-MM-DD HH:mm:SS"));
+   printf("%s: start date: %s\n", %msisdn, format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
 }</programlisting>
       </listitem>
     </varlistentry>
@@ -2185,7 +2185,7 @@ $var[1].count++;
     <command>sortBy</command> (%effective_start_date) {
     printf("account has %d service(s) starting on %s\n", 
            context_rows(),
-           format_date(%effective_start_date, "YYYY-MM-DD HH:mm:SS"));
+           format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
 }</programlisting>
       </listitem>
     </varlistentry>
@@ -2226,9 +2226,9 @@ $var[1].count++;
     <command>sortBy</command> (%effective_start_date) {
     printf("account has %d service(s) starting on %s\n", 
            context_rows(),
-           format_date(%effective_start_date, "YYYY-MM-DD HH:mm:SS"));
+           format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
     <command>subcontext</command> <command>sortDescendingBy</command> (%effective_end_date) {
-        printf("\tservice %s: ends: %s\n", %msisdn, format_date(%effective_end_date, "YYYY-MM-DD HH:mm:SS"));
+        printf("\tservice %s: ends: %s\n", %msisdn, format_date("YYYY-MM-DD HH:mm:SS", %effective_end_date));
     }
 }</programlisting>
       </listitem>
