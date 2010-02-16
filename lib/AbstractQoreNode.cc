@@ -327,16 +327,7 @@ int getMicroSecZeroInt(const AbstractQoreNode *a)
    return a->getAsInt();
 }
 
-static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink *xsink)
-{
-   // if it's not an immediate list, then there can't be any
-   // variable references in it at any level, so return copy
-   if (!n->needs_eval()) {
-      n->ref();
-      return const_cast<QoreListNode *>(n);
-   }
-
-   // otherwise process each list element
+static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink *xsink) {
    ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
    for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
@@ -346,13 +337,7 @@ static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink 
    return l.release();
 }
 
-static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink)
-{
-   // if it's not an immediate hash, then there can't be any
-   // variable references in it at any level, so return copy
-   if (!n->needs_eval())
-      return n->refSelf();
-
+static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink) {
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
    ConstHashIterator hi(n);
    while (hi.next()) {
@@ -441,6 +426,14 @@ static inline AbstractQoreNode *call_ref_call_copy(const CallReferenceCallNode *
    return new CallReferenceCallNode(exp.release(), args);
 }
 
+static AbstractQoreNode *crlr_reference_copy(const ReferenceNode *r, ExceptionSink *xsink) {
+   ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(r->getExpression(), xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   return new ReferenceNode(exp.release());
+}
+
 static inline AbstractQoreNode *eval_notnull(const AbstractQoreNode *n, ExceptionSink *xsink)
 {
    n = n->eval(xsink);
@@ -449,8 +442,7 @@ static inline AbstractQoreNode *eval_notnull(const AbstractQoreNode *n, Exceptio
    return const_cast<AbstractQoreNode *>(n);
 }
 
-AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink)
-{
+AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink) {
    if (!n) return 0;
 
    qore_type_t ntype = n->getType();
@@ -468,7 +460,7 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
       return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode *>(n), xsink);
 
    // must make sure to return a value here or it could cause a segfault - parse expressions expect non-NULL values for the operands
-   if (ntype == NT_FIND || ntype == NT_SELF_VARREF)
+   if (ntype == NT_FIND)
       return eval_notnull(n, xsink);
 
    if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->type == VT_LOCAL)
@@ -482,6 +474,9 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
 
    if (ntype == NT_STATIC_METHOD_CALL)
       return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode *>(n), xsink);
+
+   if (ntype == NT_REFERENCE)
+      return crlr_reference_copy(reinterpret_cast<const ReferenceNode *>(n), xsink);
 
    return n->refSelf();
 }

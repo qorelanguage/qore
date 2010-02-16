@@ -54,17 +54,14 @@ void QoreTreeNode::ignoreReturnValue()
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 // FIXME: no deep effect - or is this ever needed?
-int QoreTreeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
-   str.sprintf("tree (left=%s (0x%08p) op=%s right=%s (%0x08p))", left ? left->getTypeName() : "NOTHING", 
-	       op->getName(), right ? right->getTypeName() : "NOTHING");
+int QoreTreeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   str.sprintf("tree (left=%s (%p) op=%s right=%s (%p))", get_type_name(left), left, op->getName(), get_type_name(right), right);
 
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -72,8 +69,7 @@ QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 }
 
 // returns the type name as a c string
-const char *QoreTreeNode::getTypeName() const
-{
+const char *QoreTreeNode::getTypeName() const {
    return "expression tree";
 }
 
