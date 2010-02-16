@@ -101,10 +101,7 @@ const QoreTypeInfo *getTypeInfoForType(qore_type_t t) {
       rv = type_info_map[t];
    }
 
-#ifdef DEBUG
-   if (!rv) printd(0, "getTypeInfoForValue() %d not found in map\n", t);
-   assert(rv);
-#endif
+   //if (!rv) printd(0, "getTypeInfoForValue() %d not found in map\n", t);
    return rv;
 }
 

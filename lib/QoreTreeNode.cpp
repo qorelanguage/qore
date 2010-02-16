@@ -53,8 +53,7 @@ void QoreTreeNode::ignoreReturnValue() {
 // returns -1 for exception raised, 0 = OK
 // FIXME: no deep effect - or is this ever needed?
 int QoreTreeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("tree (left=%s (0x%08p) op=%s right=%s (%0x08p))", left ? left->getTypeName() : "NOTHING", 
-	       op->getName(), right ? right->getTypeName() : "NOTHING");
+   str.sprintf("tree (left=%s (%p) op=%s right=%s (%p))", get_type_name(left), left, op->getName(), get_type_name(right), right);
 
    return 0;
 }

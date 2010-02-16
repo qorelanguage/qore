@@ -500,10 +500,11 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
       AbstractQoreNode *np = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       AbstractQoreNode *n = 0;
       const QoreTypeInfo *paramTypeInfo = signature.getParamTypeInfo(i);
-      printd(4, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p (%s) (exp %p %s)\n", i, signature.lv[i], signature.lv[i]->getName(), np, np ? np->getTypeName() : "NOTHING");
+      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p (%s) (exp nt=%d %p %s)\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
       if (!is_nothing(np)) {
 	 if (np->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(np);
+	    //printd(5, "UserVariantBase::setupCall() eval %d: instantiating (%s) as reference (ref exp nt=%d %p %s)\n", i, signature.lv[i]->getName(), get_node_type(r->getExpression()), r->getExpression(), get_type_name(r->getExpression()));
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    if (!*xsink) {
