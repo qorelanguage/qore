@@ -296,16 +296,6 @@ int getMicroSecZeroInt(const AbstractQoreNode *a) {
 }
 
 static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink *xsink) {
-/*
-   // if it's not an immediate list, then there can't be any
-   // variable references in it at any level, so return copy
-   if (!n->needs_eval()) {
-      n->ref();
-      return const_cast<QoreListNode *>(n);
-   }
-*/
-
-   // otherwise process each list element
    ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
    for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
@@ -316,13 +306,6 @@ static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink 
 }
 
 static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink) {
-/*
-   // if it's not an immediate hash, then there can't be any
-   // variable references in it at any level, so return copy
-   if (!n->needs_eval())
-      return n->refSelf();
-*/
-
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
    ConstHashIterator hi(n);
    while (hi.next()) {

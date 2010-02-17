@@ -962,6 +962,7 @@ ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm, ExceptionSink *xs) 
    old_pgm(0), last(0), xsink (0), restore(false) {
    if (pgm) {
       ThreadData *td = thread_data.get();
+      //printd(5, "ProgramContextHelper::ProgramContextHelper() current_pgm=%p new_pgm=%p\n", td->current_pgm, pgm);
       if (pgm != td->current_pgm) {
 	 // push link to last ProgramContextHelper
 	 last = td->pch_link;
@@ -1000,6 +1001,7 @@ ProgramContextHelper::~ProgramContextHelper() {
 	 for (int i = 0; i < l->num_lvars; ++i)
             l->lv[i]->uninstantiate(xsink);
       }
+      //printd(5, "ProgramContextHelper::~ProgramContextHelper() current_pgm=%p restoring old pgm=%p\n", td->current_pgm, old_pgm);
       td->current_pgm = old_pgm;
       td->pch_link = last;
    }

@@ -12484,27 +12484,27 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </row>
 	  <row id="PO_NO_TOP_LEVEL_STATEMENTS">
 	    <entry><para>PO_NO_TOP_LEVEL_STATEMENTS</para></entry>
-	    <entry><para><link linkend="no-top-level"><code>no-top-level</code></link></para></entry>
+	    <entry><para><link linkend="no-top-level"><code>%no-top-level</code></link></para></entry>
 	    <entry><para>Disallows top level code.</para></entry>
 	  </row>
 	  <row id="PO_NO_CLASS_DEFS">
 	    <entry><para>PO_NO_CLASS_DEFS</para></entry>
-	    <entry><para><link linkend="no-class-defs"><code>no-class-defs</code></link></para></entry>
+	    <entry><para><link linkend="no-class-defs"><code>%no-class-defs</code></link></para></entry>
 	    <entry><para>Disallows class definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_NAMESPACE_DEFS">
 	    <entry><para>PO_NO_NAMESPACE_DEFS</para></entry>
-	    <entry><para><link linkend="no-namespace-defs"><code>no-namespace-defs</code></link></para></entry>
+	    <entry><para><link linkend="no-namespace-defs"><code>%no-namespace-defs</code></link></para></entry>
 	    <entry><para>Disallows new namespace definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_CONSTANT_DEFS">
 	    <entry><para>PO_NO_CONSTANT_DEFS</para></entry>
-	    <entry><para><link linkend="no-constant-defs"><code>no-constant-defs</code></link></para></entry>
+	    <entry><para><link linkend="no-constant-defs"><code>%no-constant-defs</code></link></para></entry>
 	    <entry><para>Disallows constant definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_NEW">
 	    <entry><para>PO_NO_NEW</para></entry>
-	    <entry><para><link linkend="no-new"><code>no-new</code></link></para></entry>
+	    <entry><para><link linkend="no-new"><code>%no-new</code></link></para></entry>
 	    <entry><para>Disallows use of the <link linkend="New_Object_Operator"><command>new</command></link> operator.</para></entry>
 	  </row>
 	  <row id="PO_NO_SYSTEM_CLASSES">
@@ -12519,52 +12519,52 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </row>
 	  <row id="PO_NO_CHILD_PO_RESTRICTIONS">
 	    <entry><para>PO_NO_CHILD_PO_RESTRICTIONS</para></entry>
-	    <entry><para><link linkend="no-child-restrictions"><code>no-child-restrictions</code></link></para></entry>
+	    <entry><para><link linkend="no-child-restrictions"><code>%no-child-restrictions</code></link></para></entry>
 	    <entry><para>Allows child program objects to have fewer parse restrictions than the parent object.</para></entry>
 	  </row>
 	  <row id="PO_NO_EXTERNAL_PROCESS">
 	    <entry><para>PO_NO_EXTERNAL_PROCESS</para></entry>
-	    <entry><para><link linkend="no-external-process"><code>no-external-process</code></link></para></entry>
+	    <entry><para><link linkend="no-external-process"><code>%no-external-process</code></link></para></entry>
 	    <entry><para>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, etc).</para></entry>
 	  </row>
 	  <row id="PO_REQUIRE_OUR">
 	    <entry><para>PO_REQUIRE_OUR</para></entry>
-	    <entry><para><link linkend="require-our"><code>require-our</code></link></para></entry>
+	    <entry><para><link linkend="require-our"><code>%require-our</code></link></para></entry>
 	    <entry><para>Requires global variables to be declared with <command>our</command> before use.</para></entry>
 	  </row>
 	  <row id="PO_NO_PROCESS_CONTROL">
 	    <entry><para>PO_NO_PROCESS_CONTROL</para></entry>
-	    <entry><para><link linkend="no-process-control"><code>no-process-control</code></link></para></entry>
+	    <entry><para><link linkend="no-process-control"><code>%no-process-control</code></link></para></entry>
 	    <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="exit">exec()</link>, <link linkend="fork">fork()</link>, etc).</para></entry>
 	  </row>
 	  <row id="PO_NO_NETWORK">
 	    <entry><para>PO_NO_NETWORK</para></entry>
-	    <entry><para><link linkend="no-network"><code>no-network</code></link></para></entry>
+	    <entry><para><link linkend="no-network"><code>%no-network</code></link></para></entry>
 	    <entry><para>Disallows access to network functions.</para></entry>
 	  </row>
 	  <row id="PO_NO_FILESYSTEM">
 	    <entry><para>PO_NO_FILESYSTEM</para></entry>
-	    <entry><para><link linkend="no-filesystem"><code>no-filesystem</code></link></para></entry>
+	    <entry><para><link linkend="no-filesystem"><code>%no-filesystem</code></link></para></entry>
 	    <entry><para>Disallows access to the filesystem.</para></entry>
 	  </row>
 	  <row id="PO_NO_WARNINGS">
 	    <entry><para>PO_LOCK_WARNINGS</para></entry>
-	    <entry><para><link linkend="lock-warnings"><code>lock-warnings</code></link></para></entry>
+	    <entry><para><link linkend="lock-warnings"><code>%lock-warnings</code></link></para></entry>
 	    <entry><para>Disallows changes to the warning mask.</para></entry>
 	  </row>
 	  <row id="PO_NO_DATABASE">
 	    <entry><para>PO_NO_DATABASE</para></entry>
-	    <entry><para><link linkend="no-database"><code>no-database</code></link></para></entry>
+	    <entry><para><link linkend="no-database"><code>%no-database</code></link></para></entry>
 	    <entry><para>Disallows access to database functionality.</para></entry>
 	  </row>
 	  <row id="PO_NO_GUI">
 	    <entry><para>PO_NO_GUI</para></entry>
-	    <entry><para><link linkend="no-gui"><code>no-gui</code></link></para></entry>
+	    <entry><para><link linkend="no-gui"><code>%no-gui</code></link></para></entry>
 	    <entry><para>Disallows access to functionality that draws graphics to the display.</para></entry>
 	  </row>
 	  <row id="PO_NO_TERMINAL_IO">
 	    <entry><para>PO_NO_TERMINAL_IO</para></entry>
-	    <entry><para><link linkend="no-terminal-io"><code>no-terminal-io</code></link></para></entry>
+	    <entry><para><link linkend="no-terminal-io"><code>%no-terminal-io</code></link></para></entry>
 	    <entry><para>Disallows access to reading from and/or writing to the terminal.</para></entry>
 	  </row>
 	  
