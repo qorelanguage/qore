@@ -288,7 +288,7 @@ public:
       popCall(xsink);
    }
 };
-#define CODE_CONTEXT_HELPER(type, name, self, xsink) CodeContextHelper cch_auto(name, self, xsink); CallStackHelper(name, type, self, xsink)
+#define CODE_CONTEXT_HELPER(type, name, self, xsink) CodeContextHelper cch_auto(name, self, xsink); CallStackHelper csh_auto(name, type, self, xsink)
 #else
 #define CODE_CONTEXT_HELPER(type, name, self, xsink) CodeContextHelper cch_auto(name, self, xsink)
 #endif
