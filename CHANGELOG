@@ -1,3 +1,7 @@
+2010.02.18: David Nichols
+	 * updated the Queue class documentation to clarify what a 0 argument
+	   means with Queue::pop() and Queue::get()
+
 2010.02.17: David Nichols
 	 * fixed a bug setting the program context for imported functions
 	 * fixed a bug tracking thread call stacks

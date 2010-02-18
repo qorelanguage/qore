@@ -33557,7 +33557,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -33588,7 +33588,7 @@ $mutex.unlock();</programlisting>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
 	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
-	      <entry><para>If present, a timeout value in milliseconds (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
+	      <entry><para>If present, a timeout value in milliseconds (1/1000 second).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -33642,7 +33642,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -33673,7 +33673,7 @@ $mutex.unlock();</programlisting>
 	    <row>
 	      <entry><para><replaceable>[timeout_ms]</replaceable></para></entry>
 	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
-	      <entry><para>If present, a timeout value in ms (1/1000 second).  If no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
+	      <entry><para>If present, a timeout value in ms (1/1000 second).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
