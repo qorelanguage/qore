@@ -1,6 +1,8 @@
 2010.02.18: David Nichols
 	 * updated the Queue class documentation to clarify what a 0 argument
 	   means with Queue::pop() and Queue::get()
+	 * fixed global variable initialization according to default value of
+	   its type
 
 2010.02.17: David Nichols
 	 * fixed a bug setting the program context for imported functions

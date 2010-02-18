@@ -21,7 +21,7 @@ sub do_pos_test($c, $name) {
 	printf("OK: %s\n", $name);
     }
     catch ($ex)
-	printf("ERROR: %s\n", $name);
+	printf("ERROR: %s: %s: %s\n", $name, $ex.err, $ex.desc);
 }
 
 sub main() {

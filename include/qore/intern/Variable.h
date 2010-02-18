@@ -175,6 +175,7 @@ public:
       if (parseTypeInfo) {
 	 typeInfo = parseTypeInfo->resolveAndDelete();
 	 parseTypeInfo = 0;
+	 assignInitialValue();
       }
    }
 
