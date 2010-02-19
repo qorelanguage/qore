@@ -1,4 +1,4 @@
-/* -*- mode: c++; indent-tabs-mode nil -*- */
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 #ifndef SCOPEGUARD_H_
 #define SCOPEGUARD_H_
 

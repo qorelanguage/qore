@@ -1,4 +1,4 @@
-/* -*- mode: c++; indent-tabs-mode nil -*- */
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
  qore_bit_opts.h
  

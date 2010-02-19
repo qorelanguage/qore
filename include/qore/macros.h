@@ -1,4 +1,4 @@
-/* -*- mode: c++; indent-tabs-mode nil -*- */
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 #ifndef _QORE_MACROS_H
 #define _QORE_MACROS_H
 
