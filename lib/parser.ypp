@@ -135,7 +135,10 @@ static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
    getProgram()->registerUserFunctionVariant(name, variant); 
    // make sure definition was legal
    if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
-      parse_error("subroutine '%s()' defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name);
+      parse_error("function '%s()' defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name);
+
+   if ((getProgram()->getParseOptions() & PO_REQUIRE_TYPES) && !variant->getUserSignature()->hasReturnTypeInfo())
+      parse_error("no return type declared for function '%s()', but parse options require all declarations to have type information", name);
 }
 
 HashElement::HashElement(AbstractQoreNode *k, AbstractQoreNode *v) {
@@ -243,7 +246,10 @@ struct MemberInfo {
    char *name;
    QoreMemberInfo *memberInfo;
 
-   DLLLOCAL MemberInfo(char *n, QoreMemberInfo *mi, AbstractQoreNode *e = 0) : name(n), memberInfo(mi)  {}
+   DLLLOCAL MemberInfo(char *n, QoreMemberInfo *mi, AbstractQoreNode *e = 0) : name(n), memberInfo(mi)  {
+      if (!mi->parseHasTypeInfo() && getProgram()->getParseOptions() & PO_REQUIRE_TYPES)
+	 parse_error("member $.%s declared without type information, but parse options require type information for all declarations", name);
+   }
    DLLLOCAL ~MemberInfo() {
       if (name)
 	 free(name);
@@ -497,6 +503,9 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
    }
    if (!strcmp(name, "copy") && !(mod & OFM_SYNCED))
       return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
+
+   if (!returnTypeInfo && (getProgram()->getParseOptions() & PO_REQUIRE_TYPES))
+      parse_error("no return type declared for method %s(), but parse options require all declarations to have type information", name);
 
    return new UserMethodVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
 }
@@ -1624,7 +1633,11 @@ exp:    scalar
 	   $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1);
 	}
         | TOK_MY VAR_REF { 
-	   $$ = new VarRefNode($2, VT_LOCAL); }
+	   // see if types are required
+	   if (checkParseOption(PO_REQUIRE_TYPES))
+	      parse_error("local variable '$%s' declared without type information, but parse options require all declarations to have type information", $2);
+	   $$ = new VarRefNode($2, VT_LOCAL); 
+	}
         | TOK_MY IDENTIFIER VAR_REF {
 	   qore_type_t t = getBuiltinType($2);
 	   if (t >= 0) {
@@ -1645,6 +1658,10 @@ exp:    scalar
 		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else {
 		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+		 // see if types are required
+		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->getTypeInfo())
+		    parse_error("local variable '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+
 		 if (v->getType() == VT_LOCAL)
 		    parse_error("illegal use of 'my %s' in local variable declaration list", v->getName());
 		 else if (v->getType() == VT_GLOBAL)
@@ -1656,6 +1673,10 @@ exp:    scalar
 	   $$ = $3;
 	}
         | TOK_OUR VAR_REF {
+	   // see if types are required
+	   if (checkParseOption(PO_REQUIRE_TYPES))
+	      parse_error("global variable '$%s' declared without type information, but parse options require all declarations to have type information", $2);
+
 	   VarRefNode *v = new VarRefNode($2, VT_GLOBAL); 
 	   v->ref.var = getProgram()->addGlobalVarDef($2, 0);
 	   $$ = v;
@@ -1686,6 +1707,10 @@ exp:    scalar
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else {
 		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+		 // see if types are required
+		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->getTypeInfo())
+		    parse_error("global variable '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+
 		 if (v->getType() == VT_LOCAL)
 		    parse_error("illegal use of 'my %s' in global variable declaration list", v->getName());
 		 else if (v->getType() == VT_GLOBAL)
@@ -2072,7 +2097,7 @@ exp:    scalar
 	      else {
 		 VarRefNode *r = dynamic_cast<VarRefNode *>($1);
 		 if (r && r->getType() != VT_UNRESOLVED)
-		    parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
+		    parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '$%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
 		 $$ = new CallReferenceCallNode($1, makeArgs($3));
 	      }
 	   }

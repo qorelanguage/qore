@@ -77,11 +77,11 @@ class BuiltinFunctionList {
 	 @param name the name of the function
 	 @param f a pointer to the actual C++ function to be executed when the function is called
 	 @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
-	 @param num_params the number of parameters specified for the function, each of the following lists must have this number of elements in it
+         @param returnTypeInfo the type information for the return value of this function
 	 @param typeList a list of types for each parameter; must have num_param entries
 	 @param defaultArgList a list of default argument values for each parameter if no argument is supplied by the caller
       */
-      DLLEXPORT static void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
+      DLLEXPORT static void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
       //! returns the number of functions in the hash
       /**

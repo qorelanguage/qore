@@ -36,15 +36,18 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    parseReturnTypeInfo(n_returnTypeInfo), 
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
    lv(0), argvid(0), selfid(0), resolved(false) {
+
    if (!params) {
       str = NO_TYPE_INFO;
       return;
    }
 
+   int needs_types = getProgram()->getParseOptions() & PO_REQUIRE_TYPES;
+
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
-            
+
    if (params->getType() == NT_VARREF) {
-      pushParam(reinterpret_cast<VarRefNode *>(params));
+      pushParam(reinterpret_cast<VarRefNode *>(params), needs_types);
       return;
    }
 
@@ -66,17 +69,24 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
 	 break;
       }
 	 
-      pushParam(reinterpret_cast<VarRefNode *>(n));
+      pushParam(reinterpret_cast<VarRefNode *>(n), needs_types);
       // add a comma to the signature string if it's not the last parameter
       if (!li.last())
 	 str.append(", ");
    }
 }
 
-void UserSignature::pushParam(VarRefNode *v) {
+void UserSignature::pushParam(VarRefNode *v, bool needs_types) {
+   // check for duplicate name
+   for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
+      if (*i == v->getName())
+	 parse_error("duplicate variable '$%s' declared in parameter list", (*i).c_str());
+
    names.push_back(v->getName());
 
    QoreParseTypeInfo *pti = v->takeTypeInfo();
+   if (needs_types && !pti)
+      parse_error("function parameter '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
    parseTypeList.push_back(pti);
    if (pti->hasType())
       ++num_param_types;

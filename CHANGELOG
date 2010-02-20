@@ -1,3 +1,9 @@
+2010.02.20: David Nichols
+	 * implemented %require-types parse directive (PO_REQUIRE_TYPES) to
+	   require type information in all declarations
+	 * implemented two-phase commit for global variables in the 
+	   QoreProgram class
+
 2010.02.18: David Nichols
 	 * updated the Queue class documentation to clarify what a 0 argument
 	   means with Queue::pop() and Queue::get()

@@ -100,7 +100,7 @@ protected:
    int first_line, last_line;
    const char *parse_file;
 
-   DLLLOCAL void pushParam(VarRefNode *v);
+   DLLLOCAL void pushParam(VarRefNode *v, bool needs_types);
 
    DLLLOCAL static void param_error() {
       parse_error("parameter list contains non-variable reference expressions");
@@ -178,6 +178,10 @@ public:
    
    DLLLOCAL const char *getParseFile() const {
       return parse_file;
+   }
+
+   DLLLOCAL bool hasReturnTypeInfo() const {
+      return parseReturnTypeInfo || returnTypeInfo;
    }
 
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo);

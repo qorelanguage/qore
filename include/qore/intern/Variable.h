@@ -188,6 +188,10 @@ public:
       assert(!parseTypeInfo);
       return typeInfo;
    }
+
+   DLLLOCAL bool hasTypeInfo() const {
+      return parseTypeInfo || typeInfo;
+   }
 };
 
 DLLLOCAL AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink);

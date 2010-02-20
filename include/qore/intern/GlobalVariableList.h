@@ -35,7 +35,7 @@ class Var;
 // all reading and writing is done withing the parse lock on the contining program object
 class GlobalVariableList {
 private:
-   map_var_t vmap; // iterators are not invalidated on inserts
+   map_var_t vmap, pending_vmap;
    
 public:
    DLLLOCAL GlobalVariableList();
@@ -51,7 +51,9 @@ public:
    DLLLOCAL Var *checkVar(const char *name, QoreParseTypeInfo *typeInfo, int *new_vars);
    DLLLOCAL Var *checkVar(const char *name, const QoreTypeInfo *typeInfo, int *new_vars);
    DLLLOCAL QoreListNode *getVarList() const;
-   DLLLOCAL void parseInit();
+   DLLLOCAL void parseInit(int parse_options);
+   DLLLOCAL void parseCommit();
+   DLLLOCAL void parseRollback();
 };
 
 #endif

@@ -289,6 +289,9 @@ struct qore_program_private {
 	 
 	 // delete pending changes to namespaces
 	 RootNS->parseRollback();
+
+	 // commit global variables
+	 global_var_list.parseRollback();
 	 
 	 // delete pending statements 
 	 sb_tail->reset();
@@ -364,7 +367,7 @@ struct qore_program_private {
 	    sb_tail->statements->parseInitTopLevel(RootNS, &user_func_list, sb_head == sb_tail);
 
 	    // initialize all new global variables (resolve types)
-	    global_var_list.parseInit();
+	    global_var_list.parseInit(parse_options);
 
 	    printd(5, "QoreProgram::internParseCommit() this=%08p RootNS=%08p\n", pgm, RootNS);
 	 }
@@ -384,6 +387,9 @@ struct qore_program_private {
 	    // merge pending namespace additions
 	    RootNS->parseCommit();
 	    
+	    // commit global variables
+	    global_var_list.parseCommit();
+
 	    // commit pending statements
 	    nextSB();
 
@@ -1460,5 +1466,6 @@ DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
    ns->addConstant("PO_NO_FILESYSTEM",            new QoreBigIntNode(PO_NO_FILESYSTEM));
    ns->addConstant("PO_LOCK_WARNINGS",            new QoreBigIntNode(PO_LOCK_WARNINGS));
    ns->addConstant("PO_NO_GUI",                   new QoreBigIntNode(PO_NO_GUI));
+   ns->addConstant("PO_REQUIRE_TYPES",            new QoreBigIntNode(PO_REQUIRE_TYPES));
 }
 

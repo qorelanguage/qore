@@ -34,6 +34,7 @@ GlobalVariableList::~GlobalVariableList() {
    assert(vmap.empty());
 }
 
+// adds directly to committed list
 void GlobalVariableList::import(Var *var, ExceptionSink *xsink, bool readonly) {
    map_var_t::iterator i = vmap.find(var->getName());
    if (i == vmap.end())
@@ -59,23 +60,21 @@ void GlobalVariableList::clear_all(ExceptionSink *xsink) {
 #ifdef DEBUG
       else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%08p)\n", i->first, i->second);
 #endif
-      i++;
+      ++i;
    }
 }
 
 void GlobalVariableList::delete_all(ExceptionSink *xsink) {
-   map_var_t::iterator i;
-   while ((i = vmap.end()) != vmap.begin()) {
-      --i;
-      Var *v = i->second;
-      vmap.erase(i);
-      v->deref(xsink);
-   }
+   parseRollback();
+
+   for (map_var_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
+      i->second->deref(xsink);
+   vmap.clear();
 }
 
 Var *GlobalVariableList::newVar(const char *name, QoreParseTypeInfo *typeInfo) {
    Var *var = new Var(name, typeInfo);
-   vmap[var->getName()] = var;
+   pending_vmap[var->getName()] = var;
    
    printd(5, "GlobalVariableList::newVar(): %s (%08p) added (parseType %s)\n", name, var, typeInfo->getName());
    return var;
@@ -83,7 +82,7 @@ Var *GlobalVariableList::newVar(const char *name, QoreParseTypeInfo *typeInfo) {
 
 Var *GlobalVariableList::newVar(const char *name, const QoreTypeInfo *typeInfo) {
    Var *var = new Var(name, typeInfo);
-   vmap[var->getName()] = var;
+   pending_vmap[var->getName()] = var;
    
    printd(5, "GlobalVariableList::newVar(): %s (%08p) added (resolved type %s)\n", name, var, typeInfo->getName());
    return var;
@@ -91,7 +90,7 @@ Var *GlobalVariableList::newVar(const char *name, const QoreTypeInfo *typeInfo) 
 
 Var *GlobalVariableList::newVar(Var *v, bool readonly) {
    Var *var = new Var(v, readonly);
-   vmap[var->getName()] = var;
+   pending_vmap[var->getName()] = var;
    
    printd(5, "GlobalVariableList::newVar(): reference to %s (%08p) added\n", v->getName(), var);
    return var;
@@ -101,14 +100,18 @@ Var *GlobalVariableList::findVar(const char *name) {
    map_var_t::iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
-   return 0;
+
+   i = pending_vmap.find(name);
+   return i != pending_vmap.end() ? i->second : 0;
 }
 
 const Var *GlobalVariableList::findVar(const char *name) const {
    map_var_t::const_iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
-   return 0;
+
+   i = pending_vmap.find(name);
+   return i != pending_vmap.end() ? i->second : 0;
 }
 
 // used for resolving unflagged global variables
@@ -141,9 +144,28 @@ Var *GlobalVariableList::checkVar(const char *name, const QoreTypeInfo *typeInfo
    return var;
 }
 
-void GlobalVariableList::parseInit() {
-   for (map_var_t::iterator i = vmap.begin(); i != vmap.end(); i++)
+void GlobalVariableList::parseInit(int parse_options) {
+   bool needs_type = parse_options & PO_REQUIRE_TYPES;
+   for (map_var_t::iterator i = pending_vmap.begin(); i != pending_vmap.end(); i++) {
+      if (needs_type && !i->second->hasTypeInfo())
+	 parse_error("global variable '$%s' declared without type information, but parse options require all declarations to have type information", i->second->getName());
       i->second->parseInit();
+   }
+}
+
+void GlobalVariableList::parseCommit() {
+   for (map_var_t::iterator i = pending_vmap.begin(), e = pending_vmap.end(); i != e; ++i) {
+      assert(vmap.find(i->second->getName()) == vmap.end());
+      vmap[i->second->getName()] = i->second;
+   }
+
+   pending_vmap.clear();
+}
+
+void GlobalVariableList::parseRollback() {
+   for (map_var_t::iterator i = pending_vmap.begin(), e = pending_vmap.end(); i != e; ++i)
+      i->second->deref(0);
+   pending_vmap.clear();
 }
 
 QoreListNode *GlobalVariableList::getVarList() const {

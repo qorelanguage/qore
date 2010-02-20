@@ -215,11 +215,16 @@ struct qore_class_private {
       const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv);
       
       if (!sclass) {
+	 int rc = 0;
+	 if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES) {
+	    parse_error("member $.%s referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem);
+	    rc = -1;
+	 }
 	 if (parseHasPublicMembersInHierarchy()) {
 	    parse_error("illegal access to unknown member '%s' in a class with a public member list (or inherited public member list)", mem);
-	    return -1;
+	    rc = -1;
 	 }
-	 return 0;
+	 return rc;
       }
 
       if (priv) {
@@ -243,11 +248,18 @@ struct qore_class_private {
       bool member_has_type_info;
       const QoreTypeInfo *memberTypeInfo;
       const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv);
-      if (!sclass && parseHasPublicMembersInHierarchy()) {
-	 parse_error("illegal access to unknown member '%s' (class has a public member list or inherited public member list)", mem);
-	 return -1;
+      int rc = 0;
+      if (!sclass) {
+	 if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES) {
+	    parse_error("member $.%s referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem);
+	    rc = -1;
+	 }
+	 if (parseHasPublicMembersInHierarchy()) {
+	    parse_error("illegal access to unknown member '%s' (class has a public member list or inherited public member list)", mem);
+	    rc = -1;
+	 }
       }
-      return 0;
+      return rc;
    }
 
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const {

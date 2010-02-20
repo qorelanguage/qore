@@ -51,6 +51,7 @@
 #define PO_NO_DATABASE               (1 << 18)    //!< do not allow database access
 #define PO_NO_GUI                    (1 << 19)    //!< do not allow any GUI-relevant actions to be performed
 #define PO_NO_TERMINAL_IO            (1 << 20)    //!< do not allow any terminal I/O to be performed
+#define PO_REQUIRE_TYPES             (1 << 21)    //!< require type information for all declarations
 
 // combination options
 //! cannot access any thread functionality

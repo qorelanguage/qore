@@ -378,6 +378,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 ^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
 ^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
+^%require-types{WS}*$                   getProgram()->parseSetParseOptions(PO_REQUIRE_TYPES);
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {
 					   setIncludePath(yytext);
