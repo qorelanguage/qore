@@ -72,7 +72,6 @@ libqore_la_SOURCES = \
 	SwitchStatement.cpp \
 	Variable.cpp \
 	support.cpp \
-	QoreSignal.cpp \
 	QoreType.cpp \
 	ModuleManager.cpp \
 	QoreException.cpp \
@@ -182,6 +181,9 @@ libqore_la_SOURCES = \
 	QoreHTTPClient.cpp \
 	minitest.cpp
 
+if COND_SIGNAL_HANDLING
+libqore_la_SOURCES += QoreSignal.cpp
+endif
 if COND_DEBUG
 libqore_la_SOURCES += ql_debug.cpp
 endif

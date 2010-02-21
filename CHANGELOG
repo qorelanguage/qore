@@ -2,6 +2,7 @@
 	 * minor updates to enable Qore to compile with Cygwin
 	 * implemented QORE_OPT_SIGNAL_HANDLING option and constant:
 	   HAVE_SIGNAL_HANDLING
+	 * made compilation of signal handling code optional	   
 
 2010.02.20: David Nichols
 	 * implemented %require-types parse directive (PO_REQUIRE_TYPES) to

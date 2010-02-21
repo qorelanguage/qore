@@ -81,18 +81,21 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // init module subsystem
    MM.init(show_module_errors);
 
+#ifdef HAVE_SIGNAL_HJANDLING
    // init signals
    QSM.init(qore_library_options & QLO_DISABLE_SIGNAL_HANDLING);
+#endif
 }
 
 // NOTE: we do not cleanup in reverse initialization order
 // the threading subsystem is deleted before the modules are
 // unloaded in case there are any module-specific thread
 // cleanup functions to be run...
-void qore_cleanup()
-{
+void qore_cleanup() {
+#ifdef HAVE_SIGNAL_HJANDLING
    // stop signal manager
    QSM.del();
+#endif
 
    // now free memory
    delete_global_variables();
