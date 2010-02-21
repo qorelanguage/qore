@@ -26,6 +26,7 @@
 #define _QORE_QORETHREADLOCK_H
 
 #include <pthread.h>
+
 #include <assert.h>
 
 //! provides a mutually-exclusive thread lock

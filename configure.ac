@@ -144,6 +144,8 @@ case "${host_os}" in
 		;;
      *cygwin*)  SHLIB_SUFFIX=dll
      		CPPFLAGS=-mwin32
+		windows=yes
+		no_sig_handling=yes
      		;;
 esac
 AC_SUBST(SHLIB_SUFFIX)
@@ -367,7 +369,7 @@ set_zlib_cppflags() {
 
 find_zlib() {
     dir="$1"
-    if test -z "$dir"; then
+    if test -z "$dir" -o "$dir" = "/"; then
         dir=/
 	lib=/lib
 	inc=/usr/include
@@ -447,7 +449,7 @@ set_pcre_cppflags() {
 
 find_pcre() {
     dir="$1"
-    if test -z "$dir"; then
+    if test -z "$dir" -o "$dir" = "/"; then
         dir="/"
 	lib=/lib
 	inc=/usr/include
@@ -476,6 +478,9 @@ find_pcre() {
 	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
 	    with_pcre_libs="$lib"
 	    pcre_static=1
+	elif test "$windows" = yes -a -f "$dir/bin/libpcre.${SHLIB_SUFFIX}"; then
+	    PCRE_LDFLAGS="-L$dir/bin -lpcre"
+	    with_pre_libs="$dir"
     	fi
     fi
     if test -z "$PCRE_LDFLAGS"; then
@@ -554,6 +559,8 @@ find_libxml2() {
     	    fi
 	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
        	    AC_MSG_RESULT([$lib (static)])
+	elif test "$windows" = yes -a -f "$dir/bin/libxml2.${SHLIB_SUFFIX}"; then
+	    LIBXML2_LDFLAGS="-L$dir/bin -lxml2"
     	fi
     fi
     if test -z "$LIBXML2_LDFLAGS"; then
@@ -720,7 +727,7 @@ set_bz2lib_cppflags() {
 
 find_bz2lib() {
     dir="$1"
-    if test -z "$dir"; then
+    if test -z "$dir" -o "$dir" = "/"; then
         dir="/"
 	lib=/lib
 	inc=/usr/include
@@ -791,7 +798,7 @@ set_openssl_cppflags() {
 
 find_openssl() {
     dir="$1"
-    if test -z "$dir"; then
+    if test -z "$dir" -o "$dir" = "/"; then
         dir="/"
 	lib=/lib
 	inc=/usr/include

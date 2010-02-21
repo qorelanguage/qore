@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) David Nichols 2005
+  Copyright (C) David Nichols 2005 - 2010
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -34,8 +34,7 @@
 /** all threads that block on a given QoreCondition object should use the same mutex or QoreThreadLock object for blocking
     @see QoreThreadLock
  */
-class QoreCondition
-{
+class QoreCondition {
    private:
       //! the condition thread primitive
       pthread_cond_t c;

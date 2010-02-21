@@ -27,6 +27,13 @@
 
 #include <qore/AbstractQoreNode.h>
 
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 //! This is the list container type in Qore, dynamically allocated only, reference counted
 /**
    it is both a value type and can hold parse expressions as well (in which case it needs to be evaluated)
@@ -156,8 +163,7 @@ class QoreListNode : public AbstractQoreNode {
       //! returns true if the list does not contain any parse expressions, otherwise returns false
       //DLLEXPORT virtual bool is_value() const;
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
+      DLLLOCAL static const char *getStaticTypeName() {
 	 return "list";
       }
 
