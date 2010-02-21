@@ -1585,7 +1585,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qns->addConstant("ECHOE", new QoreBigIntNode(ECHOE));
    qns->addConstant("ECHO", new QoreBigIntNode(ECHO));
    qns->addConstant("ECHONL", new QoreBigIntNode(ECHONL));
+#ifdef ECHOPRT
    qns->addConstant("ECHOPRT", new QoreBigIntNode(ECHOPRT));
+#endif
    qns->addConstant("ECHOCTL", new QoreBigIntNode(ECHOCTL));
    qns->addConstant("ISIG", new QoreBigIntNode(ISIG));
    qns->addConstant("ICANON", new QoreBigIntNode(ICANON));
@@ -1601,7 +1603,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
 #ifdef NOKERNINFO
    qns->addConstant("NOKERNINFO", new QoreBigIntNode(NOKERNINFO));
 #endif
+#ifdef PENDIN
    qns->addConstant("PENDIN", new QoreBigIntNode(PENDIN));
+#endif
    qns->addConstant("NOFLSH", new QoreBigIntNode(NOFLSH));
    
    // control characters

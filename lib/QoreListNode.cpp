@@ -60,13 +60,13 @@ class StackList : public QoreListNode {
       DLLLOCAL StackList& operator=(const StackList&);
    
    public:
-      DLLEXPORT StackList(class ExceptionSink *xs) {
+      DLLLOCAL StackList(class ExceptionSink *xs) {
 	 xsink = xs;
       }
-      DLLEXPORT ~StackList() {
+      DLLLOCAL ~StackList() {
 	 derefImpl(xsink);
       }
-      DLLEXPORT class AbstractQoreNode *getAndClear(qore_size_t i);
+      DLLLOCAL AbstractQoreNode *getAndClear(qore_size_t i);
 };
 
 struct qore_list_private {

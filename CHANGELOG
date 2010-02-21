@@ -1,3 +1,6 @@
+2010.02.21: David Nichols
+	 * minor updates to enable Qore to compile with Cygwin (WIP)
+
 2010.02.20: David Nichols
 	 * implemented %require-types parse directive (PO_REQUIRE_TYPES) to
 	   require type information in all declarations

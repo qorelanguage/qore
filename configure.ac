@@ -142,6 +142,9 @@ case "${host_os}" in
 		AC_DEFINE(NEED_ENVIRON_LOCK, 1, [if the environment operations need explicit locking])
 		hpux=yes
 		;;
+     *cygwin*)  SHLIB_SUFFIX=dll.a
+     		CPPFLAGS=-mwin32
+     		;;
 esac
 AC_SUBST(SHLIB_SUFFIX)
 if test -z "$MODULE_SUFFIX" ; then
@@ -520,7 +523,7 @@ set_libxml2_cppflags() {
 
 find_libxml2() {
     dir="$1"
-    if test -z "$dir"; then
+    if test -z "$dir" -o "$dir" = "/"; then
         dir="/"
 	lib=/lib
 	inc=/usr/include
