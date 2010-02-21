@@ -88,6 +88,15 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
+   { QORE_OPT_SIGNAL_HANDLING,
+     "HAVE_SIGNAL_HANDLING",
+     QO_OPTION,
+#ifdef HAVE_SIGNAL_HANDLING
+     true
+#else
+     false
+#endif
+   },
    { QORE_OPT_LIBRARY_DEBUGGING,
      "HAVE_LIBRARY_DEBUGGING",
      QO_OPTION,

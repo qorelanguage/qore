@@ -142,7 +142,7 @@ case "${host_os}" in
 		AC_DEFINE(NEED_ENVIRON_LOCK, 1, [if the environment operations need explicit locking])
 		hpux=yes
 		;;
-     *cygwin*)  SHLIB_SUFFIX=dll.a
+     *cygwin*)  SHLIB_SUFFIX=dll
      		CPPFLAGS=-mwin32
      		;;
 esac
@@ -151,6 +151,10 @@ if test -z "$MODULE_SUFFIX" ; then
    MODULE_SUFFIX=$SHLIB_SUFFIX
 fi
 AC_SUBST(MODULE_SUFFIX)
+
+if test "$no_sig_handling" != "yes"; then
+   AC_DEFINE(HAVE_SIGNAL_HANDLING, 1, [if signal handling is supported])
+fi
 
 AC_ARG_ENABLE([single-compilation-unit],
   [AS_HELP_STRING([--enable-single-compilation-unit],
@@ -1256,6 +1260,7 @@ AM_CONDITIONAL([COND_HPUX_ACC_PARISC32],       [test "$hpux_acc_parisc32" = yes]
 #AM_CONDITIONAL([COND_HPUX_ACC_PARISC64],       [test "$hpux_acc_parisc64" = yes])
 AM_CONDITIONAL([COND_HPUX_ACC_64BIT_IA64],     [test "$hpux_acc_64bit_ia64" = yes])
 #AM_CONDITIONAL([COND_HPUX_ACC_32BIT_IA64],     [test "$hpux_acc_3b2it_ia64" = yes])
+AM_CONDITIONAL([COND_SIGNAL_HANDLING],         [test "$no_sig_handling" != yes])
 
 # find prefix
 if test -n "${exec_prefix}" -a "${exec_prefix}" != NONE; then

@@ -226,6 +226,8 @@ DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, Exceptio
 #define QORE_OPT_ATOMIC_OPERATIONS       "atomic operations"
 //! option: stack guard
 #define QORE_OPT_STACK_GUARD             "stack guard"
+//! option: signal handling
+#define QORE_OPT_SIGNAL_HANDLING         "signal handling"
 //! option: runtime stack tracing
 #define QORE_OPT_RUNTIME_STACK_TRACE     "runtime stack tracing"
 //! option: library debugging

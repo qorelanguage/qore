@@ -1660,6 +1660,12 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    option->addConstant("HAVE_STACK_GUARD", &False);
 #endif
 
+#ifdef HAVE_SIGNAL_HANDLING
+   option->addConstant("HAVE_SIGNAL_HANDLING", &True);
+#else
+   option->addConstant("HAVE_SIGNAL_HANDLING", &False);
+#endif
+
 #ifdef DEBUG
    option->addConstant("HAVE_LIBRARY_DEBUGGING", &True);
 #else

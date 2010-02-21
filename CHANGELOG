@@ -1,5 +1,7 @@
 2010.02.21: David Nichols
 	 * minor updates to enable Qore to compile with Cygwin
+	 * implemented QORE_OPT_SIGNAL_HANDLING option and constant:
+	   HAVE_SIGNAL_HANDLING
 
 2010.02.20: David Nichols
 	 * implemented %require-types parse directive (PO_REQUIRE_TYPES) to

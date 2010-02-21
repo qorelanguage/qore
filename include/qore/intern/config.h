@@ -29,7 +29,7 @@
 #define __int64 long long
 #endif
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <qore/intern/win32-config.h>
 #else
 #include <qore/intern/unix-config.h>
