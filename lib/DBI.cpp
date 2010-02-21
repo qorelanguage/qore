@@ -36,7 +36,7 @@
 typedef safe_dslist<DBIDriver *> dbi_list_t;
 
 // global qore library class for DBI driver management
-DLLEXPORT DBIDriverList DBI;
+DBIDriverList DBI;
 
 struct dbi_cap_hash
 {

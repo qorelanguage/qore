@@ -1078,7 +1078,9 @@ sub string_tests() {
 
 sub pwd_tests() {
     # getpwuid(0).pw_name may not always be "root"
-    test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
+    # skip the test on windows
+    if (Qore::PlatformOS !~ /cygwin/i)
+        test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
 }
 
 sub simple_shift() {

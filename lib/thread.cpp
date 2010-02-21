@@ -1284,7 +1284,13 @@ void init_qore_threads() {
    qore_thread_stack_size = 1024*1024*2;
 #endif // #if TARGET_BITS == 32
 #else
+#ifdef WIN32
+#else
    qore_thread_stack_size = ta_default.getstacksize();
+   assert(qore_thread_stack_size);
+#endif // #ifdef WIN32
+   // FIXME: get real thread stack size via win API call
+   qore_thread_stack_size = 1024*1024;
 #endif // #ifdef SOLARIS
 #ifdef IA64_64
    // the top half of the stack is for the normal stack, the bottom half is for the register stack

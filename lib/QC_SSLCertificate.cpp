@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_SSLCertificate.h>
 
-DLLEXPORT qore_classid_t CID_SSLCERTIFICATE;
+qore_classid_t CID_SSLCERTIFICATE;
 
 /*
 void createSSLCertificateObject(QoreObject *self, X509 *cert)
