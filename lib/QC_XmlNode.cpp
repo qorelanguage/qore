@@ -24,6 +24,7 @@
 #include <qore/intern/QC_XmlDoc.h>
 #include <qore/intern/QC_XmlNode.h>
 #include <qore/intern/QC_XmlReader.h>
+#include <qore/intern/ql_xml.h>
 
 qore_classid_t CID_XMLNODE;
 QoreClass *QC_XMLNODE;

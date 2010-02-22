@@ -24,6 +24,7 @@
 #include <qore/intern/QoreQueue.h>
 
 #include <sys/time.h>
+#include <errno.h>
 
 QoreQueueNode::QoreQueueNode(AbstractQoreNode *n) : node(n) { 
 }

@@ -25,6 +25,9 @@
 
 #define _QORE_ERRNOCONSTANTS_H
 
+#include <errno.h>
+
+
 // this function will set up the Qore system namespace
 static inline class QoreNamespace *get_errno_ns()
 {

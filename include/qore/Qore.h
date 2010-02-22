@@ -51,6 +51,7 @@
 #include <qore/QoreFile.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreObject.h>
+#include <qore/QoreRWLock.h>
 #include <qore/QoreNamespace.h>
 #include <qore/ExceptionSink.h>
 #include <qore/BinaryNode.h>

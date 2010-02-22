@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_File.h>
 #include <qore/intern/QC_Queue.h>
+#include <qore/intern/QC_TermIOS.h>
 
 qore_classid_t CID_FILE;
 QoreClass *QC_FILE = 0;

@@ -25,6 +25,7 @@
 #include <qore/Qore.h>
 #include <qore/QoreFile.h>
 #include <qore/intern/QC_Queue.h>
+#include <qore/intern/QC_TermIOS.h>
 
 #include <unistd.h>
 #include <sys/types.h>

@@ -24,6 +24,7 @@
 #include <qore/intern/QC_Condition.h>
 #include <qore/intern/QC_Mutex.h>
 #include <qore/ReferenceHolder.h>
+#include <qore/intern/RWLock.h>
 
 #include <errno.h>
 

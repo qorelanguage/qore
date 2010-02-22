@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 #include <qore/minitest.hpp>
 
+// for non-single compilation unit
+#include <qore/intern/ParserSupport.h>
+
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>

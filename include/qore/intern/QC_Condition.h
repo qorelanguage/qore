@@ -28,6 +28,8 @@
 #include <qore/Qore.h>
 #include <qore/QoreCondition.h>
 #include <qore/intern/AbstractSmartLock.h>
+#include <qore/intern/SmartMutex.h>
+
 
 extern qore_classid_t CID_CONDITION;
 
