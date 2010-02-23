@@ -171,7 +171,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
       outTypeInfo = typeInfo;
       ref.id = push_local_var(name, typeInfo);
       ++lvids;
-      //printd(5, "VarRefNode::parseInit(): local var '%s' declared (id=%p)\n", v->name, v->ref.id);
+      //printd(5, "VarRefNode::parseInitIntern(): local var '%s' declared (id=%p)\n", v->name, v->ref.id);
    }
    else if (type == VT_GLOBAL) {
       outTypeInfo = typeInfo;
@@ -202,9 +202,14 @@ AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, 
 }
 
 AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
-   assert(parseTypeInfo);
-   typeInfo = parseTypeInfo->resolveAndDelete();
-   parseTypeInfo = 0;
+   if (!typeInfo) {
+      typeInfo = parseTypeInfo->resolveAndDelete();
+      parseTypeInfo = 0;
+   }
+#ifdef DEBUG
+   else assert(!parseTypeInfo);
+#endif
+
    outTypeInfo = typeInfo;
 
    parseInitIntern(oflag, pflag, lvids, typeInfo, outTypeInfo);

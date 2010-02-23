@@ -438,6 +438,7 @@ public:
 
    DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedCallReferenceNode *fr);      
    DLLLOCAL Var *addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo);
+   DLLLOCAL Var *addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *typeInfo);
    DLLLOCAL void addStatement(AbstractStatement *s);
    DLLLOCAL Var *findGlobalVar(const char *name);
    DLLLOCAL const Var *findGlobalVar(const char *name) const;

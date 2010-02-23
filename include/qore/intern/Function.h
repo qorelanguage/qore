@@ -88,6 +88,28 @@ public:
    }
 };
 
+// used to store return type info during parsing for user code
+class RetTypeInfo {
+   QoreParseTypeInfo *parseTypeInfo;
+   const QoreTypeInfo *typeInfo;
+
+public:
+
+   DLLLOCAL RetTypeInfo(QoreParseTypeInfo *n_parseTypeInfo, const QoreTypeInfo *n_typeInfo) : parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
+   }
+   DLLLOCAL ~RetTypeInfo() {
+      delete parseTypeInfo;      
+   }
+   DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
+      return typeInfo;
+   }
+   DLLLOCAL QoreParseTypeInfo *takeParseTypeInfo() {
+      QoreParseTypeInfo *rv = parseTypeInfo;
+      parseTypeInfo = 0;
+      return rv;
+   }
+};
+
 typedef std::vector<QoreParseTypeInfo *> ptype_vec_t;
 typedef std::vector<std::string> name_vec_t;
 typedef std::vector<LocalVar *> lvar_vec_t;
@@ -113,7 +135,7 @@ public:
    LocalVar *selfid;
    bool resolved;
 
-   DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo);
+   DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, RetTypeInfo *retTypeInfo);
 
    DLLLOCAL virtual ~UserSignature() {
       for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i)
@@ -147,13 +169,19 @@ public:
       
       resolved = true;
 
-      returnTypeInfo = parseReturnTypeInfo->resolveAndDelete();
-      parseReturnTypeInfo = 0;
+      if (!returnTypeInfo) {
+         returnTypeInfo = parseReturnTypeInfo->resolveAndDelete();
+         parseReturnTypeInfo = 0;
+      }
+#ifdef DEBUG
+      else assert(!parseReturnTypeInfo);
+#endif
 
-      typeList.reserve(parseTypeList.size());
-      for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i) {
-	 const QoreTypeInfo *typeInfo = (*i)->resolveAndDelete();
-	 typeList.push_back(typeInfo);
+      for (unsigned i = 0; i < parseTypeList.size(); ++i) {
+         if (parseTypeList[i]) {
+            assert(!typeList[i]);
+            typeList[i] = parseTypeList[i]->resolveAndDelete();
+         }
       }
       parseTypeList.clear();
    }
@@ -243,7 +271,7 @@ protected:
    DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced);
+   DLLLOCAL UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced);
    DLLLOCAL virtual ~UserVariantBase();
    DLLLOCAL UserSignature *getUserSignature() const {
       return const_cast<UserSignature *>(&signature);
@@ -290,7 +318,7 @@ class UserFunctionVariant : public AbstractQoreFunctionVariant, public UserVaria
 protected:
 
 public:
-   DLLLOCAL UserFunctionVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced) : UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserFunctionVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
    DLLLOCAL virtual ~UserFunctionVariant() {
    }
@@ -546,7 +574,7 @@ public:
 class UserClosureVariant : public UserFunctionVariant {
 protected:
 public:
-   DLLLOCAL UserClosureVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced = false) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserClosureVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
    DLLLOCAL void parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
    DLLLOCAL AbstractQoreNode *evalClosure(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const {
@@ -561,7 +589,7 @@ class UserClosureFunction : public AbstractQoreFunction {
 protected:
 
 public:
-   DLLLOCAL UserClosureFunction(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced = false) {
+   DLLLOCAL UserClosureFunction(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false) {
       parseAddVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced));
    }
 

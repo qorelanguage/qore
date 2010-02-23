@@ -107,7 +107,7 @@ public:
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
 public:
-   DLLLOCAL UserMethodVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced) : MethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserMethodVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : MethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -208,7 +208,7 @@ public:
 class UserCopyVariant : public CopyMethodVariant, public UserVariantBase {
 protected:
 public:
-   DLLLOCAL UserCopyVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced) : CopyMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserCopyVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : CopyMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -592,7 +592,7 @@ public:
    const char *file;
    QoreParseTypeInfo *parseTypeInfo;
 
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, qore_type_t t, AbstractQoreNode *e = 0) : typeInfo(getTypeInfoForType(t)), exp(e), first_line(nfl), last_line(nll), 
+   DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *e = 0) : typeInfo(n_typeInfo), exp(e), first_line(nfl), last_line(nll), 
 										       file(get_parse_file()), parseTypeInfo(0) {
    }
    DLLLOCAL QoreMemberInfo(int nfl, int nll, char *n, AbstractQoreNode *e = 0) : typeInfo(0), exp(e), first_line(nfl), last_line(nll), file(get_parse_file()),

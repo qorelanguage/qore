@@ -6,6 +6,8 @@
 	   the class has a methodGate() method
 	 * fixed parse type checking for hash - list operation
 	 * implemented type specifier "any" to mean any type may be assigned
+	 * updated user typing to allow for assigning already-resolved types
+	   at parse time
  
 2010.02.21: David Nichols
 	 * minor updates to enable Qore to compile with Cygwin

@@ -146,34 +146,33 @@ AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t) {
 }
 
 // FIXME: prepare a map for faster matching
-qore_type_t getBuiltinType(const char *str) {
+const QoreTypeInfo *getBuiltinTypeInfo(const char *str) {
    if (!strcmp(str, "int"))
-      return NT_INT;
+      return bigIntTypeInfo;
    if (!strcmp(str, "string"))
-      return NT_STRING;
+      return stringTypeInfo;
    if (!strcmp(str, "bool"))
-      return NT_BOOLEAN;
-   if (!strcmp(str, "date"))
-      return NT_DATE;
+      return boolTypeInfo;
    if (!strcmp(str, "float"))
-      return NT_FLOAT;
-   if (!strcmp(str, "list"))
-      return NT_LIST;
-   if (!strcmp(str, "hash"))
-      return NT_HASH;
-   if (!strcmp(str, "object"))
-      return NT_OBJECT;
+      return floatTypeInfo;
    if (!strcmp(str, "binary"))
-      return NT_BINARY;
-   // these last two don't make much sense to use, but...
-   if (!strcmp(str, "null"))
-      return NT_NULL;
-   if (!strcmp(str, "nothing"))
-      return NT_NOTHING;
+      return binaryTypeInfo;
+   if (!strcmp(str, "list"))
+      return listTypeInfo;
+   if (!strcmp(str, "hash"))
+      return hashTypeInfo;
+   if (!strcmp(str, "object"))
+      return objectTypeInfo;
    if (!strcmp(str, "any"))
-      return NT_ALL;
+      return anyTypeInfo;
+   if (!strcmp(str, "date"))
+      return dateTypeInfo;
+   if (!strcmp(str, "null"))
+      return nullTypeInfo;
+   if (!strcmp(str, "nothing"))
+      return nothingTypeInfo;
 
-   return NT_NONE;
+   return 0;
 }
 
 // FIXME: prepare a map for faster matching

@@ -42,7 +42,8 @@ DLLLOCAL void parseException(const char *err, const char *fmt, ...);
 DLLLOCAL QoreString *findFileInPath(const char *file, const char *path);
 DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
-DLLLOCAL qore_type_t getBuiltinType(const char *str);
+DLLLOCAL const QoreTypeInfo *getBuiltinTypeInfo(const char *str);
+//DLLLOCAL qore_type_t getBuiltinType(const char *str);
 DLLLOCAL const char *getBuiltinTypeName(qore_type_t type);
 
 // tests to see if the private implementation of the given class ID can be accessed at run time

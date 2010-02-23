@@ -756,6 +756,19 @@ Var *QoreProgram::addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo)
    return v;
 }
 
+// if this global variable definition is illegal, then
+// it will be flagged in the parseCommit stage
+Var *QoreProgram::addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *typeInfo) {
+   int new_var = 0;
+   Var *v = priv->global_var_list.checkVar(name, typeInfo, &new_var);
+   if (!new_var)
+      makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
+   else if ((priv->parse_options & PO_NO_GLOBAL_VARS))
+      parse_error("illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
+
+   return v;
+}
+
 void QoreProgram::makeParseException(const char *err, QoreStringNode *desc) {
    QORE_TRACE("QoreProgram::makeParseException()");
 

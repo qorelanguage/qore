@@ -27,15 +27,17 @@
 #include <ctype.h>
 #include <assert.h>
 
-// FIXME: xxx add signature information, set parse location
+// FIXME: xxx set parse location
 static inline void duplicateSignatureException(const char *name, UserVariantBase *uvb) {
    parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared with this signature", name, uvb->getUserSignature()->getSignatureText());
 }
 
-UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, QoreParseTypeInfo *n_returnTypeInfo) : 
-   parseReturnTypeInfo(n_returnTypeInfo), 
+UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, RetTypeInfo *retTypeInfo) : 
+   AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0), 
+   parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
    lv(0), argvid(0), selfid(0), resolved(false) {
+   delete retTypeInfo;
 
    if (!params) {
       str = NO_TYPE_INFO;
@@ -84,15 +86,33 @@ void UserSignature::pushParam(VarRefNode *v, bool needs_types) {
 
    names.push_back(v->getName());
 
-   QoreParseTypeInfo *pti = v->takeTypeInfo();
-   if (needs_types && !pti)
+   bool is_decl = v->isDecl();
+   if (needs_types && !is_decl)
       parse_error("function parameter '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
-   parseTypeList.push_back(pti);
-   if (pti->hasType())
-      ++num_param_types;
 
-   // add type name to signature
-   pti->concatName(str);
+   if (is_decl) {
+      VarRefDeclNode *vd = reinterpret_cast<VarRefDeclNode *>(v);
+      QoreParseTypeInfo *pti = vd->takeParseTypeInfo();
+      parseTypeList.push_back(pti);
+      const QoreTypeInfo *ti = vd->getTypeInfo();
+      typeList.push_back(ti);
+
+      assert(!(pti && ti));
+
+      if (pti->hasType() || ti->hasType())
+	 ++num_param_types;
+
+      // add type name to signature
+      if (pti)
+	 pti->concatName(str);
+      else
+	 ti->concatName(str);
+   }
+   else {
+      parseTypeList.push_back(0);
+      typeList.push_back(0);
+      reinterpret_cast<QoreParseTypeInfo *>(0)->concatName(str);
+   }
 
    if (v->getType() == VT_LOCAL)
       parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
@@ -521,7 +541,7 @@ UserVariantExecHelper::~UserVariantExecHelper() {
       sig->lv[i]->uninstantiate(xsink);
 }
 
-UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, QoreParseTypeInfo *rv, bool synced) 
+UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) 
    : statements(b), signature(n_sig_first_line, n_sig_last_line, params, rv), synchronized(synced), gate(synced ? new VRMutex() : 0),
      recheck(false) {
    printd(5, "UserVariantBase::UserVariantBase() params=%p rv=%p b=%p synced=%d\n", params, rv, b, synced);
@@ -675,10 +695,19 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
       bool dup = true;
       unsigned max = QORE_MAX(tp, vp);
       for (unsigned pi = 0; pi < max; ++pi) {
-	 // compare the unresolved type with resolved types in committed variants
-	 if (!sig->getParseParamTypeInfo(pi)->checkIdentical(vs->getParamTypeInfo(pi))) {
-	    dup = false;
-	    break;
+	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
+	 if (typeInfo) {
+	    if (!typeInfo->checkIdentical(vs->getParamTypeInfo(pi))) {
+	       dup = false;
+	       break;
+	    }
+	 }
+	 else {
+	    // compare the unresolved type with resolved types in committed variants
+	    if (!sig->getParseParamTypeInfo(pi)->checkIdentical(vs->getParamTypeInfo(pi))) {
+	       dup = false;
+	       break;
+	    }
 	 }
       }
       if (dup) {
@@ -713,17 +742,30 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
       }
 
       bool dup = true;
+      bool recheck = false;
       unsigned max = QORE_MAX(tp, vp);
       for (unsigned pi = 0; pi < max; ++pi) {
-	 if (!sig->getParseParamTypeInfo(pi)->parseStageOneIdentical(vs->getParseParamTypeInfo(pi))) {
-	    dup = false;
-	    break;
+	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
+	 if (typeInfo) {
+	    // we reverse the arguments because the test is if they are identical or not
+	    if (!vs->getParseParamTypeInfo(pi)->parseStageOneIdenticalWithParsed(typeInfo, recheck)) {
+	       dup = false;
+	       break;
+	    }
+	 }
+	 else {
+	    if (!sig->getParseParamTypeInfo(pi)->parseStageOneIdentical(vs->getParseParamTypeInfo(pi))) {
+	       dup = false;
+	       break;
+	    }
 	 }
       }
       if (dup) {
 	 duplicateSignatureException(getName(), variant);
 	 return -1;
       }
+      if (recheck)
+	 variant->setRecheck();
    }
    // now check already-committed variants
    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {

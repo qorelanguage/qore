@@ -453,7 +453,7 @@ static bool hasEffect(AbstractQoreNode *n) {
 #define OFM_SYNCED  2
 #define OFM_STATIC  4
 
-static int checkMethod(const char *name, BCAList *bcal, QoreParseTypeInfo *returnTypeInfo) {
+static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeInfo) {
    bool con = !strcmp(name, "constructor");
    bool dst = !strcmp(name, "destructor");
 
@@ -471,7 +471,7 @@ static int checkMethod(const char *name, BCAList *bcal, QoreParseTypeInfo *retur
    return 0;
 }
 
-static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, QoreParseTypeInfo *returnTypeInfo, StatementBlock *b) {
+static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
    if (bcal && strcmp(name, "constructor")) {
       parse_error("only constructors may have base class constructor arguments");
       delete bcal;
@@ -510,7 +510,7 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
    return new UserMethodVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
 }
 
-static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, QoreParseTypeInfo *returnTypeInfo, StatementBlock *b) {
+static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
    std::auto_ptr<NamedScope> name(new NamedScope(n));
 
    if (checkMethod(name->getIdentifier(), bcal, returnTypeInfo)) {
@@ -557,44 +557,43 @@ public:
 %locations
 %error-verbose
 
-%union
-{
-      int i4;
-      int64 integer;
-      double decimal;
-      QoreStringNode *String;
-      char *string;
-      BinaryNode *binary;
-      AbstractQoreNode *node;
-      QoreHashNode *hash;
-      QoreListNode *list;
-      AbstractStatement *statement;
-      class MemberInfo *memberinfo;
-      class StatementBlock *sblock;
-      class ContextModList *cmods;
-      class ContextMod *cmod;
-      class HashElement *hashelement;
-      class UserFunction *userfunc;	
-      class MethodNode *methodnode;
-      class MemberList *memberlist;
-      class QoreClass *qoreclass;
-      class ConstNode *constnode;
-      class QoreNamespace *ns;
-      class NSNode *nsn;
-      class ObjClassDef *classdef;
-      class DateTimeNode *datetime;
-      class RegexSubstNode *RegexSubst;
-      class RegexTransNode *RegexTrans;
-      class SwitchStatement *switchstmt;
-      class CaseNode *casenode;
-      class BCList *sclist;
-      class BCNode *sclnode;
-      class BCAList *bcalist;
-      class BCANode *bcanode;
-      class NamedScope *nscope;
-      class QoreRegexNode *Regex;
-      class QoreImplicitArgumentNode *implicit_arg;
-      class QoreParseTypeInfo *typeInfo;
+%union {
+   int i4;
+   int64 integer;
+   double decimal;
+   QoreStringNode *String;
+   char *string;
+   BinaryNode *binary;
+   AbstractQoreNode *node;
+   QoreHashNode *hash;
+   QoreListNode *list;
+   AbstractStatement *statement;
+   class MemberInfo *memberinfo;
+   class StatementBlock *sblock;
+   class ContextModList *cmods;
+   class ContextMod *cmod;
+   class HashElement *hashelement;
+   class UserFunction *userfunc;	
+   class MethodNode *methodnode;
+   class MemberList *memberlist;
+   class QoreClass *qoreclass;
+   class ConstNode *constnode;
+   class QoreNamespace *ns;
+   class NSNode *nsn;
+   class ObjClassDef *classdef;
+   class DateTimeNode *datetime;
+   class RegexSubstNode *RegexSubst;
+   class RegexTransNode *RegexTrans;
+   class SwitchStatement *switchstmt;
+   class CaseNode *casenode;
+   class BCList *sclist;
+   class BCNode *sclnode;
+   class BCAList *bcalist;
+   class BCANode *bcanode;
+   class NamedScope *nscope;
+   class QoreRegexNode *Regex;
+   class QoreImplicitArgumentNode *implicit_arg;
+   class RetTypeInfo *returnTypeInfo;
 }
 
 %{
@@ -788,7 +787,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <constnode>   unscoped_const_decl
 %type <i4>          method_modifiers
 %type <i4>          method_modifier
-%type <typeInfo>    return_value
+%type <returnTypeInfo> return_value
 %type <string>      optname
 %type <statement>   switch_statement
 %type <switchstmt>  case_block
@@ -1398,9 +1397,9 @@ member2:
 	   $$ = new MemberInfo($2, new QoreMemberInfo(@1.first_line, @2.last_line, $1));
 	}
         | IDENTIFIER SELF_REF ';' {
-	   qore_type_t t = getBuiltinType($1);
+	   const QoreTypeInfo *t = getBuiltinTypeInfo($1);
 	   QoreMemberInfo *memberInfo;
-	   if (t != NT_NONE) {
+	   if (t) {
 	      memberInfo = new QoreMemberInfo(@1.first_line, @2.last_line, t);
 	      free($1);
 	   }
@@ -1410,9 +1409,9 @@ member2:
 	   $$ = new MemberInfo($2, memberInfo);
         }
         | IDENTIFIER SELF_REF '=' exp ';' {
-	   qore_type_t t = getBuiltinType($1);
+	   const QoreTypeInfo *t = getBuiltinTypeInfo($1);
 	   QoreMemberInfo *memberInfo;
-	   if (t != NT_NONE) {
+	   if (t) {
 	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, t, $4);
 	      free($1);
 	   }
@@ -1534,16 +1533,19 @@ method_modifier:
 
 return_value:
         TOK_RETURNS IDENTIFIER {
-	   qore_type_t t = getBuiltinType($2);
-	   if (t != NT_NONE) {
-	      $$ = new QoreParseTypeInfo(t);
+	   const QoreTypeInfo *t = getBuiltinTypeInfo($2);
+	   QoreParseTypeInfo *p;
+	   if (!t)
+	      p = new QoreParseTypeInfo($2);
+	   else {
+	      p = 0;
 	      free($2);
 	   }
-	   else
-	      $$ = new QoreParseTypeInfo($2);
+
+	   $$ = new RetTypeInfo(p, t);
 	}
         | TOK_RETURNS SCOPED_REF {
-	   $$ = new QoreParseTypeInfo($2);
+	   $$ = new RetTypeInfo(new QoreParseTypeInfo($2), 0);
 	}
         | /* nothing */
         {
@@ -1620,8 +1622,8 @@ exp:    scalar
         | VAR_REF
         { $$ = new VarRefNode($1, VT_UNRESOLVED); }
         | IDENTIFIER VAR_REF {
-	   qore_type_t t = getBuiltinType($1);
-	   if (t != NT_NONE) {
+	   const QoreTypeInfo *t = getBuiltinTypeInfo($1);
+	   if (t) {
 	      $$ = new VarRefDeclNode($2, VT_UNRESOLVED, t);
 	      free($1);
 	   }
@@ -1639,8 +1641,8 @@ exp:    scalar
 	   $$ = new VarRefNode($2, VT_LOCAL); 
 	}
         | TOK_MY IDENTIFIER VAR_REF {
-	   qore_type_t t = getBuiltinType($2);
-	   if (t != NT_NONE) {
+	   const QoreTypeInfo *t = getBuiltinTypeInfo($2);
+	   if (t) {
 	      $$ = new VarRefDeclNode($3, VT_LOCAL, t);
 	      free($2);
 	   }
@@ -1659,7 +1661,7 @@ exp:    scalar
 	      else {
 		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
 		 // see if types are required
-		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->getTypeInfo())
+		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->isDecl())
 		    parse_error("local variable '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
 		 if (v->getType() == VT_LOCAL)
@@ -1682,16 +1684,17 @@ exp:    scalar
 	   $$ = v;
 	}
         | TOK_OUR IDENTIFIER VAR_REF {
-	   qore_type_t t = getBuiltinType($2);
-	   QoreParseTypeInfo *pi;
-	   if (t != NT_NONE) {
-	      pi = new QoreParseTypeInfo(t);
+	   const QoreTypeInfo *t = getBuiltinTypeInfo($2);
+	   VarRefNode *v;
+	   if (t) {
+	      v = new VarRefNode($3, VT_GLOBAL);
+	      v->ref.var = getProgram()->addResolvedGlobalVarDef($3, t);
 	      free($2);
 	   }
-	   else
-	      pi = new QoreParseTypeInfo($2);
-	   VarRefNode *v = new VarRefNode($3, VT_GLOBAL);
-	   v->ref.var = getProgram()->addGlobalVarDef($3, pi);
+	   else {
+	      v = new VarRefNode($3, VT_GLOBAL);
+	      v->ref.var = getProgram()->addGlobalVarDef($3, new QoreParseTypeInfo($2));
+	   }
 	   $$ = v;
 	}
         | TOK_OUR SCOPED_REF VAR_REF {
@@ -1708,7 +1711,7 @@ exp:    scalar
 	      else {
 		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
 		 // see if types are required
-		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->getTypeInfo())
+		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->isDecl())
 		    parse_error("global variable '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
 		 if (v->getType() == VT_LOCAL)
