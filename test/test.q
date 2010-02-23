@@ -110,7 +110,7 @@ static SC::hash_sort_callback(hash $l, hash $r) returns int {
 
 # array tests
 sub array_tests() {
-    my (list $a, $b, $c, $d);
+    my (list $a, list $b, list $c, list $d);
 
     if ($o.verbose)
 	print("%%%% array tests\n");
@@ -157,9 +157,9 @@ sub array_tests() {
     $b = 4, 5, 6;
     $c = $a + $b;
     test_value($c[4], 5, "second list list plus operator concatenation");
-    my $l1 = ( 3, 2, 4, 1, 6, 5 );
-    my $l2 = ( "one", "two", "three", "four", "five", "six" );
-    my $hl = 
+    my list $l1 = ( 3, 2, 4, 1, 6, 5 );
+    my list $l2 = ( "one", "two", "three", "four", "five", "six" );
+    my list $hl = 
 	( ( "key1" : 8, "key2" : "two" ),
 	  ( "key1" : 2, "key2" : "seven" ),
 	  ( "key1" : 7, "key2" : "six" ),
@@ -169,7 +169,7 @@ sub array_tests() {
 	  ( "key1" : 3, "key2" : "five" ),
 	  ( "key1" : 5, "key2" : "nine" ),
 	  ( "key1" : 4, "key2" : "one" ) );
-    my $sorted_hl = 
+    my list $sorted_hl = 
 	( ( "key1" : 1, "key2" : "eight" ),
 	  ( "key1" : 2, "key2" : "seven" ),
 	  ( "key1" : 3, "key2" : "five" ),
@@ -179,7 +179,7 @@ sub array_tests() {
 	  ( "key1" : 7, "key2" : "six" ),
 	  ( "key1" : 8, "key2" : "two" ),
 	  ( "key1" : 9, "key2" : "three" ) );
-    my $stable_sorted_hl = 
+    my list $stable_sorted_hl = 
 	( ( "key1" : 1, "key2" : "eight" ),
 	  ( "key1" : 2, "key2" : "seven" ),
 	  ( "key1" : 3, "key2" : "five" ),
@@ -190,7 +190,7 @@ sub array_tests() {
 	  ( "key1" : 7, "key2" : "six" ),
 	  ( "key1" : 8, "key2" : "two" ),
 	  ( "key1" : 9, "key2" : "three" ) );
-    my $s = new Sort();
+    my Sort $s = new Sort();
     test_value(sort($l1), (1,2,3,4,5,6), "first sort()");
     test_value(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
     test_value(sort($hl, \hash_sort_callback()), $sorted_hl, "sort() with function call reference callback");
@@ -198,7 +198,7 @@ sub array_tests() {
     test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "sort() with string function name callback");
     test_value(sort($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $sorted_hl, "sort() with closure callback");
 
-    my $r_sorted_hl = reverse($sorted_hl);
+    my list $r_sorted_hl = reverse($sorted_hl);
     test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
     test_value(sortDescending($l2), ("two", "three", "six", "one", "four", "five"), "second sortDescending()");
     test_value(sortDescending($hl, \SC::hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
@@ -212,7 +212,7 @@ sub array_tests() {
     test_value(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sortStable() with callback");
     test_value(sortStable($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $stable_sorted_hl, "sortStable() with closure callback");
 
-    my $r_stable_sorted_hl = reverse($stable_sorted_hl);
+    my list $r_stable_sorted_hl = reverse($stable_sorted_hl);
     test_value(sortDescendingStable($hl, \SC::hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
@@ -231,7 +231,7 @@ sub array_tests() {
     unshift $l2, $v;
     test_value($l2, ("one","two","three","four","five","six"), "array unshift");
     # list assignment tests
-    my $l[1] = "boo";
+    my list $l[1] = "boo";
     ($l[0], $l[1]) = "hi1";
     test_value($l, ("hi1", NOTHING), "first list assigment");
     ($l[0], $l[1]) = ("hi2", "shoo1");
@@ -259,29 +259,29 @@ sub array_tests() {
     splice $l1, -4, -2, (21, 22, 23);
     test_value($l1, (11, 21, 22, 23, 2, 3), "seventh list splice");
 
-    $a = "hello";
-    test_value($a[2], "l", "string element dereference");
-    $a = binary($a);
-    test_value($a[4], ord("o"), "binary byte dereference");
+    my string $astr = "hello";
+    test_value($astr[2], "l", "string element dereference");
+    my binary $bin = binary($astr);
+    test_value($bin[4], ord("o"), "binary byte dereference");
 }
 
 sub hash_tests() {
     if ($o.verbose)
 	print("%%%% hash tests\n");
     # hash tests
-    my $b = ( "test" : 1, "gee" : 2, "well" : "string" );
+    my hash $b = ( "test" : 1, "gee" : 2, "well" : "string" );
     test_value($b.gee, 2, "object dereference");
     test_value(elements $b, 3, "elements operator on hash before delete");
     delete $b{"gee"};
     test_value(elements $b, 2, "elements operator on hash after delete");
     $b{"test"} = "there";
-    my $d{"gee"}[25] = "I hope it works";
+    my hash $d{"gee"}[25] = "I hope it works";
     test_value($b.test, "there", "hash dereference after assignment");
     test_value($b.test, "there", "object dereference after assignment");
     test_value($b{"geez"}, NOTHING, "non-existant object dereference");
     test_value(int($d.gee), 0, "hash dereference of entire list member");
     test_value($d{"gee"}[25], "I hope it works", "dereference of list member of hash");
-    my $c = ( "hi" : "there", "gee" : "whillakers" );
+    my hash $c = ( "hi" : "there", "gee" : "whillakers" );
     $d = $c;
     test_value($d == $c, True, "hash comparison");
     test_value($d.gee, "whillakers", "hash dereference after entire hash assignment");
@@ -293,7 +293,7 @@ sub hash_tests() {
     test_value(hash_return(){"gee"}, "whiz", "simple hash return and dereference");
     test_value(hash_return(){"num"}, 1, "hash return with function element result and dereference");
     test_value(hash_return("hi there"){"var"}, "hi there", "hash return with local variable result and dereference");
-    my $a = ( "key" : 1, "unique" : 100, "asd" : "dasd" );
+    my hash $a = ( "key" : 1, "unique" : 100, "asd" : "dasd" );
     $b = ( "key" : 3, "new" : 45, "barn" : "door" );
     $c = $a + $b;
     test_value($c.key, 3, "hash plus operator element override");
@@ -307,7 +307,7 @@ sub hash_tests() {
     # test hash slice creation
     test_value($a.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation");
 
-    my $ot = new Test(1, "two", 3.0);
+    my Test $ot = new Test(1, "two", 3.0);
     $ot += $a;
     test_value($ot.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation from object");
 
@@ -320,7 +320,7 @@ sub hash_tests() {
     test_value($b, ( "key" : 3 ), "hash minus-equals operator"); 
     $c -= ( "new", "barn" );
     test_value($c, ( "key": 3, "unique" : 100, "asd" : "dasd" ), "hash minus-equals operator with list argument");
-    my $nh += ( "new-hash" : 1 );
+    my hash $nh += ( "new-hash" : 1 );
     test_value($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
 }
 

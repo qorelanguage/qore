@@ -3711,7 +3711,8 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
 	 returnTypeInfo = bigIntTypeInfo;
       else if ((leftTypeInfo->parseExactMatch(NT_HASH) 
 		|| leftTypeInfo->parseExactMatch(NT_OBJECT))
-	       && rightTypeInfo->parseExactMatch(NT_STRING))
+	       && (rightTypeInfo->parseExactMatch(NT_STRING)
+		   || rightTypeInfo->parseExactMatch(NT_LIST)))
 	 returnTypeInfo = hashTypeInfo;
       else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) 
 	 // only return type nothing if both types are available
