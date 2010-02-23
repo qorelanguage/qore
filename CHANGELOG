@@ -5,6 +5,7 @@
 	 * do not raise a NON-EXISTENT-METHOD-CALL warning at parse time if
 	   the class has a methodGate() method
 	 * fixed parse type checking for hash - list operation
+	 * implemented type specifier "any" to mean any type may be assigned
  
 2010.02.21: David Nichols
 	 * minor updates to enable Qore to compile with Cygwin

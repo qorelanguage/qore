@@ -29,7 +29,8 @@ static type_info_map_t type_info_map;
 static QoreRWLock type_info_map_lock;
 
 // static reference types
-static QoreTypeInfo staticBigIntTypeInfo(NT_INT), 
+static QoreTypeInfo staticAnyTypeInfo,
+   staticBigIntTypeInfo(NT_INT), 
    staticBoolTypeInfo(NT_BOOLEAN),
    staticStringTypeInfo(NT_STRING),
    staticBinaryTypeInfo(NT_BINARY),
@@ -48,7 +49,8 @@ static QoreTypeInfo staticBigIntTypeInfo(NT_INT),
 static FloatTypeInfo staticFloatTypeInfo;
 
 // const pointers to static reference types
-const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo,
+const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
+   *bigIntTypeInfo = &staticBigIntTypeInfo,
    *floatTypeInfo = &staticFloatTypeInfo,
    *boolTypeInfo = &staticBoolTypeInfo,
    *stringTypeInfo = &staticStringTypeInfo,
@@ -88,6 +90,8 @@ const QoreTypeInfo *getTypeInfoForType(qore_type_t t) {
 	 return hashTypeInfo;
       case NT_OBJECT:
 	 return objectTypeInfo;
+      case NT_ALL:
+	 return anyTypeInfo;
       case NT_DATE:
 	 return dateTypeInfo;
       case NT_NULL:
@@ -141,6 +145,7 @@ AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t) {
    return 0;
 }
 
+// FIXME: prepare a map for faster matching
 qore_type_t getBuiltinType(const char *str) {
    if (!strcmp(str, "int"))
       return NT_INT;
@@ -165,10 +170,13 @@ qore_type_t getBuiltinType(const char *str) {
       return NT_NULL;
    if (!strcmp(str, "nothing"))
       return NT_NOTHING;
+   if (!strcmp(str, "any"))
+      return NT_ALL;
 
-   return -1;
+   return NT_NONE;
 }
 
+// FIXME: prepare a map for faster matching
 const char *getBuiltinTypeName(qore_type_t type) {
    switch (type) {
       case NT_INT:
@@ -189,13 +197,15 @@ const char *getBuiltinTypeName(qore_type_t type) {
 	 return "object";
       case NT_BINARY:
 	 return "binary";
+      case NT_REFERENCE:
+	 return "reference to lvalue";
+      case NT_ALL:
+	 return "any type";
 	 // these last two don't make much sense to use, but...
       case NT_NULL:
 	 return "null";
       case NT_NOTHING:
 	 return "nothing";
-      case NT_REFERENCE:
-	 return "reference to lvalue";
    }
 
    assert(false);

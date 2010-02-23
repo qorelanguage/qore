@@ -55,7 +55,7 @@ protected:
    DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const = 0;
 
 public:
-   DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), has_type(true) {
+   DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), has_type(n_qt != NT_ALL ? true : false) {
    }
    DLLLOCAL AbstractQoreTypeInfo() : qt(NT_ALL), has_type(false) {
    }

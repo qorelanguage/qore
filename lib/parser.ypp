@@ -1400,7 +1400,7 @@ member2:
         | IDENTIFIER SELF_REF ';' {
 	   qore_type_t t = getBuiltinType($1);
 	   QoreMemberInfo *memberInfo;
-	   if (t >= 0) {
+	   if (t != NT_NONE) {
 	      memberInfo = new QoreMemberInfo(@1.first_line, @2.last_line, t);
 	      free($1);
 	   }
@@ -1412,7 +1412,7 @@ member2:
         | IDENTIFIER SELF_REF '=' exp ';' {
 	   qore_type_t t = getBuiltinType($1);
 	   QoreMemberInfo *memberInfo;
-	   if (t >= 0) {
+	   if (t != NT_NONE) {
 	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, t, $4);
 	      free($1);
 	   }
@@ -1535,7 +1535,7 @@ method_modifier:
 return_value:
         TOK_RETURNS IDENTIFIER {
 	   qore_type_t t = getBuiltinType($2);
-	   if (t >= 0) {
+	   if (t != NT_NONE) {
 	      $$ = new QoreParseTypeInfo(t);
 	      free($2);
 	   }
@@ -1621,7 +1621,7 @@ exp:    scalar
         { $$ = new VarRefNode($1, VT_UNRESOLVED); }
         | IDENTIFIER VAR_REF {
 	   qore_type_t t = getBuiltinType($1);
-	   if (t >= 0) {
+	   if (t != NT_NONE) {
 	      $$ = new VarRefDeclNode($2, VT_UNRESOLVED, t);
 	      free($1);
 	   }
@@ -1640,7 +1640,7 @@ exp:    scalar
 	}
         | TOK_MY IDENTIFIER VAR_REF {
 	   qore_type_t t = getBuiltinType($2);
-	   if (t >= 0) {
+	   if (t != NT_NONE) {
 	      $$ = new VarRefDeclNode($3, VT_LOCAL, t);
 	      free($2);
 	   }
@@ -1684,7 +1684,7 @@ exp:    scalar
         | TOK_OUR IDENTIFIER VAR_REF {
 	   qore_type_t t = getBuiltinType($2);
 	   QoreParseTypeInfo *pi;
-	   if (t >= 0) {
+	   if (t != NT_NONE) {
 	      pi = new QoreParseTypeInfo(t);
 	      free($2);
 	   }

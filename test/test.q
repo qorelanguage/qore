@@ -226,7 +226,7 @@ sub array_tests() {
     test_value(max($hl, \SC::hash_sort_callback()), ( "key1" : 9, "key2" : "three" ), "first max() with callback");
     test_value(max($hl, \$s.hash()), ( "key1" : 9, "key2" : "three" ), "second max() with callback");
     test_value(max($hl, "hash_sort_callback"), ( "key1" : 9, "key2" : "three" ), "third max() with callback");
-    my $v = shift $l2;
+    my string $v = shift $l2;
     test_value($l2, ("two","three","four","five","six"), "array shift");
     unshift $l2, $v;
     test_value($l2, ("one","two","three","four","five","six"), "array unshift");
@@ -238,7 +238,7 @@ sub array_tests() {
     test_value($l, ("hi2", "shoo1"), "second list assigment");
     ($l[0], $l[1]) = ("hi3", "shoo2", "bean1");
     test_value($l, ("hi3", "shoo2"), "third list assigment");
-    $v = pop $l1;
+    my int $v2 = pop $l1;
     test_value($l1, (3,2,4,1,6), "pop");
     push $l1, "hi";
     test_value($l1, (3,2,4,1,6,"hi"), "push");
@@ -334,7 +334,7 @@ sub map_closure($v) { return sub($v1) { return $v * $v1; }; }
 sub operator_test() {
     if ($o.verbose)
 	print("%%%% operator tests\n");
-    my $a = 1;
+    my int $a = 1;
     test_value($a, 1, "variable assignment");
     $a += 3;
     test_value($a, 4, "integer += operator");
@@ -346,12 +346,13 @@ sub operator_test() {
     test_value($a, 1, "&= operator");
     $a *= 10;
     test_value($a, 10, "integer *= operator");
-    $a *= 2.2;
-    test_value($a, 22.0, "first float *= operator");
-    $a *= 2;
-    test_value($a, 44.0, "second float *= operator");
-    $a /= 4.4;
-    test_value($a, 10.0, "float /= operator");
+    my float $f = $a;
+    $f *= 2.2;
+    test_value($f, 22.0, "first float *= operator");
+    $f *= 2;
+    test_value($f, 44.0, "second float *= operator");
+    $f /= 4.4;
+    test_value($f, 10.0, "float /= operator");
     $a = 10;
     $a /= 2;
     test_value($a, 5, "integer /= operator");
@@ -370,30 +371,34 @@ sub operator_test() {
     test_value($a, 1, "post post-decrement (--) operator");
     test_value(++$a, 2, "pre-increment (++) operator");
     test_value(--$a, 1, "pre-decrement (--) operator");
-    $a = "hello" + " there";
-    test_value($a, "hello there", "string concatenation");
-    $a += " gee";
-    test_value($a, "hello there gee", "string plus equals");
-    $a = 1.0;
-    $a += 1.2;
-    test_value($a, 2.2, "float += operator");
-    $a -= 1.1;
-    test_value($a, 1.1, "float -= operator");
-    $a = 5.5 * 2.0;
-    test_value($a, 11.0, "float * operator");
+
+    my $astr = "hello" + " there";
+    test_value($astr, "hello there", "string concatenation");
+    $astr += " gee";
+    test_value($astr, "hello there gee", "string plus equals");
+
+    $f = 1.0;
+    $f += 1.2;
+    test_value($f, 2.2, "float += operator");
+    $f -= 1.1;
+    test_value($f, 1.1, "float -= operator");
+    $f = 5.5 * 2.0;
+    test_value($f, 11.0, "float * operator");
+
     test_value(now() > (now() - 1D), True, "date > operator");
     test_value(now() >= (now() - 1h), True, "date >= operator");
     test_value((now() - 1m) < now(), True, "date < operator");
     test_value((now() - 1M) <= now(), True, "date <= operator");
-    my $b = $a = now();
-    #test_value($a == $b, True, "date == operator");
-    test_value($a, $b, "date == operator");
-    $a = 2004-02-28-12:00:00;
-    $a += 1D;
-    test_value($a, 2004-02-29-12:00:00, "first date += operator");
-    $a -= (3h + 5m);
-    test_value($a, 2004-02-29-08:55:00, "second date += operator");
-    my $ni += 3.2;
+
+    my date $bt = my date $at = now();
+    test_value($at, $bt, "date == operator");
+    $at = 2004-02-28-12:00:00;
+    $at += 1D;
+    test_value($at, 2004-02-29-12:00:00, "first date += operator");
+    $at -= (3h + 5m);
+    test_value($at, 2004-02-29-08:55:00, "second date += operator");
+
+    my any $ni += 3.2;
     test_value($ni, 3.2, "float +=, lhs NOTHING");
     delete $ni;
     $ni += "hello";
