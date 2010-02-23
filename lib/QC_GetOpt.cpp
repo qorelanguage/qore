@@ -27,13 +27,11 @@
 
 qore_classid_t CID_GETOPT;
 
-static inline int process_type(const char *key, int &attributes, char *opt, qore_type_t &at, ExceptionSink *xsink)
-{
+static inline int process_type(const char *key, int &attributes, char *opt, qore_type_t &at, ExceptionSink *xsink) {
    assert(at == -1);
    const char *type_name = 0;
    // get type
-   switch (*opt)
-   {
+   switch (*opt) {
       case 's':
 	 at = NT_STRING;
 	 type_name = QoreStringNode::getStaticTypeName();
@@ -69,50 +67,41 @@ static inline int process_type(const char *key, int &attributes, char *opt, qore
 	 type_name = QoreBigIntNode::getStaticTypeName();
 	 break;
    }
-   if (at == -1)
-   {
+   if (at == -1) {
       xsink->raiseException("GETOPT-OPTION-ERROR", "type '%c' for key '%s' is unknown", *opt, key);
       return -1;
    }
    if (!opt[1])
       return 0;
 
-   if (opt[2])
-   {
+   if (opt[2]) {
       xsink->raiseException("GETOPT-OPTION-ERROR", "invalid attributes in option '%s'", key);
       return -1;
    }
 
    // process modifiers
-   if (opt[1] == '@')
-   {
-      if (attributes & QGO_OPT_LIST)
-      {
+   if (opt[1] == '@') {
+      if (attributes & QGO_OPT_LIST) {
 	 xsink->raiseException("GETOPT-OPTION-ERROR", "list attribute doubled in option key '%s'", key);
 	 return -1;
       }
-      if (attributes & QGO_OPT_ADDITIVE)
-      {
+      if (attributes & QGO_OPT_ADDITIVE) {
 	 xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' cannot have both additive and list attributes turned on", key);
 	 return -1;
       }
       attributes |= QGO_OPT_LIST;
       return 0;
    }
-   if (opt[1] == '+')
-   {
-      if (attributes & QGO_OPT_ADDITIVE)
-      {
+   if (opt[1] == '+') {
+      if (attributes & QGO_OPT_ADDITIVE) {
 	 xsink->raiseException("GETOPT-OPTION-ERROR", "additive attribute doubled in option key '%s'", key);
 	 return -1;
       }
-      if (attributes & QGO_OPT_LIST)
-      {
+      if (attributes & QGO_OPT_LIST) {
 	 xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' cannot have both additive and list attributes turned on", key);
 	 return -1;
       }
-      if (at != NT_INT && at != NT_FLOAT)
-      {
+      if (at != NT_INT && at != NT_FLOAT) {
 	 xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", type_name, key);
 	 return -1;
       }
@@ -124,32 +113,27 @@ static inline int process_type(const char *key, int &attributes, char *opt, qore
    return -1;
 }
 
-static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreHashNode *p0 = test_hash_param(params, 0);
-   if (!p0)
-   {
+static void GETOPT_constructor(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreHashNode *p0 = test_hash_param(args, 0);
+   if (!p0){
       xsink->raiseException("GETOPT-PARAMETER-ERROR", "expecting hash as first argument to GetOpt::constructor()");
       return;
    }
 
-   class GetOpt *g = new GetOpt();
+   GetOpt *g = new GetOpt();
 
    ConstHashIterator hi(p0);
-   class QoreString vstr;
-   while (hi.next())
-   {
+   QoreString vstr;
+   while (hi.next()) {
       const char *k = hi.getKey();
-      if (!strcmp(k, "_ERRORS_"))
-      {
+      if (!strcmp(k, "_ERRORS_")) {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "option key '%s' is reserved for errors in the output hash", k);
 	 break;
       }
 
       const AbstractQoreNode *v = hi.getValue();
       const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(v);
-      if (!str)
-      {
+      if (!str) {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, v ? v->getTypeName() : "NOTHING");
 	 break;
       }
@@ -165,14 +149,12 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
 
       // get data type, if any
       char *tok = strchrs(val, "=:");
-      if (tok)
-      {
+      if (tok) {
 	 if (tok[1] && process_type(k, attributes, tok + 1, at, xsink))
 	    break;
 	 if ((*tok) == '=')
 	    attributes |= QGO_OPT_MANDATORY;
-	 else if (attributes & QGO_OPT_LIST)
-	 {
+	 else if (attributes & QGO_OPT_LIST) {
 	    xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' takes a list and therefore must have mandatory arguments", k);
 	    break;
 	 }
@@ -180,28 +162,23 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
 	 (*tok) = '\0';
       }
       // get option names
-      if (!val[0])
-      {
+      if (!val[0]) {
 	 //printd(5, "making exception key='%s' tok=%08p val=%08p val='%s'\n", k, tok, val, val);
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' has no option specifiers", k);
 	 break;
       }
       tok = strchr(val, ',');
-      if (tok)
-      {
-	 if (tok == (val + 1))
-	 {
+      if (tok) {
+	 if (tok == (val + 1)) {
 	    short_opt = val[0];
 	    long_opt = val + 2;
 	 }
-	 else if (tok - val == (signed)(strlen(val) - 2))
-	 {
+	 else if (tok - val == (signed)(strlen(val) - 2)) {
 	    (*tok) = 0;
 	    short_opt = tok[1];
 	    long_opt = val;
 	 }
-	 else // if the comma is not in the second or second-to-last position, then it's an error
-	 {
+	 else { // if the comma is not in the second or second-to-last position, then it's an error
 	    xsink->raiseException("GETOPT-OPTION-ERROR", "user options can only be specified with one short option and one long option, however two long options were given for key '%s' (%s)", k, val);
 	    break;
 	 }
@@ -211,18 +188,15 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
       else
 	 short_opt = val[0];
       int rc = g->add(k, short_opt, long_opt, at, attributes);
-      if (rc == QGO_ERR_DUP_SHORT_OPT)
-      {
+      if (rc == QGO_ERR_DUP_SHORT_OPT) {
 	 xsink->raiseException("GETOPT-OPTION-ERROR", "short option '%c' was duplicated in key '%s'", short_opt, k);
 	 break;
       }
-      if (rc == QGO_ERR_DUP_LONG_OPT)
-      {
+      if (rc == QGO_ERR_DUP_LONG_OPT) {
 	 xsink->raiseException("GETOPT-OPTION-ERROR", "long option '%s' was duplicated in key '%s'", long_opt, k);
 	 break;
       }
-      if (rc == QGO_ERR_DUP_NAME)
-      {
+      if (rc == QGO_ERR_DUP_NAME) {
 	 xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' was duplicated", k);
 	 break;
       }
@@ -237,49 +211,57 @@ static void GETOPT_copy(QoreObject *self, QoreObject *old, GetOpt *g, ExceptionS
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
 }
 
-static QoreHashNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0)
+static QoreHashNode *GETOPT_parse_ref(QoreObject *self, GetOpt *g, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(r, const ReferenceNode, args, 0);
+
+   AutoVLock vl(xsink);
+   QoreTypeSafeReferenceHelper ref(r, vl, xsink);
+   if (!ref)
       return 0;
 
-   QoreListNode *l;
-   if (p0->getType() == NT_REFERENCE) {
-      const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
-      AutoVLock vl(xsink);
-      QoreTypeSafeReferenceHelper ref(r, vl, xsink);
-      if (!ref)
-	 return 0;
+   if (ref.getType() != NT_LIST)
+      return new QoreHashNode;
 
-      if (ref.getType() != NT_LIST)
-	 return 0;
-
-      l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
-      if (*xsink)
-	 return 0;
-
-      return g->parse(l, true, xsink);
-   }
-   else if (!(l = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(p0))))
-      return 0;
-
-   return g->parse(l, false, xsink);
-}
-
-static AbstractQoreNode *GETOPT_parse2(QoreObject *self, GetOpt *g, const QoreListNode *params, ExceptionSink *xsink) {
-   ReferenceHolder<QoreHashNode> rv(GETOPT_parse(self, g, params, xsink), xsink);
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
    if (*xsink)
       return 0;
 
-   if (!rv)
-      return 0;
+   return g->parse(l, true, xsink);
+}
+
+static QoreHashNode *GETOPT_parse_list(QoreObject *self, GetOpt *g, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(l, const QoreListNode, args, 0);
+   
+   return g->parse(const_cast<QoreListNode *>(l), false, xsink);
+}
+
+static AbstractQoreNode *GETOPT_parse2_intern(ReferenceHolder<QoreHashNode> &rv, ExceptionSink *xsink) {
+   assert(rv);
 
    // check for _ERRORS_ key
    const QoreListNode *l = reinterpret_cast<const QoreListNode *>(rv->getKeyValue("_ERRORS_"));
    if (!l)
       return rv.release();
+
    const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
    xsink->raiseException("GETOPT-ERROR", err->stringRefSelf());
    return 0;
+}
+
+static AbstractQoreNode *GETOPT_parse2_ref(QoreObject *self, GetOpt *g, const QoreListNode *args, ExceptionSink *xsink) {
+   ReferenceHolder<QoreHashNode> rv(GETOPT_parse_ref(self, g, args, xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   return GETOPT_parse2_intern(rv, xsink);
+}
+
+static AbstractQoreNode *GETOPT_parse2_list(QoreObject *self, GetOpt *g, const QoreListNode *args, ExceptionSink *xsink) {
+   ReferenceHolder<QoreHashNode> rv(GETOPT_parse_ref(self, g, args, xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   return GETOPT_parse2_intern(rv, xsink);
 }
 
 QoreClass *initGetOptClass() {
@@ -289,8 +271,16 @@ QoreClass *initGetOptClass() {
    CID_GETOPT = QC_GETOPT->getID();
    QC_GETOPT->setConstructor(GETOPT_constructor);
    QC_GETOPT->setCopy((q_copy_t)GETOPT_copy);
-   QC_GETOPT->addMethod("parse",         (q_method_t)GETOPT_parse);
-   QC_GETOPT->addMethod("parse2",        (q_method_t)GETOPT_parse2);
+
+   // default for GetOpt::parse() with incorrect arguments is to do nothing
+   QC_GETOPT->addMethodExtended("parse",         (q_method_t)class_noop);
+   QC_GETOPT->addMethodExtended("parse",         (q_method_t)GETOPT_parse_ref, false, QDOM_DEFAULT, hashTypeInfo, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
+   QC_GETOPT->addMethodExtended("parse",         (q_method_t)GETOPT_parse_list, false, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   // default for GetOpt::parse2() with incorrect arguments is to do nothing
+   QC_GETOPT->addMethodExtended("parse2",        (q_method_t)class_noop);
+   QC_GETOPT->addMethodExtended("parse2",        (q_method_t)GETOPT_parse2_ref, false, QDOM_DEFAULT, hashTypeInfo, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
+   QC_GETOPT->addMethodExtended("parse2",        (q_method_t)GETOPT_parse2_list, false, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 
    return QC_GETOPT;
 }

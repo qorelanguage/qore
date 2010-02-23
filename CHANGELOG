@@ -1,3 +1,10 @@
+2010.02.23: David Nichols
+	 * applied hard typing to lib/QC_GetOpt.cpp and to split in
+	   lib/ql_string.cpp
+	 * fixed variant matching bugs at parse and runtime in Function.cc
+	 * do not raise a NON-EXISTENT-METHOD-CALL warning at parse time if
+	   the class has a methodGate() method
+ 
 2010.02.21: David Nichols
 	 * minor updates to enable Qore to compile with Cygwin
 	 * implemented QORE_OPT_SIGNAL_HANDLING option and constant:

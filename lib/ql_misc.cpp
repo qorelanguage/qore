@@ -1032,6 +1032,7 @@ static AbstractQoreNode *f_load_module(const QoreListNode *params, ExceptionSink
 }
 
 static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_SIGNAL_HANDLING
    const AbstractQoreNode *p = get_param(params, 0);
    int signal = p ? p->getAsInt() : 0;
    if (!signal || signal > QORE_SIGNAL_MAX) {
@@ -1046,24 +1047,28 @@ static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, Except
    }
    QoreSignalManager::setHandler(signal, p1, xsink);
    return 0;
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
+#endif
 }
 
-static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_SIGNAL_HANDLING
    const AbstractQoreNode *p0 = get_param(params, 0);
    int signal = p0 ? p0->getAsInt() : 0;
-   if (!signal || signal > QORE_SIGNAL_MAX)
-   {
+   if (!signal || signal > QORE_SIGNAL_MAX) {
       xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return 0;
    }
    QoreSignalManager::removeHandler(signal, xsink);
    return 0;
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
+#endif
 }
 
 // returns a string with percent-encodings substituted for characters
-static AbstractQoreNode *f_decode_url(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_decode_url(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p = test_string_param(params, 0);
    if (!p || !p->strlen())
       return 0;

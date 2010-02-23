@@ -35,10 +35,16 @@
 /** @param n a pointer to the argument list
     @return the number of arguments passed to the function
  */
-static inline int num_params(const QoreListNode *n) {
-   if (!n)
-      return 0;
-   return n->size();
+static inline unsigned num_args(const QoreListNode *n) {
+   return n ? n->size() : 0;
+}
+
+//! returns the number of arguments passed to the function
+/** @param n a pointer to the argument list
+    @return the number of arguments passed to the function
+ */
+static inline unsigned num_params(const QoreListNode *n) {
+   return n ? n->size() : 0;
 }
 
 //! returns the argument in the position given or 0 if there is none

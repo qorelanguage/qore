@@ -519,6 +519,9 @@ public:
    //! returns true if the class implements a "memberGate" method
    DLLEXPORT bool hasMemberGate() const;
 
+   //! returns true if the class implements a "methodGate" method
+   DLLEXPORT bool hasMethodGate() const;
+
    //! returns true if the class implements a "memberNotification" method
    DLLEXPORT bool hasMemberNotification() const;
 
@@ -689,6 +692,8 @@ public:
    // returns the status including the pending variant (if any)
    DLLLOCAL bool parseHasPrivateCopyMethod() const;
    DLLLOCAL const QoreMethod *parseGetConstructor() const;
+   // returns true if the class implements a "methodGate" method, also in pending uncommitted methods
+   DLLLOCAL bool parseHasMethodGate() const;
 };
 
 class QoreMethodIterator {

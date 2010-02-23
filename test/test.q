@@ -6,18 +6,20 @@
 %enable-all-warnings
 # child programs do not inherit parent's restrictions
 %no-child-restrictions
+# require types to be declared
+#%require-types
 
 # make sure we have the right version of qore
 %requires qore >= 0.8.0
 
 # global variables needed for tests
-our $to = new Test("program-test.q");
-our $ro = new Test("readonly");
-our ($o, $errors, $counter);
-our $thash;
+our Test $to = new Test("program-test.q");
+our Test $ro = new Test("readonly");
+our (hash $o, int $errors);
+our hash $thash;
 
 sub get_program_name() {
-    my $l = split("/", $ENV."_");
+    my list $l = split("/", $ENV."_");
     return $l[elements $l - 1];
 }
 
@@ -108,7 +110,7 @@ static SC::hash_sort_callback(hash $l, hash $r) returns int {
 
 # array tests
 sub array_tests() {
-    my ($a, $b, $c, $d);
+    my (list $a, $b, $c, $d);
 
     if ($o.verbose)
 	print("%%%% array tests\n");
@@ -902,7 +904,7 @@ sub string_tests() {
     test_value(chr(104), "h", "chr()");
 
     $str = "gee this is a long string";
-    my $a = split(" ", $str);
+    my list $a = split(" ", $str);
     test_value($a[2], "is", "first string split()");
     test_value($a[5], "string", "second string split()");
 
@@ -1011,9 +1013,10 @@ sub string_tests() {
     test_value($l[0] =~ s/bar/foo/g, "hello foo hi foo", "first global regular expression substitution");
     test_value($l[1] =~ s/bar/foo/g, "foo hello foo hi foo", "second global regular expression substitution");
     test_value($l[2] =~ s/BAR/foo/ig, "hello foo hi", "case-insensitive global regular expression substitution");
-    $a = "abc def";
-    $a =~ s/(\w+) +(\w+)/$2, $1/; 
-    test_value($a, "def, abc", "regular expression subpattern substitution");
+
+    my $astr= "abc def";
+    $astr =~ s/(\w+) +(\w+)/$2, $1/; 
+    test_value($astr, "def, abc", "regular expression subpattern substitution");
 
     # regex() tests
     test_value(regex("hello", "^hel*"), True, "regex() positive match");
@@ -1038,11 +1041,12 @@ sub string_tests() {
     test_value(regex_subst($l[0], "bar", "foo", RE_Global), "hello foo hi foo", "first global regular expression substitution");
     test_value(regex_subst($l[1], "bar", "foo", RE_Global), "foo hello foo hi foo", "second global regular expression substitution");
     test_value(regex_subst($l[2], "BAR", "foo", RE_Global|RE_Caseless), "hello foo hi", "case-insensitive global regular expression substitution");
-    $a = "abc def";
+
+    $astr = "abc def";
     # note that the escape characters have to be escaped in the following pattern string
-    test_value(regex_subst($a, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first regular expression subpattern substitution");
+    test_value(regex_subst($astr, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first regular expression subpattern substitution");
     # here we use single-quotes, so the escape characters do not have to be escaped
-    test_value(regex_subst($a, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second regular expression subpattern substitution");
+    test_value(regex_subst($astr, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second regular expression subpattern substitution");
 
     # chomp tests
     $str = "hello\n";
@@ -1786,7 +1790,7 @@ sub main() {
     printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n", Qore::VersionString, 
 	   $o.threads, $o.threads == 1 ? "" : "s", $o.iters, $o.iters == 1 ? "" : "s");
 
-    $counter = new Counter();
+    our Counter $counter = new Counter();
     while ($o.threads--) {
 	$counter.inc();
 	background do_tests();

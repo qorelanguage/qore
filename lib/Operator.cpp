@@ -3608,7 +3608,8 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    }
 
    if (!m) {
-      getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use '%%disable-warning non-existent-method-call' in your code or implement an empty method in the base class with the same name", typeInfo->qc->getName(), meth);
+      if (!typeInfo->qc->parseHasMethodGate())
+	 getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use '%%disable-warning non-existent-method-call' in your code or implement an empty method in the base class with the same name", typeInfo->qc->getName(), meth);
 
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
       return tree;

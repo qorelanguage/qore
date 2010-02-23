@@ -1968,7 +1968,7 @@ static AbstractQoreNode *f_makeFormattedXMLRPCFaultResponseStringWithEncoding(co
 static AbstractQoreNode *makeXMLRPCResponseString(bool with_enc, const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("makeXMLRPCResponseString()");
 
-   int offset = with_enc ? 1 : 0;
+   unsigned offset = with_enc ? 1 : 0;
    const QoreEncoding *ccs = with_enc ? get_hard_qore_encoding_param(params, 0) : QCS_DEFAULT;
 
    if (num_params(params) == offset)

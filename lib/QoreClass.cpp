@@ -128,8 +128,12 @@ struct qore_class_private {
 	 delete typeInfo;
    }
 
-   const QoreTypeInfo *getTypeInfo() const {
+   DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
       return typeInfo;
+   }
+
+   DLLLOCAL bool parseHasMethodGate() const {
+      return methodGate || hm.find("methodGate") != hm.end();
    }
 
    // checks for all special methods except constructor & destructor
@@ -1361,6 +1365,10 @@ bool QoreClass::hasMemberGate() const {
    return priv->memberGate != 0;
 }
 
+bool QoreClass::hasMethodGate() const {
+   return priv->methodGate != 0;
+}
+
 bool QoreClass::hasMemberNotification() const {
    return priv->memberNotification != 0;
 }
@@ -2416,6 +2424,10 @@ bool QoreClass::parseHasPrivateCopyMethod() const {
    return priv->copyMethod && priv->copyMethod->parseIsPrivate() ? true : false;
 }
 
+bool QoreClass::parseHasMethodGate() const {
+   return priv->parseHasMethodGate();
+}
+
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {
    if (all_private && !variant->isPrivate())
       all_private = false;
@@ -2739,4 +2751,10 @@ bool QoreStaticMethodIterator::next() {
 
 const QoreMethod *QoreStaticMethodIterator::getMethod() const {
    return HMI_CAST(priv)->getMethod();
+}
+
+// this is the "noop" function for class methods that do nothing if the
+// incorrect argument types are passed - for backwards compatibility
+AbstractQoreNode *class_noop(QoreObject *self, AbstractPrivateData *ptr, const QoreListNode *args, ExceptionSink *xsink) {
+   return 0;
 }

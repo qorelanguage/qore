@@ -79,7 +79,7 @@ public:
    DLLLOCAL void makeGlobal() { 
       assert(type == VT_UNRESOLVED); 
       type = VT_GLOBAL;
-      ref.var =getProgram()->addGlobalVarDef(name, getTypeInfo());
+      ref.var = getProgram()->addGlobalVarDef(name, takeTypeInfo());
    }
 
    // takes the name - caller owns the memory
