@@ -29,8 +29,10 @@
 
 #include <stdarg.h>
 
+// here we define virtual types
 #define NT_NONE  -1
 #define NT_ALL   -2
+#define NT_CODE  -3
 
 // the following functions are implemented in support.cc
 // FIXME: remove this function and use the one below

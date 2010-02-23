@@ -22,12 +22,6 @@
 
 #include <qore/Qore.h>
 
-// global external type map
-static type_info_map_t type_info_map;
-
-// rwlock for global type map
-static QoreRWLock type_info_map_lock;
-
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
    staticBigIntTypeInfo(NT_INT), 
@@ -48,6 +42,9 @@ static QoreTypeInfo staticAnyTypeInfo,
 // provides limited compatibility with integers
 static FloatTypeInfo staticFloatTypeInfo;
 
+// provides equal compatibility with closures and all types of code references
+static CodeTypeInfo staticCodeTypeInfo;
+
 // const pointers to static reference types
 const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *bigIntTypeInfo = &staticBigIntTypeInfo,
@@ -63,46 +60,93 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
-   *referenceTypeInfo = &staticReferenceTypeInfo
+   *referenceTypeInfo = &staticReferenceTypeInfo,
+   *codeTypeInfo = &staticCodeTypeInfo
    ;
 
+
+// map from types to default values
+typedef std::map<qore_type_t, AbstractQoreNode *> def_val_map_t;
+static def_val_map_t def_val_map;
+
+// map from names used when parsing to types
+typedef std::map<const char *, const QoreTypeInfo *> str_typeinfo_map_t;
+static str_typeinfo_map_t str_typeinfo_map;
+
+// map from types to type info
+typedef std::map<qore_type_t, const QoreTypeInfo *> type_typeinfo_map_t;
+static type_typeinfo_map_t type_typeinfo_map;
+
+// global external type map
+static type_typeinfo_map_t extern_type_info_map;
+
+// map from types to names
+typedef std::map<qore_type_t, const char *> type_str_map_t;
+static type_str_map_t type_str_map;
+
+// rwlock for global type map
+static QoreRWLock extern_type_info_map_lock;
+
+static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInfo) {
+   str_typeinfo_map[name] = typeInfo;
+   type_typeinfo_map[t] = typeInfo;
+   type_str_map[t] = name;
+}
+
+class QoreTypeInitializer {
+public:
+   DLLLOCAL QoreTypeInitializer() {
+      def_val_map[NT_INT] = new QoreBigIntNode;
+      def_val_map[NT_STRING] = new QoreStringNode;
+      def_val_map[NT_BOOLEAN] = &False;
+      def_val_map[NT_DATE] = new DateTimeNode;
+      def_val_map[NT_FLOAT] = new QoreFloatNode;
+      def_val_map[NT_LIST] = new QoreListNode;
+      def_val_map[NT_HASH] = new QoreHashNode;
+      def_val_map[NT_BINARY] = new BinaryNode;
+      def_val_map[NT_NULL] = &Null;
+      def_val_map[NT_NOTHING] = &Nothing;
+
+      do_maps(NT_INT, "int", bigIntTypeInfo);
+      do_maps(NT_STRING, "string", stringTypeInfo);
+      do_maps(NT_BOOLEAN, "bool", boolTypeInfo);
+      do_maps(NT_FLOAT, "float", floatTypeInfo);
+      do_maps(NT_BINARY, "binary", binaryTypeInfo);
+      do_maps(NT_LIST, "list", listTypeInfo);
+      do_maps(NT_HASH, "hash", hashTypeInfo);
+      do_maps(NT_OBJECT, "object", objectTypeInfo);
+      do_maps(NT_ALL, "any", anyTypeInfo);
+      do_maps(NT_DATE, "date", dateTypeInfo);
+      do_maps(NT_CODE, "code", codeTypeInfo);
+      do_maps(NT_REFERENCE, "reference", referenceTypeInfo);
+      do_maps(NT_NULL, "null", nullTypeInfo);
+      do_maps(NT_NOTHING, "nothing", nothingTypeInfo);
+   }
+   DLLLOCAL ~QoreTypeInitializer() {
+      // delete all values from default value map
+      for (def_val_map_t::iterator i = def_val_map.begin(), e = def_val_map.end(); i != e; ++i)
+	 i->second->deref(0);
+   }
+};
+
+static QoreTypeInitializer qti;
+
 void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo) {
-   QoreAutoRWWriteLocker al(type_info_map_lock);
-   assert(type_info_map.find(t) == type_info_map.end());
-   type_info_map[t] = typeInfo;
+   QoreAutoRWWriteLocker al(extern_type_info_map_lock);
+   assert(extern_type_info_map.find(t) == extern_type_info_map.end());
+   extern_type_info_map[t] = typeInfo;
 }
 
 const QoreTypeInfo *getTypeInfoForType(qore_type_t t) {
-   switch (t) {
-      case NT_INT:
-	 return bigIntTypeInfo;
-      case NT_STRING:
-	 return stringTypeInfo;
-      case NT_BOOLEAN:
-	 return boolTypeInfo;
-      case NT_FLOAT:
-	 return floatTypeInfo;
-      case NT_BINARY:
-	 return binaryTypeInfo;
-      case NT_LIST:
-	 return listTypeInfo;
-      case NT_HASH:
-	 return hashTypeInfo;
-      case NT_OBJECT:
-	 return objectTypeInfo;
-      case NT_ALL:
-	 return anyTypeInfo;
-      case NT_DATE:
-	 return dateTypeInfo;
-      case NT_NULL:
-	 return nullTypeInfo;
-      case NT_NOTHING:
-	 return nothingTypeInfo;
-   }
+   type_typeinfo_map_t::iterator i = type_typeinfo_map.find(t);
+   if (i != type_typeinfo_map.end())
+      return i->second;
+
    const QoreTypeInfo *rv;
    {
-      QoreAutoRWReadLocker al(type_info_map_lock);
-      rv = type_info_map[t];
+      QoreAutoRWReadLocker al(extern_type_info_map_lock);
+      type_typeinfo_map_t::iterator i = extern_type_info_map.find(t);
+      rv = (i == extern_type_info_map.end() ? 0 : i->second);
    }
 
    //if (!rv) printd(0, "getTypeInfoForValue() %d not found in map\n", t);
@@ -117,98 +161,20 @@ const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n) {
 }
 
 AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t) {
-   switch (t) {
-      case NT_INT:
-	 return new QoreBigIntNode(0);
-      case NT_STRING:
-	 return new QoreStringNode;
-      case NT_BOOLEAN:
-	 return &False;
-      case NT_DATE:
-	 return new DateTimeNode((int64)0);
-      case NT_FLOAT:
-	 return new QoreFloatNode(0.0);
-      case NT_LIST:
-	 return new QoreListNode;
-      case NT_HASH:
-	 return new QoreHashNode;
-      case NT_BINARY:
-	 return new BinaryNode;
-      case NT_NULL:
-	 return &Null;
-      case NT_NOTHING:
-      case NT_OBJECT:
-	 return &Nothing;
-   }
-
-   assert(false);
-   return 0;
+   def_val_map_t::iterator i = def_val_map.find(t);
+   assert(i != def_val_map.end());
+   return i->second->refSelf();
 }
 
-// FIXME: prepare a map for faster matching
 const QoreTypeInfo *getBuiltinTypeInfo(const char *str) {
-   if (!strcmp(str, "int"))
-      return bigIntTypeInfo;
-   if (!strcmp(str, "string"))
-      return stringTypeInfo;
-   if (!strcmp(str, "bool"))
-      return boolTypeInfo;
-   if (!strcmp(str, "float"))
-      return floatTypeInfo;
-   if (!strcmp(str, "binary"))
-      return binaryTypeInfo;
-   if (!strcmp(str, "list"))
-      return listTypeInfo;
-   if (!strcmp(str, "hash"))
-      return hashTypeInfo;
-   if (!strcmp(str, "object"))
-      return objectTypeInfo;
-   if (!strcmp(str, "any"))
-      return anyTypeInfo;
-   if (!strcmp(str, "date"))
-      return dateTypeInfo;
-   if (!strcmp(str, "null"))
-      return nullTypeInfo;
-   if (!strcmp(str, "nothing"))
-      return nothingTypeInfo;
-
-   return 0;
+   str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
+   return i != str_typeinfo_map.end() ? i->second : 0;
 }
 
-// FIXME: prepare a map for faster matching
 const char *getBuiltinTypeName(qore_type_t type) {
-   switch (type) {
-      case NT_INT:
-	 return "int";
-      case NT_STRING:
-	 return "string";
-      case NT_BOOLEAN:
-	 return "bool";
-      case NT_DATE:
-	 return "date";
-      case NT_FLOAT:
-	 return "float";
-      case NT_LIST:
-	 return "list";
-      case NT_HASH:
-	 return "hash";
-      case NT_OBJECT:
-	 return "object";
-      case NT_BINARY:
-	 return "binary";
-      case NT_REFERENCE:
-	 return "reference to lvalue";
-      case NT_ALL:
-	 return "any type";
-	 // these last two don't make much sense to use, but...
-      case NT_NULL:
-	 return "null";
-      case NT_NOTHING:
-	 return "nothing";
-   }
-
-   assert(false);
-   return "<unknown>";
+   type_str_map_t::iterator i = type_str_map.find(type);
+   assert(i != type_str_map.end());
+   return i->second;
 }
 
 const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {

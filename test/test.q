@@ -1,4 +1,5 @@
 #!/usr/bin/env qore 
+# -*- mode: perl; indent-tabs-mode: nil -*-
 
 # require all global variables to be declared with "our"
 %require-our
@@ -372,7 +373,7 @@ sub operator_test() {
     test_value(++$a, 2, "pre-increment (++) operator");
     test_value(--$a, 1, "pre-decrement (--) operator");
 
-    my $astr = "hello" + " there";
+    my string $astr = "hello" + " there";
     test_value($astr, "hello there", "string concatenation");
     $astr += " gee";
     test_value($astr, "hello there gee", "string plus equals");
@@ -412,7 +413,7 @@ sub operator_test() {
     # some array and hash tests in separate functions
 
     # get function closure with bound local variable (multiply by 2)
-    my $c = map_closure(2);
+    my code $c = map_closure(2);
 
     # map function to list
     test_value((map $c($1), (1, 2, 3)), (2, 4, 6), "map operator using closure");
@@ -456,7 +457,7 @@ sub one_parameter_shift_test() {
 }
 
 sub shift_test() {
-    my $var = (1, 2, 3, 4, "hello");
+    my list $var = (1, 2, 3, 4, "hello");
     foreach my $v in ($var)
 	test_value($v, shift $argv, ("shift " + string($v) + " parameter"));
 }
@@ -481,9 +482,9 @@ sub logic_message($op) {
 
 # logic short-circuiting test
 sub logic_tests() {
-    my $a = 1;
-    my $b = 0;
-    my $c;
+    my any $a = 1;
+    my any $b = 0;
+    my int $c;
 
     if ($o.verbose)
 	print("%%%% logic tests\n");
@@ -530,8 +531,8 @@ sub printf_tests() {
     printf(  "  printf: 3 char arg right in 5 char field: %5s\n", "abc"); 
 }
 
-sub switch_test($val) {
-    my $rv;
+sub switch_test(int $val) returns string {
+    my string $rv;
 
     switch ($val) {
 	case 0:
@@ -550,8 +551,8 @@ sub switch_test($val) {
     return $rv;
 }
 
-sub regex_switch_test($val) {
-    my $rv;
+sub regex_switch_test(string $val) returns string {
+    my string $rv;
 
     switch ($val) {
 	case /abc/:
@@ -575,8 +576,8 @@ sub regex_switch_test($val) {
     return $rv;
 }
 
-sub switch_with_relation_test($val) {
-  my $rv;
+sub switch_with_relation_test(int $val) returns string {
+  my string $rv;
   switch ($val) {
   case < -1 : $rv = "first switch"; break;
   case > 1 : $rv = "second switch"; break;
@@ -591,7 +592,7 @@ sub statement_tests() {
     if ($o.verbose)
 	print("%%%% statement tests\n");
     # while test
-    my $a = 0;
+    my int $a = 0;
     while ($a < 3)
 	$a++;
     test_value($a, 3, "while");
@@ -602,29 +603,29 @@ sub statement_tests() {
     } while ($a < 3);
     test_value($a, 3, "do while");
     # for test
-    my $b = 0;
+    my int $b = 0;
     for (my $i = 0; $i < 3; $i++)
 	$b++;
     test_value($a, 3, "for");
     test_value($b, 3, "for exec");    
     # foreach tests
     $b = 0;
-    my $v;
+    my int $v;
     foreach $v in (1, 2, 3)
 	$b++;
     test_value($v, 3, "foreach");
     test_value($b, 3, "foreach exec");
 
-    my $list = my $x;
-    foreach my $y in (\$list) $y = "test";
+    my any $list = my list $x;
+    foreach my string $y in (\$list) $y = "test";
     test_value($list, NOTHING, "first foreach reference");
     
     $list = (1, 2, 3);
-    foreach my $y in (\$list) $y = "test";
+    foreach my string $y in (\$list) $y = "test";
     test_value($list, ("test", "test", "test"), "second foreach reference");
     
     $list = 1;
-    foreach my $y in (\$list) $y = "test";
+    foreach my string $y in (\$list) $y = "test";
     test_value($list, "test", "third foreach reference");
 
     # switch tests
@@ -658,8 +659,8 @@ sub statement_tests() {
     }
     catch() {
     }
-    my $err;
-    my $success = False;
+    my bool $err;
+    my bool $success = False;
     try {
 	$b = 100;
 	on_exit {
@@ -694,31 +695,31 @@ sub statement_tests() {
     test_value($success, False, "on_success");
 }
 
-sub fibonacci($num) {
+sub fibonacci(int $num) returns int {
     if ($num == 2)
         return 2;
     return $num * fibonacci($num - 1);
 }
 
 # recursive function test
-sub recursive_function_test() {
+sub recursive_function_test() returns nothing {
     test_value(fibonacci(10), 3628800, "recursive function");
 }
 
-sub backquote_tests() {
+sub backquote_tests() returns nothing {
     test_value(`echo -n 1`, "1", "backquote");
 }
 
-sub sd($d) {
+sub sd($d) returns nothing {
     return format_date("YYYY-MM-DD HH:mm:SS", $d);
 }
 
-sub test_date($d, $y, $w, $day, $n, $i) {
-    my $str = sprintf("%04d-W%02d-%d", $y, $w, $day);
-    my $h = ( "year" : $y, "week" : $w, "day" : $day );
-    my $d1;
+sub test_date(date $d, int $y, int $w, int $day, int $n, reference $i) returns nothing {
+    my string $str = sprintf("%04d-W%02d-%d", $y, $w, $day);
+    my hash $h = ( "year" : $y, "week" : $w, "day" : $day );
+    my int $d1;
     # subtract milliseconds from date to compare with timegm value
-    if (my $ms = get_milliseconds($d))
+    if (my int $ms = get_milliseconds($d))
 	$d1 = $d - milliseconds($ms);
     else
 	$d1 = $d;
@@ -738,9 +739,9 @@ sub test_date($d, $y, $w, $day, $n, $i) {
 sub date_time_tests() {
     # here are the two formats for directly specifying date/time values:
     # ISO-8601 format (without timezone specification, currently qore does not support time zones)
-    my $date  = 2004-02-01T12:30:00;
+    my date $date  = 2004-02-01T12:30:00;
     # qore-specific date/time specification format ('-' instead of 'T' - more readable but non-standard)
-    my $ndate = 2004-03-02-12:30:00;
+    my date $ndate = 2004-03-02-12:30:00;
     test_value(format_date("YYYY-MM-DD HH:mm:SS", $date), "2004-02-01 12:30:00", "format_date()");
     test_value($date - 5Y,                1999-02-01T12:30:00, "first date year subtraction");
     test_value($date - 5M,                2003-09-01T12:30:00, "first date month subtraction");
@@ -806,7 +807,7 @@ sub date_time_tests() {
     test_value(11:25:27, 1970-01-01T11:25:27.000, "direct hour");
 
     # test date conversion/calculation functions against known values
-    my $i = 1;
+    my int $i = 1;
     test_date(1068-01-01,              1068, 1, 3, 1,    \$i);
     test_date(1783-09-18,              1783, 38, 4, 261, \$i);
     test_date(1864-02-29,              1864, 9,  1, 60,  \$i);
@@ -859,16 +860,16 @@ sub date_time_tests() {
     test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 107793D + 22h + 34m + 42s + 150ms, "date difference 2");
 }
 
-sub binary_tests() {
-    my $b = binary("this is a test");
+sub binary_tests() returns nothing {
+    my binary $b = binary("this is a test");
     test_value(getByte($b, 3), ord("s"), "getByte()");
     test_value($b, binary("this is a test"), "binary comparison");
     test_value($b != binary("this is a test"), False, "binary negative comparison");
 }
 
 sub string_tests() {
-    my $str = "Hi there, you there, pal";
-    my $big = "GEE WHIZ";
+    my string $str = "Hi there, you there, pal";
+    my string $big = "GEE WHIZ";
     test_value(strlen($str), 24, "strlen()");
     test_value(toupper($str), "HI THERE, YOU THERE, PAL", "toupper()");
     test_value(tolower($big), "gee whiz", "tolower()");
@@ -891,7 +892,7 @@ sub string_tests() {
     test_value($str[39], "ü", "second UTF-8 string index dereference");
 
     # save string
-    my $ostr = $str;
+    my string $ostr = $str;
     # convert the string to single-byte ISO-8859-1 characters and retest
     $str = convert_encoding($str, "ISO-8859-1");
     test_value($str != $ostr, False, "string != operator with same text with different encodings");
@@ -922,16 +923,16 @@ sub string_tests() {
     test_value(length($str), 7, "length() with UTF-8 multi-byte characters");
     test_value(strlen($str), 14, "strlen() with UTF-8 multi-byte characters");
     # test charset encoding conversions
-    my $nstr = convert_encoding($str, "ISO-8859-1");
+    my string $nstr = convert_encoding($str, "ISO-8859-1");
     test_value(length($nstr), 7, "length() with ISO-8859-1 special characters");
     test_value(strlen($nstr), 7, "strlen() with ISO-8859-1 special characters");
     test_value($str, convert_encoding($nstr, "UTF-8"), "convert_encoding()");
     # assign binary object
-    my $x = <0abf83e8ca72d32c>;
-    my $b64 = makeBase64String($x);
+    my binary $x = <0abf83e8ca72d32c>;
+    my string $b64 = makeBase64String($x);
     test_value($x, parseBase64String($b64), "first base64");
     test_value("aGVsbG8=", makeBase64String("hello"), "makeBase64String()");
-    my $hex = makeHexString($x);
+    my string $hex = makeHexString($x);
     test_value($x, parseHexString($hex), "first hex");
 
     # UTF-8 string splice tests
@@ -975,7 +976,7 @@ sub string_tests() {
     # join tests
     $str = join(":", "login","passwd",1,"gid","gcos","home","shell");
     test_value($str, "login:passwd:1:gid:gcos:home:shell", "first join");
-    my $l = ("login","passwd","uid","gid","gcos","home","shell");
+    my list $l = ("login","passwd","uid","gid","gcos","home","shell");
     $str = join(":", $l);
     test_value($str, "login:passwd:uid:gid:gcos:home:shell", "second join");
 
@@ -1019,7 +1020,7 @@ sub string_tests() {
     test_value($l[1] =~ s/bar/foo/g, "foo hello foo hi foo", "second global regular expression substitution");
     test_value($l[2] =~ s/BAR/foo/ig, "hello foo hi", "case-insensitive global regular expression substitution");
 
-    my $astr= "abc def";
+    my string $astr= "abc def";
     $astr =~ s/(\w+) +(\w+)/$2, $1/; 
     test_value($astr, "def, abc", "regular expression subpattern substitution");
 
@@ -1063,7 +1064,7 @@ sub string_tests() {
     $l = ( 1, "hello\n", 3.0, True, "test\r\n" );
     chomp $l;
     test_value($l, ( 1, "hello", 3.0, True, "test" ), "list chomp");
-    my $h = ( "key1" : "hello\n", "key2" : 2045, "key3": "test\r\n", "key4" : 302.223 );
+    my hash $h = ( "key1" : "hello\n", "key2" : 2045, "key3": "test\r\n", "key4" : 302.223 );
     chomp $h;
     test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash chomp");
     $str = "hello\n";
@@ -1097,12 +1098,12 @@ sub simple_shift() {
 }
 
 sub misc_tests() {
-    my $dh = ( "user"    : "user",
-	       "pass"    : "123pass@word",
-	       "db"      : "dbname",
-	       "charset" : "utf8",
-	       "host"    : "hostname" );
-    my $ds = "user/123pass@word@dbname(utf8)%hostname";
+    my hash $dh = ( "user"    : "user",
+		    "pass"    : "123pass@word",
+		    "db"      : "dbname",
+		    "charset" : "utf8",
+		    "host"    : "hostname" );
+    my string $ds = "user/123pass@word@dbname(utf8)%hostname";
     test_value($dh, parseDatasource($ds), "first parseDatasource()"); 
     test_value((1, 2), simple_shift((1, 2)), "list arg function call");
 
@@ -1112,34 +1113,34 @@ sub misc_tests() {
     test_value(functionType("simple_shift"), "user", "functionType() user");
     test_value(functionType("printf"), "builtin", "functionType() builtin");
     test_value(typename(1), "integer", "type()");
-    my $str1 = "&<>\"";
-    my $str2 = "&amp;&lt;&gt;&quot;";
+    my string $str1 = "&<>\"";
+    my string $str2 = "&amp;&lt;&gt;&quot;";
     test_value(html_encode($str1), $str2, "html_encode()");
     test_value(html_decode($str2), $str1, "html_decode()");
 
     # note that '@' signs are legal in the password field as with datasources
-    my $url = "https://username:passw@rd@hostname:1044/path/is/here";
-    my $uh = ( "protocol" : "https",
-	       "username" : "username",
-	       "password" : "passw@rd",
-	       "host" : "hostname",
-	       "port" : 1044,
-	       "path" : "/path/is/here" );
+    my string $url = "https://username:passw@rd@hostname:1044/path/is/here";
+    my hash $uh = ( "protocol" : "https",
+		    "username" : "username",
+		    "password" : "passw@rd",
+		    "host" : "hostname",
+		    "port" : 1044,
+		    "path" : "/path/is/here" );
 
     test_value(parseURL($url), $uh, "parseURL()");
 
     # test gzip
-    my $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-    my $bstr = binary($str);
-    my $c = compress($str);
+    my string $str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+    my binary $bstr = binary($str);
+    my binary $c = compress($str);
     test_value($str, uncompress_to_string($c), "compress() and uncompress_to_string()");
     test_value($bstr, uncompress_to_binary($c), "compress() and uncompress_to_binary()");
-    my $gz = gzip($str);
+    my binary $gz = gzip($str);
     test_value($str, gunzip_to_string($gz), "gzip() and gunzip_to_string()");
     test_value($bstr, gunzip_to_binary($gz), "gzip() and gunzip_to_binary()");
     
     # test bzip2
-    my $bz = bzip2($str);
+    my binary $bz = bzip2($str);
     test_value($str, bunzip2_to_string($bz), "bzip2 and bunzip2_to_string");
     test_value($bstr, bunzip2_to_binary($bz), "bzip2 and bunzip2_to_binary");
 }
@@ -1151,7 +1152,7 @@ sub math_tests() {
 }
 
 sub lib_tests() {
-    my $pn = get_script_path();
+    my string $pn = get_script_path();
     test_value(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
     test_value(hstat($pn).type, "REGULAR", "hstat()");
     #my $h = gethostname();
@@ -1201,7 +1202,7 @@ sub overload_tests() {
     test_value(f1_test(1), "float", "third overload partial match");
     test_value(f1_test(1.1), "float", "fourth overload partial match");
     test_value(f1_test("str"), "string", "fifth overload partial match");
-    my $i = 1;
+    my int $i = 1;
     test_value(f_test($i), "integer", "first runtime overload partial match");
     test_value(f1_test($i), "float", "second runtime overload partial match");
     $i = 1.1;
@@ -1248,7 +1249,7 @@ class Test inherits Socket {
 	$.t.$m = $self.$m;
     }
     closure($x) {
-	my $a = 1;
+	my int $a = 1;
 	# return a closure encapsulating the state of the object
 	return sub ($y) {
 	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
@@ -1257,12 +1258,12 @@ class Test inherits Socket {
 }
 
 sub class_test_Program() {
-    my $func = "namespace ITest { const val = 1.0; } $gv2 = 123; sub t2($a) { return $a + 2; } sub et($a) { return t($a); } sub tot() { return getClassName($to); } sub getObject() { return new Queue(); } sub deleteException() { $ro.getData(0); delete $ro; }";
+    my string $func = "namespace ITest { const val = 1.0; } $gv2 = 123; sub t2($a) { return $a + 2; } sub et($a) { return t($a); } sub tot() { return getClassName($to); } sub getObject() { return new Queue(); } sub deleteException() { $ro.getData(0); delete $ro; }";
 
-    my $pf = "newfunc();";
-    my $nf = "sub newfunc() { return True; }";
+    my string $pf = "newfunc();";
+    my string $nf = "sub newfunc() { return True; }";
 
-    my $a = new Program();
+    my Program $a = new Program();
     $a.parsePending($pf, "pending test part1");
     $a.parsePending($nf, "pending test part2");
     $a.parseCommit();    
@@ -1282,7 +1283,7 @@ sub class_test_Program() {
 	$a.callFunction("deleteException");
     catch ($ex)
 	test_value($ex.err, "ACCESS-ERROR", "Program::importGlobalVariable() readonly");    
-    my $o = $a.callFunction("getObject");
+    my Queue $o = $a.callFunction("getObject");
     delete $a;
     test_value(getClassName($o), "Queue", "class returned from deleted subprogram object");
 }
@@ -1309,10 +1310,10 @@ sub check($err, $test) {
     test_value($err, "PRIVATE-MEMBER", $test);
 }
 
-class Test2 { private $.a; }
+class Test2 { private { any $.a; } }
 
 sub class_library_tests() {
-    my $t = new Test(1, "gee", 2);
+    my Test $t = new Test(1, "gee", 2);
     test_value($t.getData(1), "gee", "first object");
     test_value(exists $t.testing, False, "memberGate() existence");
     test_value($t.testing, "memberGate-testing", "memberGate() value");
@@ -1321,7 +1322,7 @@ sub class_library_tests() {
     test_value($t instanceof Qore::Socket, True, "second instanceof");
 
     # verify private member access protection
-    my $test = "object -= private member";
+    my string $test = "object -= private member";
     try { $t -= "a"; err($test); } catch($ex) { check($ex.err, $test); }
     $test = "object -= list of private members";
     try { $t -= ("a", "b"); err($test); } catch($ex) { check($ex.err, $test); }
@@ -1330,9 +1331,9 @@ sub class_library_tests() {
     $test = "reassign object's private member";
     try { $t.a = 3; err($test); } catch($ex) { check($ex.err, $test); }
 
-    my $t2 = new Test2();
+    my Test2 $t2 = new Test2();
     $test = "read object's private member";
-    try { my $x = $t2.a; err($test); } catch($ex) { check($ex.err, $test); }
+    try { my any $x = $t2.a; err($test); } catch($ex) { check($ex.err, $test); }
 
     # test memberGate
     test_value($t.a, "memberGate-a", "object memberGate() methods");
@@ -1340,7 +1341,7 @@ sub class_library_tests() {
     # test memberNotification()
     $t.x = 1;
     # test object closure
-    my $c = $t.closure(1);
+    my code $c = $t.closure(1);
     test_value($c(2), "gee-1-2-2", "first object closure");
     test_value($c(2), "gee-1-2-3", "second object closure");
     test_value($t.t.x, 1, "memberNotification() method");
@@ -1350,25 +1351,25 @@ sub class_library_tests() {
 
 # find and context tests
 sub context_tests() {
-    my $q = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
-	      "age"  : (37, 30, 7, 4, 1 ) );
+    my hash $q = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
+		   "age"  : (37, 30, 7, 4, 1 ) );
 
     # initial matrix
-    my $t = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
-	      "key1" : (1, 2, 3, 4, 5),
-	      "key2" : (4, 5, 6, 7, 8),
-	      "key3" : (7, 8, 9, 0, 1),
-	      "key4" : (2, 3, 4, 5, 6),
-	      "key5" : (3, 4, 5, 6, 7) );
+    my hash $t = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
+		   "key1" : (1, 2, 3, 4, 5),
+		   "key2" : (4, 5, 6, 7, 8),
+		   "key3" : (7, 8, 9, 0, 1),
+		   "key4" : (2, 3, 4, 5, 6),
+		   "key5" : (3, 4, 5, 6, 7) );
 
     # resulting transposed matrix
-    my $i = ( "david"    : (1, 4, 7, 2, 3),
-	      "renata"   : (2, 5, 8, 3, 4),
-	      "laura"    : (3, 6, 9, 4, 5),
-	      "camilla"  : (4, 7, 0, 5, 6),
-	      "isabella" : (5, 8, 1, 6, 7) );
+    my hash $i = ( "david"    : (1, 4, 7, 2, 3),
+		   "renata"   : (2, 5, 8, 3, 4),
+		   "laura"    : (3, 6, 9, 4, 5),
+		   "camilla"  : (4, 7, 0, 5, 6),
+		   "isabella" : (5, 8, 1, 6, 7) );
 
-    my $h;
+    my hash $h;
     context q ($q) sortBy (%name)
 	context t ($t) where (%q:name == %name) sortBy (%key2)
 	    $h.%q:name = (%key1, %t:key2, %key3, %key4, %key5);

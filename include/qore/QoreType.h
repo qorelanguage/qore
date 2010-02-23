@@ -61,11 +61,11 @@ static inline AbstractQoreNode *boolean_true() {
    return &True;
 }
 
-static inline class QoreBigIntNode *zero() {
+static inline QoreBigIntNode *zero() {
    return new QoreBigIntNode();
 }
 
-static inline class AbstractQoreNode *zero_float() {
+static inline QoreFloatNode *zero_float() {
    return new QoreFloatNode(0.0);
 }
 
@@ -77,6 +77,16 @@ static inline DateTimeNode *zero_date() {
 static inline class QoreStringNode *null_string() {
    NullString->ref();
    return NullString;
+}
+
+static inline QoreListNode *empty_list() {
+   emptyList->ref();
+   return emptyList;
+}
+
+static inline QoreHashNode *empty_hash() {
+   emptyHash->ref();
+   return emptyHash;
 }
 
 //! used for return values when checking types with functions that return numeric codes; only the first 2 should be returned from types implemented by external modules

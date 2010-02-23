@@ -62,11 +62,11 @@ qore_type_t get_next_type_id() {
 // at least the NullString must be created after the default character encoding is set
 void init_qore_types() {
    // initialize global default values
-   NullString    = new QoreStringNode("");
+   NullString    = new QoreStringNode;
    ZeroDate      = new DateTimeNode((int64)0);
    
-   emptyList     = new QoreListNode();
-   emptyHash     = new QoreHashNode();
+   emptyList     = new QoreListNode;
+   emptyHash     = new QoreHashNode;
 }
 
 void delete_qore_types() {

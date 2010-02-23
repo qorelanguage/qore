@@ -1176,9 +1176,9 @@ void init_misc_functions() {
    builtinFunctions.add("set_signal_handler", f_set_signal_handler, QDOM_PROCESS);
    builtinFunctions.add("remove_signal_handler", f_remove_signal_handler, QDOM_PROCESS);
    builtinFunctions.add("decode_url", f_decode_url);
-   builtinFunctions.add("get_script_name", f_get_script_name);
-   builtinFunctions.add("get_script_dir", f_get_script_dir);
-   builtinFunctions.add("get_script_path", f_get_script_path);
+   builtinFunctions.add2("get_script_name", f_get_script_name, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("get_script_dir", f_get_script_dir, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("get_script_path", f_get_script_path, QDOM_DEFAULT, stringTypeInfo);
    builtinFunctions.add("get_qore_option_list", f_get_qore_option_list);
    builtinFunctions.add("get_qore_library_info", f_get_qore_library_info);
    

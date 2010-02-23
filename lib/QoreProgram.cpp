@@ -159,15 +159,15 @@ struct qore_program_private {
 	 nextSB();
 	 
 	 // initialize global vars
-	 Var *var = global_var_list.newVar("ARGV");
+	 Var *var = global_var_list.newVar("ARGV", listTypeInfo);
 	 if (ARGV)
 	    var->setValue(ARGV->copy(), 0);
 	 
-	 var = global_var_list.newVar("QORE_ARGV");
+	 var = global_var_list.newVar("QORE_ARGV", listTypeInfo);
 	 if (QORE_ARGV)
 	    var->setValue(QORE_ARGV->copy(), 0);
 	 
-	 var = global_var_list.newVar("ENV");
+	 var = global_var_list.newVar("ENV", hashTypeInfo);
 	 var->setValue(ENV->copy(), 0);
       }
 

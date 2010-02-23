@@ -29,8 +29,6 @@
 
 #define NO_TYPE_INFO "<no type info>"
 
-typedef std::map<qore_type_t, const QoreTypeInfo *> type_info_map_t;
-
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo);
 
@@ -459,6 +457,29 @@ protected:
 
 public:
    DLLLOCAL FloatTypeInfo() : QoreTypeInfo(NT_FLOAT) {
+   }
+};
+
+// expect a ResolvedCallReferenceNode with this type 
+class CodeTypeInfo : public QoreTypeInfo {
+protected:
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      //printd(0, "FloatTypeInfo::checkTypeInstantiationImpl() n=%p %s\n", n, n->getTypeName());
+      if (!n || (n->getType() != NT_FUNCREF && (n->getType() != NT_RUNTIME_CLOSURE)))
+	 return false;
+
+      return true;
+   }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      return n && (n->getType() == NT_FUNCREF || n->getType() == NT_RUNTIME_CLOSURE) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      qore_type_t t = typeInfo ? typeInfo->getType() : NT_NONE;
+      return t == NT_FUNCREF || t == NT_RUNTIME_CLOSURE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+public:
+   DLLLOCAL CodeTypeInfo() : QoreTypeInfo(NT_CODE) {
    }
 };
 
