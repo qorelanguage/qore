@@ -32,6 +32,8 @@
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo);
 DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
+// returns the default value for any type >= 0 and < NT_OBJECT
+DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
 
 class AbstractQoreTypeInfo {
 protected:
@@ -52,6 +54,9 @@ protected:
    DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const = 0;
    DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const = 0;
    DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const = 0;
+   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+      return 0;
+   }
 
 public:
    DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), has_type(n_qt != NT_ALL ? true : false) {
@@ -74,6 +79,13 @@ public:
    }
    DLLLOCAL bool hasDefaultValue() const {
       return builtinTypeHasDefaultValue(qt);
+   }
+   DLLLOCAL AbstractQoreNode *getDefaultValue() const {
+      if (!this)
+         return 0;
+      if (qt >= 0 && qt < NT_OBJECT)
+         return getDefaultValueForBuiltinValueType(qt);
+      return getDefaultValueImpl();
    }
 };
 
@@ -543,9 +555,6 @@ public:
       tname = qc->getName();
    }
 };
-
-// returns the default value for any type >= 0 and < NT_OBJECT
-DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
 
 // returns type info for base types
 DLLLOCAL const QoreTypeInfo *getTypeInfoForType(qore_type_t t);

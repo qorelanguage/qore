@@ -460,8 +460,8 @@ struct qore_class_private {
 	       *v = nv;
 	       val.release();
 	    }
-	    else if (i->second->getTypeInfo()) {
-	       *v = getDefaultValueForBuiltinValueType(i->second->getTypeInfo()->getType());
+	    else {
+	       *v = i->second->getTypeInfo()->getDefaultValue();
 	    }
 	 }
       } 

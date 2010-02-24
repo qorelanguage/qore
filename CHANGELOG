@@ -9,6 +9,7 @@
 	 * fixed list assignment type checking
 	 * fixed closure return type verification with %require-types
 	 * fixed global variable default value assignment with hard types 
+	 * fixed default value assignments for types generically
 
 2010.02.23: David Nichols
 	 * applied hard typing to lib/QC_GetOpt.cpp and to split in

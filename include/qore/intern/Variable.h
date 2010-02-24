@@ -87,13 +87,7 @@ private:
    DLLLOCAL void assignInitialValue() {
       assert(type == GV_VALUE);
       // assign default value
-      if (typeInfo->hasType()) {
-	 qore_type_t t = typeInfo->getType();
-	 if (t >= 0 && t < NT_OBJECT) {
-	    v.val.value = getDefaultValueForBuiltinValueType(t);
-	    return;
-	 }
-      }
+      v.val.value = typeInfo->getDefaultValue();
       v.val.value = 0;
    }
 
