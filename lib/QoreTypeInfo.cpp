@@ -260,6 +260,10 @@ int QoreTypeInfo::parseEqualDefault(const QoreTypeInfo *typeInfo) const {
    if (!this || !has_type || !typeInfo || !typeInfo->has_type)
       return QTI_AMBIGUOUS;
 
+   // FIXME: when references can be typed, then check the type here
+   if (typeInfo->qt == NT_REFERENCE)
+      return QTI_AMBIGUOUS;
+
    if (qt == NT_OBJECT) {
       if (typeInfo->qt != NT_OBJECT)
 	 return QTI_NOT_EQUAL;

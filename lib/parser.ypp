@@ -449,6 +449,12 @@ static bool hasEffect(AbstractQoreNode *n) {
    return false;
 }
 
+QoreClosureParseNode *getClosureParseNode(UserClosureFunction *f) {
+   if (!f->parseStage1HasReturnTypeInfo() && (getProgram()->getParseOptions() & PO_REQUIRE_TYPES))
+      parse_error("no return type declared for closure, but parse options require all declarations to have type information");
+   return new QoreClosureParseNode(f);
+}
+
 #define OFM_PRIVATE 1
 #define OFM_SYNCED  2
 #define OFM_STATIC  4
@@ -2295,10 +2301,10 @@ exp:    scalar
 	}
         | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
         | TOK_SUB '(' myexp ')' return_value block { 
-	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5));
+	   $$ = getClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5));
 	}
 	| TOK_SYNCHRONIZED TOK_SUB '(' myexp ')' return_value block {
-	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true));
+	   $$ = getClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true));
 	}
         | IMPLICIT_ARG_REF { $$ = $1; }
 	;

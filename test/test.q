@@ -472,10 +472,10 @@ sub parameter_tests() returns nothing {
     one_parameter_shift_test(1);
 }
 
-sub short_circuit_test(string $op) returns nothing {
+sub short_circuit_test(string $op) returns bool {
     print("ERROR: %n logic short-circuiting is not working!\n", $op);
     $errors++;
-    return 0;
+    return False;
 }
 
 sub logic_message(string $op) returns nothing {
@@ -534,7 +534,7 @@ sub printf_tests() returns nothing {
     printf(  "  printf: 3 char arg right in 5 char field: %5s\n", "abc"); 
 }
 
-sub switch_test(int $val) returns string {
+sub switch_test(any $val) returns string {
     my string $rv;
 
     switch ($val) {
@@ -579,14 +579,14 @@ sub regex_switch_test(string $val) returns string {
     return $rv;
 }
 
-sub switch_with_relation_test(int $val) returns string {
+sub switch_with_relation_test(float $val) returns string {
   my string $rv;
   switch ($val) {
-  case < -1 : $rv = "first switch"; break;
-  case > 1 : $rv = "second switch"; break;
-  case <= -1: $rv = "third switch"; break;
-  case >= 1: $rv = "fourth switch"; break;
-  case 0: $rv = "fifth switch"; break;
+  case < -1.0: $rv = "first switch"; break;
+  case > 1.0: $rv = "second switch"; break;
+  case <= -1.0: $rv = "third switch"; break;
+  case >= 1.0: $rv = "fourth switch"; break;
+  case 0.0: $rv = "fifth switch"; break;
   }
   return $rv;
 }
@@ -677,7 +677,7 @@ sub statement_tests() returns nothing {
 	    # we use "if (True)..." so we don't get an "unreachable-code" warning
 	    if (True)
 		throw False;
-	    $b = "hello";
+	    $b = -1;
 	}
 	$v = 100;
 	on_exit
@@ -713,14 +713,14 @@ sub backquote_tests() returns nothing {
     test_value(`echo -n 1`, "1", "backquote");
 }
 
-sub sd($d) returns nothing {
+sub sd(date $d) returns nothing {
     return format_date("YYYY-MM-DD HH:mm:SS", $d);
 }
 
 sub test_date(date $d, int $y, int $w, int $day, int $n, reference $i) returns nothing {
     my string $str = sprintf("%04d-W%02d-%d", $y, $w, $day);
     my hash $h = ( "year" : $y, "week" : $w, "day" : $day );
-    my int $d1;
+    my date $d1;
     # subtract milliseconds from date to compare with timegm value
     if (my int $ms = get_milliseconds($d))
 	$d1 = $d - milliseconds($ms);
@@ -1208,9 +1208,9 @@ sub overload_tests() returns nothing {
     my int $i = 1;
     test_value(f_test($i), "integer", "first runtime overload partial match");
     test_value(f1_test($i), "float", "second runtime overload partial match");
-    $i = 1.1;
-    test_value(f_test($i), "float", "third runtime overload partial match");
-    test_value(f1_test($i), "float", "fourth runtime overload partial match");
+    my float $fi = 1.1;
+    test_value(f_test($fi), "float", "third runtime overload partial match");
+    test_value(f1_test($fi), "float", "fourth runtime overload partial match");
 }
 
 sub function_tests() returns nothing {

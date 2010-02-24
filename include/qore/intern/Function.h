@@ -596,6 +596,10 @@ public:
    DLLLOCAL virtual const char *getName() const {
       return "<anonymous closure>";
    }
+
+   DLLLOCAL bool parseStage1HasReturnTypeInfo() const {
+      return reinterpret_cast<const UserClosureVariant *>(pending_first())->getUserSignature()->hasReturnTypeInfo();
+   }
    
    DLLLOCAL AbstractQoreNode *evalClosure(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const;
 

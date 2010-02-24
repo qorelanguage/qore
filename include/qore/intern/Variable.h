@@ -175,8 +175,8 @@ public:
       if (parseTypeInfo) {
 	 typeInfo = parseTypeInfo->resolveAndDelete();
 	 parseTypeInfo = 0;
-	 assignInitialValue();
       }
+      assignInitialValue();
    }
 
    DLLLOCAL const QoreTypeInfo *parseGetTypeInfo() {
