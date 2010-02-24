@@ -234,16 +234,28 @@ private:
    int pflag;
    int &lvids;
    QoreListNode *l;
-   AbstractQoreNode **n;
    bool finished;
    qore_size_t pos;
+   const QoreTypeInfo *singleTypeInfo;
 
 public:
-   DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode **n_n, LocalVar *n_oflag, int n_pflag, int &n_lvids) : 
-      oflag(n_oflag), pflag(n_pflag & ~PF_REFERENCE_OK), lvids(n_lvids), 
-      l(n_n && *n_n && (*n_n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(*n_n) : 0),
-      finished(false), pos(-1) {
-      n = l ? 0 : n_n;
+   DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode **n, LocalVar *n_oflag, int n_pflag, int &n_lvids) : 
+      oflag(n_oflag), 
+      pflag(n_pflag & ~PF_REFERENCE_OK), 
+      lvids(n_lvids), 
+      l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(*n) : 0),
+      finished(!l),
+      pos(-1),
+      singleTypeInfo(0) {
+      // if the expression is not a list, then initialize it now
+      // and save the return type
+      if (!l) {
+         *n = (*n)->parseInit(oflag, pflag, lvids, singleTypeInfo);
+         // set type info to 0 if the expression returns a list
+         // FIXME: set list element type here when list elements can have types
+         if (listTypeInfo->parseEqual(singleTypeInfo))
+            singleTypeInfo = 0;
+      }
    }
 
    DLLLOCAL bool noArgument() const {
@@ -251,20 +263,14 @@ public:
    }
 
    DLLLOCAL bool next() {
+      ++pos;
+
       if (finished)
 	 return false;
       
-      ++pos;
-      if (l) {
-	 if (pos == l->size()) {
-	    finished = true;
-	    return false;
-	 }
-	 return true;
-      }
-      if (pos == 1) {
-	 finished = true;
-	 return false;
+      if (pos == l->size()) {
+         finished = true;
+         return false;
       }
       return true;
    }
@@ -273,13 +279,20 @@ public:
       if (finished)
 	 return 0;
 
-      return l ? l->get_entry_ptr(pos) : n;
+      return l->get_entry_ptr(pos);
    }
 
    DLLLOCAL void parseInit(const QoreTypeInfo *&typeInfo) {
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
 
       typeInfo = 0;
+      if (!l) {
+         // FIXME: return list type info when list elements can be typed
+         if (!pos && singleTypeInfo)
+            typeInfo = singleTypeInfo;
+         return;
+      }
+
       AbstractQoreNode **p = getValuePtr();
       if (p && *p) {
 	 (*p) = (*p)->parseInit(oflag, pflag, lvids, typeInfo);

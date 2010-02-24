@@ -3518,6 +3518,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
 	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	    }
 	 }
+	 /// xxx has default value instead
 	 else if (prototypeInfo->getType() == NT_OBJECT && ri.noArgument() && getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
 	    desc->sprintf("%d of list assignment expects ", li.index() + 1);

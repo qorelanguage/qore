@@ -6,6 +6,7 @@
 	 * only raise a parse error for illegal access to private members if
 	   there is not memberGate function
 	 * check for calls using callTypeInfo
+	 * fixed list assignment type checking
 
 2010.02.23: David Nichols
 	 * applied hard typing to lib/QC_GetOpt.cpp and to split in
