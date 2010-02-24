@@ -186,7 +186,7 @@ public:
 
    DLLLOCAL void parseInitDestructor(const QoreClass &parent_class) {
       signature.resolve();
-      assert(!signature.getReturnTypeInfo());
+      assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
 
       // push return type on stack (no return value can be used)
       ReturnTypeInfoHelper rtih(nothingTypeInfo);

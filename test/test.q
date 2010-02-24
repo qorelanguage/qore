@@ -8,7 +8,7 @@
 # child programs do not inherit parent's restrictions
 %no-child-restrictions
 # require types to be declared
-#%require-types
+%require-types
 
 # make sure we have the right version of qore
 %requires qore >= 0.8.0
@@ -42,7 +42,7 @@ const opts =
       "bq"      : "backquote,b",
       "threads" : "threads,t=i" );
 
-sub parse_command_line() returns nothing {
+sub parse_command_line() {
     my GetOpt $g = new GetOpt(opts);
     $o = $g.parse(\$ARGV);
     if (exists $o."_ERRORS_") {
@@ -85,11 +85,11 @@ sub array_helper(list $a) {
     test_value($a[1][1], 2, "passed local array variable assignment");    
 }
 
-sub list_return($var) returns list {
+sub list_return(any $var) returns list {
     return (1, test2(), $var);
 }
 
-sub hash_return($var) returns hash {
+sub hash_return(any $var) returns hash {
     return ( "gee" : "whiz", 
 	     "num" : test1(),
 	     "var" : $var );
@@ -332,7 +332,7 @@ sub global_variable_testa() {
     printf("user=%s\n", $ENV{"USER"});
 }
 
-sub map_closure($v) { return sub($v1) returns any { return $v * $v1; }; }
+sub map_closure(any $v) returns code { return sub(any $v1) returns any { return $v * $v1; }; }
 
 # operator tests
 sub operator_test() {
@@ -431,7 +431,7 @@ sub operator_test() {
     test_value((select (1, 2, 3), $1 > 1), (2, 3), "select operator with expression");
 
     # create a sinple closure to subtract the second argument from the first
-    $c = sub($x, $y) { return $x - $y; };
+    $c = sub(any $x, any $y) { return $x - $y; };
 
     # left fold function on list using closure
     test_value((foldl $c($1, $2), (2, 3, 4)), -5, "foldl operator with closure");
@@ -1225,7 +1225,7 @@ sub function_tests() {
     overload_tests();
 }
 
-sub t($a) returns int {
+sub t(any $a) returns int {
     return $a + 1;
 }
 
@@ -1245,29 +1245,29 @@ class Test inherits Socket {
         any $.asd;
     }
 
-    constructor($a, $b, $c) {
+    constructor(any $a, any $b, any $c) {
 	$.a = 1;
 	$.b = 2;
         $.data = ($a, $b, $c);
     }
-    getData($elem) {
+    getData(int $elem) returns any {
 	if (exists $elem)
 	    return $.data[$elem];
         return $.data;
     }
-    methodGate($m) {
+    methodGate(string $m) returns string {
         return $m;
     }
-    memberGate($m) {
+    memberGate(string $m) returns string {
         return "memberGate-" + $m;
     }
-    memberNotification($m) {
+    memberNotification(string $m) {
 	$.t.$m = $self.$m;
     }
-    closure($x) {
+    closure(any $x) {
 	my int $a = 1;
 	# return a closure encapsulating the state of the object
-	return sub ($y) {
+	return sub (any $y) {
 	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
 	};
     }
@@ -1318,11 +1318,11 @@ sub class_test_File() {
 */
 }
 
-sub err($test) {
+sub err(string $test) {
     test_value(True, False, $test);
 }
 
-sub check($err, $test) {
+sub check(string $err, string $test) {
     test_value($err, "PRIVATE-MEMBER", $test);
 }
 
@@ -1756,14 +1756,14 @@ sub crypto_tests() {
     test_value($str, $xstr, "DES random single key encrypt-decrypt");
 }
 
-sub closures($x) returns list {
+sub closures(string $x) returns list {
     my int $a = 1;
     
-    my code $inc = sub ($y) {
+    my code $inc = sub (any $y) {
 	return sprintf("%s-%n-%n", $x, $y, ++$a);
     };
 
-    my code $dec = sub ($y) {
+    my code $dec = sub (any $y) {
 	return sprintf("%s-%n-%n", $x, $y, --$a);
     };
 

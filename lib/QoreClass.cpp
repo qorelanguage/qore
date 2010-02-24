@@ -2533,7 +2533,7 @@ UserConstructorVariant::~UserConstructorVariant() {
 
 void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl) {
    signature.resolve();
-   assert(!signature.getReturnTypeInfo());
+   assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
 
    // push return type on stack (no return value can be used)
    ReturnTypeInfoHelper rtih(nothingTypeInfo);
