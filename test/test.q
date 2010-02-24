@@ -1237,6 +1237,7 @@ class Test inherits Socket {
     public {
 	list $.data;
 	hash $.t;
+	int $.x;
     }
 
     constructor($a, $b, $c) {
