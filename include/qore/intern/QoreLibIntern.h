@@ -201,6 +201,9 @@ DLLLOCAL AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n,
 
 DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 
+DLLLOCAL void init_qore_types();
+DLLLOCAL void delete_qore_types();
+
 class QoreListNodeParseInitHelper : public ListIterator {
 private:
    LocalVar *oflag;

@@ -64,6 +64,10 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *codeTypeInfo = &staticCodeTypeInfo
    ;
 
+QoreListNode *emptyList;
+QoreHashNode *emptyHash;
+QoreStringNode *NullString;
+DateTimeNode *ZeroDate;
 
 // map from types to default values
 typedef std::map<qore_type_t, AbstractQoreNode *> def_val_map_t;
@@ -93,43 +97,53 @@ static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInf
    type_str_map[t] = name;
 }
 
-class QoreTypeInitializer {
-public:
-   DLLLOCAL QoreTypeInitializer() {
-      def_val_map[NT_INT] = new QoreBigIntNode;
-      def_val_map[NT_STRING] = new QoreStringNode;
-      def_val_map[NT_BOOLEAN] = &False;
-      def_val_map[NT_DATE] = new DateTimeNode;
-      def_val_map[NT_FLOAT] = new QoreFloatNode;
-      def_val_map[NT_LIST] = new QoreListNode;
-      def_val_map[NT_HASH] = new QoreHashNode;
-      def_val_map[NT_BINARY] = new BinaryNode;
-      def_val_map[NT_NULL] = &Null;
-      def_val_map[NT_NOTHING] = &Nothing;
+// at least the NullString must be created after the default character encoding is set
+void init_qore_types() {
+   // initialize global default values                                                                                                                                    
+   NullString    = new QoreStringNode;
+   ZeroDate      = new DateTimeNode;
 
-      do_maps(NT_INT, "int", bigIntTypeInfo);
-      do_maps(NT_STRING, "string", stringTypeInfo);
-      do_maps(NT_BOOLEAN, "bool", boolTypeInfo);
-      do_maps(NT_FLOAT, "float", floatTypeInfo);
-      do_maps(NT_BINARY, "binary", binaryTypeInfo);
-      do_maps(NT_LIST, "list", listTypeInfo);
-      do_maps(NT_HASH, "hash", hashTypeInfo);
-      do_maps(NT_OBJECT, "object", objectTypeInfo);
-      do_maps(NT_ALL, "any", anyTypeInfo);
-      do_maps(NT_DATE, "date", dateTypeInfo);
-      do_maps(NT_CODE, "code", codeTypeInfo);
-      do_maps(NT_REFERENCE, "reference", referenceTypeInfo);
-      do_maps(NT_NULL, "null", nullTypeInfo);
-      do_maps(NT_NOTHING, "nothing", nothingTypeInfo);
-   }
-   DLLLOCAL ~QoreTypeInitializer() {
-      // delete all values from default value map
-      for (def_val_map_t::iterator i = def_val_map.begin(), e = def_val_map.end(); i != e; ++i)
-	 i->second->deref(0);
-   }
-};
+   emptyList     = new QoreListNode;
+   emptyHash     = new QoreHashNode;
 
-static QoreTypeInitializer qti;
+   def_val_map[NT_INT] = new QoreBigIntNode;
+   def_val_map[NT_STRING] = NullString->refSelf();
+   def_val_map[NT_BOOLEAN] = &False;
+   def_val_map[NT_DATE] = ZeroDate->refSelf();
+   def_val_map[NT_FLOAT] = new QoreFloatNode;
+   def_val_map[NT_LIST] = emptyList->refSelf();
+   def_val_map[NT_HASH] = emptyHash->refSelf();
+   def_val_map[NT_BINARY] = new BinaryNode;
+   def_val_map[NT_NULL] = &Null;
+   def_val_map[NT_NOTHING] = &Nothing;
+
+   do_maps(NT_INT, "int", bigIntTypeInfo);
+   do_maps(NT_STRING, "string", stringTypeInfo);
+   do_maps(NT_BOOLEAN, "bool", boolTypeInfo);
+   do_maps(NT_FLOAT, "float", floatTypeInfo);
+   do_maps(NT_BINARY, "binary", binaryTypeInfo);
+   do_maps(NT_LIST, "list", listTypeInfo);
+   do_maps(NT_HASH, "hash", hashTypeInfo);
+   do_maps(NT_OBJECT, "object", objectTypeInfo);
+   do_maps(NT_ALL, "any", anyTypeInfo);
+   do_maps(NT_DATE, "date", dateTypeInfo);
+   do_maps(NT_CODE, "code", codeTypeInfo);
+   do_maps(NT_REFERENCE, "reference", referenceTypeInfo);
+   do_maps(NT_NULL, "null", nullTypeInfo);
+   do_maps(NT_NOTHING, "nothing", nothingTypeInfo);
+}
+
+void delete_qore_types() {
+   // delete all values from default value map
+   for (def_val_map_t::iterator i = def_val_map.begin(), e = def_val_map.end(); i != e; ++i)
+      i->second->deref(0);
+
+   // dereference global default values                                                                                                                                   
+   NullString->deref();
+   ZeroDate->deref();
+   emptyList->deref(0);
+   emptyHash->deref(0);
+}
 
 void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo) {
    QoreAutoRWWriteLocker al(extern_type_info_map_lock);

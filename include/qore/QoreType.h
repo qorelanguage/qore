@@ -47,9 +47,6 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo, *bigIntTypeInfo, *floatTypeInf
 
 DLLEXPORT qore_type_t get_next_type_id();
 
-DLLLOCAL void init_qore_types();
-DLLLOCAL void delete_qore_types();
-
 DLLEXPORT bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
 DLLEXPORT bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
 
