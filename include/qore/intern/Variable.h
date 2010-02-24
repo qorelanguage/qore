@@ -84,11 +84,13 @@ private:
    DLLLOCAL AbstractQoreNode *getValueIntern(AutoVLock *vl);
    DLLLOCAL const AbstractQoreNode *getValueIntern(AutoVLock *vl) const;
    DLLLOCAL void setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink);
+/*
    DLLLOCAL void assignInitialValue() {
       // assign default value
       if (!v.val.value)
          v.val.value = typeInfo->getDefaultValue();
    }
+*/
 
 protected:
    DLLLOCAL ~Var() { delete parseTypeInfo; }
@@ -169,7 +171,7 @@ public:
 	 typeInfo = parseTypeInfo->resolveAndDelete();
 	 parseTypeInfo = 0;
       }
-      assignInitialValue();
+      //assignInitialValue();
    }
 
    DLLLOCAL const QoreTypeInfo *parseGetTypeInfo() {

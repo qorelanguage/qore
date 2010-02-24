@@ -461,7 +461,8 @@ struct qore_class_private {
 	       val.release();
 	    }
 	    else {
-	       *v = i->second->getTypeInfo()->getDefaultValue();
+	       //*v = i->second->getTypeInfo()->getDefaultValue();
+	       *v = 0;
 	    }
 	 }
       } 

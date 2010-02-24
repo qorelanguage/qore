@@ -36,9 +36,9 @@ sub main() returns nothing {
     do_neg_test($t, "argument type");
 
     $t = sub () returns nothing { my int $i; test_int($i); };
-    do_pos_test($t, "local variable default value");
+    do_neg_test($t, "local variable default value");
     $t = sub () returns nothing { our bool $ob; test_bool($ob); };
-    do_pos_test($t, "global variable default value");
+    do_neg_test($t, "global variable default value");
     $t = sub () returns nothing { my code $c = sub(reference $x) returns nothing { ++$x; }; my string $str; $c(\$str); };
     do_neg_test($t, "reference type");
 }

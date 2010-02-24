@@ -621,7 +621,7 @@ sub statement_tests() {
 
     my any $list = my list $x;
     foreach my string $y in (\$list) $y = "test";
-    test_value($list, (), "first foreach reference");
+    test_value($list, NOTHING, "first foreach reference");
     
     $list = (1, 2, 3);
     foreach my any $y in (\$list) $y = "test";

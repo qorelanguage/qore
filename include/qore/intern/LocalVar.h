@@ -357,7 +357,8 @@ public:
 
    DLLLOCAL void instantiate() const {
       //printd(5, "LocalVar::instantiate(%p) this=%p '%s'\n", value, this, name.c_str());
-      instantiate(typeInfo->getDefaultValue());
+      //instantiate(typeInfo->getDefaultValue());
+      instantiate(0);
    }
 
    DLLLOCAL void instantiate(AbstractQoreNode *value) const {
