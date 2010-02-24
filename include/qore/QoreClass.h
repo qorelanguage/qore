@@ -675,7 +675,7 @@ public:
    // returns true if the class passed is equal to or in the class' hierarchy - to be called only at parse time or under the program's parse lock
    DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
    // checks if the given member can be accessed at parse time
-   DLLLOCAL int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const;
+   DLLLOCAL int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const;
    // checks if the given member can be accessed from within the class
    DLLLOCAL int parseCheckInternalMemberAccess(const char *mem) const;
    // finds the named member in the hierarchy, returns the class implementing the member

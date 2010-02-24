@@ -42,7 +42,7 @@ const opts =
       "bq"      : "backquote,b",
       "threads" : "threads,t=i" );
 
-sub parse_command_line() {
+sub parse_command_line() returns nothing {
     my GetOpt $g = new GetOpt(opts);
     $o = $g.parse(\$ARGV);
     if (exists $o."_ERRORS_") {
@@ -64,7 +64,7 @@ sub parse_command_line() {
 	$o.threads = 1;
 }
 
-sub test_value($v1, $v2, string $msg) {
+sub test_value(any $v1, any $v2, string $msg) returns nothing {
     if ($v1 === $v2) {
 	if ($o.verbose)
 	    printf("OK: %s test\n", $msg);
@@ -77,19 +77,19 @@ sub test_value($v1, $v2, string $msg) {
     $thash.$msg = True;
 }
 
-sub test1() { return 1;} sub test2() { return 2; } 
-sub test3() { return (1, 2, 3); }
+sub test1() returns int { return 1;} sub test2() returns int { return 2; } 
+sub test3() returns list { return (1, 2, 3); }
 
-sub array_helper(list $a) {
+sub array_helper(list $a) returns nothing {
     $a[1][1] = 2;
     test_value($a[1][1], 2, "passed local array variable assignment");    
 }
 
-sub list_return($var) {
+sub list_return($var) returns list {
     return (1, test2(), $var);
 }
 
-sub hash_return($var) {
+sub hash_return($var) returns hash {
     return ( "gee" : "whiz", 
 	     "num" : test1(),
 	     "var" : $var );
@@ -110,7 +110,7 @@ static SC::hash_sort_callback(hash $l, hash $r) returns int {
 }
 
 # array tests
-sub array_tests() {
+sub array_tests() returns nothing {
     my (list $a, list $b, list $c, list $d);
 
     if ($o.verbose)
@@ -192,12 +192,15 @@ sub array_tests() {
 	  ( "key1" : 8, "key2" : "two" ),
 	  ( "key1" : 9, "key2" : "three" ) );
     my Sort $s = new Sort();
+
+    my code $hash_compare = sub (hash $l, hash $r) returns int { return $l.key1 <=> $r.key1; };
+
     test_value(sort($l1), (1,2,3,4,5,6), "first sort()");
     test_value(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
     test_value(sort($hl, \hash_sort_callback()), $sorted_hl, "sort() with function call reference callback");
     test_value(sort($hl, \$s.hash()), $sorted_hl, "sort() with object method callback");
     test_value(sort($hl, "hash_sort_callback"), $sorted_hl, "sort() with string function name callback");
-    test_value(sort($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $sorted_hl, "sort() with closure callback");
+    test_value(sort($hl, $hash_compare), $sorted_hl, "sort() with closure callback");
 
     my list $r_sorted_hl = reverse($sorted_hl);
     test_value(sortDescending($l1), (6,5,4,3,2,1), "first sortDescending()");
@@ -205,19 +208,19 @@ sub array_tests() {
     test_value(sortDescending($hl, \SC::hash_sort_callback()), $r_sorted_hl, "first sortDescending() with callback");
     test_value(sortDescending($hl, \$s.hash()), $r_sorted_hl, "second sortDescending() with callback");
     test_value(sortDescending($hl, "hash_sort_callback"), $r_sorted_hl, "third sortDescending() with callback");
-    test_value(sortDescending($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $r_sorted_hl, "sortDescending() with closure callback");
+    test_value(sortDescending($hl, $hash_compare), $r_sorted_hl, "sortDescending() with closure callback");
 
     $hl += ( "key1" : 3, "key2" : "five-o" );
     test_value(sortStable($hl, \hash_sort_callback()), $stable_sorted_hl, "first sortStable() with callback");
     test_value(sortStable($hl, \$s.hash()), $stable_sorted_hl, "second sortStable() with callback");
     test_value(sortStable($hl, "hash_sort_callback"), $stable_sorted_hl, "third sortStable() with callback");
-    test_value(sortStable($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $stable_sorted_hl, "sortStable() with closure callback");
+    test_value(sortStable($hl, $hash_compare), $stable_sorted_hl, "sortStable() with closure callback");
 
     my list $r_stable_sorted_hl = reverse($stable_sorted_hl);
     test_value(sortDescendingStable($hl, \SC::hash_sort_callback()), $r_stable_sorted_hl, "first sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, \$s.hash()), $r_stable_sorted_hl, "second sortDescendingStable() with callback");
     test_value(sortDescendingStable($hl, "hash_sort_callback"), $r_stable_sorted_hl, "third sortDescendingStable() with callback");
-    test_value(sortDescendingStable($hl, sub ($l, $r) { return $l.key1 <=> $r.key1; }), $r_stable_sorted_hl, "sortDescendingStable() with closure callback");
+    test_value(sortDescendingStable($hl, $hash_compare), $r_stable_sorted_hl, "sortDescendingStable() with closure callback");
 
     test_value(min($l1), 1, "simple min()");
     test_value(max($l1), 6, "simple max()");
@@ -266,7 +269,7 @@ sub array_tests() {
     test_value($bin[4], ord("o"), "binary byte dereference");
 }
 
-sub hash_tests() {
+sub hash_tests() returns nothing {
     if ($o.verbose)
 	print("%%%% hash tests\n");
     # hash tests
@@ -325,14 +328,14 @@ sub hash_tests() {
     test_value($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
 }
 
-sub global_variable_testa() {
+sub global_variable_testa() returns nothing {
     printf("user=%s\n", $ENV{"USER"});
 }
 
-sub map_closure($v) { return sub($v1) { return $v * $v1; }; }
+sub map_closure($v) { return sub($v1) returns any { return $v * $v1; }; }
 
 # operator tests
-sub operator_test() {
+sub operator_test() returns nothing {
     if ($o.verbose)
 	print("%%%% operator tests\n");
     my int $a = 1;
@@ -443,45 +446,45 @@ sub operator_test() {
     test_value((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
 }
 
-sub no_parameter_test($p) {
+sub no_parameter_test(nothing $p) returns nothing {
     test_value($p, NOTHING, "non-existant parameter");
 }
 
-sub parameter_and_shift_test($p) {
+sub parameter_and_shift_test(int $p) returns nothing {
     test_value($p, 1, "parameter before shift");
     test_value(shift $argv, 2, "shift on second parameter");
 }
 
-sub one_parameter_shift_test() {
+sub one_parameter_shift_test() returns nothing {
     test_value(shift $argv, 1, "one parameter shift");
 }
 
-sub shift_test() {
+sub shift_test() returns nothing {
     my list $var = (1, 2, 3, 4, "hello");
-    foreach my $v in ($var)
+    foreach my any $v in ($var)
 	test_value($v, shift $argv, ("shift " + string($v) + " parameter"));
 }
 
-sub parameter_tests() {
+sub parameter_tests() returns nothing {
     no_parameter_test();
     parameter_and_shift_test(1, 2);
     shift_test(1, test3()[1], 3, 4, "hello");
     one_parameter_shift_test(1);
 }
 
-sub short_circuit_test($op) {
-    print("ERROR: $op logic short-circuiting is not working!\n");
+sub short_circuit_test(string $op) returns nothing {
+    print("ERROR: %n logic short-circuiting is not working!\n", $op);
     $errors++;
     return 0;
 }
 
-sub logic_message($op) {
+sub logic_message(string $op) returns nothing {
     if ($o.verbose)
 	printf("OK: %s logic test\n", $op);
 }
 
 # logic short-circuiting test
-sub logic_tests() {
+sub logic_tests() returns nothing {
     my any $a = 1;
     my any $b = 0;
     my int $c;
@@ -519,7 +522,7 @@ sub logic_tests() {
     test_value($a[3] != $b[3], True, "hash unequal comparison");
 }
 
-sub printf_tests() {
+sub printf_tests() returns nothing {
     # some printf tests
     printf("field tests\n");
     f_printf("f_printf: 5 character field with 7 char arg: %5s\n", "freddy1");
@@ -588,7 +591,7 @@ sub switch_with_relation_test(int $val) returns string {
   return $rv;
 }
 
-sub statement_tests() {
+sub statement_tests() returns nothing {
     if ($o.verbose)
 	print("%%%% statement tests\n");
     # while test
@@ -604,7 +607,7 @@ sub statement_tests() {
     test_value($a, 3, "do while");
     # for test
     my int $b = 0;
-    for (my $i = 0; $i < 3; $i++)
+    for (my int $i = 0; $i < 3; $i++)
 	$b++;
     test_value($a, 3, "for");
     test_value($b, 3, "for exec");    
@@ -736,7 +739,7 @@ sub test_date(date $d, int $y, int $w, int $day, int $n, reference $i) returns n
     $i++;
 }
 
-sub date_time_tests() {
+sub date_time_tests() returns nothing {
     # here are the two formats for directly specifying date/time values:
     # ISO-8601 format (without timezone specification, currently qore does not support time zones)
     my date $date  = 2004-02-01T12:30:00;
@@ -867,7 +870,7 @@ sub binary_tests() returns nothing {
     test_value($b != binary("this is a test"), False, "binary negative comparison");
 }
 
-sub string_tests() {
+sub string_tests() returns nothing {
     my string $str = "Hi there, you there, pal";
     my string $big = "GEE WHIZ";
     test_value(strlen($str), 24, "strlen()");
@@ -1086,18 +1089,18 @@ sub string_tests() {
     test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
 }
 
-sub pwd_tests() {
+sub pwd_tests() returns nothing {
     # getpwuid(0).pw_name may not always be "root"
     # skip the test on windows
     if (Qore::PlatformOS !~ /cygwin/i)
         test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
 }
 
-sub simple_shift() {
+sub simple_shift() returns any {
     return shift $argv;
 }
 
-sub misc_tests() {
+sub misc_tests() returns nothing {
     my hash $dh = ( "user"    : "user",
 		    "pass"    : "123pass@word",
 		    "db"      : "dbname",
@@ -1145,21 +1148,21 @@ sub misc_tests() {
     test_value($bstr, bunzip2_to_binary($bz), "bzip2 and bunzip2_to_binary");
 }
 
-sub math_tests() {
+sub math_tests() returns nothing {
     test_value(ceil(2.7), 3.0, "ceil()");
     test_value(floor(3.7), 3.0, "fllor()");
     test_value(format_number(".,3", -48392093894.2349), "-48.392.093.894,235", "format_number()");
 }
 
-sub lib_tests() {
+sub lib_tests() returns nothing {
     my string $pn = get_script_path();
     test_value(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
     test_value(hstat($pn).type, "REGULAR", "hstat()");
-    #my $h = gethostname();
+    #my string $h = gethostname();
     #test_value($h, gethostbyaddr(gethostbyname($h)), "host functions");
 }
 
-sub file_tests() {
+sub file_tests() returns nothing {
     test_value(is_file($ENV."_"), True, "is_file()");
     test_value(is_executable($ENV."_"), True, "is_executable()");
     test_value(is_dir("/"), True, "is_dir()");
@@ -1173,7 +1176,7 @@ sub file_tests() {
     test_value(is_pipe("/"), False, "is_pipe()");
 }
 
-sub io_tests() {
+sub io_tests() returns nothing {
     test_value(sprintf("%04d-%.2f", 25, 101.239), "0025-101.24", "sprintf()");
     test_value(vsprintf("%04d-%.2f", (25, 101.239)), "0025-101.24", "vsprintf()");
     # check multi-byte character set support for f_*printf()
@@ -1196,7 +1199,7 @@ sub f_test(float $x) returns string {
     return type($x);
 }
 
-sub overload_tests() {
+sub overload_tests() returns nothing {
     test_value(f_test(1), "integer", "first overload partial match");
     test_value(f_test(1.1), "float", "second overload partial match");
     test_value(f1_test(1), "float", "third overload partial match");
@@ -1210,7 +1213,7 @@ sub overload_tests() {
     test_value(f1_test($i), "float", "fourth runtime overload partial match");
 }
 
-sub function_tests() {
+sub function_tests() returns nothing {
     date_time_tests();
     binary_tests();
     string_tests();  
@@ -1222,12 +1225,19 @@ sub function_tests() {
     overload_tests();
 }
 
-sub t($a) {
+sub t($a) returns int {
     return $a + 1;
 }
 
 class Test inherits Socket {
-    private $.a, $.b;
+    private {
+	int $.a;
+	int $.b;
+    }
+    public {
+	list $.data;
+	hash $.t;
+    }
 
     constructor($a, $b, $c) {
 	$.a = 1;
@@ -1257,8 +1267,8 @@ class Test inherits Socket {
     }
 }
 
-sub class_test_Program() {
-    my string $func = "namespace ITest { const val = 1.0; } $gv2 = 123; sub t2($a) { return $a + 2; } sub et($a) { return t($a); } sub tot() { return getClassName($to); } sub getObject() { return new Queue(); } sub deleteException() { $ro.getData(0); delete $ro; }";
+sub class_test_Program() returns nothing {
+    my string $func = "namespace ITest { const val = 1.0; } $gv2 = 123; sub t2(int $a) returns int { return $a + 2; } sub et(int $a) returns int { return t($a); } sub tot() returns string { return getClassName($to); } sub getObject() returns Queue { return new Queue(); } sub deleteException() returns nothing { $ro.getData(0); delete $ro; }";
 
     my string $pf = "newfunc();";
     my string $nf = "sub newfunc() { return True; }";
@@ -1288,31 +1298,31 @@ sub class_test_Program() {
     test_value(getClassName($o), "Queue", "class returned from deleted subprogram object");
 }
 
-sub class_test_File() {
+sub class_test_File() returns nothing {
     return;
 /*
     # File test
-    my $f = new File();
+    my File $f = new File();
     $f.open($ENV."_");
-    my $l = $f.readLine();
-    my $p = $f.getPos();
+    my string $l = $f.readLine();
+    my int $p = $f.getPos();
     $f.setPos(0);
     test_value($l, $f.readLine(), "File::readLine() and File::setPos()");
     test_value($p, $f.getPos(), "File::getPos()");
 */
 }
 
-sub err($test) {
+sub err($test) returns nothing {
     test_value(True, False, $test);
 }
 
-sub check($err, $test) {
+sub check($err, $test) returns nothing {
     test_value($err, "PRIVATE-MEMBER", $test);
 }
 
 class Test2 { private { any $.a; } }
 
-sub class_library_tests() {
+sub class_library_tests() returns nothing {
     my Test $t = new Test(1, "gee", 2);
     test_value($t.getData(1), "gee", "first object");
     test_value(exists $t.testing, False, "memberGate() existence");
@@ -1350,7 +1360,7 @@ sub class_library_tests() {
 }
 
 # find and context tests
-sub context_tests() {
+sub context_tests() returns nothing {
     my hash $q = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
 		   "age"  : (37, 30, 7, 4, 1 ) );
 
@@ -1416,7 +1426,7 @@ const NTest::Type::val1 = 1;
 
 const Qore::myconst = 1;
 
-sub constant_tests() {
+sub constant_tests() returns nothing {
     test_value(i, 1, "simple constant");
     test_value(type(Type::val1), "integer", "first namespace constant");
     test_value(Qore::myconst, NTest::Type::val1, "second namespace constant");
@@ -1438,25 +1448,25 @@ const xsd = '<?xml version="1.0" encoding="utf-8"?>
 </xsd:schema>
 ';
 
-sub xml_tests() {
-    my $o = ( "test" : 1, 
-	      "gee" : "philly", 
-	      "marguile" : 1.0392,
-	      "list" : (1, 2, 3, ( "four" : 4 ), 5),
-	      "hash" : ( "howdy" : 123, "partner" : 456 ),
-	      "list^1" : "test",
-	      "bool" : True,
-	      "time" : now(),
-	      "bool^1" : False,
-	      "key"  : "this & that" );
-    my $mo = ( "o" : $o );
-    my $str = makeXMLString("o", $o);
+sub xml_tests() returns nothing {
+    my hash $o = ( "test" : 1, 
+		   "gee" : "philly", 
+		   "marguile" : 1.0392,
+		   "list" : (1, 2, 3, ( "four" : 4 ), 5),
+		   "hash" : ( "howdy" : 123, "partner" : 456 ),
+		   "list^1" : "test",
+		   "bool" : True,
+		   "time" : now(),
+		   "bool^1" : False,
+		   "key"  : "this & that" );
+    my hash $mo = ( "o" : $o );
+    my string $str = makeXMLString("o", $o);
     test_value($mo == parseXML($str), True, "first parseXML()");
     $str = makeFormattedXMLString("o", $o);
     test_value($mo == parseXML($str), True, "second parseXML()");
-    my $params = (1, True, "string", NOTHING, $o);
+    my list $params = (1, True, "string", NOTHING, $o);
     $str = makeXMLRPCCallStringArgs("test.method", $params);
-    my $result = ( "methodName" : "test.method", "params" : $params );    
+    my hash $result = ( "methodName" : "test.method", "params" : $params );    
     test_value(parseXMLRPCCall($str), $result, "makeXMLRPCCallStringArgs() and parseXMLRPCCall()");
     $str = makeFormattedXMLRPCCallStringArgs("test.method", $params);
 
@@ -1471,7 +1481,7 @@ sub xml_tests() {
     $str = makeFormattedXMLRPCResponseString($o);
     test_value(parseXMLRPCResponse($str), ( "params" : $o ), "first makeFormattedXMLRPCResponse() and parseXMLRPCResponse()");
     $str = makeXMLRPCFaultResponseString(100, "error");
-    my $fr = ( "fault" : ( "faultCode" : 100, "faultString" : "error" ) );
+    my hash $fr = ( "fault" : ( "faultCode" : 100, "faultString" : "error" ) );
     test_value(parseXMLRPCResponse($str), $fr, "second makeXMLRPCResponse() and parseXMLRPCResponse()");
     $str = makeFormattedXMLRPCFaultResponseString(100, "error");
     test_value(parseXMLRPCResponse($str), $fr, "second makeXMLRPCResponse() and parseXMLRPCResponse()");
@@ -1485,10 +1495,10 @@ sub xml_tests() {
     }
 
     $str = makeXMLString($mo);
-    my $xd = new XmlDoc($str);
+    my XmlDoc $xd = new XmlDoc($str);
     test_value($xd.toQore() == $mo, True, "XmlDoc::constructor(<string>), XmlDoc::toQore()");
     test_value(parseXML($xd.toString()) == $mo, True, "XmlDoc::toString()");
-    my $n = $xd.evalXPath("//list[2]")[0];
+    my XmlNode $n = $xd.evalXPath("//list[2]")[0];
     test_value($n.getContent(), "2", "XmlDoc::evalXPath()");
     test_value($n.getElementTypeName(), "XML_ELEMENT_NODE", "XmlNode::getElementTypeName()");
     $n = $xd.getRootElement().firstElementChild();
@@ -1501,45 +1511,45 @@ sub xml_tests() {
     $xd = new XmlDoc($mo);
     test_value($xd.toQore() == $mo, True, "XmlDoc::constructor(<hash>), XmlDoc::toQore()");
 
-    my $xr = new XmlReader($xd);
+    my XmlReader $xr = new XmlReader($xd);
     # move to first element
     $xr.read();
     test_value($xr.nodeType(), Xml::XML_NODE_TYPE_ELEMENT, "XmlReader::read(), XmlReader::Type()");
     test_value($xr.toQore() == $mo.o, True, "XmlReader::toQoreData()");
 }
 
-sub json_tests() {
-    my $h = ( "test" : 1, 
-	      "gee" : "philly-\"test-quotes\"", 
-	      "marguile" : 1.0392,
-	      "list" : (1, 2, 3, ( "four" : 4 ), 5.0, True, ( "key1" : "one", "key2" : 2.0 )),
-	      "hash" : ( "howdy" : 123, "partner" : 456 ),
-	      "bool" : True,
-	      "time" : format_date("YYYY-MM-DD HH:mm:SS", now()),
-	      "key"  : "this & that" );
-    my $jstr = makeJSONString($h);
+sub json_tests() returns nothing {
+    my hash $h = ( "test" : 1, 
+		   "gee" : "philly-\"test-quotes\"", 
+		   "marguile" : 1.0392,
+		   "list" : (1, 2, 3, ( "four" : 4 ), 5.0, True, ( "key1" : "one", "key2" : 2.0 )),
+		   "hash" : ( "howdy" : 123, "partner" : 456 ),
+		   "bool" : True,
+		   "time" : format_date("YYYY-MM-DD HH:mm:SS", now()),
+		   "key"  : "this & that" );
+    my string $jstr = makeJSONString($h);
     test_value($h == parseJSON($jstr), True, "first JSON");
 
-    my $ver = "1.1";
-    my $id = 512;
-    my $method = "methodname";
-    my $mess = "an error occurred, OH NO!!!!";
+    my string $ver = "1.1";
+    my int $id = 512;
+    my string $method = "methodname";
+    my string $mess = "an error occurred, OH NO!!!!";
 
-    my $jc = ( "version" : $ver,
-	       "id" : $id,
-	       "method" : $method,
-	       "params" : $h );
+    my hash $jc = ( "version" : $ver,
+		    "id" : $id,
+		    "method" : $method,
+		    "params" : $h );
 
     test_value(parseJSON(makeJSONRPCRequestString($method, $ver, $id, $h)) == $jc, True, "makeJSONRPCRequestString");
     test_value(parseJSON(makeFormattedJSONRPCRequestString($method, $ver, $id, $h)) == $jc, True, "makeJSONRPCRequestString");
 
     # create result hash by modifying the call hash above: delete "method" and "params" keys and add "result" key
-    my $jr = $jc - "method" - "params" + ( "result" : $h );
+    my hash $jr = $jc - "method" - "params" + ( "result" : $h );
     test_value(parseJSON(makeJSONRPCResponseString($ver, $id, $h)) == $jr, True, "makeJSONRPCResponseString");
     test_value(parseJSON(makeFormattedJSONRPCResponseString($ver, $id, $h)) == $jr, True, "makeFormattedJSONRPCResponseString");
 
     # create error hash by modifying the result hash: delete "result" key and add "error" key
-    my $je = $jr - "result" + ( "error" : $h );
+    my hash $je = $jr - "result" + ( "error" : $h );
     test_value(parseJSON(makeJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeJSONRPCErrorString");
     test_value(parseJSON(makeFormattedJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
 
@@ -1570,7 +1580,7 @@ sub json_tests() {
         }
     }
 }";
-    my $xml = "<glossary><title>example glossary</title>
+    my string $xml = "<glossary><title>example glossary</title>
   <GlossDiv><title>S</title>
    <GlossList>
     <GlossEntry>
@@ -1682,13 +1692,13 @@ sub json_tests() {
     "taglib-location": "/WEB-INF/tlds/cofax.tld"}}}
 ';
     $xml = '<?xml version="1.0" encoding="UTF-8"?><web-app xmlns:configGlossary="http://nothing.com"><servlet><servlet-name>cofaxCDS</servlet-name><servlet-class>org.cofax.cds.CDSServlet</servlet-class><init-param><configGlossary:installationAt>Philadelphia, PA</configGlossary:installationAt><configGlossary:adminEmail>ksm@pobox.com</configGlossary:adminEmail><configGlossary:poweredBy>Cofax</configGlossary:poweredBy><configGlossary:poweredByIcon>/images/cofax.gif</configGlossary:poweredByIcon><configGlossary:staticPath>/content/static</configGlossary:staticPath><templateProcessorClass>org.cofax.WysiwygTemplate</templateProcessorClass><templateLoaderClass>org.cofax.FilesTemplateLoader</templateLoaderClass><templatePath>templates</templatePath><templateOverridePath></templateOverridePath><defaultListTemplate>listTemplate.htm</defaultListTemplate><defaultFileTemplate>articleTemplate.htm</defaultFileTemplate><useJSP>0</useJSP><jspListTemplate>listTemplate.jsp</jspListTemplate><jspFileTemplate>articleTemplate.jsp</jspFileTemplate><cachePackageTagsTrack>200</cachePackageTagsTrack><cachePackageTagsStore>200</cachePackageTagsStore><cachePackageTagsRefresh>60</cachePackageTagsRefresh><cacheTemplatesTrack>100</cacheTemplatesTrack><cacheTemplatesStore>50</cacheTemplatesStore><cacheTemplatesRefresh>15</cacheTemplatesRefresh><cachePagesTrack>200</cachePagesTrack><cachePagesStore>100</cachePagesStore><cachePagesRefresh>10</cachePagesRefresh><cachePagesDirtyRead>10</cachePagesDirtyRead><searchEngineListTemplate>forSearchEnginesList.htm</searchEngineListTemplate><searchEngineFileTemplate>forSearchEngines.htm</searchEngineFileTemplate><searchEngineRobotsDb>WEB-INF/robots.db</searchEngineRobotsDb><useDataStore>1</useDataStore><dataStoreClass>org.cofax.SqlDataStore</dataStoreClass><redirectionClass>org.cofax.SqlRedirection</redirectionClass><dataStoreName>cofax</dataStoreName><dataStoreDriver>com.microsoft.jdbc.sqlserver.SQLServerDriver</dataStoreDriver><dataStoreUrl>jdbc:microsoft:sqlserver://LOCALHOST:1433;DatabaseName=goon</dataStoreUrl><dataStoreUser>sa</dataStoreUser><dataStorePassword>dataStoreTestQuery</dataStorePassword><dataStoreTestQuery>SET NOCOUNT ON;select test=&quot;test&quot;;</dataStoreTestQuery><dataStoreLogFile>/usr/local/tomcat/logs/datastore.log</dataStoreLogFile><dataStoreInitConns>10</dataStoreInitConns><dataStoreMaxConns>100</dataStoreMaxConns><dataStoreConnUsageLimit>100</dataStoreConnUsageLimit><dataStoreLogLevel>debug</dataStoreLogLevel><maxUrlLength>500</maxUrlLength></init-param></servlet><servlet><servlet-name>cofaxEmail</servlet-name><servlet-class>org.cofax.cds.EmailServlet</servlet-class><init-param><mailHost>mail1</mailHost><mailHostOverride>mail2</mailHostOverride></init-param></servlet><servlet><servlet-name>cofaxAdmin</servlet-name><servlet-class>org.cofax.cds.AdminServlet</servlet-class></servlet><servlet><servlet-name>fileServlet</servlet-name><servlet-class>org.cofax.cds.FileServlet</servlet-class></servlet><servlet><servlet-name>cofaxTools</servlet-name><servlet-class>org.cofax.cms.CofaxToolsServlet</servlet-class><init-param><templatePath>toolstemplates/</templatePath><log>1</log><logLocation>/usr/local/tomcat/logs/CofaxTools.log</logLocation><logMaxSize></logMaxSize><dataLog>1</dataLog><dataLogLocation>/usr/local/tomcat/logs/dataLog.log</dataLogLocation><dataLogMaxSize></dataLogMaxSize><removePageCache>/content/admin/remove?cache=pages&amp;id=</removePageCache><removeTemplateCache>/content/admin/remove?cache=templates&amp;id=</removeTemplateCache><fileTransferFolder>/usr/local/tomcat/webapps/content/fileTransferFolder</fileTransferFolder><lookInContext>1</lookInContext><adminGroupID>4</adminGroupID><betaServer>1</betaServer></init-param></servlet><servlet-mapping><cofaxCDS>/</cofaxCDS><cofaxEmail>/cofaxutil/aemail/*</cofaxEmail><cofaxAdmin>/admin/*</cofaxAdmin><fileServlet>/static/*</fileServlet><cofaxTools>/tools/*</cofaxTools></servlet-mapping><taglib><taglib-uri>cofax.tld</taglib-uri><taglib-location>/WEB-INF/tlds/cofax.tld</taglib-location></taglib></web-app>';
-    my $x = parseXML($xml);
+    my hash $x = parseXML($xml);
     delete $x."web-app"."^attributes^";
     test_value(parseJSON($jstr) == $x, True, "second parseJSON() and parseXML()");
 }
 
-sub digest_tests() {
-    my $str = "Hello There This is a Test - 1234567890";
+sub digest_tests() returns nothing {
+    my string $str = "Hello There This is a Test - 1234567890";
 
     test_value(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
     test_value(MD4($str), "675d84fbf5d63e0d68c04577c3298fdc", "MD4 digest");
@@ -1700,12 +1710,12 @@ sub digest_tests() {
     test_value(RIPEMD160($str), "8f32702e0146d5db6145f36271a4ddf249c087ae", "RIPEMD-160 digest");
 }
 
-sub crypto_tests() {
-    my $str = "Hello There This is a Test - 1234567890";
+sub crypto_tests() returns nothing {
+    my string $str = "Hello There This is a Test - 1234567890";
 
-    my $key = "1234567812345abcabcdefgh";
-    my $x = des_ede_encrypt_cbc($str, $key);
-    my $xstr = des_ede_decrypt_cbc_to_string($x, $key);
+    my string $key = "1234567812345abcabcdefgh";
+    my binary $x = des_ede_encrypt_cbc($str, $key);
+    my string $xstr = des_ede_decrypt_cbc_to_string($x, $key);
     test_value($str, $xstr, "triple DES 2 key encrypt-decrypt");
 
     $x = des_ede3_encrypt_cbc($str, $key);
@@ -1738,31 +1748,31 @@ sub crypto_tests() {
     test_value($str, $xstr, "DES random single key encrypt-decrypt");
 }
 
-sub closures($x) {
-    my $a = 1;
+sub closures($x) returns list {
+    my int $a = 1;
     
-    my $inc = sub ($y) {
+    my code $inc = sub ($y) {
 	return sprintf("%s-%n-%n", $x, $y, ++$a);
     };
 
-    my $dec = sub ($y) {
+    my code $dec = sub ($y) {
 	return sprintf("%s-%n-%n", $x, $y, --$a);
     };
 
     return ($inc, $dec);
 }
 
-sub closure_tests() {
-    my ($inc, $dec) = closures("test");
+sub closure_tests() returns nothing {
+    my (code $inc, code $dec) = closures("test");
     test_value($inc(5), "test-5-2", "first closure");
     test_value($inc(7), "test-7-3", "second closure");
     test_value($dec(3), "test-3-2", "third closure");
 }
 
-sub do_tests() {
+sub do_tests() returns nothing {
     on_exit $counter.dec();
     try {
-	for (my $i = 0; $i < $o.iters; $i++) {
+	for (my int $i = 0; $i < $o.iters; $i++) {
 	    if ($o.verbose)
 		printf("TID %d: iteration %d\n", gettid(), $i);
 	    operator_test();
@@ -1791,7 +1801,7 @@ sub do_tests() {
     }
 }
 
-sub main() {
+sub main() returns nothing {
     parse_command_line();
     printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n", Qore::VersionString, 
 	   $o.threads, $o.threads == 1 ? "" : "s", $o.iters, $o.iters == 1 ? "" : "s");
@@ -1804,7 +1814,7 @@ sub main() {
 
     $counter.waitForZero();
 
-    my $ntests = elements $thash;
+    my int $ntests = elements $thash;
     printf("%d error%s encountered in %d test%s.\n",
 	   $errors, $errors == 1 ? "" : "s", 
 	   $ntests, $ntests == 1 ? "" : "s");

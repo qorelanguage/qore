@@ -70,7 +70,7 @@ typedef std::map<qore_type_t, AbstractQoreNode *> def_val_map_t;
 static def_val_map_t def_val_map;
 
 // map from names used when parsing to types
-typedef std::map<const char *, const QoreTypeInfo *> str_typeinfo_map_t;
+typedef std::map<const char *, const QoreTypeInfo *, ltstr> str_typeinfo_map_t;
 static str_typeinfo_map_t str_typeinfo_map;
 
 // map from types to type info
@@ -164,6 +164,10 @@ AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t) {
    def_val_map_t::iterator i = def_val_map.find(t);
    assert(i != def_val_map.end());
    return i->second->refSelf();
+}
+
+bool builtinTypeHasDefaultValue(qore_type_t t) {
+   return def_val_map.find(t) != def_val_map.end();
 }
 
 const QoreTypeInfo *getBuiltinTypeInfo(const char *str) {

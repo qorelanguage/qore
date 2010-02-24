@@ -3931,14 +3931,14 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	    qore_type_t rt = tree->right->getType();
 	    if (rt == NT_STRING) {
 	       const char *member = reinterpret_cast<const QoreStringNode *>(tree->right)->getBuffer();
-	       leftTypeInfo->qc->parseCheckMemberAccess(member, returnTypeInfo);
+	       leftTypeInfo->qc->parseCheckMemberAccess(member, returnTypeInfo, pflag);
 	    }
 	    else if (rt == NT_LIST) { // check object slices as well if strings are available
 	       ConstListIterator li(reinterpret_cast<const QoreListNode *>(tree->right));
 	       while (li.next()) {
 		  if (li.getValue() && li.getValue()->getType() == NT_STRING) {
 		     const char *member = reinterpret_cast<const QoreStringNode *>(li.getValue())->getBuffer();
-		     leftTypeInfo->qc->parseCheckMemberAccess(member, returnTypeInfo);
+		     leftTypeInfo->qc->parseCheckMemberAccess(member, returnTypeInfo, pflag);
 		  }
 	       }
 	    }

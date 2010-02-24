@@ -31,6 +31,7 @@
 
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo);
+DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
 
 class AbstractQoreTypeInfo {
 protected:
@@ -72,7 +73,7 @@ public:
       return concatNameImpl(str);
    }
    DLLLOCAL bool hasDefaultValue() const {
-      return qt < NT_OBJECT;
+      return builtinTypeHasDefaultValue(qt);
    }
 };
 
@@ -318,7 +319,9 @@ public:
 
    DLLLOCAL QoreParseTypeInfo() : QoreTypeInfo(), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(qore_type_t qt) : QoreTypeInfo(qt), cscope(0) {}
-   DLLLOCAL QoreParseTypeInfo(char *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(new NamedScope(n_cscope)) {}
+   DLLLOCAL QoreParseTypeInfo(char *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(new NamedScope(n_cscope)) {
+      assert(strcmp(n_cscope, "any"));
+   }
    DLLLOCAL QoreParseTypeInfo(const QoreClass *qc) : QoreTypeInfo(qc), cscope(0) {}
    DLLLOCAL QoreParseTypeInfo(const QoreTypeInfo *typeInfo) : QoreTypeInfo(), cscope(0) {
       if (typeInfo) {

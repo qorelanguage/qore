@@ -132,6 +132,10 @@ struct qore_class_private {
       return typeInfo;
    }
 
+   DLLLOCAL bool parseHasMemberGate() const {
+      return memberGate || hm.find("memberGate") != hm.end();
+   }
+
    DLLLOCAL bool parseHasMethodGate() const {
       return methodGate || hm.find("methodGate") != hm.end();
    }
@@ -211,7 +215,7 @@ struct qore_class_private {
       }
    }
 
-   DLLLOCAL const int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
+   DLLLOCAL const int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
       const_cast<qore_class_private *>(this)->initialize();
 
       bool priv;
@@ -220,13 +224,15 @@ struct qore_class_private {
       
       if (!sclass) {
 	 int rc = 0;
-	 if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES) {
-	    parse_error("member $.%s referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem);
-	    rc = -1;
-	 }
-	 if (parseHasPublicMembersInHierarchy()) {
-	    parse_error("illegal access to unknown member '%s' in a class with a public member list (or inherited public member list)", mem);
-	    rc = -1;
+	 if (!parseHasMemberGate() || pflag & PF_FOR_ASSIGNMENT) {
+	    if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES) {
+	       parse_error("member $.%s referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem);
+	       rc = -1;
+	    }
+	    if (parseHasPublicMembersInHierarchy()) {
+	       parse_error("illegal access to unknown member '%s' in a class with a public member list (or inherited public member list)", mem);
+	       rc = -1;
+	    }
 	 }
 	 return rc;
       }
@@ -2388,8 +2394,8 @@ const QoreTypeInfo *QoreClass::getTypeInfo() const {
    return priv->typeInfo;
 }
 
-int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
-   return priv->parseCheckMemberAccess(mem, memberTypeInfo);
+int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
+   return priv->parseCheckMemberAccess(mem, memberTypeInfo, pflag);
 }
 
 int QoreClass::parseCheckInternalMemberAccess(const char *mem) const {

@@ -1,3 +1,8 @@
+2010.02.24: David Nichols
+	 * hard typing fixes, do not throw parse type exceptions when
+	   referencing undeclared members of a class with a memberGate()
+	   method
+
 2010.02.23: David Nichols
 	 * applied hard typing to lib/QC_GetOpt.cpp and to split in
 	   lib/ql_string.cpp

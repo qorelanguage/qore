@@ -61,6 +61,7 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    QoreListNode *l = reinterpret_cast<QoreListNode *>(params);
 
    parseTypeList.reserve(l->size());
+   typeList.reserve(l->size());
    ListIterator li(l);
    while (li.next()) {
       AbstractQoreNode *n = li.getValue();
@@ -872,6 +873,11 @@ void UserFunctionVariant::parseInit() {
 }
 
 void UserClosureVariant::parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
+   signature.resolve();
+
+   // resolve and push current return type on stack
+   ReturnTypeInfoHelper rtih(signature.getReturnTypeInfo());
+
    statements->parseInitClosure(&signature, classTypeInfo, vlist);
 }
 
