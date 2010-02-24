@@ -136,9 +136,6 @@ static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
    // make sure definition was legal
    if (checkParseOption(PO_NO_SUBROUTINE_DEFS))
       parse_error("function '%s()' defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name);
-
-   if ((getProgram()->getParseOptions() & PO_REQUIRE_TYPES) && !variant->getUserSignature()->hasReturnTypeInfo())
-      parse_error("no return type declared for function '%s()', but parse options require all declarations to have type information", name);
 }
 
 HashElement::HashElement(AbstractQoreNode *k, AbstractQoreNode *v) {
@@ -449,12 +446,6 @@ static bool hasEffect(AbstractQoreNode *n) {
    return false;
 }
 
-QoreClosureParseNode *getClosureParseNode(UserClosureFunction *f) {
-   if (!f->parseStage1HasReturnTypeInfo() && (getProgram()->getParseOptions() & PO_REQUIRE_TYPES))
-      parse_error("no return type declared for closure, but parse options require all declarations to have type information");
-   return new QoreClosureParseNode(f);
-}
-
 #define OFM_PRIVATE 1
 #define OFM_SYNCED  2
 #define OFM_STATIC  4
@@ -509,9 +500,6 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
    }
    if (!strcmp(name, "copy") && !(mod & OFM_SYNCED))
       return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
-
-   if (!returnTypeInfo && (getProgram()->getParseOptions() & PO_REQUIRE_TYPES))
-      parse_error("no return type declared for method %s(), but parse options require all declarations to have type information", name);
 
    return new UserMethodVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
 }
@@ -2301,10 +2289,10 @@ exp:    scalar
 	}
         | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
         | TOK_SUB '(' myexp ')' return_value block { 
-	   $$ = getClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5));
+	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5));
 	}
 	| TOK_SYNCHRONIZED TOK_SUB '(' myexp ')' return_value block {
-	   $$ = getClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true));
+	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true));
 	}
         | IMPLICIT_ARG_REF { $$ = $1; }
 	;

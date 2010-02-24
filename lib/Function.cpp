@@ -37,6 +37,9 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
    lv(0), argvid(0), selfid(0), resolved(false) {
+   // assign no return type if return type declaration is missing and PO_REQUIRE_TYPES is set
+   if (!retTypeInfo && (getProgram()->getParseOptions() & PO_REQUIRE_TYPES))
+      returnTypeInfo = nothingTypeInfo;
    delete retTypeInfo;
 
    if (!params) {

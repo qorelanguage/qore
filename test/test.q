@@ -64,7 +64,7 @@ sub parse_command_line() returns nothing {
 	$o.threads = 1;
 }
 
-sub test_value(any $v1, any $v2, string $msg) returns nothing {
+sub test_value(any $v1, any $v2, string $msg) {
     if ($v1 === $v2) {
 	if ($o.verbose)
 	    printf("OK: %s test\n", $msg);
@@ -80,7 +80,7 @@ sub test_value(any $v1, any $v2, string $msg) returns nothing {
 sub test1() returns int { return 1;} sub test2() returns int { return 2; } 
 sub test3() returns list { return (1, 2, 3); }
 
-sub array_helper(list $a) returns nothing {
+sub array_helper(list $a) {
     $a[1][1] = 2;
     test_value($a[1][1], 2, "passed local array variable assignment");    
 }
@@ -110,7 +110,7 @@ static SC::hash_sort_callback(hash $l, hash $r) returns int {
 }
 
 # array tests
-sub array_tests() returns nothing {
+sub array_tests() {
     my (list $a, list $b, list $c, list $d);
 
     if ($o.verbose)
@@ -269,7 +269,7 @@ sub array_tests() returns nothing {
     test_value($bin[4], ord("o"), "binary byte dereference");
 }
 
-sub hash_tests() returns nothing {
+sub hash_tests() {
     if ($o.verbose)
 	print("%%%% hash tests\n");
     # hash tests
@@ -328,14 +328,14 @@ sub hash_tests() returns nothing {
     test_value($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
 }
 
-sub global_variable_testa() returns nothing {
+sub global_variable_testa() {
     printf("user=%s\n", $ENV{"USER"});
 }
 
 sub map_closure($v) { return sub($v1) returns any { return $v * $v1; }; }
 
 # operator tests
-sub operator_test() returns nothing {
+sub operator_test() {
     if ($o.verbose)
 	print("%%%% operator tests\n");
     my int $a = 1;
@@ -446,26 +446,26 @@ sub operator_test() returns nothing {
     test_value((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
 }
 
-sub no_parameter_test(nothing $p) returns nothing {
+sub no_parameter_test(nothing $p) {
     test_value($p, NOTHING, "non-existant parameter");
 }
 
-sub parameter_and_shift_test(int $p) returns nothing {
+sub parameter_and_shift_test(int $p) {
     test_value($p, 1, "parameter before shift");
     test_value(shift $argv, 2, "shift on second parameter");
 }
 
-sub one_parameter_shift_test() returns nothing {
+sub one_parameter_shift_test() {
     test_value(shift $argv, 1, "one parameter shift");
 }
 
-sub shift_test() returns nothing {
+sub shift_test() {
     my list $var = (1, 2, 3, 4, "hello");
     foreach my any $v in ($var)
 	test_value($v, shift $argv, ("shift " + string($v) + " parameter"));
 }
 
-sub parameter_tests() returns nothing {
+sub parameter_tests() {
     no_parameter_test();
     parameter_and_shift_test(1, 2);
     shift_test(1, test3()[1], 3, 4, "hello");
@@ -478,13 +478,13 @@ sub short_circuit_test(string $op) returns bool {
     return False;
 }
 
-sub logic_message(string $op) returns nothing {
+sub logic_message(string $op) {
     if ($o.verbose)
 	printf("OK: %s logic test\n", $op);
 }
 
 # logic short-circuiting test
-sub logic_tests() returns nothing {
+sub logic_tests() {
     my any $a = 1;
     my any $b = 0;
     my int $c;
@@ -522,7 +522,7 @@ sub logic_tests() returns nothing {
     test_value($a[3] != $b[3], True, "hash unequal comparison");
 }
 
-sub printf_tests() returns nothing {
+sub printf_tests() {
     # some printf tests
     printf("field tests\n");
     f_printf("f_printf: 5 character field with 7 char arg: %5s\n", "freddy1");
@@ -591,7 +591,7 @@ sub switch_with_relation_test(float $val) returns string {
   return $rv;
 }
 
-sub statement_tests() returns nothing {
+sub statement_tests() {
     if ($o.verbose)
 	print("%%%% statement tests\n");
     # while test
@@ -705,19 +705,19 @@ sub fibonacci(int $num) returns int {
 }
 
 # recursive function test
-sub recursive_function_test() returns nothing {
+sub recursive_function_test() {
     test_value(fibonacci(10), 3628800, "recursive function");
 }
 
-sub backquote_tests() returns nothing {
+sub backquote_tests() {
     test_value(`echo -n 1`, "1", "backquote");
 }
 
-sub sd(date $d) returns nothing {
+sub sd(date $d) {
     return format_date("YYYY-MM-DD HH:mm:SS", $d);
 }
 
-sub test_date(date $d, int $y, int $w, int $day, int $n, reference $i) returns nothing {
+sub test_date(date $d, int $y, int $w, int $day, int $n, reference $i) {
     my string $str = sprintf("%04d-W%02d-%d", $y, $w, $day);
     my hash $h = ( "year" : $y, "week" : $w, "day" : $day );
     my date $d1;
@@ -739,7 +739,7 @@ sub test_date(date $d, int $y, int $w, int $day, int $n, reference $i) returns n
     $i++;
 }
 
-sub date_time_tests() returns nothing {
+sub date_time_tests() {
     # here are the two formats for directly specifying date/time values:
     # ISO-8601 format (without timezone specification, currently qore does not support time zones)
     my date $date  = 2004-02-01T12:30:00;
@@ -863,14 +863,14 @@ sub date_time_tests() returns nothing {
     test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 107793D + 22h + 34m + 42s + 150ms, "date difference 2");
 }
 
-sub binary_tests() returns nothing {
+sub binary_tests() {
     my binary $b = binary("this is a test");
     test_value(getByte($b, 3), ord("s"), "getByte()");
     test_value($b, binary("this is a test"), "binary comparison");
     test_value($b != binary("this is a test"), False, "binary negative comparison");
 }
 
-sub string_tests() returns nothing {
+sub string_tests() {
     my string $str = "Hi there, you there, pal";
     my string $big = "GEE WHIZ";
     test_value(strlen($str), 24, "strlen()");
@@ -1089,7 +1089,7 @@ sub string_tests() returns nothing {
     test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
 }
 
-sub pwd_tests() returns nothing {
+sub pwd_tests() {
     # getpwuid(0).pw_name may not always be "root"
     # skip the test on windows
     if (Qore::PlatformOS !~ /cygwin/i)
@@ -1100,7 +1100,7 @@ sub simple_shift() returns any {
     return shift $argv;
 }
 
-sub misc_tests() returns nothing {
+sub misc_tests() {
     my hash $dh = ( "user"    : "user",
 		    "pass"    : "123pass@word",
 		    "db"      : "dbname",
@@ -1148,13 +1148,13 @@ sub misc_tests() returns nothing {
     test_value($bstr, bunzip2_to_binary($bz), "bzip2 and bunzip2_to_binary");
 }
 
-sub math_tests() returns nothing {
+sub math_tests() {
     test_value(ceil(2.7), 3.0, "ceil()");
     test_value(floor(3.7), 3.0, "fllor()");
     test_value(format_number(".,3", -48392093894.2349), "-48.392.093.894,235", "format_number()");
 }
 
-sub lib_tests() returns nothing {
+sub lib_tests() {
     my string $pn = get_script_path();
     test_value(stat($pn)[1], hstat($pn).inode, "stat() and hstat()");
     test_value(hstat($pn).type, "REGULAR", "hstat()");
@@ -1162,7 +1162,7 @@ sub lib_tests() returns nothing {
     #test_value($h, gethostbyaddr(gethostbyname($h)), "host functions");
 }
 
-sub file_tests() returns nothing {
+sub file_tests() {
     test_value(is_file($ENV."_"), True, "is_file()");
     test_value(is_executable($ENV."_"), True, "is_executable()");
     test_value(is_dir("/"), True, "is_dir()");
@@ -1176,7 +1176,7 @@ sub file_tests() returns nothing {
     test_value(is_pipe("/"), False, "is_pipe()");
 }
 
-sub io_tests() returns nothing {
+sub io_tests() {
     test_value(sprintf("%04d-%.2f", 25, 101.239), "0025-101.24", "sprintf()");
     test_value(vsprintf("%04d-%.2f", (25, 101.239)), "0025-101.24", "vsprintf()");
     # check multi-byte character set support for f_*printf()
@@ -1199,7 +1199,7 @@ sub f_test(float $x) returns string {
     return type($x);
 }
 
-sub overload_tests() returns nothing {
+sub overload_tests() {
     test_value(f_test(1), "integer", "first overload partial match");
     test_value(f_test(1.1), "float", "second overload partial match");
     test_value(f1_test(1), "float", "third overload partial match");
@@ -1213,7 +1213,7 @@ sub overload_tests() returns nothing {
     test_value(f1_test($fi), "float", "fourth runtime overload partial match");
 }
 
-sub function_tests() returns nothing {
+sub function_tests() {
     date_time_tests();
     binary_tests();
     string_tests();  
@@ -1268,8 +1268,8 @@ class Test inherits Socket {
     }
 }
 
-sub class_test_Program() returns nothing {
-    my string $func = "namespace ITest { const val = 1.0; } $gv2 = 123; sub t2(int $a) returns int { return $a + 2; } sub et(int $a) returns int { return t($a); } sub tot() returns string { return getClassName($to); } sub getObject() returns Queue { return new Queue(); } sub deleteException() returns nothing { $ro.getData(0); delete $ro; }";
+sub class_test_Program() {
+    my string $func = "namespace ITest { const val = 1.0; } $gv2 = 123; sub t2(int $a) returns int { return $a + 2; } sub et(int $a) returns int { return t($a); } sub tot() returns string { return getClassName($to); } sub getObject() returns Queue { return new Queue(); } sub deleteException() { $ro.getData(0); delete $ro; }";
 
     my string $pf = "newfunc();";
     my string $nf = "sub newfunc() { return True; }";
@@ -1299,7 +1299,7 @@ sub class_test_Program() returns nothing {
     test_value(getClassName($o), "Queue", "class returned from deleted subprogram object");
 }
 
-sub class_test_File() returns nothing {
+sub class_test_File() {
     return;
 /*
     # File test
@@ -1313,17 +1313,17 @@ sub class_test_File() returns nothing {
 */
 }
 
-sub err($test) returns nothing {
+sub err($test) {
     test_value(True, False, $test);
 }
 
-sub check($err, $test) returns nothing {
+sub check($err, $test) {
     test_value($err, "PRIVATE-MEMBER", $test);
 }
 
 class Test2 { private { any $.a; } }
 
-sub class_library_tests() returns nothing {
+sub class_library_tests() {
     my Test $t = new Test(1, "gee", 2);
     test_value($t.getData(1), "gee", "first object");
     test_value(exists $t.testing, False, "memberGate() existence");
@@ -1363,7 +1363,7 @@ sub class_library_tests() returns nothing {
 }
 
 # find and context tests
-sub context_tests() returns nothing {
+sub context_tests() {
     my hash $q = ( "name" : ("david", "renata", "laura", "camilla", "isabella"),
 		   "age"  : (37, 30, 7, 4, 1 ) );
 
@@ -1429,7 +1429,7 @@ const NTest::Type::val1 = 1;
 
 const Qore::myconst = 1;
 
-sub constant_tests() returns nothing {
+sub constant_tests() {
     test_value(i, 1, "simple constant");
     test_value(type(Type::val1), "integer", "first namespace constant");
     test_value(Qore::myconst, NTest::Type::val1, "second namespace constant");
@@ -1451,7 +1451,7 @@ const xsd = '<?xml version="1.0" encoding="utf-8"?>
 </xsd:schema>
 ';
 
-sub xml_tests() returns nothing {
+sub xml_tests() {
     my hash $o = ( "test" : 1, 
 		   "gee" : "philly", 
 		   "marguile" : 1.0392,
@@ -1521,7 +1521,7 @@ sub xml_tests() returns nothing {
     test_value($xr.toQore() == $mo.o, True, "XmlReader::toQoreData()");
 }
 
-sub json_tests() returns nothing {
+sub json_tests() {
     my hash $h = ( "test" : 1, 
 		   "gee" : "philly-\"test-quotes\"", 
 		   "marguile" : 1.0392,
@@ -1700,7 +1700,7 @@ sub json_tests() returns nothing {
     test_value(parseJSON($jstr) == $x, True, "second parseJSON() and parseXML()");
 }
 
-sub digest_tests() returns nothing {
+sub digest_tests() {
     my string $str = "Hello There This is a Test - 1234567890";
 
     test_value(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
@@ -1713,7 +1713,7 @@ sub digest_tests() returns nothing {
     test_value(RIPEMD160($str), "8f32702e0146d5db6145f36271a4ddf249c087ae", "RIPEMD-160 digest");
 }
 
-sub crypto_tests() returns nothing {
+sub crypto_tests() {
     my string $str = "Hello There This is a Test - 1234567890";
 
     my string $key = "1234567812345abcabcdefgh";
@@ -1765,14 +1765,14 @@ sub closures($x) returns list {
     return ($inc, $dec);
 }
 
-sub closure_tests() returns nothing {
+sub closure_tests() {
     my (code $inc, code $dec) = closures("test");
     test_value($inc(5), "test-5-2", "first closure");
     test_value($inc(7), "test-7-3", "second closure");
     test_value($dec(3), "test-3-2", "third closure");
 }
 
-sub do_tests() returns nothing {
+sub do_tests() {
     on_exit $counter.dec();
     try {
 	for (my int $i = 0; $i < $o.iters; $i++) {
@@ -1804,7 +1804,7 @@ sub do_tests() returns nothing {
     }
 }
 
-sub main() returns nothing {
+sub main() {
     parse_command_line();
     printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n", Qore::VersionString, 
 	   $o.threads, $o.threads == 1 ? "" : "s", $o.iters, $o.iters == 1 ? "" : "s");
