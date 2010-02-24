@@ -554,7 +554,7 @@ sub switch_test(any $val) returns string {
     return $rv;
 }
 
-sub regex_switch_test(string $val) returns string {
+sub regex_switch_test(any $val) returns string {
     my string $rv;
 
     switch ($val) {
@@ -621,14 +621,14 @@ sub statement_tests() {
 
     my any $list = my list $x;
     foreach my string $y in (\$list) $y = "test";
-    test_value($list, NOTHING, "first foreach reference");
+    test_value($list, (), "first foreach reference");
     
     $list = (1, 2, 3);
-    foreach my string $y in (\$list) $y = "test";
+    foreach my any $y in (\$list) $y = "test";
     test_value($list, ("test", "test", "test"), "second foreach reference");
     
     $list = 1;
-    foreach my string $y in (\$list) $y = "test";
+    foreach my any $y in (\$list) $y = "test";
     test_value($list, "test", "third foreach reference");
 
     # switch tests
@@ -1238,6 +1238,11 @@ class Test inherits Socket {
 	list $.data;
 	hash $.t;
 	int $.x;
+        any $.key;
+        any $.unique;
+        any $.new;
+        any $.barn;
+        any $.asd;
     }
 
     constructor($a, $b, $c) {
@@ -1389,11 +1394,11 @@ sub context_tests() {
 
     test_value($h, $i, "context");
 
-    $t = find %age in $q where (%name == "david");
-    test_value($t, 37, "find");
+    my int $age = find %age in $q where (%name == "david");
+    test_value($age, 37, "find");
 
-    $t = find %age in $q where (%name == "david" || %name == "isabella");
-    test_value($t, (37, 1), "list find"); 
+    my list $ages = find %age in $q where (%name == "david" || %name == "isabella");
+    test_value($ages, (37, 1), "list find"); 
     context ($q) {
 	test_value(%%, ("name" : "david", "age" : 37), "context row");
 	break;
@@ -1745,9 +1750,9 @@ sub crypto_tests() {
     $xstr = cast5_decrypt_cbc_to_string($x, $key);
     test_value($str, $xstr, "CAST5 encrypt-decrypt");
 
-    $key = des_random_key();
-    $x = des_encrypt_cbc($str, $key);
-    $xstr = des_decrypt_cbc_to_string($x, $key);
+    my binary $bkey = des_random_key();
+    $x = des_encrypt_cbc($str, $bkey);
+    $xstr = des_decrypt_cbc_to_string($x, $bkey);
     test_value($str, $xstr, "DES random single key encrypt-decrypt");
 }
 

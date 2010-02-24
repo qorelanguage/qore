@@ -588,7 +588,8 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    if (!*xsink) {
-	       n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), n, xsink);
+	       if (paramTypeInfo != referenceTypeInfo)
+		  n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), n, xsink);
 	       if (!*xsink)
 		  signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
 	    }

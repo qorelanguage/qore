@@ -85,7 +85,6 @@ private:
    DLLLOCAL const AbstractQoreNode *getValueIntern(AutoVLock *vl) const;
    DLLLOCAL void setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink);
    DLLLOCAL void assignInitialValue() {
-      assert(type == GV_VALUE);
       // assign default value
       if (!v.val.value)
          v.val.value = typeInfo->getDefaultValue();
