@@ -230,6 +230,7 @@ struct qore_class_private {
 	       rc = -1;
 	    }
 	    if (parseHasPublicMembersInHierarchy()) {
+	       //printd(5, "qore_class_private::parseCheckMemberAccess() %s %%.%s memberGate=%d pflag=%d\n", name, mem, parseHasMemberGate(), pflag);
 	       parse_error("illegal access to unknown member '%s' in a class with a public member list (or inherited public member list)", mem);
 	       rc = -1;
 	    }
@@ -237,15 +238,14 @@ struct qore_class_private {
 	 return rc;
       }
 
-      if (priv) {
-	 if (!parseCheckPrivateClassAccess(typeInfo->qc)) {
-	    memberTypeInfo = 0;
-	    if (name)
-	       parse_error("illegal access to private member '%s' of class '%s'", mem, name);
-	    else
-	       parse_error("illegal access to private member '%s'", mem);
-	    return -1;
-	 }
+      // only raise a parse error for illegal access to private members if there is not memberGate function
+      if (priv && !parseHasMemberGate() && !parseCheckPrivateClassAccess(typeInfo->qc)) {
+	 memberTypeInfo = 0;
+	 if (name)
+	    parse_error("illegal access to private member '%s' of class '%s'", mem, name);
+	 else
+	    parse_error("illegal access to private member '%s'", mem);
+	 return -1;
       }
       return 0;
    }

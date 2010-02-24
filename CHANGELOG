@@ -2,6 +2,9 @@
 	 * hard typing fixes, do not throw parse type exceptions when
 	   referencing undeclared members of a class with a memberGate()
 	   method
+	 * fixed closure signature and return type parsing
+	 * only raise a parse error for illegal access to private members if
+	   there is not memberGate function
 
 2010.02.23: David Nichols
 	 * applied hard typing to lib/QC_GetOpt.cpp and to split in

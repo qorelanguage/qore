@@ -1336,12 +1336,14 @@ sub class_library_tests() returns nothing {
     try { $t -= "a"; err($test); } catch($ex) { check($ex.err, $test); }
     $test = "object -= list of private members";
     try { $t -= ("a", "b"); err($test); } catch($ex) { check($ex.err, $test); }
-    $test = "delete object's private member";
-    try { delete $t.a; err($test); } catch($ex) { check($ex.err, $test); }
-    $test = "reassign object's private member";
-    try { $t.a = 3; err($test); } catch($ex) { check($ex.err, $test); }
 
-    my Test2 $t2 = new Test2();
+    my any $t1 = new Test(1, "gee", 2);
+    $test = "delete object's private member";
+    try { delete $t1.a; err($test); } catch($ex) { check($ex.err, $test); }
+    $test = "reassign object's private member";
+    try { $t1.a = 3; err($test); } catch($ex) { check($ex.err, $test); }
+
+    my any $t2 = new Test2();
     $test = "read object's private member";
     try { my any $x = $t2.a; err($test); } catch($ex) { check($ex.err, $test); }
 
