@@ -740,7 +740,6 @@ void initENV(char *env[]) {
       }
       i++;
    }
-
 }
 
 void delete_global_variables() {
@@ -751,7 +750,6 @@ void delete_global_variables() {
       ARGV->deref(0);
    if (ENV)
       ENV->deref(0);
-
 }
 
 struct tm *q_localtime(const time_t *clock, struct tm *tms) {

@@ -87,8 +87,8 @@ private:
    DLLLOCAL void assignInitialValue() {
       assert(type == GV_VALUE);
       // assign default value
-      v.val.value = typeInfo->getDefaultValue();
-      v.val.value = 0;
+      if (!v.val.value)
+         v.val.value = typeInfo->getDefaultValue();
    }
 
 protected:

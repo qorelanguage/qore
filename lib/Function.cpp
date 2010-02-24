@@ -101,6 +101,9 @@ void UserSignature::pushParam(VarRefNode *v, bool needs_types) {
       const QoreTypeInfo *ti = vd->getTypeInfo();
       typeList.push_back(ti);
 
+      if (ti == nothingTypeInfo)
+	 parse_error("function parameter '$%s' may not be declared as type 'nothing'", v->getName());
+
       assert(!(pti && ti));
 
       if (pti->hasType() || ti->hasType())
@@ -271,7 +274,19 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       }
    }
 
+   printd(5, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+
    return variant;
+}
+
+static AbstractQoreFunctionVariant *doSingleVariantTypeException(int pi, const char *name, const char *sig, const QoreTypeInfo *proto, const QoreTypeInfo *arg) {
+   QoreStringNode *desc = new QoreStringNode("argument ");
+   desc->sprintf("%d to '%s(%s)' expects ", pi, name, sig);
+   proto->getThisType(*desc);
+   desc->concat(", but call supplies ");
+   arg->getThisType(*desc);
+   getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+   return 0;
 }
 
 // finds a variant at parse time
@@ -284,7 +299,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    const AbstractQoreFunctionVariant *variant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), num_args);
+   //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), num_args);
 
    assert(!vlist.empty() || !pending_vlist.empty());
    // check committed list
@@ -301,30 +316,29 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 unsigned variant_longest_pmatch = 0;
 	 unsigned count = 0;
 	 bool ok = true;
+	 bool variant_missing_types = false;
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
+
+	    //printd(0, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
+
 	    if (t->hasType() && !a) {
-	       ++variant_longest_pmatch;
-	       continue;
+	       if (pi < num_args) {
+		  variant_missing_types = true;
+		  ++variant_longest_pmatch;
+		  continue;
+	       }
+	       a = nothingTypeInfo;
 	    }
 
 	    int rc = t->parseEqual(a);
 
 	    if (rc == QTI_NOT_EQUAL) {
 	       ok = false;
-
 	       // raise a detailed parse exception immediately if there is only one variant
-	       if (vlist.singular() && pending_vlist.empty() && getProgram()->getParseExceptionSink()) {
-		  QoreStringNode *desc = new QoreStringNode("argument ");
-                  desc->sprintf("%d to '%s(%s)' expects ", pi + 1, getName(), sig->getSignatureText());
-                  t->getThisType(*desc);
-                  desc->concat(", but call supplies ");
-                  a->getThisType(*desc);
-                  getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-		  return 0;
-	       }
-
+	       if (pending_vlist.singular() && vlist.empty() && getProgram()->getParseExceptionSink())
+		  return doSingleVariantTypeException(pi + 1, getName(), sig->getSignatureText(), t, a);
 	       break;
 	    }
 	    // only increment for actual type matches (t may be NULL)
@@ -333,7 +347,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       count += rc;
 	    }
 	 }
-	 //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d\n", this, getName(), sig->getSignatureText(), ok, count, match);
+	 //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_longest_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_longest_pmatch);
 	 if (!ok)
 	    continue;
 	 if (count > match) {
@@ -346,16 +360,19 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       // longest potential match
 	       longest_pmatch = variant_longest_pmatch;
 	       match = count;
-	       variant = *i;
+	       if (!variant_missing_types) {
+		  //printd(0, "AbstractQoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
+		  variant = *i;
+	       }
+	       else
+		  variant = 0;
 	    }
 	 }
-	 else {
+	 else if (variant_longest_pmatch >= longest_pmatch) {
 	    // if we could possibly match less than another variant
 	    // then we have to match at runtime
-	    if (variant_longest_pmatch >= longest_pmatch) {
-	       variant = 0;
-	       longest_pmatch = variant_longest_pmatch;
-	    }
+	    variant = 0;
+	    longest_pmatch = variant_longest_pmatch;
 	 }
       }
    }
@@ -377,30 +394,26 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 unsigned variant_longest_pmatch = 0;
 	 unsigned count = 0;
 	 bool ok = true;
+	 bool variant_missing_types = false;
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 	    if (t->hasType() && !a) {
-	       ++variant_longest_pmatch;
-	       continue;
+	       if (pi < num_args) {
+		  variant_missing_types = true;
+		  ++variant_longest_pmatch;
+		  continue;
+	       }
+	       a = nothingTypeInfo;
 	    }
 
 	    int rc = t->parseEqual(a);
 
 	    if (rc == QTI_NOT_EQUAL) {
 	       ok = false;
-	       
 	       // raise a detailed parse exception immediately if there is only one variant
-	       if (pending_vlist.singular() && vlist.empty() && getProgram()->getParseExceptionSink()) {
-		  QoreStringNode *desc = new QoreStringNode("argument ");
-                  desc->sprintf("%d to '%s(%s)' expects ", pi + 1, getName(), sig->getSignatureText());
-                  t->getThisType(*desc);
-                  desc->concat(", but call supplies ");
-                  a->getThisType(*desc);
-                  getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-		  return 0;
-	       }
-
+	       if (pending_vlist.singular() && vlist.empty() && getProgram()->getParseExceptionSink())
+		  return doSingleVariantTypeException(pi + 1, getName(), sig->getSignatureText(), t, a);
 	       break;
 	    }
 	    // only increment for actual type matches (t may be NULL)
@@ -423,16 +436,17 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       // longest potential match
 	       longest_pmatch = variant_longest_pmatch;
 	       match = count;
-	       variant = *i;
+	       if (!variant_missing_types)
+		  variant = *i;
+	       else
+		  variant = 0;
 	    }
 	 }
-	 else {
+	 else if (variant_longest_pmatch >= longest_pmatch) {
 	    // if we could possibly match less than another variant
 	    // then we have to match at runtime
-	    if (variant_longest_pmatch >= longest_pmatch) {
-	       variant = 0;
-	       longest_pmatch = variant_longest_pmatch;
-	    }
+	    variant = 0;
+	    longest_pmatch = variant_longest_pmatch;
 	 }
       }
    }

@@ -446,7 +446,7 @@ sub operator_test() {
     test_value((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
 }
 
-sub no_parameter_test(nothing $p) {
+sub no_parameter_test(any $p) {
     test_value($p, NOTHING, "non-existant parameter");
 }
 
