@@ -874,8 +874,7 @@ int QoreObject::size(ExceptionSink *xsink) const
 
 // adds all elements (and references them) from the hash passed, leaves the
 // hash passed alone
-void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink)
-{
+void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink) {
    // list for saving all overwritten values to be dereferenced outside the object lock
    ReferenceHolder<QoreListNode> holder(xsink);
 
@@ -889,6 +888,10 @@ void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink)
 
       ConstHashIterator hi(h);
       while (hi.next()) {
+	 // check member status
+	 if (priv->checkMemberAccess(hi.getKey(), xsink))
+	    return;
+
 	 AbstractQoreNode *n = priv->data->swapKeyValue(hi.getKey(), hi.getReferencedValue());
 	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
 	 if (n && n->isReferenceCounted()) {

@@ -12,6 +12,8 @@
 	 * fixed default value assignments for types generically
 	 * assume code returns NOTHING if no return type is declared and
 	   PO_REQUIRE_TYPES is set (i.e %require-types parse directive)
+	 * updated object += hash to check member access and throw an
+	   exception if necessary
 
 2010.02.23: David Nichols
 	 * applied hard typing to lib/QC_GetOpt.cpp and to split in
