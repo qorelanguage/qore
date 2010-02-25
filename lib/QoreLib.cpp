@@ -877,3 +877,19 @@ bool runtimeCheckPrivateClassAccess(const QoreClass *testClass) {
       return false;
    return obj->getClass(testClass->getID()) || testClass->getClass(obj->getClass()->getID());
 }
+
+QoreListNode *makeArgs(AbstractQoreNode *arg) {
+   if (!arg)
+      return 0;
+
+   QoreListNode *l;
+   if (arg->getType() == NT_LIST) {
+      l = reinterpret_cast<QoreListNode *>(arg);
+      if (!l->isFinalized())
+         return l;
+   }
+
+   l = new QoreListNode(arg->needs_eval());
+   l->push(arg);
+   return l;
+}
