@@ -91,6 +91,12 @@ public:
 
    DLLLOCAL virtual bool isDecl() const { return false; }
 
+   // will only be called on *VarRefNewObjectNode objects, but this is their common class
+   DLLLOCAL virtual const char *getNewObjectClassName() const {
+      assert(false);
+      return 0;
+   }
+
    // for checking for new object calls
    DLLLOCAL virtual AbstractQoreNode *makeNewCall(AbstractQoreNode *args);
 
@@ -211,6 +217,13 @@ public:
       return true;
    }
 
+   // will only be called on *VarRefNewObjectNode objects, but this is their common class
+   DLLLOCAL virtual const char *getNewObjectClassName() const {
+      if (typeInfo)
+         return typeInfo->qc->getName();
+      return parseTypeInfo->cscope->getIdentifier();
+   }
+
    // initializes during parsing
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo);
 };
@@ -237,6 +250,11 @@ public:
 
    DLLLOCAL virtual bool stayInTree() const {
       return true;
+   }
+
+   // will only be called on *VarRefNewObjectNode objects, but this is their common class
+   DLLLOCAL virtual const char *getNewObjectClassName() const {
+      return ref.var->getClassName();
    }
 
    // initializes during parsing

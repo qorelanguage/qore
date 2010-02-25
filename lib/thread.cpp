@@ -471,11 +471,10 @@ public:
    bool method_reference;
    
    DLLLOCAL BGThreadParams(AbstractQoreNode *f, int t, ExceptionSink *xsink) : callobj(getStackObject()), obj(0),
-									       fc(f), pgm(getProgram()), tid(t),
-									       file(get_pgm_file()) {
+									       fc(f), pgm(getProgram()), tid(t) {
       // callobj: get and reference the current stack object, if any, for the new call stack
       // save program location
-      get_pgm_counter(s_line, e_line);
+      file = get_pgm_counter(s_line, e_line);
 
       qore_type_t fctype = fc->getType();
       //printd(5, "BGThreadParams::BGThreadParams(f=%p (%s %d), t=%d) this=%p callobj=%p\n", f, f->getTypeName(), f->getType(), t, this, callobj);
@@ -794,10 +793,11 @@ void update_context_stack(Context *cstack) {
    td->context_stack = cstack;
 }
 
-void get_pgm_counter(int &start_line, int &end_line) {
+const char *get_pgm_counter(int &start_line, int &end_line) {
    ThreadData *td = thread_data.get();
    start_line = td->pgm_counter_start;
    end_line = td->pgm_counter_end;
+   return td->pgm_file;
 }
 
 void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f) {

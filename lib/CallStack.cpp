@@ -33,8 +33,7 @@ QoreRWLock thread_stack_lock;
 CallNode::CallNode(const char *f, int t, QoreObject *o) {
    func = f;
    type = t;
-   file_name   = get_pgm_file();
-   get_pgm_counter(start_line, end_line);
+   file_name = get_pgm_counter(start_line, end_line);
    obj = o;
    if (obj)
       obj->ref();

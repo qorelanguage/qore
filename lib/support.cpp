@@ -106,15 +106,14 @@ char *remove_trailing_blanks(char *str)
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-void showCallStack()
-{
+void showCallStack() {
    QoreListNode *callStack = getCallStackList();
    int sl, el;
-   get_pgm_counter(sl, el);
+   const char *fn = get_pgm_counter(sl, el);
    if (sl == el)
-      printf("terminated at %s:%d\n", get_pgm_file(), sl);
+      printf("terminated at %s:%d\n", fn, sl);
    else
-      printf("terminated at %s:%d-%d\n", get_pgm_file(), sl, el);
+      printf("terminated at %s:%d-%d\n", fn, sl, el);
    if (callStack && callStack->size()) {
       printe("call stack:\n");
       for (unsigned i = 0; i < callStack->size(); i++) {

@@ -42,11 +42,12 @@ DLLLOCAL AbstractQoreNode *class_noop(QoreObject *self, AbstractPrivateData *ptr
 class LocalVar;
 class VarRefNode;
 class BCAList;
+class QoreTreeNode;
 
 class AbstractFunctionSignature {
 protected:
-   // number of parameters that have type information
-   unsigned short num_param_types;
+   unsigned short num_param_types,    // number of parameters that have type information
+      min_param_types;                // minimum number of parameters with type info (without default args)
 
    const QoreTypeInfo *returnTypeInfo;
    type_vec_t typeList;
@@ -56,11 +57,15 @@ protected:
    std::string str;
 
 public:
-   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo *n_returnTypeInfo = 0) : num_param_types(0), returnTypeInfo(n_returnTypeInfo) {
+   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo *n_returnTypeInfo = 0) : num_param_types(0), min_param_types(0), returnTypeInfo(n_returnTypeInfo) {
    }
-   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) : num_param_types(0), returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList) {
+   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) : num_param_types(0), min_param_types(0), returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList) {
    }
    DLLLOCAL virtual ~AbstractFunctionSignature() {
+      // delete all default argument expressions
+      for (arg_vec_t::iterator i = defaultArgList.begin(), e = defaultArgList.end(); i != e; ++i)
+         if (*i)
+            (*i)->deref(0);
    }
    // called at parse time to include optional type resolution
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const = 0;
@@ -71,11 +76,15 @@ public:
    DLLLOCAL const arg_vec_t &getDefaultArgList() const {
       return defaultArgList;
    }
+   
+   DLLLOCAL AbstractQoreNode *evalDefaultArg(unsigned i, ExceptionSink *xsink) const {
+      assert(i < defaultArgList.size());
+      return defaultArgList[i] ? defaultArgList[i]->eval(xsink) : 0;
+   }
 
    DLLLOCAL const char *getSignatureText() const {
       return str.c_str();
    }
-
    DLLLOCAL unsigned numParams() const {
       return typeList.size();
    }
@@ -83,8 +92,14 @@ public:
    DLLLOCAL unsigned getParamTypes() const {
       return num_param_types;
    }
+   DLLLOCAL unsigned getMinParamTypes() const {
+      return min_param_types;
+   }
    DLLLOCAL const QoreTypeInfo *getParamTypeInfo(unsigned num) const {
       return num >= typeList.size() ? 0 : typeList[num];
+   }
+   DLLLOCAL bool hasDefaultArg(unsigned i) const {
+      return i >= defaultArgList.size() || !defaultArgList[i] ? false : true;
    }
 };
 
@@ -123,7 +138,8 @@ protected:
    int first_line, last_line;
    const char *parse_file;
 
-   DLLLOCAL void pushParam(VarRefNode *v, bool needs_types);
+   DLLLOCAL void pushParam(QoreTreeNode *t, bool needs_types);
+   DLLLOCAL void pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool needs_types);
 
    DLLLOCAL static void param_error() {
       parse_error("parameter list contains non-variable reference expressions");
@@ -163,28 +179,7 @@ public:
    }
       
    // resolves all parse types to the final types
-   DLLLOCAL void resolve() {
-      if (resolved)
-	 return;
-      
-      resolved = true;
-
-      if (!returnTypeInfo) {
-         returnTypeInfo = parseReturnTypeInfo->resolveAndDelete();
-         parseReturnTypeInfo = 0;
-      }
-#ifdef DEBUG
-      else assert(!parseReturnTypeInfo);
-#endif
-
-      for (unsigned i = 0; i < parseTypeList.size(); ++i) {
-         if (parseTypeList[i]) {
-            assert(!typeList[i]);
-            typeList[i] = parseTypeList[i]->resolveAndDelete();
-         }
-      }
-      parseTypeList.clear();
-   }
+   DLLLOCAL void resolve();
 
    // called at parse time to ensure types are resolved
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
@@ -347,8 +342,8 @@ protected:
 public:
    // saves current program location in case there's an exception
    DLLLOCAL CodeEvaluationHelper(ExceptionSink *n_xsink, const char *n_name, const QoreListNode *args = 0, const char *n_class_name = 0, qore_call_t n_ct = CT_UNUSED)
-      : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), o_fn(get_pgm_file()), tmp(n_xsink) {
-      get_pgm_counter(o_ln, o_eln);
+      : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), tmp(n_xsink) {
+      o_fn = get_pgm_counter(o_ln, o_eln);
       tmp.assignEval(args);
       // reset program position if arguments were evaluated
       if (tmp.needsDeref())

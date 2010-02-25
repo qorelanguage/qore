@@ -169,7 +169,7 @@ public:
       discard(evalIntern(uveh.getArgv(), self, xsink, thisclass.getName()), xsink);
    }
 
-   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl);
+   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
 };
 
 #define UCONV(f) (reinterpret_cast<UserConstructorVariant *>(f))
@@ -462,7 +462,7 @@ public:
 // abstract class for constructor method functions
 class ConstructorMethodFunction : public MethodFunctionBase {
 public:
-   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl);
+   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
    DLLLOCAL virtual const char *getName() const {
       return "constructor";
    }

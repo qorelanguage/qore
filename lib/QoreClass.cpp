@@ -635,7 +635,7 @@ struct qore_method_private {
       //printd(0, "qore_method_private::parseInit() this=%p %s::%s() func=%p\n", this, parent_class->getName(), func->getName(), func);
 
       if (!strcmp(func->getName(), "constructor"))
-	 CONMF(func)->parseInitConstructor(*parent_class, parent_class->priv->selfid, parent_class->priv->scl);
+	 CONMF(func)->parseInitConstructor(*parent_class, parent_class->priv->scl);
       else if (!strcmp(func->getName(), "destructor"))
 	 DESMF(func)->parseInitDestructor(*parent_class);
       else if (!strcmp(func->getName(), "copy"))
@@ -2109,8 +2109,11 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
    if (!m) {
       is_new = true;
       MethodFunctionBase *mfb;
-      if (con)
+      if (con) {
 	 mfb = new ConstructorMethodFunction;
+	 // set selfid immediately if adding a cosntructor variant
+	 reinterpret_cast<UserConstructorVariant *>(f)->getUserSignature()->setSelfId(&selfid);
+      }
       else if (dst)
 	 mfb = new DestructorMethodFunction;
       else if (cpy)
@@ -2472,10 +2475,10 @@ void MethodFunction::parseInitMethod(const QoreClass &parent_class, bool static_
    }
 }
 
-void ConstructorMethodFunction::parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl) {
+void ConstructorMethodFunction::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       UserConstructorVariant *v = UCONV(*i);
-      v->parseInitConstructor(parent_class, selfid, bcl);
+      v->parseInitConstructor(parent_class, bcl);
 
       // recheck types against committed types if necessary
       if (v->getRecheck())
@@ -2532,7 +2535,7 @@ UserConstructorVariant::~UserConstructorVariant() {
    delete bcal;
 }
 
-void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class, LocalVar &selfid, BCList *bcl) {
+void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
    signature.resolve();
    assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
 
@@ -2545,7 +2548,6 @@ void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class,
       bcal = 0;
    }
 
-   getUserSignature()->setSelfId(&selfid);
    //printd(5, "UserConstructorVariant::parseInitConstructor() this=%p %s::constructor() params=%d\n", this, parent_class.getName(), signature.numParams());
    // must be called even if statements is NULL
    statements->parseInitConstructor(parent_class.getTypeInfo(), &signature, bcal, bcl);

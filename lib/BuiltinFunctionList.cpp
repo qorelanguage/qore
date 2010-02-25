@@ -59,11 +59,7 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
    for (unsigned i = 0; i < num_params; ++i) {
       typeList.push_back(va_arg(args, const QoreTypeInfo *));
       defaultArgList.push_back(va_arg(args, AbstractQoreNode *));
-
       //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
-
-      // DEBUG: for now we cannot accept default argument values
-      assert(!defaultArgList[i]);
    }
 }
 

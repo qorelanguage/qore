@@ -79,9 +79,8 @@ void ExceptionSink::addStackInfo(int type, const char *class_name, const char *c
 void ExceptionSink::addStackInfo(int type, const char *class_name, const char *code) {
    assert(priv->head);
 
-   const char *file = get_pgm_file();
    int start_line, end_line;
-   get_pgm_counter(start_line, end_line);
+   const char *file = get_pgm_counter(start_line, end_line);
    QoreHashNode *n = QoreException::getStackHash(type, class_name, code, file, start_line, end_line);
 
    QoreException *w = priv->head;
@@ -97,7 +96,7 @@ void ExceptionSink::addStackInfo(int type, const char *class_name, const char *c
 // ExceptionSink xsink;
 // if (xsink) { .. }
 ExceptionSink::operator bool () const {
-   return priv->head || priv->thread_exit;
+   return this && (priv->head || priv->thread_exit);
 }
 
 void ExceptionSink::overrideLocation(int sline, int eline, const char *file) {
@@ -236,8 +235,7 @@ void ExceptionSink::outOfMemory() {
    if (!ex)
       return;
    // set line and file in exception
-   get_pgm_counter(ex->start_line, ex->end_line);
-   const char *f = get_pgm_file();
+   const char *f = get_pgm_counter(ex->start_line, ex->end_line);
    ex->file = f ? strdup(f) : 0;
    // there is no callstack in an out-of-memory exception
    // add exception to list

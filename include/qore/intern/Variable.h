@@ -192,6 +192,17 @@ public:
    DLLLOCAL bool hasTypeInfo() const {
       return parseTypeInfo || typeInfo;
    }
+
+   // only called with a new object decarlation expression (ie our <class> $x())
+   DLLLOCAL const char *getClassName() const {
+      if (typeInfo) {
+         assert(typeInfo->qc);
+         return typeInfo->qc->getName();
+      }
+      assert(parseTypeInfo);
+      assert(parseTypeInfo->cscope);
+      return parseTypeInfo->cscope->getIdentifier();
+   }
 };
 
 DLLLOCAL AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink);
@@ -218,6 +229,9 @@ public:
       v = get_var_value_ptr(exp, &vl, typeInfo, xsink);
    }
    DLLLOCAL operator bool() const { return v != 0; }
+   DLLLOCAL const QoreTypeInfo *get_type_info() const {
+      return typeInfo;
+   }
    DLLLOCAL const qore_type_t get_type() const { return *v ? (*v)->getType() : NT_NOTHING; }
    DLLLOCAL bool check_type(const qore_type_t t) const {
       if (!(*v))

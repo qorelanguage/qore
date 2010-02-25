@@ -36,8 +36,7 @@ QoreException::QoreException() {
 QoreException::QoreException(const char *e, QoreStringNode *d) {
    //printd(5, "QoreException::QoreException() this=%08p\n", this);
    type = ET_SYSTEM;
-   get_pgm_counter(start_line, end_line);
-   const char *f = get_pgm_file();
+   const char *f = get_pgm_counter(start_line, end_line);
    file = f ? strdup(f) : 0;
    callStack = new QoreListNode();
 
@@ -130,8 +129,7 @@ void QoreException::del(ExceptionSink *xsink) {
 
 QoreException::QoreException(const QoreListNode *l) {
    type = ET_USER;
-   get_pgm_counter(start_line, end_line);   
-   const char *f = get_pgm_file();
+   const char *f = get_pgm_counter(start_line, end_line);
    file = f ? strdup(f) : 0;
    callStack = new QoreListNode();
    next = 0;
@@ -170,8 +168,8 @@ QoreException::QoreException(class QoreException *old, ExceptionSink *xsink) {
       fn = "<unknown>";
    
    int sline, eline;
-   get_pgm_counter(sline, eline);
-   QoreHashNode *h = getStackHash(CT_RETHROW, 0, fn, get_pgm_file(), sline, eline);
+   const char *cf = get_pgm_counter(sline, eline);
+   QoreHashNode *h = getStackHash(CT_RETHROW, 0, fn, cf, sline, eline);
    l->insert(h);
 
    next = old->next ? new QoreException(old->next, xsink) : 0;

@@ -3,6 +3,10 @@
 	   variable declaration like: my Mutex $m()
 	 * applied support for C++-like constructor syntax with new object
 	   member declarations (i.e. private { Mutex $.m(); } )
+	 * implemented default argument values in user signatures
+         * changed precedence of comma (',') operator to be more sane (long 
+	   overdue); applied workarounds to parser to maintain some backwards-
+	   compatibility with the old broken precedence at the statement level
 
 2010.02.24: David Nichols
 	 * hard typing fixes, do not throw parse type exceptions when

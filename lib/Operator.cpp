@@ -530,7 +530,8 @@ static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const Abst
       return 0;
 
    // assign new value to lvalue (no exception possible here)
-   v.assign(nv);
+   if (v.assign(nv))
+      return 0;
 
    // reference for return value if necessary
    return ref_rv ? nv->refSelf() : 0;
@@ -557,7 +558,8 @@ static AbstractQoreNode *op_transliterate(const AbstractQoreNode *left, const Ab
       return 0;
 
    // assign new value to lvalue (no exception possible here)
-   v.assign(nv);
+   if (v.assign(nv))
+      return 0;
 
    // reference for return value
    return ref_rv ? nv->refSelf() : 0;
@@ -752,6 +754,26 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
    // if necessary
    // do list plus-equals if left-hand side is a list
    qore_type_t vtype = v.get_type();
+
+   if (vtype == NT_NOTHING) {
+      // see if the lvalue has a default type
+      const QoreTypeInfo *typeInfo = v.get_type_info();
+      if (typeInfo->hasDefaultValue()) {
+	 if (v.assign(typeInfo->getDefaultValue()))
+	    return 0;
+	 vtype = v.get_type();
+      }
+      else if (new_right) {
+	 // assign rhs to lhs (take reference for assignment)
+	 if (v.assign(new_right.getReferencedValue()))
+	    return 0;
+
+	 // v has been assigned to a value by this point
+	 // reference return value
+	 return ref_rv ? v.get_value()->refSelf() : 0;
+      }
+   }
+
    if (vtype == NT_LIST) {
       v.ensure_unique(); // no exception possible here
       QoreListNode *l = reinterpret_cast<QoreListNode *>(v.get_value());
@@ -810,12 +832,6 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
 	 v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->add(*date));
       }
    }
-   else if (vtype == NT_NOTHING) {
-      if (new_right) {
-	 // assign rhs to lhs (take reference for assignment)
-	 v.assign(new_right.getReferencedValue());
-      }
-   }
    else if (vtype == NT_BINARY) {
       if (new_right) {
 	 v.ensure_unique();
@@ -842,6 +858,8 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
       // increment current value
       i->val += iv;
    }
+   if (*xsink)
+      return 0;
 
    // v has been assigned to a value by this point
    // reference return value
@@ -868,6 +886,35 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
 
    // do float minus-equals if left side is a float
    qore_type_t vtype = v.get_type();
+
+   if (vtype == NT_NOTHING) {
+      // see if the lvalue has a default type
+      const QoreTypeInfo *typeInfo = v.get_type_info();
+      if (typeInfo->hasDefaultValue()) {
+	 if (v.assign(typeInfo->getDefaultValue()))
+	    return 0;
+	 vtype = v.get_type();
+      }
+      else if (new_right) {
+	 if (new_right->getType() == NT_FLOAT) {
+	    const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
+	    v.assign(new QoreFloatNode(-f->f));
+	 }
+	 else {
+	    // optimization to eliminate a virtual function call in the most common case
+	    int64 i = new_right->getAsBigInt();
+	    v.assign(new QoreBigIntNode(-i));
+	 }
+
+	 if (*xsink)
+	    return 0;
+
+	 // v has been assigned to a value by this point
+	 // reference return value
+	 return ref_rv ? v.get_value()->refSelf() : 0;
+      }
+   }
+
    if (vtype == NT_FLOAT) {
       double f = new_right->getAsFloat();
 
@@ -926,17 +973,6 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
 	 }
       }
    }
-   else if (vtype == NT_NOTHING) {
-      if (new_right->getType() == NT_FLOAT) {
-	 const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
-	 v.assign(new QoreFloatNode(-f->f));
-      }
-      else {
-	 // optimization to eliminate a virtual function call in the most common case
-	 int64 i = new_right->getAsBigInt();
-	 v.assign(new QoreBigIntNode(-i));
-      }
-   }
    else { // do integer minus-equals
       int64 iv = new_right->getAsBigInt();
       
@@ -949,9 +985,10 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
       i->val -= iv;
    }
 
+   if (*xsink)
+      return 0;
+
    // here we know that v has a value
-
-
    // reference return value and return
    return ref_rv ? v.get_value()->refSelf() : 0;
 }
@@ -971,7 +1008,8 @@ static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const Abstr
    // get new value if necessary
    if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode();
-      v.assign(b);
+      if (v.assign(b))
+	 return 0;
    }
    else {
       if (v.ensure_unique_int())
@@ -1000,7 +1038,8 @@ static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const Abstra
    // get new value if necessary
    if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode(0);
-      v.assign(b);
+      if (v.assign(b))
+	 return 0;
    }
    else {
       if (v.ensure_unique_int())
@@ -1029,7 +1068,8 @@ static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const Ab
    // get new value if necessary
    if (v.get_type() == NT_NOTHING) {
       b = new QoreBigIntNode(0);
-      v.assign(b);
+      if (v.assign(b))
+	 return 0;
    }
    else {
       if (v.ensure_unique_int())
@@ -1066,13 +1106,16 @@ static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const 
 	 vf->f *= f;
       }
       else { // if factor is NOTHING, assign 0.0
-	 v.assign(new QoreFloatNode(0.0));
+	 if (v.assign(new QoreFloatNode(0.0)))
+	    return 0;
       }
    }
    else {
       if (res && res->getType() == NT_FLOAT) {
-	 if (v.get_type() == NT_NOTHING)
-	    v.assign(new QoreFloatNode(0.0));
+	 if (v.get_type() == NT_NOTHING) {
+	    if (v.assign(new QoreFloatNode(0.0)))
+	       return 0;
+	 }
 	 else {
 	    if (v.ensure_unique_float())
 	       return 0;
@@ -1084,8 +1127,10 @@ static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const 
       }
       else { // do integer multiply equals
 	 // get new value if necessary
-	 if (v.get_type() == NT_NOTHING)
-	    v.assign(new QoreBigIntNode());
+	 if (v.get_type() == NT_NOTHING) {
+	    if (v.assign(new QoreBigIntNode()))
+	       return 0;
+	 }
 	 else {
 	    if (res) {
 	       if (v.ensure_unique_int())
@@ -1097,7 +1142,8 @@ static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const 
 	       b->val *= res->getAsBigInt();
 	    }
 	    else { // if factor is NOTHING, assign 0
-	       v.assign(new QoreBigIntNode());
+	       if (v.assign(new QoreBigIntNode()))
+		  return 0;
 	    }
 	 }
       }
@@ -1126,8 +1172,10 @@ static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const Ab
 	 return 0;
       }
 
-      if (v.get_type() == NT_NOTHING)
-	 v.assign(new QoreFloatNode());
+      if (v.get_type() == NT_NOTHING) {
+	 if (v.assign(new QoreFloatNode))
+	    return 0;
+      }
       else {
 	 if (v.ensure_unique_float())
 	    return 0;
@@ -1155,8 +1203,10 @@ static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const Ab
 	 return 0;
       }
       // get new value if necessary
-      if (v.get_type() == NT_NOTHING)
-	 v.assign(new QoreBigIntNode());
+      if (v.get_type() == NT_NOTHING) {
+	 if (v.assign(new QoreBigIntNode))
+	    return 0;
+      }
       else {
 	 if (v.ensure_unique_int())
 	    return 0;
@@ -1187,8 +1237,9 @@ static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const Abstr
 
    // get new value if necessary
    if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode(0);
-      v.assign(b);
+      b = new QoreBigIntNode;
+      if (v.assign(b))
+	 return 0;
    }
    else {
       if (v.ensure_unique_int())
@@ -1217,8 +1268,9 @@ static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, cons
    QoreBigIntNode *b;
    // get new value if necessary
    if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode(0);
-      v.assign(b);
+      b = new QoreBigIntNode;
+      if (v.assign(b))
+	 return 0;
    }
    else {
       if (v.ensure_unique_int())
@@ -1249,8 +1301,9 @@ static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, con
    QoreBigIntNode *b;
    // get new value if necessary
    if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode();
-      v.assign(b);
+      b = new QoreBigIntNode;
+      if (v.assign(b))
+	 return 0;
    }
    else {
       if (v.ensure_unique_int())
@@ -1409,7 +1462,8 @@ static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, 
 
    // acquire new value
    QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(rv) ? rv->getAsBigInt() : 0);
-   n.assign(b);
+   if (n.assign(b))
+      return 0;
 
    // increment value
    b->val++;
@@ -1430,7 +1484,8 @@ static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, 
 
    // acquire new value
    QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(rv) ? rv->getAsBigInt() : 0);
-   n.assign(b);
+   if (n.assign(b))
+      return 0;
 
    // decrement value
    b->val--;
@@ -1449,8 +1504,9 @@ static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, E
    QoreBigIntNode *b;
    // acquire new value if necessary
    if (n.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode(0);
-      n.assign(b);
+      b = new QoreBigIntNode;
+      if (n.assign(b))
+	 return 0;
    }
    else {
       if (n.ensure_unique_int())
@@ -1476,8 +1532,9 @@ static AbstractQoreNode *op_pre_dec(const AbstractQoreNode *left, bool ref_rv, E
    QoreBigIntNode *b;
    // acquire new value if necessary
    if (n.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode(0);
-      n.assign(b);
+      b = new QoreBigIntNode;
+      if (n.assign(b))
+	 return 0;
    }
    else {
       if (n.ensure_unique_int())

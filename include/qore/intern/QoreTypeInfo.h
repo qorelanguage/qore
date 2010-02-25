@@ -43,11 +43,9 @@ protected:
    DLLLOCAL virtual const char *getNameImpl() const = 0;
    DLLLOCAL virtual void concatNameImpl(std::string &str) const = 0;
 
-   DLLLOCAL void concatClass(std::string &str, const char *cn, bool unresolved = false) const {
+   DLLLOCAL void concatClass(std::string &str, const char *cn) const {
       str.append("<class: ");
       str.append(cn);
-      if (unresolved)
-	 str.append(" (unresolved)");
       str.push_back('>');
    }
 
@@ -78,7 +76,7 @@ public:
       return concatNameImpl(str);
    }
    DLLLOCAL bool hasDefaultValue() const {
-      return builtinTypeHasDefaultValue(qt);
+      return this ? builtinTypeHasDefaultValue(qt) : false;
    }
    DLLLOCAL AbstractQoreNode *getDefaultValue() const {
       if (!this)
@@ -322,8 +320,9 @@ protected:
 
    DLLLOCAL virtual void concatNameImpl(std::string &str) const {
       if (cscope)
-	 concatClass(str, cscope->getIdentifier(), true);
-      QoreTypeInfo::concatNameImpl(str);
+	 concatClass(str, cscope->getIdentifier());
+      else
+         QoreTypeInfo::concatNameImpl(str);
    }
 
    DLLLOCAL QoreParseTypeInfo(const NamedScope *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(n_cscope->copy()) {

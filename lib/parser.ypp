@@ -173,15 +173,15 @@ public:
 #define NSN_NS    3
 
 struct NSNode {
-      int type;
-      union {
-	    class ObjClassDef *ocd;
-	    class ConstNode  *cn;
-	    class QoreNamespace  *ns;
-      } n;
-      DLLLOCAL NSNode(class ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
-      DLLLOCAL NSNode(class ConstNode  *c) { type = NSN_CONST; n.cn = c; }
-      DLLLOCAL NSNode(class QoreNamespace  *s) { type = NSN_NS; n.ns = s; }
+   int type;
+   union {
+      class ObjClassDef *ocd;
+      class ConstNode  *cn;
+      class QoreNamespace  *ns;
+   } n;
+   DLLLOCAL NSNode(class ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
+   DLLLOCAL NSNode(class ConstNode  *c) { type = NSN_CONST; n.cn = c; }
+   DLLLOCAL NSNode(class QoreNamespace  *s) { type = NSN_NS; n.ns = s; }
 };
 
 static void addNSNode(class QoreNamespace *ns, struct NSNode *n) {
@@ -245,50 +245,50 @@ struct MemberInfo {
 };
 
 class MemberList : private member_map_t {
-   public:
-      DLLLOCAL MemberList(MemberInfo *member) {
-	 insert(member->getPair());
-	 delete member;
+public:
+   DLLLOCAL MemberList(MemberInfo *member) {
+      insert(member->getPair());
+      delete member;
+   }
+
+   DLLLOCAL ~MemberList() {
+      member_map_t::iterator i;
+      while ((i = begin()) != end()) {
+	 char *name = i->first;
+	 delete i->second;
+	 erase(i);
+	 free(name);
+      }
+   }
+
+   // takes over ownership of name and typeInfo
+   DLLLOCAL int add(MemberInfo *member) {
+      std::auto_ptr<MemberInfo> mem(member);
+      if (find(member->name) != end()) {
+	 parse_error("duplicate member declaration '%s'", member->name);
+	 return -1;
       }
 
-      DLLLOCAL ~MemberList() {
-	 member_map_t::iterator i;
-	 while ((i = begin()) != end()) {
-	    char *name = i->first;
-	    delete i->second;
-	    erase(i);
-	    free(name);
-	 }
-      }
+      // add new member to list
+      insert(member->getPair());
+      return 0;
+   }
 
-      // takes over ownership of name and typeInfo
-      DLLLOCAL int add(MemberInfo *member) {
-	 std::auto_ptr<MemberInfo> mem(member);
-	 if (find(member->name) != end()) {
-	    parse_error("duplicate member declaration '%s'", member->name);
-	    return -1;
-	 }
-
-	 // add new member to list
-	 insert(member->getPair());
-	 return 0;
+   DLLLOCAL void mergePrivateMembers(QoreClass *qc) {
+      member_map_t::iterator i;
+      while ((i = begin()) != end()) {
+	 qc->parseAddPrivateMember(i->first, i->second);
+	 erase(i);
       }
+   }
 
-      DLLLOCAL void mergePrivateMembers(QoreClass *qc) {
-	 member_map_t::iterator i;
-	 while ((i = begin()) != end()) {
-	    qc->parseAddPrivateMember(i->first, i->second);
-	    erase(i);
-	 }
+   DLLLOCAL void mergePublicMembers(QoreClass *qc) {
+      member_map_t::iterator i;
+      while ((i = begin()) != end()) {
+	 qc->parseAddPublicMember(i->first, i->second);
+	 erase(i);
       }
-
-      DLLLOCAL void mergePublicMembers(QoreClass *qc) {
-	 member_map_t::iterator i;
-	 while ((i = begin()) != end()) {
-	    qc->parseAddPublicMember(i->first, i->second);
-	    erase(i);
-	 }
-      }
+   }
 };
 
 static inline void addConstant(NamedScope *name, AbstractQoreNode *value) {
@@ -530,6 +530,34 @@ public:
    }
 };
 
+static bool is_rewritable_op(Operator *op) {
+   return op == OP_ASSIGNMENT || op == OP_PLUS_EQUALS || op == OP_MINUS_EQUALS;
+}
+
+static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
+   AbstractQoreNode *e0 = l->retrieve_entry(0);
+   // rewrite expression if it's a list without parentheses and
+   // the first expression has one of the following operators:
+   // =, +=, -=
+   if (!l->isFinalized() && e0 && e0->getType() == NT_TREE) {
+      QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(e0);
+      QoreTreeNode *top = t;
+      if (is_rewritable_op(t->op)) {
+	 //printd(5, "checkRewriteList() rewriting list l=%p finalized=%d size=%d\n", l, l->isFinalized(), l->size());
+	 while (t->right && t->right->getType() == NT_TREE
+		&& is_rewritable_op(reinterpret_cast<QoreTreeNode *>(t->right)->op)) {
+	    t = reinterpret_cast<QoreTreeNode *>(t->right);
+	 }
+	 // take first element from list (the tree) and make it the new expression
+
+	 l->swap(0, t->right);
+	 t->right = l;
+	 return top;
+      }
+   }
+   return l;
+}
+
 %}
 
 %pure-parser
@@ -715,10 +743,10 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %nonassoc TOK_ELSE
 
 // FIXME: check precedence
-%right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS
-%right '='
 %nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_MAP TOK_FOLDR TOK_FOLDL TOK_SELECT
 %left ','
+%right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS
+%right '='
 %right '?' ':'
 %left LOGICAL_AND LOGICAL_OR
 %left '&' '|' '^'	      // binary and, or, and xor
@@ -958,6 +986,13 @@ statement:
 	exp ';' {
 	   // if the expression has no effect and it's not a variable declaration
 	   qore_type_t t = $1 ? $1->getType() : 0;
+	   if (t == NT_LIST) {
+	      QoreListNode *l = reinterpret_cast<QoreListNode *>($1);
+	      // rewrite expression if it's a list without perentheses under certail
+	      // conditions
+	      $1 = checkRewriteList(l);
+	   }
+
 	   if (!hasEffect($1)
 	       && (t != NT_VARREF)
 	       && (t != NT_LIST || !reinterpret_cast<QoreListNode *>($1)->isVariableList()))

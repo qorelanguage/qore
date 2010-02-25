@@ -1041,3 +1041,11 @@ QoreListNode *QoreListNode::parseInitList(LocalVar *oflag, int pflag, int &lvids
 AbstractQoreNode *QoreListNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    return parseInitList(oflag, pflag, lvids, typeInfo);
 }
+
+AbstractQoreNode *QoreListNode::swap(qore_offset_t offset, AbstractQoreNode *val) {
+   AbstractQoreNode **ptr = get_entry_ptr(offset);
+   AbstractQoreNode *rv = *ptr;
+   *ptr = val;
+   return rv;
+}
+

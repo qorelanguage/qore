@@ -121,6 +121,7 @@ void AbstractQoreNode::deref(ExceptionSink *xsink) {
 AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const {
    if (!needs_eval_flag)
       return refSelf();
+   QoreProgramLocationHelper qplh;
    return evalImpl(xsink);
 }
 
@@ -131,6 +132,7 @@ AbstractQoreNode *AbstractQoreNode::eval(bool &needs_deref, ExceptionSink *xsink
       return const_cast<AbstractQoreNode *>(this);
    }
 
+   QoreProgramLocationHelper qplh;
    return evalImpl(needs_deref, xsink);
 }
 

@@ -81,7 +81,7 @@ DLLLOCAL void beginParsing(char *file, void *ps = NULL);
 DLLLOCAL void *endParsing();
 DLLLOCAL Context *get_context_stack();
 DLLLOCAL void update_context_stack(Context *cstack);
-DLLLOCAL void get_pgm_counter(int &start_line, int &end_line);
+DLLLOCAL const char *get_pgm_counter(int &start_line, int &end_line);
 DLLLOCAL const char *get_pgm_file();
 DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f);
 DLLLOCAL void get_parse_location(int &start_line, int &end_line);
@@ -121,6 +121,19 @@ DLLLOCAL QoreListNode *getCallStackList();
 #endif
 #define popCall(x)
 #endif
+
+class QoreProgramLocationHelper {
+protected:
+   int start_line, end_line;
+   const char *file;
+public:
+   DLLLOCAL QoreProgramLocationHelper() {
+      file = get_pgm_counter(start_line, end_line);
+   }
+   DLLLOCAL ~QoreProgramLocationHelper() {
+      update_pgm_counter_pgm_file(start_line, end_line, file);
+   }
+};
 
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();

@@ -82,7 +82,7 @@ class ExceptionSink {
 	  @param fmt the format string for the description for the exception
 	  @return always returns 0
        */
-      DLLEXPORT class AbstractQoreNode *raiseException(const char *err, const char *fmt, ...);
+      DLLEXPORT AbstractQoreNode *raiseException(const char *err, const char *fmt, ...);
 
       //! appends a Qore-language exception to the list, and sets the 'arg' member (this object takes over the reference count of 'arg')
       /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
@@ -114,7 +114,7 @@ class ExceptionSink {
       DLLEXPORT void clear();
 
       DLLLOCAL void raiseException(QoreException *e);
-      DLLLOCAL void raiseException(const class QoreListNode *n);
+      DLLLOCAL void raiseException(const QoreListNode *n);
       DLLLOCAL QoreException *catchException();
       DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
       DLLLOCAL void rethrow(QoreException *old);
@@ -126,18 +126,15 @@ class ExceptionSink {
 };
 
 
-static inline void alreadyDeleted(ExceptionSink *xsink, const char *cmeth)
-{
+static inline void alreadyDeleted(ExceptionSink *xsink, const char *cmeth) {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s() cannot be executed because the object has already been deleted", cmeth);
 }
 
-static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const char *mem, const char *cname)
-{
+static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const char *mem, const char *cname) {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access member '%s' of an already-deleted object of class '%s'", mem, cname);
 }
 
-static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const char *cname)
-{
+static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const char *cname) {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access an already-deleted object of class '%s'", cname);
 }
 

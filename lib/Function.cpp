@@ -32,6 +32,11 @@ static inline void duplicateSignatureException(const char *name, UserVariantBase
    parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared with this signature", name, uvb->getUserSignature()->getSignatureText());
 }
 
+// FIXME: xxx set parse location
+static inline void ambiguousDuplicateSignatureException(const char *name, AbstractQoreFunctionVariant *uvb1, UserVariantBase *uvb2) {
+   parseException("DUPLICATE-SIGNATURE", "%s(%s) matches already declared variant %s(%s)", name, uvb2->getUserSignature()->getSignatureText(), name, uvb1->getSignature()->getSignatureText());
+}
+
 UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, RetTypeInfo *retTypeInfo) : 
    AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0), 
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
@@ -52,7 +57,12 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
    if (params->getType() == NT_VARREF) {
-      pushParam(reinterpret_cast<VarRefNode *>(params), needs_types);
+      pushParam(reinterpret_cast<VarRefNode *>(params), 0, needs_types);
+      return;
+   }
+
+   if (params->getType() == NT_TREE) {
+      pushParam(reinterpret_cast<QoreTreeNode *>(params), needs_types);
       return;
    }
 
@@ -65,24 +75,42 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
 
    parseTypeList.reserve(l->size());
    typeList.reserve(l->size());
+   defaultArgList.reserve(l->size());
+
    ListIterator li(l);
    while (li.next()) {
       AbstractQoreNode *n = li.getValue();
       qore_type_t t = n ? n->getType() : 0;
-      if (t != NT_VARREF) {
+      if (t == NT_TREE)
+	 pushParam(reinterpret_cast<QoreTreeNode *>(n), needs_types);
+      else if (t == NT_VARREF)
+	 pushParam(reinterpret_cast<VarRefNode *>(n), 0, needs_types);
+      else {
 	 if (n)
 	    param_error();
 	 break;
       }
-	 
-      pushParam(reinterpret_cast<VarRefNode *>(n), needs_types);
+
       // add a comma to the signature string if it's not the last parameter
       if (!li.last())
 	 str.append(", ");
    }
 }
 
-void UserSignature::pushParam(VarRefNode *v, bool needs_types) {
+void UserSignature::pushParam(QoreTreeNode *t, bool needs_types) {
+   if (t->op != OP_ASSIGNMENT)
+      parse_error("invalid expression with the '%s' operator in parameter list; only simple assignments to default values are allowed", t->op->getName());
+   else if (t->left && t->left->getType() != NT_VARREF)
+      param_error();
+   else {
+      VarRefNode *v = reinterpret_cast<VarRefNode *>(t->left);
+      AbstractQoreNode *defArg = t->right;
+      t->right = 0;
+      pushParam(v, defArg, needs_types);
+   }
+}
+
+void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool needs_types) {
    // check for duplicate name
    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
       if (*i == v->getName())
@@ -92,7 +120,13 @@ void UserSignature::pushParam(VarRefNode *v, bool needs_types) {
 
    bool is_decl = v->isDecl();
    if (needs_types && !is_decl)
-      parse_error("function parameter '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+      parse_error("parameter '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+
+   // see if this is a new object call
+   if (v->hasEffect()) {
+      // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
+      parse_error("parameter '$%s' may not be declared with new object syntax; instead use: '%s $%s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
+   }
 
    if (is_decl) {
       VarRefDeclNode *vd = reinterpret_cast<VarRefDeclNode *>(v);
@@ -102,12 +136,16 @@ void UserSignature::pushParam(VarRefNode *v, bool needs_types) {
       typeList.push_back(ti);
 
       if (ti == nothingTypeInfo)
-	 parse_error("function parameter '$%s' may not be declared as type 'nothing'", v->getName());
+	 parse_error("parameter '$%s' may not be declared as type 'nothing'", v->getName());
 
       assert(!(pti && ti));
 
-      if (pti->hasType() || ti->hasType())
+      if (pti->hasType() || ti->hasType()) {
 	 ++num_param_types;
+	 // only increment min_param_types if there is no default argument
+	 if (!defArg)
+	    ++min_param_types;
+      }
 
       // add type name to signature
       if (pti)
@@ -120,6 +158,9 @@ void UserSignature::pushParam(VarRefNode *v, bool needs_types) {
       typeList.push_back(0);
       reinterpret_cast<QoreParseTypeInfo *>(0)->concatName(str);
    }
+   defaultArgList.push_back(defArg);
+   if (defArg)
+      str.append(" = <exp>");
 
    if (v->getType() == VT_LOCAL)
       parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
@@ -136,8 +177,7 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
       selfid = push_local_var("self", classTypeInfo, false);
    
    // push $argv var on stack and save id
-   // FIXME: push as list if hard typing enforced with parse options
-   argvid = push_local_var("argv", 0, false);
+   argvid = push_local_var("argv", listTypeInfo, false);
    printd(5, "UserSignature::parseInitPushLocalVars() this=%p argvid=%p\n", this, argvid);
 
    resolve();
@@ -159,6 +199,52 @@ void UserSignature::parseInitPopLocalVars() {
    // pop $self off stack if present
    if (selfid)
       pop_local_var();
+}
+
+void UserSignature::resolve() {
+   if (resolved)
+      return;
+      
+   resolved = true;
+
+   if (!returnTypeInfo) {
+      returnTypeInfo = parseReturnTypeInfo->resolveAndDelete();
+      parseReturnTypeInfo = 0;
+   }
+#ifdef DEBUG
+   else assert(!parseReturnTypeInfo);
+#endif
+
+   for (unsigned i = 0; i < parseTypeList.size(); ++i) {
+      if (parseTypeList[i]) {
+	 assert(!typeList[i]);
+	 typeList[i] = parseTypeList[i]->resolveAndDelete();
+      }
+
+      // initialize default arguments
+      if (defaultArgList[i]) {
+	 int lvids = 0;
+	 const QoreTypeInfo *argTypeInfo = 0;
+	 defaultArgList[i] = defaultArgList[i]->parseInit(selfid, 0, lvids, argTypeInfo);
+	 if (lvids) {
+	    // FIXME: set parse position?
+	    parse_error("illegal local variable declaration in default value expression in parameter '$%s'", names[i].c_str());
+	    while (lvids--)
+	       pop_local_var();
+	 }
+	 // check type compatibility
+	 if (typeList[i]->parseEqual(argTypeInfo) == QTI_NOT_EQUAL) {
+	    QoreStringNode *desc = new QoreStringNode;
+	    desc->sprintf("parameter '$%s' expects ", names[i].c_str());
+	    typeList[i]->getThisType(*desc);
+	    desc->concat(", but the default value is ");
+	    argTypeInfo->getThisType(*desc);
+	    desc->concat(" instead");
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 }
+      }
+   }
+   parseTypeList.clear();
 }
 
 bool AbstractQoreFunction::existsVariant(const type_vec_t &paramTypeInfo) const {
@@ -220,6 +306,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 continue;
       }
 
+      const arg_vec_t &defaultArgList = sig->getDefaultArgList();
+
       //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d)\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0);
 
       // skip variants with signatures with fewer possible elements than the best match already
@@ -229,10 +317,15 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const AbstractQoreNode *n = args ? args->retrieve_entry(pi) : 0;
-	    int rc = t->testTypeCompatibility(n);
-	    if (rc == QTI_NOT_EQUAL) {
-	       ok = false;
-	       break;
+	    int rc;
+	    if (is_nothing(n) && defaultArgList[pi])
+	       rc = QTI_IDENT;
+	    else {
+	       rc = t->testTypeCompatibility(n);
+	       if (rc == QTI_NOT_EQUAL) {
+		  ok = false;
+		  break;
+	       }
 	    }
 
 	    // only increment for actual type matches (t may be NULL)
@@ -317,22 +410,31 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 unsigned count = 0;
 	 bool ok = true;
 	 bool variant_missing_types = false;
+
+	 const arg_vec_t &defaultArgList = sig->getDefaultArgList();
+
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 
 	    //printd(0, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
-
-	    if (t->hasType() && !a) {
-	       if (pi < num_args) {
-		  variant_missing_types = true;
-		  ++variant_longest_pmatch;
-		  continue;
+	
+	    int rc = -1;
+	    if (t->hasType() && !a->hasType()) {
+	       if (defaultArgList[pi])
+		  rc = QTI_IDENT;
+	       else {
+		  if (pi < num_args) {
+		     variant_missing_types = true;
+		     ++variant_longest_pmatch;
+		     continue;
+		  }
+		  a = nothingTypeInfo;
 	       }
-	       a = nothingTypeInfo;
 	    }
 
-	    int rc = t->parseEqual(a);
+	    if (rc == -1)
+	       rc = t->parseEqual(a);
 
 	    if (rc == QTI_NOT_EQUAL) {
 	       ok = false;
@@ -395,19 +497,29 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 unsigned count = 0;
 	 bool ok = true;
 	 bool variant_missing_types = false;
+
+	 const arg_vec_t &defaultArgList = sig->getDefaultArgList();
+
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
-	    if (t->hasType() && !a) {
-	       if (pi < num_args) {
-		  variant_missing_types = true;
-		  ++variant_longest_pmatch;
-		  continue;
+
+	    int rc = -1;
+	    if (t->hasType() && !a->hasType()) {
+	       if (defaultArgList[pi])
+		  rc = QTI_IDENT;
+	       else {
+		  if (pi < num_args) {
+		     variant_missing_types = true;
+		     ++variant_longest_pmatch;
+		     continue;
+		  }
+		  a = nothingTypeInfo;
 	       }
-	       a = nothingTypeInfo;
 	    }
 
-	    int rc = t->parseEqual(a);
+	    if (rc == -1)
+	       rc = t->parseEqual(a);
 
 	    if (rc == QTI_NOT_EQUAL) {
 	       ok = false;
@@ -601,9 +713,13 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	 }
       }
       else {
-	 n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), 0, xsink);
-	 if (!*xsink)
-	    signature.lv[i]->instantiate(n);
+	 // assign default value if available
+	 n = signature.evalDefaultArg(i, xsink);
+	 if (!*xsink) {
+	    n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), n, xsink);
+	    if (!*xsink)
+	       signature.lv[i]->instantiate(n);
+	 }
       }
 
       // the above if block will only instantiate the local variable if no
@@ -701,10 +817,13 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
    // now check already-committed variants
    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       AbstractFunctionSignature *vs = (*i)->getSignature();
+      // get the minimum number of parameters with type information that need to match
+      unsigned mp = vs->getMinParamTypes();
       // get number of parameters with type information
       unsigned tp = vs->getParamTypes();
+
       // shortcut: if the two variants have different numbers of parameters with type information, then they do not match
-      if (vp != tp)
+      if (vp < mp || vp > tp)
 	 continue;
 
       // we have already checked for duplicates with no signature, so we can assume
@@ -712,25 +831,47 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
       assert(tp);
 
       bool dup = true;
+      bool ambiguous = false;
       unsigned max = QORE_MAX(tp, vp);
       for (unsigned pi = 0; pi < max; ++pi) {
+	 const QoreTypeInfo *variantTypeInfo = vs->getParamTypeInfo(pi);
+	 bool variantHasDefaultArg = vs->hasDefaultArg(pi);
+
 	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
-	 if (typeInfo) {
-	    if (!typeInfo->checkIdentical(vs->getParamTypeInfo(pi))) {
-	       dup = false;
-	       break;
-	    }
+	 const QoreParseTypeInfo *parseTypeInfo = sig->getParseParamTypeInfo(pi);
+	 bool thisHasDefaultArg = sig->hasDefaultArg(pi);
+
+	 // check for ambious matches
+	 if (typeInfo->hasType() || parseTypeInfo->hasType()) {
+	    if (!variantTypeInfo->hasType() && thisHasDefaultArg)
+	       ambiguous = true;
+	    else { // check for real matches
+	       if (typeInfo->hasType()) {
+		  if (!typeInfo->checkIdentical(variantTypeInfo)) {
+		     dup = false;
+		     break;
+		  }
+	       }
+	       else if (!parseTypeInfo->checkIdentical(variantTypeInfo)) {
+		  dup = false;
+		  break;
+	       }
+	    }	       
 	 }
 	 else {
-	    // compare the unresolved type with resolved types in committed variants
-	    if (!sig->getParseParamTypeInfo(pi)->checkIdentical(vs->getParamTypeInfo(pi))) {
+	    if (variantTypeInfo->hasType() && variantHasDefaultArg)
+	       ambiguous = true;
+	    else if (!typeInfo->checkIdentical(variantTypeInfo)) {
 	       dup = false;
 	       break;
 	    }
 	 }
       }
       if (dup) {
-	 duplicateSignatureException(getName(), variant);
+	 if (ambiguous)
+	    ambiguousDuplicateSignatureException(getName(), *i, variant);
+	 else
+	    duplicateSignatureException(getName(), variant);
 	 return -1;
       }
    }
@@ -747,11 +888,12 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       UserSignature *vs = reinterpret_cast<UserSignature *>((*i)->getSignature());
       assert(!vs->resolved);
-
+      // get the minimum number of parameters with type information that need to match
+      unsigned mp = vs->getMinParamTypes();
       // get number of parameters with type information
       unsigned tp = vs->getParamTypes();
       // shortcut: if the two variants have different numbers of parameters with type information, then they do not match
-      if (vp != tp)
+      if (vp < mp || vp > tp)
 	 continue;
 
       // the 2 signatures have the same number of parameters with type information
@@ -761,26 +903,85 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
       }
 
       bool dup = true;
+      bool ambiguous = false;
       bool recheck = false;
       unsigned max = QORE_MAX(tp, vp);
       for (unsigned pi = 0; pi < max; ++pi) {
+	 const QoreTypeInfo *variantTypeInfo = vs->getParamTypeInfo(pi);
+	 const QoreParseTypeInfo *variantParseTypeInfo = vs->getParseParamTypeInfo(pi);
+	 bool variantHasDefaultArg = vs->hasDefaultArg(pi);
+
 	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
+	 const QoreParseTypeInfo *parseTypeInfo = sig->getParseParamTypeInfo(pi);
+	 bool thisHasDefaultArg = sig->hasDefaultArg(pi);
+
+	 // check for ambiguous matches
+	 if (typeInfo || parseTypeInfo) {
+	    if (!variantTypeInfo->hasType() && !variantParseTypeInfo->hasType() && thisHasDefaultArg)
+	       ambiguous = true;
+	    else {
+	       // check for real matches
+	       if (typeInfo) {
+		  if (variantTypeInfo) {
+		     if (!typeInfo->checkIdentical(variantTypeInfo)) {
+			dup = false;
+			break;
+		     }
+		  }
+		  else if (!variantParseTypeInfo->parseStageOneIdenticalWithParsed(typeInfo, recheck)) {
+		     dup = false;
+		     break;
+		  }
+	       }
+	       else {
+		  if (variantTypeInfo) {
+		     if (!parseTypeInfo->checkIdentical(variantTypeInfo)) {
+			dup = false;
+			break;
+		     }
+		  }
+		  else if (!parseTypeInfo->parseStageOneIdentical(variantParseTypeInfo)) {
+		     dup = false;
+		     break;
+		  }
+	       }
+	    }	       
+	 }
+	 else {
+	    if ((variantTypeInfo->hasType() || variantParseTypeInfo->hasType()) && variantHasDefaultArg)
+	       ambiguous = true;
+	    else if (variantTypeInfo) {
+	       if (!typeInfo->checkIdentical(variantTypeInfo)) {
+		  dup = false;
+		  break;
+	       }
+	    }
+	    else if (!variantParseTypeInfo->parseStageOneIdenticalWithParsed(typeInfo, recheck)) {
+	       dup = false;
+	       break;
+	    }
+	 }
+/*
 	 if (typeInfo) {
 	    // we reverse the arguments because the test is if they are identical or not
-	    if (!vs->getParseParamTypeInfo(pi)->parseStageOneIdenticalWithParsed(typeInfo, recheck)) {
+	    if (!variantParseTypeInfo->parseStageOneIdenticalWithParsed(typeInfo, recheck)) {
 	       dup = false;
 	       break;
 	    }
 	 }
 	 else {
-	    if (!sig->getParseParamTypeInfo(pi)->parseStageOneIdentical(vs->getParseParamTypeInfo(pi))) {
+	    if (!parseTypeInfo->parseStageOneIdentical(variantParseTypeInfo)) {
 	       dup = false;
 	       break;
 	    }
 	 }
+*/
       }
       if (dup) {
-	 duplicateSignatureException(getName(), variant);
+	 if (ambiguous)
+	    ambiguousDuplicateSignatureException(getName(), *i, variant);
+	 else
+	    duplicateSignatureException(getName(), variant);
 	 return -1;
       }
       if (recheck)
