@@ -30,44 +30,37 @@
 
 #include <qore/Qore.h>
 
-char *NamedScope::getIdentifier() const
-{ 
+char *NamedScope::getIdentifier() const { 
    return strlist[elements - 1]; 
 }
 
-void NamedScope::fixBCCall()
-{
+void NamedScope::fixBCCall() {
    // fix last string pointer
    char *str = strlist[elements - 1];
    memmove(str, str + 2, strlen(str) - 1);
 }
 
-NamedScope::~NamedScope()
-{
+NamedScope::~NamedScope() {
    for (int i = 0; i < elements; i++)
       free(strlist[i]);
    free(strlist);
    free(ostr);
 }
 
-class NamedScope *NamedScope::copy() const
-{
-   return new NamedScope(ostr);
+class NamedScope *NamedScope::copy() const {
+   return new NamedScope(strdup(ostr));
 }
 
 #define NS_BLOCK 5
-NamedScope::NamedScope(char *str)
-{
+NamedScope::NamedScope(char *str) {
    allocated = 0;
    elements  = 0;
    strlist = 0;
    ostr = str;
    
-   while (char *p = strstr(str, "::"))
-   {
+   while (char *p = strstr(str, "::")) {
       // resize array if needed
-      if (elements == allocated)
-      {
+      if (elements == allocated) {
 	 allocated += NS_BLOCK;
 	 strlist = (char **)realloc(strlist, sizeof(char *) * allocated);
       }
@@ -79,8 +72,7 @@ NamedScope::NamedScope(char *str)
    }
    // add last field
    // resize array if needed
-   if (elements == allocated)
-   {
+   if (elements == allocated) {
       allocated++;
       strlist = (char **)realloc(strlist, sizeof(char *) * allocated);
    }
@@ -88,4 +80,3 @@ NamedScope::NamedScope(char *str)
    strcpy(strlist[elements], str);
    elements++;
 }
-

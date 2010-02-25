@@ -440,6 +440,7 @@ public:
       if (!closure_use) {
 	 LocalVarValue *val = get_var();
 	 val->setValue(value, xsink);
+         return;
       }
 
       ClosureVarValue *val = thread_find_closure_var(name.c_str());

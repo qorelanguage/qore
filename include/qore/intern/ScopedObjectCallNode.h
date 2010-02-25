@@ -40,12 +40,16 @@ protected:
 
 public:
    NamedScope *name;
-   QoreClass *oc;
+   const QoreClass *oc;
    QoreListNode *args;
    QoreString desc;
       
-   DLLLOCAL ScopedObjectCallNode(NamedScope *n, QoreListNode *a) : AbstractFunctionCallNode(NT_SCOPE_REF, a), name(n), args(a) {
+   DLLLOCAL ScopedObjectCallNode(NamedScope *n, QoreListNode *a) : AbstractFunctionCallNode(NT_SCOPE_REF, a), name(n), oc(0), args(a) {
    }
+
+   DLLLOCAL ScopedObjectCallNode(const QoreClass *qc, QoreListNode *a) : AbstractFunctionCallNode(NT_SCOPE_REF, a), name(0), oc(qc), args(a) {
+   }
+
    DLLLOCAL virtual ~ScopedObjectCallNode() {
       delete name; 
    }
@@ -55,13 +59,13 @@ public:
       use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
       returns -1 for exception raised, 0 = OK 
    */
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const {
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
       str.sprintf("new operator expression (class '%s')", oc ? oc->getName() : name ? name->ostr : "<null>", this);
       return 0;
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const {
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
       del = true;
       QoreString *rv = new QoreString();
       getAsString(*rv, foff, xsink);

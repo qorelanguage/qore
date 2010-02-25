@@ -26,9 +26,11 @@
 ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line), exp(v) {
    // if it is a global variable declaration, then do not register
    if (exp->getType() == NT_VARREF) {
-      is_declaration = true;
       VarRefNode *vr = reinterpret_cast<VarRefNode *>(exp);
-      is_parse_declaration = vr->getType() == VT_GLOBAL ? true : false;
+      // used by QoreProgram to detect invalid top-level statements
+      is_declaration = !vr->hasEffect();
+      // used in parsing to eliminate noops from the parse tree
+      is_parse_declaration = !vr->stayInTree();
       return;
    }
 

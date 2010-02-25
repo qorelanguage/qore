@@ -34,21 +34,20 @@
 #define QORE_NAMEDSCOPE_H
 
 // for parsing namespace/class scope resolution
-class NamedScope
-{
-   private:
-      int allocated;
+class NamedScope {
+private:
+   int allocated;
 
-   public:
-      int elements;
-      char **strlist;
-      char *ostr;
+public:
+   int elements;
+   char **strlist;
+   char *ostr;
 
-      DLLLOCAL NamedScope(char *str);
-      DLLLOCAL ~NamedScope();
-      DLLLOCAL char *getIdentifier() const;
-      DLLLOCAL class NamedScope *copy() const;
-      DLLLOCAL void fixBCCall();
+   DLLLOCAL NamedScope(char *str);
+   DLLLOCAL ~NamedScope();
+   DLLLOCAL char *getIdentifier() const;
+   DLLLOCAL NamedScope *copy() const;
+   DLLLOCAL void fixBCCall();
 };
 
 #endif // QORE_NAMEDSCOPE_H

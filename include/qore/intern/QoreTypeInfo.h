@@ -326,6 +326,9 @@ protected:
       QoreTypeInfo::concatNameImpl(str);
    }
 
+   DLLLOCAL QoreParseTypeInfo(const NamedScope *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(n_cscope->copy()) {
+   }
+
 public:
    NamedScope *cscope; // namespace scope for class
 
@@ -441,13 +444,22 @@ public:
       if (!this)
 	 return 0;
 
-      assert(!cscope);
+      assert(!qc);
+
+      if (cscope)
+         return new QoreParseTypeInfo(cscope);
 
       if (qc)
 	 return new QoreParseTypeInfo(qc);
       if (!has_type)
 	 return new QoreParseTypeInfo;
       return new QoreParseTypeInfo(qt);
+   }
+
+   DLLLOCAL NamedScope *takeName() {
+      NamedScope *rv = cscope;
+      cscope = 0;
+      return rv;
    }
 };
 

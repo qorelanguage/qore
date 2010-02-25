@@ -49,6 +49,7 @@ enum qore_var_t {
 #endif
 
 class Var;
+class ScopedObjectCallNode;
 
 union VarValue {
    // for value
@@ -117,7 +118,7 @@ public:
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl);
    DLLLOCAL AbstractQoreNode *getReferencedValue() const;
-
+   DLLLOCAL ScopedObjectCallNode *makeNewCall(AbstractQoreNode *args) const;
    DLLLOCAL void doDoubleDeclarationError() {
       // make sure types are identical or throw an exception
       if (parseTypeInfo) {
@@ -172,6 +173,10 @@ public:
 	 parseTypeInfo = 0;
       }
       //assignInitialValue();
+   }
+
+   DLLLOCAL QoreParseTypeInfo *copyParseTypeInfo() const {
+      return parseTypeInfo ? parseTypeInfo->copy() : 0;
    }
 
    DLLLOCAL const QoreTypeInfo *parseGetTypeInfo() {

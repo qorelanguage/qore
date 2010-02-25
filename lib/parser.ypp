@@ -442,6 +442,9 @@ static bool hasEffect(AbstractQoreNode *n) {
    if (ntype == NT_TREE)
       return reinterpret_cast<QoreTreeNode *>(n)->op->hasEffect();
 
+   if (ntype == NT_VARREF)
+      return reinterpret_cast<VarRefNode *>(n)->hasEffect();
+
    //printd(5, "hasEffect() node %08p type=%s\n", n, n->getTypeName());
    return false;
 }
@@ -972,7 +975,7 @@ statement:
 	   // if the expression has no effect and it's not a variable declaration
 	   qore_type_t t = $1 ? $1->getType() : 0;
 	   if (!hasEffect($1)
-	       && (t != NT_VARREF || reinterpret_cast<VarRefNode *>($1)->getType() == VT_UNRESOLVED)
+	       && (t != NT_VARREF)
 	       && (t != NT_LIST || !reinterpret_cast<QoreListNode *>($1)->isVariableList()))
 	      parse_error("statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
 	   if (t == NT_TREE)
@@ -1673,28 +1676,24 @@ exp:    scalar
 	   if (checkParseOption(PO_REQUIRE_TYPES))
 	      parse_error("global variable '$%s' declared without type information, but parse options require all declarations to have type information", $2);
 
-	   VarRefNode *v = new VarRefNode($2, VT_GLOBAL); 
-	   v->ref.var = getProgram()->addGlobalVarDef($2, 0);
+	   VarRefNode *v = new VarRefNode($2, getProgram()->addGlobalVarDef($2, 0));
 	   $$ = v;
 	}
         | TOK_OUR IDENTIFIER VAR_REF {
 	   const QoreTypeInfo *t = getBuiltinTypeInfo($2);
 	   VarRefNode *v;
 	   if (t) {
-	      v = new VarRefNode($3, VT_GLOBAL);
-	      v->ref.var = getProgram()->addResolvedGlobalVarDef($3, t);
+	      v = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
 	      free($2);
 	   }
 	   else {
-	      v = new VarRefNode($3, VT_GLOBAL);
-	      v->ref.var = getProgram()->addGlobalVarDef($3, new QoreParseTypeInfo($2));
+	      v = new VarRefNode($3, getProgram()->addGlobalVarDef($3, new QoreParseTypeInfo($2)));
 	   }
 	   $$ = v;
 	}
         | TOK_OUR SCOPED_REF VAR_REF {
-	   VarRefNode *v = new VarRefNode($3, VT_GLOBAL); 
+	   VarRefNode *v = new VarRefNode($3, getProgram()->addGlobalVarDef($3, new QoreParseTypeInfo($2)));
 	   $$ = v;
-	   v->ref.var = getProgram()->addGlobalVarDef($3, new QoreParseTypeInfo($2));
 	}
         | TOK_OUR '(' list ')' { 
 	   $3->setVariableList();
@@ -2092,10 +2091,21 @@ exp:    scalar
 		 $$ = $1;
 	      }
 	      else {
-		 VarRefNode *r = dynamic_cast<VarRefNode *>($1);
-		 if (r && r->getType() != VT_UNRESOLVED)
-		    parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '$%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
-		 $$ = new CallReferenceCallNode($1, makeArgs($3));
+		 $$ = 0;
+		 if ($1 && $1->getType() == NT_VARREF) {
+		    VarRefNode *r = reinterpret_cast<VarRefNode *>($1);
+		    qore_var_t vartype = r->getType();
+		    if (vartype != VT_UNRESOLVED) {
+		       $$ = r->makeNewCall($3);
+		       //printd(5, "makeNewCall(%p) returned %p (%s)\n", $3, $$, get_type_name($$));
+		       if (!$$)
+			  parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '$%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
+		    }
+		 }
+		 if (!$$) {
+		    $$ = new CallReferenceCallNode($1, makeArgs($3));
+		    //printd(5, "made new CallReferenceCallNode: %p\n", $$);
+		 }
 	      }
 	   }
 	}

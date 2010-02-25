@@ -253,17 +253,26 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
 }
 
 AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   // find object class
-   if ((oc = getRootNS()->parseFindScopedClass(name))) {
-      // check if parse options allow access to this class
-      if (oc->getDomain() & getProgram()->getParseOptions())
-	 parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
-       
+   if (name) {
+      assert(!oc);
+      // find object class
+      if ((oc = getRootNS()->parseFindScopedClass(name))) {
+	 // check if parse options allow access to this class
+	 if (oc->getDomain() & getProgram()->getParseOptions())
+	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+      }
+      delete name;
+      name = 0;
+   }
+#ifdef DEBUG
+   else assert(oc);
+#endif
+
+   if (oc) {
       typeInfo = oc->getTypeInfo();
       desc.sprintf("new %s", oc->getName());
    }
-   delete name;
-   name = 0;
+
    const QoreMethod *constructor = oc ? oc->parseGetConstructor() : 0;
    lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0, oc ? oc->getName() : 0);
 
