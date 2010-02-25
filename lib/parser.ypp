@@ -1406,6 +1406,25 @@ member2:
         | SCOPED_REF SELF_REF '=' exp ';' {
 	   $$ = new MemberInfo($2, new QoreMemberInfo(@1.first_line, @4.last_line, $1, $4));
 	}
+        | IDENTIFIER SELF_REF '(' myexp ')' ';' {
+	   const QoreTypeInfo *t = getBuiltinTypeInfo($1);
+	   QoreMemberInfo *memberInfo;
+	   if (t) {
+	      parse_error("cannot call constructor for non-class base type '%s'", $1);
+	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, t, $4);
+	      free($1);
+	   }
+	   else {
+	      ScopedObjectCallNode *new_call = new ScopedObjectCallNode(new NamedScope(strdup($1)), makeArgs($4));
+	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, $1, new_call);
+	   }
+
+	   $$ = new MemberInfo($2, memberInfo);
+        }
+        | SCOPED_REF SELF_REF '(' myexp ')' ';' {
+	   ScopedObjectCallNode *new_call = new ScopedObjectCallNode(new NamedScope(strdup($1)), makeArgs($4));
+	   $$ = new MemberInfo($2, new QoreMemberInfo(@1.first_line, @4.last_line, $1, new_call));
+	}
         ;
 
 member:

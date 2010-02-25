@@ -1,6 +1,8 @@
 2010.02.25: David Nichols
 	 * implemented C++-like syntax for creating new objects with a
 	   variable declaration like: my Mutex $m()
+	 * applied support for C++-like constructor syntax with new object
+	   member declarations (i.e. private { Mutex $.m(); } )
 
 2010.02.24: David Nichols
 	 * hard typing fixes, do not throw parse type exceptions when
