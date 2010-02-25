@@ -21,6 +21,8 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/ParserSupport.h>
 
 VarRefNode::~VarRefNode() {
    if (name) {

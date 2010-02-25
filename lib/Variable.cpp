@@ -32,6 +32,7 @@
 QoreHashNode *ENV;
 
 #include <qore/QoreType.h>
+#include <qore/intern/ParserSupport.h>
 
 VarStackPointerHelper::VarStackPointerHelper(LocalVarValue *v) : orig(v) {
    v->skip = true;

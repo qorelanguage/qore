@@ -60,4 +60,21 @@ DLLLOCAL void yyset_in(FILE *in_str, yyscan_t yyscanner);
 DLLLOCAL int yylex_destroy(yyscan_t yyscanner);
 DLLLOCAL void yyset_lineno (int line_number ,yyscan_t yyscanner );
 
+DLLLOCAL static QoreListNode *makeArgs(AbstractQoreNode *arg) {
+   if (!arg)
+      return 0;
+   
+   QoreListNode *l;
+   if (arg->getType() == NT_LIST) {
+      l = reinterpret_cast<QoreListNode *>(arg);
+      if (!l->isFinalized())
+         return l;
+   }
+
+   l = new QoreListNode(arg->needs_eval());
+   l->push(arg);
+   return l;
+}
+
+
 #endif // _QORE_PARSER_SUPPORT_H
