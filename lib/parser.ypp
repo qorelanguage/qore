@@ -1360,11 +1360,13 @@ class_attributes:
 	}
 	| class_attributes private_member_list { 
 	   $2->mergePrivateMembers($1);
-	   $$ = $1; 
+	   $$ = $1;
+	   delete $2;
 	}
-	| class_attributes public_member_list { 
+	| class_attributes public_member_list {
 	   $2->mergePublicMembers($1);
 	   $$ = $1; 
+	   delete $2;
 	}
         ;
 
