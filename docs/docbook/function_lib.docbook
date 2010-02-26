@@ -8887,13 +8887,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Gives the numeric value of the first character in the string passed.</para>
+	<para>Gives the numeric value of the given byte in the string passed (the first byte if no offset is passed); if no string is passed or the offset is after the end of the string, -1 is returned.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>ord(<replaceable>string</replaceable>)</programlisting>
+	<programlisting>ord(<replaceable>string str, int offset = 0</replaceable>)</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8916,9 +8916,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
+	      <entry><para>tring str, [integer offset = 0]</para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>Gives the numeric value of the first character in the string passed.  Only works reliably with character encodings where each character is a single byte.</para></entry>
+              <entry><para>Gives the numeric value of the given byte in the string passed (the first byte if no offset is passed); if no string is passed or the offset is after the end of the string, -1 is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>

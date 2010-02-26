@@ -1148,3 +1148,11 @@ AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, Exceptio
 AbstractQoreNode *f_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return 0;
 }
+
+// this function does nothing - it's here for backwards-compatibility for functions
+// that accept invalid arguments and return an empty string
+/*
+AbstractQoreNode *f_returns_empty_string(const QoreListNode *args, ExceptionSink *xsink) {
+   return 0;
+}
+*/
