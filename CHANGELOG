@@ -6,6 +6,7 @@
 	 * implemented generic default argument handling for builtin and user
 	   variants
 	 * applied hard typing to lib/ql_string.cpp
+	 * applied a fix matching ambiguous signatures with default arguments
 
 2010.02.25: David Nichols
 	 * implemented C++-like syntax for creating new objects with a

@@ -102,6 +102,8 @@ public:
    DLLLOCAL bool hasDefaultArg(unsigned i) const {
       return i >= defaultArgList.size() || !defaultArgList[i] ? false : true;
    }
+   // adds a description of the given default argument to the signature string
+   DLLLOCAL void addDefaultArgument(const AbstractQoreNode *arg);
 };
 
 // used to store return type info during parsing for user code

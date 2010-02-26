@@ -44,7 +44,7 @@ public:
 	 typeList[i]->concatName(str);
 
          if (hasDefaultArg)
-            str.append(" = <exp>");
+            addDefaultArgument(defaultArgList[i]);
 
 	 // add a comma to the signature string if it's not the last parameter
 	 if (i != (typeList.size() - 1))

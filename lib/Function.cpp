@@ -60,6 +60,26 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunctionVariant *
    return 0;
 }
 
+void AbstractFunctionSignature::addDefaultArgument(const AbstractQoreNode *arg) {
+   assert(arg);
+   str.append(" = ");
+   qore_type_t t = arg->getType();
+   if (t == NT_BAREWORD) {
+      str.append(reinterpret_cast<const BarewordNode *>(arg)->str);
+      return;
+   }
+   if (t == NT_CONSTANT) {
+      str.append(reinterpret_cast<const ConstantNode *>(arg)->scoped_ref->getIdentifier());
+      return;
+   }
+   if (arg->is_value()) {
+      QoreNodeAsStringHelper sh(arg, FMT_NONE, 0);
+      str.append(sh->getBuffer());
+      return;
+   }
+   str.append("<exp>");
+}
+
 UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, RetTypeInfo *retTypeInfo) : 
    AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0), 
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
@@ -183,7 +203,7 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
    }
    defaultArgList.push_back(defArg);
    if (defArg)
-      str.append(" = <exp>");
+      addDefaultArgument(defArg);
 
    if (v->getType() == VT_LOCAL)
       parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
@@ -902,7 +922,9 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
    UserSignature *sig = variant->getUserSignature();
    assert(!sig->resolved);
 
-   unsigned vp = sig->getParamTypes();
+   unsigned vtp = sig->getParamTypes();
+   unsigned vmp = sig->getMinParamTypes();
+
    // first check pending variants
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       UserSignature *vs = reinterpret_cast<UserSignature *>((*i)->getSignature());
@@ -911,8 +933,11 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
       unsigned mp = vs->getMinParamTypes();
       // get number of parameters with type information
       unsigned tp = vs->getParamTypes();
+
+      //printd(5, "AbstractQoreFunction::parseCheckDuplicateSignature() adding %s(%s) checking %s(%s) vmp=%d vtp=%d mp=%d tp=%d\n", getName(), sig->getSignatureText(), getName(), vs->getSignatureText(), vmp, vtp, mp, tp);
+
       // shortcut: if the two variants have different numbers of parameters with type information, then they do not match
-      if (vp < mp || vp > tp)
+      if (vmp > tp || vtp < mp)
 	 continue;
 
       // the 2 signatures have the same number of parameters with type information
@@ -924,7 +949,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
       bool dup = true;
       bool ambiguous = false;
       bool recheck = false;
-      unsigned max = QORE_MAX(tp, vp);
+      unsigned max = QORE_MAX(tp, vtp);
       for (unsigned pi = 0; pi < max; ++pi) {
 	 const QoreTypeInfo *variantTypeInfo = vs->getParamTypeInfo(pi);
 	 const QoreParseTypeInfo *variantParseTypeInfo = vs->getParseParamTypeInfo(pi);
@@ -933,6 +958,8 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
 	 const QoreParseTypeInfo *parseTypeInfo = sig->getParseParamTypeInfo(pi);
 	 bool thisHasDefaultArg = sig->hasDefaultArg(pi);
+
+	 // FIXME: this is a horribly-complicated if/then/else structure
 
 	 // check for ambiguous matches
 	 if (typeInfo || parseTypeInfo) {
@@ -980,21 +1007,6 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	       break;
 	    }
 	 }
-/*
-	 if (typeInfo) {
-	    // we reverse the arguments because the test is if they are identical or not
-	    if (!variantParseTypeInfo->parseStageOneIdenticalWithParsed(typeInfo, recheck)) {
-	       dup = false;
-	       break;
-	    }
-	 }
-	 else {
-	    if (!parseTypeInfo->parseStageOneIdentical(variantParseTypeInfo)) {
-	       dup = false;
-	       break;
-	    }
-	 }
-*/
       }
       if (dup) {
 	 if (ambiguous)
@@ -1010,11 +1022,13 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       AbstractFunctionSignature *uvsig = (*i)->getSignature();
 
-      // get number of parameters with type information
+      // get the minimum number of parameters with type information that need to match
+      unsigned mp = uvsig->getMinParamTypes();
+      // get total number of parameters with type information
       unsigned tp = uvsig->getParamTypes();
 
       // shortcut: if the two variants have different numbers of parameters with type information, then they do not match
-      if (vp != tp)
+      if (vmp > tp || vtp < mp)
 	 continue;
 
       // the 2 signatures have the same number of parameters with type information
@@ -1024,7 +1038,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
       }
 
       bool dup = true;
-      unsigned max = QORE_MAX(tp, vp);
+      unsigned max = QORE_MAX(tp, vtp);
       bool recheck = false;
       for (unsigned pi = 0; pi < max; ++pi) {
 	 // compare the unresolved type with resolved types in committed variants

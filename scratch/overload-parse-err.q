@@ -10,7 +10,7 @@ sub test(string $x) {}
 sub test(int $x) {}
 sub test(Mutex $x) {}
 # parse error: ambiguous duplicate signature
-sub test(object $x) {}
+sub test(int $x, object $y = new Mutex()) {}
 
 # parse error: cannot overload constructor in builtin class
 Mutex::constructor(int $x) {}
