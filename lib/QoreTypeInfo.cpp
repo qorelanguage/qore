@@ -151,20 +151,15 @@ void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo) {
    extern_type_info_map[t] = typeInfo;
 }
 
+static const QoreTypeInfo *getExternalTypeInfoForType(qore_type_t t) {
+   QoreAutoRWReadLocker al(extern_type_info_map_lock);
+   type_typeinfo_map_t::iterator i = extern_type_info_map.find(t);
+   return (i == extern_type_info_map.end() ? 0 : i->second);
+}
+
 const QoreTypeInfo *getTypeInfoForType(qore_type_t t) {
    type_typeinfo_map_t::iterator i = type_typeinfo_map.find(t);
-   if (i != type_typeinfo_map.end())
-      return i->second;
-
-   const QoreTypeInfo *rv;
-   {
-      QoreAutoRWReadLocker al(extern_type_info_map_lock);
-      type_typeinfo_map_t::iterator i = extern_type_info_map.find(t);
-      rv = (i == extern_type_info_map.end() ? 0 : i->second);
-   }
-
-   //if (!rv) printd(0, "getTypeInfoForValue() %d not found in map\n", t);
-   return rv;
+   return i != type_typeinfo_map.end() ? i->second : getExternalTypeInfoForType(t);
 }
 
 const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n) {
@@ -191,8 +186,11 @@ const QoreTypeInfo *getBuiltinTypeInfo(const char *str) {
 
 const char *getBuiltinTypeName(qore_type_t type) {
    type_str_map_t::iterator i = type_str_map.find(type);
-   assert(i != type_str_map.end());
-   return i->second;
+   if (i != type_str_map.end())
+      return i->second;
+
+   const QoreTypeInfo *typeInfo = getExternalTypeInfoForType(type);
+   return typeInfo ? typeInfo->getName() : "<unknown type>";
 }
 
 const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
