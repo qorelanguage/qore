@@ -490,7 +490,8 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("open2",             (q_method_t)FILE_open2, false, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_FILE->addMethodExtended("close",             (q_method_t)FILE_close, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("sync",              (q_method_t)FILE_sync, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("read",              (q_method_t)FILE_read, false, QDOM_DEFAULT, stringTypeInfo);
+   // read() can return 0
+   QC_FILE->addMethodExtended("read",              (q_method_t)FILE_read);
    QC_FILE->addMethodExtended("readu1",            (q_method_t)FILE_readu1, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("readu2",            (q_method_t)FILE_readu2, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("readu4",            (q_method_t)FILE_readu4, false, QDOM_DEFAULT, bigIntTypeInfo);
@@ -503,7 +504,8 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("readi2LSB",         (q_method_t)FILE_readi2LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("readi4LSB",         (q_method_t)FILE_readi4LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("readi8LSB",         (q_method_t)FILE_readi8LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readBinary",        (q_method_t)FILE_readBinary, false, QDOM_DEFAULT, stringTypeInfo);
+   // readBinary() can return 0
+   QC_FILE->addMethodExtended("readBinary",        (q_method_t)FILE_readBinary);
 
    // overloaded write method
    QC_FILE->addMethodExtended("write",             (q_method_t)FILE_write_bin, false, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
@@ -516,14 +518,16 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("writei2LSB",        (q_method_t)FILE_writei2LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("writei4LSB",        (q_method_t)FILE_writei4LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("writei8LSB",        (q_method_t)FILE_writei8LSB, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readLine",          (q_method_t)FILE_readLine, false, QDOM_DEFAULT, stringTypeInfo);
+   // readLine() can also return 0
+   QC_FILE->addMethodExtended("readLine",          (q_method_t)FILE_readLine);
    QC_FILE->addMethodExtended("setCharset",        (q_method_t)FILE_setCharset, false, QDOM_DEFAULT, nothingTypeInfo);
    QC_FILE->addMethodExtended("getCharset",        (q_method_t)FILE_getCharset, false, QDOM_DEFAULT, stringTypeInfo);
    QC_FILE->addMethodExtended("setPos",            (q_method_t)FILE_setPos, false, QDOM_DEFAULT, bigIntTypeInfo);
    //QC_FILE->addMethod("setPosFromEnd",     (q_method_t)FILE_setPosFromEnd);
    //QC_FILE->addMethod("setPosFromCurrent", (q_method_t)FILE_setPosFromCurrent);
    QC_FILE->addMethodExtended("getPos",            (q_method_t)FILE_getPos, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("getchar",           (q_method_t)FILE_getchar, false, QDOM_DEFAULT, stringTypeInfo);
+   // getchar() can return 0
+   QC_FILE->addMethodExtended("getchar",           (q_method_t)FILE_getchar);
    QC_FILE->addMethodExtended("printf",            (q_method_t)FILE_printf, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("vprintf",           (q_method_t)FILE_vprintf, false, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("f_printf",          (q_method_t)FILE_f_printf, false, QDOM_DEFAULT, bigIntTypeInfo);

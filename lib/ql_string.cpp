@@ -100,8 +100,7 @@ static AbstractQoreNode *f_substr(const QoreListNode *args, ExceptionSink *xsink
    return temp->substr(p1->getAsInt(), xsink);
 }
 
-static inline int index_intern(const char *haystack, const char *needle, int pos = 0)
-{
+static inline int index_intern(const char *haystack, const char *needle, int pos = 0) {
    const char *p;
    if (!(p = strstr(haystack + pos, needle)))
       return -1;
@@ -647,10 +646,10 @@ void init_string_functions() {
    builtinFunctions.add("tolower", f_tolower);
    builtinFunctions.add("toupper", f_toupper);
    builtinFunctions.add("substr", f_substr);
-   builtinFunctions.add2("index", f_index, QDOM_DEFAULT, bigIntTypeInfo, 0);
-   builtinFunctions.add2("bindex", f_bindex, QDOM_DEFAULT, bigIntTypeInfo, 0);
-   builtinFunctions.add2("rindex", f_rindex, QDOM_DEFAULT, bigIntTypeInfo, 0);
-   builtinFunctions.add2("brindex", f_brindex, QDOM_DEFAULT, bigIntTypeInfo, 0);
+   builtinFunctions.add2("index", f_index, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("bindex", f_bindex, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("rindex", f_rindex, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("brindex", f_brindex, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add("ord", f_ord);
    builtinFunctions.add("chr", f_chr);
 
