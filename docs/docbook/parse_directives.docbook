@@ -132,9 +132,9 @@
 	</row>
       </tbody>
     </tgroup>
-  </table>  
+  </table>
 
-  <sect2 id="disable-all-warnings">
+  <sect1 id="disable-all-warnings">
     <title>disable-all-warnings</title>
 
     <variablelist>
@@ -164,9 +164,9 @@
       </varlistentry>
     </variablelist>
 
-  </sect2>
+  </sect1>
 
-  <sect2 id="disable-warning">
+  <sect1 id="disable-warning">
     <title>disable-warning</title>
 
     <variablelist>
@@ -195,9 +195,9 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
-  <sect2 id="enable-all-warnings">
+  <sect1 id="enable-all-warnings">
     <title>enable-all-warnings</title>
     <variablelist>
       <varlistentry>
@@ -225,8 +225,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="enable-warning">
+  </sect1>
+  <sect1 id="enable-warning">
     <title>enable-warning</title>
     <variablelist>
       <varlistentry>
@@ -254,8 +254,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="exec-class">
+  </sect1>
+  <sect1 id="exec-class">
     <title>exec-class</title>
     <variablelist>
       <varlistentry>
@@ -283,8 +283,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="include">
+  </sect1>
+  <sect1 id="include">
     <title>include</title>
     <variablelist>
       <varlistentry>
@@ -312,8 +312,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="lock-options">
+  </sect1>
+  <sect1 id="lock-options">
     <title>lock-options</title>
     <variablelist>
       <varlistentry>
@@ -341,8 +341,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="lock-warnings">
+  </sect1>
+  <sect1 id="lock-warnings">
     <title>lock-warnings</title>
     <variablelist>
       <varlistentry>
@@ -370,8 +370,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-child-restrictions">
+  </sect1>
+  <sect1 id="no-child-restrictions">
     <title>no-child-restrictions</title>
     <variablelist>
       <varlistentry>
@@ -399,8 +399,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-class-defs">
+  </sect1>
+  <sect1 id="no-class-defs">
     <title>no-class-defs</title>
     <variablelist>
       <varlistentry>
@@ -428,8 +428,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-constant-defs">
+  </sect1>
+  <sect1 id="no-constant-defs">
     <title>no-constant-defs</title>
     <variablelist>
       <varlistentry>
@@ -457,8 +457,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-database">
+  </sect1>
+  <sect1 id="no-database">
     <title>no-database</title>
     <variablelist>
       <varlistentry>
@@ -486,8 +486,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-external-process">
+  </sect1>
+  <sect1 id="no-external-process">
     <title>no-external-process</title>
     <variablelist>
       <varlistentry>
@@ -545,14 +545,14 @@
 		</row>
 	      </tbody>
 	    </tgroup>
-	  </table>  
+	  </table>
 
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
-  <sect2 id="no-filesystem">
+  <sect1 id="no-filesystem">
     <title>no-filesystem</title>
     <variablelist>
       <varlistentry>
@@ -700,14 +700,14 @@
 		</row>
 	      </tbody>
 	    </tgroup>
-	  </table>  
+	  </table>
 
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
-  <sect2 id="no-global-vars">
+  <sect1 id="no-global-vars">
     <title>no-global-vars</title>
     <variablelist>
       <varlistentry>
@@ -735,9 +735,9 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
-  <sect2 id="no-gui">
+  <sect1 id="no-gui">
     <title>no-gui</title>
     <variablelist>
       <varlistentry>
@@ -765,9 +765,9 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
-  <sect2 id="no-namespace-defs">
+  <sect1 id="no-namespace-defs">
     <title>no-namespace-defs</title>
     <variablelist>
       <varlistentry>
@@ -795,9 +795,9 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
-  <sect2 id="no-network">
+  <sect1 id="no-network">
     <title>no-network</title>
     <variablelist>
       <varlistentry>
@@ -855,14 +855,14 @@
 		</row>
 	      </tbody>
 	    </tgroup>
-	  </table>  
+	  </table>
 
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
-  <sect2 id="no-new">
+  <sect1 id="no-new">
     <title>no-new</title>
     <variablelist>
       <varlistentry>
@@ -890,8 +890,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-process-control">
+  </sect1>
+  <sect1 id="no-process-control">
     <title>no-process-control</title>
     <variablelist>
       <varlistentry>
@@ -976,13 +976,13 @@
 		</row>
 	      </tbody>
 	    </tgroup>
-	  </table>  
+	  </table>
 
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-subroutine-defs">
+  </sect1>
+  <sect1 id="no-subroutine-defs">
     <title>no-subroutine-defs</title>
     <variablelist>
       <varlistentry>
@@ -1010,9 +1010,9 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
-  <sect2 id="no-terminal-io">
+  <sect1 id="no-terminal-io">
     <title>no-terminal-io</title>
     <variablelist>
       <varlistentry>
@@ -1081,13 +1081,13 @@
 		</row>
 	      </tbody>
 	    </tgroup>
-	  </table>  
+	  </table>
 
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-thread-classes">
+  </sect1>
+  <sect1 id="no-thread-classes">
     <title>no-thread-classes</title>
     <variablelist>
       <varlistentry>
@@ -1160,13 +1160,13 @@
 		</row>
 	      </tbody>
 	    </tgroup>
-	  </table>  
+	  </table>
 
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-thread-control">
+  </sect1>
+  <sect1 id="no-thread-control">
     <title>no-thread-control</title>
     <variablelist>
       <varlistentry>
@@ -1239,13 +1239,13 @@
 		</row>
 	      </tbody>
 	    </tgroup>
-	  </table>  
+	  </table>
 
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-threads">
+  </sect1>
+  <sect1 id="no-threads">
     <title>no-threads</title>
     <variablelist>
       <varlistentry>
@@ -1273,8 +1273,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="no-top-level">
+  </sect1>
+  <sect1 id="no-top-level">
     <title>no-top-level</title>
     <variablelist>
       <varlistentry>
@@ -1302,8 +1302,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="require-our">
+  </sect1>
+  <sect1 id="require-our">
     <title>require-our</title>
     <variablelist>
       <varlistentry>
@@ -1331,8 +1331,8 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
-  <sect2 id="requires">
+  </sect1>
+  <sect1 id="requires">
     <title>requires</title>
     <variablelist>
       <varlistentry>
@@ -1365,6 +1365,6 @@
 	</listitem>
       </varlistentry>
     </variablelist>
-  </sect2>
+  </sect1>
 
 </chapter>

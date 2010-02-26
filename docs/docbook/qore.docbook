@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" 
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "/usr/share/sgml/docbook/xml-dtd-4.5-1.0-38.fc9/docbookx.dtd"
 [
   <!ENTITY bookinfo         SYSTEM "bookinfo.docbook">
@@ -17,12 +17,13 @@
   <!ENTITY future           SYSTEM "future.docbook">
 ]>
 
-<!-- 
+<!--
 "/opt/local/share/xml/docbook-xml/4.3/docbookx.dtd"
 -->
 
 <book>
 
+&bookinfo;
 &introduction;
 &language;
 &function_lib;
@@ -34,7 +35,6 @@
 &bugs;
 &comparison;
 &future;
-&bookinfo;
 
 <colophon>
 <para>This document was first drafted with OpenOffice.org, then converted to docbook XML by Helmut Wollmersdorfer, then edited by hand with Emacs.</para>

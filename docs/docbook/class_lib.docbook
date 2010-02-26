@@ -194,7 +194,7 @@
 	    <entry><para><code>LDFLAGS</code></para></entry>
 	    <entry><para>The linker flags used to link the Qore library.</para></entry>
 	  </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
@@ -1643,10 +1643,10 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 
     <para>The File class allows Qore programs to read, write, and create files.</para>
 
-    <para>File objects can be created and/or opened with a specific 
-    <link linkend="Qore_Strings_and_Character_Encoding">character encoding</link>, 
-    meaning that any string read from the file will be tagged with the file's character 
-    encoding, and any string data written to the file will be transparently converted 
+    <para>File objects can be created and/or opened with a specific
+    <link linkend="Qore_Strings_and_Character_Encoding">character encoding</link>,
+    meaning that any string read from the file will be tagged with the file's character
+    encoding, and any string data written to the file will be transparently converted
     to that character encoding before being written (if necessary). If no character
     encoding is specified, then the <link linkend="Default_Character_Encoding">default Qore character encoding</link> is assumed for the file.</para>
 
@@ -1950,7 +1950,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    <entry><para>Name</para></entry>
 	    <entry><para>Description</para></entry>
 	  </row>
-	</thead>      
+	</thead>
 	<tbody>
 	  <row>
 	    <entry><para><code>O_RDONLY</code></para></entry>
@@ -1988,7 +1988,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    <entry><para>Name</para></entry>
 	    <entry><para>Description</para></entry>
 	  </row>
-	</thead>      
+	</thead>
 	<tbody>
 	  <row>
 	    <entry><para><code>F_RDLCK</code></para></entry>
@@ -2034,18 +2034,18 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
 	      <entry><para>The character encoding for the file.  Any strings written to the file will be converted to this character encoding if necessary.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::constructor()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -2089,11 +2089,11 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></listitem>
+          <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></para></listitem>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></listitem>
+          <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
     </sect2>
@@ -2135,7 +2135,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>	    
+	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -2271,7 +2271,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></listitem>
+          <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -2348,7 +2348,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>format</replaceable></para></entry>
@@ -2360,11 +2360,11 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para>Any</para></entry>
 	      <entry><para>The remainder of the arguments are arguments to the format string.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::f_printf()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -2382,7 +2382,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Exceptions Thrown by File::f_printf()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -2404,7 +2404,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 
     <sect2 id="File_f_vprintf">
       <title>File::f_vprintf()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -2436,7 +2436,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>format</replaceable></para></entry>
@@ -2448,11 +2448,11 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para>List</para></entry>
 	      <entry><para>This list will be used as the argument list or the format string.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::f_vprintf()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -2523,18 +2523,18 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a<replaceable></replaceable></para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::getchar()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -2553,10 +2553,10 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	</tgroup>
       </table>
     </sect2>
-    
+
     <sect2 id="File_getCharset">
       <title>File::getCharset()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -2588,18 +2588,18 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::getCharset()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -2703,7 +2703,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 
     <sect2 id="File_getPos">
       <title>File::getPos()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -2735,18 +2735,18 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::getPos()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -2768,7 +2768,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 
     <sect2 id="File_getTerminalAttributes">
       <title>File::getTerminalAttributes()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -2801,18 +2801,18 @@ $f.getTerminalAttributes($termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>termios</replaceable></para></entry>
 	      <entry><para><link linkend="TermIOS_Class">TermIOS</link></para></entry>
 	      <entry><para>The method writes the current terminal attributes for the file to the object passed.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::getTerminalAttributes()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -3138,7 +3138,7 @@ $f.lockBlocking(F_UNLCK);
 
     <sect2 id="File_printf">
       <title>File::printf()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -3160,7 +3160,7 @@ $f.lockBlocking(F_UNLCK);
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -3174,7 +3174,7 @@ $f.lockBlocking(F_UNLCK);
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>format</replaceable></para></entry>
@@ -3186,11 +3186,11 @@ $f.lockBlocking(F_UNLCK);
 	      <entry><para>Any</para></entry>
 	      <entry><para>The remainder of the arguments are arguments to the format string.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::printf()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -3235,8 +3235,8 @@ $f.lockBlocking(F_UNLCK);
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Opens the file in the mode given. 
-	    Aditionally, the file permissions can be given if the file is to be created, and 
+	    <para>Opens the file in the mode given.
+	    Aditionally, the file permissions can be given if the file is to be created, and
 	    optionally the file's default character encoding can be specified.</para>
 	    <para>For a version of this method that throws an exception when errors occur opening the file, see <link linkend="File_open2">File::open2()</link>.</para>
 	    </listitem>
@@ -3257,7 +3257,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_open_file">EVENT_OPEN_FILE</link>, <link linkend="event_file_opened">EVENT_FILE_OPENED</link></code></listitem>
+          <listitem><para><code><link linkend="event_open_file">EVENT_OPEN_FILE</link></code>, <code><link linkend="event_file_opened">EVENT_FILE_OPENED</link></code></para></listitem>
         </varlistentry>
 
       </variablelist>
@@ -3361,7 +3361,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_open_file">EVENT_OPEN_FILE</link>, <link linkend="event_file_opened">EVENT_FILE_OPENED</link></code></listitem>
+          <listitem><para><code><link linkend="event_open_file">EVENT_OPEN_FILE</link>, <link linkend="event_file_opened">EVENT_FILE_OPENED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -3443,7 +3443,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
     </sect2>
     <sect2 id="File_read">
       <title>File::read()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -3467,7 +3467,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -3481,7 +3481,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>size</replaceable></para></entry>
@@ -3493,11 +3493,11 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
 	      <entry><para>A timeout period in milliseconds; if not given or negative the call will never time out and will only return when the data has been read.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::read()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -3542,7 +3542,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readi1">
       <title>File::readi1()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -3564,7 +3564,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -3578,18 +3578,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readi1()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -3628,7 +3628,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readi2">
       <title>File::readi2()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -3650,7 +3650,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -3664,18 +3664,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readi2()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -3714,7 +3714,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readi4">
       <title>File::readi4()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -3736,7 +3736,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -3750,18 +3750,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readi4()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -3800,7 +3800,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readi8">
       <title>File::readi8()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -3822,7 +3822,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -3836,18 +3836,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readi8()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -3886,7 +3886,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readi2LSB">
       <title>File::readi2LSB()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -3908,7 +3908,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -3927,11 +3927,11 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readi2LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -3970,7 +3970,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readi4LSB">
       <title>File::readi4LSB()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -3992,7 +3992,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4011,11 +4011,11 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readi4LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4054,7 +4054,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readi8LSB">
       <title>File::readi8LSB()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4076,7 +4076,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4095,11 +4095,11 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readi8LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4137,7 +4137,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
     </sect2>
     <sect2 id="File_readu1">
       <title>File::readu1()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4159,7 +4159,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4173,18 +4173,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readu1()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4223,7 +4223,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readu2">
       <title>File::readu2()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4245,7 +4245,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4259,18 +4259,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readu2()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4309,7 +4309,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readu4">
       <title>File::readu4()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4331,7 +4331,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4345,18 +4345,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readu4()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4395,7 +4395,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readu2LSB">
       <title>File::readu2LSB()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4417,7 +4417,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4436,11 +4436,11 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readu2LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4479,7 +4479,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readu4LSB">
       <title>File::readu4LSB()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4501,7 +4501,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4520,11 +4520,11 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method does not take any arguments.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readu4LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4563,7 +4563,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readBinary">
       <title>File::readBinary()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4588,7 +4588,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4616,7 +4616,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readBinary()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4660,7 +4660,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_readLine">
       <title>File::readLine()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4688,7 +4688,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_READ</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -4702,18 +4702,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::readLine()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4752,7 +4752,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_setCharset">
       <title>File::setCharset()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4784,18 +4784,18 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
 	      <entry><para>The character encoding for the file.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::setCharset()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4817,7 +4817,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_setPos">
       <title>File::setPos()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4858,7 +4858,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::setPos()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -4880,7 +4880,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
     <sect2 id="File_setTerminalAttributes">
       <title>File::setTerminalAttributes()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -4924,18 +4924,18 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>termios</replaceable></para></entry>
 	      <entry><para><link linkend="TermIOS_Class">TermIOS</link></para></entry>
 	      <entry><para>Sets the current terminal attributes for the file from the <link linkend="TermIOS_Class">TermIOS</link> object passed.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::setTerminalAttributes()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5021,7 +5021,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::sync()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5043,7 +5043,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_vprintf">
       <title>File::vprintf()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5065,7 +5065,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5090,11 +5090,11 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>List</para></entry>
 	      <entry><para>This list will be used as the argument list or the format string.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::vprintf()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5133,7 +5133,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_write">
       <title>File::write()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5155,7 +5155,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5169,18 +5169,18 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>arg</replaceable></para></entry>
 	      <entry><para>String or Binary</para></entry>
 	      <entry><para>Writes the data to the file.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::write()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5223,7 +5223,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_writei1">
       <title>File::writei1()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5245,7 +5245,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5268,7 +5268,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::writei1()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5307,7 +5307,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_writei2">
       <title>File::writei2()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5329,7 +5329,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5343,17 +5343,17 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>integer</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The integer to write; writes a 2-byte integer in big-endian format.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::writei2()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5392,7 +5392,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_writei4">
       <title>File::writei4()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5414,7 +5414,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5428,17 +5428,17 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>integer</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The integer to write; writes a 4-byte integer in big-endian format.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::writei4()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5477,7 +5477,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_writei8">
       <title>File::writei8()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5499,7 +5499,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5513,17 +5513,17 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>integer</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The integer to write; writes an 8-byte integer in big-endian format.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::writei8()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5562,7 +5562,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_writei2LSB">
       <title>File::writei2LSB()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5584,7 +5584,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5603,11 +5603,11 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para><replaceable>integer</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The integer to write; writes a 2-byte integer in little-endian format.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::writei2LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5646,7 +5646,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_writei4LSB">
       <title>File::writei4LSB()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5668,7 +5668,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5682,17 +5682,17 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>integer</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The integer to write; writes a 4-byte integer in little-endian format.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::writei4LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5731,7 +5731,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <sect2 id="File_writei8LSB">
       <title>File::writei8LSB()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -5753,7 +5753,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></listitem>
+          <listitem><para><code><link linkend="event_data_read">EVENT_DATA_WRITTEN</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -5767,17 +5767,17 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>integer</replaceable></para></entry>
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The integer to write; writes an 8-byte integer in little-endian format.</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for File::writei8LSB()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -5966,18 +5966,18 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
 	      <entry><para>The character encoding for the directory.  Any entry of the directory will be converted to this character encoding if necessary.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for Dir::constructor()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -6061,7 +6061,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>	    
+	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6417,8 +6417,6 @@ $d.chown("nobody");
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The userid to be used.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para>username</para></entry>
 	      <entry><para>String</para></entry>
@@ -6460,8 +6458,6 @@ $d.chown("nobody");
 	      <entry><para><code>DIR-CHOWN-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Parameter error.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para><code>DIR-CHOWN-ERROR</code></para></entry>
 	      <entry><para>The error occoured in the chown() call.</para></entry>
@@ -6514,8 +6510,6 @@ $d.chgrp("nogroup");
 	      <entry><para>Integer</para></entry>
 	      <entry><para>The groupid to be set for the directory.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para>groupname</para></entry>
 	      <entry><para>String</para></entry>
@@ -6557,8 +6551,6 @@ $d.chgrp("nogroup");
 	      <entry><para><code>DIR-CHGRP-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Parameter error.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para><code>DIR-CHGRP-ERROR</code></para></entry>
 	      <entry><para>Error occoured during the change group chown() system call.</para></entry>
@@ -6647,8 +6639,6 @@ $d.chmod(0711); # set mode to u(rwx) and go(x)
 	      <entry><para><code>DIR-CHMOD-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Parameter error.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para><code>DIR-CHMOD-ERROR</code></para></entry>
 	      <entry><para>The error returned from the chmod() system call.</para></entry>
@@ -6701,8 +6691,6 @@ $d.mkdir("newSubDir", 0755);
 	      <entry><para>String</para></entry>
 	      <entry><para>The name of the subdirectory.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para>mode</para></entry>
 	      <entry><para>Integer</para></entry>
@@ -6744,8 +6732,6 @@ $d.mkdir("newSubDir", 0755);
 	      <entry><para><code>DIR-MKDIR-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Parameter error.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para><code>DIR-MKDIR-ERROR</code></para></entry>
 	      <entry><para>The error returned from the mkdir() system call.</para></entry>
@@ -6834,8 +6820,6 @@ $d.rmdir("emptySubdir");
 	      <entry><para><code>DIR-RMDIR-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Parameter error.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para><code>DIR-RMDIR-ERROR</code></para></entry>
 	      <entry><para>The error returned from the rmdir() system call.</para></entry>
@@ -7310,8 +7294,6 @@ $sd_list = $sd.list();
 	      <entry><para><code>DIR-OPENFILE-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>The file name to be opened contains path information ('/').</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para>File Exceptions</para></entry>
 	      <entry><para>Exceptions thrown by the <link linkend="File_open2">File::open2()</link> call.</para></entry>
@@ -7400,8 +7382,6 @@ $d.removeFile("myTestFile.dat");
 	      <entry><para><code>DIR-REMOVEFILE-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Parameter error.</para></entry>
 	    </row>
-	  </tbody>
-	  <tbody>
 	    <row>
 	      <entry><para><code>DIR-REMOVEFILE-ERROR</code></para></entry>
 	      <entry><para>The error returned by the unlink() system call.</para></entry>
@@ -7658,7 +7638,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <para>This method does not throw any exceptions.</para>
 
     </sect2>
@@ -8558,7 +8538,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
   <sect1 id="GetOpt_Class">
     <title>GetOpt Class</title>
-    
+
     <para>The GetOpt class provides an easy way to process POSIX-style command-line options in Qore scripts/programs.</para>
 
     <table>
@@ -8594,7 +8574,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <entry><para>N</para></entry>
 	    <entry><para>Parses the argument list passed and retuns a hash of the results.</para></entry>
 	  </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
@@ -8618,7 +8598,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>const program_options = 
+	    <programlisting>const program_options =
     ( "url"  : "url,u=s",
       "xml"  : "xml,x",
       "lxml" : "literal-xml,X",
@@ -8629,7 +8609,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for GetOpt::constructor()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -8645,14 +8625,14 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	      <entry><para><replaceable>option_hash</replaceable></para></entry>
 	      <entry><para>Hash</para></entry>
 	      <entry><para>Each key defines the key value for the return hash if any arguments are given corresponding to the string value of the key.</para></entry>
-	    </row>	  
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <para>The string value of each hash follows the following pattern:</para>
       <programlisting><replaceable>opts</replaceable>[=|:<replaceable>type</replaceable>[<replaceable>modifier</replaceable>]]</programlisting>
-      
+
       <table>
 	<title>Option Hash Value String</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -8752,7 +8732,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for GetOpt::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -8772,7 +8752,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for GetOpt::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -8812,7 +8792,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     <sect2 id="GetOpt::parse">
       <title>GetOpt::parse()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -8833,7 +8813,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for GetOpt::parse()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -8849,11 +8829,11 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	      <entry><para><replaceable>list_reference</replaceable></para></entry>
 	      <entry><para>List Reference</para></entry>
 	      <entry><para>The entire command line to process (ex: <link linkend="Special_Qore_Variables">$ARGV</link>).</para></entry>
-	    </row>	    
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for GetOpt::parse()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -8870,7 +8850,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    </row>
 	  </tbody>
 	</tgroup>
-      </table>      
+      </table>
     </sect2>
   </sect1>
 
@@ -8878,13 +8858,13 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
     <title>FtpClient Class</title>
 
     <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
-    
+
     <para>The FtpClient class allows Qore programs to communicate with FTP servers.  The constructor takes an optional URL with the following format:</para>
-    
+
     <programlisting>[(ftp|ftps)://][username[:password]@]hostname[:port]</programlisting>
-    
+
     <para>If the URL is not set with the constructor, then the connection parameters must be set with the FtpClient::set*() methods. At the very minimum the hostname must be set.  If any path name is given in the URL, it is ignored.  See the following table for default URL parameters.</para>
-    
+
     <table>
       <title>FtpClient::constructor() Default URL Parameters</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -9256,20 +9236,20 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
             <entry><para>N</para></entry>
             <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the control connection.</para></entry>
           </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
 
     <sect2 id="FtpClient_constructor">
       <title>FtpClient::constructor()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Creates the FtpClient object. It accepts one optional argument that will set the URL for the FTP connection; the path is ignored in the URL, however the username,  password, hostname and port are respected; additionally if the protocol is &quot;ftps&quot;, the client will attempt to establish a secure connection to the server according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink> when the first connection is established.</para>
-	    
+
 	    <para>A call to <link linkend="FtpClient_connect">FtpClient::connect()</link> must be made explicitly before any actions requiring a connection to the server are made; connections are not made implicitly by this class.</para>
 	  </listitem>
 	</varlistentry>
@@ -9373,7 +9353,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></listitem>
+          <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
     </sect2>
@@ -9389,7 +9369,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for FtpClient::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -9409,7 +9389,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for FtpClient::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -9471,7 +9451,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>,<link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>,<link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -9564,7 +9544,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></listitem>
+          <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -10639,7 +10619,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 
     <sect2 id="FtpClient_list">
       <title>FtpClient::list()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -10661,7 +10641,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -10728,7 +10708,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
     </sect2>
     <sect2 id="FtpClient_nlst">
       <title>FtpClient::nlst()</title>
@@ -10754,7 +10734,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -10847,7 +10827,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -10940,7 +10920,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -11036,7 +11016,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -11141,7 +11121,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -11241,7 +11221,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -11341,7 +11321,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -11450,7 +11430,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -12431,16 +12411,16 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
     </sect2>
 
   </sect1>
-  
+
   <sect1 id="Qore_Program_Class">
     <title>Program Class</title>
-    
+
     <para>Program objects allow Qore programs to support subprograms with restricted capabilities, for example, to support user-defined logic for application actions.</para>
 
     <para>Parsing in Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object.  Note that all parse actions (<link linkend="Qore_Program_parse">Program::parse()</link>, <link linkend="Qore_Program_parsePending">Program::parsePending()</link>, <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link>, and <link linkend="Qore_Program_parseRollback">Program::parseRollback()</link>) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back.  However parse actions that affect only one stage of the two stages of parsing (<link linkend="Qore_Program_parsePending">Program::parsePending()</link>, <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link> and  <link linkend="Qore_Program_parseRollback">Program::parseRollback()</link>) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.</para>
-    
+
     <para>The constants in the following table can be used to limit the capabilities of a Program object.  These options should be binary-OR'ed together and passed to the Program object's constructor.  Also see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> for equivalent command-line options, and <link linkend="Parse_Directives">Parse Directives</link> for equivalent parse directives.</para>
-    
+
     <para>Note that a program can provide controlled access to functionality otherwise restricted by parse options by exporting a custom API into the child program object using either the <link linkend="Qore_Program_importFunction">Program::importFunction()</link> or <link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable()</link> method.  This is possible because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore with the parent's capabilities.</para>
 
     <para>The following constants are all in the <code>Qore</code> namespace.</para>
@@ -12455,7 +12435,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
-	
+
 	<tbody>
 	  <row id="PO_NO_GLOBAL_VARS">
 	    <entry><para>PO_NO_GLOBAL_VARS</para></entry>
@@ -12567,14 +12547,14 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para><link linkend="no-terminal-io"><code>%no-terminal-io</code></link></para></entry>
 	    <entry><para>Disallows access to reading from and/or writing to the terminal.</para></entry>
 	  </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
     <table>
       <title>Program Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	
+
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -12582,7 +12562,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
-	
+
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Qore_Program_constructor">Program::constructor()</link></para></entry>
@@ -12666,7 +12646,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  <row>
 	    <entry><para><link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable()</link></para></entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Imports a global variable into the Program object's space.  If the variable is an object, then any methods 
+	    <entry><para>Imports a global variable into the Program object's space.  If the variable is an object, then any methods
 	    called will run in the parent's space.</para></entry>
 	  </row>
 
@@ -12714,14 +12694,14 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the script path (directory and filename) for the object.</para></entry>
 	  </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
-    
+
     <sect2 id="Qore_Program_constructor">
       <title>Program::constructor()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -12742,7 +12722,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Program::constructor()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -12753,7 +12733,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>parse_options</replaceable></para></entry>
@@ -12763,7 +12743,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table><title>Return Values for Program::constructor()</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	<thead>
@@ -12771,7 +12751,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	    <entry><para>Return Type</para></entry>
 	    <entry><para>Description</para></entry>
 	  </row>
-	</thead>	
+	</thead>
 	<tbody>
 	  <row>
 	    <entry><para>Object</para></entry>
@@ -12818,7 +12798,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Program::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -12838,7 +12818,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Program::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -14365,10 +14345,10 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
     </sect2>
 
   </sect1>
-  
+
   <sect1 id="Socket_Class">
     <title>Socket Class</title>
-    
+
     <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
 
     <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, <link linkend="Relative_Dates">relative date/time values</link> can be given instead of integers to make the source more readable, for example:</para>
@@ -14376,7 +14356,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
     <programlisting><command>my</command> $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds</programlisting>
 
     <para>Socket objects can automatically convert character encodings if desired when sending string data with <link linkend="Socket_send">Socket::send()</link>.  Use the <link linkend="Socket_setCharset">Socket::setCharset()</link> method to set the character encoding for the socket.  If a character encoding is set, and string data is read with the <link linkend="Socket_recv">Socket::recv()</link> method, then it will be tagged with the encoding of the socket as well.</para>
-    
+
     <para>Client applications should call <link linkend="Socket_connect">Socket::connect()</link> to connect to a remote port or a UNIX domain socket (socket file on the local server).  However, if the remote end is expecting a TLS/SSL connection, use <link linkend="Socket_connectSSL">Socket::connectSSL()</link> instead.</para>
 
     <para>Server applications should call <link linkend="Socket_bind">Socket::bind()</link>, <link linkend="Socket_listen">Socket::listen()</link>, and  <link linkend="Socket_accept">Socket::accept()</link> in this order to accept incoming connections.  Normally a new thread should be started after the Socket::accept() call to handle the new connection in a separate thread (Socket::accept() returns a new Socket object for the accepted connection).</para>
@@ -14452,7 +14432,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
     <table>
       <title>Socket Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	
+
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -14460,7 +14440,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
-	
+
 	<tbody>
 	  <row>
 	    <entry><para><link linkend="Socket_constructor">Socket::constructor()</link></para></entry>
@@ -14710,7 +14690,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <entry><para><link linkend="Socket_getSocket">Socket::getSocket()</link></para></entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the socket file descriptor number.</para></entry>
-	  </row>	
+	  </row>
           <row>
             <entry>
               <para>
@@ -14802,7 +14782,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	</tbody>
       </tgroup>
     </table>
-    
+
     <sect2 id="Socket_constructor">
       <title>Socket::constructor()</title>
       <variablelist>
@@ -14889,7 +14869,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></listitem>
+          <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
     </sect2>
@@ -14917,7 +14897,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Socket::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -14937,7 +14917,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Socket::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -15162,7 +15142,7 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></listitem>
+          <listitem><para><code><link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -15275,7 +15255,7 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link></code></listitem>
+          <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -15369,7 +15349,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></listitem>
+          <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
       <table>
@@ -16437,7 +16417,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -16530,7 +16510,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -16614,7 +16594,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -16698,7 +16678,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -16782,7 +16762,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -16866,7 +16846,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -16950,7 +16930,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17034,7 +17014,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17118,7 +17098,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17235,7 +17215,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17352,7 +17332,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17449,7 +17429,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17546,7 +17526,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17638,7 +17618,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17730,7 +17710,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17822,7 +17802,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -17914,7 +17894,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18006,7 +17986,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18098,7 +18078,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18190,7 +18170,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18282,7 +18262,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18374,7 +18354,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18466,7 +18446,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18555,10 +18535,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <listitem>
 	    <programlisting>$int = $sock.recvu4LSB();</programlisting>
 	  </listitem>
-	</varlistentry> 
+	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18686,7 +18666,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link></code></listitem>
+	  <listitem><para><code><link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18756,7 +18736,7 @@ $sock.bind("/tmp/socket");</programlisting>
     </sect2>
 
     <sect2 id="Socket_getPort">
-      <title>Socket::getPort()</title>      
+      <title>Socket::getPort()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -18818,7 +18798,7 @@ $sock.bind("/tmp/socket");</programlisting>
     </sect2>
 
     <sect2 id="Socket_shutdown">
-      <title>Socket::shutdown()</title>      
+      <title>Socket::shutdown()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -18880,7 +18860,7 @@ $sock.bind("/tmp/socket");</programlisting>
     </sect2>
 
     <sect2 id="Socket_close">
-      <title>Socket::close()</title>      
+      <title>Socket::close()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -18902,7 +18882,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	</varlistentry>
 	<varlistentry>
 	  <term>Events</term>
-	  <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></listitem>
+	  <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></listitem>
 	</varlistentry>
       </variablelist>
 
@@ -18947,7 +18927,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="Socket_getCharset">
       <title>Socket::getCharset()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -18979,18 +18959,18 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for Socket::getCharset()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -19012,7 +18992,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="Socket_setCharset">
       <title>Socket::setCharset()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -19044,18 +19024,18 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>encoding</replaceable></para></entry>
 	      <entry><para>String</para></entry>
 	      <entry><para>The character encoding for the socket.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for Socket::setCharset()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -19077,7 +19057,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="Socket_getNoDelay">
       <title>Socket::getNoDelay()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -19109,18 +19089,18 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for Socket::getNoDelay()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -19142,7 +19122,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="Socket_setNoDelay">
       <title>Socket::setNoDelay()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -19177,18 +19157,18 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>boolean</replaceable></para></entry>
 	      <entry><para>boolean</para></entry>
 	      <entry><para>The <code>TCP_NODELAY</code> setting for the socket.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for Socket::setNoDelay()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -19209,7 +19189,7 @@ $sock.bind("/tmp/socket");</programlisting>
     </sect2>
 
     <sect2 id="Socket_getSocket">
-      <title>Socket::getSocket()</title>      
+      <title>Socket::getSocket()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -19940,7 +19920,7 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></listitem>
+          <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link>, <link linkend="event_deleted">EVENT_DELETED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -20705,7 +20685,7 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>,<link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></listitem>
+          <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>,<link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -20813,7 +20793,7 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></listitem>
+          <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -20896,7 +20876,7 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></listitem>
+          <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -21028,7 +21008,7 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></listitem>
+          <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -21306,7 +21286,7 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
         <varlistentry>
           <term>Events</term>
-          <listitem><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></listitem>
+          <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>, <link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_http_send_message">EVENT_HTTP_SEND_MESSAGE</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link>, <link linkend="event_http_message_received">EVENT_HTTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_http_content_length">EVENT_HTTP_CONTENT_LENGTH</link>, <link linkend="event_http_chunked_start">EVENT_HTTP_CHUNKED_START</link>, <link linkend="event_http_chunked_end">EVENT_HTTP_CHUNKED_END</link>, <link linkend="event_http_chunked_data_received">EVENT_HTTP_CHUNKED_DATA_RECEIVED</link>, <link linkend="event_http_chunk_size">EVENT_HTTP_CHUNK_SIZE</link>, <link linkend="event_http_footers_received">EVENT_HTTP_FOOTERS_RECEIVED</link>, <link linkend="event_http_redirect">EVENT_HTTP_REDIRECT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
       <table>
@@ -22630,7 +22610,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="HTTPClient_getNoDelay">
       <title>HTTPClient::getNoDelay()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -22662,18 +22642,18 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for HTTPClient::getNoDelay()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -22695,7 +22675,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="HTTPClient_setNoDelay">
       <title>HTTPClient::setNoDelay()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -22731,18 +22711,18 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>boolean</replaceable></para></entry>
 	      <entry><para>boolean</para></entry>
 	      <entry><para>The <code>TCP_NODELAY</code> setting for the HTTPClient.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for HTTPClient::setNoDelay()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -22764,7 +22744,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="HTTPClient_isConnected">
       <title>HTTPClient::isConnected()</title>
-      
+
      <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -22796,18 +22776,18 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-	  
+
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>n/a</para></entry>
 	      <entry><para>This method takes no arguments.</para></entry>
 	    </row>
-	    
+
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Value for HTTPClient::isConnected()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -26571,7 +26551,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
   </sect1>
-    
+
   <sect1 id="Qore_SQL_Constants">
     <title>SQL Constants</title>
 
@@ -26584,7 +26564,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
-	
+
 	<tbody>
 	  <row>
 	    <entry><para><code>SQL::DSOracle</code></para></entry>
@@ -26606,7 +26586,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para><code>SQL::DSMSSQL</code></para></entry>
 	    <entry><para>Indicates a Microsoft SQL Server database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
@@ -26620,7 +26600,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
-	
+
 	<tbody>
 	  <row>
 	    <entry><para>SQL::VARCHAR</para></entry>
@@ -26638,7 +26618,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>SQL::DATE</para></entry>
 	    <entry><para>Indicates that the placeholder buffer should be a date-time buffer.</para></entry>
 	  </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
@@ -26652,7 +26632,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
-	
+
 	<tbody>
 	  <row>
 	    <entry><para>SQL::DBI_CAP_CHARSET_SUPPORT</para></entry>
@@ -26677,7 +26657,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <row>
 	    <entry><para>SQL::DBI_CAP_BIND_BY_PLACEHOLDER</para></entry>
 	    <entry><para>Indicates that the DBI driver supports binding placeholder buffers when executing SQL to retrieve data from queries and procedures, etc.</para></entry>
-	  </row>	  
+	  </row>
 	</tbody>
       </tgroup>
     </table>
@@ -26685,13 +26665,13 @@ $sock.bind("/tmp/socket");</programlisting>
 
   <sect1 id="Datasource_Class">
     <title>SQL::Datasource Class</title>
-    
+
     <para>Note: This class is not available with the <link linkend="no-database"><code>PO_NO_DATABASE</code></link> parse option.</para>
 
     <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="SQL::Datasource::constructor">constructor</link>.  For connection pooling support, see the <link linkend="DatasourcePool_Class">DatasourcePool</link> class.</para>
-    
+
     <para>Datasource objects will implicitly call <link linkend="SQL::Datasource::open">Datasource::open()</link> if no connection has yet been established and a method is called requiring a connection to the database server.  Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.</para>
-	
+
     <para>Some Qore DBI drivers allow &quot;select&quot; queries to be executed through the <link linkend="SQL::Datasource::exec">Datasource::exec()</link> method, and allow SQL commands (procedure calls, etc) to be executed through the <link linkend="SQL::Datasource::select">Datasource::select()</link> method, and some DBI drivers do not (depends on the underlying DB API).  At any rate, the transaction lock is set when auto-commit is disabled and when the <link linkend="SQL::Datasource::exec">Datasource::exec()</link> or  <link linkend="SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed as documented above.  Therefore executing a transaction relevant command through the  <link linkend="SQL::Datasource::select">Datasource::select()</link> method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the Datasource object between multiple threads.</para>
 
     <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.</para>
@@ -26710,7 +26690,7 @@ $sock.bind("/tmp/socket");</programlisting>
      <para>Here is an example:</para>
 
      <programlisting>$rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
-	    
+
      <para>To insert a numeric value or a literal 'null' in a query, use <code>%d</code> in the command string, and include the value as an argument after the string.  If the value is NOTHING or NULL, a literal 'null' will be written to the string; otherwise the argument is converted to a floating-point value or integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
 
      <para>For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: <code>:code</code>).  In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix.  By default, a string type will be bound to the position.  To bind other variable types to placeholder positions, include the type constant (see <link linkend="Qore_Type_Constants">Type Constants</link>) as an argument after the command string.  For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release).  Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.</para>
@@ -26719,13 +26699,14 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="datasource_transaction_lock">
       <title>Datasource Transaction Locks</title>
-      
-      <para>Datasource objects have an internal transaction lock which will be grabbed when the <link linkend="SQL::Datasource::exec">Datasource::exec()</link>, <link linkend="SQL::Datasource::vexec">Datasource::vexec()</link> or <link linkend="SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled.  This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource method that would acquire the lock (such as the Datasource::exec() method) when it's not already held, will have the effect that the transaction lock is not acquired.</para>
+
+      <para>Datasource objects have an internal transaction lock which will be grabbed when the <link linkend="SQL::Datasource::exec">Datasource::exec()</link>, <link linkend="SQL::Datasource::vexec">Datasource::vexec()</link> <link linkend="SQL::Datasource::execRaw">Datasource::execRaw()</link>, or <link linkend="SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled.  This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource method that would acquire the lock (such as the Datasource::exec() method) when it's not already held, will have the effect that the transaction lock is not acquired.</para>
 
       <para>Any thread attempting to do transaction-relevant actions on a Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the <link linkend="SQL::Datasource::commit">Datasource::commit()</link> or <link linkend="SQL::Datasource::rollback">Datasource::rollback()</link> methods (or the Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).</para>
-    
+
       <para>There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the <link linkend="SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link> and <link linkend="SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link> methods, respectively. The default transaction lock timeout value is 120 seconds.</para>
     </sect2>
+
 
     <table>
       <title>SQL::Datasource Method Overview</title>
@@ -26788,6 +26769,11 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code on the DB connection, taking a list for all bind arguments.</para></entry>
 	  </row>
+    <row>
+      <entry><para><link linkend="SQL::Datasource::execRaw">Datasource::execRaw()</link></para></entry>
+      <entry><para>Y</para></entry>
+      <entry><para>Executes SQL code (like <link linkend="SQL::Datasource::exec">Datasource::exec()</link>) on the DB connection without any variable binding.</para></entry>
+    </row>
 	  <row>
 	    <entry><para><link linkend="SQL::Datasource::select">Datasource::select()</link></para></entry>
 	    <entry><para>Y</para></entry>
@@ -26913,7 +26899,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
 	  </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
@@ -26941,7 +26927,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Datasource::constructor()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -27009,7 +26995,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-    </sect2>
 
       <table>
 	<title>Exceptions Thrown by Datasource::constructor()</title>
@@ -27032,6 +27017,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
+    </sect2>
 
     <sect2 id="SQL::Datasource::destructor">
       <title>Datasource::destructor()</title>
@@ -27100,7 +27086,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Datasource::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -27120,7 +27106,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Datasource::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -27142,7 +27128,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="SQL::Datasource::beginTransaction">
       <title>Datasource::beginTransaction()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -27227,7 +27213,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <sect2 id="SQL::Datasource::open">
       <title>Datasource::open()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -27780,6 +27766,94 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	  </tbody>
 	</tgroup>
+      </table>
+    </sect2>
+
+
+    <sect2 id="SQL::Datasource::execRaw">
+      <title>Datasource::execRaw()</title>
+
+      <variablelist>
+  <varlistentry>
+    <term>Synopsis</term>
+    <listitem>
+      <para>Grabs the <link linkend="datasource_transaction_lock">transaction lock</link> (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).</para>
+      <para>This method does not do any variable binding, so it's useful for example for DDL statements etc.</para>
+      <warning><para>Using this method for OLTP statements can affect the application performance. See used DB server documentation for variable binding.</para></warning>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Usage</term>
+    <listitem>
+      <programlisting>Datasource::execRaw(<replaceable>sql_command, [arg1, ...]</replaceable>)</programlisting>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Example</term>
+    <listitem>
+      <programlisting>$rows = $db.exec("create table my_tab (id number, some_text varchar2(30))");</programlisting>
+    </listitem>
+  </varlistentry>
+      </variablelist>
+
+      <table>
+  <title>Arguments for Datasource::execRaw()</title>
+  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+        <entry><para>Argument</para></entry>
+        <entry><para>Type</para></entry>
+        <entry><para>Description</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><para><replaceable>sql_command</replaceable></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>The SQL command to execute on the server.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+      </table>
+
+      <table>
+  <title>Return Values for Datasource::execRaw()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+        <entry><para>Return Type</para></entry>
+        <entry><para>Description</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><para>Integer</para></entry>
+        <entry><para>For all commands, a row count is returned.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+      </table>
+
+      <table>
+  <title>Exceptions Thrown by Datasource::execRaw()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+        <entry><para>err</para></entry>
+        <entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
+        <entry><para>Timeout trying to acquire the <link linkend="datasource_transaction_lock">transaction lock</link>.</para></entry>
+      </row>
+      <row>
+        <entry><para>depends on DBI driver</para></entry>
+        <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
       </table>
     </sect2>
 
@@ -28622,7 +28696,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
     <sect2 id="SQL::Datasource::getPassword">
       <title>Datasource::getPassword()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -29445,10 +29519,10 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
   <sect1 id="DatasourcePool_Class">
     <title>SQL::DatasourcePool Class</title>
-    
+
     <para>Note: This class is not available with the <link linkend="no-database"><code>PO_NO_DATABASE</code></link> parse option.</para>
 
-    <para>The DatasourcePool class provides transparent per-thread, per-transaction <link linkend="Datasource_Class">Datasource</link> connection pooling.</para> 
+    <para>The DatasourcePool class provides transparent per-thread, per-transaction <link linkend="Datasource_Class">Datasource</link> connection pooling.</para>
 
     <para>In most cases, the DatasourcePool class can be used as a drop-in replacement for the <link linkend="Datasource_Class">Datasource</link> class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object.  If no Datasource is available, the calling thread will block until a Datasource comes available.</para>
 
@@ -29459,11 +29533,11 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
     <sect2 id="datasourcepool_allocations">
       <title>DatasourcePool Connection Allocations</title>
 
-      <para>The following methods allocate a persistent connection to the calling thread: <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, and <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.  The connection is released to the pool when <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link> are called (or in the case the thread terminates, in which case an exception is raised as well).</para>
+      <para>The following methods allocate a persistent connection to the calling thread: <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, and <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.  The connection is released to the pool when <link linkend="DatasourcePool::commit">DatasourcePool::commit()</link> or <link linkend="DatasourcePool::rollback">DatasourcePool::rollback()</link> are called (or in the case the thread terminates, in which case an exception is raised as well).</para>
 
-      <para>To begin a transaction with one of the select methods (for example, with “select for update”), call <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link> first to manually dedicate a Datasource to the thread before calling the select method.  Otherwise statements that should be in the same transaction may be executed in different connections.</para>
+      <para>To begin a transaction with one of the select methods (for example, with "select for update"), call <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link> first to manually dedicate a Datasource to the thread before calling the select method.  Otherwise statements that should be in the same transaction may be executed in different connections.</para>
 
-      <para>Executing a DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns.  No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+      <para>Executing a DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns.  No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
     </sect2>
 
@@ -29513,6 +29587,11 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code on the DB connection, taking a list for all bind arguments.  Dedicates a connection to the calling thread.</para></entry>
 	  </row>
+    <row>
+      <entry><para><link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link></para></entry>
+      <entry><para>Y</para></entry>
+      <entry><para>Executes SQL code (like <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>) on the DB connection without any variable binding.</para></entry>
+    </row>
 	  <row>
 	    <entry><para><link linkend="DatasourcePool::select">DatasourcePool::select()</link></para></entry>
 	    <entry><para>Y</para></entry>
@@ -29598,7 +29677,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
 	  </row>
-	  
+
 	</tbody>
       </tgroup>
     </table>
@@ -29629,7 +29708,7 @@ $pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for DatasourcePool::constructor()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -29786,12 +29865,12 @@ $pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
     </sect2>
 
     <sect2 id="DatasourcePool::beginTransaction">
       <title>DatasourcePool::beginTransaction()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -30188,6 +30267,93 @@ $pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database
       </table>
     </sect2>
 
+    <sect2 id="DatasourcePool::execRaw">
+      <title>DatasourcePool::execRaw()</title>
+
+      <variablelist>
+  <varlistentry>
+    <term>Synopsis</term>
+    <listitem>
+      <para>Grabs the <link linkend="datasource_transaction_lock">transaction lock</link> (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).</para>
+      <para>This method does not do any variable binding, so it's useful for example for DDL statements etc.</para>
+      <warning><para>Using this method for OLTP statements can affect the application performance. See used DB server documentation for variable binding.</para></warning>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Usage</term>
+    <listitem>
+      <programlisting>DatasourcePool::execRaw(<replaceable>sql_command</replaceable>)</programlisting>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Example</term>
+    <listitem>
+      <programlisting>$rows = $db.exec("create table my_tab (id number, some_text varchar2(30))");</programlisting>
+    </listitem>
+  </varlistentry>
+      </variablelist>
+
+      <table>
+  <title>Arguments for DatasourcePool::execRaw()</title>
+  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+        <entry><para>Argument</para></entry>
+        <entry><para>Type</para></entry>
+        <entry><para>Description</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><para><replaceable>sql_command</replaceable></para></entry>
+        <entry><para>String</para></entry>
+        <entry><para>The SQL command to execute on the server.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+      </table>
+
+      <table>
+  <title>Return Values for DatasourcePool::execRaw()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+        <entry><para>Return Type</para></entry>
+        <entry><para>Description</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><para>Integer</para></entry>
+        <entry><para>For all commands, a row count is returned.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+      </table>
+
+      <table>
+  <title>Exceptions Thrown by DatasourcePool::execRaw()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+        <entry><para>err</para></entry>
+        <entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
+        <entry><para>Timeout trying to acquire the <link linkend="datasource_transaction_lock">transaction lock</link>.</para></entry>
+      </row>
+      <row>
+        <entry><para>depends on DBI driver</para></entry>
+        <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="DatasourcePool::select">
       <title>DatasourcePool::select()</title>
 
@@ -30197,7 +30363,7 @@ $pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database
 	  <listitem>
 	    <para>Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (rows).  See <link linkend="SQL::Datasource::select">Datasource::select()</link> for more information.</para>
 
-	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -30286,7 +30452,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  <listitem>
 	    <para>Same as the <link linkend="DatasourcePool::select">DatasourcePool::select()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
 
-	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
 	  </listitem>
 	</varlistentry>
@@ -30375,7 +30541,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	    <para>Executes an SQL select statement on the server and returns the first row as a hash (the column values).  If more than one row is returned, then all but the first row are discarded.  For a similar method taking a list for all bind arguments, see <link linkend="DatasourcePool::vselectRow">DatasourcePool::vselectRow()</link>.</para>
 	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="datasource_binding">Datasource Binding</link>.</para>
 
-	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
 	  </listitem>
 	</varlistentry>
@@ -30464,7 +30630,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  <listitem>
 	    <para>Same as the <link linkend="DatasourcePool::selectRow">DatasourcePool::selectRow()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
 
-	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
 	  </listitem>
 	</varlistentry>
@@ -30536,7 +30702,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	    <para>Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values).  This format is not as efficient as that returned by the <link linkend="DatasourcePool::select">DatasourcePool::select()</link> method, therefore for larger amounts of data, it is recommended to use <link linkend="DatasourcePool::select">DatasourcePool::select()</link>.</para>
 	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="datasource_binding">Datasource Binding</link>.</para>
 
-	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
 	  </listitem>
 	</varlistentry>
@@ -30625,7 +30791,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  <listitem>
 	    <para>Same as the <link linkend="DatasourcePool::selectRows">DatasourcePool::selectRows()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
 
-	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
+	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
 	  </listitem>
 	</varlistentry>
@@ -30773,7 +30939,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <sect2 id="DatasourcePool::getPassword">
       <title>DatasourcePool::getPassword()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -31364,7 +31530,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <command>return</command> "OK";
 }</programlisting>
-	    
+
 
     <table>
       <title>AutoGate Method Overview</title>
@@ -31497,7 +31663,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for AutoGate::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -31517,7 +31683,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for AutoGate::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -31580,7 +31746,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <command>return</command> "OK";
 }</programlisting>
-	    
+
     <table>
       <title>AutoLock Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -31712,7 +31878,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for AutoLock::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -31732,7 +31898,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for AutoLock::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -31795,7 +31961,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <command>return</command> "OK";
 }</programlisting>
-	    
+
     <table>
       <title>AutoReadLock Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -31927,7 +32093,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for AutoReadLock::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -31947,7 +32113,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for AutoReadLock::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -32010,7 +32176,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <command>return</command> "OK";
 }</programlisting>
-	    
+
     <table>
       <title>AutoWriteLock Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -32142,7 +32308,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for AutoWriteLock::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -32162,7 +32328,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for AutoWriteLock::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -32372,7 +32538,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Condition::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -32392,7 +32558,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Condition::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -32413,7 +32579,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
     </sect2>
 
 
-  
+
     <sect2 id="Condition::signal">
       <title>Condition::signal()</title>
 
@@ -32578,7 +32744,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <sect2 id="Condition::wait">
       <title>Condition::wait()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -32924,7 +33090,7 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Counter::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -32944,7 +33110,7 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Counter::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -32966,7 +33132,7 @@ $mutex.unlock();</programlisting>
 
     <sect2 id="Counter::inc">
       <title>Counter::inc()</title>
-      
+
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
@@ -33510,7 +33676,7 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Queue::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -33530,7 +33696,7 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Queue::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -34142,7 +34308,7 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for RWLock::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -34162,7 +34328,7 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for RWLock::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -35027,7 +35193,7 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Mutex::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -35047,7 +35213,7 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Mutex::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -35463,7 +35629,7 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Sequence::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -35483,7 +35649,7 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Sequence::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -35705,7 +35871,7 @@ $mutex.unlock();</programlisting>
 	</tbody>
       </tgroup>
     </table>
-  
+
     <sect2 id="Gate::constructor">
       <title>Gate::constructor()</title>
 
@@ -35837,7 +36003,7 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Gate::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -35857,7 +36023,7 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Gate::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -36188,7 +36354,7 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for Gate::numWaiting()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -36208,7 +36374,7 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for Gate::numWaiting()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -36750,7 +36916,7 @@ $mutex.unlock();</programlisting>
 	</tbody>
       </tgroup>
     </table>
-  
+
     <sect2 id="XmlDoc::constructor">
       <title>XmlDoc::constructor()</title>
 
@@ -36891,7 +37057,7 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-      
+
       <table>
 	<title>Arguments for XmlDoc::copy()</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -36911,7 +37077,7 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-      
+
       <table>
 	<title>Return Values for XmlDoc::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -39495,7 +39661,7 @@ $mutex.unlock();</programlisting>
 
   <sect1 id="XmlReader_Class">
     <title>Xml::XmlReader Class</title>
-    
+
     <para>The XmlReader class allows XML strings to be iterated and parsed piecewise.</para>
     <table>
       <title>XmlReader Class Method Overview</title>
@@ -41332,7 +41498,7 @@ $mutex.unlock();</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Returns a hash corresponding to the XML string from the current node position, including all its children.  If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
-	    <para>See also <link linkened="XmlReader_toQoreData">XmlReader::toQoreData()</link>.</para>
+	    <para>See also <link linkend="XmlReader_toQoreData">XmlReader::toQoreData()</link>.</para>
             <para>Functionally similar to <link linkend="parseXML">parseXML()</link></para>
           </listitem>
         </varlistentry>
@@ -41440,7 +41606,7 @@ $mutex.unlock();</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Returns a hash corresponding to the XML string from the current node position, including all its children.  Note that data deserialized with this method may not be reserialized to an identical XML string due to the fact that XML elements with the same name are collapsed into Qore lists in the resulting Qore hash irrespective of the order in the original XML string.</para>
-	    <para>See also <link linkened="XmlReader_toQore">XmlReader::toQore()</link>.</para>
+	    <para>See also <link linkend="XmlReader_toQore">XmlReader::toQore()</link>.</para>
             <para>Functionally similar to <link linkend="parseXMLAsData">parseXMLAsData()</link></para>
           </listitem>
         </varlistentry>
@@ -42753,8 +42919,10 @@ $mutex.unlock();</programlisting>
             </row>
           </thead>
           <tbody>
+            <row>
               <entry><para>Boolean</para></entry>
               <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
