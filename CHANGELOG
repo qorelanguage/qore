@@ -1,3 +1,6 @@
+2010.02.26: David Nichols
+	 * fixed bugs in checking default arguments
+
 2010.02.25: David Nichols
 	 * implemented C++-like syntax for creating new objects with a
 	   variable declaration like: my Mutex $m()

@@ -34,7 +34,7 @@ class BuiltinSignature : public AbstractFunctionSignature {
 public:
    DLLLOCAL BuiltinSignature(const QoreTypeInfo *n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList) {
       for (unsigned i = 0; i < typeList.size(); ++i) {
-         bool hasDefaultArg = i <= defaultArgList.size() && defaultArgList[i];
+         bool hasDefaultArg = i < defaultArgList.size() && defaultArgList[i];
 	 if (typeList[i]) {
 	    ++num_param_types;
             if (!hasDefaultArg)

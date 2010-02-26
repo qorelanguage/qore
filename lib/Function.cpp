@@ -306,8 +306,6 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 continue;
       }
 
-      const arg_vec_t &defaultArgList = sig->getDefaultArgList();
-
       //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d)\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0);
 
       // skip variants with signatures with fewer possible elements than the best match already
@@ -318,7 +316,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const AbstractQoreNode *n = args ? args->retrieve_entry(pi) : 0;
 	    int rc;
-	    if (is_nothing(n) && defaultArgList[pi])
+	    if (is_nothing(n) && sig->hasDefaultArg(pi))
 	       rc = QTI_IDENT;
 	    else {
 	       rc = t->testTypeCompatibility(n);
@@ -411,8 +409,6 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 bool ok = true;
 	 bool variant_missing_types = false;
 
-	 const arg_vec_t &defaultArgList = sig->getDefaultArgList();
-
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
@@ -421,7 +417,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	
 	    int rc = -1;
 	    if (t->hasType() && !a->hasType()) {
-	       if (defaultArgList[pi])
+	       if (sig->hasDefaultArg(pi))
 		  rc = QTI_IDENT;
 	       else {
 		  if (pi < num_args) {
@@ -498,15 +494,13 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 bool ok = true;
 	 bool variant_missing_types = false;
 
-	 const arg_vec_t &defaultArgList = sig->getDefaultArgList();
-
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 
 	    int rc = -1;
 	    if (t->hasType() && !a->hasType()) {
-	       if (defaultArgList[pi])
+	       if (sig->hasDefaultArg(pi))
 		  rc = QTI_IDENT;
 	       else {
 		  if (pi < num_args) {
