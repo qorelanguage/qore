@@ -86,11 +86,25 @@ static AbstractQoreNode *f_toupper(const QoreListNode *args, ExceptionSink *xsin
 }
 
 // syntax substr(string, start[, length]) - note 1st character is 0, not 1
+static AbstractQoreNode *f_substr_str_int(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, args, 1);
+   return p0->substr(p1->val, xsink);
+}
+
+static AbstractQoreNode *f_substr_str_int_int(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, args, 1);
+   HARD_QORE_PARAM(p2, const QoreBigIntNode, args, 2);
+   return p0->substr((int)p1->val, (int)p2->val, xsink);
+}
+
+// syntax substr(string, start[, length]) - note 1st character is 0, not 1
 static AbstractQoreNode *f_substr(const QoreListNode *args, ExceptionSink *xsink) {
    const AbstractQoreNode *p0, *p1;
 
    if (is_nothing(p0 = get_param(args, 0)) || is_nothing(p1 = get_param(args, 1)))
-      return 0;
+      return new QoreStringNode;
 
    QoreStringNodeValueHelper temp(p0);
    const AbstractQoreNode *p2;
@@ -100,44 +114,27 @@ static AbstractQoreNode *f_substr(const QoreListNode *args, ExceptionSink *xsink
    return temp->substr(p1->getAsInt(), xsink);
 }
 
-static inline int index_intern(const char *haystack, const char *needle, int pos = 0) {
+static qore_size_t index_simple_intern(const char *haystack, const char *needle, qore_offset_t pos = 0) {
    const char *p;
    if (!(p = strstr(haystack + pos, needle)))
       return -1;
    return (int)(p - haystack);
 }
 
-/* index(string, substring [, position])
- * returns the index position in characters (starting with 0) of the first occurrence
- * of substring within string, optionally starting at position if available
- * returns -1 if not found
- */
-static AbstractQoreNode *f_index(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0, *p1, *p2;
-
-   if (!(p0 = get_param(args, 0)) ||
-       !(p1 = get_param(args, 1)))
-      return new QoreBigIntNode(-1);
-
-   QoreStringValueHelper hs(p0);
-   QoreStringValueHelper t1(p1);
-
-   p2 = get_param(args, 2);
-   int pos = p2 ? p2->getAsInt() : 0;
-
-   int ind;
+static AbstractQoreNode *index_intern(const QoreString *hs, const QoreString *t1, qore_offset_t pos, ExceptionSink *xsink) {
+   qore_offset_t ind;
    if (!hs->getEncoding()->isMultiByte()) {
       if (pos < 0) {
 	 pos = hs->strlen() + pos;
 	 if (pos < 0)
 	    pos = 0;
-	 ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
+	 ind = index_simple_intern(hs->getBuffer(), t1->getBuffer(), pos);
       }
       else {
-	 if ((qore_size_t)pos >= hs->strlen())
+	 if (pos >= (qore_offset_t)hs->strlen())
 	    ind = -1;
 	 else
-	    ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
+	    ind = index_simple_intern(hs->getBuffer(), t1->getBuffer(), pos);
       }
    }
    else { // do multibyte index()
@@ -161,7 +158,7 @@ static AbstractQoreNode *f_index(const QoreListNode *args, ExceptionSink *xsink)
 	 start = 0;
       }
       if (ind != -1) {
-	 ind = index_intern(hs->getBuffer() + start, t1->getBuffer());
+	 ind = index_simple_intern(hs->getBuffer() + start, t1->getBuffer());
 	 if (ind != -1) {
 	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + start + ind, xsink);
 	    if (*xsink)
@@ -171,6 +168,33 @@ static AbstractQoreNode *f_index(const QoreListNode *args, ExceptionSink *xsink)
    }
    
    return new QoreBigIntNode(ind);
+}
+
+/* index(string, substring[, position])
+ * returns the index position in characters (starting with 0) of the first occurrence
+ * of substring within string, optionally starting at position if available
+ * returns -1 if not found
+ */
+static AbstractQoreNode *f_index_str_str_int(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(hs, const QoreStringNode, args, 0);
+   HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
+   HARD_QORE_PARAM(p2, const QoreBigIntNode, args, 2);
+
+   return index_intern(hs, t1, p2->val, xsink);
+}
+
+static AbstractQoreNode *f_index(const QoreListNode *args, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0, *p1, *p2;
+
+   if (!(p0 = get_param(args, 0)) ||
+       !(p1 = get_param(args, 1)))
+      return new QoreBigIntNode(-1);
+
+   QoreStringValueHelper hs(p0);
+   QoreStringValueHelper t1(p1);
+
+   p2 = get_param(args, 2);
+   return index_intern(*hs, *t1, p2 ? p2->getAsBigInt() : 0, xsink);
 }
 
 /* bindex(string, substring [, position])
@@ -197,13 +221,13 @@ static AbstractQoreNode *f_bindex(const QoreListNode *args, ExceptionSink *xsink
       pos = hs->strlen() + pos;
       if (pos < 0)
 	 pos = 0;
-      ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
+      ind = index_simple_intern(hs->getBuffer(), t1->getBuffer(), pos);
    }
    else {
       if ((qore_size_t)pos >= hs->strlen())
 	 ind = -1;
       else
-	 ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
+	 ind = index_simple_intern(hs->getBuffer(), t1->getBuffer(), pos);
    }
 
    return new QoreBigIntNode(ind);
@@ -656,8 +680,13 @@ void init_string_functions() {
    // toupper() called without a string argument returns 0
    builtinFunctions.add("toupper", f_noop);
 
-   builtinFunctions.add("substr", f_substr);
+   builtinFunctions.add2("substr", f_substr, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("substr", f_substr_str_int, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("substr", f_substr_str_int_int, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("index", f_index_str_str_int, QDOM_DEFAULT, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
    builtinFunctions.add2("index", f_index, QDOM_DEFAULT, bigIntTypeInfo);
+
    builtinFunctions.add2("bindex", f_bindex, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add2("rindex", f_rindex, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add2("brindex", f_brindex, QDOM_DEFAULT, bigIntTypeInfo);

@@ -691,6 +691,18 @@ public:
       return val;
    }
 
+   //! will create a unique list so the list can be edited
+   DLLLOCAL void edit() {
+      if (!val) {
+         val = new QoreListNode;
+         needs_deref = true;
+      }
+      else if (!needs_deref || !val->is_unique()) {
+         val = val->copy();
+         needs_deref = true;
+      }
+   }
+
    //! returns a pointer to the QoreListNode object being managed
    /**
       if you need a referenced value, use getReferencedValue()

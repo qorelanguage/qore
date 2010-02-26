@@ -2638,11 +2638,13 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
 	 return;
       }
    }
-
+   
    if (CONMV_const(variant)->isPrivate() && !runtimeCheckPrivateClassAccess(&thisclass)) {
       xsink->raiseException("CONSTRUCTOR-IS-PRIVATE", "%s::constructor() is private and therefore this class cannot be directly instantiated with the new operator by external code", thisclass.getName());
       return;
    }
+   if (ceh.processDefaultArgs(variant, xsink))
+      return;
 
    qore_call_t ct = variant->getCallType();
    ceh.setCallType(ct);
@@ -2687,6 +2689,9 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
+   if (ceh.processDefaultArgs(variant, xsink))
+      return 0;
+
    ceh.setCallType(variant->getCallType());
 
    return METHV_const(variant)->evalNormalMethod(method, self, ceh.getArgs(), xsink);      
@@ -2705,6 +2710,9 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
+   if (ceh.processDefaultArgs(variant, xsink))
+      return 0;
+
    ceh.setCallType(variant->getCallType());
 
    return METHV_const(variant)->evalStaticMethod(method, ceh.getArgs(), xsink);      

@@ -1,5 +1,11 @@
 2010.02.26: David Nichols
 	 * fixed bugs in checking default arguments
+	 * implemented changes that allow QoreBigIntNode to be subclassed;
+	   implemented BigIntTypeInfo to allow compatibility with types that
+	   inherit QoreBigIntNode
+	 * implemented generic default argument handling for builtin and user
+	   variants
+	 * partially applied hard typing to lib/ql_string.cpp
 
 2010.02.25: David Nichols
 	 * implemented C++-like syntax for creating new objects with a

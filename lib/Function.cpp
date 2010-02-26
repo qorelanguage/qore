@@ -37,6 +37,29 @@ static inline void ambiguousDuplicateSignatureException(const char *name, Abstra
    parseException("DUPLICATE-SIGNATURE", "%s(%s) matches already declared variant %s(%s)", name, uvb2->getUserSignature()->getSignatureText(), name, uvb1->getSignature()->getSignatureText());
 }
 
+int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunctionVariant *variant, ExceptionSink *xsink) {
+   bool edit_done = false;
+
+   // get default argument list of variant
+   const arg_vec_t &defaultArgList = variant->getSignature()->getDefaultArgList();
+
+   for (unsigned i = 0; i < defaultArgList.size(); ++i) {
+      if (defaultArgList[i] && (!tmp || is_nothing(tmp->retrieve_entry(i)))) {
+	 // edit the current argument list
+	 if (!edit_done) {
+	    tmp.edit();
+	    edit_done = true;
+	 }
+
+	 AbstractQoreNode **p = const_cast<QoreListNode *>(*tmp)->get_entry_ptr(i);
+	 *p = defaultArgList[i]->eval(xsink);
+	 if (*xsink)
+	    return -1;
+      }
+   }
+   return 0;
+}
+
 UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode *params, RetTypeInfo *retTypeInfo) : 
    AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0), 
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
@@ -604,6 +627,9 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
 	 return 0;
       }
    }
+   if (ceh.processDefaultArgs(variant, xsink))
+      return 0;
+
    ceh.setCallType(variant->getCallType());
 
    return variant->evalFunction(fname, ceh.getArgs(), xsink);
@@ -621,6 +647,9 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
       assert(*xsink);
       return 0;
    }
+   if (ceh.processDefaultArgs(variant, xsink))
+      return 0;
+
    ceh.setCallType(variant->getCallType());
 
    return variant->evalFunction(fname, ceh.getArgs(), xsink);
@@ -707,13 +736,9 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	 }
       }
       else {
-	 // assign default value if available
-	 n = signature.evalDefaultArg(i, xsink);
-	 if (!*xsink) {
-	    n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), n, xsink);
-	    if (!*xsink)
-	       signature.lv[i]->instantiate(n);
-	 }
+	 n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), n, xsink);
+	 if (!*xsink)
+	    signature.lv[i]->instantiate(n);
       }
 
       // the above if block will only instantiate the local variable if no
@@ -1060,6 +1085,8 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, "<anonymous closure>", args, 0, CT_USER);
+   if (ceh.processDefaultArgs(variant, xsink))
+      return 0;
 
    //printd(0, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
 
