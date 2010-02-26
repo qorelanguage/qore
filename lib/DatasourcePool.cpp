@@ -299,7 +299,7 @@ int DatasourcePool::beginTransaction(ExceptionSink *xsink) {
    return rc;
 }
 
-AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
+AbstractQoreNode *DatasourcePool::exec_internal(bool doBind, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    bool new_ds = false;
    Datasource *ds = getDS(new_ds, xsink);
 
@@ -307,10 +307,11 @@ AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode
       return 0;
    
 #ifdef DEBUG
-   addSQL("exec", sql);
+   doBind ? addSQL("exec", sql) : addSQL("execRaw", sql);
 #endif
 
-   AbstractQoreNode *rv = ds->exec(sql, args, xsink);
+   AbstractQoreNode *rv = doBind ? ds->exec(sql, args, xsink)
+                                 : ds->execRaw(sql, xsink);;
    //printd(5, "DatasourcePool::exec() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
 
    if ((xsink->isException() && new_ds) || ds->wasConnectionAborted())
@@ -321,27 +322,12 @@ AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode
    return rv;
 }
 
-// TODO/FIXME: share the code with exec()
+AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
+   return exec_internal(true, sql, args, xsink);
+}
+
 AbstractQoreNode *DatasourcePool::execRaw(const QoreString *sql, ExceptionSink *xsink) {
-   bool new_ds = false;
-   Datasource *ds = getDS(new_ds, xsink);
-
-   if (!ds)
-      return 0;
-
-#ifdef DEBUG
-   addSQL("execRaw", sql);
-#endif
-
-   AbstractQoreNode *rv = ds->execRaw(sql, xsink);
-   //printd(5, "DatasourcePool::exec() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
-
-   if ((xsink->isException() && new_ds) || ds->wasConnectionAborted())
-      freeDS();
-
-   // DEBUG
-   //printf("DSP::beginTransaction() ds=%N\n", $ds);
-   return rv;
+   return exec_internal(false, sql, 0, xsink);
 }
 
 int DatasourcePool::commit(ExceptionSink *xsink) {

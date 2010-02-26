@@ -51,6 +51,9 @@ class Datasource {
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL Datasource& operator=(const Datasource&);
+
+      //! this helper method shares code for exec() and execRaw() methods
+      DLLLOCAL AbstractQoreNode * exec_internal(bool doBind, const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
       
    protected:
       //! frees all connection values

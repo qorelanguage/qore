@@ -68,6 +68,8 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL Datasource *getDS(bool &new_ds, ExceptionSink *xsink);
       DLLLOCAL void freeDS();
       DLLLOCAL void init(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink);
+      // share the code for exec() and execRaw()
+      DLLLOCAL AbstractQoreNode *exec_internal(bool doBind, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
       
    public:
 #ifdef DEBUG

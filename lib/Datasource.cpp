@@ -149,38 +149,12 @@ AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const Qore
    return rv;
 }
 
-AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
+AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return 0;
 
-   AbstractQoreNode *rv = priv->dsl->execSQL(this, query_str, args, xsink);
-   //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
-
-   if (priv->connection_aborted) {
-      assert(*xsink);
-      assert(!rv);
-      return 0;
-   }
-
-   if (priv->autocommit)
-      priv->dsl->autoCommit(this, xsink);
-   else if (!priv->in_transaction) {
-      if (xsink->isException()) {
-	 priv->dsl->abortTransactionStart(this, xsink);
-      }
-      else
-	 priv->in_transaction = true;	 
-   }
-   
-   return rv;
-}
-
-// TODO/FIXME: share the code with ::exec()!
-AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, ExceptionSink *xsink) {
-   if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
-      return 0;
-
-   AbstractQoreNode *rv = priv->dsl->execRawSQL(this, query_str, xsink);
+   AbstractQoreNode *rv = doBind ? priv->dsl->execSQL(this, query_str, args, xsink)
+                                 : priv->dsl->execRawSQL(this, query_str, xsink);;
    //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
 
    if (priv->connection_aborted) {
@@ -196,10 +170,18 @@ AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, ExceptionSink
      priv->dsl->abortTransactionStart(this, xsink);
       }
       else
-     priv->in_transaction = true;
+     priv->in_transaction = true;    
    }
-
+   
    return rv;
+}
+
+AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
+   return exec_internal(true, query_str, args, xsink);
+}
+
+AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, ExceptionSink *xsink) {
+   return exec_internal(false, query_str, 0, xsink);
 }
 
 int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {

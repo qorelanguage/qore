@@ -211,8 +211,7 @@ struct qore_dbi_private {
 	 assert(f.select);
 	 assert(f.selectRows);
 	 assert(f.execSQL);
-     // TODO/FIXME: allow this assertion afer implementation in modules
-     //assert(f.execRawSQL);
+     assert(f.execRawSQL);
 	 assert(f.commit);
 	 assert(f.rollback);
    
