@@ -24,7 +24,6 @@
 
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
-   staticBigIntTypeInfo(NT_INT), 
    staticBoolTypeInfo(NT_BOOLEAN),
    staticStringTypeInfo(NT_STRING),
    staticBinaryTypeInfo(NT_BINARY),
@@ -38,6 +37,9 @@ static QoreTypeInfo staticAnyTypeInfo,
    staticCallReferenceTypeInfo(NT_FUNCREF),
    staticReferenceTypeInfo(NT_REFERENCE)
    ;
+
+// provides for 2-way compatibility with classes derived from QoreBigIntNode
+static BigIntTypeInfo staticBigIntTypeInfo;
 
 // provides limited compatibility with integers
 static FloatTypeInfo staticFloatTypeInfo;

@@ -49,13 +49,6 @@ protected:
       str.push_back('>');
    }
 
-   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const = 0;
-   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const = 0;
-   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const = 0;
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
-      return 0;
-   }
-
 public:
    DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), has_type(n_qt != NT_ALL ? true : false) {
    }
@@ -84,6 +77,13 @@ public:
       if (qt >= 0 && qt < NT_OBJECT)
          return getDefaultValueForBuiltinValueType(qt);
       return getDefaultValueImpl();
+   }
+
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const = 0;
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const = 0;
+   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+      return 0;
    }
 };
 
@@ -180,18 +180,6 @@ protected:
 	 concatClass(str, qc->getName());
       else
 	 str.append(getBuiltinTypeName(qt));
-   }
-
-   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      return false;
-   }
-
-   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
-      return QTI_NOT_EQUAL;
-   }
-
-   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
-      return QTI_NOT_EQUAL;
    }
 
 public:
@@ -303,6 +291,18 @@ public:
 	 return qc == typeInfo->qc;
       }
       return !typeInfo->qc;
+   }
+
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      return false;
+   }
+
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      return QTI_NOT_EQUAL;
+   }
+
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      return QTI_NOT_EQUAL;
    }
 
 #ifdef DEBUG
@@ -486,11 +486,32 @@ public:
    }
 };
 
+class BigIntTypeInfo : public QoreTypeInfo {
+protected:
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      //printd(0, "BigIntTypeInfo::checkTypeInstantiationImpl() n=%p %s\n", n, n->getTypeName());
+      return dynamic_cast<QoreBigIntNode *>(n) ? true : false;
+   }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      return dynamic_cast<const QoreBigIntNode *>(n) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      if (!typeInfo->hasType())
+         return QTI_NOT_EQUAL;
+
+      return typeInfo->parseEqualImpl(this);
+   }
+
+public:
+   DLLLOCAL BigIntTypeInfo() : QoreTypeInfo(NT_INT) {
+   }
+};
+
 // expect a ResolvedCallReferenceNode with this type 
 class CodeTypeInfo : public QoreTypeInfo {
 protected:
    DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      //printd(0, "FloatTypeInfo::checkTypeInstantiationImpl() n=%p %s\n", n, n->getTypeName());
+      //printd(0, "CodeTypeInfo::checkTypeInstantiationImpl() n=%p %s\n", n, n->getTypeName());
       if (!n || (n->getType() != NT_FUNCREF && (n->getType() != NT_RUNTIME_CLOSURE)))
 	 return false;
 

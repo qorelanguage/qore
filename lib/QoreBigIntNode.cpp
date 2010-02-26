@@ -28,6 +28,10 @@ QoreBigIntNode::QoreBigIntNode() : SimpleValueQoreNode(NT_INT), val(0) {
 QoreBigIntNode::QoreBigIntNode(int64 v) : SimpleValueQoreNode(NT_INT), val(v) {
 }
 
+// protected constructor for subclasses only
+QoreBigIntNode::QoreBigIntNode(qore_type_t t, int64 v) : SimpleValueQoreNode(t), val(v) {
+}
+
 QoreBigIntNode::~QoreBigIntNode() {
 }
 

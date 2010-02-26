@@ -27,40 +27,44 @@
 #include <string.h>
 
 // retuns number of characters in a string
-static AbstractQoreNode *f_length(const QoreListNode *args, ExceptionSink *xsink) {
+static AbstractQoreNode *f_length_str(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, args, 0);
+   return new QoreBigIntNode(str->length());
+}
+
+// retuns number of characters in a string
+static AbstractQoreNode *f_length_bin(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(bin, const BinaryNode, args, 0);
+   return new QoreBigIntNode(bin->size());
+}
+
+// retuns number of characters in a string
+static AbstractQoreNode *f_length_any(const QoreListNode *args, ExceptionSink *xsink) {
    const AbstractQoreNode *p0;
-
    if (!(p0 = get_param(args, 0)))
-      return 0;
-
-   int l;
-
-   if (p0->getType() == NT_BINARY)
-      l = (reinterpret_cast<const BinaryNode *>(p0))->size();
-   else {
-      QoreStringValueHelper temp(p0);
-      l = temp->length();
-   }
-   return new QoreBigIntNode(l);
+      return new QoreBigIntNode;
+   
+   QoreStringValueHelper temp(p0);
+   return new QoreBigIntNode(temp->length());
 }
 
 // retuns number of bytes in a string
-static AbstractQoreNode *f_strlen(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0;
+static AbstractQoreNode *f_strlen_str(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, args, 0);
+   return new QoreBigIntNode(str->strlen());
+}
 
+static AbstractQoreNode *f_strlen_any(const QoreListNode *args, ExceptionSink *xsink) {
+   const AbstractQoreNode *p0;
    if (!(p0 = get_param(args, 0)))
-      return 0;
+      return new QoreBigIntNode;
 
    QoreStringValueHelper temp(p0);
    return new QoreBigIntNode(temp->strlen());
 }
 
 static AbstractQoreNode *f_tolower(const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(args, 0)))
-      return 0;
-
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
    QoreStringNode *rv = p0->copy();
    char *p = (char *)rv->getBuffer();
    while (*p) {
@@ -71,11 +75,7 @@ static AbstractQoreNode *f_tolower(const QoreListNode *args, ExceptionSink *xsin
 }
 
 static AbstractQoreNode *f_toupper(const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(args, 0)))
-      return 0;
-
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
    QoreStringNode *rv = p0->copy();
    char *p = (char *)rv->getBuffer();
    while (*p) {
@@ -641,10 +641,21 @@ static AbstractQoreNode *f_trim(const QoreListNode *args, ExceptionSink *xsink) 
 }
 
 void init_string_functions() {
-   builtinFunctions.add("length", f_length);
-   builtinFunctions.add("strlen", f_strlen);
-   builtinFunctions.add("tolower", f_tolower);
-   builtinFunctions.add("toupper", f_toupper);
+   builtinFunctions.add2("length", f_length_str, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("length", f_length_bin, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("length", f_length_any, QDOM_DEFAULT, bigIntTypeInfo);
+
+   builtinFunctions.add2("strlen", f_strlen_str, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("strlen", f_strlen_any, QDOM_DEFAULT, bigIntTypeInfo);
+
+   builtinFunctions.add2("tolower", f_tolower, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // tolower() called without a string argument returns 0
+   builtinFunctions.add("tolower", f_noop);
+
+   builtinFunctions.add2("toupper", f_toupper, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // toupper() called without a string argument returns 0
+   builtinFunctions.add("toupper", f_noop);
+
    builtinFunctions.add("substr", f_substr);
    builtinFunctions.add2("index", f_index, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add2("bindex", f_bindex, QDOM_DEFAULT, bigIntTypeInfo);
