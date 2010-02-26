@@ -75,7 +75,7 @@ class DBIDriverFunctions {
 	 select = 0;
 	 selectRows = 0;
 	 execSQL = 0;
-     execRawSQL = 0;
+	 execRawSQL = 0;
 	 commit = 0;
 	 rollback = 0;
 	 begin_transaction = 0;
@@ -211,7 +211,6 @@ struct qore_dbi_private {
 	 assert(f.select);
 	 assert(f.selectRows);
 	 assert(f.execSQL);
-     assert(f.execRawSQL);
 	 assert(f.commit);
 	 assert(f.rollback);
    
@@ -273,8 +272,11 @@ AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, cons
    return priv->f.execSQL(ds, sql, args, xsink);
 }
 
-AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink)
-{
+AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink) {
+   if (!priv->f.execRawSQL) {
+      xsink->raiseException("DBI-EXEC-RAW-SQL-ERROR", "this driver does not implement the Datasource::execRawSQL() method");
+      return 0;
+   }
    return priv->f.execRawSQL(ds, sql, xsink);
 }
 

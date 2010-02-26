@@ -848,6 +848,7 @@ UserFunction::~UserFunction() {
 }
 
 // returns 0 for OK, -1 for error
+// this is called after types have been resolved and the types must be rechecked
 int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase *variant) {
    UserSignature *sig = variant->getUserSignature();
 
@@ -877,25 +878,17 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
 	 bool variantHasDefaultArg = vs->hasDefaultArg(pi);
 
 	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
-	 const QoreParseTypeInfo *parseTypeInfo = sig->getParseParamTypeInfo(pi);
+	 assert(!sig->getParseParamTypeInfo(pi));
 	 bool thisHasDefaultArg = sig->hasDefaultArg(pi);
 
-	 // check for ambious matches
-	 if (typeInfo->hasType() || parseTypeInfo->hasType()) {
+	 // check for ambiguous matches
+	 if (typeInfo) {
 	    if (!variantTypeInfo->hasType() && thisHasDefaultArg)
 	       ambiguous = true;
-	    else { // check for real matches
-	       if (typeInfo->hasType()) {
-		  if (!typeInfo->checkIdentical(variantTypeInfo)) {
-		     dup = false;
-		     break;
-		  }
-	       }
-	       else if (!parseTypeInfo->checkIdentical(variantTypeInfo)) {
-		  dup = false;
-		  break;
-	       }
-	    }	       
+	    else if (!typeInfo->checkIdentical(variantTypeInfo)) {
+	       dup = false;
+	       break;
+	    }
 	 }
 	 else {
 	    if (variantTypeInfo->hasType() && variantHasDefaultArg)
@@ -1038,18 +1031,46 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
       }
 
       bool dup = true;
+      bool ambiguous = false;
       unsigned max = QORE_MAX(tp, vtp);
       bool recheck = false;
       for (unsigned pi = 0; pi < max; ++pi) {
-	 // compare the unresolved type with resolved types in committed variants
-	 if (!sig->getParseParamTypeInfo(pi)->parseStageOneIdenticalWithParsed(uvsig->getParamTypeInfo(pi), recheck)) {
-	    recheck = false;
-	    dup = false;
-	    break;
+	 const QoreTypeInfo *variantTypeInfo = uvsig->getParamTypeInfo(pi);
+	 bool variantHasDefaultArg = uvsig->hasDefaultArg(pi);
+
+	 const QoreTypeInfo *typeInfo = sig->getParamTypeInfo(pi);
+	 const QoreParseTypeInfo *parseTypeInfo = sig->getParseParamTypeInfo(pi);
+	 bool thisHasDefaultArg = sig->hasDefaultArg(pi);
+
+	 // compare the to-be-committed types with resolved types in committed variants
+	 if (parseTypeInfo) {
+	    if (!variantTypeInfo && thisHasDefaultArg) {
+	       ambiguous = true;
+	    }
+	    else if (!parseTypeInfo->parseStageOneIdenticalWithParsed(variantTypeInfo, recheck)) {
+	       recheck = false;
+	       dup = false;
+	       break;
+	    }
+	 }
+	 else {
+	    if (!typeInfo && variantTypeInfo && variantHasDefaultArg) {
+	       ambiguous = true;
+	    }
+	    else if (typeInfo && !variantTypeInfo && thisHasDefaultArg) {
+	       ambiguous = true;
+	    }
+	    else if (!typeInfo->checkIdentical(variantTypeInfo)) {
+	       dup = false;
+	       break;
+	    }	       
 	 }
       }
       if (dup) {
-	 duplicateSignatureException(getName(), variant);
+	 if (ambiguous)
+	    ambiguousDuplicateSignatureException(getName(), *i, variant);
+	 else
+	    duplicateSignatureException(getName(), variant);
 	 return -1;
       }
       if (recheck)

@@ -20,3 +20,5 @@ Mutex::destructor() {}
 Mutex::copy() {}
 # parse error: duplicate signature
 Mutex::lock() {}
+# parse error: ambiguous signature
+File::write(string $fn, int $len = 0) returns int {}
