@@ -56,14 +56,13 @@ static AbstractQoreNode *f_abort(const QoreListNode *params, ExceptionSink *xsin
    return 0;
 }
 
-static AbstractQoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
       return 0;
 
-   class ExecArgList args(p0->getBuffer());
+   ExecArgList args(p0->getBuffer());
    execvp(args.getFile(), args.getArgs());
    
    xsink->raiseException("EXEC-ERROR", "execvp() failed with error code %d", errno);
@@ -71,23 +70,17 @@ static AbstractQoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink
 }
 
 // executes a command and returns exit status
-static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    int rc;
    // use system() if shell meta-characters are found
-   if (strchrs(p0->getBuffer(), "*?><;"))
-   {
+   if (strchrs(p0->getBuffer(), "*?><;")) {
       QoreString c;
       c.sprintf("/bin/sh -c \"%s\"", p0->getBuffer());
       rc = system(c.getBuffer());
    }
-   else // otherwise fork and exec
-   {
+   else { // otherwise fork and exec
       pid_t pid;
       if (!(pid = fork())) {
 	 ExecArgList args(p0->getBuffer());
@@ -109,8 +102,7 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *f_getuid(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_getuid(const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(getuid());
 }
 
@@ -436,10 +428,7 @@ static AbstractQoreNode *f_strerror(const QoreListNode *params, ExceptionSink *x
 }
 
 static AbstractQoreNode *f_basename(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-      return 0;
-
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
    char *p = q_basename(p0->getBuffer());
    int len = strlen(p);
    return new QoreStringNode(p, len, len + 1, p0->getEncoding());
@@ -756,18 +745,19 @@ static AbstractQoreNode* runRecentQoreTests(const QoreListNode *params, Exceptio
 }
 
 namespace {
-TEST()
-{
+TEST() {
   // just an example of empty test
 }
 }
 #endif
 
-void init_lib_functions()
-{
+void init_lib_functions() {
    builtinFunctions.add("exit",        f_exit, QDOM_PROCESS);
    builtinFunctions.add("abort",       f_abort, QDOM_PROCESS);
-   builtinFunctions.add("system",      f_system, QDOM_EXTERNAL_PROCESS);
+
+   builtinFunctions.add("system",      f_noop, QDOM_EXTERNAL_PROCESS);
+   builtinFunctions.add2("system",      f_system, QDOM_EXTERNAL_PROCESS, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add("getuid",      f_getuid);
    builtinFunctions.add("geteuid",     f_geteuid);
    builtinFunctions.add("getgid",      f_getgid);
@@ -790,7 +780,10 @@ void init_lib_functions()
    builtinFunctions.add("gethostname", f_gethostname);
    builtinFunctions.add("errno",       f_errno);
    builtinFunctions.add("strerror",    f_strerror);
-   builtinFunctions.add("basename",    f_basename);
+
+   builtinFunctions.add("basename",    f_noop);
+   builtinFunctions.add2("basename",    f_basename, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add("dirname",     f_dirname);
    builtinFunctions.add("mkdir",       f_mkdir, QDOM_FILESYSTEM);
    builtinFunctions.add("rmdir",       f_rmdir, QDOM_FILESYSTEM);

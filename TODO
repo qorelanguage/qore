@@ -1,3 +1,4 @@
+* fix broken operator implementation (ex: OP_ABSOUTE_EQ->bool_eval() converts bool -> QoreNode -> bool)
 * implement "remove" operator - like delete but does not call delete and returns varlu removed from lvalue
 * implement support for universal references - removed checking for passing a reference to user code with declared param
 * check closure type info

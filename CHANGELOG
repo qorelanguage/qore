@@ -1,3 +1,7 @@
+2010.02.27: David Nichols
+	 * fixed a bug in inlist_hard() when an argument is 0
+	 * a few more hard typing applications
+
 2010.02.26: David Nichols
 	 * fixed bugs in checking default arguments
 	 * implemented changes that allow QoreBigIntNode to be subclassed;

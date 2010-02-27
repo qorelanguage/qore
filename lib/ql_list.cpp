@@ -274,11 +274,25 @@ static AbstractQoreNode *f_inlist_hard(const QoreListNode *params, ExceptionSink
    if (p1->getType() != NT_LIST)
       return get_bool_node(OP_ABSOLUTE_EQ->bool_eval(p0, p1, xsink));
 
+   bool p0_is_nothing = is_nothing(p0);
+
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(p1));
    while (li.next()) {
-      bool b = OP_ABSOLUTE_EQ->bool_eval(p0, li.getValue(), xsink);
-      if (*xsink)
-	 return 0;
+      const AbstractQoreNode *lp = li.getValue();
+
+      bool b;
+
+      // do hard comparison inline
+      if (is_nothing(lp))
+	 b = p0_is_nothing;
+      else if (p0_is_nothing)
+	 b = false;
+      else {
+	 b = p0->is_equal_hard(lp, xsink);
+	 if (*xsink)
+	    return 0;
+      }
+
       if (b)
 	 return &True;
    }
@@ -286,8 +300,7 @@ static AbstractQoreNode *f_inlist_hard(const QoreListNode *params, ExceptionSink
 }
 
 
-void init_list_functions()
-{
+void init_list_functions() {
    builtinFunctions.add("sort", f_sort);
    builtinFunctions.add("sortStable", f_sortStable);
    builtinFunctions.add("sortDescending", f_sortDescending);

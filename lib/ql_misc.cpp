@@ -230,10 +230,22 @@ static AbstractQoreNode *f_getClassName(const QoreListNode *params, ExceptionSin
    return new QoreStringNode(p0->getClass()->getName());
 }
 
-static AbstractQoreNode *f_parseURL(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
+// parse_url() - with hard typing
+static AbstractQoreNode *f_parse_url(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   QoreURL url(p0);
+   if (!url.isValid()) {
+      xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", p0->getBuffer());
       return 0;
+   }
+
+   return url.getHash();
+}
+
+// parseURL() - old version
+static AbstractQoreNode *f_parseURL(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    QoreURL url(p0);
    if (url.isValid())
@@ -1149,7 +1161,12 @@ void init_misc_functions() {
    builtinFunctions.add("html_encode", f_html_encode);
    builtinFunctions.add("html_decode", f_html_decode);
    builtinFunctions.add("get_default_encoding", f_get_default_encoding);
-   builtinFunctions.add("parseURL", f_parseURL);
+
+   builtinFunctions.add2("parse_url", f_parse_url, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add("parseURL", f_noop);
+   builtinFunctions.add2("parseURL", f_parseURL, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add("getClassName", f_getClassName);
    builtinFunctions.add("backquote", f_backquote, QDOM_EXTERNAL_PROCESS);
    builtinFunctions.add("parseBase64String", f_parseBase64String);
