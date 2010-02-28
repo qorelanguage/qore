@@ -34,9 +34,11 @@ static QoreTypeInfo staticAnyTypeInfo,
    staticNothingTypeInfo(NT_NOTHING),
    staticNullTypeInfo(NT_NULL),
    staticRunTimeClosureTypeInfo(NT_RUNTIME_CLOSURE),
-   staticCallReferenceTypeInfo(NT_FUNCREF),
-   staticReferenceTypeInfo(NT_REFERENCE)
+   staticCallReferenceTypeInfo(NT_FUNCREF)
    ;
+
+// provides for run-time assignment capability from any type
+static ReferenceTypeInfo staticReferenceTypeInfo;
 
 // provides for 2-way compatibility with classes derived from QoreBigIntNode
 static BigIntTypeInfo staticBigIntTypeInfo;

@@ -234,6 +234,7 @@ AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvi
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
 
+/*
    if (type == VT_LOCAL) {
       if (!is_assignment) {
 	 if (ref.id->needsAssignmentAtInstantiation())
@@ -242,6 +243,7 @@ AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvi
       else
 	 ref.id->unsetNeedsValueInstantiation();
    }
+*/
 
    // this expression returns nothing if it's a new local variable
    // so if we're not assigning we return nothingTypeInfo as the

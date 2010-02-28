@@ -1,3 +1,7 @@
+2010.02.28: David Nichols
+	 * implemented ReferenceTypeInfo so that any value can be assigned to
+	   a reference
+
 2010.02.27: David Nichols
 	 * fixed a bug in inlist_hard() when an argument is 0
 	 * a few more hard typing applications

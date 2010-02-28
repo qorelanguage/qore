@@ -104,7 +104,7 @@ static AbstractQoreNode *f_substr(const QoreListNode *args, ExceptionSink *xsink
    const AbstractQoreNode *p0, *p1;
 
    if (is_nothing(p0 = get_param(args, 0)) || is_nothing(p1 = get_param(args, 1)))
-      return new QoreStringNode;
+      return 0;
 
    QoreStringNodeValueHelper temp(p0);
    const AbstractQoreNode *p2;
@@ -689,7 +689,7 @@ void init_string_functions() {
    // toupper() called without a string argument returns 0
    builtinFunctions.add("toupper", f_noop);
 
-   builtinFunctions.add2("substr", f_substr, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add("substr", f_substr, QDOM_DEFAULT);
    builtinFunctions.add2("substr", f_substr_str_int, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("substr", f_substr_str_int_int, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
 
