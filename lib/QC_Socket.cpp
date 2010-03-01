@@ -943,8 +943,9 @@ QoreClass *initSocketClass() {
    QC_SOCKET->addMethod("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey);
    QC_SOCKET->addMethod("isOpen",                    (q_method_t)SOCKET_isOpen);
    QC_SOCKET->addMethod("setEventQueue",             (q_method_t)SOCKET_setEventQueue);
-   QC_SOCKET->addMethod("setNoDelay",                (q_method_t)SOCKET_setNoDelay);
-   QC_SOCKET->addMethod("getNoDelay",                (q_method_t)SOCKET_getNoDelay);
+
+   QC_SOCKET->addMethodExtended("setNoDelay",                (q_method_t)SOCKET_setNoDelay, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SOCKET->addMethodExtended("getNoDelay",                (q_method_t)SOCKET_getNoDelay, false, QDOM_DEFAULT, boolTypeInfo);
 
    return QC_SOCKET;
 }

@@ -1,8 +1,13 @@
 #!/usr/bin/env qore
+# -*- mode: perl; indent-tabs-mode: nil -*-
 
 %require-our
+%require-types
 
 %requires qore >= 0.8
+
+# return value but no return type declared
+sub rt() { return 1; }
 
 class T { private constructor() {} private copy() {} private p() { $.copy(1); } }
 

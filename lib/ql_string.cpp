@@ -668,13 +668,13 @@ void init_string_functions() {
    builtinFunctions.add2("strlen", f_strlen_str, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("strlen", f_strlen_any, QDOM_DEFAULT, bigIntTypeInfo);
 
-   builtinFunctions.add2("tolower", f_tolower, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    // tolower() called without a string argument returns 0
    builtinFunctions.add("tolower", f_noop);
+   builtinFunctions.add2("tolower", f_tolower, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("toupper", f_toupper, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    // toupper() called without a string argument returns 0
    builtinFunctions.add("toupper", f_noop);
+   builtinFunctions.add2("toupper", f_toupper, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("substr", f_substr, QDOM_DEFAULT);
    builtinFunctions.add2("substr", f_substr_str_int, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);

@@ -630,7 +630,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       }
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
-   printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
    return variant;
 }
 
