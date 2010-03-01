@@ -40,10 +40,7 @@ static AbstractQoreNode *f_length_bin(const QoreListNode *args, ExceptionSink *x
 
 // retuns number of characters in a string
 static AbstractQoreNode *f_length_any(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0;
-   if (!(p0 = get_param(args, 0)))
-      return new QoreBigIntNode;
-   
+   const AbstractQoreNode *p0 = get_param(args, 0);
    QoreStringValueHelper temp(p0);
    return new QoreBigIntNode(temp->length());
 }
@@ -55,10 +52,7 @@ static AbstractQoreNode *f_strlen_str(const QoreListNode *args, ExceptionSink *x
 }
 
 static AbstractQoreNode *f_strlen_any(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0;
-   if (!(p0 = get_param(args, 0)))
-      return new QoreBigIntNode;
-
+   const AbstractQoreNode *p0 = get_param(args, 0);
    QoreStringValueHelper temp(p0);
    return new QoreBigIntNode(temp->strlen());
 }
@@ -395,9 +389,7 @@ static AbstractQoreNode *f_chr_int(const QoreListNode *args, ExceptionSink *xsin
 }
 
 static AbstractQoreNode *f_chr(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0;
-   if (!(p0 = get_param(args, 0)))
-      return new QoreStringNode;
+   const AbstractQoreNode *p0 = get_param(args, 0);
    return new QoreStringNode((char)p0->getAsInt());
 }
 
@@ -591,8 +583,7 @@ static AbstractQoreNode *f_join(const QoreListNode *args, ExceptionSink *xsink) 
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
    
    unsigned n = num_args(args);
-   if (n < 2)
-      return new QoreStringNode;
+   assert(n > 1);
 
    const QoreListNode *l = test_list_param(args, 1);
    if (n == 2 && l)
@@ -628,11 +619,8 @@ static AbstractQoreNode *f_chomp_ref(const QoreListNode *args, ExceptionSink *xs
 
    AutoVLock vl(xsink);
    QoreTypeSafeReferenceHelper ref(r, vl, xsink);
-   if (!ref)
+   if (!ref || ref.getType() != NT_STRING)
       return 0;
-
-   if (ref.getType() != NT_STRING)
-      return new QoreStringNode;
 
    QoreStringNode *str = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
    if (*xsink)
@@ -659,11 +647,8 @@ static AbstractQoreNode *f_trim_ref_str(const QoreListNode *args, ExceptionSink 
    const char *chars = p1->strlen() ? p1->getBuffer() : 0;
    AutoVLock vl(xsink);
    QoreTypeSafeReferenceHelper ref(r, vl, xsink);
-   if (!ref)
+   if (!ref || ref.getType() != NT_STRING)
       return 0;
-
-   if (ref.getType() != NT_STRING)
-      return new QoreStringNode;
 
    QoreStringNode *str = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
    if (*xsink)
@@ -674,10 +659,12 @@ static AbstractQoreNode *f_trim_ref_str(const QoreListNode *args, ExceptionSink 
 }
 
 void init_string_functions() {
+   builtinFunctions.add2("length", f_noop, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_str, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_bin, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_any, QDOM_DEFAULT, bigIntTypeInfo);
 
+   builtinFunctions.add2("strlen", f_noop, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("strlen", f_strlen_str, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("strlen", f_strlen_any, QDOM_DEFAULT, bigIntTypeInfo);
 
@@ -708,6 +695,7 @@ void init_string_functions() {
    builtinFunctions.add2("ord", f_ord_str_int, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("ord", f_ord, QDOM_DEFAULT, bigIntTypeInfo);
 
+   builtinFunctions.add2("chr", f_noop, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("chr", f_chr_int, QDOM_DEFAULT, stringTypeInfo, 1, bigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("chr", f_chr, QDOM_DEFAULT, stringTypeInfo);
 
@@ -738,13 +726,14 @@ void init_string_functions() {
    builtinFunctions.add2("replace", f_replace, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("join", f_noop);
+   builtinFunctions.add2("join", f_noop, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("join", f_join, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("chomp", f_noop);
    builtinFunctions.add2("chomp", f_chomp_str, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("chomp", f_chomp_ref, QDOM_DEFAULT, stringTypeInfo, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("chomp", f_chomp_ref, QDOM_DEFAULT, 0, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("trim", f_noop);
    builtinFunctions.add2("trim", f_trim_str_str, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
-   builtinFunctions.add2("trim", f_trim_ref_str, QDOM_DEFAULT, stringTypeInfo, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
+   builtinFunctions.add2("trim", f_trim_ref_str, QDOM_DEFAULT, 0, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
 }
