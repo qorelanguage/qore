@@ -1,5 +1,6 @@
 2010.03.01: David Nichols
 	 * fixed compatibility for some string functions with hard typing
+	 * fixed another bug matching variants at parse time
 
 2010.02.28: David Nichols
 	 * implemented ReferenceTypeInfo so that any value can be assigned to

@@ -408,7 +408,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       }
    }
 
-   printd(5, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+   //printd(5, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
 
    return variant;
 }
@@ -440,7 +440,9 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       AbstractFunctionSignature *sig = (*i)->getSignature();
 
-      if (!variant && !sig->getParamTypes()) {
+      //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+
+      if (!variant && !sig->getParamTypes() && !longest_pmatch) {
 	 variant = *i;
 	 continue;
       }
@@ -456,7 +458,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 
-	    //printd(0, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
+	    //printd(5, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
 	
 	    int rc = -1;
 	    if (t->hasType() && !a->hasType()) {
@@ -488,7 +490,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       count += rc;
 	    }
 	 }
-	 //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_longest_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_longest_pmatch);
+	 //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_longest_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_longest_pmatch);
 	 if (!ok)
 	    continue;
 	 if (count > match) {
@@ -525,7 +527,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       // resolve types in signature if necessary
       sig->resolve();
 
-      if (!variant && !sig->getParamTypes()) {
+      if (!variant && !sig->getParamTypes() && !longest_pmatch) {
 	 variant = *i;
 	 continue;
       }
@@ -678,6 +680,8 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
 void AbstractQoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant *variant) {
    assert(variant->getCallType() == CT_BUILTIN);
 #ifdef DEBUG
+   // FIXME: this algorithm is no longer valid due to default arguments
+   // does not detect ambiguous signatures
    AbstractFunctionSignature *sig = variant->getSignature();
    // check for duplicate parameter signatures
    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
