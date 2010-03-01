@@ -294,7 +294,7 @@ public:
        @param n_typeList a list of type information for parameters to the variant
        @param defaultArgList a list of default arguments to each parameter
     */
-   DLLEXPORT void addMethodExtendedList3(void *ptr, const char *n_name, q_method3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
+   DLLEXPORT void addMethodExtendedList3(const void *ptr, const char *n_name, q_method3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
    //! adds a builtin static method to a class
    /**
@@ -329,7 +329,7 @@ public:
        @param n_typeList a list of type information for parameters to the variant
        @param defaultArgList a list of default arguments to each parameter
     */
-   DLLEXPORT void addStaticMethodExtendedList3(void *ptr, const char *n_name, q_static_method3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
+   DLLEXPORT void addStaticMethodExtendedList3(const void *ptr, const char *n_name, q_static_method3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
    //! sets the builtin destructor method for the class
    /** you only need to implement destructor methods if the destructor should destroy the object
@@ -372,7 +372,7 @@ public:
        QC_AutoLock->setDestructor2((q_destructor_t)AL_destructor);
        @endcode
    */
-   DLLEXPORT void setDestructor3(void *ptr, q_destructor3_t m);
+   DLLEXPORT void setDestructor3(const void *ptr, q_destructor3_t m);
 
    //! sets the builtin constructor method for the class (or adds an overloaded variant)
    /**
@@ -406,7 +406,7 @@ public:
        @param n_typeList a list of type information for parameters to the variant
        @param defaultArgList a list of default arguments to each parameter
     */
-   DLLEXPORT void setConstructorExtendedList3(void *ptr, q_constructor3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
+   DLLEXPORT void setConstructorExtendedList3(const void *ptr, q_constructor3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
    //! sets the builtin constructor for system objects (ex: used as constant values)
    /** @note system constructors in a class hierarchy must call the base class constructors manually
@@ -461,7 +461,7 @@ public:
        QC_AutoLock->setCopy((q_copy2_t)AL_copy);
        @endcode
    */
-   DLLEXPORT void setCopy3(void *ptr, q_copy3_t m);
+   DLLEXPORT void setCopy3(const void *ptr, q_copy3_t m);
 
    //! sets the deleteBlocker method for the class
    /** this method will be run when the object is deleted; it should be set only for classes where

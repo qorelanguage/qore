@@ -201,7 +201,7 @@ typedef AbstractQoreNode *(*q_method2_t)(const QoreMethod &method, QoreObject *s
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
     @return the return value of the function (can be 0)
  */
-typedef AbstractQoreNode *(*q_method3_t)(const QoreMethod &method, const type_vec_t &typeList, void *ptr, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
+typedef AbstractQoreNode *(*q_method3_t)(const QoreMethod &method, const type_vec_t &typeList, const void *ptr, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin static method signatures for static methods using the new generic calling convention
 /** @param method a constant reference to the QoreMethod being called
@@ -219,7 +219,7 @@ typedef AbstractQoreNode *(*q_static_method2_t)(const QoreMethod &method, const 
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
     @return the return value of the function (can be 0)
  */
-typedef AbstractQoreNode *(*q_static_method3_t)(const QoreMethod &method, const type_vec_t &typeList, void *ptr, const QoreListNode *args, ExceptionSink *xsink);
+typedef AbstractQoreNode *(*q_static_method3_t)(const QoreMethod &method, const type_vec_t &typeList, const void *ptr, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass constructor method signatures
 /** @param self the QoreObject that the function is being executed on
@@ -244,7 +244,7 @@ typedef void (*q_constructor2_t)(const QoreClass &thisclass, QoreObject *self, c
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
-typedef void (*q_constructor3_t)(const QoreClass &thisclass, const type_vec_t &typeList, void *ptr, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink);
+typedef void (*q_constructor3_t)(const QoreClass &thisclass, const type_vec_t &typeList, const void *ptr, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass system constructor method signatures
 /** System constructors are called for objects that are created automatically by the library, normally to be assigned to constants.
@@ -291,7 +291,7 @@ typedef void (*q_destructor2_t)(const QoreClass &thisclass, QoreObject *self, Ab
     @param private_data the object's private data representing the state of the object for the current builtin class
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
-typedef void (*q_destructor3_t)(const QoreClass &thisclass, void *ptr, QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink);
+typedef void (*q_destructor3_t)(const QoreClass &thisclass, const void *ptr, QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass copy signatures
 /** this function must set any private data against the new object by calling QoreObject::setPrivate() on \c self
@@ -321,7 +321,7 @@ typedef void (*q_copy2_t)(const QoreClass &thisclass, QoreObject *self, QoreObje
     @param private_data the object's private data representing the state of the object for the current builtin class
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
-typedef void (*q_copy3_t)(const QoreClass &thisclass, void *ptr, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink);
+typedef void (*q_copy3_t)(const QoreClass &thisclass, const void *ptr, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink);
 
 //! the typed used for QoreClass deleteBlocker signatures
 /** 

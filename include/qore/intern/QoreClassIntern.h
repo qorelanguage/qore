@@ -272,10 +272,10 @@ public:
 class BuiltinNormalMethod3Variant : public BuiltinNormalMethodVariantBase {
 protected:
    q_method3_t method;
-   void *ptr;
+   const void *ptr;
 
 public:
-   DLLLOCAL BuiltinNormalMethod3Variant(void *n_ptr, q_method3_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList), method(m), ptr(n_ptr) {
+   DLLLOCAL BuiltinNormalMethod3Variant(const void *n_ptr, q_method3_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : BuiltinNormalMethodVariantBase(n_priv_flag, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList), method(m), ptr(n_ptr) {
    }
    DLLLOCAL virtual AbstractQoreNode *evalImpl(const QoreMethod &meth, QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
       return method(meth, signature.getTypeList(), ptr, self, private_data, args, xsink);
@@ -323,10 +323,10 @@ public:
 class BuiltinStaticMethod3Variant : public BuiltinMethodVariant {
 protected:
    q_static_method3_t static_method;
-   void *ptr;
+   const void *ptr;
 
 public:
-   DLLLOCAL BuiltinStaticMethod3Variant(void *n_ptr, q_static_method3_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList), static_method(m), ptr(n_ptr) {
+   DLLLOCAL BuiltinStaticMethod3Variant(const void *n_ptr, q_static_method3_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : BuiltinMethodVariant(n_priv_flag, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList), static_method(m), ptr(n_ptr) {
    }
    DLLLOCAL AbstractQoreNode *evalStaticMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, method.getName(), 0, xsink);
@@ -401,11 +401,11 @@ public:
 class BuiltinConstructor3Variant : public BuiltinConstructorVariantBase {
 protected:
    q_constructor3_t constructor;
-   void *ptr;
+   const void *ptr;
 
 public:
    // return type info is set to 0 because the new operator actually returns the new object, not the constructor
-   DLLLOCAL BuiltinConstructor3Variant(void *n_ptr, q_constructor3_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : BuiltinConstructorVariantBase(n_priv_flag, n_functionality, n_typeList, n_defaultArgList), constructor(m), ptr(n_ptr) {
+   DLLLOCAL BuiltinConstructor3Variant(const void *n_ptr, q_constructor3_t m, bool n_priv_flag, int n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) : BuiltinConstructorVariantBase(n_priv_flag, n_functionality, n_typeList, n_defaultArgList), constructor(m), ptr(n_ptr) {
    }
    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const { 
       CodeContextHelper cch("constructor", self, xsink);
@@ -465,10 +465,10 @@ public:
 class BuiltinDestructor3Variant : public BuiltinDestructorVariantBase {
 protected:
    q_destructor3_t destructor;
-   void *ptr;
+   const void *ptr;
 
 public:
-   DLLLOCAL BuiltinDestructor3Variant(void *n_ptr, q_destructor3_t n_destructor) : destructor(n_destructor), ptr(n_ptr) {
+   DLLLOCAL BuiltinDestructor3Variant(const void *n_ptr, q_destructor3_t n_destructor) : destructor(n_destructor), ptr(n_ptr) {
    }
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
       CODE_CONTEXT_HELPER(CT_BUILTIN, "destructor", self, xsink);
@@ -520,10 +520,10 @@ public:
 class BuiltinCopy3Variant : public BuiltinCopyVariantBase {
 protected:
    q_copy3_t copy;
-   void *ptr;
+   const void *ptr;
 
 public:
-   DLLLOCAL BuiltinCopy3Variant(void *n_ptr, QoreClass *c, q_copy3_t m) : BuiltinCopyVariantBase(c), copy(m), ptr(n_ptr) {
+   DLLLOCAL BuiltinCopy3Variant(const void *n_ptr, QoreClass *c, q_copy3_t m) : BuiltinCopyVariantBase(c), copy(m), ptr(n_ptr) {
    }
    DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink) const {
       copy(thisclass, ptr, self, old, private_data, xsink);
