@@ -77,7 +77,9 @@ public:
    DLLLOCAL const arg_vec_t &getDefaultArgList() const {
       return defaultArgList;
    }
-   
+   DLLLOCAL const type_vec_t &getTypeList() const {
+      return typeList;
+   }   
    DLLLOCAL AbstractQoreNode *evalDefaultArg(unsigned i, ExceptionSink *xsink) const {
       assert(i < defaultArgList.size());
       return defaultArgList[i] ? defaultArgList[i]->eval(xsink) : 0;

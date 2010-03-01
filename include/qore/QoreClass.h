@@ -60,8 +60,6 @@ class QoreObject;
 class QoreClass;
 class BCEAList;
 class ParamList;
-class BuiltinStaticMethod;
-class BuiltinStaticMethod2;
 class QoreMemberInfo;
 class BuiltinMethod;
 class AbstractQoreFunction;
@@ -256,7 +254,7 @@ public:
        To set the copy method, call QoreClass::setCopy().
        @param n_name the name of the method, must be unique in the class
        @param meth the method to be added
-       @param priv if true then the method will be added as a private method
+       @param priv if true then the variant will be added as a private variant
        @code
        // the actual function can be declared with the class to be expected as the private data as follows:
        static AbstractQoreNode *AL_lock(QoreObject *self, QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink);
@@ -286,6 +284,18 @@ public:
    //! adds a builtin method with the new calling convention and extended information; additional functional domain info, return and parameter type info from lists
    DLLEXPORT void addMethodExtendedList2(const char *n_name, q_method2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
+   //! adds a builtin method with the even newer calling convention and extended information; additional functional domain info, return and parameter type info from lists
+   /** @param ptr a pointer to user-defined data that will be passed to the method function when it is called
+       @param n_name the name of the method to add the variant to
+       @param meth the function pointer of the code to call
+       @param priv if true then the variant will be added as a private variant
+       @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
+       @param returnTypeInfo the type of value returned by the variant
+       @param n_typeList a list of type information for parameters to the variant
+       @param defaultArgList a list of default arguments to each parameter
+    */
+   DLLEXPORT void addMethodExtendedList3(void *ptr, const char *n_name, q_method3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
+
    //! adds a builtin static method to a class
    /**
       @param n_name the name of the method, must be unique in the class
@@ -308,6 +318,18 @@ public:
 
    //! adds a builtin static method with the new generic calling convention with extended information; additional functional domain info, return and parameter type info from lists
    DLLEXPORT void addStaticMethodExtendedList2(const char *n_name, q_static_method2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
+
+   //! adds a builtin static method with the even newer generic calling convention with extended information; additional functional domain info, return and parameter type info from lists
+   /** @param ptr a pointer to user-defined data that will be passed to the method function when it is called
+       @param n_name the name of the method to add the variant to
+       @param meth the function pointer of the code to call
+       @param priv if true then the variant will be added as a private variant
+       @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
+       @param returnTypeInfo the type of value returned by the variant
+       @param n_typeList a list of type information for parameters to the variant
+       @param defaultArgList a list of default arguments to each parameter
+    */
+   DLLEXPORT void addStaticMethodExtendedList3(void *ptr, const char *n_name, q_static_method3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
    //! sets the builtin destructor method for the class
    /** you only need to implement destructor methods if the destructor should destroy the object
@@ -337,6 +359,21 @@ public:
    */
    DLLEXPORT void setDestructor2(q_destructor2_t m);
 
+   //! sets the builtin destructor method for the class with the new generic calling convention
+   /** you only need to implement destructor methods if the destructor should destroy the object
+       before the reference count reaches zero.
+       @param ptr user-defined data that will be passed to the destructor when it's called
+       @param m the destructor method to run
+       @code
+       // the actual function can be declared with the class to be expected as the private data as follows:
+       static void AL_destructor(const QoreClass &thisclass, QoreObject *self, QoreAutoLock *al, ExceptionSink *xsink);
+       ...
+       // and then casted to (q_destructor_t) in the addMethod call:
+       QC_AutoLock->setDestructor2((q_destructor_t)AL_destructor);
+       @endcode
+   */
+   DLLEXPORT void setDestructor3(void *ptr, q_destructor3_t m);
+
    //! sets the builtin constructor method for the class (or adds an overloaded variant)
    /**
       @param m the constructor method
@@ -360,6 +397,16 @@ public:
 
    //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
    DLLEXPORT void setConstructorExtendedList2(q_constructor2_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
+
+   //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
+   /** @param ptr a pointer to user-defined data that will be passed to the method function when it is called
+       @param meth the function pointer of the code to call
+       @param priv if true then the variant will be added as a private variant
+       @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
+       @param n_typeList a list of type information for parameters to the variant
+       @param defaultArgList a list of default arguments to each parameter
+    */
+   DLLEXPORT void setConstructorExtendedList3(void *ptr, q_constructor3_t meth, bool priv = false, int n_domain = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());
 
    //! sets the builtin constructor for system objects (ex: used as constant values)
    /** @note system constructors in a class hierarchy must call the base class constructors manually
@@ -400,6 +447,21 @@ public:
        @endcode
    */
    DLLEXPORT void setCopy2(q_copy2_t m);
+
+   //! sets the builtin copy method for the class using the new generic calling convention
+   /** copy methods should either call QoreObject::setPrivate() or call xsink->raiseException()
+       (but should not do both)
+       @param ptr user-defined data that will be passed to the destructor when it's called
+       @param m the copy method to set
+       @code
+       // the actual function can be declared with the class to be expected as the private data as follows:
+       static void AL_copy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, QoreAutoLock *m, ExceptionSink *xsink)
+       ...
+       // and then casted to (q_copy2_t) in the addMethod call:
+       QC_AutoLock->setCopy((q_copy2_t)AL_copy);
+       @endcode
+   */
+   DLLEXPORT void setCopy3(void *ptr, q_copy3_t m);
 
    //! sets the deleteBlocker method for the class
    /** this method will be run when the object is deleted; it should be set only for classes where

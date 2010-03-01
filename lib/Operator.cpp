@@ -530,8 +530,8 @@ static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const Abst
       return 0;
 
    // assign new value to lvalue (no exception possible here)
-   if (v.assign(nv))
-      return 0;
+   v.assign(nv);
+   assert(!*xsink);
 
    // reference for return value if necessary
    return ref_rv ? nv->refSelf() : 0;
@@ -558,8 +558,8 @@ static AbstractQoreNode *op_transliterate(const AbstractQoreNode *left, const Ab
       return 0;
 
    // assign new value to lvalue (no exception possible here)
-   if (v.assign(nv))
-      return 0;
+   v.assign(nv);
+   assert(!*xsink);
 
    // reference for return value
    return ref_rv ? nv->refSelf() : 0;
@@ -1458,10 +1458,10 @@ static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, 
       return 0;
 
    // reference for return value is reference for variable assignment (if not null)
-   AbstractQoreNode *rv = n.take_value();
+   ReferenceHolder<AbstractQoreNode> rv(n.take_value(), xsink);
 
    // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(rv) ? rv->getAsBigInt() : 0);
+   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(*rv) ? rv->getAsBigInt() : 0);
    if (n.assign(b))
       return 0;
 
@@ -1469,7 +1469,7 @@ static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, 
    b->val++;
 
    // return original value (may be null or non-integer)
-   return rv;
+   return rv.release();
 }
 
 // variable assignment
@@ -1480,10 +1480,10 @@ static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, 
       return 0;
 
    // reference for return value is reference for variable assignment (if not null)
-   AbstractQoreNode *rv = n.take_value();
+   ReferenceHolder<AbstractQoreNode> rv(n.take_value(), xsink);
 
    // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(rv) ? rv->getAsBigInt() : 0);
+   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(*rv) ? rv->getAsBigInt() : 0);
    if (n.assign(b))
       return 0;
 
@@ -1491,7 +1491,7 @@ static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, 
    b->val--;
 
    // return original value (may be null or non-integer)
-   return rv;
+   return rv.release();
 }
 
 // variable assignment

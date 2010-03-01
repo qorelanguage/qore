@@ -111,7 +111,7 @@ int QoreTypeInfoHelper::parseEqualImpl(const QoreTypeInfo *otherTypeInfo) const 
 
 AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper(const char *name, int n_domain) : QoreTypeInfoHelper(new ExternalTypeInfo(*this)), qc(new QoreClass(name, n_domain, typeInfo)) {
    typeInfo->assign(qc);
-   printd(0, "AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper() this=%p typeInfo=%p\n", this, typeInfo);
+   //printd(5, "AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper() this=%p typeInfo=%p\n", this, typeInfo);
 }
 
 AbstractQoreClassTypeInfoHelper::~AbstractQoreClassTypeInfoHelper() {

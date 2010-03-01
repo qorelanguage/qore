@@ -1673,7 +1673,7 @@ QoreClass::QoreClass(const char *nme, int dom, const QoreTypeInfo *typeInfo) {
    priv = new qore_class_private(this, nme, dom, const_cast<QoreTypeInfo *>(typeInfo));
 
    priv->classID = priv->methodID = classIDSeq.next();
-   printd(0, "QoreClass::QoreClass() creating '%s' ID:%d (this=%p) with custom typeinfo\n", priv->name, priv->classID, this);
+   printd(5, "QoreClass::QoreClass() creating '%s' ID:%d (this=%p) with custom typeinfo\n", priv->name, priv->classID, this);
 }
 
 QoreClass::QoreClass() {
@@ -2203,6 +2203,10 @@ void QoreClass::addMethodExtendedList2(const char *nme, q_method2_t m, bool priv
    priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
+void QoreClass::addMethodExtendedList3(void *ptr, const char *nme, q_method3_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod3Variant(ptr, m, priv_flag, domain, returnTypeInfo, n_typeList, n_defaultArgList));
+}
+
 // adds a builtin static method to the class
 void QoreClass::addStaticMethod2(const char *nme, q_static_method2_t m, bool priv_flag) {
    priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag));
@@ -2223,6 +2227,10 @@ void QoreClass::addStaticMethodExtended2(const char *nme, q_static_method2_t m, 
 
 void QoreClass::addStaticMethodExtendedList2(const char *nme, q_static_method2_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
    priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, domain, returnTypeInfo, n_typeList, n_defaultArgList));
+}
+
+void QoreClass::addStaticMethodExtendedList3(void *ptr, const char *nme, q_static_method3_t m, bool priv_flag, int domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod3Variant(ptr, m, priv_flag, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // adds a builtin static method to the class
@@ -2289,6 +2297,10 @@ void QoreClass::setConstructorExtendedList2(q_constructor2_t m, bool priv_flag, 
    priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_domain, n_typeList, n_defaultArgList));
 }
 
+void QoreClass::setConstructorExtendedList3(void *ptr, q_constructor3_t m, bool priv_flag, int n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
+   priv->addBuiltinConstructor(new BuiltinConstructor3Variant(ptr, m, priv_flag, n_domain, n_typeList, n_defaultArgList));
+}
+
 // sets a builtin function as class destructor - no duplicate checking is made
 void QoreClass::setDestructor(q_destructor_t m) {
    priv->addBuiltinDestructor(new BuiltinDestructorVariant(m));
@@ -2299,6 +2311,11 @@ void QoreClass::setDestructor2(q_destructor2_t m) {
    priv->addBuiltinDestructor(new BuiltinDestructor2Variant(m));
 }
 
+// sets a builtin function as class destructor - no duplicate checking is made
+void QoreClass::setDestructor3(void *ptr, q_destructor3_t m) {
+   priv->addBuiltinDestructor(new BuiltinDestructor3Variant(ptr, m));
+}
+
 // sets a builtin function as class copy constructor - no duplicate checking is made
 void QoreClass::setCopy(q_copy_t m) {
    priv->addBuiltinCopyMethod(new BuiltinCopyVariant(this, m));
@@ -2307,6 +2324,11 @@ void QoreClass::setCopy(q_copy_t m) {
 // sets a builtin function as class copy constructor - no duplicate checking is made
 void QoreClass::setCopy2(q_copy2_t m) {
    priv->addBuiltinCopyMethod(new BuiltinCopy2Variant(this, m));
+}
+
+// sets a builtin function as class copy constructor - no duplicate checking is made
+void QoreClass::setCopy3(void *ptr, q_copy3_t m) {
+   priv->addBuiltinCopyMethod(new BuiltinCopy3Variant(ptr, this, m));
 }
 
 // sets the delete_blocker function
