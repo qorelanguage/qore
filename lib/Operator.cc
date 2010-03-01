@@ -1463,7 +1463,7 @@ static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, 
       return 0;
 
    // reference for return value is reference for variable assignment (if not null)
-   ReferenceHolder<AbstractQoreNode> rv(n.take_value(), xsink);
+   AbstractQoreNode * rv = n.take_value();
 
    // acquire new value
    QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(rv) ? rv->getAsBigInt() : 0);
@@ -1475,7 +1475,7 @@ static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, 
    b->val++;
 
    // return original value (may be null or non-integer)
-   return rv.release();
+   return rv;
 }
 
 // variable assignment
@@ -1486,7 +1486,7 @@ static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, 
       return 0;
 
    // reference for return value is reference for variable assignment (if not null)
-   ReferenceHolder<AbstractQoreNode> rv(n.take_value(), xsink);
+   AbstractQoreNode *rv = n.take_value();
 
    // acquire new value
    QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(rv) ? rv->getAsBigInt() : 0);
@@ -1498,7 +1498,7 @@ static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, 
    b->val--;
 
    // return original value (may be null or non-integer)
-   return rv.release();
+   return rv;
 }
 
 // variable assignment
