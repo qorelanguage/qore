@@ -669,8 +669,8 @@ void init_string_functions() {
    builtinFunctions.add2("strlen", f_strlen_any, QDOM_DEFAULT, bigIntTypeInfo);
 
    // tolower() called without a string argument returns 0
-   builtinFunctions.add2("tolower", f_tolower, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add("tolower", f_noop);
+   builtinFunctions.add2("tolower", f_tolower, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // toupper() called without a string argument returns 0
    builtinFunctions.add("toupper", f_noop);

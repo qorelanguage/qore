@@ -118,8 +118,7 @@ static AbstractQoreNode *SOCKET_bind(QoreObject *self, mySocket *s, const QoreLi
 // Socket::accept()
 // returns a new Socket object, connection source address is in $.source
 // member of new object, hostname in $.source_host
-static AbstractQoreNode *SOCKET_accept(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_accept(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    SocketSource source;
    mySocket *n = s->accept(&source, xsink);
    if (xsink->isEvent())
@@ -138,7 +137,7 @@ static AbstractQoreNode *SOCKET_accept(QoreObject *self, mySocket *s, const Qore
 // the connection source string is in the "$.source" member of new object,
 // hostname in "$.source_host"
 static AbstractQoreNode *SOCKET_acceptSSL(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   class SocketSource source;
+   SocketSource source;
    mySocket *n = s->acceptSSL(&source, xsink);
    if (xsink->isEvent())
       return 0;
@@ -151,8 +150,7 @@ static AbstractQoreNode *SOCKET_acceptSSL(QoreObject *self, mySocket *s, const Q
    return ns;
 }
 
-static AbstractQoreNode *SOCKET_listen(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_listen(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    int rc = s->listen();
 
    if (rc == -2)
@@ -885,14 +883,20 @@ QoreClass *initSocketClass() {
 
    QoreClass *QC_SOCKET = new QoreClass("Socket", QDOM_NETWORK);
    CID_SOCKET = QC_SOCKET->getID();
+
+   // register public members
+   QC_SOCKET->addPublicMember("source", anyTypeInfo);
+   QC_SOCKET->addPublicMember("source_host", anyTypeInfo);
    
    QC_SOCKET->setConstructor(SOCKET_constructor);
    QC_SOCKET->setCopy(SOCKET_copy);
    QC_SOCKET->addMethod("connect",                   (q_method_t)SOCKET_connect);
    QC_SOCKET->addMethod("connectSSL",                (q_method_t)SOCKET_connectSSL);
    QC_SOCKET->addMethod("bind",                      (q_method_t)SOCKET_bind);
-   QC_SOCKET->addMethod("accept",                    (q_method_t)SOCKET_accept);
-   QC_SOCKET->addMethod("acceptSSL",                 (q_method_t)SOCKET_acceptSSL);
+
+   QC_SOCKET->addMethodExtended("accept",                    (q_method_t)SOCKET_accept, false, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
+   QC_SOCKET->addMethodExtended("acceptSSL",                 (q_method_t)SOCKET_acceptSSL, false, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
+
    QC_SOCKET->addMethod("listen",                    (q_method_t)SOCKET_listen);
    QC_SOCKET->addMethod("send",                      (q_method_t)SOCKET_send);
    QC_SOCKET->addMethod("sendBinary",                (q_method_t)SOCKET_sendBinary);

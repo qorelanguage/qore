@@ -157,18 +157,18 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
    // check for duplicate name
    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
       if (*i == v->getName())
-	 parse_error("duplicate variable '$%s' declared in parameter list", (*i).c_str());
+	 parse_error(parse_file, first_line, last_line, "duplicate variable '$%s' declared in parameter list", (*i).c_str());
 
    names.push_back(v->getName());
 
    bool is_decl = v->isDecl();
    if (needs_types && !is_decl)
-      parse_error("parameter '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+      parse_error(parse_file, first_line, last_line, "parameter '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
    // see if this is a new object call
    if (v->hasEffect()) {
       // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
-      parse_error("parameter '$%s' may not be declared with new object syntax; instead use: '%s $%s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
+      parse_error(parse_file, first_line, last_line, "parameter '$%s' may not be declared with new object syntax; instead use: '%s $%s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
    }
 
    if (is_decl) {
@@ -179,7 +179,7 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
       typeList.push_back(ti);
 
       if (ti == nothingTypeInfo)
-	 parse_error("parameter '$%s' may not be declared as type 'nothing'", v->getName());
+	 parse_error(parse_file, first_line, last_line, "parameter '$%s' may not be declared as type 'nothing'", v->getName());
 
       assert(!(pti && ti));
 
@@ -206,9 +206,9 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
       addDefaultArgument(defArg);
 
    if (v->getType() == VT_LOCAL)
-      parse_error("invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
+      parse_error(parse_file, first_line, last_line, "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
    else if (v->getType() == VT_GLOBAL)
-      parse_error("invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
+      parse_error(parse_file, first_line, last_line, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {

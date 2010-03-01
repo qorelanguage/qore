@@ -620,6 +620,12 @@ public:
    //! returns the type information structure for this class
    DLLEXPORT const QoreTypeInfo *getTypeInfo() const;
 
+   //! adds a public member
+   DLLEXPORT void addPublicMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value = 0);
+
+   //! adds a private member
+   DLLEXPORT void addPrivateMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value = 0);
+
    DLLLOCAL QoreClass();
    DLLLOCAL void addMethod(QoreMethod *f);
    DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *nme);

@@ -409,6 +409,16 @@ struct qore_class_private {
       delete memberInfo;
    }
 
+   DLLLOCAL void addPublicMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
+      assert(public_members.find(name) == public_members.end());
+      public_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, initial_value);
+   }
+
+   DLLLOCAL void addPrivateMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
+      assert(private_members.find(name) == private_members.end());
+      private_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, initial_value);
+   }
+
    DLLLOCAL void insertBuiltinStaticMethod(QoreMethod *m) {
       assert(m->isStatic());
       //printd(5, "QoreClass::insertBuiltinStaticMethod() %s::%s() size=%d\n", name, m->getName(), numMethods());
@@ -1559,6 +1569,14 @@ void QoreClass::parseAddPrivateMember(char *nme, QoreMemberInfo *mInfo) {
 
 void QoreClass::parseAddPublicMember(char *nme, QoreMemberInfo *mInfo) {
    priv->parseAddPublicMember(nme, mInfo);
+}
+
+void QoreClass::addPublicMember(const char *name, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
+   priv->addPublicMember(name, n_typeInfo, initial_value);
+}
+
+void QoreClass::addPrivateMember(const char *name, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
+   priv->addPrivateMember(name, n_typeInfo, initial_value);
 }
 
 bool BCSMList::isBaseClass(QoreClass *qc) const {
