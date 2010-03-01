@@ -50,6 +50,9 @@ bool exec_class = false;
 // treat warnings as errors
 bool warnings_are_errors = false;
 
+// stop writing parse exceptions after 1st one
+bool only_first_except = false;
+
 // program text given on the command-line
 const char *cl_pgm = 0;
 
@@ -84,6 +87,8 @@ static const char helpstr[] =
    "  -o, --list-parse-options     list all parse options\n"
    "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
    "  -r, --warnings-are-errors    treat warnings as errors\n"
+   "      --only-first-exception   don't write all parsing exceptions\n"
+   "                               stop after 1st one\n"
    "  -s, --show-charsets          displays known character encodings\n"
    "  -V, --version                show program version information and quit\n"
    "      --short-version          show short version information and quit\n"
@@ -180,6 +185,10 @@ static void set_parse_option(const char *arg) {
       exit(1);
    }
    parse_options |= code;
+}
+
+static void only_first_exception(const char *arg) {
+   only_first_except = true;
 }
 
 static void list_parse_options(const char *arg) {
@@ -425,6 +434,7 @@ static struct opt_struct_s {
    { 'm', "show-module-errors",    ARG_NONE, show_module_errors },
    { 'o', "list-parse-options",    ARG_NONE, list_parse_options },
    { 'p', "set-parse-option",      ARG_MAND, set_parse_option },
+   { '\0', "only-first-exception", ARG_NONE, only_first_exception },
    { 's', "show-charsets",         ARG_NONE, show_charsets },
    { 'r', "warnings-are-errors",   ARG_NONE, warn_to_err },
    { 'w', "enable-warning",        ARG_MAND, enable_warning },

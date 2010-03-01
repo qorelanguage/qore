@@ -138,6 +138,10 @@ struct qore_program_private {
       ExceptionSink *parseSink, *warnSink;
       RootQoreNamespace *RootNS;
       QoreNamespace *QoreNS;
+      
+      // parsing
+      bool only_first_except;
+      int exceptions_raised;
 
       int parse_options;
       int warn_mask;
@@ -150,6 +154,8 @@ struct qore_program_private {
 
       DLLLOCAL qore_program_private(QoreProgram *n_pgm) : thread_count(0), pgm(n_pgm) {
 	 printd(5, "QoreProgram::QoreProgram() (init()) this=%08p\n", this);
+         only_first_except = false;
+         exceptions_raised = 0;
 #ifdef DEBUG
 	 parseSink = 0;
 #endif
@@ -492,6 +498,8 @@ struct qore_program_private {
 	 }
 	 
 	 yylex_destroy(lexer);
+      if (only_first_except && exceptions_raised > 1)
+         fprintf(stderr, "\n%d exception(s) skipped\n\n", exceptions_raised);
       }
 
       DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
@@ -543,7 +551,9 @@ struct qore_program_private {
 
 	 FILE *fp;
 	 if (!(fp = fopen(filename, "r"))) {
-	    xsink->raiseException("PARSE-EXCEPTION", "cannot open qore script '%s': %s", filename, strerror(errno));
+      if ((only_first_except && !exceptions_raised) || !only_first_except)
+          xsink->raiseException("PARSE-EXCEPTION", "cannot open qore script '%s': %s", filename, strerror(errno));
+       exceptions_raised++;
 	    return;
 	 }
 	 setScriptPath(filename);
@@ -785,7 +795,9 @@ void QoreProgram::makeParseException(QoreStringNode *desc) {
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception) {
       class QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
-      priv->parseSink->raiseException(ne);
+      if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
+         priv->parseSink->raiseException(ne);
+      priv->exceptions_raised++;
    }
 }
 
@@ -796,7 +808,9 @@ void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc)
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception) {
       class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
-      priv->parseSink->raiseException(ne);
+      if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
+         priv->parseSink->raiseException(ne);
+      priv->exceptions_raised++;
    }
 }
 
@@ -806,7 +820,9 @@ void QoreProgram::makeParseException(int sline, int eline, const char *file, Qor
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception) {
       class QoreException *ne = new ParseException(sline, eline, file, "PARSE-EXCEPTION", d.release());
-      priv->parseSink->raiseException(ne);
+      if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
+         priv->parseSink->raiseException(ne);
+      priv->exceptions_raised++;
    }
 }
 
@@ -1174,7 +1190,8 @@ void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsin
    priv->parse(code, label, xsink, wS, wm);
 }
 
-void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *wS, int wm, bool only_first_except) {
+   priv->only_first_except = only_first_except;
    priv->parseFile(filename, xsink, wS, wm);
 }
 

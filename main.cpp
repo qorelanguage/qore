@@ -19,7 +19,7 @@ extern int parse_options;
 extern int warnings, qore_lib_options;
 extern const char *def_charset;
 extern const char *cl_pgm, *exec_class_name, *eval_arg;
-extern bool show_mod_errs, lock_options, exec_class, warnings_are_errors;
+extern bool show_mod_errs, lock_options, exec_class, warnings_are_errors, only_first_except;
 extern qore_license_t license;
 
 int main(int argc, char *argv[]) {   
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 	 if (cl_pgm)
 	    qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
 	 else if (program_file_name) {
-	    qpgm->parseFile(program_file_name, &xsink, &wsink, warnings);
+	    qpgm->parseFile(program_file_name, &xsink, &wsink, warnings, only_first_except);
 	    free(program_file_name);
 	 }
 	 else

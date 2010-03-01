@@ -261,8 +261,9 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param warn_sink if a warning is raised, the warning information will be added here
        @param warn_mask the warning mask to set (-1 sets all possible warnings)
+       @param only_first_except is flag to stop parsing exceptions printing after 1st exception
    */
-   DLLEXPORT void parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL);
+   DLLEXPORT void parseFile(const char *filename, ExceptionSink *xsink, ExceptionSink *warn_sink = 0, int warn_mask = QP_WARN_ALL, bool only_first_except = false);
 
    //! parses code from the given string but does not commit changes to the QoreProgram
    /**
