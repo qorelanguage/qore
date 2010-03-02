@@ -55,7 +55,6 @@ struct SelfInstantiatorHelper {
 
 // private QoreClass implementation
 struct qore_class_private {
-
    char *name;      // the name of the class
    BCList *scl;     // base class list
    hm_method_t hm,  // "normal" (non-static) method map
@@ -84,6 +83,8 @@ struct qore_class_private {
    QoreTypeInfo *typeInfo;
    // common "self" local variable for all constructors
    mutable LocalVar selfid;
+   // user-specific data
+   const void *ptr;
 
    DLLLOCAL qore_class_private(const QoreClass *cls, const char *nme, int dom = QDOM_DEFAULT, QoreTypeInfo *n_typeInfo = 0) 
       : name(nme ? strdup(nme) : 0), scl(0), 
@@ -92,7 +93,7 @@ struct qore_class_private {
 	domain(dom), 
 	num_methods(0), num_user_methods(0),
 	num_static_methods(0), num_static_user_methods(0),
-	typeInfo(n_typeInfo ? n_typeInfo : new QoreTypeInfo(cls)), selfid("self", typeInfo) {
+	typeInfo(n_typeInfo ? n_typeInfo : new QoreTypeInfo(cls)), selfid("self", typeInfo), ptr(0) {
       // quick pointers
       system_constructor = constructor = destructor = copyMethod = 
 	 methodGate = memberGate = deleteBlocker = memberNotification = 0;
@@ -126,6 +127,14 @@ struct qore_class_private {
 
       if (owns_typeinfo)
 	 delete typeInfo;
+   }
+
+   DLLLOCAL void setUserData(const void *n_ptr) {
+      ptr = n_ptr;
+   }
+
+   DLLLOCAL const void *getUserData() const {
+      return ptr;
    }
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
@@ -1692,6 +1701,14 @@ QoreClass::QoreClass(qore_classid_t id, const char *nme) {
 
 QoreClass::~QoreClass() {
    delete priv;
+}
+
+void QoreClass::setUserData(const void *n_ptr) {
+   priv->setUserData(n_ptr);
+}
+
+const void *QoreClass::getUserData() const {
+   return priv->getUserData();
 }
 
 QoreClass *QoreClass::getClass(qore_classid_t cid) const {

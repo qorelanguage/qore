@@ -688,6 +688,12 @@ public:
    //! adds a private member
    DLLEXPORT void addPrivateMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value = 0);
 
+   //! sets a pointer to user-specific data in the class
+   DLLEXPORT void setUserData(const void *ptr);
+
+   //! retrieves the user-specific data pointer
+   DLLEXPORT const void *getUserData() const;
+
    DLLLOCAL QoreClass();
    DLLLOCAL void addMethod(QoreMethod *f);
    DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *nme);
