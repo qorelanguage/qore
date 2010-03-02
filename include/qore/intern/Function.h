@@ -106,6 +106,8 @@ public:
    }
    // adds a description of the given default argument to the signature string
    DLLLOCAL void addDefaultArgument(const AbstractQoreNode *arg);
+
+   DLLLOCAL virtual const char *getName(unsigned i) const = 0;
 };
 
 // used to store return type info during parsing for user code
@@ -164,7 +166,7 @@ public:
       delete parseReturnTypeInfo;
    }
 
-   DLLLOCAL const char *getName(unsigned i) const {
+   DLLLOCAL virtual const char *getName(unsigned i) const {
       assert(i < names.size());
       return names[i].c_str();
    }

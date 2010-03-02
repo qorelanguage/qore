@@ -58,6 +58,9 @@ public:
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const {
       return returnTypeInfo;
    }
+   DLLLOCAL virtual const char *getName(unsigned i) const {
+      return "<builtin>";
+   }
 };
 
 // the following defines the pure virtual functions that are common to all builtin variants

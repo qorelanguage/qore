@@ -41,10 +41,13 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunctionVariant *
    bool edit_done = false;
 
    // get default argument list of variant
-   const arg_vec_t &defaultArgList = variant->getSignature()->getDefaultArgList();
+   AbstractFunctionSignature *sig = variant->getSignature();
+   const arg_vec_t &defaultArgList = sig->getDefaultArgList();
+   const type_vec_t &typeList = sig->getTypeList();
 
-   for (unsigned i = 0; i < defaultArgList.size(); ++i) {
-      if (defaultArgList[i] && (!tmp || is_nothing(tmp->retrieve_entry(i)))) {
+   unsigned max = QORE_MAX(defaultArgList.size(), typeList.size());
+   for (unsigned i = 0; i < max; ++i) {
+      if (i < defaultArgList.size() && defaultArgList[i] && (!tmp || is_nothing(tmp->retrieve_entry(i)))) {
 	 // edit the current argument list
 	 if (!edit_done) {
 	    tmp.edit();
@@ -55,6 +58,23 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunctionVariant *
 	 *p = defaultArgList[i]->eval(xsink);
 	 if (*xsink)
 	    return -1;
+      }
+      else if (i < typeList.size()) {
+	 const AbstractQoreNode *n = tmp ? tmp->retrieve_entry(i) : 0;
+	 const QoreTypeInfo *paramTypeInfo = sig->getParamTypeInfo(i);
+	 // test for change
+	 if (paramTypeInfo->testTypeCompatibility(n) == QTI_AMBIGUOUS) {
+	    // edit the current argument list
+	    if (!edit_done) {
+	       tmp.edit();
+	       edit_done = true;
+	    }
+
+	    AbstractQoreNode **p = const_cast<QoreListNode *>(*tmp)->get_entry_ptr(i);
+	    *p = paramTypeInfo->checkTypeInstantiation(sig->getName(i), *p, xsink);
+	    if (*xsink)
+	       return -1;
+	 }
       }
    }
    return 0;
@@ -358,6 +378,9 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	    const AbstractQoreNode *n = args ? args->retrieve_entry(pi) : 0;
+
+	    //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) i=%d param=%s arg=%s\n", this, getName(), sig->getSignatureText(), pi, t->getName(), get_type_name(n));
+	    
 	    int rc;
 	    if (is_nothing(n) && sig->hasDefaultArg(pi))
 	       rc = QTI_IDENT;
@@ -408,7 +431,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       }
    }
 
-   //printd(5, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+   //printd(0, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
 
    return variant;
 }
@@ -632,7 +655,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       }
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
-   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+   //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
    return variant;
 }
 
@@ -738,7 +761,6 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
    for (unsigned i = 0; i < num_params; ++i) {
       AbstractQoreNode *np = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       AbstractQoreNode *n = 0;
-      const QoreTypeInfo *paramTypeInfo = signature.getParamTypeInfo(i);
       //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p (%s) (exp nt=%d %p %s)\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
       if (!is_nothing(np)) {
 	 if (np->getType() == NT_REFERENCE) {
@@ -746,24 +768,14 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	    //printd(5, "UserVariantBase::setupCall() eval %d: instantiating (%s) as reference (ref exp nt=%d %p %s)\n", i, signature.lv[i]->getName(), get_node_type(r->getExpression()), r->getExpression(), get_type_name(r->getExpression()));
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
-	    if (!*xsink) {
-	       if (paramTypeInfo != referenceTypeInfo)
-		  n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), n, xsink);
-	       if (!*xsink)
-		  signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
-	    }
-	 }
-	 else {
-	    n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), np->refSelf(), xsink);
 	    if (!*xsink)
-	       signature.lv[i]->instantiate(n);
+	       signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
 	 }
+	 else
+	    signature.lv[i]->instantiate(np->refSelf());
       }
-      else {
-	 n = paramTypeInfo->checkTypeInstantiation(signature.getName(i), n, xsink);
-	 if (!*xsink)
-	    signature.lv[i]->instantiate(n);
-      }
+      else
+	 signature.lv[i]->instantiate(n);
 
       // the above if block will only instantiate the local variable if no
       // exceptions have occurred. therefore here we cleanup the rest
