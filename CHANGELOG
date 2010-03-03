@@ -1,3 +1,13 @@
+2010.03.03: David Nichols
+	 * eliminated string parsing in block comments, fixed a bug where the
+	   parser was not terminated at EOF in a block comment
+
+2010.03.02: David Nichols
+	 * added QoreClass::setUserData() and ::getUserData() methods for
+	   storing a const void * in the QoreClass
+	 * fixed type conversions for typed parameters to use a common
+	   algorithm for user and builtin method variants
+
 2010.03.01: David Nichols
 	 * fixed compatibility for some string functions with hard typing
 	 * fixed another bug matching variants at parse time
