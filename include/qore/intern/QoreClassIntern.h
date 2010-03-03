@@ -680,13 +680,18 @@ public:
    QoreParseTypeInfo *parseTypeInfo;
 
    DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *e = 0) : typeInfo(n_typeInfo), exp(e), first_line(nfl), last_line(nll), 
-										       file(get_parse_file()), parseTypeInfo(0) {
+                                                                                                        file(get_parse_file()), parseTypeInfo(0) {
    }
    DLLLOCAL QoreMemberInfo(int nfl, int nll, char *n, AbstractQoreNode *e = 0) : typeInfo(0), exp(e), first_line(nfl), last_line(nll), file(get_parse_file()),
 										 parseTypeInfo(new QoreParseTypeInfo(n)) {
    }
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreClass *qc, AbstractQoreNode *e) : typeInfo(qc->getTypeInfo()), exp(e), first_line(nfl), last_line(nll), file(get_parse_file()),
+   DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreClass *qc, AbstractQoreNode *e) : typeInfo(qc->getTypeInfo()), exp(e), first_line(nfl), 
+                                                                                         last_line(nll), file(get_parse_file()),
 											 parseTypeInfo(0) {
+   }
+   DLLLOCAL QoreMemberInfo(int nfl, int nll, AbstractQoreNode *e) : typeInfo(0), exp(e), first_line(nfl), 
+                                                                    last_line(nll), file(get_parse_file()),
+                                                                    parseTypeInfo(0) {
    }
    DLLLOCAL ~QoreMemberInfo() {
       if (exp)

@@ -1,7 +1,7 @@
+* fix memory leaks caused by circular references
+* implement support for specifying base class methods like this: $exp.Base::method()
 * check domain implementation on method variants
-* fix bug in subclasses -redeclaring a member causes the member to be dupicated in the subclass? ($.ct in MPM)
-* fix broken operator implementation (ex: OP_ABSOUTE_EQ->bool_eval() converts bool -> QoreNode -> bool)
-* implement "remove" operator - like delete but does not call delete and returns varlu removed from lvalue
+* implement "remove" operator - like delete but does not call delete and returns value removed from lvalue
 * implement support for universal references - removed checking for passing a reference to user code with declared param
 * check closure type info
 * check object method references at parse time to verify the type of the object expression if available (and then check if the the method exists)
