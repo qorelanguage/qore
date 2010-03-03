@@ -1,6 +1,8 @@
 2010.03.03: David Nichols
 	 * eliminated string parsing in block comments, fixed a bug where the
 	   parser was not terminated at EOF in a block comment
+	 * implemented support for initializing untyped members in class
+	   declarations
 
 2010.03.02: David Nichols
 	 * added QoreClass::setUserData() and ::getUserData() methods for
