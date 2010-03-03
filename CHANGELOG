@@ -1,3 +1,8 @@
+2010.03.03: David Nichols
+         * eliminated string parsing in block comments, fixed a bug where the
+           parser was not terminated at EOF in a block comment (backported
+	   from trunk/0.8.0)
+
 2010.02.16: David Nichols
          * fixed a bug where if local variables were used in a reference 
            expression with the background operator, whenever the reference

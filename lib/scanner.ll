@@ -952,29 +952,17 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 
 \/\*                                    {
                                            int c;
-					   // ignore text in quotes (i.e "*/" is ignored)
-					   char quote = 0;
 					   while ((c = yyinput(yyscanner))) {
-					      if (quote) {
-						 if (c == quote)
-						    quote = 0;
-						 else if (c == '\\') // ignore escaped characters
+					      if (c == '*') {
+						 do
 						    c = yyinput(yyscanner);
+						 while (c == '*');
+						 if (c == '/') 
+						    break;
 					      }
-					      else {
-						 if (c == '\'' || c == '"')
-						    quote = c;
-						 else if (c == '*') {
-						    do
-						       c = yyinput(yyscanner);
-						    while (c == '*');
-						    if (c == '/') 
-						       break;
-						 }
-					      }
+					      if (c == EOF)
+						 yyterminate();
 					   }
-					   if (c == EOF)
-					      yyterminate();
                                         }
 <regex_googleplex>{
    s\/                                  yylval->RegexSubst = new RegexSubstNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
