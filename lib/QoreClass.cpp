@@ -1069,20 +1069,12 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
       if (cname) {
 	 sclass = getRootNS()->parseFindScopedClass(cname);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
-#ifdef DEBUG
-	 if (!sclass)
-	    printd(0, "BCList::parseInit() %s should inherit non-existant class %s\n", cname->getIdentifier());
-#endif
 	 delete cname;
 	 cname = 0;
       }
       else {
 	 sclass = getRootNS()->parseFindClass(cstr);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
-#ifdef DEBUG
-	 if (!sclass)
-	    printd(0, "BCList::parseInit() %s should inherit non-existant class %s\n", cstr);
-#endif
 	 free(cstr);
 	 cstr = 0;
       }
