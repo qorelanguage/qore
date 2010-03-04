@@ -847,8 +847,12 @@ public:
    }
    DLLLOCAL ~BCNode();
    DLLLOCAL bool isPrivate() const { return priv; }
+   DLLLOCAL void parseInit(QoreClass *cls, bool &has_delete_blocker);
    DLLLOCAL const QoreClass *getClass(qore_classid_t cid, bool &n_priv) const {
-      assert(sclass);
+      // sclass can be 0 if the class could not be found during parse initialization
+      if (!sclass)
+         return 0;
+
       const QoreClass *qc = (sclass->getID() == cid) ? sclass : sclass->getClassIntern(cid, n_priv);
       if (qc && !n_priv && priv)
 	 n_priv = true;

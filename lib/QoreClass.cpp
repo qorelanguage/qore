@@ -1064,32 +1064,44 @@ void BCList::deref() {
       delete this;
 }
 
+void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
+   if (!sclass) {
+      if (cname) {
+	 sclass = getRootNS()->parseFindScopedClass(cname);
+	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
+#ifdef DEBUG
+	 if (!sclass)
+	    printd(0, "BCList::parseInit() %s should inherit non-existant class %s\n", cname->getIdentifier());
+#endif
+	 delete cname;
+	 cname = 0;
+      }
+      else {
+	 sclass = getRootNS()->parseFindClass(cstr);
+	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+#ifdef DEBUG
+	 if (!sclass)
+	    printd(0, "BCList::parseInit() %s should inherit non-existant class %s\n", cstr);
+#endif
+	 free(cstr);
+	 cstr = 0;
+      }
+   }
+   // recursively add base classes to special method list
+   if (sclass) {
+      sclass->initialize();
+      if (!has_delete_blocker && sclass->has_delete_blocker())
+	 has_delete_blocker = true;
+      sclass->addBaseClassesToSubclass(cls, is_virtual);
+      // include all subclass domains in this class' domain
+      cls->addDomain(sclass->getDomain());
+   }
+}
+
 void BCList::parseInit(QoreClass *cls, bool &has_delete_blocker) {
    printd(5, "BCList::parseInit(%s) this=%p empty=%d\n", cls->getName(), this, empty());
    for (bclist_t::iterator i = begin(), e = end(); i != e; i++) {
-      if (!(*i)->sclass) {
-	 if ((*i)->cname) {
-	    (*i)->sclass = getRootNS()->parseFindScopedClass((*i)->cname);
-	    printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), (*i)->cname->ostr, (*i)->sclass);
-	    delete (*i)->cname;
-	    (*i)->cname = 0;
-	 }
-	 else {
-	    (*i)->sclass = getRootNS()->parseFindClass((*i)->cstr);
-	    printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), (*i)->cstr, (*i)->sclass);
-	    free((*i)->cstr);
-	    (*i)->cstr = 0;
-	 }
-      }
-      // recursively add base classes to special method list
-      if ((*i)->sclass) {
-	 (*i)->sclass->initialize();
-	 if (!has_delete_blocker && (*i)->sclass->has_delete_blocker())
-	    has_delete_blocker = true;
-         (*i)->sclass->addBaseClassesToSubclass(cls, (*i)->is_virtual);
-	 // include all subclass domains in this class' domain
-	 cls->addDomain((*i)->sclass->getDomain());
-      }
+      (*i)->parseInit(cls, has_delete_blocker);
    }
 
    // compare each class in the list to ensure that there are no duplicates
