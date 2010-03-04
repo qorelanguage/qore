@@ -1562,7 +1562,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
    if (!val)
       return 0;
 
-   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
+   // assign to a blank list if the lvalue has no value yet but is typed as a list
    if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
       return 0;
 
@@ -1592,10 +1592,6 @@ static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQo
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
    if (!val)
-      return 0;
-
-   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
-   if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
       return 0;
 
    if (val.get_type() != NT_LIST)
@@ -1764,17 +1760,6 @@ static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, Ex
       return 0;
 
    qore_type_t vtype = val.get_type();
-
-   if (vtype == NT_NOTHING) {
-      // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = val.get_type_info();
-      if (typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == hashTypeInfo) {
-	 if (val.assign(typeInfo->getDefaultValue()))
-	    return 0;
-	 vtype = val.get_type();
-      }
-   }
-
    if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
 
@@ -1828,17 +1813,6 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
       return 0;
 
    qore_type_t vtype = val.get_type();
-
-   if (vtype == NT_NOTHING) {
-      // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = val.get_type_info();
-      if (typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == hashTypeInfo) {
-	 if (val.assign(typeInfo->getDefaultValue()))
-	    return 0;
-	 vtype = val.get_type();
-      }
-   }
-
    if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
    
