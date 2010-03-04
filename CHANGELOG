@@ -3,6 +3,12 @@
 	   lvalues with declared types that have not been assigned yet to be
 	   automatically assigned with the default empty value and then apply
 	   the operator
+	 * fixed a bug saving type information for class members when the
+	   types could be resolved immediately at parse time
+	 * fixed a bug where type info was not being passed back internally at
+	   runtime for object members
+	 * fixed a bug where type info was not respected when converting an
+	   lvalue to a hash as part of an lvalue expression
 
 2010.03.03: David Nichols
 	 * eliminated string parsing in block comments, fixed a bug where the

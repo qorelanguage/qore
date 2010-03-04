@@ -288,7 +288,7 @@ static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *v
 }
 
 // for objects and hashes
-static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, ExceptionSink *xsink) {
+static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
    if (*xsink)
       return 0;
@@ -297,9 +297,8 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
    if (*xsink)
       return 0;
 
-   const QoreTypeInfo *typeInfo = 0;
-
-   AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, typeInfo, xsink);
+   const QoreTypeInfo *leftTypeInfo = 0;
+   AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, leftTypeInfo, xsink);
    if (*xsink)
       return 0;
 
@@ -325,6 +324,12 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
       if (!o) {
 	 if (*val)
 	    (*val)->deref(xsink);
+	 // check assignment here against leftTypeInfo
+	 if (leftTypeInfo->parseEqual(hashTypeInfo) == QTI_NOT_EQUAL) {
+	    (*val) = 0;
+	    xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a hash", leftTypeInfo->getName());
+	    return 0;
+	 }
 	 h = new QoreHashNode();
 	 (*val) = h;
       }
@@ -338,8 +343,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
    //printd(5, "do_object_val_ptr() member=%s\n", mem->getBuffer());
 
    AbstractQoreNode **rv;
-   // if object has been deleted, then dereference, make into a hash, and get hash pointer
-   if ((rv = o->getMemberValuePtr(mem->getBuffer(), vlp, xsink))) {
+   if ((rv = o->getMemberValuePtr(mem->getBuffer(), vlp, typeInfo, xsink))) {
       vlp->addMemberNotification(o, mem->getBuffer());
       return rv;
    }
@@ -347,7 +351,15 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
    if (*xsink)
       return 0;
 
+   // if object has been deleted, then dereference, make into a hash, and get hash pointer
+
    (*val)->deref(xsink);
+   // check assignment here against leftTypeInfo
+   if (leftTypeInfo->parseEqual(hashTypeInfo) == QTI_NOT_EQUAL) {
+      (*val) = 0;
+      xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a hash", leftTypeInfo->getName());
+      return 0;
+   }
    h = new QoreHashNode();
    (*val) = h; 
    return h->getKeyValuePtr(mem->getBuffer());
@@ -368,7 +380,7 @@ AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, 
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
 
       // xxx add type info to call
-      AbstractQoreNode **rv = getStackObject()->getMemberValuePtr(v->str, vlp, xsink);
+      AbstractQoreNode **rv = getStackObject()->getMemberValuePtr(v->str, vlp, typeInfo, xsink);
       if (!rv && !xsink->isException())
 	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", v->str);
       return rv;
@@ -378,7 +390,7 @@ AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, 
    const QoreTreeNode *tree = reinterpret_cast<const QoreTreeNode *>(n);
    if (tree->op == OP_LIST_REF)
       return do_list_val_ptr(tree, vlp, xsink);
-   return do_object_val_ptr(tree, vlp, xsink);
+   return do_object_val_ptr(tree, vlp, typeInfo, xsink);
 }
 
 // finds value of partially evaluated lvalue expressions (for use with references)

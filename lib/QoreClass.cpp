@@ -288,6 +288,25 @@ struct qore_class_private {
       return scl ? scl->parseHasPublicMembersInHierarchy() : false;
    }
 
+   // returns true = found, false = not found
+   DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const {
+      member_map_t::const_iterator i = private_members.find(const_cast<char *>(mem));
+      if (i != private_members.end()) {
+	 priv = true;
+	 memberTypeInfo = i->second->getTypeInfo();
+	 return true;
+      }
+      
+      i = public_members.find(const_cast<char *>(mem));
+      if (i != public_members.end()) {
+	 priv = false;
+	 memberTypeInfo = i->second->getTypeInfo();
+	 return true;
+      }
+
+      return scl ? scl->runtimeGetMemberInfo(mem, memberTypeInfo, priv) : false;
+   }
+
    DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
       bool found = false;
       member_map_t::const_iterator i = private_members.find(const_cast<char *>(mem));
@@ -1098,6 +1117,13 @@ bool BCList::parseHasPublicMembersInHierarchy() const {
    return false;
 }
    
+bool BCList::runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
+      if ((*i)->sclass && (*i)->sclass->priv->runtimeGetMemberInfo(mem, memberTypeInfo, priv))
+	 return true;
+   return false;
+}
+
 const QoreClass *BCList::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
@@ -1273,6 +1299,11 @@ int BCAList::execBaseClassConstructorArgs(BCEAList *bceal, ExceptionSink *xsink)
 	 return -1;
    }
    return 0;
+}
+
+bool QoreClass::runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv_member) const {
+   memberTypeInfo = 0;
+   return priv->runtimeGetMemberInfo(mem, memberTypeInfo, priv_member);
 }
 
 const QoreMethod *QoreClass::parseGetConstructor() const {

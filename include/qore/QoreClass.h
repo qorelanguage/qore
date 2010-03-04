@@ -755,6 +755,7 @@ public:
    // finds the named member in the hierarchy, returns the class implementing the member
    DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const;
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
+   DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const;
    DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
    DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const;
    DLLLOCAL const QoreClass *parseGetClass(qore_classid_t cid, bool &priv) const;

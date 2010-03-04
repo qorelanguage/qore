@@ -713,8 +713,13 @@ public:
    }
 
    DLLLOCAL void parseInit(const char *name, bool priv) {
-      typeInfo = parseTypeInfo->resolveAndDelete();
-      parseTypeInfo = 0;
+      if (!typeInfo) {
+         typeInfo = parseTypeInfo->resolveAndDelete();
+         parseTypeInfo = 0;
+      }
+#ifdef DEBUG
+      else assert(!parseTypeInfo);
+#endif
 
       if (exp) {
 	 const QoreTypeInfo *argTypeInfo = 0;
@@ -893,6 +898,7 @@ public:
    DLLLOCAL bool isPrivateMember(const char *str) const;
    // member_has_type_info could return true while typeInfo is 0 if it has unresolved parse type information
    DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const;
+   DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const;
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
    DLLLOCAL bool isPublicOrPrivateMember(const char *mem, bool &priv) const;
    DLLLOCAL void ref() const;
