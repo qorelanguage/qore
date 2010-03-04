@@ -530,21 +530,21 @@ public:
    }
 };
 
-class ReferenceTypeInfo : public QoreTypeInfo {
+class UserReferenceTypeInfo : public QoreTypeInfo {
 protected:
       // accept any type at runtime
    DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       return true;
    }
    DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
-      return QTI_NOT_EQUAL;
+      return QTI_AMBIGUOUS;
    }
    DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
-      return QTI_NOT_EQUAL;
+      return QTI_AMBIGUOUS;
    }
 
 public:
-   DLLLOCAL ReferenceTypeInfo() : QoreTypeInfo(NT_REFERENCE) {
+   DLLLOCAL UserReferenceTypeInfo() : QoreTypeInfo(NT_REFERENCE) {
    }
 };
 

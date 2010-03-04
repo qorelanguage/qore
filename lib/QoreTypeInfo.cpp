@@ -34,11 +34,12 @@ static QoreTypeInfo staticAnyTypeInfo,
    staticNothingTypeInfo(NT_NOTHING),
    staticNullTypeInfo(NT_NULL),
    staticRunTimeClosureTypeInfo(NT_RUNTIME_CLOSURE),
-   staticCallReferenceTypeInfo(NT_FUNCREF)
+   staticCallReferenceTypeInfo(NT_FUNCREF),
+   staticReferenceTypeInfo(NT_REFERENCE)
    ;
 
 // provides for run-time assignment capability from any type
-static ReferenceTypeInfo staticReferenceTypeInfo;
+static UserReferenceTypeInfo staticUserReferenceTypeInfo;
 
 // provides for 2-way compatibility with classes derived from QoreBigIntNode
 static BigIntTypeInfo staticBigIntTypeInfo;
@@ -65,6 +66,7 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
    *referenceTypeInfo = &staticReferenceTypeInfo,
+   *userReferenceTypeInfo = &staticUserReferenceTypeInfo,
    *codeTypeInfo = &staticCodeTypeInfo
    ;
 
@@ -183,7 +185,11 @@ bool builtinTypeHasDefaultValue(qore_type_t t) {
    return def_val_map.find(t) != def_val_map.end();
 }
 
-const QoreTypeInfo *getBuiltinTypeInfo(const char *str) {
+const QoreTypeInfo *getBuiltinUserTypeInfo(const char *str) {
+   // user exceptions here
+   if (!strcmp(str, "reference"))
+      return userReferenceTypeInfo;
+
    str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
    return i != str_typeinfo_map.end() ? i->second : 0;
 }

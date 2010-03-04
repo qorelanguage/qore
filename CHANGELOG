@@ -9,6 +9,8 @@
 	   runtime for object members
 	 * fixed a bug where type info was not respected when converting an
 	   lvalue to a hash as part of an lvalue expression
+	 * fixed reference typeinfo so that references in user code can be
+	   assigned any type
 
 2010.03.03: David Nichols
 	 * eliminated string parsing in block comments, fixed a bug where the

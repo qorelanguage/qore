@@ -43,7 +43,7 @@ class QoreTypeInfo;
 DLLEXPORT extern const QoreTypeInfo *anyTypeInfo, *bigIntTypeInfo, *floatTypeInfo, 
    *boolTypeInfo, *stringTypeInfo, *binaryTypeInfo, *dateTypeInfo, *objectTypeInfo, 
    *hashTypeInfo, *listTypeInfo, *nothingTypeInfo, *nullTypeInfo, *runTimeClosureTypeInfo,
-   *callReferenceTypeInfo, *referenceTypeInfo, *codeTypeInfo;
+   *callReferenceTypeInfo, *referenceTypeInfo, *userReferenceTypeInfo, *codeTypeInfo;
 
 DLLEXPORT qore_type_t get_next_type_id();
 
