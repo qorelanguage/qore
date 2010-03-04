@@ -147,6 +147,7 @@ public:
 DLLEXPORT int testObjectClassAccess(const QoreObject *obj, const QoreClass *classtoaccess);
 DLLEXPORT const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo);
 DLLEXPORT qore_type_t typeInfoGetType(const QoreTypeInfo *typeInfo);
+DLLEXPORT bool typeInfoHasType(const QoreTypeInfo *typeInfo);
 DLLEXPORT const char *typeInfoGetName(const QoreTypeInfo *typeInfo);
 
 #endif // _QORE_QORETYPE_H

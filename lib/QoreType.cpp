@@ -151,6 +151,10 @@ qore_type_t typeInfoGetType(const QoreTypeInfo *typeInfo) {
    return typeInfo->getType();
 }
 
+bool typeInfoHasType(const QoreTypeInfo *typeInfo) {
+   return typeInfo->hasType();
+}
+
 const char *typeInfoGetName(const QoreTypeInfo *typeInfo) {
    return typeInfo->getName();
 }
