@@ -1,3 +1,9 @@
+2010.03.04: David Nichols
+	 * implemented support for calling operators that modify lvalues on
+	   lvalues with declared types that have not been assigned yet to be
+	   automatically assigned with the default empty value and then apply
+	   the operator
+
 2010.03.03: David Nichols
 	 * eliminated string parsing in block comments, fixed a bug where the
 	   parser was not terminated at EOF in a block comment

@@ -1562,6 +1562,10 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
    if (!val)
       return 0;
 
+   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
+   if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+      return 0;
+
    // value is not a list, so throw exception
    if (val.get_type() != NT_LIST) {
       xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
@@ -1590,6 +1594,10 @@ static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQo
    if (!val)
       return 0;
 
+   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
+   if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+      return 0;
+
    if (val.get_type() != NT_LIST)
       return 0;
 
@@ -1611,6 +1619,10 @@ static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQore
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
    if (!val)
+      return 0;
+
+   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
+   if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
       return 0;
 
    if (val.get_type() != NT_LIST)
@@ -1639,6 +1651,10 @@ static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQor
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
    if (!val)
+      return 0;
+
+   // assign to a blank list if the lvalue has no vaule yet but is typed as a list
+   if (val.get_type() == NT_NOTHING && val.get_type_info() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
       return 0;
 
    if (val.get_type() != NT_LIST)
@@ -1675,7 +1691,18 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
       return 0;
 
    // if value is not a list or string, throw exception
-   const qore_type_t vt = val.get_type();
+   qore_type_t vt = val.get_type();
+
+   if (vt == NT_NOTHING) {
+      // see if the lvalue has a default type
+      const QoreTypeInfo *typeInfo = val.get_type_info();
+      if (typeInfo == listTypeInfo || typeInfo == stringTypeInfo) {
+	 if (val.assign(typeInfo->getDefaultValue()))
+	    return 0;
+	 vt = val.get_type();
+      }
+   }
+
    if (vt != NT_LIST && vt != NT_STRING) {
       xsink->raiseException("SPLICE-ERROR", "first argument to splice is not a list or a string");
       return 0;
@@ -1736,7 +1763,18 @@ static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, Ex
    if (!val)
       return 0;
 
-   const qore_type_t vtype = val.get_type();
+   qore_type_t vtype = val.get_type();
+
+   if (vtype == NT_NOTHING) {
+      // see if the lvalue has a default type
+      const QoreTypeInfo *typeInfo = val.get_type_info();
+      if (typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == hashTypeInfo) {
+	 if (val.assign(typeInfo->getDefaultValue()))
+	    return 0;
+	 vtype = val.get_type();
+      }
+   }
+
    if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
 
@@ -1789,7 +1827,18 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
    if (!val)
       return 0;
 
-   const qore_type_t vtype = val.get_type();
+   qore_type_t vtype = val.get_type();
+
+   if (vtype == NT_NOTHING) {
+      // see if the lvalue has a default type
+      const QoreTypeInfo *typeInfo = val.get_type_info();
+      if (typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == hashTypeInfo) {
+	 if (val.assign(typeInfo->getDefaultValue()))
+	    return 0;
+	 vtype = val.get_type();
+      }
+   }
+
    if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
       return 0;
    
