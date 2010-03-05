@@ -1,3 +1,6 @@
+2010.03.05: David Nichols
+	 * fixed a bug with the new overloaded abs() function
+
 2010.03.04: David Nichols
 	 * implemented support for calling operators that modify lvalues on
 	   lvalues with declared types that have not been assigned yet to be

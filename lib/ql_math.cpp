@@ -59,6 +59,10 @@ static AbstractQoreNode *f_pow(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(pow(x, y));
 }
 
+static AbstractQoreNode *f_abs_any(const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreFloatNode(fabs(get_float_param(params, 0)));
+}
+
 static AbstractQoreNode *f_abs_int(const QoreListNode *params, ExceptionSink *xsink) {
    int64 i = HARD_QORE_INT(params, 0);
    return new QoreBigIntNode(i < 0 ? -i : i);
@@ -266,7 +270,8 @@ void init_math_functions() {
    builtinFunctions.add2("pow",           f_pow, QDOM_DEFAULT, floatTypeInfo);
 
    // overloaded abs()
-   builtinFunctions.add2("abs",           f_abs_float, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("abs",           f_abs_any, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("abs",           f_abs_float, QDOM_DEFAULT, floatTypeInfo, 1, floatTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("abs",           f_abs_int, QDOM_DEFAULT, bigIntTypeInfo, 1, bigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("hypot",         f_hypot, QDOM_DEFAULT, floatTypeInfo);
