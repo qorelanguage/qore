@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+Author: Terry Welch <Malatesa Yahoo Com>
+Copyright (C) 2009 Terry Welch <Malatesa Yahoo Com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.
+
+-->
+<language id="qore" _name="Qore" version="2.0" _section="Scripts">
+  <metadata>
+    <property name="mimetypes">text/x-qore;application/x-qore</property>
+    <property name="globs">*.q;*.qc;*.ql</property>
+    <property name="line-comment-start">#</property>
+  </metadata>
+
+  <styles>
+    <style id="variable" _name="Variable" map-to="def:type"/>
+    <style id="keyword" _name="Keyword" map-to="def:keyword"/>
+    <style id="operator" _name="Operator" map-to="def:operator"/>
+    <style id="boolean" _name="Boolean value" map-to="def:boolean"/>
+  </styles>
+
+  <definitions>
+
+    <context id="variable" style-ref="variable">
+      <match>[$ %][$]?[a-zA-Z_\ ][a-zA-Z0-9_\ ]*</match>
+    </context>
+
+    <context id="array-operators" style-ref="variable">
+      <match>(\[|\])</match>
+    </context>
+
+    <context id="keyword" style-ref="keyword">
+      <keyword>by</keyword>
+      <keyword>break</keyword>
+      <keyword>catch</keyword>
+      <keyword>conts</keyword>
+      <keyword>context</keyword>
+      <keyword>continue</keyword>
+      <keyword>do</keyword>
+      <keyword>else</keyword>
+      <keyword>for</keyword>
+      <keyword>foreach</keyword>
+      <keyword>if</keyword>
+      <keyword>in</keyword>
+      <keyword>inherits</keyword>
+      <keyword>instanceof</keyword>
+      <keyword>namespace</keyword>
+      <keyword>my</keyword>
+      <keyword>NOTHING</keyword>
+      <keyword>NULL</keyword>
+      <keyword>on_error</keyword>
+      <keyword>on_exit</keyword>
+      <keyword>on_success</keyword>
+      <keyword>our</keyword>
+      <keyword>rethrow</keyword>
+      <keyword>return</keyword>
+      <keyword>sortBy</keyword>
+      <keyword>sortDescendingBy</keyword>
+      <keyword>sub</keyword>
+      <keyword>subcontext</keyword>
+      <keyword>sumarize</keyword>
+      <keyword>switch</keyword>
+      <keyword>synchronized</keyword>
+      <keyword>thread_exit</keyword>
+      <keyword>throw</keyword>
+      <keyword>try</keyword>
+      <keyword>where</keyword>
+      <keyword>while</keyword>
+      <keyword>background</keyword>
+      <keyword>case</keyword>
+      <keyword>chomp</keyword>
+      <keyword>class</keyword>
+      <keyword>delete</keyword>
+      <keyword>exists</keyword>
+      <keyword>foldl</keyword>
+      <keyword>foldr</keyword>
+      <keyword>map</keyword>
+      <keyword>pop</keyword>
+      <keyword>private</keyword>
+      <keyword>push</keyword>
+      <keyword>new</keyword>
+      <keyword>select</keyword>
+      <keyword>shift</keyword>
+      <keyword>splice</keyword>
+      <keyword>trim</keyword>
+      <keyword>unshift</keyword>
+      <keyword>default</keyword>
+      <keyword>static</keyword>
+      <keyword>elements</keyword>
+      <keyword>find</keyword>
+      <keyword>keys</keyword>
+    </context>
+   
+    <context id="operators" style-ref="operator" extend-parent="false">
+      <match>[-.~^@,;:/%|\=\+\*\!\?&amp;&lt;&gt;()]</match>
+    </context>
+
+    <context id="boolean" style-ref="boolean">
+      <prefix>(?i)\b</prefix> <!-- case insensitive -->
+      <keyword>false</keyword>
+      <keyword>true</keyword>
+    </context>
+
+    <context id="qore">
+      <include>
+        <context ref="def:shebang"/>
+        <context ref="def:shell-like-comment"/>
+        <context ref="def:string"/>
+        <context ref="def:single-quoted-string"/>
+        <context ref="variable"/>
+        <context ref="array-operators"/>
+        <context ref="keyword"/>
+        <context ref="operators"/>
+        <context ref="boolean"/>
+      </include>
+    </context>
+
+  </definitions>
+
+</language>
