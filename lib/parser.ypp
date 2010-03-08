@@ -245,6 +245,10 @@ struct MemberInfo {
 };
 
 class MemberList : private member_map_t {
+protected:
+   DLLLOCAL MemberList() {
+   }
+
 public:
    DLLLOCAL MemberList(MemberInfo *member) {
       insert(member->getPair());
@@ -284,10 +288,20 @@ public:
 
    DLLLOCAL void mergePublicMembers(QoreClass *qc) {
       member_map_t::iterator i;
+      if (empty()) {
+	 qc->parseSetEmptyPublicMemberDeclaration();
+	 return;
+      }
       while ((i = begin()) != end()) {
 	 qc->parseAddPublicMember(i->first, i->second);
 	 erase(i);
       }
+   }
+};
+
+class EmptyPublicMemberList : public MemberList {
+public:
+   DLLLOCAL EmptyPublicMemberList() {
    }
 };
 
@@ -635,7 +649,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_TRY "try"
 %token TOK_THROW "throw"
 %token TOK_CATCH "catch"
-%token TOK_FINALLY "finally"
 %token TOK_WHERE "where"
 %token TOK_NULL "NULL"
 %token TOK_WHILE "while"
@@ -670,6 +683,12 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_INHERITS "inherits"
 %token TOK_ELSE "else"
 %token TOK_STATIC "static"
+
+// currently unused tokens
+%token TOK_FINALLY "finally"
+%token TOK_INTERFACE "interface"
+%token TOK_IMPLEMENTS "implements"
+%token TOK_ABSTRACT "abstract"
 
 // operator tokens
 %token P_INCREMENT "++ operator"
@@ -1273,10 +1292,6 @@ myexp:     /* empty */          { $$ = 0; }
         | exp                   { $$ = $1; }
         ;
 
-//finally:   /* empty */          { $$ = 0; }
-//        | TOK_FINALLY statement { $$ = $2; }
-//        ;
-
 class_def:
 	TOK_CLASS IDENTIFIER inheritance_list '{' class_attributes '}'
         {
@@ -1404,6 +1419,9 @@ public_member_list:
 	}
 	| TOK_PUBLIC '{' member_list2 '}' {
 	   $$ = $3;
+	}
+	| TOK_PUBLIC '{' '}' {
+	   $$ = new EmptyPublicMemberList;
 	}
         ;
 

@@ -1,3 +1,7 @@
+2010.03.08: David Nichols
+	 * implemented support for empty public member declarations in a class
+	   (i.e.:  public {}) to mean all members are private
+
 2010.03.05: David Nichols
 	 * fixed a bug with the new overloaded abs() function
 

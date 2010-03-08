@@ -324,7 +324,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     (while (< (point) limit)
       (cond
        ((or (null (setq char (nth 3 state)))
-            (and (char-valid-p char) (eq (char-syntax (nth 3 state)) ?\")))
+            (and (characterp char) (eq (char-syntax (nth 3 state)) ?\")))
         ;; Normal text, or comment, or docstring, or normal string.
         nil)
        ((eq (nth 3 state) ?\n)
@@ -595,14 +595,14 @@ If at end-of-line, and not in a comment or a quote, correct the's indentation."
 	   (and (not			; eliminate comments quickly
 		 (and comment-start-skip
 		      (re-search-forward comment-start-skip insertpos t)) )
-		(or (/= last-command-char ?:)
+		(or (/= last-command-event ?:)
 		    ;; Colon is special only after a label ....
 		    (looking-at "\\s-*\\(\\w\\|\\s_\\)+$"))
 		(let ((pps (parse-partial-sexp
 			    (qore-beginning-of-function) insertpos)))
 		  (not (or (nth 3 pps) (nth 4 pps) (nth 5 pps))))))
 	 (progn				; must insert, indent, delete
-	   (insert-char last-command-char 1)
+	   (insert-char last-command-event 1)
 	   (qore-indent-line)
 	   (delete-char -1))))
   (self-insert-command (prefix-numeric-value arg)))

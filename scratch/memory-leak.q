@@ -1,5 +1,8 @@
 #!/usr/bin/env qore
 
+%require-our
+%requires qore >= 0.8
+
 class T;
 
 # make a circular reference

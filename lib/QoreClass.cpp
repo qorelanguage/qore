@@ -73,7 +73,7 @@ struct qore_class_private {
    bool sys,                        // system class?
       initialized,                  // is initialized?
       has_delete_blocker,           // has a delete_blocker function somewhere in the hierarchy?
-      has_public_members,           // has a public member list somewhere in the hierarchy?
+      has_public_memdecl,           // has a public member declaration somewhere in the hierarchy?
       owns_typeinfo                 // do we own the typeinfo data or not?
       ;
    int domain;                      // capabilities of builtin class to use in the context of parse restrictions
@@ -89,7 +89,7 @@ struct qore_class_private {
    DLLLOCAL qore_class_private(const QoreClass *cls, const char *nme, int dom = QDOM_DEFAULT, QoreTypeInfo *n_typeInfo = 0) 
       : name(nme ? strdup(nme) : 0), scl(0), 
 	sys(false), initialized(false), has_delete_blocker(false), 
-	has_public_members(false), owns_typeinfo(n_typeInfo ? false : true),
+	has_public_memdecl(false), owns_typeinfo(n_typeInfo ? false : true),
 	domain(dom), 
 	num_methods(0), num_user_methods(0),
 	num_static_methods(0), num_static_user_methods(0),
@@ -282,7 +282,7 @@ struct qore_class_private {
    }
 
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const {
-      if (has_public_members || !pending_public_members.empty())
+      if (has_public_memdecl || !pending_public_members.empty())
 	 return true;
 
       return scl ? scl->parseHasPublicMembersInHierarchy() : false;
@@ -866,8 +866,8 @@ void qore_class_private::parseCommit() {
    // it's safe to call parseHasPublicMembersInHierarchy() because the 2nd stage
    // of parsing has completed without any errors (or we wouldn't be
    // running parseCommit())
-   if (!has_public_members && (!public_members.empty() || (scl ? scl->parseHasPublicMembersInHierarchy() : false)))
-      has_public_members = true;
+   if (!has_public_memdecl && (!public_members.empty() || (scl ? scl->parseHasPublicMembersInHierarchy() : false)))
+      has_public_memdecl = true;
 }
 
 void qore_class_private::addBuiltinMethod(const char *mname, MethodVariantBase *variant) {
@@ -2507,7 +2507,11 @@ bool QoreClass::parseHasPublicMembersInHierarchy() const {
 }
 
 bool QoreClass::runtimeHasPublicMembersInHierarchy() const {
-   return priv->has_public_members;
+   return priv->has_public_memdecl;
+}
+
+void QoreClass::parseSetEmptyPublicMemberDeclaration() {
+   priv->has_public_memdecl = true;
 }
 
 bool QoreClass::isPublicOrPrivateMember(const char *str, bool &priv_member) const {

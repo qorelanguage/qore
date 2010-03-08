@@ -769,6 +769,8 @@ public:
    DLLLOCAL const QoreMethod *parseGetConstructor() const;
    // returns true if the class implements a "methodGate" method, also in pending uncommitted methods
    DLLLOCAL bool parseHasMethodGate() const;
+   // called when there is an empty public member declaration or a "no_public" declaration
+   DLLLOCAL void parseSetEmptyPublicMemberDeclaration();
 };
 
 class QoreMethodIterator {
