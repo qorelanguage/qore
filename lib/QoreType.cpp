@@ -140,7 +140,7 @@ int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass)
    if (!priv)
       return QTI_AMBIGUOUS;
 
-   return runtimeCheckPrivateClassAccess(shouldbeclass) ? QTI_NOT_EQUAL : QTI_AMBIGUOUS;
+   return runtimeCheckPrivateClassAccess(shouldbeclass) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
 const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo) {
@@ -159,3 +159,6 @@ const char *typeInfoGetName(const QoreTypeInfo *typeInfo) {
    return typeInfo->getName();
 }
 
+bool typeInfoParseTestCompatibleClass(const QoreTypeInfo *typeInfo, const QoreClass *otherclass) {
+   return typeInfo->parseTestCompatibleClass(otherclass);
+}

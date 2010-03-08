@@ -305,6 +305,8 @@ public:
       return QTI_NOT_EQUAL;
    }
 
+   DLLLOCAL bool parseTestCompatibleClass(const QoreClass *qc) const;
+
 #ifdef DEBUG
    DLLLOCAL const char *getTypeName() const { return this && qt >= 0 ? getBuiltinTypeName(qt) : "n/a"; }
 #endif

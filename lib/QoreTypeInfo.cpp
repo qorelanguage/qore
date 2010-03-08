@@ -304,3 +304,20 @@ int QoreTypeInfo::parseEqualDefault(const QoreTypeInfo *typeInfo) const {
 
    return QTI_NOT_EQUAL;
 }
+
+bool QoreTypeInfo::parseTestCompatibleClass(const QoreClass *otherclass) const {
+   if (qc == otherclass)
+      return true;
+
+   if (!qc)
+      return false;
+
+   bool priv;
+   if (!qc->getClass(otherclass->getID(), priv))
+      return false;
+
+   if (!priv)
+      return true;
+
+   return parseCheckPrivateClassAccess(otherclass);
+}
