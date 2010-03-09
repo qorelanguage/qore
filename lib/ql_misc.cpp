@@ -833,8 +833,7 @@ static AbstractQoreNode *f_gunzip_to_string(const QoreListNode *params, Exceptio
 }
 
 // syntax: gunzip_to_binary(binary object)
-static AbstractQoreNode *f_gunzip_to_binary(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_gunzip_to_binary(const QoreListNode *params, ExceptionSink *xsink) {
    // need binary argument
    const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
@@ -843,76 +842,129 @@ static AbstractQoreNode *f_gunzip_to_binary(const QoreListNode *params, Exceptio
    return qore_gunzip_to_binary(p0, xsink);
 }
 
-static AbstractQoreNode *f_getByte(const QoreListNode *params, ExceptionSink *xsink)
-{
-   // need binary argument
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0)
-      return 0;
-   unsigned char *ptr;
-   int size;
-   if (p0->getType() == NT_BINARY)
-   {
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
-      ptr = (unsigned char *)b->getPtr();
-      size = b->size();
-   }
-   else if (p0->getType() == NT_STRING)
-   {
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
-      ptr = (unsigned char *)str->getBuffer();
-      size = str->strlen();
-   }
-   else
-      return 0;
+static AbstractQoreNode *f_get_byte_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   int size = str->strlen();
 
-   const AbstractQoreNode *p1 = get_param(params, 1);
-   int offset = p1 ? p1->getAsInt() : 0;
-   if (!ptr || offset >= size || offset < 0)
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 2;
+
+   if (offset >= size || offset < 0)
       return 0;
 
    return new QoreBigIntNode(ptr[offset]);  
 }
 
-static AbstractQoreNode *f_getWord32(const QoreListNode *params, ExceptionSink *xsink)
-{
-   // need binary argument
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0)
-      return 0;
-   unsigned char *ptr;
-   int size;
-   if (p0->getType() == NT_BINARY)
-   {
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
-      ptr = (unsigned char *)b->getPtr();
-      size = b->size();
-   }
-   else if (p0->getType() == NT_STRING)
-   {
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
-      ptr = (unsigned char *)str->getBuffer();
-      size = str->strlen();
-   }
-   else
+static AbstractQoreNode *f_get_byte_bin(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(b, const BinaryNode, params, 0);
+   unsigned char *ptr = (unsigned char *)b->getPtr();
+   int size = b->size();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 2;
+
+   if (offset >= size || offset < 0)
       return 0;
 
-   const AbstractQoreNode *p1 = get_param(params, 1);
-   int offset = p1 ? p1->getAsInt() : 0;
-   offset *= 4;
+   return new QoreBigIntNode(ptr[offset]);  
+}
 
-   if (!ptr || offset >= size || offset < 0)
+static AbstractQoreNode *f_get_word_16_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   int size = str->strlen();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 2;
+
+   if (offset >= (size - 1) || offset < 0)
+      return 0;
+
+   short val = *((unsigned short *)&ptr[offset]);
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_16_bin(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(b, const BinaryNode, params, 0);
+   unsigned char *ptr = (unsigned char *)b->getPtr();
+   int size = b->size();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 2;
+
+   if (offset >= (size - 1) || offset < 0)
+      return 0;
+
+   short val = *((unsigned short *)&ptr[offset]);
+
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_32_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   int size = str->strlen();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 4;
+
+   if (offset >= (size - 3) || offset < 0)
       return 0;
 
    int64 val = *((unsigned int *)&ptr[offset]);
-   //<< 24 + ptr[offset + 1] << 16 + ptr[offset + 2] << 8 + ptr[offset + 3];
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_32_bin(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(b, const BinaryNode, params, 0);
+   unsigned char *ptr = (unsigned char *)b->getPtr();
+   int size = b->size();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 4;
+
+   if (offset >= (size - 3) || offset < 0)
+      return 0;
+
+   int64 val = *((unsigned int *)&ptr[offset]);
+
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_64_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   int size = str->strlen();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 8;
+
+   if (offset >= (size - 7) || offset < 0)
+      return 0;
+
+   int64 val = *((int64 *)&ptr[offset]);
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_64_bin(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(b, const BinaryNode, params, 0);
+   unsigned char *ptr = (unsigned char *)b->getPtr();
+   int size = b->size();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 8;
+
+   if (offset >= (size - 7) || offset < 0)
+      return 0;
+
+   int64 val = *((int64 *)&ptr[offset]);
 
    return new QoreBigIntNode(val);
 }
 
 // same as splice operator, but operates on a copy of the list
-static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
       return 0;
@@ -1184,8 +1236,28 @@ void init_misc_functions() {
    builtinFunctions.add("gzip", f_gzip);
    builtinFunctions.add("gunzip_to_string", f_gunzip_to_string);
    builtinFunctions.add("gunzip_to_binary", f_gunzip_to_binary);
-   builtinFunctions.add("getByte", f_getByte);
-   builtinFunctions.add("getWord32", f_getWord32);
+
+   builtinFunctions.add("getByte", f_noop);
+   builtinFunctions.add2("getByte", f_get_byte_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("getByte", f_get_byte_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+
+   builtinFunctions.add("getWord32", f_noop);
+   builtinFunctions.add2("getWord32", f_get_word_32_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("getWord32", f_get_word_32_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+
+   // with only hard typing
+   builtinFunctions.add2("get_byte", f_get_byte_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_byte", f_get_byte_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+
+   builtinFunctions.add2("get_word_16", f_get_word_16_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_16", f_get_word_16_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+
+   builtinFunctions.add2("get_word_32", f_get_word_32_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_32", f_get_word_32_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+
+   builtinFunctions.add2("get_word_64", f_get_word_64_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_64", f_get_word_64_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+
    builtinFunctions.add("splice", f_splice);
    builtinFunctions.add("hextoint", f_hextoint);
    builtinFunctions.add("strtoint", f_strtoint);

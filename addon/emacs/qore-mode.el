@@ -281,7 +281,8 @@ The expansion is entirely correct because it uses the C preprocessor."
                               '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[)))))
             nil ;; A division sign instead of a regexp-match.
           '(7))))
-    ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ;;("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msx]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ("\\(^\\|[?:~({[ \t]\\)\\([msx]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
      ;; Nasty cases:
      ;; /foo/m  $a->m  $#m $m @m %m
      ;; \s (appears often in regexps).

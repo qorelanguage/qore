@@ -1,3 +1,12 @@
+2010.03.09: David Nichols
+	 * updated getWord32() for hard typing, added the following functions
+	   supporting only hard types (with string and binary arguments for
+	   the data pointer):
+	   - get_byte()
+	   - get_word_16()
+	   - get_word_32()
+	   - get_word_64()
+
 2010.03.08: David Nichols
 	 * implemented support for empty public member declarations in a class
 	   (i.e.:  public {}) to mean all members are private
