@@ -358,22 +358,24 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
    unsigned match = 0;
    const AbstractQoreFunctionVariant *variant = 0;
 
-   //printd(5, "AbstractQoreFunction::findVariant() this=%p %s() vlist=%d (pend=%d) args=%p (%d)\n", this, getName(), vlist.size(), pending_vlist.size(), args, args ? args->size() : 0);
+   //printd(0, "AbstractQoreFunction::findVariant() this=%p %s%s%s() vlist=%d (pend=%d) ilist=%d args=%p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
+
+   const AbstractQoreFunction *aqf = 0;
 
    // iterate through inheritance list
    for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
-      const AbstractQoreFunction *aqf = *aqfi;
+      aqf = *aqfi;
 
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
 	 AbstractFunctionSignature *sig = (*i)->getSignature();
 	 assert(sig);
 
+	 //printd(0, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d) class=%s\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a");
+
 	 if (!variant && !sig->getParamTypes()) {
 	    variant = *i;
 	    continue;
 	 }
-
-	 //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d)\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0);
 
 	 // skip variants with signatures with fewer possible elements than the best match already
 	 if ((sig->getParamTypes() * 2) > match) {
@@ -408,6 +410,9 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	    }
 	 }
       }
+      // if we have found a valid variant in this class, do not look in base classes for a better match
+      if (variant)
+	 break;
    }
    if (!variant) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
@@ -421,7 +426,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       // add variants tested
       // iterate through inheritance list
       for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
-	 const AbstractQoreFunction *aqf = *aqfi;
+	 aqf = *aqfi;
 	 class_name = aqf->className();
 
 	 for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
@@ -442,7 +447,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       }
    }
 
-   //printd(0, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+   //printd(5, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s) class=%s\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant && aqf && aqf->className() ? aqf->className() : "n/a");
 
    return variant;
 }
@@ -469,10 +474,12 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    unsigned num_args = argTypeInfo.size();
 
    //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+
+   AbstractQoreFunction *aqf = 0;
    
    // iterate through inheritance list
    for (ilist_t::iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
-      AbstractQoreFunction *aqf = *aqfi;
+      aqf = *aqfi;
       //printd(5, "AbstractQoreFunction::parseFindVariant() %p %s testing function %p\n", this, getName(), aqf);
       assert(!aqf->vlist.empty() || !aqf->pending_vlist.empty());
 
@@ -641,6 +648,9 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    }
 	 }
       }
+      // if we have found a valid variant in this class, do not look in base classes for a better match
+      if (variant)
+	 break;
    }
 
    if (!variant && !longest_pmatch && getProgram()->getParseExceptionSink()) {
@@ -662,7 +672,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       // add variants tested
       // iterate through inheritance list
       for (ilist_t::iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
-	 AbstractQoreFunction *aqf = *aqfi;	 
+	 aqf = *aqfi;	 
 	 class_name = aqf->className();
 	 
 	 for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
@@ -680,7 +690,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       }
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
-   //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() returning %p %s(%s)\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s)\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
    return variant;
 }
 

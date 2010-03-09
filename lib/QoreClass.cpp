@@ -476,6 +476,15 @@ struct qore_class_private {
 	 addAncestors(m);
    }
 
+   DLLLOCAL void recheckBuiltinMethodHierarchy() {
+      if (!scl)
+	 return;
+      
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+	 
+      }
+   }
+
    DLLLOCAL void addStaticAncestors(QoreMethod *m) {
       if (!scl)
 	 return;
@@ -484,6 +493,8 @@ struct qore_class_private {
    }
 
    DLLLOCAL void addAncestors(QoreMethod *m) {
+      assert(strcmp(m->getName(), "constructor"));
+
       if (!scl)
 	 return;
 
@@ -498,6 +509,8 @@ struct qore_class_private {
    }
 
    DLLLOCAL void parseAddAncestors(QoreMethod *m) {
+      assert(strcmp(m->getName(), "constructor"));
+
       if (!scl)
 	 return;
 
@@ -1239,8 +1252,10 @@ const QoreClass *BCList::parseFindPublicPrivateMember(const char *mem, const Qor
 const QoreMethod *BCList::findCommittedMethod(const char *name, bool &priv_flag) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
+	 // this can be called before the class has been initialized if called by
+	 // external code when adding builtin methods to the class
 	 // assert that the base class list has already been initialized if it exists
-	 assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
+	 //assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
 
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->priv->findCommittedMethod(name, priv_flag))) {
@@ -1269,7 +1284,6 @@ const QoreMethod *BCList::parseFindCommittedMethod(const char *name) {
 const QoreMethod *BCList::parseFindMethodTree(const char *name) {
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
-	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->parseFindMethodTree(name)))
 	    return m;
@@ -1282,8 +1296,10 @@ const QoreMethod *BCList::parseFindMethodTree(const char *name) {
 const QoreMethod *BCList::findCommittedStaticMethod(const char *name, bool &priv_flag) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
+	 // this can be called before the class has been initialized if called by
+	 // external code when adding builtin methods to the class
 	 // assert that the base class list has already been initialized if it exists
-	 assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
+	 //assert(!(*i)->sclass->priv->scl || ((*i)->sclass->priv->scl && (*i)->sclass->priv->initialized));
 
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->priv->findCommittedStaticMethod(name, priv_flag))) {
@@ -1314,7 +1330,6 @@ const QoreMethod *BCList::parseFindCommittedStaticMethod(const char *name) {
 const QoreMethod *BCList::parseFindStaticMethodTree(const char *name) {
    for (bclist_t::iterator i = begin(); i != end(); i++) {
       if ((*i)->sclass) {
-	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->priv->parseFindStaticMethod(name)))
 	    return m;
@@ -1412,12 +1427,8 @@ void BCList::parseAddAncestors(QoreMethod *m) {
       QoreClass *qc = (*i)->sclass;
       assert(qc);
       const QoreMethod *w = qc->priv->parseFindLocalMethod(name);
-      if (w) {
-	 printd(0, "BCList::parseAddAncestors() %s found in class %s\n", name, qc->getName());
+      if (w)
 	 m->getFunction()->addAncestor(w->getFunction());
-      }
-      else
-	 printd(0, "BCList::parseAddAncestors() %s NOT found in class %s\n", name, qc->getName());
 
       qc->priv->addAncestors(m);
    }
@@ -1610,17 +1621,13 @@ int QoreClass::numStaticUserMethods() const {
 }
 
 const QoreMethod *QoreClass::parseFindMethodTree(const char *nme) {
-   const QoreMethod *m = priv->parseFindMethod(nme);
-   if (!m && priv->scl)
-      m = priv->scl->parseFindMethodTree(nme);
-   return m;
+   initialize();
+   return priv->parseFindMethod(nme);
 }
 
 const QoreMethod *QoreClass::parseFindStaticMethodTree(const char *nme) {
-   const QoreMethod *m = priv->parseFindStaticMethod(nme);
-   if (!m && priv->scl)
-      m = priv->scl->parseFindStaticMethodTree(nme);
-   return m;
+   initialize();
+   return priv->parseFindStaticMethod(nme);
 }
 
 void QoreClass::addBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs) {

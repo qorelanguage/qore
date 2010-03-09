@@ -39,7 +39,7 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
    type_vec_t argTypeInfo;
    argTypeInfo.reserve(num_args);
 
-   bool have_arg_type_info = false;
+   bool have_arg_type_info = num_args ? false : true;
    // initialize arguments and setup argument type list (argTypeInfo)
    if (num_args) {
       // do arguments need to be evaluated?
