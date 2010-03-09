@@ -6,6 +6,8 @@
 	   - get_word_16()
 	   - get_word_32()
 	   - get_word_64()
+	 * fixed transactional participation in setting the empty public
+	   member list flag
 
 2010.03.08: David Nichols
 	 * implemented support for empty public member declarations in a class
