@@ -533,6 +533,8 @@ public:
 // abstract class for method functions (static and non-static)
 class MethodFunction : public MethodFunctionBase {
 public:
+   DLLLOCAL MethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
+   }
    DLLLOCAL virtual ~MethodFunction() {
    }
    DLLLOCAL virtual void parseInitMethod(const QoreClass &parent_class, bool static_flag);
@@ -549,6 +551,8 @@ public:
 // abstract class for constructor method functions
 class ConstructorMethodFunction : public MethodFunctionBase {
 public:
+   DLLLOCAL ConstructorMethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
+   }
    DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
    DLLLOCAL virtual const char *getName() const {
       return "constructor";
@@ -562,6 +566,8 @@ public:
 // abstract class for destructor method functions
 class DestructorMethodFunction : public MethodFunctionBase {
 public:
+   DLLLOCAL DestructorMethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
+   }
    DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
    DLLLOCAL virtual const char *getName() const {
       return "destructor";
@@ -574,6 +580,8 @@ public:
 // abstract class for copy method functions
 class CopyMethodFunction : public MethodFunctionBase {
 public:
+   DLLLOCAL CopyMethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
+   }
    DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
    DLLLOCAL virtual const char *getName() const {
       return "copy";
@@ -585,7 +593,7 @@ public:
 
 class BuiltinSystemConstructorBase : public MethodFunctionBase {
 public:
-   DLLLOCAL BuiltinSystemConstructorBase() {
+   DLLLOCAL BuiltinSystemConstructorBase(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
    }
    DLLLOCAL const char *getName() const {
       return "<system_constructor>";
@@ -602,7 +610,7 @@ protected:
    q_system_constructor_t system_constructor;
 
 public:
-   DLLLOCAL BuiltinSystemConstructor(q_system_constructor_t m) : system_constructor(m) {
+   DLLLOCAL BuiltinSystemConstructor(const QoreClass *n_qc, q_system_constructor_t m) : BuiltinSystemConstructorBase(n_qc), system_constructor(m) {
    }
    DLLLOCAL virtual void eval(const QoreClass &thisclass, QoreObject *self, int code, va_list args) const {
       system_constructor(self, code, args);
@@ -614,7 +622,7 @@ protected:
    q_system_constructor2_t system_constructor;
 
 public:
-   DLLLOCAL BuiltinSystemConstructor2(q_system_constructor2_t m) : system_constructor(m) {
+   DLLLOCAL BuiltinSystemConstructor2(const QoreClass *n_qc, q_system_constructor2_t m) : BuiltinSystemConstructorBase(n_qc), system_constructor(m) {
    }
 
    DLLLOCAL virtual void eval(const QoreClass &thisclass, QoreObject *self, int code, va_list args) const {
@@ -624,7 +632,7 @@ public:
 
 class BuiltinMethod : public MethodFunction, public BuiltinFunctionBase {
 public:
-   DLLLOCAL BuiltinMethod(const char *mname) : BuiltinFunctionBase(mname) {
+   DLLLOCAL BuiltinMethod(const QoreClass *n_qc, const char *mname) : MethodFunction(n_qc), BuiltinFunctionBase(mname) {
    }
    DLLLOCAL virtual const char *getName() const { 
       return name;
@@ -637,7 +645,7 @@ protected:
    q_delete_blocker_t delete_blocker;
 
 public:
-   DLLLOCAL BuiltinDeleteBlocker(q_delete_blocker_t m) : BuiltinMethod("<delete_blocker>"), delete_blocker(m) {
+   DLLLOCAL BuiltinDeleteBlocker(q_delete_blocker_t m) : BuiltinMethod(0, "<delete_blocker>"), delete_blocker(m) {
    }   
    DLLLOCAL bool eval(QoreObject *self, AbstractPrivateData *private_data) const {
       return delete_blocker(self, private_data);
@@ -656,7 +664,7 @@ protected:
 
 class UserMethod : public MethodFunction, public UserMethodBase {
 public:
-   DLLLOCAL UserMethod(const char *mname) : UserMethodBase(mname) {
+   DLLLOCAL UserMethod(const QoreClass *n_qc, const char *mname) : MethodFunction(n_qc), UserMethodBase(mname) {
    }
    DLLLOCAL virtual const char *getName() const {
       return name.c_str();
@@ -916,16 +924,10 @@ public:
 	 
       return 0;
    }
-/*
-   DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const {
-      for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
-	 if ((*i)->sclass->initMembers(o, xsink))
-	    return -1;
-      }
-      
-      return 0;
-   }
-*/
+   DLLLOCAL void addAncestors(QoreMethod *m);
+   DLLLOCAL void addStaticAncestors(QoreMethod *m);
+   DLLLOCAL void parseAddAncestors(QoreMethod *m);
+   DLLLOCAL void parseAddStaticAncestors(QoreMethod *m);
 };
 
 // BCEANode

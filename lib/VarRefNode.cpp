@@ -270,7 +270,7 @@ void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag
 
    // FIXME: make common code with ScopedObjectCallNode
    const QoreMethod *constructor = qc ? qc->parseGetConstructor() : 0;
-   lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0, qc ? qc->getName() : 0);
+   lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0);
 
    //printd(5, "LocalVarRefNewObjectNode::parseInit() this=%p constructor=%p variant=%p\n", this, constructor, variant);
 

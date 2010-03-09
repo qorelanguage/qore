@@ -1,3 +1,4 @@
+* ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this: $exp.Base::method()
 * check domain implementation on method variants

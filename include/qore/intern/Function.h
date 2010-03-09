@@ -392,10 +392,17 @@ public:
 
 class AbstractQoreFunction {
 protected:
+   // inheritance list type
+   typedef std::vector<AbstractQoreFunction *> ilist_t;
+
    // list of function variants
    VList vlist;
    // list of pending user-code function variants
    VList pending_vlist;
+   // list of inherited methods for variant matching; the first pointer
+   // is always a pointer to this
+   ilist_t ilist;
+
    // if true means all variants have the same return value
    bool same_return_type;
    int unique_functionality;
@@ -447,19 +454,31 @@ protected:
    }
 
    // find variant at runtime
-   DLLLOCAL const AbstractQoreFunctionVariant *findVariant(const QoreListNode *args, ExceptionSink *xsink, const char *class_name = 0) const;
+   DLLLOCAL const AbstractQoreFunctionVariant *findVariant(const QoreListNode *args, ExceptionSink *xsink) const;
 
 public:
    DLLLOCAL AbstractQoreFunction() : same_return_type(true), unique_functionality(QDOM_DEFAULT) {
+      ilist.push_back(this);
    }
    DLLLOCAL virtual ~AbstractQoreFunction() {
    }
 
    DLLLOCAL virtual const char *getName() const = 0;
 
+   DLLLOCAL virtual const QoreClass *getClass() const = 0;
+
    DLLLOCAL virtual void ref() = 0;
    DLLLOCAL virtual void deref() = 0;
 
+   DLLLOCAL const char *className() const {
+      const QoreClass *qc = getClass();
+      return qc ? qc->getName() : 0;
+   }
+
+   DLLLOCAL void addAncestor(AbstractQoreFunction *ancestor) {
+      ilist.push_back(ancestor);
+   }
+   
    DLLLOCAL AbstractFunctionSignature *getUniqueSignature() const {
       return vlist.singular() ? first()->getSignature() : 0;
    }
@@ -496,7 +515,7 @@ public:
    DLLLOCAL AbstractQoreNode *evalDynamic(const QoreListNode *args, ExceptionSink *xsink) const;
 
    // find variant at parse time, throw parse exception if no variant can be matched
-   DLLLOCAL const AbstractQoreFunctionVariant *parseFindVariant(const type_vec_t &argTypeInfo, const char *class_name = 0);
+   DLLLOCAL const AbstractQoreFunctionVariant *parseFindVariant(const type_vec_t &argTypeInfo);
 
    // returns true if there are no committed variants in the function
    DLLLOCAL bool committedEmpty() const {
@@ -524,9 +543,10 @@ class MethodVariantBase;
 class MethodFunctionBase : public AbstractReferencedFunction {
 protected:
    bool all_private, pending_all_private;
+   const QoreClass *qc;   
 
 public:
-   DLLLOCAL MethodFunctionBase() : all_private(true), pending_all_private(true) {
+   DLLLOCAL MethodFunctionBase(const QoreClass *n_qc) : all_private(true), pending_all_private(true), qc(n_qc) {
    }
    // returns -1 for error, 0 = OK
    DLLLOCAL int parseAddUserMethodVariant(MethodVariantBase *variant);
@@ -540,6 +560,9 @@ public:
    }
    DLLLOCAL bool parseIsUniquelyPrivate() const {
       return all_private && pending_all_private;
+   }
+   DLLLOCAL virtual const QoreClass *getClass() const {
+      return qc;
    }
 };
 
@@ -560,6 +583,9 @@ public:
    }
 
    DLLLOCAL void parseInit();
+   DLLLOCAL virtual const QoreClass *getClass() const {
+      return 0;
+   }
 };
 
 class UserParamListLocalVarHelper {
@@ -599,6 +625,10 @@ public:
 
    DLLLOCAL virtual const char *getName() const {
       return "<anonymous closure>";
+   }
+
+   DLLLOCAL virtual const QoreClass *getClass() const {
+      return 0;
    }
 
    DLLLOCAL bool parseStage1HasReturnTypeInfo() const {

@@ -40,7 +40,7 @@ public:
 	 args->deref(0);
    }
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
-   DLLLOCAL int parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const char *class_name = 0);
+   DLLLOCAL int parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func);
    DLLLOCAL const AbstractQoreFunctionVariant *getVariant() const {
       return variant;
    }
@@ -310,7 +310,7 @@ public:
 	 return this;
       }
 
-      lvids += parseArgsFindVariant(oflag, pflag, method->getFunction(), method->getClassName());
+      lvids += parseArgsFindVariant(oflag, pflag, method->getFunction());
       return this;
    }
 

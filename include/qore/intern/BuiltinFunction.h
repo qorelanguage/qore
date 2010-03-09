@@ -127,7 +127,9 @@ public:
    DLLLOCAL virtual void deref() {
       assert(false);
    }
+   DLLLOCAL virtual const QoreClass *getClass() const {
+      return 0;
+   }
 };
 
 #endif // _QORE_BUILTIN_FUNCTION
-

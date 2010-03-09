@@ -8,6 +8,8 @@
 	   - get_word_64()
 	 * fixed transactional participation in setting the empty public
 	   member list flag
+	 * updated variant matching to check class hierarchy when matching
+	   method variants
 
 2010.03.08: David Nichols
 	 * implemented support for empty public member declarations in a class

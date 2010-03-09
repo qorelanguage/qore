@@ -354,58 +354,64 @@ void addArgs(QoreStringNode &desc, const QoreListNode *args) {
 }
 
 // finds a variant at runtime
-const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreListNode *args, ExceptionSink *xsink, const char *class_name) const {
+const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreListNode *args, ExceptionSink *xsink) const {
    unsigned match = 0;
    const AbstractQoreFunctionVariant *variant = 0;
 
    //printd(5, "AbstractQoreFunction::findVariant() this=%p %s() vlist=%d (pend=%d) args=%p (%d)\n", this, getName(), vlist.size(), pending_vlist.size(), args, args ? args->size() : 0);
 
-   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-      AbstractFunctionSignature *sig = (*i)->getSignature();
-      assert(sig);
+   // iterate through inheritance list
+   for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
+      const AbstractQoreFunction *aqf = *aqfi;
 
-      if (!variant && !sig->getParamTypes()) {
-	 variant = *i;
-	 continue;
-      }
+      for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
+	 AbstractFunctionSignature *sig = (*i)->getSignature();
+	 assert(sig);
 
-      //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d)\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0);
-
-      // skip variants with signatures with fewer possible elements than the best match already
-      if ((sig->getParamTypes() * 2) > match) {
-	 unsigned count = 0;
-	 bool ok = true;
-	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
-	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
-	    const AbstractQoreNode *n = args ? args->retrieve_entry(pi) : 0;
-
-	    //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) i=%d param=%s arg=%s\n", this, getName(), sig->getSignatureText(), pi, t->getName(), get_type_name(n));
-	    
-	    int rc;
-	    if (is_nothing(n) && sig->hasDefaultArg(pi))
-	       rc = QTI_IDENT;
-	    else {
-	       rc = t->testTypeCompatibility(n);
-	       if (rc == QTI_NOT_EQUAL) {
-		  ok = false;
-		  break;
-	       }
-	    }
-
-	    // only increment for actual type matches (t may be NULL)
-	    if (t)
-	       count += rc;
-	 }
-	 if (!ok)
-	    continue;
-	 if (count > match) {
-	    match = count;
+	 if (!variant && !sig->getParamTypes()) {
 	    variant = *i;
+	    continue;
+	 }
+
+	 //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d)\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0);
+
+	 // skip variants with signatures with fewer possible elements than the best match already
+	 if ((sig->getParamTypes() * 2) > match) {
+	    unsigned count = 0;
+	    bool ok = true;
+	    for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
+	       const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
+	       const AbstractQoreNode *n = args ? args->retrieve_entry(pi) : 0;
+
+	       //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) i=%d param=%s arg=%s\n", this, getName(), sig->getSignatureText(), pi, t->getName(), get_type_name(n));
+	    
+	       int rc;
+	       if (is_nothing(n) && sig->hasDefaultArg(pi))
+		  rc = QTI_IDENT;
+	       else {
+		  rc = t->testTypeCompatibility(n);
+		  if (rc == QTI_NOT_EQUAL) {
+		     ok = false;
+		     break;
+		  }
+	       }
+
+	       // only increment for actual type matches (t may be NULL)
+	       if (t)
+		  count += rc;
+	    }
+	    if (!ok)
+	       continue;
+	    if (count > match) {
+	       match = count;
+	       variant = *i;
+	    }
 	 }
       }
    }
    if (!variant) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
+      const char *class_name = className();
       if (class_name)
 	 desc->sprintf("%s::", class_name);
       desc->sprintf("%s(", getName());
@@ -413,13 +419,18 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       desc->concat(") can be found; the following variants were tested:");
 
       // add variants tested
-      for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-	 desc->concat("\n   ");
-	 if (class_name)
-	    desc->sprintf("%s::", class_name);
-	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
-      }
+      // iterate through inheritance list
+      for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
+	 const AbstractQoreFunction *aqf = *aqfi;
+	 class_name = aqf->className();
 
+	 for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
+	    desc->concat("\n   ");
+	    if (class_name)
+	       desc->sprintf("%s::", class_name);
+	    desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+	 }
+      }
       xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
    }
    else {
@@ -446,8 +457,9 @@ static AbstractQoreFunctionVariant *doSingleVariantTypeException(int pi, const c
    return 0;
 }
 
+// FIXME: class className() to AbstractFunction API
 // finds a variant at parse time
-const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const type_vec_t &argTypeInfo, const char *class_name) {
+const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const type_vec_t &argTypeInfo) {
    // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
    unsigned match = 0;
    // the number of possible matches at runtime (due to missing types at parse time); number of parameters
@@ -456,177 +468,184 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    const AbstractQoreFunctionVariant *variant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), num_args);
+   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   
+   // iterate through inheritance list
+   for (ilist_t::iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
+      AbstractQoreFunction *aqf = *aqfi;
+      //printd(5, "AbstractQoreFunction::parseFindVariant() %p %s testing function %p\n", this, getName(), aqf);
+      assert(!aqf->vlist.empty() || !aqf->pending_vlist.empty());
 
-   assert(!vlist.empty() || !pending_vlist.empty());
-   // check committed list
-   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-      AbstractFunctionSignature *sig = (*i)->getSignature();
+      // check committed list
+      for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
+	 AbstractFunctionSignature *sig = (*i)->getSignature();
 
-      //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
-
-      if (!variant && !sig->getParamTypes() && !longest_pmatch) {
-	 variant = *i;
-	 continue;
-      }
-
-      // skip variants with signatures with fewer possible elements than the best match already
-      if ((sig->getParamTypes() * 2) > match) {
-	 unsigned variant_longest_pmatch = 0;
-	 unsigned count = 0;
-	 bool ok = true;
-	 bool variant_missing_types = false;
-
-	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
-	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
-	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
-
-	    //printd(5, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
-	
-	    int rc = -1;
-	    if (t->hasType() && !a->hasType()) {
-	       if (sig->hasDefaultArg(pi))
-		  rc = QTI_IDENT;
-	       else {
-		  if (pi < num_args) {
-		     variant_missing_types = true;
-		     ++variant_longest_pmatch;
-		     continue;
-		  }
-		  a = nothingTypeInfo;
-	       }
-	    }
-
-	    if (rc == -1)
-	       rc = t->parseEqual(a);
-
-	    if (rc == QTI_NOT_EQUAL) {
-	       ok = false;
-	       // raise a detailed parse exception immediately if there is only one variant
-	       if (pending_vlist.singular() && vlist.empty() && getProgram()->getParseExceptionSink())
-		  return doSingleVariantTypeException(pi + 1, getName(), sig->getSignatureText(), t, a);
-	       break;
-	    }
-	    // only increment for actual type matches (t may be NULL)
-	    if (t) {
-	       ++variant_longest_pmatch;
-	       count += rc;
-	    }
-	 }
-	 //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_longest_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_longest_pmatch);
-	 if (!ok)
+	 //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+	 
+	 if (!variant && !sig->getParamTypes() && !longest_pmatch) {
+	    variant = *i;
 	    continue;
-	 if (count > match) {
-	    // if we could possibly match less than another variant
-	    // then we have to match at runtime
-	    if (variant_longest_pmatch <= longest_pmatch)
-	       variant = 0;
-	    else {
-	       // only set variant if it's the longest absolute match and the
-	       // longest potential match
-	       longest_pmatch = variant_longest_pmatch;
-	       match = count;
-	       if (!variant_missing_types) {
-		  //printd(0, "AbstractQoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
-		  variant = *i;
-	       }
-	       else
-		  variant = 0;
-	    }
 	 }
-	 else if (variant_longest_pmatch >= longest_pmatch) {
-	    // if we could possibly match less than another variant
-	    // then we have to match at runtime
-	    variant = 0;
-	    longest_pmatch = variant_longest_pmatch;
-	 }
-      }
-   }
 
-   // check pending list
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      UserVariantBase *uvb = (*i)->getUserVariantBase();
-      UserSignature *sig = uvb->getUserSignature();
-      // resolve types in signature if necessary
-      sig->resolve();
-
-      if (!variant && !sig->getParamTypes() && !longest_pmatch) {
-	 variant = *i;
-	 continue;
-      }
-
-      // skip variants with signatures with fewer possible elements than the best match already
-      if ((sig->getParamTypes() * 2) > match) {
-	 unsigned variant_longest_pmatch = 0;
-	 unsigned count = 0;
-	 bool ok = true;
-	 bool variant_missing_types = false;
-
-	 for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
-	    const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
-	    const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
-
-	    int rc = -1;
-	    if (t->hasType() && !a->hasType()) {
-	       if (sig->hasDefaultArg(pi))
-		  rc = QTI_IDENT;
-	       else {
-		  if (pi < num_args) {
-		     variant_missing_types = true;
-		     ++variant_longest_pmatch;
-		     continue;
+	 // skip variants with signatures with fewer possible elements than the best match already
+	 if ((sig->getParamTypes() * 2) > match) {
+	    unsigned variant_longest_pmatch = 0;
+	    unsigned count = 0;
+	    bool ok = true;
+	    bool variant_missing_types = false;
+	    
+	    for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
+	       const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
+	       const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
+	       
+	       //printd(5, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
+	       
+	       int rc = -1;
+	       if (t->hasType() && !a->hasType()) {
+		  if (sig->hasDefaultArg(pi))
+		     rc = QTI_IDENT;
+		  else {
+		     if (pi < num_args) {
+			variant_missing_types = true;
+			++variant_longest_pmatch;
+			continue;
+		     }
+		     a = nothingTypeInfo;
 		  }
-		  a = nothingTypeInfo;
+	       }
+
+	       if (rc == -1)
+		  rc = t->parseEqual(a);
+
+	       if (rc == QTI_NOT_EQUAL) {
+		  ok = false;
+		  // raise a detailed parse exception immediately if there is only one variant
+		  if (ilist.size() == 1 && aqf->pending_vlist.singular() && aqf->vlist.empty() && getProgram()->getParseExceptionSink())
+		     return doSingleVariantTypeException(pi + 1, getName(), sig->getSignatureText(), t, a);
+		  break;
+	       }
+	       // only increment for actual type matches (t may be NULL)
+	       if (t) {
+		  ++variant_longest_pmatch;
+		  count += rc;
 	       }
 	    }
-
-	    if (rc == -1)
-	       rc = t->parseEqual(a);
-
-	    if (rc == QTI_NOT_EQUAL) {
-	       ok = false;
-	       // raise a detailed parse exception immediately if there is only one variant
-	       if (pending_vlist.singular() && vlist.empty() && getProgram()->getParseExceptionSink())
-		  return doSingleVariantTypeException(pi + 1, getName(), sig->getSignatureText(), t, a);
-	       break;
-	    }
-	    // only increment for actual type matches (t may be NULL)
-	    if (t) {
-	       ++variant_longest_pmatch;
-	       //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
-	       count += rc;
-	    }
-	 }
-	 if (!ok)
-	    continue;
-
-	 if (count > match) {
-	    // if we could possibly match less than another variant
-	    // then we have to match at runtime
-	    if (variant_longest_pmatch <= longest_pmatch)
-	       variant = 0;
-	    else {
-	       // only set variant if it's the longest absolute match and the
-	       // longest potential match
-	       longest_pmatch = variant_longest_pmatch;
-	       match = count;
-	       if (!variant_missing_types)
-		  variant = *i;
-	       else
+	    //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_longest_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_longest_pmatch);
+	    if (!ok)
+	       continue;
+	    if (count > match) {
+	       // if we could possibly match less than another variant
+	       // then we have to match at runtime
+	       if (variant_longest_pmatch <= longest_pmatch)
 		  variant = 0;
+	       else {
+		  // only set variant if it's the longest absolute match and the
+		  // longest potential match
+		  longest_pmatch = variant_longest_pmatch;
+		  match = count;
+		  if (!variant_missing_types) {
+		     //printd(0, "AbstractQoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
+		     variant = *i;
+		  }
+		  else
+		     variant = 0;
+	       }
+	    }
+	    else if (variant_longest_pmatch >= longest_pmatch) {
+	       // if we could possibly match less than another variant
+	       // then we have to match at runtime
+	       variant = 0;
+	       longest_pmatch = variant_longest_pmatch;
 	    }
 	 }
-	 else if (variant_longest_pmatch >= longest_pmatch) {
-	    // if we could possibly match less than another variant
-	    // then we have to match at runtime
-	    variant = 0;
-	    longest_pmatch = variant_longest_pmatch;
+      }
+
+      // check pending list
+      for (vlist_t::iterator i = aqf->pending_vlist.begin(), e = aqf->pending_vlist.end(); i != e; ++i) {
+	 UserVariantBase *uvb = (*i)->getUserVariantBase();
+	 UserSignature *sig = uvb->getUserSignature();
+	 // resolve types in signature if necessary
+	 sig->resolve();
+
+	 if (!variant && !sig->getParamTypes() && !longest_pmatch) {
+	    variant = *i;
+	    continue;
+	 }
+
+	 // skip variants with signatures with fewer possible elements than the best match already
+	 if ((sig->getParamTypes() * 2) > match) {
+	    unsigned variant_longest_pmatch = 0;
+	    unsigned count = 0;
+	    bool ok = true;
+	    bool variant_missing_types = false;
+
+	    for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
+	       const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
+	       const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
+
+	       int rc = -1;
+	       if (t->hasType() && !a->hasType()) {
+		  if (sig->hasDefaultArg(pi))
+		     rc = QTI_IDENT;
+		  else {
+		     if (pi < num_args) {
+			variant_missing_types = true;
+			++variant_longest_pmatch;
+			continue;
+		     }
+		     a = nothingTypeInfo;
+		  }
+	       }
+
+	       if (rc == -1)
+		  rc = t->parseEqual(a);
+
+	       if (rc == QTI_NOT_EQUAL) {
+		  ok = false;
+		  // raise a detailed parse exception immediately if there is only one variant
+		  if (ilist.size() == 1 && aqf->pending_vlist.singular() && aqf->vlist.empty() && getProgram()->getParseExceptionSink())
+		     return doSingleVariantTypeException(pi + 1, getName(), sig->getSignatureText(), t, a);
+		  break;
+	       }
+	       // only increment for actual type matches (t may be NULL)
+	       if (t) {
+		  ++variant_longest_pmatch;
+		  //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
+		  count += rc;
+	       }
+	    }
+	    if (!ok)
+	       continue;
+
+	    if (count > match) {
+	       // if we could possibly match less than another variant
+	       // then we have to match at runtime
+	       if (variant_longest_pmatch <= longest_pmatch)
+		  variant = 0;
+	       else {
+		  // only set variant if it's the longest absolute match and the
+		  // longest potential match
+		  longest_pmatch = variant_longest_pmatch;
+		  match = count;
+		  if (!variant_missing_types)
+		     variant = *i;
+		  else
+		     variant = 0;
+	       }
+	    }
+	    else if (variant_longest_pmatch >= longest_pmatch) {
+	       // if we could possibly match less than another variant
+	       // then we have to match at runtime
+	       variant = 0;
+	       longest_pmatch = variant_longest_pmatch;
+	    }
 	 }
       }
    }
 
    if (!variant && !longest_pmatch && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
+      const char *class_name = className();
       if (class_name)
 	 desc->sprintf("%s::", class_name);
       desc->sprintf("%s(", getName());
@@ -641,17 +660,23 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       desc->concat(") can be found; the following variants were tested:");
 
       // add variants tested
-      for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-	 desc->concat("\n   ");
-	 if (class_name)
-	    desc->sprintf("%s::", class_name);
-	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
-      }
-      for (vlist_t::const_iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-	 desc->concat("\n   ");
-	 if (class_name)
-	    desc->sprintf("%s::", class_name);
-	 desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+      // iterate through inheritance list
+      for (ilist_t::iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
+	 AbstractQoreFunction *aqf = *aqfi;	 
+	 class_name = aqf->className();
+	 
+	 for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
+	    desc->concat("\n   ");
+	    if (class_name)
+	       desc->sprintf("%s::", class_name);
+	    desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+	 }
+	 for (vlist_t::const_iterator i = aqf->pending_vlist.begin(), e = aqf->pending_vlist.end(); i != e; ++i) {
+	    desc->concat("\n   ");
+	    if (class_name)
+	       desc->sprintf("%s::", class_name);
+	    desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+	 }
       }
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
