@@ -476,13 +476,20 @@ struct qore_class_private {
 	 addAncestors(m);
    }
 
-   DLLLOCAL void recheckBuiltinMethodHierarchy() {
+   DLLLOCAL void recheckBuiltinMethodHierarchy();
+
+   DLLLOCAL void addNewAncestors(QoreMethod *m) {
       if (!scl)
 	 return;
-      
-      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-	 
-      }
+
+      scl->addNewAncestors(m);
+   }
+
+   DLLLOCAL void addNewStaticAncestors(QoreMethod *m) {
+      if (!scl)
+	 return;
+
+      scl->addNewStaticAncestors(m);
    }
 
    DLLLOCAL void addStaticAncestors(QoreMethod *m) {
@@ -1394,6 +1401,32 @@ bool BCList::parseCheckHierarchy(const QoreClass *cls) const {
       if ((*i)->sclass->parseCheckHierarchy(cls))
 	 return true;
    return false;
+}
+
+void BCList::addNewAncestors(QoreMethod *m) {
+   AbstractQoreFunction *f = m->getFunction();
+   const char *name = m->getName();
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+      QoreClass *qc = (*i)->sclass;
+      assert(qc);
+      const QoreMethod *w = qc->priv->findLocalCommittedMethod(name);
+      if (w)
+	 f->addNewAncestor(w->getFunction());
+      qc->priv->addNewAncestors(m);
+   }
+}
+
+void BCList::addNewStaticAncestors(QoreMethod *m) {
+   AbstractQoreFunction *f = m->getFunction();
+   const char *name = m->getName();
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+      QoreClass *qc = (*i)->sclass;
+      assert(qc);
+      const QoreMethod *w = qc->priv->findLocalCommittedStaticMethod(name);
+      if (w)
+	 f->addNewAncestor(w->getFunction());
+      qc->priv->addNewStaticAncestors(m);
+   }
 }
 
 void BCList::addAncestors(QoreMethod *m) {
@@ -2601,6 +2634,17 @@ void qore_class_private::parseInit() {
    }
 }
 
+void qore_class_private::recheckBuiltinMethodHierarchy() {
+   if (!scl)
+      return;
+      
+   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+      scl->addNewAncestors(i->second);
+
+   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
+      scl->addNewStaticAncestors(i->second);
+}
+
 bool QoreClass::hasParentClass() const {
    return (bool)priv->scl;
 }
@@ -2696,6 +2740,10 @@ bool QoreClass::parseHasPrivateCopyMethod() const {
 
 bool QoreClass::parseHasMethodGate() const {
    return priv->parseHasMethodGate();
+}
+
+void QoreClass::recheckBuiltinMethodHierarchy() {
+   priv->recheckBuiltinMethodHierarchy();
 }
 
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {

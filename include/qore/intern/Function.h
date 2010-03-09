@@ -479,6 +479,13 @@ public:
       ilist.push_back(ancestor);
    }
    
+   DLLLOCAL void addNewAncestor(AbstractQoreFunction *ancestor) {
+      for (ilist_t::iterator i = ilist.begin(), e = ilist.end(); i != e; ++i)
+         if (*i == ancestor)
+            return;
+      ilist.push_back(ancestor);
+   }
+   
    DLLLOCAL AbstractFunctionSignature *getUniqueSignature() const {
       return vlist.singular() ? first()->getSignature() : 0;
    }

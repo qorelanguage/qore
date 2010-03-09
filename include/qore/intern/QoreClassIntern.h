@@ -924,7 +924,9 @@ public:
 	 
       return 0;
    }
+   DLLLOCAL void addNewAncestors(QoreMethod *m);
    DLLLOCAL void addAncestors(QoreMethod *m);
+   DLLLOCAL void addNewStaticAncestors(QoreMethod *m);
    DLLLOCAL void addStaticAncestors(QoreMethod *m);
    DLLLOCAL void parseAddAncestors(QoreMethod *m);
    DLLLOCAL void parseAddStaticAncestors(QoreMethod *m);

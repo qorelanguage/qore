@@ -694,6 +694,9 @@ public:
    //! retrieves the user-specific data pointer
    DLLEXPORT const void *getUserData() const;
 
+   //! rechecks for inherited methods in base classes when adding builtin classes
+   DLLEXPORT void recheckBuiltinMethodHierarchy();
+
    DLLLOCAL QoreClass();
    DLLLOCAL void addMethod(QoreMethod *f);
    DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *nme);
