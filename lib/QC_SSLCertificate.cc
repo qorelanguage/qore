@@ -83,14 +83,12 @@ static AbstractQoreNode *SSLCERT_getPEM(QoreObject *self, QoreSSLCertificate *s,
    return s->getPEM(xsink);
 }
 
-static AbstractQoreNode *SSLCERT_getInfo(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
-{
-   return new QoreStringNode(s->getInfo());
+static AbstractQoreNode *SSLCERT_getInfo(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink) {
+   return s->getInfo();
 }
 
-static AbstractQoreNode *SSLCERT_getSignature(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)
-{
-   return new QoreStringNode(s->getSignature());
+static AbstractQoreNode *SSLCERT_getSignature(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink) {
+   return s->getSignature();
 }
 
 static AbstractQoreNode *SSLCERT_getSignatureType(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *params, ExceptionSink *xsink)

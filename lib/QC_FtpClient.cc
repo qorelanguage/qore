@@ -143,7 +143,7 @@ static AbstractQoreNode *FC_get(QoreObject *self, QoreFtpClientClass *f, const Q
 
    // FIXME: this class cannot write to a file when parse option PO_NO_FILESYSTEM is set
    if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
-      xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "SSLPrivateKey::get() cannot be used when parse option NO-FILESYSTEM is set");
+      xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "FtpClient::get() cannot be used when parse option NO-FILESYSTEM is set");
       return 0;
    }
 
