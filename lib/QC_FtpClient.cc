@@ -112,14 +112,19 @@ static AbstractQoreNode *FC_cwd(QoreObject *self, QoreFtpClientClass *f, const Q
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *FC_put(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *FC_put(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0 || !p0->strlen())
-   {
+   if (!p0 || !p0->strlen()) {
       xsink->raiseException("FTPCLIENT-PUT-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::put()");
       return 0;
    }
+
+   // FIXME: this class cannot write to a file when parse option PO_NO_FILESYSTEM is set
+   if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
+      xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "FtpClient::put() cannot be used when parse option NO-FILESYSTEM is set");
+      return 0;
+   }
+
    const char *rn;
    const QoreStringNode *p1 = test_string_param(params, 1);
    if (p1)

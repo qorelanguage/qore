@@ -4,6 +4,8 @@
 	 * fixed a bug in SSLCertificate::getSignature() (backported from
 	   trunk/0.8.0)
 	 * fixed a cosmetic bug in exception string in FtpClient::get()
+	 * check for PO_NO_FILESYSTEM in FtpClient::put() (backported from
+	   trunk/0.8.0)
 
 2010.03.03: David Nichols
          * eliminated string parsing in block comments, fixed a bug where the
