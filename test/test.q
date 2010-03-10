@@ -1318,6 +1318,58 @@ sub class_test_File() {
 */
 }
 
+const cert_pem = "-----BEGIN CERTIFICATE-----
+MIIDAjCCAqygAwIBAgIJALLMpB2Hc61YMA0GCSqGSIb3DQEBBQUAMIGKMQswCQYD
+VQQGEwJDWjEPMA0GA1UECBMGUHJhZ3VlMQ8wDQYDVQQHEwZQcmFndWUxIjAgBgNV
+BAoTGVFvcmUgUHJvZ3JhbW1pbmcgTGFuZ3VhZ2UxFjAUBgNVBAMTDURhdmlkIE5p
+Y2hvbHMxHTAbBgkqhkiG9w0BCQEWDmRhdmlkQHFvcmUub3JnMB4XDTEwMDMxMDE0
+MjcwN1oXDTExMDMxMDE0MjcwN1owgYoxCzAJBgNVBAYTAkNaMQ8wDQYDVQQIEwZQ
+cmFndWUxDzANBgNVBAcTBlByYWd1ZTEiMCAGA1UEChMZUW9yZSBQcm9ncmFtbWlu
+ZyBMYW5ndWFnZTEWMBQGA1UEAxMNRGF2aWQgTmljaG9sczEdMBsGCSqGSIb3DQEJ
+ARYOZGF2aWRAcW9yZS5vcmcwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAxvP3j5yN
+/7BxHxSCaJLYAAeGFo93jVtulzIPu3ULH9rzSiO3EPYeUOEQtpe3ks0tUu75BVDY
+OxiRSD3iy99/pQIDAQABo4HyMIHvMB0GA1UdDgQWBBSV/JWX0QUgmL+5885yMjh8
+dS4T8DCBvwYDVR0jBIG3MIG0gBSV/JWX0QUgmL+5885yMjh8dS4T8KGBkKSBjTCB
+ijELMAkGA1UEBhMCQ1oxDzANBgNVBAgTBlByYWd1ZTEPMA0GA1UEBxMGUHJhZ3Vl
+MSIwIAYDVQQKExlRb3JlIFByb2dyYW1taW5nIExhbmd1YWdlMRYwFAYDVQQDEw1E
+YXZpZCBOaWNob2xzMR0wGwYJKoZIhvcNAQkBFg5kYXZpZEBxb3JlLm9yZ4IJALLM
+pB2Hc61YMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQADQQAMZ6N0cjzTiaNx
+1Jyrp3Agcc71xt47xSle5j3kDb0D7dn+HvgaNfDIW7cmDJIsiYnhxdMyezct06WS
+IcewTtsR
+-----END CERTIFICATE-----";
+
+# certificate signature (literal binary value)
+const cert_sig = <0c67a374723cd389a371d49caba7702071cef5c6de3bc5295ee63de40dbd03edd9fe1ef81a35f0c85bb7260c922c8989e1c5d3327b372dd3a59221c7b04edb11>;
+
+const key_pem = "-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: BF-CBC,C73CE02812F598E4
+
+TTpTQq7DR2GUFrpjMVh1QzQDNp2lut/tEJlcPlX0qo7JxS8vm3N4+9Wmq3GCGdGZ
+3hs/bZ/aAZRxzDguxEV03Bxy+eqP2G/FyfpzesJL4m7bdr35P8ZKXn75PJbvDzhC
+7uZOH1UaLP/8OHJ8u2gK8skRF0kCtnOMLKBJYmVQFMgnFmiIMtYEtd4UitMTcxVo
+Ax1m2IeIo5j3FxQ58zo2SG15p/qj470pKQD/fiLLjhFv30L4jQdWidDido4SkL1f
+dFVXOpkauGI4IjM2+yAqaV1LFqV0FeRyaGxyyPC9HJow5idZ4wZQyplwA0bV9GuS
+cu/KPgDZez9wrlFeb+MGLQE7tw+jKum8OVSFAjF5NfQLF2mRHlccOImuy5RBXIVq
+fL7VyL/oGoUX4w4wwpUZlMlx3VqnXAoyf7NLQ50RD0M=
+-----END RSA PRIVATE KEY-----";
+
+const key_pass = "qore";
+
+sub class_test_SSLCertificate() {
+    my SSLCertificate $cert(cert_pem);
+    test_value($cert.getSignature(), cert_sig, "SSLCertificate::getSignature()");
+    test_value($cert.getInfo().subject.emailAddress, "david@qore.org", "SSLCertificate::getInfo()");
+}
+
+sub class_test_SSLPrivateKey() {
+    my SSLPrivateKey $key(key_pem, key_pass);
+    test_value($key.getVersion(), 1, "SSLPrivateKey::getVersion()");
+    test_value($key.getBitLength(), 512, "SSLPrivateKey::getBitLength()");
+    test_value($key.getType(), "RSA", "SSLPrivateKey::getType()");
+    test_value($key.getInfo().type, "RSA", "SSLPrivateKey::getInfo()");
+}
+
 sub err(string $test) {
     test_value(True, False, $test);
 }
@@ -1365,6 +1417,8 @@ sub class_library_tests() {
     test_value($t.t.x, 1, "memberNotification() method");
     class_test_File();
     class_test_Program();
+    class_test_SSLCertificate();
+    class_test_SSLPrivateKey();
 }
 
 # find and context tests

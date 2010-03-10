@@ -55,7 +55,7 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
        */
       DLLEXPORT QoreSSLCertificate(X509 *c);
 
-      //! creates the object from a pointer to a BinaryNode object
+      //! creates the object from a pointer to a BinaryNode object (certificate data in DER format)
       /** @param bin a pointer to a BinaryNode object with the raw binary certificate information
 	  @param xsink Qore-language exceptions are raised here in case of errors
        */

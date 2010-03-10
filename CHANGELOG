@@ -4,6 +4,13 @@
 	   c++ functions in Qore (as with the qt4 module)
 	 * fixed calling builtin method variants when a user variant overloads
 	   the method in a subclass
+	 * applied hard typing to the SSLCertificate class
+	 * fixed a bug in SSLCertificate::getInfo()
+	 * fixed a bug in SSLCertificate::getSignature()
+	 * applied hard typing to the SSLPrivateKey class
+	 * added tests for SSLCertificate and SSLPrivateKey classes to test.q
+	 * updated SSLPrivateKey::constructor() to accept string data (private
+	   key in PEM format) and binary data (private key in DER format)
 
 2010.03.09: David Nichols
 	 * updated getWord32() for hard typing, added the following functions

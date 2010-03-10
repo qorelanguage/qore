@@ -22,19 +22,20 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreSSLPrivateKey.h>
+#include <qore/intern/QoreSSLIntern.h>
 
 #include <errno.h>
 
 struct qore_sslpk_private {
-      EVP_PKEY *pk;
+   EVP_PKEY *pk;
 
-      DLLLOCAL qore_sslpk_private(EVP_PKEY *p) : pk(p) {
-      }
+   DLLLOCAL qore_sslpk_private(EVP_PKEY *p) : pk(p) {
+   }
 
-      DLLLOCAL ~qore_sslpk_private() {
-	 if (pk)
-	    EVP_PKEY_free(pk);
-      }
+   DLLLOCAL ~qore_sslpk_private() {
+      if (pk)
+	 EVP_PKEY_free(pk);
+   }
 };
 
 QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY *p) : priv(new qore_sslpk_private(p)) {
@@ -44,18 +45,36 @@ QoreSSLPrivateKey::~QoreSSLPrivateKey() {
    delete priv;
 }
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
+QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, const char *pp, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
    priv->pk = 0;
    FILE *fp = fopen(fn, "r");
-   if (!fp)
-   {
+   if (!fp) {
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "'%s': %s", fn, strerror(errno));
       return;
    }
-   PEM_read_PrivateKey(fp, &priv->pk, 0, pp ? pp : (void *)"_none_");
+   PEM_read_PrivateKey(fp, &priv->pk, 0, pp ? (void *)pp : (void *)"_none_");
    fclose(fp);
    if (!priv->pk)
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing private key file '%s'", fn);
+}
+
+QoreSSLPrivateKey::QoreSSLPrivateKey(const BinaryNode *bin, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
+   const unsigned char *p = (const unsigned char *)bin->getPtr();
+   priv->pk = d2i_AutoPrivateKey(0, &p, (int)bin->size());
+   if (!priv->pk) {
+      long e = ERR_get_error();
+      char buf[121];
+      ERR_error_string(e, buf);
+      xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", buf);
+   }
+}
+
+QoreSSLPrivateKey::QoreSSLPrivateKey(const QoreString *str, const char *pp, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
+   QoreMemBIO mbio(str);
+
+   PEM_read_bio_PrivateKey(mbio.getBIO(), &priv->pk, 0, pp ? (void *)pp : (void *)"_none_");
+   if (!priv->pk)
+      xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing PEM string");
 }
 
 EVP_PKEY *QoreSSLPrivateKey::getData() const { 
@@ -64,8 +83,7 @@ EVP_PKEY *QoreSSLPrivateKey::getData() const {
 
 QoreStringNode *QoreSSLPrivateKey::getPEM(ExceptionSink *xsink) const {
    BIO *bp = BIO_new(BIO_s_mem());
-   if (!PEM_write_bio_PrivateKey(bp, priv->pk, 0, 0, 0, 0, 0))
-   {
+   if (!PEM_write_bio_PrivateKey(bp, priv->pk, 0, 0, 0, 0, 0)) {
       BIO_free(bp);
       xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create PEM string from private key data");
       return 0;

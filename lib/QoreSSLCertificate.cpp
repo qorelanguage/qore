@@ -22,40 +22,20 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QC_SSLCertificate.h>
+#include <qore/intern/QoreSSLIntern.h>
 
 #include <openssl/err.h>
 
 struct qore_sslcert_private {
-      X509 *cert;
+   X509 *cert;
 
-      DLLLOCAL qore_sslcert_private(X509 *c) : cert(c) {
-      }
+   DLLLOCAL qore_sslcert_private(X509 *c) : cert(c) {
+   }
 
-      DLLLOCAL ~qore_sslcert_private() {
-	 if (cert)
-	    X509_free(cert);
-      }
-};
-
-class QoreBIO {
-   protected:
-      BIO *b;
-
-      DLLLOCAL QoreBIO(BIO *n_b) : b(n_b) {}
-
-   public:
-      DLLLOCAL ~QoreBIO() { if (b) BIO_free(b); }
-      DLLLOCAL int writePEMX509(X509 *cert) { return PEM_write_bio_X509(b, cert); }
-      DLLLOCAL long getMemData(char **buf) { return BIO_get_mem_data(b, buf); }
-      DLLLOCAL X509 *getX509(X509 **x) { return d2i_X509_bio(b, x); }
-      DLLLOCAL BIO *getBIO() { return b; }
-};
-
-class QoreMemBIO : public QoreBIO {
-   public:
-      DLLLOCAL QoreMemBIO() : QoreBIO(BIO_new(BIO_s_mem())) {}
-      DLLLOCAL QoreMemBIO(const BinaryNode *b) : QoreBIO(BIO_new_mem_buf((void *)b->getPtr(), (int)b->size())) {}
-      DLLLOCAL QoreMemBIO(const QoreString *str) : QoreBIO(BIO_new_mem_buf((void *)str->getBuffer(), (int)str->strlen())) {}
+   DLLLOCAL ~qore_sslcert_private() {
+      if (cert)
+	 X509_free(cert);
+   }
 };
 
 QoreSSLCertificate::~QoreSSLCertificate() {

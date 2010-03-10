@@ -29,40 +29,59 @@
 #include <openssl/evp.h>
 
 //! provides access to a private key data structure for SSL connections
-class QoreSSLPrivateKey : public AbstractPrivateData
-{
-   private:
-      // the private implementation of the class
-      struct qore_sslpk_private *priv; 
+class QoreSSLPrivateKey : public AbstractPrivateData {
+private:
+   // the private implementation of the class
+   struct qore_sslpk_private *priv; 
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreSSLPrivateKey(const QoreSSLPrivateKey&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreSSLPrivateKey(const QoreSSLPrivateKey&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreSSLPrivateKey& operator=(const QoreSSLPrivateKey&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreSSLPrivateKey& operator=(const QoreSSLPrivateKey&);
 
-   protected:
-      DLLLOCAL virtual ~QoreSSLPrivateKey();
+protected:
+   DLLLOCAL virtual ~QoreSSLPrivateKey();
 
-   public:
-      //! returns a string in PEM format representing the private key, caller owns the QoreString reference count returned
-      /** @return a string in PEM format representing the private key, caller owns the QoreString reference count returned
-       */
-      DLLEXPORT class QoreStringNode *getPEM(class ExceptionSink *xsink) const;
+public:
+   //! creates the object from a file name by reading in the file in PEM format
+   /** @param fn the filename of the private key file to open (must be in PEM format)
+       @param pp the pass phase for the key (if any; may be NULL)
+       @param xsink Qore-language exceptions are raised here in case of errors
+   */
+   DLLEXPORT QoreSSLPrivateKey(const char *fn, const char *pp, ExceptionSink *xsink);
 
-      DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
-      DLLLOCAL QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink);
+   //! creates the object from a pointer to a BinaryNode object (key data in DER format)
+   /** @param bin a pointer to a BinaryNode object with the raw binary private key information
+       @param xsink Qore-language exceptions are raised here in case of errors
+   */
+   DLLEXPORT QoreSSLPrivateKey(const BinaryNode *bin, ExceptionSink *xsink);
 
-      // caller does NOT own the EVP_PKEY returned; "const" cannot be used because of the openssl API does not support it
-      DLLLOCAL EVP_PKEY *getData() const;
-      DLLLOCAL const char *getType() const;
-      DLLLOCAL int64 getVersion() const;
+   //! create the object from a pointer to a QoreString representing the private key data in PEM format
+   /** @param str a pointer to a QoreString with the private key data in PEM format
+       @param pp the pass phase for the key (if any; may be NULL)
+       @param xsink Qore-language exceptions are raised here in case of errors
+   */
+   DLLEXPORT QoreSSLPrivateKey(const QoreString *str, const char *pp, ExceptionSink *xsink);
 
-      // returns the length in bits
-      DLLLOCAL int64 getBitLength() const;
+   //! returns a string in PEM format representing the private key, caller owns the QoreString reference count returned
+   /** @return a string in PEM format representing the private key, caller owns the QoreString reference count returned
+    */
+   DLLEXPORT QoreStringNode *getPEM(ExceptionSink *xsink) const;
 
-      // caller owns the QoreHashNode reference count returned
-      DLLLOCAL class QoreHashNode *getInfo() const;
+   // caller does NOT own the EVP_PKEY returned; "const" cannot be used because of the openssl API does not support it
+   DLLEXPORT EVP_PKEY *getData() const;
+
+   DLLEXPORT const char *getType() const;
+   DLLEXPORT int64 getVersion() const;
+
+   // returns the length in bits
+   DLLEXPORT int64 getBitLength() const;
+
+   // caller owns the QoreHashNode reference count returned
+   DLLEXPORT QoreHashNode *getInfo() const;
+
+   DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
 };
 
 #endif

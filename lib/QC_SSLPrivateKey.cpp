@@ -28,77 +28,73 @@
 
 qore_classid_t CID_SSLPRIVATEKEY;
 
-/*
-void createSSLPrivateKeyObject(QoreObject *self, EVP_PKEY *cert)
-{
-   self->setPrivate(CID_SSLPRIVATEKEY, new QoreSSLPrivateKey(cert));
-}
-*/
+// syntax: SSLPrivateKey(PEM_string, passphrase)
+static void SSLPKEY_constructor_str(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+   HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
 
-// syntax: SSLPrivateKey(filename)
-static void SSLPKEY_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0) {
-      xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "expecting file name as argument");
-      return;
+   SimpleRefHolder<QoreSSLPrivateKey> qpk;
+
+   // FIXME: this class should not read file - we have to check the parse option PO_NO_FILESYSTEM at runtime
+   if (p0->strlen() < 120) {
+      if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
+	 xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "passing a filename to SSLPrivateKey::constructor() violates parse option NO-FILESYSTEM");
+	 return;
+      }
+
+      qpk = new QoreSSLPrivateKey(p0->getBuffer(), p1->getBuffer(), xsink);
    }
-
-   // FIXME: this class should not read file - we have to check the parse option PO_NO_FILESYSTEM at runtime                                                                  
-   if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
-      xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "passing a filename to SSLPrivateKey::constructor() violates parse option NO-FILESYSTEM");
-      return;
-   }
-
-   // get pass phrase if any
-   const QoreStringNode *p1 = test_string_param(params, 1);
-   const char *pp = p1 ? p1->getBuffer() : 0;   
-
-   QoreSSLPrivateKey *qpk = new QoreSSLPrivateKey(p0->getBuffer(), (char *)pp, xsink);
-   if (xsink->isEvent())
-      qpk->deref();
    else
-      self->setPrivate(CID_SSLPRIVATEKEY, qpk);
+      qpk = new QoreSSLPrivateKey(p0, p1->getBuffer(), xsink);
+
+   if (!*xsink)
+      self->setPrivate(CID_SSLPRIVATEKEY, qpk.release());
 }
 
-static void SSLPKEY_copy(QoreObject *self, QoreObject *old, class QoreSSLPrivateKey *pk, ExceptionSink *xsink)
-{
+// syntax: SSLPrivateKey(binary, passphrase)
+static void SSLPKEY_constructor_bin(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(bin, const BinaryNode, args, 0);
+
+   SimpleRefHolder<QoreSSLPrivateKey> qc(new QoreSSLPrivateKey(bin, xsink));
+   if (!*xsink)
+      self->setPrivate(CID_SSLPRIVATEKEY, qc.release());           
+}
+
+static void SSLPKEY_copy(QoreObject *self, QoreObject *old, QoreSSLPrivateKey *pk, ExceptionSink *xsink) {
    xsink->raiseException("SSLPRIVATEKEY-COPY-ERROR", "SSLPrivateKey objects cannot be copied");
 }
 
-static AbstractQoreNode *SSLPKEY_getInfo(QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
-{
+static QoreHashNode *SSLPKEY_getInfo(QoreObject *self, QoreSSLPrivateKey *pk, const QoreListNode *args, ExceptionSink *xsink) {
    return pk->getInfo();
 }
 
-static AbstractQoreNode *SSLPKEY_getType(QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
-{
+static QoreStringNode *SSLPKEY_getType(QoreObject *self, QoreSSLPrivateKey *pk, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreStringNode(pk->getType());
 }
 
-static AbstractQoreNode *SSLPKEY_getVersion(QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
-{
+static QoreBigIntNode *SSLPKEY_getVersion(QoreObject *self, QoreSSLPrivateKey *pk, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreBigIntNode(pk->getVersion());
 }
 
-static AbstractQoreNode *SSLPKEY_getBitLength(QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
-{
+static QoreBigIntNode *SSLPKEY_getBitLength(QoreObject *self, QoreSSLPrivateKey *pk, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreBigIntNode(pk->getBitLength());
 }
 
-class QoreClass *initSSLPrivateKeyClass()
-{
+QoreClass *initSSLPrivateKeyClass() {
    QORE_TRACE("initSSLPrivateKeyClass()");
 
-   class QoreClass *QC_SSLPRIVATEKEY = new QoreClass("SSLPrivateKey");
+   QoreClass *QC_SSLPRIVATEKEY = new QoreClass("SSLPrivateKey");
    CID_SSLPRIVATEKEY = QC_SSLPRIVATEKEY->getID();
-   QC_SSLPRIVATEKEY->setConstructor(SSLPKEY_constructor);
-   QC_SSLPRIVATEKEY->setCopy((q_copy_t)SSLPKEY_copy);
-   QC_SSLPRIVATEKEY->addMethod("getType",          (q_method_t)SSLPKEY_getType);
-   QC_SSLPRIVATEKEY->addMethod("getVersion",       (q_method_t)SSLPKEY_getVersion);
-   QC_SSLPRIVATEKEY->addMethod("getBitLength",     (q_method_t)SSLPKEY_getBitLength);
-   QC_SSLPRIVATEKEY->addMethod("getInfo",          (q_method_t)SSLPKEY_getInfo);
 
+   QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_str, false, QDOM_DEFAULT, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
+   QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_bin, false, QDOM_DEFAULT, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
+
+   QC_SSLPRIVATEKEY->setCopy((q_copy_t)SSLPKEY_copy);
+
+   QC_SSLPRIVATEKEY->addMethodExtended("getType",          (q_method_t)SSLPKEY_getType, false, QDOM_DEFAULT, stringTypeInfo);
+   QC_SSLPRIVATEKEY->addMethodExtended("getVersion",       (q_method_t)SSLPKEY_getVersion, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SSLPRIVATEKEY->addMethodExtended("getBitLength",     (q_method_t)SSLPKEY_getBitLength, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SSLPRIVATEKEY->addMethodExtended("getInfo",          (q_method_t)SSLPKEY_getInfo, false, QDOM_DEFAULT, hashTypeInfo);
 
    return QC_SSLPRIVATEKEY;
 }
