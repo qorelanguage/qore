@@ -445,10 +445,10 @@ static AbstractQoreNode *check_meth_eval(const QoreClass *cls, const QoreMethod 
 
 AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod &method, const BuiltinNormalMethodVariantBase *meth, const QoreListNode *args, ExceptionSink *xsink) {
    // get referenced object
-   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(method.getClass()->getIDForMethod(), xsink), xsink);
+   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
 
    if (pd)
-      return meth->evalImpl(method, this, *pd, args, xsink);
+      return meth->evalImpl(this, *pd, args, xsink);
 
    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, method.getClass()->getName(), meth->getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
    return check_meth_eval(priv->theclass, method, xsink);

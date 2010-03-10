@@ -363,6 +363,9 @@ public:
       if (ct != CT_UNUSED && xsink->isException())
 	 xsink->addStackInfo(ct, class_name, name, o_fn, o_ln, o_eln);
    }
+   DLLLOCAL void setClassName(const char *n_class_name) {
+      class_name = n_class_name;
+   }
    // once this is set, exception information will be raised in the destructor if an exception has been raised
    DLLLOCAL void setCallType(qore_call_t n_ct) {
       ct = n_ct;

@@ -1023,6 +1023,10 @@ void qore_class_private::addBuiltinMethod(const char *mname, MethodVariantBase *
    else {
       nm = i->second;
    }
+
+   // set the pointer from the variant back to the owning method
+   variant->setMethod(nm);
+
    nm->priv->addBuiltinVariant(variant);
 }
 
@@ -1040,6 +1044,10 @@ void qore_class_private::addBuiltinStaticMethod(const char *mname, MethodVariant
    else {
       nm = i->second;
    }
+
+   // set the pointer from the variant back to the owning method
+   variant->setMethod(nm);
+
    nm->priv->addBuiltinVariant(variant);
 }
 
@@ -1054,6 +1062,10 @@ void qore_class_private::addBuiltinConstructor(BuiltinConstructorVariantBase *va
    else {
       nm = const_cast<QoreMethod *>(constructor);
    }
+
+   // set the pointer from the variant back to the owning method
+   variant->setMethod(nm);
+
    nm->priv->addBuiltinVariant(variant);
 }
 
@@ -1063,6 +1075,9 @@ void qore_class_private::addBuiltinDestructor(BuiltinDestructorVariantBase *vari
    QoreMethod *qm = new QoreMethod(typeInfo->qc, m, false);
    destructor = qm;
    insertBuiltinMethod(qm, true);
+   // set the pointer from the variant back to the owning method
+   variant->setMethod(qm);
+
    qm->priv->addBuiltinVariant(variant);
 }
 
@@ -1072,6 +1087,9 @@ void qore_class_private::addBuiltinCopyMethod(BuiltinCopyVariantBase *variant) {
    QoreMethod *qm = new QoreMethod(typeInfo->qc, m, false);
    copyMethod = qm;
    insertBuiltinMethod(qm, true);
+   // set the pointer from the variant back to the owning method
+   variant->setMethod(qm);
+
    qm->priv->addBuiltinVariant(variant);
 }
 
@@ -1966,17 +1984,17 @@ const QoreClass *QoreClass::getClass(qore_classid_t cid, bool &cpriv) const {
 }
 
 AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const {   
-   CodeEvaluationHelper ceh(xsink, getName(), args, priv->parent_class->getName());
+   const MethodVariantBase *variant = METHVB_const(ev);
+   
+   CodeEvaluationHelper ceh(xsink, getName(), args, variant->className());
    if (*xsink) return 0;
 
-   const AbstractQoreFunctionVariant *variant = reinterpret_cast<const AbstractQoreFunctionVariant *>(ev);
-   
    if (ceh.processDefaultArgs(variant, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
 
-   return METHV_const(variant)->evalNormalMethod(*this, self, ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalNormalMethod(self, ceh.getArgs(), xsink);      
 }
 
 AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
@@ -1987,12 +2005,12 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
 #endif
 
    if (isStatic())
-      return METHF(priv->func)->evalStaticMethod(0, *this, args, xsink);
+      return METHF(priv->func)->evalStaticMethod(0, getClassName(), args, xsink);
 
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram(), xsink);
 
-   AbstractQoreNode *rv = METHF(priv->func)->evalNormalMethod(0, *this, self, args, xsink);
+   AbstractQoreNode *rv = METHF(priv->func)->evalNormalMethod(0, getClassName(), self, args, xsink);
    printd(5, "QoreMethod::eval() %s::%s() returning %p (type=%s, refs=%d)\n", oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
    return rv;
 }
@@ -2404,11 +2422,14 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
    }
 
    // add this variant to the method
-   if (m->priv->addUserVariant(func.release())) {
+   if (m->priv->addUserVariant(func.release())) {      
       if (is_new)
 	 delete m;
       return -1;
    }
+
+   // set the pointer from the variant back to the owning method
+   f->setMethod(m);
 
    // add the new method to the class if it's a new method
    if (is_new) {
@@ -3017,9 +3038,9 @@ void DestructorMethodFunction::evalDestructor(const QoreClass &thisclass, QoreOb
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVariant *variant, const QoreMethod &method, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
-   const char *mname = method.getName();
-   CodeEvaluationHelper ceh(xsink, mname, args, method.getClass()->getName());
+AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVariant *variant, const char *class_name, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
+   const char *mname = getName();
+   CodeEvaluationHelper ceh(xsink, mname, args, class_name);
    if (*xsink) return 0;
 
    if (!variant) {
@@ -3029,18 +3050,20 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
+   ceh.setClassName(METHVB_const(variant)->className());
+
    if (ceh.processDefaultArgs(variant, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
 
-   return METHV_const(variant)->evalNormalMethod(method, self, ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalNormalMethod(self, ceh.getArgs(), xsink);      
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVariant *variant, const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) const {
-   const char *mname = method.getName();
-   CodeEvaluationHelper ceh(xsink, mname, args, method.getClass()->getName());
+AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVariant *variant, const char *class_name, const QoreListNode *args, ExceptionSink *xsink) const {
+   const char *mname = getName();
+   CodeEvaluationHelper ceh(xsink, mname, args, class_name);
    if (*xsink) return 0;
 
    if (!variant) {
@@ -3050,12 +3073,14 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
+   ceh.setClassName(METHVB_const(variant)->className());
+
    if (ceh.processDefaultArgs(variant, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
 
-   return METHV_const(variant)->evalStaticMethod(method, ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalStaticMethod(ceh.getArgs(), xsink);      
 }
 
 class qmi_priv {
