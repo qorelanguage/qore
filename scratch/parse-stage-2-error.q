@@ -1,5 +1,5 @@
 #!/usr/bin/env qore
-# -*- mode: perl; indent-tabs-mode: nil -*-
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-our
 %require-types

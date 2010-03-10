@@ -1,5 +1,5 @@
 #!/usr/bin/env qore 
-# -*- mode: perl; indent-tabs-mode: nil -*-
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 # require all global variables to be declared with "our"
 %require-our

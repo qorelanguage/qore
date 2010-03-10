@@ -194,7 +194,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;;  (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t))
     ;;
     ;; Fontify function and package names in declarations.
-    ("\\<\\(package\\|sub\\)\\>[ \t]*\\(\\sw+\\)?"
+    ("\\<\\(namespace\\|class\\|sub\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
     ("\\<\\(import\\|no\\|require\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t)))
@@ -206,13 +206,23 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;;
     ;; Fontify keywords, except those fontified otherwise.
     (concat "\\<"
-	    (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
-			  "do" "dump" "for" "foreach" "exit" "die"
-			  "BEGIN" "END" "return" "exec" "eval") t)
+	    (regexp-opt '("if" "while" "else" "splice" "where"
+			  "do" "for" "foreach" "NULL" "NOTHING"
+			  "private" "public" "new" "shift"
+			  "unshift" "in" "elements" "keys" "const"
+			  "returns" "try" "throw" "rethrow" "catch"
+			  "find" "delete" "background" "synchronized"
+			  "thread_exit" "exists" "context" "summarize"
+			  "subcontext" "sortBy" "sortDescendingBy"
+			  "by" "switch" "case" "default" "inherits"
+			  "push" "pop" "instanceof" "chomp" "trim"
+			  "on_exit" "on_success" "on_error" "map"
+			  "foldr" "foldl" "select" "static"
+			  "return" ) t)
 	    "\\>")
     ;;
-    ;; Fontify local and my keywords as types.
-    '("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
+    ;; Fontify our and my keywords as types.
+    '("\\<\\(our\\|my\\)\\>" . font-lock-type-face)
     ;;
     ;; Fontify function, variable and file name references.
     '("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
@@ -224,7 +234,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
     ;;
     ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
-    '("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
+    '("\\<\\(continue\\|break\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     '("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)))
   "Gaudy level highlighting for Qore mode.")
