@@ -250,6 +250,8 @@ public:
       assert(false);
       return 0;
    }
+
+   DLLLOCAL virtual bool isUser() const = 0;
 };
 
 class VRMutex;
@@ -293,7 +295,8 @@ public:
    DLLLOCAL virtual UserVariantBase *getUserVariantBase() { return static_cast<UserVariantBase *>(this); } \
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const { return const_cast<UserSignature *>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); } \
-   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const { return signature.getReturnTypeInfo(); }
+   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const { return signature.getReturnTypeInfo(); } \
+   DLLLOCAL virtual bool isUser() const { return true; }
 
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
 class UserVariantExecHelper {
@@ -453,9 +456,6 @@ protected:
       vlist.push_back(variant);
    }
 
-   // find variant at runtime
-   DLLLOCAL const AbstractQoreFunctionVariant *findVariant(const QoreListNode *args, ExceptionSink *xsink) const;
-
 public:
    DLLLOCAL AbstractQoreFunction() : same_return_type(true), unique_functionality(QDOM_DEFAULT) {
       ilist.push_back(this);
@@ -532,6 +532,12 @@ public:
    DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant *variant);
 
    DLLLOCAL bool existsVariant(const type_vec_t &paramTypeInfo) const;
+
+   // find variant at runtime
+   // if only_user is set, then no exception is raised if the user variant is not found
+   DLLLOCAL const AbstractQoreFunctionVariant *findVariant(const QoreListNode *args, bool only_user, ExceptionSink *xsink) const;
+
+   DLLLOCAL const AbstractQoreFunctionVariant *runtimeFindVariant(const type_vec_t &argTypeList, bool only_user = false) const;
 };
 
 class AbstractReferencedFunction : public AbstractQoreFunction, protected QoreReferenceCounter {

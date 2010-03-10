@@ -69,7 +69,8 @@ public:
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const { return const_cast<BuiltinSignature *>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const { return signature.getReturnTypeInfo(); } \
    DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const { return signature.getReturnTypeInfo(); } \
-   DLLLOCAL virtual UserVariantBase *getUserVariantBase() { return 0; }
+   DLLLOCAL virtual UserVariantBase *getUserVariantBase() { return 0; } \
+   DLLLOCAL virtual bool isUser() const { return false; }
 
 class BuiltinFunctionVariantBase {
 public:

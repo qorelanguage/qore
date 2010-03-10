@@ -510,6 +510,10 @@ AbstractQoreNode *QoreObject::evalMethod(const QoreMethod &method, const QoreLis
    return method.eval(this, args, xsink);
 }
 
+AbstractQoreNode *QoreObject::evalMethodVariant(const QoreMethod &method, const QoreExternalMethodVariant *variant, const QoreListNode *args, ExceptionSink *xsink) {
+   return method.evalNormalVariant(this, variant, args, xsink);
+}
+
 const QoreClass *QoreObject::getClass(qore_classid_t cid) const {
    if (cid == priv->theclass->getID())
       return priv->theclass;

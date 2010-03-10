@@ -1,3 +1,8 @@
+2010.03.10: David Nichols
+	 * implemented new APIs for executing user method variants from
+	   external modules, particularly when re-implementing pure virtual
+	   c++ functions in Qore (as with the qt4 module)
+
 2010.03.09: David Nichols
 	 * updated getWord32() for hard typing, added the following functions
 	   supporting only hard types (with string and binary arguments for

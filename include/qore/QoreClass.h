@@ -69,6 +69,8 @@ class UserMethod;
 class BCANode;
 class qore_method_private;
 class MethodFunctionBase;
+class QoreExternalMethodVariant;
+class QoreExternalStaticMethodVariant;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -165,6 +167,7 @@ public:
        @return the result of the evaluation (can be 0)
    */
    DLLLOCAL AbstractQoreNode *eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *evalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 //! defines a Qore-language class
@@ -696,6 +699,11 @@ public:
 
    //! rechecks for inherited methods in base classes when adding builtin classes
    DLLEXPORT void recheckBuiltinMethodHierarchy();
+
+   //! returns the user variant for the given non-static method and argument types
+   /** argTypeList must have a non-null value for each type in the list
+    */
+   DLLEXPORT const QoreExternalMethodVariant *findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const;
 
    DLLLOCAL QoreClass();
    DLLLOCAL void addMethod(QoreMethod *f);

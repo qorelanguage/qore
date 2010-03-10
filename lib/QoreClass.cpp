@@ -226,6 +226,8 @@ struct qore_class_private {
 
    DLLLOCAL void initialize();
 
+   DLLLOCAL const QoreExternalMethodVariant *findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const;
+
    DLLLOCAL const int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
       const_cast<qore_class_private *>(this)->initialize();
 
@@ -668,6 +670,26 @@ struct qore_class_private {
       const QoreMethod *w = findLocalCommittedMethod(nme);
       if (!w && scl)
 	 w = scl->findCommittedMethod(nme, p);
+      return w;
+   }
+
+   DLLLOCAL const QoreMethod *findStaticMethod(const char *nme, bool &priv_flag) const {
+      const QoreMethod *w;
+      if (!(w = findLocalCommittedStaticMethod(nme))) {
+	 // search superclasses
+	 if (scl)
+	    w = scl->findCommittedStaticMethod(nme, priv_flag);
+      }
+      return w;
+   }
+
+   const QoreMethod *findMethod(const char *nme, bool &priv_flag) const {
+      const QoreMethod *w;
+      if (!(w = findLocalCommittedMethod(nme))) {
+	 // search superclasses
+	 if (scl)
+	    w = scl->findCommittedMethod(nme, priv_flag);
+      }
       return w;
    }
 
@@ -1533,50 +1555,28 @@ const QoreMethod *QoreClass::findLocalMethod(const char *nme) const {
 
 // FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod *QoreClass::findStaticMethod(const char *nme) const {
-   const QoreMethod *w;   
-   if (!(w = priv->findLocalCommittedStaticMethod(nme))) {
-      // search superclasses
-      if (priv->scl) {
-	 bool p = false;
-	 w = priv->scl->findCommittedStaticMethod(nme, p);
-      }
-   }
-   return w;
+   bool p = false;
+   return priv->findStaticMethod(nme, p);
 }
 
 // FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod *QoreClass::findStaticMethod(const char *nme, bool &priv_flag) const {
-   const QoreMethod *w;
-   if (!(w = priv->findLocalCommittedStaticMethod(nme))) {
-      // search superclasses
-      if (priv->scl)
-	 w = priv->scl->findCommittedStaticMethod(nme, priv_flag);
-   }
-   return w;
+   return priv->findStaticMethod(nme, priv_flag);
 }
 
 // FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod *QoreClass::findMethod(const char *nme) const {
-   const QoreMethod *w;
-   if (!(w = priv->findLocalCommittedMethod(nme))) {
-      // search superclasses
-      if (priv->scl) {
-	 bool p = false;
-	 w = priv->scl->findCommittedMethod(nme, p);
-      }
-   }
-   return w;
+   bool p = false;
+   return priv->findMethod(nme, p);
 }
 
 // FIXME: make entry point only, called at run-time; grab program parse lock before accessing method maps
 const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const {
-   const QoreMethod *w;
-   if (!(w = priv->findLocalCommittedMethod(nme))) {
-      // search superclasses
-      if (priv->scl)
-	 w = priv->scl->findCommittedMethod(nme, priv_flag);
-   }
-   return w;
+   return priv->findMethod(nme, priv_flag);
+}
+
+const QoreExternalMethodVariant *QoreClass::findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const {
+   return priv->findUserMethodVariant(name, method, argTypeList);
 }
 
 // only called when parsing
@@ -1963,6 +1963,20 @@ const QoreClass *QoreClass::getClassIntern(qore_classid_t cid, bool &cpriv) cons
 const QoreClass *QoreClass::getClass(qore_classid_t cid, bool &cpriv) const {
    cpriv = false;
    return getClassIntern(cid, cpriv);
+}
+
+AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const {   
+   CodeEvaluationHelper ceh(xsink, getName(), args, priv->parent_class->getName());
+   if (*xsink) return 0;
+
+   const AbstractQoreFunctionVariant *variant = reinterpret_cast<const AbstractQoreFunctionVariant *>(ev);
+   
+   if (ceh.processDefaultArgs(variant, xsink))
+      return 0;
+
+   ceh.setCallType(variant->getCallType());
+
+   return METHV_const(variant)->evalNormalMethod(*this, self, ceh.getArgs(), xsink);      
 }
 
 AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
@@ -2645,6 +2659,24 @@ void qore_class_private::recheckBuiltinMethodHierarchy() {
       scl->addNewStaticAncestors(i->second);
 }
 
+const QoreExternalMethodVariant *qore_class_private::findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const {
+   bool p = false;
+   method = findMethod(name, p);
+   if (!method)
+      return 0;
+   // make sure it's not a special method
+   if (method == constructor
+       || method == destructor
+       || method == copyMethod) {
+#ifdef DEBUG
+      printd(0, "cannot call QoreClass::findUserMethodVariant() with special methods like '%s'\n", name);
+      assert(false);
+#endif
+      return 0;
+   }
+   return reinterpret_cast<const QoreExternalMethodVariant *>(method ? method->priv->func->runtimeFindVariant(argTypeList, true) : 0);
+}
+
 bool QoreClass::hasParentClass() const {
    return (bool)priv->scl;
 }
@@ -2940,7 +2972,7 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
 
    // find variant with evaluated args
    if (!variant) {
-      variant = findVariant(ceh.getArgs(), xsink);
+      variant = findVariant(ceh.getArgs(), false, xsink);
       if (!variant) {
 	 assert(*xsink);
 	 return;
@@ -2991,7 +3023,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
    if (*xsink) return 0;
 
    if (!variant) {
-      variant = findVariant(ceh.getArgs(), xsink);
+      variant = findVariant(ceh.getArgs(), false, xsink);
       if (!variant) {
 	 assert(*xsink);
 	 return 0;
@@ -3012,7 +3044,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
    if (*xsink) return 0;
 
    if (!variant) {
-      variant = findVariant(ceh.getArgs(), xsink);
+      variant = findVariant(ceh.getArgs(), false, xsink);
       if (!variant) {
 	 assert(*xsink);
 	 return 0;
