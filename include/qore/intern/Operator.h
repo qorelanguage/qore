@@ -58,7 +58,7 @@ class OperatorList : public oplist_t {
       DLLLOCAL Operator *add(Operator *o);
 };
 
-DLLLOCAL extern class OperatorList oplist;
+DLLLOCAL extern OperatorList oplist;
 
 class QoreRegexNode;
 

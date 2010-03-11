@@ -1,4 +1,3 @@
-* make delete an operator instead of a statement
 * ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this: $exp.Base::method()
@@ -44,6 +43,7 @@
 * implement GZFile and BZFile classes
 
 done 0.8.0:
+* made delete an operator instead of a statement
 * hard typing for closures
 * domain implementation on method variants
 * implemented hard typing

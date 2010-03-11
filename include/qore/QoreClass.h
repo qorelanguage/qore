@@ -782,6 +782,8 @@ public:
    DLLLOCAL bool parseHasMethodGate() const;
    // called when there is an empty public member declaration or a "no_public" declaration
    DLLLOCAL void parseSetEmptyPublicMemberDeclaration();
+   // unsets the public member flag for builtin classes
+   DLLLOCAL void unsetPublicMemberFlag();
 };
 
 class QoreMethodIterator {

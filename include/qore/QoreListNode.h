@@ -392,7 +392,7 @@ public:
    //! returns "this" with an incremented reference count
    DLLEXPORT QoreListNode *listRefSelf() const;
 
-   //! swaps the value at the given position with the vaule given, caller owns any reference returned
+   //! swaps the value at the given position with the value given, caller owns any reference returned
    DLLEXPORT AbstractQoreNode *swap(qore_offset_t offset, AbstractQoreNode *val);
 
    // needed only while parsing

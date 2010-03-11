@@ -1,5 +1,5 @@
 /*
- Tree.cpp
+ QoreTreeNode.cpp
  
  Qore Programming Language
  

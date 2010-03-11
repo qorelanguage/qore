@@ -66,7 +66,6 @@ libqore_la_SOURCES = \
 	DoWhileStatement.cpp \
 	ForStatement.cpp \
 	ForEachStatement.cpp \
-	DeleteStatement.cpp \
 	TryStatement.cpp \
 	ThrowStatement.cpp \
 	SwitchStatement.cpp \
@@ -133,6 +132,8 @@ libqore_la_SOURCES = \
 	QoreImplicitArgumentNode.cpp \
 	ParseOptionMap.cpp \
 	QoreTypeInfo.cpp \
+	QoreDeleteOperatorNode.cpp \
+	QoreRemoveOperatorNode.cpp \
 	ql_thread.cpp \
 	ql_io.cpp \
 	ql_time.cpp \

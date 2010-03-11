@@ -3,6 +3,12 @@
 	   tagged these methods with QDOM_FILESYSTEM
 	 * fixed incorrect type information for some XML functions that can
 	   return NOTHING
+	 * made delete an operator instead of a statement; corrected
+	   inconsistent behavior of the delete operator; no longer shortens
+	   the list when deleting the last element
+	 * implemented the "remove" operator, which is like delete but does
+	   not run object destructors and returns the value removed from the
+	   lvalue expression
 
 2010.03.10: David Nichols
 	 * implemented new APIs for executing user method variants from

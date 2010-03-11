@@ -148,12 +148,12 @@ int AbstractQoreNode::integerEvalImpl(ExceptionSink *xsink) const {
 
 bool AbstractQoreNode::boolEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
+   return rv ? rv->getAsBool() : false;
 }
 
 double AbstractQoreNode::floatEvalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
+   return rv ? rv->getAsFloat() : 0.0;
 }
 
 int64 AbstractQoreNode::bigIntEval(ExceptionSink *xsink) const {

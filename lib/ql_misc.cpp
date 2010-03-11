@@ -848,7 +848,7 @@ static AbstractQoreNode *f_get_byte_str(const QoreListNode *params, ExceptionSin
    int size = str->strlen();
 
    HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
-   int offset = p1->getAsInt() * 2;
+   int offset = p1->getAsInt();
 
    if (offset >= size || offset < 0)
       return 0;
@@ -862,7 +862,7 @@ static AbstractQoreNode *f_get_byte_bin(const QoreListNode *params, ExceptionSin
    int size = b->size();
 
    HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
-   int offset = p1->getAsInt() * 2;
+   int offset = p1->getAsInt();
 
    if (offset >= size || offset < 0)
       return 0;

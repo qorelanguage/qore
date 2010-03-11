@@ -432,9 +432,10 @@ struct qore_class_private {
 
    DLLLOCAL void parseAddPublicMember(char *mem, QoreMemberInfo *memberInfo) {
       if (!parseCheckMember(mem, memberInfo->parseHasTypeInfo(), false)) {
-	 pending_has_public_memdecl = true;
 	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name, mem, mem);
 	 pending_public_members[mem] = memberInfo;
+	 if (!pending_has_public_memdecl)
+	    pending_has_public_memdecl = true;
 	 return;
       }
 
@@ -445,6 +446,8 @@ struct qore_class_private {
    DLLLOCAL void addPublicMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
       assert(public_members.find(name) == public_members.end());
       public_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, initial_value);
+      if (!has_public_memdecl)
+	 has_public_memdecl = true;
    }
 
    DLLLOCAL void addPrivateMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
@@ -1004,7 +1007,7 @@ void qore_class_private::parseCommit() {
    // it's safe to call parseHasPublicMembersInHierarchy() because the 2nd stage
    // of parsing has completed without any errors (or we wouldn't be
    // running parseCommit())
-   if (!has_public_memdecl && (!public_members.empty() || (scl ? scl->parseHasPublicMembersInHierarchy() : false)))
+   if (!has_public_memdecl && (scl ? scl->parseHasPublicMembersInHierarchy() : false))
       has_public_memdecl = true;
 }
 
@@ -2797,6 +2800,11 @@ bool QoreClass::parseHasMethodGate() const {
 
 void QoreClass::recheckBuiltinMethodHierarchy() {
    priv->recheckBuiltinMethodHierarchy();
+}
+
+void QoreClass::unsetPublicMemberFlag() {
+   assert(priv->has_public_memdecl);
+   priv->has_public_memdecl = false;
 }
 
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {

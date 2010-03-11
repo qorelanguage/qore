@@ -35,7 +35,6 @@
 #include <qore/intern/WhileStatement.h>
 #include <qore/intern/ForStatement.h>
 #include <qore/intern/ForEachStatement.h>
-#include <qore/intern/DeleteStatement.h>
 #include <qore/intern/TryStatement.h>
 #include <qore/intern/ThrowStatement.h>
 #include <qore/intern/StatementBlock.h>
@@ -443,6 +442,9 @@ static bool hasEffect(AbstractQoreNode *n) {
    if (ntype == NT_VARREF)
       return reinterpret_cast<VarRefNode *>(n)->hasEffect();
 
+   if (ntype == NT_OPERATOR)
+      return reinterpret_cast<QoreOperatorNode *>(n)->hasEffect();
+
    //printd(5, "hasEffect() node %08p type=%s\n", n, n->getTypeName());
    return false;
 }
@@ -664,6 +666,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_FOREACH "foreach"
 %token TOK_IN "in"
 %token TOK_DELETE "delete"
+%token TOK_REMOVE "remove"
 %token TOK_PRIVATE "private"
 %token TOK_PUBLIC "public"
 %token TOK_SYNCHRONIZED "synchronized"
@@ -689,6 +692,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_INTERFACE "interface"
 %token TOK_IMPLEMENTS "implements"
 %token TOK_ABSTRACT "abstract"
+%token TOK_UNREFERENCE "unreference"
 
 // operator tokens
 %token P_INCREMENT "++ operator"
@@ -1018,6 +1022,8 @@ statement:
 	      parse_error("statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
 	   if (t == NT_TREE)
 	      reinterpret_cast<QoreTreeNode *>($1)->ignoreReturnValue();
+	   else if (t == NT_OPERATOR)
+	      reinterpret_cast<QoreOperatorNode *>($1)->ignoreReturnValue();
 	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, $1);
 	}
         // this should be covered as an expression, but for some reason it isn't...
@@ -1104,12 +1110,6 @@ statement:
         | TOK_CONTINUE ';'
         {
 	  $$ = new ContinueStatement(@1.first_line, @1.last_line);
-	}
-        | TOK_DELETE exp ';'
-        {
-	   $$ = new DeleteStatement(@1.first_line, @2.last_line, $2);
-	   if (check_vars($2))
-	      parse_error("delete statement takes only variable references as arguments");
 	}
         | switch_statement { $$ = $1; }
         | error ';'        { $$ = 0; }
@@ -2366,6 +2366,16 @@ exp:    scalar
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true));
 	}
         | IMPLICIT_ARG_REF { $$ = $1; }
+        | TOK_DELETE exp {
+	   $$ = new QoreDeleteOperatorNode($2);
+	   if (check_vars($2))
+	      parse_error("delete operator takes only variable references as arguments");
+	}
+        | TOK_REMOVE exp {
+	   $$ = new QoreRemoveOperatorNode($2);
+	   if (check_vars($2))
+	      parse_error("remove operator takes only variable references as arguments");
+	}
 	;
 
 string:

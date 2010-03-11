@@ -818,6 +818,34 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink) {
    v->deref(xsink);
 }
 
+AbstractQoreNode *QoreObject::takeMember(const QoreString *key, ExceptionSink *xsink) {
+   TempEncodingHelper enc(key, QCS_DEFAULT, xsink);
+   if (!enc)
+      return 0;
+
+   return takeMember(enc->getBuffer(), xsink);
+}
+
+AbstractQoreNode *QoreObject::takeMember(const char *key, ExceptionSink *xsink) {
+   // check for external access to private members
+   if (priv->checkMemberAccess(key, xsink))
+      return 0;
+
+   AbstractQoreNode *v;
+   {
+      AutoLocker al(priv->mutex);
+
+      if (priv->status == OS_DELETED) {
+	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
+	 return 0;
+      }
+      
+      v = priv->data->takeKeyValue(key);
+   }
+
+   return v;
+}
+
 void QoreObject::removeMember(const QoreString *key, ExceptionSink *xsink) {
    TempEncodingHelper enc(key, QCS_DEFAULT, xsink);
    if (!enc)
@@ -827,26 +855,7 @@ void QoreObject::removeMember(const QoreString *key, ExceptionSink *xsink) {
 }
 
 void QoreObject::removeMember(const char *key, ExceptionSink *xsink) {
-   // check for external access to private members
-   if (priv->checkMemberAccess(key, xsink))
-      return;
-
-   AbstractQoreNode *v;
-   {
-      AutoLocker al(priv->mutex);
-
-      if (priv->status == OS_DELETED) {
-	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
-	 return;
-      }
-      
-      v = priv->data->takeKeyValue(key);
-   }
-
-   if (!v)
-      return;
-
-   v->deref(xsink);
+   discard(takeMember(key, xsink), xsink);
 }
 
 QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const {

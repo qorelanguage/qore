@@ -252,9 +252,12 @@ int QoreListNode::delete_entry(qore_size_t ind, ExceptionSink *xsink) {
       priv->entry[ind] = 0;
    }
 
+   // do not resize list
+#if 0
    // resize list if deleting last element
    if (ind == (priv->length - 1))
       resize(ind);
+#endif
 
    return 0;
 }

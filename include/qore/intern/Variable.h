@@ -207,7 +207,12 @@ public:
 
 DLLLOCAL AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ReferenceHolder<AbstractQoreNode> &pt);
-DLLLOCAL void delete_var_node(AbstractQoreNode *node, ExceptionSink *xsink);
+
+// deletes the value from an lvalue expression
+DLLLOCAL void delete_lvalue(AbstractQoreNode *node, ExceptionSink *xsink);
+// like delete_lvalue, but returns the value removed from the lvalue
+DLLLOCAL AbstractQoreNode *remove_lvalue(AbstractQoreNode *node, ExceptionSink *xsink);
+
 DLLLOCAL void delete_global_variables();
 
 // for retrieving a pointer to a pointer to an lvalue expression

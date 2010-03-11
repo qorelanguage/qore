@@ -224,6 +224,22 @@ public:
    */
    DLLEXPORT void removeMember(const char *key, ExceptionSink *xsink);
 
+   //! removes a member from the object without explicitly calling destructors and returns the value removed; the caller owns the reference returned
+   /** if a Qore-language exception is raised, the return value is always 0
+       @param key the name of the member to remove
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return the value removed from the object; caller owns the reference
+   */
+   DLLEXPORT AbstractQoreNode *takeMember(const QoreString *key, ExceptionSink *xsink);
+
+   //! removes a member from the object without explicitly calling destructors and returns the value removed; the caller owns the reference returned
+   /** if a Qore-language exception is raised, the return value is always 0
+       @param key the name of the member to remove, assumed to be in the default encoding (QCS_DEFAULT)
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return the value removed from the object; caller owns the reference
+   */
+   DLLEXPORT AbstractQoreNode *takeMember(const char *key, ExceptionSink *xsink);
+
    //! returns the number of members of the object
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here

@@ -99,28 +99,28 @@ class AbstractQoreNode : public QoreReferenceCounter {
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the result of the evaluation, interpreted as a 64-bit integer
        */
-      DLLEXPORT virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const = 0;
+      DLLEXPORT virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
 
       //! evaluates the object and returns an integer value
       /** only called if needs_eval returns true
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the result of the evaluation, interpreted as an integer
        */
-      DLLEXPORT virtual int integerEvalImpl(ExceptionSink *xsink) const = 0;
+      DLLEXPORT virtual int integerEvalImpl(ExceptionSink *xsink) const;
 
       //! evaluates the object and returns a boolean value
       /** only called if needs_eval returns true
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the result of the evaluation, interpreted as a bool
        */
-      DLLEXPORT virtual bool boolEvalImpl(ExceptionSink *xsink) const = 0;
+      DLLEXPORT virtual bool boolEvalImpl(ExceptionSink *xsink) const;
 
       //! evaluates the object and returns a floating-point value
       /** only called if needs_eval returns true
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the result of the evaluation, interpreted as a double
        */
-      DLLEXPORT virtual double floatEvalImpl(ExceptionSink *xsink) const = 0;
+      DLLEXPORT virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
       //! decrements the reference count
       /** deletes the object when the reference count = 0.  

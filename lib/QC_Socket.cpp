@@ -887,6 +887,10 @@ QoreClass *initSocketClass() {
    // register public members
    QC_SOCKET->addPublicMember("source", anyTypeInfo);
    QC_SOCKET->addPublicMember("source_host", anyTypeInfo);
+   // unset the public member flag for backwards-compatibility
+   // this allows older code where a user class inherits this class to still be able
+   // to be run in new Qore >= 0.8
+   QC_SOCKET->unsetPublicMemberFlag();
    
    QC_SOCKET->setConstructor(SOCKET_constructor);
    QC_SOCKET->setCopy(SOCKET_copy);
