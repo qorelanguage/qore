@@ -1,10 +1,9 @@
+* make delete an operator instead of a statement
 * ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this: $exp.Base::method()
-* check domain implementation on method variants
 * implement "remove" operator - like delete but does not call delete and returns value removed from lvalue
 * implement support for universal references - removed checking for passing a reference to user code with declared param
-* check closure type info
 * check object method references at parse time to verify the type of the object expression if available (and then check if the the method exists)
 * implement a new C++ API for adding functions internally, check BuiltinFunctionList::add*() for duplicates when used by modules
 * fix %n and %N to not output private members when called outside the class
@@ -45,6 +44,8 @@
 * implement GZFile and BZFile classes
 
 done 0.8.0:
+* hard typing for closures
+* domain implementation on method variants
 * implemented hard typing
 * implemented function and method overloading
 * verify behavior of private copy methods

@@ -83,25 +83,35 @@ class FtpResp {
 };
 
 struct qore_ftp_private {
-      mutable QoreThreadLock m;
-      // for when we read too much data on control connection
-      QoreString buffer;
-      QoreSocket control, data;
-      char *host, *user, *pass;
-      bool control_connected, loggedin;
-      int mode, port;
-      bool secure, secure_data;
+private:
+   DLLLOCAL void init() {
+      control_connected = loggedin = false;
+      mode = FTP_MODE_UNKNOWN;
+      port = DEFAULT_FTP_CONTROL_PORT;
+      user = pass = host = 0;
+      secure = secure_data = false;
+   }
 
-      DLLLOCAL qore_ftp_private(const QoreString *url, ExceptionSink *xsink) {
-	 control_connected = loggedin = false;
-	 mode = FTP_MODE_UNKNOWN;
-	 port = DEFAULT_FTP_CONTROL_PORT;
-	 user = pass = host = 0;
-	 secure = secure_data = false;
+public:
+   mutable QoreThreadLock m;
+   // for when we read too much data on control connection
+   QoreString buffer;
+   QoreSocket control, data;
+   char *host, *user, *pass;
+   bool control_connected, loggedin;
+   int mode, port;
+   bool secure, secure_data;
 
-	 if (url)
-	    setURLInternal(url, xsink);
-      }
+   DLLLOCAL qore_ftp_private(const QoreString *url, ExceptionSink *xsink) {
+      init();
+      
+      if (url)
+	 setURLInternal(url, xsink);
+   }
+
+   DLLLOCAL qore_ftp_private() {
+      init();
+   }
 
       DLLLOCAL ~qore_ftp_private() {
 	 if (host)
@@ -198,6 +208,9 @@ struct qore_ftp_private {
 };
 
 QoreFtpClient::QoreFtpClient(const QoreString *url, ExceptionSink *xsink) : priv(new qore_ftp_private(url, xsink)) {
+}
+
+QoreFtpClient::QoreFtpClient() : priv(new qore_ftp_private) {
 }
 
 QoreFtpClient::~QoreFtpClient() {

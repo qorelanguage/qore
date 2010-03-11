@@ -98,6 +98,9 @@ class QoreFtpClient {
        */
       DLLEXPORT QoreFtpClient(const QoreString *url, ExceptionSink *xsink);
 
+      //! creates the object with no connection parameters
+      DLLEXPORT QoreFtpClient();
+
       //! disconnects from the host if necessary and frees all memory associated with the object
       DLLEXPORT ~QoreFtpClient();
 

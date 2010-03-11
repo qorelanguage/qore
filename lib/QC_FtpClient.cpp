@@ -28,19 +28,21 @@
 qore_classid_t CID_FTPCLIENT;
 
 static void FC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
+   self->setPrivate(CID_FTPCLIENT, new QoreFtpClientClass);
+}
 
-   QoreFtpClientClass *f = new QoreFtpClientClass(p0, xsink);
-   if (xsink->isException()) {
-      f->deref(xsink);
+static void FC_constructor_str(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   ReferenceHolder<QoreFtpClientClass> f(new QoreFtpClientClass(p0, xsink), xsink);
+   if (*xsink)
       return;
-   }
 
-   self->setPrivate(CID_FTPCLIENT, f);
+   self->setPrivate(CID_FTPCLIENT, f.release());
 }
 
 static void FC_copy(QoreObject *self, QoreObject *old, class QoreFtpClientClass *f, ExceptionSink *xsink) {
-   xsink->raiseException("FTPCLIENT-COPY-ERROR", "FtpClient objects cannot be copied.");
+   xsink->raiseException("FTPCLIENT-COPY-ERROR", "FtpClient objects cannot be copied");
 }
 
 static void FC_destructor(QoreObject *self, QoreFtpClientClass *f, ExceptionSink *xsink) {
@@ -112,45 +114,42 @@ static AbstractQoreNode *FC_cwd(QoreObject *self, QoreFtpClientClass *f, const Q
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *FC_put(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0 || !p0->strlen())
-   {
-      xsink->raiseException("FTPCLIENT-PUT-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::put()");
-      return 0;
-   }
-   const char *rn;
-   const QoreStringNode *p1 = test_string_param(params, 1);
-   if (p1)
-      rn = p1->getBuffer();
-   else
-      rn = 0;
+static AbstractQoreNode *FC_put_str_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(p1, const QoreStringNode, params, 1);
 
-   int rc = f->put(p0->getBuffer(), rn, xsink);
+   int rc = f->put(p0->getBuffer(), p1->getBuffer(), xsink);
    if (xsink->isEvent())
       return 0;
 
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *FC_get(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0 || !p0->strlen()) {
-      xsink->raiseException("FTPCLIENT-GET-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::get()");
+static AbstractQoreNode *FC_put_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   int rc = f->put(p0->getBuffer(), 0, xsink);
+   if (xsink->isEvent())
       return 0;
-   }
 
-   // FIXME: this class cannot write to a file when parse option PO_NO_FILESYSTEM is set
-   if (getProgram()->getParseOptions() & PO_NO_FILESYSTEM) {
-      xsink->raiseException("INVALID-FILESYSTEM-ACCESS", "SSLPrivateKey::get() cannot be used when parse option NO-FILESYSTEM is set");
+   return new QoreBigIntNode(rc);
+}
+
+static AbstractQoreNode *FC_get_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   int rc = f->get(p0->getBuffer(), 0, xsink);
+   if (xsink->isEvent())
       return 0;
-   }
 
-   const QoreStringNode *p1 = test_string_param(params, 1);
-   const char *ln = p1 ? p1->getBuffer() : 0;
+   return new QoreBigIntNode(rc);
+}
 
-   int rc = f->get(p0->getBuffer(), ln, xsink);
+static AbstractQoreNode *FC_get_str_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(p1, const QoreStringNode, params, 1);
+
+   int rc = f->get(p0->getBuffer(), p1->getBuffer(), xsink);
    if (xsink->isEvent())
       return 0;
 
@@ -395,7 +394,10 @@ QoreClass *initFtpClientClass() {
    CID_FTPCLIENT = QC_FTPCLIENT->getID();
 
    QC_FTPCLIENT->setConstructor(FC_constructor);
+   QC_FTPCLIENT->setConstructorExtended(FC_constructor_str, false, QDOM_DEFAULT, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_FTPCLIENT->setDestructor((q_destructor_t)FC_destructor);
+
    QC_FTPCLIENT->setCopy((q_copy_t)FC_copy);
    QC_FTPCLIENT->addMethod("connect",               (q_method_t)FC_connect);
    QC_FTPCLIENT->addMethod("disconnect",            (q_method_t)FC_disconnect);
@@ -403,10 +405,16 @@ QoreClass *initFtpClientClass() {
    QC_FTPCLIENT->addMethod("nlst",                  (q_method_t)FC_nlst);
    QC_FTPCLIENT->addMethod("pwd",                   (q_method_t)FC_pwd);
    QC_FTPCLIENT->addMethod("cwd",                   (q_method_t)FC_cwd);
-   QC_FTPCLIENT->addMethod("get",                   (q_method_t)FC_get);
+
+   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str, false, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str_str, false, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_FTPCLIENT->addMethod("getAsString",           (q_method_t)FC_getAsString);
    QC_FTPCLIENT->addMethod("getAsBinary",           (q_method_t)FC_getAsBinary);
-   QC_FTPCLIENT->addMethod("put",                   (q_method_t)FC_put);
+
+   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str, false, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str_str, false, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_FTPCLIENT->addMethod("del",                   (q_method_t)FC_del);
    QC_FTPCLIENT->addMethod("setUserName",           (q_method_t)FC_setUserName);
    QC_FTPCLIENT->addMethod("setPassword",           (q_method_t)FC_setPassword);

@@ -443,8 +443,10 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       // check parse options
       if (variant && variant->getFunctionality() & getProgram()->getParseOptions()) {
 	 //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions(), variant->getFunctionality());
-	 if (!only_user)
-	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s(%s)'", getName(), variant->getSignature()->getSignatureText());
+	 if (!only_user) {
+	    const char *class_name = className();
+	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin %s '%s%s%s(%s)'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", getName(), variant->getSignature()->getSignatureText());
+	 }
 	 return 0;
       }
    }

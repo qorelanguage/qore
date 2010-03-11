@@ -34,12 +34,13 @@ DLLEXPORT extern qore_classid_t CID_FTPCLIENT;
 
 DLLLOCAL class QoreClass *initFtpClientClass();
 
-class QoreFtpClientClass : public AbstractPrivateData, public QoreFtpClient
-{
+class QoreFtpClientClass : public AbstractPrivateData, public QoreFtpClient {
    protected:
       DLLLOCAL virtual ~QoreFtpClientClass() {}
 
    public:
+      DLLLOCAL inline QoreFtpClientClass() {}
+
       DLLLOCAL inline QoreFtpClientClass(const QoreString *url, ExceptionSink *xsink) : QoreFtpClient(url, xsink) {}
 
       DLLLOCAL virtual void deref(ExceptionSink *xsink) {

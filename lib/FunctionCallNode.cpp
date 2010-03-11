@@ -69,7 +69,8 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
 
    if (variant && variant->getFunctionality() & getProgram()->getParseOptions()) {
       // func will always be non-zero with builtin functions
-      parse_error("parse options do not allow access to builtin function '%s()'", func->getName());
+      const char *class_name = func->className();
+      parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
       return 0;
    }
 
