@@ -2672,13 +2672,13 @@ void init_xml_functions() {
    builtinFunctions.add2("makeXMLRPCCallStringArgs",                           f_makeXMLRPCCallStringArgs, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeXMLRPCCallStringArgsWithEncoding",               f_makeXMLRPCCallStringArgsWithEncoding, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("makeXMLRPCResponseString",                           f_makeXMLRPCResponseString, QDOM_DEFAULT, stringTypeInfo);
-   builtinFunctions.add2("makeXMLRPCResponseStringWithEncoding",               f_makeXMLRPCResponseStringWithEncoding, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeXMLRPCResponseString",                           f_makeXMLRPCResponseString);
+   builtinFunctions.add2("makeXMLRPCResponseStringWithEncoding",               f_makeXMLRPCResponseStringWithEncoding, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("makeXMLRPCFaultResponseString",                      f_makeXMLRPCFaultResponseString, QDOM_DEFAULT, stringTypeInfo, 2, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeXMLRPCFaultResponseStringWithEncoding",          f_makeXMLRPCFaultResponseStringWithEncoding, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("makeXMLRPCValueString",                              f_makeXMLRPCValueString, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("makeXMLRPCValueString",                              f_makeXMLRPCValueString);
 
    builtinFunctions.add2("makeFormattedXMLRPCCallString",                      f_makeFormattedXMLRPCCallString, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeFormattedXMLRPCCallStringWithEncoding",          f_makeFormattedXMLRPCCallStringWithEncoding, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -2686,11 +2686,11 @@ void init_xml_functions() {
    builtinFunctions.add2("makeFormattedXMLRPCCallStringArgs",                  f_makeFormattedXMLRPCCallStringArgs, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeFormattedXMLRPCCallStringArgsWithEncoding",      f_makeFormattedXMLRPCCallStringArgsWithEncoding, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("makeFormattedXMLRPCResponseString",                  f_makeFormattedXMLRPCResponseString, QDOM_DEFAULT, stringTypeInfo);
-   builtinFunctions.add2("makeFormattedXMLRPCResponseStringWithEncoding",      f_makeFormattedXMLRPCResponseStringWithEncoding, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("makeFormattedXMLRPCResponseString",                  f_makeFormattedXMLRPCResponseString);
+   builtinFunctions.add2("makeFormattedXMLRPCResponseStringWithEncoding",      f_makeFormattedXMLRPCResponseStringWithEncoding, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("makeFormattedXMLRPCFaultResponseString",             f_makeFormattedXMLRPCFaultResponseString, QDOM_DEFAULT, stringTypeInfo, 2, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeFormattedXMLRPCFaultResponseStringWithEncoding", f_makeFormattedXMLRPCFaultResponseStringWithEncoding, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("makeFormattedXMLRPCValueString",                     f_makeFormattedXMLRPCValueString, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("makeFormattedXMLRPCValueString",                     f_makeFormattedXMLRPCValueString);
 }

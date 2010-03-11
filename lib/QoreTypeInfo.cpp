@@ -242,7 +242,7 @@ int QoreTypeInfo::checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_
 	    return 0;
 
 	 // check private access
-	 if (!runtimeCheckPrivateClassAccess(qc))
+	 if (runtimeCheckPrivateClassAccess(qc))
 	    return 0;
 
 	 priv_error = true;

@@ -872,7 +872,7 @@ bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *
 // tests to see if the private implementation of the given class ID can be accessed at run time
 bool runtimeCheckPrivateClassAccess(const QoreClass *testClass) {
    QoreObject *obj = getStackObject();
-   //printd(5, "runtimeCheckPrivateClassAccess() stack=%p (%s) test=%p (%s)\n", obj, obj ? obj->getClassName() : 0, testClass, testClass->getName());
+   //printd(5, "runtimeCheckPrivateClassAccess() stack=%p (%s) test=%p (%s) okl=%d okr=%d\n", obj, obj ? obj->getClassName() : 0, testClass, testClass->getName(), obj ? obj->getClass(testClass->getID()) : 0, obj ? testClass->getClass(obj->getClass()->getID()) : 0);
    if (!obj)
       return false;
    return obj->getClass(testClass->getID()) || testClass->getClass(obj->getClass()->getID());
