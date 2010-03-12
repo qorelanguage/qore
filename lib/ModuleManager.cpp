@@ -654,22 +654,25 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
 	 str->concat('s');
       // add all supported api pairs to the string
       for (unsigned i = 0; i < qore_mod_api_list_len; ++i) {
-	 str->sprintf("%d.%d", qore_mod_api_list[i].major, qore_mod_api_list[i].minor);
+	 str->sprintf(" %d.%d", qore_mod_api_list[i].major, qore_mod_api_list[i].minor);
 	 if (i != qore_mod_api_list_len - 1) {
 	    if (qore_mod_api_list_len > 2) {
 	       if (i != qore_mod_api_list_len - 2)
-		  str->concat(", ");
+		  str->concat(",");
 	       else
-		  str->concat(", and ");
+		  str->concat(", and");
 	    }
 	    else
-	       str->concat(" and ");
+	       str->concat(" and");
 	 }
-	 if (qore_mod_api_list_len > 1)
-	    str->concat("are");
-	 else
-	    str->concat("is");
-	 str->concat(" supported");
+	 if (i == qore_mod_api_list_len - 1) {
+	    str->concat(' ');
+	    if (qore_mod_api_list_len > 1)
+	       str->concat("are");
+	    else
+	       str->concat("is");
+	    str->concat(" supported");
+	 }
       }
 
       dlclose(ptr);
