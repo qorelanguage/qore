@@ -1,5 +1,5 @@
 /*
- QoreRemoveOperatorNode.cpp
+ QoreSpliceOperatorNode.cpp
  
  Qore Programming Language
  

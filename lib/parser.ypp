@@ -741,6 +741,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_FOLDR "foldr"
 %token TOK_FOLDL "foldl"
 %token TOK_SELECT "select"
+%token TOK_SPLICE "splice"
+%token TOK_EXTRACT "extract"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -768,7 +770,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %nonassoc TOK_ELSE
 
 // FIXME: check precedence
-%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_MAP TOK_FOLDR TOK_FOLDL TOK_SELECT
+%nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_EXTRACT TOK_MAP TOK_FOLDR TOK_FOLDL TOK_SELECT
 %left ','
 %right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS
 %right '='
@@ -786,7 +788,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %left NEG		      // unary minus, defined for precedence
 %right '~' '\\'               // binary not, reference operator
 %left '!'		      // logical not
-%right TOK_NEW TOK_BACKGROUND
+%right TOK_NEW TOK_BACKGROUND TOK_DELETE TOK_REMOVE
 %nonassoc P_INCREMENT P_DECREMENT
 %left '{' '[' '.' '(' DOT_KW_IDENTIFIER         // list and object references, etc, defined for precedence
 
@@ -2012,6 +2014,32 @@ exp:    scalar
 	      }
 	      else {
 		 $$ = new QoreSpliceOperatorNode(lv, l->shift(), l->shift(), l->shift());
+		 discard(l, 0);
+	      }
+	   }
+	}
+        | TOK_EXTRACT exp {  // extract lvalue-list, offset, [length, list]
+	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   if (!l) {
+	      parse_error("invalid arguments to extract, expected: lvalue, offset exp[, length exp[, list exp]] (got %s)", get_type_name($2));
+	      $$ = makeErrorTree($2, 0);
+	   }
+	   else if (l->size() < 2) {
+	      parse_error("too few arguments to extract, expected at least 2 arguments as follows: lvalue, offset exp[, length exp[, list exp]] (got %d arguments)", l->size());
+	      $$ = makeErrorTree($2, 0);
+	   }
+	   else if (l->size() > 4) {
+	      parse_error("too many arguments to extract, expected maximum 4 arguments as follows: lvalue, offset exp[, length exp[, list exp]] (got %d arguments)", l->size());
+	      $$ = makeErrorTree($2, 0);
+	   }
+	   else {
+	      AbstractQoreNode *lv = l->shift();
+	      if (check_lvalue(lv)) {
+		 parse_error("first argument to extract is not an lvalue");
+		 $$ = makeErrorTree(lv, $2);
+	      }
+	      else {
+		 $$ = new QoreExtractOperatorNode(lv, l->shift(), l->shift(), l->shift());
 		 discard(l, 0);
 	      }
 	   }

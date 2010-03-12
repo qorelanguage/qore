@@ -245,6 +245,8 @@ sub array_tests() {
     my int $v2 = pop $l1;
     test_value($l1, (3,2,4,1,6), "pop");
     push $l1, "hi";
+
+    # splice tests
     test_value($l1, (3,2,4,1,6,"hi"), "push");
     splice $l1, 5;
     test_value($l1, (3,2,4,1,6), "first list splice");
@@ -262,6 +264,12 @@ sub array_tests() {
     test_value($l1, (11, 12, 9, 2, 3), "sixth list splice");
     splice $l1, -4, -2, (21, 22, 23);
     test_value($l1, (11, 21, 22, 23, 2, 3), "seventh list splice");
+
+    # extract tests
+    test_value((extract $l1, 5), list(3), "first list extract");
+    test_value((extract $l1, 2, 2), (22, 23), "second list extract");
+    test_value((extract $l1, 1, 2, 4), (21, 2), "second list extract");
+    test_value($l1, (11, 4), "final list extract");
 
     my string $astr = "hello";
     test_value($astr[2], "l", "string element dereference");
@@ -444,6 +452,9 @@ sub operator_test() {
 
     # right fold function on list using expression and implicit arguments
     test_value((foldr $1 - $2, (2, 3, 4)), -1, "foldr operator with expression");
+
+    my hash $h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
+    test_value(remove $h.two, 2.0, "first remove operator");
 }
 
 sub no_parameter_test(any $p) {
@@ -957,6 +968,13 @@ sub string_tests() {
     splice $str, -4, -2, "QRS";
     test_value($str, "kQRSNO", "eighth UTF-8 string splice");
 
+    # UTF-8 string extract tests
+    $str = "äbcdéf";
+    test_value((extract $str, 4), "éf", "first UTF-8 string extract");
+    test_value((extract $str, 1, 2), "bc", "second UTF-8 string extract");
+    test_value((extract $str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
+    test_value($str, "äbcdef", "final UTF-8 string extract");
+
     # single-byte string splice tests
     $str = convert_encoding("äbcdéf", "ISO-8859-1");
     splice $str, 5;
@@ -975,6 +993,16 @@ sub string_tests() {
     test_value($str == "klpNO", True, "seventh ISO-8859-1 string splice");
     splice $str, -4, -2, "QRS";
     test_value($str == "kQRSNO", True, "eighth ISO-8859-1 string splice");
+
+    # UTF-8 string extract tests
+    $str = convert_encoding("äbcdéf", "ISO-8859-1");
+    my string $val = extract $str, 4;
+    test_value($val == "éf", True, "first UTF-8 string extract");
+    $val = extract $str, 1, 2;
+    test_value($val == "bc", True, "second UTF-8 string extract");
+    $val = extract $str, 1, 1, "bcdef";
+    test_value($val == "d", True, "third UTF-8 string extract");
+    test_value($str == "äbcdef", True, "final UTF-8 string extract");
 
     # join tests
     $str = join(":", "login","passwd",1,"gid","gcos","home","shell");

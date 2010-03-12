@@ -4,6 +4,9 @@
 	   extract operator
 	 * reimplemented the splice operator with the new operator framework
 	   and added more parse type checks
+	 * fixed 'delete' and 'remove' operator precedence
+	 * implement extract operator, like splice except returns list
+	   elements or characters extracted
 
 2010.03.11: David Nichols
 	 * applied hard typing to FtpClient::get() and FtpClient::put() and

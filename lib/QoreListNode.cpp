@@ -419,7 +419,7 @@ QoreListNode *QoreListNode::extract(qore_offset_t offset, qore_offset_t len, Exc
 QoreListNode *QoreListNode::extract(qore_offset_t offset, qore_offset_t len, const AbstractQoreNode *l, ExceptionSink *xsink) {
    qore_size_t n_offset, n_len;
    check_offset(offset, len, n_offset, n_len);
-   return splice_intern(n_offset, n_len, l, xsink);
+   return splice_intern(n_offset, n_len, l, xsink, true);
 }
 
 static int compareListEntries(AbstractQoreNode *l, AbstractQoreNode *r) {

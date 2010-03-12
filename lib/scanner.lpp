@@ -717,6 +717,7 @@ inherits                                return TOK_INHERITS;
 push                                    return TOK_PUSH;
 pop                                     return TOK_POP;
 splice                                  return TOK_SPLICE;
+extract                                 return TOK_EXTRACT;
 instanceof                              return TOK_INSTANCEOF;
 chomp					return TOK_CHOMP;
 trim					return TOK_TRIM;
