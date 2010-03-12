@@ -1110,10 +1110,10 @@ static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, Except
       return 0;
    }
    QoreSignalManager::setHandler(signal, p1, xsink);
-   return 0;
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
 #endif
+   return 0;
 }
 
 static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink) {
@@ -1125,10 +1125,10 @@ static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, Exc
       return 0;
    }
    QoreSignalManager::removeHandler(signal, xsink);
-   return 0;
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
 #endif
+   return 0;
 }
 
 // returns a string with percent-encodings substituted for characters

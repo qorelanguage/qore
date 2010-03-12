@@ -21,6 +21,7 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/QoreRWLock.h>
 
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
