@@ -42,6 +42,7 @@
 * implement GZFile and BZFile classes
 
 done 0.8.0:
+* implemented "extract" operator like splice but returns list elements or characters removed from lists and strings
 * implemented "remove" operator like delete but does not destroy objects and also returns value removed from lvalue
 * made "delete" an operator instead of a statement
 * hard typing for closures

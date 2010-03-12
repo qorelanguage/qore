@@ -2419,12 +2419,10 @@ exp:    scalar
 	;
 
 string:
-	QUOTED_WORD 
-	{
+        QUOTED_WORD {
 	   $$ = $1;
 	}
-	| QUOTED_WORD string
-	{
+        | QUOTED_WORD string {
 	   $$ = $1;
 	   $$->concat($2);
 	   $2->deref();
