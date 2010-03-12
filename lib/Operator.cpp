@@ -38,7 +38,7 @@ Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_LOG_CMP, *OP_PLUS_EQUALS, *OP_MINUS_EQUALS, *OP_AND_EQUALS, *OP_OR_EQUALS, 
    *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK, 
    *OP_OBJECT_FUNC_REF, *OP_SHIFT, *OP_POP, *OP_PUSH,
-   *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, *OP_SPLICE, *OP_MODULA_EQUALS, 
+   *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, *OP_MODULA_EQUALS, 
    *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS, *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, 
    *OP_SHIFT_RIGHT_EQUALS, *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
    *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
@@ -432,8 +432,8 @@ static double op_divide_float(double left, double right, ExceptionSink *xsink) {
 
 static QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink) {
    QoreStringNodeHolder str(new QoreStringNode(*left));
-   //printd(5, "op_plus_string() (%d) %08p \"%s\" + (%d) %08p \"%s\"\n", left->strlen(), left->getBuffer(), left->getBuffer(), right->strlen(), right->getBuffer(), right->getBuffer());
-   //printd(5, "op_plus_string() str= (%d) %08p \"%s\"\n", str->strlen(), str->getBuffer(), str->getBuffer());
+   //printd(5, "op_plus_string() (%d) %p \"%s\" + (%d) %p \"%s\"\n", left->strlen(), left->getBuffer(), left->getBuffer(), right->strlen(), right->getBuffer(), right->getBuffer());
+   //printd(5, "op_plus_string() str= (%d) %p \"%s\"\n", str->strlen(), str->getBuffer(), str->getBuffer());
    str->concat(right, xsink);
    if (*xsink)
       return 0;
@@ -594,7 +594,7 @@ static AbstractQoreNode *op_list_ref(const AbstractQoreNode *left, const Abstrac
 	 const QoreStringNode *lpstr = reinterpret_cast<const QoreStringNode *>(*lp);
 	 rv = lpstr->substr(ind, 1, xsink);
       }
-      //printd(5, "op_list_ref() index=%d, rv=%08p\n", ind, rv);
+      //printd(5, "op_list_ref() index=%d, rv=%p\n", ind, rv);
    }
    return rv;
 }
@@ -657,7 +657,7 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
    }
 
    if (!(*op) || (*op)->getType() != NT_OBJECT) {
-      //printd(5, "op=%08p (%s) func=%08p (%s)\n", op, op ? op->getTypeName() : "n/a", func, func ? func->getTypeName() : "n/a");
+      //printd(5, "op=%p (%s) func=%p (%s)\n", op, op ? op->getTypeName() : "n/a", func, func ? func->getTypeName() : "n/a");
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
 			    m->getName(), op ? op->getTypeName() : "NOTHING" );
       return 0;
@@ -687,7 +687,7 @@ static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const Abstr
       return 0;
 
 #if 0
-   printd(5, "op_assignment() *%08p=%08p (type=%s refs=%d)\n",
+   printd(5, "op_assignment() *%p=%p (type=%s refs=%d)\n",
 	  v, new_value, 
 	  new_value ? new_value->getTypeName() : "(null)",
 	  new_value ? new_value->reference_count() : 0 );
@@ -1328,7 +1328,7 @@ static AbstractQoreNode *op_plus_list(const AbstractQoreNode *left, const Abstra
 	 rv->merge(reinterpret_cast<const QoreListNode *>(right));
       else
 	 rv->push(right->refSelf());
-      //printd(5, "op_plus_list() returning list=%08p size=%d\n", rv, rv->size());
+      //printd(5, "op_plus_list() returning list=%p size=%d\n", rv, rv->size());
       return rv;
    }
 
@@ -1551,7 +1551,7 @@ static AbstractQoreNode *op_pre_dec(const AbstractQoreNode *left, bool ref_rv, E
 
 // unshift lvalue, element
 static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink) {
-   printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
+   printd(5, "op_unshift(%p, %p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    QoreNodeEvalOptionalRefHolder value(elem, xsink);
    if (*xsink)
@@ -1577,7 +1577,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
 
-   printd(5, "op_unshift() about to call unshift() on list node %08p (%d) with element %08p\n", l, l->size(), elem);
+   printd(5, "op_unshift() about to call unshift() on list node %p (%d) with element %p\n", l, l->size(), elem);
 
    l->insert(value.getReferencedValue());
 
@@ -1587,7 +1587,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
 
 static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {
    //QORE_TRACE("op_shift()");
-   printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
+   printd(5, "op_shift(%p, %p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
@@ -1602,7 +1602,7 @@ static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQo
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
 
-   printd(5, "op_shift() about to call QoreListNode::shift() on list node %08p (%d)\n", l, l->size());
+   printd(5, "op_shift() about to call QoreListNode::shift() on list node %p (%d)\n", l, l->size());
 
    // the list reference will now be the reference for return value
    // therefore no need to reference again
@@ -1610,7 +1610,7 @@ static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQo
 }
 
 static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink) {
-   printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
+   printd(5, "op_pop(%p, %p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(left, xsink);
@@ -1629,7 +1629,7 @@ static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQore
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
 
-   printd(5, "op_pop() about to call QoreListNode::pop() on list node %08p (%d)\n", l, l->size());
+   printd(5, "op_pop() about to call QoreListNode::pop() on list node %p (%d)\n", l, l->size());
 
    // the list reference will now be the reference for return value
    // therefore no need to reference again
@@ -1638,7 +1638,7 @@ static AbstractQoreNode *op_pop(const AbstractQoreNode *left, const AbstractQore
 
 static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink) {
    //QORE_TRACE("op_push()");
-   printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
+   printd(5, "op_push(%p, %p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    QoreNodeEvalOptionalRefHolder value(elem, xsink);
    if (*xsink)
@@ -1661,94 +1661,12 @@ static AbstractQoreNode *op_push(const AbstractQoreNode *left, const AbstractQor
 
    QoreListNode *l = reinterpret_cast<QoreListNode *>(val.get_value());
 
-   printd(5, "op_push() about to call push() on list node %08p (%d) with element %08p\n", l, l->size(), elem);
+   printd(5, "op_push() about to call push() on list node %p (%d) with element %p\n", l, l->size(), elem);
 
    l->push(value.getReferencedValue());
 
    // reference for return value
    return ref_rv ? l->refSelf() : 0;
-}
-
-// lvalue, offset, [length, [list]]
-static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQoreNode *n_l, bool ref_rv, ExceptionSink *xsink) {
-   printd(5, "op_splice(%08p, %08p, isEvent=%d)\n", left, n_l, xsink->isEvent());
-
-   assert(n_l->getType() == NT_LIST);
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n_l);
-
-   // evaluate list
-   QoreListNodeEvalOptionalRefHolder nl(l, xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(left, xsink);
-   if (!val)
-      return 0;
-
-   // if value is not a list or string, throw exception
-   qore_type_t vt = val.get_type();
-
-   if (vt == NT_NOTHING) {
-      // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = val.get_type_info();
-      if (typeInfo == listTypeInfo || typeInfo == stringTypeInfo) {
-	 if (val.assign(typeInfo->getDefaultValue()))
-	    return 0;
-	 vt = val.get_type();
-      }
-   }
-
-   if (vt != NT_LIST && vt != NT_STRING) {
-      xsink->raiseException("SPLICE-ERROR", "first argument to splice is not a list or a string");
-      return 0;
-   }
-   
-   // no exception can occur here
-   val.ensure_unique();
-
-   // evaluating a list must give another list
-   int size = nl->size();
-   int offset = nl->getEntryAsInt(0);
-
-#ifdef DEBUG
-   if (vt == NT_LIST) {
-      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.get_value());
-      printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", val.get_value(), vl->size(), *nl, size, offset);
-   }
-   else {
-      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.get_value());
-      printd(5, "op_splice() val=%08p (strlen=%d) list=%08p (size=%d) offset=%d\n", val.get_value(), vs->strlen(), *nl, size, offset);
-   }
-#endif
-
-   if (vt == NT_LIST) {
-      QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.get_value());
-      if (size == 1)
-	 vl->splice(offset, xsink);
-      else {
-	 int length = nl->getEntryAsInt(1);
-	 if (size == 2)
-	    vl->splice(offset, length, xsink);
-	 else
-	    vl->splice(offset, length, nl->retrieve_entry(2), xsink);
-      }
-   }
-   else { // must be a string
-      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.get_value());
-      if (size == 1)
-	 vs->splice(offset, xsink);
-      else {
-	 int length = nl->getEntryAsInt(1);
-	 if (size == 2)
-	    vs->splice(offset, length, xsink);
-	 else
-	    vs->splice(offset, length, nl->retrieve_entry(2), xsink);
-      }
-   }
-
-   // reference for return value
-   return ref_rv ? val.get_value()->refSelf() : 0;
 }
 
 static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, ExceptionSink *xsink) {
@@ -3308,7 +3226,7 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, const Qor
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
 AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const AbstractQoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const {
-   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
+   printd(5, "evaluating operator %s (0x%p 0x%p)\n", description, left_side, right_side);
    if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left_side, xsink);
       if (*xsink)
@@ -3349,7 +3267,7 @@ AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const Abstra
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
 bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNode *right_side, ExceptionSink *xsink) const {
-   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
+   printd(5, "evaluating operator %s (0x%p 0x%p)\n", description, left_side, right_side);
    if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left_side, xsink);
       if (*xsink)
@@ -3389,7 +3307,7 @@ bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNo
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
 int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const {
-   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
+   printd(5, "evaluating operator %s (0x%p 0x%p)\n", description, left, right);
    if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left, xsink);
       if (*xsink)
@@ -3430,7 +3348,7 @@ int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
 double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const {
-   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
+   printd(5, "evaluating operator %s (0x%p 0x%p)\n", description, left, right);
    if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left, xsink);
       if (*xsink)
@@ -4159,32 +4077,6 @@ static AbstractQoreNode *check_op_list_op_err(QoreTreeNode *tree, LocalVar *ofla
    return tree;
 }
 
-static AbstractQoreNode *check_op_splice(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (leftTypeInfo->hasType()) {
-      if (!listTypeInfo->parseEqual(leftTypeInfo)
-	  && !stringTypeInfo->parseEqual(leftTypeInfo)) {
-	 // only throw a parse exception if parse exceptions are enabled
-	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("the lvalue expression with the 'splice' operator is ");
-	    leftTypeInfo->getThisType(*desc);
-	    desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists and strings");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-	 }
-      }
-      else {
-	 returnTypeInfo = leftTypeInfo;
-      }
-   }
-
-   return tree;
-}
-
 static AbstractQoreNode *check_op_lvalue_string(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *descr) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
@@ -4439,9 +4331,6 @@ void OperatorList::init() {
 
    OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_push));
    OP_PUSH->addFunction(op_push);
-
-   OP_SPLICE = add(new Operator(2, "splice", "splice in list or string", 0, true, true, check_op_splice));
-   OP_SPLICE->addFunction(op_splice);
 
    OP_UNSHIFT = add(new Operator(2, "unshift", "unshift/insert to begnning of list", 0, true, true, check_op_list_op_err));
    OP_UNSHIFT->addFunction(op_unshift);

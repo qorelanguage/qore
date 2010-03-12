@@ -400,6 +400,28 @@ void QoreListNode::splice(qore_offset_t offset, qore_offset_t len, const Abstrac
    splice_intern(n_offset, n_len, l, xsink);
 }
 
+QoreListNode *QoreListNode::extract(qore_offset_t offset, ExceptionSink *xsink) {
+   qore_size_t n_offset = check_offset(offset);
+   if (n_offset == priv->length)
+      return new QoreListNode;
+
+   return splice_intern(n_offset, priv->length - n_offset, xsink, true);
+}
+
+QoreListNode *QoreListNode::extract(qore_offset_t offset, qore_offset_t len, ExceptionSink *xsink) {
+   qore_size_t n_offset, n_len;
+   check_offset(offset, len, n_offset, n_len);
+   if (n_offset == priv->length)
+      return new QoreListNode;
+   return splice_intern(n_offset, n_len, xsink, true);
+}
+
+QoreListNode *QoreListNode::extract(qore_offset_t offset, qore_offset_t len, const AbstractQoreNode *l, ExceptionSink *xsink) {
+   qore_size_t n_offset, n_len;
+   check_offset(offset, len, n_offset, n_len);
+   return splice_intern(n_offset, n_len, l, xsink);
+}
+
 static int compareListEntries(AbstractQoreNode *l, AbstractQoreNode *r) {
    //printd(5, "compareListEntries(%08p, %08p) (%s %s)\n", l, r, l->getType() == NT_STRING ? l->val.String->getBuffer() : "?", r->getType() == NT_STRING ? r->val.String->getBuffer() : "?");
 
@@ -641,7 +663,7 @@ void QoreListNode::resize(qore_size_t num) {
    priv->length = num;
 }
 
-void QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, ExceptionSink *xsink) {
+QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, ExceptionSink *xsink, bool extract) {
    //printd(5, "splice_intern(offset=%d, len=%d, priv->length=%d)\n", offset, len, priv->length);
    qore_size_t end;
    if (len > (priv->length - offset)) {
@@ -651,10 +673,15 @@ void QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, ExceptionS
    else
       end = offset + len;
 
-   // dereference all entries that will be removed
-   for (qore_size_t i = offset; i < end; i++)
-      if (priv->entry[i])
+   QoreListNode *rv = extract ? new QoreListNode : 0;
+
+   // dereference all entries that will be removed or add to return value list
+   for (qore_size_t i = offset; i < end; i++) {
+      if (rv) 
+	 rv->push(priv->entry[i]);
+      else if (priv->entry[i])
 	 priv->entry[i]->deref(xsink);
+   }
 
    // move down entries if necessary
    if (end != priv->length) {
@@ -667,9 +694,11 @@ void QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, ExceptionS
       priv->entry[end - 1] = 0;
 
    resize(priv->length - len);
+
+   return rv;
 }
 
-void QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, const AbstractQoreNode *l, ExceptionSink *xsink) {
+QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, const AbstractQoreNode *l, ExceptionSink *xsink, bool extract) {
    //printd(5, "splice_intern(offset=%d, len=%d, priv->length=%d)\n", offset, len, priv->length);
    qore_size_t end;
    if (len > (priv->length - offset)) {
@@ -679,10 +708,15 @@ void QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, const Abst
    else
       end = offset + len;
 
-   // dereference all entries that will be removed
-   for (qore_size_t i = offset; i < end; i++)
-      if (priv->entry[i])
+   QoreListNode *rv = extract ? new QoreListNode : 0;
+
+   // dereference all entries that will be removed or add to return value list
+   for (qore_size_t i = offset; i < end; i++) {
+      if (rv)
+	 rv->push(priv->entry[i]);
+      else if (priv->entry[i])
 	 priv->entry[i]->deref(xsink);
+   }
 
    // get number of entries to insert
    qore_size_t n;
@@ -712,13 +746,16 @@ void QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, const Abst
    // add in new entries
    if (!l || l->getType() != NT_LIST) {
       priv->entry[offset] = l ? l->refSelf() : 0;
-      return;
    }
-   const QoreListNode *lst = reinterpret_cast<const QoreListNode *>(l);
-   for (qore_size_t i = 0; i < n; ++i) {
-      const AbstractQoreNode *n = lst->retrieve_entry(i);
-      priv->entry[offset + i] = n ? n->refSelf() : 0;
+   else {
+      const QoreListNode *lst = reinterpret_cast<const QoreListNode *>(l);
+      for (qore_size_t i = 0; i < n; ++i) {
+	 const AbstractQoreNode *n = lst->retrieve_entry(i);
+	 priv->entry[offset + i] = n ? n->refSelf() : 0;
+      }
    }
+
+   return rv;
 }
 
 qore_size_t QoreListNode::size() const {

@@ -27,6 +27,8 @@
 
 class QoreDeleteOperatorNode : public QoreSingleExpressionOperatorNode {
 protected:
+   DLLLOCAL static QoreString delete_str;
+
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
@@ -37,7 +39,7 @@ public:
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
-      return "delete operator expression";
+      return delete_str.getBuffer();
    }
 
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);

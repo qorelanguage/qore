@@ -80,8 +80,10 @@ class HashElement {
       DLLLOCAL ~HashElement();
 };
 
-static QoreTreeNode *makeErrorTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right) {
-   return new QoreTreeNode(left, op, right);
+static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode *right) {
+   discard(left, 0);
+   discard(right, 0);
+   return &False;
 }
 
 static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right) {
@@ -1792,7 +1794,7 @@ exp:    scalar
 	| exp PLUS_EQUALS exp {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of plus-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_PLUS_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_PLUS_EQUALS, $1, $3);
@@ -1800,7 +1802,7 @@ exp:    scalar
         | exp MINUS_EQUALS exp {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of minus-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_MINUS_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_MINUS_EQUALS, $1, $3);
@@ -1809,7 +1811,7 @@ exp:    scalar
         | exp AND_EQUALS exp {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of and-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_AND_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_AND_EQUALS, $1, $3);
@@ -1817,7 +1819,7 @@ exp:    scalar
         | exp OR_EQUALS exp {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of or-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_OR_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_OR_EQUALS, $1, $3);
@@ -1825,7 +1827,7 @@ exp:    scalar
         | exp MODULA_EQUALS exp {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of modula-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_MODULA_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_MODULA_EQUALS, $1, $3);
@@ -1833,7 +1835,7 @@ exp:    scalar
         | exp MULTIPLY_EQUALS exp {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of multiply-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_MULTIPLY_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_MULTIPLY_EQUALS, $1, $3);
@@ -1841,7 +1843,7 @@ exp:    scalar
         | exp DIVIDE_EQUALS exp {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of divide-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_DIVIDE_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_DIVIDE_EQUALS, $1, $3);
@@ -1849,7 +1851,7 @@ exp:    scalar
         | exp XOR_EQUALS exp {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of xor-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_XOR_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_XOR_EQUALS, $1, $3);
@@ -1858,7 +1860,7 @@ exp:    scalar
 	   if (check_lvalue($1))
 	   {
 	      parse_error("left-hand side of shift-left-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_SHIFT_LEFT_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_SHIFT_LEFT_EQUALS, $1, $3);
@@ -1867,7 +1869,7 @@ exp:    scalar
 	   if (check_lvalue($1))
 	   {
 	      parse_error("left-hand side of shift-right-equals operator is not an lvalue");
-	      $$ = makeErrorTree(OP_SHIFT_RIGHT_EQUALS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	      $$ = makeTree(OP_SHIFT_RIGHT_EQUALS, $1, $3);
@@ -1886,12 +1888,12 @@ exp:    scalar
 	      if (ok)
 		 $$ = makeTree(OP_LIST_ASSIGNMENT, $1, $3);
 	      else
-		 $$ = makeErrorTree(OP_LIST_ASSIGNMENT, $1, $3);
+		 $$ = makeErrorTree($1, $3);
 	   }
 	   else {
 	      if (check_lvalue($1)) {
 		 parse_error("left-hand side of assignment is not an lvalue (%s)", $1->getTypeName());
-		 $$ = makeErrorTree(OP_ASSIGNMENT, $1, $3);
+		 $$ = makeErrorTree($1, $3);
 	      }
 	      else
 		 $$ = makeTree(OP_ASSIGNMENT, $1, $3);
@@ -1917,14 +1919,14 @@ exp:    scalar
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->getTypeName());
-	      $$ = makeErrorTree(OP_UNSHIFT, $2, 0);
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
 	      AbstractQoreNode *lv = l->shift();
 	      if (check_lvalue(lv))
 	      {
 		 parse_error("first argument to unshift is not an lvalue");
-		 $$ = makeErrorTree(OP_UNSHIFT, lv, l->shift());
+		 $$ = makeErrorTree(lv, l->shift());
 	      }
 	      else
 		 $$ = makeTree(OP_UNSHIFT, lv, l->shift());
@@ -1936,7 +1938,7 @@ exp:    scalar
 	   if (check_lvalue($2))
 	   {
 	      parse_error("argument to shift operator is not an lvalue");
-	      $$ = makeErrorTree(OP_SHIFT, $2, 0); 
+	      $$ = makeErrorTree($2, 0); 
 	   }
 	   else
 	      $$ = makeTree(OP_SHIFT, $2, 0); 
@@ -1946,7 +1948,7 @@ exp:    scalar
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->getTypeName());
-	      $$ = makeErrorTree(OP_PUSH, $2, 0);
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else
 	   {
@@ -1954,7 +1956,7 @@ exp:    scalar
 	      if (check_lvalue(lv))
 	      {
 		 parse_error("first argument to push is not an lvalue");
-		 $$ = makeErrorTree(OP_PUSH, lv, l->shift());
+		 $$ = makeErrorTree(lv, l->shift());
 	      }
 	      else
 		 $$ = makeTree(OP_PUSH, lv, l->shift());
@@ -1966,7 +1968,7 @@ exp:    scalar
 	   if (check_lvalue($2))
 	   {
 	      parse_error("argument to pop operator is not an lvalue");
-	      $$ = makeErrorTree(OP_POP, $2, 0); 
+	      $$ = makeErrorTree($2, 0); 
 	   }
 	   else
 	      $$ = makeTree(OP_POP, $2, 0); 
@@ -1974,7 +1976,7 @@ exp:    scalar
 	| TOK_CHOMP exp {
 	   if (check_lvalue($2)) {
 	      parse_error("argument to chomp operator is not an lvalue (use the chomp() function instead)");
-	      $$ = makeErrorTree(OP_CHOMP, $2, 0); 
+	      $$ = makeErrorTree($2, 0); 
 	   }
 	   else
 	      $$ = makeTree(OP_CHOMP, $2, 0); 
@@ -1983,25 +1985,35 @@ exp:    scalar
 	   if (check_lvalue($2))
 	   {
 	      parse_error("argument to trim operator is not an lvalue (use the trim() function instead)");
-	      $$ = makeErrorTree(OP_TRIM, $2, 0); 
+	      $$ = makeErrorTree($2, 0); 
 	   }
 	   else
 	      $$ = makeTree(OP_TRIM, $2, 0); 
 	}
         | TOK_SPLICE exp {  // splice lvalue-list, offset, [length, list]
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
-	   if (!l || l->size() < 2 || l->size() > 4) {
-	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (got %s)", get_type_name($2));
-	      $$ = makeErrorTree(OP_SPLICE, $2, 0);
+	   if (!l) {
+	      parse_error("invalid arguments to splice, expected: lvalue, offset exp[, length exp[, list exp]] (got %s)", get_type_name($2));
+	      $$ = makeErrorTree($2, 0);
+	   }
+	   else if (l->size() < 2) {
+	      parse_error("too few arguments to splice, expected at least 2 arguments as follows: lvalue, offset exp[, length exp[, list exp]] (got %d arguments)", l->size());
+	      $$ = makeErrorTree($2, 0);
+	   }
+	   else if (l->size() > 4) {
+	      parse_error("too many arguments to splice, expected maximum 4 arguments as follows: lvalue, offset exp[, length exp[, list exp]] (got %d arguments)", l->size());
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
 	      AbstractQoreNode *lv = l->shift();
 	      if (check_lvalue(lv)) {
 		 parse_error("first argument to splice is not an lvalue");
-		 $$ = makeErrorTree(OP_SPLICE, lv, $2);
+		 $$ = makeErrorTree(lv, $2);
 	      }
-	      else
-		 $$ = makeTree(OP_SPLICE, lv, $2);
+	      else {
+		 $$ = new QoreSpliceOperatorNode(lv, l->shift(), l->shift(), l->shift());
+		 discard(l, 0);
+	      }
 	   }
 	}
         | TOK_MAP exp {
@@ -2009,7 +2021,7 @@ exp:    scalar
 	   int len = l ? l->size() : 0;
 	   if (!l || len < 2 || len > 3) {
 	      parse_error("invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", get_type_name($2));
-	      $$ = makeErrorTree(OP_MAP, $2, 0);
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else if (len == 2) {
 	      AbstractQoreNode *map_exp = l->shift();
@@ -2027,7 +2039,7 @@ exp:    scalar
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to foldr operator, expected: 2-element list expected: 2-element list (fold expression and list expression), got: '%s'", get_type_name($2));
-	      $$ = makeErrorTree(OP_FOLDR, $2, 0);
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
 	      AbstractQoreNode *code_exp = l->shift();
@@ -2041,7 +2053,7 @@ exp:    scalar
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to foldl operator, expected: 2-element list (fold expression and list expression), got: '%s'", get_type_name($2));
-	      $$ = makeErrorTree(OP_FOLDL, $2, 0);
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
 	      AbstractQoreNode *code_exp = l->shift();
@@ -2055,7 +2067,7 @@ exp:    scalar
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to select operator, expected: 2-element list (list expression and select expression) got: '%s'", get_type_name($2));
-	      $$ = makeErrorTree(OP_SELECT, $2, 0);
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else {
 	      AbstractQoreNode *arg = l->shift();
@@ -2069,7 +2081,7 @@ exp:    scalar
         | P_INCREMENT exp {  // pre-increment
 	   if (check_lvalue($2)) {
 	      parse_error("pre-increment expression is not an lvalue");
-	      $$ = makeErrorTree(OP_PRE_INCREMENT, $2, 0);
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else
 	      $$ = makeTree(OP_PRE_INCREMENT, $2, 0);
@@ -2077,7 +2089,7 @@ exp:    scalar
         | exp P_INCREMENT {  // post-increment
 	   if (check_lvalue($1)) {
 	      parse_error("post-increment expression is not an lvalue");
-	      $$ = makeErrorTree(OP_POST_INCREMENT, $1, 0);
+	      $$ = makeErrorTree($1, 0);
 	   }
 	   else
 	      $$ = makeTree(OP_POST_INCREMENT, $1, 0);
@@ -2085,7 +2097,7 @@ exp:    scalar
         | P_DECREMENT exp {  // pre-decrement
 	   if (check_lvalue($2)) {
 	      parse_error("pre-decrement expression is not an lvalue");
-	      $$ = makeErrorTree(OP_PRE_DECREMENT, $2, 0);
+	      $$ = makeErrorTree($2, 0);
 	   }
 	   else
 	      $$ = makeTree(OP_PRE_DECREMENT, $2, 0);
@@ -2093,7 +2105,7 @@ exp:    scalar
         | exp P_DECREMENT {   // post-decrement
 	   if (check_lvalue($1)) {
 	      parse_error("post-decrement expression is not an lvalue");
-	      $$ = makeErrorTree(OP_POST_DECREMENT, $1, 0);
+	      $$ = makeErrorTree($1, 0);
 	   }
 	   else
 	      $$ = makeTree(OP_POST_DECREMENT, $1, 0);
@@ -2197,7 +2209,7 @@ exp:    scalar
         {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of regular expression substitution operator is not an lvalue");
-	      $$ = makeErrorTree(OP_REGEX_SUBST, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else {
 	      //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
@@ -2208,7 +2220,7 @@ exp:    scalar
 	   if (check_lvalue($1))
 	   {
 	      parse_error("left-hand side of transliteration operator is not an lvalue");
-	      $$ = makeErrorTree(OP_REGEX_TRANS, $1, $3);
+	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
 	   {

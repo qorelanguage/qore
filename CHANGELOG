@@ -1,3 +1,10 @@
+2010.03.12: David Nichols
+	 * implemented QoreListNode::extract(), QoreString::extract(), and
+	   QoreStringNode::extract() functions in preparation for the new
+	   extract operator
+	 * reimplemented the splice operator with the new operator framework
+	   and added more parse type checks
+
 2010.03.11: David Nichols
 	 * applied hard typing to FtpClient::get() and FtpClient::put() and
 	   tagged these methods with QDOM_FILESYSTEM

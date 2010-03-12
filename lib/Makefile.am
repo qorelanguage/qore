@@ -134,6 +134,7 @@ libqore_la_SOURCES = \
 	QoreTypeInfo.cpp \
 	QoreDeleteOperatorNode.cpp \
 	QoreRemoveOperatorNode.cpp \
+	QoreSpliceOperatorNode.cpp \
 	ql_thread.cpp \
 	ql_io.cpp \
 	ql_time.cpp \

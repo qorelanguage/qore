@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
- QoreRemoveOperatorNode.h
+ QoreSpliceOperatorNode.h
  
  Qore Programming Language
  
@@ -21,25 +21,38 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QOREREMOVEOPERATORNODE_H
+#ifndef _QORE_QORESPLICEOPERATORNODE_H
 
-#define _QORE_QOREREMOVEOPERATORNODE_H
+#define _QORE_QORESPLICEOPERATORNODE_H
 
-class QoreRemoveOperatorNode : public QoreSingleExpressionOperatorNode {
+class QoreSpliceOperatorNode : public QoreOperatorNode {
 protected:
-   DLLLOCAL static QoreString remove_str;
+   AbstractQoreNode *lvalue_exp, *offset_exp, *length_exp, *new_exp;
+
+   DLLLOCAL static QoreString splice_str;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
+   DLLLOCAL ~QoreSpliceOperatorNode() {
+      discard(lvalue_exp, 0);
+      discard(offset_exp, 0);
+      discard(length_exp, 0);
+      discard(new_exp, 0);
+   }
+
 public:
-   DLLLOCAL QoreRemoveOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp) {
+   DLLLOCAL QoreSpliceOperatorNode(AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
+                                   AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) : lvalue_exp(n_lvalue_exp),
+                                                                                                  offset_exp(n_offset_exp),
+                                                                                                  length_exp(n_length_exp),
+                                                                                                  new_exp(n_new_exp) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
-      return remove_str.getBuffer();
+      return splice_str.getBuffer();
    }
 
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
@@ -47,6 +60,8 @@ public:
    DLLLOCAL virtual bool hasEffect() const {
       return true;
    }
+
+   DLLLOCAL AbstractQoreNode *splice(ExceptionSink *xsink) const;
 };
 
 #endif

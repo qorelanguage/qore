@@ -114,6 +114,7 @@
 #include "QoreTypeInfo.cpp"
 #include "QoreDeleteOperatorNode.cpp"
 #include "QoreRemoveOperatorNode.cpp"
+#include "QoreSpliceOperatorNode.cpp"
 #include "ql_thread.cpp"
 #include "ql_io.cpp"
 #include "ql_time.cpp"

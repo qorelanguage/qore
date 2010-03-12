@@ -71,5 +71,6 @@ public:
 // include operator headers
 #include <qore/intern/QoreDeleteOperatorNode.h>
 #include <qore/intern/QoreRemoveOperatorNode.h>
+#include <qore/intern/QoreSpliceOperatorNode.h>
 
 #endif

@@ -85,6 +85,14 @@ public:
    DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
       return 0;
    }
+   
+   // returns false if there is no type or if the type can be converted to a numeric value, true if otherwise
+   DLLLOCAL bool nonNumericValue() const {
+      if (!this || !has_type)
+         return false;
+
+      return qt == NT_INT || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN ? false : true;
+   }
 };
 
 class QoreTypeInfo : public AbstractQoreTypeInfo {
@@ -306,6 +314,13 @@ public:
    }
 
    DLLLOCAL bool parseTestCompatibleClass(const QoreClass *qc) const;
+
+   DLLLOCAL void doNonNumericWarning(const char *preface) const {
+      QoreStringNode *desc = new QoreStringNode(preface);
+      getThisType(*desc);
+      desc->sprintf(", which does not evaluate to a numeric type, therefore the offset will always evaluate to 0 at runtime");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
 
 #ifdef DEBUG
    DLLLOCAL const char *getTypeName() const { return this && qt >= 0 ? getBuiltinTypeName(qt) : "n/a"; }

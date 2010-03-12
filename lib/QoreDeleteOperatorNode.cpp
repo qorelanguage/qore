@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-static QoreString delete_str("delete operator expression");
+QoreString QoreDeleteOperatorNode::delete_str("delete operator expression");
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreDeleteOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {

@@ -138,13 +138,11 @@ QoreStringNode *QoreStringNode::createAndConvertEncoding(const char *str, const 
    return 0;
 }
 
-AbstractQoreNode *QoreStringNode::realCopy() const
-{
+AbstractQoreNode *QoreStringNode::realCopy() const {
    return copy();
 }
 
-QoreStringNode *QoreStringNode::copy() const
-{
+QoreStringNode *QoreStringNode::copy() const {
    return new QoreStringNode(*this);
 }
 
@@ -247,4 +245,54 @@ const char *QoreStringNode::getTypeName() const {
 AbstractQoreNode *QoreStringNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = stringTypeInfo;
    return this;
+}
+
+QoreStringNode *QoreStringNode::extract(qore_offset_t offset, ExceptionSink *xsink) {
+   QoreStringNode *str = new QoreStringNode(priv->charset);
+   if (!priv->charset->isMultiByte()) {
+      qore_size_t n_offset = priv->check_offset(offset);
+      if (n_offset != priv->len)
+	 splice_simple(n_offset, priv->len - n_offset, str);
+   }
+   else
+      splice_complex(offset, xsink, str);
+   return str;
+}
+
+QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num, ExceptionSink *xsink) {
+   QoreStringNode *str = new QoreStringNode(priv->charset);
+   if (!priv->charset->isMultiByte()) {
+      qore_size_t n_offset, n_num;
+      priv->check_offset(offset, num, n_offset, n_num);
+      if (n_offset != priv->len && n_num)
+	 splice_simple(n_offset, n_num, str);
+   }
+   else
+      splice_complex(offset, num, xsink, str);
+   return str;
+}
+
+QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink *xsink) {
+   if (!strn || strn->getType() != NT_STRING)
+      return extract(offset, num, xsink);
+
+   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(strn);
+   TempEncodingHelper tmp(str, priv->charset, xsink);
+   if (!tmp)
+       return 0;
+
+   QoreStringNode *rv = new QoreStringNode(priv->charset);
+   if (!priv->charset->isMultiByte()) {
+      qore_size_t n_offset, n_num;
+      priv->check_offset(offset, num, n_offset, n_num);
+      if (n_offset == priv->len) {
+	 if (!tmp->strlen())
+	    return rv;
+	 n_num = 0;
+      }
+      splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), rv);
+   }
+   else
+      splice_complex(offset, num, *tmp, xsink, rv);
+   return rv;
 }
