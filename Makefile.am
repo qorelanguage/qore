@@ -173,7 +173,6 @@ noinst_HEADERS = \
 	include/qore/intern/DoWhileStatement.h \
 	include/qore/intern/ForStatement.h \
 	include/qore/intern/ForEachStatement.h \
-	include/qore/intern/DeleteStatement.h \
 	include/qore/intern/TryStatement.h \
 	include/qore/intern/ThrowStatement.h \
 	include/qore/intern/SwitchStatement.h \
