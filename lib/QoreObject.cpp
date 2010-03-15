@@ -635,12 +635,14 @@ void QoreObject::customRefIntern() const {
 
 void QoreObject::customRef() const {
    AutoLocker al(priv->ref_mutex);
-   //AutoLocker al(priv->mutex);
    customRefIntern();
 }
 
 void QoreObject::deleteBlockerRef() const {
-    customRefIntern();
+#ifdef QORE_DEBUG_OBJ_REFS
+   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::deleteBlockerRef() this=%p class=%s references %d->%d\n", this, getClassName(), references, references + 1);
+#endif
+   ++references;
 }
 
 bool QoreObject::derefImpl(ExceptionSink *xsink) {
@@ -652,7 +654,7 @@ bool QoreObject::derefImpl(ExceptionSink *xsink) {
 // manages the custom dereference and executes the destructor if necessary
 void QoreObject::customDeref(ExceptionSink *xsink) {
    {
-      printd(5, "QoreObject::customDeref() this=%p, class=%s references=%d->%d status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), references, references - 1, priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
+      //printd(5, "QoreObject::customDeref() this=%p, class=%s references=%d->%d (trefs=%d) status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), references, references - 1, priv->tRefs.reference_count(), priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
 
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this=%p) class=%s: references %d->%d\n", this, getClassName(), references, references - 1);
@@ -674,7 +676,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
       // if the scope deletion is blocked, then do not run the destructor
       if (!priv->delete_blocker_run && priv->theclass->has_delete_blocker()) {
 	 if (priv->theclass->execDeleteBlocker(this, xsink)) {
-	    //printd(5, "QoreObject::derefImpl() this=%p class=%s blocking delete\n", this, getClassName());
+	    //printd(5, "QoreObject::customDeref() this=%p class=%s blocking delete\n", this, getClassName());
 	    priv->delete_blocker_run = true;
 	    //printd(5, "Object lock %p unlocked (safe)\n", &priv->mutex);
 	    return;
