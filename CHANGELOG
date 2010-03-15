@@ -3,6 +3,7 @@
 	   for code flags
 	 * extended the current parse option field to 64 bits and deprecated
 	   old APIs using a 32-bit value
+	 * fixed a bug in delete blocker handling for the qt4 module
 
 2010.03.12: David Nichols
 	 * implemented QoreListNode::extract(), QoreString::extract(), and
