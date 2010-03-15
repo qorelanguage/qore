@@ -25,6 +25,7 @@
 #include <qore/intern/QoreSSLIntern.h>
 
 #include <errno.h>
+#include <openssl/err.h>
 
 struct qore_sslpk_private {
    EVP_PKEY *pk;
