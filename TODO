@@ -1,4 +1,5 @@
-* implement methods to run on lists and hashes as if they were classes (ex: <hash>.lastKey(), etc)
+* implement thread-safe map template class, can be read from multiple threads without locking as long as writes are locked and there are never any deletes (write-only list)
+* implement methods to run on lists, hashes, and strings as if they were classes (ex: <hash>.lastKey(), etc)
 * implement thread-safe map class, guaranteed to be safe for reading from multiple threads if writes are locked and there are no deletes
 * ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures
 * fix memory leaks caused by circular references
