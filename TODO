@@ -1,3 +1,5 @@
+* implement methods to run on lists and hashes as if they were classes (ex: <hash>.lastKey(), etc)
+* implement thread-safe map class, guaranteed to be safe for reading from multiple threads if writes are locked and there are no deletes
 * ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this: $exp.Base::method()

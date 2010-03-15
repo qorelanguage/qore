@@ -287,10 +287,10 @@ void init_list_functions() {
    builtinFunctions.add("max", f_max);
 
    builtinFunctions.add("reverse", f_noop);
-   builtinFunctions.add2("reverse", f_reverse_str, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("reverse", f_reverse_list, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("reverse", f_reverse_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("reverse", f_reverse_list, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("inlist", f_inlist, QDOM_DEFAULT, boolTypeInfo);
-   builtinFunctions.add2("inlist_hard", f_inlist_hard, QDOM_DEFAULT, boolTypeInfo);
+   builtinFunctions.add2("inlist", f_inlist, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+   builtinFunctions.add2("inlist_hard", f_inlist_hard, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 }
 

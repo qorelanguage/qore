@@ -72,8 +72,8 @@ QoreClass *initMutexClass() {
    QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);
 
    QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock);
-   QC_MUTEX->addMethodExtended("trylock",  (q_method_t)MUTEX_trylock, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_MUTEX->addMethodExtended("unlock",   (q_method_t)MUTEX_unlock, false, QDOM_DEFAULT, nothingTypeInfo);
+   QC_MUTEX->addMethodExtended("trylock",  (q_method_t)MUTEX_trylock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_MUTEX->addMethodExtended("unlock",   (q_method_t)MUTEX_unlock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    return QC_MUTEX;
 }

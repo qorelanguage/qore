@@ -71,13 +71,13 @@ QoreClass *initAutoLockClass(QoreClass *Mutex) {
    
    QoreClass *QC_AutoLock = new QoreClass("AutoLock", QDOM_THREAD_CLASS);
    CID_AUTOLOCK = QC_AutoLock->getID();
-   QC_AutoLock->setConstructorExtended(AL_constructor, false, QDOM_DEFAULT, 1, Mutex->getTypeInfo(), QORE_PARAM_NO_ARG);
+   QC_AutoLock->setConstructorExtended(AL_constructor, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, Mutex->getTypeInfo(), QORE_PARAM_NO_ARG);
    QC_AutoLock->setDestructor((q_destructor_t)AL_destructor);
    QC_AutoLock->setCopy((q_copy_t)AL_copy);
 
-   QC_AutoLock->addMethodExtended("lock",    (q_method_t)AL_lock, false, QDOM_DEFAULT, nothingTypeInfo);
-   QC_AutoLock->addMethodExtended("trylock", (q_method_t)AL_trylock, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_AutoLock->addMethodExtended("unlock",  (q_method_t)AL_unlock, false, QDOM_DEFAULT, nothingTypeInfo);
+   QC_AutoLock->addMethodExtended("lock",    (q_method_t)AL_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_AutoLock->addMethodExtended("trylock", (q_method_t)AL_trylock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_AutoLock->addMethodExtended("unlock",  (q_method_t)AL_unlock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    return QC_AutoLock;
 }

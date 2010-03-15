@@ -274,13 +274,13 @@ QoreClass *initGetOptClass() {
 
    // default for GetOpt::parse() with incorrect arguments is to do nothing
    QC_GETOPT->addMethodExtended("parse",         (q_method_t)class_noop);
-   QC_GETOPT->addMethodExtended("parse",         (q_method_t)GETOPT_parse_ref, false, QDOM_DEFAULT, hashTypeInfo, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
-   QC_GETOPT->addMethodExtended("parse",         (q_method_t)GETOPT_parse_list, false, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+   QC_GETOPT->addMethodExtended("parse",         (q_method_t)GETOPT_parse_ref, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
+   QC_GETOPT->addMethodExtended("parse",         (q_method_t)GETOPT_parse_list, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 
    // default for GetOpt::parse2() with incorrect arguments is to do nothing
    QC_GETOPT->addMethodExtended("parse2",        (q_method_t)class_noop);
-   QC_GETOPT->addMethodExtended("parse2",        (q_method_t)GETOPT_parse2_ref, false, QDOM_DEFAULT, hashTypeInfo, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
-   QC_GETOPT->addMethodExtended("parse2",        (q_method_t)GETOPT_parse2_list, false, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+   QC_GETOPT->addMethodExtended("parse2",        (q_method_t)GETOPT_parse2_ref, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
+   QC_GETOPT->addMethodExtended("parse2",        (q_method_t)GETOPT_parse2_list, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 
    return QC_GETOPT;
 }

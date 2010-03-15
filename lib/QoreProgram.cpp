@@ -143,7 +143,7 @@ struct qore_program_private {
       bool only_first_except;
       int exceptions_raised;
 
-      int parse_options;
+      int64 parse_options;
       int warn_mask;
       std::string exec_class_name, script_dir, script_path, script_name,
 	  include_path;
@@ -673,7 +673,7 @@ QoreProgram::QoreProgram() : priv(new qore_program_private(this)) {
    priv->RootNS = new RootQoreNamespace(&priv->QoreNS);
 }
 
-QoreProgram::QoreProgram(QoreProgram *pgm, int po, bool ec, const char *ecn) : priv(new qore_program_private(this)) {
+QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char *ecn) : priv(new qore_program_private(this)) {
    // flag as derived object
    priv->base_object = false;
 
@@ -984,6 +984,10 @@ int QoreProgram::getParseOptions() const {
    return priv->parse_options; 
 }
 
+int64 QoreProgram::getParseOptions64() const { 
+   return priv->parse_options; 
+}
+
 QoreListNode *QoreProgram::getUserFunctionList() {
    AutoLocker al(&priv->plock);
    return priv->user_func_list.getList(); 
@@ -1058,6 +1062,7 @@ bool QoreProgram::existsFunction(const char *name) {
    return priv->user_func_list.find(name);
 }
 
+// DEPRECATED
 void QoreProgram::parseSetParseOptions(int po) {
    if (priv->po_locked) {
       parse_error("parse options have been locked on this program object");
@@ -1066,6 +1071,15 @@ void QoreProgram::parseSetParseOptions(int po) {
    priv->parse_options |= po;
 }
 
+void QoreProgram::parseSetParseOptions(int64 po) {
+   if (priv->po_locked) {
+      parse_error("parse options have been locked on this program object");
+      return;
+   }
+   priv->parse_options |= po;
+}
+
+// DEPRECATED
 void QoreProgram::setParseOptions(int po, ExceptionSink *xsink) {
    if (priv->po_locked) {
       xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
@@ -1074,7 +1088,24 @@ void QoreProgram::setParseOptions(int po, ExceptionSink *xsink) {
    priv->parse_options |= po;
 }
 
+void QoreProgram::setParseOptions(int64 po, ExceptionSink *xsink) {
+   if (priv->po_locked) {
+      xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+      return;
+   }
+   priv->parse_options |= po;
+}
+
+// DEPRECATED
 void QoreProgram::disableParseOptions(int po, ExceptionSink *xsink) {
+   if (priv->po_locked) {
+      xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+      return;
+   }
+   priv->parse_options &= ~po;
+}
+
+void QoreProgram::disableParseOptions(int64 po, ExceptionSink *xsink) {
    if (priv->po_locked) {
       xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
       return;

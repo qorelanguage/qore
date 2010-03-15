@@ -86,15 +86,15 @@ QoreClass *initSSLPrivateKeyClass() {
    QoreClass *QC_SSLPRIVATEKEY = new QoreClass("SSLPrivateKey");
    CID_SSLPRIVATEKEY = QC_SSLPRIVATEKEY->getID();
 
-   QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_str, false, QDOM_DEFAULT, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
-   QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_bin, false, QDOM_DEFAULT, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
+   QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
+   QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_bin, false, QC_NO_FLAGS, QDOM_DEFAULT, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
 
    QC_SSLPRIVATEKEY->setCopy((q_copy_t)SSLPKEY_copy);
 
-   QC_SSLPRIVATEKEY->addMethodExtended("getType",          (q_method_t)SSLPKEY_getType, false, QDOM_DEFAULT, stringTypeInfo);
-   QC_SSLPRIVATEKEY->addMethodExtended("getVersion",       (q_method_t)SSLPKEY_getVersion, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_SSLPRIVATEKEY->addMethodExtended("getBitLength",     (q_method_t)SSLPKEY_getBitLength, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_SSLPRIVATEKEY->addMethodExtended("getInfo",          (q_method_t)SSLPKEY_getInfo, false, QDOM_DEFAULT, hashTypeInfo);
+   QC_SSLPRIVATEKEY->addMethodExtended("getType",          (q_method_t)SSLPKEY_getType, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
+   QC_SSLPRIVATEKEY->addMethodExtended("getVersion",       (q_method_t)SSLPKEY_getVersion, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SSLPRIVATEKEY->addMethodExtended("getBitLength",     (q_method_t)SSLPKEY_getBitLength, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SSLPRIVATEKEY->addMethodExtended("getInfo",          (q_method_t)SSLPKEY_getInfo, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
 
    return QC_SSLPRIVATEKEY;
 }

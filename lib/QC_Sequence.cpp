@@ -56,8 +56,8 @@ QoreClass *initSequenceClass() {
    QC_SEQUENCE->setConstructor(SEQUENCE_constructor);
    QC_SEQUENCE->setCopy((q_copy_t)SEQUENCE_copy);
 
-   QC_SEQUENCE->addMethodExtended("next",        (q_method_t)SEQUENCE_next, false, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_SEQUENCE->addMethodExtended("getCurrent",  (q_method_t)SEQUENCE_getCurrent, false, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SEQUENCE->addMethodExtended("next",        (q_method_t)SEQUENCE_next, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SEQUENCE->addMethodExtended("getCurrent",  (q_method_t)SEQUENCE_getCurrent, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
    return QC_SEQUENCE;
 }

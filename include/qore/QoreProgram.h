@@ -324,8 +324,11 @@ public:
    */
    DLLEXPORT void setExecClass(const char *ecn = 0);
 
-   //! adds the parse options given to the parse option mask
+   //! adds the parse options given to the parse option mask; DEPRECATED: use parseSetParseOptions(int64) instead
    DLLEXPORT void parseSetParseOptions(int po);
+
+   //! adds the parse options given to the parse option mask
+   DLLEXPORT void parseSetParseOptions(int64 po);
 
    //! this call blocks until the program's last thread terminates
    DLLEXPORT void waitForTermination();
@@ -363,22 +366,39 @@ public:
    */
    DLLEXPORT int disableWarning(int code);
 
-   //! returns the parse options currently set for this program
+   //! returns the parse options currently set for this program; DEPRECATED; use getParseOptions64() instead
    DLLEXPORT int getParseOptions() const;
+
+   //! returns the parse options currently set for this program
+   DLLEXPORT int64 getParseOptions64() const;
+
+   //! sets the parse options and adds Qore-language exception information if an error occurs
+   /** DEPRECATED: use setParseOptions(int64, ...)
+       @param po the parse options to add to the parse option mask
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+   */
+   DLLEXPORT void setParseOptions(int po, ExceptionSink *xsink);
 
    //! sets the parse options and adds Qore-language exception information if an error occurs
    /**
       @param po the parse options to add to the parse option mask
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void setParseOptions(int po, ExceptionSink *xsink);
+   DLLEXPORT void setParseOptions(int64 po, ExceptionSink *xsink);
 
+   //! turns off the parse options given in the passed mask and adds Qore-language exception information if an error occurs
+   /** DEPRECATED: use disableParseOptions(int64, ...) instead
+       @param po the parse options to subtract from the parse option mask
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+   */
+   DLLEXPORT void disableParseOptions(int po, ExceptionSink *xsink);
+   
    //! turns off the parse options given in the passed mask and adds Qore-language exception information if an error occurs
    /**
       @param po the parse options to subtract from the parse option mask
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void disableParseOptions(int po, ExceptionSink *xsink);
+   DLLEXPORT void disableParseOptions(int64 po, ExceptionSink *xsink);
 
    //! returns a list of all user functions in this program
    /**
@@ -428,7 +448,7 @@ public:
    /// returns a pointed to the given user function if it exists (otherwise returns 0)
    DLLLOCAL UserFunction *findUserFunction(const char *name);
       
-   DLLLOCAL QoreProgram(QoreProgram *pgm, int po, bool ec = false, const char *ecn = 0);
+   DLLLOCAL QoreProgram(QoreProgram *pgm, int64 po, bool ec = false, const char *ecn = 0);
 
    DLLLOCAL LocalVar *createLocalVar(const char *name, const QoreTypeInfo *typeInfo);
    

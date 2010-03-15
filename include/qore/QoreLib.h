@@ -53,8 +53,13 @@
 //! defined because this version of Qore supports hard typing and overloading
 #define _QORE_HAS_HARD_TYPING 1
 
-//! defined because this version of Qore supports hard typing and overloading
+//! defined because this version of Qore supports the execRaw() DBI function
 #define _QORE_HAS_DBI_EXECRAW 1
+
+// qore code flags
+#define QC_NO_FLAGS                 0   //! no flag
+#define QC_USES_EXTRA_ARGS    (1 << 0)  //! code accesses arguments beyon the declared parameter list
+#define QC_CONSTANT           (1 << 1)  //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, just returns a calculation based on its arguments)
 
 //! function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);
@@ -96,19 +101,19 @@ DLLEXPORT void qore_exit_process(int rc);
 /** this list must be thread-safe for reading, writing under a lock
  */
 class FeatureList : public safe_dslist<std::string> {
-   private:
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL FeatureList(const FeatureList&);
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL FeatureList(const FeatureList&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL FeatureList& operator=(const FeatureList&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL FeatureList& operator=(const FeatureList&);
 
-   public:
-      //! initialized by the library, constructor not exported
-      DLLLOCAL FeatureList();
+public:
+   //! initialized by the library, constructor not exported
+   DLLLOCAL FeatureList();
 
-      //! destructor not exported
-      DLLLOCAL ~FeatureList();
+   //! destructor not exported
+   DLLLOCAL ~FeatureList();
 };
 
 //! list of qore features
@@ -267,10 +272,10 @@ DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, Exceptio
 
 //! definition of the elements in the qore_option_list
 struct qore_option_s {
-      const char *option;   //!< name of the option
-      const char *constant; //!< name of the constant for this option
-      int type;             //!< the type of the option
-      bool value;           //!< the value of the option
+   const char *option;   //!< name of the option
+   const char *constant; //!< name of the constant for this option
+   int type;             //!< the type of the option
+   bool value;           //!< the value of the option
 };
 
 //const char *qore_get_option_list();

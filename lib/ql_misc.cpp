@@ -1214,13 +1214,13 @@ void init_misc_functions() {
    builtinFunctions.add("html_decode", f_html_decode);
    builtinFunctions.add("get_default_encoding", f_get_default_encoding);
 
-   builtinFunctions.add2("parse_url", f_parse_url, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parse_url", f_parse_url, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("parseURL", f_noop);
-   builtinFunctions.add2("parseURL", f_parseURL, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("parseURL", f_parseURL, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("getClassName", f_getClassName);
-   builtinFunctions.add("backquote", f_backquote, QDOM_EXTERNAL_PROCESS);
+   builtinFunctions.add2("backquote", f_backquote, QC_NO_FLAGS, QDOM_EXTERNAL_PROCESS);
    builtinFunctions.add("parseBase64String", f_parseBase64String);
    builtinFunctions.add("parseBase64StringToString", f_parseBase64StringToString);
    builtinFunctions.add("makeBase64String", f_makeBase64String);
@@ -1238,36 +1238,36 @@ void init_misc_functions() {
    builtinFunctions.add("gunzip_to_binary", f_gunzip_to_binary);
 
    builtinFunctions.add("getByte", f_noop);
-   builtinFunctions.add2("getByte", f_get_byte_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("getByte", f_get_byte_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("getByte", f_get_byte_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("getByte", f_get_byte_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
    builtinFunctions.add("getWord32", f_noop);
-   builtinFunctions.add2("getWord32", f_get_word_32_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("getWord32", f_get_word_32_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("getWord32", f_get_word_32_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("getWord32", f_get_word_32_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
    // with only hard typing
-   builtinFunctions.add2("get_byte", f_get_byte_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("get_byte", f_get_byte_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_byte", f_get_byte_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_byte", f_get_byte_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add2("get_word_16", f_get_word_16_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("get_word_16", f_get_word_16_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_16", f_get_word_16_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_16", f_get_word_16_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add2("get_word_32", f_get_word_32_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("get_word_32", f_get_word_32_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_32", f_get_word_32_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_32", f_get_word_32_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add2("get_word_64", f_get_word_64_str, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("get_word_64", f_get_word_64_bin, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_64", f_get_word_64_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_64", f_get_word_64_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
    builtinFunctions.add("splice", f_splice);
    builtinFunctions.add("hextoint", f_hextoint);
    builtinFunctions.add("strtoint", f_strtoint);
    builtinFunctions.add("load_module", f_load_module);
-   builtinFunctions.add("set_signal_handler", f_set_signal_handler, QDOM_PROCESS);
-   builtinFunctions.add("remove_signal_handler", f_remove_signal_handler, QDOM_PROCESS);
+   builtinFunctions.add2("set_signal_handler", f_set_signal_handler, QC_NO_FLAGS, QDOM_PROCESS);
+   builtinFunctions.add2("remove_signal_handler", f_remove_signal_handler, QC_NO_FLAGS, QDOM_PROCESS);
    builtinFunctions.add("decode_url", f_decode_url);
-   builtinFunctions.add2("get_script_name", f_get_script_name, QDOM_DEFAULT, stringTypeInfo);
-   builtinFunctions.add2("get_script_dir", f_get_script_dir, QDOM_DEFAULT, stringTypeInfo);
-   builtinFunctions.add2("get_script_path", f_get_script_path, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("get_script_name", f_get_script_name, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("get_script_dir", f_get_script_dir, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("get_script_path", f_get_script_path, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
    builtinFunctions.add("get_qore_option_list", f_get_qore_option_list);
    builtinFunctions.add("get_qore_library_info", f_get_qore_library_info);
    

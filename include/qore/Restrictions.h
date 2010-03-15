@@ -29,7 +29,7 @@
     defines parse restrictions and functional domains for builtin functions and qore class methods
 */
 
-#define PO_DEFAULT                   0          //!< no restrictions (except parse option inheritance restrictions)
+#define PO_DEFAULT                   0            //!< no restrictions (except parse option inheritance restrictions)
 #define PO_NO_GLOBAL_VARS            (1 <<  0)    //!< cannot define new global variables
 #define PO_NO_SUBROUTINE_DEFS        (1 <<  1)    //!< cannot define new user subroutines
 #define PO_NO_THREAD_CONTROL         (1 <<  2)    //!< cannot launch new threads) use thread_exit) or access thread data

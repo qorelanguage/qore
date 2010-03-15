@@ -97,21 +97,21 @@ public:
    DLLLOCAL BuiltinFunctionListPrivate() {
    }
 
-   DLLLOCAL void add(const char *name, q_func_t f, int functional_domain) {
-      add_intern(name, new BuiltinFunctionVariant(f, functional_domain));
+   DLLLOCAL void add(const char *name, q_func_t f, int64 functional_domain) {
+      add_intern(name, new BuiltinFunctionVariant(f, QC_NO_FLAGS, functional_domain));
    }
 
-   void add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
+   void add2(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
       type_vec_t typeList;
       arg_vec_t defaultArgList;
       if (num_params)
 	 qore_process_params(num_params, typeList, defaultArgList, args);
 
-      add_intern(name, new BuiltinFunctionVariant(f, functional_domain, returnTypeInfo, typeList, defaultArgList));
+      add_intern(name, new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList));
    }
 
-   void add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList, const arg_vec_t &defaultArgList) {
-      add_intern(name, new BuiltinFunctionVariant(f, functional_domain, returnTypeInfo, typeList, defaultArgList));
+   void add3(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList, const arg_vec_t &defaultArgList) {
+      add_intern(name, new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList));
    }
 
    DLLLOCAL void clear() {
@@ -172,15 +172,15 @@ void BuiltinFunctionList::add(const char *name, q_func_t f, int functional_domai
    bfl.add(name, f, functional_domain);
 }
 
-void BuiltinFunctionList::add2(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
+void BuiltinFunctionList::add2(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, ...) {
    va_list args;
    va_start(args, num_params);
-   bfl.add2(name, f, functional_domain, returnTypeInfo, num_params, args);
+   bfl.add2(name, f, flags, functional_domain, returnTypeInfo, num_params, args);
    va_end(args);
 }
 
-void BuiltinFunctionList::add3(const char *name, q_func_t f, int functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList, const arg_vec_t &defaultArgList) {
-   bfl.add3(name, f, functional_domain, returnTypeInfo, typeList, defaultArgList);
+void BuiltinFunctionList::add3(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, const type_vec_t &typeList, const arg_vec_t &defaultArgList) {
+   bfl.add3(name, f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
 }
 
 void BuiltinFunctionList::clear() {

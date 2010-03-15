@@ -239,7 +239,8 @@ public:
    }
 
    DLLLOCAL virtual qore_call_t getCallType() const = 0;
-   DLLLOCAL virtual int getFunctionality() const = 0;
+   DLLLOCAL virtual int64 getFlags() const = 0;
+   DLLLOCAL virtual int64 getFunctionality() const = 0;
 
    DLLLOCAL virtual UserVariantBase *getUserVariantBase() = 0;
    DLLLOCAL const UserVariantBase *getConstUserVariantBase() const {
@@ -291,7 +292,8 @@ public:
 
 // the following defines the pure virtual functions that are common to all user variants
 #define COMMON_USER_VARIANT_FUNCTIONS DLLLOCAL virtual qore_call_t getCallType() const { return CT_USER; } \
-   DLLLOCAL virtual int getFunctionality() const { return QDOM_DEFAULT; } \
+   DLLLOCAL virtual int64 getFlags() const { return QC_NO_FLAGS; } \
+   DLLLOCAL virtual int64 getFunctionality() const { return QDOM_DEFAULT; } \
    DLLLOCAL virtual UserVariantBase *getUserVariantBase() { return static_cast<UserVariantBase *>(this); } \
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const { return const_cast<UserSignature *>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); } \
@@ -411,7 +413,7 @@ protected:
 
    // if true means all variants have the same return value
    bool same_return_type;
-   int unique_functionality;
+   int64 unique_functionality;
 
    // convenience function for returning the first variant in the list
    DLLLOCAL const AbstractQoreFunctionVariant *first() const {
@@ -448,7 +450,7 @@ protected:
       if (same_return_type && !vlist.empty() && variant->getReturnTypeInfo() != first()->getReturnTypeInfo())
 	 same_return_type = false;
 
-      int vf = variant->getFunctionality();
+      int64 vf = variant->getFunctionality();
       if (vlist.empty())
 	 unique_functionality = vf;
       else {
@@ -493,7 +495,7 @@ public:
       return vlist.singular() ? first()->getSignature() : 0;
    }
 
-   DLLLOCAL int getUniqueFunctionality() const {
+   DLLLOCAL int64 getUniqueFunctionality() const {
       return unique_functionality;
    }
 

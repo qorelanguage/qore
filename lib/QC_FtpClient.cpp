@@ -394,7 +394,7 @@ QoreClass *initFtpClientClass() {
    CID_FTPCLIENT = QC_FTPCLIENT->getID();
 
    QC_FTPCLIENT->setConstructor(FC_constructor);
-   QC_FTPCLIENT->setConstructorExtended(FC_constructor_str, false, QDOM_DEFAULT, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->setConstructorExtended(FC_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->setDestructor((q_destructor_t)FC_destructor);
 
@@ -406,14 +406,14 @@ QoreClass *initFtpClientClass() {
    QC_FTPCLIENT->addMethod("pwd",                   (q_method_t)FC_pwd);
    QC_FTPCLIENT->addMethod("cwd",                   (q_method_t)FC_cwd);
 
-   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str, false, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str_str, false, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->addMethod("getAsString",           (q_method_t)FC_getAsString);
    QC_FTPCLIENT->addMethod("getAsBinary",           (q_method_t)FC_getAsBinary);
 
-   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str, false, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str_str, false, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->addMethod("del",                   (q_method_t)FC_del);
    QC_FTPCLIENT->addMethod("setUserName",           (q_method_t)FC_setUserName);

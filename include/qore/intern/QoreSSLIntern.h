@@ -26,24 +26,24 @@
 #define _QORE_QORESSLINTERN_H
 
 class QoreBIO {
-   protected:
-      BIO *b;
+protected:
+   BIO *b;
 
-      DLLLOCAL QoreBIO(BIO *n_b) : b(n_b) {}
+   DLLLOCAL QoreBIO(BIO *n_b) : b(n_b) {}
 
-   public:
-      DLLLOCAL ~QoreBIO() { if (b) BIO_free(b); }
-      DLLLOCAL int writePEMX509(X509 *cert) { return PEM_write_bio_X509(b, cert); }
-      DLLLOCAL long getMemData(char **buf) { return BIO_get_mem_data(b, buf); }
-      DLLLOCAL X509 *getX509(X509 **x) { return d2i_X509_bio(b, x); }
-      DLLLOCAL BIO *getBIO() { return b; }
+public:
+   DLLLOCAL ~QoreBIO() { if (b) BIO_free(b); }
+   DLLLOCAL int writePEMX509(X509 *cert) { return PEM_write_bio_X509(b, cert); }
+   DLLLOCAL long getMemData(char **buf) { return BIO_get_mem_data(b, buf); }
+   DLLLOCAL X509 *getX509(X509 **x) { return d2i_X509_bio(b, x); }
+   DLLLOCAL BIO *getBIO() { return b; }
 };
 
 class QoreMemBIO : public QoreBIO {
-   public:
-      DLLLOCAL QoreMemBIO() : QoreBIO(BIO_new(BIO_s_mem())) {}
-      DLLLOCAL QoreMemBIO(const BinaryNode *b) : QoreBIO(BIO_new_mem_buf((void *)b->getPtr(), (int)b->size())) {}
-      DLLLOCAL QoreMemBIO(const QoreString *str) : QoreBIO(BIO_new_mem_buf((void *)str->getBuffer(), (int)str->strlen())) {}
+public:
+   DLLLOCAL QoreMemBIO() : QoreBIO(BIO_new(BIO_s_mem())) {}
+   DLLLOCAL QoreMemBIO(const BinaryNode *b) : QoreBIO(BIO_new_mem_buf((void *)b->getPtr(), (int)b->size())) {}
+   DLLLOCAL QoreMemBIO(const QoreString *str) : QoreBIO(BIO_new_mem_buf((void *)str->getBuffer(), (int)str->strlen())) {}
 };
 
 #endif
