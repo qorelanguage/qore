@@ -248,9 +248,16 @@ public:
       return 0;
    }
 
-   // lock not already held
+   // lock not held on entry
    DLLLOCAL void doDeleteIntern(ExceptionSink *xsink) {
       printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);   
+
+      // increment reference count for destructor
+      {
+	 AutoLocker slr(ref_mutex);
+	 ++obj->references;
+      }
+
       theclass->execDestructor(obj, xsink);
 
       QoreHashNode *td;
@@ -263,6 +270,8 @@ public:
 	 data = 0;
       }
       cleanup(xsink, td);
+
+      obj->deref(xsink);
    }
 
    DLLLOCAL void cleanup(ExceptionSink *xsink, QoreHashNode *td) {
@@ -642,6 +651,7 @@ void QoreObject::deleteBlockerRef() const {
 #ifdef QORE_DEBUG_OBJ_REFS
    printd(QORE_DEBUG_OBJ_REFS, "QoreObject::deleteBlockerRef() this=%p class=%s references %d->%d\n", this, getClassName(), references, references + 1);
 #endif
+   AutoLocker al(priv->ref_mutex);
    ++references;
 }
 
@@ -667,6 +677,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
 
       SafeLocker sl(priv->mutex);
 
+      // if the destructor has already been run, then just run tDeref()
       if (priv->in_destructor || priv->status != OS_OK) {
 	 sl.unlock();
 	 tDeref();
@@ -682,7 +693,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
 	    return;
 	 }
       }
-
+      
       priv->in_destructor = true;
 
       //printd(5, "QoreObject::derefImpl() class=%s this=%p going out of scope\n", getClassName(), this);
@@ -694,8 +705,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
    }
 
    priv->doDeleteIntern(xsink);
-
-   tDeref();
+   //tDeref();
 }
 
 // this method is called when there is an exception in a constructor and the object should be deleted

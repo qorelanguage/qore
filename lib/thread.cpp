@@ -1213,6 +1213,7 @@ namespace {
       // run any cleanup functions
       tclist.exec();
 
+      //printd(5, "deleting thread params %p\n", btp);
       delete btp;
 
       pthread_exit(0);
@@ -1243,8 +1244,8 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
       return 0;
    }
 
-   //printd(5, "creating BGThreadParams(%p, %d)\n", *nl, tid);
    BGThreadParams *tp = new BGThreadParams(nl.release(), tid, xsink);
+   //printd(5, "created BGThreadParams(%p, %d) = %p\n", *nl, tid, tp);
    if (*xsink) {
       deregister_thread(tid);
       return 0;

@@ -34,6 +34,8 @@ DLLLOCAL Sequence classIDSeq;
 static inline const char *pubpriv(bool priv) { return priv ? "private" : "public"; }
 
 typedef std::map<const char*, QoreMethod *, class ltstr> hm_method_t;
+//#include <qore/safe_map>
+//typedef safe_map<const char*, QoreMethod *, class ltstr> hm_method_t;
 
 // FIXME: check private method variant access at runtime
 
@@ -112,22 +114,14 @@ struct qore_class_private {
    DLLLOCAL ~qore_class_private() {
       //printd(5, "QoreClass::~QoreClass() deleting %p %s\n", this, name);
 
-      hm_method_t::iterator i = hm.begin();
-      while (i != hm.end()) {
-	 const QoreMethod *m = i->second;
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
 	 //printd(5, "QoreClass::~QoreClass() deleting method %p %s::%s()\n", m, name, m->getName());
-	 hm.erase(i);
-	 i = hm.begin();
-	 delete m;
+	 delete i->second;
       }      
 
-      i = shm.begin();
-      while (i != shm.end()) {
-	 const QoreMethod *m = i->second;
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
 	 //printd(5, "QoreClass::~QoreClass() deleting static method %p %s::%s()\n", m, name, m->getName());
-	 shm.erase(i);
-	 i = shm.begin();
-	 delete m;
+	 delete i->second;
       }
 
       free(name);
