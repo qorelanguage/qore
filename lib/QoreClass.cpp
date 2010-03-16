@@ -34,8 +34,6 @@ DLLLOCAL Sequence classIDSeq;
 static inline const char *pubpriv(bool priv) { return priv ? "private" : "public"; }
 
 typedef std::map<const char*, QoreMethod *, class ltstr> hm_method_t;
-//#include <qore/safe_map>
-//typedef safe_map<const char*, QoreMethod *, class ltstr> hm_method_t;
 
 // FIXME: check private method variant access at runtime
 
