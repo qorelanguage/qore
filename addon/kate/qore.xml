@@ -28,7 +28,7 @@
    - submit to the KDE project
    
 -->
-<language name="Qore" version="0.4" kateversion="2.3" section="Scripts" extensions="*.q" mimetype="application/x-qore;text/x-qore" author="Helmut Wollmersdorfer (helmut@wollmersdorfer.at)" license="LGPL">
+<language name="Qore" version="0.4" kateversion="2.3" section="Scripts" extensions="*.q;*qc;*.ql;*qsd" mimetype="application/x-qore;text/x-qore" author="Helmut Wollmersdorfer (helmut@wollmersdorfer.at)" license="LGPL">
   <highlighting>
     <list name="keywords">
       <item> switch </item>
@@ -268,8 +268,6 @@
     <contexts>
       <context name="normal" attribute="Normal Text" lineEndContext="#stay">
         <RegExpr attribute="Keyword" context="#stay" String="^#!\/.*" />
-        <RegExpr attribute="Keyword" context="data_handle" String="^__DATA__" />
-        <RegExpr attribute="Keyword" context="#stay" String="^__END__" />
         <RegExpr attribute="Keyword" context="sub_name_def" String="\bsub\s+" />
         <keyword attribute="Keyword" context="#stay" String="keywords" />
         <keyword attribute="Operator" context="#stay" String="operators" />
@@ -301,10 +299,10 @@
         <RegExpr attribute="Normal Text" context="#stay" String="\w+[=]" />
 
         <RegExpr attribute="Operator" context="find_quoted" String="\bq(?=[qwx]?\s*[^\w\s])" />
-        <RegExpr attribute="Operator" context="find_subst" String="\bs(?=\s*[^\w\s])" />
-        <RegExpr attribute="Operator" context="tr" String="\b(?:tr|y)\s*(?=[^\w\s])" />
+        <RegExpr attribute="Operator" context="find_subst" String="\bs(?=\s*[^\w\s\]})])" />
+        <RegExpr attribute="Operator" context="tr" String="\b(?:tr|y)\s*(?=[^\w\s\]})])" />
 
-        <RegExpr attribute="Operator" context="find_pattern" String="\b(?:m|qr)(?=\s*[^\w\s])" />
+        <RegExpr attribute="Operator" context="find_pattern" String="\b(?:m|qr)(?=\s*[^\w\s\]})])" />
 
         <RegExpr attribute="Normal Text" context="#stay" String="[\w_]+\s*/" />
         <RegExpr attribute="Normal Text" context="#stay" String="[&lt;&gt;&quot;':]/" />
@@ -352,6 +350,7 @@
 
       <!-- ====== Contexts for strings ===== -->
       <context name="ipstring_internal" attribute="String (interpolated)" lineEndContext="#stay">
+        <DetectIdentifier />
         <RegExpr attribute="String Special Character" context="#stay" String="\\[UuLlEtnaefr]" />
         <RegExpr attribute="String (interpolated)" context="#stay" String="\\." />
         <RegExpr attribute="Normal Text" context="find_variable_unsafe" String="(?:[\$@]\S|%[\w{])" lookAhead="true" />
@@ -484,8 +483,8 @@
         <IncludeRules context="regex_pattern_internal_ip" />
       </context>
       <context name="subst_slash_replace" attribute="String (interpolated)" lineEndContext="#stay" dynamic="true">
-        <IncludeRules context="ipstring_internal" />
         <RegExpr attribute="Operator" context="#pop#pop#pop" String="%1[cegimosx]*" dynamic="true" endRegion="Replacement" />
+        <IncludeRules context="ipstring_internal" />
       </context>
 
       <context name="subst_sq_pattern" attribute="Pattern" lineEndContext="#stay">
@@ -614,18 +613,26 @@
 
       <!-- ====== Word lists ====== -->
       <context name="quote_word" attribute="Normal Text" lineEndContext="#stay" dynamic="true">
+        <DetectSpaces />
+        <DetectIdentifier />
         <RegExpr attribute="Normal Text" context="#stay" String="\\%1" dynamic="true" />
         <DetectChar attribute="Operator" context="#pop#pop#pop" char="1" dynamic="true" endRegion="Wordlist" />
       </context>
       <context name="quote_word_paren" attribute="Normal Text" lineEndContext="#stay">
+        <DetectSpaces />
+        <DetectIdentifier />
         <Detect2Chars attribute="Normal Text" context="#stay" char="\" char1=")" />
         <DetectChar attribute="Operator" context="#pop#pop#pop" char=")" endRegion="Wordlist" />
       </context>
       <context name="quote_word_brace" attribute="Normal Text" lineEndContext="#stay">
+        <DetectSpaces />
+        <DetectIdentifier />
         <Detect2Chars attribute="Normal Text" context="#stay" char="\" char1="}" />
         <DetectChar attribute="Operator" context="#pop#pop#pop" char="}" endRegion="Wordlist" />
       </context>
       <context name="quote_word_bracket" attribute="Normal Text" lineEndContext="#stay">
+        <DetectSpaces />
+        <DetectIdentifier />
         <Detect2Chars attribute="Normal Text" context="#stay" char="\" char1="]" />
         <DetectChar attribute="Operator" context="#pop#pop#pop" char="]" endRegion="Wordlist" />
       </context>
