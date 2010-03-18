@@ -465,9 +465,12 @@ public:
 
    //! sets the deleteBlocker method for the class
    /** this method will be run when the object is deleted; it should be set only for classes where
-       the objects' lifecycles are or may be managed externally.
+       the objects' lifecycles are or may be managed externally.  This function must be called before
+       this class is added as a parent class to any other class; if it is called classes have added
+       this class as a parent class, then the child classes will not have their delete blocker flag
+       set.
        @param m the deleteBlocker method to set
-       @note delete blocker methods are called with the object's atomic reference lock held, therefore be very careful what you call from within the deleteBlocker function
+       @note delete blocker methods are called with the object's status lock held, therefore be very careful what you call from within the deleteBlocker function
    */
    DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
 

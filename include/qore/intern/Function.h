@@ -445,12 +445,6 @@ protected:
       return *(pending_vlist.begin());
    }
 
-   // convenience function for returning the first variant in the list
-   DLLLOCAL AbstractQoreFunctionVariant *pending_first() {
-      assert(!pending_vlist.empty());
-      return *(pending_vlist.begin());
-   }
-
    // returns 0 for OK, -1 for error
    DLLLOCAL int parseCheckDuplicateSignatureCommitted(UserVariantBase *variant);
 
@@ -571,6 +565,12 @@ public:
    DLLLOCAL const AbstractQoreFunctionVariant *findVariant(const QoreListNode *args, bool only_user, ExceptionSink *xsink) const;
 
    DLLLOCAL const AbstractQoreFunctionVariant *runtimeFindVariant(const type_vec_t &argTypeList, bool only_user = false) const;
+
+   // convenience function for returning the first variant in the list
+   DLLLOCAL AbstractQoreFunctionVariant *pending_first() {
+      assert(!pending_vlist.empty());
+      return *(pending_vlist.begin());
+   }
 };
 
 class AbstractReferencedFunction : public AbstractQoreFunction, protected QoreReferenceCounter {

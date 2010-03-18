@@ -853,14 +853,34 @@ struct qore_method_private {
 
       //printd(0, "qore_method_private::parseInit() this=%p %s::%s() func=%p\n", this, parent_class->getName(), func->getName(), func);
 
-      if (!strcmp(func->getName(), "constructor"))
+      const char *name = func->getName();
+
+      if (!strcmp(name, "constructor"))
 	 CONMF(func)->parseInitConstructor(*parent_class, parent_class->priv->scl);
-      else if (!strcmp(func->getName(), "destructor"))
+      else if (!strcmp(name, "destructor"))
 	 DESMF(func)->parseInitDestructor(*parent_class);
-      else if (!strcmp(func->getName(), "copy"))
+      else if (!strcmp(name, "copy"))
 	 COPYMF(func)->parseInitCopy(*parent_class);
-      else
+      else {
 	 METHF(func)->parseInitMethod(*parent_class, false);
+
+	 if ((!strcmp(name, "methodGate")
+	      || !strcmp(name, "memberGate")
+	      || !strcmp(name, "memberNotification"))
+	     && !func->pendingEmpty()) {
+	    // ensure that there is no more than one parameter declared, and if it
+	    // has a type, it must be a string
+	    UserSignature *sig = UMV(func->pending_first())->getUserSignature();
+	    const QoreTypeInfo *t = sig->getParamTypeInfo(0);
+	    if (stringTypeInfo->parseEqual(t) == QTI_NOT_EQUAL) {
+	       QoreStringNode *desc = new QoreStringNode;
+	       desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
+	       t->getThisType(*desc);
+	       desc->concat(" is not compatible with 'string'");
+	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    }
+	 }
+      }
    }
 
    DLLLOCAL void parseInitStatic() {
@@ -2416,7 +2436,7 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
    std::auto_ptr<MethodVariantBase> func(f);
 
    bool dst = !strcmp(mname, "destructor");
-   bool con = !strcmp(mname, "constructor");
+   bool con = dst ? false : !strcmp(mname, "constructor");
 
    // check for illegal static method
    if (n_static && (con || dst || checkSpecialStaticIntern(mname))) {
@@ -2424,15 +2444,25 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
       return -1;
    }
 
-   bool cpy = !strcmp(mname, "copy");
+   bool cpy = dst || con ? false : !strcmp(mname, "copy");
    // check for illegal method overloads
    if (sys && (con || cpy)) {
       parseException("ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name, mname);
       return -1;
    }
 
+   // set flags for other special methods
+   bool methGate, memGate, memberNotification;
+   if (dst || con || cpy)
+      methGate = memGate = memberNotification = false;
+   else {
+      methGate = !strcmp(mname, "methodGate");
+      memGate = methGate ? false : !strcmp(mname, "memberGate");
+      memberNotification = methGate || memGate ? false : !strcmp(mname, "memberNotification");
+   }
+
    QoreMethod *m = const_cast<QoreMethod *>(!n_static ? parseFindMethod(mname) : parseFindStaticMethod(mname));
-   if (!n_static && m && (dst || cpy)) {
+   if (!n_static && m && (dst || cpy || methGate || memGate || memberNotification)) {
       parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
    }

@@ -1,7 +1,4 @@
-* implement thread-safe map template class, can be read from multiple threads without locking as long as writes are locked and there are never any deletes (write-only list)
 * implement methods to run on lists, hashes, and strings as if they were classes (ex: <hash>.lastKey(), etc)
-* implement thread-safe map class, guaranteed to be safe for reading from multiple threads if writes are locked and there are no deletes
-* ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this: $exp.Base::method()
 * implement support for universal references - removed checking for passing a reference to user code with declared param
@@ -45,6 +42,8 @@
 * implement GZFile and BZFile classes
 
 done 0.8.0:
+* fixed class copying in subprograms; subprograms can no longer modify parent classes
+* ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures
 * implemented "extract" operator like splice but returns list elements or characters removed from lists and strings
 * implemented "remove" operator like delete but does not destroy objects and also returns value removed from lvalue
 * made "delete" an operator instead of a statement
