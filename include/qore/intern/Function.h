@@ -558,6 +558,10 @@ public:
       return vlist.empty();
    }
 
+   DLLLOCAL bool pendingEmpty() const {
+      return pending_vlist.empty();
+   }
+
    DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant *variant);
 
    DLLLOCAL bool existsVariant(const type_vec_t &paramTypeInfo) const;

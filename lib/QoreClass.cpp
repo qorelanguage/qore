@@ -77,7 +77,8 @@ struct qore_class_private {
       has_public_memdecl,           // has a public member declaration somewhere in the hierarchy?
       pending_has_public_memdecl,   // has a pending public member declaration in this class?
       owns_typeinfo,                // do we own the typeinfo data or not?
-      resolve_copy_done             // has the copy already been resolved
+      resolve_copy_done,            // has the copy already been resolved
+      has_new_user_changes          // does the class have new user code that needs to be processed?
       ;
    int64 domain;                      // capabilities of builtin class to use in the context of parse restrictions
    QoreReferenceCounter nref;       // namespace references
@@ -113,6 +114,7 @@ struct qore_class_private {
 	pending_has_public_memdecl(false),
 	owns_typeinfo(n_typeInfo ? false : true),
 	resolve_copy_done(false),
+	has_new_user_changes(false),
 	domain(dom), 
 	num_methods(0), 
 	num_user_methods(0),
@@ -147,6 +149,7 @@ struct qore_class_private {
 	pending_has_public_memdecl(false),
 	owns_typeinfo(false),
 	resolve_copy_done(false),
+	has_new_user_changes(false),
 	domain(old.domain), 
 	num_methods(old.num_methods), 
 	num_user_methods(old.num_user_methods),
@@ -512,6 +515,9 @@ struct qore_class_private {
 
    DLLLOCAL void parseAddPrivateMember(char *mem, QoreMemberInfo *memberInfo) {
       if (!parseCheckMember(mem, memberInfo->parseHasTypeInfo(), true)) {
+	 if (!has_new_user_changes)
+	    has_new_user_changes = true;
+
 	 //printd(5, "QoreClass::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
 	 pending_private_members[mem] = memberInfo;
 	 return;
@@ -523,6 +529,9 @@ struct qore_class_private {
 
    DLLLOCAL void parseAddPublicMember(char *mem, QoreMemberInfo *memberInfo) {
       if (!parseCheckMember(mem, memberInfo->parseHasTypeInfo(), false)) {
+	 if (!has_new_user_changes)
+	    has_new_user_changes = true;
+
 	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name, mem, mem);
 	 pending_public_members[mem] = memberInfo;
 	 if (!pending_has_public_memdecl)
@@ -1050,50 +1059,64 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 void qore_class_private::parseCommit() {
    //printd(5, "qore_class_private::parseCommit() %s this=%p cls=%p hm.size=%d\n", name, this, cls, hm.size());
    
-   // commit pending "normal" (non-static) method variants
-   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      bool is_new = i->second->priv->func->committedEmpty();
-      i->second->priv->func->parseCommitMethod();
-      if (is_new) {
-	 checkAssignSpecial(i->second);
-	 ++num_methods;
-	 ++num_user_methods;
+   if (has_new_user_changes) {
+      // commit pending "normal" (non-static) method variants
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+	 bool is_new = i->second->priv->func->committedEmpty();
+	 i->second->priv->func->parseCommitMethod();
+	 if (is_new) {
+	    checkAssignSpecial(i->second);
+	    ++num_methods;
+	    ++num_user_methods;
+	 }
       }
-   }
 
-   // commit pending static method variants
-   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
-      bool is_new = i->second->priv->func->committedEmpty();
-      i->second->priv->func->parseCommitMethod();
-      if (is_new) {
-	 ++num_static_methods;
-	 ++num_static_user_methods;
+      // commit pending static method variants
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+	 bool is_new = i->second->priv->func->committedEmpty();
+	 i->second->priv->func->parseCommitMethod();
+	 if (is_new) {
+	    ++num_static_methods;
+	    ++num_static_user_methods;
+	 }
       }
-   }
 
-   // add all pending private members to real member list
-   member_map_t::iterator j = pending_private_members.begin();  
-   while (j != pending_private_members.end()) { 
-      //printd(5, "QoreClass::parseCommit() %s committing private member %p %s\n", name, j->first, j->first);
-      private_members[j->first] = j->second;
-      pending_private_members.erase(j);
-      j = pending_private_members.begin();
-   }
+      // add all pending private members to real member list
+      member_map_t::iterator j = pending_private_members.begin();  
+      while (j != pending_private_members.end()) { 
+	 //printd(5, "QoreClass::parseCommit() %s committing private member %p %s\n", name, j->first, j->first);
+	 private_members[j->first] = j->second;
+	 pending_private_members.erase(j);
+	 j = pending_private_members.begin();
+      }
    
-   // add all pending public members to real member list
-   member_map_t::iterator k = pending_public_members.begin();  
-   while (k != pending_public_members.end()) { 
-      //printd(5, "QoreClass::parseCommit() %s committing public member %p %s\n", name, j->first, j->first);
-      public_members[k->first] = k->second;
-      pending_public_members.erase(k);
-      k = pending_public_members.begin();
-   }
+      // add all pending public members to real member list
+      member_map_t::iterator k = pending_public_members.begin();  
+      while (k != pending_public_members.end()) { 
+	 //printd(5, "QoreClass::parseCommit() %s committing public member %p %s\n", name, j->first, j->first);
+	 public_members[k->first] = k->second;
+	 pending_public_members.erase(k);
+	 k = pending_public_members.begin();
+      }
    
-   if (pending_has_public_memdecl) {
-      if (!has_public_memdecl)
-	 has_public_memdecl = true;
-      pending_has_public_memdecl = false;
+      if (pending_has_public_memdecl) {
+	 if (!has_public_memdecl)
+	    has_public_memdecl = true;
+	 pending_has_public_memdecl = false;
+      }
+      has_new_user_changes = false;
    }
+#ifdef DEBUG
+   else {
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+	 assert(i->second->priv->func->pendingEmpty());
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
+	 assert(i->second->priv->func->pendingEmpty());
+      assert(pending_private_members.empty());
+      assert(pending_public_members.empty());
+      assert(!pending_has_public_memdecl);
+   }
+#endif
 
    // we check base classes if they have public members if we don't have any
    // it's safe to call parseHasPublicMembersInHierarchy() because the 2nd stage
@@ -1774,6 +1797,15 @@ void QoreClass::parseRollback() {
 }
 
 void qore_class_private::parseRollback() {
+   if (!has_new_user_changes) {
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e;)
+	 assert(i->second->priv->func->pendingEmpty());
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e;)
+	 assert(i->second->priv->func->pendingEmpty());
+      assert(!pending_has_public_memdecl);
+      return;
+   }
+
    // rollback pending "normal" (non-static) method variants
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e;) {
       // if there are no committed variants, then the method must be deleted
@@ -1802,6 +1834,8 @@ void qore_class_private::parseRollback() {
 
    if (pending_has_public_memdecl)
       pending_has_public_memdecl = false;
+
+   has_new_user_changes = false;
 }
 
 QoreMethod::QoreMethod(const QoreClass *n_parent_class, MethodFunctionBase *n_func, bool n_static) : priv(new qore_method_private(n_parent_class, n_func, n_static)) {
@@ -2403,6 +2437,11 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
       return -1;
    }
 
+   // now we add the new variant to a method, creating the method if necessary
+
+   if (!has_new_user_changes)
+      has_new_user_changes = true;
+
    bool is_new = false;
    // if the method does not exist, then create it
    if (!m) {
@@ -2659,6 +2698,9 @@ void QoreClass::parseInit() {
 void qore_class_private::parseInit() {
    setParseClass(cls);
    initialize();
+
+   if (!has_new_user_changes)
+      return;
 
    // initialize methods
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {

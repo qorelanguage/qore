@@ -653,7 +653,7 @@ public:
    DLLLOCAL BuiltinSystemConstructor(const QoreClass *n_qc, q_system_constructor_t m) : BuiltinSystemConstructorBase(n_qc), system_constructor(m) {
    }
 
-   DLLLOCAL BuiltinSystemConstructor(const BuiltinSystemConstructor &old, const QoreClass *n_qc) : BuiltinSystemConstructorBase(old, n_qc) {
+   DLLLOCAL BuiltinSystemConstructor(const BuiltinSystemConstructor &old, const QoreClass *n_qc) : BuiltinSystemConstructorBase(old, n_qc), system_constructor(old.system_constructor) {
    }
 
    DLLLOCAL virtual void eval(const QoreClass &thisclass, QoreObject *self, int code, va_list args) const {
@@ -673,7 +673,7 @@ public:
    DLLLOCAL BuiltinSystemConstructor2(const QoreClass *n_qc, q_system_constructor2_t m) : BuiltinSystemConstructorBase(n_qc), system_constructor(m) {
    }
 
-   DLLLOCAL BuiltinSystemConstructor2(const BuiltinSystemConstructor2 &old, const QoreClass *n_qc) : BuiltinSystemConstructorBase(old, n_qc) {
+   DLLLOCAL BuiltinSystemConstructor2(const BuiltinSystemConstructor2 &old, const QoreClass *n_qc) : BuiltinSystemConstructorBase(old, n_qc), system_constructor(old.system_constructor) {
    }
 
    DLLLOCAL virtual void eval(const QoreClass &thisclass, QoreObject *self, int code, va_list args) const {
@@ -711,7 +711,7 @@ public:
    DLLLOCAL BuiltinDeleteBlocker(q_delete_blocker_t m) : BuiltinMethod(0, "<delete_blocker>"), delete_blocker(m) {
    }   
 
-   DLLLOCAL BuiltinDeleteBlocker(const BuiltinDeleteBlocker &old, const QoreClass *n_qc) : BuiltinMethod(old, n_qc) {
+   DLLLOCAL BuiltinDeleteBlocker(const BuiltinDeleteBlocker &old, const QoreClass *n_qc) : BuiltinMethod(old, n_qc), delete_blocker(old.delete_blocker) {
    }
 
    DLLLOCAL bool eval(QoreObject *self, AbstractPrivateData *private_data) const {
