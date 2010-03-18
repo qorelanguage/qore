@@ -1,3 +1,7 @@
+2010.03.18: David Nichols
+	 * fixed a problem resolving method variants in derived classes at
+	   parse time
+
 2010.03.17: David Nichols
 	 * updated program creation to copy all classes in all namespaces so
 	   that changes to classes in child programs do not affect the parent

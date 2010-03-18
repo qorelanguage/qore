@@ -137,7 +137,7 @@ struct qore_class_private {
 	copyMethod(0),
 	methodGate(0),
 	memberGate(0),
-	deleteBlocker(0),
+	deleteBlocker(old.deleteBlocker ? old.deleteBlocker->copy(cls) : 0),
 	memberNotification(0),
 	classID(old.classID),
 	methodID(old.methodID),
@@ -157,7 +157,7 @@ struct qore_class_private {
 	ptr(old.ptr),
 	new_copy(0) {
       QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private &old)");
-      printd(5, "qore_class_private::qore_class_private() creating copy of '%s' ID:%d this=%p cls=%p)\n", name, classID, this, cls);
+      printd(5, "qore_class_private::qore_class_private() creating copy of '%s' ID:%d this=%p cls=%p old=%p\n", name, classID, this, cls, old.cls);
 
       if (!old.initialized)
 	 const_cast<qore_class_private &>(old).initialize();
@@ -612,6 +612,7 @@ struct qore_class_private {
    }
 
    DLLLOCAL void parseAddAncestors(QoreMethod *m) {
+      //printd(5, "qore_class_private::parseAddAncestors(%p %s) this=%p cls=%p %s scl=%p\n", m, m->getName(), this, cls, name, scl);
       assert(strcmp(m->getName(), "constructor"));
 
       if (!scl)
@@ -924,6 +925,22 @@ void qore_class_private::initialize() {
       if (!sys && domain & getProgram()->getParseOptions())
 	 parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name);
 
+      // setup inheritance list for new methods
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+	 bool is_new = i->second->priv->func->committedEmpty();
+	 if (is_new) {
+	    if (!checkSpecial(i->second->getName()))
+	       parseAddAncestors(i->second);
+	 }
+      }
+
+      // setup inheritance list for new static methods
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+	 bool is_new = i->second->priv->func->committedEmpty();
+	 if (is_new)
+	    parseAddStaticAncestors(i->second);
+      }
+
       {
 	 SelfLocalVarParseHelper slvph(&selfid);
 	 // initialize new private members
@@ -1031,17 +1048,14 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 }
 
 void qore_class_private::parseCommit() {
-   //printd(5, "qore_class_private::parseCommit() %s this=%p hm.size=%d\n", name, this, hm.size());
-
+   //printd(5, "qore_class_private::parseCommit() %s this=%p cls=%p hm.size=%d\n", name, this, cls, hm.size());
+   
    // commit pending "normal" (non-static) method variants
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       bool is_new = i->second->priv->func->committedEmpty();
       i->second->priv->func->parseCommitMethod();
-      //printd(5, "qore_class_private::parseCommit() %s this=%p processing method %s(), is_new=%d\n", name, this, i->second->getName(), is_new);
       if (is_new) {
-	 if (!checkAssignSpecial(i->second))
-	    parseAddAncestors(i->second);
-
+	 checkAssignSpecial(i->second);
 	 ++num_methods;
 	 ++num_user_methods;
       }
@@ -1052,7 +1066,6 @@ void qore_class_private::parseCommit() {
       bool is_new = i->second->priv->func->committedEmpty();
       i->second->priv->func->parseCommitMethod();
       if (is_new) {
-	 parseAddStaticAncestors(i->second);
 	 ++num_static_methods;
 	 ++num_static_user_methods;
       }
@@ -1561,6 +1574,8 @@ void BCList::parseAddAncestors(QoreMethod *m) {
       QoreClass *qc = (*i)->sclass;
       assert(qc);
       const QoreMethod *w = qc->priv->parseFindLocalMethod(name);
+      //printd(5, "BCList::parseAddAncestors(%p %s) this=%p qc=%p w=%p\n", m, m->getName(), this, qc, w);
+
       if (w)
 	 m->getFunction()->addAncestor(w->getFunction());
 
@@ -1660,6 +1675,8 @@ const QoreExternalMethodVariant *QoreClass::findUserMethodVariant(const char *na
 void QoreClass::setName(const char *n) {
    assert(!priv->name);
    priv->name = strdup(n);
+
+   //printd(5, "QoreClass::setName() this=%p %s\n", this, n);
 }
 
 bool QoreClass::hasCopy() const {

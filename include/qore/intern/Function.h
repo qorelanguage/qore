@@ -420,8 +420,7 @@ protected:
    // list of pending user-code function variants
    VList pending_vlist;
 
-   // list of inherited methods for variant matching; the first pointer
-   // is always a pointer to this
+   // list of inherited methods for variant matching; the first pointer is always a pointer to "this"
    ilist_t ilist;
 
    // if true means all variants have the same return value
@@ -582,6 +581,8 @@ public:
 };
 
 class MethodVariantBase;
+class MethodFunctionBase;
+#define METHFB(f) (reinterpret_cast<MethodFunctionBase *>(f))
 
 class MethodFunctionBase : public AbstractQoreFunction {
 protected:
@@ -615,14 +616,14 @@ public:
 
    DLLLOCAL void resolveCopy() {
       for (ilist_t::iterator i = ilist.begin(), e = ilist.end(); i != e; ++i) {
+         MethodFunctionBase *mfb = METHFB(*i);
 #ifdef DEBUG
-         if (!reinterpret_cast<MethodFunctionBase *>(*i)->new_copy) {
-            const QoreClass *nqc = reinterpret_cast<MethodFunctionBase *>(*i)->qc;
-            printd(0, "error resolving %p %s::%s() base method %p %s::%s() nas no new method pointer\n", qc, qc->getName(), getName(), nqc, nqc->getName(), getName());
-         }
-         assert(reinterpret_cast<MethodFunctionBase *>(*i)->new_copy);
+         if (!mfb->new_copy)
+            printd(0, "error resolving %p %s::%s() base method %p %s::%s() nas no new method pointer\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName());
+         assert(mfb->new_copy);
+         //printd(5, "resolving %p %s::%s() base method %p %s::%s() from %p -> %p\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName(), mfb, mfb->new_copy);
 #endif
-         *i = reinterpret_cast<MethodFunctionBase *>(*i)->new_copy;         
+         *i = mfb->new_copy;         
       }
    }
 
@@ -653,8 +654,6 @@ public:
       delete this;
    }
 };
-
-#define METHFB(f) (reinterpret_cast<MethodFunctionBase *>(f))
 
 class UserFunction : public AbstractReferencedFunction {
 protected:
