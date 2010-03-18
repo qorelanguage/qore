@@ -155,10 +155,11 @@ protected:
    // base class argument list for constructors
    BCAList *bcal;
 
+   DLLLOCAL virtual ~UserConstructorVariant();
+
 public:
    DLLLOCAL UserConstructorVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *n_bcal) : ConstructorMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, 0, false), bcal(n_bcal) {
    }
-   DLLLOCAL ~UserConstructorVariant();
 
    // the following defines the pure virtual functions that are common to all user variants
    COMMON_USER_VARIANT_FUNCTIONS
@@ -550,6 +551,8 @@ class MethodFunction : public MethodFunctionBase {
 public:
    DLLLOCAL MethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
    }
+   DLLLOCAL MethodFunction(const MethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
+   }
    DLLLOCAL virtual ~MethodFunction() {
    }
    DLLLOCAL virtual void parseInitMethod(const QoreClass &parent_class, bool static_flag);
@@ -568,12 +571,18 @@ class ConstructorMethodFunction : public MethodFunctionBase {
 public:
    DLLLOCAL ConstructorMethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
    }
+   DLLLOCAL ConstructorMethodFunction(const ConstructorMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
+   }
    DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
    DLLLOCAL virtual const char *getName() const {
       return "constructor";
    }
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant *variant, const QoreClass &thisclass, QoreObject *self, const QoreListNode *args, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new ConstructorMethodFunction(*this, n_qc);
+   }
 };
 
 #define CONMF(f) (reinterpret_cast<ConstructorMethodFunction *>(f))
@@ -583,11 +592,17 @@ class DestructorMethodFunction : public MethodFunctionBase {
 public:
    DLLLOCAL DestructorMethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
    }
+   DLLLOCAL DestructorMethodFunction(const DestructorMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
+   }
    DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
    DLLLOCAL virtual const char *getName() const {
       return "destructor";
    }
    DLLLOCAL void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new DestructorMethodFunction(*this, n_qc);
+   }
 };
 
 #define DESMF(f) (reinterpret_cast<DestructorMethodFunction *>(f))
@@ -597,11 +612,17 @@ class CopyMethodFunction : public MethodFunctionBase {
 public:
    DLLLOCAL CopyMethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
    }
+   DLLLOCAL CopyMethodFunction(const CopyMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
+   }
    DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
    DLLLOCAL virtual const char *getName() const {
       return "copy";
    }
    DLLLOCAL void evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, BCList *scl, ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new CopyMethodFunction(*this, n_qc);
+   }
 };
 
 #define COPYMF(f) (reinterpret_cast<CopyMethodFunction *>(f))
@@ -610,10 +631,14 @@ class BuiltinSystemConstructorBase : public MethodFunctionBase {
 public:
    DLLLOCAL BuiltinSystemConstructorBase(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
    }
+   DLLLOCAL BuiltinSystemConstructorBase(const BuiltinSystemConstructorBase &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
+   }
    DLLLOCAL const char *getName() const {
       return "<system_constructor>";
    }
    DLLLOCAL virtual void eval(const QoreClass &thisclass, QoreObject *self, int code, va_list args) const = 0;
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const = 0;
 };
 
 #define BSYSCONB(f) (reinterpret_cast<BuiltinSystemConstructorBase *>(f))
@@ -627,8 +652,16 @@ protected:
 public:
    DLLLOCAL BuiltinSystemConstructor(const QoreClass *n_qc, q_system_constructor_t m) : BuiltinSystemConstructorBase(n_qc), system_constructor(m) {
    }
+
+   DLLLOCAL BuiltinSystemConstructor(const BuiltinSystemConstructor &old, const QoreClass *n_qc) : BuiltinSystemConstructorBase(old, n_qc) {
+   }
+
    DLLLOCAL virtual void eval(const QoreClass &thisclass, QoreObject *self, int code, va_list args) const {
       system_constructor(self, code, args);
+   }
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new BuiltinSystemConstructor(*this, n_qc);
    }
 };
 
@@ -640,8 +673,15 @@ public:
    DLLLOCAL BuiltinSystemConstructor2(const QoreClass *n_qc, q_system_constructor2_t m) : BuiltinSystemConstructorBase(n_qc), system_constructor(m) {
    }
 
+   DLLLOCAL BuiltinSystemConstructor2(const BuiltinSystemConstructor2 &old, const QoreClass *n_qc) : BuiltinSystemConstructorBase(old, n_qc) {
+   }
+
    DLLLOCAL virtual void eval(const QoreClass &thisclass, QoreObject *self, int code, va_list args) const {
       system_constructor(thisclass, self, code, args);
+   }
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new BuiltinSystemConstructor2(*this, n_qc);
    }
 };
 
@@ -649,8 +689,16 @@ class BuiltinMethod : public MethodFunction, public BuiltinFunctionBase {
 public:
    DLLLOCAL BuiltinMethod(const QoreClass *n_qc, const char *mname) : MethodFunction(n_qc), BuiltinFunctionBase(mname) {
    }
+
+   DLLLOCAL BuiltinMethod(const BuiltinMethod &old, const QoreClass *n_qc) : MethodFunction(old, n_qc), BuiltinFunctionBase(old) {
+   }
+
    DLLLOCAL virtual const char *getName() const { 
       return name;
+   }
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new BuiltinMethod(*this, n_qc);
    }
 };
 
@@ -662,8 +710,16 @@ protected:
 public:
    DLLLOCAL BuiltinDeleteBlocker(q_delete_blocker_t m) : BuiltinMethod(0, "<delete_blocker>"), delete_blocker(m) {
    }   
+
+   DLLLOCAL BuiltinDeleteBlocker(const BuiltinDeleteBlocker &old, const QoreClass *n_qc) : BuiltinMethod(old, n_qc) {
+   }
+
    DLLLOCAL bool eval(QoreObject *self, AbstractPrivateData *private_data) const {
       return delete_blocker(self, private_data);
+   }
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new BuiltinDeleteBlocker(*this, n_qc);
    }
 };
 
@@ -675,14 +731,23 @@ protected:
 
    DLLLOCAL UserMethodBase(const char *mname) : name(mname) {
    }
+
+   DLLLOCAL UserMethodBase(const UserMethodBase &old) : name(old.name) {
+   }
 };
 
 class UserMethod : public MethodFunction, public UserMethodBase {
 public:
    DLLLOCAL UserMethod(const QoreClass *n_qc, const char *mname) : MethodFunction(n_qc), UserMethodBase(mname) {
    }
+   DLLLOCAL UserMethod(const UserMethod &old, const QoreClass *n_qc) : MethodFunction(old, n_qc), UserMethodBase(old) {
+   }
    DLLLOCAL virtual const char *getName() const {
       return name.c_str();
+   }
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new UserMethod(*this, n_qc);
    }
 };
 
@@ -796,55 +861,78 @@ public:
 */
 class BCANode : public FunctionCallBase {
 public:
-   QoreClass *sclass;
+   qore_classid_t classid;
+   //QoreClass *sclass;
    NamedScope *ns;
    char *name;
 
-   // this method takes ownership of n and arg
-   DLLLOCAL BCANode(NamedScope *n, QoreListNode *n_args) : FunctionCallBase(n_args), sclass(0), ns(n), name(0) {
+   // this function takes ownership of n and arg
+   DLLLOCAL BCANode(NamedScope *n, QoreListNode *n_args) : FunctionCallBase(n_args), classid(0), ns(n), name(0) {
    }
-   // this method takes ownership of n and arg
-   DLLLOCAL BCANode(char *n, QoreListNode *n_args) : FunctionCallBase(n_args), sclass(0), ns(0), name(n) {
+
+   // this function takes ownership of n and arg
+   DLLLOCAL BCANode(char *n, QoreListNode *n_args) : FunctionCallBase(n_args), classid(0), ns(0), name(n) {
    }
+
    DLLLOCAL ~BCANode() {
       delete ns;
       if (name)
 	 free(name);
    }
+
    // resolves classes, parses arguments, and attempts to find constructor variant
    DLLLOCAL void parseInit(BCList *bcl, const char *classname);
 };
 
-typedef safe_dslist<BCANode *> bcalist_t;
+//typedef safe_dslist<BCANode *> bcalist_t;
+typedef std::vector<BCANode *> bcalist_t;
 
-//  BCAList
-//  base class constructor argument list
-//  this data structure will not be modified even if the class is copied
-//  to a subprogram object
+// BCAList
+// base class constructor argument list
+// this data structure will not be modified even if the class is copied
+// to a subprogram object
 class BCAList : public bcalist_t {
 public:
-   DLLLOCAL BCAList(BCANode *n);
-   DLLLOCAL ~BCAList();
+   DLLLOCAL BCAList(BCANode *n) {
+      push_back(n);
+   }
+
+   DLLLOCAL ~BCAList() {
+      for (bcalist_t::iterator i = begin(), e = end(); i != e; ++i)
+         delete *i;
+   }
+
    // returns 0 for no errors, -1 for exception raised
    DLLLOCAL int execBaseClassConstructorArgs(BCEAList *bceal, ExceptionSink *xsink) const;
 };
 
 typedef std::pair<QoreClass *, bool> class_virt_pair_t;
-typedef std::list<class_virt_pair_t> class_list_t;
+//typedef std::list<class_virt_pair_t> class_list_t;
+typedef std::vector<class_virt_pair_t> class_list_t;
 
 // BCSMList: Base Class Special Method List
 // unique list of base classes for a class hierarchy to ensure that "special" methods, constructor(), destructor(), copy() - are executed only once
 // this class also tracks virtual classes to ensure that they are not inserted into the list in a complex tree and executed here
 class BCSMList : public class_list_t {
-   public:
-      DLLLOCAL void add(QoreClass *thisclass, QoreClass *qc, bool is_virtual);
-      DLLLOCAL void addBaseClassesToSubclass(QoreClass *thisclass, QoreClass *sc, bool is_virtual);
-      DLLLOCAL bool isBaseClass(QoreClass *qc) const;
-      DLLLOCAL QoreClass *getClass(qore_classid_t cid) const;
-      //DLLLOCAL void execConstructors(QoreObject *o, BCEAList *bceal, ExceptionSink *xsink) const;
-      DLLLOCAL void execDestructors(QoreObject *o, ExceptionSink *xsink) const;
-      DLLLOCAL void execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const;
-      DLLLOCAL void execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
+public:
+   DLLLOCAL BCSMList() {
+   }
+   DLLLOCAL BCSMList(const BCSMList &old) {
+      reserve(old.size());
+      for (class_list_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
+         push_back(*i);
+   }
+   DLLLOCAL void add(QoreClass *thisclass, QoreClass *qc, bool is_virtual);
+   DLLLOCAL void addBaseClassesToSubclass(QoreClass *thisclass, QoreClass *sc, bool is_virtual);
+   DLLLOCAL bool isBaseClass(QoreClass *qc) const;
+   DLLLOCAL QoreClass *getClass(qore_classid_t cid) const;
+   //DLLLOCAL void execConstructors(QoreObject *o, BCEAList *bceal, ExceptionSink *xsink) const;
+   DLLLOCAL void execDestructors(QoreObject *o, ExceptionSink *xsink) const;
+   DLLLOCAL void execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const;
+   DLLLOCAL void execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const;
+
+   // resolve classes to the new class pointer after all namespaces and classes have been copied
+   DLLLOCAL void resolveCopy();
 };
 
 // BCNode 
@@ -857,18 +945,31 @@ public:
    bool priv : 1;
    bool is_virtual : 1;
    
-   // FIXME: check new BCNode(...)! constructors changed
-
    DLLLOCAL BCNode(NamedScope *c, bool p) : cname(c), cstr(0), sclass(0), priv(p), is_virtual(false) {
    }
+
    // this method takes ownership of *str
    DLLLOCAL BCNode(char *str, bool p) : cname(0), cstr(str), sclass(0), priv(p), is_virtual(false) {
    }
+   
    // for builtin base classes
    DLLLOCAL BCNode(QoreClass *qc, bool n_virtual = false) 
       : cname(0), cstr(0), sclass(qc), priv(false), is_virtual(n_virtual) {
    }
-   DLLLOCAL ~BCNode();
+
+   // called at runtime with committed classes
+   DLLLOCAL BCNode(const BCNode &old) : cname(0), cstr(0), sclass(old.sclass), priv(old.priv), is_virtual(old.is_virtual) {
+      assert(!old.cname);
+      assert(!old.cstr);
+      assert(old.sclass);
+   }
+
+   DLLLOCAL ~BCNode() {
+      delete cname;
+      if (cstr)
+         free(cstr);
+   }
+
    DLLLOCAL bool isPrivate() const { return priv; }
    DLLLOCAL void parseInit(QoreClass *cls, bool &has_delete_blocker);
    DLLLOCAL const QoreClass *getClass(qore_classid_t cid, bool &n_priv) const {
@@ -883,7 +984,8 @@ public:
    }
 };
 
-typedef safe_dslist<BCNode *> bclist_t;
+//typedef safe_dslist<BCNode *> bclist_t;
+typedef std::vector<BCNode *> bclist_t;
 
 //  BCList
 //  linked list of base classes, constructors called head->tail, 
@@ -891,10 +993,8 @@ typedef safe_dslist<BCNode *> bclist_t;
 //  note that this data structure cannot be modified even if the class is
 //  copied to a subprogram object and extended
 //  this class is a QoreReferenceCounter so it won't be copied when the class is copied
-class BCList : public QoreReferenceCounter, public bclist_t {
+class BCList : public bclist_t {
 protected:
-   DLLLOCAL inline ~BCList();
-      
 public:
    // special method (constructor, destructor, copy) list for superclasses
    BCSMList sml;
@@ -902,8 +1002,21 @@ public:
    DLLLOCAL BCList(BCNode *n) {
       push_back(n);
    }
+
    DLLLOCAL BCList() {
    }
+
+   DLLLOCAL BCList(const BCList &old) : sml(old.sml) {
+      reserve(old.size());
+      for (bclist_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
+         push_back(new BCNode(*(*i)));
+   }
+
+   DLLLOCAL ~BCList() {
+      for (bclist_t::iterator i = begin(), e = end(); i != e; ++i)
+         delete *i;
+   }
+
    DLLLOCAL void parseInit(QoreClass *thisclass, bool &has_delete_blocker);
    DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *name);
 
@@ -928,8 +1041,6 @@ public:
    DLLLOCAL bool runtimeGetMemberInfo(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &priv) const;
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
    DLLLOCAL bool isPublicOrPrivateMember(const char *mem, bool &priv) const;
-   DLLLOCAL void ref() const;
-   DLLLOCAL void deref();
    DLLLOCAL const QoreClass *getClass(qore_classid_t cid, bool &priv) const {
       for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
 	 const QoreClass *qc = (*i)->getClass(cid, priv);
@@ -945,6 +1056,8 @@ public:
    DLLLOCAL void addStaticAncestors(QoreMethod *m);
    DLLLOCAL void parseAddAncestors(QoreMethod *m);
    DLLLOCAL void parseAddStaticAncestors(QoreMethod *m);
+
+   DLLLOCAL void resolveCopy();
 };
 
 // BCEANode
@@ -959,13 +1072,15 @@ public:
    DLLLOCAL BCEANode() : args(0), variant(0), execed(true) {}
 };
 
+/*
 struct ltqc {
-   bool operator()(const class QoreClass *qc1, const class QoreClass *qc2) const {
+   bool operator()(const QoreClass *qc1, const QoreClass *qc2) const {
       return qc1 < qc2;
    }
 };
+*/
 
-typedef std::map<const QoreClass *, class BCEANode *, ltqc> bceamap_t;
+typedef std::map<qore_classid_t, BCEANode *> bceamap_t;
 
 /*
   BCEAList
@@ -978,8 +1093,8 @@ protected:
 public:
    DLLLOCAL void deref(ExceptionSink *xsink);
    // evaluates arguments, returns -1 if an exception was thrown
-   DLLLOCAL int add(const QoreClass *qc, const QoreListNode *arg, const AbstractQoreFunctionVariant *variant, ExceptionSink *xsink);
-   DLLLOCAL QoreListNode *findArgs(const QoreClass *qc, bool *aexeced, const AbstractQoreFunctionVariant *&variant);
+   DLLLOCAL int add(qore_classid_t classid, const QoreListNode *arg, const AbstractQoreFunctionVariant *variant, ExceptionSink *xsink);
+   DLLLOCAL QoreListNode *findArgs(qore_classid_t classid, bool *aexeced, const AbstractQoreFunctionVariant *&variant);
 };
 
 #endif

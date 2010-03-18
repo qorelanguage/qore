@@ -1,3 +1,10 @@
+2010.03.17: David Nichols
+	 * updated program creation to copy all classes in all namespaces so
+	   that changes to classes in child programs do not affect the parent
+	   program; the previous solution with copy-on-write for classes did
+	   not work correctly as class hierarchy pointers were not updated
+	   when the classes were copied
+
 2010.03.16: David Nichols
 	 * fixed another bug in delete blocker handling for the qt4 module	 
 

@@ -115,12 +115,17 @@ protected:
 public:
    DLLLOCAL BuiltinFunctionBase(const char *n_name) : name(n_name) {
    }
+
+   DLLLOCAL BuiltinFunctionBase(const BuiltinFunctionBase &old) : name(old.name) {
+   }
 };
 
 class BuiltinFunction : public AbstractQoreFunction, public BuiltinFunctionBase {
 protected:
 public:
    DLLLOCAL BuiltinFunction(const char *nme) : BuiltinFunctionBase(nme) {
+   }
+   DLLLOCAL BuiltinFunction(const BuiltinFunction &old) : BuiltinFunctionBase(old) {
    }
    DLLLOCAL virtual const char *getName() const { 
       return name;

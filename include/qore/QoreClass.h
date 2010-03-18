@@ -188,9 +188,6 @@ class QoreClass {
 
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreClass(const QoreClass&);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreClass& operator=(const QoreClass&);
 
    //! private implementation of the class
@@ -713,11 +710,14 @@ public:
    DLLEXPORT const QoreExternalMethodVariant *findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const;
 
    DLLLOCAL QoreClass();
+
+   // copy constructor
+   DLLLOCAL QoreClass(const QoreClass &old);
+
    DLLLOCAL void addMethod(QoreMethod *f);
    DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *nme);
    DLLLOCAL const QoreMethod *parseResolveSelfMethod(NamedScope *nme);
    DLLLOCAL void addDomain(int64 dom);
-   DLLLOCAL QoreClass *copyAndDeref();
    DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
 
    // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
@@ -741,15 +741,11 @@ public:
    DLLLOCAL int parseAddBaseClassArgumentList(BCAList *bcal);
    // only called when parsing, sets the name of the class
    DLLLOCAL void setName(const char *n);
-   // returns true if reference count is 1
-   DLLLOCAL bool is_unique() const;
-   // references and returns itself
-   DLLLOCAL QoreClass *getReference();
-   // dereferences the class, deletes if reference count is 0
-   DLLLOCAL void nderef();
+
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit();
    DLLLOCAL void parseRollback();
+   DLLLOCAL void resolveCopy();
    DLLLOCAL qore_classid_t getIDForMethod() const;
    DLLLOCAL void parseSetBaseClassList(BCList *bcl);
    // get base class list to add virtual class indexes for private data

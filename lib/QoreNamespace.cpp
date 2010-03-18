@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright (C) 2003 - 2010 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -124,6 +124,9 @@ struct qore_ns_private {
       DLLLOCAL void purge() {
 	 delete constant;
 	 constant = 0;
+
+	 if (nsl)
+	    nsl->deleteAllConstants();
 
 	 delete classList;
 	 classList = 0;
@@ -402,11 +405,29 @@ QoreNamespaceList *QoreNamespaceList::copy(int po) {
    return nsl;
 }
 
+void QoreNamespaceList::resolveCopy() {
+   QoreNamespace *w = head;
+
+   while (w) {
+      w->priv->classList->resolveCopy();
+      w = w->priv->next;
+   }
+}
+
 void QoreNamespaceList::parseInitConstants() {
    QoreNamespace *w = head;
 
    while (w) {
       w->parseInitConstants();
+      w = w->priv->next;
+   }
+}
+
+void QoreNamespaceList::deleteAllConstants() {
+   QoreNamespace *w = head;
+
+   while (w) {
+      w->priv->constant->deleteAll();
       w = w->priv->next;
    }
 }
@@ -420,25 +441,21 @@ void QoreNamespaceList::parseInit() {
    }
 }
 
-void QoreNamespaceList::parseCommit(QoreNamespaceList *l)
-{
+void QoreNamespaceList::parseCommit(QoreNamespaceList *l) {
    assimilate(l);
 
    QoreNamespace *w = head;
 
-   while (w)
-   {
+   while (w) {
       w->parseCommit();
       w = w->priv->next;
    }
 }
 
-void QoreNamespaceList::parseRollback()
-{
+void QoreNamespaceList::parseRollback() {
    QoreNamespace *w = head;
 
-   while (w)
-   {
+   while (w) {
       w->parseRollback();
       w = w->priv->next;
    }
@@ -665,6 +682,7 @@ QoreClass *QoreNamespaceList::parseFindClass(const char *ocname) {
    return oc;
 }
 
+/*
 QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname) {
    QoreClass *oc = 0;
 
@@ -693,6 +711,7 @@ QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname) {
 
    return oc;
 }
+*/
 
 // QoreNamespaceList::parseFindScopedClass()
 // does a recursive breadth-first search to resolve a namespace with the given object type
@@ -1261,6 +1280,7 @@ QoreClass *RootQoreNamespace::rootFindClass(const char *ocname) const {
    return oc;
 }
 
+/*
 QoreClass *RootQoreNamespace::rootFindChangeClass(const char *ocname) {
    QORE_TRACE("RootQoreNamespace::rootFindChangeClass");
    QoreClass *oc;
@@ -1271,6 +1291,7 @@ QoreClass *RootQoreNamespace::rootFindChangeClass(const char *ocname) {
 
    return oc;
 }
+*/
 
 QoreNamespace *RootQoreNamespace::rootResolveNamespace(NamedScope *nscope) {
    if (nscope->elements == 1)
@@ -1555,7 +1576,8 @@ static void addSignalConstants(class QoreNamespace *ns) {
 }
 
 // sets up the root namespace
-RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
+// FIXME: can only be run once
+RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) {
    QORE_TRACE("RootQoreNamespace::RootNamespace");
 
    priv->name = "";
@@ -1624,7 +1646,7 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
    qns->addConstant("stderr",        File->execSystemConstructor(2));
 
    // keep a copy of File to dereference last
-   File = File->getReference();
+   //File = File->getReference();
    //printd(5, "RootQoreNamespace::RootQoreNamespace() this=%p saving File=%p\n", this, File);
    
    // add constants for exception types
@@ -2003,6 +2025,9 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) : QoreNamespace() {
 // private constructor
 RootQoreNamespace::RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nsl) : QoreNamespace("", ocl, cl, nnsl, pend_ocl, pend_cl, pend_nsl), File(0) {
    qoreNS = priv->nsl->find("Qore");
+   // resolve all copied classes to the new classes
+   priv->classList->resolveCopy();
+   priv->nsl->resolveCopy();
 }
 
 RootQoreNamespace::~RootQoreNamespace() {
@@ -2010,10 +2035,12 @@ RootQoreNamespace::~RootQoreNamespace() {
    purge();
 
    // then deref system constant classes
+   /*
    if (File) {
       //printd(5, "RootQoreNamespace::~RootQoreNamespace() this=%p dereferencing File %p\n", this, File);
       File->nderef();
    }
+   */
 }
 
 QoreNamespace *RootQoreNamespace::rootGetQoreNamespace() const {

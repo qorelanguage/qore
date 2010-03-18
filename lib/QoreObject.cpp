@@ -352,7 +352,7 @@ public:
 
    DLLLOCAL void tDeref() {
 #ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::tDeref() obj=%p class=%s: tref %d->%d\n", obj, theclass->getName(), tRefs.reference_count(), tRefs.reference_count() - 1);
+      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::tDeref() obj=%p class=%s: tref %d->%d\n", obj, status == OS_OK ? theclass->getName() : "<deleted>", tRefs.reference_count(), tRefs.reference_count() - 1);
 #endif
       if (tRefs.ROdereference())
 	 delete obj;
@@ -667,7 +667,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
       //printd(5, "QoreObject::customDeref() this=%p, class=%s references=%d->%d (trefs=%d) status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), references, references - 1, priv->tRefs.reference_count(), priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
 
 #ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this=%p) class=%s: references %d->%d\n", this, getClassName(), references, references - 1);
+      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this=%p) class=%s: references %d->%d\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
 #endif
       {
 	 AutoLocker slr(priv->ref_mutex);
@@ -677,7 +677,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
 
       SafeLocker sl(priv->mutex);
 
-      // if the destructor has already been run, then just run tDeref()
+      // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
       if (priv->in_destructor || priv->status != OS_OK) {
 	 sl.unlock();
 	 tDeref();
@@ -705,7 +705,6 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
    }
 
    priv->doDeleteIntern(xsink);
-   //tDeref();
 }
 
 // this method is called when there is an exception in a constructor and the object should be deleted

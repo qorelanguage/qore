@@ -42,7 +42,7 @@ class LocalVar;
 class QoreHashNode : public AbstractQoreNode {
    friend class HashIterator;
    friend class ConstHashIterator;
-
+   
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreHashNode(const QoreHashNode&);
@@ -50,7 +50,7 @@ class QoreHashNode : public AbstractQoreNode {
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreHashNode& operator=(const QoreHashNode&);
 
-  protected:
+   protected:
       //! private implementation of the class
       struct qore_hash_private *priv;
 

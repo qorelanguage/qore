@@ -1210,7 +1210,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 int AbstractQoreFunction::parseAddVariant(AbstractQoreFunctionVariant *variant) {
    // check for duplicate signature with existing variants
    if (parseCheckDuplicateSignature(variant->getUserVariantBase())) {
-      delete variant;
+      variant->deref();
       return -1;
    }
    pending_vlist.push_back(variant);

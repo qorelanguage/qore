@@ -34,30 +34,32 @@
 #define _QORE_NAMESPACELIST_H
 
 class QoreNamespaceList {
-   private:
-      DLLLOCAL void deleteAll();
+private:
+   DLLLOCAL void deleteAll();
       
-   public:
-      QoreNamespace *head, *tail;
+public:
+   QoreNamespace *head, *tail;
 
-      DLLLOCAL QoreNamespaceList();
-      DLLLOCAL ~QoreNamespaceList();
-      DLLLOCAL QoreNamespace *find(const char *name);
-      DLLLOCAL void add(QoreNamespace *ot);
-      DLLLOCAL QoreNamespaceList *copy(int po);
-      DLLLOCAL void parseInitConstants();
-      DLLLOCAL void parseInit();
-      DLLLOCAL void parseCommit(QoreNamespaceList *n);
-      DLLLOCAL void parseRollback();
-      DLLLOCAL void reset();
-      DLLLOCAL void assimilate(QoreNamespaceList *n);
-      DLLLOCAL QoreNamespace *parseResolveNamespace(NamedScope *name, int *matched);
-      DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
-      DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo);
-      DLLLOCAL QoreClass *parseFindScopedClassWithMethod(NamedScope *name, int *matched) const;
-      DLLLOCAL QoreClass *parseFindScopedClass(NamedScope *name, int *matched);
-      DLLLOCAL QoreClass *parseFindClass(const char *ocname);
-      DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);
+   DLLLOCAL QoreNamespaceList();
+   DLLLOCAL ~QoreNamespaceList();
+   DLLLOCAL QoreNamespace *find(const char *name);
+   DLLLOCAL void add(QoreNamespace *ot);
+   DLLLOCAL QoreNamespaceList *copy(int po);
+   DLLLOCAL void resolveCopy();
+   DLLLOCAL void parseInitConstants();
+   DLLLOCAL void parseInit();
+   DLLLOCAL void parseCommit(QoreNamespaceList *n);
+   DLLLOCAL void parseRollback();
+   DLLLOCAL void deleteAllConstants();
+   DLLLOCAL void reset();
+   DLLLOCAL void assimilate(QoreNamespaceList *n);
+   DLLLOCAL QoreNamespace *parseResolveNamespace(NamedScope *name, int *matched);
+   DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL QoreClass *parseFindScopedClassWithMethod(NamedScope *name, int *matched) const;
+   DLLLOCAL QoreClass *parseFindScopedClass(NamedScope *name, int *matched);
+   DLLLOCAL QoreClass *parseFindClass(const char *ocname);
+   DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);
 };
 
 #endif

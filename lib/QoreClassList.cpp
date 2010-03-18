@@ -32,11 +32,10 @@
 #endif
 
 void QoreClassList::deleteAll() {
-   hm_qc_t::iterator i = hm.begin();
-   while (i != hm.end()) {
-      remove(i);
-      i = hm.begin();
-   }
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+      delete i->second;
+
+   hm.clear();
 }
 
 QoreClassList::~QoreClassList() {
@@ -60,6 +59,7 @@ QoreClass *QoreClassList::find(const char *name) {
    return 0;
 }
 
+/*
 QoreClass *QoreClassList::findChange(const char *name) {
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end()) {
@@ -76,30 +76,37 @@ QoreClass *QoreClassList::findChange(const char *name) {
    }
    return 0;
 }
+*/
 
 QoreClassList *QoreClassList::copy(int po) {
    QoreClassList *nocl = new QoreClassList();
 
-   for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       if ((!(po & PO_NO_SYSTEM_CLASSES) && i->second->isSystem())
 	  || (!(po & PO_NO_USER_CLASSES) && !i->second->isSystem()))
-	 nocl->add(i->second->getReference());
+	 //nocl->add(i->second->getReference());
+	 nocl->add(new QoreClass(*i->second));
    return nocl;
 }
 
+void QoreClassList::resolveCopy() {
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+      i->second->resolveCopy();
+}
+
 void QoreClassList::parseInit() {
-   for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       i->second->parseInit();
 }
 
 void QoreClassList::parseRollback() {
-   for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       i->second->parseRollback();
 }
 
 void QoreClassList::parseCommit(QoreClassList *l) {
    assimilate(l);
-   for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       i->second->parseCommit();
 }
 
@@ -150,7 +157,7 @@ void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class
 
 QoreHashNode *QoreClassList::getInfo() {
    QoreHashNode *h = new QoreHashNode();
-   for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       h->setKeyValue(i->first, i->second->getMethodList(), 0);
    return h;
 }

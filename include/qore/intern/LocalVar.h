@@ -352,6 +352,9 @@ public:
    DLLLOCAL LocalVar(const char *n_name, const QoreTypeInfo *ti) : name(n_name), closure_use(false), needs_value_instantiation(ti->hasType() ? true : false), typeInfo(ti) {
    }
 
+   DLLLOCAL LocalVar(const LocalVar &old) : name(old.name), closure_use(old.closure_use), needs_value_instantiation(old.needs_value_instantiation), typeInfo(old.typeInfo) {
+   }
+
    DLLLOCAL ~LocalVar() {
    }
 

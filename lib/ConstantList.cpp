@@ -40,8 +40,10 @@ ConstantList::~ConstantList() {
    deleteAll();
 }
 
-//  NOTE: since constants cannot hold objects (only immediate values)
-//  there is no need for an exception handler with the dereference
+// NOTE: since constants cannot hold objects (only immediate values)
+// FIXME: constants should be able to hold objects (and can and do hold 
+//        system objects, but their destructors may not throw exceptions)
+// there is no need for an exception handler with the dereference
 void ConstantList::deleteAll() {
    hm_qn_t::iterator i = hm.begin();
    while (i != hm.end()) {

@@ -223,11 +223,12 @@ public:
 class UserVariantBase;
 
 // describes the details of the function variant
-class AbstractQoreFunctionVariant {
+class AbstractQoreFunctionVariant : protected QoreReferenceCounter {
 protected:
+   DLLLOCAL virtual ~AbstractQoreFunctionVariant() {}
+
 public:
    DLLLOCAL AbstractQoreFunctionVariant() {}
-   DLLLOCAL virtual ~AbstractQoreFunctionVariant() {}
 
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const = 0;
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const = 0;
@@ -251,6 +252,9 @@ public:
       assert(false);
       return 0;
    }
+
+   DLLLOCAL AbstractQoreFunctionVariant *ref() { ROreference(); return this; }
+   DLLLOCAL void deref() { if (ROdereference()) { delete this; } }
 
    DLLLOCAL virtual bool isUser() const = 0;
 };
@@ -323,11 +327,11 @@ public:
 
 class UserFunctionVariant : public AbstractQoreFunctionVariant, public UserVariantBase {
 protected:
+   DLLLOCAL virtual ~UserFunctionVariant() {
+   }
 
 public:
    DLLLOCAL UserFunctionVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
-   }
-   DLLLOCAL virtual ~UserFunctionVariant() {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -383,7 +387,8 @@ public:
 };
 
 // type for lists of function variants
-typedef safe_dslist<AbstractQoreFunctionVariant *> vlist_t;
+//typedef safe_dslist<AbstractQoreFunctionVariant *> vlist_t;
+typedef std::vector<AbstractQoreFunctionVariant *> vlist_t;
 
 class VList : public vlist_t {
 public:
@@ -391,10 +396,16 @@ public:
       del();
    }
    DLLLOCAL void del() {
-      // delete all variants
+      // dereference all variants
       for (vlist_t::iterator i = begin(), e = end(); i != e; ++i)
-	 delete *i;
+	 (*i)->deref();
       clear();
+   }
+   bool singular() const {
+      return size() == 1;
+   }
+   bool plural() const {
+      return size() > 1;
    }
 };
 
@@ -405,8 +416,10 @@ protected:
 
    // list of function variants
    VList vlist;
+
    // list of pending user-code function variants
    VList pending_vlist;
+
    // list of inherited methods for variant matching; the first pointer
    // is always a pointer to this
    ilist_t ilist;
@@ -465,6 +478,18 @@ public:
    DLLLOCAL AbstractQoreFunction() : same_return_type(true), unique_functionality(QDOM_DEFAULT) {
       ilist.push_back(this);
    }
+
+   // copy constructor (used by method functions when copied)
+   DLLLOCAL AbstractQoreFunction(const AbstractQoreFunction &old) : same_return_type(old.same_return_type), unique_functionality(old.unique_functionality) {      
+      // copy variants by reference
+      vlist.reserve(old.vlist.size());
+      for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
+         vlist.push_back((*i)->ref());
+
+      // do not copy pending variants
+      // ilist is copied in method base class
+   }
+
    DLLLOCAL virtual ~AbstractQoreFunction() {
    }
 
@@ -558,14 +583,49 @@ public:
 
 class MethodVariantBase;
 
-class MethodFunctionBase : public AbstractReferencedFunction {
+class MethodFunctionBase : public AbstractQoreFunction {
 protected:
-   bool all_private, pending_all_private;
+   bool all_private, 
+      pending_all_private;
    const QoreClass *qc;   
 
+   // pointer to copy, only valid during copy
+   mutable MethodFunctionBase *new_copy;
+
 public:
-   DLLLOCAL MethodFunctionBase(const QoreClass *n_qc) : all_private(true), pending_all_private(true), qc(n_qc) {
+   DLLLOCAL MethodFunctionBase(const QoreClass *n_qc) : all_private(true), pending_all_private(true), qc(n_qc), new_copy(0) {
    }
+
+   // copy constructor, only copies comitted variants
+   DLLLOCAL MethodFunctionBase(const MethodFunctionBase &old, const QoreClass *n_qc) 
+      : AbstractQoreFunction(old), 
+        all_private(old.all_private), 
+        pending_all_private(true),
+        qc(n_qc) {
+      //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n", &old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
+
+      // set a pointer to the new function
+      old.new_copy = this;
+
+      // copy ilist, will be adjusted for new class pointers after all classes have been copied
+      ilist.reserve(old.ilist.size());
+      for (ilist_t::const_iterator i = old.ilist.begin(), e = old.ilist.end(); i != e; ++i)
+         ilist.push_back(*i);
+   }
+
+   DLLLOCAL void resolveCopy() {
+      for (ilist_t::iterator i = ilist.begin(), e = ilist.end(); i != e; ++i) {
+#ifdef DEBUG
+         if (!reinterpret_cast<MethodFunctionBase *>(*i)->new_copy) {
+            const QoreClass *nqc = reinterpret_cast<MethodFunctionBase *>(*i)->qc;
+            printd(0, "error resolving %p %s::%s() base method %p %s::%s() nas no new method pointer\n", qc, qc->getName(), getName(), nqc, nqc->getName(), getName());
+         }
+         assert(reinterpret_cast<MethodFunctionBase *>(*i)->new_copy);
+#endif
+         *i = reinterpret_cast<MethodFunctionBase *>(*i)->new_copy;         
+      }
+   }
+
    // returns -1 for error, 0 = OK
    DLLLOCAL int parseAddUserMethodVariant(MethodVariantBase *variant);
    // maintains all_private flag and commits the builtin variant
@@ -581,6 +641,16 @@ public:
    }
    DLLLOCAL virtual const QoreClass *getClass() const {
       return qc;
+   }
+
+   // virtual copy constructor
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const = 0;
+
+   DLLLOCAL virtual void ref() {
+      assert(false);
+   }
+   DLLLOCAL virtual void deref() {
+      delete this;
    }
 };
 

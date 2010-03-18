@@ -51,23 +51,23 @@ public:
 typedef std::map<const char*, ConstantEntry, class ltstr> hm_qn_t;
 
 class ConstantList {
-   private:
-      hm_qn_t hm;
+private:
+   hm_qn_t hm;
 
-      DLLLOCAL void remove(hm_qn_t::iterator i);
-      DLLLOCAL void deleteAll();
+   DLLLOCAL void remove(hm_qn_t::iterator i);
 
-   public:
-      DLLLOCAL ~ConstantList();
-      DLLLOCAL void add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
-      DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo);
-      DLLLOCAL bool inList(const char *name) const;
-      DLLLOCAL ConstantList *copy();
-      DLLLOCAL void reset();
-      DLLLOCAL void assimilate(ConstantList *n, ConstantList *otherlist, const char *nsname);
-      DLLLOCAL void assimilate(ConstantList *n);
-      DLLLOCAL void parseInit();
-      DLLLOCAL QoreHashNode *getInfo();
+public:
+   DLLLOCAL ~ConstantList();
+   DLLLOCAL void add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
+   DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo);
+   DLLLOCAL bool inList(const char *name) const;
+   DLLLOCAL ConstantList *copy();
+   DLLLOCAL void reset();
+   DLLLOCAL void assimilate(ConstantList *n, ConstantList *otherlist, const char *nsname);
+   DLLLOCAL void assimilate(ConstantList *n);
+   DLLLOCAL void parseInit();
+   DLLLOCAL QoreHashNode *getInfo();
+   DLLLOCAL void deleteAll();
 };
 
 #endif

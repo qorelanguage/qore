@@ -697,9 +697,13 @@ QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char *ecn) :
 
    // inherit parent's thread local storage key
    priv->thread_local_storage = pgm->priv->thread_local_storage;
-
-   // setup derived namespaces
-   priv->RootNS = pgm->priv->RootNS->copy(po);
+   
+   {
+      // grab program's parse lock
+      AutoLocker al(pgm->priv->plock);
+      // setup derived namespaces
+      priv->RootNS = pgm->priv->RootNS->copy(po);
+   }
    priv->QoreNS = priv->RootNS->rootGetQoreNamespace();
 
    // copy parent feature list
