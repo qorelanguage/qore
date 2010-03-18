@@ -1798,9 +1798,9 @@ void QoreClass::parseRollback() {
 
 void qore_class_private::parseRollback() {
    if (!has_new_user_changes) {
-      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e;)
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
 	 assert(i->second->priv->func->pendingEmpty());
-      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e;)
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
 	 assert(i->second->priv->func->pendingEmpty());
       assert(!pending_has_public_memdecl);
       return;
