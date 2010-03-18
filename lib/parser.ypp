@@ -196,7 +196,7 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n) {
 	 delete n->n.cn;
 	 break;
       case NSN_NS:
-	 ns->addNamespace(n->n.ns);
+	 ns->parseAddNamespace(n->n.ns);
 	 break;
    }
    delete n;
@@ -893,7 +893,7 @@ top_level_command:
         }
         | top_namespace_decl
         {
-	   getRootNS()->addNamespace($1); 
+	   getRootNS()->parseAddNamespace($1); 
 	   // see if ns declaration is legal
 	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
 	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
@@ -908,9 +908,8 @@ top_namespace_decl:
 	;
 
 namespace_decls:
-	namespace_decl
-        {
-	   QoreNamespace *ns = new QoreNamespace();
+	namespace_decl {
+	   QoreNamespace *ns = new QoreNamespace;
 	   addNSNode(ns, $1);
 	   $$ = ns;
         }

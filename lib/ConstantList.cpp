@@ -91,6 +91,7 @@ ConstantList *ConstantList::copy() {
       if (i->second.node)
 	 i->second.node->ref();
       ncl->add(i->first, i->second.node);
+      //printd(5, "ConstantList::copy() this=%p copying %s (%p)\n", this, i->first, i->second.node);
    }
    
    return ncl;

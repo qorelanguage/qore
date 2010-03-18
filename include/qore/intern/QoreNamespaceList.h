@@ -44,7 +44,7 @@ public:
    DLLLOCAL ~QoreNamespaceList();
    DLLLOCAL QoreNamespace *find(const char *name);
    DLLLOCAL void add(QoreNamespace *ot);
-   DLLLOCAL QoreNamespaceList *copy(int po);
+   DLLLOCAL QoreNamespaceList *copy(int64 po);
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
    DLLLOCAL void parseInit();

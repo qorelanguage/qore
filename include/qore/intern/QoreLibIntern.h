@@ -206,6 +206,15 @@ DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
 
+// class for master namespace of all builtin classes, constants, etc
+class StaticSystemNamespace : public RootQoreNamespace {
+public:
+   DLLLOCAL void init();
+};
+
+// master namespace of all builtin classes, constants, etc
+DLLLOCAL extern StaticSystemNamespace staticSystemNamespace;
+
 class QoreListNodeParseInitHelper : public ListIterator {
 private:
    LocalVar *oflag;

@@ -65,107 +65,83 @@
 
 #define MAX_RECURSION_DEPTH 20
 
+StaticSystemNamespace staticSystemNamespace;
+
 AutoNamespaceList ANSL;
 
 struct qore_ns_private {
-      std::string name;
+   std::string name;
 
-      QoreClassList  *classList;
-      ConstantList   *constant;
-      QoreNamespaceList  *nsl;
+   QoreClassList      *classList;
+   ConstantList       *constant;
+   QoreNamespaceList  *nsl;
 
-      // pending lists
-      QoreClassList  *pendClassList;
-      ConstantList   *pendConstant;
-      QoreNamespaceList  *pendNSL;
+   // pending lists
+   // FIXME: can be normal members
+   QoreClassList      *pendClassList;
+   ConstantList       *pendConstant;
+   QoreNamespaceList  *pendNSL;
 
-      QoreNamespace      *next;
+   QoreNamespace      *next;
 
-      DLLLOCAL qore_ns_private(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nsl) :
-	 name(n), 
-	 classList(ocl), constant(cl), nsl(nnsl), 
-	 pendClassList(pend_ocl), pendConstant(pend_cl), pendNSL(pend_nsl), next(0)
-      {
-	 assert(classList);
-	 assert(constant);
-	 assert(nsl);
-	 assert(pendClassList);
-	 assert(pendConstant);
-	 assert(pendNSL);
-      }
-      DLLLOCAL qore_ns_private(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) :
-	 name(n),
-	 classList(ocl), constant(cl), nsl(nnsl), 
-	 pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
-      {
-	 assert(classList);
-	 assert(constant);
-	 assert(nsl);
-      }
-      DLLLOCAL qore_ns_private(const char *n) :
-	 name(n),
-	 classList(new QoreClassList), constant(new ConstantList), nsl(new QoreNamespaceList), 
-	 pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
-      {
-      }
+   DLLLOCAL qore_ns_private(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) :
+      name(n), 
+      classList(ocl), constant(cl), nsl(nnsl), 
+      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
+   {
+      assert(classList);
+      assert(constant);
+      assert(nsl);
+   }
+   DLLLOCAL qore_ns_private(const char *n) :
+      name(n),
+      classList(new QoreClassList), constant(new ConstantList), nsl(new QoreNamespaceList), 
+      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
+   {
+   }
 
-      DLLLOCAL qore_ns_private() :
-	 classList(new QoreClassList), constant(new ConstantList), nsl(new QoreNamespaceList), 
-	 pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
-      {
-      }
+   DLLLOCAL ~qore_ns_private() {
+      printd(5, "QoreNamespace::~QoreNamespace() this=%08p '%s'\n", this, name.c_str());
 
-      DLLLOCAL ~qore_ns_private() {
-	 printd(5, "QoreNamespace::~QoreNamespace() this=%08p '%s'\n", this, name.c_str());
+      purge();
+   }
 
-	 purge();
-      }
+   DLLLOCAL void purge() {
+      delete constant;
+      constant = 0;
 
-      DLLLOCAL void purge() {
-	 delete constant;
-	 constant = 0;
+      if (nsl)
+	 nsl->deleteAllConstants();
 
-	 if (nsl)
-	    nsl->deleteAllConstants();
+      delete classList;
+      classList = 0;
 
-	 delete classList;
-	 classList = 0;
-
-	 delete nsl;
-	 nsl = 0;
+      delete nsl;
+      nsl = 0;
 	 
-	 delete pendConstant;
-	 pendConstant = 0;
+      delete pendConstant;
+      pendConstant = 0;
 
-	 delete pendClassList;
-	 pendClassList = 0;
+      delete pendClassList;
+      pendClassList = 0;
 
-	 delete pendNSL;
-	 pendNSL = 0;
-      }
+      delete pendNSL;
+      pendNSL = 0;
+   }
 };
-
-QoreNamespace::QoreNamespace() : priv(new qore_ns_private) {
-}
 
 QoreNamespace::QoreNamespace(const char *n) : priv(new qore_ns_private(n)) {
 }
 
-QoreNamespace::QoreNamespace(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nsl) : priv(new qore_ns_private(n, ocl, cl, nnsl, pend_ocl, pend_cl, pend_nsl)) {
+QoreNamespace::QoreNamespace() : priv(new qore_ns_private("")) {
+}
+
+QoreNamespace::QoreNamespace(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) : priv(new qore_ns_private(n, ocl, cl, nnsl)) {
 }
 
 void QoreNamespace::purge() {
    priv->purge();
 }
-
-/*
-QoreNamespace::QoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) : priv(new qore_ns_private)
-{
-   priv->classList  = ocl;
-   priv->constant   = cl;
-   priv->nsl        = nnsl;
-}
-*/
 
 QoreNamespace::~QoreNamespace() {
    //QORE_TRACE("QoreNamespace::~QoreNamespace()");
@@ -247,6 +223,12 @@ void QoreNamespace::addClass(NamedScope *n, QoreClass *oc) {
 }
 
 void QoreNamespace::addNamespace(QoreNamespace *ns) {
+   assert(!priv->classList->find(ns->priv->name.c_str()));
+   assert(!priv->pendClassList->find(ns->priv->name.c_str()));
+   priv->nsl->add(ns);
+}
+
+void QoreNamespace::parseAddNamespace(QoreNamespace *ns) {
    // raise an exception if namespace collides with an object name
    if (priv->classList->find(ns->priv->name.c_str())) {
       parse_error("namespace name '%s' collides with previously-defined class '%s'", ns->priv->name.c_str(), ns->priv->name.c_str());
@@ -350,12 +332,10 @@ void QoreNamespaceList::reset()
    head = tail = 0;
 }
 
-void QoreNamespaceList::add(QoreNamespace *ns)
-{
+void QoreNamespaceList::add(QoreNamespace *ns) {
    // if namespace is already registered, then assimilate
    QoreNamespace *ons;
-   if ((ons = find(ns->priv->name.c_str())))
-   {
+   if ((ons = find(ns->priv->name.c_str()))) {
       ons->assimilate(ns);
       return;
    }
@@ -367,15 +347,13 @@ void QoreNamespaceList::add(QoreNamespace *ns)
    tail = ns;
 }
 
-QoreNamespace *QoreNamespaceList::find(const char *name)
-{
+QoreNamespace *QoreNamespaceList::find(const char *name) {
    QORE_TRACE("QoreNamespaceList::find()");
    printd(5, "QoreNamespaceList::find(%s)\n", name);
 
    QoreNamespace *w = head;
 
-   while (w)
-   {
+   while (w) {
       if (name == w->priv->name)
 	 break;
       w = w->priv->next;
@@ -386,13 +364,18 @@ QoreNamespace *QoreNamespaceList::find(const char *name)
    return w;
 }
 
-QoreNamespace *QoreNamespace::copy(int po) const
-{
-   return new QoreNamespace(priv->name.c_str(), priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po), 
-			    priv->pendClassList->copy(po), priv->pendConstant->copy(), priv->pendNSL->copy(po));
+QoreNamespace *QoreNamespace::copy(int po) const {
+   //printd(5, "QoreNamespace::copy() (deprecated) this=%p po=%d %s\n", this, po, priv->name.c_str());
+   return new QoreNamespace(priv->name.c_str(), priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po));
 }
 
-QoreNamespaceList *QoreNamespaceList::copy(int po) {
+QoreNamespace *QoreNamespace::copy(int64 po) const {
+   //printd(5, "QoreNamespace::copy() this=%p po=%lld %s\n", this, po, priv->name.c_str());
+   return new QoreNamespace(priv->name.c_str(), priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po));
+}
+
+QoreNamespaceList *QoreNamespaceList::copy(int64 po) {
+   //printd(5, "QoreNamespaceList::copy() this=%p po=%lld head=%p tail=%p\n", this, po, head, tail);
    QoreNamespaceList *nsl = new QoreNamespaceList();
 
    QoreNamespace *w = head;
@@ -621,7 +604,6 @@ AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(NamedScope *na
       }
    }
 
-
    return rv;
 }
 
@@ -682,37 +664,6 @@ QoreClass *QoreNamespaceList::parseFindClass(const char *ocname) {
    return oc;
 }
 
-/*
-QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname) {
-   QoreClass *oc = 0;
-
-   // see if a match can be found at the first level
-   QoreNamespace *w = head;
-   while (w) {
-      if ((oc = w->priv->classList->findChange(ocname)))
-	 break;
-      // check pending classes
-      if ((oc = w->priv->pendClassList->find(ocname)))
-	 break;
-
-      w = w->priv->next;
-   }
-
-   if (!oc) { // check all levels
-      w = head;
-      while (w) {
-	 if ((oc = w->priv->nsl->parseFindChangeClass(ocname)))
-	    break;
-	 if ((oc = w->priv->pendNSL->parseFindClass(ocname)))
-	    break;
-	 w = w->priv->next;
-      }
-   }
-
-   return oc;
-}
-*/
-
 // QoreNamespaceList::parseFindScopedClass()
 // does a recursive breadth-first search to resolve a namespace with the given object type
 // note: is only called with a namespace specifier
@@ -772,16 +723,6 @@ int RootQoreNamespace::addMethodToClass(NamedScope *scname, MethodVariantBase *q
    }
 
    return oc->addUserMethod(method, v.release(), static_flag);
-
-/*
-   // after the addMethod call, we can no longer return an error code if 
-   // oc->parseAddBaseClassArgumentList() fails (because the caller will 
-   // delete it if we return an error code), so we delete it here
-   if (bcal && oc->parseAddBaseClassArgumentList(bcal))
-      delete bcal;
-*/
-
-   return 0;
 }
 
 QoreClass *RootQoreNamespace::parseFindClass(const char *cname) const {
@@ -1280,19 +1221,6 @@ QoreClass *RootQoreNamespace::rootFindClass(const char *ocname) const {
    return oc;
 }
 
-/*
-QoreClass *RootQoreNamespace::rootFindChangeClass(const char *ocname) {
-   QORE_TRACE("RootQoreNamespace::rootFindChangeClass");
-   QoreClass *oc;
-   if (!(oc = priv->classList->findChange(ocname))
-       && !(oc = priv->pendClassList->find(ocname))
-       && !(oc = priv->nsl->parseFindChangeClass(ocname)))
-      oc = priv->pendNSL->parseFindClass(ocname);
-
-   return oc;
-}
-*/
-
 QoreNamespace *RootQoreNamespace::rootResolveNamespace(NamedScope *nscope) {
    if (nscope->elements == 1)
       return this;
@@ -1576,151 +1504,146 @@ static void addSignalConstants(class QoreNamespace *ns) {
 }
 
 // sets up the root namespace
-// FIXME: can only be run once
-RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) {
-   QORE_TRACE("RootQoreNamespace::RootNamespace");
+void StaticSystemNamespace::init() {
+   QORE_TRACE("StaticSystemNamespace::init()");
 
    priv->name = "";
 
-   QoreNamespace *qns = new QoreNamespace("Qore");
+   qoreNS = new QoreNamespace("Qore");
 
-   qns->addInitialNamespace(get_thread_ns());
+   qoreNS->addInitialNamespace(get_thread_ns());
 
    // add system object types
-   qns->addSystemClass(initSocketClass());
-   qns->addSystemClass(initSSLCertificateClass());
-   qns->addSystemClass(initSSLPrivateKeyClass());
-   qns->addSystemClass(initProgramClass());
-   QoreClass *TermIOS;
-   qns->addSystemClass(TermIOS = initTermIOSClass());
-   qns->addSystemClass(File = initFileClass(TermIOS));
-   qns->addSystemClass(initDirClass());
-   qns->addSystemClass(initGetOptClass());
-   qns->addSystemClass(initFtpClientClass());
+   qoreNS->addSystemClass(initSocketClass());
+   qoreNS->addSystemClass(initSSLCertificateClass());
+   qoreNS->addSystemClass(initSSLPrivateKeyClass());
+   qoreNS->addSystemClass(initProgramClass());
+   QoreClass *TermIOS, *File;
+   qoreNS->addSystemClass(TermIOS = initTermIOSClass());
+   qoreNS->addSystemClass(File = initFileClass(TermIOS));
+   qoreNS->addSystemClass(initDirClass());
+   qoreNS->addSystemClass(initGetOptClass());
+   qoreNS->addSystemClass(initFtpClientClass());
 
    // add Xml namespace
-   qns->addInitialNamespace(initXmlNs());
+   qoreNS->addInitialNamespace(initXmlNs());
 
    // add HTTPClient namespace
    QoreClass *http_client_class;
-   qns->addSystemClass((http_client_class = initHTTPClientClass()));
-   qns->addSystemClass(initXmlRpcClientClass(http_client_class));
-   qns->addSystemClass(initJsonRpcClientClass(http_client_class));
+   qoreNS->addSystemClass((http_client_class = initHTTPClientClass()));
+   qoreNS->addSystemClass(initXmlRpcClientClass(http_client_class));
+   qoreNS->addSystemClass(initJsonRpcClientClass(http_client_class));
 
    // add signal constants
-   addSignalConstants(qns);
+   addSignalConstants(qoreNS);
 
 #ifdef DEBUG_TESTS
 { // tests
    QoreClass* base = initBuiltinInheritanceTestBaseClass();
-   qns->addSystemClass(base);
-   qns->addSystemClass(initBuiltinInheritanceTestDescendant1(base));
+   qoreNS->addSystemClass(base);
+   qoreNS->addSystemClass(initBuiltinInheritanceTestDescendant1(base));
    // hierarchy with 3 levels
    QoreClass* desc2 = initBuiltinInheritanceTestDescendant2(base);
-   qns->addSystemClass(desc2);
+   qoreNS->addSystemClass(desc2);
    QoreClass* desc3 = initBuiltinInheritanceTestDescendant3(desc2);
-   qns->addSystemClass(desc3);
+   qoreNS->addSystemClass(desc3);
 // BUGBUG : this fails. When desc2 is placed in the next line all is OK
    QoreClass* desc4 = initBuiltinInheritanceTestDescendant4(desc3);
-   qns->addSystemClass(desc4);
+   qoreNS->addSystemClass(desc4);
 
    QoreClass* base2 = initBuiltinInheritanceTestBase2Class();
-   qns->addSystemClass(base2);
+   qoreNS->addSystemClass(base2);
 // BUGBUG - the function actually fails to deal with two base classes, see the 
 // code in tests/builtin_inheritance_tests.cpp
    QoreClass* desc_multi = initBuiltinInheritanceTestDescendantMulti(base2, base);
-   qns->addSystemClass(desc_multi);
+   qoreNS->addSystemClass(desc_multi);
 }
 #endif
 
    // add ssl socket constants
-   addSSLConstants(qns);
+   addSSLConstants(qoreNS);
 
    // add boolean constants for true and false
-   qns->addConstant("True",          boolean_true());
-   qns->addConstant("False",         boolean_false());
+   qoreNS->addConstant("True",          boolean_true());
+   qoreNS->addConstant("False",         boolean_false());
 
    // add File object constants for stdin (0), stdout (1), stderr (2)
-   qns->addConstant("stdin",         File->execSystemConstructor(0));
-   qns->addConstant("stdout",        File->execSystemConstructor(1));
-   qns->addConstant("stderr",        File->execSystemConstructor(2));
+   qoreNS->addConstant("stdin",         File->execSystemConstructor(0));
+   qoreNS->addConstant("stdout",        File->execSystemConstructor(1));
+   qoreNS->addConstant("stderr",        File->execSystemConstructor(2));
 
-   // keep a copy of File to dereference last
-   //File = File->getReference();
-   //printd(5, "RootQoreNamespace::RootQoreNamespace() this=%p saving File=%p\n", this, File);
-   
    // add constants for exception types
-   qns->addConstant("ET_System",     new QoreStringNode("System"));
-   qns->addConstant("ET_User",       new QoreStringNode("User"));
+   qoreNS->addConstant("ET_System",     new QoreStringNode("System"));
+   qoreNS->addConstant("ET_User",       new QoreStringNode("User"));
 
    // create constants for call types
-   qns->addConstant("CT_User",       new QoreBigIntNode(CT_USER));
-   qns->addConstant("CT_Builtin",    new QoreBigIntNode(CT_BUILTIN));
-   qns->addConstant("CT_NewThread",  new QoreBigIntNode(CT_NEWTHREAD));
-   qns->addConstant("CT_Rethrow",    new QoreBigIntNode(CT_RETHROW));
+   qoreNS->addConstant("CT_User",       new QoreBigIntNode(CT_USER));
+   qoreNS->addConstant("CT_Builtin",    new QoreBigIntNode(CT_BUILTIN));
+   qoreNS->addConstant("CT_NewThread",  new QoreBigIntNode(CT_NEWTHREAD));
+   qoreNS->addConstant("CT_Rethrow",    new QoreBigIntNode(CT_RETHROW));
 
    // create constants for version and platform information
-   qns->addConstant("VersionString", new QoreStringNode(qore_version_string));
-   qns->addConstant("VersionMajor",  new QoreBigIntNode(qore_version_major));
-   qns->addConstant("VersionMinor",  new QoreBigIntNode(qore_version_minor));
-   qns->addConstant("VersionSub",    new QoreBigIntNode(qore_version_sub));
-   qns->addConstant("Build",         new QoreBigIntNode(qore_build_number));
-   qns->addConstant("PlatformCPU",   new QoreStringNode(TARGET_ARCH));
-   qns->addConstant("PlatformOS",    new QoreStringNode(TARGET_OS));
+   qoreNS->addConstant("VersionString", new QoreStringNode(qore_version_string));
+   qoreNS->addConstant("VersionMajor",  new QoreBigIntNode(qore_version_major));
+   qoreNS->addConstant("VersionMinor",  new QoreBigIntNode(qore_version_minor));
+   qoreNS->addConstant("VersionSub",    new QoreBigIntNode(qore_version_sub));
+   qoreNS->addConstant("Build",         new QoreBigIntNode(qore_build_number));
+   qoreNS->addConstant("PlatformCPU",   new QoreStringNode(TARGET_ARCH));
+   qoreNS->addConstant("PlatformOS",    new QoreStringNode(TARGET_OS));
 
    // constants for build info
-   qns->addConstant("BuildHost",     new QoreStringNode(qore_build_host));
-   qns->addConstant("Compiler",      new QoreStringNode(qore_cplusplus_compiler));
-   qns->addConstant("CFLAGS",        new QoreStringNode(qore_cflags));
-   qns->addConstant("LDFLAGS",       new QoreStringNode(qore_ldflags));
+   qoreNS->addConstant("BuildHost",     new QoreStringNode(qore_build_host));
+   qoreNS->addConstant("Compiler",      new QoreStringNode(qore_cplusplus_compiler));
+   qoreNS->addConstant("CFLAGS",        new QoreStringNode(qore_cflags));
+   qoreNS->addConstant("LDFLAGS",       new QoreStringNode(qore_ldflags));
 
    // add constants for regex() function options
-   qns->addConstant("RE_Caseless",   new QoreBigIntNode(PCRE_CASELESS));
-   qns->addConstant("RE_DotAll",     new QoreBigIntNode(PCRE_DOTALL));
-   qns->addConstant("RE_Extended",   new QoreBigIntNode(PCRE_EXTENDED));
-   qns->addConstant("RE_MultiLine",  new QoreBigIntNode(PCRE_MULTILINE));
+   qoreNS->addConstant("RE_Caseless",   new QoreBigIntNode(PCRE_CASELESS));
+   qoreNS->addConstant("RE_DotAll",     new QoreBigIntNode(PCRE_DOTALL));
+   qoreNS->addConstant("RE_Extended",   new QoreBigIntNode(PCRE_EXTENDED));
+   qoreNS->addConstant("RE_MultiLine",  new QoreBigIntNode(PCRE_MULTILINE));
    // note that the following constant is > 32-bits so it can't collide with PCRE constants
-   qns->addConstant("RE_Global",     new QoreBigIntNode(QRE_GLOBAL));
+   qoreNS->addConstant("RE_Global",     new QoreBigIntNode(QRE_GLOBAL));
 
    // network constants
-   qns->addConstant("AF_INET",       new QoreBigIntNode(AF_INET));
-   qns->addConstant("AF_INET6",      new QoreBigIntNode(AF_INET6));
-   qns->addConstant("AF_UNIX",       new QoreBigIntNode(AF_UNIX));
+   qoreNS->addConstant("AF_INET",       new QoreBigIntNode(AF_INET));
+   qoreNS->addConstant("AF_INET6",      new QoreBigIntNode(AF_INET6));
+   qoreNS->addConstant("AF_UNIX",       new QoreBigIntNode(AF_UNIX));
 #ifdef AF_LOCAL
-   qns->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_LOCAL)); // POSIX synonym for AF_UNIX
+   qoreNS->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_LOCAL)); // POSIX synonym for AF_UNIX
 #else
-   qns->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_UNIX));
+   qoreNS->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_UNIX));
 #endif
 
    // math constants
-   qns->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
+   qoreNS->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
 
    // warning constants
-   qns->addConstant("WARN_NONE",                      new QoreBigIntNode(QP_WARN_NONE));
-   qns->addConstant("WARN_WARNING_MASK_UNCHANGED",    new QoreBigIntNode(QP_WARN_WARNING_MASK_UNCHANGED));
-   qns->addConstant("WARN_DUPLICATE_LOCAL_VARS",      new QoreBigIntNode(QP_WARN_DUPLICATE_LOCAL_VARS));
-   qns->addConstant("WARN_UNKNOWN_WARNING",           new QoreBigIntNode(QP_WARN_UNKNOWN_WARNING));
-   qns->addConstant("WARN_UNDECLARED_VAR",            new QoreBigIntNode(QP_WARN_UNDECLARED_VAR));
-   qns->addConstant("WARN_DUPLICATE_GLOBAL_VARS",     new QoreBigIntNode(QP_WARN_DUPLICATE_GLOBAL_VARS));
-   qns->addConstant("WARN_UNREACHABLE_CODE",          new QoreBigIntNode(QP_WARN_UNREACHABLE_CODE));
-   qns->addConstant("WARN_NONEXISTENT_METHOD_CALL",   new QoreBigIntNode(QP_WARN_NONEXISTENT_METHOD_CALL));
-   qns->addConstant("WARN_INVALID_OPERATION",         new QoreBigIntNode(QP_WARN_INVALID_OPERATION));
-   qns->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
+   qoreNS->addConstant("WARN_NONE",                      new QoreBigIntNode(QP_WARN_NONE));
+   qoreNS->addConstant("WARN_WARNING_MASK_UNCHANGED",    new QoreBigIntNode(QP_WARN_WARNING_MASK_UNCHANGED));
+   qoreNS->addConstant("WARN_DUPLICATE_LOCAL_VARS",      new QoreBigIntNode(QP_WARN_DUPLICATE_LOCAL_VARS));
+   qoreNS->addConstant("WARN_UNKNOWN_WARNING",           new QoreBigIntNode(QP_WARN_UNKNOWN_WARNING));
+   qoreNS->addConstant("WARN_UNDECLARED_VAR",            new QoreBigIntNode(QP_WARN_UNDECLARED_VAR));
+   qoreNS->addConstant("WARN_DUPLICATE_GLOBAL_VARS",     new QoreBigIntNode(QP_WARN_DUPLICATE_GLOBAL_VARS));
+   qoreNS->addConstant("WARN_UNREACHABLE_CODE",          new QoreBigIntNode(QP_WARN_UNREACHABLE_CODE));
+   qoreNS->addConstant("WARN_NONEXISTENT_METHOD_CALL",   new QoreBigIntNode(QP_WARN_NONEXISTENT_METHOD_CALL));
+   qoreNS->addConstant("WARN_INVALID_OPERATION",         new QoreBigIntNode(QP_WARN_INVALID_OPERATION));
+   qoreNS->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
 
    // event constants
-   QoreHashNode *qesm = new QoreHashNode();
+   QoreHashNode *qesm = new QoreHashNode;
    qesm->setKeyValue("1", new QoreStringNode("SOCKET"), 0);
    qesm->setKeyValue("2", new QoreStringNode("HTTPCLIENT"), 0);
    qesm->setKeyValue("3", new QoreStringNode("FTPCLIENT"), 0);
    qesm->setKeyValue("4", new QoreStringNode("FILE"), 0);
-   qns->addConstant("EVENT_SOURCE_MAP", qesm);
+   qoreNS->addConstant("EVENT_SOURCE_MAP", qesm);
 
-   qns->addConstant("SOURCE_SOCKET", new QoreBigIntNode(QORE_SOURCE_SOCKET));
-   qns->addConstant("SOURCE_HTTPCLIENT", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT));
-   qns->addConstant("SOURCE_FTPCLIENT", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT));
-   qns->addConstant("SOURCE_FILE", new QoreBigIntNode(QORE_SOURCE_FILE));
+   qoreNS->addConstant("SOURCE_SOCKET", new QoreBigIntNode(QORE_SOURCE_SOCKET));
+   qoreNS->addConstant("SOURCE_HTTPCLIENT", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT));
+   qoreNS->addConstant("SOURCE_FTPCLIENT", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT));
+   qoreNS->addConstant("SOURCE_FILE", new QoreBigIntNode(QORE_SOURCE_FILE));
 
-   QoreHashNode *qsam = new QoreHashNode();
+   QoreHashNode *qsam = new QoreHashNode;
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_PACKET_READ), new QoreStringNode("PACKET_READ"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_PACKET_SENT), new QoreStringNode("PACKET_SENT"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CONTENT_LENGTH), new QoreStringNode("HTTP_CONTENT_LENGTH"), 0);
@@ -1746,157 +1669,157 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) {
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_FILE_OPENED), new QoreStringNode("FILE_OPENED"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DATA_READ), new QoreStringNode("DATA_READ"), 0);
    qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DATA_WRITTEN), new QoreStringNode("DATA_WRITTEN"), 0);
-   qns->addConstant("EVENT_MAP", qsam);
+   qoreNS->addConstant("EVENT_MAP", qsam);
 
-   qns->addConstant("EVENT_PACKET_READ", new QoreBigIntNode(QORE_EVENT_PACKET_READ));
-   qns->addConstant("EVENT_PACKET_SENT", new QoreBigIntNode(QORE_EVENT_PACKET_SENT));
-   qns->addConstant("EVENT_HTTP_CONTENT_LENGTH", new QoreBigIntNode(QORE_EVENT_HTTP_CONTENT_LENGTH));
-   qns->addConstant("EVENT_HTTP_CHUNKED_START", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_START));
-   qns->addConstant("EVENT_HTTP_CHUNKED_END", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_END));
-   qns->addConstant("EVENT_HTTP_REDIRECT", new QoreBigIntNode(QORE_EVENT_HTTP_REDIRECT));
-   qns->addConstant("EVENT_CHANNEL_CLOSED", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED));
-   qns->addConstant("EVENT_DELETED", new QoreBigIntNode(QORE_EVENT_DELETED));
-   qns->addConstant("EVENT_FTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_FTP_SEND_MESSAGE));
-   qns->addConstant("EVENT_FTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_RECEIVED));
-   qns->addConstant("EVENT_HOSTNAME_LOOKUP", new QoreBigIntNode(QORE_EVENT_HOSTNAME_LOOKUP));
-   qns->addConstant("EVENT_HOSTNAME_RESOLVED", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED));
-   qns->addConstant("EVENT_HTTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE));
-   qns->addConstant("EVENT_HTTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_MESSAGE_RECEIVED));
-   qns->addConstant("EVENT_HTTP_FOOTERS_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_FOOTERS_RECEIVED));
-   qns->addConstant("EVENT_HTTP_CHUNKED_DATA_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED));
-   qns->addConstant("EVENT_HTTP_CHUNK_SIZE", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNK_SIZE));
-   qns->addConstant("EVENT_CONNECTING", new QoreBigIntNode(QORE_EVENT_CONNECTING));
-   qns->addConstant("EVENT_CONNECTED", new QoreBigIntNode(QORE_EVENT_CONNECTED));
-   qns->addConstant("EVENT_START_SSL", new QoreBigIntNode(QORE_EVENT_START_SSL));
-   qns->addConstant("EVENT_SSL_ESTABLISHED", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED));
-   qns->addConstant("EVENT_OPEN_FILE", new QoreBigIntNode(QORE_EVENT_OPEN_FILE));
-   qns->addConstant("EVENT_FILE_OPENED", new QoreBigIntNode(QORE_EVENT_FILE_OPENED));
-   qns->addConstant("EVENT_DATA_READ", new QoreBigIntNode(QORE_EVENT_DATA_READ));
-   qns->addConstant("EVENT_DATA_WRITTEN", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN));
-   //qns->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
+   qoreNS->addConstant("EVENT_PACKET_READ", new QoreBigIntNode(QORE_EVENT_PACKET_READ));
+   qoreNS->addConstant("EVENT_PACKET_SENT", new QoreBigIntNode(QORE_EVENT_PACKET_SENT));
+   qoreNS->addConstant("EVENT_HTTP_CONTENT_LENGTH", new QoreBigIntNode(QORE_EVENT_HTTP_CONTENT_LENGTH));
+   qoreNS->addConstant("EVENT_HTTP_CHUNKED_START", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_START));
+   qoreNS->addConstant("EVENT_HTTP_CHUNKED_END", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_END));
+   qoreNS->addConstant("EVENT_HTTP_REDIRECT", new QoreBigIntNode(QORE_EVENT_HTTP_REDIRECT));
+   qoreNS->addConstant("EVENT_CHANNEL_CLOSED", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED));
+   qoreNS->addConstant("EVENT_DELETED", new QoreBigIntNode(QORE_EVENT_DELETED));
+   qoreNS->addConstant("EVENT_FTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_FTP_SEND_MESSAGE));
+   qoreNS->addConstant("EVENT_FTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_RECEIVED));
+   qoreNS->addConstant("EVENT_HOSTNAME_LOOKUP", new QoreBigIntNode(QORE_EVENT_HOSTNAME_LOOKUP));
+   qoreNS->addConstant("EVENT_HOSTNAME_RESOLVED", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED));
+   qoreNS->addConstant("EVENT_HTTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE));
+   qoreNS->addConstant("EVENT_HTTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_MESSAGE_RECEIVED));
+   qoreNS->addConstant("EVENT_HTTP_FOOTERS_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_FOOTERS_RECEIVED));
+   qoreNS->addConstant("EVENT_HTTP_CHUNKED_DATA_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED));
+   qoreNS->addConstant("EVENT_HTTP_CHUNK_SIZE", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNK_SIZE));
+   qoreNS->addConstant("EVENT_CONNECTING", new QoreBigIntNode(QORE_EVENT_CONNECTING));
+   qoreNS->addConstant("EVENT_CONNECTED", new QoreBigIntNode(QORE_EVENT_CONNECTED));
+   qoreNS->addConstant("EVENT_START_SSL", new QoreBigIntNode(QORE_EVENT_START_SSL));
+   qoreNS->addConstant("EVENT_SSL_ESTABLISHED", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED));
+   qoreNS->addConstant("EVENT_OPEN_FILE", new QoreBigIntNode(QORE_EVENT_OPEN_FILE));
+   qoreNS->addConstant("EVENT_FILE_OPENED", new QoreBigIntNode(QORE_EVENT_FILE_OPENED));
+   qoreNS->addConstant("EVENT_DATA_READ", new QoreBigIntNode(QORE_EVENT_DATA_READ));
+   qoreNS->addConstant("EVENT_DATA_WRITTEN", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN));
+   //qoreNS->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
    // setup terminal mode constants
    // input modes
-   qns->addConstant("IGNBRK", new QoreBigIntNode(IGNBRK));
-   qns->addConstant("BRKINT", new QoreBigIntNode(BRKINT));
-   qns->addConstant("IGNPAR", new QoreBigIntNode(IGNPAR));
-   qns->addConstant("PARMRK", new QoreBigIntNode(PARMRK));
-   qns->addConstant("INPCK", new QoreBigIntNode(INPCK));
-   qns->addConstant("ISTRIP", new QoreBigIntNode(ISTRIP));
-   qns->addConstant("INLCR", new QoreBigIntNode(INLCR));
-   qns->addConstant("IGNCR", new QoreBigIntNode(IGNCR));
-   qns->addConstant("ICRNL", new QoreBigIntNode(ICRNL));
-   qns->addConstant("IXON", new QoreBigIntNode(IXON));
-   qns->addConstant("IXOFF", new QoreBigIntNode(IXOFF));
-   qns->addConstant("IXANY", new QoreBigIntNode(IXANY));
-   qns->addConstant("IMAXBEL", new QoreBigIntNode(IMAXBEL));
+   qoreNS->addConstant("IGNBRK", new QoreBigIntNode(IGNBRK));
+   qoreNS->addConstant("BRKINT", new QoreBigIntNode(BRKINT));
+   qoreNS->addConstant("IGNPAR", new QoreBigIntNode(IGNPAR));
+   qoreNS->addConstant("PARMRK", new QoreBigIntNode(PARMRK));
+   qoreNS->addConstant("INPCK", new QoreBigIntNode(INPCK));
+   qoreNS->addConstant("ISTRIP", new QoreBigIntNode(ISTRIP));
+   qoreNS->addConstant("INLCR", new QoreBigIntNode(INLCR));
+   qoreNS->addConstant("IGNCR", new QoreBigIntNode(IGNCR));
+   qoreNS->addConstant("ICRNL", new QoreBigIntNode(ICRNL));
+   qoreNS->addConstant("IXON", new QoreBigIntNode(IXON));
+   qoreNS->addConstant("IXOFF", new QoreBigIntNode(IXOFF));
+   qoreNS->addConstant("IXANY", new QoreBigIntNode(IXANY));
+   qoreNS->addConstant("IMAXBEL", new QoreBigIntNode(IMAXBEL));
 #ifdef IUCLC
-   qns->addConstant("IUCLC", new QoreBigIntNode(IUCLC));
+   qoreNS->addConstant("IUCLC", new QoreBigIntNode(IUCLC));
 #endif
 
    // output modes
-   qns->addConstant("OPOST", new QoreBigIntNode(OPOST));
-   qns->addConstant("ONLCR", new QoreBigIntNode(ONLCR));
+   qoreNS->addConstant("OPOST", new QoreBigIntNode(OPOST));
+   qoreNS->addConstant("ONLCR", new QoreBigIntNode(ONLCR));
 #ifdef OXTABS
-   qns->addConstant("OXTABS", new QoreBigIntNode(OXTABS));
+   qoreNS->addConstant("OXTABS", new QoreBigIntNode(OXTABS));
 #endif
 #ifdef ONOEOT
-   qns->addConstant("ONOEOT", new QoreBigIntNode(ONOEOT));
+   qoreNS->addConstant("ONOEOT", new QoreBigIntNode(ONOEOT));
 #endif
-   qns->addConstant("OCRNL", new QoreBigIntNode(OCRNL));
+   qoreNS->addConstant("OCRNL", new QoreBigIntNode(OCRNL));
 #ifdef OLCUC
-   qns->addConstant("OLCUC", new QoreBigIntNode(OLCUC));
+   qoreNS->addConstant("OLCUC", new QoreBigIntNode(OLCUC));
 #endif
-   qns->addConstant("ONOCR", new QoreBigIntNode(ONOCR));
-   qns->addConstant("ONLRET", new QoreBigIntNode(ONLRET));
+   qoreNS->addConstant("ONOCR", new QoreBigIntNode(ONOCR));
+   qoreNS->addConstant("ONLRET", new QoreBigIntNode(ONLRET));
 
    // control modes
-   qns->addConstant("CSIZE", new QoreBigIntNode(CSIZE));
-   qns->addConstant("CS5", new QoreBigIntNode(CS5));
-   qns->addConstant("CS6", new QoreBigIntNode(CS6));
-   qns->addConstant("CS7", new QoreBigIntNode(CS7));
-   qns->addConstant("CS8", new QoreBigIntNode(CS8));
-   qns->addConstant("CSTOPB", new QoreBigIntNode(CSTOPB));
-   qns->addConstant("CREAD", new QoreBigIntNode(CREAD));
-   qns->addConstant("PARENB", new QoreBigIntNode(PARENB));
-   qns->addConstant("PARODD", new QoreBigIntNode(PARODD));
-   qns->addConstant("HUPCL", new QoreBigIntNode(HUPCL));
-   qns->addConstant("CLOCAL", new QoreBigIntNode(CLOCAL));
+   qoreNS->addConstant("CSIZE", new QoreBigIntNode(CSIZE));
+   qoreNS->addConstant("CS5", new QoreBigIntNode(CS5));
+   qoreNS->addConstant("CS6", new QoreBigIntNode(CS6));
+   qoreNS->addConstant("CS7", new QoreBigIntNode(CS7));
+   qoreNS->addConstant("CS8", new QoreBigIntNode(CS8));
+   qoreNS->addConstant("CSTOPB", new QoreBigIntNode(CSTOPB));
+   qoreNS->addConstant("CREAD", new QoreBigIntNode(CREAD));
+   qoreNS->addConstant("PARENB", new QoreBigIntNode(PARENB));
+   qoreNS->addConstant("PARODD", new QoreBigIntNode(PARODD));
+   qoreNS->addConstant("HUPCL", new QoreBigIntNode(HUPCL));
+   qoreNS->addConstant("CLOCAL", new QoreBigIntNode(CLOCAL));
 #ifdef CCTS_OFLOW
-   qns->addConstant("CCTS_OFLOW", new QoreBigIntNode(CCTS_OFLOW));
+   qoreNS->addConstant("CCTS_OFLOW", new QoreBigIntNode(CCTS_OFLOW));
 #endif
 #ifdef CRTSCTS
-   qns->addConstant("CRTSCTS", new QoreBigIntNode(CRTSCTS));
+   qoreNS->addConstant("CRTSCTS", new QoreBigIntNode(CRTSCTS));
 #endif
 #ifdef CRTS_IFLOW
-   qns->addConstant("CRTS_IFLOW", new QoreBigIntNode(CRTS_IFLOW));
+   qoreNS->addConstant("CRTS_IFLOW", new QoreBigIntNode(CRTS_IFLOW));
 #endif
 #ifdef MDMBUF
-   qns->addConstant("MDMBUF", new QoreBigIntNode(MDMBUF));
+   qoreNS->addConstant("MDMBUF", new QoreBigIntNode(MDMBUF));
 #endif
 
    // local modes
-   qns->addConstant("ECHOKE", new QoreBigIntNode(ECHOKE));
-   qns->addConstant("ECHOE", new QoreBigIntNode(ECHOE));
-   qns->addConstant("ECHO", new QoreBigIntNode(ECHO));
-   qns->addConstant("ECHONL", new QoreBigIntNode(ECHONL));
+   qoreNS->addConstant("ECHOKE", new QoreBigIntNode(ECHOKE));
+   qoreNS->addConstant("ECHOE", new QoreBigIntNode(ECHOE));
+   qoreNS->addConstant("ECHO", new QoreBigIntNode(ECHO));
+   qoreNS->addConstant("ECHONL", new QoreBigIntNode(ECHONL));
 #ifdef ECHOPRT
-   qns->addConstant("ECHOPRT", new QoreBigIntNode(ECHOPRT));
+   qoreNS->addConstant("ECHOPRT", new QoreBigIntNode(ECHOPRT));
 #endif
-   qns->addConstant("ECHOCTL", new QoreBigIntNode(ECHOCTL));
-   qns->addConstant("ISIG", new QoreBigIntNode(ISIG));
-   qns->addConstant("ICANON", new QoreBigIntNode(ICANON));
+   qoreNS->addConstant("ECHOCTL", new QoreBigIntNode(ECHOCTL));
+   qoreNS->addConstant("ISIG", new QoreBigIntNode(ISIG));
+   qoreNS->addConstant("ICANON", new QoreBigIntNode(ICANON));
 #ifdef ALTWERASE
-   qns->addConstant("ALTWERASE", new QoreBigIntNode(ALTWERASE));
+   qoreNS->addConstant("ALTWERASE", new QoreBigIntNode(ALTWERASE));
 #endif
-   qns->addConstant("IEXTEN", new QoreBigIntNode(IEXTEN));
+   qoreNS->addConstant("IEXTEN", new QoreBigIntNode(IEXTEN));
 #ifdef EXTPROC
-   qns->addConstant("EXTPROC", new QoreBigIntNode(EXTPROC));
+   qoreNS->addConstant("EXTPROC", new QoreBigIntNode(EXTPROC));
 #endif
-   qns->addConstant("TOSTOP", new QoreBigIntNode(TOSTOP));
-   qns->addConstant("FLUSHO", new QoreBigIntNode(FLUSHO));
+   qoreNS->addConstant("TOSTOP", new QoreBigIntNode(TOSTOP));
+   qoreNS->addConstant("FLUSHO", new QoreBigIntNode(FLUSHO));
 #ifdef NOKERNINFO
-   qns->addConstant("NOKERNINFO", new QoreBigIntNode(NOKERNINFO));
+   qoreNS->addConstant("NOKERNINFO", new QoreBigIntNode(NOKERNINFO));
 #endif
 #ifdef PENDIN
-   qns->addConstant("PENDIN", new QoreBigIntNode(PENDIN));
+   qoreNS->addConstant("PENDIN", new QoreBigIntNode(PENDIN));
 #endif
-   qns->addConstant("NOFLSH", new QoreBigIntNode(NOFLSH));
+   qoreNS->addConstant("NOFLSH", new QoreBigIntNode(NOFLSH));
    
    // control characters
-   qns->addConstant("VEOF", new QoreBigIntNode(VEOF));
-   qns->addConstant("VEOL", new QoreBigIntNode(VEOL));
-   qns->addConstant("VEOL2", new QoreBigIntNode(VEOL2));
-   qns->addConstant("VERASE", new QoreBigIntNode(VERASE));
-   qns->addConstant("VWERASE", new QoreBigIntNode(VWERASE));
-   qns->addConstant("VKILL", new QoreBigIntNode(VKILL));
+   qoreNS->addConstant("VEOF", new QoreBigIntNode(VEOF));
+   qoreNS->addConstant("VEOL", new QoreBigIntNode(VEOL));
+   qoreNS->addConstant("VEOL2", new QoreBigIntNode(VEOL2));
+   qoreNS->addConstant("VERASE", new QoreBigIntNode(VERASE));
+   qoreNS->addConstant("VWERASE", new QoreBigIntNode(VWERASE));
+   qoreNS->addConstant("VKILL", new QoreBigIntNode(VKILL));
 #ifdef VREPRINT
-   qns->addConstant("VREPRINT", new QoreBigIntNode(VREPRINT));
+   qoreNS->addConstant("VREPRINT", new QoreBigIntNode(VREPRINT));
 #endif
-   qns->addConstant("VINTR", new QoreBigIntNode(VINTR));
-   qns->addConstant("VQUIT", new QoreBigIntNode(VQUIT));
-   qns->addConstant("VSUSP", new QoreBigIntNode(VSUSP));
+   qoreNS->addConstant("VINTR", new QoreBigIntNode(VINTR));
+   qoreNS->addConstant("VQUIT", new QoreBigIntNode(VQUIT));
+   qoreNS->addConstant("VSUSP", new QoreBigIntNode(VSUSP));
 #ifdef VDSUSP
-   qns->addConstant("VDSUSP", new QoreBigIntNode(VDSUSP));
+   qoreNS->addConstant("VDSUSP", new QoreBigIntNode(VDSUSP));
 #endif
-   qns->addConstant("VSTART", new QoreBigIntNode(VSTART));
-   qns->addConstant("VSTOP", new QoreBigIntNode(VSTOP));
-   qns->addConstant("VLNEXT", new QoreBigIntNode(VLNEXT));
+   qoreNS->addConstant("VSTART", new QoreBigIntNode(VSTART));
+   qoreNS->addConstant("VSTOP", new QoreBigIntNode(VSTOP));
+   qoreNS->addConstant("VLNEXT", new QoreBigIntNode(VLNEXT));
 #ifdef VDISCARD
-   qns->addConstant("VDISCARD", new QoreBigIntNode(VDISCARD));
+   qoreNS->addConstant("VDISCARD", new QoreBigIntNode(VDISCARD));
 #endif
-   qns->addConstant("VMIN", new QoreBigIntNode(VMIN));
-   qns->addConstant("VTIME", new QoreBigIntNode(VTIME));
+   qoreNS->addConstant("VMIN", new QoreBigIntNode(VMIN));
+   qoreNS->addConstant("VTIME", new QoreBigIntNode(VTIME));
 #ifdef VSTATUS
-   qns->addConstant("VSTATUS", new QoreBigIntNode(VSTATUS));
+   qoreNS->addConstant("VSTATUS", new QoreBigIntNode(VSTATUS));
 #endif
 
    // terminal setting actions
-   qns->addConstant("TCSANOW", new QoreBigIntNode(TCSANOW));
-   qns->addConstant("TCSADRAIN", new QoreBigIntNode(TCSADRAIN));
-   qns->addConstant("TCSAFLUSH", new QoreBigIntNode(TCSAFLUSH));
+   qoreNS->addConstant("TCSANOW", new QoreBigIntNode(TCSANOW));
+   qoreNS->addConstant("TCSADRAIN", new QoreBigIntNode(TCSADRAIN));
+   qoreNS->addConstant("TCSAFLUSH", new QoreBigIntNode(TCSAFLUSH));
 #ifdef TCSASOFT
-   qns->addConstant("TCSASOFT", new QoreBigIntNode(TCSASOFT));
+   qoreNS->addConstant("TCSASOFT", new QoreBigIntNode(TCSASOFT));
 #endif
 
    // set up Option namespace for Qore options
@@ -1997,58 +1920,62 @@ RootQoreNamespace::RootQoreNamespace(QoreNamespace **QoreNS) {
    option->addConstant("HAVE_RC5",  &False);
 #endif
 
-   qns->addInitialNamespace(option);
+   qoreNS->addInitialNamespace(option);
 
    // create Qore::SQL namespace
-   qns->addInitialNamespace(getSQLNamespace());
+   qoreNS->addInitialNamespace(getSQLNamespace());
 
    // create get Qore::Err namespace with ERRNO constants
-   qns->addInitialNamespace(get_errno_ns());
+   qoreNS->addInitialNamespace(get_errno_ns());
 
    // create Qore::Type namespace with type constants
-   qns->addInitialNamespace(get_type_ns());
+   qoreNS->addInitialNamespace(get_type_ns());
 
    // add file constants
-   addFileConstants(qns);
+   addFileConstants(qoreNS);
 
    // add parse option constants to Qore namespace
-   addProgramConstants(qns);
+   addProgramConstants(qoreNS);
 
-   addQoreNamespace(qns);
+   addQoreNamespace(qoreNS);
 
    // add all changes in loaded modules
-   ANSL.init(this, qns);
+   ANSL.init(this, qoreNS);
+}
 
-   *QoreNS = qns;
+RootQoreNamespace::RootQoreNamespace(QoreNamespace *&QoreNS, int64 po) 
+   : QoreNamespace("", 
+		   staticSystemNamespace.priv->classList->copy(po),
+		   staticSystemNamespace.priv->constant->copy(),
+		   staticSystemNamespace.priv->nsl->copy(po)) {
+   qoreNS = QoreNS = priv->nsl->find("Qore");
+   assert(QoreNS);
 }
 
 // private constructor
-RootQoreNamespace::RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl, QoreClassList *pend_ocl, ConstantList *pend_cl, QoreNamespaceList *pend_nsl) : QoreNamespace("", ocl, cl, nnsl, pend_ocl, pend_cl, pend_nsl), File(0) {
+RootQoreNamespace::RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) : QoreNamespace("", ocl, cl, nnsl) {
    qoreNS = priv->nsl->find("Qore");
    // resolve all copied classes to the new classes
    priv->classList->resolveCopy();
    priv->nsl->resolveCopy();
 }
 
+// private constructor; used by StaticSystemNamespace
+RootQoreNamespace::RootQoreNamespace() : QoreNamespace("") {
+}
+
 RootQoreNamespace::~RootQoreNamespace() {
    // first delete all contained classes and other objects
    purge();
-
-   // then deref system constant classes
-   /*
-   if (File) {
-      //printd(5, "RootQoreNamespace::~RootQoreNamespace() this=%p dereferencing File %p\n", this, File);
-      File->nderef();
-   }
-   */
 }
 
 QoreNamespace *RootQoreNamespace::rootGetQoreNamespace() const {
    return qoreNS;
 }
 
-RootQoreNamespace *RootQoreNamespace::copy(int po) const {
-   return new RootQoreNamespace(priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po), priv->pendClassList->copy(po), priv->pendConstant->copy(), priv->pendNSL->copy(po));
+RootQoreNamespace *RootQoreNamespace::copy(int64 po) const {
+   //printd(5, "RootQoreNamespace::copy() this=%p po=%lld\n", this, po);
+   return new RootQoreNamespace(priv->classList->copy(po), priv->constant->copy(), priv->nsl->copy(po));
 }
 
 #ifdef DEBUG_TESTS

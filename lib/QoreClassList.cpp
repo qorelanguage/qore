@@ -59,26 +59,7 @@ QoreClass *QoreClassList::find(const char *name) {
    return 0;
 }
 
-/*
-QoreClass *QoreClassList::findChange(const char *name) {
-   hm_qc_t::iterator i = hm.find(name);
-   if (i != hm.end()) {
-      QoreClass *nc;
-      if (!i->second->is_unique()) {
-	 nc = i->second;
-	 hm.erase(i);
-	 nc = nc->copyAndDeref();
-	 hm[nc->getName()] = nc;
-      }
-      else
-	 nc = i->second;
-      return nc;
-   }
-   return 0;
-}
-*/
-
-QoreClassList *QoreClassList::copy(int po) {
+QoreClassList *QoreClassList::copy(int64 po) {
    QoreClassList *nocl = new QoreClassList();
 
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)

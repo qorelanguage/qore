@@ -32,8 +32,8 @@ int main(int argc, char *argv[]) {
    qore_init(license, def_charset, show_mod_errs, qore_lib_options);
 
    ExceptionSink wsink, xsink;
-   { 
-      QoreProgramHelper qpgm(xsink);
+   {
+      QoreProgramHelper qpgm(parse_options, xsink);
 
       // load any modules requested on the command-line
       bool mod_errs = false;
@@ -52,9 +52,6 @@ int main(int argc, char *argv[]) {
 	 rc = 2;
 	 goto exit;
       }
-      
-      // set the parse options
-      qpgm->parseSetParseOptions(parse_options);
       
       // lock the parse options if necessary
       if (lock_options)

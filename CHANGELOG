@@ -4,6 +4,12 @@
 	 * implemented code to ensure that there is only one variant for
 	   methodGate(), memberGate(), and memberNotification() methods, check
 	   signatures
+	 * fixed static reference namespace initialization to be done only
+	   once, all top-level QoreProgram objects created contain copies of
+	   that namespace, similar to how namespace initialization works with
+	   modules
+	 * fixed that all parse options are respected in the initial program,
+	   including "no-system-classes", etc
 
 2010.03.17: David Nichols
 	 * updated program creation to copy all classes in all namespaces so

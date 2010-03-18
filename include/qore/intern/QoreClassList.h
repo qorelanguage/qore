@@ -52,7 +52,7 @@ public:
    DLLLOCAL ~QoreClassList();
    DLLLOCAL int add(QoreClass *ot);
    DLLLOCAL QoreClass *find(const char *name);
-   DLLLOCAL QoreClassList *copy(int po);
+   DLLLOCAL QoreClassList *copy(int64 po);
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();

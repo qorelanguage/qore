@@ -1,5 +1,5 @@
 /*
-  main.cpp
+  qore-main.cpp
 
   Qore Programming Language
 
@@ -81,10 +81,13 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // init module subsystem
    MM.init(show_module_errors);
 
-#ifdef HAVE_SIGNAL_HJANDLING
+#ifdef HAVE_SIGNAL_HANDLING
    // init signals
    QSM.init(qore_library_options & QLO_DISABLE_SIGNAL_HANDLING);
 #endif
+
+   // initialize static system namespaces
+   staticSystemNamespace.init();
 }
 
 // NOTE: we do not cleanup in reverse initialization order
@@ -92,12 +95,15 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 // unloaded in case there are any module-specific thread
 // cleanup functions to be run...
 void qore_cleanup() {
-#ifdef HAVE_SIGNAL_HJANDLING
+   // delete static system namespaces
+   staticSystemNamespace.purge();
+
+#ifdef HAVE_SIGNAL_HANDLING
    // stop signal manager
    QSM.del();
 #endif
 
-   // now free memory
+   // now free memory (like ARGV, QORE_ARGV, ENV, etc)
    delete_global_variables();
 
    // clear the list before modules are unloaded

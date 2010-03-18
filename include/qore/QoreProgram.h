@@ -105,6 +105,12 @@ public:
    //! creates the object
    DLLEXPORT QoreProgram();
 
+   //! creates the object and sets the parse options
+   /**
+      @param parse_options the parse options mask for the QoreProgram object
+   */
+   DLLEXPORT QoreProgram(int64 parse_options);
+
    //! calls a function from the function name and returns the return value
    /** if the function does not exist, an exception is added to "xsink"
        @param name the name of the function to call
@@ -517,8 +523,12 @@ private:
    ExceptionSink &xsink;
 
 public:
-   //! creates the QoreProgram object
+   //! creates the QoreProgram object: DEPRECATED: use QoreProgram(ExceptionSink&, int64) instead
    DLLLOCAL QoreProgramHelper(ExceptionSink &xs) : pgm(new QoreProgram), xsink(xs) {
+   }
+
+   //! creates the QoreProgram object and sets the parse options
+   DLLLOCAL QoreProgramHelper(int64 parse_options, ExceptionSink &xs) : pgm(new QoreProgram(parse_options)), xsink(xs) {
    }
 
    //! waits until the QoreProgram object is done executing and then dereferences the object
@@ -534,18 +544,5 @@ public:
    //! returns the QoreProgram object being managed
    DLLLOCAL QoreProgram* operator*() { return pgm; }    
 };
-
-/*
-FIXME: either implement or delete
-//! provides information about function variants
-class ExternalVariant {
-private:
-   AbstractQoreFunctionVariant *variant;
-
-public:
-   DLLLOCAL ExternalVariant(AbstractQoreFunctionVariant *n_variant) : variant(n_variant) {
-   }
-};
-*/
 
 #endif  // _QORE_QOREPROGRAM_H

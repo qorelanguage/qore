@@ -67,6 +67,7 @@ public:
    /** new in qore 0.8
        @param name the name of the function
        @param f a pointer to the actual C++ function to be executed when the function is called
+       @param code_flags flags for the function being added
        @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
        @param returnTypeInfo the type information for the return value of this function
        @param num_params the number of parameters specified for the function, there must be 2 arguments for each parameter, first, a const QoreTypeInfo *, giving the type information for the parameter, and second a const AbstractQoreNode * giving the default value if no argument is supplied by the caller
@@ -77,6 +78,7 @@ public:
    /** new in qore 0.8
        @param name the name of the function
        @param f a pointer to the actual C++ function to be executed when the function is called
+       @param code_flags flags for the function being added
        @param functional_domain a capability mask of the function so that access to the function can be restricted if necessary; use QDOM_DEFAULT for none
        @param returnTypeInfo the type information for the return value of this function
        @param typeList a list of types for each parameter; must have num_param entries

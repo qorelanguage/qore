@@ -288,6 +288,7 @@ public:
    /** @param ptr a pointer to user-defined data that will be passed to the method function when it is called
        @param n_name the name of the method to add the variant to
        @param meth the function pointer of the code to call
+       @param n_flags flags for the code being added
        @param priv if true then the variant will be added as a private variant
        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
        @param returnTypeInfo the type of value returned by the variant
@@ -324,6 +325,7 @@ public:
        @param n_name the name of the method to add the variant to
        @param meth the function pointer of the code to call
        @param priv if true then the variant will be added as a private variant
+       @param n_flags flags for the code being added
        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
        @param returnTypeInfo the type of value returned by the variant
        @param n_typeList a list of type information for parameters to the variant
@@ -402,6 +404,7 @@ public:
    /** @param ptr a pointer to user-defined data that will be passed to the method function when it is called
        @param meth the function pointer of the code to call
        @param priv if true then the variant will be added as a private variant
+       @param n_flags flags for the code being added
        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
        @param n_typeList a list of type information for parameters to the variant
        @param defaultArgList a list of default arguments to each parameter
