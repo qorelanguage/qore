@@ -37,7 +37,7 @@
 DLLLOCAL AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink);
 
 DLLLOCAL AbstractQoreNode *f_noop(const QoreListNode *args, ExceptionSink *xsink);
-//DLLLOCAL AbstractQoreNode *f_returns_empty_string_noop(const QoreListNode *args, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *f_string_noop(const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *class_noop(QoreObject *self, AbstractPrivateData *ptr, const QoreListNode *args, ExceptionSink *xsink);
 
 class LocalVar;
@@ -194,7 +194,7 @@ public:
       return returnTypeInfo;
    }
 
-   DLLLOCAL virtual const QoreTypeInfo *getReturnTypeInfo() const {
+   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
       assert(resolved);
       return returnTypeInfo;
    }
@@ -244,7 +244,7 @@ public:
    DLLLOCAL virtual int64 getFunctionality() const = 0;
 
    DLLLOCAL virtual UserVariantBase *getUserVariantBase() = 0;
-   DLLLOCAL const UserVariantBase *getConstUserVariantBase() const {
+   DLLLOCAL const UserVariantBase *getUserVariantBase() const {
       return const_cast<AbstractQoreFunctionVariant *>(this)->getUserVariantBase();
    }
 
@@ -424,7 +424,7 @@ protected:
    ilist_t ilist;
 
    // if true means all variants have the same return value
-   bool same_return_type;
+   bool same_return_type, parse_same_return_type;
    int64 unique_functionality;
 
    // convenience function for returning the first variant in the list
@@ -453,7 +453,7 @@ protected:
 
    // FIXME: does not check unparsed types properly
    DLLLOCAL void addVariant(AbstractQoreFunctionVariant *variant) {
-      if (same_return_type && !vlist.empty() && variant->getReturnTypeInfo() != first()->getReturnTypeInfo())
+      if (same_return_type && !vlist.empty() && !variant->getReturnTypeInfo()->checkIdentical(first()->getReturnTypeInfo()))
 	 same_return_type = false;
 
       int64 vf = variant->getFunctionality();
@@ -468,12 +468,14 @@ protected:
    }
 
 public:
-   DLLLOCAL AbstractQoreFunction() : same_return_type(true), unique_functionality(QDOM_DEFAULT) {
+   DLLLOCAL AbstractQoreFunction() : same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT) {
       ilist.push_back(this);
    }
 
    // copy constructor (used by method functions when copied)
-   DLLLOCAL AbstractQoreFunction(const AbstractQoreFunction &old) : same_return_type(old.same_return_type), unique_functionality(old.unique_functionality) {      
+   DLLLOCAL AbstractQoreFunction(const AbstractQoreFunction &old) : same_return_type(old.same_return_type), 
+                                                                    parse_same_return_type(old.parse_same_return_type), 
+                                                                    unique_functionality(old.unique_functionality) {      
       // copy variants by reference
       vlist.reserve(old.vlist.size());
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
@@ -508,10 +510,15 @@ public:
             return;
       ilist.push_back(ancestor);
    }
-   
+
+   // resolves all types in signatures and return types in pending variants; called during the "parseInit" phase
+   DLLLOCAL void resolvePendingSignatures();
+
    DLLLOCAL AbstractFunctionSignature *getUniqueSignature() const {
       return vlist.singular() ? first()->getSignature() : 0;
    }
+
+   DLLLOCAL AbstractFunctionSignature *parseGetUniqueSignature() const;
 
    DLLLOCAL int64 getUniqueFunctionality() const {
       return unique_functionality;
@@ -523,19 +530,19 @@ public:
    DLLLOCAL void parseCommit();
    DLLLOCAL void parseRollback();
 
-   DLLLOCAL const QoreTypeInfo *parseGetUniqueReturnTypeInfo() const {
-      if (!same_return_type)
-	 return 0;
-
-      const QoreTypeInfo *rv = 0;
-      for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-	 rv = (*i)->parseGetReturnTypeInfo();
-      }
-      return rv;
-   }
-
    DLLLOCAL const QoreTypeInfo *getUniqueReturnTypeInfo() const {
       return same_return_type && !vlist.empty() ? first()->getReturnTypeInfo() : 0;
+   }
+
+   DLLLOCAL const QoreTypeInfo *parseGetUniqueReturnTypeInfo() const {
+      if (!same_return_type || !parse_same_return_type)
+         return 0;
+
+      if (!vlist.empty())
+         return first()->getReturnTypeInfo();
+
+      assert(!pending_vlist.empty());
+      return pending_first()->getReturnTypeInfo();
    }
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time

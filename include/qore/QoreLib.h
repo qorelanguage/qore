@@ -58,8 +58,9 @@
 
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
-#define QC_USES_EXTRA_ARGS    (1 << 0)  //! code accesses arguments beyon the declared parameter list
-#define QC_CONSTANT           (1 << 1)  //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, just returns a calculation based on its arguments)
+#define QC_NOOP               (1 << 0)  //! this function is a noop, meaning it is only there for backwards compatibility and does nothing
+#define QC_USES_EXTRA_ARGS    (1 << 1)  //! code accesses arguments beyond the declared parameter list
+#define QC_CONSTANT           (1 << 2)  //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, just returns a calculation based on its arguments)
 
 //! function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);

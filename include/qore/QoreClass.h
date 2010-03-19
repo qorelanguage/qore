@@ -793,6 +793,7 @@ public:
    DLLLOCAL void parseSetEmptyPublicMemberDeclaration();
    // unsets the public member flag for builtin classes
    DLLLOCAL void unsetPublicMemberFlag();
+   DLLLOCAL void parseInitPartial();
 };
 
 class QoreMethodIterator {

@@ -206,7 +206,7 @@ public:
    }
 
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      // FIXME: get signature here
+      typeInfo = 0;
       lvids += parseArgsFindVariant(oflag, pflag, 0);
       return this;
    }

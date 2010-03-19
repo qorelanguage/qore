@@ -1292,10 +1292,10 @@ class Test inherits Socket {
     memberNotification(string $m) {
 	$.t.$m = $self.$m;
     }
-    closure(any $x) {
+    closure(any $x) returns code {
 	my int $a = 1;
 	# return a closure encapsulating the state of the object
-	return sub (any $y) {
+	return sub (any $y) returns string {
 	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
 	};
     }
@@ -1841,11 +1841,11 @@ sub crypto_tests() {
 sub closures(string $x) returns list {
     my int $a = 1;
     
-    my code $inc = sub (any $y) {
+    my code $inc = sub (any $y) returns string {
 	return sprintf("%s-%n-%n", $x, $y, ++$a);
     };
 
-    my code $dec = sub (any $y) {
+    my code $dec = sub (any $y) returns string {
 	return sprintf("%s-%n-%n", $x, $y, --$a);
     };
 

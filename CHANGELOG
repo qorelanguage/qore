@@ -1,6 +1,13 @@
 2010.03.19: David Nichols
 	 * fixed parse warning for unknown method calls when a static method
 	   is called with normal method call syntax
+	 * fixed some bugs in hard typing support
+	 * made class parse initialization nested and more efficient
+	 * implemented "closure" and "callref" types (both alias to "code"
+	   internally) and fixed parse type reporting for those types
+	 * implemented cast<> operator to avoid seeing type warnings for
+	   calling subclass methods from a base class function
+	   (example: cast<MyType>(expr))
 
 2010.03.18: David Nichols
 	 * fixed a problem resolving method variants in derived classes at

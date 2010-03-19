@@ -122,6 +122,19 @@ DLLLOCAL QoreListNode *getCallStackList();
 #define popCall(x)
 #endif
 
+class QoreParseClassHelper {
+protected:
+   QoreClass *old;
+public:
+   DLLLOCAL QoreParseClassHelper(QoreClass *cls) {
+      old = getParseClass();
+      setParseClass(cls);
+   }
+   DLLLOCAL ~QoreParseClassHelper() {
+      setParseClass(old);
+   }
+};
+
 class QoreProgramLocationHelper {
 protected:
    int start_line, end_line;
