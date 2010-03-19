@@ -1,3 +1,7 @@
+2010.03.19: David Nichols
+	 * fixed parse warning for unknown method calls when a static method
+	   is called with normal method call syntax
+
 2010.03.18: David Nichols
 	 * fixed a problem resolving method variants in derived classes at
 	   parse time

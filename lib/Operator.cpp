@@ -3590,7 +3590,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    const char *meth = mc->getName();
 
    const QoreMethod *m = const_cast<QoreClass *>(typeInfo->qc)->parseFindMethodTree(meth);
-   
+
    //printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s) (private=%s)\n", typeInfo->qc->getName(), meth, m, m ? m->getClassName() : "n/a", m && m->parseIsPrivate() ? "true" : "false" );
 
    const QoreListNode *args = mc->getArgs();
@@ -3605,6 +3605,10 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
       returnTypeInfo = typeInfo->qc->getTypeInfo();
       return tree;
    }
+
+   // if a normal method is not found, then look for a static method
+   if (!m)
+      m = const_cast<QoreClass *>(typeInfo->qc)->parseFindStaticMethodTree(meth);
 
    if (!m) {
       if (!typeInfo->qc->parseHasMethodGate())
