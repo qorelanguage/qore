@@ -659,21 +659,21 @@ static AbstractQoreNode *f_trim_ref_str(const QoreListNode *args, ExceptionSink 
 }
 
 void init_string_functions() {
-   builtinFunctions.add2("length", f_noop, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("length", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_any, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
-   builtinFunctions.add2("strlen", f_noop, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("strlen", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("strlen", f_strlen_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("strlen", f_strlen_any, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
    // tolower() called without a string argument returns 0
-   builtinFunctions.add("tolower", f_noop);
+   builtinFunctions.add2("tolower", f_noop, QC_NOOP);
    builtinFunctions.add2("tolower", f_tolower, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // toupper() called without a string argument returns 0
-   builtinFunctions.add("toupper", f_noop);
+   builtinFunctions.add2("toupper", f_noop, QC_NOOP);
    builtinFunctions.add2("toupper", f_toupper, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("substr", f_substr, QC_NO_FLAGS, QDOM_DEFAULT);
@@ -695,45 +695,45 @@ void init_string_functions() {
    builtinFunctions.add2("ord", f_ord_str_int, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("ord", f_ord, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
-   builtinFunctions.add2("chr", f_noop, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("chr", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("chr", f_chr_int, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, bigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("chr", f_chr, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
 
    // an empty list was returned by split() if the types were not correct
-   builtinFunctions.add("split", f_split_noop);
+   builtinFunctions.add2("split", f_split_noop, QC_NOOP);
    builtinFunctions.add2("split", f_split_str, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("split", f_split_bin, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("get_encoding", f_noop);
+   builtinFunctions.add2("get_encoding", f_noop, QC_NOOP);
    builtinFunctions.add2("get_encoding", f_get_encoding_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("convert_encoding", f_noop);
+   builtinFunctions.add2("convert_encoding", f_noop, QC_NOOP);
    builtinFunctions.add2("convert_encoding", f_convert_encoding, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("force_encoding", f_noop);
+   builtinFunctions.add2("force_encoding", f_noop, QC_NOOP);
    builtinFunctions.add2("force_encoding", f_force_encoding, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("regex", f_noop);
+   builtinFunctions.add2("regex", f_noop, QC_NOOP);
    builtinFunctions.add2("regex", f_regex, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add("regex_subst", f_noop);
+   builtinFunctions.add2("regex_subst", f_noop, QC_NOOP);
    builtinFunctions.add2("regex_subst", f_regex_subst, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add("regex_extract", f_noop);
+   builtinFunctions.add2("regex_extract", f_noop, QC_NOOP);
    builtinFunctions.add2("regex_extract", f_regex_extract, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add("replace", f_noop);
+   builtinFunctions.add2("replace", f_noop, QC_NOOP);
    builtinFunctions.add2("replace", f_replace, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("join", f_noop);
-   builtinFunctions.add2("join", f_noop, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, nothingTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("join", f_noop, QC_NOOP);
+   builtinFunctions.add2("join", f_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("join", f_join, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("chomp", f_noop);
+   builtinFunctions.add2("chomp", f_noop, QC_NOOP);
    builtinFunctions.add2("chomp", f_chomp_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("chomp", f_chomp_ref, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("trim", f_noop);
+   builtinFunctions.add2("trim", f_noop, QC_NOOP);
    builtinFunctions.add2("trim", f_trim_str_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
    builtinFunctions.add2("trim", f_trim_ref_str, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
 }

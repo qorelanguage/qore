@@ -138,6 +138,12 @@ void init_qore_types() {
    do_maps(NT_REFERENCE, "reference", referenceTypeInfo);
    do_maps(NT_NULL, "null", nullTypeInfo);
    do_maps(NT_NOTHING, "nothing", nothingTypeInfo);
+
+   // map the closure and callref strings to codeTypeInfo to ensure that these
+   // types are always interchangable
+   do_maps(NT_RUNTIME_CLOSURE, "closure", codeTypeInfo);
+   do_maps(NT_FUNCREF, "callref", codeTypeInfo);
+
 }
 
 void delete_qore_types() {

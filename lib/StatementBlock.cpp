@@ -39,12 +39,17 @@
 
 // parse variable stack
 class VNode {
-   public:
-      LocalVar *lvar;
-      VNode *next;
-      
-      DLLLOCAL VNode(LocalVar *lv) : lvar(lv) { }
-      DLLLOCAL const char *getName() const { return lvar->getName(); }
+public:
+   LocalVar *lvar;
+   VNode *next;
+
+   DLLLOCAL VNode(LocalVar *lv) : lvar(lv), next(getVStack()) {
+      updateVStack(this);
+   }
+
+   DLLLOCAL const char *getName() const {
+      return lvar->getName();
+   }
 };
 
 LVList::LVList(int num) {
@@ -143,15 +148,9 @@ void StatementBlock::exec() {
    exec(&xsink);
 }
 
-static void push_var_intern(LocalVar *lv) {
-   VNode *vnode = new VNode(lv);
-   vnode->next = getVStack();
-   updateVStack(vnode);
-}
-
 // used for constructor methods sharing a common "self" local variable
 void push_self_var(LocalVar *lv) {
-   push_var_intern(lv);
+   new VNode(lv);
 }
 
 LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup) {
@@ -172,7 +171,7 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
    }
    
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   push_var_intern(lv);
+   new VNode(lv);
    return lv;
 }
 

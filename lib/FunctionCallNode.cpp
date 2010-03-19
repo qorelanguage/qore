@@ -63,6 +63,10 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
 	 }
       }
    }
+
+   // resolves pending signatures unconditionally
+   if (func)
+      func->resolvePendingSignatures();
    
    // find variant
    variant = func && have_arg_type_info ? func->parseFindVariant(argTypeInfo) : 0;
@@ -243,12 +247,10 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
    lvids += parseArgsFindVariant(oflag, pflag, const_cast<AbstractQoreFunction *>(func));
 
    // check variant functionality
-   if (variant) {
+   if (variant)
       returnTypeInfo = variant->parseGetReturnTypeInfo();
-   }
-   else {
+   else
       returnTypeInfo = func->parseGetUniqueReturnTypeInfo();
-   }
 
    return this;
 }

@@ -765,6 +765,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token <Regex> REGEX_EXTRACT "regular expression extraction expression"
 %token <implicit_arg> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
+%token <string> QORE_CAST "cast operator"
 
 %nonassoc IFX SCOPED_REF
 %nonassoc TOK_ELSE
@@ -788,9 +789,9 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %left NEG		      // unary minus, defined for precedence
 %right '~' '\\'               // binary not, reference operator
 %left '!'		      // logical not
-%right TOK_NEW TOK_BACKGROUND TOK_DELETE TOK_REMOVE
+%right TOK_NEW TOK_BACKGROUND TOK_DELETE TOK_REMOVE QORE_CAST
 %nonassoc P_INCREMENT P_DECREMENT
-%left '{' '[' '.' '(' DOT_KW_IDENTIFIER         // list and object references, etc, defined for precedence
+%left '{' '[' '.' '(' DOT_KW_IDENTIFIER  // list and object references, etc, defined for precedence
 
 %type <sblock>      block
 %type <sblock>      statement_or_block
@@ -2414,6 +2415,9 @@ exp:    scalar
 	   $$ = new QoreRemoveOperatorNode($2);
 	   if (check_vars($2))
 	      parse_error("remove operator takes only variable references as arguments");
+	}
+        | QORE_CAST '(' exp ')' {
+           $$ = new QoreCastOperatorNode($1, $3);
 	}
 	;
 

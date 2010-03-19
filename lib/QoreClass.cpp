@@ -72,7 +72,9 @@ struct qore_class_private {
       methodID;                     // for subclasses of builtin classes that will not have their own private data,
                                     // instead they will get the private data from this class
    bool sys,                        // system class?
-      initialized,                  // is initialized?
+      initialized,                  // is initialized? (only performed once)
+      parse_init_called,            // has parseInit() been called? (performed once for each parseCommit())
+      parse_init_partial_called,    // has parseInitPartial() been called? (performed once for each parseCommit())
       has_delete_blocker,           // has a delete_blocker function somewhere in the hierarchy?
       has_public_memdecl,           // has a public member declaration somewhere in the hierarchy?
       pending_has_public_memdecl,   // has a pending public member declaration in this class?
@@ -109,6 +111,8 @@ struct qore_class_private {
 	methodID(classID),
 	sys(false), 
 	initialized(false), 
+	parse_init_called(false),
+	parse_init_partial_called(false),
 	has_delete_blocker(false), 
 	has_public_memdecl(false),
 	pending_has_public_memdecl(false),
@@ -145,6 +149,8 @@ struct qore_class_private {
 	methodID(old.methodID),
 	sys(old.sys), 
 	initialized(true), 
+	parse_init_called(false),
+	parse_init_partial_called(false),
 	has_public_memdecl(old.has_public_memdecl),
 	pending_has_public_memdecl(false),
 	owns_typeinfo(false),
@@ -320,10 +326,12 @@ struct qore_class_private {
 
    DLLLOCAL void initialize();
 
+   DLLLOCAL void parseInitPartial();
+
    DLLLOCAL const QoreExternalMethodVariant *findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const;
 
    DLLLOCAL const int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
-      const_cast<qore_class_private *>(this)->initialize();
+      const_cast<qore_class_private *>(this)->parseInitPartial();
 
       bool priv;
       bool member_has_type_info;
@@ -948,51 +956,17 @@ void qore_class_private::initialize() {
       assert(name);
       printd(5, "QoreClass::initialize() %s class=%p scl=%p\n", name, cls, scl);
 
+      // first resolve types in pending variants in all method signatures (incl. return types)
+      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+	 i->second->priv->func->resolvePendingSignatures();
+      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
+	 i->second->priv->func->resolvePendingSignatures();
+
       if (scl)
 	 scl->parseInit(cls, has_delete_blocker);
 
       if (!sys && domain & getProgram()->getParseOptions())
 	 parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name);
-
-      // setup inheritance list for new methods
-      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-	 bool is_new = i->second->priv->func->committedEmpty();
-	 if (is_new) {
-	    if (!checkSpecial(i->second->getName()))
-	       parseAddAncestors(i->second);
-	 }
-      }
-
-      // setup inheritance list for new static methods
-      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
-	 bool is_new = i->second->priv->func->committedEmpty();
-	 if (is_new)
-	    parseAddStaticAncestors(i->second);
-      }
-
-      {
-	 SelfLocalVarParseHelper slvph(&selfid);
-	 // initialize new private members
-	 for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
-	    if (i->second)
-	       i->second->parseInit(i->first, true);
-	 }
-   
-	 // initialize new public members
-	 for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
-	    if (i->second)
-	       i->second->parseInit(i->first, false);
-	 }
-      }
-   
-      // check new members for conflicts in base classes
-      for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
-	 parseCheckMemberInBaseClasses(i->first, i->second->parseHasTypeInfo(), true);
-      }
-
-      for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
-	 parseCheckMemberInBaseClasses(i->first, i->second->parseHasTypeInfo(), false);
-      }
    }
 }
 
@@ -1078,6 +1052,12 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 
 void qore_class_private::parseCommit() {
    //printd(5, "qore_class_private::parseCommit() %s this=%p cls=%p hm.size=%d\n", name, this, cls, hm.size());
+
+   if (parse_init_called)
+      parse_init_called = false;
+
+   if (parse_init_partial_called)
+      parse_init_partial_called = false;
    
    if (has_new_user_changes) {
       // commit pending "normal" (non-static) method variants
@@ -1817,6 +1797,12 @@ void QoreClass::parseRollback() {
 }
 
 void qore_class_private::parseRollback() {
+   if (parse_init_called)
+      parse_init_called = false;
+   
+   if (parse_init_partial_called)
+      parse_init_partial_called = false;
+   
    if (!has_new_user_changes) {
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
 	 assert(i->second->priv->func->pendingEmpty());
@@ -2725,12 +2711,75 @@ void QoreClass::parseInit() {
    priv->parseInit();
 }
 
-void qore_class_private::parseInit() {
-   setParseClass(cls);
+void QoreClass::parseInitPartial() {
+   priv->parseInitPartial();
+}
+
+void qore_class_private::parseInitPartial() {
+   if (parse_init_partial_called)
+      return;
+
+   parse_init_partial_called = true;
+
+   QoreParseClassHelper qpch(cls);
    initialize();
 
    if (!has_new_user_changes)
       return;
+
+   // setup inheritance list for new methods
+   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      bool is_new = i->second->priv->func->committedEmpty();
+      if (is_new) {
+	 if (!checkSpecial(i->second->getName()))
+	    parseAddAncestors(i->second);
+      }
+   }
+
+   // setup inheritance list for new static methods
+   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+      bool is_new = i->second->priv->func->committedEmpty();
+      if (is_new)
+	 parseAddStaticAncestors(i->second);
+   }
+
+   {
+      SelfLocalVarParseHelper slvph(&selfid);
+      // initialize new private members
+      for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
+	 if (i->second)
+	    i->second->parseInit(i->first, true);
+      }
+      
+      // initialize new public members
+      for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
+	 if (i->second)
+	    i->second->parseInit(i->first, false);
+      }
+   }
+   
+   // check new members for conflicts in base classes
+   for (member_map_t::iterator i = pending_private_members.begin(), e = pending_private_members.end(); i != e; ++i) {
+      parseCheckMemberInBaseClasses(i->first, i->second->parseHasTypeInfo(), true);
+   }
+   
+   for (member_map_t::iterator i = pending_public_members.begin(), e = pending_public_members.end(); i != e; ++i) {
+      parseCheckMemberInBaseClasses(i->first, i->second->parseHasTypeInfo(), false);
+   }
+}
+
+void qore_class_private::parseInit() {
+   if (parse_init_called)
+      return;
+
+   parse_init_called = true;
+
+   if (!has_new_user_changes)
+      return;
+
+   parseInitPartial();
+
+   QoreParseClassHelper qpch(cls);
 
    // initialize methods
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
@@ -2864,8 +2913,9 @@ bool QoreClass::runtimeHasPublicMembersInHierarchy() const {
    return priv->has_public_memdecl;
 }
 
-void QoreClass::parseSetEmptyPublicMemberDeclaration() {
+void QoreClass::parseSetEmptyPublicMemberDeclaration() {   
    priv->pending_has_public_memdecl = true;
+   priv->has_new_user_changes = true;
 }
 
 bool QoreClass::isPublicOrPrivateMember(const char *str, bool &priv_member) const {

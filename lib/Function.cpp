@@ -29,7 +29,7 @@
 
 // FIXME: xxx set parse location
 static inline void duplicateSignatureException(const char *name, UserVariantBase *uvb) {
-   parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared with this signature", name, uvb->getUserSignature()->getSignatureText());
+   parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared", name, uvb->getUserSignature()->getSignatureText());
 }
 
 // FIXME: xxx set parse location
@@ -1207,6 +1207,37 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
    return 0;
 }
 
+AbstractFunctionSignature *AbstractQoreFunction::parseGetUniqueSignature() const {
+   if (vlist.singular() && pending_vlist.empty())
+      return first()->getSignature();
+
+   if (pending_vlist.singular() && vlist.empty()) {
+      assert(pending_first()->getUserVariantBase());
+      UserSignature *sig = pending_first()->getUserVariantBase()->getUserSignature();
+      sig->resolve();
+      return sig;
+   }
+
+   return 0;
+}
+
+void AbstractQoreFunction::resolvePendingSignatures() {
+   const QoreTypeInfo *ti = 0;
+
+   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      assert((*i)->getUserVariantBase());
+      UserSignature *sig = (*i)->getUserVariantBase()->getUserSignature();
+      sig->resolve();
+      
+      if (same_return_type && parse_same_return_type) {
+	 const QoreTypeInfo *st = sig->getReturnTypeInfo();
+	 if (i != pending_vlist.begin() && !st->checkIdentical(ti))
+	    parse_same_return_type = false;
+	 ti = st;
+      }
+   }
+}
+
 int AbstractQoreFunction::parseAddVariant(AbstractQoreFunctionVariant *variant) {
    // check for duplicate signature with existing variants
    if (parseCheckDuplicateSignature(variant->getUserVariantBase())) {
@@ -1222,10 +1253,16 @@ void AbstractQoreFunction::parseCommit() {
       vlist.push_back(*i);
    }
    pending_vlist.clear();
+
+   if (!parse_same_return_type && same_return_type)
+      same_return_type = false;
 }
 
 void AbstractQoreFunction::parseRollback() {
    pending_vlist.del();
+
+   if (!parse_same_return_type && same_return_type)
+      parse_same_return_type = true;
 }
 
 void UserFunction::parseInit() {
@@ -1313,8 +1350,6 @@ AbstractQoreNode *f_noop(const QoreListNode *args, ExceptionSink *xsink) {
 
 // this function does nothing - it's here for backwards-compatibility for functions
 // that accept invalid arguments and return an empty string
-/*
-AbstractQoreNode *f_returns_empty_string(const QoreListNode *args, ExceptionSink *xsink) {
-   return 0;
+AbstractQoreNode *f_string_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return null_string();
 }
-*/

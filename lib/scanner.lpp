@@ -329,6 +329,13 @@ static inline bool isRegexSubstModifier(RegexSubstNode *qr, int c) {
    return true;
 }
 
+static char *make_cast(const char *s) {
+   QoreString str(s + 5);
+   str.trim_trailing('>');
+   str.trim();
+   return str.giveBuffer();
+}
+
 %}
 
 %option noyywrap nomain noyy_top_state warn
@@ -729,6 +736,7 @@ foldr                                   return TOK_FOLDR;
 foldl                                   return TOK_FOLDL;
 select                                  return TOK_SELECT;
 static                                  return TOK_STATIC;
+interface\(                             yylval->string = strdup("interface"); return KW_IDENTIFIER_OPENPAREN;
 class\(                                 yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;
 private\(                               yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN;
 new\(                                   yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN;
@@ -910,6 +918,8 @@ P{YEAR}-{D2}-{D2}                       yylval->datetime = makeRelativeDate(yyte
 PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
 P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
+cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
+cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
 {DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, 0); return QFLOAT;
 0[0-7]+				        yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER;

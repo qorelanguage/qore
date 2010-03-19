@@ -27,12 +27,27 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifndef HAVE_ROUND
+static AbstractQoreNode *round_exception(ExceptionSink *xsink) {
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement round(); for maximum portability use the constant Option::HAVE_ROUND to check if this function is implemented before calling");
+   return 0;
+}
+#endif
+
+static AbstractQoreNode *f_round_float(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_ROUND
+   HARD_QORE_PARAM(f, const QoreFloatNode, params, 0);
+   return new QoreFloatNode(round(f->f));
+#else
+   return round_exception(xsink);
+#endif
+}
+
 static AbstractQoreNode *f_round(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_ROUND
    return new QoreFloatNode(round(get_float_param(params, 0)));
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement round(); for maximum portability use the constant Option::HAVE_ROUND to check if this function is implemented before calling");
-   return 0;
+   return round_exception(xsink);
 #endif
 }
 
@@ -162,10 +177,6 @@ static AbstractQoreNode *f_expm1(const QoreListNode *params, ExceptionSink *xsin
    return new QoreFloatNode(expm1(get_float_param(params, 0)));
 }
 
-static AbstractQoreNode *f_format_number_noop(const QoreListNode *params, ExceptionSink *xsink) {
-   return 0;
-}
-
 // syntax: format_number(".,3", <number>);
 static AbstractQoreNode *f_format_number(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
@@ -264,7 +275,9 @@ static AbstractQoreNode *f_format_number(const QoreListNode *params, ExceptionSi
 }
 
 void init_math_functions() {
-   builtinFunctions.add2("round",         f_round, QC_NO_FLAGS, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("round",         f_round_float, QC_NO_FLAGS, QDOM_DEFAULT, floatTypeInfo, 1, floatTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("round",         f_round, QC_NO_FLAGS, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add2("ceil",          f_ceil, QC_NO_FLAGS, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("floor",         f_floor, QC_NO_FLAGS, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("pow",           f_pow, QC_NO_FLAGS, QDOM_DEFAULT, floatTypeInfo);
@@ -297,6 +310,6 @@ void init_math_functions() {
    builtinFunctions.add2("exp2",          f_exp2, QC_NO_FLAGS, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("expm1",         f_expm1, QC_NO_FLAGS, QDOM_DEFAULT, floatTypeInfo);
 
-   builtinFunctions.add("format_number", f_format_number_noop);
-   builtinFunctions.add2("format_number", f_format_number, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("format_number", f_noop, QC_NOOP);
+   builtinFunctions.add2("format_number", f_format_number, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 }

@@ -99,6 +99,8 @@ double CallReferenceCallNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = callReferenceTypeInfo;
+
    pflag &= ~PF_REFERENCE_OK;
 
    const QoreTypeInfo *expTypeInfo = 0;
@@ -264,6 +266,7 @@ double ParseObjectMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const
 }
 
 AbstractQoreNode *ParseObjectMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = callReferenceTypeInfo;
    if (exp) {
       const QoreTypeInfo *argTypeInfo = 0;
       exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
@@ -307,6 +310,7 @@ double ParseSelfMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *ParseSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = callReferenceTypeInfo;
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
    return this;
@@ -347,6 +351,7 @@ double ParseScopedSelfMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) c
 }
 
 AbstractQoreNode *ParseScopedSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = callReferenceTypeInfo;
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
    else {
@@ -413,6 +418,7 @@ UnresolvedCallReferenceNode::~UnresolvedCallReferenceNode() {
 }
 
 AbstractQoreNode *UnresolvedCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = callReferenceTypeInfo;
    return ::getProgram()->resolveCallReference(this);
 }
 
@@ -469,6 +475,8 @@ UnresolvedStaticMethodCallReferenceNode::~UnresolvedStaticMethodCallReferenceNod
 }
 
 AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = callReferenceTypeInfo;
+
    QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
    if (!qc)
       return this;

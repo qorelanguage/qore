@@ -31,8 +31,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-static AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink *xsink) {
    if (!params)
       return 0;
 
@@ -46,31 +45,26 @@ static AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink *xsin
  * a hard limit that can't be broken: that is, the arguments output will be
  * truncated if they are larger than the width 
  */
-static AbstractQoreNode *f_f_sprintf(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_f_sprintf(const QoreListNode *params, ExceptionSink *xsink) {
    return q_sprintf(params, 1, 0, xsink);
 }
 
-static AbstractQoreNode *f_sprintf(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_sprintf(const QoreListNode *params, ExceptionSink *xsink) {
    return q_sprintf(params, 0, 0, xsink);
 }
 
-static AbstractQoreNode *f_vsprintf(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_vsprintf(const QoreListNode *params, ExceptionSink *xsink) {
    return q_vsprintf(params, 0, 0, xsink);
 }
 
-static AbstractQoreNode *f_f_printf(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_f_printf(const QoreListNode *params, ExceptionSink *xsink) {
    AbstractQoreNode *node;
 
    print_node(stdout, node = f_f_sprintf(params, xsink));
    return node;
 }
 
-static AbstractQoreNode *f_printf(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_printf(const QoreListNode *params, ExceptionSink *xsink) {
    AbstractQoreNode *node;
 
    QORE_TRACE("f_printf()");
@@ -79,8 +73,7 @@ static AbstractQoreNode *f_printf(const QoreListNode *params, ExceptionSink *xsi
    return node;
 }
 
-static AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSink *xsink) {
    AbstractQoreNode *node;
 
    QORE_TRACE("f_vprintf()");
@@ -89,20 +82,31 @@ static AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSink *xs
    return node;
 }
 
-static AbstractQoreNode *f_flush(const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *f_flush(const QoreListNode *params, ExceptionSink *xsink) {
    fflush(stdout);
    return 0;
 }
 
-void init_io_functions()
-{
-   builtinFunctions.add("print", f_print, QDOM_TERMINAL_IO);
-   builtinFunctions.add("sprintf", f_sprintf);
-   builtinFunctions.add("printf", f_printf, QDOM_TERMINAL_IO);
-   builtinFunctions.add("f_sprintf", f_f_sprintf);
-   builtinFunctions.add("f_printf", f_f_printf, QDOM_TERMINAL_IO);
-   builtinFunctions.add("vprintf", f_vprintf, QDOM_TERMINAL_IO);
-   builtinFunctions.add("vsprintf", f_vsprintf);
-   builtinFunctions.add("flush", f_flush, QDOM_TERMINAL_IO);
+void init_io_functions() {
+   builtinFunctions.add2("print", f_print, QC_USES_EXTRA_ARGS, QDOM_TERMINAL_IO, nothingTypeInfo);
+
+   builtinFunctions.add2("sprintf", f_string_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("sprintf", f_sprintf, QC_USES_EXTRA_ARGS|QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("printf", f_string_noop, QC_NOOP, QDOM_TERMINAL_IO, stringTypeInfo);
+   builtinFunctions.add2("printf", f_printf, QC_USES_EXTRA_ARGS, QDOM_TERMINAL_IO, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("f_sprintf", f_string_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("f_sprintf", f_f_sprintf, QC_USES_EXTRA_ARGS|QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("f_printf", f_string_noop, QC_NOOP, QDOM_TERMINAL_IO, stringTypeInfo);
+   builtinFunctions.add2("f_printf", f_f_printf, QC_USES_EXTRA_ARGS, QDOM_TERMINAL_IO, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("vprintf", f_string_noop, QC_NOOP, QDOM_TERMINAL_IO, stringTypeInfo);
+   builtinFunctions.add2("vprintf", f_vprintf, QC_NO_FLAGS, QDOM_TERMINAL_IO, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("vsprintf", f_string_noop, QC_NOOP, QDOM_TERMINAL_IO, stringTypeInfo);
+   builtinFunctions.add2("vsprintf", f_vsprintf, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("flush", f_flush, QC_NO_FLAGS, QDOM_TERMINAL_IO);
 }
