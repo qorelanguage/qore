@@ -318,7 +318,14 @@ public:
    DLLLOCAL void doNonNumericWarning(const char *preface) const {
       QoreStringNode *desc = new QoreStringNode(preface);
       getThisType(*desc);
-      desc->sprintf(", which does not evaluate to a numeric type, therefore the offset will always evaluate to 0 at runtime");
+      desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+
+   DLLLOCAL void doNonBooleanWarning(const char *preface) const {
+      QoreStringNode *desc = new QoreStringNode(preface);
+      getThisType(*desc);
+      desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to False at runtime");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
@@ -549,7 +556,7 @@ public:
 
 class UserReferenceTypeInfo : public QoreTypeInfo {
 protected:
-      // accept any type at runtime
+   // accept any type at runtime
    DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       return true;
    }
@@ -562,6 +569,135 @@ protected:
 
 public:
    DLLLOCAL UserReferenceTypeInfo() : QoreTypeInfo(NT_REFERENCE) {
+   }
+};
+
+// accepts int, float, string, or boolean and returns an int
+class SoftBigIntTypeInfo : public QoreTypeInfo {
+protected:
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      if (!n) return false;
+      qore_type_t t = n->getType();
+      if (t == NT_INT) return true;
+      if (t != NT_FLOAT || t != NT_STRING || t != NT_BOOLEAN)
+         return false;
+      int64 rv = n->getAsBigInt();
+      n->deref(xsink);
+      n = new QoreBigIntNode(rv);
+      return true;
+   }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      qore_type_t t = n ? n->getType() : NT_NOTHING;
+      if (t == NT_INT)
+         return QTI_IDENT;
+      return t == NT_FLOAT || t == NT_STRING || t == NT_BOOLEAN ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
+      if (t == NT_INT)
+         return QTI_IDENT;
+      return t == NT_FLOAT || t == NT_STRING || t == NT_BOOLEAN ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+public:
+   DLLLOCAL SoftBigIntTypeInfo() : QoreTypeInfo(NT_SOFTINT) {
+   }
+};
+
+// accepts int, float, string, or boolean and returns a float
+class SoftFloatTypeInfo : public QoreTypeInfo {
+protected:
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      if (!n) return false;
+      qore_type_t t = n->getType();
+      if (t == NT_FLOAT) return true;
+      if (t != NT_INT || t != NT_STRING || t != NT_BOOLEAN)
+         return false;
+      double rv = n->getAsFloat();
+      n->deref(xsink);
+      n = new QoreFloatNode(rv);
+      return true;
+   }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      qore_type_t t = n ? n->getType() : NT_NOTHING;
+      if (t == NT_FLOAT)
+         return QTI_IDENT;
+      return t == NT_INT || t == NT_STRING || t == NT_BOOLEAN ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
+      if (t == NT_FLOAT)
+         return QTI_IDENT;
+      return t == NT_INT || t == NT_STRING || t == NT_BOOLEAN ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+public:
+   DLLLOCAL SoftFloatTypeInfo() : QoreTypeInfo(NT_SOFTFLOAT) {
+   }
+};
+
+// accepts int, float, string, or boolean and returns a boolean
+class SoftBoolTypeInfo : public QoreTypeInfo {
+protected:
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      if (!n) return false;
+      qore_type_t t = n->getType();
+      if (t == NT_BOOLEAN) return true;
+      if (t != NT_INT || t != NT_STRING || t != NT_FLOAT)
+         return false;
+      bool rv = n->getAsBool();
+      n->deref(xsink);
+      n = get_bool_node(rv);
+      return true;
+   }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      qore_type_t t = n ? n->getType() : NT_NOTHING;
+      if (t == NT_BOOLEAN)
+         return QTI_IDENT;
+      return t == NT_INT || t == NT_FLOAT || t == NT_STRING ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
+      if (t == NT_BOOLEAN)
+         return QTI_IDENT;
+      return t == NT_INT || t == NT_FLOAT || t == NT_STRING ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+public:
+   DLLLOCAL SoftBoolTypeInfo() : QoreTypeInfo(NT_SOFTBOOLEAN) {
+   }
+};
+
+// accepts int, float, string, or boolean and returns a boolean
+class SoftStringTypeInfo : public QoreTypeInfo {
+protected:
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      if (!n) return false;
+      qore_type_t t = n->getType();
+      if (t == NT_STRING) return true;
+      if (t != NT_INT || t != NT_BOOLEAN || t != NT_FLOAT)
+         return false;
+      QoreStringNodeValueHelper str(n);
+      QoreStringNode *rv = str.getReferencedValue();
+      n->deref(xsink);
+      n = rv;
+      return true;
+   }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      qore_type_t t = n ? n->getType() : NT_NOTHING;
+      if (t == NT_STRING)
+         return QTI_IDENT;
+      return t == NT_INT || t == NT_FLOAT || t == NT_BOOLEAN ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
+      if (t == NT_STRING)
+         return QTI_IDENT;
+      return t == NT_INT || t == NT_FLOAT || t == NT_BOOLEAN ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+public:
+   DLLLOCAL SoftStringTypeInfo() : QoreTypeInfo(NT_SOFTSTRING) {
    }
 };
 

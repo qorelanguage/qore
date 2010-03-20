@@ -1353,3 +1353,16 @@ AbstractQoreNode *f_noop(const QoreListNode *args, ExceptionSink *xsink) {
 AbstractQoreNode *f_string_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return null_string();
 }
+
+AbstractQoreNode *f_float_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return zero_float();
+}
+
+AbstractQoreNode *f_int_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return zero();
+}
+
+AbstractQoreNode *f_list_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return empty_list();
+}
+

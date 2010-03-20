@@ -38,6 +38,9 @@ DLLLOCAL AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_sel
 
 DLLLOCAL AbstractQoreNode *f_noop(const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *f_string_noop(const QoreListNode *args, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *f_float_noop(const QoreListNode *args, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *f_int_noop(const QoreListNode *args, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *f_list_noop(const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *class_noop(QoreObject *self, AbstractPrivateData *ptr, const QoreListNode *args, ExceptionSink *xsink);
 
 class LocalVar;

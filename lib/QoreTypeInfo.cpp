@@ -51,6 +51,18 @@ static FloatTypeInfo staticFloatTypeInfo;
 // provides equal compatibility with closures and all types of code references
 static CodeTypeInfo staticCodeTypeInfo;
 
+// provides int compatibility with and conversions from float, string, and bool
+static SoftBigIntTypeInfo staticSoftBigIntTypeInfo;
+
+// provides float compatibility with and conversions from int, string, and bool
+static SoftFloatTypeInfo staticSoftFloatTypeInfo;
+
+// provides bool compatibility with and conversions from float, string, and int
+static SoftBoolTypeInfo staticSoftBoolTypeInfo;
+
+// provides string compatibility with and conversions from float, int, and bool
+static SoftStringTypeInfo staticSoftStringTypeInfo;
+
 // const pointers to static reference types
 const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *bigIntTypeInfo = &staticBigIntTypeInfo,
@@ -68,7 +80,11 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
    *referenceTypeInfo = &staticReferenceTypeInfo,
    *userReferenceTypeInfo = &staticUserReferenceTypeInfo,
-   *codeTypeInfo = &staticCodeTypeInfo
+   *codeTypeInfo = &staticCodeTypeInfo,
+   *softBigIntTypeInfo = &staticSoftBigIntTypeInfo,
+   *softFloatTypeInfo = &staticSoftFloatTypeInfo,
+   *softBoolTypeInfo = &staticSoftBoolTypeInfo,
+   *softStringTypeInfo = &staticSoftStringTypeInfo
    ;
 
 QoreListNode *emptyList;
@@ -138,6 +154,10 @@ void init_qore_types() {
    do_maps(NT_REFERENCE, "reference", referenceTypeInfo);
    do_maps(NT_NULL, "null", nullTypeInfo);
    do_maps(NT_NOTHING, "nothing", nothingTypeInfo);
+   do_maps(NT_SOFTINT, "softint", softBigIntTypeInfo);
+   do_maps(NT_SOFTFLOAT, "softfloat", softFloatTypeInfo);
+   do_maps(NT_SOFTBOOLEAN, "softbool", softBoolTypeInfo);
+   do_maps(NT_SOFTSTRING, "softstring", softStringTypeInfo);
 
    // map the closure and callref strings to codeTypeInfo to ensure that these
    // types are always interchangable

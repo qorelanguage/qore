@@ -424,10 +424,6 @@ static inline const char *memstr(const char *str, const char *pattern, qore_size
    return 0;
 }
 
-static AbstractQoreNode *f_split_noop(const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreListNode;
-}
-
 static void split_add_element(QoreListNode *l, const char *str, unsigned len, const QoreEncoding *enc) {
    if (enc)
       l->push(new QoreStringNode(str, len, enc));
@@ -700,7 +696,7 @@ void init_string_functions() {
    builtinFunctions.add2("chr", f_chr, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
 
    // an empty list was returned by split() if the types were not correct
-   builtinFunctions.add2("split", f_split_noop, QC_NOOP);
+   builtinFunctions.add2("split", f_list_noop, QC_NOOP);
    builtinFunctions.add2("split", f_split_str, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("split", f_split_bin, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);
 

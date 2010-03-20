@@ -1,3 +1,13 @@
+2010.03.20: David Nichols
+	 * implemented new "soft" type variants for int, bool, float, and
+	   string that perform automatic conversions from those types to the
+	   target type (user types are: softint, softfloat, softbool,
+	   softstring)
+	 * applied hard typing and code flags to all functions in
+	   lib/ql_math.cpp
+	 * updated legacy API BuiltinFunctionList::add() to tag functions with
+	   QC_USES_EXTRA_ARGS internally
+
 2010.03.19: David Nichols
 	 * fixed parse warning for unknown method calls when a static method
 	   is called with normal method call syntax

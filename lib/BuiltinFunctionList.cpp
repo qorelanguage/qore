@@ -98,7 +98,7 @@ public:
    }
 
    DLLLOCAL void add(const char *name, q_func_t f, int64 functional_domain) {
-      add_intern(name, new BuiltinFunctionVariant(f, QC_NO_FLAGS, functional_domain));
+      add_intern(name, new BuiltinFunctionVariant(f, QC_USES_EXTRA_ARGS, functional_domain));
    }
 
    void add2(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {

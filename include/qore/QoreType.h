@@ -43,12 +43,13 @@ class QoreTypeInfo;
 DLLEXPORT extern const QoreTypeInfo *anyTypeInfo, *bigIntTypeInfo, *floatTypeInfo, 
    *boolTypeInfo, *stringTypeInfo, *binaryTypeInfo, *dateTypeInfo, *objectTypeInfo, 
    *hashTypeInfo, *listTypeInfo, *nothingTypeInfo, *nullTypeInfo, *runTimeClosureTypeInfo,
-   *callReferenceTypeInfo, *referenceTypeInfo, *userReferenceTypeInfo, *codeTypeInfo;
+   *callReferenceTypeInfo, *referenceTypeInfo, *userReferenceTypeInfo, *codeTypeInfo,
+   *softBigIntTypeInfo, *softFloatTypeInfo, *softBoolTypeInfo, *softStringTypeInfo;
 
 DLLEXPORT qore_type_t get_next_type_id();
 
-DLLEXPORT bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
-DLLEXPORT bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
+DLLEXPORT bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink);
+DLLEXPORT bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink);
 
 static inline AbstractQoreNode *boolean_false() {
    return &False;
