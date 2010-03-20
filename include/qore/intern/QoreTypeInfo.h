@@ -611,7 +611,7 @@ protected:
       if (!n) return false;
       qore_type_t t = n->getType();
       if (t == NT_FLOAT) return true;
-      if (t != NT_INT || t != NT_STRING || t != NT_BOOLEAN)
+      if (t != NT_INT && t != NT_STRING && t != NT_BOOLEAN)
          return false;
       double rv = n->getAsFloat();
       n->deref(xsink);
@@ -643,7 +643,7 @@ protected:
       if (!n) return false;
       qore_type_t t = n->getType();
       if (t == NT_BOOLEAN) return true;
-      if (t != NT_INT || t != NT_STRING || t != NT_FLOAT)
+      if (t != NT_INT && t != NT_STRING && t != NT_FLOAT)
          return false;
       bool rv = n->getAsBool();
       n->deref(xsink);
@@ -675,7 +675,7 @@ protected:
       if (!n) return false;
       qore_type_t t = n->getType();
       if (t == NT_STRING) return true;
-      if (t != NT_INT || t != NT_BOOLEAN || t != NT_FLOAT)
+      if (t != NT_INT && t != NT_BOOLEAN && t != NT_FLOAT)
          return false;
       QoreStringNodeValueHelper str(n);
       QoreStringNode *rv = str.getReferencedValue();
