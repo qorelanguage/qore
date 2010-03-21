@@ -25,8 +25,6 @@
 
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
-   staticBoolTypeInfo(NT_BOOLEAN),
-   staticStringTypeInfo(NT_STRING),
    staticBinaryTypeInfo(NT_BINARY),
    staticObjectTypeInfo(NT_OBJECT),
    staticDateTypeInfo(NT_DATE),
@@ -42,11 +40,17 @@ static QoreTypeInfo staticAnyTypeInfo,
 // provides for run-time assignment capability from any type
 static UserReferenceTypeInfo staticUserReferenceTypeInfo;
 
-// provides for 2-way compatibility with classes derived from QoreBigIntNode
+// provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
 static BigIntTypeInfo staticBigIntTypeInfo;
 
-// provides limited compatibility with integers
+// provides limited compatibility with integers and softfloat
 static FloatTypeInfo staticFloatTypeInfo;
+
+// provides compatibility with types compatible with QoreBoolNode and softbool
+static BoolTypeInfo staticBoolTypeInfo;
+
+// provides 2-way compatibilty with classes derived from QoreStringNode and softstring
+static StringTypeInfo staticStringTypeInfo;
 
 // provides equal compatibility with closures and all types of code references
 static CodeTypeInfo staticCodeTypeInfo;
