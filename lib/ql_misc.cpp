@@ -1216,7 +1216,7 @@ void init_misc_functions() {
 
    builtinFunctions.add2("parse_url", f_parse_url, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("parseURL", f_noop, QC_NOOP);
+   builtinFunctions.add2("parseURL", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("parseURL", f_parseURL, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("getClassName", f_getClassName);
@@ -1237,11 +1237,11 @@ void init_misc_functions() {
    builtinFunctions.add("gunzip_to_string", f_gunzip_to_string);
    builtinFunctions.add("gunzip_to_binary", f_gunzip_to_binary);
 
-   builtinFunctions.add2("getByte", f_noop, QC_NOOP);
+   builtinFunctions.add2("getByte", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getByte", f_get_byte_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
    builtinFunctions.add2("getByte", f_get_byte_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add2("getWord32", f_noop, QC_NOOP);
+   builtinFunctions.add2("getWord32", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getWord32", f_get_word_32_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
    builtinFunctions.add2("getWord32", f_get_word_32_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 

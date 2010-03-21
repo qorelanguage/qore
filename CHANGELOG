@@ -1,6 +1,9 @@
 2010.03.21: David Nichols
 	 * fixed type compatibility with the new soft types: softint,
 	   softfloat, softstring, softbool
+	 * some more hard typing fixes for the internal function library
+	 * added new API support for declaring that a type is compatible with
+	   another type
 
 2010.03.20: David Nichols
 	 * implemented new "soft" type variants for int, bool, float, and

@@ -26,35 +26,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-// retuns number of characters in a string
+// returns number of characters in a string
 static AbstractQoreNode *f_length_str(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(str, const QoreStringNode, args, 0);
    return new QoreBigIntNode(str->length());
 }
 
-// retuns number of characters in a string
+// returns number of bytes in a binary object
 static AbstractQoreNode *f_length_bin(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(bin, const BinaryNode, args, 0);
    return new QoreBigIntNode(bin->size());
 }
 
-// retuns number of characters in a string
-static AbstractQoreNode *f_length_any(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0 = get_param(args, 0);
-   QoreStringValueHelper temp(p0);
-   return new QoreBigIntNode(temp->length());
-}
-
-// retuns number of bytes in a string
+// returns number of bytes in a string
 static AbstractQoreNode *f_strlen_str(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(str, const QoreStringNode, args, 0);
    return new QoreBigIntNode(str->strlen());
-}
-
-static AbstractQoreNode *f_strlen_any(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0 = get_param(args, 0);
-   QoreStringValueHelper temp(p0);
-   return new QoreBigIntNode(temp->strlen());
 }
 
 static AbstractQoreNode *f_tolower(const QoreListNode *args, ExceptionSink *xsink) {
@@ -91,21 +78,6 @@ static AbstractQoreNode *f_substr_str_int_int(const QoreListNode *args, Exceptio
    HARD_QORE_PARAM(p1, const QoreBigIntNode, args, 1);
    HARD_QORE_PARAM(p2, const QoreBigIntNode, args, 2);
    return p0->substr((int)p1->val, (int)p2->val, xsink);
-}
-
-// syntax substr(string, start[, length]) - note 1st character is 0, not 1
-static AbstractQoreNode *f_substr(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0, *p1;
-
-   if (is_nothing(p0 = get_param(args, 0)) || is_nothing(p1 = get_param(args, 1)))
-      return 0;
-
-   QoreStringNodeValueHelper temp(p0);
-   const AbstractQoreNode *p2;
-   if ((p2 = get_param(args, 2)))
-      return temp->substr(p1->getAsInt(), p2->getAsInt(), xsink);
-
-   return temp->substr(p1->getAsInt(), xsink);
 }
 
 static qore_size_t index_simple_intern(const char *haystack, const char *needle, qore_offset_t pos = 0) {
@@ -177,20 +149,6 @@ static AbstractQoreNode *f_index_str_str_int(const QoreListNode *args, Exception
    return index_intern(hs, t1, p2->val, xsink);
 }
 
-static AbstractQoreNode *f_index(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0, *p1, *p2;
-
-   if (!(p0 = get_param(args, 0)) ||
-       !(p1 = get_param(args, 1)))
-      return new QoreBigIntNode(-1);
-
-   QoreStringValueHelper hs(p0);
-   QoreStringValueHelper t1(p1);
-
-   p2 = get_param(args, 2);
-   return index_intern(*hs, *t1, p2 ? p2->getAsBigInt() : 0, xsink);
-}
-
 static QoreBigIntNode *bindex_intern(const QoreString *hs, const QoreString *t1, qore_offset_t pos) {
    qore_offset_t ind;
    if (pos < 0) {
@@ -221,21 +179,6 @@ static AbstractQoreNode *f_bindex_str_str_int(const QoreListNode *args, Exceptio
    HARD_QORE_PARAM(p2, const QoreBigIntNode, args, 2);
 
    return bindex_intern(hs, t1, p2->val);
-}
-
-static AbstractQoreNode *f_bindex(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0, *p1, *p2;
-
-   if (!(p0 = get_param(args, 0)) ||
-       !(p1 = get_param(args, 1)))
-      return new QoreBigIntNode(-1);
-
-   QoreStringValueHelper hs(p0);
-   QoreStringValueHelper t1(p1);
-
-   p2 = get_param(args, 2);
-
-   return bindex_intern(*hs, *t1, p2 ? p2->getAsBigInt() : 0);
 }
 
 // finds the last occurrence of needle in haystack at or before position pos
@@ -306,18 +249,6 @@ static AbstractQoreNode *f_rindex_str_str_int(const QoreListNode *args, Exceptio
    return rindex_intern(hs, t1, p2->val, xsink);
 }
 
-static AbstractQoreNode *f_rindex(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0, *p1;
-
-   if (!(p0 = get_param(args, 0)) || !(p1 = get_param(args, 1)))
-      return new QoreBigIntNode(-1);
-
-   QoreStringValueHelper hs(p0);
-   QoreStringValueHelper t1(p1);
-
-   return rindex_intern(*hs, *t1, get_bigint_param_with_default(args, 2, -1), xsink);
-}
-
 static AbstractQoreNode *brindex_intern(const QoreString *hs, const QoreString *t1, qore_offset_t pos) {
    qore_offset_t ind;
    if (pos < 0)
@@ -342,18 +273,6 @@ static AbstractQoreNode *f_brindex_str_str_int(const QoreListNode *args, Excepti
    return brindex_intern(hs, t1, p2->val);
 }
 
-static AbstractQoreNode *f_brindex(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0, *p1;
- 
-   if (!(p0 = get_param(args, 0)) || !(p1 = get_param(args, 1)))
-      return new QoreBigIntNode(-1);
-
-   QoreStringValueHelper hs(p0);
-   QoreStringValueHelper t1(p1);
-
-   return brindex_intern(*hs, *t1, get_bigint_param_with_default(args, 2, -1));
-}
-
 // syntax: ord(string, [offset = 0])
 // note that ord() only works on byte offsets and gives byte values
 static AbstractQoreNode *f_ord_str_int(const QoreListNode *args, ExceptionSink *xsink) {
@@ -366,31 +285,19 @@ static AbstractQoreNode *f_ord_str_int(const QoreListNode *args, ExceptionSink *
    return new QoreBigIntNode((str->getBuffer()[offset->val]));
 }
 
-static AbstractQoreNode *f_ord(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0;
-   
-   if (!(p0 = get_param(args, 0)))
-      return new QoreBigIntNode(-1);
-   
-   QoreStringValueHelper str(p0);
+static AbstractQoreNode *f_ord_str(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, args, 0);
 
-   const AbstractQoreNode *p1 = get_param(args, 1);
-   qore_size_t offset = p1 ? p1->getAsBigInt() : 0;
+   return new QoreBigIntNode(!str->strlen() ? -1 : str->getBuffer()[0]);
+}
 
-   if (offset >= str->strlen())
-      return new QoreBigIntNode(-1);
-
-   return new QoreBigIntNode((str->getBuffer()[offset]));
+static AbstractQoreNode *f_chr_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return new QoreStringNode('\0');
 }
 
 static AbstractQoreNode *f_chr_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreBigIntNode, args, 0);
    return new QoreStringNode((char)p0->val);
-}
-
-static AbstractQoreNode *f_chr(const QoreListNode *args, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0 = get_param(args, 0);
-   return new QoreStringNode((char)p0->getAsInt());
 }
 
 static inline const char *memstr(const char *str, const char *pattern, qore_size_t pl, qore_size_t len) {
@@ -574,24 +481,10 @@ static AbstractQoreNode *f_replace(const QoreListNode *args, ExceptionSink *xsin
    return nstr;
 }
 
-// perl-style join function
-static AbstractQoreNode *f_join(const QoreListNode *args, ExceptionSink *xsink) {
-   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
-   
-   unsigned n = num_args(args);
-   assert(n > 1);
-
-   const QoreListNode *l = test_list_param(args, 1);
-   if (n == 2 && l)
-      n = 0;
-   else {
-      n = 1;
-      l = args;
-   }
-
+static QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int offset = 0) {
    QoreStringNode *str = new QoreStringNode();
 
-   for (unsigned i = n; i < l->size(); i++) {
+   for (unsigned i = offset; i < l->size(); i++) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       if (p) {
 	 QoreStringValueHelper t(p);	 
@@ -601,6 +494,21 @@ static AbstractQoreNode *f_join(const QoreListNode *args, ExceptionSink *xsink) 
 	 str->concat(p0);
    }
    return str;
+}
+
+// perl-style join function
+static AbstractQoreNode *f_join_str(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+
+   return join_intern(p0, args, 1);
+}
+
+// perl-style join function
+static AbstractQoreNode *f_join_str_list(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+   HARD_QORE_PARAM(l, const QoreListNode, args, 1);
+
+   return join_intern(p0, l);
 }
 
 static AbstractQoreNode *f_chomp_str(const QoreListNode *args, ExceptionSink *xsink) {
@@ -655,81 +563,82 @@ static AbstractQoreNode *f_trim_ref_str(const QoreListNode *args, ExceptionSink 
 }
 
 void init_string_functions() {
-   builtinFunctions.add2("length", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("length", f_length_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("length", f_length_bin, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("length", f_length_any, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("length", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("length", f_int_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("length", f_length_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("length", f_length_bin, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("strlen", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("strlen", f_strlen_str, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("strlen", f_strlen_any, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("strlen", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("strlen", f_int_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("strlen", f_strlen_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
 
    // tolower() called without a string argument returns 0
-   builtinFunctions.add2("tolower", f_noop, QC_NOOP);
-   builtinFunctions.add2("tolower", f_tolower, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("tolower", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("tolower", f_tolower, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // toupper() called without a string argument returns 0
-   builtinFunctions.add2("toupper", f_noop, QC_NOOP);
-   builtinFunctions.add2("toupper", f_toupper, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("toupper", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("toupper", f_toupper, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("substr", f_substr, QC_NO_FLAGS, QDOM_DEFAULT);
-   builtinFunctions.add2("substr", f_substr_str_int, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("substr", f_substr_str_int_int, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("substr", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("substr", f_substr_str_int, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, softStringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("substr", f_substr_str_int_int, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 3, softStringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("index", f_index_str_str_int, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("index", f_index, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("index", f_int_minus_one_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("index", f_index_str_str_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 3, softStringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
-   builtinFunctions.add2("bindex", f_bindex_str_str_int, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("bindex", f_bindex, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("bindex", f_int_minus_one_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("bindex", f_bindex_str_str_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 3, softStringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
-   builtinFunctions.add2("rindex", f_rindex_str_str_int, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, new QoreBigIntNode(-1));
-   builtinFunctions.add2("rindex", f_rindex, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("rindex", f_int_minus_one_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("rindex", f_rindex_str_str_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 3, softStringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
 
-   builtinFunctions.add2("brindex", f_brindex_str_str_int, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, new QoreBigIntNode(-1));
-   builtinFunctions.add2("brindex", f_brindex, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("brindex", f_int_minus_one_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("brindex", f_brindex_str_str_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 3, softStringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
 
-   builtinFunctions.add2("ord", f_ord_str_int, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("ord", f_ord, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("ord", f_int_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   builtinFunctions.add2("ord", f_ord_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("ord", f_ord_str_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 2, softStringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("chr", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo, 1, nothingTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("chr", f_chr_int, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, bigIntTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("chr", f_chr, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("chr", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("chr", f_chr_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("chr", f_chr_int, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // an empty list was returned by split() if the types were not correct
-   builtinFunctions.add2("split", f_list_noop, QC_NOOP);
-   builtinFunctions.add2("split", f_split_str, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("split", f_split_bin, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("split", f_list_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("split", f_split_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("split", f_split_bin, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_encoding", f_noop, QC_NOOP);
-   builtinFunctions.add2("get_encoding", f_get_encoding_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("get_encoding", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_encoding", f_get_encoding_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("convert_encoding", f_noop, QC_NOOP);
-   builtinFunctions.add2("convert_encoding", f_convert_encoding, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("convert_encoding", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("convert_encoding", f_convert_encoding, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("force_encoding", f_noop, QC_NOOP);
-   builtinFunctions.add2("force_encoding", f_force_encoding, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("force_encoding", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("force_encoding", f_force_encoding, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("regex", f_noop, QC_NOOP);
+   builtinFunctions.add2("regex", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("regex", f_regex, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add2("regex_subst", f_noop, QC_NOOP);
+   builtinFunctions.add2("regex_subst", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("regex_subst", f_regex_subst, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add2("regex_extract", f_noop, QC_NOOP);
+   builtinFunctions.add2("regex_extract", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("regex_extract", f_regex_extract, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
-   builtinFunctions.add2("replace", f_noop, QC_NOOP);
+   builtinFunctions.add2("replace", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("replace", f_replace, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("join", f_noop, QC_NOOP);
-   builtinFunctions.add2("join", f_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, nothingTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("join", f_join, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("join", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("join", f_join_str, QC_CONSTANT | QC_USES_EXTRA_ARGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("join", f_join_str_list, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("chomp", f_noop, QC_NOOP);
-   builtinFunctions.add2("chomp", f_chomp_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("chomp", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("chomp", f_chomp_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("chomp", f_chomp_ref, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("trim", f_noop, QC_NOOP);
-   builtinFunctions.add2("trim", f_trim_str_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
+   builtinFunctions.add2("trim", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("trim", f_trim_str_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
    builtinFunctions.add2("trim", f_trim_ref_str, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
 }

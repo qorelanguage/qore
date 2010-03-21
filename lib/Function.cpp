@@ -1349,6 +1349,12 @@ AbstractQoreNode *f_noop(const QoreListNode *args, ExceptionSink *xsink) {
 }
 
 // this function does nothing - it's here for backwards-compatibility for functions
+// that accept invalid arguments and return boolean False
+AbstractQoreNode *f_bool_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return &False;
+}
+
+// this function does nothing - it's here for backwards-compatibility for functions
 // that accept invalid arguments and return an empty string
 AbstractQoreNode *f_string_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return null_string();
@@ -1360,6 +1366,10 @@ AbstractQoreNode *f_float_noop(const QoreListNode *args, ExceptionSink *xsink) {
 
 AbstractQoreNode *f_int_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return zero();
+}
+
+AbstractQoreNode *f_int_minus_one_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return new QoreBigIntNode(-1);
 }
 
 AbstractQoreNode *f_list_noop(const QoreListNode *args, ExceptionSink *xsink) {

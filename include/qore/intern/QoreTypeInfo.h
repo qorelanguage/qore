@@ -38,6 +38,7 @@ DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
 class AbstractQoreTypeInfo {
 protected:
    qore_type_t qt : 11;
+   qore_type_t compat_qt : 11;
    bool has_type : 1;
 
    DLLLOCAL virtual const char *getNameImpl() const = 0;
@@ -50,9 +51,11 @@ protected:
    }
 
 public:
-   DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), has_type(n_qt != NT_ALL ? true : false) {
+   DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), compat_qt(n_qt), has_type(n_qt != NT_ALL ? true : false) {
    }
-   DLLLOCAL AbstractQoreTypeInfo() : qt(NT_ALL), has_type(false) {
+   DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt, qore_type_t n_compat_qt) : qt(n_qt), compat_qt(n_compat_qt), has_type(n_qt != NT_ALL ? true : false) {
+   }
+   DLLLOCAL AbstractQoreTypeInfo() : qt(NT_ALL), compat_qt(NT_ALL), has_type(false) {
    }
    DLLLOCAL virtual ~AbstractQoreTypeInfo() {
    }
@@ -92,6 +95,10 @@ public:
          return false;
 
       return qt == NT_INT || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN ? false : true;
+   }
+
+   DLLLOCAL qore_type_t typeCompatibility() const {
+      return this ? compat_qt : NT_ALL;
    }
 };
 
@@ -195,6 +202,7 @@ public:
 
    DLLLOCAL QoreTypeInfo() : qc(0) {}
    DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : AbstractQoreTypeInfo(n_qt), qc(0) {}
+   DLLLOCAL QoreTypeInfo(qore_type_t n_qt, qore_type_t n_compat_qt) : AbstractQoreTypeInfo(n_qt, n_compat_qt), qc(0) {}
    DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : AbstractQoreTypeInfo(NT_OBJECT), qc(n_qc) {}
    DLLLOCAL virtual ~QoreTypeInfo() {
    }
@@ -486,15 +494,30 @@ public:
    }
 };
 
+// SomethingTypeInfo, i.e. not NOTHING
+class SomethingTypeInfo : public QoreTypeInfo {
+protected:
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      return is_nothing(n) ? false : true;
+   }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      return is_nothing(n) ? QTI_NOT_EQUAL : QTI_AMBIGUOUS;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      return typeInfo && (typeInfo->getType() != NT_NOTHING) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+public:
+   DLLLOCAL SomethingTypeInfo() : QoreTypeInfo(NT_SOMETHING) {
+   }
+};
+
 class FloatTypeInfo : public QoreTypeInfo {
 protected:
    DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       //printd(0, "FloatTypeInfo::checkTypeInstantiationImpl() n=%p %s\n", n, n->getTypeName());
       if (!n)
 	 return false;
-
-      if (n->getType() == NT_SOFTFLOAT)
-         return true;
 
       if (n->getType() != NT_INT)
          return false;
@@ -505,32 +528,14 @@ protected:
       return true;
    }
    DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
-      return n && (n->getType() == NT_INT || n->getType() == NT_SOFTFLOAT) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return n && (n->getType() == NT_INT) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
    DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
-      return typeInfo && (typeInfo->getType() == NT_INT || typeInfo->getType() == NT_SOFTFLOAT) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return typeInfo && (typeInfo->getType() == NT_INT) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
 
 public:
    DLLLOCAL FloatTypeInfo() : QoreTypeInfo(NT_FLOAT) {
-   }
-};
-
-class BoolTypeInfo : public QoreTypeInfo {
-protected:
-   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      //printd(0, "BoolTypeInfo::checkTypeInstantiationImpl() n=%p %s\n", n, n->getTypeName());
-      return n && n->getType() == NT_SOFTBOOLEAN ? true : false;
-   }
-   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
-      return n && n->getType() == NT_SOFTBOOLEAN ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
-   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
-      return typeInfo && typeInfo->getType() == NT_SOFTBOOLEAN ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
-
-public:
-   DLLLOCAL BoolTypeInfo() : QoreTypeInfo(NT_BOOLEAN) {
    }
 };
 
@@ -542,12 +547,6 @@ protected:
    }
    DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
       return dynamic_cast<const QoreBigIntNode *>(n) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
-   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
-      if (!typeInfo->hasType())
-         return QTI_NOT_EQUAL;
-
-      return typeInfo->parseEqualImpl(this);
    }
 
 public:
@@ -563,12 +562,6 @@ protected:
    }
    DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
       return dynamic_cast<const QoreStringNode *>(n) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
-   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
-      if (!typeInfo->hasType())
-         return QTI_NOT_EQUAL;
-
-      return typeInfo->parseEqualImpl(this);
    }
 
 public:
@@ -645,7 +638,7 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftBigIntTypeInfo() : QoreTypeInfo(NT_SOFTINT) {
+   DLLLOCAL SoftBigIntTypeInfo() : QoreTypeInfo(NT_SOFTINT, NT_INT) {
    }
 };
 
@@ -677,7 +670,7 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftFloatTypeInfo() : QoreTypeInfo(NT_SOFTFLOAT) {
+   DLLLOCAL SoftFloatTypeInfo() : QoreTypeInfo(NT_SOFTFLOAT, NT_FLOAT) {
    }
 };
 
@@ -709,7 +702,7 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftBoolTypeInfo() : QoreTypeInfo(NT_SOFTBOOLEAN) {
+   DLLLOCAL SoftBoolTypeInfo() : QoreTypeInfo(NT_SOFTBOOLEAN, NT_BOOLEAN) {
    }
 };
 
@@ -742,7 +735,7 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftStringTypeInfo() : QoreTypeInfo(NT_SOFTSTRING) {
+   DLLLOCAL SoftStringTypeInfo() : QoreTypeInfo(NT_SOFTSTRING, NT_STRING) {
    }
 };
 
@@ -781,6 +774,15 @@ public:
 
       //printd(0, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p has_type=%d name=%s\n", this, qt, qc, has_type, tname);
    }
+
+   // used for base types providing binary class equivalency with a builtin Qore base type
+   DLLLOCAL ExternalTypeInfo(qore_type_t n_qt, qore_type_t n_compat_qt, const char *n_tname, const QoreTypeInfoHelper &n_helper) : QoreTypeInfo(n_qt, n_compat_qt), tname(n_tname), helper(n_helper) {
+      // ensure this class is only used for external classes
+      assert(qt >= QORE_NUM_TYPES); 
+
+      //printd(0, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p has_type=%d name=%s\n", this, qt, qc, has_type, tname);
+   }
+
    // used for classes
    DLLLOCAL ExternalTypeInfo(const QoreClass *n_qc, const QoreTypeInfoHelper &n_helper) : QoreTypeInfo(n_qc), tname(n_qc->getName()), helper(n_helper) {
       assert(qc);
@@ -794,6 +796,9 @@ public:
    DLLLOCAL void assign(qore_type_t n_qt) {
       has_type = true;
       qt = n_qt;
+   }
+   DLLLOCAL void assignCompat(qore_type_t n_compat_qt) {
+      compat_qt = n_compat_qt;
    }
    DLLLOCAL void assign(const QoreClass *n_qc) {
       has_type = true;

@@ -37,6 +37,7 @@
 #define NT_SOFTFLOAT    -5
 #define NT_SOFTBOOLEAN  -6
 #define NT_SOFTSTRING   -7
+#define NT_SOMETHING    -8 // i.e. "not NOTHING"
 
 // the following functions are implemented in support.cc
 // FIXME: remove this function and use the one below

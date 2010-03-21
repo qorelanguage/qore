@@ -44,7 +44,8 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo, *bigIntTypeInfo, *floatTypeInf
    *boolTypeInfo, *stringTypeInfo, *binaryTypeInfo, *dateTypeInfo, *objectTypeInfo, 
    *hashTypeInfo, *listTypeInfo, *nothingTypeInfo, *nullTypeInfo, *runTimeClosureTypeInfo,
    *callReferenceTypeInfo, *referenceTypeInfo, *userReferenceTypeInfo, *codeTypeInfo,
-   *softBigIntTypeInfo, *softFloatTypeInfo, *softBoolTypeInfo, *softStringTypeInfo;
+   *softBigIntTypeInfo, *softFloatTypeInfo, *softBoolTypeInfo, *softStringTypeInfo,
+   *somethingTypeInfo;
 
 DLLEXPORT qore_type_t get_next_type_id();
 
@@ -111,12 +112,16 @@ public:
    DLLEXPORT QoreTypeInfoHelper(const char *n_tname);
    //! allocates a QoreTypeInfo object of the requested type
    DLLEXPORT QoreTypeInfoHelper(qore_type_t id, const char *n_tname);
+   //! allocates a QoreTypeInfo object of the requested type that provides binary compatibility with the builtin type given
+   DLLEXPORT QoreTypeInfoHelper(qore_type_t id, qore_type_t builtin_id, const char *n_tname);
    //! deallocates the managed QoreTypeInfo object
    DLLEXPORT virtual ~QoreTypeInfoHelper();
    //! returns a pointer to the object
    DLLEXPORT const QoreTypeInfo *getTypeInfo() const;
    //! assigns the typeid to the object
    DLLEXPORT void assign(qore_type_t id);
+   //! assigns the compatible typeid to the object
+   DLLEXPORT void assignCompat(qore_type_t builtin_id);
 
    DLLEXPORT virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const;
    DLLEXPORT virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const;

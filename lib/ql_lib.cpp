@@ -755,7 +755,7 @@ void init_lib_functions() {
    builtinFunctions.add("exit",        f_exit, QDOM_PROCESS);
    builtinFunctions.add("abort",       f_abort, QDOM_PROCESS);
 
-   builtinFunctions.add2("system",      f_noop, QC_NOOP, QDOM_EXTERNAL_PROCESS);
+   builtinFunctions.add2("system",      f_noop, QC_NOOP, QDOM_EXTERNAL_PROCESS, nothingTypeInfo);
    builtinFunctions.add2("system",      f_system, QC_NO_FLAGS, QDOM_EXTERNAL_PROCESS, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("getuid",      f_getuid);
@@ -781,8 +781,8 @@ void init_lib_functions() {
    builtinFunctions.add("errno",       f_errno);
    builtinFunctions.add("strerror",    f_strerror);
 
-   builtinFunctions.add2("basename",    f_noop, QC_NOOP);
-   builtinFunctions.add2("basename",    f_basename, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("basename",    f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("basename",    f_basename, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("dirname",     f_dirname);
    builtinFunctions.add("mkdir",       f_mkdir, QDOM_FILESYSTEM);

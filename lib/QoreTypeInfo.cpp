@@ -25,6 +25,7 @@
 
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
+   staticBoolTypeInfo(NT_BOOLEAN),
    staticBinaryTypeInfo(NT_BINARY),
    staticObjectTypeInfo(NT_OBJECT),
    staticDateTypeInfo(NT_DATE),
@@ -43,13 +44,10 @@ static UserReferenceTypeInfo staticUserReferenceTypeInfo;
 // provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
 static BigIntTypeInfo staticBigIntTypeInfo;
 
-// provides limited compatibility with integers and softfloat
+// provides limited compatibility with integers
 static FloatTypeInfo staticFloatTypeInfo;
 
-// provides compatibility with types compatible with QoreBoolNode and softbool
-static BoolTypeInfo staticBoolTypeInfo;
-
-// provides 2-way compatibilty with classes derived from QoreStringNode and softstring
+// provides 2-way compatibilty with classes derived from QoreStringNode
 static StringTypeInfo staticStringTypeInfo;
 
 // provides equal compatibility with closures and all types of code references
@@ -66,6 +64,9 @@ static SoftBoolTypeInfo staticSoftBoolTypeInfo;
 
 // provides string compatibility with and conversions from float, int, and bool
 static SoftStringTypeInfo staticSoftStringTypeInfo;
+
+// somethingTypeInfo means "not NOTHING"
+static SomethingTypeInfo staticSomethingTypeInfo;
 
 // const pointers to static reference types
 const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
@@ -88,7 +89,8 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *softBigIntTypeInfo = &staticSoftBigIntTypeInfo,
    *softFloatTypeInfo = &staticSoftFloatTypeInfo,
    *softBoolTypeInfo = &staticSoftBoolTypeInfo,
-   *softStringTypeInfo = &staticSoftStringTypeInfo
+   *softStringTypeInfo = &staticSoftStringTypeInfo,
+   *somethingTypeInfo = &staticSomethingTypeInfo
    ;
 
 QoreListNode *emptyList;
@@ -333,7 +335,7 @@ int QoreTypeInfo::parseEqualDefault(const QoreTypeInfo *typeInfo) const {
    if (typeInfo->qt == qt)
       return QTI_IDENT;
 
-   return QTI_NOT_EQUAL;
+   return typeInfo->compat_qt == qt || typeInfo->qt == compat_qt ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
 bool QoreTypeInfo::parseTestCompatibleClass(const QoreClass *otherclass) const {

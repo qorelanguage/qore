@@ -324,6 +324,6 @@ void init_math_functions() {
    builtinFunctions.add2("expm1",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("expm1",         f_expm1, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("format_number", f_noop, QC_NOOP);
+   builtinFunctions.add2("format_number", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("format_number", f_format_number, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 }

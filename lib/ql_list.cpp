@@ -220,18 +220,11 @@ static AbstractQoreNode *f_reverse_list(const QoreListNode *params, ExceptionSin
    return p->reverse();
 }
 
-static AbstractQoreNode *f_inlist(const QoreListNode *params, ExceptionSink *xsink) { 
+static AbstractQoreNode *f_inlist_any_list(const QoreListNode *params, ExceptionSink *xsink) { 
    const AbstractQoreNode *p0 = get_param(params, 0);
-   const AbstractQoreNode *p1 = get_param(params, 1);
+   HARD_QORE_PARAM(p1, const QoreListNode, params, 1);
 
-   // always return False if 2nd argument is NOTHING
-   if (is_nothing(p1))
-      return &False;
-
-   if (p1->getType() != NT_LIST)
-      return get_bool_node(OP_LOG_EQ->bool_eval(p0, p1, xsink));
-
-   ConstListIterator li(reinterpret_cast<const QoreListNode *>(p1));
+   ConstListIterator li(p1);
    while (li.next()) {
       bool b = OP_LOG_EQ->bool_eval(p0, li.getValue(), xsink);
       if (*xsink)
@@ -240,6 +233,13 @@ static AbstractQoreNode *f_inlist(const QoreListNode *params, ExceptionSink *xsi
 	 return &True;
    }
    return &False;
+}
+
+static AbstractQoreNode *f_inlist_any_any(const QoreListNode *params, ExceptionSink *xsink) { 
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+
+   return get_bool_node(OP_LOG_EQ->bool_eval(p0, p1, xsink));
 }
 
 static AbstractQoreNode *f_inlist_hard(const QoreListNode *params, ExceptionSink *xsink) { 
@@ -286,11 +286,14 @@ void init_list_functions() {
    builtinFunctions.add("min", f_min);
    builtinFunctions.add("max", f_max);
 
-   builtinFunctions.add("reverse", f_noop);
+   builtinFunctions.add2("reverse", f_noop, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("reverse", f_reverse_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("reverse", f_reverse_list, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("inlist", f_inlist, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+   builtinFunctions.add2("inlist", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo);
+   builtinFunctions.add2("inlist", f_inlist_any_list, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("inlist", f_inlist_any_any, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add2("inlist_hard", f_inlist_hard, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 }
 

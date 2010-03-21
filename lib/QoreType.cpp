@@ -84,6 +84,10 @@ QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char *n_tname) : ty
    add_to_type_map(id, typeInfo);
 }
 
+QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, qore_type_t base_id, const char *n_tname) : typeInfo(new ExternalTypeInfo(id, base_id, n_tname, *this)) {
+   add_to_type_map(id, typeInfo);
+}
+
 QoreTypeInfoHelper::~QoreTypeInfoHelper() {
    delete typeInfo;
 }
@@ -91,6 +95,10 @@ QoreTypeInfoHelper::~QoreTypeInfoHelper() {
 void QoreTypeInfoHelper::assign(qore_type_t id) {
    typeInfo->assign(id);
    add_to_type_map(id, typeInfo);
+}
+
+void QoreTypeInfoHelper::assignCompat(qore_type_t base_id) {
+   typeInfo->assignCompat(base_id);
 }
 
 const QoreTypeInfo *QoreTypeInfoHelper::getTypeInfo() const {
