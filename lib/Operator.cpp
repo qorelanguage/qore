@@ -3956,9 +3956,9 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	 }
       }
 
-      // if we are taking a slice of a list or a hash, then the return type is a list
+      // if we are taking a slice of an object or a hash, then the return type is a hash
       if (rightTypeInfo->hasType() && listTypeInfo->parseEqual(rightTypeInfo) && (is_obj || is_hash))
-	 returnTypeInfo = listTypeInfo;
+	 returnTypeInfo = hashTypeInfo;
 
       // if we are trying to convert to a hash
       if (pflag & PF_FOR_ASSIGNMENT) {
