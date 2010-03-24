@@ -775,7 +775,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 desc->sprintf("%s::", aqf->className());
       desc->sprintf("%s(%s) is a backwards-compatible variant that returns a constant value when incorrect data types are passed to the function", getName(), variant->getSignature()->getSignatureText());
       const QoreTypeInfo *rti = variant->getReturnTypeInfo();
-      if (rti->hasType()) {
+      if (rti->hasType() && !variant->numParams()) {
 	 desc->concat("and always returns ");
 	 if (rti->qc) {
 	    rti->getThisType(*desc);
@@ -789,9 +789,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    rti->getThisType(*desc);
 	    desc->concat(')');
 	 }
-	 desc->concat("; ");
       }
-      desc->concat("to disable this warning, use '%disable-warning invalid-operation' in your code");
+      desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");
       getProgram()->makeParseWarning(QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
    }
    printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);

@@ -215,28 +215,28 @@ static AbstractQoreNode *f_inlist_hard_any_list(const QoreListNode *args, Except
 
 void init_list_functions() {
    // sort() will return the first argument passed if it's not a list
-   builtinFunctions.add2("sort", f_sort_noop, QC_NO_FLAGS, QDOM_DEFAULT);
+   builtinFunctions.add2("sort", f_sort_noop, QC_NOOP, QDOM_DEFAULT);
 
    builtinFunctions.add2("sort", f_sort, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sort", f_sort_str, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sort", f_sort_code, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, codeTypeInfo, QORE_PARAM_NO_ARG);
 
    // sortStable() will return the first argument passed if it's not a list
-   builtinFunctions.add2("sortStable", f_sort_noop, QC_NO_FLAGS, QDOM_DEFAULT);
+   builtinFunctions.add2("sortStable", f_sort_noop, QC_NOOP, QDOM_DEFAULT);
 
    builtinFunctions.add2("sortStable", f_sortStable, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sortStable", f_sortStable_str, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sortStable", f_sortStable_code, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, codeTypeInfo, QORE_PARAM_NO_ARG);
 
    // sortDescending() will return the first argument passed if it's not a list
-   builtinFunctions.add2("sortDescending", f_sort_noop, QC_NO_FLAGS, QDOM_DEFAULT);
+   builtinFunctions.add2("sortDescending", f_sort_noop, QC_NOOP, QDOM_DEFAULT);
 
    builtinFunctions.add2("sortDescending", f_sortDescending, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sortDescending", f_sortDescending_str, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sortDescending", f_sortDescending_code, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, codeTypeInfo, QORE_PARAM_NO_ARG);
 
    // sortDescendingStable() will return the first argument passed if it's not a list
-   builtinFunctions.add2("sortDescendingStable", f_sort_noop, QC_NO_FLAGS, QDOM_DEFAULT);
+   builtinFunctions.add2("sortDescendingStable", f_sort_noop, QC_NOOP, QDOM_DEFAULT);
 
    builtinFunctions.add2("sortDescendingStable", f_sortDescendingStable, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sortDescendingStable", f_sortDescendingStable_str, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -252,7 +252,7 @@ void init_list_functions() {
    builtinFunctions.add2("max", f_max_list_str, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, listTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("max", f_max_list_code, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, listTypeInfo, QORE_PARAM_NO_ARG, codeTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("reverse", f_noop, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("reverse", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("reverse", f_reverse_str, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("reverse", f_reverse_list, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 

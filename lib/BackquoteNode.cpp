@@ -120,8 +120,5 @@ AbstractQoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink) {
    // wait for child process to terminate and close pipe
    pclose(p);
 
-   if (!s->strlen())
-      return 0;
-
    return s.release();
 }

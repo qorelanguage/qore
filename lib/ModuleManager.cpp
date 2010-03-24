@@ -824,14 +824,11 @@ void ModuleManager::cleanup() {
 }
 
 QoreListNode *ModuleManager::getModuleList() {
-   QoreListNode *l = 0;
+   QoreListNode *l = new QoreListNode;
    AutoLocker al(&mutex);
-   if (!map.empty()) {
-      l = new QoreListNode();
-      for (module_map_t::iterator i = map.begin(); i != map.end(); i++)
-	 if (!i->second->isBuiltin())
-	    l->push(i->second->getHash());
-   }
+   for (module_map_t::iterator i = map.begin(); i != map.end(); i++)
+      if (!i->second->isBuiltin())
+	 l->push(i->second->getHash());
    return l;
 }
 
