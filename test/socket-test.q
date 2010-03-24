@@ -156,7 +156,7 @@ class socket_test {
 	$.test_value($who, $.string, $m, "string");
 	$s.send("OK");
 
-        $m = binary($s.recv());
+        $m = $s.recvBinary();
 	$.test_value($who, $.binary, $m, "binary");
 	$s.send("OK");
 

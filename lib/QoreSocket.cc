@@ -381,7 +381,7 @@ struct qore_socket_private {
       // returns a new socket
       int accept_internal(SocketSource *source) {
 	 if (!sock)
-	    return -2;
+	    return QSE_NOT_OPEN;
 
 	 int rc;
 	 if (type == AF_UNIX) {
@@ -1479,7 +1479,7 @@ BinaryNode *QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, int *rc) 
 
 QoreStringNode *QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
    if (!priv->sock) {
-      *rc = -3;
+      *rc = QSE_NOT_OPEN;
       return 0;
    }
 
@@ -1527,7 +1527,7 @@ QoreStringNode *QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
 QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
    //printd(5, "QoreSocket::recv(%d, %p) this=%p\n", timeout, rc, this);
    if (!priv->sock) {
-      *rc = -3;
+      *rc = QSE_NOT_OPEN;
       return 0;
    }
 
@@ -1565,6 +1565,48 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
 
    buf[rd] = '\0';
    return new QoreStringNode(buf, rd, rd + 1, priv->charsetid);
+}
+
+BinaryNode *QoreSocket::recvBinary(int timeout, int *rc) {
+   //printd(5, "QoreSocket::recvBinary(%d, %p) this=%p\n", timeout, rc, this);
+   if (!priv->sock) {
+      *rc = QSE_NOT_OPEN;
+      return 0;
+   }
+
+   // perform first read with timeout
+   char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
+   *rc = recv(buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
+   if ((*rc) <= 0) {
+      free(buf);
+      return 0;
+   }
+   qore_size_t rd = *rc;
+
+   // register event
+   priv->do_read_event(*rc, rd);
+
+   // keep reading data until no more data is available without a timeout
+   if (isDataAvailable(0)) {
+      int tot = DEFAULT_SOCKET_BUFSIZE;
+      do {
+	 if ((tot - rd) < DEFAULT_SOCKET_BUFSIZE) {
+	    tot += (DEFAULT_SOCKET_BUFSIZE + (tot >> 1));
+	    buf = (char *)realloc(buf, tot);
+	 }
+	 *rc = recv(buf + rd, tot - rd, 0, 0, false);
+	 if ((*rc) <= 0) {
+	    free(buf);
+	    return 0;
+	 }
+	 rd += *rc;
+
+	 // register event
+	 priv->do_read_event(*rc, rd);
+      } while (isDataAvailable(0));
+   }
+
+   return new BinaryNode(buf, rd);
 }
 
 // receive data and write to file descriptor
@@ -1804,7 +1846,7 @@ void QoreSocket::convertHeaderToHash(QoreHashNode *h, char *p) {
 //   -3 for timeout
 AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
    if (!priv->sock) {
-      *rc = -2;
+      *rc = QSE_NOT_OPEN;
       return 0;
    }
 
@@ -1879,11 +1921,11 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
 void QoreSocket::doException(int rc, const char *meth, ExceptionSink *xsink) {
    if (!rc)
       xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-   else if (rc == -1)   // recv() error
+   else if (rc == QSE_RECV_ERR)   // recv() error
       xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-   else if (rc == -2)   
+   else if (rc == QSE_NOT_OPEN)   
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", meth);   
-   // rc == -3: TIMEOUT returns NOTHING
+   // rc == QSE_TIMEOUT: TIMEOUT returns NOTHING
 }
 
 // receive a binary message in HTTP chunked format
@@ -2114,7 +2156,7 @@ bool QoreSocket::isWriteFinished(int timeout) const {
 
 int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event) {
    if (timeout != -1 && !isDataAvailable(timeout))
-      return -3;
+      return QSE_TIMEOUT;
 
    qore_size_t rc;
    if (!priv->ssl) {
@@ -2217,7 +2259,7 @@ int QoreSocket::connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, Except
 
 int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
    if (!priv->sock)
-      return -1;
+      return QSE_NOT_OPEN;
    if (priv->ssl)
       return 0;
    return priv->upgradeClientToSSLIntern(cert, pkey, xsink);
@@ -2225,7 +2267,7 @@ int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xs
 
 int QoreSocket::upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
    if (!priv->sock)
-      return -1;
+      return QSE_NOT_OPEN;
    if (priv->ssl)
       return 0;
    return priv->upgradeServerToSSLIntern(cert, pkey, xsink);
@@ -2310,8 +2352,7 @@ int QoreSocket::bind(const char *interface, int prt, bool reuseaddr)
    addr_p.sin_family = AF_INET;
    addr_p.sin_port = htons(prt);
 
-   if (q_gethostbyname(interface, &addr_p.sin_addr))
-   {
+   if (q_gethostbyname(interface, &addr_p.sin_addr)) {
       printd(5, "QoreSocket::bind(%s, %d) gethostbyname failed for %s\n",
 	     interface, priv->port, interface);
       return -1;
@@ -2395,13 +2436,13 @@ int QoreSocket::acceptAndReplace(SocketSource *source) {
 
 int QoreSocket::listen() {
    if (!priv->sock)
-      return -2;
+      return QSE_NOT_OPEN;
    return ::listen(priv->sock, 5);
 }
 
 int QoreSocket::send(const char *buf, qore_size_t size) {
    if (!priv->sock)
-      return -2;
+      return QSE_NOT_OPEN;
 
    qore_size_t bs = 0;
    while (true) {

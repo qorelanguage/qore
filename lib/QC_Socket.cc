@@ -365,7 +365,7 @@ static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreLi
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 1));
    int rc;
-   QoreStringNodeHolder msg(bs ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
+   QoreStringNodeHolder msg(bs > 0 ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
 	
    if (rc > 0)
       return msg.release();
@@ -493,37 +493,27 @@ static AbstractQoreNode *SOCKET_recvu4LSB(QoreObject *self, mySocket *s, const Q
    return doReadResult(rc, (int64)b, "recvu4LSB", xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   int bs = 0;
-   if (p0)
-      bs = p0->getAsInt();
-   if (!bs)
-   {
-      xsink->raiseException("SOCKET-RECVBINARY-PARAMETER-ERROR", "missing positive buffer size parameter");
-      return 0;
-   }
+   int bs = p0 ? p0->getAsInt() : 0;
 
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 1));
 
    int rc;
-   BinaryNode *b = s->recvBinary(bs, timeout, &rc);
+   SimpleRefHolder<BinaryNode> b(bs > 0 ? s->recvBinary(bs, timeout, &rc) : s->recvBinary(timeout, &rc));
 
    if (rc > 0)
-      return b;
+      return b.release();
 
    QoreSocket::doException(rc, "recvBinary", xsink);
    return 0;
 }
 
 // params: method, path, http_version, hash (http headers), data
-static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-   {
+   if (!p0) {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting method (string) as first parameter of Socket::sendHTTPMessage() call");
       return 0;
    }

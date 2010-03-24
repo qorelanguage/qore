@@ -171,6 +171,12 @@ BinaryNode *mySocket::recvBinary(int bufsize, int timeout_ms, int *rc) {
    return socket->recvBinary(bufsize, timeout_ms, rc);
 }
 
+// receive a packet of bytes as a binary object
+BinaryNode *mySocket::recvBinary(int timeout_ms, int *rc) {
+   AutoLocker al(this);
+   return socket->recvBinary(timeout_ms, rc);
+}
+
 // receive and write data to a file descriptor
 int mySocket::recv(int fd, int size, int timeout_ms) {
    AutoLocker al(this);

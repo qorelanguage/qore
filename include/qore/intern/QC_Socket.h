@@ -103,6 +103,8 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock {
       DLLLOCAL QoreStringNode *recv(int bufsize, int timeout, int *rc);
       // receive a certain number of bytes as a binary object
       DLLLOCAL BinaryNode *recvBinary(int bufsize, int timeout, int *rc);
+      // receive a packet of bytes as a binary object
+      DLLLOCAL BinaryNode *recvBinary(int timeout, int *rc);
       // receive a message
       DLLLOCAL QoreStringNode *recv(int timeout, int *rc);
       // receive and write data to a file descriptor

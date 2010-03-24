@@ -1,3 +1,10 @@
+2010.03.23: David Nichols
+	 * added a QoreSocket::recvBinary() function to receive all data
+	   available on the socket (with an optional initial timeout value)
+	   and return it as a binary object; if Socket::recvBinary() is called
+	   with buffer-size <= 0, then this variant is used (backported from
+           trunk/0.8.0)
+
 2010.03.12: David Nichols
 	 * fixed CANNOT-PROVIDE-FEATURE exception text (backported from
 	   trunk/0.8.0)
