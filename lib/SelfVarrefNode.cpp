@@ -96,7 +96,7 @@ AbstractQoreNode *SelfVarrefNode::parseInit(LocalVar *oflag, int pflag, int &lvi
    if (!oflag)
       parse_error("cannot reference member \"%s\" out of an object member function definition", str);
    else
-      getParseClass()->parseCheckInternalMemberAccess(str);
+      getParseClass()->parseCheckInternalMemberAccess(str, typeInfo);
 
    return this;
 }

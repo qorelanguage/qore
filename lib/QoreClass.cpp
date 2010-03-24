@@ -365,13 +365,12 @@ struct qore_class_private {
       return 0;
    }
 
-   DLLLOCAL const int parseCheckInternalMemberAccess(const char *mem) const {
-      const_cast<qore_class_private *>(this)->initialize();
+   DLLLOCAL const int parseCheckInternalMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
+      const_cast<qore_class_private *>(this)->parseInitPartial();
 
       // throws a parse exception if there are public members and the name is not valid
       bool priv;
       bool member_has_type_info;
-      const QoreTypeInfo *memberTypeInfo;
       const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, member_has_type_info, priv);
       int rc = 0;
       if (!sclass) {
@@ -2897,8 +2896,8 @@ int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memb
    return priv->parseCheckMemberAccess(mem, memberTypeInfo, pflag);
 }
 
-int QoreClass::parseCheckInternalMemberAccess(const char *mem) const {
-   return priv->parseCheckInternalMemberAccess(mem);
+int QoreClass::parseCheckInternalMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
+   return priv->parseCheckInternalMemberAccess(mem, memberTypeInfo);
 }
 
 const QoreClass *QoreClass::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv_member) const {
