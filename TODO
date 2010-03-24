@@ -1,3 +1,5 @@
+* raise a warning if a function is used that has no effect except returning a value and the return value is ignored
+* allow variants with the "constant" flag be be used in constant expressions
 * implement methods to run on lists, hashes, and strings as if they were classes (ex: <hash>.lastKey(), etc)
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this: $exp.Base::method()
@@ -21,19 +23,13 @@
 * implement optimized foreach statement for hash key iteration
 * implement find_key operator, taking a regular expression to find a key in a hash
 * implement split operator taking regular expression
-* tag functions if they have no effect except returning a value so if the value is not used at the top level a warning may be emitted
-* add "constant" flag to functions, to allow execution in constant expressions
 * add support for ranges [2..9]
 * add context functions
 * track include files, make sure they are only included once
-* add argument info to functions, throw errors if arguments are not correct (add parse-time argument checks)
 * have QoreStringNode::getAsString() return a standard empty string ("") when possible (also should not be reference counted)
 * remove QoreNothingNode and use 0 everywhere instead
 * add API compatibility info to to module data
-* implement a way to declare public class members (so typos with class members can be caught)
-* implement default argument values
 * update round() to allow the specification of significant digits
-* implement support for builtin methodGate methods, custom DBI Datasource method extensions (can already do this)
 * implement public_instanceof operator
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
 * add support for break and continue arguments to affect outer loops
@@ -51,6 +47,7 @@ done 0.8.0:
 * domain implementation on method variants
 * implemented hard typing
 * implemented function and method overloading
+* implemented default argument values
 * verify behavior of private copy methods
 * make changes so constructors can be private
 * check for illegal arguments to copy methods in self calls ($.copy())
