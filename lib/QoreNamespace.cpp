@@ -1628,6 +1628,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("WARN_UNREACHABLE_CODE",          new QoreBigIntNode(QP_WARN_UNREACHABLE_CODE));
    qoreNS->addConstant("WARN_NONEXISTENT_METHOD_CALL",   new QoreBigIntNode(QP_WARN_NONEXISTENT_METHOD_CALL));
    qoreNS->addConstant("WARN_INVALID_OPERATION",         new QoreBigIntNode(QP_WARN_INVALID_OPERATION));
+   qoreNS->addConstant("WARN_CALL_WITH_TYPE_ERRORS",     new QoreBigIntNode(QP_WARN_CALL_WITH_TYPE_ERRORS));
    qoreNS->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
 
    // event constants
