@@ -1,3 +1,23 @@
+2010.03.24: David Nichols
+	 * added type info to lib/ql_bzip.cpp, lib/ql_crypto.cpp, 
+	   lib/ql_debug.cpp, lib/ql_env.cpp, lib/ql_file.cpp, lib/ql_json.cpp,
+	   lib/ql_lib.cpp, lib/ql_list.cpp, lib_ql_math.cpp
+	 * added new function getcwd2() that throws an exception if an error
+	   occurs
+	 * added new QDOM_EXTERNAL_INFO and PO_NO_EXTERNAL_INFO
+	 * flagged the following functions with QDOM_EXTERNAL_INFO: getuid(),
+	   geteuid(), getgid(), getegid(), getpid(), getppid(), gethostname(),
+	   gethostbyname(), gethostbyaddr(), gethostbyname_long(),
+	   gethostbyaddr_long(), getcwd(), getcwd2()
+	 * added a QoreSocket::recvBinary() function to receive all data
+	   available on the socket (with an optional initial timeout value)
+	   and return it as a binary object; if Socket::recvBinary() is called
+	   with buffer-size <= 0, then this variant is used
+	 * added new warning: QP_WARN_CALL_WITH_TYPE_ERRORS, 
+	   "call-with-type-errors"
+	 * added a warning at parse time if a function or method flagged with
+	   QC_NOOP is resolved ("call-with-type-errors")
+
 2010.03.21: David Nichols
 	 * fixed type compatibility with the new soft types: softint,
 	   softfloat, softstring, softbool

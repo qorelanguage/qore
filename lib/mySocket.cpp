@@ -165,6 +165,12 @@ QoreStringNode *mySocket::recv(int bufsize, int timeout_ms, int *rc) {
    return socket->recv(bufsize, timeout_ms, rc);
 }
 
+// receive a packet of bytes as a binary
+BinaryNode *mySocket::recvBinary(int timeout_ms, int *rc) {
+   AutoLocker al(this);
+   return socket->recvBinary(timeout_ms, rc);
+}
+
 // receive a certain number of bytes as a binary object
 BinaryNode *mySocket::recvBinary(int bufsize, int timeout_ms, int *rc) {
    AutoLocker al(this);

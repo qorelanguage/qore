@@ -263,419 +263,419 @@ void SocketSource::setAll(QoreObject *o, ExceptionSink *xsink) {
 }
 
 struct qore_socket_private {
-      int sock, type, port; //, sendTimeout, recvTimeout;
-      const QoreEncoding *charsetid;
-      bool del;
-      std::string socketname;
-      SSLSocketHelper *ssl;
-      Queue *cb_queue;
+   int sock, type, port; //, sendTimeout, recvTimeout;
+   const QoreEncoding *charsetid;
+   bool del;
+   std::string socketname;
+   SSLSocketHelper *ssl;
+   Queue *cb_queue;
 
-      DLLLOCAL qore_socket_private(int n_sock = 0, int n_type = AF_UNSPEC, const QoreEncoding *csid = QCS_DEFAULT) : sock(n_sock), type(n_type), port(-1), charsetid(csid), del(false), ssl(0), cb_queue(0) {
-	 //sendTimeout = recvTimeout = -1
+   DLLLOCAL qore_socket_private(int n_sock = 0, int n_type = AF_UNSPEC, const QoreEncoding *csid = QCS_DEFAULT) : sock(n_sock), type(n_type), port(-1), charsetid(csid), del(false), ssl(0), cb_queue(0) {
+      //sendTimeout = recvTimeout = -1
+   }
+
+   DLLLOCAL ~qore_socket_private() {
+      close_internal();
+
+      // must be dereferenced and removed before deleting
+      assert(!cb_queue);
+   }
+
+   DLLLOCAL int close() {
+      int rc = close_internal();
+      type = AF_UNSPEC;
+	 
+      return rc;
+   }
+
+   DLLLOCAL int close_internal() {
+      //printd(5, "qore_socket_private::close_internal(this=%08p) sock=%d\n", this, sock);
+      if (sock) {
+	 // if an SSL connection has been established, shut it down first
+	 if (ssl) {
+	    ssl->shutdown();
+	    delete ssl;
+	    ssl = 0;
+	 }
+      
+	 if (!socketname.empty()) {
+	    if (del)
+	       unlink(socketname.c_str());
+	    socketname.clear();
+	 }
+	 del = false;
+	 port = -1;
+	 int rc;
+	 while (true) {
+	    rc = ::close(sock); 
+	    // try again if close was interrupted by a signal
+	    if (!rc || errno != EINTR)
+	       break;
+	 }
+	 //printd(5, "qore_socket_private::close_internal(this=%08p) close(%d) returned %d\n", this, sock, rc);
+	 do_close_event();
+	 sock = 0;
+	 return rc;
       }
+      else
+	 return 0; 
+   }
 
-      DLLLOCAL ~qore_socket_private() {
+   DLLLOCAL int getSendTimeout() const {
+      struct timeval tv;
+
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+      // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+      // but the library expects a 32-bit value
+      int size = sizeof(struct sockaddr_un);
+#else
+      socklen_t size = sizeof(struct sockaddr_un);
+#endif
+	 
+      if (getsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, (socklen_t *)&size))
+	 return -1;
+	 
+      return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+   }
+
+   DLLLOCAL int getRecvTimeout() const {
+      struct timeval tv;
+
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+      // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+      // but the library expects a 32-bit value
+      int size = sizeof(struct sockaddr_un);
+#else
+      socklen_t size = sizeof(struct sockaddr_un);
+#endif
+	 
+      if (getsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, (socklen_t *)&size))
+	 return -1;
+	 
+      return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+   }
+
+   DLLLOCAL int getPort() {
+      // if we don't need to find out what port we are, then return current value
+      if (!sock || type != AF_INET || port != -1)
+	 return port;
+
+      // otherwise find out what port we're connected to
+      struct sockaddr_in add;
+
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+      // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+      // but the library expects a 32-bit value
+      int size = sizeof(struct sockaddr_un);
+#else
+      socklen_t size = sizeof(struct sockaddr_un);
+#endif
+
+      if (getsockname(sock, (struct sockaddr *) &add, (socklen_t *)&size) < 0)
+	 return -1;
+
+      port = ntohs(add.sin_port);
+      return port;
+   }
+
+   // returns a new socket
+   DLLLOCAL int accept_internal(SocketSource *source) {
+      if (!sock)
+	 return QSE_NOT_OPEN;
+
+      int rc;
+      if (type == AF_UNIX) {
+	 struct sockaddr_un addr_un;
+	    
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+	 // but the library expects a 32-bit value
+	 int size = sizeof(struct sockaddr_un);
+#else
+	 socklen_t size = sizeof(struct sockaddr_un);
+#endif
+	 while (true) {
+	    rc = ::accept(sock, (struct sockaddr *)&addr_un, (socklen_t *)&size);
+	    // retry if interrupted by a signal
+	    if (rc != -1 || errno != EINTR)
+	       break;
+	 }
+	 //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
+	    
+	 if (rc > 0 && source) {
+	    QoreStringNode *addr = new QoreStringNode(charsetid);
+	    addr->sprintf("UNIX socket: %s", socketname.c_str());
+	    source->setAddress(addr);
+	    source->setHostName("localhost");
+	 }
+      }
+      else if (type == AF_INET) {
+	 struct sockaddr_in addr_in;
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
+	 // but the library expects a 32-bit value
+	 int size = sizeof(struct sockaddr_in);
+#else
+	 socklen_t size = sizeof(struct sockaddr_in);
+#endif
+	    
+	 while (true) {
+	    rc = ::accept(sock, (struct sockaddr *)&addr_in, (socklen_t *)&size);
+	    // retry if interrupted by a signal
+	    if (rc != -1 || errno != EINTR)
+	       break;
+	 }
+	 //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
+	    
+	 if (rc > 0 && source) {
+	    char *host;
+	    if ((host = q_gethostbyaddr((const char *)&addr_in.sin_addr.s_addr, sizeof(addr_in.sin_addr.s_addr), AF_INET))) {
+	       int len = strlen(host);
+	       QoreStringNode *hostname = new QoreStringNode(host, len, len + 1, charsetid);
+	       source->setHostName(hostname);
+	    }
+	       
+	    // get IP address
+	    char ifname[80];
+	    if (inet_ntop(AF_INET, &addr_in.sin_addr, ifname, sizeof(ifname)))
+	       source->setAddress(ifname);
+	 }
+      }
+      else
+	 rc = -1;
+      return rc;
+   }
+
+   DLLLOCAL void cleanup(ExceptionSink *xsink) {
+      if (cb_queue) {
+
+	 // close the socket before the delete message is put on the queue
+	 // the socket would be closed anyway in the destructor
 	 close_internal();
 
-	 // must be dereferenced and removed before deleting
-	 assert(!cb_queue);
-      }
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 cb_queue->push_and_take_ref(h);
 
-      int close() {
-	 int rc = close_internal();
-	 type = AF_UNSPEC;
-	 
-	 return rc;
+	 // deref and remove event queue
+	 cb_queue->deref(xsink);
+	 cb_queue = 0;
       }
+   }
 
-      DLLLOCAL int close_internal() {
-	 //printd(5, "qore_socket_private::close_internal(this=%08p) sock=%d\n", this, sock);
-	 if (sock) {
-	    // if an SSL connection has been established, shut it down first
-	    if (ssl) {
-	       ssl->shutdown();
-	       delete ssl;
-	       ssl = 0;
-	    }
-      
-	    if (!socketname.empty()) {
-	       if (del)
-		  unlink(socketname.c_str());
-	       socketname.clear();
-	    }
-	    del = false;
-	    port = -1;
-	    int rc;
-	    while (true) {
-	       rc = ::close(sock); 
-	       // try again if close was interrupted by a signal
-	       if (!rc || errno != EINTR)
-		  break;
-	    }
-	    //printd(5, "qore_socket_private::close_internal(this=%08p) close(%d) returned %d\n", this, sock, rc);
-	    do_close_event();
-	    sock = 0;
-	    return rc;
-	 }
+   DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink) {
+      if (cb_queue)
+	 cb_queue->deref(xsink);
+      cb_queue = cbq;
+   }
+
+   DLLLOCAL void do_start_ssl_event() {
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_START_SSL), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 cb_queue->push_and_take_ref(h);
+      }
+   }
+
+   DLLLOCAL void do_ssl_established_event() {
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 h->setKeyValue("cipher", new QoreStringNode(ssl->getCipherName()), 0);
+	 h->setKeyValue("cipher_version", new QoreStringNode(ssl->getCipherVersion()), 0);
+	 cb_queue->push_and_take_ref(h);
+      }
+   }
+
+   DLLLOCAL void do_connect_event(int af, const char *target, int prt) {
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTING), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 h->setKeyValue("type", new QoreBigIntNode(af), 0);
+	 h->setKeyValue("target", new QoreStringNode(target), 0);
+	 if (prt != -1)
+	    h->setKeyValue("port", new QoreBigIntNode(prt), 0);
+	 cb_queue->push_and_take_ref(h);
+      }
+   }
+
+   DLLLOCAL void do_connected_event() {
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTED), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 cb_queue->push_and_take_ref(h);
+      }
+   }
+
+   DLLLOCAL void do_chunked_read(int event, qore_size_t bytes, qore_size_t total_read, int source) {
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(event), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(source), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 if (event == QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED)
+	    h->setKeyValue("read", new QoreBigIntNode(bytes), 0);
 	 else
-	    return 0; 
+	    h->setKeyValue("size", new QoreBigIntNode(bytes), 0);
+	 h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
+	 cb_queue->push_and_take_ref(h);
       }
+   }
 
-      DLLLOCAL int getSendTimeout() const {
-	 struct timeval tv;
-
-#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
-	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
-	 // but the library expects a 32-bit value
-	 int size = sizeof(struct sockaddr_un);
-#else
-	 socklen_t size = sizeof(struct sockaddr_un);
-#endif
-	 
-	 if (getsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, (socklen_t *)&size))
-	    return -1;
-	 
-	 return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+   DLLLOCAL void do_read_http_header(int event, const QoreHashNode *headers, int source) {
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(event), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(source), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 h->setKeyValue("headers", headers->hashRefSelf(), 0);
+	 cb_queue->push_and_take_ref(h);
       }
+   }
 
-      DLLLOCAL int getRecvTimeout() const {
-	 struct timeval tv;
-
-#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
-	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
-	 // but the library expects a 32-bit value
-	 int size = sizeof(struct sockaddr_un);
-#else
-	 socklen_t size = sizeof(struct sockaddr_un);
-#endif
-	 
-	 if (getsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, (socklen_t *)&size))
-	    return -1;
-	 
-	 return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+   DLLLOCAL void do_send_http_message(const QoreString &str, const QoreHashNode *headers, int source) {
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(source), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 h->setKeyValue("message", new QoreStringNode(str), 0);
+	 //printd(0, "do_send_http_message() str='%s' headers=%p (%d %s)\n", str.getBuffer(), headers, headers->getType(), headers->getTypeName());
+	 h->setKeyValue("headers", headers->hashRefSelf(), 0);
+	 cb_queue->push_and_take_ref(h);
       }
+   }
 
-      DLLLOCAL int getPort() {
-	 // if we don't need to find out what port we are, then return current value
-	 if (!sock || type != AF_INET || port != -1)
-	    return port;
-
-	 // otherwise find out what port we're connected to
-	 struct sockaddr_in add;
-
-#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
-	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
-	 // but the library expects a 32-bit value
-	 int size = sizeof(struct sockaddr_un);
-#else
-	 socklen_t size = sizeof(struct sockaddr_un);
-#endif
-
-	 if (getsockname(sock, (struct sockaddr *) &add, (socklen_t *)&size) < 0)
-	    return -1;
-
-	 port = ntohs(add.sin_port);
-	 return port;
+   DLLLOCAL void do_close_event() {
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 cb_queue->push_and_take_ref(h);
       }
+   }
 
-      // returns a new socket
-      int accept_internal(SocketSource *source) {
-	 if (!sock)
-	    return -2;
+   DLLLOCAL void do_read_event(qore_size_t bytes_read, qore_size_t total_read, qore_size_t bufsize = 0) {
+      // post bytes read on event queue, if any
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_PACKET_READ), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 h->setKeyValue("read", new QoreBigIntNode(bytes_read), 0);
+	 h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
+	 // set total bytes to read and remaining bytes if bufsize > 0
+	 if (bufsize > 0)
+	    h->setKeyValue("total_to_read", new QoreBigIntNode(bufsize), 0);
+	 cb_queue->push_and_take_ref(h);
+      }
+   }
 
-	 int rc;
-	 if (type == AF_UNIX) {
-	    struct sockaddr_un addr_un;
-	    
-#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
-            // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
-            // but the library expects a 32-bit value
-            int size = sizeof(struct sockaddr_un);
-#else
-            socklen_t size = sizeof(struct sockaddr_un);
-#endif
-	    while (true) {
-	       rc = ::accept(sock, (struct sockaddr *)&addr_un, (socklen_t *)&size);
-	       // retry if interrupted by a signal
-	       if (rc != -1 || errno != EINTR)
-		  break;
-	    }
-	    //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
-	    
-	    if (rc > 0 && source) {
-	       QoreStringNode *addr = new QoreStringNode(charsetid);
-	       addr->sprintf("UNIX socket: %s", socketname.c_str());
-	       source->setAddress(addr);
-	       source->setHostName("localhost");
-	    }
-	 }
-	 else if (type == AF_INET) {
-	    struct sockaddr_in addr_in;
-#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
-            // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
-            // but the library expects a 32-bit value
-            int size = sizeof(struct sockaddr_in);
-#else
-            socklen_t size = sizeof(struct sockaddr_in);
-#endif
-	    
-	    while (true) {
-	       rc = ::accept(sock, (struct sockaddr *)&addr_in, (socklen_t *)&size);
-	       // retry if interrupted by a signal
-	       if (rc != -1 || errno != EINTR)
-		  break;
-	    }
-	    //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
-	    
-	    if (rc > 0 && source) {
-	       char *host;
-	       if ((host = q_gethostbyaddr((const char *)&addr_in.sin_addr.s_addr, sizeof(addr_in.sin_addr.s_addr), AF_INET))) {
-		  int len = strlen(host);
-		  QoreStringNode *hostname = new QoreStringNode(host, len, len + 1, charsetid);
-		  source->setHostName(hostname);
-	       }
-	       
-	       // get IP address
-	       char ifname[80];
-	       if (inet_ntop(AF_INET, &addr_in.sin_addr, ifname, sizeof(ifname)))
-		  source->setAddress(ifname);
-	    }
-	 }
+   DLLLOCAL void do_send_event(int bytes_sent, int total_sent, int bufsize) {
+      // post bytes sent on event queue, if any
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_PACKET_SENT), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 h->setKeyValue("sent", new QoreBigIntNode(bytes_sent), 0);
+	 h->setKeyValue("total_sent", new QoreBigIntNode(total_sent), 0);
+	 h->setKeyValue("total_to_send", new QoreBigIntNode(bufsize), 0);
+	 cb_queue->push_and_take_ref(h);
+      }
+   }
+
+   DLLLOCAL void do_resolve_event(const char *host) {
+      // post bytes sent on event queue, if any
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HOSTNAME_LOOKUP), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 h->setKeyValue("name", new QoreStringNode(host), 0);
+	 cb_queue->push_and_take_ref(h);
+      }
+   }
+
+   DLLLOCAL void do_resolved_event(int af, const char *addr) {
+      // post bytes sent on event queue, if any
+      if (cb_queue) {
+	 QoreHashNode *h = new QoreHashNode;
+	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED), 0);
+	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
+	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+	 QoreStringNode *str = q_addr_to_string(af, addr);
+	 if (str)
+	    h->setKeyValue("address", str, 0);
 	 else
-	    rc = -1;
-	 return rc;
+	    h->setKeyValue("error", new QoreStringNode(strerror(errno)), 0);
+	 cb_queue->push_and_take_ref(h);
       }
+   }
 
-      DLLLOCAL void cleanup(ExceptionSink *xsink) {
-	 if (cb_queue) {
+   DLLLOCAL int64 getObjectIDForEvents() const {
+      return (int64)this;
+   }
 
-	    // close the socket before the delete message is put on the queue
-	    // the socket would be closed anyway in the destructor
-	    close_internal();
-
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    cb_queue->push_and_take_ref(h);
-
-	    // deref and remove event queue
-	    cb_queue->deref(xsink);
-	    cb_queue = 0;
-	 }
-      }
-
-      DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink) {
-	 if (cb_queue)
-	    cb_queue->deref(xsink);
-	 cb_queue = cbq;
-      }
-
-      DLLLOCAL void do_start_ssl_event() {
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_START_SSL), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_ssl_established_event() {
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("cipher", new QoreStringNode(ssl->getCipherName()), 0);
-	    h->setKeyValue("cipher_version", new QoreStringNode(ssl->getCipherVersion()), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_connect_event(int af, const char *target, int prt) {
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTING), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("type", new QoreBigIntNode(af), 0);
-	    h->setKeyValue("target", new QoreStringNode(target), 0);
-	    if (prt != -1)
-	       h->setKeyValue("port", new QoreBigIntNode(prt), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_connected_event() {
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CONNECTED), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_chunked_read(int event, qore_size_t bytes, qore_size_t total_read, int source) {
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(event), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(source), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    if (event == QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED)
-	       h->setKeyValue("read", new QoreBigIntNode(bytes), 0);
-	    else
-	       h->setKeyValue("size", new QoreBigIntNode(bytes), 0);
-	    h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_read_http_header(int event, const QoreHashNode *headers, int source) {
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(event), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(source), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("headers", headers->hashRefSelf(), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_send_http_message(const QoreString &str, const QoreHashNode *headers, int source) {
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(source), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("message", new QoreStringNode(str), 0);
-	    //printd(0, "do_send_http_message() str='%s' headers=%p (%d %s)\n", str.getBuffer(), headers, headers->getType(), headers->getTypeName());
-	    h->setKeyValue("headers", headers->hashRefSelf(), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_close_event() {
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_read_event(qore_size_t bytes_read, qore_size_t total_read, qore_size_t bufsize = 0) {
-	 // post bytes read on event queue, if any
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_PACKET_READ), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("read", new QoreBigIntNode(bytes_read), 0);
-	    h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
-	    // set total bytes to read and remaining bytes if bufsize > 0
-	    if (bufsize > 0)
-	       h->setKeyValue("total_to_read", new QoreBigIntNode(bufsize), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_send_event(int bytes_sent, int total_sent, int bufsize) {
-	 // post bytes sent on event queue, if any
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_PACKET_SENT), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("sent", new QoreBigIntNode(bytes_sent), 0);
-	    h->setKeyValue("total_sent", new QoreBigIntNode(total_sent), 0);
-	    h->setKeyValue("total_to_send", new QoreBigIntNode(bufsize), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_resolve_event(const char *host) {
-	 // post bytes sent on event queue, if any
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HOSTNAME_LOOKUP), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    h->setKeyValue("name", new QoreStringNode(host), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      DLLLOCAL void do_resolved_event(int af, const char *addr) {
-	 // post bytes sent on event queue, if any
-	 if (cb_queue) {
-	    QoreHashNode *h = new QoreHashNode;
-	    h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED), 0);
-	    h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
-	    h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	    QoreStringNode *str = q_addr_to_string(af, addr);
-	    if (str)
-	       h->setKeyValue("address", str, 0);
-	    else
-	       h->setKeyValue("error", new QoreStringNode(strerror(errno)), 0);
-	    cb_queue->push_and_take_ref(h);
-	 }
-      }
-
-      int64 getObjectIDForEvents() const {
-	 return (int64)this;
-      }
-
-      int connectUNIX(const char *p, ExceptionSink *xsink) {
-	 QORE_TRACE("connectUNIX()");
+   DLLLOCAL int connectUNIX(const char *p, ExceptionSink *xsink) {
+      QORE_TRACE("connectUNIX()");
 	 
-	 // close socket if already open
-	 close();
+      // close socket if already open
+      close();
 	 
-	 printd(5, "QoreSocket::connectUNIX(%s)\n", p);
+      printd(5, "QoreSocket::connectUNIX(%s)\n", p);
 	 
-	 struct sockaddr_un addr;
+      struct sockaddr_un addr;
 	 
-	 addr.sun_family = AF_UNIX;
-	 // copy path and terminate if necessary
-	 strncpy(addr.sun_path, p, sizeof(addr.sun_path) - 1);
-	 addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
-	 if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-	    sock = 0;
-	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+      addr.sun_family = AF_UNIX;
+      // copy path and terminate if necessary
+      strncpy(addr.sun_path, p, sizeof(addr.sun_path) - 1);
+      addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
+      if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+	 sock = 0;
+	 if (xsink)
+	    xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
 	    
-	    return -1;
-	 }
-	 
-	 do_connect_event(AF_UNIX, p, -1);
-	 while (true) {
-	    if (!::connect(sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un)))
-	       break;
-
-	    // try again if we were interrupted by a signal
-	    if (errno == EINTR)
-	       continue;
-
-	    // otherwise close the socket and return an exception with the error code
-	    ::close(sock);
-	    sock = 0;
-	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", "connect returned error %d: ", strerror(errno));
-	    
-	    return -1;	    
-	 }
-
-	 // save file name for deleting when socket is closed
-	 socketname = addr.sun_path;
-	 type = AF_UNIX;
-	 
-	 do_connected_event();
-
-	 return 0;
+	 return -1;
       }
+	 
+      do_connect_event(AF_UNIX, p, -1);
+      while (true) {
+	 if (!::connect(sock, (const sockaddr *)&addr, sizeof(struct sockaddr_un)))
+	    break;
+
+	 // try again if we were interrupted by a signal
+	 if (errno == EINTR)
+	    continue;
+
+	 // otherwise close the socket and return an exception with the error code
+	 ::close(sock);
+	 sock = 0;
+	 if (xsink)
+	    xsink->raiseException("SOCKET-CONNECT-ERROR", "connect returned error %d: ", strerror(errno));
+	    
+	 return -1;	    
+      }
+
+      // save file name for deleting when socket is closed
+      socketname = addr.sun_path;
+      type = AF_UNIX;
+	 
+      do_connected_event();
+
+      return 0;
+   }
 
    // socket must be open!
    DLLLOCAL int select(int timeout_ms) const {
@@ -697,8 +697,8 @@ struct qore_socket_private {
       return rc;
    }
 
-    // socket must be open!
-    DLLLOCAL int selectWrite(int timeout_ms) const {
+   // socket must be open!
+   DLLLOCAL int selectWrite(int timeout_ms) const {
       fd_set sfs;
       
       FD_ZERO(&sfs);
@@ -899,30 +899,30 @@ struct qore_socket_private {
       return 0;
    }
 
-      DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
-	 ssl = new SSLSocketHelper();
-	 int rc;
-	 do_start_ssl_event();
-	 if ((rc = ssl->setClient(sock, cert, pkey, xsink)) || ssl->connect(xsink)) {
-	    delete ssl;
-	    ssl = 0;
-	    return rc;
-	 }
-	 do_ssl_established_event();
-	 return 0;
+   DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+      ssl = new SSLSocketHelper();
+      int rc;
+      do_start_ssl_event();
+      if ((rc = ssl->setClient(sock, cert, pkey, xsink)) || ssl->connect(xsink)) {
+	 delete ssl;
+	 ssl = 0;
+	 return rc;
       }
+      do_ssl_established_event();
+      return 0;
+   }
 
-      DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
-	 ssl = new SSLSocketHelper();
-	 do_start_ssl_event();
-	 if (ssl->setServer(sock, cert, pkey, xsink) || ssl->accept(xsink)) {
-	    delete ssl;
-	    ssl = 0;
-	    return -1;
-	 }
-	 do_ssl_established_event();
-	 return 0;
+   DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+      ssl = new SSLSocketHelper();
+      do_start_ssl_event();
+      if (ssl->setServer(sock, cert, pkey, xsink) || ssl->accept(xsink)) {
+	 delete ssl;
+	 ssl = 0;
+	 return -1;
       }
+      do_ssl_established_event();
+      return 0;
+   }
 };
 
 QoreSocket::QoreSocket() : priv(new qore_socket_private) {
@@ -1442,8 +1442,10 @@ int QoreSocket::send(int fd, qore_offset_t size) {
 }
 
 BinaryNode *QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, int *rc) {
-   if (!priv->sock)
+   if (!priv->sock) {
+      *rc = QSE_NOT_OPEN;
       return 0;
+   }
 
    qore_size_t bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
@@ -1477,9 +1479,51 @@ BinaryNode *QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, int *rc) 
    return b.release();
 }
 
+BinaryNode *QoreSocket::recvBinary(int timeout, int *rc) {
+   //printd(5, "QoreSocket::recv(%d, %p) this=%p\n", timeout, rc, this);
+   if (!priv->sock) {
+      *rc = QSE_NOT_OPEN;
+      return 0;
+   }
+
+   // perform first read with timeout
+   char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
+   *rc = recv(buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
+   if ((*rc) <= 0) {
+      free(buf);
+      return 0;
+   }
+   qore_size_t rd = *rc;
+
+   // register event
+   priv->do_read_event(*rc, rd);
+
+   // keep reading data until no more data is available without a timeout
+   if (isDataAvailable(0)) {
+      int tot = DEFAULT_SOCKET_BUFSIZE;
+      do {
+	 if ((tot - rd) < DEFAULT_SOCKET_BUFSIZE) {
+	    tot += (DEFAULT_SOCKET_BUFSIZE + (tot >> 1));
+	    buf = (char *)realloc(buf, tot);
+	 }
+	 *rc = recv(buf + rd, tot - rd, 0, 0, false);
+	 if ((*rc) <= 0) {
+	    free(buf);
+	    return 0;
+	 }
+	 rd += *rc;
+
+	 // register event
+	 priv->do_read_event(*rc, rd);
+      } while (isDataAvailable(0));
+   }
+
+   return new BinaryNode(buf, rd);
+}
+
 QoreStringNode *QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
    if (!priv->sock) {
-      *rc = -3;
+      *rc = QSE_NOT_OPEN;
       return 0;
    }
 
@@ -1527,7 +1571,7 @@ QoreStringNode *QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
 QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
    //printd(5, "QoreSocket::recv(%d, %p) this=%p\n", timeout, rc, this);
    if (!priv->sock) {
-      *rc = -3;
+      *rc = QSE_NOT_OPEN;
       return 0;
    }
 
@@ -1804,7 +1848,7 @@ void QoreSocket::convertHeaderToHash(QoreHashNode *h, char *p) {
 //   -3 for timeout
 AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
    if (!priv->sock) {
-      *rc = -2;
+      *rc = QSE_NOT_OPEN;
       return 0;
    }
 
@@ -1879,9 +1923,9 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
 void QoreSocket::doException(int rc, const char *meth, ExceptionSink *xsink) {
    if (!rc)
       xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-   else if (rc == -1)   // recv() error
+   else if (rc == QSE_RECV_ERR)   // recv() error
       xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
-   else if (rc == -2)   
+   else if (rc == QSE_NOT_OPEN)   
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", meth);   
    // rc == -3: TIMEOUT returns NOTHING
 }
@@ -2115,7 +2159,7 @@ bool QoreSocket::isWriteFinished(int timeout) const {
 int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event) {
    //printd(5, "QoreSocket::recv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p\n", buf, (int)bs, flags, timeout, (int)do_event, this);
    if (timeout != -1 && !isDataAvailable(timeout))
-      return -3;
+      return QSE_TIMEOUT;
 
    qore_size_t rc;
    if (!priv->ssl) {
@@ -2396,13 +2440,13 @@ int QoreSocket::acceptAndReplace(SocketSource *source) {
 
 int QoreSocket::listen() {
    if (!priv->sock)
-      return -2;
+      return QSE_NOT_OPEN;
    return ::listen(priv->sock, 5);
 }
 
 int QoreSocket::send(const char *buf, qore_size_t size) {
    if (!priv->sock)
-      return -2;
+      return QSE_NOT_OPEN;
 
    qore_size_t bs = 0;
    while (true) {

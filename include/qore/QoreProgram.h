@@ -41,9 +41,10 @@
 #define QP_WARN_UNREACHABLE_CODE         (1 << 5)   //!< when unreachable code is encountered
 #define QP_WARN_NONEXISTENT_METHOD_CALL  (1 << 6)   //!< when a non-existent method call is encountered
 #define QP_WARN_INVALID_OPERATION        (1 << 7)   //!< when an expression always returns NOTHING, for example
+#define QP_WARN_CALL_WITH_TYPE_ERRORS    (1 << 8)   //!< when a function or method call always returns a fixed value due to type errors
 #define QP_WARN_ALL                      -1         //!< for all possible warnings
 
-#define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION)
+#define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS)
 
 //! list of strings of warning codes
 DLLEXPORT extern const char **qore_warnings;

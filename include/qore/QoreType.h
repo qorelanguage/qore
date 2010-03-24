@@ -40,12 +40,29 @@ DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString,
    FalseString, EmptyHashString, EmptyListString;
 
 class QoreTypeInfo;
-DLLEXPORT extern const QoreTypeInfo *anyTypeInfo, *bigIntTypeInfo, *floatTypeInfo, 
-   *boolTypeInfo, *stringTypeInfo, *binaryTypeInfo, *dateTypeInfo, *objectTypeInfo, 
-   *hashTypeInfo, *listTypeInfo, *nothingTypeInfo, *nullTypeInfo, *runTimeClosureTypeInfo,
-   *callReferenceTypeInfo, *referenceTypeInfo, *userReferenceTypeInfo, *codeTypeInfo,
-   *softBigIntTypeInfo, *softFloatTypeInfo, *softBoolTypeInfo, *softStringTypeInfo,
-   *somethingTypeInfo;
+DLLEXPORT extern const QoreTypeInfo *anyTypeInfo, 
+   *bigIntTypeInfo, 
+   *floatTypeInfo, 
+   *boolTypeInfo, 
+   *stringTypeInfo, 
+   *binaryTypeInfo, 
+   *dateTypeInfo, 
+   *objectTypeInfo, 
+   *hashTypeInfo, 
+   *listTypeInfo, 
+   *nothingTypeInfo, 
+   *nullTypeInfo, 
+   *runTimeClosureTypeInfo,
+   *callReferenceTypeInfo, 
+   *referenceTypeInfo, 
+   *userReferenceTypeInfo,
+   *codeTypeInfo,              // either closure or callref
+   *softBigIntTypeInfo,        // converts to int from float, string, and bool
+   *softFloatTypeInfo,         // converts to float from int, string, and bool
+   *softBoolTypeInfo,          // converts to bool from int, float, and string
+   *softStringTypeInfo,        // converts to string from int, float, and bool
+   *somethingTypeInfo,         // i.e. not "NOTHING"
+   *dataTypeInfo;              // either string or binary
 
 DLLEXPORT qore_type_t get_next_type_id();
 

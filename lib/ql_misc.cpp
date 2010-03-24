@@ -50,59 +50,78 @@ class qore_gz_header : public gz_header {
 };
 #endif
 
-static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   qore_type_t p0_type = p0 ? p0->getType() : 0;
-   if (p0_type != NT_FUNCREF && p0_type != NT_RUNTIME_CLOSURE && p0_type != NT_STRING) {
-      xsink->raiseException("CALL-FUNCTION-PARAMETER-ERROR", "invalid argument passed to call_function(), first argument must be either function name or call reference");
-      return 0;
-   }
-   
+static AbstractQoreNode *f_call_function_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+
    ReferenceHolder<QoreListNode> args(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_params(params) > 1)
       args = params->copyListFrom(1);
 
-   if (p0_type == NT_STRING) {
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
-      return getProgram()->callFunction(str->getBuffer(), *args, xsink);
-   }
-
-   // must be a call reference
-   return reinterpret_cast<const ResolvedCallReferenceNode *>(p0)->exec(*args, xsink);
+   return getProgram()->callFunction(str->getBuffer(), *args, xsink);
 }
 
-static AbstractQoreNode *f_call_function_args(const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   qore_type_t p0_type = p0 ? p0->getType() : 0;
-   if (p0_type != NT_FUNCREF && p0_type != NT_RUNTIME_CLOSURE && p0_type != NT_STRING) {
-      xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
-			    "invalid argument passed to call_function_args(), first argument must be either function name or call reference");
-      return 0;
-   }
+static AbstractQoreNode *f_call_function_code(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(f, const ResolvedCallReferenceNode, params, 0);
 
+   ReferenceHolder<QoreListNode> args(xsink);
+   // if there are arguments to pass, create argument list by copying current list
+   if (num_params(params) > 1)
+      args = params->copyListFrom(1);
+
+   return f->exec(*args, xsink);
+}
+
+static AbstractQoreNode *f_call_function_args_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+
+   return getProgram()->callFunction(str->getBuffer(), 0, xsink);
+}
+
+static AbstractQoreNode *f_call_function_args_str_something(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
    const AbstractQoreNode *p1 = get_param(params, 1);
-   
-   QoreListNode *args = (p1 && p1->getType() == NT_LIST) ? (const_cast<QoreListNode *>(reinterpret_cast<const QoreListNode *>(p1))) : 0;   
-   ReferenceHolder<QoreListNode> arg_holder(xsink);
-   if (!args && !is_nothing(p1)) {
-      args = new QoreListNode;
-      args->push(p1->refSelf());
-      arg_holder = args;
-   }
+   assert(p1);
 
-   if (p0_type == NT_STRING)
-      return getProgram()->callFunction((reinterpret_cast<const QoreStringNode *>(p0))->getBuffer(), args, xsink);
-   else
-      return reinterpret_cast<const ResolvedCallReferenceNode *>(p0)->exec(args, xsink);
+   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+   args->push(p1->refSelf());
+
+   return getProgram()->callFunction(str->getBuffer(), *args, xsink);
 }
+
+static AbstractQoreNode *f_call_function_args_str_list(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(args, const QoreListNode, params, 1);
+
+   return getProgram()->callFunction(str->getBuffer(), args, xsink);
+}
+
+static AbstractQoreNode *f_call_function_args_code(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(f, const ResolvedCallReferenceNode, params, 0);
+   return f->exec(0, xsink);
+}
+
+static AbstractQoreNode *f_call_function_args_code_something(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(f, const ResolvedCallReferenceNode, params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+   assert(p1);
+
+   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+   args->push(p1->refSelf());
+
+   return f->exec(*args, xsink);
+}
+
+static AbstractQoreNode *f_call_function_args_code_list(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(f, const ResolvedCallReferenceNode, params, 0);
+   HARD_QORE_PARAM(args, const QoreListNode, params, 1);
+
+   return f->exec(args, xsink);
+}
+
 
 static AbstractQoreNode *f_call_builtin_function(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0 || !p0->strlen()) {
-      xsink->raiseException("CALL-BUILTIN-FUNCTION-ERROR", "expecting a string as the first argument to call_builtin_function()");
-      return 0;
-   }
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    const BuiltinFunction *f = BuiltinFunctionList::find(p0->getBuffer());
    if (!f) {
@@ -118,29 +137,47 @@ static AbstractQoreNode *f_call_builtin_function(const QoreListNode *params, Exc
    return f->evalDynamic(*args, xsink);
 }
 
-static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0 || !p0->strlen()) {
-      xsink->raiseException("CALL-BUILTIN-FUNCTION-ARGS-ERROR", "expecting a string as the first argument to call_builtin_function_args()");
-      return 0;
-   }
+static const BuiltinFunction *get_builtin_func(const QoreStringNode *str, ExceptionSink *xsink) {
+   const BuiltinFunction *f = BuiltinFunctionList::find(str->getBuffer());
+   if (!f)
+      xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", str->getBuffer());
+   return f;
+}
 
-   const BuiltinFunction *f = BuiltinFunctionList::find(p0->getBuffer());
-   if (!f) {
-      xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", p0->getBuffer());
+static AbstractQoreNode *f_call_builtin_function_args(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   const BuiltinFunction *f = get_builtin_func(p0, xsink);
+   if (!f)
       return 0;
-   }
+
+   return f->evalDynamic(0, xsink);
+}
+
+static AbstractQoreNode *f_call_builtin_function_args_something(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   const BuiltinFunction *f = get_builtin_func(p0, xsink);
+   if (!f)
+      return 0;
 
    const AbstractQoreNode *p1 = get_param(params, 1);
+   assert(p1);
 
-   QoreListNode *args = (p1 && p1->getType() == NT_LIST) ? (const_cast<QoreListNode *>(reinterpret_cast<const QoreListNode *>(p1))) : 0;   
-   ReferenceHolder<QoreListNode> arg_holder(xsink);
-   if (!args && !is_nothing(p1)) {
-      args = new QoreListNode;
-      args->push(p1->refSelf());
-      arg_holder = args;
-   }
+   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+   args->push(p1->refSelf());
+
+   return f->evalDynamic(*args, xsink);
+}
+
+static AbstractQoreNode *f_call_builtin_function_args_list(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   const BuiltinFunction *f = get_builtin_func(p0, xsink);
+   if (!f)
+      return 0;
+
+   HARD_QORE_PARAM(args, const QoreListNode, params, 1);
 
    return f->evalDynamic(args, xsink);
 }
@@ -211,22 +248,14 @@ static AbstractQoreNode *f_get_default_encoding(const QoreListNode *params, Exce
 }
 
 AbstractQoreNode *f_parse(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0, *p1;
-
-   if (!(p0 = test_string_param(params, 0)) ||
-       !(p1 = test_string_param(params, 1)))
-      return 0;
-
-   QoreProgram *pgm = getProgram();
-   pgm->parse(p0, p1, xsink);
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(p1, const QoreStringNode, params, 1);
+   getProgram()->parse(p0, p1, xsink);
    return 0;
 }
 
 static AbstractQoreNode *f_getClassName(const QoreListNode *params, ExceptionSink *xsink) {
-   QoreObject *p0 = test_object_param(params, 0);
-   if (!p0)
-      return 0;
-
+   HARD_QORE_PARAM(p0, const QoreObject, params, 0);
    return new QoreStringNode(p0->getClass()->getName());
 }
 
@@ -1202,12 +1231,27 @@ static AbstractQoreNode *f_get_qore_library_info(const QoreListNode *params, Exc
 
 void init_misc_functions() {
    // register builtin functions in this file
-   builtinFunctions.add("parse", f_parse);
-   builtinFunctions.add("call_function", f_call_function);
-   builtinFunctions.add("call_function_args", f_call_function_args);
-   builtinFunctions.add("call_builtin_function", f_call_builtin_function);
-   builtinFunctions.add("call_builtin_function_args", f_call_builtin_function_args);
-   builtinFunctions.add("exists", f_exists);
+   builtinFunctions.add2("parse", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("parse", f_parse, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("call_function", f_call_function_str, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("call_function", f_call_function_code, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 1, codeTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("call_function_args", f_call_function_args_str_list, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("call_function_args", f_call_function_args_str, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("call_function_args", f_call_function_args_str_something, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("call_function_args", f_call_function_args_code_list, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, codeTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("call_function_args", f_call_function_args_code, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, codeTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("call_function_args", f_call_function_args_code_something, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, codeTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("call_builtin_function", f_call_builtin_function, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("call_builtin_function_args", f_call_builtin_function_args_list, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("call_builtin_function_args", f_call_builtin_function_args, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("call_builtin_function_args", f_call_builtin_function_args_something, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("exists", f_exists, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add("existsFunction", f_existsFunction);
    builtinFunctions.add("functionType", f_functionType);
    builtinFunctions.add("html_encode", f_html_encode);
@@ -1219,7 +1263,9 @@ void init_misc_functions() {
    builtinFunctions.add2("parseURL", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("parseURL", f_parseURL, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("getClassName", f_getClassName);
+   builtinFunctions.add2("getClassName", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getClassName", f_getClassName, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, objectTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add2("backquote", f_backquote, QC_NO_FLAGS, QDOM_EXTERNAL_PROCESS);
    builtinFunctions.add("parseBase64String", f_parseBase64String);
    builtinFunctions.add("parseBase64StringToString", f_parseBase64StringToString);

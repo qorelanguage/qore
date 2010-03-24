@@ -90,6 +90,8 @@ protected:
       else 
 	 bf = i->second;
       bf->addBuiltinVariant(bfv);
+      
+      //printd(0, "BuiltinFunctionListPrivate::add_intern('%s', %p) flags=%lld\n", name, bfv, bfv->getFlags());
       return 0;
    }
 
@@ -102,11 +104,13 @@ public:
    }
 
    void add2(const char *name, q_func_t f, int64 flags, int64 functional_domain, const QoreTypeInfo *returnTypeInfo, unsigned num_params, va_list args) {
+      //printd(0, "add2('%s', %p, flags=%lld) BEFORE\n", name, f, flags);
       type_vec_t typeList;
       arg_vec_t defaultArgList;
       if (num_params)
 	 qore_process_params(num_params, typeList, defaultArgList, args);
 
+      //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
       add_intern(name, new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList));
    }
 

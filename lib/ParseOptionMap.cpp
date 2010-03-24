@@ -31,13 +31,11 @@ static ParseOptionMap parse_option_map;
 
 #define DO_MAP(a, b) map[(a)] = (b); rmap[(b)] = (a);
 
-ParseOptionMap::ParseOptionMap()
-{
+ParseOptionMap::ParseOptionMap() {
    static_init();
 }
 
-void ParseOptionMap::static_init()
-{
+void ParseOptionMap::static_init() {
    DO_MAP("no-global-vars",           PO_NO_GLOBAL_VARS);
    DO_MAP("no-subroutine-defs",       PO_NO_SUBROUTINE_DEFS);
    DO_MAP("no-thread-control",        PO_NO_THREAD_CONTROL);
@@ -58,23 +56,22 @@ void ParseOptionMap::static_init()
    DO_MAP("no-database",              PO_NO_DATABASE);
    DO_MAP("no-gui",                   PO_NO_GUI);
    DO_MAP("no-terminal-io",           PO_NO_TERMINAL_IO);
+   DO_MAP("require-types",            PO_REQUIRE_TYPES);
+   DO_MAP("no-external-info",         PO_NO_EXTERNAL_INFO);
 }
 
-int ParseOptionMap::find_code(const char *name)
-{
+int ParseOptionMap::find_code(const char *name) {
    opt_map_t::iterator i = map.find(name);
    //printd(5, "find_code(%s) returning %08x\n", name, i == map.end() ? -1 : i->second);
    return (i == map.end() ? -1 : i->second);
 }
 
-const char *ParseOptionMap::find_name(int code)
-{
+const char *ParseOptionMap::find_name(int code) {
    rev_opt_map_t::iterator i = rmap.find(code);
    return (i == rmap.end() ? 0 : i->second);
 }
 
-void ParseOptionMap::list_options()
-{
+void ParseOptionMap::list_options() {
    for (opt_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i)
       printf("%s\n", i->first);
 }

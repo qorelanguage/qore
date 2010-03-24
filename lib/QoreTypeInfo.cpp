@@ -53,6 +53,9 @@ static StringTypeInfo staticStringTypeInfo;
 // provides equal compatibility with closures and all types of code references
 static CodeTypeInfo staticCodeTypeInfo;
 
+// either string or binary
+static DataTypeInfo staticDataTypeInfo;
+
 // provides int compatibility with and conversions from float, string, and bool
 static SoftBigIntTypeInfo staticSoftBigIntTypeInfo;
 
@@ -90,7 +93,8 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *softFloatTypeInfo = &staticSoftFloatTypeInfo,
    *softBoolTypeInfo = &staticSoftBoolTypeInfo,
    *softStringTypeInfo = &staticSoftStringTypeInfo,
-   *somethingTypeInfo = &staticSomethingTypeInfo
+   *somethingTypeInfo = &staticSomethingTypeInfo,
+   *dataTypeInfo = &staticDataTypeInfo
    ;
 
 QoreListNode *emptyList;

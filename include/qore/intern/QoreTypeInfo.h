@@ -610,6 +610,27 @@ public:
    }
 };
 
+// accepts QoreStringNode or BinaryNode and passes through
+class DataTypeInfo : public QoreTypeInfo {
+protected:
+   DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      qore_type_t t = n ? n->getType() : NT_NOTHING;
+      return t == NT_STRING || t == NT_BINARY ? true : false;
+   }
+   DLLLOCAL virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
+      qore_type_t t = n ? n->getType() : NT_NOTHING;
+      return t == NT_STRING || t == NT_BINARY ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
+      qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
+      return t == NT_STRING || t == NT_BINARY ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+public:
+   DLLLOCAL DataTypeInfo() : QoreTypeInfo(NT_DATA) {
+   }
+};
+
 // accepts int, float, string, or boolean and returns an int
 class SoftBigIntTypeInfo : public QoreTypeInfo {
 protected:

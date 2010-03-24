@@ -169,9 +169,9 @@ static AbstractQoreNode *f_dbg_global_vars(const QoreListNode *params, Exception
 }
 
 void init_debug_functions() {
-   builtinFunctions.add("dbg_node_info", f_dbg_node_info);
-   builtinFunctions.add("dbg_node_addr", f_dbg_node_addr);
-   builtinFunctions.add("dbg_global_vars", f_dbg_global_vars);
-   builtinFunctions.add("dbg_get_ns_info", f_dbg_get_ns_info);
+   builtinFunctions.add2("dbg_node_info", f_dbg_node_info, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("dbg_node_addr", f_dbg_node_addr, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("dbg_global_vars", f_dbg_global_vars, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
+   builtinFunctions.add2("dbg_get_ns_info", f_dbg_get_ns_info, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
 }
 

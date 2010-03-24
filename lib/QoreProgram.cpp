@@ -54,6 +54,7 @@ static const char *qore_warnings_l[] = {
    "unreachable-code",
    "non-existent-method-call",
    "invalid-operation",
+   "call-with-type-errors"
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
 
@@ -1545,5 +1546,5 @@ DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
    ns->addConstant("PO_LOCK_WARNINGS",            new QoreBigIntNode(PO_LOCK_WARNINGS));
    ns->addConstant("PO_NO_GUI",                   new QoreBigIntNode(PO_NO_GUI));
    ns->addConstant("PO_REQUIRE_TYPES",            new QoreBigIntNode(PO_REQUIRE_TYPES));
+   ns->addConstant("PO_NO_EXTERNAL_INFO",         new QoreBigIntNode(PO_NO_EXTERNAL_INFO));
 }
-

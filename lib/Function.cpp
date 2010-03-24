@@ -27,6 +27,9 @@
 #include <ctype.h>
 #include <assert.h>
 
+// FIXME: needed for the log10() call as a hack in float_minus_infinity_noop() below
+#include <math.h>
+
 // FIXME: xxx set parse location
 static inline void duplicateSignatureException(const char *name, UserVariantBase *uvb) {
    parseException("DUPLICATE-SIGNATURE", "%s(%s) has already been declared", name, uvb->getUserSignature()->getSignatureText());
@@ -766,7 +769,32 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       }
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
-   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s)\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
+   else if (variant && variant->getFlags() & QC_NOOP) {
+      QoreStringNode *desc = new QoreStringNode;
+      if (aqf->className())
+	 desc->sprintf("%s::", aqf->className());
+      desc->sprintf("%s(%s) is a backwards-compatible variant that returns a constant value when incorrect data types are passed to the function", getName(), variant->getSignature()->getSignatureText());
+      const QoreTypeInfo *rti = variant->getReturnTypeInfo();
+      if (rti->hasType()) {
+	 desc->concat("and always returns ");
+	 if (rti->qc) {
+	    rti->getThisType(*desc);
+	 }
+	 else {
+	    // get actual value and include in warning
+	    ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(getName(), 0, 0), 0);
+	    QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
+
+	    desc->sprintf("the following value: %s (", vs->getBuffer());
+	    rti->getThisType(*desc);
+	    desc->concat(')');
+	 }
+	 desc->concat("; ");
+      }
+      desc->concat("to disable this warning, use '%disable-warning invalid-operation' in your code");
+      getProgram()->makeParseWarning(QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
+   }
+   printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
 }
 
@@ -1354,6 +1382,10 @@ AbstractQoreNode *f_bool_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return &False;
 }
 
+AbstractQoreNode *f_bool_true_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return &True;
+}
+
 // this function does nothing - it's here for backwards-compatibility for functions
 // that accept invalid arguments and return an empty string
 AbstractQoreNode *f_string_noop(const QoreListNode *args, ExceptionSink *xsink) {
@@ -1364,12 +1396,25 @@ AbstractQoreNode *f_float_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return zero_float();
 }
 
+AbstractQoreNode *f_float_one_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return new QoreFloatNode(1.0);
+}
+
+AbstractQoreNode *f_float_minus_infinity_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   // FIXME: how to specify -inf as an immediate value?
+   return new QoreFloatNode(log10(0));
+}
+
 AbstractQoreNode *f_int_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return zero();
 }
 
 AbstractQoreNode *f_int_minus_one_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreBigIntNode(-1);
+}
+
+AbstractQoreNode *f_int_one_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return new QoreBigIntNode(1);
 }
 
 AbstractQoreNode *f_list_noop(const QoreListNode *args, ExceptionSink *xsink) {

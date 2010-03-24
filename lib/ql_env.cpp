@@ -26,40 +26,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static AbstractQoreNode *f_getenv(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
-   
-   return SysEnv.getAsStringNode(p0->getBuffer());
+static AbstractQoreNode *f_getenv(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   return SysEnv.getAsStringNode(str->getBuffer());
 }
 
-static AbstractQoreNode *f_setenv(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0;
-   const AbstractQoreNode *p1;
-   
-   if (!(p0 = test_string_param(params, 0))
-       || is_nothing((p1 = get_param(params, 1))))
-      return 0;
+static AbstractQoreNode *f_setenv(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+   HARD_QORE_PARAM(t, const QoreStringNode, params, 1);
 
-   QoreStringValueHelper t(p1);
    return new QoreBigIntNode(SysEnv.set(p0->getBuffer(), t->getBuffer()));
 }
 
-static AbstractQoreNode *f_unsetenv(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+static AbstractQoreNode *f_unsetenv(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
    return new QoreBigIntNode(SysEnv.unset(p0->getBuffer()));
 }
 
-void init_env_functions()
-{
-   builtinFunctions.add("getenv", f_getenv);
-   builtinFunctions.add("setenv", f_setenv);
-   builtinFunctions.add("unsetenv", f_unsetenv);
+void init_env_functions() {
+   builtinFunctions.add2("getenv", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getenv", f_getenv, QC_CONSTANT, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("setenv", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("setenv", f_setenv, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("unsetenv", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("unsetenv", f_unsetenv, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 }

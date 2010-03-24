@@ -81,8 +81,9 @@ public:
    // functionality bitmap for parse restrictions
    int64 functionality;
 
-   DLLLOCAL BuiltinFunctionVariantBase(int64 flags = QC_NO_FLAGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) :
-      signature(n_returnTypeInfo, n_typeList, n_defaultArgList), functionality(n_functionality) {
+   DLLLOCAL BuiltinFunctionVariantBase(int64 n_flags = QC_NO_FLAGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo *n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t()) :
+      signature(n_returnTypeInfo, n_typeList, n_defaultArgList), flags(n_flags), functionality(n_functionality) {
+      //printd(0, "BuiltinFunctionVariantBase::BuiltinFunctionVariantBase() this=%p flags=%lld (%lld) functionality=%lld\n", this, flags, n_flags, functionality);
    }
 };
 

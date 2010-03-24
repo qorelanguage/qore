@@ -85,7 +85,7 @@ static AbstractQoreNode *f_sin(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 static AbstractQoreNode *f_cos(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreFloatNode(cos(get_float_param(params, 0)));
+   return new QoreFloatNode(cos(HARD_QORE_FLOAT(params, 0)));
 }
 
 static AbstractQoreNode *f_tan(const QoreListNode *params, ExceptionSink *xsink) {
@@ -113,7 +113,7 @@ static AbstractQoreNode *f_sinh(const QoreListNode *params, ExceptionSink *xsink
 }
 
 static AbstractQoreNode *f_cosh(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreFloatNode(cosh(get_float_param(params, 0)));
+   return new QoreFloatNode(cosh(HARD_QORE_FLOAT(params, 0)));
 }
 
 static AbstractQoreNode *f_tanh(const QoreListNode *params, ExceptionSink *xsink) {
@@ -121,16 +121,16 @@ static AbstractQoreNode *f_tanh(const QoreListNode *params, ExceptionSink *xsink
 }
 
 static AbstractQoreNode *f_nlog(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreFloatNode(log(get_float_param(params, 0)));
+   return new QoreFloatNode(log(HARD_QORE_FLOAT(params, 0)));
 }
 
 static AbstractQoreNode *f_log10(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreFloatNode(log10(get_float_param(params, 0)));
+   return new QoreFloatNode(log10(HARD_QORE_FLOAT(params, 0)));
 }
 
 #if 0
 static AbstractQoreNode *f_log2(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreFloatNode(log2(get_float_param(params, 0)));
+   return new QoreFloatNode(log2(HARD_QORE_FLOAT(params, 0)));
 }
 #endif 
 
@@ -139,18 +139,18 @@ static AbstractQoreNode *f_log1p(const QoreListNode *params, ExceptionSink *xsin
 }
 
 static AbstractQoreNode *f_logb(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreFloatNode(logb(get_float_param(params, 0)));
+   return new QoreFloatNode(logb(HARD_QORE_FLOAT(params, 0)));
 }
 
 static AbstractQoreNode *f_exp(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreFloatNode(exp(get_float_param(params, 0)));
+   return new QoreFloatNode(exp(HARD_QORE_FLOAT(params, 0)));
 }
 
 static AbstractQoreNode *f_exp2(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_EXP2
-   return new QoreFloatNode(exp2(get_float_param(params, 0)));
+   return new QoreFloatNode(exp2(HARD_QORE_FLOAT(params, 0)));
 #else
-   return new QoreFloatNode(pow(2, get_float_param(params, 0)));
+   return new QoreFloatNode(pow(2, HARD_QORE_FLOAT(params, 0)));
 #endif
 }
 
@@ -272,7 +272,9 @@ void init_math_functions() {
    builtinFunctions.add2("abs",           f_abs_float, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("abs",           f_abs_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, bigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("hypot",         f_hypot, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hypot",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("hypot",         f_hypot, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, softFloatTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hypot",         f_hypot, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 2, softFloatTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("sqrt",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("sqrt",          f_sqrt, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
@@ -283,7 +285,8 @@ void init_math_functions() {
    builtinFunctions.add2("sin",           f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("sin",           f_sin, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("cos",           f_cos, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("cos",           f_float_one_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("cos",           f_cos, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("tan",           f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("tan",           f_tan, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
@@ -302,24 +305,32 @@ void init_math_functions() {
    builtinFunctions.add2("sinh",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("sinh",          f_sinh, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("cosh",          f_cosh, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("cosh",          f_float_one_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("cosh",          f_cosh, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("tanh",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("tanh",          f_tanh, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("nlog",          f_nlog, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("nlog",          f_float_minus_infinity_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("nlog",          f_nlog, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("log10",         f_log10, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("log10",         f_float_minus_infinity_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("log10",         f_log10, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   //builtinFunctions.add("log2",          f_log2);
+   //builtinFunctions.add2("log2",          f_float_minus_infinity_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   //builtinFunctions.add2("log2",          f_log2, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("log1p",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("log1p",         f_log1p, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("logb",          f_logb, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("logb",          f_float_minus_infinity_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("logb",          f_logb, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("exp",           f_exp, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("exp2",          f_exp2, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("exp",           f_float_one_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("exp",           f_exp, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("exp2",          f_float_one_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("exp2",          f_exp2, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("expm1",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("expm1",         f_expm1, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);

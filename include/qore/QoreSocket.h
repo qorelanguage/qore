@@ -47,6 +47,11 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+#define QSE_MISC_ERR  0 //!< error in errno
+#define QSE_RECV_ERR -1 //!< error in recv()
+#define QSE_NOT_OPEN -2 //!< socket is not open
+#define QSE_TIMEOUT  -3 //!< timeout occured
+
 class Queue;
 
 //! a helper class for getting socket origination information
@@ -623,14 +628,25 @@ class QoreSocket {
       //! receive with a timeout value and return a QoreStringNode, caller owns the reference count returned
       /** The socket must be connected before this call is made.
 	  This call will read data, blocking according to the timeout value.  Then all data
-	  available on the socket will be read and returned as a QoreStringNode.
+	  available on the socket will be read and returned as a QoreStringNode.  As soon as the
+          first timeout occurs, the data will be returned immediately without blocking.
 	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
 	  @param prc output parameter: 0 for OK, not 0 for error
 	  @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
-	  @note not more than DEFAULT_SOCKET_BUFSIZE (normally 4096) bytes will be returned
 	  @see QoreEncoding
        */
       DLLEXPORT QoreStringNode *recv(int timeout, int *prc);
+
+      //! receive with a timeout value and return a BinaryNode, caller owns the reference count returned
+      /** The socket must be connected before this call is made.
+	  This call will read data, blocking according to the timeout value.  Then all data
+	  available on the socket will be read and returned as a BinaryNode.  As soon as the
+          first timeout occurs, the data will be returned immediately without blocking.
+	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+	  @param prc output parameter: 0 for OK, not 0 for error
+	  @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
+       */
+      DLLEXPORT BinaryNode *recvBinary(int timeout, int *prc);
 
       //! receive data on the socket and write it to a file descriptor
       /** The socket must be connected before this call is made.

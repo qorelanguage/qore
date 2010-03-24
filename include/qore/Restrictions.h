@@ -52,6 +52,7 @@
 #define PO_NO_GUI                    (1 << 19)    //!< do not allow any GUI-relevant actions to be performed
 #define PO_NO_TERMINAL_IO            (1 << 20)    //!< do not allow any terminal I/O to be performed
 #define PO_REQUIRE_TYPES             (1 << 21)    //!< require type information for all declarations
+#define PO_NO_EXTERNAL_INFO          (1 << 22)    //!< do not allow any access to host, process, etc information
 
 // combination options
 //! cannot access any thread functionality
@@ -76,5 +77,6 @@
 #define QDOM_DATABASE           PO_NO_DATABASE            //!< provides access to databases
 #define QDOM_GUI                PO_NO_GUI                 //!< provides GUI functionality
 #define QDOM_TERMINAL_IO        PO_NO_TERMINAL_IO         //!< provides terminal I/O functionality
+#define QDOM_EXTERNAL_INFO      PO_NO_EXTERNAL_INFO       //!< provides access to external information (ex: hostname, pid, process uid, etc)
 
 #endif //_QORE_DOMAIN_H

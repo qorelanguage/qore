@@ -100,12 +100,14 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock {
       DLLLOCAL int sendi2LSB(short b);
       DLLLOCAL int sendi4LSB(int b);
       DLLLOCAL int sendi8LSB(int64 b);
+      // receive a message
+      DLLLOCAL QoreStringNode *recv(int timeout, int *rc);
       // receive a certain number of bytes as a string
       DLLLOCAL QoreStringNode *recv(int bufsize, int timeout, int *rc);
       // receive a certain number of bytes as a binary object
       DLLLOCAL BinaryNode *recvBinary(int bufsize, int timeout, int *rc);
-      // receive a message
-      DLLLOCAL QoreStringNode *recv(int timeout, int *rc);
+      // receive a packet of bytes as a binary object
+      DLLLOCAL BinaryNode *recvBinary(int timeout, int *rc);
       // receive and write data to a file descriptor
       DLLLOCAL int recv(int fd, int size, int timeout);
       // receive integers and convert from network byte order

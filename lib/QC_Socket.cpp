@@ -272,8 +272,7 @@ static AbstractQoreNode *SOCKET_sendi4(QoreObject *self, mySocket *s, const Qore
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *SOCKET_sendi8(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_sendi8(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    int64 i;
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (p0)
@@ -283,8 +282,7 @@ static AbstractQoreNode *SOCKET_sendi8(QoreObject *self, mySocket *s, const Qore
 
    int rc = s->sendi8(i);
 
-   if (rc == -2)
-   {
+   if (rc == -2) {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi8() call");
       return 0;
    }
@@ -292,8 +290,7 @@ static AbstractQoreNode *SOCKET_sendi8(QoreObject *self, mySocket *s, const Qore
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *SOCKET_sendi2LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_sendi2LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    short i;
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (p0)
@@ -303,8 +300,7 @@ static AbstractQoreNode *SOCKET_sendi2LSB(QoreObject *self, mySocket *s, const Q
 
    int rc = s->sendi2LSB(i);
 
-   if (rc == -2)
-   {
+   if (rc == -2) {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi2LSB() call");
       return 0;
    }
@@ -312,8 +308,7 @@ static AbstractQoreNode *SOCKET_sendi2LSB(QoreObject *self, mySocket *s, const Q
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *SOCKET_sendi4LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_sendi4LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    int i;
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (p0)
@@ -323,8 +318,7 @@ static AbstractQoreNode *SOCKET_sendi4LSB(QoreObject *self, mySocket *s, const Q
 
    int rc = s->sendi4LSB(i);
 
-   if (rc == -2)
-   {
+   if (rc == -2) {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi4LSB() call");
       return 0;
    }
@@ -332,8 +326,7 @@ static AbstractQoreNode *SOCKET_sendi4LSB(QoreObject *self, mySocket *s, const Q
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *SOCKET_sendi8LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_sendi8LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    int64 i;
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (p0)
@@ -343,8 +336,7 @@ static AbstractQoreNode *SOCKET_sendi8LSB(QoreObject *self, mySocket *s, const Q
 
    int rc = s->sendi8LSB(i);
 
-   if (rc == -2)
-   {
+   if (rc == -2) {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi8LSB() call");
       return 0;
    }
@@ -354,16 +346,12 @@ static AbstractQoreNode *SOCKET_sendi8LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   int bs;
-   if (p0)
-      bs = p0->getAsInt();
-   else
-      bs = 0;
+   int bs = p0 ? p0->getAsInt() : 0;
    
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 1));
    int rc;
-   QoreStringNodeHolder msg(bs ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
+   QoreStringNodeHolder msg(bs > 0 ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
 	
    if (rc > 0)
       return msg.release();
@@ -381,8 +369,7 @@ static AbstractQoreNode *SOCKET_recvi1(QoreObject *self, mySocket *s, const Qore
    return doReadResult(rc, (int64)b, "recvi1", xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvi2(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_recvi2(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
 
@@ -491,34 +478,25 @@ static AbstractQoreNode *SOCKET_recvu4LSB(QoreObject *self, mySocket *s, const Q
    return doReadResult(rc, (int64)b, "recvu4LSB", xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   int bs = 0;
-   if (p0)
-      bs = p0->getAsInt();
-   if (!bs)
-   {
-      xsink->raiseException("SOCKET-RECVBINARY-PARAMETER-ERROR", "missing positive buffer size parameter");
-      return 0;
-   }
+   int bs = p0 ? p0->getAsInt() : 0;
 
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 1));
 
    int rc;
-   BinaryNode *b = s->recvBinary(bs, timeout, &rc);
+   SimpleRefHolder<BinaryNode> b(bs > 0 ? s->recvBinary(bs, timeout, &rc) : s->recvBinary(timeout, &rc));
 
    if (rc > 0)
-      return b;
+      return b.release();
 
    QoreSocket::doException(rc, "recvBinary", xsink);
    return 0;
 }
 
 // params: method, path, http_version, hash (http headers), data
-static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
