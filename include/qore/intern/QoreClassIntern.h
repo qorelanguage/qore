@@ -131,7 +131,7 @@ public:
    DLLLOCAL void parseInitMethod(const QoreClass &parent_class, bool static_flag) {
       signature.resolve();
       // resolve and push current return type on stack
-      ReturnTypeInfoHelper rtih(signature.getReturnTypeInfo());
+      ParseCodeInfoHelper rtih(qmethod->getName(), signature.getReturnTypeInfo());
       
       // must be called even if statements is NULL
       if (!static_flag)
@@ -205,7 +205,7 @@ public:
       assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
 
       // push return type on stack (no return value can be used)
-      ReturnTypeInfoHelper rtih(nothingTypeInfo);
+      ParseCodeInfoHelper rtih("destructor", nothingTypeInfo);
 
       // must be called even if statements is NULL
       statements->parseInitMethod(parent_class.getTypeInfo(), &signature);

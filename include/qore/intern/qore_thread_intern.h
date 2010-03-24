@@ -86,6 +86,7 @@ DLLLOCAL const char *get_pgm_file();
 DLLLOCAL void update_pgm_counter_pgm_file(int start_line, int end_line, const char *f);
 DLLLOCAL void get_parse_location(int &start_line, int &end_line);
 DLLLOCAL const char *get_parse_file();
+DLLLOCAL const char *get_parse_code();
 DLLLOCAL void update_parse_location(int start_line, int end_line);
 DLLLOCAL void update_parse_location(int start_line, int end_line, const char *f);
 DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
@@ -105,7 +106,8 @@ DLLLOCAL QoreObject *substituteObject(QoreObject *o);
 DLLLOCAL void catchSaveException(QoreException *e);
 DLLLOCAL QoreException *catchGetException();
 DLLLOCAL VLock *getVLock();
-DLLLOCAL const QoreTypeInfo *setReturnTypeInfo(const QoreTypeInfo *returnTypeInfo);
+DLLLOCAL void setCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, const char *&old_code, const QoreTypeInfo *&old_returnTypeInfo);
+DLLLOCAL void restoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo);
 DLLLOCAL const QoreTypeInfo *getReturnTypeInfo();
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -368,15 +370,17 @@ DLLLOCAL extern QorePThreadAttr ta_default;
 DLLLOCAL int check_stack(ExceptionSink *xsink);
 #endif
 
-class ReturnTypeInfoHelper {
+class ParseCodeInfoHelper {
 private:
+   const char *parse_code;
    const QoreTypeInfo *returnTypeInfo;
 
 public:
-   DLLLOCAL ReturnTypeInfoHelper(const QoreTypeInfo *n_returnTypeInfo) : returnTypeInfo(setReturnTypeInfo(n_returnTypeInfo)) {
+   DLLLOCAL ParseCodeInfoHelper(const char *n_parse_code, const QoreTypeInfo *n_returnTypeInfo) {
+      setCodeInfo(n_parse_code, n_returnTypeInfo, parse_code, returnTypeInfo);
    }
-   DLLLOCAL ~ReturnTypeInfoHelper() {
-      setReturnTypeInfo(returnTypeInfo);
+   DLLLOCAL ~ParseCodeInfoHelper() {
+      restoreCodeInfo(parse_code, returnTypeInfo);
    }
 };
 

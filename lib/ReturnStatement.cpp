@@ -60,13 +60,26 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    //printd(5, "ReturnStatement::parseInitImpl() arg=%s rt=%s\n", argTypeInfo->getTypeName(), returnTypeInfo->getTypeName());
 
-   // check return type and throw a parse exception only if parse exceptions are enabled
-   if (!returnTypeInfo->parseEqual(argTypeInfo) && getProgram()->getParseExceptionSink()) {
-      QoreStringNode *desc = new QoreStringNode("return value for this block expects ");
-      returnTypeInfo->getThisType(*desc);
-      desc->concat(", but value given to the return statement is ");
-      argTypeInfo->getThisType(*desc);
-      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+   // check return type and throw a parse exception or warning
+   if (!returnTypeInfo->parseEqual(argTypeInfo)) {
+      // check if a warning should be generated, if require-types is not set and it is a class-special method
+      const QoreClass *qc = getParseClass();
+      const char *fname = get_parse_code();
+      if (!(getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) && qc && 
+	  (!strcmp(fname, "constructor") || !strcmp(fname, "copy") || !strcmp(fname, "destructor"))) {
+	 QoreStringNode *desc = new QoreStringNode;
+	 desc->sprintf("the return statement for %s::%s() returns ", qc->getName(), fname);
+	 argTypeInfo->getThisType(*desc);
+	 desc->sprintf(", but %s methods may not return any value; this is only a warning when 'require-types' is not set on the Program object; to supress this warning, remove the expression from the return statement or use '%%disable-warning invalid-operation' in your code", fname);
+	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      }
+      else {
+	 QoreStringNode *desc = new QoreStringNode("return value for this block expects ");
+	 returnTypeInfo->getThisType(*desc);
+	 desc->concat(", but value given to the return statement is ");
+	 argTypeInfo->getThisType(*desc);
+	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+      }
    }
    return lvids;
 }

@@ -349,7 +349,7 @@ public:
    DLLLOCAL virtual AbstractQoreNode *evalFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) const {
       return eval(name, args, 0, xsink);
    }
-   DLLLOCAL void parseInit();
+   DLLLOCAL void parseInit(const char *fname);
 };
 
 #define UFV(f) (reinterpret_cast<UserFunctionVariant *>(f))

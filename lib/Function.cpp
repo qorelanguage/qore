@@ -1295,7 +1295,7 @@ void AbstractQoreFunction::parseRollback() {
 void UserFunction::parseInit() {
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       assert((*i)->getUserVariantBase());
-      UFV(*i)->parseInit();
+      UFV(*i)->parseInit(name);
 
       // recheck types against committed types if necessary
       if (UFV(*i)->getRecheck())
@@ -1328,11 +1328,11 @@ void UserClosureFunction::parseInitClosure(const QoreTypeInfo *classTypeInfo, lv
    parseCommit();
 }
 
-void UserFunctionVariant::parseInit() {
+void UserFunctionVariant::parseInit(const char *fname) {
    signature.resolve();
 
    // resolve and push current return type on stack
-   ReturnTypeInfoHelper rtih(signature.getReturnTypeInfo());
+   ParseCodeInfoHelper rtih(fname, signature.getReturnTypeInfo());
    
    // can (and must) be called even if statements is NULL
    statements->parseInit(&signature);
@@ -1342,7 +1342,7 @@ void UserClosureVariant::parseInitClosure(const QoreTypeInfo *classTypeInfo, lva
    signature.resolve();
 
    // resolve and push current return type on stack
-   ReturnTypeInfoHelper rtih(signature.getReturnTypeInfo());
+   ParseCodeInfoHelper rtih("<anonymous closure>", signature.getReturnTypeInfo());
 
    statements->parseInitClosure(&signature, classTypeInfo, vlist);
 }

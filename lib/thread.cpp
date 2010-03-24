@@ -94,65 +94,65 @@ QorePThreadAttr ta_default;
 
 class tid_node {
 public:
-      int tid;
-      tid_node *next, *prev;
+   int tid;
+   tid_node *next, *prev;
    
-      DLLLOCAL tid_node(int ntid);
-      DLLLOCAL ~tid_node();
+   DLLLOCAL tid_node(int ntid);
+   DLLLOCAL ~tid_node();
 };
 
 static tid_node *tid_head = 0, *tid_tail = 0;
  
 // this structure holds all thread data that can be addressed with the qore tid
 class ThreadEntry {
-   public:
-      pthread_t ptid;
-      tid_node *tidnode;
+public:
+   pthread_t ptid;
+   tid_node *tidnode;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      CallStack *callStack;
+   CallStack *callStack;
 #endif
-      bool joined; // if set to true then pthread_detach should not be called on exit
+   bool joined; // if set to true then pthread_detach should not be called on exit
    
-      DLLLOCAL void cleanup() {
-	 // delete tidnode from tid_list
-	 delete tidnode;
+   DLLLOCAL void cleanup() {
+      // delete tidnode from tid_list
+      delete tidnode;
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-	 // delete call stack
-	 delete callStack;
+      // delete call stack
+      delete callStack;
 #endif
   
-  	 if (ptid != (pthread_t)-1L) {
-	    if (!joined)
-	       pthread_detach(ptid);
+      if (ptid != (pthread_t)-1L) {
+	 if (!joined)
+	    pthread_detach(ptid);
 	    
-	    // set ptid to 0
-	    ptid = 0L;
-	 }
+	 // set ptid to 0
+	 ptid = 0L;
       }
+   }
 
-      DLLLOCAL void allocate(tid_node *tn) {
-	 ptid = (pthread_t)-1L;
-	 tidnode = tn;
+   DLLLOCAL void allocate(tid_node *tn) {
+      ptid = (pthread_t)-1L;
+      tidnode = tn;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-	 callStack = 0;
+      callStack = 0;
 #endif
-	 joined = false;
-      }
+      joined = false;
+   }
 };
 
 DLLLOCAL ThreadEntry thread_list[MAX_QORE_THREADS];
 
 class ProgramLocation {
-   public:
-      const char *file;
-      void *parseState;
-      class ProgramLocation *next;
+public:
+   const char *file;
+   void *parseState;
+   ProgramLocation *next;
       
-      DLLLOCAL ProgramLocation(const char *fname, void *ps = 0) { 
-	 file       = fname; 
-	 parseState = ps;
-      }
+   DLLLOCAL ProgramLocation(const char *fname, void *ps = 0) { 
+      file       = fname; 
+      parseState = ps;
+   }
 };
 
 #ifndef QORE_THREAD_STACK_BLOCK
@@ -160,253 +160,253 @@ class ProgramLocation {
 #endif
 
 struct ThreadVariableBlock {
-      LocalVarValue lvar[QORE_THREAD_STACK_BLOCK];
-      int pos;
-      ThreadVariableBlock *prev, *next;
+   LocalVarValue lvar[QORE_THREAD_STACK_BLOCK];
+   int pos;
+   ThreadVariableBlock *prev, *next;
 
-      DLLLOCAL ThreadVariableBlock(struct ThreadVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
-      DLLLOCAL ~ThreadVariableBlock() { }
+   DLLLOCAL ThreadVariableBlock(struct ThreadVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
+   DLLLOCAL ~ThreadVariableBlock() { }
 };
 
 class ThreadLocalVariableData {
-   private:
-      ThreadVariableBlock *curr;
+private:
+   ThreadVariableBlock *curr;
       
-   public:
-      DLLLOCAL ThreadLocalVariableData() {
-	 curr = new ThreadVariableBlock;
-	 //printf("this=%p: first curr=%p\n", this, curr);
-      }
+public:
+   DLLLOCAL ThreadLocalVariableData() {
+      curr = new ThreadVariableBlock;
+      //printf("this=%p: first curr=%p\n", this, curr);
+   }
 
-      DLLLOCAL ~ThreadLocalVariableData() {
+   DLLLOCAL ~ThreadLocalVariableData() {
 #ifdef DEBUG
-	 if (curr->pos)
-	    printf("~ThreadLocalVariableData::~~ThreadLocalVariableData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
+      if (curr->pos)
+	 printf("~ThreadLocalVariableData::~~ThreadLocalVariableData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
 #endif
-	 assert(!curr->prev);
-	 assert(!curr->pos);
+      assert(!curr->prev);
+      assert(!curr->pos);
+      if (curr->next)
+	 delete curr->next;
+      delete curr;
+   }
+
+   DLLLOCAL LocalVarValue *instantiate() {
+      if (curr->pos == QORE_THREAD_STACK_BLOCK) {
 	 if (curr->next)
+	    curr = curr->next;
+	 else {
+	    curr->next = new ThreadVariableBlock(curr);
+	    //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
+	    curr = curr->next;
+	 }
+      }
+      return &curr->lvar[curr->pos++];
+   }
+
+   DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
+      if (!curr->pos) {
+	 if (curr->next) {
+	    //printf("this %p: del curr=%p, curr->next=%p\n", this, curr, curr->next);
 	    delete curr->next;
-	 delete curr;
-      }
-
-      DLLLOCAL LocalVarValue *instantiate() {
-	 if (curr->pos == QORE_THREAD_STACK_BLOCK) {
-	    if (curr->next)
-	       curr = curr->next;
-	    else {
-	       curr->next = new ThreadVariableBlock(curr);
-	       //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
-	       curr = curr->next;
-	    }
+	    curr->next = 0;
 	 }
-	 return &curr->lvar[curr->pos++];
+	 curr = curr->prev;
       }
-
-      DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
-	 if (!curr->pos) {
-	    if (curr->next) {
-	       //printf("this %p: del curr=%p, curr->next=%p\n", this, curr, curr->next);
-	       delete curr->next;
-	       curr->next = 0;
-	    }
-	    curr = curr->prev;
-	 }
-	 curr->lvar[--curr->pos].uninstantiate(xsink);
-      }
+      curr->lvar[--curr->pos].uninstantiate(xsink);
+   }
 
 #ifndef HAVE_UNLIMITED_THREAD_KEYS
-      DLLLOCAL LocalVarValue *find(const char *id) {
-	 ThreadVariableBlock *w = curr;
-	 while (true) {
-	    int p = w->pos;
-	    while (p) {
-	       if (w->lvar[--p].id == id && !w->lvar[p].skip)
-		  return &w->lvar[p];
-	    }
-	    w = w->prev;
-#ifdef DEBUG
-	    if (!w) printd(0, "no local variable '%s' on stack\n", id);
-#endif
-	    assert(w);
+   DLLLOCAL LocalVarValue *find(const char *id) {
+      ThreadVariableBlock *w = curr;
+      while (true) {
+	 int p = w->pos;
+	 while (p) {
+	    if (w->lvar[--p].id == id && !w->lvar[p].skip)
+	       return &w->lvar[p];
 	 }
-	 // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
-	 return 0;
+	 w = w->prev;
+#ifdef DEBUG
+	 if (!w) printd(0, "no local variable '%s' on stack\n", id);
+#endif
+	 assert(w);
       }
+      // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
+      return 0;
+   }
 #endif
 };
 
 struct ThreadClosureVariableBlock {
-      ClosureVarValue *cvar[QORE_THREAD_STACK_BLOCK];
-      int pos;
-      ThreadClosureVariableBlock *prev, *next;
+   ClosureVarValue *cvar[QORE_THREAD_STACK_BLOCK];
+   int pos;
+   ThreadClosureVariableBlock *prev, *next;
 
-      DLLLOCAL ThreadClosureVariableBlock(ThreadClosureVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
+   DLLLOCAL ThreadClosureVariableBlock(ThreadClosureVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
 
-      DLLLOCAL ~ThreadClosureVariableBlock() { }
+   DLLLOCAL ~ThreadClosureVariableBlock() { }
 };
 
 class ThreadClosureVariableStack {
-   private:
-      ThreadClosureVariableBlock *curr;
+private:
+   ThreadClosureVariableBlock *curr;
 
-      DLLLOCAL void instantiate(ClosureVarValue *cvar) {
-	 if (curr->pos == QORE_THREAD_STACK_BLOCK) {
-	    if (curr->next)
-	       curr = curr->next;
-	    else {
-	       curr->next = new ThreadClosureVariableBlock(curr);
-	       //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
-	       curr = curr->next;
-	    }
-	 }
-	 curr->cvar[curr->pos++] = cvar;
-      }
-      
-   public:
-      DLLLOCAL ThreadClosureVariableStack() {
-	 curr = new ThreadClosureVariableBlock;
-	 //printf("this=%p: first curr=%p\n", this, curr);
-      }
-
-      DLLLOCAL ~ThreadClosureVariableStack() {
-	 assert(!curr->prev);
-	 assert(!curr->pos);
-	 //printf("this=%p: del curr=%p\n", this, curr);
+   DLLLOCAL void instantiate(ClosureVarValue *cvar) {
+      if (curr->pos == QORE_THREAD_STACK_BLOCK) {
 	 if (curr->next)
+	    curr = curr->next;
+	 else {
+	    curr->next = new ThreadClosureVariableBlock(curr);
+	    //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
+	    curr = curr->next;
+	 }
+      }
+      curr->cvar[curr->pos++] = cvar;
+   }
+      
+public:
+   DLLLOCAL ThreadClosureVariableStack() {
+      curr = new ThreadClosureVariableBlock;
+      //printf("this=%p: first curr=%p\n", this, curr);
+   }
+
+   DLLLOCAL ~ThreadClosureVariableStack() {
+      assert(!curr->prev);
+      assert(!curr->pos);
+      //printf("this=%p: del curr=%p\n", this, curr);
+      if (curr->next)
+	 delete curr->next;
+      delete curr;
+   }
+
+   DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *value) {
+      ClosureVarValue *cvar = new ClosureVarValue(id, value);
+      instantiate(cvar);
+      return cvar;
+   }
+
+   DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *vexp, QoreObject *obj) {
+      ClosureVarValue *cvar = new ClosureVarValue(id, vexp, obj);
+      instantiate(cvar);
+      return cvar;
+   }
+
+   DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
+      if (!curr->pos) {
+	 if (curr->next) {
+	    //printf("this %p: del curr=%p, curr->next=%p\n", this, curr, curr->next);
 	    delete curr->next;
-	 delete curr;
-      }
-
-      DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *value) {
-	 ClosureVarValue *cvar = new ClosureVarValue(id, value);
-	 instantiate(cvar);
-	 return cvar;
-      }
-
-      DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *vexp, QoreObject *obj) {
-	 ClosureVarValue *cvar = new ClosureVarValue(id, vexp, obj);
-	 instantiate(cvar);
-	 return cvar;
-      }
-
-      DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
-	 if (!curr->pos) {
-	    if (curr->next) {
-	       //printf("this %p: del curr=%p, curr->next=%p\n", this, curr, curr->next);
-	       delete curr->next;
-	       curr->next = 0;
-	    }
-	    curr = curr->prev;
+	    curr->next = 0;
 	 }
-	 curr->cvar[--curr->pos]->deref(xsink);
+	 curr = curr->prev;
       }
+      curr->cvar[--curr->pos]->deref(xsink);
+   }
 
-      DLLLOCAL ClosureVarValue *find(const char *id) {
-	 ThreadClosureVariableBlock *w = curr;
-	 while (true) {
-	    int p = w->pos;
-	    while (p) {
-	       if (w->cvar[--p]->id == id && !w->cvar[p]->skip)
-		  return w->cvar[p];
-	    }
-	    w = w->prev;
+   DLLLOCAL ClosureVarValue *find(const char *id) {
+      ThreadClosureVariableBlock *w = curr;
+      while (true) {
+	 int p = w->pos;
+	 while (p) {
+	    if (w->cvar[--p]->id == id && !w->cvar[p]->skip)
+	       return w->cvar[p];
+	 }
+	 w = w->prev;
 #ifdef DEBUG
-	    if (!w) printd(0, "no closure variable '%s' on stack\n", id);
+	 if (!w) printd(0, "no closure variable '%s' on stack\n", id);
 #endif
-	    assert(w);
-	 }
-	 // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
-	 return 0;
+	 assert(w);
       }
+      // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
+      return 0;
+   }
 };
 
 // this structure holds all thread-specific data
 class ThreadData {
-   public:
-      int tid;
-      VLock vlock;     // for deadlock detection
-      Context *context_stack;
-      ProgramLocation *plStack;
-      int parse_line_start, parse_line_end;
-      const char *parse_file;
-      int pgm_counter_start, pgm_counter_end;
-      const char *pgm_file;
-      void *parseState;
-      VNode *vstack;  // used during parsing (local variable stack)
-      CVNode *cvarstack;
-      QoreClass *parseClass;
-      QoreException *catchException;
-      std::list<block_list_t::iterator> on_block_exit_list;
-      ThreadResourceList trlist;
-      // current function/method name
-      const char *current_code;
-      // current object context
-      QoreObject *current_obj;
+public:
+   int tid;
+   VLock vlock;     // for deadlock detection
+   Context *context_stack;
+   ProgramLocation *plStack;
+   int parse_line_start, parse_line_end;
+   const char *parse_file;
+   int pgm_counter_start, pgm_counter_end;
+   const char *pgm_file;
+   const char *parse_code; // the current function, method, or closure being parsed
+   void *parseState;
+   VNode *vstack;  // used during parsing (local variable stack)
+   CVNode *cvarstack;
+   QoreClass *parseClass; // current class being parsed
+   QoreException *catchException;
+   std::list<block_list_t::iterator> on_block_exit_list;
+   ThreadResourceList trlist;
+   // current function/method name
+   const char *current_code;
+   // current object context
+   QoreObject *current_obj;
 
-      // current program context
-      QoreProgram *current_pgm;
+   // current program context
+   QoreProgram *current_pgm;
 
-      // current implicit argument
-      QoreListNode *current_implicit_arg;
+   // current implicit argument
+   QoreListNode *current_implicit_arg;
 
-      // local variable data slots
-      ThreadLocalVariableData lvstack;
+   // local variable data slots
+   ThreadLocalVariableData lvstack;
 
-      // closure variable stack
-      ThreadClosureVariableStack cvstack;
+   // closure variable stack
+   ThreadClosureVariableStack cvstack;
 
-      // current parsing closure environment
-      ClosureParseEnvironment *closure_parse_env;
+   // current parsing closure environment
+   ClosureParseEnvironment *closure_parse_env;
 
-      // current runtime closure environment
-      ClosureRuntimeEnvironment *closure_rt_env;
+   // current runtime closure environment
+   ClosureRuntimeEnvironment *closure_rt_env;
 
-      // link to last ProgramContextHelp to check for
-      // already-instantiated thread-local variables
-      ProgramContextHelper *pch_link;
+   // link to last ProgramContextHelp to check for
+   // already-instantiated thread-local variables
+   ProgramContextHelper *pch_link;
 
 #ifdef QORE_MANAGE_STACK
-      size_t stack_limit;
+   size_t stack_limit;
 #ifdef IA64_64
-      size_t rse_limit;
+   size_t rse_limit;
 #endif
 #endif
 
-      // used to detect output of recursive data structures
-      const_node_set_t node_set;
+   // used to detect output of recursive data structures
+   const_node_set_t node_set;
 
-      // currently-executing/parsing block's return type
-      const QoreTypeInfo *returnTypeInfo;
+   // currently-executing/parsing block's return type
+   const QoreTypeInfo *returnTypeInfo;
 
-      DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
-	 tid(ptid), vlock(ptid), 
-	 context_stack(0), plStack(0),
-	 parse_line_start(0), parse_line_end(0), 
-	 parse_file(0), pgm_counter_start(0), pgm_counter_end(0),
-	 pgm_file(0), parseState(0), vstack(0), cvarstack(0),
-	 parseClass(0), catchException(0), current_code(0),
-	 current_obj(0), current_pgm(p), current_implicit_arg(0),
-	 closure_parse_env(0), closure_rt_env(0), pch_link(0),
-	 returnTypeInfo(0)
-      {
+   DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
+      tid(ptid), vlock(ptid), 
+      context_stack(0), plStack(0),
+      parse_line_start(0), parse_line_end(0), 
+      parse_file(0), pgm_counter_start(0), pgm_counter_end(0),
+      pgm_file(0), parse_code(0), parseState(0), vstack(0), cvarstack(0),
+      parseClass(0), catchException(0), current_code(0),
+      current_obj(0), current_pgm(p), current_implicit_arg(0),
+      closure_parse_env(0), closure_rt_env(0), pch_link(0),
+      returnTypeInfo(0) {
 #ifdef QORE_MANAGE_STACK
 
 #ifdef STACK_DIRECTION_DOWN
-	 stack_limit = get_stack_pos() - qore_thread_stack_limit;
+      stack_limit = get_stack_pos() - qore_thread_stack_limit;
 #else
-	 stack_limit = get_stack_pos() + qore_thread_stack_limit;
+      stack_limit = get_stack_pos() + qore_thread_stack_limit;
 #endif // #ifdef STACK_DIRECTION_DOWN
 
 #ifdef IA64_64
-	 // RSE stack grows up
-	 rse_limit = get_rse_bsp() + qore_thread_stack_limit;
+      // RSE stack grows up
+      rse_limit = get_rse_bsp() + qore_thread_stack_limit;
 #endif // #ifdef IA64_64
 
 #endif // #ifdef QORE_MANAGE_STACK
-      }
+   }
 
-      DLLLOCAL ~ThreadData();
+   DLLLOCAL ~ThreadData();
 };
 
 static QoreThreadLocalStorage<ThreadData> thread_data;
@@ -421,17 +421,16 @@ public:
 DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = 0;
 
 class ThreadParams {
-   public:
-      AbstractQoreNode *fc;
-      int tid;
-      QoreProgram *pgm;
+public:
+   AbstractQoreNode *fc;
+   int tid;
+   QoreProgram *pgm;
    
-      DLLLOCAL ThreadParams(AbstractQoreNode *f, int t) 
-      { 
-	 fc = f; 
-	 tid = t;
-	 pgm = getProgram();
-      } 
+   DLLLOCAL ThreadParams(AbstractQoreNode *f, int t) { 
+      fc = f; 
+      tid = t;
+      pgm = getProgram();
+   } 
 };
 
 // this constructor must only be called with the lThreadList lock held
@@ -840,11 +839,22 @@ const char *get_parse_file() {
    return (thread_data.get())->parse_file;
 }
 
-const QoreTypeInfo *setReturnTypeInfo(const QoreTypeInfo *rti) {
+const char *get_parse_code() {
+   return (thread_data.get())->parse_code;
+}
+
+void setCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, const char *&old_code, const QoreTypeInfo *&old_returnTypeInfo) {
    ThreadData *td = thread_data.get();
-   const QoreTypeInfo *rv = td->returnTypeInfo;
-   td->returnTypeInfo = rti;
-   return rv;
+   old_code = td->parse_code;
+   old_returnTypeInfo = td->returnTypeInfo;
+   td->parse_code = parse_code;
+   td->returnTypeInfo = returnTypeInfo;
+}
+
+void restoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo) {
+   ThreadData *td = thread_data.get();
+   td->parse_code = parse_code;
+   td->returnTypeInfo = returnTypeInfo;
 }
 
 const QoreTypeInfo *getReturnTypeInfo() {
