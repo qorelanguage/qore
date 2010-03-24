@@ -45,9 +45,7 @@
 
 static AbstractQoreNode *f_exit(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
-
    qore_exit_process(p0 ? p0->getAsInt() : 0);
-
    return 0;   // to avoid warning
 }
 
@@ -57,11 +55,7 @@ static AbstractQoreNode *f_abort(const QoreListNode *params, ExceptionSink *xsin
 }
 
 static AbstractQoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
-
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
    ExecArgList args(p0->getBuffer());
    execvp(args.getFile(), args.getArgs());
    
@@ -588,7 +582,7 @@ TEST() {
 #endif
 
 void init_lib_functions() {
-   builtinFunctions.add2("exit",        f_exit, QC_NO_FLAGS, QDOM_PROCESS, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("exit",        f_exit, QC_NO_FLAGS, QDOM_PROCESS, nothingTypeInfo, 1, anyTypeInfo, zero());
    builtinFunctions.add2("abort",       f_abort, QC_NO_FLAGS, QDOM_PROCESS, nothingTypeInfo);
 
    builtinFunctions.add2("system",      f_noop, QC_NOOP, QDOM_EXTERNAL_PROCESS, nothingTypeInfo);
