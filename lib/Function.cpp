@@ -1424,3 +1424,10 @@ AbstractQoreNode *f_list_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return empty_list();
 }
 
+AbstractQoreNode *f_date_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return zero_date();
+}
+
+AbstractQoreNode *f_reldate_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return new DateTimeNode(true);
+}

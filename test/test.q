@@ -724,7 +724,7 @@ sub backquote_tests() {
     test_value(`echo -n 1`, "1", "backquote");
 }
 
-sub sd(date $d) {
+sub sd(date $d) returns string {
     return format_date("YYYY-MM-DD HH:mm:SS", $d);
 }
 

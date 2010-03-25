@@ -727,7 +727,7 @@ public:
    }
 };
 
-// accepts int, float, string, or boolean and returns a boolean
+// accepts int, float, string, or boolean and returns a string
 class SoftStringTypeInfo : public QoreTypeInfo {
 protected:
    DLLLOCAL virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {

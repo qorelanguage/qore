@@ -265,6 +265,9 @@ static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
 //! returns a const QoreStringNode* from a hard typed string param
 #define HARD_QORE_STRING(list, i) get_hard_param<const QoreStringNode>(list, i)
 
+//! returns a const DateTimeNode* from a hard typed date param
+#define HARD_QORE_DATE(list, i) get_hard_param<const DateTimeNode>(list, i)
+
 //! returns a const BinaryNode* from a hard typed binary param
 #define HARD_QORE_BINARY(list, i) get_hard_param<const BinaryNode>(list, i)
 
