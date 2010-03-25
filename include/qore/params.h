@@ -253,25 +253,28 @@ static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
    return reinterpret_cast<T *>(n->retrieve_entry(i));
 }
 
-// returns a hard typed parameter
+//! returns a hard typed parameter
 #define HARD_QORE_PARAM(name, Type, list, i) Type *name = get_hard_param<Type>(list, i)
 
-// returns an int64 from a hard typed int param
+//! returns an int64 from a hard typed int param
 #define HARD_QORE_INT(list, i) get_hard_param<const QoreBigIntNode>(list, i)->val
 
-// returns an int64 from a hard typed int param
+//! returns a double from a hard typed float param
 #define HARD_QORE_FLOAT(list, i) get_hard_param<const QoreFloatNode>(list, i)->f
 
-// returns a QoreStringNode *
+//! returns a const QoreStringNode* from a hard typed string param
 #define HARD_QORE_STRING(list, i) get_hard_param<const QoreStringNode>(list, i)
 
-// returns a BinaryNode *
+//! returns a const BinaryNode* from a hard typed binary param
 #define HARD_QORE_BINARY(list, i) get_hard_param<const BinaryNode>(list, i)
 
-// returns a QoreListNode *
+//! returns a const QoreListNode* from a hard typed list param
 #define HARD_QORE_LIST(list, i) get_hard_param<const QoreListNode>(list, i)
 
-// returns a QoreObject *
+//! returns a const QoreHashNode* from a hard typed hash param
+#define HARD_QORE_HASH(list, i) get_hard_param<const QoreHashNode>(list, i)
+
+//! returns a QoreObject* from a hard typed object param
 #define HARD_QORE_OBJECT(list, i) const_cast<QoreObject *>(get_hard_param<const QoreObject>(list, i))
 
 // returns an object pointer

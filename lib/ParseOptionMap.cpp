@@ -58,6 +58,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-terminal-io",           PO_NO_TERMINAL_IO);
    DO_MAP("require-types",            PO_REQUIRE_TYPES);
    DO_MAP("no-external-info",         PO_NO_EXTERNAL_INFO);
+   DO_MAP("no-thread-info",           PO_NO_THREAD_INFO);
 }
 
 int ParseOptionMap::find_code(const char *name) {

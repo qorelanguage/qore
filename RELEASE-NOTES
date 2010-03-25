@@ -20,11 +20,24 @@ getgrname2()
 
 * cast<> operator
 
+* delete statement is now the delete operator
+
+* new remove operator
+
+* new extract operator
+
 * new warning: non-existent-method-call
 
 * new warning: invalid-operation
 
 * new warning: call-with-type-errors
+
+* implemented new parse option PO_NO_THREAD_INFO
+
+* tagged the following functions with QDOM_THREAD_INFO
+gettid(), num_threads(), thread_list(), get_thread_data(), get_all_thread_data(), getAllThreadCallStacks()
+
+* implemented new parse option PO_NO_EXTERNAL_INFO
 
 * tagged the following functions with QDOM_EXTERNAL_INFO
 getuid(), geteuid(), getgid(), getegid(), getpid(), getppid(), gethostname(),
