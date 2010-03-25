@@ -1122,13 +1122,23 @@ sub pwd_tests() {
     # skip the test on windows
     if (Qore::PlatformOS !~ /cygwin/i) {
         test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
-        test_value(getpwuid2(0).pw_uid, 0, "getpwuid2()");
+        my hash $h;
+        # try to get passwd entry for uid 0, ignore exceptions
+        try $h = getpwuid2(0); catch () {}
+        test_value($h.pw_uid, 0, "getpwuid2()");
         test_value(getpwnam("root").pw_uid, 0, "getpwnam()");
-        test_value(getpwnam2("root").pw_uid, 0, "getpwnam2()");
+        # try to get passwd entry for root, ignore exceptions
+        try $h = getpwnam2("root"); catch () {}
+        test_value($h.pw_uid, 0, "getpwnam2()");
         test_value(getgrgid(0).gr_gid, 0, "getgrgid()");
-        test_value(getgrgid2(0).gr_gid, 0, "getgrgid2()");
-        test_value(getgrnam("root").gr_gid, 0, "getgrnam()");
-        test_value(getgrnam2("root").gr_gid, 0, "getgrnam2()");
+        # try to get group entry for gid 0, ignore exceptions
+        try $h = getgrgid2(0); catch () {}
+        test_value($h.gr_gid, 0, "getgrgid2()");
+        my string $gn = Qore::PlatformOS == "Darwin" ? "wheel" : "root";
+        test_value(getgrnam($gn).gr_gid, 0, "getgrnam()");
+        # try to get group entry for root, ignore exceptions
+        try $h = getgrnam2($gn); catch () {}
+        test_value($h.gr_gid, 0, "getgrnam2()");
     }
 }
 
