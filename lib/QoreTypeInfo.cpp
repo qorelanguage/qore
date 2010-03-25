@@ -56,16 +56,16 @@ static CodeTypeInfo staticCodeTypeInfo;
 // either string or binary
 static DataTypeInfo staticDataTypeInfo;
 
-// provides int compatibility with and conversions from float, string, and bool
+// provides int compatibility with and conversions from float, string, date, and bool
 static SoftBigIntTypeInfo staticSoftBigIntTypeInfo;
 
-// provides float compatibility with and conversions from int, string, and bool
+// provides float compatibility with and conversions from int, string, date, and bool
 static SoftFloatTypeInfo staticSoftFloatTypeInfo;
 
-// provides bool compatibility with and conversions from float, string, and int
+// provides bool compatibility with and conversions from float, string, date, and int
 static SoftBoolTypeInfo staticSoftBoolTypeInfo;
 
-// provides string compatibility with and conversions from float, int, and bool
+// provides string compatibility with and conversions from float, int, date, and bool
 static SoftStringTypeInfo staticSoftStringTypeInfo;
 
 // somethingTypeInfo means "not NOTHING"

@@ -49,6 +49,7 @@ DLLLOCAL AbstractQoreNode *f_int_one_noop(const QoreListNode *args, ExceptionSin
 DLLLOCAL AbstractQoreNode *f_list_noop(const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *f_date_noop(const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *f_reldate_noop(const QoreListNode *args, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *f_binary_noop(const QoreListNode *args, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *class_noop(QoreObject *self, AbstractPrivateData *ptr, const QoreListNode *args, ExceptionSink *xsink);
 
 class LocalVar;

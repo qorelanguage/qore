@@ -1431,3 +1431,7 @@ AbstractQoreNode *f_date_noop(const QoreListNode *args, ExceptionSink *xsink) {
 AbstractQoreNode *f_reldate_noop(const QoreListNode *args, ExceptionSink *xsink) {
    return new DateTimeNode(true);
 }
+
+AbstractQoreNode *f_binary_noop(const QoreListNode *args, ExceptionSink *xsink) {
+   return new BinaryNode;
+}
