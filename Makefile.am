@@ -250,7 +250,7 @@ noinst_HEADERS = \
 	command-line.h
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
-	CHANGELOG AUTHORS BUILD \
+	ChangeLog AUTHORS BUILD \
 	README README-LICENSE README-MODULES \
 	COPYING.LGPL COPYING.GPL \
         test/thread-object-test.q \
