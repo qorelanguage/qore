@@ -116,28 +116,36 @@ static AbstractQoreNode *f_binary_to_string(const QoreListNode *params, Exceptio
 }
 
 void init_type_functions() {
-   builtinFunctions.add2("boolean", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo);
+   // do not flag with QC_NOOP, as it is used as an initializer
+   builtinFunctions.add2("boolean", f_bool_noop, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
    builtinFunctions.add2("boolean", f_boolean, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, softBoolTypeInfo, QORE_PARAM_NO_ARG);
    
-   builtinFunctions.add2("int", f_int_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   // do not flag with QC_NOOP, as it is used as an initializer
+   builtinFunctions.add2("int", f_int_noop, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add2("int", f_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("float", f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   // do not flag with QC_NOOP, as it is used as an initializer
+   builtinFunctions.add2("float", f_float_noop, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("float", f_float, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("string", f_string_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo);
+   // do not flag with QC_NOOP, as it is used as an initializer
+   builtinFunctions.add2("string", f_string_noop, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo);
    builtinFunctions.add2("string", f_string, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("binary", f_binary_noop, QC_NOOP, QDOM_DEFAULT, binaryTypeInfo);
+   // do not flag with QC_NOOP, as it is used as an initializer
+   builtinFunctions.add2("binary", f_binary_noop, QC_CONSTANT, QDOM_DEFAULT, binaryTypeInfo);
    builtinFunctions.add2("binary", f_binary_str, QC_CONSTANT, QDOM_DEFAULT, binaryTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("binary", f_binary_bin, QC_CONSTANT, QDOM_DEFAULT, binaryTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("date", f_date_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   // do not flag with QC_NOOP, as it is used as an initializer
+   builtinFunctions.add2("date", f_date_noop, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add("list", f_list);
+
    builtinFunctions.add("hash", f_hash);
+
    builtinFunctions.add("type", f_type);
    builtinFunctions.add("typename", f_type);
    builtinFunctions.add("binary_to_string", f_binary_to_string);
