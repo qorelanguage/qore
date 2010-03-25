@@ -1164,6 +1164,11 @@ void init_misc_functions() {
    builtinFunctions.add2("compress", f_compress_str, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
    builtinFunctions.add2("compress", f_compress_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
 
+   // for backwards-compatibility, add compress() as compress2() as well
+   builtinFunctions.add2("compress2", f_noop, QC_NOOP | QC_DEPRECATED, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("compress2", f_compress_str, QC_DEPRECATED, QDOM_DEFAULT, binaryTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
+   builtinFunctions.add2("compress2", f_compress_bin, QC_DEPRECATED, QDOM_DEFAULT, binaryTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
+
    builtinFunctions.add2("uncompress_to_string", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("uncompress_to_string", f_uncompress_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("uncompress_to_string", f_uncompress_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
