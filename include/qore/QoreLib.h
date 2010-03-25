@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <sys/types.h>
 
 /** @file QoreLib.h
     contains prototypes for various helper functions in the Qore library
@@ -93,6 +94,34 @@ DLLEXPORT char *q_dirname(const char *path);
 
 //! frees memory if there is an allocation error
 DLLEXPORT void *q_realloc(void *ptr, size_t size);
+
+//! thread-safe version of getpwuid(): returns a Qore hash of the passwd information from the uid if possible, otherwise 0
+DLLEXPORT QoreHashNode *q_getpwuid(uid_t uid);
+
+//! thread-safe version of getpwnam(): returns a Qore hash of the passwd information from the username if possible, otherwise 0
+DLLEXPORT QoreHashNode *q_getpwnam(const char *name);
+
+//! thread-safe version of getgrgid(): returns a Qore hash of the group information from the gid if possible, otherwise 0
+DLLEXPORT QoreHashNode *q_getgrgid(uid_t uid);
+
+//! thread-safe version of getgrnam(): returns a Qore hash of the group information from the group name if possible, otherwise 0
+DLLEXPORT QoreHashNode *q_getgrnam(const char *name);
+
+//! thread-safe way to lookup a uid from a username
+/**
+   @param name the username to look up
+   @param uid the uid returned
+   @return 0 for no error, non-zero is an error code like errno
+ */
+int q_uname2uid(const char *name, uid_t &uid);
+
+//! thread-safe way to lookup a gid from a group name
+/**
+   @param name the group to look up
+   @param gid the gid returned
+   @return 0 for no error, non-zero is an error code like errno
+ */
+int q_gname2gid(const char *name, gid_t &gid);
 
 //! sets up the Qore ARGV and QORE_ARGV values
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);

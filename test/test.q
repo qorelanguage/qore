@@ -439,7 +439,7 @@ sub operator_test() {
     test_value((select (1, 2, 3), $1 > 1), (2, 3), "select operator with expression");
 
     # create a sinple closure to subtract the second argument from the first
-    $c = sub(any $x, any $y) { return $x - $y; };
+    $c = sub(any $x, any $y) returns any { return $x - $y; };
 
     # left fold function on list using closure
     test_value((foldl $c($1, $2), (2, 3, 4)), -5, "foldl operator with closure");
@@ -1120,8 +1120,16 @@ sub string_tests() {
 sub pwd_tests() {
     # getpwuid(0).pw_name may not always be "root"
     # skip the test on windows
-    if (Qore::PlatformOS !~ /cygwin/i)
+    if (Qore::PlatformOS !~ /cygwin/i) {
         test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
+        test_value(getpwuid2(0).pw_uid, 0, "getpwuid2()");
+        test_value(getpwnam("root").pw_uid, 0, "getpwnam()");
+        test_value(getpwnam2("root").pw_uid, 0, "getpwnam2()");
+        test_value(getgrgid(0).gr_gid, 0, "getgrgid()");
+        test_value(getgrgid2(0).gr_gid, 0, "getgrgid2()");
+        test_value(getgrnam("root").gr_gid, 0, "getgrnam()");
+        test_value(getgrnam2("root").gr_gid, 0, "getgrnam2()");
+    }
 }
 
 sub simple_shift() returns any {

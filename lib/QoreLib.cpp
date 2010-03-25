@@ -24,6 +24,8 @@
 #include <qore/intern/svn-revision.h>
 
 #include <string.h>
+#include <pwd.h>
+#include <grp.h>
 
 FeatureList qoreFeatureList;
 
@@ -57,6 +59,20 @@ DLLLOCAL QoreThreadLock lck_localtime;
 
 #ifndef HAVE_GMTIME_R
 DLLLOCAL QoreThreadLock lck_gmtime;
+#endif
+
+#if defined(HAVE_GETPWUID_R) || defined(HAVE_GETPWNAM_R)
+static long pwsize = 0;
+#else
+// for the getpwuid() and getpwnam() functions
+static QoreThreadLock lck_passwd;
+#endif
+
+#if defined(HAVE_GETGRGID_R) || defined(HAVE_GETGRNAM_R)
+static long grsize = 0;
+#else
+// for the getgrgid() and getgrnam() functions
+static QoreThreadLock lck_group;
 #endif
 
 char table64[64] = {
@@ -724,10 +740,10 @@ void qore_setup_argv(int pos, int argc, char *argv[]) {
    }
 }
 
-void initENV(char *env[]) {
+void init_lib_intern(char *env[]) {
    // set up environment hash
    int i = 0;
-   ENV = new QoreHashNode();
+   ENV = new QoreHashNode;
    while (env[i]) {
       char *p;
 
@@ -740,6 +756,18 @@ void initENV(char *env[]) {
       }
       i++;
    }
+
+   // other misc initialization
+#if defined(HAVE_GETPWUID_R) || defined(HAVE_GETPWNAM_R)
+   pwsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+   if (pwsize == -1)
+      pwsize = 4096; // more than enough?
+#endif
+#if defined(HAVE_GETGRGID_R) || defined(HAVE_GETGRNAM_R)
+   grsize = sysconf(_SC_GETGR_R_SIZE_MAX);
+   if (grsize == -1)
+      grsize = 4096; // more than enough?
+#endif
 }
 
 void delete_global_variables() {
@@ -812,6 +840,140 @@ void *q_realloc(void *ptr, size_t size) {
    if (!p)
       free(ptr);
    return p;
+}
+
+static inline void assign_hv(QoreHashNode *h, const char *key, char *val) {
+   h->setKeyValue(key, new QoreStringNode(val), 0);
+}
+
+static inline void assign_hv(QoreHashNode *h, const char *key, int val) {
+   h->setKeyValue(key, new QoreBigIntNode(val), 0);
+}
+
+static QoreHashNode *pwd2hash(const struct passwd &pw) {
+   QoreHashNode *h = new QoreHashNode;
+   // assign values
+   assign_hv(h, "pw_name", pw.pw_name);
+   assign_hv(h, "pw_passwd", pw.pw_passwd);
+   assign_hv(h, "pw_gecos", pw.pw_gecos);
+   assign_hv(h, "pw_dir", pw.pw_dir);
+   assign_hv(h, "pw_shell", pw.pw_shell);
+   assign_hv(h, "pw_uid", pw.pw_uid);
+   assign_hv(h, "pw_gid", pw.pw_gid);
+   return h;
+}
+
+QoreHashNode *q_getpwuid(uid_t uid) {
+   struct passwd *pw;
+#ifdef HAVE_GETPWUID_R
+   struct passwd pw_rec;
+   char buf[pwsize];
+   int rc = getpwuid_r(uid, &pw_rec, buf, pwsize, &pw);
+   if (rc)
+      errno = rc;
+#else
+   AutoLocker al(&lck_passwd);
+   pw = getpwuid(uid);
+#endif
+   return !pw ? 0 : pwd2hash(*pw);
+}
+
+QoreHashNode *q_getpwnam(const char *name) {
+   struct passwd *pw;
+#ifdef HAVE_GETPWNAM_R
+   struct passwd pw_rec;
+   char buf[pwsize];
+   int rc = getpwnam_r(name, &pw_rec, buf, pwsize, &pw);
+   if (rc)
+      errno = rc;
+#else
+   AutoLocker al(&lck_passwd);
+   pw = getpwnam(name);
+#endif
+   return !pw ? 0 : pwd2hash(*pw);
+}
+
+int q_uname2uid(const char *name, uid_t &uid) {
+   struct passwd *pw;
+#ifdef HAVE_GETPWNAM_R
+   struct passwd pw_rec;
+   char buf[pwsize];
+   int rc = getpwnam_r(name, &pw_rec, buf, pwsize, &pw);
+   if (!rc)
+      uid = pw_rec.pw_uid;
+   return rc;
+#else
+   AutoLocker al(&lck_passwd);
+   pw = getpwnam(name);
+   if (!pw)
+      return errno;
+   uid = pw->pw_uid;
+   return 0;
+#endif
+}
+
+static QoreHashNode *gr2hash(struct group &gr) {
+   QoreHashNode *h = new QoreHashNode;
+   // assign values
+   assign_hv(h, "gr_name", gr.gr_name);
+   assign_hv(h, "gr_passwd", gr.gr_passwd);
+   assign_hv(h, "gr_gid", gr.gr_gid);
+
+   QoreListNode *l = new QoreListNode;
+   for (char **p = gr.gr_mem; *p; ++p)
+      l->push(new QoreStringNode(*p));
+
+   h->setKeyValue("gr_mem", l, 0);
+   return h;
+}
+
+QoreHashNode *q_getgrgid(gid_t gid) {
+   struct group *gr;
+#ifdef HAVE_GETGRGID_R
+   struct group gr_rec;
+   char buf[grsize];
+   int rc = getgrgid_r(gid, &gr_rec, buf, grsize, &gr);
+   if (rc)
+      errno = rc;
+#else
+   AutoLocker al(&lck_group);
+   gr = getgrgid(gid);
+#endif
+   return !gr ? 0 : gr2hash(*gr);
+}
+
+QoreHashNode *q_getgrnam(const char *name) {
+   struct group *gr;
+#ifdef HAVE_GETGRNAM_R
+   struct group gr_rec;
+   char buf[grsize];
+   int rc = getgrnam_r(name, &gr_rec, buf, grsize, &gr);
+   if (rc)
+      errno = rc;
+#else
+   AutoLocker al(&lck_group);
+   gr = getgrnam(name);
+#endif
+   return !gr ? 0 : gr2hash(*gr);
+}
+
+int q_gname2gid(const char *name, gid_t &gid) {
+   struct group *gr;
+#ifdef HAVE_GETGRNAM_R
+   struct group gr_rec;
+   char buf[grsize];
+   int rc = getgrnam_r(name, &gr_rec, buf, grsize, &gr);
+   if (!rc)
+      gid = gr_rec.gr_gid;
+   return rc;
+#else
+   AutoLocker al(&lck_group);
+   gr = getgrnam(name);
+   if (!gr)
+      return errno;
+   gid = gr->gr_gid;
+   return 0;
+#endif
 }
 
 ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink) {

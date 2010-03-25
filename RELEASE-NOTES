@@ -3,6 +3,35 @@ RELEASE NOTES for qore v0.8.0
 release summary: under development - no release notes available yet; check
 ChangeLog
 
+* hard typing
+
+* overloaded functions and methods
+
+* default argument values
+
+* new functions
+getpwuid2()
+getpwnam()
+getpwnam2()
+getgrgid()
+getgrgid2()
+getgrnam()
+getgrname2()
+
+* cast<> operator
+
+* new warning: non-existent-method-call
+
+* new warning: invalid-operation
+
+* new warning: call-with-type-errors
+
+* tagged the following functions with QDOM_EXTERNAL_INFO
+getuid(), geteuid(), getgid(), getegid(), getpid(), getppid(), gethostname(),
+gethostbyname(), gethostbyaddr(), gethostbyname_long(), gethostbyaddr_long(),
+getcwd(), getcwd2(), getpwuid(), getpwuid2(), getpwnam(), getpwnam2()
+
+
 
 ***********************
 *** LANGUAGE ISSUES ***

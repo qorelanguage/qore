@@ -26,45 +26,85 @@
 #include <stdio.h>
 #include <pwd.h>
 
-// for the getpwuid function
-static class QoreThreadLock lck_getpwuid;
-
-static inline void assign_value(QoreHashNode *h, const char *key, char *val)
-{
-   h->setKeyValue(key, new QoreStringNode(val), 0);
+static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *xsink) {
+   int uid = HARD_QORE_INT(params, 0);
+   return q_getpwuid(uid);
 }
 
-static inline void assign_value(QoreHashNode *h, const char *key, int val)
-{
-   h->setKeyValue(key, new QoreBigIntNode(val), 0);
-}
-
-static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p0;
-
-   if (!(p0 = get_param(params, 0)))
-      return 0;
-
-   AutoLocker al(&lck_getpwuid);
-   
-   struct passwd *pw = getpwuid(p0->getAsInt());
-   if (!pw)
-      return 0;
-
-   QoreHashNode *h = new QoreHashNode();
-   // assign values
-   assign_value(h, "pw_name", pw->pw_name);
-   assign_value(h, "pw_passwd", pw->pw_passwd);
-   assign_value(h, "pw_gecos", pw->pw_gecos);
-   assign_value(h, "pw_dir", pw->pw_dir);
-   assign_value(h, "pw_shell", pw->pw_shell);
-   assign_value(h, "pw_uid", pw->pw_uid);
-   assign_value(h, "pw_gid", pw->pw_gid);
+static AbstractQoreNode *f_getpwuid2(const QoreListNode *params, ExceptionSink *xsink) {
+   int uid = HARD_QORE_INT(params, 0);
+   QoreHashNode *h = q_getpwuid(uid);
+   if (!h) {
+      if (!errno)
+         xsink->raiseException("GETPPWUID2-ERROR", "uid %d not found", uid);
+      else
+         xsink->raiseException("GETPPWUID2-ERROR", strerror(errno));
+   }
    return h;
 }
 
-void init_pwd_functions()
-{
-   builtinFunctions.add("getpwuid", f_getpwuid);
+static AbstractQoreNode *f_getpwnam(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *name = HARD_QORE_STRING(params, 0);
+   return q_getpwnam(name->getBuffer());
+}
+
+static AbstractQoreNode *f_getpwnam2(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *name = HARD_QORE_STRING(params, 0);
+   QoreHashNode *h = q_getpwnam(name->getBuffer());
+   if (!h) {
+      if (!errno)
+         xsink->raiseException("GETPPWNAM2-ERROR", "user '%s' not found", name->getBuffer());
+      else
+         xsink->raiseException("GETPPWNAM2-ERROR", strerror(errno));
+   }
+   return h;
+}
+
+static AbstractQoreNode *f_getgrgid(const QoreListNode *params, ExceptionSink *xsink) {
+   int gid = HARD_QORE_INT(params, 0);
+   return q_getgrgid(gid);
+}
+
+static AbstractQoreNode *f_getgrgid2(const QoreListNode *params, ExceptionSink *xsink) {
+   int gid = HARD_QORE_INT(params, 0);
+   QoreHashNode *h = q_getgrgid(gid);
+   if (!h) {
+      if (!errno)
+         xsink->raiseException("GETPGRGID2-ERROR", "gid %d not found", gid);
+      else
+         xsink->raiseException("GETPGRGID2-ERROR", strerror(errno));
+   }
+   return h;
+}
+
+static AbstractQoreNode *f_getgrnam(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *name = HARD_QORE_STRING(params, 0);
+   return q_getgrnam(name->getBuffer());
+}
+
+static AbstractQoreNode *f_getgrnam2(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *name = HARD_QORE_STRING(params, 0);
+   QoreHashNode *h = q_getgrnam(name->getBuffer());
+   if (!h) {
+      if (!errno)
+         xsink->raiseException("GETPGRNAM2-ERROR", "group '%s' not found", name->getBuffer());
+      else
+         xsink->raiseException("GETPGRNAM2-ERROR", strerror(errno));
+   }
+   return h;
+}
+
+void init_pwd_functions() {
+   builtinFunctions.add2("getpwuid", f_noop, QC_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
+   builtinFunctions.add2("getpwuid", f_getpwuid, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("getpwuid2", f_getpwuid2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   
+   builtinFunctions.add2("getpwnam", f_getpwnam, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("getpwnam2", f_getpwnam2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("getgrgid", f_getgrgid, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("getgrgid2", f_getgrgid2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   
+   builtinFunctions.add2("getgrnam", f_getgrnam, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("getgrnam2", f_getgrnam2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 }
