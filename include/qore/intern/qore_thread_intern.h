@@ -106,8 +106,10 @@ DLLLOCAL QoreObject *substituteObject(QoreObject *o);
 DLLLOCAL void catchSaveException(QoreException *e);
 DLLLOCAL QoreException *catchGetException();
 DLLLOCAL VLock *getVLock();
-DLLLOCAL void setCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, const char *&old_code, const QoreTypeInfo *&old_returnTypeInfo);
-DLLLOCAL void restoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo);
+DLLLOCAL void parseSetCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, const char *&old_code, const QoreTypeInfo *&old_returnTypeInfo);
+DLLLOCAL void parseRestoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo);
+// sets the new type and returns the old
+DLLLOCAL const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo);
 DLLLOCAL const QoreTypeInfo *getReturnTypeInfo();
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -377,10 +379,10 @@ private:
 
 public:
    DLLLOCAL ParseCodeInfoHelper(const char *n_parse_code, const QoreTypeInfo *n_returnTypeInfo) {
-      setCodeInfo(n_parse_code, n_returnTypeInfo, parse_code, returnTypeInfo);
+      parseSetCodeInfo(n_parse_code, n_returnTypeInfo, parse_code, returnTypeInfo);
    }
    DLLLOCAL ~ParseCodeInfoHelper() {
-      restoreCodeInfo(parse_code, returnTypeInfo);
+      parseRestoreCodeInfo(parse_code, returnTypeInfo);
    }
 };
 

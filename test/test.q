@@ -1299,6 +1299,9 @@ class Test inherits Socket {
 	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
 	};
     }
+    argTest() returns any {
+        return $argv;
+    }
 }
 
 sub class_test_Program() {
@@ -1443,6 +1446,13 @@ sub class_library_tests() {
     test_value($c(2), "gee-1-2-2", "first object closure");
     test_value($c(2), "gee-1-2-3", "second object closure");
     test_value($t.t.x, 1, "memberNotification() method");
+
+    # test callObjectMethod*()
+    test_value(callObjectMethod($t1, "argTest", 1, 2), (1, 2), "callObjectMethod()");
+    test_value(callObjectMethodArgs($t1, "argTest"), NOTHING, "callObjectMethod()");
+    test_value(callObjectMethodArgs($t1, "argTest", 1, 2), list(1), "callObjectMethod()");
+    test_value(callObjectMethodArgs($t1, "argTest", (1, 2)), (1, 2), "callObjectMethod()");
+
     class_test_File();
     class_test_Program();
     class_test_SSLCertificate();

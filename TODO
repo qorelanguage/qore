@@ -1,3 +1,4 @@
+* add warning about supplying extra arguments
 * implement optimization for method calls (save method and compare class at runtime)
 * add function information to parse exceptions (parse_code)
 * do not allow access to QC_NOOP code if 'require-types' is set

@@ -843,7 +843,7 @@ const char *get_parse_code() {
    return (thread_data.get())->parse_code;
 }
 
-void setCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, const char *&old_code, const QoreTypeInfo *&old_returnTypeInfo) {
+void parseSetCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, const char *&old_code, const QoreTypeInfo *&old_returnTypeInfo) {
    ThreadData *td = thread_data.get();
    old_code = td->parse_code;
    old_returnTypeInfo = td->returnTypeInfo;
@@ -851,7 +851,7 @@ void setCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, con
    td->returnTypeInfo = returnTypeInfo;
 }
 
-void restoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo) {
+void parseRestoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo) {
    ThreadData *td = thread_data.get();
    td->parse_code = parse_code;
    td->returnTypeInfo = returnTypeInfo;
@@ -859,6 +859,13 @@ void restoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo)
 
 const QoreTypeInfo *getReturnTypeInfo() {
    return (thread_data.get())->returnTypeInfo;
+}
+
+const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo) {
+   ThreadData *td  = thread_data.get();
+   const QoreTypeInfo *rv = td->returnTypeInfo;
+   td->returnTypeInfo = returnTypeInfo;
+   return rv;
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {

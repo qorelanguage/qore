@@ -2077,6 +2077,7 @@ AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExte
       return 0;
 
    ceh.setCallType(variant->getCallType());
+   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    return METHV_const(variant)->evalNormalMethod(self, ceh.getArgs(), xsink);      
 }
@@ -3160,6 +3161,7 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
 
    qore_call_t ct = variant->getCallType();
    ceh.setCallType(ct);
+   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    CONMV_const(variant)->evalConstructor(thisclass, self, ceh, bcl, bceal, xsink);      
 }
@@ -3207,6 +3209,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
       return 0;
 
    ceh.setCallType(variant->getCallType());
+   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    return METHV_const(variant)->evalNormalMethod(self, ceh.getArgs(), xsink);      
 }
@@ -3230,6 +3233,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
       return 0;
 
    ceh.setCallType(variant->getCallType());
+   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    return METHV_const(variant)->evalStaticMethod(ceh.getArgs(), xsink);      
 }

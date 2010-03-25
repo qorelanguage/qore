@@ -243,7 +243,7 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
       selfid = push_local_var("self", classTypeInfo, false);
    
    // push $argv var on stack and save id
-   argvid = push_local_var("argv", listTypeInfo, false);
+   argvid = push_local_var("argv", 0, false);
    printd(5, "UserSignature::parseInitPushLocalVars() this=%p argvid=%p\n", this, argvid);
 
    resolve();
@@ -814,6 +814,7 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
       return 0;
 
    ceh.setCallType(variant->getCallType());
+   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    return variant->evalFunction(fname, ceh.getArgs(), xsink);
 }
@@ -834,6 +835,7 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
       return 0;
 
    ceh.setCallType(variant->getCallType());
+   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    return variant->evalFunction(fname, ceh.getArgs(), xsink);
 }
@@ -916,7 +918,7 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	 signature.lv[i]->instantiate(n);
 
       // the above if block will only instantiate the local variable if no
-      // exceptions have occurred. therefore here we cleanup the rest
+      // exceptions have occured. therefore here we cleanup the rest
       // of any already instantiated local variables if an exception does occur
       if (*xsink) {
 	 if (n) n->deref(xsink);
@@ -1313,6 +1315,8 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
    CodeEvaluationHelper ceh(xsink, "<anonymous closure>", args, 0, CT_USER);
    if (ceh.processDefaultArgs(variant, xsink))
       return 0;
+
+   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    //printd(0, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
 

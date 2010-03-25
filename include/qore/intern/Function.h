@@ -363,20 +363,26 @@ protected:
    const char *class_name, *o_fn;
    int o_ln, o_eln;
    QoreListNodeEvalOptionalRefHolder tmp;
-   
+   const QoreTypeInfo *returnTypeInfo; // saved return type info
+
 public:
    // saves current program location in case there's an exception
    DLLLOCAL CodeEvaluationHelper(ExceptionSink *n_xsink, const char *n_name, const QoreListNode *args = 0, const char *n_class_name = 0, qore_call_t n_ct = CT_UNUSED)
-      : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), tmp(n_xsink) {
+      : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo *)-1) {
       o_fn = get_pgm_counter(o_ln, o_eln);
       tmp.assignEval(args);
       // reset program position if arguments were evaluated
       if (tmp.needsDeref())
-	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);   
+	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);      
    }
    DLLLOCAL ~CodeEvaluationHelper() {
+      if (returnTypeInfo != (const QoreTypeInfo *)-1)
+         saveReturnTypeInfo(returnTypeInfo);
       if (ct != CT_UNUSED && xsink->isException())
 	 xsink->addStackInfo(ct, class_name, name, o_fn, o_ln, o_eln);
+   }
+   DLLLOCAL void setReturnTypeInfo(const QoreTypeInfo *n_returnTypeInfo) {
+      returnTypeInfo = saveReturnTypeInfo(n_returnTypeInfo);
    }
    DLLLOCAL void setClassName(const char *n_class_name) {
       class_name = n_class_name;

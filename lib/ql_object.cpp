@@ -24,98 +24,70 @@
 #include <qore/intern/ql_object.h>
 
 // returns a list of method names for the object passed as a parameter
-static AbstractQoreNode *f_getMethodList(const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreObject *p0 = test_object_param(params, 0);
-   if (!p0)
-      return 0;
-   
+static AbstractQoreNode *f_getMethodList(const QoreListNode *args, ExceptionSink *xsink) {
+   QoreObject *p0 = HARD_QORE_OBJECT(args, 0);
    return p0->getClass()->getMethodList();
 }
 
-static AbstractQoreNode *f_callObjectMethod(const QoreListNode *params, ExceptionSink *xsink)
-{
-   // get object
-   QoreObject *p0 = test_object_param(params, 0);
-   if (!p0)
-      return 0;
-   
-   // get method name
-   const QoreStringNode *p1 = test_string_param(params, 1);
-   if (!p1)
-      return 0;
-   
-   ReferenceHolder<QoreListNode> args(xsink);
+static AbstractQoreNode *f_callObjectMethod(const QoreListNode *args, ExceptionSink *xsink) {
+   QoreObject *p0 = HARD_QORE_OBJECT(args, 0);
+   const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
+
+   ReferenceHolder<QoreListNode> call_args(xsink);
    
    // if there are arguments to pass
-   if (get_param(params, 2)) {
+   if (num_args(args) > 2) {
       // create argument list by copying current list
-      ReferenceHolder<QoreListNode> l(params->copyListFrom(2), xsink);
-      if (*xsink)
-	 return 0;
-      args = l.release();
+      call_args = args->copyListFrom(2);
    }
 
    // make sure method call is internal (allows access to private methods) if this function was called internally
    CodeContextHelper cch(0, p0, xsink);
-   return p0->evalMethod(p1, *args, xsink);
+   return p0->evalMethod(p1, *call_args, xsink);
 }
 
-static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, ExceptionSink *xsink) {
-   // get object
-   QoreObject *p0 = test_object_param(params, 0);
-   if (!p0)
-      return 0;
-   
-   // get method name
-   const QoreStringNode *p1 = test_string_param(params, 1);
-   if (!p1)
-      return 0;
+static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *args, ExceptionSink *xsink) {
+   QoreObject *p0 = HARD_QORE_OBJECT(args, 0);
+   const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
 
-   ReferenceHolder<QoreListNode> args(xsink);
-   const AbstractQoreNode *p2;
+   CodeContextHelper cch(0, p0, xsink);
+   return p0->evalMethod(p1, 0, xsink);
+}
 
-   // we do some dangerous playing with reference counts here to avoid potentially 
-   // costly atomic operations
-   bool new_args = false;
-   bool targs = false;
-   // if there are arguments to pass
-   if ((p2 = get_param(params, 2))) {
-      args = p2 && p2->getType() == NT_LIST ? const_cast<QoreListNode*>(reinterpret_cast<const QoreListNode *>(p2)) : 0;
-      // if we are using the list as the argument list, then set targs = true
-      // to ensure that it won't be dereferenced at the end; instead we will
-      // reuse the reference count for call to the method
-      if (args)
-	 targs = true;
-      else {
-	 args = new QoreListNode();
-	 args->push(const_cast<AbstractQoreNode *>(p2));
-	 // set new_args = true because we are reusing the reference count of p2
-	 // for the argument list; true means do not dereference
-	 new_args = true;
-      }
-   }
+static AbstractQoreNode *f_callObjectMethodArgs_something(const QoreListNode *args, ExceptionSink *xsink) {
+   QoreObject *p0 = HARD_QORE_OBJECT(args, 0);
+   const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
    
-   // make sure method call is internal (allows access to private methods) if this function was called internally
-   AbstractQoreNode *rv;
-   {
-      CodeContextHelper cch(0, p0, xsink);
-      rv = p0->evalMethod(p1, *args, xsink);
-   }
+   const AbstractQoreNode *p2 = get_param(args, 2);
+   assert(p2);
 
-   // remove value (and borrowed reference) from list if necessary
-   if (new_args)
-      args->shift();
-   else if (targs)
-      args.release();
-   
-   return rv;
+   ReferenceHolder<QoreListNode> call_args(new QoreListNode, xsink);
+   call_args->push(p2->refSelf());
+
+   CodeContextHelper cch(0, p0, xsink);
+   return p0->evalMethod(p1, *call_args, xsink);
+}
+
+static AbstractQoreNode *f_callObjectMethodArgs_list(const QoreListNode *args, ExceptionSink *xsink) {
+   QoreObject *p0 = HARD_QORE_OBJECT(args, 0);
+   const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
+   const QoreListNode *call_args = HARD_QORE_LIST(args, 2);
+
+   CodeContextHelper cch(0, p0, xsink);
+   return p0->evalMethod(p1, call_args, xsink);
 }
 
 void init_object_functions() {
    QORE_TRACE("init_object_functions()");
    
-   builtinFunctions.add("getMethodList", f_getMethodList);
-   builtinFunctions.add("callObjectMethod", f_callObjectMethod);
-   builtinFunctions.add("callObjectMethodArgs", f_callObjectMethodArgs);
+   builtinFunctions.add2("getMethodList", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getMethodList", f_getMethodList, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, objectTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("callObjectMethod", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("callObjectMethod", f_callObjectMethod, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 2, objectTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("callObjectMethodArgs", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("callObjectMethodArgs", f_callObjectMethodArgs, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, objectTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("callObjectMethodArgs", f_callObjectMethodArgs_something, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, objectTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("callObjectMethodArgs", f_callObjectMethodArgs_list, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, objectTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 }

@@ -262,6 +262,18 @@ static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
 // returns an int64 from a hard typed int param
 #define HARD_QORE_FLOAT(list, i) get_hard_param<const QoreFloatNode>(list, i)->f
 
+// returns a QoreStringNode *
+#define HARD_QORE_STRING(list, i) get_hard_param<const QoreStringNode>(list, i)
+
+// returns a BinaryNode *
+#define HARD_QORE_BINARY(list, i) get_hard_param<const BinaryNode>(list, i)
+
+// returns a QoreListNode *
+#define HARD_QORE_LIST(list, i) get_hard_param<const QoreListNode>(list, i)
+
+// returns a QoreObject *
+#define HARD_QORE_OBJECT(list, i) const_cast<QoreObject *>(get_hard_param<const QoreObject>(list, i))
+
 // returns an object pointer
 #define HARD_QORE_OBJ_PARAM(name, Type, list, i, cid, xsink) HARD_QORE_PARAM(obj_##name, const QoreObject, list, i); Type *name = reinterpret_cast<Type *>(obj_##name->getReferencedPrivateData(cid, xsink)); assert(name || *xsink)
 
