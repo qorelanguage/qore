@@ -56,58 +56,56 @@ static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink
 }
 
 static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink) {
-   QoreListNode *l = new QoreListNode();
+   QoreListNode *l;
    if (num_params(params) > 1)
-      l->push(params->eval(xsink));
+      l = params->copy();
    else {
+      l = new QoreListNode;
       const AbstractQoreNode *p0 = get_param(params, 0);
-      if (!is_nothing(p0))
-	 l->push(p0->eval(xsink));
+      if (p0)
+	 l->push(p0->refSelf());
    }
    return l;
 }
 
-static AbstractQoreNode *f_hash(const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   qore_type_t t = p ? p->getType() : NT_NOTHING;
-   if (t == NT_OBJECT) {
-      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
-      return o->getRuntimeMemberHash(xsink);
-   }
+static AbstractQoreNode *f_hash_obj(const QoreListNode *params, ExceptionSink *xsink) {
+   return HARD_QORE_OBJECT(params, 0)->getRuntimeMemberHash(xsink);
+}
+
+static AbstractQoreNode *f_hash_list(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreListNode *l = HARD_QORE_LIST(params, 0);
 
    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
 
-   if (t == NT_LIST) {
-      ConstListIterator li(reinterpret_cast<const QoreListNode *>(p));
-      while (li.next()) {
-	 QoreStringValueHelper str(li.getValue());
-	 h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
-	 if (*xsink)
-	    return 0;
-      }
+   ConstListIterator li(l);
+   while (li.next()) {
+      QoreStringValueHelper str(li.getValue());
+      h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
+      if (*xsink)
+	 return 0;
    }
    return h.release();
 }
 
+static AbstractQoreNode *f_hash(const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreHashNode;
+}
+
 static AbstractQoreNode *f_type(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (!p)
-      return new QoreStringNode("nothing");
-   return new QoreStringNode(p->getTypeName());
+   return new QoreStringNode(p ? p->getTypeName() : "nothing");
 }
 
 static AbstractQoreNode *f_binary_to_string(const QoreListNode *params, ExceptionSink *xsink) {
-   const BinaryNode *b = test_binary_param(params, 0);
-   if (!b) {
-      xsink->raiseException("BIANRY-TO-STRING-ERROR", "missing required binary value as first argument to binary_to_string()");
-      return 0;
-   }
+   const BinaryNode *b = HARD_QORE_BINARY(params, 0);
+   if (!b->size())
+      return new QoreStringNode;
+   return new QoreStringNode((const char *)b->getPtr(), b->size());
+}
 
-   const QoreEncoding *qcs;
-   {
-      const QoreStringNode *pcs;
-      qcs = (pcs = test_string_param(params, 1)) ? QEM.findCreate(pcs) : QCS_DEFAULT;
-   }
+static AbstractQoreNode *f_binary_to_string_bin_str(const QoreListNode *params, ExceptionSink *xsink) {
+   const BinaryNode *b = HARD_QORE_BINARY(params, 0);
+   const QoreEncoding *qcs = get_hard_qore_encoding_param(params, 1);
 
    if (!b->size())
       return new QoreStringNode(qcs);
@@ -142,11 +140,15 @@ void init_type_functions() {
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("list", f_list);
+   builtinFunctions.add2("list", f_list, QC_CONSTANT | QC_USES_EXTRA_ARGS, QDOM_DEFAULT, listTypeInfo);
 
-   builtinFunctions.add("hash", f_hash);
+   builtinFunctions.add2("hash", f_hash, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo);
+   builtinFunctions.add2("hash", f_hash_list, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hash", f_hash_obj, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, objectTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add("type", f_type);
-   builtinFunctions.add("typename", f_type);
-   builtinFunctions.add("binary_to_string", f_binary_to_string);
+   builtinFunctions.add2("type", f_type, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("typename", f_type, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("binary_to_string", f_binary_to_string, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("binary_to_string", f_binary_to_string_bin_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 }

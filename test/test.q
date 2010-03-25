@@ -19,7 +19,7 @@ our Test $ro = new Test("readonly");
 our (hash $o, int $errors);
 our hash $thash;
 
-sub get_program_name() {
+sub get_program_name() returns string {
     my list $l = split("/", $ENV."_");
     return $l[elements $l - 1];
 }

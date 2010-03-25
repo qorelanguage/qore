@@ -25,7 +25,7 @@
 
 #include <vector>
 
-int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func) {
+int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
    // number of local variables declared in arguments
    int lvids = 0;
 
@@ -77,6 +77,8 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
       parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
       return 0;
    }
+
+   returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : (func ? func->parseGetUniqueReturnTypeInfo() : 0);
 
    return lvids;
 }
@@ -149,14 +151,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
    else
       func = getParseClass()->parseResolveSelfMethod(ns);
 
-   lvids += parseArgsFindVariant(oflag, pflag, func ? func->getFunction() : 0);
-
-   if (variant)
-      returnTypeInfo = variant->getReturnTypeInfo();
-   else if (func)
-      returnTypeInfo = func->getUniqueReturnTypeInfo();
-   else
-      returnTypeInfo = 0;
+   lvids += parseArgsFindVariant(oflag, pflag, func ? func->getFunction() : 0, returnTypeInfo);
 
    if (func) {
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved '%s' to %p\n", this, func->getName(), func);
@@ -244,13 +239,7 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
    if (!func)
       return this;
 
-   lvids += parseArgsFindVariant(oflag, pflag, const_cast<AbstractQoreFunction *>(func));
-
-   // check variant functionality
-   if (variant)
-      returnTypeInfo = variant->parseGetReturnTypeInfo();
-   else
-      returnTypeInfo = func->parseGetUniqueReturnTypeInfo();
+   lvids += parseArgsFindVariant(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
 
    return this;
 }
@@ -271,13 +260,13 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
    else assert(oc);
 #endif
 
+   const QoreMethod *constructor = oc ? oc->parseGetConstructor() : 0;
+   lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
+
    if (oc) {
       typeInfo = oc->getTypeInfo();
       desc.sprintf("new %s", oc->getName());
    }
-
-   const QoreMethod *constructor = oc ? oc->parseGetConstructor() : 0;
-   lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0);
 
    //printd(5, "ScopedObjectCallNode::parseInit() this=%p constructor=%p variant=%p\n", this, constructor, variant);
 

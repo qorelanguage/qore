@@ -1300,11 +1300,11 @@ void BCANode::parseInit(BCList *bcl, const char *classname) {
       // find constructor variant
       const QoreMethod *m = sclass->getConstructor();
       int lvids = 0;
+      const QoreTypeInfo *argTypeInfo;	 
       if (m) {
-	 lvids = parseArgsFindVariant(0, 0, m->getFunction());
+	 lvids = parseArgsFindVariant(0, 0, m->getFunction(), argTypeInfo);
       }
       else {
-	 const QoreTypeInfo *argTypeInfo;	 
 	 if (args)
 	    args = args->parseInitList(0, PF_REFERENCE_OK, lvids, argTypeInfo);
       }

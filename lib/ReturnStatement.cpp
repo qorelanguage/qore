@@ -70,7 +70,7 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 	 QoreStringNode *desc = new QoreStringNode;
 	 desc->sprintf("the return statement for %s::%s() returns ", qc->getName(), fname);
 	 argTypeInfo->getThisType(*desc);
-	 desc->sprintf(", but %s methods may not return any value; this is only a warning when 'require-types' is not set on the Program object; to supress this warning, remove the expression from the return statement or use '%%disable-warning invalid-operation' in your code", fname);
+	 desc->sprintf(", but %s methods may not return any value; this is only a warning when 'require-types' is not set on the Program object; to suppress this warning, remove the expression from the return statement or use '%%disable-warning invalid-operation' in your code", fname);
 	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       }
       else {
@@ -80,6 +80,13 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 	 argTypeInfo->getThisType(*desc);
 	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
       }
+   }
+   else if (nothingTypeInfo->checkIdentical(returnTypeInfo) && exp && (!argTypeInfo->hasType() || !argTypeInfo->parseEqual(nothingTypeInfo))) {
+      const QoreClass *qc = getParseClass();
+      const char *fname = get_parse_code();
+      QoreStringNode *desc = new QoreStringNode;
+      desc->sprintf("the return statement for %s%s%s() has an expression whose type cannot be resolved at parse time, however the block does not allow any value to be resolved; if this expression resolves to a value a run-time error will result; to suppress this warning, move the expression in front of the return statement or use '%%disable-warning invalid-operation' in your code", qc ? qc->getName() : "", qc ? "::" : "", fname);
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
    return lvids;
 }

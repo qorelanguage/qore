@@ -3626,11 +3626,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
       parse_error("illegal call to private method %s::%s()", typeInfo->qc->getName(), meth);
 
    // check parameters, if any
-   lvids += mc->parseArgsFindVariant(oflag, pflag, m->getFunction());
-
-   const AbstractQoreFunctionVariant *variant = mc->getVariant();
-
-   returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : m->getFunction()->parseGetUniqueReturnTypeInfo();
+   lvids += mc->parseArgsFindVariant(oflag, pflag, m->getFunction(), returnTypeInfo);
 
    printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", typeInfo->qc->getName(), meth, m, m ? m->getClassName() : "n/a", meth, m && m->parseIsPrivate() ? "true" : "false", m->isStatic() ? "true" : "false", returnTypeInfo->getName());
 
@@ -4003,7 +3999,6 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
    return tree;
 }
 
-// FIXME: when multiple types can be returned, then return both
 static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
@@ -4023,6 +4018,8 @@ static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *of
       desc->concat(" and will always evaluate to False in a boolean context");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
+
+   returnTypeInfo = leftTypeInfo->checkIdentical(rightTypeInfo) ? leftTypeInfo : 0;
 
    return tree;
 }
