@@ -1,3 +1,9 @@
+2010.03.25: David Nichols
+	 * fixed non-thread-safe usage of getpwnam() in QC_Dir.cc (backported
+           from trunk/0.8.0)
+	 * fixed getpwnam() to use q_getgrnam() and correct a thread and
+	   functional error in QC_Dir.cc (backported from trunk)
+
 2010.03.23: David Nichols
 	 * added a QoreSocket::recvBinary() function to receive all data
 	   available on the socket (with an optional initial timeout value)

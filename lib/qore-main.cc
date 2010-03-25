@@ -49,8 +49,7 @@ int qore_library_options = QLO_NONE;
 
 qore_license_t qore_license;
 
-void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options)
-{
+void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;
 
    qore_library_options = n_qore_library_options;
@@ -66,7 +65,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // init threading infrastructure
    init_qore_threads();
 
-   initENV(environ);
+   init_lib_intern(environ);
 
    // initialize charset encoding support
    QEM.init(def_charset);

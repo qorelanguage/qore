@@ -24,8 +24,6 @@
 #include <qore/intern/QC_Dir.h>
 #include <qore/intern/QC_File.h>
 
-#include <sys/types.h>
-#include <pwd.h>
 #include <errno.h>
 
 qore_classid_t CID_DIR;
@@ -106,38 +104,38 @@ static AbstractQoreNode *DIR_chmod(QoreObject *self, class Dir *d, const QoreLis
 
 // chown(username|userid)
 static AbstractQoreNode *DIR_chown(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-  const AbstractQoreNode *p = get_param(params, 0);
-  int uid;
-  if (is_nothing(p)) {
-    xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "expecting username or userid as parameter of Dir::chown()");
-    return 0;
-  }
-
-  if (p->getType()==NT_INT) {
-    uid=p->getAsInt();
-  }
-  else if (p->getType()==NT_STRING) {
-    struct passwd *pwd=getpwnam(((QoreStringNode*)p)->getBuffer());   // Try getting UID for username
-    if (pwd == NULL) {
-      xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "no userid found for user '%s'", ((QoreStringNode*)p)->getBuffer());
+   const AbstractQoreNode *p = get_param(params, 0);
+   uid_t uid;
+   if (is_nothing(p)) {
+      xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "expecting username or userid as parameter of Dir::chown()");
       return 0;
-    }    
-    uid = pwd->pw_uid;
-  }
-  else {
-    xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "expecting username or userid as parameter of Dir::chown()");
-    return 0;
-  }
+   }
 
-  d->chown(uid, (gid_t)-1, xsink);
+   if (p->getType()==NT_INT) {
+      uid=p->getAsInt();
+   }
+   else if (p->getType()==NT_STRING) {
+      // Try getting UID for username
+      int rc = q_uname2uid(reinterpret_cast<const QoreStringNode *>(p)->getBuffer(), uid);
+      if (rc) {
+	 xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "no userid found for user '%s'", ((QoreStringNode*)p)->getBuffer());
+	 return 0;
+      }
+   }
+   else {
+      xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "expecting username or userid as parameter of Dir::chown()");
+      return 0;
+   }
 
-  return 0;
+   d->chown(uid, (gid_t)-1, xsink);
+
+   return 0;
 }
 
 // chgrp(groupname|groupid)
 static AbstractQoreNode *DIR_chgrp(QoreObject *self, class Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
   const AbstractQoreNode *p = get_param(params, 0);
-  int gid;
+  gid_t gid;
   if (is_nothing(p)) {
     xsink->raiseException("DIR-CHGRP-PARAMETER-ERROR", "expecting groupname or groupid as parameter of Dir::chgrp()");
     return 0;
@@ -147,12 +145,12 @@ static AbstractQoreNode *DIR_chgrp(QoreObject *self, class Dir *d, const QoreLis
     gid=p->getAsInt();
   }
   else if (p->getType()==NT_STRING) {
-    struct passwd *pwd=getpwnam(((QoreStringNode*)p)->getBuffer());   // Try getting GID for name
-    if (pwd == NULL) {
-      xsink->raiseException("DIR-CHGRP-PARAMETER-ERROR", "no groupid found for group '%s'", ((QoreStringNode*)p)->getBuffer());
-      return 0;
-    }    
-    gid = pwd->pw_gid;
+     // Try getting GID for name
+     int rc = q_gname2gid(reinterpret_cast<const QoreStringNode *>(p)->getBuffer(), gid);
+     if (rc) {
+	xsink->raiseException("DIR-CHGRP-PARAMETER-ERROR", "no groupid found for group '%s'", ((QoreStringNode*)p)->getBuffer());
+	return 0;
+     }
   }
   else {
     xsink->raiseException("DIR-CHGRP-PARAMETER-ERROR", "expecting groupname or groupid as parameter of Dir::chgrp()");
