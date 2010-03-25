@@ -402,8 +402,8 @@ public:
 };
 
 // type for lists of function variants
-//typedef safe_dslist<AbstractQoreFunctionVariant *> vlist_t;
-typedef std::vector<AbstractQoreFunctionVariant *> vlist_t;
+// this type will be read at runtime and could be appended to simultaneously at parse time (under a lock)
+typedef safe_dslist<AbstractQoreFunctionVariant *> vlist_t;
 
 class VList : public vlist_t {
 public:
@@ -415,12 +415,6 @@ public:
       for (vlist_t::iterator i = begin(), e = end(); i != e; ++i)
 	 (*i)->deref();
       clear();
-   }
-   bool singular() const {
-      return size() == 1;
-   }
-   bool plural() const {
-      return size() > 1;
    }
 };
 
@@ -492,7 +486,6 @@ public:
                                                                     parse_same_return_type(old.parse_same_return_type), 
                                                                     unique_functionality(old.unique_functionality) {      
       // copy variants by reference
-      vlist.reserve(old.vlist.size());
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
          vlist.push_back((*i)->ref());
 
