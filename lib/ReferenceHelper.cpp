@@ -97,7 +97,7 @@ struct qore_type_safe_ref_helper_priv_t {
    DLLLOCAL int assign(AbstractQoreNode *val, ExceptionSink *xsink) {
       assert(vp);
       if (typeInfo) {
-	 val = typeInfo->checkTypeInstantiation("<reference>", val, xsink);
+	 val = typeInfo->checkTypeInstantiation(-1, "<reference>", val, xsink);
 	 if (*xsink)
 	    return -1;
       }

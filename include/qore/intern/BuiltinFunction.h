@@ -59,7 +59,7 @@ public:
       return returnTypeInfo;
    }
    DLLLOCAL virtual const char *getName(unsigned i) const {
-      return "<builtin>";
+      return 0;
    }
 };
 

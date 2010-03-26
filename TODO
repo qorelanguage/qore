@@ -1,3 +1,4 @@
+* cover case when multiple types could be returned (? : operator, functions, etc)
 * add warning about supplying extra arguments
 * implement optimization for method calls (save method and compare class at runtime)
 * add function information to parse exceptions (parse_code)

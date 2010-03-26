@@ -30,33 +30,27 @@
 
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;
 
-DLLLOCAL class QoreClass *initAutoGateClass();
+DLLLOCAL QoreClass *initAutoGateClass(QoreClass *Gate);
 
-class QoreAutoGate : public AbstractPrivateData
-{
-   class QoreGate *g;
+class QoreAutoGate : public AbstractPrivateData {
+   QoreGate *g;
 
 public:
-   DLLLOCAL QoreAutoGate(class QoreGate *gt, class ExceptionSink *xsink)
-   {
+   DLLLOCAL QoreAutoGate(QoreGate *gt, ExceptionSink *xsink) {
       g = gt;
       g->grab(xsink);
    }
 
-   DLLLOCAL virtual void deref(class ExceptionSink *xsink) 
-   {
-      if (ROdereference())
-      {
+   DLLLOCAL virtual void deref(ExceptionSink *xsink) {
+      if (ROdereference()) {
 	 g->deref(xsink);
 	 delete this;
       }
    }
 
-   DLLLOCAL virtual void destructor(class ExceptionSink *xsink) 
-   {
+   DLLLOCAL virtual void destructor(ExceptionSink *xsink) {
       g->release(xsink);
    }
 };
-
 
 #endif

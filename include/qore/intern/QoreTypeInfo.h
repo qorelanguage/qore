@@ -104,16 +104,35 @@ public:
 
 class QoreTypeInfo : public AbstractQoreTypeInfo {
 protected:
-   DLLLOCAL int doTypeException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL static void ptext(QoreStringNode &str, int param_num, const char *param_name) {
+      if (!param_num && param_name && param_name[0] == '<') {
+         str.concat(param_name);
+         str.concat(' ');
+         return;
+      }
+      if (param_name && param_name[0] == '<') {
+         str.concat(param_name);
+         str.concat(' ');
+      }
+      str.concat("parameter ");
+      if (param_num) {
+         str.sprintf("%d ", param_num);
+         if (param_name && param_name[0] != '<')
+            str.sprintf("('$%s') ", param_name);
+      }
+      else
+         str.sprintf("'$%s' ", param_name);
+   }
+
+   DLLLOCAL int doTypeException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
       if (!xsink)
 	 return -1;
 
       QoreStringNode *desc = new QoreStringNode;
-      if (param_name)
-	 desc->sprintf("parameter '$%s' is ", param_name);
-      desc->concat("expecting ");
+      QoreTypeInfo::ptext(*desc, param_num, param_name);
+      desc->concat("expects ");
       getThisType(*desc);
       desc->concat(", but got ");
       getNodeType(*desc, n);
@@ -122,16 +141,15 @@ protected:
       return -1;
    }
 
-   DLLLOCAL int doPrivateClassException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL int doPrivateClassException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
       if (!xsink)
 	 return -1;
 
       QoreStringNode *desc = new QoreStringNode;
-      if (param_name)
-	 desc->sprintf("parameter '$%s' is ", param_name);
-      desc->concat("expecting ");
+      QoreTypeInfo::ptext(*desc, param_num, param_name);
+      desc->concat("expects ");
       getThisType(*desc);
       desc->concat(", but got an object where this class is privately inherited instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
@@ -141,8 +159,7 @@ protected:
    DLLLOCAL int doObjectTypeException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       assert(xsink);
       QoreStringNode *desc = new QoreStringNode;
-      desc->sprintf("member '$.%s' is ", param_name);
-      desc->concat("expecting ");
+      desc->sprintf("member '$.%s' expects ", param_name);
       getThisType(*desc);
       desc->concat(", but got ");
       getNodeType(*desc, n);
@@ -154,8 +171,7 @@ protected:
    DLLLOCAL int doObjectPrivateClassException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
       assert(xsink);
       QoreStringNode *desc = new QoreStringNode;
-      desc->sprintf("member '$.%s' is ", param_name);
-      desc->concat("expecting ");
+      desc->sprintf("member '$.%s' expects ", param_name);
       getThisType(*desc);
       desc->concat(", but got an object where this class is privately inherited instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
@@ -165,7 +181,7 @@ protected:
    // returns 0 = OK, -1 = error
    DLLLOCAL int checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_error) const;
 
-   DLLLOCAL AbstractQoreNode *checkTypeInstantiationIntern(bool obj, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode *checkTypeInstantiationIntern(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
       bool priv_error = false;
       if (!checkTypeInstantiationDefault(n, priv_error))
 	 return n;
@@ -176,11 +192,11 @@ protected:
 	    return n;
 	 if (priv_error) {
 	    if (obj) doObjectPrivateClassException(param_name, n, xsink);
-	    else doPrivateClassException(param_name, n, xsink);
+	    else doPrivateClassException(param_num + 1, param_name, n, xsink);
 	 }
 	 else {
 	    if (obj) doObjectTypeException(param_name, n, xsink);
-	    else doTypeException(param_name, n, xsink);
+	    else doTypeException(param_num + 1, param_name, n, xsink);
 	 }
       }
       return n;
@@ -268,18 +284,19 @@ public:
       return rc == QTI_NOT_EQUAL ? testTypeCompatibilityImpl(n) : rc;
    }
    
-   DLLLOCAL AbstractQoreNode *checkType(AbstractQoreNode *n, ExceptionSink *xsink) const {
-      return checkTypeInstantiation(0, n, xsink);
+   DLLLOCAL AbstractQoreNode *checkType(const char *text, AbstractQoreNode *n, ExceptionSink *xsink) const {
+      assert(text && text[0] == '<');
+      return checkTypeInstantiation(-1, text, n, xsink);
    }
 
-   DLLLOCAL AbstractQoreNode *checkTypeInstantiation(const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode *checkTypeInstantiation(int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
       if (!this) return n;
-      return checkTypeInstantiationIntern(false, param_name, n, xsink);
+      return checkTypeInstantiationIntern(false, param_num, param_name, n, xsink);
    }
 
    DLLLOCAL AbstractQoreNode *checkMemberTypeInstantiation(const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
       if (!this) return n;
-      return checkTypeInstantiationIntern(true, param_name, n, xsink);
+      return checkTypeInstantiationIntern(true, -1, param_name, n, xsink);
    }
 
    // used when parsing user code to find duplicate signatures after types are resolved

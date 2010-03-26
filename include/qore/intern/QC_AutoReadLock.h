@@ -30,33 +30,27 @@
 
 DLLEXPORT extern qore_classid_t CID_AUTOREADLOCK;
 
-DLLLOCAL class QoreClass *initAutoReadLockClass();
+DLLLOCAL QoreClass *initAutoReadLockClass(QoreClass *RWLock);
 
-class QoreAutoReadLock : public AbstractPrivateData
-{
-   class RWLock *rwl;
+class QoreAutoReadLock : public AbstractPrivateData {
+   RWLock *rwl;
 
 public:
-   DLLLOCAL QoreAutoReadLock(class RWLock *n_rwl, class ExceptionSink *xsink)
-   {
+   DLLLOCAL QoreAutoReadLock(RWLock *n_rwl, ExceptionSink *xsink) {
       rwl = n_rwl;
       rwl->readLock(xsink);
    }
 
-   DLLLOCAL virtual void deref(class ExceptionSink *xsink) 
-   {
-      if (ROdereference())
-      {
+   DLLLOCAL virtual void deref(ExceptionSink *xsink) {
+      if (ROdereference()) {
 	 rwl->deref(xsink);
 	 delete this;
       }
    }
 
-   DLLLOCAL virtual void destructor(class ExceptionSink *xsink) 
-   {
+   DLLLOCAL virtual void destructor(ExceptionSink *xsink) {
       rwl->readUnlock(xsink);
    }
 };
-
 
 #endif

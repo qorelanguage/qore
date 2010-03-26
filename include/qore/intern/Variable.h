@@ -249,7 +249,7 @@ public:
 
    DLLLOCAL int assign(AbstractQoreNode *val) {
       //printd(0, "LValueHelper::assign() this=%p val=%p (%s) typeInfo=%s calling checkType()\n", this, val, val ? val->getTypeName() : "NOTHING", typeInfo->getName());
-      val = typeInfo->checkType(val, xsink);
+      val = typeInfo->checkType("<lvalue>", val, xsink);
       if (*xsink) {
 	 discard(val, xsink);
 	 return -1;

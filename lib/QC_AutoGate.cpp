@@ -25,18 +25,12 @@
 
 qore_classid_t CID_AUTOGATE;
 
-static void AG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
-   QoreObject *p = test_object_param(params, 0);
-   QoreGate *g = p ? (QoreGate *)p->getReferencedPrivateData(CID_GATE, xsink) : 0;
+static void AG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_OBJ_PARAM(g, QoreGate, params, 0, CID_GATE, xsink);
    if (*xsink)
       return;
 
-   if (!g)
-   {
-      xsink->raiseException("AUTOGATE-CONSTRUCTOR-ERROR", "expecting Gate type as argument to constructor");
-      return;
-   }
+   assert(g);
 
    QoreAutoGate *ag = new QoreAutoGate(g, xsink);
    if (*xsink)
@@ -45,27 +39,23 @@ static void AG_constructor(QoreObject *self, const QoreListNode *params, Excepti
       self->setPrivate(CID_AUTOGATE, ag);
 }
 
-static void AG_destructor(QoreObject *self, class QoreAutoGate *ag, ExceptionSink *xsink)
-{
+static void AG_destructor(QoreObject *self, QoreAutoGate *ag, ExceptionSink *xsink) {
    ag->destructor(xsink);
    ag->deref(xsink);
 }
 
-static void AG_copy(QoreObject *self, QoreObject *old, class QoreAutoGate *m, ExceptionSink *xsink)
-{
+static void AG_copy(QoreObject *self, QoreObject *old, QoreAutoGate *m, ExceptionSink *xsink) {
    xsink->raiseException("AUTOGATE-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-class QoreClass *initAutoGateClass()
-{
+QoreClass *initAutoGateClass(QoreClass *Gate) {
    QORE_TRACE("initAutoGateClass()");
    
-   class QoreClass *QC_AutoGate = new QoreClass("AutoGate", QDOM_THREAD_CLASS);
+   QoreClass *QC_AutoGate = new QoreClass("AutoGate", QDOM_THREAD_CLASS);
    CID_AUTOGATE = QC_AutoGate->getID();
-   QC_AutoGate->setConstructor(AG_constructor);
+   QC_AutoGate->setConstructorExtended(AG_constructor, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, Gate->getTypeInfo(), QORE_PARAM_NO_ARG);
    QC_AutoGate->setDestructor((q_destructor_t)AG_destructor);
    QC_AutoGate->setCopy((q_copy_t)AG_copy);
    
-
    return QC_AutoGate;
 }

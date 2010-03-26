@@ -65,8 +65,8 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunctionVariant *
       else if (i < typeList.size()) {
 	 const AbstractQoreNode *n = tmp ? tmp->retrieve_entry(i) : 0;
 	 const QoreTypeInfo *paramTypeInfo = sig->getParamTypeInfo(i);
-	 // test for change
-	 if (paramTypeInfo->testTypeCompatibility(n) == QTI_AMBIGUOUS) {
+	 // test for change or incompatibility
+	 if (paramTypeInfo->testTypeCompatibility(n) != QTI_IDENT) {
 	    // edit the current argument list
 	    if (!edit_done) {
 	       tmp.edit();
@@ -74,7 +74,7 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunctionVariant *
 	    }
 
 	    AbstractQoreNode **p = const_cast<QoreListNode *>(*tmp)->get_entry_ptr(i);
-	    *p = paramTypeInfo->checkTypeInstantiation(sig->getName(i), *p, xsink);
+	    *p = paramTypeInfo->checkTypeInstantiation(i, sig->getName(i), *p, xsink);
 	    if (*xsink)
 	       return -1;
 	 }

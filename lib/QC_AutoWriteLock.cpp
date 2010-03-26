@@ -25,15 +25,13 @@
 
 qore_classid_t CID_AUTOWRITELOCK;
 
-static void AWL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
+static void AWL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    QoreObject *p = test_object_param(params, 0);
    RWLock *rwl = p ? (RWLock *)p->getReferencedPrivateData(CID_RWLOCK, xsink) : 0;
    if (*xsink)
       return;
 
-   if (!rwl)
-   {
+   if (!rwl) {
       xsink->raiseException("AUTOWRITELOCK-CONSTRUCTOR-ERROR", "expecting RWLock type as argument to constructor");
       return;
    }
@@ -45,27 +43,23 @@ static void AWL_constructor(QoreObject *self, const QoreListNode *params, Except
       self->setPrivate(CID_AUTOWRITELOCK, arwl);
 }
 
-static void AWL_destructor(QoreObject *self, class QoreAutoWriteLock *arwl, ExceptionSink *xsink)
-{
+static void AWL_destructor(QoreObject *self, QoreAutoWriteLock *arwl, ExceptionSink *xsink) {
    arwl->destructor(xsink);
    arwl->deref(xsink);
 }
 
-static void AWL_copy(QoreObject *self, QoreObject *old, class QoreAutoWriteLock *m, ExceptionSink *xsink)
-{
+static void AWL_copy(QoreObject *self, QoreObject *old, QoreAutoWriteLock *m, ExceptionSink *xsink) {
    xsink->raiseException("AUTOWRITELOCK-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-class QoreClass *initAutoWriteLockClass()
-{
+QoreClass *initAutoWriteLockClass(QoreClass *RWLock) {
    QORE_TRACE("initAutoWriteLockClass()");
    
-   class QoreClass *QC_AutoWriteLock = new QoreClass("AutoWriteLock", QDOM_THREAD_CLASS);
+   QoreClass *QC_AutoWriteLock = new QoreClass("AutoWriteLock", QDOM_THREAD_CLASS);
    CID_AUTOWRITELOCK = QC_AutoWriteLock->getID();
    QC_AutoWriteLock->setConstructor(AWL_constructor);
    QC_AutoWriteLock->setDestructor((q_destructor_t)AWL_destructor);
    QC_AutoWriteLock->setCopy((q_copy_t)AWL_copy);
-   
 
    return QC_AutoWriteLock;
 }
