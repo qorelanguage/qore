@@ -954,8 +954,11 @@ AbstractPrivateData *QoreObject::getAndClearPrivateData(qore_classid_t key, Exce
 }
 
 // add virtual IDs for private data to class list
-void QoreObject::addVirtualPrivateData(AbstractPrivateData *apd) {
-   BCSMList *sml = priv->theclass->getBCSMList();
+void QoreObject::addVirtualPrivateData(qore_classid_t key, AbstractPrivateData *apd) {
+   // first get parent class corresponding to "key"
+   QoreClass *qc = theclass->getClass(key);
+   assert(qc);
+   BCSMList *sml = qc->getBCSMList();
    if (!sml)
       return;
 
@@ -969,7 +972,7 @@ void QoreObject::setPrivate(qore_classid_t key, AbstractPrivateData *pd) {
    if (!priv->privateData)
       priv->privateData = new KeyList();
    priv->privateData->insert(key, pd);
-   addVirtualPrivateData(pd);
+   addVirtualPrivateData(key, pd);
 }
 
 void QoreObject::addPrivateDataToString(QoreString *str, ExceptionSink *xsink) const {

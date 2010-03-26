@@ -1,3 +1,7 @@
+2010.03.26: David Nichols
+	 * fixed adding virtual private data to classes with multiple virtual
+	   base classes (backported from trunk)
+
 2010.03.25: David Nichols
 	 * fixed non-thread-safe usage of getpwnam() in QC_Dir.cc (backported
            from trunk/0.8.0)
