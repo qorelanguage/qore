@@ -31,6 +31,6 @@
 
 DLLEXPORT extern qore_classid_t CID_MUTEX;
 
-DLLLOCAL QoreClass *initMutexClass();
+DLLLOCAL QoreClass *initMutexClass(QoreClass *AbstractSmartLock);
 
 #endif // _QORE_CLASS_MUTEX

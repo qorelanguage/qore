@@ -247,6 +247,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_XmlDoc.h \
 	include/qore/intern/QC_XmlNode.h \
 	include/qore/intern/QC_XmlReader.h \
+	include/qore/intern/QC_AbstractSmartLock.h \
 	command-line.h
 
 EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \

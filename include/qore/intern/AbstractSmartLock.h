@@ -32,57 +32,65 @@
 
 class VLock;
 
+class QoreCondition;
+
 class AbstractSmartLock : public AbstractThreadResource {
-   protected:
-      enum lock_status_e { Lock_Deleted = -2, Lock_Unlocked = -1 };
+protected:
+   enum lock_status_e { Lock_Deleted = -2, Lock_Unlocked = -1 };
    
-      VLock *vl;
-      int tid, waiting;
+   VLock *vl;
+   int tid, waiting;
+   cond_map_t cmap;       // map of condition variables to wait counts
 
-      virtual int releaseImpl() = 0;
-      virtual int releaseImpl(ExceptionSink *xsink) = 0;
-      virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0) = 0;
-      virtual int tryGrabImpl(int mtid, VLock *nvl) = 0;
+   virtual int releaseImpl() = 0;
+   virtual int releaseImpl(ExceptionSink *xsink) = 0;
+   virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0) = 0;
+   virtual int tryGrabImpl(int mtid, VLock *nvl) = 0;
 
-      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
-      DLLLOCAL virtual void signalAllImpl();
-      DLLLOCAL virtual void signalImpl();
-      DLLLOCAL virtual void cleanupImpl();
+   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
+   DLLLOCAL virtual void signalAllImpl();
+   DLLLOCAL virtual void signalImpl();
+   DLLLOCAL virtual void cleanupImpl();
 
-      DLLLOCAL void mark_and_push(int mtid, VLock *nvl);
-      DLLLOCAL void release_and_signal();
-      DLLLOCAL void grab_intern(int mtid, VLock *nvl);
-      DLLLOCAL void release_intern();
-      DLLLOCAL int verify_wait_unlocked(int mtid, ExceptionSink *xsink);
+   DLLLOCAL void mark_and_push(int mtid, VLock *nvl);
+   DLLLOCAL void release_and_signal();
+   DLLLOCAL void grab_intern(int mtid, VLock *nvl);
+   DLLLOCAL void release_intern();
+   DLLLOCAL int verify_wait_unlocked(int mtid, ExceptionSink *xsink);
 
-   public:
-      QoreThreadLock asl_lock;
-      QoreCondition asl_cond;
+public:
+   mutable QoreThreadLock asl_lock;
+   QoreCondition asl_cond;
 
-      DLLLOCAL AbstractSmartLock() : vl(NULL), tid(-1), waiting(0)  {}
-      DLLLOCAL virtual ~AbstractSmartLock() {}
-      DLLLOCAL void destructor(ExceptionSink *xsink);
-      DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
+   DLLLOCAL AbstractSmartLock() : vl(NULL), tid(-1), waiting(0)  {}
+   DLLLOCAL virtual ~AbstractSmartLock() {}
+   DLLLOCAL void destructor(ExceptionSink *xsink);
+   DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
 
-      DLLLOCAL int grab(ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL int tryGrab();
-      DLLLOCAL int release();
-      DLLLOCAL int release(ExceptionSink *xsink);
+   DLLLOCAL int grab(ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL int tryGrab();
+   DLLLOCAL int release();
+   DLLLOCAL int release(ExceptionSink *xsink);
 
-      DLLLOCAL int self_wait(int timeout_ms) { 
-	 return timeout_ms ? asl_cond.wait(&asl_lock, timeout_ms) : asl_cond.wait(&asl_lock); 
-      }
+   DLLLOCAL int self_wait(int timeout_ms) { 
+      return timeout_ms ? asl_cond.wait(&asl_lock, timeout_ms) : asl_cond.wait(&asl_lock); 
+   }
 
-      DLLLOCAL int self_wait(QoreCondition *cond, int timeout_ms = 0) { 
-	 return timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock); 
-      }
+   DLLLOCAL int self_wait(QoreCondition *cond, int timeout_ms = 0) { 
+      return timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock); 
+   }
 
-      DLLLOCAL int extern_wait(QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL int extern_wait(QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
 
-      DLLLOCAL int get_tid() const { return tid; }
-      DLLLOCAL int get_waiting() const { return waiting; }
-      DLLLOCAL virtual const char *getName() const = 0;
+   DLLLOCAL int get_tid() const { return tid; }
+   DLLLOCAL int get_waiting() const { return waiting; }
+   DLLLOCAL virtual const char *getName() const = 0;
+   DLLLOCAL int cond_count(QoreCondition *cond) const {
+      AutoLocker al(&asl_lock);
+      cond_map_t::const_iterator i = cmap.find(cond);
+      return i != cmap.end() ? i->second : 0;
+   }
 };
 
 #endif

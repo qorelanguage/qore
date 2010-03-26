@@ -162,6 +162,7 @@
 #include "QC_XmlDoc.cpp"
 #include "QC_XmlNode.cpp"
 #include "QC_XmlReader.cpp"
+#include "QC_AbstractSmartLock.cpp"
 #include "minitest.cpp"
 //#include "inline_printf.cpp"
 //#include "QException.h"

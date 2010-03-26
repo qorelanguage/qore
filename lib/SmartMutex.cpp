@@ -26,37 +26,31 @@
 #include <assert.h>
 
 #ifdef DEBUG
-SmartMutex::~SmartMutex()
-{
+SmartMutex::~SmartMutex() {
    assert(cmap.empty());
 }
 #endif
 
-int SmartMutex::releaseImpl()
-{
+int SmartMutex::releaseImpl() {
    if (tid < 0)
       return -1;
    return 0;
 }
 
-int SmartMutex::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms)
-{
-   if (tid == mtid)
-   {
+int SmartMutex::grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms) {
+   if (tid == mtid) {
       // getName() for possible inheritance
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::lock() twice without an intervening %s::unlock()", tid, getName(), getName());
       return -1;
    }
-   while (tid >= 0)
-   {
+   while (tid >= 0) {
       waiting++;
       int rc =  nvl->waitOn((AbstractSmartLock *)this, vl, xsink, timeout_ms);
       waiting--;
       if (rc)
 	 return -1;
    }
-   if (tid == Lock_Deleted)
-   {
+   if (tid == Lock_Deleted) {
       // getName() for possible inheritance
       xsink->raiseException("LOCK-ERROR", "%s has been deleted in another thread", getName());
       return -1;
@@ -79,13 +73,13 @@ int SmartMutex::releaseImpl(ExceptionSink *xsink) {
    return 0;
 }
 
-int SmartMutex::tryGrabImpl(int mtid, class VLock *nvl) {
+int SmartMutex::tryGrabImpl(int mtid, VLock *nvl) {
    if (tid != Lock_Unlocked)
       return -1;
    return 0;
 }
 
-int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
+int SmartMutex::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms) {
    // make sure this TID owns the lock
    if (verify_wait_unlocked(mtid, xsink))
       return -1;
@@ -98,7 +92,7 @@ int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSin
       ++(i->second);
 
    // save vlock
-   class VLock *nvl = vl;
+   VLock *nvl = vl;
 
    // release lock
    release_intern();
@@ -118,11 +112,9 @@ int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSin
    return rc;
 }
 
-void SmartMutex::destructorImpl(ExceptionSink *xsink)
-{
+void SmartMutex::destructorImpl(ExceptionSink *xsink) {
    cond_map_t::iterator i = cmap.begin(), e = cmap.end();
-   if (i != e)
-   {
+   if (i != e) {
       xsink->raiseException("LOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it",
 			    getName(), gettid());
       // wake up all condition variables waiting on this mutex
@@ -131,19 +123,7 @@ void SmartMutex::destructorImpl(ExceptionSink *xsink)
    }
 }
 
-bool SmartMutex::owns_lock()
-{
+bool SmartMutex::owns_lock() {
    AutoLocker al(&asl_lock);
    return tid == gettid() ? true : false;
-}
-
-// returns how many condition variables are waiting on this mutex
-int SmartMutex::cond_count(class QoreCondition *cond)
-{
-   AutoLocker al(&asl_lock);
-
-   cond_map_t::iterator i = cmap.find(cond);
-   if (i != cmap.end())
-      return i->second;
-   return 0;
 }

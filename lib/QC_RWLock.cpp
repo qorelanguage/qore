@@ -25,29 +25,24 @@
 
 qore_classid_t CID_RWLOCK;
 
-static void RWLOCK_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
+static void RWLOCK_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    self->setPrivate(CID_RWLOCK, new RWLock());
 }
 
-static void RWLOCK_destructor(QoreObject *self, class RWLock *rwl, ExceptionSink *xsink)
-{
+static void RWLOCK_destructor(QoreObject *self, RWLock *rwl, ExceptionSink *xsink) {
    rwl->destructor(xsink);
    rwl->deref(xsink);
 }
 
-static void RWLOCK_copy(QoreObject *self, QoreObject *old, class RWLock *rwl, ExceptionSink *xsink)
-{
+static void RWLOCK_copy(QoreObject *self, QoreObject *old, RWLock *rwl, ExceptionSink *xsink) {
    self->setPrivate(CID_RWLOCK, new RWLock());
 }
 
-static AbstractQoreNode *RWLOCK_readLock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_readLock(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
 
    int rc;
-   if (!is_nothing(p))
-   {
+   if (!is_nothing(p)) {
       int timeout_ms = getMsZeroInt(p);
       rc = rwl->readLock(xsink, timeout_ms);
    }
@@ -60,19 +55,16 @@ static AbstractQoreNode *RWLOCK_readLock(QoreObject *self, class RWLock *rwl, co
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *RWLOCK_readUnlock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_readUnlock(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    rwl->readUnlock(xsink);
    return 0;
 }
 
-static AbstractQoreNode *RWLOCK_writeLock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_writeLock(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
 
    int rc;
-   if (!is_nothing(p))
-   {
+   if (!is_nothing(p)) {
       int timeout_ms = getMsZeroInt(p);
       rc = rwl->grab(xsink, timeout_ms);
    }
@@ -85,43 +77,39 @@ static AbstractQoreNode *RWLOCK_writeLock(QoreObject *self, class RWLock *rwl, c
    return new QoreBigIntNode(rc);
 }
 
-static AbstractQoreNode *RWLOCK_writeUnlock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_writeUnlock(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    rwl->release(xsink);
    return 0;
 }
 
-static AbstractQoreNode *RWLOCK_tryReadLock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_tryReadLock(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(rwl->tryReadLock());
 }
 
-static AbstractQoreNode *RWLOCK_tryWriteLock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_tryWriteLock(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(rwl->tryGrab());
 }
 
-static AbstractQoreNode *RWLOCK_numReaders(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_numReaders(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(rwl->numReaders());
 }
 
-static AbstractQoreNode *RWLOCK_getReadWaiting(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_getReadWaiting(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(rwl->getReadWaiting());
 }
 
-static AbstractQoreNode *RWLOCK_getWriteWaiting(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *RWLOCK_getWriteWaiting(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(rwl->getWriteWaiting());
 }
 
-class QoreClass *initRWLockClass()
-{
+QoreClass *initRWLockClass(QoreClass *AbstractSmartLock) {
    QORE_TRACE("initRWLockClass()");
 
-   class QoreClass *QC_RWLOCK = new QoreClass("RWLock", QDOM_THREAD_CLASS);
+   QoreClass *QC_RWLOCK = new QoreClass("RWLock", QDOM_THREAD_CLASS);
    CID_RWLOCK = QC_RWLOCK->getID();
+
+   QC_RWLOCK->addBuiltinVirtualBaseClass(AbstractSmartLock);
+
    QC_RWLOCK->setConstructor(RWLOCK_constructor);
    QC_RWLOCK->setDestructor((q_destructor_t)RWLOCK_destructor);
    QC_RWLOCK->setCopy((q_copy_t)RWLOCK_copy);
@@ -134,7 +122,6 @@ class QoreClass *initRWLockClass()
    QC_RWLOCK->addMethod("numReaders",      (q_method_t)RWLOCK_numReaders);
    QC_RWLOCK->addMethod("getReadWaiting",  (q_method_t)RWLOCK_getReadWaiting);
    QC_RWLOCK->addMethod("getWriteWaiting", (q_method_t)RWLOCK_getWriteWaiting);
-
 
    return QC_RWLOCK;
 }

@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QC_Mutex.h>
-#include <qore/intern/QC_Condition.h>
 
 qore_classid_t CID_MUTEX;
 
@@ -30,7 +29,7 @@ static void MUTEX_constructor(QoreObject *self, const QoreListNode *params, Exce
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static void MUTEX_destructor(QoreObject *self, class SmartMutex *m, ExceptionSink *xsink) {
+static void MUTEX_destructor(QoreObject *self, SmartMutex *m, ExceptionSink *xsink) {
    m->destructor(xsink);
    m->deref(xsink);
 }
@@ -39,7 +38,7 @@ static void MUTEX_copy(QoreObject *self, QoreObject *old, SmartMutex *m, Excepti
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static AbstractQoreNode *MUTEX_lock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *MUTEX_lock(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
    // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
    if (!is_nothing(p)) {
@@ -53,20 +52,23 @@ static AbstractQoreNode *MUTEX_lock(QoreObject *self, class SmartMutex *m, const
    return 0;
 }
 
-static AbstractQoreNode *MUTEX_trylock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *MUTEX_trylock(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(m->tryGrab()); 
 }
 
-static AbstractQoreNode *MUTEX_unlock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *MUTEX_unlock(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
    m->release(xsink);
    return 0;
 }
 
-QoreClass *initMutexClass() {
+QoreClass *initMutexClass(QoreClass *AbstractSmartLock) {
    QORE_TRACE("initMutexClass()");
 
    QoreClass *QC_MUTEX = new QoreClass("Mutex", QDOM_THREAD_CLASS);
    CID_MUTEX = QC_MUTEX->getID();
+
+   QC_MUTEX->addBuiltinVirtualBaseClass(AbstractSmartLock);
+
    QC_MUTEX->setConstructor(MUTEX_constructor);
    QC_MUTEX->setDestructor((q_destructor_t)MUTEX_destructor);
    QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);

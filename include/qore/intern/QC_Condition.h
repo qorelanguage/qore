@@ -30,34 +30,33 @@
 #include <qore/intern/AbstractSmartLock.h>
 #include <qore/intern/SmartMutex.h>
 
-
 extern qore_classid_t CID_CONDITION;
 
-QoreClass *initConditionClass();
+QoreClass *initConditionClass(QoreClass *Mutex);
 
 class Condition : public AbstractPrivateData {
-   private:
-      QoreCondition cond;
+private:
+   QoreCondition cond;
 
-   protected:
-      DLLLOCAL virtual ~Condition() {}
+protected:
+   DLLLOCAL virtual ~Condition() {}
 
-   public:
-      DLLLOCAL int wait(AbstractSmartLock *m, int timeout, class ExceptionSink *xsink) {
-	 return m->extern_wait(&cond, xsink, timeout);
-      }
-      DLLLOCAL int wait(AbstractSmartLock *m, class ExceptionSink *xsink) {
-	 return m->extern_wait(&cond, xsink);
-      }
-      DLLLOCAL int signal() {
-	 return cond.signal();
-      }
-      DLLLOCAL int broadcast() {
-	 return cond.broadcast();
-      }
-      DLLLOCAL int wait_count(SmartMutex *m) {
-	 return m->cond_count(&cond);
-      }
+public:
+   DLLLOCAL int wait(AbstractSmartLock *m, int timeout, class ExceptionSink *xsink) {
+      return m->extern_wait(&cond, xsink, timeout);
+   }
+   DLLLOCAL int wait(AbstractSmartLock *m, class ExceptionSink *xsink) {
+      return m->extern_wait(&cond, xsink);
+   }
+   DLLLOCAL int signal() {
+      return cond.signal();
+   }
+   DLLLOCAL int broadcast() {
+      return cond.broadcast();
+   }
+   DLLLOCAL int wait_count(AbstractSmartLock *m) {
+      return m->cond_count(&cond);
+   }
 };
 
 #endif // _QORE_CLASS_CONDITION_H

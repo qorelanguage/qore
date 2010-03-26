@@ -1,6 +1,5 @@
 * cover case when multiple types could be returned (? : operator, functions, etc)
 * add warning about supplying extra arguments
-* implement optimization for method calls (save method and compare class at runtime)
 * add function information to parse exceptions (parse_code)
 * do not allow access to QC_NOOP code if 'require-types' is set
 * raise a warning if a function is used that has no effect except returning a value and the return value is ignored
@@ -43,6 +42,7 @@
 * implement GZFile and BZFile classes
 
 done 0.8.0:
+* implemented optimization for method calls (save method and compare class at runtime)
 * fixed class copying in subprograms; subprograms can no longer modify parent classes
 * ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures
 * implemented "extract" operator like splice but returns list elements or characters removed from lists and strings

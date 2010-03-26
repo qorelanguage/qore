@@ -41,56 +41,55 @@ typedef std::map<int, int> tid_map_t;
 // tid: write TID
 
 class RWLock : public AbstractSmartLock {
-   private:
-      int readRequests;
-      QoreCondition read;
-      bool prefer_writers;
-      tid_map_t tmap;     // map of TIDs to read lock counts
-      vlock_map_t vmap;   // map of TIDs to VLock data structures
-      int num_readers;    // number of threads holding the read lock
-      cond_map_t cmap;    // map of Condition variables to TIDs
+private:
+   int readRequests;
+   QoreCondition read;
+   bool prefer_writers;
+   tid_map_t tmap;     // map of TIDs to read lock counts
+   vlock_map_t vmap;   // map of TIDs to VLock data structures
+   int num_readers;    // number of threads holding the read lock
 
-      // 0 = last read lock in this thread released
-      DLLLOCAL int cleanup_read_lock_intern(tid_map_t::iterator i);
-      DLLLOCAL void mark_read_lock_intern(int mtid, VLock *nvl);
-      DLLLOCAL void release_read_lock_intern(tid_map_t::iterator i);
-      DLLLOCAL int grab_read_lock_intern(int mtid, VLock *nvl, int timeout_ms, ExceptionSink *xsink);
-      DLLLOCAL void set_initial_read_lock_intern(int mtid, VLock *nvl);
+   // 0 = last read lock in this thread released
+   DLLLOCAL int cleanup_read_lock_intern(tid_map_t::iterator i);
+   DLLLOCAL void mark_read_lock_intern(int mtid, VLock *nvl);
+   DLLLOCAL void release_read_lock_intern(tid_map_t::iterator i);
+   DLLLOCAL int grab_read_lock_intern(int mtid, VLock *nvl, int timeout_ms, ExceptionSink *xsink);
+   DLLLOCAL void set_initial_read_lock_intern(int mtid, VLock *nvl);
 
-      DLLLOCAL virtual void cleanupImpl();
-      DLLLOCAL virtual void signalAllImpl();
-      DLLLOCAL virtual void signalImpl();
-      DLLLOCAL virtual int releaseImpl();
-      DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
-      DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL virtual int tryGrabImpl(int mtid, VLock *nvl);
-      DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
+   DLLLOCAL virtual void cleanupImpl();
+   DLLLOCAL virtual void signalAllImpl();
+   DLLLOCAL virtual void signalImpl();
+   DLLLOCAL virtual int releaseImpl();
+   DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
+   DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL virtual int tryGrabImpl(int mtid, VLock *nvl);
+   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
 
-   protected:
+protected:
 
-   public:
-      DLLLOCAL RWLock(bool p = false);
+public:
+   DLLLOCAL RWLock(bool p = false);
 
 #ifdef DEBUG
-      DLLLOCAL virtual ~RWLock();
+   DLLLOCAL virtual ~RWLock();
 #endif
 
-      DLLLOCAL int readLock(ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL int readUnlock(ExceptionSink *xsink);
-      DLLLOCAL int tryReadLock();
-      //DLLLOCAL void writeToRead(ExceptionSink *xsink);
+   DLLLOCAL int readLock(ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL int readUnlock(ExceptionSink *xsink);
+   DLLLOCAL int tryReadLock();
+   //DLLLOCAL void writeToRead(ExceptionSink *xsink);
 
-      DLLLOCAL int numReaders();
+   DLLLOCAL int numReaders();
 
-      DLLLOCAL int getReadWaiting() const {
-	 return readRequests;
-      }
-      DLLLOCAL int getWriteWaiting() const {
-	 return waiting;
-      }
+   DLLLOCAL int getReadWaiting() const {
+      return readRequests;
+   }
+   DLLLOCAL int getWriteWaiting() const {
+      return waiting;
+   }
 
-      DLLLOCAL virtual const char *getName() const { return "RWLock"; }
+   DLLLOCAL virtual const char *getName() const { return "RWLock"; }
 };
 
 #endif // _QORE_CLASS_RWLOCK

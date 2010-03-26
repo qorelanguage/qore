@@ -35,26 +35,22 @@
 // so we can signal them in case the object is destroyed
 
 class SmartMutex : public AbstractSmartLock {
-   private:
-      cond_map_t cmap;
-
-      DLLLOCAL virtual int releaseImpl();
-      DLLLOCAL virtual int grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms = 0);
-      DLLLOCAL virtual int releaseImpl(class ExceptionSink *xsink);
-      DLLLOCAL virtual int tryGrabImpl(int mtid, class VLock *nvl);
-      DLLLOCAL virtual int externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink, int timeout = 0);
-      DLLLOCAL virtual void destructorImpl(class ExceptionSink *xsink);
-
-   public:
-      DLLLOCAL SmartMutex() {}
+private:
+   DLLLOCAL virtual int releaseImpl();
+   DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int timeout_ms = 0);
+   DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
+   DLLLOCAL virtual int tryGrabImpl(int mtid, VLock *nvl);
+   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int timeout = 0);
+   DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
+   
+public:
+   DLLLOCAL SmartMutex() {}
 #ifdef DEBUG
-      DLLLOCAL virtual ~SmartMutex();
+   DLLLOCAL virtual ~SmartMutex();
 #endif
-
-      DLLLOCAL bool owns_lock();
-      DLLLOCAL virtual const char *getName() const { return "Mutex"; }
-      // returns how many condition variables are waiting on this mutex
-      DLLLOCAL int cond_count(class QoreCondition *cond);
+   
+   DLLLOCAL bool owns_lock();
+   DLLLOCAL virtual const char *getName() const { return "Mutex"; }
 };
 
 #endif // _QORE_SMARTMUTEX
