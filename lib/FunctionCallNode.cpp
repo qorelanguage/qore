@@ -112,10 +112,10 @@ double AbstractFunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const {
 AbstractQoreNode *SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
    QoreObject *self = getStackObject();
    
-   //printd(0, "SelfFunctionCallNode::evalImpl() this=%p self=%p func=%p (name=%s ns=%s)\n", this, self, func, name ? name : "(null)", ns ? ns->ostr : "(null)");
+   //printd(0, "SelfFunctionCallNode::evalImpl() this=%p self=%p method=%p (name=%s ns=%s)\n", this, self, method, name ? name : "(null)", ns ? ns->ostr : "(null)");
 
-   if (func)
-      return self->evalMethod(*func, args, xsink);
+   if (method)
+      return self->evalMethod(*method, args, xsink);
    // otherwise exec copy method
    return self->getClass()->execCopy(self, xsink);
 }
@@ -123,7 +123,7 @@ AbstractQoreNode *SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
 // called at parse time
 AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    if (!oflag) {
-      parse_error("cannot call member function '%s' out of an object member function definition", getName());
+      parse_error("cannot call method '%s' outside of class code", getName());
       return this;
    }
 
@@ -134,7 +134,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolving base class call '%s'\n", this, ns->ostr);
    else 
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolving '%s'\n", this, name ? name : "(null)");
-   assert(!func);
+   assert(!method);
 #endif
    if (name) {
       // copy method calls will be recognized by name = 0
@@ -146,15 +146,15 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
 	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", oflag->getTypeInfo()->qc->getName());
       }
       else
-	 func = getParseClass()->parseResolveSelfMethod(name);
+	 method = getParseClass()->parseResolveSelfMethod(name);
    }
    else
-      func = getParseClass()->parseResolveSelfMethod(ns);
+      method = getParseClass()->parseResolveSelfMethod(ns);
 
-   lvids += parseArgsFindVariant(oflag, pflag, func ? func->getFunction() : 0, returnTypeInfo);
+   lvids += parseArgsFindVariant(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
 
-   if (func) {
-      printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved '%s' to %p\n", this, func->getName(), func);
+   if (method) {
+      printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved '%s' to %p\n", this, method->getName(), method);
       if (name) {
 	 free(name);
 	 name = 0;
@@ -170,7 +170,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
 }
 
 int SelfFunctionCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("in-object method call (0x%p) to %s::%s()", this, func->getClass()->getName(), func->getName());
+   str.sprintf("in-object method call (0x%p) to %s::%s()", this, method->getClass()->getName(), method->getName());
    return 0;
 }
 
@@ -192,6 +192,14 @@ AbstractQoreNode *SelfFunctionCallNode::makeReferenceNodeAndDeref() {
    }
    deref();
    return rv;
+}
+
+AbstractQoreNode *MethodCallNode::exec(QoreObject *o, ExceptionSink *xsink) const {
+   if (method && o->getClass() == method->getClass())
+      return variant 
+	 ? method->evalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
+	 : method->eval(o, args, xsink);
+   return o->evalMethod(c_str, args, xsink);
 }
 
 // makes a "new" operator call from a function call

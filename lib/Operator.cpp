@@ -663,9 +663,8 @@ static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, con
       return 0;
    }
 
-   // FIXME: use variant found in parseInit stage if the class is the same
    QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
-   return o->evalMethod(m->getName(), m->getArgs(), xsink);
+   return m->exec(o, xsink);
 }
 
 static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
@@ -3605,6 +3604,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
       if (m && m->parseIsPrivate() && (!oflag || !parseCheckCompatibleClass(typeInfo->qc, getParseClass())))
 	 parse_error("illegal call to private %s::copy() method", typeInfo->qc->getName());
 
+      // do not save method pointer for copy methods
       returnTypeInfo = typeInfo->qc->getTypeInfo();
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
       return tree;
@@ -3624,6 +3624,9 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 
    if (m->parseIsPrivate() && !parseCheckCompatibleClass(typeInfo->qc, getParseClass()))
       parse_error("illegal call to private method %s::%s()", typeInfo->qc->getName(), meth);
+
+   // save method for optimizing calls later
+   mc->parseSetMethod(m);
 
    // check parameters, if any
    lvids += mc->parseArgsFindVariant(oflag, pflag, m->getFunction(), returnTypeInfo);
