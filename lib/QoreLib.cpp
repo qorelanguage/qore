@@ -26,6 +26,7 @@
 #include <string.h>
 #include <pwd.h>
 #include <grp.h>
+#include <errno.h>
 
 FeatureList qoreFeatureList;
 

@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <pwd.h>
+#include <errno.h>
 
 static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *xsink) {
    int uid = HARD_QORE_INT(params, 0);
