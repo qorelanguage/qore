@@ -32,11 +32,9 @@ static void ARL_constructor(QoreObject *self, const QoreListNode *params, Except
 
    assert(rwl);
 
-   QoreAutoReadLock *arwl = new QoreAutoReadLock(rwl, xsink);
-   if (*xsink)
-      arwl->deref(xsink);
-   else
-      self->setPrivate(CID_AUTOREADLOCK, arwl);
+   ReferenceHolder<QoreAutoReadLock> arwl(new QoreAutoReadLock(rwl, xsink), xsink);
+   if (!*xsink)
+      self->setPrivate(CID_AUTOREADLOCK, arwl.release());
 }
 
 static void ARL_destructor(QoreObject *self, QoreAutoReadLock *arwl, ExceptionSink *xsink) {

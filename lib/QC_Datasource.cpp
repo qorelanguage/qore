@@ -25,10 +25,10 @@
 
 qore_classid_t CID_DATASOURCE;
 
-// usage: Datasource(db name, [username, password, dbname])
-static void DS_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p || !p->strlen()) {
+// usage: Datasource(db name, [username, password, dbname, encoding, hostname, port])
+static void DS_constructor_str(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p, const QoreStringNode, params, 0);
+   if (!p->strlen()) {
       xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database driver name as first parameter of Datasource() constructor");
       return;
    }
@@ -41,26 +41,91 @@ static void DS_constructor(QoreObject *self, const QoreListNode *params, Excepti
 
    ManagedDatasource *ds = new ManagedDatasource(db_driver);
 
-   if ((p = test_string_param(params, 1)) && p->strlen())
+   p = HARD_QORE_STRING(params, 1);
+   if (p->strlen())
       ds->setPendingUsername(p->getBuffer());
 
-   if ((p = test_string_param(params, 2)) && p->strlen())
+   p = HARD_QORE_STRING(params, 2);
+   if (p->strlen())
       ds->setPendingPassword(p->getBuffer());
 
-   if ((p = test_string_param(params, 3)) && p->strlen())
+   p = HARD_QORE_STRING(params, 3);
+   if (p->strlen())
       ds->setPendingDBName(p->getBuffer());
    
-   if ((p = test_string_param(params, 4)) && p->strlen())
+   p = HARD_QORE_STRING(params, 4);
+   if (p->strlen())
       ds->setPendingDBEncoding(p->getBuffer());
    
-   if ((p = test_string_param(params, 5)) && p->strlen())
+   p = HARD_QORE_STRING(params, 5);
+   if (p->strlen())
       ds->setPendingHostName(p->getBuffer());
    
-   int port = get_int_param(params, 6);
+   int port = HARD_QORE_INT(params, 6);
    if (port)
       ds->setPendingPort(port);
 
    self->setPrivate(CID_DATASOURCE, ds);
+}
+
+const char *checkKey(const QoreHashNode *h, const char *key, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = h->getKeyValue(key);
+   if (is_nothing(p))
+      return 0;
+   
+   if (p->getType() != NT_STRING) {
+      xsink->raiseException("DATASOURCE-CONSTRUCTOR-ERROR", "'%s' key is not type 'string' but is type '%s'", key, get_type_name(p));
+      return 0;
+   }
+   return reinterpret_cast<const QoreStringNode *>(p)->getBuffer();
+}
+
+static void DS_constructor_hash(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreHashNode *h = HARD_QORE_HASH(params, 0);
+   
+   const char *str = checkKey(h, "type", xsink);
+   if (*xsink) return;
+   
+   if (!str || !str[0]) {
+      xsink->raiseException("DATASOURCE-CONSTRUCTOR-ERROR", "expecting a string value with the 'type' key giving the driver name");
+      return;
+   }
+   
+   DBIDriver *db_driver = DBI.find(str, xsink);
+   if (!db_driver) {
+      if (!*xsink)
+         xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", str);
+      return;
+   }
+   
+   ReferenceHolder<ManagedDatasource> ds(new ManagedDatasource(db_driver), xsink);
+
+   str = checkKey(h, "user", xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingUsername(str);
+
+   str = checkKey(h, "pass", xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingPassword(str);
+
+   str = checkKey(h, "db", xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingDBName(str);
+
+   str = checkKey(h, "charset", xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingDBEncoding(str);
+
+   str = checkKey(h, "host", xsink);
+   if (*xsink) return;
+   if (str) ds->setPendingHostName(str);
+
+   bool found;
+   int port = h->getKeyAsBigInt("port", found);
+   if (port)
+      ds->setPendingPort(port);
+
+   self->setPrivate(CID_DATASOURCE, ds.release());
 }
 
 static void DS_destructor(QoreObject *self, ManagedDatasource *ods, ExceptionSink *xsink) {
@@ -89,8 +154,12 @@ static AbstractQoreNode *DS_rollback(QoreObject *self, ManagedDatasource *ds, co
 }
 
 static AbstractQoreNode *DS_setAutoCommit(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   ds->setAutoCommit(p ? p->getAsBool() : true);
+   ds->setAutoCommit(true);
+   return 0;
+}
+
+static AbstractQoreNode *DS_setAutoCommit_bool(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
+   ds->setAutoCommit(HARD_QORE_BOOL(params, 0));
    return 0;
 }
 
@@ -99,93 +168,57 @@ static AbstractQoreNode *DS_getAutoCommit(QoreObject *self, ManagedDatasource *d
 }
 
 static AbstractQoreNode *DS_exec(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
-
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    ReferenceHolder<QoreListNode> args((params->size() > 1 ? params->copyListFrom(1) : 0), xsink);
    return ds->exec(p0, *args, xsink);
 }
 
 static AbstractQoreNode *DS_vexec(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
-
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreListNode *args = test_list_param(params, 1);
    return ds->exec(p0, args, xsink);
 }
 
 static AbstractQoreNode *DS_execRaw(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    return ds->execRaw(p0, xsink);
 }
 
 static AbstractQoreNode *DS_select(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ReferenceHolder<QoreListNode> args((params->size() > 1 ? params->copyListFrom(1) : 0), xsink);
    return ds->select(p, *args, xsink);
 }
 
 static AbstractQoreNode *DS_selectRow(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-   
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ReferenceHolder<QoreListNode> args((params->size() > 1 ? params->copyListFrom(1) : 0), xsink);
    return ds->selectRow(p, *args, xsink);
 }
 
 static AbstractQoreNode *DS_selectRows(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ReferenceHolder<QoreListNode> args((params->size() > 1 ? params->copyListFrom(1) : 0), xsink);
    return ds->selectRows(p, *args, xsink);
 }
 
 static AbstractQoreNode *DS_vselect(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-      return 0;
-
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreListNode *args = test_list_param(params, 1);
    return ds->select(p0, args, xsink);
 }
 
 static AbstractQoreNode *DS_vselectRow(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-      return 0;
-   
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRow(p0, args, xsink);
 }
 
 static AbstractQoreNode *DS_vselectRows(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-      return 0;
-
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRows(p0, args, xsink);
 }
-
-/*
-static AbstractQoreNode *DS_describe(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const Abstracconst tQoreNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
-   return ds->describe(p->getBuffer(), xsink);
-}
-*/
 
 static AbstractQoreNode *DS_beginTransaction(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
    ds->beginTransaction(xsink);
@@ -206,52 +239,37 @@ static AbstractQoreNode *DS_getCapabilityList(QoreObject *self, ManagedDatasourc
 }
 
 static AbstractQoreNode *DS_setUserName(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ds->setPendingUsername(p->getBuffer());
    return 0;
 }
 
 static AbstractQoreNode *DS_setPassword(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ds->setPendingPassword(p->getBuffer());
    return 0;
 }
 
 static AbstractQoreNode *DS_setDBName(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ds->setPendingDBName(p->getBuffer());
    return 0;
 }
 
 static AbstractQoreNode *DS_setDBCharset(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ds->setPendingDBEncoding(p->getBuffer());
    return 0;
 }
 
 static AbstractQoreNode *DS_setHostName(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ds->setPendingHostName(p->getBuffer());
    return 0;
 }
 
 static AbstractQoreNode *DS_setPort(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   ds->setPendingPort(get_int_param(params, 0));
+   ds->setPendingPort(HARD_QORE_INT(params, 0));
    return 0;
 }
 
@@ -315,49 +333,104 @@ QoreClass *initDatasourceClass() {
 
    QoreClass *QC_DATASOURCE = new QoreClass("Datasource", QDOM_DATABASE);
    CID_DATASOURCE = QC_DATASOURCE->getID();
-   QC_DATASOURCE->setConstructor(DS_constructor);
+
+   QC_DATASOURCE->setConstructorExtended(DS_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 7, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), stringTypeInfo, null_string(), stringTypeInfo, null_string(), stringTypeInfo, null_string(), stringTypeInfo, null_string(), softBigIntTypeInfo, zero());
+
+   QC_DATASOURCE->setConstructorExtended(DS_constructor_hash, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_DATASOURCE->setDestructor((q_destructor_t)DS_destructor);
    QC_DATASOURCE->setCopy((q_copy_t)DS_copy);
-   QC_DATASOURCE->addMethod("open",              (q_method_t)DS_open);
-   QC_DATASOURCE->addMethod("close",             (q_method_t)DS_close);
-   QC_DATASOURCE->addMethod("commit",            (q_method_t)DS_commit);
-   QC_DATASOURCE->addMethod("rollback",          (q_method_t)DS_rollback);
-   QC_DATASOURCE->addMethod("exec",              (q_method_t)DS_exec);
-   QC_DATASOURCE->addMethod("execRaw",           (q_method_t)DS_execRaw);
-   QC_DATASOURCE->addMethod("select",            (q_method_t)DS_select);
-   QC_DATASOURCE->addMethod("selectRow",         (q_method_t)DS_selectRow);
-   QC_DATASOURCE->addMethod("selectRows",        (q_method_t)DS_selectRows);
-   QC_DATASOURCE->addMethod("vexec",             (q_method_t)DS_vexec);
-   QC_DATASOURCE->addMethod("vselect",           (q_method_t)DS_vselect);
-   QC_DATASOURCE->addMethod("vselectRow",        (q_method_t)DS_vselectRow);
-   QC_DATASOURCE->addMethod("vselectRows",       (q_method_t)DS_vselectRows);
-   //QC_DATASOURCE->addMethod("describe",          (q_method_t)DS_describe);
-   QC_DATASOURCE->addMethod("beginTransaction",  (q_method_t)DS_beginTransaction);
-   QC_DATASOURCE->addMethod("reset",             (q_method_t)DS_reset);
-   QC_DATASOURCE->addMethod("getCapabilities",   (q_method_t)DS_getCapabilities);
-   QC_DATASOURCE->addMethod("getCapabilityList", (q_method_t)DS_getCapabilityList);
-   QC_DATASOURCE->addMethod("setAutoCommit",     (q_method_t)DS_setAutoCommit);
-   QC_DATASOURCE->addMethod("setUserName",       (q_method_t)DS_setUserName);
-   QC_DATASOURCE->addMethod("setPassword",       (q_method_t)DS_setPassword);
-   QC_DATASOURCE->addMethod("setDBName",         (q_method_t)DS_setDBName);
-   QC_DATASOURCE->addMethod("setDBCharset",      (q_method_t)DS_setDBCharset);
-   QC_DATASOURCE->addMethod("setHostName",       (q_method_t)DS_setHostName);
-   QC_DATASOURCE->addMethod("setPort",           (q_method_t)DS_setPort);
-   QC_DATASOURCE->addMethod("getAutoCommit",     (q_method_t)DS_getAutoCommit);
-   QC_DATASOURCE->addMethod("getUserName",       (q_method_t)DS_getUserName);
-   QC_DATASOURCE->addMethod("getPassword",       (q_method_t)DS_getPassword);
-   QC_DATASOURCE->addMethod("getDBName",         (q_method_t)DS_getDBName);
-   QC_DATASOURCE->addMethod("getDBCharset",      (q_method_t)DS_getDBCharset);
-   QC_DATASOURCE->addMethod("getOSCharset",      (q_method_t)DS_getOSCharset);
-   QC_DATASOURCE->addMethod("getHostName",       (q_method_t)DS_getHostName);
-   QC_DATASOURCE->addMethod("getPort",           (q_method_t)DS_getPort);
-   QC_DATASOURCE->addMethod("getDriverName",     (q_method_t)DS_getDriverName);
-   QC_DATASOURCE->addMethod("getServerVersion",  (q_method_t)DS_getServerVersion);
-   QC_DATASOURCE->addMethod("getClientVersion",  (q_method_t)DS_getClientVersion);
-   QC_DATASOURCE->addMethod("inTransaction",     (q_method_t)DS_inTransaction);
+   QC_DATASOURCE->addMethodExtended("open",              (q_method_t)DS_open, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCE->addMethodExtended("close",             (q_method_t)DS_close, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCE->addMethodExtended("commit",            (q_method_t)DS_commit, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCE->addMethodExtended("rollback",          (q_method_t)DS_rollback, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setAutoCommit",     (q_method_t)DS_setAutoCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setAutoCommit",     (q_method_t)DS_setAutoCommit_bool, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBoolTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCE->addMethodExtended("getAutoCommit",     (q_method_t)DS_getAutoCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 
-   QC_DATASOURCE->addMethod("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout);
-   QC_DATASOURCE->addMethod("getTransactionLockTimeout", (q_method_t)DS_getTransactionLockTimeout);
+   QC_DATASOURCE->addMethodExtended("exec",              (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("exec",              (q_method_t)DS_exec, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_DATASOURCE->addMethodExtended("vexec",             (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("vexec",             (q_method_t)DS_vexec, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCE->addMethodExtended("vexec",             (q_method_t)DS_vexec, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_DATASOURCE->addMethodExtended("execRaw",           (q_method_t)DS_execRaw, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a hash, but unfortunately the internal API does not enforce this
+   QC_DATASOURCE->addMethodExtended("select",            (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("select",            (q_method_t)DS_select, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a hash, but unfortunately the internal API does not enforce this
+   QC_DATASOURCE->addMethodExtended("selectRow",         (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("selectRow",         (q_method_t)DS_selectRow, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a list, but unfortunately the internal API does not enforce this
+   QC_DATASOURCE->addMethodExtended("selectRows",        (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("selectRows",        (q_method_t)DS_selectRows, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   
+   // should normally return a hash, but unfortunately the internal API does not enforce this
+   QC_DATASOURCE->addMethodExtended("vselect",           (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("vselect",           (q_method_t)DS_vselect, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCE->addMethodExtended("vselect",           (q_method_t)DS_vselect, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a hash, but unfortunately the internal API does not enforce this
+   QC_DATASOURCE->addMethodExtended("vselectRow",        (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("vselectRow",        (q_method_t)DS_vselectRow, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCE->addMethodExtended("vselectRow",        (q_method_t)DS_vselectRow, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a list, but unfortunately the internal API does not enforce this
+   QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)DS_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)DS_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_DATASOURCE->addMethodExtended("beginTransaction",  (q_method_t)DS_beginTransaction, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("reset",             (q_method_t)DS_reset, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("getCapabilities",   (q_method_t)DS_getCapabilities, false, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCE->addMethodExtended("getCapabilityList", (q_method_t)DS_getCapabilityList, false, QC_NOOP, QDOM_DEFAULT, listTypeInfo);
+
+   QC_DATASOURCE->addMethodExtended("setUserName",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setUserName",       (q_method_t)DS_setUserName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   
+   QC_DATASOURCE->addMethodExtended("setPassword",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setPassword",       (q_method_t)DS_setPassword, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   
+   QC_DATASOURCE->addMethodExtended("setDBName",         (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setDBName",         (q_method_t)DS_setDBName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   
+   QC_DATASOURCE->addMethodExtended("setDBCharset",      (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setDBCharset",      (q_method_t)DS_setDBCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   
+   QC_DATASOURCE->addMethodExtended("setHostName",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setHostName",       (q_method_t)DS_setHostName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   
+   QC_DATASOURCE->addMethodExtended("setPort",           (q_method_t)DS_setPort, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCE->addMethodExtended("getUserName",       (q_method_t)DS_getUserName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCE->addMethodExtended("getPassword",       (q_method_t)DS_getPassword, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCE->addMethodExtended("getDBName",         (q_method_t)DS_getDBName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCE->addMethodExtended("getDBCharset",      (q_method_t)DS_getDBCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCE->addMethodExtended("getOSCharset",      (q_method_t)DS_getOSCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCE->addMethodExtended("getHostName",       (q_method_t)DS_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   
+   QC_DATASOURCE->addMethodExtended("getPort",           (q_method_t)DS_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   QC_DATASOURCE->addMethodExtended("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+   QC_DATASOURCE->addMethodExtended("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_DATASOURCE->addMethodExtended("getTransactionLockTimeout", (q_method_t)DS_getTransactionLockTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   QC_DATASOURCE->addMethodExtended("getDriverName",     (q_method_t)DS_getDriverName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   QC_DATASOURCE->addMethodExtended("getServerVersion",  (q_method_t)DS_getServerVersion, false, QC_NO_FLAGS, QDOM_DEFAULT);
+   QC_DATASOURCE->addMethodExtended("getClientVersion",  (q_method_t)DS_getClientVersion, false, QC_NO_FLAGS, QDOM_DEFAULT);
+   QC_DATASOURCE->addMethodExtended("inTransaction",     (q_method_t)DS_inTransaction, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 
    return QC_DATASOURCE;
 }

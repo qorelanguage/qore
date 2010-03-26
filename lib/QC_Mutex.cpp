@@ -39,17 +39,15 @@ static void MUTEX_copy(QoreObject *self, QoreObject *old, SmartMutex *m, Excepti
 }
 
 static AbstractQoreNode *MUTEX_lock(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
-   if (!is_nothing(p)) {
-      int timeout_ms = getMsZeroInt(p);
-      int rc = m->grab(xsink, timeout_ms);
-      if (!*xsink)
-	 return new QoreBigIntNode(rc);
-   }
-   else
-      m->grab(xsink);
+   m->grab(xsink);
    return 0;
+}
+
+static AbstractQoreNode *MUTEX_lock_to(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
+   const AbstractQoreNode *p = get_param(params, 0);
+   int timeout_ms = getMsZeroInt(p);
+   int rc = m->grab(xsink, timeout_ms);
+   return !*xsink ? new QoreBigIntNode(rc) : 0;
 }
 
 static AbstractQoreNode *MUTEX_trylock(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
@@ -73,7 +71,10 @@ QoreClass *initMutexClass(QoreClass *AbstractSmartLock) {
    QC_MUTEX->setDestructor((q_destructor_t)MUTEX_destructor);
    QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);
 
-   QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock);
+   QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_MUTEX->addMethodExtended("trylock",  (q_method_t)MUTEX_trylock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
    QC_MUTEX->addMethodExtended("unlock",   (q_method_t)MUTEX_unlock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 

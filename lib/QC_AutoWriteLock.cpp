@@ -32,11 +32,9 @@ static void AWL_constructor(QoreObject *self, const QoreListNode *params, Except
 
    assert(rwl);
 
-   QoreAutoWriteLock *arwl = new QoreAutoWriteLock(rwl, xsink);
-   if (*xsink)
-      arwl->deref(xsink);
-   else
-      self->setPrivate(CID_AUTOWRITELOCK, arwl);
+   ReferenceHolder<QoreAutoWriteLock> arwl(new QoreAutoWriteLock(rwl, xsink), xsink);
+   if (!*xsink)
+      self->setPrivate(CID_AUTOWRITELOCK, arwl.release());
 }
 
 static void AWL_destructor(QoreObject *self, QoreAutoWriteLock *arwl, ExceptionSink *xsink) {

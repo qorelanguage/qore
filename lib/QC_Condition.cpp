@@ -58,10 +58,12 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const Qo
 
    assert(m);
    ReferenceHolder<AbstractSmartLock> holder(m, xsink);
-
+   
    int timeout = getMsZeroInt(get_param(params, 1));
    int rc = timeout ? c->wait(m, timeout, xsink) : c->wait(m, xsink);
 
+   //printd(5, "CONDITION_wait() m=%s (%p) timeout=%d rc=%d\n", m->getName(), m, timeout, rc);
+      
    if (rc && rc != ETIMEDOUT && !*xsink) {
       xsink->raiseException("CONDITION-WAIT-ERROR", "unknown system error code returned from Condition::wait(lock=%s, timeout=%d): rc=%d: %s", m->getName(), timeout, rc, strerror(rc));
       return 0;
