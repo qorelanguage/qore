@@ -330,11 +330,13 @@ void init_time_functions() {
    builtinFunctions.add2("gmtime", f_gmtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("gmtime", f_gmtime_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    
+   builtinFunctions.add2("mktime", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("mktime", f_mktime, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
+   builtinFunctions.add2("timegm", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("timegm", f_timegm, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_eopch_seconds", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_epoch_seconds", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_epoch_seconds", f_get_epoch_seconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("years", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
