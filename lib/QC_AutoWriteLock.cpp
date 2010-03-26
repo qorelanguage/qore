@@ -26,15 +26,11 @@
 qore_classid_t CID_AUTOWRITELOCK;
 
 static void AWL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   QoreObject *p = test_object_param(params, 0);
-   RWLock *rwl = p ? (RWLock *)p->getReferencedPrivateData(CID_RWLOCK, xsink) : 0;
+   HARD_QORE_OBJ_PARAM(rwl, RWLock, params, 0, CID_RWLOCK, xsink);
    if (*xsink)
       return;
 
-   if (!rwl) {
-      xsink->raiseException("AUTOWRITELOCK-CONSTRUCTOR-ERROR", "expecting RWLock type as argument to constructor");
-      return;
-   }
+   assert(rwl);
 
    QoreAutoWriteLock *arwl = new QoreAutoWriteLock(rwl, xsink);
    if (*xsink)
@@ -57,7 +53,7 @@ QoreClass *initAutoWriteLockClass(QoreClass *RWLock) {
    
    QoreClass *QC_AutoWriteLock = new QoreClass("AutoWriteLock", QDOM_THREAD_CLASS);
    CID_AUTOWRITELOCK = QC_AutoWriteLock->getID();
-   QC_AutoWriteLock->setConstructor(AWL_constructor);
+   QC_AutoWriteLock->setConstructorExtended(AWL_constructor, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, RWLock->getTypeInfo(), QORE_PARAM_NO_ARG);
    QC_AutoWriteLock->setDestructor((q_destructor_t)AWL_destructor);
    QC_AutoWriteLock->setCopy((q_copy_t)AWL_copy);
 
