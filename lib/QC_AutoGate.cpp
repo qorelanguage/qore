@@ -26,7 +26,7 @@
 qore_classid_t CID_AUTOGATE;
 
 static void AG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_PARAM(g, QoreGate, params, 0, CID_GATE, xsink);
+   HARD_QORE_OBJ_DATA(g, QoreGate, params, 0, CID_GATE, "Gate", "AutoGate::constructor", xsink);
    if (*xsink)
       return;
 

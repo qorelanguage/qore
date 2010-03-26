@@ -26,7 +26,7 @@
 qore_classid_t CID_AUTOREADLOCK;
 
 static void ARL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_PARAM(rwl, RWLock, params, 0, CID_RWLOCK, xsink);
+   HARD_QORE_OBJ_DATA(rwl, RWLock, params, 0, CID_RWLOCK, "RWLock", "AutoReadLock::constructor", xsink);
    if (*xsink)
       return;
 

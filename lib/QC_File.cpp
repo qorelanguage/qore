@@ -342,15 +342,11 @@ static AbstractQoreNode *FILE_setPos(QoreObject *self, File *f, const QoreListNo
 }
 
 /*
-static AbstractQoreNode *FILE_setPosFromEnd(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink)
-{
-   //f->open();
+static AbstractQoreNode *FILE_setPosFromEnd(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    return 0;
 }
 
-static AbstractQoreNode *FILE_setPosFromCurrent(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink)
-{
-   //f->open();
+static AbstractQoreNode *FILE_setPosFromCurrent(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    return 0;
 }
 */
@@ -452,7 +448,8 @@ static AbstractQoreNode *FILE_getTerminalAttributes(QoreObject *self, File *f, c
 static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    int action = get_int_param(args, 0);
 
-   HARD_QORE_OBJ_PARAM(ios, QoreTermIOS, args, 1, CID_TERMIOS, xsink);
+   HARD_QORE_OBJ_DATA(ios, QoreTermIOS, args, 1, CID_TERMIOS, "TermIOS", "File::setTerminalAttributes", xsink);
+
    if (*xsink)
       return 0;
 
@@ -462,7 +459,7 @@ static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, File *f, c
 }
 
 static AbstractQoreNode *FILE_setEventQueue_queue(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_PARAM(q, Queue, args, 0, CID_QUEUE, xsink);
+   HARD_QORE_OBJ_DATA(q, Queue, args, 0, CID_QUEUE, "Queue", "File::setEventQueue", xsink);
    if (*xsink)
       return 0;
 

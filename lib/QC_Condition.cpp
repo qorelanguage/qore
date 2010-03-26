@@ -51,9 +51,8 @@ static AbstractQoreNode *CONDITION_broadcast(QoreObject *self, Condition *c, con
    return 0;
 }
 
-// FIXME: make base Qore class for all thread primitive classes that can wait on a condition variable
 static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_PARAM(m, AbstractSmartLock, params, 0, CID_MUTEX, xsink);
+   HARD_QORE_OBJ_DATA(m, AbstractSmartLock, params, 0, CID_ABSTRACTSMARTLOCK, "AbstractSmartLock", "Condition::wait", xsink);
    if (*xsink)
       return 0;
 
@@ -71,7 +70,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const Qo
 }
 
 static AbstractQoreNode *CONDITION_wait_count(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_PARAM(m, AbstractSmartLock, params, 0, CID_MUTEX, xsink);
+   HARD_QORE_OBJ_DATA(m, AbstractSmartLock, params, 0, CID_ABSTRACTSMARTLOCK, "AbstractSmartLock", "Condition::wait_count", xsink);
    if (*xsink)
       return 0;
 
@@ -96,7 +95,6 @@ QoreClass *initConditionClass(QoreClass *AbstractSmartLock) {
    QC_CONDITION->addMethodExtended("wait",          (q_method_t)CONDITION_wait, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    QC_CONDITION->addMethodExtended("wait",          (q_method_t)CONDITION_wait, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
    QC_CONDITION->addMethodExtended("wait_count",    (q_method_t)CONDITION_wait_count, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG);
-
 
    return QC_CONDITION;
 }

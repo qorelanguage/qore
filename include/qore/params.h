@@ -283,8 +283,8 @@ static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
 //! returns a QoreObject* from a hard typed object param
 #define HARD_QORE_OBJECT(list, i) const_cast<QoreObject *>(get_hard_param<const QoreObject>(list, i))
 
-// returns an object pointer
-#define HARD_QORE_OBJ_PARAM(name, Type, list, i, cid, xsink) HARD_QORE_PARAM(obj_##name, const QoreObject, list, i); Type *name = reinterpret_cast<Type *>(obj_##name->getReferencedPrivateData(cid, xsink)); assert(name || *xsink)
+// sets up an object pointer
+#define HARD_QORE_OBJ_DATA(vname, Type, list, i, cid, dname, cname, xsink) HARD_QORE_PARAM(obj_##vname, const QoreObject, list, i); Type *vname = reinterpret_cast<Type *>(obj_##vname->getReferencedPrivateData(cid, xsink)); if (!vname && !*xsink) xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot complete call setup to %s() because parameter %d (<class %s>) has already been deleted", cname, i + 1, dname)
 
 //! returns the QoreEncoding corresponding to the string passed or a default encoding
 static inline const QoreEncoding *get_hard_qore_encoding_param(const QoreListNode *n, qore_size_t i) {

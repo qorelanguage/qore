@@ -26,7 +26,7 @@
 qore_classid_t CID_AUTOLOCK;
 
 static void AL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_PARAM(m, SmartMutex, params, 0, CID_MUTEX, xsink);
+   HARD_QORE_OBJ_DATA(m, SmartMutex, params, 0, CID_MUTEX, "Mutex", "AutoLock::constructor", xsink);
    if (*xsink)
       return;
 
