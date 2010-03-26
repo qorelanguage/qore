@@ -26,15 +26,11 @@
 qore_classid_t CID_AUTOREADLOCK;
 
 static void ARL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   QoreObject *p = test_object_param(params, 0);
-   RWLock *rwl = p ? (RWLock *)p->getReferencedPrivateData(CID_RWLOCK, xsink) : 0;
+   HARD_QORE_OBJ_PARAM(rwl, RWLock, params, 0, CID_RWLOCK, xsink);
    if (*xsink)
       return;
 
-   if (!rwl) {
-      xsink->raiseException("AUTOREADLOCK-CONSTRUCTOR-ERROR", "expecting RWLock type as argument to constructor");
-      return;
-   }
+   assert(rwl);
 
    QoreAutoReadLock *arwl = new QoreAutoReadLock(rwl, xsink);
    if (*xsink)
@@ -57,7 +53,7 @@ QoreClass *initAutoReadLockClass(QoreClass *RWLock) {
    
    QoreClass *QC_AutoReadLock = new QoreClass("AutoReadLock", QDOM_THREAD_CLASS);
    CID_AUTOREADLOCK = QC_AutoReadLock->getID();
-   QC_AutoReadLock->setConstructor(ARL_constructor);
+   QC_AutoReadLock->setConstructorExtended(ARL_constructor, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, RWLock->getTypeInfo(), QORE_PARAM_NO_ARG);
    QC_AutoReadLock->setDestructor((q_destructor_t)ARL_destructor);
    QC_AutoReadLock->setCopy((q_copy_t)ARL_copy);
    
