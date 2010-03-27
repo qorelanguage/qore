@@ -195,10 +195,12 @@ AbstractQoreNode *SelfFunctionCallNode::makeReferenceNodeAndDeref() {
 }
 
 AbstractQoreNode *MethodCallNode::exec(QoreObject *o, ExceptionSink *xsink) const {
-   if (method && o->getClass() == method->getClass())
+   if (o->getClass() == qc) {
+      assert(method);
       return variant 
 	 ? method->evalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
 	 : method->eval(o, args, xsink);
+   }
    return o->evalMethod(c_str, args, xsink);
 }
 

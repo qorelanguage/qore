@@ -181,9 +181,10 @@ public:
 class MethodCallNode : public AbstractFunctionCallNode {
 protected:
    char *c_str;
-   // if a method pointer can be resolved at parse time, then it is used
-   // to compare the runtime class; if they are equal, then no search is
-   // needed
+   // if a method pointer can be resolved at parse time, then the class
+   // is used to compare the runtime class; if they are equal, then no search
+   // is needed
+   const QoreClass *qc;
    const QoreMethod *method;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const {
@@ -192,8 +193,11 @@ protected:
    }
 
 public:
-   DLLLOCAL MethodCallNode(char *name, QoreListNode *n_args) : AbstractFunctionCallNode(NT_METHOD_CALL, n_args), c_str(name), method(0) {
+   DLLLOCAL MethodCallNode(char *name, QoreListNode *n_args) : AbstractFunctionCallNode(NT_METHOD_CALL, n_args), c_str(name), qc(0), method(0) {
       //printd(0, "MethodCallNode::MethodCallNode() this=%08p name='%s' args=%08p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
+   }
+
+   DLLLOCAL MethodCallNode(const MethodCallNode &old, QoreListNode *n_args) : AbstractFunctionCallNode(NT_METHOD_CALL, n_args), c_str(0), qc(old.qc), method(old.method) {
    }
 
    DLLLOCAL virtual ~MethodCallNode() {
@@ -207,6 +211,10 @@ public:
       return c_str ? c_str : "copy";
    }
 
+   DLLLOCAL const QoreClass *getClass() const {
+      return qc;
+   }
+
    DLLLOCAL const QoreMethod *getMethod() const {
       return method;
    }
@@ -215,7 +223,7 @@ public:
       return c_str;
    }
 
-   // note that the method is set in Operator.cpp:check_op_object_func_ref()
+   // note that the class and method are set in Operator.cpp:check_op_object_func_ref()
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       typeInfo = 0;
       lvids += parseArgsFindVariant(oflag, pflag, 0, typeInfo);
@@ -249,9 +257,13 @@ public:
       return "method call";
    }
 
-   DLLLOCAL void parseSetMethod(const QoreMethod *n_method) {
+   DLLLOCAL void parseSetClassAndMethod(const QoreClass *n_qc, const QoreMethod *n_method) {
+      assert(!qc);
       assert(!method);
+      qc = n_qc;
       method = n_method;
+      assert(qc);
+      assert(method);
    }
 };
 

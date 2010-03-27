@@ -3626,7 +3626,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
       parse_error("illegal call to private method %s::%s()", typeInfo->qc->getName(), meth);
 
    // save method for optimizing calls later
-   mc->parseSetMethod(m);
+   mc->parseSetClassAndMethod(typeInfo->qc, m);
 
    // check parameters, if any
    lvids += mc->parseArgsFindVariant(oflag, pflag, m->getFunction(), returnTypeInfo);
