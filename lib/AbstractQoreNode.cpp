@@ -346,8 +346,7 @@ static inline AbstractQoreNode *crlr_mcall_copy(const MethodCallNode *m, Excepti
       args = args_holder.release();
    }
 
-   const char *name = const_cast<char *>(m->getRawName());
-   return new MethodCallNode(name ? strdup(name) : 0, args);
+   return new MethodCallNode(*m, args);
 }
 
 static inline AbstractQoreNode *crlr_smcall_copy(const StaticMethodCallNode *m, ExceptionSink *xsink) {

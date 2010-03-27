@@ -789,7 +789,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %left NEG		      // unary minus, defined for precedence
 %right '~' '\\'               // binary not, reference operator
 %left '!'		      // logical not
-%right TOK_NEW TOK_BACKGROUND TOK_DELETE TOK_REMOVE QORE_CAST
+%right TOK_BACKGROUND TOK_DELETE TOK_REMOVE QORE_CAST
+%nonassoc TOK_NEW
 %nonassoc P_INCREMENT P_DECREMENT
 %left '{' '[' '.' '(' DOT_KW_IDENTIFIER  // list and object references, etc, defined for precedence
 
@@ -2342,33 +2343,17 @@ exp:    scalar
 	      }
 	   }
 	}
-        | TOK_NEW exp //function_call
-        {
-	   qore_type_t t = $2 ? $2->getType() : 0;
-	   if (t == NT_STATIC_METHOD_CALL) {
-	      StaticMethodCallNode *smc = reinterpret_cast<StaticMethodCallNode *>($2);
-	      ScopedObjectCallNode *new_exp = new ScopedObjectCallNode(smc->takeScope(), smc->takeArgs());	      
-	      smc->deref();
-	      $$ = new_exp;
-	      // see if new can be used
-	      if (checkParseOption(PO_NO_NEW))
-		 parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
-	   }
-	   else if (t != NT_FUNCTION_CALL) {
-	      parse_error("invalid expression after 'new' operator (%s)", $2 ? $2->getTypeName() : "<nothing>");
-	      $$ = $2;
-	   }
-	   else {
-	      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>($2);
-	      $$ = f->parseMakeNewObject();
-	      f->deref();
-	      // see if new can be used
-	      if (checkParseOption(PO_NO_NEW))
-		 parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
-	   }
-	}
-	| TOK_BACKGROUND exp	     
-	{
+	| TOK_NEW IDENTIFIER '(' myexp ')' {
+	   $$ = new ScopedObjectCallNode(new NamedScope($2), makeArgs($4));
+	   if (checkParseOption(PO_NO_NEW))
+	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
+        }
+	| TOK_NEW SCOPED_REF '(' myexp ')' {
+	   $$ = new ScopedObjectCallNode(new NamedScope($2), makeArgs($4));
+	   if (checkParseOption(PO_NO_NEW))
+	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
+        }
+        | TOK_BACKGROUND exp {
 	   $$ = makeTree(OP_BACKGROUND, $2, 0);
 	   // check to see if the expression is legal
 	   if (checkParseOption(PO_NO_THREAD_CONTROL))

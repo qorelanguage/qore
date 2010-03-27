@@ -204,19 +204,11 @@ AbstractQoreNode *MethodCallNode::exec(QoreObject *o, ExceptionSink *xsink) cons
    return o->evalMethod(c_str, args, xsink);
 }
 
-// makes a "new" operator call from a function call
-AbstractQoreNode *FunctionCallNode::parseMakeNewObject() {
-   assert(c_str);
-   ScopedObjectCallNode *rv = new ScopedObjectCallNode(new NamedScope(c_str), args);
-   c_str = 0;
-   args = 0;
-   return rv;
-}
-
-// get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-// the ExceptionSink is only needed for QoreObject where a method may be executed
-// use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-// returns -1 for exception raised, 0 = OK
+/* get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+   the ExceptionSink is only needed for QoreObject where a method may be executed
+   use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+   returns -1 for exception raised, 0 = OK
+*/
 int FunctionCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.sprintf("function call to '%s()' (0x%p)", getName(), this);
    return 0;

@@ -116,8 +116,6 @@ public:
       return func;
    }
 
-   DLLLOCAL AbstractQoreNode *parseMakeNewObject();
-
    // FIXME: delete when unresolved function call node implemented properly
    DLLLOCAL char *takeName() {
       char *str = c_str;
