@@ -35,21 +35,28 @@ int QoreCastOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *
    return 0;
 }
 
+int QoreCastOperatorNode::evalIntern(const AbstractQoreNode *rv, ExceptionSink *xsink) const {
+   if (!rv || rv->getType() != NT_OBJECT) {
+      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to %s'%s'", get_type_name(rv), qc ? "class " : "", qc ? qc->getName() : "object");
+      return -1;
+   }
+
+   const QoreObject *obj = reinterpret_cast<const QoreObject *>(rv);
+   if (qc && !obj->getClass(qc->getID())) {
+      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
+      return -1;
+   }
+
+   return 0;
+}
+
 AbstractQoreNode *QoreCastOperatorNode::evalImpl(ExceptionSink *xsink) const {
    ReferenceHolder<AbstractQoreNode> rv(exp->eval(xsink), xsink);
    if (*xsink)
       return 0;
-   
-   if (!rv || rv->getType() != NT_OBJECT) {
-      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to class '%s'", get_type_name(*rv), qc->getName());
-      return 0;
-   }
 
-   const QoreObject *obj = reinterpret_cast<const QoreObject *>(*rv);
-   if (!obj->getClass(qc->getID())) {
-      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
+   if (evalIntern(*rv, xsink))
       return 0;
-   }
 
    return rv.release();
 }
@@ -59,16 +66,8 @@ AbstractQoreNode *QoreCastOperatorNode::evalImpl(bool &needs_deref, ExceptionSin
    if (*xsink)
       return 0;
    
-   if (!rv || rv->getType() != NT_OBJECT) {
-      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to class '%s'", get_type_name(*rv), qc->getName());
+   if (evalIntern(*rv, xsink))
       return 0;
-   }
-
-   const QoreObject *obj = reinterpret_cast<const QoreObject *>(*rv);
-   if (!obj->getClass(qc->getID())) {
-      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
-      return 0;
-   }
 
    if (rv.isTemp()) {
       needs_deref = false;
@@ -79,17 +78,27 @@ AbstractQoreNode *QoreCastOperatorNode::evalImpl(bool &needs_deref, ExceptionSin
 }
 
 AbstractQoreNode *QoreCastOperatorNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   qc = path->elements == 1 
-      ? getRootNS()->parseFindClass(path->getIdentifier()) 
-      : getRootNS()->parseFindScopedClass(path);
+   bool err = false;
+   if (path->elements == 1) {
+      // if the class is "object", then set qc = 0 to use as a catch-all and generic "cast to object"
+      const char *id = path->getIdentifier();
+      qc = !strcmp(id, "object") ? 0 : getRootNS()->parseFindClass(path->getIdentifier());
+   }
+   else {
+      qc = getRootNS()->parseFindScopedClass(path);
+      err = true;
+   }
 
-   //printd(5, "QoreCastOperatorNode::parseInit() this=%p resolved class %s\n", this, qc ? qc->getName() : "n/a");
+   //printd(5, "QoreCastOperatorNode::parseInit() this=%p resolved %s->%s\n", this, path->getIdentifier(), qc ? qc->getName() : (err ? "<error>" : "<generic object cast>");
 
    if (exp)
       exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, typeInfo);
 
    if (typeInfo->hasType()) {
-      if (!typeInfo->qc) {
+      if (!qc && !objectTypeInfo->parseEqual(typeInfo)) {
+	 parse_error("cast<object>(%s) is invalid; cannot cast from %s to object", typeInfo->getName(), typeInfo->getName());
+      }
+      else if (!typeInfo->qc) {
 	 parse_error("cast<%s>(%s) is invalid; the cast operator can only work with classes", path->ostr, typeInfo->getName());
       }
       else if (qc && (qc->getTypeInfo()->parseEqual(typeInfo) == QTI_NOT_EQUAL) && (typeInfo->parseEqual(qc->getTypeInfo()) == QTI_NOT_EQUAL)) {
@@ -97,6 +106,11 @@ AbstractQoreNode *QoreCastOperatorNode::parseInit(LocalVar *oflag, int pflag, in
       }
    }
 
-   typeInfo = qc ? qc->getTypeInfo() : 0;   
+   // free temporary memory
+   delete path;
+   path = 0;
+
+   // set return type info
+   typeInfo = qc ? qc->getTypeInfo() : objectTypeInfo;
    return this;
 }
