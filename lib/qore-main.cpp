@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <libxml/parser.h>
 
@@ -51,7 +52,6 @@ qore_license_t qore_license;
 
 void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;
-
    qore_library_options = n_qore_library_options;
 
    // initialize libxml2 library

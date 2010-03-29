@@ -758,6 +758,9 @@ void init_lib_intern(char *env[]) {
       i++;
    }
 
+   // set timezone
+   tzset();
+
    // other misc initialization
 #if defined(HAVE_GETPWUID_R) || defined(HAVE_GETPWNAM_R)
    pwsize = sysconf(_SC_GETPW_R_SIZE_MAX);

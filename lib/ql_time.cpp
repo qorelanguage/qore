@@ -61,13 +61,19 @@ static AbstractQoreNode *f_now(const QoreListNode *params, ExceptionSink *xsink)
 // returns the current date and time with a resolution to the millisecond
 static AbstractQoreNode *f_now_ms(const QoreListNode *params, ExceptionSink *xsink) {
    struct timeval tv;
-   struct timezone tz;
-   gettimeofday(&tv, &tz);
+   // FIXME: broken!
+   // linux returns 0s in the timezone structure
+   gettimeofday(&tv, 0);
+   
+   return new DateTimeNode(tv.tv_sec - timezone, tv.tv_usec / 1000);
+}
 
-   // get difference to local time zone (with DST)
-   int delta = -tz.tz_minuteswest * 60 + 3600 * tz.tz_dsttime;
+// returns the current GMT date and time with a resolution to the millisecond
+static AbstractQoreNode *f_now_gmt_ms(const QoreListNode *params, ExceptionSink *xsink) {
+   struct timeval tv;
+   gettimeofday(&tv, 0);
 
-   return new DateTimeNode(tv.tv_sec + delta, tv.tv_usec / 1000);
+   return new DateTimeNode(tv.tv_sec, tv.tv_usec / 1000);
 }
 
 static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink *xsink) {
@@ -320,6 +326,7 @@ static AbstractQoreNode *f_date_ms(const QoreListNode *params, ExceptionSink *xs
 void init_time_functions() {
    builtinFunctions.add2("now", f_now, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("now_ms", f_now_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
+   builtinFunctions.add2("now_gmt_ms", f_now_gmt_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
 
    builtinFunctions.add2("format_date", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("format_date", f_format_date, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);

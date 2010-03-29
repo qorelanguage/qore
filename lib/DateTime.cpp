@@ -194,26 +194,21 @@ int DateTime::getDayOfWeek() const
    return getDayOfWeek(priv->year, priv->month, priv->day);
 }
 
-void DateTime::format(QoreString &str, const char *fmt) const
-{
+void DateTime::format(QoreString &str, const char *fmt) const {
    struct tm nt;
 
    QORE_TRACE("DateTime::format()");
 
    const char *s = fmt;
-   while (*s)
-   {
-      switch (*s)
-      {
+   while (*s) {
+      switch (*s) {
          case 'Y':
-            if (s[1] != 'Y')
-            {
+            if (s[1] != 'Y') {
                str.concat('Y');
                break;
             }
             s++;
-            if ((s[1] == 'Y') && (s[2] == 'Y'))
-            {
+            if ((s[1] == 'Y') && (s[2] == 'Y')) {
                str.sprintf("%04d", priv->year);
                s += 2;
             }
@@ -221,17 +216,14 @@ void DateTime::format(QoreString &str, const char *fmt) const
                str.sprintf("%02d", priv->year - (priv->year / 100) * 100);
             break;
          case 'M':
-            if (s[1] == 'M')
-            {
+            if (s[1] == 'M') {
                str.sprintf("%02d", priv->month);
                s++;
                break;
             }
-            if ((s[1] == 'o') && (s[2] == 'n'))
-            {
+            if ((s[1] == 'o') && (s[2] == 'n')) {
                s += 2;
-               if ((s[1] == 't') && (s[2] == 'h'))
-               {
+               if ((s[1] == 't') && (s[2] == 'h')) {
                   s += 2;
                   if (priv->month && (priv->month <= 12))
                      str.sprintf("%s", months[(int)priv->month - 1].long_name);
@@ -245,14 +237,11 @@ void DateTime::format(QoreString &str, const char *fmt) const
                   str.sprintf("M%02d", priv->month);
                break;
             }
-            if ((s[1] == 'O') && (s[2] == 'N'))
-            {
+            if ((s[1] == 'O') && (s[2] == 'N')) {
                s += 2;
-               if ((s[1] == 'T') && (s[2] == 'H'))
-               {
+               if ((s[1] == 'T') && (s[2] == 'H')) {
                   s += 2;
-                  if (priv->month && (priv->month <= 12))
-                  {
+                  if (priv->month && (priv->month <= 12)) {
                      char *t = (char *)str.getBuffer() + str.strlen();
                      str.sprintf("%s", months[(int)priv->month - 1].long_name);
                      strtoupper(t);
@@ -261,8 +250,7 @@ void DateTime::format(QoreString &str, const char *fmt) const
                      str.sprintf("MONTH%d", priv->month);
                   break;
                }
-               if (priv->month && (priv->month <= 12))
-               {
+               if (priv->month && (priv->month <= 12)) {
                   char *t = (char *)str.getBuffer() + str.strlen();
                   str.sprintf("%s", months[(int)priv->month - 1].abbr);
                   strtoupper(t);
@@ -274,14 +262,12 @@ void DateTime::format(QoreString &str, const char *fmt) const
             str.sprintf("%d", priv->month);
             break;
          case 'D':
-            if (s[1] == 'D')
-            {
+            if (s[1] == 'D') {
                str.sprintf("%02d", priv->day);
                s++;
                break;
             }
-            if ((s[1] == 'a') && (s[2] == 'y'))
-            {
+            if ((s[1] == 'a') && (s[2] == 'y')) {
                s += 2;
                getTM(&nt);
                if (mktime(&nt) == -1) // invalid time
@@ -290,22 +276,19 @@ void DateTime::format(QoreString &str, const char *fmt) const
                   str.sprintf("%s", days[nt.tm_wday].long_name);
                break;
             }
-            if ((s[1] == 'A') && (s[2] == 'Y'))
-            {
+            if ((s[1] == 'A') && (s[2] == 'Y')) {
                s += 2;
                getTM(&nt);
                if (mktime(&nt) == -1) // invalid time
                   str.sprintf("DAY%d", priv->day);
-               else
-               {
+               else {
                   char *t = (char *)str.getBuffer() + str.strlen();
                   str.sprintf("%s", days[nt.tm_wday].long_name);
                   strtoupper(t);
                }
                break;
             }
-            if ((s[1] == 'y') || (s[1] == 'Y'))
-            {
+            if ((s[1] == 'y') || (s[1] == 'Y')) {
                s++;;
                getTM(&nt);
                if (mktime(&nt) == -1) // invalid time
@@ -322,8 +305,7 @@ void DateTime::format(QoreString &str, const char *fmt) const
             str.sprintf("%d", priv->day);
             break;
          case 'H':
-            if (s[1] == 'H')
-            {
+            if (s[1] == 'H') {
                str.sprintf("%02d", priv->hour);
                s++;
             }
@@ -331,8 +313,7 @@ void DateTime::format(QoreString &str, const char *fmt) const
                str.sprintf("%d", priv->hour);
             break;
          case 'h':
-            if (s[1] == 'h')
-            {
+            if (s[1] == 'h') {
                str.sprintf("%02d", ampm(priv->hour));
                s++;
             }
@@ -352,13 +333,11 @@ void DateTime::format(QoreString &str, const char *fmt) const
                str.sprintf("am");
             break;
          case 'm':
-            if (s[1] == 'm')
-            {
+            if (s[1] == 'm') {
                str.sprintf("%02d", priv->minute);
                s++;
             }
-            else if (s[1] == 's')
-            {
+            else if (s[1] == 's') {
                str.sprintf("%03d", priv->millisecond);
                s++;
             }
@@ -393,10 +372,8 @@ void DateTime::format(QoreString &str, const char *fmt) const
 }
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)
-void DateTime::setDate(int64 seconds, int ms)
-{
-   if (ms >= 1000 || ms <= -1000)
-   {
+void DateTime::setDate(int64 seconds, int ms) {
+   if (ms >= 1000 || ms <= -1000) {
       int ds = ms / 1000;
       seconds += ds;
       ms -= ds * 1000;
@@ -406,34 +383,29 @@ void DateTime::setDate(int64 seconds, int ms)
 }
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)
-void DateTime::setDate(int64 seconds)
-{
+void DateTime::setDate(int64 seconds) {
    priv->relative = false;
    priv->millisecond = priv->year = 0;
    // there are 97 leap days every 400 years (12622780800 seconds)
    int64 ty = seconds/12622780800ll;
-   if (ty)
-   {
+   if (ty) {
       priv->year += ty * 400;
       seconds -= ty * 12622780800ll;
    }
    // there are 24 leap days every 100 years (3155673600 seconds)
    ty = seconds/3155673600ll;
-   if (ty)
-   {
+   if (ty) {
       priv->year += ty * 100;
       seconds -= ty * 3155673600ll;
    }
    // then there are leap days every 4 years (126230400 seconds)
    ty = seconds/126230400;
-   if (ty)
-   {
+   if (ty) {
       priv->year += ty * 4;
       seconds -= ty * 126230400;
    }
    //printd(0, "seconds: %lld year: %d\n", seconds, year);
-   if (seconds >= 0)
-   {
+   if (seconds >= 0) {
       // now we have taken care of all the seconds after 1974 - we now have
       // to deal with the time period from 1970 - 1974
       
@@ -461,11 +433,9 @@ void DateTime::setDate(int64 seconds)
       //printd(5, "seconds=%lld year=%d day=%d\n", seconds, year, day);
       bool ly = isLeapYear(priv->year);
       // FIXME: this is inefficient - needs to be optimized
-      for (int i = 1; ;i++)
-      {
+      for (int i = 1; ;i++) {
 	 //printd(5, "day=%d, positive_months[%d]=%d, adjusted=%d\n", day, i, positive_months[i], (positive_months[i] + (ly && i > 1 ? 1 : 0)));
-         if ((positive_months[i] + (ly && i > 1 ? 1 : 0)) > priv->day)
-	 {
+         if ((positive_months[i] + (ly && i > 1 ? 1 : 0)) > priv->day) {
 	    //printd(5, "pm[%d]=%d pm[%d]=%d month=%d day=%d (%d)\n", i, positive_months[i], i - 1, positive_months[i - 1], i, day, day - positive_months[i - 1] + 1);
 	    priv->month = i;
 	    priv->day = priv->day - positive_months[i - 1] + (ly && i > 2 ? 0 : 1);
@@ -505,8 +475,7 @@ void DateTime::setDate(int64 seconds)
    priv->year += ty + 1969;
 
    //printf("year:%d\n", year);
-   if (!seconds)
-   {
+   if (!seconds) {
       // calculate actual year
       priv->year++;
       priv->month = 1;
@@ -526,8 +495,7 @@ void DateTime::setDate(int64 seconds)
    bool ly = isLeapYear(priv->year);
    //printd(5, "1.1: seconds=%lld day=%d ly=%s\n", seconds, day, ly ? "true" : "false");
    // FIXME: this is inefficient - needs to be optimized
-   for (int i = 1; ; i++)
-   {
+   for (int i = 1; ; i++) {
 #if 0
       printd(5, "nm[%d]=%d nm[%d]=%d adj=%d len=%d adj=%d day=%d (mon=%d day=%d)\n", i, negative_months[i], i - 1, 
 	     negative_months[i - 1], (negative_months[i - 1] - (ly && i == 12 ? 1 : 0)),
@@ -536,8 +504,7 @@ void DateTime::setDate(int64 seconds)
 	     month_lengths[13 - i] + (ly && (13 - i) == 2) + priv->day - negative_months[i - 1] + (ly && i == 12 ? 0 : 1));
 #endif
       // check to find out what month we're in - add extra days for jan & feb if it's a leap year
-      if ((negative_months[i] - (ly && i > 10 ? 1 : 0)) <= priv->day)
-      {
+      if ((negative_months[i] - (ly && i > 10 ? 1 : 0)) <= priv->day) {
 	 priv->month = 13 - i;
 	 priv->day = month_lengths[priv->month] + (ly && priv->month == 2 ? 1 : 0) + priv->day - negative_months[i - 1] + (ly && i == 12 ? 2 : 1);
 	 break;
@@ -548,27 +515,23 @@ void DateTime::setDate(int64 seconds)
    seconds -= priv->hour * 3600;
    priv->minute = seconds / 60;
    seconds -= priv->minute * 60;
-   if ((priv->second = seconds))
-   {
+   if ((priv->second = seconds)) {
       priv->second += 60;
       priv->minute--;
    }
-   if (priv->minute) 
-   {
+   if (priv->minute) {
       priv->minute += 60;
       priv->hour--;
    }
    if (priv->hour) priv->hour += 24;
 }
 
-void DateTime::setDate(const DateTime &date)
-{
+void DateTime::setDate(const DateTime &date) {
    priv->setDate(date.priv);
 }
 
 // static method
-int DateTime::negative_leap_years(int year)
-{
+int DateTime::negative_leap_years(int year) {
    year = 1970 - year - 1;
    
    if (year <= 0)
@@ -580,8 +543,7 @@ int DateTime::negative_leap_years(int year)
 }
 
 // static method
-int DateTime::positive_leap_years(int year, int month)
-{
+int DateTime::positive_leap_years(int year, int month) {
    if (month < 3 && isLeapYear(year))
       year--;
 
@@ -597,8 +559,7 @@ int DateTime::positive_leap_years(int year, int month)
 
 // get the number of seconds before or after January 1, 1970 (UNIX epoch) for a particular date
 // private static method
-int64 DateTime::getEpochSeconds(int year, int month, int day)
-{
+int64 DateTime::getEpochSeconds(int year, int month, int day) {
    //printd(0, "%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
    int tm = month;
    if (month < 0) tm = 1;
@@ -616,8 +577,7 @@ int64 DateTime::getEpochSeconds(int year, int month, int day)
 }
 
 // get the number of seconds before or after January 1, 1970 (UNIX epoch)
-int64 DateTime::getEpochSeconds() const
-{
+int64 DateTime::getEpochSeconds() const {
    //printd(0, "%04d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
    int tm = priv->month;
    if (priv->month < 0) tm = 1;
@@ -649,8 +609,7 @@ int64 DateTime::getEpochSeconds() const
       + (priv->second - 60);	 
 }
 
-void DateTime::setDateLiteral(int64 date)
-{
+void DateTime::setDateLiteral(int64 date) {
    priv->year = date / 10000000000ll;
    date -= priv->year * 10000000000ll;
    priv->month = date / 100000000ll;
@@ -663,37 +622,30 @@ void DateTime::setDateLiteral(int64 date)
    priv->second = date - priv->minute * 100ll;
    priv->millisecond = 0;
 
-   if (priv->second > 59)
-   {
+   if (priv->second > 59) {
       priv->minute += (priv->second / 60);
       priv->second %= 60;
    }
-   if (priv->minute > 59)
-   {
+   if (priv->minute > 59) {
       priv->hour += (priv->minute / 60);
       priv->minute %= 60;
    }
-   if (priv->hour > 23)
-   {
+   if (priv->hour > 23) {
       priv->day += (priv->hour / 24);
       priv->hour %= 24;
    }
    // adjust month and year
-   if (priv->month > 12)
-   {
+   if (priv->month > 12) {
       priv->year += ((priv->month - 1)/ 12);
       priv->month = ((priv->month - 1) % 12) + 1;
    }
    // now check day
-   if (priv->day)
-   {
+   if (priv->day) {
       int i;
-      while (priv->day > (i = getLastDayOfMonth(priv->month, priv->year)))
-      {
+      while (priv->day > (i = getLastDayOfMonth(priv->month, priv->year))) {
 	 priv->day -= i;
 	 priv->month++;
-	 if (priv->month == 13)
-	 {
+	 if (priv->month == 13) {
 	    priv->month = 1;
 	    priv->year++;
 	 }
@@ -702,8 +654,7 @@ void DateTime::setDateLiteral(int64 date)
    priv->relative = false;
 }
 
-void DateTime::setRelativeDateLiteral(int64 date)
-{
+void DateTime::setRelativeDateLiteral(int64 date) {
    priv->year = date / 10000000000ll;
    date -= priv->year * 10000000000ll;
    priv->month = date / 100000000ll;
@@ -719,8 +670,7 @@ void DateTime::setRelativeDateLiteral(int64 date)
 }
 
 // return the ISO-8601 calendar week information - note that the ISO-8601 calendar year may be different than the actual year
-void DateTime::getISOWeek(int &yr, int &week, int &wday) const
-{
+void DateTime::getISOWeek(int &yr, int &week, int &wday) const {
    // get day of week of jan 1 of this year
    int jan1 = getDayOfWeek(priv->year, 1, 1);
 
@@ -730,8 +680,7 @@ void DateTime::getISOWeek(int &yr, int &week, int &wday) const
    wday = !dow ? 7 : dow;
    
    //printd(5, "getISOWeek() year=%d, start=%d, daw=%d dn=%d offset=%d\n", year, jan1, dow, dn, (jan1 > 4 ? 9 - jan1 : 2 - jan1));
-   if ((!jan1 && dn == 1) || (jan1 == 5 && dn < 4) || (jan1 == 6 && dn < 3))
-   {
+   if ((!jan1 && dn == 1) || (jan1 == 5 && dn < 4) || (jan1 == 6 && dn < 3)) {
       yr = priv->year - 1;
       jan1 = getDayOfWeek(yr, 1, 1);
       //printd(5, "getISOWeek() previous year=%d, start=%d, leap=%d\n", yr, jan1, isLeapYear(yr));
@@ -758,8 +707,7 @@ void DateTime::getISOWeek(int &yr, int &week, int &wday) const
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
 // a NULL return value means an exception was raised
 // static method
-DateTime *DateTime::getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink)
-{
+DateTime *DateTime::getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink) {
    std::auto_ptr<DateTime> rv(new DateTime());
    if (getDateFromISOWeekIntern(*rv, year, week, day, xsink))
       return 0;
@@ -769,10 +717,8 @@ DateTime *DateTime::getDateFromISOWeek(int year, int week, int day, ExceptionSin
 // static method
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
 // return value: -1 = an exception was raised, 0 = OK
-int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int day, ExceptionSink *xsink)
-{
-   if (week <= 0)
-   {
+int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int day, ExceptionSink *xsink) {
+   if (week <= 0) {
       xsink->raiseException("ISO-8601-INVALID-WEEK", "week numbers must be positive (value passed: %d)", week);
       return -1;
    }
@@ -780,19 +726,16 @@ int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int
    // get day of week of jan 1 of this year
    int jan1 = getDayOfWeek(year, 1, 1);
 
-   if (week > 52)
-   {
+   if (week > 52) {
       // get maximum week number in this year
       int mw = 52 + ((jan1 == 4 && !isLeapYear(year)) || (jan1 == 3 && isLeapYear(year)));
-      if (week > mw)
-      {
+      if (week > mw) {
 	 xsink->raiseException("ISO-8601-INVALID-WEEK", "there are only %d calendar weeks in year %d (week value passed: %d)", mw, year, week);
 	 return -1;
       }
    }
    
-   if (day < 1 || day > 7)
-   {
+   if (day < 1 || day > 7) {
       xsink->raiseException("ISO-8601-INVALID-DAY", "calendar week days must be between 1 and 7 for Mon - Sun (day value passed: %f)", day);
       return -1;
    }
@@ -800,21 +743,18 @@ int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int
    // get year, month, day for start of iso-8601 calendar year
    int y, m, d;
    // if jan1 is mon, then the iso-8601 year starts with the normal year
-   if (jan1 == 1)
-   {
+   if (jan1 == 1) {
       y = year;
       m = 1;
       d = 1;
    }
    // if jan1 is tue - thurs, iso-8601 year starts in dec of previous real year
-   else if (jan1 > 1 && jan1 < 5)
-   {
+   else if (jan1 > 1 && jan1 < 5) {
       y = year - 1;
       m = 12;
       d = 33 - jan1;
    }
-   else
-   {
+   else {
       y = year;
       m = 1;
       // jan1 is fri or saturday
@@ -829,19 +769,16 @@ int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int
    return 0;
 }
 
-int DateTime::compareDates(const DateTime *left, const DateTime *right)
-{
+int DateTime::compareDates(const DateTime *left, const DateTime *right) {
    return qore_dt_private::compareDates(left->priv, right->priv);
 }
 
 // FIXME: implement and use
-bool DateTime::checkValidity() const
-{
+bool DateTime::checkValidity() const {
    return true;
 }
 
-int64 DateTime::getRelativeSeconds() const
-{
+int64 DateTime::getRelativeSeconds() const {
    if (priv->relative)
       return priv->millisecond/1000 + priv->second + priv->minute * 60 + priv->hour * 3600ll + priv->day * 86400ll 
 	 + (priv->month ? priv->month * 2592000ll : 0)
@@ -857,8 +794,7 @@ int64 DateTime::getRelativeSeconds() const
    return diff;
 }
 
-int64 DateTime::getRelativeMilliseconds() const
-{
+int64 DateTime::getRelativeMilliseconds() const {
    if (priv->relative)
       return priv->millisecond + priv->second * 1000ll + priv->minute * 60000ll + priv->hour * 3600000ll + priv->day * 86400000ll 
 	 + (priv->month ? priv->month * 2592000000ll : 0)
@@ -875,8 +811,7 @@ int64 DateTime::getRelativeMilliseconds() const
 }
 
 // static methods
-bool DateTime::isLeapYear(int year)
-{
+bool DateTime::isLeapYear(int year) {
 #if NO_PROLEPTIC_GREGORIAN_CALENDAR
    // in 45 BC Julius Ceasar initiated the Julian calendar
    if (year <= -45)
@@ -903,28 +838,23 @@ int DateTime::getLastDayOfMonth(int month, int year)
    return isLeapYear(year) ? 29 : 28;
 }
 
-DateTime::DateTime(const struct tm *tms) : priv(new qore_dt_private)
-{
+DateTime::DateTime(const struct tm *tms) : priv(new qore_dt_private) {
    setDate(tms);
 }
 
-DateTime::DateTime(int64 seconds) : priv(new qore_dt_private)
-{
+DateTime::DateTime(int64 seconds) : priv(new qore_dt_private) {
    setDate(seconds);
 }
 
-DateTime::DateTime(int64 seconds, int ms) : priv(new qore_dt_private)
-{
+DateTime::DateTime(int64 seconds, int ms) : priv(new qore_dt_private) {
    setDate(seconds, ms);
 }
 
-DateTime::DateTime(const char *str) : priv(new qore_dt_private)
-{
+DateTime::DateTime(const char *str) : priv(new qore_dt_private) {
    setDate(str);
 }
 
-void DateTime::getTM(struct tm *tms) const
-{
+void DateTime::getTM(struct tm *tms) const {
    tms->tm_year = priv->year - 1900;
    tms->tm_mon = priv->month - 1;
    tms->tm_mday = priv->day;
@@ -937,8 +867,7 @@ void DateTime::getTM(struct tm *tms) const
    tms->tm_isdst = -1;
 }
 
-void DateTime::setDate(const struct tm *tms, short ms)
-{
+void DateTime::setDate(const struct tm *tms, short ms) {
    priv->year = 1900 + tms->tm_year;
    priv->month = tms->tm_mon + 1;
    priv->day = tms->tm_mday;
@@ -949,8 +878,7 @@ void DateTime::setDate(const struct tm *tms, short ms)
    priv->relative = false;
 }
 
-void DateTime::setDate(const char *str)
-{
+void DateTime::setDate(const char *str) {
 #ifdef HAVE_STRTOLL
    int64 date = strtoll(str, 0, 10);
 #else
@@ -971,8 +899,7 @@ void DateTime::setDate(const char *str)
    priv->relative = false;
 }
 
-void DateTime::setRelativeDate(const char *str)
-{
+void DateTime::setRelativeDate(const char *str) {
 #ifdef HAVE_STRTOLL
    int64 date = strtoll(str, 0, 10);
 #else
@@ -989,8 +916,7 @@ void DateTime::setRelativeDate(const char *str)
    priv->millisecond = atoi(p + 1);
 }
 
-bool DateTime::isEqual(const DateTime *dt) const
-{
+bool DateTime::isEqual(const DateTime *dt) const {
    if (priv->year != dt->priv->year)
       return false;
    if (priv->month != dt->priv->month)
