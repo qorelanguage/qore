@@ -296,6 +296,11 @@ void QoreString::takeAndTerminate(char *str, qore_size_t size) {
    priv->buf[size] = '\0';
 }
 
+void QoreString::takeAndTerminate(char *str, qore_size_t size, const QoreEncoding *enc) {
+   takeAndTerminate(str, size);
+   priv->charset = enc;
+}
+
 // NOTE: could be dangerous if we refer to the priv->buffer after this
 // call and it's NULL (the only way the priv->buffer can become NULL)
 char *QoreString::giveBuffer() {

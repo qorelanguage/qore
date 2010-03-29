@@ -619,8 +619,7 @@ int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
    return priv->write(wstr->getBuffer(), wstr->strlen());
 }
 
-int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink)
-{
+int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
    if (priv->check_write_open(xsink))
@@ -630,6 +629,28 @@ int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink)
       return 0;
    
    return priv->write(b->getPtr(), b->size());
+}
+
+int QoreFile::read(QoreString &str, qore_offset_t size, ExceptionSink *xsink) {
+   str.clear();
+
+   if (!size)
+      return 0;
+
+   char *buf;
+   {
+      AutoLocker al(priv->m);
+
+      if (priv->check_read_open(xsink))
+	 return -1;
+
+      buf = priv->readBlock(size, -1, xsink);
+   }
+   if (!buf)
+      return -1;
+
+   str.takeAndTerminate(buf, size, priv->charset);
+   return 0;
 }
 
 QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
@@ -652,6 +673,28 @@ QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
    //str->terminate(buf[size - 1] ? size : size - 1);
    str->terminate(size);
    return str;
+}
+
+int QoreFile::readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink) {
+   b.clear();
+
+   if (!size)
+      return 0;
+
+   char *buf;
+   {
+      AutoLocker al(priv->m);
+
+      if (priv->check_read_open(xsink))
+	 return -1;
+
+      buf = priv->readBlock(size, -1, xsink);
+   }
+   if (!buf)
+      return -1;
+
+   b.append(buf, size);
+   return 0;
 }
 
 BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {

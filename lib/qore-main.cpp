@@ -60,6 +60,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // initialize openssl library
    SSL_load_error_strings();
    OpenSSL_add_all_algorithms();
+   SSL_load_error_strings();
    SSL_library_init();
 
    // init threading infrastructure

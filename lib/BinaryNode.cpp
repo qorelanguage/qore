@@ -35,6 +35,14 @@ BinaryNode::~BinaryNode() {
       free(ptr);
 }
 
+void BinaryNode::clear() {
+   if (len) {
+      assert(ptr);
+      free(ptr);
+      len = 0;
+   }
+}
+
 // returns 0 = equal, 1 = not equal
 int BinaryNode::compare(const BinaryNode *obj) const {
    // if the sizes are not equal, then the objects can't be equal

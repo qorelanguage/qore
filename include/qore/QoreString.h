@@ -262,6 +262,9 @@ public:
    //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated), sets the string byte length to "size", and sets the amount of member allocated to size + 1
    DLLEXPORT void takeAndTerminate(char *str, qore_size_t size);
 
+   //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated), sets the string byte length to "size", and sets the amount of member allocated to size + 1, and sets the new encoding
+   DLLEXPORT void takeAndTerminate(char *str, qore_size_t size, const QoreEncoding *enc);
+
    //! converts the encoding of the string to the specified encoding, returns 0 if an error occurs, the caller owns the pointer returned
    /** if the encoding is the same as the current encoding, a copy of the string is returned
        @param nccs the encoding for the new string
