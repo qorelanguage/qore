@@ -166,6 +166,7 @@ enum qore_call_t {
 #include <qore/intern/QoreClosureNode.h>
 #include <qore/intern/QoreImplicitArgumentNode.h>
 #include <qore/intern/QoreOperatorNode.h>
+#include <qore/intern/QoreTimeZoneManager.h>
 
 DLLLOCAL extern int qore_library_options;
 

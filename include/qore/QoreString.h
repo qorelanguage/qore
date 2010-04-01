@@ -43,8 +43,6 @@ class QoreString {
 protected:
    //! the private implementation of QoreString
    struct qore_string_private *priv;
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreString & operator=(const QoreString &);
 
    DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, QoreString *extract = 0);
    DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, const char *str, qore_size_t str_len, QoreString *extract = 0);
@@ -329,6 +327,15 @@ public:
    */
    DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const AbstractQoreNode *strn, ExceptionSink *xsink);
 
+   //! removes "length" characters from the string starting at position "offset" and replaces them with the string passed
+   /** values are for characters, not bytes
+       @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
+       @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
+       @param str the string to insert at character position "offset" after "length" characters are removed
+       @param xsink invalid multi-byte encodings can cause an exception to be thrown
+   */
+   DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const QoreString &str, ExceptionSink *xsink);
+
    //! removes characters from the string starting at position "offset" and returns a string of the characters removed
    /** values are for characters, not bytes.  If no characters a removed, an empty string is returned
        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
@@ -443,13 +450,19 @@ public:
    //! remove leading and trailing whitespace or other characters
    DLLEXPORT void trim(const char *chars = 0);
 
-   //! remove trailing character
+   //! remove trailing characters if present
    DLLEXPORT void trim_trailing(char c);
 
-   //! remove leading characters
+   //! remove a single trailing character if present
+   DLLEXPORT void trim_single_trailing(char c);
+
+   //! remove leading characters if present
    DLLEXPORT void trim_leading(char c);
 
-   //! remove leading and trailing single char
+   //! remove a single leading character if present
+   DLLEXPORT void trim_single_leading(char c);
+
+   //! remove leading and trailing characters if present
    DLLEXPORT void trim(char c);
 
    //! return Unicode code point for character offset, string must be UTF-8
@@ -466,6 +479,15 @@ public:
        @return the unicode code for the character
    */
    DLLEXPORT unsigned int getUnicodePoint(qore_offset_t offset, ExceptionSink *xsink) const;
+
+   //! prepends the string given to the string, assumes character encoding is the same as the string's
+   DLLEXPORT void prepend(const char *str);
+
+   //! prepends the string given to the string, assumes character encoding is the same as the string's
+   DLLEXPORT void prepend(const char *str, qore_size_t size);
+
+   //! assigns the value of one string to another
+   DLLEXPORT QoreString & operator=(const QoreString &other);
 
    // concatenates a qorestring without converting encodings - internal only
    DLLLOCAL void concat(const QoreString *str);

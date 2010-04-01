@@ -316,8 +316,8 @@ static AbstractQoreNode *f_glob(const QoreListNode *params, ExceptionSink *xsink
       return 0;
    }
 
-   QoreListNode *l = new QoreListNode();
-   for (int i = 0; i < (int)globbuf.gl_pathc; i++)
+   QoreListNode *l = new QoreListNode;
+   for (unsigned i = 0; i < globbuf.gl_pathc; ++i)
       l->push(new QoreStringNode(globbuf.gl_pathv[i]));
    
    globfree(&globbuf);
@@ -549,6 +549,20 @@ static AbstractQoreNode *f_lchown(const QoreListNode *params, ExceptionSink *xsi
    return new QoreBigIntNode(lchown(path, owner, group));
 }
 
+static AbstractQoreNode *f_readlink(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+   
+   char buf[QORE_PATH_MAX + 1];
+   qore_offset_t len = readlink(p0->getBuffer(), buf, QORE_PATH_MAX);
+   if (len < 0) {
+      xsink->raiseException("READLINK-ERROR", "%s: %s", p0->getBuffer(), strerror(errno));
+      return 0;
+   }
+   assert(len <= QORE_PATH_MAX);
+   buf[len] = '\0';
+   return new QoreStringNode(buf);
+}
+
 #ifdef DEBUG
 static AbstractQoreNode* runQoreTests(const QoreListNode *params, ExceptionSink *xsink) {
    minitest::result res = minitest::execute_all_tests();
@@ -694,6 +708,8 @@ void init_lib_functions() {
 
    builtinFunctions.add2("chown",       f_chown, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero());
    builtinFunctions.add2("lchown",      f_lchown, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero());
+
+   builtinFunctions.add2("readlink",    f_readlink, QC_NO_FLAGS, QDOM_FILESYSTEM, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
 #ifdef DEBUG
    builtinFunctions.add("runQoreTests", runQoreTests);

@@ -325,4 +325,13 @@ DLLEXPORT extern size_t qore_option_list_size;
 
 #define QORE_PARAM_NO_ARG (NULL)
 
+// define QORE_PATH_MAX
+#ifndef QORE_PATH_MAX
+#ifdef _XOPEN_PATH_MAX
+#define QORE_PATH_MAX _XOPEN_PATH_MAX
+#else
+#define QORE_PATH_MAX 1024
+#endif
+#endif
+
 #endif // _QORE_QORELIB_H

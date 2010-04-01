@@ -39,6 +39,8 @@
 #define QORE_SIGNAL_MAX _NSIG
 #elif defined _NSIGS
 #define QORE_SIGNAL_MAX _NSIGS
+#elif defined __DARWIN_NSIG
+#define QORE_SIGNAL_MAX (__DARWIN_NSIG+1)
 #else
 #error do not know maximum signal number on this platform
 #endif

@@ -67,6 +67,7 @@
 #include "QoreSocket.cpp"
 #include "DateTime.cpp"
 #include "QoreLib.cpp"
+#include "QoreTimeZoneManager.cpp"
 #include "QoreString.cpp"
 #include "QoreObject.cpp"
 #include "QoreListNode.cpp"

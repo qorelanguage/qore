@@ -118,7 +118,9 @@ case "${host_os}" in
 		fi
 		solaris=yes
 	        ;;
-     *darwin*)  SHLIB_SUFFIX=dylib
+     *darwin*)  # set compile flags for Darwin/OSX
+		CPPFLAGS="${CPPFLAGS} -D_APPLE_C_SOURCE"
+		SHLIB_SUFFIX=dylib
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
 		MODULE_SUFFIX=so
 		AC_DEFINE(DARWIN, 1, [if compiling on Darwin])

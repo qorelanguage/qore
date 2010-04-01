@@ -88,6 +88,7 @@ libqore_la_SOURCES = \
 	QoreSocket.cpp \
 	DateTime.cpp \
 	QoreLib.cpp \
+	QoreTimeZoneManager.cpp \
 	QoreString.cpp \
 	QoreObject.cpp \
 	QoreListNode.cpp \

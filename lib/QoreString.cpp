@@ -406,29 +406,33 @@ void QoreString::splice(qore_offset_t offset, qore_offset_t num, ExceptionSink *
    splice_complex(offset, num, xsink, 0);
 }
 
+void QoreString::splice(qore_offset_t offset, qore_offset_t num, const QoreString &str, ExceptionSink *xsink) {
+   TempEncodingHelper tmp(&str, priv->charset, xsink);
+   if (!tmp)
+       return;
+
+   if (priv->charset->isMultiByte()) {
+      splice_complex(offset, num, *tmp, xsink, 0);
+      return;
+   }
+
+   qore_size_t n_offset, n_num;
+   priv->check_offset(offset, num, n_offset, n_num);
+   if (n_offset == priv->len) {
+      if (!tmp->priv->len)
+	 return;
+      n_num = 0;
+   }
+   splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), 0);
+}
+
 void QoreString::splice(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink *xsink) {
    if (!strn || strn->getType() != NT_STRING) {
       splice(offset, num, xsink);
       return;
    }
 
-   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(strn);
-   TempEncodingHelper tmp(str, priv->charset, xsink);
-   if (!tmp)
-       return;
-
-   if (!priv->charset->isMultiByte()) {
-      qore_size_t n_offset, n_num;
-      priv->check_offset(offset, num, n_offset, n_num);
-      if (n_offset == priv->len) {
-	 if (!tmp->priv->len)
-	    return;
-	 n_num = 0;
-      }
-      splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), 0);
-      return;
-   }
-   splice_complex(offset, num, *tmp, xsink, 0);
+   splice(offset, num, *reinterpret_cast<const QoreStringNode *>(strn), xsink);
 }
 
 QoreString *QoreString::extract(qore_offset_t offset, ExceptionSink *xsink) {
@@ -1639,6 +1643,12 @@ void QoreString::trim_trailing(char c) {
    terminate(p + 1 - priv->buf);
 }
 
+// remove single trailing char
+void QoreString::trim_single_trailing(char c) {
+   if (priv->len && priv->buf[priv->len - 1] == c)
+      terminate(priv->len - 1);
+}
+
 // remove leading char
 void QoreString::trim_leading(char c) {
    if (!priv->len)
@@ -1652,6 +1662,14 @@ void QoreString::trim_leading(char c) {
    
    memmove(priv->buf, priv->buf + i, priv->len + 1 - i);
    priv->len -= i;
+}
+
+// remove single leading char
+void QoreString::trim_single_leading(char c) {
+   if (priv->len && priv->buf[0] == c) {
+      memmove(priv->buf, priv->buf + 1, priv->len);
+      priv->len -= 1;
+   }
 }
 
 // remove leading and trailing char
@@ -1730,4 +1748,22 @@ void QoreString::concat_reverse(QoreString *str) const {
 
    str->priv->buf[priv->len] = 0;
    str->priv->len = priv->len;
+}
+
+QoreString &QoreString::operator=(const QoreString &other) {
+   set(other);
+   return *this;
+}
+
+void QoreString::prepend(const char *str) {
+   prepend(str, ::strlen(str));
+}
+
+void QoreString::prepend(const char *str, qore_size_t size) {
+   priv->check_char(priv->len + size + 1);
+   // move memory forward
+   memmove((char *)priv->buf + size, priv->buf, priv->len + 1);
+   // copy new memory to beginning
+   memcpy((char *)priv->buf, str, size);
+   priv->len += size;
 }

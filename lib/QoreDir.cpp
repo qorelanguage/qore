@@ -35,10 +35,6 @@
 #include <unistd.h>
 #include <dirent.h>
 
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
-
 class qore_qd_private {
    public:
       // check if the given directory is accessable
@@ -132,13 +128,13 @@ class qore_qd_private {
       {
 	 if (!dirname) {
 	    // set the directory to the cwd
-	    char *cwd = (char*)malloc(sizeof(char)*PATH_MAX);
+	    char *cwd = (char*)malloc(sizeof(char)*QORE_PATH_MAX);
 	    if (!cwd) { // error in malloc
 	       xsink->outOfMemory();
 	       return;
 	    }
 
-	    if (!getcwd(cwd, (size_t)PATH_MAX)) { // error in cwd
+	    if (!getcwd(cwd, (size_t)QORE_PATH_MAX)) { // error in cwd
 	       free(cwd);
 	       return;
 	    }

@@ -1713,7 +1713,9 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("IXON", new QoreBigIntNode(IXON));
    qoreNS->addConstant("IXOFF", new QoreBigIntNode(IXOFF));
    qoreNS->addConstant("IXANY", new QoreBigIntNode(IXANY));
+#ifdef IMAXBEL
    qoreNS->addConstant("IMAXBEL", new QoreBigIntNode(IMAXBEL));
+#endif
 #ifdef IUCLC
    qoreNS->addConstant("IUCLC", new QoreBigIntNode(IUCLC));
 #endif
@@ -1760,14 +1762,18 @@ void StaticSystemNamespace::init() {
 #endif
 
    // local modes
+#ifdef ECHOKE
    qoreNS->addConstant("ECHOKE", new QoreBigIntNode(ECHOKE));
+#endif
    qoreNS->addConstant("ECHOE", new QoreBigIntNode(ECHOE));
    qoreNS->addConstant("ECHO", new QoreBigIntNode(ECHO));
    qoreNS->addConstant("ECHONL", new QoreBigIntNode(ECHONL));
 #ifdef ECHOPRT
    qoreNS->addConstant("ECHOPRT", new QoreBigIntNode(ECHOPRT));
 #endif
+#ifdef ECHOCTL
    qoreNS->addConstant("ECHOCTL", new QoreBigIntNode(ECHOCTL));
+#endif
    qoreNS->addConstant("ISIG", new QoreBigIntNode(ISIG));
    qoreNS->addConstant("ICANON", new QoreBigIntNode(ICANON));
 #ifdef ALTWERASE
@@ -1778,7 +1784,9 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("EXTPROC", new QoreBigIntNode(EXTPROC));
 #endif
    qoreNS->addConstant("TOSTOP", new QoreBigIntNode(TOSTOP));
+#ifdef FLUSHO
    qoreNS->addConstant("FLUSHO", new QoreBigIntNode(FLUSHO));
+#endif
 #ifdef NOKERNINFO
    qoreNS->addConstant("NOKERNINFO", new QoreBigIntNode(NOKERNINFO));
 #endif
@@ -1790,9 +1798,13 @@ void StaticSystemNamespace::init() {
    // control characters
    qoreNS->addConstant("VEOF", new QoreBigIntNode(VEOF));
    qoreNS->addConstant("VEOL", new QoreBigIntNode(VEOL));
+#ifdef VEOL2
    qoreNS->addConstant("VEOL2", new QoreBigIntNode(VEOL2));
+#endif
    qoreNS->addConstant("VERASE", new QoreBigIntNode(VERASE));
+#ifdef VWERASE
    qoreNS->addConstant("VWERASE", new QoreBigIntNode(VWERASE));
+#endif
    qoreNS->addConstant("VKILL", new QoreBigIntNode(VKILL));
 #ifdef VREPRINT
    qoreNS->addConstant("VREPRINT", new QoreBigIntNode(VREPRINT));
@@ -1805,7 +1817,9 @@ void StaticSystemNamespace::init() {
 #endif
    qoreNS->addConstant("VSTART", new QoreBigIntNode(VSTART));
    qoreNS->addConstant("VSTOP", new QoreBigIntNode(VSTOP));
+#ifdef VLNEXT
    qoreNS->addConstant("VLNEXT", new QoreBigIntNode(VLNEXT));
+#endif
 #ifdef VDISCARD
    qoreNS->addConstant("VDISCARD", new QoreBigIntNode(VDISCARD));
 #endif

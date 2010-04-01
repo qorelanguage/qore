@@ -76,6 +76,10 @@ static long grsize = 0;
 static QoreThreadLock lck_group;
 #endif
 
+// time zone information source
+QoreTimeZoneManager QTZM;
+
+// for base64 encoding
 char table64[64] = {
    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
    'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
@@ -758,8 +762,8 @@ void init_lib_intern(char *env[]) {
       i++;
    }
 
-   // set timezone
-   tzset();
+   // initialize process-default local time zone
+   QTZM.init();
 
    // other misc initialization
 #if defined(HAVE_GETPWUID_R) || defined(HAVE_GETPWNAM_R)
