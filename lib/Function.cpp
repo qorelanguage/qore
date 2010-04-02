@@ -1405,7 +1405,7 @@ AbstractQoreNode *f_float_one_noop(const QoreListNode *args, ExceptionSink *xsin
 
 AbstractQoreNode *f_float_minus_infinity_noop(const QoreListNode *args, ExceptionSink *xsink) {
    // FIXME: how to specify -inf as an immediate value?
-   return new QoreFloatNode(log10(0));
+   return new QoreFloatNode(log10((double)0.0));
 }
 
 AbstractQoreNode *f_int_noop(const QoreListNode *args, ExceptionSink *xsink) {
