@@ -59,52 +59,6 @@ typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
 // mapping from qore class ID to the object data
 typedef std::map<qore_classid_t, private_pair_t> keymap_t;
 
-class KeyList;
-
-struct qore_object_private {
-      const QoreClass *theclass;
-      int status;
-      mutable QoreThreadLock mutex;
-#ifdef QORE_CLASS_SYNCHRONOUS
-      mutable VRMutex *sync_vrm;
-#endif
-      // used for references, to ensure that assignments will not deadlock when the object is locked for update
-      mutable QoreThreadLock ref_mutex;
-      KeyList *privateData;
-      QoreReferenceCounter tRefs;  // reference-references
-      QoreHashNode *data;
-      QoreProgram *pgm;
-   bool system_object, delete_blocker_run, in_destructor;
-
-      DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
-	 theclass(oc), status(OS_OK), 
-#ifdef QORE_CLASS_SYNCHRONOUS
-	 sync_vrm(oc->has_synchronous_in_hierarchy() ? new VRMutex : 0),
-#endif 
-	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false)
-      {
-#ifdef QORE_DEBUG_OBJ_REFS
-	 printd(QORE_DEBUG_OBJ_REFS, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, references 0->1\n", this, p, oc->getName());
-#endif
-	 /* instead of referencing the class, we reference the program, because the
-	    program contains the namespace that contains the class, and the class'
-	    methods may call functions in the program as well that could otherwise
-	    disappear when the program is deleted
-	 */
-	 if (p) {
-	    printd(5, "QoreObject::init() this=%08p (%s) calling QoreProgram::depRef() (%08p)\n", this, theclass->getName(), p);
-	    p->depRef();
-	 }
-      }
-
-      DLLLOCAL ~qore_object_private()
-      {
-	 assert(!pgm);
-	 assert(!data);
-	 assert(!privateData);
-      }
-};
-
 // for objects with multiple classes, private data has to be keyed
 class KeyList {
    private:
@@ -155,6 +109,71 @@ class KeyList {
       }
 };
 
+struct qore_object_private {
+      const QoreClass *theclass;
+      int status;
+      mutable QoreThreadLock mutex;
+#ifdef QORE_CLASS_SYNCHRONOUS
+      mutable VRMutex *sync_vrm;
+#endif
+      // used for references, to ensure that assignments will not deadlock when the object is locked for update
+      mutable QoreThreadLock ref_mutex;
+      KeyList *privateData;
+      QoreReferenceCounter tRefs;  // reference-references
+      QoreHashNode *data;
+      QoreProgram *pgm;
+   bool system_object, delete_blocker_run, in_destructor;
+
+      DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
+	 theclass(oc), status(OS_OK), 
+#ifdef QORE_CLASS_SYNCHRONOUS
+	 sync_vrm(oc->has_synchronous_in_hierarchy() ? new VRMutex : 0),
+#endif 
+	 privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false)
+      {
+#ifdef QORE_DEBUG_OBJ_REFS
+	 printd(QORE_DEBUG_OBJ_REFS, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, references 0->1\n", this, p, oc->getName());
+#endif
+	 /* instead of referencing the class, we reference the program, because the
+	    program contains the namespace that contains the class, and the class'
+	    methods may call functions in the program as well that could otherwise
+	    disappear when the program is deleted
+	 */
+	 if (p) {
+	    printd(5, "QoreObject::init() this=%08p (%s) calling QoreProgram::depRef() (%08p)\n", this, theclass->getName(), p);
+	    p->depRef();
+	 }
+      }
+
+      DLLLOCAL ~qore_object_private() {
+	 assert(!pgm);
+	 assert(!data);
+	 assert(!privateData);
+      }
+
+      // add virtual IDs for private data to class list
+      void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData *apd) {
+	 // first get parent class corresponding to "key"
+	 QoreClass *qc = theclass->getClass(key);
+	 assert(qc);
+	 BCSMList *sml = qc->getBCSMList();
+	 if (!sml)
+	    return;
+	 
+	 for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i)
+	    if ((*i).second)
+	       privateData->insertVirtual((*i).first->getID(), apd);
+      }
+
+      // called only during constructor execution, therefore no need for locking
+      void setPrivate(qore_classid_t key, AbstractPrivateData *pd) { 
+	 if (!privateData)
+	    privateData = new KeyList;
+	 privateData->insert(key, pd);
+	 addVirtualPrivateData(key, pd);
+      }
+};
+
 void QoreObject::externalDelete(qore_classid_t key, ExceptionSink *xsink) {
    {
       AutoLocker al(priv->mutex);
@@ -181,7 +200,7 @@ QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(N
 
 QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, AbstractPrivateData *data) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(oc, p, new QoreHashNode())) {
    assert(data);
-   setPrivate(oc->getID(), data);
+   priv->setPrivate(oc->getID(), data);
 }
 
 QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, QoreHashNode *h) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(oc, p, h)) {
@@ -953,26 +972,9 @@ AbstractPrivateData *QoreObject::getAndClearPrivateData(qore_classid_t key, Exce
    return 0;
 }
 
-// add virtual IDs for private data to class list
-void QoreObject::addVirtualPrivateData(qore_classid_t key, AbstractPrivateData *apd) {
-   // first get parent class corresponding to "key"
-   QoreClass *qc = theclass->getClass(key);
-   assert(qc);
-   BCSMList *sml = qc->getBCSMList();
-   if (!sml)
-      return;
-
-   for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i)
-      if ((*i).second)
-	 priv->privateData->insertVirtual((*i).first->getID(), apd);
-}
-
 // called only during constructor execution, therefore no need for locking
 void QoreObject::setPrivate(qore_classid_t key, AbstractPrivateData *pd) { 
-   if (!priv->privateData)
-      priv->privateData = new KeyList();
-   priv->privateData->insert(key, pd);
-   addVirtualPrivateData(key, pd);
+   priv->setPrivate(key, pd);
 }
 
 void QoreObject::addPrivateDataToString(QoreString *str, ExceptionSink *xsink) const {

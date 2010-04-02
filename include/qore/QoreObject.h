@@ -57,7 +57,6 @@ class QoreObject : public AbstractQoreNode {
       // must only be called when inside the gate
       DLLLOCAL void doDeleteIntern(ExceptionSink *xsink);
       DLLLOCAL void cleanup(ExceptionSink *xsink, QoreHashNode *td);
-      DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
       DLLLOCAL void doPrivateException(const char *mem, ExceptionSink *xsink) const;
       // returns true if the member is private and being accessed outside the class, false if not
       DLLLOCAL bool checkExternalPrivateAccess(const char *mem) const;
