@@ -856,7 +856,8 @@ QoreHashNode *q_getpwuid(uid_t uid) {
    struct passwd *pw;
 #ifdef HAVE_GETPWUID_R
    struct passwd pw_rec;
-   char buf[pwsize];
+   char *buf = (char *)malloc(pwsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
    int rc = getpwuid_r(uid, &pw_rec, buf, pwsize, &pw);
    if (rc)
       errno = rc;
@@ -871,7 +872,8 @@ QoreHashNode *q_getpwnam(const char *name) {
    struct passwd *pw;
 #ifdef HAVE_GETPWNAM_R
    struct passwd pw_rec;
-   char buf[pwsize];
+   char *buf = (char *)malloc(pwsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
    int rc = getpwnam_r(name, &pw_rec, buf, pwsize, &pw);
    if (rc)
       errno = rc;
@@ -886,7 +888,8 @@ int q_uname2uid(const char *name, uid_t &uid) {
    struct passwd *pw;
 #ifdef HAVE_GETPWNAM_R
    struct passwd pw_rec;
-   char buf[pwsize];
+   char *buf = (char *)malloc(pwsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
    int rc = getpwnam_r(name, &pw_rec, buf, pwsize, &pw);
    if (!rc)
       uid = pw_rec.pw_uid;
@@ -920,7 +923,8 @@ QoreHashNode *q_getgrgid(gid_t gid) {
    struct group *gr;
 #ifdef HAVE_GETGRGID_R
    struct group gr_rec;
-   char buf[grsize];
+   char *buf = (char *)malloc(grsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
    int rc = getgrgid_r(gid, &gr_rec, buf, grsize, &gr);
    if (rc)
       errno = rc;
@@ -935,7 +939,8 @@ QoreHashNode *q_getgrnam(const char *name) {
    struct group *gr;
 #ifdef HAVE_GETGRNAM_R
    struct group gr_rec;
-   char buf[grsize];
+   char *buf = (char *)malloc(grsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
    int rc = getgrnam_r(name, &gr_rec, buf, grsize, &gr);
    if (rc)
       errno = rc;
@@ -950,7 +955,8 @@ int q_gname2gid(const char *name, gid_t &gid) {
    struct group *gr;
 #ifdef HAVE_GETGRNAM_R
    struct group gr_rec;
-   char buf[grsize];
+   char *buf = (char *)malloc(grsize * sizeof(char));
+   ON_BLOCK_EXIT(free, buf);
    int rc = getgrnam_r(name, &gr_rec, buf, grsize, &gr);
    if (!rc)
       gid = gr_rec.gr_gid;
