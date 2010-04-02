@@ -783,11 +783,10 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 else {
 	    // get actual value and include in warning
 	    ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(getName(), 0, 0), 0);
-	    QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
-
-	    if (is_nothing(*vs))
+	    if (is_nothing(*v))
 	       desc->concat("NOTHING");
 	    else {
+	       QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
 	       desc->sprintf("the following value: %s (", vs->getBuffer());
 	       rti->getThisType(*desc);
 	       desc->concat(')');

@@ -1521,7 +1521,7 @@ void StaticSystemNamespace::init() {
    QoreClass *TermIOS, *File;
    qoreNS->addSystemClass(TermIOS = initTermIOSClass());
    qoreNS->addSystemClass(File = initFileClass(TermIOS));
-   qoreNS->addSystemClass(initDirClass());
+   qoreNS->addSystemClass(initDirClass(File));
    qoreNS->addSystemClass(initGetOptClass());
    qoreNS->addSystemClass(initFtpClientClass());
 
