@@ -214,6 +214,8 @@ DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
 
+DLLLOCAL const char *check_hash_key(const QoreHashNode *h, const char *key, const char *err, ExceptionSink *xsink);
+
 // class for master namespace of all builtin classes, constants, etc
 class StaticSystemNamespace : public RootQoreNamespace {
 public:

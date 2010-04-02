@@ -777,7 +777,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       const QoreTypeInfo *rti = variant->getReturnTypeInfo();
       if (rti->hasType() && !variant->numParams()) {
 	 desc->concat("and always returns ");
-	 if (rti->qc) {
+	 if (rti->qc || className()) {
 	    rti->getThisType(*desc);
 	 }
 	 else {
@@ -785,9 +785,13 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(getName(), 0, 0), 0);
 	    QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
 
-	    desc->sprintf("the following value: %s (", vs->getBuffer());
-	    rti->getThisType(*desc);
-	    desc->concat(')');
+	    if (is_nothing(*vs))
+	       desc->concat("NOTHING");
+	    else {
+	       desc->sprintf("the following value: %s (", vs->getBuffer());
+	       rti->getThisType(*desc);
+	       desc->concat(')');
+	    }
 	 }
       }
       desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");

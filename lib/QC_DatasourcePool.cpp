@@ -30,65 +30,125 @@ qore_classid_t CID_DATASOURCEPOOL;
 #define DP_MIN 5
 #define DP_MAX 20
 
+static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
+
 // usage: DatasourcePool(db name, [username, password, dbname, charset, hostname, min, max])
-static void DSP_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *pstr = test_string_param(params, 0);
-   if (!pstr) {
-      xsink->raiseException("DATASOURCEPOOL-PARAM-ERROR", "expecting database type as first parameter of DatasourcePool() constructor");
-      return;
-   }
-   DBIDriver *db_driver = DBI.find(pstr->getBuffer());
+static void DSP_constructor_str(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p, const QoreStringNode, params, 0);
+   DBIDriver *db_driver = DBI.find(p->getBuffer());
    if (!db_driver) {
-      xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", pstr->getBuffer());
+      xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", p->getBuffer());
       return;
    }
 
    const char *user = 0, *pass = 0, *db = 0, *charset = 0, *host = 0;
-   int min, max;
-   if ((pstr = test_string_param(params, 1)))
-      user = pstr->getBuffer();
+   p = HARD_QORE_STRING(params, 1);
+   if (p->strlen())
+      user = p->getBuffer();
 
-   if ((pstr = test_string_param(params, 2)))
-      pass = pstr->getBuffer();
+   p = HARD_QORE_STRING(params, 2);
+   if (p->strlen())
+      pass = p->getBuffer();
 
-   if ((pstr = test_string_param(params, 3)))
-      db = pstr->getBuffer();
+   p = HARD_QORE_STRING(params, 3);
+   if (p->strlen())
+      db = p->getBuffer();
    
-   if ((pstr = test_string_param(params, 4)))
-      charset = pstr->getBuffer();
+   p = HARD_QORE_STRING(params, 4);
+   if (p->strlen())
+      charset = p->getBuffer();
 
-   if ((pstr = test_string_param(params, 5)))
-      host = pstr->getBuffer();
+   p = HARD_QORE_STRING(params, 5);
+   if (p->strlen())
+      host = p->getBuffer();
+
+   int min = HARD_QORE_INT(params, 6);
+   if (min <= 0) {
+      xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
+      return;
+   }
+
+   int max = HARD_QORE_INT(params, 7);
+   if (max < min) {
+      xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
+      return;
+   }
    
-   const AbstractQoreNode *p = get_param(params, 6);
-   if (!is_nothing(p)) {
-      min = p->getAsInt();
+   int port = HARD_QORE_INT(params, 8);
+   if (port < 0) {
+      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
+      return;
+   }
+
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(db_driver, user, pass, db, charset, host, min, max, port, xsink));
+   if (!*xsink)
+      self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+}
+
+// usage: DatasourcePool(type=<string>, [name=<string>], [pass=<string>], [db=<string>], [charset=<string>], [host=<string>], [min=<int>], [max=<int>], [port=<int>])
+static void DSP_constructor_hash(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreHashNode *h = HARD_QORE_HASH(params, 0);
+   
+   const char *str = check_hash_key(h, "type", DSPC_ERR, xsink);
+   if (*xsink) return;
+   
+   if (!str) {
+      xsink->raiseException(DSPC_ERR, "expecting a string value with the 'type' key giving the driver name");
+      return;
+   }
+
+   DBIDriver *db_driver = DBI.find(str);
+   if (!db_driver) {
+      if (!*xsink)
+	 xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", str);
+      return;
+   }
+
+   const char *user = check_hash_key(h, "user", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *pass = check_hash_key(h, "pass", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *db = check_hash_key(h, "db", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *charset = check_hash_key(h, "charset", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *host = check_hash_key(h, "host", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   bool found;
+   int min = h->getKeyAsBigInt("min", found);
+   if (found) {
       if (min <= 0) {
-	 xsink->raiseException("DATASOURCEPOOL-PARAM-ERROR", "minimum connections must be > 0 (value given: %d)", min);
+	 xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
 	 return;
       }
    }
    else
       min = DP_MIN;
 
-   p = get_param(params, 7);
-   if (!is_nothing(p)) {
-      max = p->getAsInt();
+   int max = h->getKeyAsBigInt("max", found);
+   if (found ) {
       if (max < min) {
-	 xsink->raiseException("DATASOURCEPOOL-PARAM-ERROR", "maximum connections must be >= min(%d) (value given: %d)", min, max);
+	 xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
 	 return;
       }
    }
-   else 
+   else
       max = DP_MAX;
    
-   int port = get_int_param(params, 8);
+   int port = h->getKeyAsBigInt("port", found);
+   if (port < 0) {
+      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
+      return;
+   }
 
-   DatasourcePool *ds = new DatasourcePool(db_driver, user, pass, db, charset, host, min, max, port, xsink);
-   if (xsink->isException())
-      ds->deref();
-   else
-      self->setPrivate(CID_DATASOURCEPOOL, ds);
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(db_driver, user, pass, db, charset, host, min, max, port, xsink));
+   if (!*xsink)
+      self->setPrivate(CID_DATASOURCEPOOL, ds.release());
 }
 
 static void DSP_destructor(QoreObject *self, DatasourcePool *ds, ExceptionSink *xsink) {
@@ -109,80 +169,54 @@ static AbstractQoreNode *DSP_rollback(QoreObject *self, DatasourcePool *ds, cons
 }
 
 static AbstractQoreNode *DSP_exec(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
-
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->exec(p0, *args, xsink);
 }
 
 static AbstractQoreNode *DSP_vexec(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
-   
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreListNode *args = test_list_param(params, 1);
    return ds->exec(p0, args, xsink);
 }
 
 static AbstractQoreNode *DSP_execRaw(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    return ds->execRaw(p0, xsink);
 }
 
 static AbstractQoreNode *DSP_select(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->select(p, *args, xsink);
 }
 
 static AbstractQoreNode *DSP_selectRow(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-   
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->selectRow(p, *args, xsink);
 }
 
 static AbstractQoreNode *DSP_selectRows(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p)
-      return 0;
-
+   const QoreStringNode *p = HARD_QORE_STRING(params, 0);
    ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->selectRows(p, *args, xsink);
 }
 
 static AbstractQoreNode *DSP_vselect(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-      return 0;
-   
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreListNode *args = test_list_param(params, 1);
    return ds->select(p0, args, xsink);
 }
 
 static AbstractQoreNode *DSP_vselectRow(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-      return 0;
-   
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRow(p0, args, xsink);
 }
 
 static AbstractQoreNode *DSP_vselectRows(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(params, 0);
-   if (!p0)
-      return 0;
-   
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRows(p0, args, xsink);
 }
@@ -256,35 +290,79 @@ class QoreClass *initDatasourcePoolClass()
 
    class QoreClass *QC_DATASOURCEPOOL = new QoreClass("DatasourcePool", QDOM_DATABASE);
    CID_DATASOURCEPOOL = QC_DATASOURCEPOOL->getID();
-   QC_DATASOURCEPOOL->setConstructor(DSP_constructor);
+
+   QC_DATASOURCEPOOL->setConstructorExtended(DSP_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 9, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), stringTypeInfo, null_string(), stringTypeInfo, null_string(), stringTypeInfo, null_string(), stringTypeInfo, null_string(), softBigIntTypeInfo, new QoreBigIntNode(DP_MIN), softBigIntTypeInfo, new QoreBigIntNode(DP_MAX), softBigIntTypeInfo, zero());
+
+   QC_DATASOURCEPOOL->setConstructorExtended(DSP_constructor_hash, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_DATASOURCEPOOL->setDestructor((q_destructor_t)DSP_destructor);
    QC_DATASOURCEPOOL->setCopy((q_copy_t)DSP_copy);
-   QC_DATASOURCEPOOL->addMethod("commit",            (q_method_t)DSP_commit);
-   QC_DATASOURCEPOOL->addMethod("rollback",          (q_method_t)DSP_rollback);
-   QC_DATASOURCEPOOL->addMethod("exec",              (q_method_t)DSP_exec);
-   QC_DATASOURCEPOOL->addMethod("vexec",             (q_method_t)DSP_vexec);
-   QC_DATASOURCEPOOL->addMethod("execRaw",           (q_method_t)DSP_execRaw);
-   QC_DATASOURCEPOOL->addMethod("select",            (q_method_t)DSP_select);
-   QC_DATASOURCEPOOL->addMethod("selectRow",         (q_method_t)DSP_selectRow);
-   QC_DATASOURCEPOOL->addMethod("selectRows",        (q_method_t)DSP_selectRows);
-   QC_DATASOURCEPOOL->addMethod("vselect",           (q_method_t)DSP_vselect);
-   QC_DATASOURCEPOOL->addMethod("vselectRow",        (q_method_t)DSP_vselectRow);
-   QC_DATASOURCEPOOL->addMethod("vselectRows",       (q_method_t)DSP_vselectRows);
-   QC_DATASOURCEPOOL->addMethod("beginTransaction",  (q_method_t)DSP_beginTransaction);
-   QC_DATASOURCEPOOL->addMethod("getUserName",       (q_method_t)DSP_getUserName);
-   QC_DATASOURCEPOOL->addMethod("getPassword",       (q_method_t)DSP_getPassword);
-   QC_DATASOURCEPOOL->addMethod("getDBName",         (q_method_t)DSP_getDBName);
-   QC_DATASOURCEPOOL->addMethod("getDBCharset",      (q_method_t)DSP_getDBCharset);
-   QC_DATASOURCEPOOL->addMethod("getOSCharset",      (q_method_t)DSP_getOSCharset);
-   QC_DATASOURCEPOOL->addMethod("getHostName",       (q_method_t)DSP_getHostName);
-   QC_DATASOURCEPOOL->addMethod("getPort",           (q_method_t)DSP_getPort);
-   QC_DATASOURCEPOOL->addMethod("getDriverName",     (q_method_t)DSP_getDriverName);
-   QC_DATASOURCEPOOL->addMethod("getMinimum",        (q_method_t)DSP_getMinimum);
-   QC_DATASOURCEPOOL->addMethod("getMaximum",        (q_method_t)DSP_getMaximum);
-   QC_DATASOURCEPOOL->addMethod("toString",          (q_method_t)DSP_toString);
-   QC_DATASOURCEPOOL->addMethod("getServerVersion",  (q_method_t)DSP_getServerVersion);
-   QC_DATASOURCEPOOL->addMethod("getClientVersion",  (q_method_t)DSP_getClientVersion);
-   QC_DATASOURCEPOOL->addMethod("inTransaction",     (q_method_t)DSP_inTransaction);
+
+   QC_DATASOURCEPOOL->addMethodExtended("commit",            (q_method_t)DSP_commit, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("rollback",          (q_method_t)DSP_rollback, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+
+   QC_DATASOURCEPOOL->addMethodExtended("exec",              (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("exec",              (q_method_t)DSP_exec, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_DATASOURCEPOOL->addMethodExtended("vexec",             (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("vexec",             (q_method_t)DSP_vexec, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCEPOOL->addMethodExtended("vexec",             (q_method_t)DSP_vexec, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_DATASOURCEPOOL->addMethodExtended("execRaw",           (q_method_t)DSP_execRaw, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a hash, but unfortunately the internal API does not enforce this
+   QC_DATASOURCEPOOL->addMethodExtended("select",            (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("select",            (q_method_t)DSP_select, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a hash, but unfortunately the internal API does not enforce this
+   QC_DATASOURCEPOOL->addMethodExtended("selectRow",         (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("selectRow",         (q_method_t)DSP_selectRow, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a list, but unfortunately the internal API does not enforce this
+   QC_DATASOURCEPOOL->addMethodExtended("selectRows",        (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("selectRows",        (q_method_t)DSP_selectRows, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a hash, but unfortunately the internal API does not enforce this
+   QC_DATASOURCEPOOL->addMethodExtended("vselect",           (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("vselect",           (q_method_t)DSP_vselect, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCEPOOL->addMethodExtended("vselect",           (q_method_t)DSP_vselect, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a hash, but unfortunately the internal API does not enforce this
+   QC_DATASOURCEPOOL->addMethodExtended("vselectRow",        (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("vselectRow",        (q_method_t)DSP_vselectRow, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCEPOOL->addMethodExtended("vselectRow",        (q_method_t)DSP_vselectRow, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   // should normally return a list, but unfortunately the internal API does not enforce this
+   QC_DATASOURCEPOOL->addMethodExtended("vselectRows",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("vselectRows",       (q_method_t)DSP_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCEPOOL->addMethodExtended("vselectRows",       (q_method_t)DSP_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_DATASOURCEPOOL->addMethodExtended("beginTransaction",  (q_method_t)DSP_beginTransaction, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCEPOOL->addMethodExtended("getUserName",       (q_method_t)DSP_getUserName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCEPOOL->addMethodExtended("getPassword",       (q_method_t)DSP_getPassword, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCEPOOL->addMethodExtended("getDBName",         (q_method_t)DSP_getDBName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCEPOOL->addMethodExtended("getDBCharset",      (q_method_t)DSP_getDBCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCEPOOL->addMethodExtended("getOSCharset",      (q_method_t)DSP_getOSCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise string
+   QC_DATASOURCEPOOL->addMethodExtended("getHostName",       (q_method_t)DSP_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns NOTHING if not set, otherwise int
+   QC_DATASOURCEPOOL->addMethodExtended("getPort",           (q_method_t)DSP_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+
+   QC_DATASOURCEPOOL->addMethodExtended("getDriverName",     (q_method_t)DSP_getDriverName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   QC_DATASOURCEPOOL->addMethodExtended("getMinimum",        (q_method_t)DSP_getMinimum, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("getMaximum",        (q_method_t)DSP_getMaximum, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("toString",          (q_method_t)DSP_toString, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   QC_DATASOURCEPOOL->addMethodExtended("getServerVersion",  (q_method_t)DSP_getServerVersion, false, QC_NO_FLAGS, QDOM_DEFAULT);
+   QC_DATASOURCEPOOL->addMethodExtended("getClientVersion",  (q_method_t)DSP_getClientVersion, false, QC_NO_FLAGS, QDOM_DEFAULT);
+   QC_DATASOURCEPOOL->addMethodExtended("inTransaction",     (q_method_t)DSP_inTransaction, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 
    return QC_DATASOURCEPOOL;
 }

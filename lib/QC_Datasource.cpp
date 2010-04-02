@@ -25,13 +25,11 @@
 
 qore_classid_t CID_DATASOURCE;
 
+static const char *DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
+
 // usage: Datasource(db name, [username, password, dbname, encoding, hostname, port])
 static void DS_constructor_str(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p, const QoreStringNode, params, 0);
-   if (!p->strlen()) {
-      xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database driver name as first parameter of Datasource() constructor");
-      return;
-   }
    DBIDriver *db_driver = DBI.find(p->getBuffer(), xsink);
    if (!db_driver) {
       if (!*xsink)
@@ -62,32 +60,25 @@ static void DS_constructor_str(QoreObject *self, const QoreListNode *params, Exc
       ds->setPendingHostName(p->getBuffer());
    
    int port = HARD_QORE_INT(params, 6);
-   if (port)
+   if (port) {
+      if (port < 0) {
+	 xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
+	 return;
+      }
       ds->setPendingPort(port);
+   }
 
    self->setPrivate(CID_DATASOURCE, ds);
-}
-
-const char *checkKey(const QoreHashNode *h, const char *key, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = h->getKeyValue(key);
-   if (is_nothing(p))
-      return 0;
-   
-   if (p->getType() != NT_STRING) {
-      xsink->raiseException("DATASOURCE-CONSTRUCTOR-ERROR", "'%s' key is not type 'string' but is type '%s'", key, get_type_name(p));
-      return 0;
-   }
-   return reinterpret_cast<const QoreStringNode *>(p)->getBuffer();
 }
 
 static void DS_constructor_hash(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreHashNode *h = HARD_QORE_HASH(params, 0);
    
-   const char *str = checkKey(h, "type", xsink);
+   const char *str = check_hash_key(h, "type", DSC_ERR, xsink);
    if (*xsink) return;
    
-   if (!str || !str[0]) {
-      xsink->raiseException("DATASOURCE-CONSTRUCTOR-ERROR", "expecting a string value with the 'type' key giving the driver name");
+   if (!str) {
+      xsink->raiseException(DSC_ERR, "expecting a string value with the 'type' key giving the driver name");
       return;
    }
    
@@ -100,30 +91,36 @@ static void DS_constructor_hash(QoreObject *self, const QoreListNode *params, Ex
    
    ReferenceHolder<ManagedDatasource> ds(new ManagedDatasource(db_driver), xsink);
 
-   str = checkKey(h, "user", xsink);
+   str = check_hash_key(h, "user", DSC_ERR, xsink);
    if (*xsink) return;
    if (str) ds->setPendingUsername(str);
 
-   str = checkKey(h, "pass", xsink);
+   str = check_hash_key(h, "pass", DSC_ERR, xsink);
    if (*xsink) return;
    if (str) ds->setPendingPassword(str);
 
-   str = checkKey(h, "db", xsink);
+   str = check_hash_key(h, "db", DSC_ERR, xsink);
    if (*xsink) return;
    if (str) ds->setPendingDBName(str);
 
-   str = checkKey(h, "charset", xsink);
+   str = check_hash_key(h, "charset", DSC_ERR, xsink);
    if (*xsink) return;
    if (str) ds->setPendingDBEncoding(str);
 
-   str = checkKey(h, "host", xsink);
+   str = check_hash_key(h, "host", DSC_ERR, xsink);
    if (*xsink) return;
    if (str) ds->setPendingHostName(str);
 
    bool found;
    int port = h->getKeyAsBigInt("port", found);
-   if (port)
+   if (port) {
+      if (port < 0) {
+	 xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
+	 return;
+      }
+
       ds->setPendingPort(port);
+   }
 
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
@@ -384,7 +381,7 @@ QoreClass *initDatasourceClass() {
    QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)DS_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)DS_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_DATASOURCE->addMethodExtended("beginTransaction",  (q_method_t)DS_beginTransaction, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("beginTransaction",  (q_method_t)DS_beginTransaction, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("reset",             (q_method_t)DS_reset, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("getCapabilities",   (q_method_t)DS_getCapabilities, false, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
    QC_DATASOURCE->addMethodExtended("getCapabilityList", (q_method_t)DS_getCapabilityList, false, QC_NOOP, QDOM_DEFAULT, listTypeInfo);
@@ -418,8 +415,8 @@ QoreClass *initDatasourceClass() {
    QC_DATASOURCE->addMethodExtended("getOSCharset",      (q_method_t)DS_getOSCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
    // returns NOTHING if not set, otherwise string
    QC_DATASOURCE->addMethodExtended("getHostName",       (q_method_t)DS_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   
-   QC_DATASOURCE->addMethodExtended("getPort",           (q_method_t)DS_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   // returns NOTHING if not set, otherwise int
+   QC_DATASOURCE->addMethodExtended("getPort",           (q_method_t)DS_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
 
    QC_DATASOURCE->addMethodExtended("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
    QC_DATASOURCE->addMethodExtended("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
