@@ -530,14 +530,14 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("setCharset",        (q_method_t)FILE_setCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_FILE->addMethodExtended("setCharset",        (q_method_t)FILE_setCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FILE->addMethodExtended("getCharset",        (q_method_t)FILE_getCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
+   QC_FILE->addMethodExtended("getCharset",        (q_method_t)FILE_getCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
    QC_FILE->addMethodExtended("setPos",            (q_method_t)FILE_setPos, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
 
    //QC_FILE->addMethod("setPosFromEnd",     (q_method_t)FILE_setPosFromEnd);
    //QC_FILE->addMethod("setPosFromCurrent", (q_method_t)FILE_setPosFromCurrent);
 
-   QC_FILE->addMethodExtended("getPos",            (q_method_t)FILE_getPos, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("getPos",            (q_method_t)FILE_getPos, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    // getchar() can return 0
    QC_FILE->addMethodExtended("getchar",           (q_method_t)FILE_getchar);
