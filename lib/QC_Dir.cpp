@@ -28,6 +28,7 @@
 #include <errno.h>
 
 qore_classid_t CID_DIR;
+static QoreClass *QC_DIR;
 
 static void DIR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    // get character set encoding name if available
@@ -241,8 +242,8 @@ static AbstractQoreNode *DIR_openDir(QoreObject *self, Dir *d, const QoreListNod
    // open the file with exception
    ReferenceHolder<Dir> dc(new Dir(xsink, charset, d->getPath(dirname).c_str()), xsink);
    
-   // create the qoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
-   QoreObject *o=new QoreObject(getRootNS()->rootFindClass("Dir"), getProgram());
+   // create the qoreObject and set the Dir object as private data of the class tagged with the CID_DIR class ID
+   QoreObject *o = new QoreObject(QC_DIR, getProgram());
    o->setPrivate(CID_DIR, dc.release());
    
    return o;
@@ -275,7 +276,7 @@ static AbstractQoreNode *DIR_removeFile(QoreObject *self, Dir *d, const QoreList
 QoreClass *initDirClass(QoreClass *QC_FILE) {
    QORE_TRACE("initDirClass()");
 
-   QoreClass *QC_DIR = new QoreClass("Dir", QDOM_FILESYSTEM);
+   QC_DIR = new QoreClass("Dir", QDOM_FILESYSTEM);
    CID_DIR = QC_DIR->getID();
 
    QC_DIR->setConstructorExtended(DIR_constructor, false, QC_NO_FLAGS, QDOM_DEFAULT);
