@@ -3295,3 +3295,11 @@ const QoreMethod *QoreStaticMethodIterator::getMethod() const {
 AbstractQoreNode *class_noop(QoreObject *self, AbstractPrivateData *ptr, const QoreListNode *args, ExceptionSink *xsink) {
    return 0;
 }
+
+AbstractQoreNode *class_string_noop(QoreObject *self, AbstractPrivateData *ptr, const QoreListNode *args, ExceptionSink *xsink) {
+   return null_string();
+}
+
+AbstractQoreNode *class_int_noop(QoreObject *self, AbstractPrivateData *ptr, const QoreListNode *args, ExceptionSink *xsink) {
+   return zero();
+}
