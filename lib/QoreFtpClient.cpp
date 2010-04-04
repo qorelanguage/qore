@@ -1096,18 +1096,18 @@ int QoreFtpClient::del(const char *file, ExceptionSink *xsink) {
    return -1;
 }
 
-void QoreFtpClient::setURL(const QoreString *url, ExceptionSink *xsink)
-{
+void QoreFtpClient::setURL(const QoreString *url, ExceptionSink *xsink) {
    lock();
    priv->setURLInternal(url, xsink);
    unlock();
 }
 
-QoreStringNode *QoreFtpClient::getURL() const
-{
-   QoreStringNode *url = new QoreStringNode("ftp://");
-   if (priv->user)
-   {
+QoreStringNode *QoreFtpClient::getURL() const {
+   QoreStringNode *url = new QoreStringNode("ftp");
+   if (priv->secure)
+      url->concat('s');
+   url->concat("://");
+   if (priv->user) {
       url->concat(priv->user);
       if (priv->pass)
 	 url->sprintf(":%s", priv->pass);
@@ -1120,13 +1120,11 @@ QoreStringNode *QoreFtpClient::getURL() const
    return url;
 }
 
-void QoreFtpClient::setPort(int p)
-{ 
+void QoreFtpClient::setPort(int p) { 
    priv->port = p; 
 }
 
-void QoreFtpClient::setUserName(const char *u) 
-{ 
+void QoreFtpClient::setUserName(const char *u) { 
    lock();
    if (priv->user) 
       free(priv->user); 
@@ -1134,8 +1132,7 @@ void QoreFtpClient::setUserName(const char *u)
    unlock();
 }
 
-void QoreFtpClient::setPassword(const char *p) 
-{ 
+void QoreFtpClient::setPassword(const char *p) { 
    lock();
    if (priv->pass)
       free(priv->pass); 
@@ -1143,8 +1140,7 @@ void QoreFtpClient::setPassword(const char *p)
    unlock();
 }
 
-void QoreFtpClient::setHostName(const char *h) 
-{ 
+void QoreFtpClient::setHostName(const char *h) { 
    lock();
    if (priv->host) 
       free(priv->host); 
@@ -1152,11 +1148,9 @@ void QoreFtpClient::setHostName(const char *h)
    unlock();
 }
 
-int QoreFtpClient::setSecure()
-{
+int QoreFtpClient::setSecure() {
    lock();
-   if (priv->control_connected)
-   {
+   if (priv->control_connected) {
       unlock();
       return -1;
    }
@@ -1165,8 +1159,7 @@ int QoreFtpClient::setSecure()
    return 0;
 }
 
-int QoreFtpClient::setInsecure()
-{
+int QoreFtpClient::setInsecure() {
    lock();
    if (priv->control_connected)
    {

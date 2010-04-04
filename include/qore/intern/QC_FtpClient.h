@@ -32,7 +32,7 @@
 
 DLLEXPORT extern qore_classid_t CID_FTPCLIENT;
 
-DLLLOCAL class QoreClass *initFtpClientClass();
+DLLLOCAL QoreClass *initFtpClientClass();
 
 class QoreFtpClientClass : public AbstractPrivateData, public QoreFtpClient {
    protected:
