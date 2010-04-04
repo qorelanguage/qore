@@ -26,86 +26,80 @@
 // rmutex class is depcreated and will be removed in the next major release
 qore_classid_t CID_GATE, CID_RMUTEX;
 
-static void GATE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
-   self->setPrivate(CID_GATE, new QoreGate());
+static void GATE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   self->setPrivate(CID_GATE, new QoreGate);
 }
 
-static void GATE_destructor(QoreObject *self, class QoreGate *g, ExceptionSink *xsink)
-{
+static void GATE_destructor(QoreObject *self, QoreGate *g, ExceptionSink *xsink) {
    g->destructor(xsink);
    g->deref(xsink);
 }
 
-static void GATE_copy(QoreObject *self, QoreObject *old, class QoreGate *g, ExceptionSink *xsink)
-{
+static void GATE_copy(QoreObject *self, QoreObject *old, QoreGate *g, ExceptionSink *xsink) {
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-static AbstractQoreNode *GATE_enter(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const AbstractQoreNode *p = get_param(params, 0);
+static AbstractQoreNode *GATE_enter_to(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreBigIntNode(g->grab(xsink, getMsZeroInt(get_param(params, 0))));
+}
 
-   if (!is_nothing(p))
-   {
-      int timeout_ms = getMsZeroInt(p);
-      return new QoreBigIntNode(g->grab(xsink, timeout_ms));
-   }
-
+static AbstractQoreNode *GATE_enter(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(g->grab(xsink));
 }
 
-static AbstractQoreNode *GATE_exit(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *GATE_exit(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(g->release(xsink));
 }
 
-static AbstractQoreNode *GATE_tryEnter(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *GATE_tryEnter(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(g->tryGrab());
 }
 
-static AbstractQoreNode *GATE_numInside(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *GATE_numInside(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(g->get_count());
 }
 
-static AbstractQoreNode *GATE_numWaiting(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
-{
+static AbstractQoreNode *GATE_numWaiting(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(g->get_waiting());
 }
 
-class QoreClass *initGateClass()
-{
+QoreClass *initGateClass() {
    QORE_TRACE("initGateClass()");
 
-   class QoreClass *QC_GATE = new QoreClass("Gate", QDOM_THREAD_CLASS);
+   QoreClass *QC_GATE = new QoreClass("Gate", QDOM_THREAD_CLASS);
    CID_GATE = QC_GATE->getID();
-   QC_GATE->setConstructor(GATE_constructor);
+
+   QC_GATE->setConstructorExtended(GATE_constructor);
    QC_GATE->setDestructor((q_destructor_t)GATE_destructor);
    QC_GATE->setCopy((q_copy_t)GATE_copy);
-   QC_GATE->addMethod("enter",         (q_method_t)GATE_enter);
-   QC_GATE->addMethod("exit",          (q_method_t)GATE_exit);
-   QC_GATE->addMethod("tryEnter",      (q_method_t)GATE_tryEnter);
-   QC_GATE->addMethod("numInside",     (q_method_t)GATE_numInside);
-   QC_GATE->addMethod("numWaiting",    (q_method_t)GATE_numWaiting);
 
+   QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_GATE->addMethodExtended("exit",          (q_method_t)GATE_exit, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_GATE->addMethodExtended("tryEnter",      (q_method_t)GATE_tryEnter, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_GATE->addMethodExtended("numInside",     (q_method_t)GATE_numInside, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_GATE->addMethodExtended("numWaiting",    (q_method_t)GATE_numWaiting, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    return QC_GATE;
 }
 
-class QoreClass *initRMutexClass()
-{
-   class QoreClass *QC_RMUTEX = new QoreClass("RMutex", QDOM_THREAD_CLASS); 
+QoreClass *initRMutexClass() {
+   QoreClass *QC_RMUTEX = new QoreClass("RMutex", QDOM_THREAD_CLASS); 
    CID_RMUTEX = QC_RMUTEX->getID();
-   QC_RMUTEX->setConstructor(GATE_constructor);
+   QC_RMUTEX->setConstructorExtended(GATE_constructor);
    QC_RMUTEX->setDestructor((q_destructor_t)GATE_destructor);
    QC_RMUTEX->setCopy((q_copy_t)GATE_copy);
-   QC_RMUTEX->addMethod("enter",         (q_method_t)GATE_enter);
-   QC_RMUTEX->addMethod("exit",          (q_method_t)GATE_exit);
-   QC_RMUTEX->addMethod("tryEnter",      (q_method_t)GATE_tryEnter);
-   QC_RMUTEX->addMethod("numInside",     (q_method_t)GATE_numInside);
-   QC_RMUTEX->addMethod("numWaiting",    (q_method_t)GATE_numWaiting);
+
+   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_RMUTEX->addMethodExtended("exit",          (q_method_t)GATE_exit, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("tryEnter",      (q_method_t)GATE_tryEnter, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("numInside",     (q_method_t)GATE_numInside, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("numWaiting",    (q_method_t)GATE_numWaiting, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    return QC_RMUTEX;
 }
