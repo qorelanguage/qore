@@ -1,3 +1,8 @@
+2010.04.04: David Nichols
+	 * fixed Socket::recv() and Socket::recvBinary() when reading all data
+	   available on the socket when the remote ends closes the connection
+	   in an orderly way (backported from trunk)
+
 2010.03.26: David Nichols
 	 * fixed adding virtual private data to classes with multiple virtual
 	   base classes (backported from trunk)
