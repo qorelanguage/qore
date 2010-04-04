@@ -1,35 +1,42 @@
 #!/usr/bin/env qore
 
-$f = new FtpClient(shift $ARGV);
-$file = shift $ARGV;
+%exec-class FtpTest
+%require-types
+%require-our
 
-sub get_program_name()
-{
-    my $l = split("/", $ENV{"_"});
-    return $l[elements $l - 1];
+class FtpTest inherits FtpClient {
+    constructor() {
+	my any $url = shift $ARGV;
+	
+	if (!exists $url) {
+	    printf("syntax: %s <url>\n", get_script_name());
+	    exit(1);
+	}
+
+	my hash $h = parse_url($url);
+	my any $path = dirname($h.path);
+	my any $file = basename($h.path);
+	if (!exists $path || !exists $file) {
+	    printf("url %n is missing a path to retrieve\n", $url);
+	    exit(1);
+	}
+
+	$.setURL($url);
+
+	if ($.connect()) {
+	    printf("%s\n", strerror(errno()));
+	    exit();
+	}
+
+	$.cwd($path);
+	printf("PWD: %s\n", $.pwd());
+	printf("list(%s): %n\n", $file, $.list($file));
+	if (!$.put($file))
+	    printf("successfully sent %s\n", $file);
+	else
+	    printf("ERROR: %s\n", strerror(errno()));
+	
+	printf("list(%s): %n\n", $file, $.list($file));
+	$.disconnect();
+    }
 }
-
-if (!exists $file)
-{
-    printf("syntax: %s <host> <file>\n", get_program_name());
-    exit(1);
-}
-
-if ($f.connect())
-{
-    printf("%s\n", strerror(errno()));
-    exit();
-}
-
-
-$f.cwd("/tmp");
-printf("PWD: %s\n", $f.pwd());
-#printf("LIST: %s", $f.list());
-printf("LIST: %s", $f.list("*.q"));
-if (!$f.put($file))
-    printf("successfully sent %s\n", $file);
-else
-    printf("ERROR: %s\n", strerror(errno()));
-
-printf("LIST: %s", $f.list("*.q"));
-$f.disconnect();

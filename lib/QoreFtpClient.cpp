@@ -51,35 +51,35 @@ enum qore_ftp_mode {
 };
 
 class FtpResp {
-   private:
-      QoreStringNode *str;
+private:
+   QoreStringNode *str;
    
-   public:
-      DLLLOCAL inline FtpResp() : str(0) {}
+public:
+   DLLLOCAL inline FtpResp() : str(0) {}
 
-      DLLLOCAL inline FtpResp(QoreStringNode *s) {
-	 str = s;
-      }
+   DLLLOCAL inline FtpResp(QoreStringNode *s) {
+      str = s;
+   }
 
-      DLLLOCAL inline ~FtpResp() {
-	 if (str)
-	    str->deref();
-      }
+   DLLLOCAL inline ~FtpResp() {
+      if (str)
+	 str->deref();
+   }
 
-      DLLLOCAL inline QoreStringNode *assign(QoreStringNode *s) {
-	 if (str)
-	    str->deref();
-	 str = s;
-	 return s;
-      }
+   DLLLOCAL inline QoreStringNode *assign(QoreStringNode *s) {
+      if (str)
+	 str->deref();
+      str = s;
+      return s;
+   }
 
-      DLLLOCAL inline const char *getBuffer() {
-	 return str->getBuffer();
-      }
+   DLLLOCAL inline const char *getBuffer() {
+      return str->getBuffer();
+   }
 
-      DLLLOCAL inline QoreStringNode *getStr() {
-	 return str;
-      }
+   DLLLOCAL inline QoreStringNode *getStr() {
+      return str;
+   }
 };
 
 struct qore_ftp_private {
@@ -697,12 +697,11 @@ int QoreFtpClient::connect(ExceptionSink *xsink)
 }
 
 // public locked
-QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, ExceptionSink *xsink)
-{
+QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, ExceptionSink *xsink) {
    SafeLocker sl(priv->m);
    if (!priv->loggedin) {
       xsink->raiseException("FTP-NOT-CONNECTED", "QoreFtpClient::connect() must be called before QoreFtpClient::%s()",
-		     (long_list ? "list" : "nlst"));
+			    (long_list ? "list" : "nlst"));
       return 0;
    }
 
@@ -714,7 +713,7 @@ QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, ExceptionS
    if (xsink->isEvent())
       return 0;
 
-   //printf("LIST: %s", resp->getBuffer());
+   //printd(5, "LIST cmd 0: %s\n", resp.getBuffer());
    // file not found or similar
    if ((code / 100 == 5)) {
       priv->data.close();
@@ -735,14 +734,16 @@ QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, ExceptionS
    else if (priv->secure_data && priv->data.upgradeClientToSSL(0, 0, xsink))
       return 0;
 
-   QoreStringNodeHolder l(new QoreStringNode());
+   QoreStringNodeHolder l(new QoreStringNode);
 
    // read until done
    while (true) {
       int rc;
-      if (!resp.assign(priv->data.recv(-1, &rc)))
+      if (!resp.assign(priv->data.recv(-1, &rc))) {
+	 //printd(5, "read 0: ERR rc=%d l=%s\n", rc, l->getBuffer());
 	 break;
-      //printf("%s", resp->getBuffer());
+      }
+      //printd(5, "read 0: rc=%d: resp=%s l=%s\n", rc, resp.getBuffer(), l->getBuffer());
       l->concat(resp.getStr());
    }
    priv->data.close();
@@ -751,7 +752,7 @@ QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, ExceptionS
    if (xsink->isEvent())
       return 0;
 
-   //printf("LIST: %s", resp->getBuffer());
+   //printd(5, "read done: code=%d LIST: %s\n", code, resp.getBuffer());
    if ((code / 100 != 2)) {
       xsink->raiseException("FTP-LIST-ERROR", "FTP server returned an error to the %s command: %s", 
 			    (long_list ? "LIST" : "NLST"), resp.getBuffer());

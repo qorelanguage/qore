@@ -1507,7 +1507,10 @@ BinaryNode *QoreSocket::recvBinary(int timeout, int *rc) {
 	    buf = (char *)realloc(buf, tot);
 	 }
 	 *rc = recv(buf + rd, tot - rd, 0, 0, false);
-	 if ((*rc) <= 0) {
+	 // if the remote end has closed the connection, return what we have
+	 if (!(*rc))
+	    break;
+	 if ((*rc) < 0) {
 	    free(buf);
 	    return 0;
 	 }
@@ -1596,7 +1599,10 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
 	    buf = (char *)realloc(buf, tot);
 	 }
 	 *rc = recv(buf + rd, tot - rd - 1, 0, 0, false);
-	 if ((*rc) <= 0) {
+	 // if the remote end has closed the connection, return what we have
+	 if (!(*rc))
+	    break;
+	 if ((*rc) < 0) {
 	    free(buf);
 	    return 0;
 	 }
@@ -2164,6 +2170,9 @@ int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_
    qore_size_t rc;
    if (!priv->ssl) {
       while (true) {
+#ifdef DEBUG
+	 errno = 0;
+#endif
 	 rc = ::recv(priv->sock, buf, bs, flags);
 	 //printd(0, "QoreSocket::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", priv->sock, buf, bs, flags, rc, errno);
 	 // try again if we were interrupted by a signal
