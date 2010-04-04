@@ -114,13 +114,9 @@ static inline int process_type(const char *key, int &attributes, char *opt, qore
 }
 
 static void GETOPT_constructor(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreHashNode *p0 = test_hash_param(args, 0);
-   if (!p0){
-      xsink->raiseException("GETOPT-PARAMETER-ERROR", "expecting hash as first argument to GetOpt::constructor()");
-      return;
-   }
+   const QoreHashNode *p0 = HARD_QORE_HASH(args, 0);
 
-   GetOpt *g = new GetOpt();
+   SimpleRefHolder<GetOpt> g(new GetOpt);
 
    ConstHashIterator hi(p0);
    QoreString vstr;
@@ -201,10 +197,10 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *args, Excep
 	 break;
       }
    }
-   if (!xsink->isException())
-      self->setPrivate(CID_GETOPT, g);
-   else
-      g->deref();
+   if (*xsink)
+      return;
+
+   self->setPrivate(CID_GETOPT, g.release());
 }
 
 static void GETOPT_copy(QoreObject *self, QoreObject *old, GetOpt *g, ExceptionSink *xsink) {
@@ -269,7 +265,7 @@ QoreClass *initGetOptClass() {
 
    QoreClass *QC_GETOPT = new QoreClass("GetOpt");
    CID_GETOPT = QC_GETOPT->getID();
-   QC_GETOPT->setConstructor(GETOPT_constructor);
+   QC_GETOPT->setConstructorExtended(GETOPT_constructor, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
    QC_GETOPT->setCopy((q_copy_t)GETOPT_copy);
 
    // default for GetOpt::parse() with incorrect arguments is to do nothing
