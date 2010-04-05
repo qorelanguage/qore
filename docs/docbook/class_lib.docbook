@@ -9593,13 +9593,13 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Make an FTPS connection to the server on the next connect.</para>
+            <para>Make an FTPS connection to the server on the next connect.  This method can only be called before a connection is established; if called when a connection has already been established, an exception will be thrown.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>FtpClient::setSecure()</programlisting>
+            <programlisting>FtpClient::setSecure(softbool $secure = True) returns nothing</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9611,7 +9611,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::setSecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="4" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
@@ -9621,6 +9621,9 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
                 <para>Type</para>
               </entry>
               <entry>
+                <para>Default</para>
+              </entry>
+              <entry>
                 <para>Description</para>
               </entry>
             </row>
@@ -9628,13 +9631,16 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>n/a</para>
+                <para>$secure</para>
               </entry>
               <entry>
-                <para>n/a</para>
+                <para>softbool</para>
               </entry>
               <entry>
-                <para>This method takes no arguments.</para>
+                <para>True</para>
+              </entry>
+              <entry>
+                <para>if True, will try to make an FTPS connection on the next connect, if False, will try to make a cleartext FTP connection on the next connect.</para>
               </entry>
             </row>
           </tbody>
@@ -19642,7 +19648,7 @@ $sock.bind("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is True, or an unencrypted cleartext connection if it is not True or if no argument is passed.  This method overrides the default behaviour for the protocol set for the object.</para>
+              <para>Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is True, or an unencrypted cleartext connection if it is False.  This method overrides the default behaviour for the protocol set for the object.</para>
             </entry>
           </row>
           <row>
@@ -21969,13 +21975,14 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is True, or an unencrypted cleartext connection if it is not True or if no argument is passed.  This method overrides the default behaviour for the protocol set for the object.</para>
+            <para>Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is True, or an unencrypted cleartext connection if it is False.  This method overrides the default behaviour for the protocol set for the object.</para>
+	    <para>Note that the behavior of this method when called with no argument changed in version 0.8.0; prior to version 0.8.0 calling this method with no argument would turn off secure mode; the behavior was changed to the current functionality in order to make the usage of this method consistent with other methods of the same name and to make it more logical.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>HTTPClient::setSecure(<replaceable>[secure]</replaceable>)</programlisting>
+            <programlisting>HTTPClient::setSecure(<replaceable>softbool $secure = True</replaceable>) returns nothing</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21997,6 +22004,9 @@ $sock.bind("/tmp/socket");</programlisting>
                 <para>Type</para>
               </entry>
               <entry>
+                <para>Default</para>
+              </entry>
+              <entry>
                 <para>Description</para>
               </entry>
             </row>
@@ -22005,14 +22015,17 @@ $sock.bind("/tmp/socket");</programlisting>
             <row>
               <entry>
                 <para>
-                  <replaceable>[secure]</replaceable>
+                  <replaceable>/$secure</replaceable>
                 </para>
               </entry>
               <entry>
-                <para>Boolean</para>
+                <para>softbool</para>
               </entry>
               <entry>
-                <para>If True, a SSL/TLS connection will be attempted on the next connection.  If not True or missing, an unencrypted cleartext connection will be established.</para>
+                <para>True</para>
+              </entry>
+              <entry>
+                <para>If True, a SSL/TLS connection will be attempted on the next connection.  If False, an unencrypted cleartext connection will be established.</para>
               </entry>
             </row>
           </tbody>

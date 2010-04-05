@@ -193,7 +193,8 @@ static AbstractQoreNode *FC_getURL(QoreObject *self, QoreFtpClientClass *f, cons
 }
 
 static AbstractQoreNode *FC_setSecure(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
-   if (f->setSecure())
+   bool b = HARD_QORE_BOOL(args, 0);
+   if (b ? f->setSecure() : f->setInsecure())
       xsink->raiseException("SET-SECURE-ERROR", "this method cannot be called while the control connection is established");
 
    return 0;
@@ -337,7 +338,7 @@ QoreClass *initFtpClientClass() {
    QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str_str, false, QC_RET_VALUE_ONLY, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->addMethodExtended("getAsString",           (q_method_t)FC_getAsString, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   QC_FTPCLIENT->addMethodExtended("getAsBinary",           (q_method_t)FC_getAsBinary, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("getAsBinary",           (q_method_t)FC_getAsBinary, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, binaryTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // accesses filesystem so tagged with QDOM_FILESYSTEM
    QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -367,7 +368,7 @@ QoreClass *initFtpClientClass() {
 
    QC_FTPCLIENT->addMethodExtended("getURL",                (q_method_t)FC_getURL, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
-   QC_FTPCLIENT->addMethodExtended("setSecure",             (q_method_t)FC_setSecure, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_FTPCLIENT->addMethodExtended("setSecure",             (q_method_t)FC_setSecure, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBoolTypeInfo, &True);
    QC_FTPCLIENT->addMethodExtended("setInsecure",           (q_method_t)FC_setInsecure, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo); 
    QC_FTPCLIENT->addMethodExtended("setInsecureData",       (q_method_t)FC_setInsecureData, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 

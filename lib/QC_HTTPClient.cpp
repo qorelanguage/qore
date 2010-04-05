@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006, 2007 Qore Technologies
+  Copyright (C) 2006 - 2010 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/QoreHTTPClient.h>
 #include <qore/intern/QC_HTTPClient.h>
+#include <qore/intern/QC_Queue.h>
 #include <qore/intern/ssl_constants.h>
 #include <qore/minitest.hpp>
 
@@ -32,13 +33,18 @@
 
 qore_classid_t CID_HTTPCLIENT;
 
-static void HC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+static void HC_constructor_hash(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreHashNode *n = HARD_QORE_HASH(args, 0);
+
    ReferenceHolder<QoreHTTPClient> client(new QoreHTTPClient(), xsink);
-   const QoreHashNode *n = test_hash_param(params, 0);
-   if (n && client->setOptions(n, xsink))
+   if (client->setOptions(n, xsink))
       return;
-   
+
    self->setPrivate(CID_HTTPCLIENT, client.release());
+}
+
+static void HC_constructor(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
+   self->setPrivate(CID_HTTPCLIENT, new QoreHTTPClient);
 }
 
 static void HC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, ExceptionSink *xsink) {
@@ -51,353 +57,268 @@ static void HC_destructor(QoreObject *self, QoreHTTPClient *client, ExceptionSin
    client->deref(xsink);
 }
 
-static AbstractQoreNode *HC_setHTTPVersion(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p = test_string_param(params, 0);
-   if (!p) {
-      xsink->raiseException("HTTP-CLIENT-SETHTTPVERSION-ERROR", "expecting string ('1.0' or '1.1') passed as only argument");
-      return 0;
-   }
+static AbstractQoreNode *HC_setHTTPVersion(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *p = HARD_QORE_STRING(args, 0);
    client->setHTTPVersion(p->getBuffer(), xsink);
    return 0;
 }
 
-static AbstractQoreNode *HC_getHTTPVersion(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getHTTPVersion(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreStringNode(client->getHTTPVersion());
 }
 
-static AbstractQoreNode *HC_setSecure(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *n = get_param(params, 0);
-   client->setSecure(n ? n->getAsBool() : false);
+static AbstractQoreNode *HC_setSecure(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->setSecure(HARD_QORE_BOOL(args, 0));
    return 0;
 }
 
-static AbstractQoreNode *HC_isSecure(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_isSecure(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    return get_bool_node(client->isSecure());
 }
 
-static AbstractQoreNode *HC_verifyPeerCertificate(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_verifyPeerCertificate(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const char *c = getSSLCVCode(client->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : 0;
 }
 
-static AbstractQoreNode *HC_getSSLCipherName(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getSSLCipherName(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const char *str = client->getSSLCipherName();
    return str ? new QoreStringNode(str) : 0;
 }
 
-static AbstractQoreNode *HC_getSSLCipherVersion(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getSSLCipherVersion(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const char *str = client->getSSLCipherVersion();
    return str ? new QoreStringNode(str) : 0;
 }
 
-static AbstractQoreNode *HC_connect(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_connect(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    client->connect(xsink);
    return 0;
 }
 
-static AbstractQoreNode *HC_disconnect(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_disconnect(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    client->disconnect();
    return 0;
 }
 
-// send(data, method, path, headers, [getbody], [info_reference])
-static AbstractQoreNode *HC_send(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+class OptHashRefHelper {
+   const ReferenceNode *ref;
+   ExceptionSink *xsink;
+   ReferenceHolder<QoreHashNode> info;
+public:
+   DLLLOCAL OptHashRefHelper(const QoreListNode *args, unsigned i, ExceptionSink *n_xsink) : ref(test_reference_param(args, i)), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
+   }
+   DLLLOCAL ~OptHashRefHelper() {
+      if (!ref)
+	 return;
+
+      AutoVLock vl(xsink);
+      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
+      if (!rh)
+	 return;
+
+      rh.assign(info.release(), xsink);
+   }
+   DLLLOCAL QoreHashNode *operator*() {
+      return *info;
+   }
+};
+
+// send(data = "", method, path = "", headers = hash(), getbody = False, [info_reference])
+static AbstractQoreNode *HC_send(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const void *ptr = 0;
-   int size = 0;
-   const AbstractQoreNode *p = get_param(params, 0);
-   if (!is_nothing(p)) {
-      if (p->getType() == NT_STRING) {
-	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
-	 assert(str);
-	 ptr = str->getBuffer();
-	 size = str->strlen();
-      }
-      else if (p->getType() == NT_BINARY) {
-	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
-         ptr = b->getPtr();
-         size = b->size();
-      }
-      // ignore other types - no exception raised
+   qore_size_t size = 0;
+   const AbstractQoreNode *p = get_param(args, 0);
+   if (p->getType() == NT_STRING) {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
+      assert(str);
+      ptr = str->getBuffer();
+      size = str->strlen();
    }
-   
-   const QoreStringNode *pstr = test_string_param(params, 1);
-   if (!pstr) {
-      xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "expecting method name as second parameter");
-      return 0;
+   else {
+      assert(p->getType() == NT_BINARY);
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
+      ptr = b->getPtr();
+      size = b->size();
    }
+
+   const QoreStringNode *pstr = HARD_QORE_STRING(args, 1);
    const char *meth = pstr->getBuffer();
 
-   pstr = test_string_param(params, 2);
-   const char *path = pstr ? pstr->getBuffer() : 0;
+   pstr = HARD_QORE_STRING(args, 2);
+   const char *path = pstr->strlen() ? pstr->getBuffer() : 0;
 
-   const QoreHashNode *ph = test_hash_param(params, 3);
+   const QoreHashNode *ph = HARD_QORE_HASH(args, 3);
+   bool getbody = HARD_QORE_BOOL(args, 4);
 
-   p = get_param(params, 4);
-   bool getbody = p ? p->getAsBool() : false;
+   OptHashRefHelper ohrh(args, 5, xsink);
+   ReferenceHolder<AbstractQoreNode> rv(client->send(meth, path, ph, ptr, size, getbody, *ohrh, xsink), xsink);
 
-   ReferenceHolder<QoreHashNode> info(xsink);
-   const ReferenceNode *ref = test_reference_param(params, 5);
-   if (ref)
-      info = new QoreHashNode();
-
-   ReferenceHolder<AbstractQoreNode> rv(client->send(meth, path, ph, ptr, size, getbody, *info, xsink), xsink);
-
-   // write info to reference first
-   if (ref) {
-      AutoVLock vl(xsink);
-      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
-      if (!rh)
-	 return 0;
-
-      if (rh.assign(info.release(), xsink))
-	 return 0;
-   }
-
-   // return 0 if an exception occured
-   if (!rv || *xsink)
-      return 0;
-
-   return rv.release();
+   return *xsink ? 0 : rv.release();
 }
 
-// get(path, headers, [info_reference])
-static AbstractQoreNode *HC_get(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *pstr = test_string_param(params, 0);
-   if (!pstr) {
-      xsink->raiseException("HTTP-CLIENT-GET-ERROR", "expecting path as first parameter");
-      return 0;
-   }
+// get(path, headers = hash(), [info_reference])
+static AbstractQoreNode *HC_get(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *pstr = HARD_QORE_STRING(args, 0);
    const char *path = pstr->getBuffer();
 
-   const QoreHashNode *ph = test_hash_param(params, 1);
+   const QoreHashNode *ph = HARD_QORE_HASH(args, 1);
 
-   ReferenceHolder<QoreHashNode> info(xsink);
-   const ReferenceNode *ref = test_reference_param(params, 2);
-   if (ref)
-      info = new QoreHashNode();
+   OptHashRefHelper ohrh(args, 2, xsink);
+   ReferenceHolder<AbstractQoreNode> rv(client->get(path, ph, *ohrh, xsink), xsink);
 
-   ReferenceHolder<AbstractQoreNode> rv(client->get(path, ph, *info, xsink), xsink);
-
-   // write info to reference first
-   if (ref) {
-      AutoVLock vl(xsink);
-      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
-      if (!rh)
-	 return 0;
-
-      if (rh.assign(info.release(), xsink))
-	 return 0;
-   }
-
-   // return 0 if an exception occured
-   if (!rv || *xsink)
-      return 0;
-
-   return rv.release();
+   return *xsink ? 0 : rv.release();
 }
 
-// head(path, headers, [info_reference])
-static AbstractQoreNode *HC_head(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
-{
-   const QoreStringNode *pstr = test_string_param(params, 0);
-   if (!pstr) {
-      xsink->raiseException("HTTP-CLIENT-HEAD-ERROR", "expecting path as first parameter");
-      return 0;
-   }
+// head(string $path, hash $headers = hash())
+// head(string $path, hash $headers = hash(), reference $info)
+static AbstractQoreNode *HC_head(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *pstr = HARD_QORE_STRING(args, 0);
    const char *path = pstr->getBuffer();
 
-   const QoreHashNode *ph = test_hash_param(params, 1);
+   const QoreHashNode *ph = HARD_QORE_HASH(args, 1);
 
-   ReferenceHolder<QoreHashNode> info(xsink);
-   const ReferenceNode *ref = test_reference_param(params, 2);
-   if (ref)
-      info = new QoreHashNode();
+   OptHashRefHelper ohrh(args, 2, xsink);
+   ReferenceHolder<AbstractQoreNode> rv(client->head(path, ph, *ohrh, xsink), xsink);
 
-   ReferenceHolder<AbstractQoreNode> rv(client->head(path, ph, *info, xsink), xsink);
-
-   // write info to reference first
-   if (ref) {
-      AutoVLock vl(xsink);
-      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
-      if (!rh)
-	 return 0;
-
-      if (rh.assign(info.release(), xsink))
-	 return 0;
-   }
-
-   // return 0 if an exception occured
-   if (!rv || *xsink)
-      return 0;
-
-   return rv.release();
+   return *xsink ? 0 : rv.release();
 }
 
-// post(path, data, headers, [info_reference])
-static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *pstr = test_string_param(params, 0);
-   if (!pstr) {
-      xsink->raiseException("HTTP-CLIENT-POST-ERROR", "expecting path as first parameter");
-      return 0;
-   }
+// post(string $path, data $data, hash $headers = hash()) returns string|binary|nothing
+// post(string $path, data $data, hash $headers = hash(), reference $info) returns string|binary|nothing
+static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *pstr = HARD_QORE_STRING(args, 0);
    const char *path = pstr->getBuffer();
 
    const void *ptr = 0;
-   int size = 0;
-   const AbstractQoreNode *p = get_param(params, 1);
-   if (!is_nothing(p)) {
-      if (p->getType() == NT_STRING) {
-	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
-	 ptr = str->getBuffer();
-	 size = str->strlen();
-      }
-      else if (p->getType() == NT_BINARY) {
-	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
-         ptr = b->getPtr();
-         size = b->size();
-      }
-      else {
-	 xsink->raiseException("HTTP-CLIENT-POST-ERROR", "expecting string or binary as second argument for message data");
-	 return 0;
-      }
+   qore_size_t size = 0;
+   const AbstractQoreNode *p = get_param(args, 1);
+   if (p->getType() == NT_STRING) {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
+      assert(str);
+      ptr = str->getBuffer();
+      size = str->strlen();
+   }
+   else {
+      assert(p->getType() == NT_BINARY);
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
+      ptr = b->getPtr();
+      size = b->size();
    }
 
-   const QoreHashNode *ph = test_hash_param(params, 2);
+   const QoreHashNode *ph = HARD_QORE_HASH(args, 1);
 
-   ReferenceHolder<QoreHashNode> info(xsink);
-   const ReferenceNode *ref = test_reference_param(params, 3);
-   if (ref)
-      info = new QoreHashNode();
+   OptHashRefHelper ohrh(args, 2, xsink);
+   ReferenceHolder<AbstractQoreNode> rv(client->post(path, ph, ptr, size, *ohrh, xsink), xsink);
 
-   ReferenceHolder<AbstractQoreNode> rv(client->post(path, ph, ptr, size, *info, xsink), xsink);
-
-   // write info to reference first
-   if (ref) {
-      AutoVLock vl(xsink);
-      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
-      if (!rh)
-	 return 0;
-
-      if (rh.assign(info.release(), xsink))
-	 return 0;
-   }
-
-   // return 0 if an exception occured
-   if (!rv || *xsink)
-      return 0;
-
-   return rv.release();
+   return *xsink ? 0 : rv.release();
 }
 
-static AbstractQoreNode *HC_setTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   client->setTimeout(getMsZeroInt(get_param(params, 0)));
+static AbstractQoreNode *HC_setTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->setTimeout(getMsZeroInt(get_param(args, 0)));
    return 0;
 }
 
-static AbstractQoreNode *HC_getTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreBigIntNode(client->getTimeout());
 }
 
-static AbstractQoreNode *HC_setEncoding(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(params, 0))) {
-      xsink->raiseException("HTTP-CLIENT-SET-ENCODING-ERROR", "expecting charset name (string) as parameter of HTTPClient::setEncoding() call");
-      return 0;
-   }
-
-   client->setEncoding(QEM.findCreate(p0));
+static AbstractQoreNode *HC_setEncoding(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->setEncoding(get_hard_qore_encoding_param(args, 0));
    return 0; 
 }
 
-static AbstractQoreNode *HC_getEncoding(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getEncoding(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreStringNode(client->getEncoding()->getCode());
 }
 
-static AbstractQoreNode *HC_setURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *n = test_string_param(params, 0);
-   if (!n || !n->strlen())
-      xsink->raiseException("HTTP-CLIENT-EMPTY-URL", "HTTPClient::setURL() called without a valid string argument");
-   else
-      client->setURL(n->getBuffer(), xsink);
+static AbstractQoreNode *HC_setURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *pstr = HARD_QORE_STRING(args, 0);
+   client->setURL(pstr->getBuffer(), xsink);
    return 0;
 }
 
-static AbstractQoreNode *HC_getURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    return client->getURL();
 }
 
-static AbstractQoreNode *HC_setProxyURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *n = test_string_param(params, 0);
-   if (!n)
-      client->clearProxyURL();
-   else
-      client->setProxyURL(n->getBuffer(), xsink);
-   return 0;
-}
-
-static AbstractQoreNode *HC_getProxyURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   return client->getProxyURL();
-}
-
-static AbstractQoreNode *HC_clearProxyURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_setProxyURL_nothing(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    client->clearProxyURL();
    return 0;
 }
 
-static AbstractQoreNode *HC_setProxySecure(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *n = get_param(params, 0);
-   client->setProxySecure(n ? n->getAsBool() : false);
+static AbstractQoreNode *HC_setProxyURL_str(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *pstr = HARD_QORE_STRING(args, 0);
+   client->setProxyURL(pstr->getBuffer(), xsink);
    return 0;
 }
 
-static AbstractQoreNode *HC_isProxySecure(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getProxyURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   return client->getProxyURL();
+}
+
+static AbstractQoreNode *HC_clearProxyURL(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->clearProxyURL();
+   return 0;
+}
+
+static AbstractQoreNode *HC_setProxySecure(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->setProxySecure(HARD_QORE_BOOL(args, 0));
+   return 0;
+}
+
+static AbstractQoreNode *HC_isProxySecure(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    return get_bool_node(client->isProxySecure());
 }
 
-static AbstractQoreNode *HC_setMaxRedirects(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *n = get_param(params, 0);
-   client->setMaxRedirects(n ? n->getAsInt() : 0);
+static AbstractQoreNode *HC_setMaxRedirects(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->setMaxRedirects(HARD_QORE_INT(args, 0));
    return 0;
 }
 
-static AbstractQoreNode *HC_getMaxRedirects(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getMaxRedirects(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreBigIntNode(client->getMaxRedirects());
 }
 
-static AbstractQoreNode *HC_setEventQueue(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-    const QoreObject *o = test_object_param(params, 0);
-    Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
-    if (*xsink)
-        return 0;
-    // pass reference from QoreObject::getReferencedPrivateData() to function
-    client->setEventQueue(q, xsink);
+static AbstractQoreNode *HC_setEventQueue_nothing(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+    client->setEventQueue(0, xsink);
     return 0;
 }
 
-static AbstractQoreNode *HC_setConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-   client->setConnectTimeout(getMsMinusOneInt(get_param(params, 0)));
+static AbstractQoreNode *HC_setEventQueue_queue(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_OBJ_DATA(q, Queue, args, 0, CID_QUEUE, "Queue", "HTTPClient::setEventQueue", xsink);
+   if (*xsink)
+      return 0;
+   // pass reference from QoreObject::getReferencedPrivateData() to function
+   client->setEventQueue(q, xsink);
    return 0;
 }
 
-static AbstractQoreNode *HC_getConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_setConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->setConnectTimeout(getMsMinusOneInt(get_param(args, 0)));
+   return 0;
+}
+
+static AbstractQoreNode *HC_getConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreBigIntNode(client->getConnectTimeout());
 }
 
-static AbstractQoreNode *HC_setNoDelay(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
-    return new QoreBigIntNode(client->setNoDelay(get_int_param(params, 0)));
+static AbstractQoreNode *HC_setNoDelay(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+    return new QoreBigIntNode(client->setNoDelay(HARD_QORE_BOOL(args, 0)));
 }
 
-static AbstractQoreNode *HC_getNoDelay(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_getNoDelay(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
     return get_bool_node(client->getNoDelay());
 }
 
-static AbstractQoreNode *HC_isConnected(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *HC_isConnected(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
     return get_bool_node(client->isConnected());
 }
 
 QoreClass *initHTTPClientClass() {
    QORE_TRACE("initHTTPClientClass");
+
+   assert(QC_QUEUE);
 
    // initialize static data structures in the QoreHTTPClient class
    QoreHTTPClient::static_init();
@@ -406,42 +327,95 @@ QoreClass *initHTTPClientClass() {
    // no need to set the class synchronous flag because the QoreHTTPClient class is already thread-safe
    CID_HTTPCLIENT = client->getID();
 
-   client->setConstructor(HC_constructor);
+   client->setConstructorExtended(HC_constructor, false, QC_NO_FLAGS, QDOM_DEFAULT);
+   client->setConstructorExtended(HC_constructor_hash, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+
    client->setCopy((q_copy_t)HC_copy);
    client->setDestructor((q_destructor_t)HC_destructor);
 
-   client->addMethod("setHTTPVersion",         (q_method_t)HC_setHTTPVersion);
-   client->addMethod("getHTTPVersion",         (q_method_t)HC_getHTTPVersion);
-   client->addMethod("setSecure",              (q_method_t)HC_setSecure);
-   client->addMethod("isSecure",               (q_method_t)HC_isSecure);
-   client->addMethod("verifyPeerCertificate",  (q_method_t)HC_verifyPeerCertificate);
-   client->addMethod("getSSLCipherName",       (q_method_t)HC_getSSLCipherName);
-   client->addMethod("getSSLCipherVersion",    (q_method_t)HC_getSSLCipherVersion);
-   client->addMethod("connect",                (q_method_t)HC_connect);
-   client->addMethod("disconnect",             (q_method_t)HC_disconnect);
-   client->addMethod("send",                   (q_method_t)HC_send);
-   client->addMethod("get",                    (q_method_t)HC_get);
-   client->addMethod("head",                   (q_method_t)HC_head);
-   client->addMethod("post",                   (q_method_t)HC_post);
-   client->addMethod("setTimeout",             (q_method_t)HC_setTimeout);
-   client->addMethod("getTimeout",             (q_method_t)HC_getTimeout);
-   client->addMethod("setEncoding",            (q_method_t)HC_setEncoding);
-   client->addMethod("getEncoding",            (q_method_t)HC_getEncoding);
-   client->addMethod("setURL",                 (q_method_t)HC_setURL);
-   client->addMethod("getURL",                 (q_method_t)HC_getURL);
-   client->addMethod("setProxyURL",            (q_method_t)HC_setProxyURL);
-   client->addMethod("getProxyURL",            (q_method_t)HC_getProxyURL);
-   client->addMethod("clearProxyURL",          (q_method_t)HC_clearProxyURL);
-   client->addMethod("setProxySecure",         (q_method_t)HC_setProxySecure);
-   client->addMethod("isProxySecure",          (q_method_t)HC_isProxySecure);
-   client->addMethod("setMaxRedirects",        (q_method_t)HC_setMaxRedirects);
-   client->addMethod("getMaxRedirects",        (q_method_t)HC_getMaxRedirects);
-   client->addMethod("setEventQueue",          (q_method_t)HC_setEventQueue);
-   client->addMethod("setConnectTimeout",      (q_method_t)HC_setConnectTimeout);
-   client->addMethod("getConnectTimeout",      (q_method_t)HC_getConnectTimeout);
-   client->addMethod("setNoDelay",             (q_method_t)HC_setNoDelay);
-   client->addMethod("getNoDelay",             (q_method_t)HC_getNoDelay);
-   client->addMethod("isConnected",            (q_method_t)HC_isConnected);
+   client->addMethodExtended("setHTTPVersion",         (q_method_t)HC_setHTTPVersion, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   client->addMethodExtended("getHTTPVersion",         (q_method_t)HC_getHTTPVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   client->addMethodExtended("setSecure",              (q_method_t)HC_setSecure, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBoolTypeInfo, &True);
+
+   client->addMethodExtended("isSecure",               (q_method_t)HC_isSecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   // returns either a string or nothing
+   client->addMethodExtended("verifyPeerCertificate",  (q_method_t)HC_verifyPeerCertificate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+
+   // returns either a string or nothing
+   client->addMethodExtended("getSSLCipherName",       (q_method_t)HC_getSSLCipherName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+
+   // returns either a string or nothing
+   client->addMethodExtended("getSSLCipherVersion",    (q_method_t)HC_getSSLCipherVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+
+   client->addMethodExtended("connect",                (q_method_t)HC_connect, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   client->addMethodExtended("disconnect",             (q_method_t)HC_disconnect, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False)
+   // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False, reference $info)
+   client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 5, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), boolTypeInfo, &False);
+   client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 6, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), boolTypeInfo, &False, referenceTypeInfo, QORE_PARAM_NO_ARG);
+
+   // HTTPClient::get(string $path, hash headers = hash())
+   // HTTPClient::get(string $path, hash headers = hash(), reference $info)
+   // returns string or binary
+   client->addMethodExtended("get",                    (q_method_t)HC_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
+   client->addMethodExtended("get",                    (q_method_t)HC_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
+
+   // HTTPClient::head(string $path, hash $headers = hash())
+   // HTTPClient::head(string $path, hash $headers = hash(), reference $info)
+   client->addMethodExtended("head",                   (q_method_t)HC_head, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
+   client->addMethodExtended("head",                   (q_method_t)HC_head, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
+
+   // post(string $path, data $data, hash $headers = hash()) returns string|binary|nothing
+   // post(string $path, data $data, hash $headers = hash(), reference $info) returns string|binary|nothing
+   client->addMethodExtended("post",                   (q_method_t)HC_post, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, stringTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
+   client->addMethodExtended("post",                   (q_method_t)HC_post, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 4, stringTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
+
+   client->addMethodExtended("setTimeout",             (q_method_t)HC_setTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+   client->addMethodExtended("setTimeout",             (q_method_t)HC_setTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   client->addMethodExtended("getTimeout",             (q_method_t)HC_getTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   client->addMethodExtended("setEncoding",            (q_method_t)HC_setEncoding, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   client->addMethodExtended("getEncoding",            (q_method_t)HC_getEncoding, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   client->addMethodExtended("setURL",                 (q_method_t)HC_setURL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   client->addMethodExtended("getURL",                 (q_method_t)HC_getURL, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   // clears the proxy URL
+   client->addMethodExtended("setProxyURL",            (q_method_t)HC_setProxyURL_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   client->addMethodExtended("setProxyURL",            (q_method_t)HC_setProxyURL_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   client->addMethodExtended("getProxyURL",            (q_method_t)HC_getProxyURL, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   client->addMethodExtended("clearProxyURL",          (q_method_t)HC_clearProxyURL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   client->addMethodExtended("setProxySecure",         (q_method_t)HC_setProxySecure, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBoolTypeInfo, &True);
+
+   client->addMethodExtended("isProxySecure",          (q_method_t)HC_isProxySecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   client->addMethodExtended("setMaxRedirects",        (q_method_t)HC_setMaxRedirects, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+
+   client->addMethodExtended("getMaxRedirects",        (q_method_t)HC_getMaxRedirects, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   client->addMethodExtended("setEventQueue",          (q_method_t)HC_setEventQueue_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   client->addMethodExtended("setEventQueue",          (q_method_t)HC_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
+
+   client->addMethodExtended("setConnectTimeout",      (q_method_t)HC_setConnectTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
+   client->addMethodExtended("setConnectTimeout",      (q_method_t)HC_setConnectTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   client->addMethodExtended("getConnectTimeout",      (q_method_t)HC_getConnectTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   client->addMethodExtended("setNoDelay",             (q_method_t)HC_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, boolTypeInfo, &True);
+
+   client->addMethodExtended("getNoDelay",             (q_method_t)HC_getNoDelay, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+   client->addMethodExtended("isConnected",            (q_method_t)HC_isConnected, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
    return client;
 }
