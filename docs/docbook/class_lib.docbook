@@ -20643,7 +20643,7 @@ $sock.bind("/tmp/socket");</programlisting>
             <row>
               <entry><para><replaceable>max_redirects</replaceable></para></entry>
               <entry><para>Integer</para></entry>
-              <entry><para>The maximum number of HTTP redirects allowed for hte object before an exception is thrown.</para></entry>
+              <entry><para>The maximum number of HTTP redirects allowed for the object before an exception is thrown.</para></entry>
             </row>
           </tbody>
         </tgroup>
