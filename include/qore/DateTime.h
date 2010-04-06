@@ -39,59 +39,12 @@
 class DateTime {
    friend class DateTimeNode;
 
-private:
-   // static constants
-   static const int month_lengths[];
-   // for calculating the days passed in a year
-   static const int positive_months[];
-   static const int negative_months[];
-
+protected:
    //! private date data - most are ints so relative dates can hold a lot of data
-   struct qore_dt_private *priv;
-      
-   //! adds an absolute date ("this" must be absolute) to relative date "dt"
-   /** must be called with "result" being already a copy of "this"
-       @param result the resulting value, must be already initialized as a copy of "this"
-       @param dt the relative date to add
-   */
-   DLLLOCAL void addAbsoluteToRelative(DateTime &result, const class DateTime *dt) const;
+   struct qore_date_private *priv;
 
-   //! adds a relative date ("this" must be relative) to relative date "dt"
-   /** "result" must be empty 
-       @param result the resulting value, must be an empty relative date
-       @param dt the relative date to add
-   */
-   DLLLOCAL void addRelativeToRelative(DateTime &result, const class DateTime *dt) const;
-
-   //! subtracts relative date "dt" from an absolute date ("this" must be absolute)
-   /** must be called with "result" being already a copy of "this"
-       @param result the resulting value, must be already initialized as a copy of "this"
-       @param dt the relative date to subtract
-   */
-   DLLLOCAL void subtractAbsoluteByRelative(DateTime &result, const class DateTime *dt) const;
-
-   //! subtracts relative date "dt" from a relative date ("this" must be relative)
-   /** "result" must be empty 
-       @param result the resulting value, must be an empty relative date
-       @param dt the relative date to subtract
-   */
-   DLLLOCAL void subtractRelativeByRelative(DateTime &result, const class DateTime *dt) const;
-
-   //! "result" must be a blank relative date
-   DLLLOCAL void calcDifference(DateTime &result, const class DateTime *dt) const;
    DLLLOCAL void setDateLiteral(int64 date);
    DLLLOCAL void setRelativeDateLiteral(int64 date);
-
-   // static private methods
-   DLLLOCAL static int positive_leap_years(int year, int month);
-   DLLLOCAL static int negative_leap_years(int year);
-
-   // returns 0 - 6, 0 = Sunday
-   DLLLOCAL static int getDayOfWeek(int year, int month, int day);
-   DLLLOCAL static int64 getEpochSeconds(int year, int month, int day);
-
-   // result should be empty
-   DLLLOCAL static int getDateFromISOWeekIntern(DateTime &result, int year, int week, int day, class ExceptionSink *xsink);
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL DateTime& operator=(const DateTime&);

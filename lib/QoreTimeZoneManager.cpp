@@ -39,7 +39,7 @@
 
 #define QB(x) ((x) ? "true" : "false")
 
-QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : name(n_name), valid(false) {
+QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : name(n_name), gmtoff(-1), valid(false), has_dst(false) {
    //printd(0, "QoreTZInfo::QoreTZInfo() this=%p root=%s name=%s\n", this, root.getBuffer(), name.c_str());
    
    std::string fn = root.getBuffer();
@@ -196,10 +196,12 @@ QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsi
       tti[i].isgmt = false;
 
    for (unsigned i = 0; i < tzh_typecnt; ++i) {
-      //printd(5, "tti[%d] %s: gmtoff=%d isdst=%s isstd=%s isgmt=%s\n", i, tti[i].abbr.c_str(), tti[i].gmtoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isgmt));
+      if (gmtoff == -1 && !tti[i].isdst)
+         gmtoff = tti[i].gmtoff;
+      //printd(0, "tti[%d] %s: gmtoff=%d isdst=%s isstd=%s isgmt=%s\n", i, tti[i].abbr.c_str(), tti[i].gmtoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isgmt));
    }
 
-/*
+   /*
    for (unsigned i = 0; i < tzh_timecnt; ++i) {
       DateTime d((int64)QoreDSTTransitions[i].time);
       str.clear();
@@ -210,7 +212,7 @@ QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsi
       local.format(lstr, "Dy Mon DD YYYY HH:mm:SS");
       printd(0, "trans[%3d] time=%d %s UTC = %s %s isdst=%d isstd=%d isgmt=%d gmtoff=%d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isgmt, trans.gmtoff);
    }
-*/
+   */
    valid = true;
 }
 
@@ -239,6 +241,7 @@ int QoreTimeZoneManager::process(const char *fn) {
       return -1;
    }
 
+/*
    // add time zones in transition info to nearest time zone map
    const trans_vec_t &tti = tzi->getTransitionList();
    for (trans_vec_t::const_iterator i = tti.begin(), e = tti.end(); i != e; ++i) {
@@ -257,6 +260,7 @@ int QoreTimeZoneManager::process(const char *fn) {
 
       //printd(1, "%s gmtoff=%d our_offset=%ld\n", (*i).abbr.c_str(), (*i).gmtoff, our_gmtoffset);
    }
+*/
 
    //printd(5, "QoreTimeZoneManager::process() %s -> %p\n", name.c_str(), tzi.get());
    tzmap[name] = tzi.release();
@@ -310,6 +314,7 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname) {
 
    localtz = tzi.release();
    tzmap[fname] = localtz;
+   localtzname = fname;
    ++tzsize;
 
    printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s\n", fname.c_str());
@@ -317,7 +322,7 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname) {
    return 0;
 }
 
-QoreTimeZoneManager::QoreTimeZoneManager() : tzsize(0), tznearestsize(0), our_gmtoffset(0), root(ZONEINFO_LOCATION), localtz(0) {
+QoreTimeZoneManager::QoreTimeZoneManager() : tzsize(0), our_gmtoffset(0), root(ZONEINFO_LOCATION), localtz(0) {
    // remove trailing "/" characters from root
    root.trim_trailing('/');
 }
@@ -386,7 +391,7 @@ int QoreTimeZoneManager::readAll(ExceptionSink *xsink) {
       return -1;
    }
 
-   printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() %d regions cached, %d unique time zones cached\n", tzsize, tznearestsize);
+   printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() %d regions cached\n", tzsize);
 
    return 0;
 }

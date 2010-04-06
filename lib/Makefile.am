@@ -41,6 +41,7 @@ libqore_la_SOURCES = \
 	AbstractQoreNode.cpp \
 	QoreStringNode.cpp \
 	DateTimeNode.cpp \
+	qore_date_private.cpp \
 	QoreHashNode.cpp \
 	BinaryNode.cpp \
 	QoreBigIntNode.cpp \

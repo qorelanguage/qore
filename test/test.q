@@ -870,8 +870,8 @@ sub date_time_tests() {
     test_date(9999-12-31T23:59:59.999, 9999, 52, 5, 365, \$i);
 
     # absolute date difference tests
-    test_value(2006-01-02T11:34:28.344 - 2006-01-01,              1D + 11h + 34m + 28s +344ms,       "date difference 1");
-    test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 107793D + 22h + 34m + 42s + 150ms, "date difference 2");
+    test_value(2006-01-02T11:34:28.344 - 2006-01-01,              35h + 34m + 28s +344ms,       "date difference 1");
+    test_value(2099-04-21T19:20:02.106 - 1804-03-04T20:45:19.956, 2587054h + 34m + 42s + 150ms, "date difference 2");
 }
 
 sub binary_tests() {

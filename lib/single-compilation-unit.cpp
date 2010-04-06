@@ -14,6 +14,7 @@
 #include "AbstractQoreNode.cpp"
 #include "QoreStringNode.cpp"
 #include "DateTimeNode.cpp"
+#include "qore_date_private.cpp"
 #include "QoreHashNode.cpp"
 #include "BinaryNode.cpp"
 #include "QoreBigIntNode.cpp"
