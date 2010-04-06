@@ -356,8 +356,8 @@ QoreClass *initHTTPClientClass() {
 
    // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False)
    // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False, reference $info)
-   client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 5, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), boolTypeInfo, &False);
-   client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 6, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), boolTypeInfo, &False, referenceTypeInfo, QORE_PARAM_NO_ARG);
+   client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 5, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), softBoolTypeInfo, &False);
+   client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 6, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), softBoolTypeInfo, &False, referenceTypeInfo, QORE_PARAM_NO_ARG);
 
    // HTTPClient::get(string $path, hash headers = hash())
    // HTTPClient::get(string $path, hash headers = hash(), reference $info)
@@ -388,33 +388,50 @@ QoreClass *initHTTPClientClass() {
 
    client->addMethodExtended("getURL",                 (q_method_t)HC_getURL, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
+   // HTTPClient::setProxyURL() returns nothing
    // clears the proxy URL
    client->addMethodExtended("setProxyURL",            (q_method_t)HC_setProxyURL_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   // HTTPClient::setProxyURL(string $url) returns nothing
    client->addMethodExtended("setProxyURL",            (q_method_t)HC_setProxyURL_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
+   // HTTPClient::getProxyURL() returns string
    client->addMethodExtended("getProxyURL",            (q_method_t)HC_getProxyURL, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
+   // HTTPClient::clearProxyURL() returns nothing
    client->addMethodExtended("clearProxyURL",          (q_method_t)HC_clearProxyURL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
+   // HTTPClient::setProxySecure(softbool $b = True) returns nothing
    client->addMethodExtended("setProxySecure",         (q_method_t)HC_setProxySecure, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBoolTypeInfo, &True);
 
+   // HTTPClient::isProxySecure() returns bool
    client->addMethodExtended("isProxySecure",          (q_method_t)HC_isProxySecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
+   // HTTPClient::setMaxRedirects(softint $mr = 0) returns nothing
    client->addMethodExtended("setMaxRedirects",        (q_method_t)HC_setMaxRedirects, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
+   // HTTPClient::getMaxRedirects() returns int
    client->addMethodExtended("getMaxRedirects",        (q_method_t)HC_getMaxRedirects, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
+   // HTTPClient::setEventQueue() returns nothing
    client->addMethodExtended("setEventQueue",          (q_method_t)HC_setEventQueue_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   // HTTPClient::setEventQueue(Queue $queue) returns nothing
    client->addMethodExtended("setEventQueue",          (q_method_t)HC_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
 
+   // HTTPClient::setConnectTimeout(softint $mr = -1) returns nothing
    client->addMethodExtended("setConnectTimeout",      (q_method_t)HC_setConnectTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
+   // HTTPClient::setConnectTimeout(date $mr) returns nothing
    client->addMethodExtended("setConnectTimeout",      (q_method_t)HC_setConnectTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
+   // HTTPClient::getConnectTimeout() returns int
    client->addMethodExtended("getConnectTimeout",      (q_method_t)HC_getConnectTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   client->addMethodExtended("setNoDelay",             (q_method_t)HC_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, boolTypeInfo, &True);
+   // HTTPClient::setNoDelay(softbool $b = True) returns int
+   client->addMethodExtended("setNoDelay",             (q_method_t)HC_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBoolTypeInfo, &True);
 
+   // HTTPClient::getNoDelay() returns bool
    client->addMethodExtended("getNoDelay",             (q_method_t)HC_getNoDelay, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   // HTTPClient::isConnected() returns bool
    client->addMethodExtended("isConnected",            (q_method_t)HC_isConnected, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
    return client;

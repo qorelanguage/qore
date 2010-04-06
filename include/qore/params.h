@@ -280,6 +280,9 @@ static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
 //! returns a const QoreHashNode* from a hard typed hash param
 #define HARD_QORE_HASH(list, i) get_hard_param<const QoreHashNode>(list, i)
 
+//! returns a const QoreHashNode* from a hard typed hash param
+#define HARD_QORE_REF(list, i) get_hard_param<const ReferenceNode>(list, i)
+
 //! returns a QoreObject* from a hard typed object param
 #define HARD_QORE_OBJECT(list, i) const_cast<QoreObject *>(get_hard_param<const QoreObject>(list, i))
 
