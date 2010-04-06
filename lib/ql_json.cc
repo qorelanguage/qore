@@ -280,7 +280,7 @@ static AbstractQoreNode *getJSONValue(const char *&buf, int &line_number, const 
    }
 
    // FIXME: implement parsing of JSON exponents
-   if (isdigit(*buf) || (*buf) == '.')
+   if (isdigit(*buf) || (*buf) == '.' || (*buf) == '-')
    {
       // temporarily use a QoreString
       QoreString str;

@@ -1,3 +1,7 @@
+2010.04.06: David Nichols
+	 * fixed parsing negative numbers in json strings (backported from
+	   trunk)
+
 2010.04.04: David Nichols
 	 * fixed Socket::recv() and Socket::recvBinary() when reading all data
 	   available on the socket when the remote ends closes the connection
