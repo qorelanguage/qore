@@ -1,3 +1,6 @@
+2010.04.07: Petr Vanek
+     * fixed limited XML node size. Backport from trunk.
+
 2010.04.06: David Nichols
 	 * fixed parsing negative numbers in json strings (backported from
 	   trunk)

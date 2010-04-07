@@ -28,6 +28,14 @@
 
 #define XML_PARSE_NOBLANKS 0
 
+// There hardcoded node size limits since libxml2 2.7.3. The XML_PARSE_HUGE
+// switches off those limits and restores unlimited size behavior like before.
+#if LIBXML_VERSION >= 20703
+#define QORE_XML_PARSER_OPTIONS_ADDONS | XML_PARSE_HUGE
+#else
+#define QORE_XML_PARSER_OPTIONS_ADDONS
+#endif
+
 #ifdef DEBUG
 #define QORE_XML_PARSER_OPTIONS XML_PARSE_NOBLANKS
 #else
