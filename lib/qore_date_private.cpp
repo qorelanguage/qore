@@ -243,40 +243,49 @@ void qore_absolute_time::getAsString(QoreString &str) const {
    }
 
 qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt) {
-   // get the broken-down date values for the date in local time
-   qore_simple_tm2 tm(epoch + zone->getGMTOffset(epoch), us);
+   int usecs;
+
+   // break down date and do day, month, and year math
+   if (dt.year || dt.month || dt.day) {
+      // get the broken-down date values for the date in local time
+      qore_simple_tm2 tm(epoch + zone->getGMTOffset(epoch), us);
 
 #ifdef DEBUG
-   // only needed by the debugging statement at the bottom
-   //int64 oe=epoch;
+      // only needed by the debugging statement at the bottom
+      //int64 oe=epoch;
 #endif
-   //printd(5, "absolute_time::operator+= this=%p %lld.%06d (%d) %04d-%02d-%02d %02d:%02d:%02d.%06d (+%dY %dM %dD %dh %dm %ds %dus)\n", this, epoch, us, zone ? zone->getGMTOffset(epoch) : 0, tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second, tm.us, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us);
+      //printd(5, "absolute_time::operator+= this=%p %lld.%06d (%d) %04d-%02d-%02d %02d:%02d:%02d.%06d (+%dY %dM %dD %dh %dm %ds %dus)\n", this, epoch, us, zone ? zone->getGMTOffset(epoch) : 0, tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second, tm.us, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us);
+      
+      // add years, months, and days
+      tm.year += dt.year;
+      tm.month += dt.month;
+      // normalize to the end of the month
+      normalize_dm(tm.year, tm.month, tm.day);
 
-   // add years, months, and days
-   tm.year += dt.year;
-   tm.month += dt.month;
-   // normalize to the end of the month
-   normalize_dm(tm.year, tm.month, tm.day);
+      tm.day += dt.day;
+      // normalize to the correct day, month, and year
+      normalize_day(tm.year, tm.month, tm.day);
 
-   tm.day += dt.day;
-   // normalize to the correct day, month, and year
-   normalize_day(tm.year, tm.month, tm.day);
+      // get epoch offset for same time on the target day
+      epoch = qore_date_info::getEpochSeconds(tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
 
-   // get epoch offset for same time on the target day
-   epoch = qore_date_info::getEpochSeconds(tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
+      // adjust for new GMT offset for target day at the original time
+      epoch -= zone->getGMTOffset(epoch);
 
-   // adjust for new GMT offset for target day at the original time
-   epoch -= zone->getGMTOffset(epoch);
+      usecs = tm.us;
+   }
+   else
+      usecs = us;
 
    // get resulting microseconds
-   tm.us += dt.us;
+   usecs += dt.us;
 
    // add time component
    epoch += (3600 * dt.hour) + (60 * dt.minute) + dt.second;
 
    // normalize epoch and microseconds
-   normalize_units2<int64, int>(epoch, tm.us, 1000000);
-   us = tm.us;
+   normalize_units2<int64, int>(epoch, usecs, 1000000);
+   us = usecs;
 
    //printd(5, "absolute_time::operator+= new epoch=%lld.%06d (diff=%lld)\n", epoch, tm.us, epoch - oe);
    return *this;
