@@ -195,7 +195,15 @@ AbstractQoreNode *SelfFunctionCallNode::makeReferenceNodeAndDeref() {
 }
 
 AbstractQoreNode *MethodCallNode::exec(QoreObject *o, ExceptionSink *xsink) const {
-   if (o->getClass() == qc) {
+   /* the class and method saved at parse time are used here for this run-time
+      optimization: the method pointer saved at parse time is used to execute the
+      method directly if the object used at run-time is of the same class as
+      either the method or the parse-time class.  Actually any class between the
+      parse-time class and the method's class could be used, however I'd have to
+      check and make sure that search would be quicker than the quick check
+      implemented below on average
+   */
+   if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
       assert(method);
       return variant 
 	 ? method->evalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
