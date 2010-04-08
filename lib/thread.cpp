@@ -869,6 +869,10 @@ const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo) {
    return rv;
 }
 
+const AbstractQoreZoneInfo *currentTZ() {
+   return QTZM.getLocalZoneInfo();
+}
+
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {
    ThreadData *td  = thread_data.get();
    old_obj = td->current_obj;

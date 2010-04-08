@@ -34,7 +34,7 @@ class Operator;
 // system default operators
 DLLLOCAL extern Operator *OP_ASSIGNMENT, *OP_MODULA, 
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
-   *OP_MULT, *OP_DIV, *OP_UNARY_MINUS, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
+   *OP_MULT, *OP_DIV, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
    *OP_POST_INCREMENT, *OP_POST_DECREMENT, *OP_PRE_INCREMENT, *OP_PRE_DECREMENT, 
    *OP_LOG_CMP, *OP_PLUS_EQUALS, *OP_MINUS_EQUALS, *OP_AND_EQUALS, *OP_OR_EQUALS, 
    *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK, 
@@ -394,18 +394,6 @@ class DivideIntOperatorFunction : public AbstractOperatorFunction {
       DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
 };
 
-// this whole class just for one operator (integer unary minus)...
-class UnaryMinusIntOperatorFunction : public AbstractOperatorFunction {
-   public:
-      DLLLOCAL UnaryMinusIntOperatorFunction() : AbstractOperatorFunction(NT_INT, NT_INT) {
-      }
-      DLLLOCAL virtual ~UnaryMinusIntOperatorFunction() {}
-      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
-      DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
-      DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
-};
-
 // this whole class just for one operator (binary integer not)...
 class IntegerNotOperatorFunction : public AbstractOperatorFunction {
    public:
@@ -455,18 +443,6 @@ class DivideFloatOperatorFunction : public AbstractOperatorFunction {
       DLLLOCAL DivideFloatOperatorFunction(op_divide_float_func_t f) : AbstractOperatorFunction(NT_FLOAT, NT_FLOAT), op_func(f) {
       }
       DLLLOCAL virtual ~DivideFloatOperatorFunction() {}
-      DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
-      DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
-      DLLLOCAL virtual double float_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
-};
-
-// this whole class just for one operator (floating-point unary minus)...
-class UnaryMinusFloatOperatorFunction : public AbstractOperatorFunction {
-   public:
-      DLLLOCAL UnaryMinusFloatOperatorFunction() : AbstractOperatorFunction(NT_FLOAT, NT_FLOAT) {
-      }
-      DLLLOCAL virtual ~UnaryMinusFloatOperatorFunction() {}
       DLLLOCAL virtual AbstractQoreNode *eval(const AbstractQoreNode *l, const AbstractQoreNode *r, bool ref_rv, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(const AbstractQoreNode *l, const AbstractQoreNode *r, int args, ExceptionSink *xsink) const;
@@ -715,9 +691,6 @@ class Operator {
       DLLLOCAL void addFunction(op_divide_int_func_t f) {
 	 functions.push_back(new DivideIntOperatorFunction(f));
       }
-      DLLLOCAL void addUnaryMinusIntFunction() {
-	 functions.push_back(new UnaryMinusIntOperatorFunction());
-      }
       DLLLOCAL void addFunction(op_bool_float_func_t f) {
 	 functions.push_back(new BoolFloatOperatorFunction(f));
       }
@@ -726,9 +699,6 @@ class Operator {
       }
       DLLLOCAL void addFunction(op_divide_float_func_t f) {
 	 functions.push_back(new DivideFloatOperatorFunction(f));
-      }
-      DLLLOCAL void addUnaryMinusFloatFunction() {
-	 functions.push_back(new UnaryMinusFloatOperatorFunction());
       }
       DLLLOCAL void addFunction(op_compare_float_func_t f) {
 	 functions.push_back(new CompareFloatOperatorFunction(f));

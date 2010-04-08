@@ -385,23 +385,27 @@ bool needsEval(AbstractQoreNode *n) {
 
    if (ntype == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
-      for (unsigned i = 0; i <l->size(); i++) {
-	 if (needsEval(l->retrieve_entry(i)))
-	    return true;
+      if (l->needs_eval()) {
+	 for (unsigned i = 0; i <l->size(); i++) {
+	    if (needsEval(l->retrieve_entry(i)))
+	       return true;
+	 }
+	 // here we set needs_eval to false so the list won't be evaluated again
+	 l->clearNeedsEval();
       }
-      // here we set needs_eval to false so the list won't be evaluated again
-      l->clearNeedsEval();
       return false;
    }
 
    if (ntype == NT_HASH) {
       QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
-      HashIterator hi(h);
-      while (hi.next())
-	 if (needsEval(hi.getValue()))
-	    return true;
-      // here we set needs_eval to false so the hash won't be evaluated again
-      h->clearNeedsEval();
+      if (h->needs_eval()) {
+	 HashIterator hi(h);
+	 while (hi.next())
+	    if (needsEval(hi.getValue()))
+	       return true;
+	 // here we set needs_eval to false so the hash won't be evaluated again
+	 h->clearNeedsEval();
+      }
       return false;
    }
    
@@ -2274,7 +2278,12 @@ exp:    scalar
         | exp '%' exp		     { $$ = makeTree(OP_MODULA, $1, $3); }
 	| exp '/' exp		     { $$ = makeTree(OP_DIV, $1, $3); }
 	| exp '*' exp		     { $$ = makeTree(OP_MULT, $1, $3); }
-	| '-' exp %prec NEG	     { $$ = makeTree(OP_UNARY_MINUS, $2, 0); }
+        | '-' exp %prec NEG	     { 
+	   // FIXME: need to expand constant expression checking to determine
+	   //        if the expression can throw an exception at run-time
+	   // first check for constant expressions
+	   $$ = QoreUnaryMinusOperatorNode::makeNode($2);
+	}
         | '~' exp		     { $$ = makeTree(OP_BIN_NOT, $2, 0); }
         | '!' exp                    { $$ = makeTree(OP_NOT, $2, 0); }
         | '\\' exp

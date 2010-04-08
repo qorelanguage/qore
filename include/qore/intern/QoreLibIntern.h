@@ -214,6 +214,9 @@ DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
 
+// only called in stage 1 parsing: true means node requires run-time evaluation
+//DLLLOCAL bool needsEval(AbstractQoreNode *n);
+
 DLLLOCAL const char *check_hash_key(const QoreHashNode *h, const char *key, const char *err, ExceptionSink *xsink);
 
 // class for master namespace of all builtin classes, constants, etc

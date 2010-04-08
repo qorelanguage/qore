@@ -33,7 +33,7 @@ DLLLOCAL OperatorList oplist;
 // the standard, system-default operator pointers
 Operator *OP_ASSIGNMENT, *OP_MODULA, 
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
-   *OP_MULT, *OP_DIV, *OP_UNARY_MINUS, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
+   *OP_MULT, *OP_DIV, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
    *OP_POST_INCREMENT, *OP_POST_DECREMENT, *OP_PRE_INCREMENT, *OP_PRE_DECREMENT, 
    *OP_LOG_CMP, *OP_PLUS_EQUALS, *OP_MINUS_EQUALS, *OP_AND_EQUALS, *OP_OR_EQUALS, 
    *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK, 
@@ -2630,27 +2630,6 @@ double DivideIntOperatorFunction::float_eval(const AbstractQoreNode *left, const
    return (double)op_func(left->getAsBigInt(), right->getAsBigInt(), xsink);
 }
 
-AbstractQoreNode *UnaryMinusIntOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
-   // these functions can have no side effects
-   if (!ref_rv)
-      return 0;
-
-   int64 i = -left->getAsBigInt();
-   return new QoreBigIntNode(i);
-}
-
-bool UnaryMinusIntOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
-   return (bool)-left->getAsBigInt();
-}
-
-int64 UnaryMinusIntOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
-   return -left->getAsBigInt();
-}
-
-double UnaryMinusIntOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
-   return (double)-left->getAsBigInt();
-}
-
 AbstractQoreNode *BoolFloatOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2712,27 +2691,6 @@ int64 DivideFloatOperatorFunction::bigint_eval(const AbstractQoreNode *left, con
 
 double DivideFloatOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
    return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
-}
-
-AbstractQoreNode *UnaryMinusFloatOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
-   // these functions can have no side effects
-   if (!ref_rv)
-      return 0;
-
-   double f = -left->getAsFloat();
-   return new QoreFloatNode(f);
-}
-
-bool UnaryMinusFloatOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
-   return (bool)-left->getAsFloat();
-}
-
-int64 UnaryMinusFloatOperatorFunction::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
-   return (int64)-left->getAsFloat();
-}
-
-double UnaryMinusFloatOperatorFunction::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const {
-   return -left->getAsFloat();
 }
 
 AbstractQoreNode *CompareFloatOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const {
@@ -3800,21 +3758,6 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
    return tree;
 }
 
-// set the return value for op_unary_minus (-)
-static AbstractQoreNode *check_op_unary_minus(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   assert(!tree->right);
-
-   if (leftTypeInfo->parseExactMatch(NT_FLOAT))
-      returnTypeInfo = floatTypeInfo;
-   else
-      returnTypeInfo = bigIntTypeInfo;
-
-   return tree;
-}
-
 // set the return value for op_plus_equals (+=)
 static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
@@ -4268,10 +4211,6 @@ void OperatorList::init() {
    OP_DIV = add(new Operator(2, "/", "divide", 1, false, false, check_op_multiply));
    OP_DIV->addFunction(op_divide_float);
    OP_DIV->addFunction(op_divide_bigint);
-
-   OP_UNARY_MINUS = add(new Operator(1, "-", "unary-minus", 1, false, false, check_op_unary_minus));
-   OP_UNARY_MINUS->addUnaryMinusFloatFunction();
-   OP_UNARY_MINUS->addUnaryMinusIntFunction();
 
    OP_SHIFT_LEFT = add(new Operator(2, "<<", "shift-left", 1, false, false, check_op_returns_integer));
    OP_SHIFT_LEFT->addFunction(op_shift_left_int);

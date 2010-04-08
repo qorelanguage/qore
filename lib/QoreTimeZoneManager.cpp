@@ -39,8 +39,8 @@
 
 #define QB(x) ((x) ? "true" : "false")
 
-QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : name(n_name), gmtoff(-1), valid(false), has_dst(false) {
-   //printd(0, "QoreTZInfo::QoreTZInfo() this=%p root=%s name=%s\n", this, root.getBuffer(), name.c_str());
+QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : AbstractQoreZoneInfo(n_name), first_pos(-1), valid(false), std_abbr(0) {
+   //printd(0, "QoreZoneInfo::QoreZoneInfo() this=%p root=%s name=%s\n", this, root.getBuffer(), name.c_str());
    
    std::string fn = root.getBuffer();
    fn += "/" + name;
@@ -92,7 +92,7 @@ QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsi
    if (f.readu4(&tzh_charcnt, xsink))
       return;
 
-   //printd(0, "QoreTZInfo::QoreTZInfo() tzh_ttisgmtcnt=%d tzh_ttisstdcnt=%d tzh_leapcnt=%d tzh_timecnt=%d tzh_typecnt=%d tzh_charcnt=%d\n", tzh_ttisgmtcnt, tzh_ttisstdcnt, tzh_leapcnt, tzh_timecnt, tzh_typecnt, tzh_charcnt);
+   //printd(0, "QoreZoneInfo::QoreZoneInfo() tzh_ttisgmtcnt=%d tzh_ttisstdcnt=%d tzh_leapcnt=%d tzh_timecnt=%d tzh_typecnt=%d tzh_charcnt=%d\n", tzh_ttisgmtcnt, tzh_ttisstdcnt, tzh_leapcnt, tzh_timecnt, tzh_typecnt, tzh_charcnt);
 
    if (tzh_ttisgmtcnt > tzh_typecnt) {
       xsink->raiseException("TZINFO-ERROR", "tzh_ttisgmtcnt (%d) > tzh_typecnt (%d)", tzh_ttisgmtcnt, tzh_typecnt);
@@ -105,6 +105,9 @@ QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsi
    for (unsigned i = 0; i < tzh_timecnt; ++i) {
       if (f.readi4(&QoreDSTTransitions[i].time, xsink))
 	 return;
+      
+      if (first_pos == -1 && QoreDSTTransitions[i].time >= 0)
+         first_pos = i;
       //printf("trans_time[%d]: %u\n", i, QoreDSTTransitions[i].time);
    }
 
@@ -142,6 +145,8 @@ QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsi
 	 return;
 
       tti[i].isdst = c;
+      if (!has_dst && c)
+         has_dst = true;
 
       if (f.readu1(&c, xsink))
 	 return;
@@ -157,8 +162,12 @@ QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsi
    // read in abbreviation list
    if (f.read(str, tzh_charcnt, xsink))
       return;
+
+   // set abbreviations
    for (unsigned i = 0; i < tzh_typecnt; ++i) {
       tti[i].abbr = str.getBuffer() + ai[i];
+      if (!std_abbr && !tti[i].isdst)
+         std_abbr = tti[i].abbr.c_str();
    }
 
    // read in leap info
@@ -201,7 +210,7 @@ QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsi
       //printd(0, "tti[%d] %s: gmtoff=%d isdst=%s isstd=%s isgmt=%s\n", i, tti[i].abbr.c_str(), tti[i].gmtoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isgmt));
    }
 
-   /*
+/*
    for (unsigned i = 0; i < tzh_timecnt; ++i) {
       DateTime d((int64)QoreDSTTransitions[i].time);
       str.clear();
@@ -210,9 +219,10 @@ QoreTZInfo::QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsi
       DateTime local(d.getEpochSeconds() + trans.gmtoff);
       QoreString lstr;
       local.format(lstr, "Dy Mon DD YYYY HH:mm:SS");
-      printd(0, "trans[%3d] time=%d %s UTC = %s %s isdst=%d isstd=%d isgmt=%d gmtoff=%d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isgmt, trans.gmtoff);
+      //printd(0, "trans[%3d] time=%d %s UTC = %s %s isdst=%d isstd=%d isgmt=%d gmtoff=%d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isgmt, trans.gmtoff);
    }
-   */
+*/
+
    valid = true;
 }
 
@@ -233,7 +243,7 @@ int QoreTimeZoneManager::process(const char *fn) {
       return 0;
 
    ExceptionSink xsink;
-   std::auto_ptr<QoreTZInfo> tzi(new QoreTZInfo(root, name, &xsink));
+   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(root, name, &xsink));
    if (!*(tzi.get())) {
       //xsink.handleExceptions();
       xsink.clear();
@@ -267,6 +277,41 @@ int QoreTimeZoneManager::process(const char *fn) {
    ++tzsize;
 
    return 0;
+}
+
+int QoreZoneInfo::getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
+   unsigned i = 0;
+   if (epoch_offset >= 0) {
+      i = first_pos - 1;
+      if (i < 0)
+         i = 0;
+      while ((i + 1) < QoreDSTTransitions.size()) {
+         if (QoreDSTTransitions[i].time < epoch_offset && QoreDSTTransitions[i + 1].time > epoch_offset) {
+            zone_name = QoreDSTTransitions[i].trans->abbr.c_str();
+            is_dst = QoreDSTTransitions[i].trans->isdst;
+            return QoreDSTTransitions[i].trans->gmtoff;
+         }
+         ++i;
+      }
+      // not found, time zone unknown
+      is_dst = false;
+      zone_name = std_abbr;
+      return gmtoff;
+   }
+
+   i = first_pos + 1;
+   while (i > 0) {
+      if (QoreDSTTransitions[i].time > epoch_offset && QoreDSTTransitions[i - 1].time < epoch_offset) {
+         zone_name = QoreDSTTransitions[i].trans->abbr.c_str();
+         is_dst = QoreDSTTransitions[i].trans->isdst;
+         return QoreDSTTransitions[i].trans->gmtoff;
+      }
+      --i;
+   }
+   // not found, time zone unknown
+   is_dst = false;
+   zone_name = std_abbr;
+   return gmtoff;
 }
 
 int QoreTimeZoneManager::processDir(const char *d) {
@@ -304,7 +349,7 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname) {
       dummy = root;
    }
 
-   std::auto_ptr<QoreTZInfo> tzi(new QoreTZInfo(dummy, fname, &xsink));
+   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(dummy, fname, &xsink));
    if (!*(tzi.get())) {
       //xsink.handleExceptions();
       xsink.clear();

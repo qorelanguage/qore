@@ -63,9 +63,8 @@ class QoreNodeEvalOptionalRefHolder {
 
       //! constructor with a value that will call the class' eval(needs_deref) method
       DLLLOCAL QoreNodeEvalOptionalRefHolder(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink) {
-	 if (exp) {
+	 if (exp)
 	    val = exp->eval(needs_deref, xsink);
-         }
 	 else {
 	    val = 0;
 	    needs_deref = false;

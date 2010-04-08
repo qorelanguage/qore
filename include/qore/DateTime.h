@@ -100,7 +100,7 @@ public:
    //! destroys the object and frees all memory
    DLLEXPORT ~DateTime();
 
-   //! sets a "struct tm" from the current date/time value
+   //! sets a "struct tm" from the current date/time value for the time zone for the object
    DLLEXPORT void getTM(struct tm *tms) const;
 
    //! sets the absolute date value based on the number of seconds from January 1, 1970
@@ -271,7 +271,16 @@ public:
       @return the difference as the number of milliseconds between the date/time value and the local time at the moment of the call
    */
    DLLEXPORT int64 getRelativeMilliseconds() const;
-      
+
+   //! returns true if the object has a value, false if not (zero value = 1970-01-01Z for absolute times, or all relative components = 0)
+   DLLEXPORT bool hasValue() const;
+
+   //! returns the negative time from the current time
+   DLLEXPORT DateTime *unaryMinus() const;
+
+   //! converts the current value to the negative of itself
+   DLLEXPORT void unaryMinusInPlace();
+
    // static methods
    //! returns true if the year passed is a leap year according to a proleptic gregorian calendar
    DLLEXPORT static bool isLeapYear(int year);

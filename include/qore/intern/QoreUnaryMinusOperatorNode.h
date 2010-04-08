@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
- QoreCastOperatorNode.h
+ QoreUnaryMinusOperatorNode.h
  
  Qore Programming Language
  
@@ -21,41 +21,34 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QORECASTOPERATORNODE_H
+#ifndef _QORE_QOREUNARYMINUSOPERATORNODE_H
 
-#define _QORE_QORECASTOPERATORNODE_H
+#define _QORE_QOREUNARYMINUSOPERATORNODE_H
 
-class QoreCastOperatorNode : public QoreSingleExpressionOperatorNode {
+class QoreUnaryMinusOperatorNode : public QoreSingleExpressionOperatorNode {
 protected:
-   DLLLOCAL static QoreString cast_str;
-   NamedScope *path;
-   QoreClass *qc;
+   DLLLOCAL static QoreString unaryminus_str;
 
-   DLLLOCAL int evalIntern(const AbstractQoreNode *rv, ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL QoreCastOperatorNode(char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp), path(new NamedScope(str)), qc(0) {
+   DLLLOCAL QoreUnaryMinusOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp) {
    }
-   DLLLOCAL ~QoreCastOperatorNode() {
-      delete path;
-   }
-
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
-
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
-      return cast_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
+      return unaryminus_str.getBuffer();
    }
 
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
+   }
+
+   DLLLOCAL static AbstractQoreNode *makeNode(AbstractQoreNode *exp);
 };
 
 #endif

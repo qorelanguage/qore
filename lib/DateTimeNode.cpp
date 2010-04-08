@@ -98,7 +98,7 @@ double DateTimeNode::getAsFloatImpl() const {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
 QoreString *DateTimeNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   class QoreString *str = new QoreString();
+   QoreString *str = new QoreString;
    getAsString(*str, foff, xsink);
    return str;
 }
@@ -165,7 +165,13 @@ DateTimeNode *DateTimeNode::subtractBy(const DateTime *dt) const {
 // static method
 DateTimeNode *DateTimeNode::getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink) {
    SimpleRefHolder<DateTimeNode> rv(new DateTimeNode());
-   if (qore_date_private::getDateFromISOWeek(*(*rv), year, week, day, xsink))
+   if (qore_date_private::getDateFromISOWeek(*rv->priv, year, week, day, xsink))
       return 0;
    return rv.release();
+}
+
+DateTimeNode *DateTimeNode::unaryMinus() const {
+   DateTimeNode *rv = new DateTimeNode(*this);
+   rv->priv->unaryMinus();
+   return rv;
 }

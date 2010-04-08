@@ -74,5 +74,6 @@ public:
 #include <qore/intern/QoreSpliceOperatorNode.h>
 #include <qore/intern/QoreExtractOperatorNode.h>
 #include <qore/intern/QoreCastOperatorNode.h>
+#include <qore/intern/QoreUnaryMinusOperatorNode.h>
 
 #endif

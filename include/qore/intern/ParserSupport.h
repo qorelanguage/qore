@@ -30,23 +30,21 @@
 #define HE_TAG_CONST        1
 #define HE_TAG_SCOPED_CONST 2
 
-class QoreParserLocation
-{
-   private:
-      bool explicit_first;
+class QoreParserLocation {
+private:
+   bool explicit_first;
 
-   public:
-      int first_line, last_line;
+public:
+   int first_line, last_line;
 
-      // method defined in scanner.ll
-      DLLLOCAL QoreParserLocation();
-      // method defined in scanner.ll
-      DLLLOCAL void updatePosition(int f);
-      DLLLOCAL void setExplicitFirst(int f)
-      {
-	 first_line = f;
-	 explicit_first = true;
-      }
+   // method defined in scanner.ll
+   DLLLOCAL QoreParserLocation();
+   // method defined in scanner.ll
+   DLLLOCAL void updatePosition(int f);
+   DLLLOCAL void setExplicitFirst(int f) {
+      first_line = f;
+      explicit_first = true;
+   }
 };
 
 #define YYLTYPE struct QoreParserLocation

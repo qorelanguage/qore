@@ -58,32 +58,77 @@ struct QoreDSTTransition {
    struct QoreTransitionInfo *trans;
 };
 
-class AbstractQoreTZInfo {
-public:
-   virtual DLLLOCAL ~AbstractQoreTZInfo() {
-   }
-
-   // returns general GMT offset for the time zone's standard time in minutes east
-   DLLLOCAL virtual int getGMTOffset() const = 0;
-
-   // returns the GMT offset for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL virtual int getGMTOffset(int64 epoch_offset) = 0;
-
-   // returns the GMT offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL virtual int getGMTOffset(int64 epoch_offset, std::string &zone_name) = 0;
-
-   // returns true if the zone has daylight savings time ever
-   DLLLOCAL virtual bool hasDST() const = 0;
-};
-
-class QoreTZInfo : public AbstractQoreTZInfo {
+class AbstractQoreZoneInfo {
 protected:
+   // region or time zone locale name (i.e. "Europe/Prague" or "-06:00" for UTC - 06:00)
    std::string name;
    // GMT offset in seconds east; -1 = unknown
    int gmtoff;
-
-   bool valid;
+   // true if the zone ever has daylight savings time, false if not
    bool has_dst;
+
+   // returns the GMT offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+   DLLLOCAL virtual int getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const = 0;
+
+public:
+   DLLLOCAL AbstractQoreZoneInfo(const std::string &n_name) : name(n_name), gmtoff(-1), has_dst(false) {
+   }
+
+   DLLLOCAL AbstractQoreZoneInfo() : gmtoff(-1), has_dst(false) {
+   }
+
+   virtual DLLLOCAL ~AbstractQoreZoneInfo() {
+   }
+
+   // returns general GMT offset for the time zone's standard time in seconds east
+   DLLLOCAL int getGMTOffset() const {
+      return !this || gmtoff == -1 ? 0 : gmtoff;
+   }
+
+   // returns the GMT offset for the given time given as seconds from the epoch (1970-01-01Z)
+   DLLLOCAL int getGMTOffset(int64 epoch_offset) const {
+      if (!this || !has_dst)
+         return 0;
+
+      const char *temp;
+      bool is_dst;
+      return getGMTOffset(epoch_offset, is_dst, temp);
+   }
+
+   // returns the GMT offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+   DLLLOCAL int getGMTOffset(int64 epoch_offset, bool &is_dst) const {
+      if (!this || !has_dst) {
+         is_dst = false;
+         return 0;
+      }
+
+      const char *temp;
+      return getGMTOffset(epoch_offset, is_dst, temp);
+   }
+
+   // returns the GMT offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+   DLLLOCAL int getGMTOffset(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
+      if (!this || !has_dst) {
+         is_dst = false;
+         zone_name = "UTC";
+         return 0;
+      }
+
+      return getGMTOffsetImpl(epoch_offset, is_dst, zone_name);
+   }
+
+   // returns true if the zone has daylight savings time ever
+   DLLLOCAL bool hasDST() const {
+      return this ? has_dst : false;
+   }
+};
+
+class QoreZoneInfo : public AbstractQoreZoneInfo {
+protected:
+   // first positive transition entry (after the epoch)
+   int first_pos;
+   bool valid;
+   const char *std_abbr;  // standard time abbreviation
 
    // QoreDSTTransition times
    typedef std::vector<QoreDSTTransition> dst_transition_vec_t;
@@ -96,32 +141,13 @@ protected:
    typedef std::vector<QoreLeapInfo> leap_vec_t;
    leap_vec_t leapinfo;
 
-public:
-   DLLLOCAL QoreTZInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink);
-
-   DLLLOCAL virtual ~QoreTZInfo() {
-   }
-
-   // returns GMT offset in seconds east
-   DLLLOCAL virtual int getGMTOffset() const {
-      return gmtoff == -1 ? 0 : gmtoff;
-   }
-
-   // returns the GMT offset for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL virtual int getGMTOffset(int64 epoch_offset) {
-      assert(false);
-      return 0;
-   }
-
    // returns the GMT offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL virtual int getGMTOffset(int64 epoch_offset, std::string &zone_name) {
-      assert(false);
-      return 0;
-   }
+   DLLLOCAL virtual int getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const;
 
-   // returns true if the zone has daylight savings time ever
-   DLLLOCAL virtual bool hasDST() const {
-      return has_dst;
+public:
+   DLLLOCAL QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink);
+
+   DLLLOCAL virtual ~QoreZoneInfo() {
    }
 
    DLLLOCAL operator bool() const {
@@ -135,8 +161,8 @@ public:
 
 class QoreTimeZoneManager {
 protected:
-   // time zone info map (ex: "Europe/Prague" -> QoreTZInfo*)
-   typedef std::map<std::string, QoreTZInfo *> tzmap_t;
+   // time zone info map (ex: "Europe/Prague" -> QoreZoneInfo*)
+   typedef std::map<std::string, QoreZoneInfo *> tzmap_t;
 
    unsigned tzsize;
    //unsigned tznearestsize;
@@ -152,7 +178,7 @@ protected:
    //tz_nearest_map_t tznearest;
 
    // pointer to our regional time information
-   QoreTZInfo *localtz;
+   QoreZoneInfo *localtz;
    std::string localtzname;
 
    DLLLOCAL int process(const char *fn);
@@ -174,7 +200,7 @@ public:
 	 delete i->second;
    }
 
-   DLLLOCAL QoreTZInfo *getZone(const char *name) {
+   DLLLOCAL QoreZoneInfo *getZone(const char *name) {
       tzmap_t::iterator i = tzmap.find(name);
       return i == tzmap.end() ? 0 : i->second;
    }
@@ -183,11 +209,11 @@ public:
 
    DLLLOCAL void init();
 
-   DLLLOCAL const AbstractQoreTZInfo *getLocalTZInfo() const {
+   DLLLOCAL const AbstractQoreZoneInfo *getLocalZoneInfo() const {
       return localtz;
    }
 
-   DLLLOCAL const char *getLocalTZRegion() const {
+   DLLLOCAL const char *getLocalRegion() const {
       return localtzname.empty() ? 0 : localtzname.c_str();
    }
 };
