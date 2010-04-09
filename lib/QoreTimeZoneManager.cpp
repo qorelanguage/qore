@@ -286,7 +286,7 @@ int QoreZoneInfo::getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
       if (i < 0)
          i = 0;
       while ((i + 1) < QoreDSTTransitions.size()) {
-         if (QoreDSTTransitions[i].time < epoch_offset && QoreDSTTransitions[i + 1].time > epoch_offset) {
+         if (QoreDSTTransitions[i].time <= epoch_offset && QoreDSTTransitions[i + 1].time > epoch_offset) {
             zone_name = QoreDSTTransitions[i].trans->abbr.c_str();
             is_dst = QoreDSTTransitions[i].trans->isdst;
             return QoreDSTTransitions[i].trans->gmtoff;
@@ -301,7 +301,7 @@ int QoreZoneInfo::getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
 
    i = first_pos + 1;
    while (i > 0) {
-      if (QoreDSTTransitions[i].time > epoch_offset && QoreDSTTransitions[i - 1].time < epoch_offset) {
+      if (QoreDSTTransitions[i].time > epoch_offset && QoreDSTTransitions[i - 1].time <= epoch_offset) {
          zone_name = QoreDSTTransitions[i].trans->abbr.c_str();
          is_dst = QoreDSTTransitions[i].trans->isdst;
          return QoreDSTTransitions[i].trans->gmtoff;
