@@ -111,19 +111,46 @@ struct qore_date_info {
    DLLLOCAL static const int negative_months[];
 
    DLLLOCAL static bool isLeapYear(int year);
+
+   // FIXME: implement a mathematical solution instead of a slow iterative solution!
+   // returns the year and the positive number of seconds from the beginning
+   // of the year (even for dates before 1970)
+   DLLLOCAL static void get_epoch_year(int64 &epoch, int &year) {
+      year = 1970;
+      if (epoch >= 0) {
+         while (true) {
+            int yl = isLeapYear(year) ? 31622400 : 31536000;
+            if (epoch < yl)
+               return;
+            epoch -= yl;
+            ++year;
+         }
+      }
+
+      while (true) {
+         int yl = isLeapYear(--year) ? 31622400 : 31536000;
+         epoch += yl;
+         if (epoch >= 0)
+            return;
+      }
+   }
+
+   // number of leap days from 1970-01-01Z to a certain month and year
    DLLLOCAL static int leap_days_from_epoch(int year, int month) {
       // 1968 was the 477th leap year from year 0 assuming a proleptic gregorian calendar
-      int d = year/4 - year/100 + year/400 - 477;
-
+      int d;
       if (year >= 1970) {
+         d = year/4 - year/100 + year/400 - 477;
          if (month < 3 && isLeapYear(year))
             --d;
       }
       else {
-         // first leap year before 1970 is 1968, adjust for negative leap days
-         if (year < 1969 && !(month > 2 && isLeapYear(year))) {
-            --d;
-         }
+         --year;
+         d = year/4 - year/100 + year/400 - 477;
+         // first leap year before 1970 is 1968
+         // adjust for negative leap days
+         if (month > 2 && isLeapYear(year + 1))
+            ++d;
       }
 
       return d;
@@ -216,8 +243,6 @@ DLLLOCAL extern const char *STATIC_UTC;
 
 struct qore_simple_tm {
 protected:
-   DLLLOCAL void setDatePositive(int64 ty, int64 seconds);
-   DLLLOCAL void setDateNegative(int64 ty, int64 seconds);
 
 public:
    int year;    // year
@@ -252,32 +277,34 @@ public:
       normalize_units3<int64>(seconds, my_us, 1000000);
       us = my_us;
 
-      year = 0;
+      //printd(5, "qore_simple_tm::set(seconds=%lld, my_us=%d)\n", seconds, my_us);
+      qore_date_info::get_epoch_year(seconds, year);
 
-      // there are 97 leap days every 400 years (12622780800 seconds)
-      int64 ty = seconds/12622780800ll;
-      if (ty) {
-         year += ty * 400;
-         seconds -= ty * 12622780800ll;
-      }
-      // there are 24 leap days every 100 years (3155673600 seconds)
-      ty = seconds/3155673600ll;
-      if (ty) {
-         year += ty * 100;
-         seconds -= ty * 3155673600ll;
-      }
-      // then there is 1 leap day every 4 years (126230400 seconds)
-      ty = seconds/126230400;
-      if (ty) {
-         year += ty * 4;
-         seconds -= ty * 126230400;
+      //printd(5, "qore_simple_tm::set() seconds=%lld year=%d (day=%d, new secs=%lld)\n", seconds, year, seconds / 86400, seconds % 86400);
+
+      day = seconds / 86400;
+      seconds %= 86400;
+
+      bool ly = qore_date_info::isLeapYear(year);
+
+      for (month = 1; month < 12; ++month) {
+         int ml = qore_date_info::month_lengths[month];
+         if (ly && month == 2)
+            ml = 29;
+
+         if (ml > day)
+            break;
+
+         day -= ml;
       }
 
-      //printd(0, "seconds: %lld year: %d\n", seconds, year);
-      if (seconds >= 0)
-         setDatePositive(ty, seconds);
-      else
-         setDateNegative(ty, seconds);
+      ++day;
+
+      second = seconds;
+      hour = second / 3600;
+      second %= 3600;
+      minute = second / 60;
+      second %= 60;
    }
 
    DLLLOCAL bool hasValue() const {
