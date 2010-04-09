@@ -213,7 +213,8 @@ void concatOffset(int gmtoffset, QoreString &str) {
    int r = gmtoffset - h * 3600;
    // minutes
    int m = r / 60;
-   str.sprintf("%02d:%02d", h, m);
+   // we have already output the hour sign above
+   str.sprintf("%02d:%02d", h < 0 ? -h : h, m);
    // see if there are any seconds
    int s = gmtoffset - h * 3600 - m * 60;
    if (s)
