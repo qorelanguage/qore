@@ -1,5 +1,12 @@
+2010.04.12: David Nichols
+	 * fixed a memory bug in the context statement when an exception
+	   occurs in the context expression (backported from trunk)
+	 * fixed a memory bug in the binary += operation; if the operand for
+	   BinaryNode::append() is equal to the current buffer, a crash would
+	   result (backported from trunk)
+
 2010.04.07: Petr Vanek
-     * fixed limited XML node size. Backport from trunk.
+	 * fixed limited XML node size. Backport from trunk.
 
 2010.04.06: David Nichols
 	 * fixed parsing negative numbers in json strings (backported from
