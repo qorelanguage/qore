@@ -435,3 +435,44 @@ void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
    }
 }
 
+// normalize the given date to the last day of the month
+void normalize_dm(int &year, int &month, int &day) {
+   // normalize months and years
+   if (month > 12 || month < 1) {
+      --month;
+      normalize_units2<int, int>(year, month, 12);
+      ++month;
+   }
+
+   // fix resulting day of month; check for leap years
+   if (month == 2 && day > 28)
+      day = qore_date_info::isLeapYear(year) ? 29 : 28;
+   else // otherwise set day to last day of month if necessary
+      if (day > qore_date_info::month_lengths[month])
+         day = qore_date_info::month_lengths[month];
+}
+
+// normalize to the correct day, month, and year
+void normalize_day(int &year, int &month, int &day) {
+   if (day > 0) {
+      int i;
+      while (day > (i = qore_date_info::getLastDayOfMonth(month, year))) {
+         day -= i;
+         ++month;
+         if (month == 13) {
+            month = 1;
+            ++year;
+         }
+      }
+      return;
+   }
+
+   while (day < 1) {
+      --month;
+      if (!month) {
+         month = 12;
+         --year;
+      }
+      day += qore_date_info::getLastDayOfMonth(month, year);
+   }
+}
