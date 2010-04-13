@@ -28,33 +28,45 @@
 
 #include <math.h>
 
-/*
-class abstract_qore_time_private {
-public:
-   DLLLOCAL virtual ~abstract_qore_time_private() {}
-   DLLLOCAL virtual bool isRelative() const = 0;
-   DLLLOCAL virtual short getYear() const = 0;
-   DLLLOCAL virtual int getMonth() const = 0;
-   DLLLOCAL virtual int64 getDay() const = 0;
-   DLLLOCAL virtual int64 getHour() const = 0;
-   DLLLOCAL virtual int64 getMinute() const = 0;
-   DLLLOCAL virtual int64 getSecond() const = 0;
-   DLLLOCAL virtual int64 getMillisecond() const = 0;
-   DLLLOCAL virtual int64 getMicrosecond() const = 0;
-   DLLLOCAL virtual void setTime(int h, int m, int s, int us) = 0;
+// note: this implementation does not yet take into account leap seconds,
+//       even if this information is available in the zoneinfo data
 
-   DLLLOCAL void format(QoreString &str, const char *fmt) const = 0;
+#define SECS_PER_MINUTE          60
+#define SECS_PER_HOUR            (SECS_PER_MINUTE * 60)
+// number of seconds in a normal day (no DST)
+#define SECS_PER_DAY             (SECS_PER_HOUR * 24)
+// number of seconds in a normal year (no leap day)
+#define SECS_PER_YEAR            (SECS_PER_DAY * 365ll)
+// number of seconds in a leap year
+#define SECS_PER_LEAP_YEAR       (SECS_PER_YEAR + SECS_PER_DAY)
 
-   // only for absolute date/time values
-   DLLLOCAL virtual int getDayNumber() const {
-      return 0;
-   }
-   // only for absolute date/time values
-   DLLLOCAL int getDayOfWeek() const {
-      return 0;
-   }
-};
-*/
+#define MICROSECS_PER_SEC        1000000ll
+#define MICROSECS_PER_MINUTE     (MICROSECS_PER_SEC * 60)
+#define MICROSECS_PER_HOUR       (MICROSECS_PER_MINUTE * 60)
+// number of microseconds in a day (no DST)
+#define MICROSECS_PER_DAY        (MICROSECS_PER_HOUR * 24)
+// number of microseconds in an average month (30 days)
+#define MICROSECS_PER_AVG_MONTH  (MICROSECS_PER_HOUR * 24)
+// number of microseconds in a year
+#define MICROSECS_PER_YEAR       (MICROSECS_PER_DAY * 365)
+
+// number of seconds from 1970-01-01 to 2000-01-01, 30 years with 7 leap days: 1972, 1976, 1980, 1984, 1988, 1992, 1996
+#define SECS_TO_2K               (SECS_PER_YEAR * 30 + SECS_PER_DAY * 7ll)
+
+// number of seconds from 1970-01-01 to 2000-03-01, with 8 leap days: 1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000
+#define SECS_TO_2KLD             (SECS_PER_YEAR * 30 + SECS_PER_DAY * (7ll + 60ll))
+
+// there are 97 leap days every 400 years
+#define SECS_IN_400_YEARS        (SECS_PER_YEAR * 400 + SECS_PER_DAY * 97ll)
+// there are 24 leap days every 100 years
+#define SECS_IN_100_YEARS        (SECS_PER_YEAR * 100 + SECS_PER_DAY * 24ll)
+// there is 1 leap day every 4 years
+#define SECS_IN_4_YEARS          (SECS_PER_YEAR * 4 + SECS_PER_DAY)
+
+// second offset in year for start of leap day (either 03-01 or 02-29)
+#define LEAPDAY_OFFSET           (SECS_PER_DAY * 59)
+
+#define SECS_AFTER_LD            (SECS_PER_DAY * 306)
 
 template <typename T1, typename T2>
 DLLLOCAL void normalize_units(T1 &bigger, T2 &smaller, int ratio) {
@@ -64,7 +76,7 @@ DLLLOCAL void normalize_units(T1 &bigger, T2 &smaller, int ratio) {
       smaller -= units * ratio;
    }
 
-   // perform further sign normalization
+   // perform further sign normalization; ensure signs are the same
    if (bigger > 0) {
       if (smaller < 0) {
          smaller += ratio;
@@ -112,27 +124,94 @@ struct qore_date_info {
 
    DLLLOCAL static bool isLeapYear(int year);
 
-   // FIXME: implement a mathematical solution instead of a slow iterative solution!
    // returns the year and the positive number of seconds from the beginning
    // of the year (even for dates before 1970)
-   DLLLOCAL static void get_epoch_year(int64 &epoch, int &year) {
-      year = 1970;
-      if (epoch >= 0) {
-         while (true) {
-            int yl = isLeapYear(year) ? 31622400 : 31536000;
-            if (epoch < yl)
-               return;
-            epoch -= yl;
-            ++year;
-         }
+   // we calculate the based on an offset from a known date, 2000-03-01,
+   // because the leap day calculations are regular from that point, as
+   // this date marks the start of a 400-year cycle, being right after the
+   // last leap day of the previous 400-year cycle
+   DLLLOCAL static void get_epoch_year(int64 &epoch, int &year, bool &ly) {
+      // get second offset from 2000-03-01
+      epoch -= SECS_TO_2KLD;
+
+      // how many 400-year periods are we off of 2000-03-01
+      int64 mult = epoch / SECS_IN_400_YEARS;
+      // remaining seconds
+      epoch %= SECS_IN_400_YEARS;
+
+      // if year is an even multiple of 400
+      if (!epoch) {
+         epoch = LEAPDAY_OFFSET + SECS_PER_DAY;
+         year = mult * 400 + 2000;
+         ly = true;
+         return;
       }
 
-      while (true) {
-         int yl = isLeapYear(--year) ? 31622400 : 31536000;
-         epoch += yl;
-         if (epoch >= 0)
-            return;
+      // make sure second offset is positive
+      if (epoch < 0) {
+         --mult; 
+         epoch += SECS_IN_400_YEARS;
       }
+
+      // year offset
+      int yo = 0;
+
+      // get the number of 100-year remaining periods (24 leap days each)
+      int64 d = epoch / SECS_IN_100_YEARS;
+      if (d) {
+         // there can be max 3 100-year periods
+         // if the time is in the extra leap day for the 400=year cycle, 
+         // then 4 could be returned
+         if (d == 4)
+            d = 3;
+         epoch -= d * SECS_IN_100_YEARS;
+         yo = 100 * d;
+      }
+
+      //printd(5, "qore_date_info::get_epoch_year() after 100: epoch: %d (%d from %d) year base: %d\n", epoch, d, SECS_IN_100_YEARS, mult * 400 + 2000 + yo);
+
+      // get the number of 4-year periods remaining (1 leap day each)
+      d = epoch / SECS_IN_4_YEARS;
+      if (d) {
+         epoch %= SECS_IN_4_YEARS;
+         yo += d * 4;
+      }
+
+      // target date/time is in a leap year if the second offset from the 4-year period 
+      // is less than the number of seconds after a leap day
+      // or greater than the number of seconds in 4 regular years
+      ly = epoch < SECS_AFTER_LD || epoch >= (SECS_PER_YEAR * 4);
+
+      //printd(5, "qore_date_info::get_epoch_year() after 4: epoch: %d (%d from %d) year base: %d (ily=%d)\n", epoch, d, SECS_IN_4_YEARS, mult * 400 + 2000 + yo, ly);
+
+      // get the number of 1-year periods
+      d = epoch / SECS_PER_YEAR;
+      if (d) {
+         // maximum of 3 years
+         if (d == 4)
+            d = 3;
+         epoch -= d * SECS_PER_YEAR;
+         yo += d;
+      }
+
+      year = mult * 400 + 2000 + yo;
+
+      //printd(5, "qore_date_info::get_epoch_year() after 1: epoch: %d (%d from %d) year base: %d\n", epoch, d, SECS_PER_YEAR, year);
+
+      // check if we are in the current year or the next and align with year start
+      // r is currently the offset from YEAR-03-01
+      if (epoch >= SECS_AFTER_LD) {
+         ++year;
+         epoch -= SECS_AFTER_LD;
+      }
+      else {
+         // move offset start of current year
+         epoch += LEAPDAY_OFFSET;
+         if (ly)
+            epoch += SECS_PER_DAY;
+      }
+
+      //printd(5, "qore_date_info::get_epoch_year() after adj: epoch: %d year: %d\n", epoch, year);
    }
 
    // number of leap days from 1970-01-01Z to a certain month and year
@@ -174,7 +253,7 @@ struct qore_date_info {
       assert(month > 0 && month < 13);
 
       // calculate seconds
-      int64 epoch = (year - 1970) * 31536000ll + (positive_months[month - 1] + day - 1 + leap_days_from_epoch(year, month)) * 86400;
+      int64 epoch = (year - 1970) * SECS_PER_YEAR + (positive_months[month - 1] + day - 1 + leap_days_from_epoch(year, month)) * SECS_PER_DAY;
 
       //printd(5, "qore_date_info::getEpochSeconds(year=%d, month=%d, day=%d) epoch=%lld\n", year, month, day, epoch);
       return epoch;
@@ -185,9 +264,9 @@ struct qore_date_info {
       int64 secs = getEpochSeconds(year, month, day);
 
       return secs
-         + hour * 3600
-         + minute * 60
-         + second;
+         + (int64)hour * 3600
+         + (int64)minute * 60
+         + (int64)second;
    }
 
    DLLLOCAL static int getDayNumber(int year, int month, int day) {
@@ -241,15 +320,16 @@ public:
       normalize_units3<int64>(seconds, my_us, 1000000);
       us = my_us;
 
+      // leap year flag
+      bool ly;
+
       //printd(5, "qore_simple_tm::set(seconds=%lld, my_us=%d)\n", seconds, my_us);
-      qore_date_info::get_epoch_year(seconds, year);
+      qore_date_info::get_epoch_year(seconds, year, ly);
 
       //printd(5, "qore_simple_tm::set() seconds=%lld year=%d (day=%d, new secs=%lld)\n", seconds, year, seconds / 86400, seconds % 86400);
 
-      day = seconds / 86400;
-      seconds %= 86400;
-
-      bool ly = qore_date_info::isLeapYear(year);
+      day = seconds / SECS_PER_DAY;
+      seconds %= SECS_PER_DAY;
 
       for (month = 1; month < 12; ++month) {
          int ml = qore_date_info::month_lengths[month];
@@ -265,10 +345,10 @@ public:
       ++day;
 
       second = seconds;
-      hour = second / 3600;
-      second %= 3600;
-      minute = second / 60;
-      second %= 60;
+      hour = second / SECS_PER_HOUR;
+      second %= SECS_PER_HOUR;
+      minute = second / SECS_PER_MINUTE;
+      second %= SECS_PER_MINUTE;
    }
 
    DLLLOCAL bool hasValue() const {
@@ -748,9 +828,12 @@ public:
    }
 
    DLLLOCAL int64 getRelativeMicroseconds() const {
-      return (int64)us + (int64)second * 1000000ll + (int64)minute * 60000000ll + (int64)hour * 3600000000ll + (int64)day * 86400000000ll 
-         + (month ? (int64)month * 2592000000000ll : 0ll)
-         + (year ? (int64)year * 31536000000000ll : 0ll);
+      return (int64)us + (int64)second * MICROSECS_PER_SEC
+         + (int64)minute * MICROSECS_PER_MINUTE 
+         + (int64)hour * MICROSECS_PER_HOUR 
+         + (int64)day * MICROSECS_PER_DAY 
+         + (month ? (int64)month * MICROSECS_PER_AVG_MONTH : 0ll)
+         + (year ? (int64)year * MICROSECS_PER_YEAR : 0ll);
    }
 
    DLLLOCAL qore_relative_time &operator+=(const qore_relative_time &dt);

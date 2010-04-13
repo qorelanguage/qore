@@ -102,21 +102,21 @@ int64 qore_absolute_time::getRelativeMicroseconds() const {
 }
 
 void qore_absolute_time::getAsString(QoreString &str) const {
-      qore_time_info i;
-      get(i);
+   qore_time_info i;
+   get(i);
 
-      str.sprintf("%04d-%02d-%02d %02d:%02d:%02d", i.year, i.month, i.day, i.hour, i.minute, i.second);
-      if (us) {
-         if (us / 1000 * 1000 == us)
-            str.sprintf(".%03d", us / 1000);
-         else
-            str.sprintf(".%06d", us);
-      }
-      const char *wday = days[qore_date_info::getDayOfWeek(i.year, i.month, i.day)].abbr;
-      str.sprintf(" %s ", wday);
-      concatOffset(i.gmtoffset, str);
-      str.sprintf(" (%s)", i.zname);
+   str.sprintf("%04d-%02d-%02d %02d:%02d:%02d", i.year, i.month, i.day, i.hour, i.minute, i.second);
+   if (us) {
+      if (us / 1000 * 1000 == us)
+	 str.sprintf(".%03d", us / 1000);
+      else
+	 str.sprintf(".%06d", us);
    }
+   const char *wday = days[qore_date_info::getDayOfWeek(i.year, i.month, i.day)].abbr;
+   str.sprintf(" %s ", wday);
+   concatOffset(i.gmtoffset, str);
+   str.sprintf(" (%s)", i.zname);
+}
 
 qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt) {
    int usecs;
@@ -157,7 +157,7 @@ qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt)
    usecs += dt.us;
 
    // add time component
-   epoch += (3600 * dt.hour) + (60 * dt.minute) + dt.second;
+   epoch += (SECS_PER_HOUR * dt.hour) + (SECS_PER_MINUTE * dt.minute) + dt.second;
 
    // normalize epoch and microseconds
    normalize_units2<int64, int>(epoch, usecs, 1000000);
@@ -206,17 +206,17 @@ void concatOffset(int gmtoffset, QoreString &str) {
       str.concat('Z');
       return;
    }
-
+   
    str.concat(gmtoffset < 0 ? '-' : '+');
-   int h = gmtoffset / 3600;
+   int h = gmtoffset / SECS_PER_HOUR;
    // the remaining seconds after hours
-   int r = gmtoffset - h * 3600;
+   int r = gmtoffset % SECS_PER_HOUR;
    // minutes
-   int m = r / 60;
+   int m = r / SECS_PER_MINUTE;
    // we have already output the hour sign above
    str.sprintf("%02d:%02d", h < 0 ? -h : h, m);
    // see if there are any seconds
-   int s = gmtoffset - h * 3600 - m * 60;
+   int s = gmtoffset - h * SECS_PER_HOUR - m * SECS_PER_MINUTE;
    if (s)
       str.sprintf(":%02d", s);
 }
