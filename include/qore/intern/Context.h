@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) David Nichols 2004
+  Copyright (C) David Nichols 2004 - 2010
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -35,41 +35,41 @@
 #define CM_SUMMARIZE_BY         4
 
 class Context {
-      DLLLOCAL void Sort(class AbstractQoreNode *sort, int sort_type = CM_SORT_ASCENDING);
+   DLLLOCAL void Sort(AbstractQoreNode *sort, int sort_type = CM_SORT_ASCENDING);
 
-      class ExceptionSink *sort_xsink;
+   ExceptionSink *sort_xsink;
 
-   protected:
-      DLLLOCAL ~Context();
+protected:
+   DLLLOCAL ~Context();
 
-   public:
-      char *name;
-      class QoreHashNode *value;
-      // master row list needed for summary contexts
-      int master_max_pos;
-      int *master_row_list;
-      int max_pos;
-      int pos;
-      int *row_list;
-      int group_pos;
-      int max_group_pos;
-      struct node_row_list_s *group_values;
-      class Context *next;
-      int sub;
-      
-      DLLLOCAL Context(char *nme, class ExceptionSink *xsinkx, class AbstractQoreNode *exp,
-		       class AbstractQoreNode *cond = NULL,
-		       int sort_type = -1, class AbstractQoreNode *sort = NULL,
-		       class AbstractQoreNode *summary = NULL, int ignore_key = 0);
-      DLLLOCAL class AbstractQoreNode *evalValue(char *field, class ExceptionSink *xsink);
-      DLLLOCAL class QoreHashNode *getRow(class ExceptionSink *xsink);
-      DLLLOCAL int next_summary();
-      DLLLOCAL int check_condition(class AbstractQoreNode *cond, class ExceptionSink *xsinkx);
-      DLLLOCAL void deref(class ExceptionSink *xsink);
+public:
+   char *name;
+   QoreHashNode *value;
+   // master row list needed for summary contexts
+   int master_max_pos;
+   int *master_row_list;
+   int max_pos;
+   int pos;
+   int *row_list;
+   int group_pos;
+   int max_group_pos;
+   struct node_row_list_s *group_values;
+   Context *next;
+   int sub;
+   
+   DLLLOCAL Context(char *nme, ExceptionSink *xsinkx, AbstractQoreNode *exp,
+		    AbstractQoreNode *cond = NULL,
+		    int sort_type = -1, AbstractQoreNode *sort = NULL,
+		    AbstractQoreNode *summary = NULL, int ignore_key = 0);
+   DLLLOCAL AbstractQoreNode *evalValue(char *field, ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *getRow(ExceptionSink *xsink);
+   DLLLOCAL int next_summary();
+   DLLLOCAL int check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx);
+   DLLLOCAL void deref(ExceptionSink *xsink);
 };
 
-DLLLOCAL class AbstractQoreNode *evalContextRef(char *key, class ExceptionSink *xsink);
-DLLLOCAL class AbstractQoreNode *evalContextRow(class ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *evalContextRef(char *key, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *evalContextRow(ExceptionSink *xsink);
 
 #endif
 

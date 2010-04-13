@@ -112,7 +112,6 @@ ContextStatement::~ContextStatement() {
 // FIXME: local vars should only be instantiated if there is a non-null context
 int ContextStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    int rc = 0;
-   class Context *context;
    AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
    int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
       
@@ -120,24 +119,22 @@ int ContextStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    LVListInstantiator lvi(lvars, xsink);
    
    // create the context
-   context = new Context(name, xsink, exp, where_exp, sort_type, sort, 0);
+   ReferenceHolder<Context> context(new Context(name, xsink, exp, where_exp, sort_type, sort, 0), xsink);
+   if (*xsink || !code)
+      return rc;
    
    // execute the statements
-   if (code)
-      for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++) {
-	 printd(4, "ContextStatement::exec() iteration %d/%d\n", context->pos, context->max_pos);
-	 if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()) {
-	    rc = 0;
-	    break;
-	 }
-	 else if (rc == RC_RETURN)
-	    break;
-	 else if (rc == RC_CONTINUE)
-	    rc = 0;
+   for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++) {
+      printd(4, "ContextStatement::exec() iteration %d/%d\n", context->pos, context->max_pos);
+      if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
+	 rc = 0;
+	 break;
       }
-
-   // destroy the context
-   context->deref(xsink);
+      else if (rc == RC_RETURN)
+	 break;
+      else if (rc == RC_CONTINUE)
+	 rc = 0;
+   }
 
    return rc;   
 }
