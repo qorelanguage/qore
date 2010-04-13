@@ -71,15 +71,6 @@ static int ampm(int hour) {
 }
 
 bool qore_date_info::isLeapYear(int year) {
-#if NO_PROLEPTIC_GREGORIAN_CALENDAR
-   // in 45 BC Julius Ceasar initiated the Julian calendar
-   if (year <= -45)
-      return false;
-   // in 1582 AD Pope Gregory initiated the Gregorian calendar
-   // although it was not universally adopted in Europe at that time
-   if (year < 1582)
-      return (year % 4) ? false : true;
-#endif
    if (!(year % 100)) {
       if (!(year % 400))
 	 return true;
@@ -202,6 +193,8 @@ qore_relative_time &qore_relative_time::operator-=(const qore_relative_time &dt)
 }
 
 void concatOffset(int gmtoffset, QoreString &str) {
+   //printd(0, "concatOffset(%d)", gmtoffset);
+
    if (!gmtoffset) {
       str.concat('Z');
       return;

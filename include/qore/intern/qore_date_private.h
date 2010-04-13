@@ -492,6 +492,8 @@ public:
    DLLLOCAL void set(const AbstractQoreZoneInfo *n_zone, int year, int month, int day, int hour, int minute, int second, int n_us) {
       zone = n_zone;
       epoch = qore_date_info::getEpochSeconds(year, month, day, hour, minute, second);
+      //printd(0, "zone=%p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d epoch=%lld\n", zone, zone->getRegionName(), year, month, day, hour, minute, second, n_us, epoch);
+
       setLocalIntern(n_us);
    }
 
@@ -539,8 +541,8 @@ public:
 
    DLLLOCAL void get(qore_time_info &info) const {
       const char *zname;
-      bool isdst = false;
-      int offset = zone ? zone->getGMTOffset(epoch, isdst, zname) : 0;
+      bool isdst;
+      int offset = zone->getGMTOffset(epoch, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
    }
 

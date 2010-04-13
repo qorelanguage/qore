@@ -37,6 +37,8 @@
 #define ZONEINFO_LOCATION "/usr/share/zoneinfo"
 #endif
 
+DLLLOCAL extern const char *STATIC_UTC;
+
 // transition info structure
 struct QoreTransitionInfo {
    int         gmtoff;  // GMT offset in seconds east (negative for west)
@@ -87,28 +89,28 @@ public:
 
    // returns the GMT offset for the given time given as seconds from the epoch (1970-01-01Z)
    DLLLOCAL int getGMTOffset(int64 epoch_offset) const {
-      if (!this || !has_dst)
+      if (!this)
          return 0;
 
       const char *temp;
       bool is_dst;
-      return getGMTOffset(epoch_offset, is_dst, temp);
+      return getGMTOffsetImpl(epoch_offset, is_dst, temp);
    }
 
    // returns the GMT offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
    DLLLOCAL int getGMTOffset(int64 epoch_offset, bool &is_dst) const {
-      if (!this || !has_dst) {
+      if (!this) {
          is_dst = false;
          return 0;
       }
 
       const char *temp;
-      return getGMTOffset(epoch_offset, is_dst, temp);
+      return getGMTOffsetImpl(epoch_offset, is_dst, temp);
    }
 
    // returns the GMT offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
    DLLLOCAL int getGMTOffset(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
-      if (!this || !has_dst) {
+      if (!this) {
          is_dst = false;
          zone_name = "UTC";
          return 0;
@@ -121,15 +123,22 @@ public:
    DLLLOCAL bool hasDST() const {
       return this ? has_dst : false;
    }
+
+   DLLLOCAL const char *getRegionName() const {
+      if (!this)
+         return STATIC_UTC;
+
+      return name.c_str();
+   }
 };
 
 // implements a simple offset from GMT
 class QoreOffsetZoneInfo : public AbstractQoreZoneInfo {
 protected:
    DLLLOCAL virtual int getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
-      // will never be called
-      assert(false);
-      return 0;
+      zone_name = name.c_str();
+      is_dst = false;
+      return gmtoff;
    }
 public:
    DLLLOCAL QoreOffsetZoneInfo(std::string &n_name, int seconds_east) : AbstractQoreZoneInfo(n_name, seconds_east) {

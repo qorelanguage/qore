@@ -27,53 +27,44 @@
 #include <time.h>
 #include <sys/time.h>
 
-// define qore_gettime() for various platforms to get time in nanoseconds
-#ifdef HAVE_CLOCK_GETTIME
-// define qore_gettime() for POSIX platforms
-typedef struct timespec qore_timespec_t;
-static inline void qore_gettime(qore_timespec_t *tp) {
-   clock_gettime(CLOCK_REALTIME, tp);
-}
-#else
-// use gettimeofday() to get microsecond resolution and multiply by 1000
-struct qore_timespec_t {
-      unsigned tv_sec;
-      unsigned tv_nsec;
-};
-static inline void qore_gettime(qore_timespec_t *tp) {
-   struct timeval tv;
-   gettimeofday(&tv, 0);
-   tp->tv_sec = tv.tv_sec;
-   tp->tv_nsec = tv.tv_usec * 1000;
-}
-#endif
-
-// returns the current date and time with a resolution to the second
-static AbstractQoreNode *f_now(const QoreListNode *params, ExceptionSink *xsink) {
-   time_t ct;
-
-   ct = time(0);
-   //printf("f_now() %d\n", ct);
-   struct tm tms;
-   return new DateTimeNode(q_localtime(&ct, &tms));
-}
-
 // returns the current date and time with a resolution to the millisecond
 static AbstractQoreNode *f_now_ms(const QoreListNode *params, ExceptionSink *xsink) {
-   struct timeval tv;
-   // FIXME: broken!
-   // linux returns 0s in the timezone structure
-   gettimeofday(&tv, 0);
-   
-   return new DateTimeNode(tv.tv_sec - timezone, tv.tv_usec / 1000);
+   int us;
+   int64 seconds = q_epoch_us(us);
+
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(currentTZ(), seconds, (us / 1000) * 1000);
+   return rv;
+}
+
+// returns the current date and time with a resolution to the microsecond
+static AbstractQoreNode *f_now_us(const QoreListNode *params, ExceptionSink *xsink) {
+   int us;
+   int64 seconds = q_epoch_us(us);
+
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(currentTZ(), seconds, us);
+   return rv;
 }
 
 // returns the current GMT date and time with a resolution to the millisecond
 static AbstractQoreNode *f_now_gmt_ms(const QoreListNode *params, ExceptionSink *xsink) {
-   struct timeval tv;
-   gettimeofday(&tv, 0);
+   int us;
+   int64 seconds = q_epoch_us(us);
 
-   return new DateTimeNode(tv.tv_sec, tv.tv_usec / 1000);
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(0, seconds, (us / 1000) * 1000);
+   return rv;
+}
+
+// returns the current date and time with a resolution to the microsecond
+static AbstractQoreNode *f_now_gmt_us(const QoreListNode *params, ExceptionSink *xsink) {
+   int us;
+   int64 seconds = q_epoch_us(us);
+
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(0, seconds, us);
+   return rv;
 }
 
 static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink *xsink) {
@@ -87,28 +78,29 @@ static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink
    return rv;
 }
 
+// returns the current date and time with a resolution to the second
 static AbstractQoreNode *f_localtime(const QoreListNode *params, ExceptionSink *xsink) {
-   time_t t = time(0);
-   struct tm tms;
-   return new DateTimeNode(q_localtime(&t, &tms));
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(currentTZ(), (int64)time(0), 0);
+   return rv;
 }
 
-static AbstractQoreNode *f_localtime_int(const QoreListNode *params, ExceptionSink *xsink) {
-   time_t t = HARD_QORE_INT(params, 0);
-   struct tm tms;
-   return new DateTimeNode(q_localtime(&t, &tms));
+static AbstractQoreNode *f_localtime_int_int(const QoreListNode *params, ExceptionSink *xsink) {
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(currentTZ(), HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
+   return rv;
 }
 
 static AbstractQoreNode *f_gmtime(const QoreListNode *params, ExceptionSink *xsink) {
-   time_t t = time(0);
-   struct tm tms;
-   return new DateTimeNode(q_gmtime(&t, &tms));
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(0, (int64)time(0), 0);
+   return rv;
 }
 
-static AbstractQoreNode *f_gmtime_int(const QoreListNode *params, ExceptionSink *xsink) {
-   time_t t = HARD_QORE_INT(params, 0);
-   struct tm tms;
-   return new DateTimeNode(q_gmtime(&t, &tms));
+static AbstractQoreNode *f_gmtime_int_int(const QoreListNode *params, ExceptionSink *xsink) {
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(0, HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
+   return rv;
 }
 
 static AbstractQoreNode *f_mktime(const QoreListNode *params, ExceptionSink *xsink) {
@@ -290,10 +282,10 @@ static AbstractQoreNode *f_getDateFromISOWeek(const QoreListNode *params, Except
  * 20051116 david_nichols
  */
 static AbstractQoreNode *f_clock_getmillis(const QoreListNode *params, ExceptionSink *xsink) {
-   struct timeval tv;
-   gettimeofday(&tv, 0);
+   int us;
+   int64 seconds = q_epoch_us(us);
 
-   return new QoreBigIntNode(((int64)tv.tv_sec*(int64)1000 + tv.tv_usec/1000));
+   return new QoreBigIntNode(seconds * 1000 + us / 1000);
 }
 
 /*
@@ -301,20 +293,20 @@ static AbstractQoreNode *f_clock_getmillis(const QoreListNode *params, Exception
  * returns the current system clock time value as nanoseconds since Jan 1, 1970
  */
 static AbstractQoreNode *f_clock_getnanos(const QoreListNode *params, ExceptionSink *xsink) {
-   qore_timespec_t tp;
-   qore_gettime(&tp);
+   int ns;
+   int64 seconds = q_epoch_ns(ns);
 
-   return new QoreBigIntNode(((int64)tp.tv_sec * (int64)1000000000 + tp.tv_nsec)); 
+   return new QoreBigIntNode(seconds * 1000000000ll + ns); 
 }
 
 /* qore: clock_getmicros()
  * returns the current system clock time value as microseconds since Jan 1, 1970
  */
 static AbstractQoreNode *f_clock_getmicros(const QoreListNode *params, ExceptionSink *xsink) {
-   struct timeval tv;
-   gettimeofday(&tv, 0);
+   int us;
+   int64 seconds = q_epoch_us(us);
 
-   return new QoreBigIntNode(((int64)tv.tv_sec * (int64)1000000 + tv.tv_usec));
+   return new QoreBigIntNode(seconds * 1000000ll + us);
 }
 
 static AbstractQoreNode *f_date_ms(const QoreListNode *params, ExceptionSink *xsink) {
@@ -324,19 +316,21 @@ static AbstractQoreNode *f_date_ms(const QoreListNode *params, ExceptionSink *xs
 }
 
 void init_time_functions() {
-   builtinFunctions.add2("now", f_now, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("now", f_localtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("now_ms", f_now_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
+   builtinFunctions.add2("now_us", f_now_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
    builtinFunctions.add2("now_gmt_ms", f_now_gmt_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
+   builtinFunctions.add2("now_gmt_us", f_now_gmt_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
 
    builtinFunctions.add2("format_date", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("format_date", f_format_date, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("localtime", f_localtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
-   builtinFunctions.add2("localtime", f_localtime_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("localtime", f_localtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    builtinFunctions.add2("gmtime", f_gmtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
-   builtinFunctions.add2("gmtime", f_gmtime_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   
+   builtinFunctions.add2("gmtime", f_gmtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+
    builtinFunctions.add2("mktime", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("mktime", f_mktime, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 

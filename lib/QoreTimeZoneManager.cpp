@@ -327,6 +327,8 @@ const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *
       }
    }
 
+   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs=%d\n", offset, secs);
+
    if (!secs)
       return 0;
 
@@ -342,6 +344,7 @@ const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *
    concatOffset(secs, tmp);
    QoreOffsetZoneInfo *ozi = new QoreOffsetZoneInfo(tmp.getBuffer(), secs);
    tzomap[secs] = ozi;
+   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs=%d returning %p\n", offset, secs, ozi);
    return ozi;
 }
 
