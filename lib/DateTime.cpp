@@ -115,9 +115,14 @@ void DateTime::format(QoreString &str, const char *fmt) const {
    return priv->format(str, fmt);
 }
 
-// set the date from the number of seconds since January 1, 1970 (UNIX epoch)
+// set the date from the number of seconds since January 1, 1970 (UNIX epoch) plus milliseconds
 void DateTime::setDate(int64 seconds, int ms) {
    priv->setDate(seconds, ms * 1000);
+}
+
+// set the date from the number of seconds since January 1, 1970 (UNIX epoch) plus microseconds
+void DateTime::setDate(const AbstractQoreZoneInfo *n_zone, int64 seconds, int us) {
+   priv->setDate(n_zone, seconds, us);
 }
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)

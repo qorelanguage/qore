@@ -310,11 +310,11 @@ static DateTimeNode *makeDateTime(char *str) {
 
    // get second
    int second = get_int_2(p);
-   ++p;
 
    int us = 0;
    // get milliseconds or microseconds if present
    if ((*p) == '.') {
+      ++p;
       us = get_int_3(p) * 1000;	 
       if (isdigit(*p))
 	 us += get_int_3(p);
