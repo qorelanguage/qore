@@ -74,7 +74,12 @@ const void *BinaryNode::getPtr() const {
 }
 
 void BinaryNode::append(const void *nptr, unsigned long size) {
+   bool self_copy = nptr == ptr;
    ptr = realloc(ptr, len + size);
+   if (self_copy) {
+      assert(size == len);
+      nptr = ptr;
+   }
    memcpy((char *)ptr + len, nptr, size);
    len += size;
 }
