@@ -255,11 +255,81 @@ static inline void do_time_str(char *str) {
    memmove(str+4, str+6, strlen(str+6) + 1);
 }
 
-static inline DateTimeNode *makeDateTime(char *str) {
-   // move string to middle to form date string
-   do_date_time_str(str);
-   //printf("new date: %s\n", str + 3);
-   return new DateTimeNode(str + 3);
+static inline int get_int_2(const char *&p) {
+   int rv = (*p - '0') * 10;
+   ++p;
+   rv += (*p - '0');
+   ++p;
+   return rv;
+}
+
+static inline int get_int_3(const char *&p) {
+   int rv = (*p - '0') * 100;
+   ++p;
+   rv += (*p - '0') * 10;
+   ++p;
+   rv += (*p - '0');
+   ++p;
+   return rv;
+}
+
+static inline int get_int_4(const char *&p) {
+   int rv = (*p - '0') * 1000;
+   ++p;
+   rv += (*p - '0') * 100;
+   ++p;
+   rv += (*p - '0') * 10;
+   ++p;
+   rv += (*p - '0');
+   ++p;
+   return rv;
+}
+
+static DateTimeNode *makeDateTime(char *str) {
+   const char *p = str;
+
+   // get year
+   int year = get_int_4(p);
+   ++p;
+
+   // get month
+   int month = get_int_2(p);
+   ++p;
+
+   // get day
+   int day = get_int_2(p);
+   ++p;
+
+   // get hour
+   int hour = get_int_2(p);
+   ++p;
+
+   // get minute
+   int minute = get_int_2(p);
+   ++p;
+
+   // get second
+   int second = get_int_2(p);
+   ++p;
+
+   int us = 0;
+   // get milliseconds or microseconds if present
+   if ((*p) == '.') {
+      us = get_int_3(p) * 1000;	 
+      if (isdigit(*p))
+	 us += get_int_3(p);
+   }
+
+   // get zone if present, otherwise assume local zone
+   const AbstractQoreZoneInfo *zone = 0;
+   if ((*p) == '+' || (*p) == '-')
+      zone = QTZM.findCreateOffsetZone(p);
+   else
+      zone = currentTZ();
+
+   DateTimeNode *rv = new DateTimeNode;
+   rv->setDate(zone, year, month, day, hour, minute, second, us);
+   return rv;
 }
 
 static inline DateTimeNode *makeDate(char *str) {

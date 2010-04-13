@@ -23,6 +23,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreTimeZoneManager.h>
+#include <qore/intern/qore_date_private.h>
 
 #include <stdio.h>
 #include <time.h>
@@ -34,6 +35,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include <memory>
 
@@ -251,27 +253,6 @@ int QoreTimeZoneManager::process(const char *fn) {
       return -1;
    }
 
-/*
-   // add time zones in transition info to nearest time zone map
-   const trans_vec_t &tti = tzi->getTransitionList();
-   for (trans_vec_t::const_iterator i = tti.begin(), e = tti.end(); i != e; ++i) {
-      tz_nearest_map_t::iterator ni = tznearest.find((*i).abbr);
-      if (ni == tznearest.end()) {
-	 tznearest.insert(std::make_pair((*i).abbr, (*i).gmtoff));
-	 ++tznearestsize;
-	 continue;
-      }
-
-      if (abs(our_gmtoffset - (*i).gmtoff) < abs(our_gmtoffset - ni->second)) {
-	 // update record
-	 //printd(1, "updating %s from %d -> %d (ours %d)\n", (*i).abbr.c_str(), ni->second, (*i).gmtoff, our_gmtoffset);
-	 ni->second = (*i).gmtoff;
-      }
-
-      //printd(1, "%s gmtoff=%d our_offset=%ld\n", (*i).abbr.c_str(), (*i).gmtoff, our_gmtoffset);
-   }
-*/
-
    //printd(5, "QoreTimeZoneManager::process() %s -> %p\n", name.c_str(), tzi.get());
    tzmap[name] = tzi.release();
    ++tzsize;
@@ -312,6 +293,72 @@ int QoreZoneInfo::getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
    is_dst = false;
    zone_name = std_abbr;
    return gmtoff;
+}
+
+// format: S00[[:]00[[:]00]]
+const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *offset) {
+   unsigned len = strlen(offset);
+   assert(len > 1);
+
+   const char *p = offset + 1;
+   assert(isdigit(*p));
+   int secs = (*p - '0') * SECS_PER_HOUR * 10;
+   ++p;
+   assert(isdigit(*p));
+   secs += (*p - '0') * SECS_PER_HOUR;
+   ++p;
+   if (*p) {
+      if (*p == ':')
+         ++p;
+      assert(isdigit(*p));
+      secs += (*p - '0') * SECS_PER_MINUTE * 10;
+      ++p;
+      assert(isdigit(*p));
+      secs += (*p - '0') * SECS_PER_MINUTE;
+      ++p;
+      if (*p) {
+         if (*p == ':')
+            ++p;
+         assert(isdigit(*p));
+         secs += (*p - '0') * 10;
+         ++p;
+         assert(isdigit(*p));
+         secs += *p - '0';
+      }
+   }
+
+   if (!secs)
+      return 0;
+
+   if (*offset == '-')
+      secs = -secs;
+
+   QoreAutoRWWriteLocker al(rwl_offset);
+   tzomap_t::iterator i = tzomap.find(secs);
+   if (i != tzomap.end())
+      return i->second;
+
+   QoreString tmp;
+   concatOffset(secs, tmp);
+   QoreOffsetZoneInfo *ozi = new QoreOffsetZoneInfo(tmp.getBuffer(), secs);
+   tzomap[secs] = ozi;
+   return ozi;
+}
+
+const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(int seconds_east) {
+   if (!seconds_east)
+      return 0;
+
+   QoreAutoRWWriteLocker al(rwl_offset);
+   tzomap_t::iterator i = tzomap.find(seconds_east);
+   if (i != tzomap.end())
+      return i->second;
+
+   QoreString tmp;
+   concatOffset(seconds_east, tmp);
+   QoreOffsetZoneInfo *ozi = new QoreOffsetZoneInfo(tmp.getBuffer(), seconds_east);
+   tzomap[seconds_east] = ozi;
+   return ozi;
 }
 
 int QoreTimeZoneManager::processDir(const char *d) {
@@ -389,7 +436,7 @@ void QoreTimeZoneManager::init_intern(QoreString &TZ) {
 
    if (setLocalTZ(TZ.getBuffer())) {
       // try to interpret as time zone rule specification
-      printd(0, "QoreTimeZoneManager::init_intern(): apply rule not implemented! arg=%s\n", TZ.getBuffer());
+      printd(0, "QoreTimeZoneManager::init_intern(): cannot find zone: %s\n", TZ.getBuffer());
    }
 }
 

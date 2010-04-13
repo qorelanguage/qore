@@ -475,24 +475,22 @@ protected:
    }
 
 public:
-   DLLLOCAL void set(int64 n_epoch, int n_us, const AbstractQoreZoneInfo *n_zone = 0) {
+   DLLLOCAL void set(const AbstractQoreZoneInfo *n_zone, int64 n_epoch, int n_us) {
+      zone = n_zone;
       epoch = n_epoch;
-      zone = n_zone ? n_zone : currentTZ();
       normalize_units2<int64, int>(epoch, n_us, 1000000);
       us = n_us;      
    }
 
-   DLLLOCAL void setLocal(int64 n_epoch, int n_us, const AbstractQoreZoneInfo *n_zone = 0) {
+   DLLLOCAL void setLocal(const AbstractQoreZoneInfo *n_zone, int64 n_epoch, int n_us) {
       epoch = n_epoch;
-      zone = n_zone ? n_zone : currentTZ();
+      zone = n_zone;
       normalize_units2<int64, int>(epoch, n_us, 1000000);
       setLocalIntern(n_us);
    }
 
-   DLLLOCAL void set(int year, int month, int day, int hour, int minute, int second, int n_us, const AbstractQoreZoneInfo *n_zone = 0) {
-      zone = n_zone ? n_zone : currentTZ();
-      assert(zone);
-      
+   DLLLOCAL void set(const AbstractQoreZoneInfo *n_zone, int year, int month, int day, int hour, int minute, int second, int n_us) {
+      zone = n_zone;
       epoch = qore_date_info::getEpochSeconds(year, month, day, hour, minute, second);
       setLocalIntern(n_us);
    }
@@ -926,14 +924,19 @@ public:
       if (r)
          d.rel.zero();
       else
-         d.abs.set(0, 0);
+         d.abs.set(currentTZ(), 0, 0);
    }
 
+   DLLLOCAL qore_date_private(const AbstractQoreZoneInfo *zone, int y, int mo, int dy, int h, int mi, int s, int us) : relative(false) {
+      d.abs.set(zone, y, mo, dy, h, mi, s, us);
+   }
+
+   // this constructor assumes local time
    DLLLOCAL qore_date_private(int y, int mo, int dy, int h, int mi, int s, int us, bool r) : relative(r) {
       if (r)
          d.rel.set(y, mo, dy, h, mi, s, us);
       else
-         d.abs.set(y, mo, dy, h, mi, s, us);
+         d.abs.set(currentTZ(), y, mo, dy, h, mi, s, us);
    }
 
    DLLLOCAL static int compare(const qore_date_private &left, const qore_date_private &right) {
@@ -958,10 +961,11 @@ public:
       *this = p;
    }
 
+   // assumes local time zone
    DLLLOCAL void setDate(const struct tm &tms, int us) {
       relative = false;
 
-      d.abs.set(1900 + tms.tm_year, tms.tm_mon + 1, tms.tm_mday, tms.tm_hour, tms.tm_min, tms.tm_sec, us);
+      d.abs.set(currentTZ(), 1900 + tms.tm_year, tms.tm_mon + 1, tms.tm_mday, tms.tm_hour, tms.tm_min, tms.tm_sec, us);
    }
 
    DLLLOCAL void setDate(const char *str) {
@@ -1110,14 +1114,24 @@ public:
          d.abs.setTime(h, m, s, us);
    }
 
-   DLLLOCAL void setDate(int64 seconds, int us = 0, const AbstractQoreZoneInfo *zone = 0) {
+   DLLLOCAL void setDate(const AbstractQoreZoneInfo *n_zone, int year, int month, int day, int hour, int minute, int second, int n_us) {
       relative = false;
-      d.abs.set(seconds, us, zone);
+      d.abs.set(n_zone, year, month, day, hour, minute, second, n_us);
    }
 
-   DLLLOCAL void setLocalDate(int64 seconds, int us = 0, const AbstractQoreZoneInfo *zone = 0) {
+   DLLLOCAL void setDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0) {
       relative = false;
-      d.abs.setLocal(seconds, us, zone);
+      d.abs.set(zone, seconds, us);
+   }
+
+   DLLLOCAL void setDate(int64 seconds, int us = 0) {
+      relative = false;
+      d.abs.set(currentTZ(), seconds, us);
+   }
+
+   DLLLOCAL void setLocalDate(int64 seconds, int us = 0) {
+      relative = false;
+      d.abs.setLocal(currentTZ(), seconds, us);
    }
 
    DLLLOCAL void setDateLiteral(int64 date, int us = 0) {

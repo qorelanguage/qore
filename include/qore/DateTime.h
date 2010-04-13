@@ -27,6 +27,8 @@
 
 #include <time.h>
 
+class AbstractQoreZoneInfo;
+
 //! Holds absolute and relative date/time values in Qore with precision to the millisecond
 /** Date arithmetic and date formatting is supported by this class.  Conversion to and from
     integers is based on a 64-bit offset in seconds since January 1, 1970 (the start of the
@@ -57,28 +59,34 @@ public:
    DLLEXPORT DateTime(bool r = false);
 
    //! constructor for setting all parameters
-   /**
-      @param n_year the year value
-      @param n_month the months value
-      @param n_day the days value
-      @param n_hour the hours value
-      @param n_minute the minutes value
-      @param n_second the seconds value
-      @param n_ms the milliseconds value
-      @param n_relative the relative flag
+   /** note that for absolute date/time values, the local time zone will be assumed
+       @param n_year the year value
+       @param n_month the months value
+       @param n_day the days value
+       @param n_hour the hours value
+       @param n_minute the minutes value
+       @param n_second the seconds value
+       @param n_ms the milliseconds value
+       @param n_relative the relative flag
    */
    DLLEXPORT DateTime(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, short n_ms = 0, bool n_relative = false);
 
+   //! constructor to create an absolute time, including microseconds
+   DLLEXPORT DateTime(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
+
+   //! constructor to create an absolute time as an offset from the epoch, including microseconds
+   DLLEXPORT DateTime(const AbstractQoreZoneInfo *n_zone, int64 seconds, int n_us = 0);
+
    //! constructor for setting an absolute date based on the number of seconds from January 1, 1970
-   /**
-      @param seconds the number of seconds from January 1, 1970
+   /** note that the local time zone will be assumed
+       @param seconds the number of seconds from January 1, 1970
    */
    DLLEXPORT DateTime(int64 seconds);
 
    //! constructor for setting an absolute date based on the number of seconds from January 1, 1970 (plus milliseconds)
-   /**
-      @param seconds the number of seconds from January 1, 1970
-      @param ms the milliseconds portion of the time	 
+   /** note that the local time zone will be assumed
+       @param seconds the number of seconds from January 1, 1970
+       @param ms the milliseconds portion of the time	 
    */
    DLLEXPORT DateTime(int64 seconds, int ms);
 
@@ -104,20 +112,31 @@ public:
    DLLEXPORT void getTM(struct tm *tms) const;
 
    //! sets the absolute date value based on the number of seconds from January 1, 1970
-   /**
-      @param seconds the number of seconds from January 1, 1970
+   /** note that the local time zone will be assumed
+       @param seconds the number of seconds from January 1, 1970
    */
    DLLEXPORT void setDate(int64 seconds);
 
-   //! sets the absolute date value based on the number of seconds from January 1, 1970 (plus milliseconds)
-   /**
-      @param seconds the number of seconds from January 1, 1970
-      @param ms the milliseconds portion of the time	 
+   //! sets the absolute date value based on the number of seconds from January 1, 1970 UTC (plus milliseconds)
+   /** note that the local time zone will be assumed
+       @param seconds the number of seconds from January 1, 1970 UTC
+       @param ms the milliseconds portion of the time	 
    */
    DLLEXPORT void setDate(int64 seconds, int ms);
 
+   //! sets the absolute date value based on the number of seconds from January 1, 1970 UTC (plus microseconds)
+   /** @param zone the time zone for the time
+       @param seconds the number of seconds from January 1, 1970 UTC
+       @param ms the milliseconds portion of the time	 
+   */
+   DLLEXPORT void setDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us);
+
+   //! sets the date to an absolute date/time as given
+   DLLEXPORT void setDate(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
+
    //! sets an absolute date value from a string in the format YYYYMMDDHHmmSS
    /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
+       note that the local time zone will be assumed
        @param str the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
    */
    DLLEXPORT void setDate(const char *str);
@@ -141,9 +160,9 @@ public:
    DLLEXPORT void setTime(int h, int m, int s, short ms = 0);
 
    DLLEXPORT bool checkValidity() const;
-   DLLEXPORT bool isEqual(const class DateTime *dt) const;
-   DLLEXPORT class DateTime *add(const class DateTime *dt) const;
-   DLLEXPORT class DateTime *subtractBy(const class DateTime *dt) const;
+   DLLEXPORT bool isEqual(const DateTime *dt) const;
+   DLLEXPORT DateTime *add(const DateTime *dt) const;
+   DLLEXPORT DateTime *subtractBy(const DateTime *dt) const;
 
    //! gets the number of seconds since January 1, 1970 for the current date
    /**
@@ -204,7 +223,7 @@ public:
        @param str the QoreString where the formatted date data will be written (appended)
        @param fmt the format string as per the above description
    */
-   DLLEXPORT void format(class QoreString &str, const char *fmt) const;
+   DLLEXPORT void format(QoreString &str, const char *fmt) const;
 
    //! returns true if the value is a relative date-time value
    /**
@@ -297,10 +316,10 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the DateTime value corresponding to the ISO-8601 week information (or 0 if an error occured)
    */
-   DLLEXPORT static class DateTime *getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink);
+   DLLEXPORT static DateTime *getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink);
 
    //! returns -1, 0, or 1 if the left date is less than, equal, or greater than the right date
-   DLLEXPORT static int compareDates(const class DateTime *left, const class DateTime *right);
+   DLLEXPORT static int compareDates(const DateTime *left, const DateTime *right);
 };
 
 #endif

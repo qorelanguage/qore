@@ -36,6 +36,29 @@ DateTime::DateTime(const DateTime &dt) : priv(new qore_date_private(*dt.priv)) {
 DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, short ms, bool r) : priv(new qore_date_private(y, mo, d, h, mi, s, (int)ms * 1000, r)) {
 }
 
+DateTime::DateTime(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) : priv(new qore_date_private(z, y, mo, d, h, mi, s, u)) {
+}
+
+DateTime::DateTime(const AbstractQoreZoneInfo *z, int64 seconds, int n_us) : priv(new qore_date_private) {
+   setDate(z, seconds, n_us);
+}
+
+DateTime::DateTime(const struct tm *tms) : priv(new qore_date_private) {
+   setDate(tms);
+}
+
+DateTime::DateTime(int64 seconds) : priv(new qore_date_private) {
+   setDate(seconds);
+}
+
+DateTime::DateTime(int64 seconds, int ms) : priv(new qore_date_private) {
+   setDate(seconds, ms);
+}
+
+DateTime::DateTime(const char *str) : priv(new qore_date_private) {
+   setDate(str);
+}
+
 DateTime::~DateTime() {
    delete priv;
 }
@@ -106,6 +129,10 @@ void DateTime::setDate(const DateTime &date) {
    priv->setDate(*date.priv);
 }
 
+void DateTime::setDate(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour, int n_minute, int n_second, int n_us) {
+   priv->setDate(n_zone, n_year, n_month, n_day, n_hour, n_minute, n_second, n_us);
+}
+
 // get the number of seconds before or after January 1, 1970 (UNIX epoch)
 int64 DateTime::getEpochSeconds() const {
    return priv->getEpochSeconds();
@@ -159,22 +186,6 @@ bool DateTime::isLeapYear(int year) {
 // static function
 int DateTime::getLastDayOfMonth(int month, int year) {
    return qore_date_info::getLastDayOfMonth(month, year);
-}
-
-DateTime::DateTime(const struct tm *tms) : priv(new qore_date_private) {
-   setDate(tms);
-}
-
-DateTime::DateTime(int64 seconds) : priv(new qore_date_private) {
-   setDate(seconds);
-}
-
-DateTime::DateTime(int64 seconds, int ms) : priv(new qore_date_private) {
-   setDate(seconds, ms);
-}
-
-DateTime::DateTime(const char *str) : priv(new qore_date_private) {
-   setDate(str);
 }
 
 void DateTime::getTM(struct tm *tms) const {

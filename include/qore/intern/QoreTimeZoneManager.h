@@ -71,10 +71,10 @@ protected:
    DLLLOCAL virtual int getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const = 0;
 
 public:
-   DLLLOCAL AbstractQoreZoneInfo(const std::string &n_name) : name(n_name), gmtoff(-1), has_dst(false) {
+   DLLLOCAL AbstractQoreZoneInfo() : gmtoff(-1), has_dst(false) {
    }
 
-   DLLLOCAL AbstractQoreZoneInfo() : gmtoff(-1), has_dst(false) {
+   DLLLOCAL AbstractQoreZoneInfo(const std::string &n_name, int n_gmtoff = -1) : name(n_name), gmtoff(n_gmtoff), has_dst(false) {
    }
 
    virtual DLLLOCAL ~AbstractQoreZoneInfo() {
@@ -123,6 +123,21 @@ public:
    }
 };
 
+// implements a simple offset from GMT
+class QoreOffsetZoneInfo : public AbstractQoreZoneInfo {
+protected:
+   DLLLOCAL virtual int getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
+      // will never be called
+      assert(false);
+      return 0;
+   }
+public:
+   DLLLOCAL QoreOffsetZoneInfo(std::string &n_name, int seconds_east) : AbstractQoreZoneInfo(n_name, seconds_east) {
+   }
+   DLLLOCAL QoreOffsetZoneInfo(const char *n_name, int seconds_east) : AbstractQoreZoneInfo(n_name, seconds_east) {
+   }
+};
+
 class QoreZoneInfo : public AbstractQoreZoneInfo {
 protected:
    // first positive transition entry (after the epoch)
@@ -161,21 +176,26 @@ public:
 
 class QoreTimeZoneManager {
 protected:
+   // read-write lock to manage real (non-offset) zone info objects
+   mutable QoreRWLock rwl;
+
+   // read-write lock to guard access to offset zone info objects
+   mutable QoreRWLock rwl_offset;
+
    // time zone info map (ex: "Europe/Prague" -> QoreZoneInfo*)
    typedef std::map<std::string, QoreZoneInfo *> tzmap_t;
 
+   // offset map type
+   typedef std::map<int, QoreOffsetZoneInfo *> tzomap_t;
+
    unsigned tzsize;
-   //unsigned tznearestsize;
 
    // our gmt offset in seconds east of GMT
    int our_gmtoffset;
 
    QoreString root;
    tzmap_t tzmap;
-
-   // time zone code to gmtoffset - for nearest time zone code to our time zone as calculated by the GMT offset
-   //typedef std::map<std::string, int> tz_nearest_map_t;
-   //tz_nearest_map_t tznearest;
+   tzomap_t tzomap;
 
    // pointer to our regional time information
    QoreZoneInfo *localtz;
@@ -201,9 +221,13 @@ public:
    }
 
    DLLLOCAL QoreZoneInfo *getZone(const char *name) {
+      QoreAutoRWReadLocker al(rwl);
       tzmap_t::iterator i = tzmap.find(name);
       return i == tzmap.end() ? 0 : i->second;
    }
+
+   DLLLOCAL const QoreOffsetZoneInfo *findCreateOffsetZone(int seconds_east);
+   DLLLOCAL const QoreOffsetZoneInfo *findCreateOffsetZone(const char *offset);
 
    DLLLOCAL int readAll(ExceptionSink *xsink);
 
