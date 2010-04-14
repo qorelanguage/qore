@@ -222,24 +222,6 @@ static inline DateTimeNode *makeMilliseconds(int ms) {
    return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
 }
 
-//2005-03-29
-//0123456789
-static inline void do_date_str(char *str) {
-   // move month
-   memmove(str+4, str+5, 2);
-   // move day and null
-   memmove(str+6, str+8, 3);
-}
-
-//16:03:29
-//01234567
-static inline void do_time_str(char *str) {
-   // move minute back
-   memmove(str+2, str+3, 2);
-   // move seconds and rest + null char
-   memmove(str+4, str+6, strlen(str+6) + 1);
-}
-
 static inline int get_int_2(const char *&p) {
    int rv = (*p - '0') * 10;
    ++p;
@@ -270,30 +252,16 @@ static inline int get_int_4(const char *&p) {
    return rv;
 }
 
-static DateTimeNode *makeDateTime(char *str) {
-   const char *p = str;
-
-   // get year
-   int year = get_int_4(p);
-   ++p;
-
-   // get month
-   int month = get_int_2(p);
-   ++p;
-
-   // get day
-   int day = get_int_2(p);
-   ++p;
+static void parse_time(const char *&p, int &hour, int &minute, int &second, int &us) {
+   assert(!hour && !minute && !second && !us);
 
    // get hour
-   int hour = get_int_2(p);
+   hour = get_int_2(p);
    ++p;
 
    // get minute
-   int minute = get_int_2(p);
+   minute = get_int_2(p);
 
-   int second;
-   int us = 0;
    if ((*p) == ':') {
       ++p;
       // get second
@@ -307,8 +275,29 @@ static DateTimeNode *makeDateTime(char *str) {
 	    us += get_int_3(p);
       }
    }
-   else
-      second = 0;
+}
+
+static DateTimeNode *makeDateTime(char *str) {
+   const char *p = str;
+
+   // get year
+   int year = get_int_4(p);
+   ++p;
+
+   // get month
+   int month = get_int_2(p);
+   ++p;
+
+   // get day
+   int day = get_int_2(p);
+
+   int hour = 0, minute = 0, second = 0, us = 0;
+
+   // parse time, if any
+   if (*p == 'T' || *p == '-') {
+      ++p;
+      parse_time(p, hour, minute, second, us);
+   }
 
    // get zone if present, otherwise assume local zone
    const AbstractQoreZoneInfo *zone;
@@ -322,16 +311,22 @@ static DateTimeNode *makeDateTime(char *str) {
    return DateTimeNode::makeAbsolute(zone, year, month, day, hour, minute, second, us);
 }
 
-static inline DateTimeNode *makeDate(char *str) {
-   do_date_str(str);
-   //printf("new date: %d:%s\n", strlen(str), str);
-   return new DateTimeNode(str);
-}
-
 static inline DateTimeNode *makeTime(char *str) {
-   do_time_str(str);
-   //printf("new time: %d:%s\n", strlen(str), str);
-   return new DateTimeNode(str);
+   const char *p = str;
+
+   int hour = 0, minute = 0, second = 0, us = 0;
+   parse_time(p, hour, minute, second, us);
+
+   // get zone if present, otherwise assume local zone
+   const AbstractQoreZoneInfo *zone;
+   if ((*p) == '+' || (*p) == '-')
+      zone = QTZM.findCreateOffsetZone(p);
+   else if ((*p) == 'Z')
+      zone = 0;
+   else
+      zone = currentTZ();
+
+   return DateTimeNode::makeAbsolute(zone, 1970, 01, 01, hour, minute, second, us);
 }
 
 static inline DateTimeNode *makeRelativeDateTime(char *str) {
@@ -351,39 +346,19 @@ static inline DateTimeNode *makeRelativeDateTime(char *str) {
    int hour = 0, minute = 0, second = 0, us = 0;
    if (*p) {
       ++p;
- 
-      // get hour
-      hour = get_int_2(p);
-      ++p;
-
-      // get minute
-      minute = get_int_2(p);
-
-      // get seconds
-      if (*p == ':') {
-	 ++p;
-	 // get second
-	 second = get_int_2(p);
-      }
-      
-      // get milliseconds or microseconds if present
-      if ((*p) == '.') {
-	 ++p;
-	 us = get_int_3(p) * 1000;	 
-	 if (isdigit(*p))
-	    us += get_int_3(p);
-      }
+      parse_time(p, hour, minute, second, us);
    }
 
    return DateTimeNode::makeRelative(year, month, day, hour, minute, second, us);
 }
 
-static inline DateTimeNode *makeRelativeDate(char *str) {
-   do_date_str(str);
-   //printf("new date: %d:%s\n", strlen(str), str);
-   DateTimeNode *dt = new DateTimeNode();
-   dt->setRelativeDate(str);
-   return dt;
+//16:03:29
+//01234567
+static inline void do_time_str(char *str) {
+   // move minute back
+   memmove(str+2, str+3, 2);
+   // move seconds and rest + null char
+   memmove(str+4, str+6, strlen(str+6) + 1);
 }
 
 static inline DateTimeNode *makeRelativeTime(char *str) {
@@ -458,7 +433,7 @@ MS              [0-9]{3}
 US              [0-9]{6}
 D2              [0-9]{2}
 BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
-TZ              (Z|([+-][01][0-9](:[01][0-9](:[01][0-9])?)?))
+TZ              (Z|([+-][01][0-9](:[0-5][0-9](:[0-5][0-9])?)?))
 
 %%
 ^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
@@ -1007,10 +982,10 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 					      unput(yytext[7]);
 					   return DOT_KW_IDENTIFIER;
                                         }
-{YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
-{YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
-{YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
-{HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;
+{YEAR}-{MONTH}-{DAY}([T-]{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
+{YEAR}-{MONTH}-{DAY}([T-]{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
+{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?      yylval->datetime = makeTime(yytext); return DATETIME;
+{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?      yylval->datetime = makeTime(yytext); return DATETIME;
 P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{MS})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
 P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
 PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
