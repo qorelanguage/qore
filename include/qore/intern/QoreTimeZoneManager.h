@@ -132,6 +132,7 @@ public:
    }
 };
 
+// offsets are normally in the range of -12 to +14 UTC
 // implements a simple offset from GMT
 class QoreOffsetZoneInfo : public AbstractQoreZoneInfo {
 protected:
@@ -210,9 +211,11 @@ protected:
    QoreZoneInfo *localtz;
    std::string localtzname;
 
+   DLLLOCAL int processIntern(const char *fn, ExceptionSink *xsink);
    DLLLOCAL int process(const char *fn);
 
-   DLLLOCAL int processDir(const char *d);
+   DLLLOCAL const QoreZoneInfo *processFile(const char *fn, ExceptionSink *xsink);
+   DLLLOCAL int processDir(const char *d, ExceptionSink *xsink);
 
    // to set the local time zone information from a file 
    DLLLOCAL int setLocalTZ(std::string fname);
@@ -249,6 +252,8 @@ public:
    DLLLOCAL const char *getLocalRegion() const {
       return localtzname.empty() ? 0 : localtzname.c_str();
    }
+
+   DLLLOCAL const AbstractQoreZoneInfo *findLoadRegion(const char *name, ExceptionSink *xsink);
 };
 
 DLLLOCAL extern QoreTimeZoneManager QTZM;

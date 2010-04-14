@@ -229,6 +229,32 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
 }
 
 int QoreTimeZoneManager::process(const char *fn) {
+   ExceptionSink xsink;
+
+   return processIntern(fn, &xsink);
+}
+
+const QoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, ExceptionSink *xsink) {
+   std::string name = !strncmp(root.getBuffer(), fn, root.strlen()) ? fn + root.strlen() + 1 : fn;
+   tzmap_t::iterator i = tzmap.find(name);
+   if (i != tzmap.end())
+      return i->second;
+
+   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(root, name, xsink));
+   if (!*(tzi.get())) {
+      //printd(1, "skipping %s/%s\n", root.getBuffer(), name.c_str());
+      return 0;
+   }
+
+   //printd(5, "QoreTimeZoneManager::processIntern() %s -> %p\n", name.c_str(), tzi.get());
+   QoreZoneInfo *rv = tzi.release();
+   tzmap[name] = rv;
+   ++tzsize;
+
+   return rv;
+}
+
+int QoreTimeZoneManager::processIntern(const char *fn, ExceptionSink *xsink) {
    // see if it's a directory or a file
    struct stat sbuf;
 
@@ -238,26 +264,9 @@ int QoreTimeZoneManager::process(const char *fn) {
    }
 
    if ((sbuf.st_mode & S_IFMT) == S_IFDIR)
-      return processDir(fn);
+      return processDir(fn, xsink);
 
-   std::string name = !strncmp(root.getBuffer(), fn, root.strlen()) ? fn + root.strlen() + 1 : fn;
-   if (tzmap.find(name) != tzmap.end())
-      return 0;
-
-   ExceptionSink xsink;
-   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(root, name, &xsink));
-   if (!*(tzi.get())) {
-      //xsink.handleExceptions();
-      xsink.clear();
-      //printd(1, "skipping %s/%s\n", root.getBuffer(), name.c_str());
-      return -1;
-   }
-
-   //printd(5, "QoreTimeZoneManager::process() %s -> %p\n", name.c_str(), tzi.get());
-   tzmap[name] = tzi.release();
-   ++tzsize;
-
-   return 0;
+   return processFile(fn, xsink) ? 0 : -1;
 }
 
 int QoreZoneInfo::getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
@@ -364,7 +373,7 @@ const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(int seconds_
    return ozi;
 }
 
-int QoreTimeZoneManager::processDir(const char *d) {
+int QoreTimeZoneManager::processDir(const char *d, ExceptionSink *xsink) {
    std::string dir = d;
    dir += "/*";
 
@@ -377,7 +386,7 @@ int QoreTimeZoneManager::processDir(const char *d) {
       return -1;
 
    for (unsigned i = 0; i < globbuf.gl_pathc; ++i)
-      process(globbuf.gl_pathv[i]);
+      processIntern(globbuf.gl_pathv[i], xsink);
 
    return 0;
 }
@@ -481,7 +490,8 @@ void QoreTimeZoneManager::setFromLocalTimeFile() {
 }
 
 int QoreTimeZoneManager::readAll(ExceptionSink *xsink) {
-   if (processDir(root.getBuffer())) {
+   if (processDir(root.getBuffer(), xsink)) {
+      xsink->clear();
       printd(1, "no time zone information available; glob(%s) failed: %s", root.getBuffer(), strerror(errno));
       return -1;
    }
@@ -489,4 +499,10 @@ int QoreTimeZoneManager::readAll(ExceptionSink *xsink) {
    printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() %d regions cached\n", tzsize);
 
    return 0;
+}
+
+const AbstractQoreZoneInfo *QoreTimeZoneManager::findLoadRegion(const char *name, ExceptionSink *xsink) {
+   QoreAutoRWWriteLocker al(rwl);
+   // find or load region
+   return processFile(name, xsink);
 }
