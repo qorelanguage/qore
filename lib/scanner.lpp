@@ -277,7 +277,7 @@ static void parse_time(const char *&p, int &hour, int &minute, int &second, int 
    }
 }
 
-static DateTimeNode *makeDateTime(char *str) {
+static DateTimeNode *makeDateTime(char *str, bool has_time) {
    const char *p = str;
 
    // get year
@@ -294,7 +294,7 @@ static DateTimeNode *makeDateTime(char *str) {
    int hour = 0, minute = 0, second = 0, us = 0;
 
    // parse time, if any
-   if (*p == 'T' || *p == '-') {
+   if (*p == 'T' || (*p == '-' && has_time)) {
       ++p;
       parse_time(p, hour, minute, second, us);
    }
@@ -974,8 +974,11 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 					      unput(yytext[7]);
 					   return DOT_KW_IDENTIFIER;
                                         }
-{YEAR}-{MONTH}-{DAY}([T-]{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
-{YEAR}-{MONTH}-{DAY}([T-]{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
+{YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;
+{YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;
+{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{MS})?{TZ}?      yylval->datetime = makeDateTime(yytext, true); return DATETIME;
+{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      yylval->datetime = makeDateTime(yytext, true); return DATETIME;
+{YEAR}-{MONTH}-{DAY}?{TZ}?                                   yylval->datetime = makeDateTime(yytext, false); return DATETIME;
 {HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?   yylval->datetime = makeTime(yytext); return DATETIME;
 {HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeTime(yytext); return DATETIME;
 P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{MS})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;

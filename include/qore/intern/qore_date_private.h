@@ -32,8 +32,9 @@
 //       even if this information is available in the zoneinfo data
 
 #define SECS_PER_MINUTE          60
+// 3600
 #define SECS_PER_HOUR            (SECS_PER_MINUTE * 60)
-// number of seconds in a normal day (no DST)
+// number of seconds in a normal day (no DST) = 86400
 #define SECS_PER_DAY             (SECS_PER_HOUR * 24)
 // number of seconds in a normal year (no leap day)
 #define SECS_PER_YEAR            (SECS_PER_DAY * 365ll)

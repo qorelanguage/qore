@@ -201,6 +201,8 @@ void concatOffset(int gmtoffset, QoreString &str) {
    }
    
    str.concat(gmtoffset < 0 ? '-' : '+');
+   if (gmtoffset < 0)
+      gmtoffset = -gmtoffset;
    int h = gmtoffset / SECS_PER_HOUR;
    // the remaining seconds after hours
    int r = gmtoffset % SECS_PER_HOUR;
