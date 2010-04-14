@@ -240,7 +240,6 @@ public:
    */
    DLLEXPORT static DateTimeNode *makeAbsolute(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
 
-
    //! static "constructor" to create a relative time, including microseconds
    DLLEXPORT static DateTimeNode *makeRelative(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 };

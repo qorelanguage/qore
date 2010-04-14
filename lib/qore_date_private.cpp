@@ -447,6 +447,9 @@ void normalize_dm(int &year, int &month, int &day) {
 
 // normalize to the correct day, month, and year
 void normalize_day(int &year, int &month, int &day) {
+   // assumes month is already normalized
+   assert(month > 0 && month < 13);
+
    if (day > 0) {
       int i;
       while (day > (i = qore_date_info::getLastDayOfMonth(month, year))) {

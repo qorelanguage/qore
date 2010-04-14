@@ -352,21 +352,13 @@ static inline DateTimeNode *makeRelativeDateTime(char *str) {
    return DateTimeNode::makeRelative(year, month, day, hour, minute, second, us);
 }
 
-//16:03:29
-//01234567
-static inline void do_time_str(char *str) {
-   // move minute back
-   memmove(str+2, str+3, 2);
-   // move seconds and rest + null char
-   memmove(str+4, str+6, strlen(str+6) + 1);
-}
-
 static inline DateTimeNode *makeRelativeTime(char *str) {
-   do_time_str(str);
-   //printf("new time: %d:%s\n", strlen(str), str);
-   DateTimeNode *dt = new DateTimeNode();
-   dt->setRelativeDate(str);
-   return dt;
+   const char *p = str;
+
+   int hour = 0, minute = 0, second = 0, us = 0;
+   parse_time(p, hour, minute, second, us);
+
+   return DateTimeNode::makeRelative(0, 0, 0, hour, minute, second, us);
 }
 
 static inline bool isRegexModifier(QoreRegexNode *qr, int c) {
@@ -433,7 +425,7 @@ MS              [0-9]{3}
 US              [0-9]{6}
 D2              [0-9]{2}
 BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
-TZ              (Z|([+-][01][0-9](:[0-5][0-9](:[0-5][0-9])?)?))
+TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
 
 %%
 ^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
@@ -984,12 +976,14 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
                                         }
 {YEAR}-{MONTH}-{DAY}([T-]{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}([T-]{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
-{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?      yylval->datetime = makeTime(yytext); return DATETIME;
-{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?      yylval->datetime = makeTime(yytext); return DATETIME;
+{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?   yylval->datetime = makeTime(yytext); return DATETIME;
+{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeTime(yytext); return DATETIME;
 P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{MS})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
 P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
-PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
-P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
+PT{D2}:{D2}(:{D2}(\.{MS})?)?            yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
+PT{D2}:{D2}(:{D2}(\.{US})?)?            yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
+P{D2}:{D2}(:{D2}(\.{MS})?)?             yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
+P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
 cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;

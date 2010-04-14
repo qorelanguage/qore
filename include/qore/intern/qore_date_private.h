@@ -424,11 +424,16 @@ struct qore_simple_tm2 : public qore_simple_tm {
          normalize_units2<int, int>(year, month, 12);
          ++month;
       }
+      else if (!month)
+         month = 1;
+
+      if (!day)
+         day = 1;
 
       // now normalize day
       normalize_day(year, month, day);
 
-      //printd(5, "qore_simple_tm2::setLiteral() %04d-%02d-%02d %02d:%02d:%02d.%06d\n", year, month, day, hour, minute, second, us);
+      printd(0, "qore_simple_tm2::setLiteral() %04d-%02d-%02d %02d:%02d:%02d.%06d\n", year, month, day, hour, minute, second, us);
    }
    DLLLOCAL void getISOWeek(int &yr, int &week, int &wday) const;
 };
