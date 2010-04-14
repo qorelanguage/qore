@@ -253,6 +253,14 @@ void DateTime::unaryMinusInPlace() {
    priv->unaryMinus();
 }
 
-DateTime *DateTime::makeNew(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) {
+DateTime *DateTime::makeAbsolute(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) {
    return new DateTime(new qore_date_private(z, y, mo, d, h, mi, s, u));
+}
+
+DateTime *DateTime::makeAbsolute(const AbstractQoreZoneInfo *zone, int64 seconds, int us) {
+   return new DateTime(new qore_date_private(zone, seconds, us));
+}
+
+DateTime *DateTime::makeRelative(int y, int mo, int d, int h, int mi, int s, int u) {
+   return new DateTime(new qore_date_private(y, mo, d, h, mi, s, u, true));
 }

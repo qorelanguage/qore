@@ -929,6 +929,11 @@ public:
          d.abs.set(currentTZ(), 0, 0);
    }
 
+   DLLLOCAL qore_date_private(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0) : relative(false) {
+      d.abs.set(zone, seconds, us);
+   }
+
+
    DLLLOCAL qore_date_private(const AbstractQoreZoneInfo *zone, int y, int mo, int dy, int h, int mi, int s, int us) : relative(false) {
       d.abs.set(zone, y, mo, dy, h, mi, s, us);
    }

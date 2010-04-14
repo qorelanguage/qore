@@ -230,7 +230,19 @@ public:
    DLLEXPORT static DateTimeNode *getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink);
 
    //! static "constructor" to create an absolute time, including microseconds
-   DLLEXPORT static DateTimeNode *makeNew(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
+   DLLEXPORT static DateTimeNode *makeAbsolute(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
+
+   //! static "constructor" to create an absolute time as an offset from the epoch, including microseconds
+   /**
+      @param zone time zone for the date/time value, 0 = UTC, @see currentTZ()
+      @param seconds the number of seconds from January 1, 1970
+      @param us the microseconds portion of the time	 
+   */
+   DLLEXPORT static DateTimeNode *makeAbsolute(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
+
+
+   //! static "constructor" to create a relative time, including microseconds
+   DLLEXPORT static DateTimeNode *makeRelative(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 };
 
 DLLEXPORT extern DateTimeNode *ZeroDate;

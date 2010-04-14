@@ -182,6 +182,14 @@ DateTimeNode *DateTimeNode::unaryMinus() const {
    return rv;
 }
 
-DateTimeNode *DateTimeNode::makeNew(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) {
+DateTimeNode *DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) {
    return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u));
+}
+
+DateTimeNode *DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo *zone, int64 seconds, int us) {
+   return new DateTimeNode(new qore_date_private(zone, seconds, us));
+}
+
+DateTimeNode *DateTimeNode::makeRelative(int y, int mo, int d, int h, int mi, int s, int u) {
+   return new DateTimeNode(new qore_date_private(y, mo, d, h, mi, s, u, true));
 }

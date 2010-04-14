@@ -84,10 +84,10 @@ DLLEXPORT struct tm *q_localtime(const time_t *clock, struct tm *tms);
 DLLEXPORT struct tm *q_gmtime(const time_t *clock, struct tm *tms);
 
 //! returns the seconds and microseconds from the epoch
-DLLEXPORT void q_epoch_us(int64 &seconds, int &us);
+DLLEXPORT int64 q_epoch_us(int &us);
 
 //! returns the seconds and nanoseconds from the epoch
-DLLEXPORT void q_epoch_ns(int64 &seconds, int &us);
+DLLEXPORT int64 q_epoch_ns(int &us);
 
 //! thread-safe basename function (resulting pointer must be free()ed)
 DLLEXPORT char *q_basename(const char *path);

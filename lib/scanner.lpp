@@ -222,21 +222,6 @@ static inline DateTimeNode *makeMilliseconds(int ms) {
    return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
 }
 
-//2005-03-29-10:19:27
-//0123456789012345678
-static inline void do_date_time_str(char *str) {
-   // move day to middle
-   memmove(str+9, str+8, 2);
-   // move month to middle
-   memmove(str+7, str+5, 2);
-   // move year to middle
-   memmove(str+3, str, 4);
-   // move minute to middle
-   memmove(str+13, str+14, 2);
-   // move seconds and the rest + null char to middle
-   memmove(str+15, str+17, strlen(str+17) + 1);
-}
-
 //2005-03-29
 //0123456789
 static inline void do_date_str(char *str) {
@@ -334,7 +319,7 @@ static DateTimeNode *makeDateTime(char *str) {
    else
       zone = currentTZ();
 
-   return DateTimeNode::makeNew(zone, year, month, day, hour, minute, second, us);
+   return DateTimeNode::makeAbsolute(zone, year, month, day, hour, minute, second, us);
 }
 
 static inline DateTimeNode *makeDate(char *str) {
@@ -350,12 +335,47 @@ static inline DateTimeNode *makeTime(char *str) {
 }
 
 static inline DateTimeNode *makeRelativeDateTime(char *str) {
-   // move string to middle to form date string
-   do_date_time_str(str);
-   //printf("new date: %s\n", str + 3);
-   DateTimeNode *dt = new DateTimeNode();
-   dt->setRelativeDate(str + 3);
-   return dt;
+   const char *p = str;
+
+   // get year
+   int year = get_int_4(p);
+   ++p;
+
+   // get month
+   int month = get_int_2(p);
+   ++p;
+
+   // get day
+   int day = get_int_2(p);
+
+   int hour = 0, minute = 0, second = 0, us = 0;
+   if (*p) {
+      ++p;
+ 
+      // get hour
+      hour = get_int_2(p);
+      ++p;
+
+      // get minute
+      minute = get_int_2(p);
+
+      // get seconds
+      if (*p == ':') {
+	 ++p;
+	 // get second
+	 second = get_int_2(p);
+      }
+      
+      // get milliseconds or microseconds if present
+      if ((*p) == '.') {
+	 ++p;
+	 us = get_int_3(p) * 1000;	 
+	 if (isdigit(*p))
+	    us += get_int_3(p);
+      }
+   }
+
+   return DateTimeNode::makeRelative(year, month, day, hour, minute, second, us);
 }
 
 static inline DateTimeNode *makeRelativeDate(char *str) {
@@ -991,8 +1011,8 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;
-P{YEAR}-{D2}-{D2}T{D2}:{D2}:{D2}(\.{MS})?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
-P{YEAR}-{D2}-{D2}                       yylval->datetime = makeRelativeDate(yytext+1); return DATETIME;
+P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{MS})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
+P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
 PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
 P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
